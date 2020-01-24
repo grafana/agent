@@ -2,14 +2,12 @@ package wal
 
 import (
 	"sync"
-	"unsafe"
 
 	"github.com/go-kit/kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/storage"
-	"github.com/prometheus/prometheus/tsdb"
-	tsdbLabels "github.com/prometheus/prometheus/tsdb/labels"
+	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
 
@@ -51,8 +49,8 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	storage.appenderPool.New = func() interface{} {
 		return &appender{
 			w:       storage,
-			series:  make([]tsdb.RefSeries, 0, 100),
-			samples: make([]tsdb.RefSample, 0, 100),
+			series:  make([]record.RefSeries, 0, 100),
+			samples: make([]record.RefSample, 0, 100),
 		}
 	}
 
@@ -101,21 +99,21 @@ func (w *Storage) Close() error {
 
 type appender struct {
 	w       *Storage
-	series  []tsdb.RefSeries
-	samples []tsdb.RefSample
+	series  []record.RefSeries
+	samples []record.RefSample
 }
 
 func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	ref, addSeries := a.w.lookupLabels(l)
 
 	if addSeries {
-		a.series = append(a.series, tsdb.RefSeries{
+		a.series = append(a.series, record.RefSeries{
 			Ref:    ref,
-			Labels: toTSDBLabels(l),
+			Labels: l,
 		})
 	}
 
-	a.samples = append(a.samples, tsdb.RefSample{
+	a.samples = append(a.samples, record.RefSample{
 		Ref: ref,
 		T:   t,
 		V:   v,
@@ -124,12 +122,8 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	return ref, nil
 }
 
-func toTSDBLabels(l labels.Labels) tsdbLabels.Labels {
-	return *(*tsdbLabels.Labels)(unsafe.Pointer(&l))
-}
-
 func (a *appender) AddFast(_ labels.Labels, ref uint64, t int64, v float64) error {
-	a.samples = append(a.samples, tsdb.RefSample{
+	a.samples = append(a.samples, record.RefSample{
 		Ref: ref,
 		T:   t,
 		V:   v,
@@ -139,7 +133,7 @@ func (a *appender) AddFast(_ labels.Labels, ref uint64, t int64, v float64) erro
 
 // Commit submits the collected samples and purges the batch.
 func (a *appender) Commit() error {
-	var encoder tsdb.RecordEncoder
+	var encoder record.Encoder
 	buf := a.w.bufPool.Get().([]byte)
 	buf = encoder.Series(a.series, buf)
 	if err := a.w.wal.Log(buf); err != nil {
