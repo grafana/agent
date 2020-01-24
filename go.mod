@@ -9,8 +9,13 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/cortexproject/cortex v0.4.0
 	github.com/go-kit/kit v0.9.0
+	github.com/oklog/run v1.0.0
+	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.3.0
+	github.com/prometheus/common v0.8.0
 	github.com/prometheus/prometheus v1.8.2-0.20200106144642-d9613e5c466c
+	github.com/weaveworks/common v0.0.0-20190822150010-afb9996716e4
+	gopkg.in/yaml.v2 v2.2.7
 )
 
 // Replace directives from Prometheus
@@ -23,3 +28,5 @@ replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.0+incompatible
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
 )
+
+replace github.com/prometheus/prometheus => /home/robert/dev/prometheus/prometheus
