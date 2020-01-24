@@ -1,6 +1,7 @@
 package wal
 
 import (
+	"path/filepath"
 	"sync"
 
 	"github.com/go-kit/kit/log"
@@ -32,7 +33,7 @@ type Storage struct {
 
 // NewStorage makes a new Storage.
 func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
-	w, err := wal.Open(logger, registerer, path)
+	w, err := wal.NewSize(logger, registerer, filepath.Join(path, "wal"), wal.DefaultSegmentSize, true)
 	if err != nil {
 		return nil, err
 	}
