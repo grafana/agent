@@ -1,0 +1,68 @@
+package prometheus
+
+import (
+	"encoding/json"
+	"errors"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestNew_ValidatesConfig(t *testing.T) {
+	// Zero value of Config is invalid; it needs at least a
+	// WAL dir defined
+	invalidConfig := Config{}
+	_, err := New(invalidConfig, nil)
+	require.Error(t, err)
+}
+
+func TestConfig_Validate(t *testing.T) {
+	valid := Config{
+		WALDir: "/tmp/data",
+		Configs: []InstanceConfig{
+			{Name: "instance"},
+		},
+	}
+
+	tt := []struct {
+		name    string
+		mutator func(c *Config)
+		expect  error
+	}{
+		{
+			name:    "complete config should be valid",
+			mutator: func(c *Config) {},
+			expect:  nil,
+		},
+		{
+			name:    "no wal dir",
+			mutator: func(c *Config) { c.WALDir = "" },
+			expect:  errors.New("no wal_directory configured"),
+		},
+		{
+			name:    "missing instance name",
+			mutator: func(c *Config) { c.Configs[0].Name = "" },
+			expect:  errors.New("error validating instance 0: missing instance name"),
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := copyConfig(t, valid)
+			tc.mutator(&cfg)
+
+			err := cfg.Validate()
+			require.Equal(t, tc.expect, err)
+		})
+	}
+}
+
+func copyConfig(t *testing.T, c Config) Config {
+	bb, err := json.Marshal(c)
+	require.NoError(t, err)
+
+	var cp Config
+	err = json.Unmarshal(bb, &cp)
+	require.NoError(t, err)
+	return cp
+}
