@@ -67,7 +67,7 @@ cmd/agent/agent: cmd/agent/main.go
 lint:
 	GO111MODULE=on GOGC=10 golangci-lint run -v $(GOLANGCI_ARG)
 
-test: all
+test:
 	GOGC=10 go test $(MOD_FLAG) -p=4 ./...
 
 clean:
