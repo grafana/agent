@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -12,21 +11,14 @@ import (
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util"
-	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/wal"
-	"github.com/oklog/run"
+	prom "github.com/grafana/agent/pkg/prometheus"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
 	"github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/discovery"
-	sd_config "github.com/prometheus/prometheus/discovery/config"
-	"github.com/prometheus/prometheus/scrape"
-	"github.com/prometheus/prometheus/storage"
-	"github.com/prometheus/prometheus/storage/remote"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
@@ -43,21 +35,28 @@ type Config struct {
 	// TODO(rfratto): move to weaveworks/common sever config
 	LogLevel logging.Level `yaml:"log_level"`
 
-	Prometheus struct {
-		GlobalConfig config.GlobalConfig `yaml:"global"`
-		Configs      []PrometheusConfig  `yaml:"configs,omitempty"`
-	} `yaml:"prometheus,omitempty"`
+	Prometheus prom.Config `yaml:"prometheus,omitempty"`
 }
 
-type PrometheusConfig struct {
-	Name          string                      `yaml:"name,omitempty"`
-	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty"`
-	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
+// ApplyDefaults applies default values to the config for fields that
+// have not changed to their non-zero value.
+func (c *Config) ApplyDefaults() {
+	c.Prometheus.ApplyDefaults()
+}
+
+// Validate checks if the Config has all required fields filled out.
+// Should be called after ApplyDefaults.
+func (c *Config) Validate() error {
+	return c.Prometheus.Validate()
 }
 
 func init() {
 	prometheus.MustRegister(version.NewCollector("agent"))
 }
+
+// TODO(rfratto):
+//   1. WAL as flag, create subdirectories for each agent instance
+//   2. Get rid of the silly mainError function
 
 func main() {
 	err := mainError()
@@ -73,9 +72,6 @@ func mainError() error {
 
 		cfg        Config
 		configFile string
-
-		// TODO(rfratto): make configurable
-		walDirectory string = ".wal"
 	)
 
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -100,109 +96,26 @@ func mainError() error {
 	})
 	level.Debug(util.Logger).Log("msg", "debug logging enabled")
 
-	if zeroGlobalConfig(cfg.Prometheus.GlobalConfig) {
-		cfg.Prometheus.GlobalConfig = config.DefaultGlobalConfig
-	}
-
 	go exposeTestMetric()
 
-	ctxScrape, cancelScrape := context.WithCancel(context.Background())
-	defer cancelScrape()
-
-	discoveryManagerScrape := discovery.NewManager(ctxScrape, log.With(util.Logger, "component", "discovery manager scrape"), discovery.Name("scrape"))
-	{
-		c := map[string]sd_config.ServiceDiscoveryConfig{}
-		// TODO(rfratto): remove hardcoded configs[0]
-		for _, v := range cfg.Prometheus.Configs[0].ScrapeConfigs {
-			// TODO(rfratto): move this somewhere else
-			if v.ScrapeInterval == 0 {
-				v.ScrapeInterval = cfg.Prometheus.GlobalConfig.ScrapeInterval
-			}
-			if v.ScrapeTimeout == 0 {
-				if cfg.Prometheus.GlobalConfig.ScrapeTimeout > v.ScrapeInterval {
-					v.ScrapeTimeout = v.ScrapeInterval
-				} else {
-					v.ScrapeTimeout = cfg.Prometheus.GlobalConfig.ScrapeTimeout
-				}
-			}
-			c[v.JobName] = v.ServiceDiscoveryConfig
-		}
-		discoveryManagerScrape.ApplyConfig(c)
+	cfg.ApplyDefaults()
+	if err := cfg.Validate(); err != nil {
+		level.Error(util.Logger).Log("msg", "config validation failed", "err", err)
+		return nil
 	}
 
-	wstore, err := wal.NewStorage(util.Logger, prometheus.DefaultRegisterer, walDirectory)
-	if err != nil {
-		panic(err)
-	}
+	promMetrics := prom.New(cfg.Prometheus, util.Logger)
 
-	remoteStorage := remote.NewStorage(log.With(util.Logger, "component", "remote"), prometheus.DefaultRegisterer, wstore.StartTime, walDirectory, time.Duration(1*time.Minute))
-	// TODO(rfratto): remove hardcoded configs[0]
-	remoteStorage.ApplyConfig(&config.Config{
-		GlobalConfig:       cfg.Prometheus.GlobalConfig,
-		RemoteWriteConfigs: cfg.Prometheus.Configs[0].RemoteWrite,
-	})
+	// TODO(rfratto): this is going to block forever, even if promMetrics
+	// stops. We need a better solution for this.
+	term := make(chan os.Signal, 1)
+	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
+	<-term
 
-	fanoutStorage := storage.NewFanout(util.Logger, wstore, remoteStorage)
+	promMetrics.Stop()
 
-	scrapeManager := scrape.NewManager(log.With(util.Logger, "component", "scrape manager"), fanoutStorage)
-	// TODO(rfratto): remove hardcoded configs[0]
-	scrapeManager.ApplyConfig(&config.Config{
-		GlobalConfig:  cfg.Prometheus.GlobalConfig,
-		ScrapeConfigs: cfg.Prometheus.Configs[0].ScrapeConfigs,
-	})
-
-	var g run.Group
-	{
-		// Temination handler.
-		term := make(chan os.Signal, 1)
-		signal.Notify(term, os.Interrupt, syscall.SIGTERM)
-		cancel := make(chan struct{})
-		g.Add(
-			func() error {
-				select {
-				case <-term:
-				case <-cancel:
-				}
-				return nil
-			},
-			func(err error) {
-				close(cancel)
-			},
-		)
-	}
-	{
-		// Scrape discovery manger.
-		g.Add(
-			func() error {
-				err := discoveryManagerScrape.Run()
-				level.Info(util.Logger).Log("msg", "scrape discovery manager stopped")
-				return err
-			},
-			func(err error) {
-				level.Info(util.Logger).Log("msg", "stopping scrape discovery manager...")
-				cancelScrape()
-			},
-		)
-	}
-	{
-		// Scrape manager
-		g.Add(
-			func() error {
-				err := scrapeManager.Run(discoveryManagerScrape.SyncCh())
-				level.Info(util.Logger).Log("msg", "scrape manager stopped")
-				return err
-			},
-			func(err error) {
-				if err := fanoutStorage.Close(); err != nil {
-					level.Error(util.Logger).Log("msg", "error stopping storage", "err", err)
-				}
-				level.Info(util.Logger).Log("msg", "stopping scrape manager...")
-				scrapeManager.Stop()
-			},
-		)
-	}
-
-	return g.Run()
+	level.Info(util.Logger).Log("msg", "agent exiting")
+	return nil
 }
 
 func exposeTestMetric() {
