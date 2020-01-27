@@ -1,6 +1,5 @@
 log_level: debug
 prometheus:
-  wal_directory: '.wal'
   configs:
     - name: test
       scrape_configs:

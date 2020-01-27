@@ -18,18 +18,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
-	"github.com/prometheus/prometheus/config"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
-
-func zeroGlobalConfig(c config.GlobalConfig) bool {
-	return c.ExternalLabels == nil &&
-		c.ScrapeInterval == 0 &&
-		c.ScrapeTimeout == 0 &&
-		c.EvaluationInterval == 0
-}
 
 type Config struct {
 	// TODO(rfratto): move to weaveworks/common sever config
@@ -49,9 +41,8 @@ func init() {
 }
 
 // TODO(rfratto):
-//   1. WAL as flag, create subdirectories for each agent instance
+//   1. weavworks/common server for own metrics
 //   2. Get rid of the silly mainError function
-//   3. weavworks/common server for own metrics
 
 func main() {
 	err := mainError()
@@ -72,6 +63,7 @@ func mainError() error {
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	fs.StringVar(&configFile, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
+	cfg.Prometheus.RegisterFlags(fs)
 	cfg.LogLevel.RegisterFlags(fs)
 	fs.Parse(os.Args[1:])
 
@@ -85,6 +77,9 @@ func mainError() error {
 	} else if err := loadConfig(configFile, &cfg); err != nil {
 		return fmt.Errorf("error loading config file %s: %v", configFile, err)
 	}
+
+	// Parse the flags again to override any yaml stuff with command line flags
+	fs.Parse(os.Args[1:])
 
 	util.InitLogger(&server.Config{
 		LogLevel: cfg.LogLevel,
