@@ -1,8 +1,8 @@
 log_level: debug
 prometheus:
+  wal_directory: '.wal'
   configs:
     - name: test
-      wal_directory: 'test_wal'
       scrape_configs:
         - job_name: local_scrape
           static_configs:

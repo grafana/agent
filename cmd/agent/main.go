@@ -44,12 +44,6 @@ func (c *Config) ApplyDefaults() {
 	c.Prometheus.ApplyDefaults()
 }
 
-// Validate checks if the Config has all required fields filled out.
-// Should be called after ApplyDefaults.
-func (c *Config) Validate() error {
-	return c.Prometheus.Validate()
-}
-
 func init() {
 	prometheus.MustRegister(version.NewCollector("agent"))
 }
@@ -57,6 +51,7 @@ func init() {
 // TODO(rfratto):
 //   1. WAL as flag, create subdirectories for each agent instance
 //   2. Get rid of the silly mainError function
+//   3. weavworks/common server for own metrics
 
 func main() {
 	err := mainError()
@@ -94,20 +89,16 @@ func mainError() error {
 	util.InitLogger(&server.Config{
 		LogLevel: cfg.LogLevel,
 	})
-	level.Debug(util.Logger).Log("msg", "debug logging enabled")
 
 	go exposeTestMetric()
 
 	cfg.ApplyDefaults()
-	if err := cfg.Validate(); err != nil {
-		level.Error(util.Logger).Log("msg", "config validation failed", "err", err)
-		return nil
+
+	promMetrics, err := prom.New(cfg.Prometheus, util.Logger)
+	if err != nil {
+		level.Error(util.Logger).Log("msg", "failed to create prometheus instance", "err", err)
 	}
 
-	promMetrics := prom.New(cfg.Prometheus, util.Logger)
-
-	// TODO(rfratto): this is going to block forever, even if promMetrics
-	// stops. We need a better solution for this.
 	term := make(chan os.Signal, 1)
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
 	<-term
