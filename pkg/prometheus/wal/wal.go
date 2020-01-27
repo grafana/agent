@@ -15,6 +15,7 @@ import (
 // TODO
 // - Regularly checkpoint to a separate directory just like Prometheus,
 //   so the remote write code picks up checkpoints and garbage collects series.
+// - Delete checkpoints, segments as needed
 
 // Storage implements storage.Storage, and just writes to the WAL.
 type Storage struct {
