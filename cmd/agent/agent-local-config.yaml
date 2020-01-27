@@ -9,6 +9,7 @@ prometheus:
         - job_name: local_scrape
           static_configs:
             - targets: ['127.0.0.1:12345']
-              labels: {agent: 'yes'}
+              labels:
+                cluster: 'localhost'
       remote_write:
         - url: http://localhost:8080/cortex/api/distributor/api/prom/push
