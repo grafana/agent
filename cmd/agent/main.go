@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	// Adds version information
+	_ "github.com/grafana/agent/cmd/agent/build"
+
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"
 	prom "github.com/grafana/agent/pkg/prometheus"
@@ -49,7 +52,7 @@ func main() {
 	fs.StringVar(&configFile, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	cfg.RegisterFlags(fs)
-	fs.Parse(os.Args[1:])
+	errCheck(fs.Parse(os.Args[1:]), "error parsing flags")
 
 	if printVersion {
 		fmt.Println(version.Print("agent"))
@@ -63,7 +66,7 @@ func main() {
 	}
 
 	// Parse the flags again to override any yaml stuff with command line flags
-	fs.Parse(os.Args[1:])
+	errCheck(fs.Parse(os.Args[1:]), "error parsing flags")
 
 	util.InitLogger(&cfg.Server)
 
@@ -85,6 +88,13 @@ func main() {
 
 	promMetrics.Stop()
 	level.Info(util.Logger).Log("msg", "agent exiting")
+}
+
+func errCheck(err error, msg string) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, msg)
+		os.Exit(1)
+	}
 }
 
 func exitWithError(format string, args ...interface{}) {

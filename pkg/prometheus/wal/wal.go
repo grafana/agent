@@ -45,7 +45,11 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	}
 
 	storage.bufPool.New = func() interface{} {
-		return make([]byte, 0, 1024)
+		// staticcheck wants slices in a sync.Pool to be pointers to
+		// avoid overhead of allocating a struct with the length, capacity, and
+		// pointer to underlying array.
+		b := make([]byte, 0, 1024)
+		return &b
 	}
 
 	storage.appenderPool.New = func() interface{} {
@@ -136,7 +140,9 @@ func (a *appender) AddFast(_ labels.Labels, ref uint64, t int64, v float64) erro
 // Commit submits the collected samples and purges the batch.
 func (a *appender) Commit() error {
 	var encoder record.Encoder
-	buf := a.w.bufPool.Get().([]byte)
+	bufp := a.w.bufPool.Get().(*[]byte)
+	buf := *bufp
+
 	buf = encoder.Series(a.series, buf)
 	if err := a.w.wal.Log(buf); err != nil {
 		return err
@@ -149,7 +155,7 @@ func (a *appender) Commit() error {
 	}
 
 	buf = buf[:0]
-	a.w.bufPool.Put(buf)
+	a.w.bufPool.Put(&buf)
 	return a.Rollback()
 }
 

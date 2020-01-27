@@ -4,7 +4,9 @@
 package prometheus
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"sync"
 	"time"
 
@@ -41,7 +43,16 @@ func (c *Config) ApplyDefaults() {
 // Validate checks if the Config has all required fields filled out. This
 // should only be called after ApplyDefaults.
 func (c *Config) Validate() error {
-	// TODO(rfratto): validation
+	if c.WALDir == "" {
+		return errors.New("no wal_directory configured")
+	}
+
+	for i, cfg := range c.Configs {
+		if err := cfg.Validate(); err != nil {
+			return fmt.Errorf("error validating instance %d: %s", i, err)
+		}
+	}
+
 	return nil
 }
 
@@ -98,7 +109,7 @@ func (a *Agent) run() {
 			inst := a.instances[i]
 			<-inst.exited
 
-			if err := inst.Err(); err != nil && err != instanceStoppedNormallyErr {
+			if err := inst.Err(); err != nil && err != errInstanceStoppedNormally {
 				// TODO(rfratto): metric for abnormal instance exits
 				level.Error(a.logger).Log("msg", "instance stopped abnormally. restarting in 5 sec...", "err", err)
 				time.Sleep(time.Second * 5)
