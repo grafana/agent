@@ -9,6 +9,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/cortexproject/cortex v0.4.0
 	github.com/go-kit/kit v0.9.0
+	github.com/grafana/tail v0.0.0-20200127140945-4647d4b312f2
 	github.com/oklog/run v1.0.0
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.3.0
