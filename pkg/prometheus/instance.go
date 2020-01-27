@@ -23,9 +23,6 @@ var (
 	instanceStoppedNormallyErr = errors.New("instance shutdown normally")
 )
 
-// TODO(rfratto): define prometheus_build_info metric so the existing
-// Prometheus Remote Write dashboard mixin can discover the agent
-
 // InstanceConfig is a specific agent that runs within the overall Prometheus
 // agent. It has its own set of scrape_configs and remote_write rules.
 type InstanceConfig struct {
