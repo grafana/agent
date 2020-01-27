@@ -4,6 +4,7 @@
 package prometheus
 
 import (
+	"flag"
 	"sync"
 	"time"
 
@@ -18,6 +19,11 @@ type Config struct {
 	Global  config.GlobalConfig `yaml:"global"`
 	WALDir  string              `yaml:"wal_directory"`
 	Configs []InstanceConfig    `yaml:"configs,omitempty"`
+}
+
+// RegisterFlags defines flags corresponding to the Config.
+func (c *Config) RegisterFlags(f *flag.FlagSet) {
+	f.StringVar(&c.WALDir, "prometheus.wal-directory", "", "base directory to store the WAL in")
 }
 
 // ApplyDefaults applies default configurations to the configuration to all
@@ -102,7 +108,7 @@ func (a *Agent) run() {
 			}
 
 			// Try to recreate the instance.
-			inst, err := newInstance(a.cfg.Global, a.cfg.Configs[i], a.cfg.WALDir, a.logger)
+			inst, err := newInstance(a.cfg.Global, inst.cfg, a.cfg.WALDir, a.logger)
 			if err != nil {
 				level.Error(a.logger).Log("msg", "failed to recreate instance", "err", err)
 				// TODO(rfratto): should this be a panic? if we let the function return here

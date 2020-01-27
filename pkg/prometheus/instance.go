@@ -135,7 +135,7 @@ func (i *instance) run(wstore *wal.Storage) {
 	var g run.Group
 	// Prometheus generally runs a Termination handler here, but termination handling
 	// is done outside of the instance.
-	// TODO: anything else we need to do here?
+	// TODO(rfratto): anything else we need to do here?
 	{
 		// Scrape discovery manager
 		g.Add(
@@ -154,6 +154,9 @@ func (i *instance) run(wstore *wal.Storage) {
 		// Scrape manager
 		g.Add(
 			func() error {
+				// TODO(rfratto): because the WAL is being created prior to this being called,
+				// this will always start with replaying the WAL, even if it's fresh. Is this
+				// expected? Do we want to change this?
 				err := scrapeManager.Run(discoveryManagerScrape.SyncCh())
 				level.Info(i.logger).Log("msg", "scrape manager stopped")
 				return err
