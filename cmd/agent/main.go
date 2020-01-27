@@ -4,30 +4,27 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"
 	prom "github.com/grafana/agent/pkg/prometheus"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
-	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	// TODO(rfratto): move to weaveworks/common sever config
-	LogLevel logging.Level `yaml:"log_level"`
+	Server     server.Config `yaml:"server"`
+	Prometheus prom.Config   `yaml:"prometheus,omitempty"`
+}
 
-	Prometheus prom.Config `yaml:"prometheus,omitempty"`
+func (c *Config) RegisterFlags(f *flag.FlagSet) {
+	c.Server.MetricsNamespace = "agent"
+	c.Server.RegisterInstrumentation = true
+	c.Prometheus.RegisterFlags(f)
 }
 
 // ApplyDefaults applies default values to the config for fields that
@@ -40,19 +37,7 @@ func init() {
 	prometheus.MustRegister(version.NewCollector("agent"))
 }
 
-// TODO(rfratto):
-//   1. weavworks/common server for own metrics
-//   2. Get rid of the silly mainError function
-
 func main() {
-	err := mainError()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-}
-
-func mainError() error {
 	var (
 		printVersion bool
 
@@ -63,29 +48,24 @@ func mainError() error {
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	fs.StringVar(&configFile, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
-	cfg.Prometheus.RegisterFlags(fs)
-	cfg.LogLevel.RegisterFlags(fs)
+	cfg.RegisterFlags(fs)
 	fs.Parse(os.Args[1:])
 
 	if printVersion {
 		fmt.Println(version.Print("agent"))
-		return nil
+		return
 	}
 
 	if configFile == "" {
-		return errors.New("-config.file flag required")
+		exitWithError("-config.file flag required")
 	} else if err := loadConfig(configFile, &cfg); err != nil {
-		return fmt.Errorf("error loading config file %s: %v", configFile, err)
+		exitWithError("error loading config file %s: %v", configFile, err)
 	}
 
 	// Parse the flags again to override any yaml stuff with command line flags
 	fs.Parse(os.Args[1:])
 
-	util.InitLogger(&server.Config{
-		LogLevel: cfg.LogLevel,
-	})
-
-	go exposeTestMetric()
+	util.InitLogger(&cfg.Server)
 
 	cfg.ApplyDefaults()
 
@@ -94,30 +74,22 @@ func mainError() error {
 		level.Error(util.Logger).Log("msg", "failed to create prometheus instance", "err", err)
 	}
 
-	term := make(chan os.Signal, 1)
-	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
-	<-term
+	srv, err := server.New(cfg.Server)
+	if err != nil {
+		level.Error(util.Logger).Log("msg", "failed to create server", "err", err)
+	}
+
+	if err := srv.Run(); err != nil {
+		level.Error(util.Logger).Log("msg", "error running agent", "err", err)
+	}
 
 	promMetrics.Stop()
-
 	level.Info(util.Logger).Log("msg", "agent exiting")
-	return nil
 }
 
-func exposeTestMetric() {
-	testMetric := promauto.NewCounter(prometheus.CounterOpts{
-		Name: "agent_test_metric_total",
-	})
-
-	go func() {
-		for {
-			testMetric.Inc()
-			time.Sleep(5 * time.Second)
-		}
-	}()
-
-	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":12345", nil)
+func exitWithError(format string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, format, args...)
+	os.Exit(1)
 }
 
 func loadConfig(filename string, config *Config) error {
