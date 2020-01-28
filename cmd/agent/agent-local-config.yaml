@@ -3,6 +3,8 @@ server:
   http_listen_port: 12345
 
 prometheus:
+  global:
+    scrape_interval: 5s
   configs:
     - name: test
       scrape_configs:
