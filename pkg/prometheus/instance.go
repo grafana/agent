@@ -11,9 +11,11 @@ import (
 	"github.com/grafana/agent/pkg/prometheus/wal"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	sd_config "github.com/prometheus/prometheus/discovery/config"
+	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
@@ -24,6 +26,19 @@ import (
 
 var (
 	errInstanceStoppedNormally = errors.New("instance shutdown normally")
+)
+
+var (
+	// DefaultRelabelConfigs defines a list of relabel_configs that will
+	// be automatically appended to the end of all Prometheus
+	// configurations.
+	DefaultRelabelConfigs = []*relabel.Config{
+		// Add __host__ from Kubernetes node name
+		{
+			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_node_name"},
+			TargetLabel:  "__host__",
+		},
+	}
 )
 
 // InstanceConfig is a specific agent that runs within the overall Prometheus
@@ -49,6 +64,8 @@ func (c *InstanceConfig) ApplyDefaults(global *config.GlobalConfig) {
 				sc.ScrapeTimeout = global.ScrapeTimeout
 			}
 		}
+
+		sc.RelabelConfigs = append(sc.RelabelConfigs, DefaultRelabelConfigs...)
 	}
 }
 
