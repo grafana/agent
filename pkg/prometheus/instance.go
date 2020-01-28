@@ -3,6 +3,7 @@ package prometheus
 import (
 	"context"
 	"errors"
+	"os"
 	"path"
 	"time"
 
@@ -21,9 +22,6 @@ import (
 	"github.com/prometheus/prometheus/storage/remote"
 )
 
-// TODO(rfratto):
-//   1. only scrape metrics from same host as agent
-
 var (
 	errInstanceStoppedNormally = errors.New("instance shutdown normally")
 )
@@ -37,6 +35,10 @@ var (
 		{
 			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_node_name"},
 			TargetLabel:  "__host__",
+			Action:       relabel.Replace,
+			Separator:    ";",
+			Regex:        relabel.MustNewRegexp("(.*)"),
+			Replacement:  "$1",
 		},
 	}
 )
@@ -85,7 +87,8 @@ type instance struct {
 	globalCfg config.GlobalConfig
 	logger    log.Logger
 
-	walDir string
+	walDir   string
+	hostname string
 
 	cancelScrape context.CancelFunc
 
@@ -99,13 +102,21 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 		return nil, err
 	}
 
+	hostname, err := hostname()
+	if err != nil {
+		return nil, err
+	}
+
 	i := &instance{
 		cfg:       cfg,
 		globalCfg: globalCfg,
 		logger:    log.With(logger, "instance", cfg.Name),
 		walDir:    path.Join(walDir, cfg.Name),
+		hostname:  hostname,
 		exited:    make(chan bool),
 	}
+
+	level.Debug(i.logger).Log("msg", "creating instance", "hostname", hostname)
 
 	wstore, err := wal.NewStorage(i.logger, prometheus.DefaultRegisterer, i.walDir)
 	if err != nil {
@@ -164,6 +175,8 @@ func (i *instance) run(wstore *wal.Storage) {
 		return
 	}
 
+	filterer := NewHostFilter(i.hostname)
+
 	var g run.Group
 	// Prometheus generally runs a Termination handler here, but termination handling
 	// is done outside of the instance.
@@ -183,13 +196,28 @@ func (i *instance) run(wstore *wal.Storage) {
 		)
 	}
 	{
+
+		// Target host filterer
+		g.Add(
+			func() error {
+				filterer.Run(discoveryManagerScrape.SyncCh())
+				level.Info(i.logger).Log("msg", "host filterer stopped")
+				return nil
+			},
+			func(err error) {
+				level.Info(i.logger).Log("msg", "stopping host filterer...")
+				filterer.Stop()
+			},
+		)
+	}
+	{
 		// Scrape manager
 		g.Add(
 			func() error {
 				// TODO(rfratto): because the WAL is being created prior to this being called,
 				// this will always start with replaying the WAL, even if it's fresh. Is this
 				// expected? Do we want to change this?
-				err := scrapeManager.Run(discoveryManagerScrape.SyncCh())
+				err := scrapeManager.Run(filterer.SyncCh())
 				level.Info(i.logger).Log("msg", "scrape manager stopped")
 				return err
 			},
@@ -223,4 +251,13 @@ func (i *instance) Stop() {
 	// TODO(rfratto): anything else we need to stop here?
 	i.cancelScrape()
 	<-i.exited
+}
+
+func hostname() (string, error) {
+	hostname := os.Getenv("HOSTNAME")
+	if hostname != "" {
+		return hostname, nil
+	}
+
+	return os.Hostname()
 }

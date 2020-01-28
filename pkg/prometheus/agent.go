@@ -23,6 +23,25 @@ type Config struct {
 	Configs []InstanceConfig    `yaml:"configs,omitempty"`
 }
 
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	c.Global = config.DefaultGlobalConfig
+
+	// We want to set c to the defaults and then overwrite it with the input.
+	// To make unmarshal fill the plain data struct rather than calling UnmarshalYAML
+	// again, we have to hide it using a type indirection.
+	type plain Config
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
+	}
+
+	if zeroGlobalConfig(c.Global) {
+		c.Global = config.DefaultGlobalConfig
+	}
+
+	// TODO(rfratto): move rest of ApplyDefaults to UnmarshalYAML
+	return nil
+}
+
 // RegisterFlags defines flags corresponding to the Config.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.WALDir, "prometheus.wal-directory", "", "base directory to store the WAL in")
