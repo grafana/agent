@@ -186,7 +186,7 @@ func (a *Agent) forAllInstances(f func(idx int, inst *instance)) {
 // pulling metric values from a given metric name and label matchers.
 //
 // This is used by the agent instances to find the most recent timestamp
-// sucesfully remote_written to for pruposes of safely truncating the WAL.
+// successfully remote_written to for pruposes of safely truncating the WAL.
 //
 // MetricValueCollector is only intended for use with Gauges and Counters.
 type MetricValueCollector struct {
