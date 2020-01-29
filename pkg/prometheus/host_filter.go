@@ -99,7 +99,7 @@ func FilterGroups(in DiscoveredGroups, host string) DiscoveredGroups {
 			}
 
 			for _, target := range group.Targets {
-				if !filterTarget(target, group.Labels, host) {
+				if !shouldFilterTarget(target, group.Labels, host) {
 					newGroup.Targets = append(newGroup.Targets, target)
 				}
 			}
@@ -113,9 +113,9 @@ func FilterGroups(in DiscoveredGroups, host string) DiscoveredGroups {
 	return out
 }
 
-// filterTarget returns true when the target labels (combined with the set of common
+// shouldFilterTarget returns true when the target labels (combined with the set of common
 // labels) should be filtered out by FilterGroups.
-func filterTarget(target model.LabelSet, common model.LabelSet, host string) bool {
+func shouldFilterTarget(target model.LabelSet, common model.LabelSet, host string) bool {
 	lbls := make([]labels.Label, 0, len(target)+len(common))
 
 	for name, value := range target {
@@ -128,7 +128,7 @@ func filterTarget(target model.LabelSet, common model.LabelSet, host string) boo
 		}
 	}
 
-	filterTargetByLabelValue := func(labelValue string) bool {
+	shouldFilterTargetByLabelValue := func(labelValue string) bool {
 		if addr, _, err := net.SplitHostPort(labelValue); err == nil {
 			labelValue = addr
 		}
@@ -150,13 +150,13 @@ func filterTarget(target model.LabelSet, common model.LabelSet, host string) boo
 	}
 
 	// If the __address__ label matches, we can quit early.
-	if !filterTargetByLabelValue(addressLabel) {
+	if !shouldFilterTargetByLabelValue(addressLabel) {
 		return false
 	}
 
 	// Fall back to testing __host__
 	if hostAddress := lset.Get(hostAddressLabel); hostAddress != "" {
-		return filterTargetByLabelValue(hostAddress)
+		return shouldFilterTargetByLabelValue(hostAddress)
 	}
 
 	// Nothing matches, filter it out.
