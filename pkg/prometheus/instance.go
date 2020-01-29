@@ -336,7 +336,7 @@ func (i *instance) getRemoteWriteTimestamp() int64 {
 		level.Error(i.logger).Log("msg", "could not get remote write timestamps", "err", err)
 		return 0
 	}
-	if vals == nil || len(vals) == 0 {
+	if len(vals) == 0 {
 		return 0
 	}
 
