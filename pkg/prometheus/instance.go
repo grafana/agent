@@ -2,7 +2,11 @@ package prometheus
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"math"
 	"os"
 	"path"
 	"time"
@@ -24,6 +28,7 @@ import (
 
 var (
 	errInstanceStoppedNormally = errors.New("instance shutdown normally")
+	remoteWriteMetricName      = "queue_highest_sent_timestamp_seconds"
 )
 
 var (
@@ -41,6 +46,10 @@ var (
 			Replacement:  "$1",
 		},
 	}
+
+	DefaultInstanceConfig = InstanceConfig{
+		WALTruncateFrequency: 1 * time.Minute,
+	}
 )
 
 // InstanceConfig is a specific agent that runs within the overall Prometheus
@@ -49,6 +58,19 @@ type InstanceConfig struct {
 	Name          string                      `yaml:"name"`
 	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty"`
 	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
+	// How frequently the WAL should be truncated.
+	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency"`
+}
+
+func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultInstanceConfig
+
+	type plain InstanceConfig
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ApplyDefaults applies default configurations to the configuration to all
@@ -91,6 +113,7 @@ type instance struct {
 	hostname string
 
 	cancelScrape context.CancelFunc
+	vc           *MetricValueCollector
 
 	exited  chan bool
 	exitErr error
@@ -102,10 +125,28 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 		return nil, err
 	}
 
+	// We need to be able to pull the metrics of the last written timestamp for all the remote_writes.
+	// This can currently only be done using the remote_name label Prometheus adds to the
+	// prometheus_remote_storage_queue_highest_sent_time_seconds label, so we force a name here
+	// that we can lookup later.
+	for _, rcfg := range cfg.RemoteWrite {
+		if rcfg.Name != "" {
+			continue
+		}
+
+		hash, err := getHash(rcfg)
+		if err != nil {
+			return nil, err
+		}
+		rcfg.Name = hash[:6]
+	}
+
 	hostname, err := hostname()
 	if err != nil {
 		return nil, err
 	}
+
+	vc := NewMetricValueCollector(prometheus.DefaultGatherer, remoteWriteMetricName)
 
 	i := &instance{
 		cfg:       cfg,
@@ -113,6 +154,7 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 		logger:    log.With(logger, "instance", cfg.Name),
 		walDir:    path.Join(walDir, cfg.Name),
 		hostname:  hostname,
+		vc:        vc,
 		exited:    make(chan bool),
 	}
 
@@ -232,6 +274,22 @@ func (i *instance) run(wstore *wal.Storage) {
 			},
 		)
 	}
+	{
+		// Truncation loop
+		ctx, contextCancel := context.WithCancel(context.Background())
+		defer contextCancel()
+		g.Add(
+			func() error {
+				i.truncateLoop(ctx, wstore)
+				level.Info(i.logger).Log("msg", "truncation loop stopped")
+				return nil
+			},
+			func(err error) {
+				level.Info(i.logger).Log("msg", "stopping truncation loop...")
+				contextCancel()
+			},
+		)
+	}
 
 	err := g.Run()
 	if err != nil {
@@ -242,6 +300,59 @@ func (i *instance) run(wstore *wal.Storage) {
 	}
 
 	close(i.exited)
+}
+
+func (i *instance) truncateLoop(ctx context.Context, wal *wal.Storage) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(i.cfg.WALTruncateFrequency):
+			ts := i.getRemoteWriteTimestamp()
+			if ts == 0 {
+				level.Debug(i.logger).Log("msg", "can't truncate the WAL yet")
+				continue
+			}
+
+			level.Debug(i.logger).Log("msg", "truncating the WAL", "ts", ts)
+			err := wal.Truncate(ts)
+			if err != nil {
+				// The only issue here is larger disk usage and a greater replay time,
+				// so we'll only log this as a warning.
+				level.Warn(i.logger).Log("msg", "could not truncate WAL", "err", err)
+			}
+		}
+	}
+}
+
+func (i *instance) getRemoteWriteTimestamp() int64 {
+	lbls := make([]string, len(i.cfg.RemoteWrite))
+	for idx := 0; idx < len(lbls); idx++ {
+		lbls[idx] = i.cfg.RemoteWrite[idx].Name
+	}
+
+	vals, err := i.vc.GetValues("remote_name", lbls...)
+	if err != nil {
+		level.Error(i.logger).Log("msg", "could not get remote write timestamps", "err", err)
+		return 0
+	}
+	if vals == nil || len(vals) == 0 {
+		return 0
+	}
+
+	// We use the lowest value from the metric since we don't want to delete any
+	// segments from the WAL until they've been written by all of the remote_write
+	// configurations.
+	ts := int64(math.MaxInt64)
+	for _, val := range vals {
+		ival := int64(val)
+		if ival < ts {
+			ts = ival
+		}
+	}
+
+	// Convert to the millisecond precision which is used by the WAL
+	return ts * 1000
 }
 
 // Stop stops the instance.
@@ -260,4 +371,13 @@ func hostname() (string, error) {
 	}
 
 	return os.Hostname()
+}
+
+func getHash(data interface{}) (string, error) {
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+	hash := md5.Sum(bytes)
+	return hex.EncodeToString(hash[:]), nil
 }
