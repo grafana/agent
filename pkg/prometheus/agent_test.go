@@ -125,15 +125,3 @@ func TestRemoteWriteMetricInterceptor_AllValues(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []float64{12345, 67890}, vals)
 }
-
-func TestParseDescName(t *testing.T) {
-	d := prometheus.NewDesc(
-		"this_is_my_metric_name",
-		"the metric for testing",
-		[]string{"app", "cluster"},
-		prometheus.Labels{"foo": "bar"},
-	)
-
-	name := parseDescName(d)
-	require.Equal(t, "this_is_my_metric_name", name)
-}
