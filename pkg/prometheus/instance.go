@@ -138,7 +138,7 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 		if err != nil {
 			return nil, err
 		}
-		rcfg.Name = hash[:6]
+		rcfg.Name = cfg.Name + "-" + hash[:6]
 	}
 
 	hostname, err := hostname()
