@@ -138,6 +138,10 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 		if err != nil {
 			return nil, err
 		}
+
+		// We have to add the name of the instance to ensure that generated metrics
+		// are unique across multiple agent instances. The remote write queues currently
+		// globally register their metrics so we can't inject labels here.
 		rcfg.Name = cfg.Name + "-" + hash[:6]
 	}
 

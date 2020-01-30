@@ -7,7 +7,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -253,20 +252,4 @@ func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) (
 	}
 
 	return vals, nil
-}
-
-var (
-	descRegex = regexp.MustCompile(`^Desc\{fqName: \"(?P<fqdn>[^\"]+)\"`)
-)
-
-// parseDescName finds the fqdn of a Desc. This is a very hacky function; the
-// only exposed method of Desc is the string, and we have to assume it's well
-// formed to extract the name. Ideally, at some point, we'd be able to remove
-// the regex parse and get the name from the Desc directly.
-func parseDescName(d *prometheus.Desc) string {
-	matches := descRegex.FindStringSubmatch(d.String())
-	if len(matches) < 2 {
-		panic("could not find fqdn in desc")
-	}
-	return matches[1]
 }
