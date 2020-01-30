@@ -28,7 +28,6 @@ import (
 
 var (
 	errInstanceStoppedNormally = errors.New("instance shutdown normally")
-	remoteWriteMetricName      = "queue_highest_sent_timestamp_seconds"
 )
 
 var (
