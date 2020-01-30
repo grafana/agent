@@ -45,6 +45,16 @@ func TestConfig_Validate(t *testing.T) {
 			mutator: func(c *Config) { c.Configs[0].Name = "" },
 			expect:  errors.New("error validating instance 0: missing instance name"),
 		},
+		{
+			name: "duplicate config name",
+			mutator: func(c *Config) {
+				c.Configs = append(c.Configs,
+					InstanceConfig{Name: "newinstance"},
+					InstanceConfig{Name: "instance"},
+				)
+			},
+			expect: errors.New("prometheus instance names must be unique. found multiple instances with name instance"),
+		},
 	}
 
 	for _, tc := range tt {

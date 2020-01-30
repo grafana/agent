@@ -68,7 +68,17 @@ func (c *Config) Validate() error {
 		return errors.New("no wal_directory configured")
 	}
 
+	usedNames := map[string]struct{}{}
+
 	for i, cfg := range c.Configs {
+		if _, ok := usedNames[cfg.Name]; ok {
+			return fmt.Errorf(
+				"prometheus instance names must be unique. found multiple instances with name %s",
+				cfg.Name,
+			)
+		}
+		usedNames[cfg.Name] = struct{}{}
+
 		if err := cfg.Validate(); err != nil {
 			return fmt.Errorf("error validating instance %d: %s", i, err)
 		}
