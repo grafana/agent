@@ -112,7 +112,7 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/gofuzz
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
-# github.com/googleapis/gnostic v0.3.0
+# github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
@@ -143,14 +143,14 @@ github.com/grpc-ecosystem/grpc-gateway/utilities
 github.com/hashicorp/consul/api
 # github.com/hashicorp/go-cleanhttp v0.5.1
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-immutable-radix v1.1.0
+# github.com/hashicorp/go-immutable-radix v1.0.0
 github.com/hashicorp/go-immutable-radix
-# github.com/hashicorp/go-rootcerts v1.0.1
+# github.com/hashicorp/go-rootcerts v1.0.0
 github.com/hashicorp/go-rootcerts
 # github.com/hashicorp/golang-lru v0.5.3
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
-# github.com/hashicorp/serf v0.8.3
+# github.com/hashicorp/serf v0.8.2
 github.com/hashicorp/serf/coordinate
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
@@ -207,7 +207,7 @@ github.com/prometheus/common/version
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/prometheus/prometheus v1.8.2-0.20200106144642-d9613e5c466c
+# github.com/prometheus/prometheus v1.8.2-0.20200106144642-d9613e5c466c => /home/robert/dev/prometheus/prometheus
 github.com/prometheus/prometheus/config
 github.com/prometheus/prometheus/discovery
 github.com/prometheus/prometheus/discovery/azure
@@ -397,7 +397,7 @@ google.golang.org/grpc/status
 google.golang.org/grpc/tap
 # gopkg.in/fsnotify/fsnotify.v1 v1.4.7
 gopkg.in/fsnotify/fsnotify.v1
-# gopkg.in/inf.v0 v0.9.1
+# gopkg.in/inf.v0 v0.9.0
 gopkg.in/inf.v0
 # gopkg.in/yaml.v2 v2.2.7
 gopkg.in/yaml.v2
@@ -478,7 +478,7 @@ k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/reflect
-# k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
+# k8s.io/client-go v0.0.0-20190620085101-78d2af792bab => k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
 k8s.io/client-go/discovery
 k8s.io/client-go/kubernetes
 k8s.io/client-go/kubernetes/scheme
@@ -539,7 +539,7 @@ k8s.io/client-go/util/retry
 k8s.io/client-go/util/workqueue
 # k8s.io/klog v0.4.0 => github.com/simonpasquier/klog-gokit v0.1.0
 k8s.io/klog
-# k8s.io/utils v0.0.0-20190809000727-6c36bc71fc4a
+# k8s.io/utils v0.0.0-20190221042446-c2654d5206da
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
