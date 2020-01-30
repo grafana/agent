@@ -7,14 +7,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"regexp"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 )
 
@@ -180,93 +177,4 @@ func (a *Agent) forAllInstances(f func(idx int, inst *instance)) {
 	a.instanceMtx.Unlock()
 
 	wg.Wait()
-}
-
-// MetricValueCollector wraps around a Gatherer and provides utilities for
-// pulling metric values from a given metric name and label matchers.
-//
-// This is used by the agent instances to find the most recent timestamp
-// successfully remote_written to for pruposes of safely truncating the WAL.
-//
-// MetricValueCollector is only intended for use with Gauges and Counters.
-type MetricValueCollector struct {
-	g     prometheus.Gatherer
-	match string
-}
-
-// NewMetricValueCollector creates a new MetricValueCollector.
-func NewMetricValueCollector(g prometheus.Gatherer, match string) *MetricValueCollector {
-	return &MetricValueCollector{
-		g:     g,
-		match: match,
-	}
-}
-
-// GetValues looks through all the tracked metrics and returns all values
-// for metrics that match some key value pair.
-func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) ([]float64, error) {
-	vals := []float64{}
-
-	families, err := vc.g.Gather()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, family := range families {
-		if !strings.Contains(family.GetName(), vc.match) {
-			continue
-		}
-
-		for _, m := range family.GetMetric() {
-			matches := false
-			for _, l := range m.GetLabel() {
-				if l.GetName() != label {
-					continue
-				}
-
-				v := l.GetValue()
-				for _, match := range labelValues {
-					if match == v {
-						matches = true
-						break
-					}
-				}
-				break
-			}
-			if !matches {
-				continue
-			}
-
-			var value float64
-			if m.Gauge != nil {
-				value = m.Gauge.GetValue()
-			} else if m.Counter != nil {
-				value = m.Counter.GetValue()
-			} else if m.Untyped != nil {
-				value = m.Untyped.GetValue()
-			} else {
-				return nil, errors.New("tracking unexpected metric type")
-			}
-
-			vals = append(vals, value)
-		}
-	}
-
-	return vals, nil
-}
-
-var (
-	descRegex = regexp.MustCompile(`^Desc\{fqName: \"(?P<fqdn>[^\"]+)\"`)
-)
-
-// parseDescName finds the fqdn of a Desc. This is a very hacky function; the
-// only exposed method of Desc is the string, and we have to assume it's well
-// formed to extract the name. Ideally, at some point, we'd be able to remove
-// the regex parse and get the name from the Desc directly.
-func parseDescName(d *prometheus.Desc) string {
-	matches := descRegex.FindStringSubmatch(d.String())
-	if len(matches) < 2 {
-		panic("could not find fqdn in desc")
-	}
-	return matches[1]
 }

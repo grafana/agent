@@ -29,3 +29,6 @@ replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.0+incompatible
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
 )
+
+// Use rfratto Prometheus fork until https://github.com/prometheus/prometheus/pull/6726 is merged
+replace github.com/prometheus/prometheus => github.com/rfratto/prometheus v1.8.2-0.20200130174607-7de537e8efc3

@@ -113,7 +113,6 @@ type instance struct {
 	hostname string
 
 	cancelScrape context.CancelFunc
-	vc           *MetricValueCollector
 
 	exited  chan bool
 	exitErr error
@@ -146,15 +145,12 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 		return nil, err
 	}
 
-	vc := NewMetricValueCollector(prometheus.DefaultGatherer, remoteWriteMetricName)
-
 	i := &instance{
 		cfg:       cfg,
 		globalCfg: globalCfg,
 		logger:    log.With(logger, "instance", cfg.Name),
 		walDir:    path.Join(walDir, cfg.Name),
 		hostname:  hostname,
-		vc:        vc,
 		exited:    make(chan bool),
 	}
 
@@ -280,7 +276,7 @@ func (i *instance) run(wstore *wal.Storage) {
 		defer contextCancel()
 		g.Add(
 			func() error {
-				i.truncateLoop(ctx, wstore)
+				i.truncateLoop(ctx, wstore, remoteStore)
 				level.Info(i.logger).Log("msg", "truncation loop stopped")
 				return nil
 			},
@@ -302,13 +298,13 @@ func (i *instance) run(wstore *wal.Storage) {
 	close(i.exited)
 }
 
-func (i *instance) truncateLoop(ctx context.Context, wal *wal.Storage) {
+func (i *instance) truncateLoop(ctx context.Context, wal *wal.Storage, rstore *remote.Storage) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-time.After(i.cfg.WALTruncateFrequency):
-			ts := i.getRemoteWriteTimestamp()
+			ts := i.getRemoteWriteTimestamp(rstore)
 			if ts == 0 {
 				level.Debug(i.logger).Log("msg", "can't truncate the WAL yet")
 				continue
@@ -325,29 +321,17 @@ func (i *instance) truncateLoop(ctx context.Context, wal *wal.Storage) {
 	}
 }
 
-func (i *instance) getRemoteWriteTimestamp() int64 {
-	lbls := make([]string, len(i.cfg.RemoteWrite))
-	for idx := 0; idx < len(lbls); idx++ {
-		lbls[idx] = i.cfg.RemoteWrite[idx].Name
-	}
-
-	vals, err := i.vc.GetValues("remote_name", lbls...)
-	if err != nil {
-		level.Error(i.logger).Log("msg", "could not get remote write timestamps", "err", err)
-		return 0
-	}
-	if len(vals) == 0 {
-		return 0
-	}
-
-	// We use the lowest value from the metric since we don't want to delete any
-	// segments from the WAL until they've been written by all of the remote_write
-	// configurations.
+func (i *instance) getRemoteWriteTimestamp(rstore *remote.Storage) int64 {
 	ts := int64(math.MaxInt64)
-	for _, val := range vals {
-		ival := int64(val)
-		if ival < ts {
-			ts = ival
+	for _, cfg := range i.cfg.RemoteWrite {
+		v, err := rstore.LastSentTimestamp(cfg)
+		if err != nil {
+			level.Warn(i.logger).Log("msg", "could not get last sent timestamp", "err", err)
+			return 0
+		}
+
+		if v < ts {
+			ts = v
 		}
 	}
 
