@@ -20,11 +20,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/pkg/errors"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -86,7 +84,7 @@ func (s *Storage) ApplyConfig(conf *config.Config) error {
 	for _, rrConf := range conf.RemoteReadConfigs {
 		hash, err := toHash(rrConf)
 		if err != nil {
-			return err
+			return nil
 		}
 
 		// Don't allow duplicate remote read configs.
@@ -125,29 +123,6 @@ func (s *Storage) ApplyConfig(conf *config.Config) error {
 	s.queryables = queryables
 
 	return nil
-}
-
-// LastSentTimestamp returns the last sent timestamp for the provided remote write
-// config. Returns an error if called before ApplyConfig or if the remote write
-// config wasn't applied to this instance of Storage.
-func (s *Storage) LastSentTimestamp(rwConf *config.RemoteWriteConfig) (int64, error) {
-	hash, err := toHash(rwConf)
-	if err != nil {
-		return 0, err
-	}
-
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
-	s.rws.mtx.Lock()
-	defer s.rws.mtx.Unlock()
-	q, ok := s.rws.queues[hash]
-	if !ok {
-		return 0, errors.New("RemoteWriteConfig not registered")
-	}
-
-	val := atomic.LoadInt64(&q.lastSendTimestamp)
-	return val, nil
 }
 
 // StartTime implements the Storage interface.
