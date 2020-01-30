@@ -187,7 +187,6 @@ type walMetrics struct {
 	truncateFail    prometheus.Counter
 	truncateTotal   prometheus.Counter
 	currentSegment  prometheus.Gauge
-	writesFailed    prometheus.Counter
 }
 
 func newWALMetrics(w *WAL, r prometheus.Registerer) *walMetrics {
@@ -218,10 +217,6 @@ func newWALMetrics(w *WAL, r prometheus.Registerer) *walMetrics {
 		Name: "prometheus_tsdb_wal_segment_current",
 		Help: "WAL segment index that TSDB is currently writing to.",
 	})
-	m.writesFailed = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "prometheus_tsdb_wal_writes_failed_total",
-		Help: "Total number of WAL writes that failed.",
-	})
 
 	if r != nil {
 		r.MustRegister(
@@ -231,7 +226,6 @@ func newWALMetrics(w *WAL, r prometheus.Registerer) *walMetrics {
 			m.truncateFail,
 			m.truncateTotal,
 			m.currentSegment,
-			m.writesFailed,
 		)
 	}
 
@@ -581,7 +575,6 @@ func (w *WAL) Log(recs ...[]byte) error {
 	// a bit of extra logic here frees them from that overhead.
 	for i, r := range recs {
 		if err := w.log(r, i == len(recs)-1); err != nil {
-			w.metrics.writesFailed.Inc()
 			return err
 		}
 	}
