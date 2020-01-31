@@ -3,7 +3,7 @@ local g = import 'grafana-builder/grafana.libsonnet';
 {
   grafanaDashboards+:: {
     'agent.json':
-      g.dashboard('Prometheus')
+      g.dashboard('Agent')
       .addMultiTemplate('job', 'agent_build_info', 'job')
       .addMultiTemplate('instance', 'agent_build_info', 'instance')
       .addRow(
@@ -71,20 +71,24 @@ local g = import 'grafana-builder/grafana.libsonnet';
       .addRow(
         g.row('Timestamps')
         .addPanel(
-          g.panel('Highest Timestamp In vs. Highest Timestamp Sent') +
-          g.queryPanel('prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", instance=~"$instance"} - ignoring(queue) group_right(instance) prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", instance=~"$instance"}', '{{cluster}}:{{instance}}-{{queue}}') +
+          g.panel('Highest Timestamp Sent') +
+          g.queryPanel('prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", instance=~"$instance"}', '{{cluster}}:{{instance}}-{{queue}}') +
           { yaxes: g.yaxes('s') }
         )
         .addPanel(
           g.panel('Rate[5m]') +
-          g.queryPanel('rate(prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", instance=~"$instance"}[5m])  - ignoring (queue) group_right(instance) rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", instance=~"$instance"}[5m])', '{{cluster}}:{{instance}}-{{queue}}')
+          g.queryPanel('rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", instance=~"$instance"}[5m])', '{{cluster}}:{{instance}}-{{queue}}')
         )
       )
       .addRow(
         g.row('Samples')
         .addPanel(
+          g.panel('Sample Rate [5m]') +
+          g.queryPanel('rate(prometheus_remote_storage_samples_in_total{cluster=~"$cluster", instance=~"$instance"}[5m])', '{{cluster}}:{{instance}}-{{queue}}')
+        )
+        .addPanel(
           g.panel('Rate, in vs. succeeded or dropped [5m]') +
-          g.queryPanel('rate(prometheus_remote_storage_samples_in_total{cluster=~"$cluster", instance=~"$instance"}[5m])- ignoring(queue) group_right(instance) rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m]) - rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m])', '{{cluster}}:{{instance}}-{{queue}}')
+          g.queryPanel('rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m]) - ignoring(queue) group_right(instance) rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m])', '{{cluster}}:{{instance}}-{{queue}}')
         )
       )
       .addRow(
