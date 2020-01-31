@@ -32,8 +32,11 @@ type Storage struct {
 	bufPool      sync.Pool
 
 	mtx     sync.RWMutex
-	labels  map[string]uint64
 	nextRef uint64
+	series  *stripeSeries
+
+	deletedMtx sync.Mutex
+	deleted    map[uint64]int // Deleted series, and what WAL segment they must be kept until.
 }
 
 // NewStorage makes a new Storage.
@@ -44,9 +47,10 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	}
 
 	storage := &Storage{
-		labels: map[string]uint64{},
-		wal:    w,
-		logger: logger,
+		wal:     w,
+		logger:  logger,
+		deleted: map[uint64]int{},
+		series:  newStripeSeries(),
 	}
 
 	storage.bufPool.New = func() interface{} {
@@ -74,31 +78,6 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	return storage, nil
 }
 
-func (w *Storage) lookupLabels(l labels.Labels) (uint64, bool) {
-	s := l.String()
-
-	w.mtx.RLock()
-	ref, ok := w.labels[s]
-	w.mtx.RUnlock()
-
-	if ok {
-		return ref, false
-	}
-
-	w.mtx.Lock()
-	ref, ok = w.labels[s]
-	if ok {
-		w.mtx.Unlock()
-		return ref, false
-	}
-
-	ref = w.nextRef
-	w.nextRef++
-	w.labels[s] = ref
-	w.mtx.Unlock()
-	return ref, true
-}
-
 // StartTime returns the oldest timestamp stored in the storage.
 func (*Storage) StartTime() (int64, error) {
 	return 0, nil
@@ -114,8 +93,9 @@ func (w *Storage) Appender() (storage.Appender, error) {
 func (w *Storage) Truncate(mint int64) error {
 	start := time.Now()
 
-	// TODO(rfratto): garbage collect series that haven't
-	// received an update since the last truncation
+	// Garbage collect series that haven't received an update since mint.
+	w.gc(mint)
+	level.Info(w.logger).Log("msg", "series GC completed", "duration", time.Since(start))
 
 	first, last, err := w.wal.Segments()
 	if err != nil {
@@ -142,10 +122,21 @@ func (w *Storage) Truncate(mint int64) error {
 	}
 
 	keep := func(id uint64) bool {
-		// TODO(rfratto): check to see if the series should be kept:
-		// if it's still receiving writes, keep it. If it's been deleted
-		// in the most recent GC cycle, keep it.
-		return true
+		if w.series.getByID(id) != nil {
+			return true
+		}
+
+		w.deletedMtx.Lock()
+		_, ok := w.deleted[id]
+		w.deletedMtx.Unlock()
+
+		if !ok {
+			// TODO(rfratto): remove after verifying series code works
+			level.Info(w.logger).Log("msg", "series not found in WAL or deletion. either it was deleted or replay didn't work", "id", id)
+		}
+
+		ok = true
+		return ok
 	}
 	if _, err = wal.Checkpoint(w.wal, first, last, keep, mint); err != nil {
 		return errors.Wrap(err, "create checkpoint")
@@ -157,10 +148,15 @@ func (w *Storage) Truncate(mint int64) error {
 		level.Error(w.logger).Log("msg", "truncating segments failed", "err", err)
 	}
 
-	// TODO(rfratto): now that the checkpoint is written and all segments before
-	// it have been truncated, we can stop tracking deleted series. For all series
-	// that were deleted before our first truncated segment, we can stop tracking
-	// them.
+	// The checkpoint is written and segments before it is truncated, so we no
+	// longer need to track deleted series that are before it.
+	w.deletedMtx.Lock()
+	for ref, segment := range w.deleted {
+		if segment < first {
+			delete(w.deleted, ref)
+		}
+	}
+	w.deletedMtx.Unlock()
 
 	if err := wal.DeleteCheckpoints(w.wal.Dir(), last); err != nil {
 		// Leftover old checkpoints do not cause problems down the line beyond
@@ -172,6 +168,27 @@ func (w *Storage) Truncate(mint int64) error {
 	level.Info(w.logger).Log("msg", "WAL checkpoint complete",
 		"first", first, "last", last, "duration", time.Since(start))
 	return nil
+}
+
+// gc removes data before the minimum timestamp from the head.
+func (w *Storage) gc(mint int64) {
+	deleted := w.series.gc(mint)
+
+	_, last, _ := w.wal.Segments()
+	w.deletedMtx.Lock()
+	defer w.deletedMtx.Unlock()
+
+	// We want to keep series records for any newly deleted series
+	// until we've passed the last recorded segment. The WAL will
+	// still contain samples records with all of the ref IDs until
+	// the segment's samples has been deleted from the checkpoint.
+	//
+	// If the series weren't kept on startup when the WAL was replied,
+	// the samples wouldn't be able to be used since there wouldn't
+	// be any labels for that ref ID.
+	for ref := range deleted {
+		w.deleted[ref] = last
+	}
 }
 
 // Close closes the storage and all its underlying resources.
@@ -186,25 +203,44 @@ type appender struct {
 }
 
 func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
-	ref, addSeries := a.w.lookupLabels(l)
+	var (
+		series *memSeries
+		ref    uint64
 
-	if addSeries {
+		hash = l.Hash()
+	)
+
+	series = a.w.series.getByHash(hash, l)
+	if series == nil {
+		a.w.mtx.Lock()
+		ref = a.w.nextRef
+		a.w.nextRef++
+		a.w.mtx.Unlock()
+
+		series = &memSeries{ref: ref, lset: l, lastTs: t}
+		a.w.series.getOrSet(hash, series)
+
 		a.series = append(a.series, record.RefSeries{
 			Ref:    ref,
 			Labels: l,
 		})
 	}
 
-	a.samples = append(a.samples, record.RefSample{
-		Ref: ref,
-		T:   t,
-		V:   v,
-	})
-
-	return ref, nil
+	return ref, a.AddFast(l, ref, t, v)
 }
 
 func (a *appender) AddFast(_ labels.Labels, ref uint64, t int64, v float64) error {
+	series := a.w.series.getByID(ref)
+	if series == nil {
+		return storage.ErrNotFound
+	}
+	series.Lock()
+	defer series.Unlock()
+
+	// Update last recorded timestamp. Used by Storage.gc to determine if a
+	// series is dead.
+	series.lastTs = t
+
 	a.samples = append(a.samples, record.RefSample{
 		Ref: ref,
 		T:   t,
