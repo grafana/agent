@@ -1,6 +1,7 @@
 package wal
 
 import (
+	"fmt"
 	"path/filepath"
 	"sync"
 	"time"
@@ -10,15 +11,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
-
-// TODO(rfratto):
-// - Track active/deleted series for WAL checkpointing
-// - Use some kind of tooling to read from the WAL to test and validate that
-//   everything we're doing so far is being done correctly
 
 // Storage implements storage.Storage, and just writes to the WAL.
 type Storage struct {
@@ -69,11 +66,12 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		}
 	}
 
-	// TODO(rfratto): we need to replay the WAL from the most recent checkpoint
-	// and all segments after the checkpoint so we can track active series.
-	//
-	// A series becomes inactive once it hasn't been written to since the time
-	// that is being truncated.
+	if err := storage.replayWAL(); err != nil {
+		level.Warn(storage.logger).Log("msg", "encountered WAL read error, attempting repair", "err", err)
+		if err := w.Repair(err); err != nil {
+			return nil, errors.Wrap(err, "repair corrupted WAL")
+		}
+	}
 
 	return storage, nil
 }
@@ -129,13 +127,6 @@ func (w *Storage) Truncate(mint int64) error {
 		w.deletedMtx.Lock()
 		_, ok := w.deleted[id]
 		w.deletedMtx.Unlock()
-
-		if !ok {
-			// TODO(rfratto): remove after verifying series code works
-			level.Info(w.logger).Log("msg", "series not found in WAL or deletion. either it was deleted or replay didn't work", "id", id)
-		}
-
-		ok = true
 		return ok
 	}
 	if _, err = wal.Checkpoint(w.wal, first, last, keep, mint); err != nil {
@@ -191,6 +182,151 @@ func (w *Storage) gc(mint int64) {
 	}
 }
 
+func (w *Storage) replayWAL() error {
+	level.Info(w.logger).Log("msg", "replaying WAL, this may take awhile", "dir", w.wal.Dir())
+	dir, startFrom, err := wal.LastCheckpoint(w.wal.Dir())
+	if err != nil && err != record.ErrNotFound {
+		return errors.Wrap(err, "find last checkpoint")
+	}
+
+	if err == nil {
+		sr, err := wal.NewSegmentsReader(dir)
+		if err != nil {
+			return errors.Wrap(err, "open checkpoint")
+		}
+		defer func() {
+			if err := sr.Close(); err != nil {
+				level.Warn(w.logger).Log("msg", "error while closing the wal segments reader", "err", err)
+			}
+		}()
+
+		// A corrupted checkpoint is a hard error for now and requires user
+		// intervention. There's likely little data that can be recovered anyway.
+		if err := w.loadWAL(wal.NewReader(sr)); err != nil {
+			return errors.Wrap(err, "backfill checkpoint")
+		}
+		startFrom++
+		level.Info(w.logger).Log("msg", "WAL checkpoint loaded")
+	}
+
+	// Find the last segment.
+	_, last, err := w.wal.Segments()
+	if err != nil {
+		return errors.Wrap(err, "finding WAL segments")
+	}
+
+	// Backfill segments from the most recent checkpoint onwards.
+	for i := startFrom; i <= last; i++ {
+		s, err := wal.OpenReadSegment(wal.SegmentName(w.wal.Dir(), i))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("open WAL segment: %d", i))
+		}
+
+		sr := wal.NewSegmentBufReader(s)
+		err = w.loadWAL(wal.NewReader(sr))
+		if err := sr.Close(); err != nil {
+			level.Warn(w.logger).Log("msg", "error while closing the wal segments reader", "err", err)
+		}
+		if err != nil {
+			return err
+		}
+		level.Info(w.logger).Log("msg", "WAL segment loaded", "segment", i, "maxSegment", last)
+	}
+
+	return nil
+}
+
+func (w *Storage) loadWAL(r *wal.Reader) (err error) {
+	var (
+		dec record.Decoder
+	)
+
+	var (
+		decoded    = make(chan interface{}, 10)
+		errCh      = make(chan error, 1)
+		seriesPool = sync.Pool{
+			New: func() interface{} {
+				return []record.RefSeries{}
+			},
+		}
+	)
+
+	go func() {
+		defer close(decoded)
+		for r.Next() {
+			rec := r.Record()
+			switch dec.Type(rec) {
+			case record.Series:
+				series := seriesPool.Get().([]record.RefSeries)[:0]
+				series, err = dec.Series(rec, series)
+				if err != nil {
+					errCh <- &wal.CorruptionErr{
+						Err:     errors.Wrap(err, "decode series"),
+						Segment: r.Segment(),
+						Offset:  r.Offset(),
+					}
+					return
+				}
+				decoded <- series
+			case record.Samples:
+				// We don't care about samples
+				continue
+			case record.Tombstones:
+				// We don't care about tombstones
+				continue
+			default:
+				errCh <- &wal.CorruptionErr{
+					Err:     errors.Errorf("invalid record type %v", dec.Type(rec)),
+					Segment: r.Segment(),
+					Offset:  r.Offset(),
+				}
+				return
+			}
+		}
+	}()
+
+	for d := range decoded {
+		switch v := d.(type) {
+		case []record.RefSeries:
+			for _, s := range v {
+				// Create the series in memory with the time it was read. This
+				// guarantees it will exist for at least two Truncation cycles
+				// in case it gets appended to late.
+				//
+				// TODO(rfratto): we should expect some samples from the series to
+				// exist. Iterate over the samples and use the TS as lastTs instead
+				// so churned series don't stick around longer than they need to.
+				ts := timestamp.FromTime(time.Now())
+				series := &memSeries{ref: s.Ref, lastTs: ts, lset: s.Labels}
+				w.series.getOrSet(s.Labels.Hash(), series)
+
+				w.mtx.Lock()
+				if w.nextRef <= s.Ref {
+					w.nextRef = s.Ref + 1
+				}
+				w.mtx.Unlock()
+			}
+
+			//lint:ignore SA6002 relax staticcheck verification.
+			seriesPool.Put(v)
+		default:
+			panic(fmt.Errorf("unexpected decoded type: %T", d))
+		}
+	}
+
+	select {
+	case err := <-errCh:
+		return err
+	default:
+	}
+
+	if r.Err() != nil {
+		return errors.Wrap(r.Err(), "read records")
+	}
+
+	return nil
+}
+
 // Close closes the storage and all its underlying resources.
 func (w *Storage) Close() error {
 	return w.wal.Close()
@@ -205,7 +341,6 @@ type appender struct {
 func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	var (
 		series *memSeries
-		ref    uint64
 
 		hash = l.Hash()
 	)
@@ -213,7 +348,8 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	series = a.w.series.getByHash(hash, l)
 	if series == nil {
 		a.w.mtx.Lock()
-		ref = a.w.nextRef
+		ref := a.w.nextRef
+		level.Debug(a.w.logger).Log("msg", "new series", "ref", ref, "labels", l.String())
 		a.w.nextRef++
 		a.w.mtx.Unlock()
 
@@ -226,7 +362,7 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 		})
 	}
 
-	return ref, a.AddFast(l, ref, t, v)
+	return series.ref, a.AddFast(l, series.ref, t, v)
 }
 
 func (a *appender) AddFast(_ labels.Labels, ref uint64, t int64, v float64) error {
