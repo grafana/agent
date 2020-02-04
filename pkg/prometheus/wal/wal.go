@@ -298,7 +298,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				// so churned series don't stick around longer than they need to.
 				ts := timestamp.FromTime(time.Now())
 				series := &memSeries{ref: s.Ref, lastTs: ts, lset: s.Labels}
-				w.series.getOrSet(s.Labels.Hash(), series)
+				w.series.set(s.Labels.Hash(), series)
 
 				w.mtx.Lock()
 				if w.nextRef <= s.Ref {
@@ -307,7 +307,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				w.mtx.Unlock()
 			}
 
-			//lint:ignore SA6002 relax staticcheck verification.
+			//nolint:staticcheck
 			seriesPool.Put(v)
 		default:
 			panic(fmt.Errorf("unexpected decoded type: %T", d))
@@ -354,7 +354,7 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 		a.w.mtx.Unlock()
 
 		series = &memSeries{ref: ref, lset: l, lastTs: t}
-		a.w.series.getOrSet(hash, series)
+		a.w.series.set(hash, series)
 
 		a.series = append(a.series, record.RefSeries{
 			Ref:    ref,

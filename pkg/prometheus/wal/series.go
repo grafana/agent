@@ -171,15 +171,11 @@ func (s *stripeSeries) getByHash(hash uint64, lset labels.Labels) *memSeries {
 	return series
 }
 
-func (s *stripeSeries) getOrSet(hash uint64, series *memSeries) (*memSeries, bool) {
+func (s *stripeSeries) set(hash uint64, series *memSeries) {
 	i := hash & uint64(s.size-1)
 
 	s.locks[i].Lock()
 
-	if prev := s.hashes[i].get(hash, series.lset); prev != nil {
-		s.locks[i].Unlock()
-		return prev, false
-	}
 	s.hashes[i].set(hash, series)
 	s.locks[i].Unlock()
 
@@ -188,6 +184,4 @@ func (s *stripeSeries) getOrSet(hash uint64, series *memSeries) (*memSeries, boo
 	s.locks[i].Lock()
 	s.series[i][series.ref] = series
 	s.locks[i].Unlock()
-
-	return series, true
 }
