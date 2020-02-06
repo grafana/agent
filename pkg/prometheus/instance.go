@@ -50,6 +50,7 @@ var (
 	DefaultInstanceConfig = InstanceConfig{
 		WALTruncateFrequency: 1 * time.Minute,
 		RemoteFlushDeadline:  1 * time.Minute,
+		WriteStaleOnShutdown: true,
 	}
 )
 
@@ -61,9 +62,10 @@ type InstanceConfig struct {
 	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// How frequently the WAL should be truncated.
-	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency"`
+	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty"`
 
-	RemoteFlushDeadline time.Duration `yaml:"remote_flush_deadline,omitempty"`
+	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty"`
+	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty"`
 }
 
 func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -297,7 +299,7 @@ func (i *instance) run(wstore *wal.Storage) {
 
 				// On a graceful shutdown, write staleness markers. If something went
 				// wrong, then the instance will be relaunched.
-				if err == nil {
+				if err == nil && i.cfg.WriteStaleOnShutdown {
 					level.Info(i.logger).Log("msg", "writing staleness markers...")
 					err := wstore.WriteStalenessMarkers(i.getRemoteWriteTimestamp)
 					if err != nil {
