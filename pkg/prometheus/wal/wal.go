@@ -2,6 +2,7 @@ package wal
 
 import (
 	"fmt"
+	"math"
 	"path/filepath"
 	"sync"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/timestamp"
+	"github.com/prometheus/prometheus/pkg/value"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
@@ -159,6 +161,95 @@ func (w *Storage) Truncate(mint int64) error {
 	level.Info(w.logger).Log("msg", "WAL checkpoint complete",
 		"first", first, "last", last, "duration", time.Since(start))
 	return nil
+}
+
+// WriteStalenessMarkers appends a staleness sample for all active series.
+func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
+	var lastErr error
+	var lastTs int64
+
+	s := w.series
+
+	app, err := w.Appender()
+	if err != nil {
+		return err
+	}
+
+	// TODO(rfratto): write a series iterator to refactor this
+	for i := 0; i < s.size; i++ {
+		s.locks[i].RLock()
+
+		for _, all := range s.hashes[i] {
+			for _, series := range all {
+				series.Lock()
+
+				j := int(series.ref) & (s.size - 1)
+
+				if i != j {
+					s.locks[j].RLock()
+				}
+
+				// Get values from the series before unlocking it
+				var (
+					labels = series.lset
+					ref    = series.ref
+				)
+
+				if i != j {
+					s.locks[j].RUnlock()
+				}
+
+				series.Unlock()
+
+				ts := timestamp.FromTime(time.Now())
+				err = app.AddFast(labels, ref, ts, math.Float64frombits(value.StaleNaN))
+				if err != nil {
+					lastErr = err
+				}
+
+				// Remove millisecond precision; the remote write timestamp we get
+				// only has second precision.
+				lastTs = (ts / 1000) * 1000
+			}
+		}
+
+		s.locks[i].RUnlock()
+	}
+
+	if lastErr == nil {
+		if err := app.Commit(); err != nil {
+			return fmt.Errorf("failed to commit staleness markers: %w", err)
+		}
+
+		// Wait for remote write to write the lastTs, but give up after 1m
+		level.Info(w.logger).Log("msg", "waiting for remote write to write staleness markers...")
+
+		stopCh := time.After(1 * time.Minute)
+		start := time.Now()
+
+	Outer:
+		for {
+			select {
+			case <-stopCh:
+				level.Error(w.logger).Log("msg", "timed out waiting for staleness markers to be written")
+				break Outer
+			default:
+				writtenTs := remoteTsFunc()
+				if writtenTs >= lastTs {
+					duration := time.Since(start)
+					level.Info(w.logger).Log("msg", "remote write wrote staleness markers", "duration", duration)
+					break Outer
+				}
+
+				level.Info(w.logger).Log("msg", "remote write hasn't written staleness markers yet", "remoteTs", writtenTs, "lastTs", lastTs)
+
+				// Wait a bit before reading again
+				time.Sleep(5 * time.Second)
+			}
+		}
+	}
+
+	return lastErr
 }
 
 // gc removes data before the minimum timestamp from the head.

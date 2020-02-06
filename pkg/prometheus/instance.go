@@ -49,6 +49,7 @@ var (
 
 	DefaultInstanceConfig = InstanceConfig{
 		WALTruncateFrequency: 1 * time.Minute,
+		RemoteFlushDeadline:  1 * time.Minute,
 	}
 )
 
@@ -58,8 +59,11 @@ type InstanceConfig struct {
 	Name          string                      `yaml:"name"`
 	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty"`
 	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
+
 	// How frequently the WAL should be truncated.
 	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency"`
+
+	RemoteFlushDeadline time.Duration `yaml:"remote_flush_deadline,omitempty"`
 }
 
 func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -199,7 +203,7 @@ func (i *instance) run(wstore *wal.Storage) {
 	}
 
 	// TODO(rfratto): tunable flush deadline?
-	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), prometheus.DefaultRegisterer, wstore.StartTime, i.walDir, 1*time.Minute)
+	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), prometheus.DefaultRegisterer, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline)
 	i.exitErr = remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg,
 		RemoteWriteConfigs: i.cfg.RemoteWrite,
@@ -224,9 +228,15 @@ func (i *instance) run(wstore *wal.Storage) {
 	filterer := NewHostFilter(i.hostname)
 
 	var g run.Group
-	// Prometheus generally runs a Termination handler here, but termination handling
-	// is done outside of the instance.
-	// TODO(rfratto): anything else we need to do here?
+
+	// The actors defined here are defined in the order we want them to shut down.
+	// Primarily, we want to ensure that the following shutdown order is
+	// maintained:
+	//		1. The scrape manager stops
+	//    2. WAL storage is closed
+	//    3. Remote write storage is closed
+	// This is done to allow the instance to write stale markers for all active
+	// series.
 	{
 		// Scrape discovery manager
 		g.Add(
@@ -242,7 +252,6 @@ func (i *instance) run(wstore *wal.Storage) {
 		)
 	}
 	{
-
 		// Target host filterer
 		g.Add(
 			func() error {
@@ -253,28 +262,6 @@ func (i *instance) run(wstore *wal.Storage) {
 			func(err error) {
 				level.Info(i.logger).Log("msg", "stopping host filterer...")
 				filterer.Stop()
-			},
-		)
-	}
-	{
-		// Scrape manager
-		g.Add(
-			func() error {
-				// TODO(rfratto): because the WAL is being created prior to this being called,
-				// this will always start with replaying the WAL, even if it's fresh. Is this
-				// expected? Do we want to change this?
-				err := scrapeManager.Run(filterer.SyncCh())
-				level.Info(i.logger).Log("msg", "scrape manager stopped")
-				return err
-			},
-			func(err error) {
-				// TODO(rfratto): is this correct? do we want to stop the fanoutStorage
-				// later?
-				if err := fanoutStorage.Close(); err != nil {
-					level.Error(i.logger).Log("msg", "error stopping storage", "err", err)
-				}
-				level.Info(i.logger).Log("msg", "stopping scrape manager...")
-				scrapeManager.Stop()
 			},
 		)
 	}
@@ -291,6 +278,37 @@ func (i *instance) run(wstore *wal.Storage) {
 			func(err error) {
 				level.Info(i.logger).Log("msg", "stopping truncation loop...")
 				contextCancel()
+			},
+		)
+	}
+	{
+		// Scrape manager
+		g.Add(
+			func() error {
+				err := scrapeManager.Run(filterer.SyncCh())
+				level.Info(i.logger).Log("msg", "scrape manager stopped")
+				return err
+			},
+			func(err error) {
+				// The scrape manager is closed first to allow us to write staleness
+				// markers without receiving new samples from scraping in the meantime.
+				level.Info(i.logger).Log("msg", "stopping scrape manager...")
+				scrapeManager.Stop()
+
+				// On a graceful shutdown, write staleness markers. If something went
+				// wrong, then the instance will be relaunched.
+				if err == nil {
+					level.Info(i.logger).Log("msg", "writing staleness markers...")
+					err := wstore.WriteStalenessMarkers(i.getRemoteWriteTimestamp)
+					if err != nil {
+						level.Error(i.logger).Log("msg", "error writing staleness markers", "err", err)
+					}
+				}
+
+				level.Info(i.logger).Log("msg", "closing storage...")
+				if err := fanoutStorage.Close(); err != nil {
+					level.Error(i.logger).Log("msg", "error stopping storage", "err", err)
+				}
 			},
 		)
 	}
