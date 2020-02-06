@@ -140,7 +140,7 @@ func (a *Agent) run() {
 			inst := a.instances[i]
 			<-inst.exited
 
-			if err := inst.Err(); err != nil && err != errInstanceStoppedNormally {
+			if err := inst.Err(); err == nil || err != errInstanceStoppedNormally {
 				// TODO(rfratto): metric for abnormal instance exits
 				level.Error(a.logger).Log("msg", "instance stopped abnormally. restarting in 5 sec...", "err", err)
 				time.Sleep(time.Second * 5)
