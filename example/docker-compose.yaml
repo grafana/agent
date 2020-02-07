@@ -1,0 +1,73 @@
+version: "2"
+services:
+  agent:
+    image: grafana/agent:latest
+    volumes:
+      - /tmp/agent:/tmp/agent
+      - ./agent/config:/etc/agent-config
+    entrypoint:
+      - /bin/agent
+      - -config.file=/etc/agent-config/agent.yaml
+      - -prometheus.wal-directory=/tmp/agent/wal
+    ports:
+      - "12345:12345"
+
+  cortex:
+    image: cortexproject/cortex:v0.6.1
+    volumes:
+      - /tmp/cortex:/tmp/cortex
+      - ./cortex/config:/etc/cortex-config
+    entrypoint:
+      - /bin/cortex
+      - -config.file=/etc/cortex-config/cortex.yaml
+    ports:
+      - "9009:9009"
+
+  grafana:
+    image: grafana/grafana:6.6.1
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    volumes:
+      - ./grafana/config:/etc/grafana-config
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
+
+  #
+  # Launch a Prometheus just for comparison against the Agent
+  #
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/config/prometheus.yml:/etc/prometheus.yaml
+    entrypoint:
+      - /bin/prometheus
+      - --config.file=/etc/prometheus.yaml
+
+  #
+  # Launch avalanche instances with a relatively low churn rate
+  #
+  avalanche-1:
+    image: quay.io/freshtracks.io/avalanche:latest
+    command:
+      - --metric-count=1000
+      - --series-interval=3600
+      - --metric-interval=7200
+
+  avalanche-2:
+    image: quay.io/freshtracks.io/avalanche:latest
+    command:
+      - --metric-count=1000
+      - --series-interval=3600
+      - --metric-interval=7200
+
+  avalanche-3:
+    image: quay.io/freshtracks.io/avalanche:latest
+    command:
+      - --metric-count=1000
+      - --series-interval=3600
+      - --metric-interval=7200
