@@ -1,5 +1,5 @@
 server:
-  log_level: debug
+  log_level: info
   http_listen_port: 12345
 
 prometheus:
@@ -14,4 +14,4 @@ prometheus:
               labels:
                 cluster: 'localhost'
       remote_write:
-        - url: http://localhost:8080/cortex/api/distributor/api/prom/push
+        - url: http://localhost:9009/api/prom/push

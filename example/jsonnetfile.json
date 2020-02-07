@@ -1,0 +1,13 @@
+{
+  "dependencies": [
+    {
+      "source": {
+        "local": {
+          "directory": "../production/agent-mixin"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "legacyImports": true
+}

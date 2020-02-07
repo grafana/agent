@@ -1,7 +1,7 @@
 # TODO(rfratto): docker images
 
 .DEFAULT_GOAL := all
-.PHONY: all agent check-mod int test clean
+.PHONY: all agent check-mod int test clean cmd/agent/agent
 
 SHELL = /usr/bin/env bash
 
@@ -30,6 +30,7 @@ BUILD_IMAGE_VERSION := 0.9.0
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
+IMAGE_TAG := $(shell ./tools/image-tag)
 
 # Version info for binaries
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -60,6 +61,10 @@ cmd/agent/agent: cmd/agent/main.go
 	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
+agent-image:
+	docker build -t $(IMAGE_PREFIX)/agent:latest -f cmd/agent/Dockerfile .
+	docker tag $(IMAGE_PREFIX)/agent:latest $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
+
 #######################
 # Development targets #
 #######################
@@ -73,3 +78,7 @@ test:
 clean:
 	rm -rf cmd/agent/agent
 	go clean $(MOD_FLAG) ./...
+
+example-dashboards:
+	cd example/grafana/dashboards && \
+		jsonnet template.jsonnet -J ../../vendor -m .

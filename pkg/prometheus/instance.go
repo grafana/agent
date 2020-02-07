@@ -48,6 +48,7 @@ var (
 	}
 
 	DefaultInstanceConfig = InstanceConfig{
+		HostFilter:           true,
 		WALTruncateFrequency: 1 * time.Minute,
 		RemoteFlushDeadline:  1 * time.Minute,
 		WriteStaleOnShutdown: true,
@@ -58,6 +59,7 @@ var (
 // agent. It has its own set of scrape_configs and remote_write rules.
 type InstanceConfig struct {
 	Name          string                      `yaml:"name"`
+	HostFilter    bool                        `yaml:"host_filter"`
 	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty"`
 	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
@@ -170,7 +172,10 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 
 	level.Debug(i.logger).Log("msg", "creating instance", "hostname", hostname)
 
-	wstore, err := wal.NewStorage(i.logger, prometheus.DefaultRegisterer, i.walDir)
+	reg := prometheus.WrapRegistererWith(prometheus.Labels{
+		"instance": cfg.Name,
+	}, prometheus.DefaultRegisterer)
+	wstore, err := wal.NewStorage(i.logger, reg, i.walDir)
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +198,7 @@ func (i *instance) run(wstore *wal.Storage) {
 	discoveryManagerScrape := discovery.NewManager(ctxScrape, log.With(i.logger, "component", "discovery manager scrape"), discovery.Name("scrape"))
 	{
 		// TODO(rfratto): refactor this to a function?
+		// TODO(rfratto): ensure job name name is unique
 		c := map[string]sd_config.ServiceDiscoveryConfig{}
 		for _, v := range i.cfg.ScrapeConfigs {
 			c[v.JobName] = v.ServiceDiscoveryConfig
@@ -227,6 +233,7 @@ func (i *instance) run(wstore *wal.Storage) {
 		return
 	}
 
+	level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", i.hostname)
 	filterer := NewHostFilter(i.hostname)
 
 	var g run.Group
@@ -253,7 +260,7 @@ func (i *instance) run(wstore *wal.Storage) {
 			},
 		)
 	}
-	{
+	if i.cfg.HostFilter {
 		// Target host filterer
 		g.Add(
 			func() error {
@@ -287,7 +294,14 @@ func (i *instance) run(wstore *wal.Storage) {
 		// Scrape manager
 		g.Add(
 			func() error {
-				err := scrapeManager.Run(filterer.SyncCh())
+				var readCh GroupChannel
+				if i.cfg.HostFilter {
+					readCh = filterer.SyncCh()
+				} else {
+					readCh = discoveryManagerScrape.SyncCh()
+				}
+
+				err := scrapeManager.Run(readCh)
 				level.Info(i.logger).Log("msg", "scrape manager stopped")
 				return err
 			},

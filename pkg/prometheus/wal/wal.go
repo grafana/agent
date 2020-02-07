@@ -19,6 +19,34 @@ import (
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
 
+type storageMetrics struct {
+	numActiveSeries  prometheus.Gauge
+	numDeletedSeries prometheus.Gauge
+}
+
+func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
+	var m storageMetrics
+
+	m.numActiveSeries = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_wal_storage_active_series",
+		Help: "Current number of active series being tracked by the WAL storage",
+	})
+
+	m.numDeletedSeries = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_wal_storage_deleted_series",
+		Help: "Current number of series marked for deletion from memory",
+	})
+
+	if r != nil {
+		r.MustRegister(
+			m.numActiveSeries,
+			m.numDeletedSeries,
+		)
+	}
+
+	return &m
+}
+
 // Storage implements storage.Storage, and just writes to the WAL.
 type Storage struct {
 	// Embed Queryable for compatibility, but don't actually implement it.
@@ -36,6 +64,8 @@ type Storage struct {
 
 	deletedMtx sync.Mutex
 	deleted    map[uint64]int // Deleted series, and what WAL segment they must be kept until.
+
+	metrics *storageMetrics
 }
 
 // NewStorage makes a new Storage.
@@ -50,6 +80,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		logger:  logger,
 		deleted: map[uint64]int{},
 		series:  newStripeSeries(),
+		metrics: newStorageMetrics(registerer),
 	}
 
 	storage.bufPool.New = func() interface{} {
@@ -149,6 +180,7 @@ func (w *Storage) Truncate(mint int64) error {
 			delete(w.deleted, ref)
 		}
 	}
+	w.metrics.numDeletedSeries.Set(float64(len(w.deleted)))
 	w.deletedMtx.Unlock()
 
 	if err := wal.DeleteCheckpoints(w.wal.Dir(), last); err != nil {
@@ -255,6 +287,7 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 // gc removes data before the minimum timestamp from the head.
 func (w *Storage) gc(mint int64) {
 	deleted := w.series.gc(mint)
+	w.metrics.numActiveSeries.Sub(float64(len(deleted)))
 
 	_, last, _ := w.wal.Segments()
 	w.deletedMtx.Lock()
@@ -271,6 +304,8 @@ func (w *Storage) gc(mint int64) {
 	for ref := range deleted {
 		w.deleted[ref] = last
 	}
+
+	w.metrics.numDeletedSeries.Set(float64(len(deleted)))
 }
 
 func (w *Storage) replayWAL() error {
@@ -380,22 +415,25 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 		switch v := d.(type) {
 		case []record.RefSeries:
 			for _, s := range v {
-				// Create the series in memory with the time it was read. This
-				// guarantees it will exist for at least two Truncation cycles
-				// in case it gets appended to late.
+				// If this is a new series, create it in memory with the time it
+				// was read. This guarantees it will exist for at least two Truncation
+				// cycles in case it gets appended to late.
 				//
 				// TODO(rfratto): we should expect some samples from the series to
 				// exist. Iterate over the samples and use the TS as lastTs instead
 				// so churned series don't stick around longer than they need to.
-				ts := timestamp.FromTime(time.Now())
-				series := &memSeries{ref: s.Ref, lastTs: ts, lset: s.Labels}
-				w.series.set(s.Labels.Hash(), series)
+				if w.series.getByHash(s.Labels.Hash(), s.Labels) == nil {
+					ts := timestamp.FromTime(time.Now())
+					series := &memSeries{ref: s.Ref, lastTs: ts, lset: s.Labels}
+					w.series.set(s.Labels.Hash(), series)
+					w.metrics.numActiveSeries.Inc()
 
-				w.mtx.Lock()
-				if w.nextRef <= s.Ref {
-					w.nextRef = s.Ref + 1
+					w.mtx.Lock()
+					if w.nextRef <= s.Ref {
+						w.nextRef = s.Ref + 1
+					}
+					w.mtx.Unlock()
 				}
-				w.mtx.Unlock()
 			}
 
 			//nolint:staticcheck
@@ -440,12 +478,12 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	if series == nil {
 		a.w.mtx.Lock()
 		ref := a.w.nextRef
-		level.Debug(a.w.logger).Log("msg", "new series", "ref", ref, "labels", l.String())
 		a.w.nextRef++
 		a.w.mtx.Unlock()
 
 		series = &memSeries{ref: ref, lset: l, lastTs: t}
 		a.w.series.set(hash, series)
+		a.w.metrics.numActiveSeries.Inc()
 
 		a.series = append(a.series, record.RefSeries{
 			Ref:    ref,

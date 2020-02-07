@@ -1,0 +1,50 @@
+server:
+  log_level: debug
+  http_listen_port: 12345
+
+prometheus:
+  global:
+    scrape_interval: 5s
+  configs:
+    - name: test
+      host_filter: false
+      scrape_configs:
+        - job_name: local_scrape
+          static_configs:
+            - targets: ['127.0.0.1:12345']
+              labels:
+                cluster: 'docker_compose'
+                origin: 'agent'
+                container: 'agent'
+        - job_name: cortex_scrape
+          static_configs:
+            - targets: ['cortex:9009']
+              labels:
+                cluster: 'docker_compose'
+                origin: 'agent'
+                container: 'cortex'
+
+        - job_name: avalanche-1
+          static_configs:
+            - targets: ['avalanche-1:9001']
+              labels:
+                cluster: 'docker_compose'
+                origin: 'agent'
+                container: 'avalanche-1'
+        - job_name: avalanche-2
+          static_configs:
+            - targets: ['avalanche-2:9001']
+              labels:
+                cluster: 'docker_compose'
+                origin: 'agent'
+                container: 'avalanche-2'
+        - job_name: avalanche-3
+          static_configs:
+            - targets: ['avalanche-3:9001']
+              labels:
+                cluster: 'docker_compose'
+                origin: 'agent'
+                container: 'avalanche-3'
+
+      remote_write:
+        - url: http://cortex:9009/api/prom/push

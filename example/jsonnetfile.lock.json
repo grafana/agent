@@ -1,0 +1,23 @@
+{
+  "dependencies": [
+    {
+      "source": {
+        "local": {
+          "directory": "../production/agent-mixin"
+        }
+      },
+      "version": ""
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs",
+          "subdir": "grafana-builder"
+        }
+      },
+      "version": "7ac7da1a0fe165b68cdb718b2521b560d51bd1f4",
+      "sum": "slxrtftVDiTlQK22ertdfrg4Epnq97gdrLI63ftUfaE="
+    }
+  ],
+  "legacyImports": false
+}
