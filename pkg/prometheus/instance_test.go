@@ -10,6 +10,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO(rfratto): test the instance.
+//
+// 1. mock the WAL, ensure that samples get sent to it
+// 2. test truncateLoop, getRemoteWriteTimestamp
+//
+// No need to go crazy and mock all external dependencies,
+// just create a temp directory for the WAL, create a custom
+// registerer exposed over httptest so can just scrape it
+// just like a "real" external target.
+
 func TestInstanceConfig_ApplyDefaults(t *testing.T) {
 	global := config.DefaultGlobalConfig
 	cfg := &InstanceConfig{
