@@ -17,16 +17,24 @@ import (
 	"github.com/prometheus/prometheus/config"
 )
 
+var (
+	DefaultConfig = Config{
+		Global:                 config.DefaultGlobalConfig,
+		InstanceRestartBackoff: 5 * time.Second,
+	}
+)
+
 // Config defines the configuration for the entire set of Prometheus client
 // instances, along with a global configuration.
 type Config struct {
-	Global  config.GlobalConfig `yaml:"global"`
-	WALDir  string              `yaml:"wal_directory"`
-	Configs []InstanceConfig    `yaml:"configs,omitempty"`
+	Global                 config.GlobalConfig `yaml:"global"`
+	WALDir                 string              `yaml:"wal_directory"`
+	Configs                []InstanceConfig    `yaml:"configs,omitempty"`
+	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
 }
 
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	c.Global = config.DefaultGlobalConfig
+	*c = DefaultConfig
 
 	// We want to set c to the defaults and then overwrite it with the input.
 	// To make unmarshal fill the plain data struct rather than calling UnmarshalYAML
@@ -34,10 +42,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type plain Config
 	if err := unmarshal((*plain)(c)); err != nil {
 		return err
-	}
-
-	if zeroGlobalConfig(c.Global) {
-		c.Global = config.DefaultGlobalConfig
 	}
 
 	// TODO(rfratto): move rest of ApplyDefaults to UnmarshalYAML
@@ -96,6 +100,20 @@ func zeroGlobalConfig(c config.GlobalConfig) bool {
 		c.EvaluationInterval == 0
 }
 
+// instance is an interface implemented by Instance, and used by tests
+// to isolate agent from instance functionality.
+type instance interface {
+	Wait() error
+	Config() InstanceConfig
+	Stop()
+}
+
+type instanceFactory = func(global config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (instance, error)
+
+func defaultInstanceFactory(global config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (instance, error) {
+	return NewInstance(global, cfg, walDir, logger)
+}
+
 // Agent is an agent for collecting Prometheus metrics. It acts as a
 // Prometheus-lite; only running the service discovery, remote_write,
 // and WAL components of Prometheus. It is broken down into a series
@@ -105,22 +123,29 @@ type Agent struct {
 	logger log.Logger
 
 	instanceMtx sync.Mutex
-	instances   []*instance
+	instances   []instance
+
+	instanceFactory instanceFactory
 }
 
 // New creates and starts a new Agent.
 func New(cfg Config, logger log.Logger) (*Agent, error) {
+	return newAgent(cfg, logger, defaultInstanceFactory)
+}
+
+func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
 
 	a := &Agent{
-		cfg:    cfg,
-		logger: log.With(logger, "agent", "prometheus"),
+		cfg:             cfg,
+		logger:          log.With(logger, "agent", "prometheus"),
+		instanceFactory: fact,
 	}
 
 	for _, c := range cfg.Configs {
-		inst, err := newInstance(cfg.Global, c, cfg.WALDir, a.logger)
+		inst, err := fact(cfg.Global, c, cfg.WALDir, a.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -135,22 +160,22 @@ func (a *Agent) run() {
 	// This function watches all instances for abnormal shutdowns and restarts them
 	// whenever that's detected. This function only exits when all instances
 	// shutdown normally, which can only happen when Stop is called on the agent.
-	a.forAllInstances(func(i int, _ *instance) {
+	a.forAllInstances(func(i int, _ instance) {
 		for {
 			inst := a.instances[i]
-			<-inst.exited
+			err := inst.Wait()
 
-			if err := inst.Err(); err == nil || err != errInstanceStoppedNormally {
+			if err == nil || err != errInstanceStoppedNormally {
 				// TODO(rfratto): metric for abnormal instance exits
-				level.Error(a.logger).Log("msg", "instance stopped abnormally. restarting in 5 sec...", "err", err)
-				time.Sleep(time.Second * 5)
+				level.Error(a.logger).Log("msg", "instance stopped abnormally, restarting after backoff period", "err", err, "backoff", a.cfg.InstanceRestartBackoff)
+				time.Sleep(a.cfg.InstanceRestartBackoff)
 			} else {
 				level.Info(a.logger).Log("msg", "agent stopped normally")
 				return
 			}
 
 			// Try to recreate the instance.
-			inst, err := newInstance(a.cfg.Global, inst.cfg, a.cfg.WALDir, a.logger)
+			inst, err = a.instanceFactory(a.cfg.Global, inst.Config(), a.cfg.WALDir, a.logger)
 			if err != nil {
 				level.Error(a.logger).Log("msg", "failed to recreate instance", "err", err)
 				// TODO(rfratto): should this be a panic? if we let the function return here
@@ -168,20 +193,20 @@ func (a *Agent) run() {
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
-	a.forAllInstances(func(idx int, inst *instance) {
+	a.forAllInstances(func(idx int, inst instance) {
 		inst.Stop()
 	})
 }
 
 // forAllInstances runs f in parallel for all provided instances. Only returns when
 // all f exit.
-func (a *Agent) forAllInstances(f func(idx int, inst *instance)) {
+func (a *Agent) forAllInstances(f func(idx int, inst instance)) {
 	var wg sync.WaitGroup
 	wg.Add(len(a.instances))
 
 	a.instanceMtx.Lock()
 	for idx, inst := range a.instances {
-		go func(idx int, inst *instance) {
+		go func(idx int, inst instance) {
 			f(idx, inst)
 			wg.Done()
 		}(idx, inst)

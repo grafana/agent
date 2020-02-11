@@ -3,11 +3,63 @@ package prometheus
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"testing"
+	"time"
 
+	"github.com/cortexproject/cortex/pkg/util/test"
+	"github.com/go-kit/kit/log"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
+	"gopkg.in/yaml.v2"
 )
+
+func TestConfig_UnmarshalYAML_Defaults(t *testing.T) {
+	var c Config
+
+	// Static compilation test: *Config should be an unmarshaller
+	var _ yaml.Unmarshaler = &c
+
+	err := yaml.Unmarshal([]byte("{}"), &c)
+	require.NoError(t, err)
+	require.Equal(t, config.DefaultGlobalConfig, c.Global)
+
+	t.Run("Invalid YAML", func(t *testing.T) {
+		var c Config
+		err := yaml.Unmarshal([]byte("<h1>I'm pretty sure this is XML.</h1>"), &c)
+		require.Error(t, err)
+	})
+}
+
+func TestConfig_UnmarshalYAML_DefaultsOverride(t *testing.T) {
+	data := `global: { scrape_timeout: '33s' }`
+
+	expect := config.GlobalConfig{
+		ScrapeInterval:     model.Duration(1 * time.Minute),
+		ScrapeTimeout:      model.Duration(33 * time.Second),
+		EvaluationInterval: model.Duration(1 * time.Minute),
+	}
+
+	var c Config
+	err := yaml.Unmarshal([]byte(data), &c)
+	require.NoError(t, err)
+	require.Equal(t, expect, c.Global)
+}
+
+func TestZeroGlobalConfig(t *testing.T) {
+	dur := model.Duration(time.Minute)
+	lbls := []labels.Label{{Name: "foo", Value: "bar"}}
+
+	require.True(t, zeroGlobalConfig(config.GlobalConfig{}))
+	require.False(t, zeroGlobalConfig(config.GlobalConfig{ScrapeInterval: dur}))
+	require.False(t, zeroGlobalConfig(config.GlobalConfig{ScrapeTimeout: dur}))
+	require.False(t, zeroGlobalConfig(config.GlobalConfig{EvaluationInterval: dur}))
+	require.False(t, zeroGlobalConfig(config.GlobalConfig{ExternalLabels: lbls}))
+}
 
 func TestNew_ValidatesConfig(t *testing.T) {
 	// Zero value of Config is invalid; it needs at least a
@@ -76,6 +128,141 @@ func copyConfig(t *testing.T, c Config) Config {
 	err = json.Unmarshal(bb, &cp)
 	require.NoError(t, err)
 	return cp
+}
+
+func TestAgent(t *testing.T) {
+	// Lanch two instances
+	cfg := Config{
+		WALDir: "/tmp/wal",
+		Configs: []InstanceConfig{
+			{Name: "instance_a"},
+			{Name: "instance_b"},
+		},
+		InstanceRestartBackoff: time.Duration(0),
+	}
+
+	var fact mockInstanceFactory
+
+	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
+	require.NoError(t, err)
+	require.Equal(t, fact.created.Load(), int64(2))
+	require.Len(t, a.instances, 2)
+
+	t.Run("wait should be called on each instance", func(t *testing.T) {
+		a.forAllInstances(func(_ int, i instance) {
+			mi := i.(*mockInstance)
+
+			// Each instance should have wait called on it
+			test.Poll(t, time.Millisecond*500, true, func() interface{} {
+				return mi.waitCalled.Load()
+			})
+		})
+	})
+
+	t.Run("instances should be restarted when stopped", func(t *testing.T) {
+		oldInstances := fact.created.Load()
+
+		a.forAllInstances(func(_ int, i instance) {
+			// Set abnormal error so the instance is restarted
+			mi := i.(*mockInstance)
+			mi.exitErr = io.EOF
+
+			i.Stop()
+		})
+
+		test.Poll(t, time.Millisecond*500, oldInstances*2, func() interface{} {
+			return fact.created.Load()
+		})
+	})
+
+	t.Run("instances should not be restarted when stopped normally", func(t *testing.T) {
+		oldInstances := fact.created.Load()
+
+		a.forAllInstances(func(_ int, i instance) {
+			i.Stop()
+		})
+
+		time.Sleep(time.Millisecond * 100)
+		require.Equal(t, oldInstances, fact.created.Load())
+	})
+}
+
+func TestAgent_Stop(t *testing.T) {
+	// Lanch two instances
+	cfg := Config{
+		WALDir: "/tmp/wal",
+		Configs: []InstanceConfig{
+			{Name: "instance_a"},
+			{Name: "instance_b"},
+		},
+		InstanceRestartBackoff: time.Duration(0),
+	}
+
+	var fact mockInstanceFactory
+
+	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
+	require.NoError(t, err)
+	require.Equal(t, fact.created.Load(), int64(2))
+	require.Len(t, a.instances, 2)
+
+	oldInstances := fact.created.Load()
+
+	a.Stop()
+
+	time.Sleep(time.Millisecond * 100)
+	require.Equal(t, oldInstances, fact.created.Load(), "new instances shuold not have been created")
+
+	a.forAllInstances(func(_ int, inst instance) {
+		mi := inst.(*mockInstance)
+		require.True(t, mi.exitCalled.Load())
+	})
+}
+
+type mockInstance struct {
+	cfg InstanceConfig
+
+	waitCalled *atomic.Bool
+	exitCalled *atomic.Bool
+
+	exited  chan bool
+	exitErr error
+}
+
+func (i *mockInstance) Wait() error {
+	i.waitCalled.Store(true)
+	<-i.exited
+	return i.exitErr
+}
+
+func (i *mockInstance) Config() InstanceConfig {
+	return i.cfg
+}
+
+func (i *mockInstance) Stop() {
+	i.exitCalled.Store(true)
+	if i.exitErr == nil {
+		i.exitErr = errInstanceStoppedNormally
+	}
+	close(i.exited)
+}
+
+type mockInstanceFactory struct {
+	created *atomic.Int64
+}
+
+func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg InstanceConfig, _ string, _ log.Logger) (instance, error) {
+
+	if f.created == nil {
+		f.created = atomic.NewInt64(0)
+	}
+	f.created.Add(1)
+
+	return &mockInstance{
+		cfg:        cfg,
+		exited:     make(chan bool),
+		waitCalled: atomic.NewBool(false),
+		exitCalled: atomic.NewBool(false),
+	}, nil
 }
 
 func TestMetricValueCollector(t *testing.T) {
