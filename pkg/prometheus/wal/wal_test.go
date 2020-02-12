@@ -58,7 +58,7 @@ func TestStorage(t *testing.T) {
 
 	for _, metric := range payload {
 		labels := labels.FromMap(map[string]string{"__name__": metric.name})
-		ref, err := app.Add(labels, metric.data[0].ts, metric.data[1].val)
+		ref, err := app.Add(labels, baseTs+metric.data[0].ts, metric.data[1].val)
 		require.NoError(t, err)
 
 		// Write other data points with AddFast
