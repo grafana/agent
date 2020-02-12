@@ -34,6 +34,9 @@ func main() {
 	}
 
 	w, err := wal.Open(nil, prometheus.DefaultRegisterer, walDir)
+	if err != nil {
+		panic(err)
+	}
 
 	dir, startFrom, err := wal.LastCheckpoint(w.Dir())
 	if err != nil && err != record.ErrNotFound {

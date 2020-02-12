@@ -112,7 +112,7 @@ func (c *InstanceConfig) Validate() error {
 	return nil
 }
 
-// walStorage is an interface satisifed by wal.Storage, and created for testing.
+// walStorage is an interface satisfied by wal.Storage, and created for testing.
 type walStorage interface {
 	// walStorage implements Queryable for compatibility, but is unused.
 	storage.Queryable

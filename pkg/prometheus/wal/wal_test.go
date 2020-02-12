@@ -53,12 +53,13 @@ func TestStorage(t *testing.T) {
 		{name: "baz", data: []tsPair{{3, 30.0}, {30, 300.0}}},
 	}
 
-	// Sample timestamps have to at least be after when the WAL watcher started
-	baseTs := timestamp.FromTime(time.Now())
+	// Sample timestamps have to at least be after when the WAL watcher started,
+	// so we use the current timestamp and fudge it a bit.
+	baseTs := timestamp.FromTime(time.Now()) + 10000
 
 	for _, metric := range payload {
 		labels := labels.FromMap(map[string]string{"__name__": metric.name})
-		ref, err := app.Add(labels, baseTs+metric.data[0].ts, metric.data[1].val)
+		ref, err := app.Add(labels, baseTs+metric.data[0].ts, metric.data[0].val)
 		require.NoError(t, err)
 
 		// Write other data points with AddFast
@@ -85,15 +86,13 @@ func TestStorage(t *testing.T) {
 
 	expectedSamples := []record.RefSample{}
 	for ref, metric := range payload {
-		// Only the last sample from each call Append per series should be written;
-		// only look for that.
-		sample := metric.data[len(metric.data)-1]
-
-		expectedSamples = append(expectedSamples, record.RefSample{
-			Ref: uint64(ref),
-			T:   baseTs + sample.ts,
-			V:   sample.val,
-		})
+		for _, sample := range metric.data {
+			expectedSamples = append(expectedSamples, record.RefSample{
+				Ref: uint64(ref),
+				T:   baseTs + sample.ts,
+				V:   sample.val,
+			})
+		}
 	}
 
 	// Wait for samples to be written.

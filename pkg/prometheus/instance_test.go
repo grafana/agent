@@ -69,6 +69,7 @@ func TestInstance(t *testing.T) {
 
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	inst, err := newInstance(globalConfig, cfg, walDir, logger, &mockStorage)
+	require.NoError(t, err)
 	defer inst.Stop()
 
 	// Wait until mockWalStorage has had a series added to it.
