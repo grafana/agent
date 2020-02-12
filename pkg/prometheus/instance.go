@@ -31,6 +31,7 @@ var (
 	remoteWriteMetricName      = "queue_highest_sent_timestamp_seconds"
 )
 
+// Default configuration values
 var (
 	// DefaultRelabelConfigs defines a list of relabel_configs that will
 	// be automatically appended to the end of all Prometheus
@@ -111,6 +112,19 @@ func (c *InstanceConfig) Validate() error {
 	return nil
 }
 
+// walStorage is an interface satisifed by wal.Storage, and created for testing.
+type walStorage interface {
+	// walStorage implements Queryable for compatibility, but is unused.
+	storage.Queryable
+
+	StartTime() (int64, error)
+	WriteStalenessMarkers(remoteTsFunc func() int64) error
+	Appender() (storage.Appender, error)
+	Truncate(mint int64) error
+
+	Close() error
+}
+
 // Instance is an individual metrics collector and remote_writer.
 type Instance struct {
 	cfg       InstanceConfig
@@ -129,6 +143,21 @@ type Instance struct {
 
 // NewInstance creates and starts a new Instance.
 func NewInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (*Instance, error) {
+	logger = log.With(logger, "instance", cfg.Name)
+
+	reg := prometheus.WrapRegistererWith(prometheus.Labels{
+		"instance": cfg.Name,
+	}, prometheus.DefaultRegisterer)
+
+	wstore, err := wal.NewStorage(logger, reg, walDir)
+	if err != nil {
+		return nil, err
+	}
+
+	return newInstance(globalCfg, cfg, walDir, logger, wstore)
+}
+
+func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger, wstore walStorage) (*Instance, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
@@ -137,6 +166,8 @@ func NewInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 	// This can currently only be done using the remote_name label Prometheus adds to the
 	// prometheus_remote_storage_queue_highest_sent_time_seconds label, so we force a name here
 	// that we can lookup later.
+	//
+	// TODO(rfratto): add to unmarshal yaml?
 	for _, rcfg := range cfg.RemoteWrite {
 		if rcfg.Name != "" {
 			continue
@@ -163,7 +194,7 @@ func NewInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 	i := &Instance{
 		cfg:       cfg,
 		globalCfg: globalCfg,
-		logger:    log.With(logger, "instance", cfg.Name),
+		logger:    logger,
 		walDir:    path.Join(walDir, cfg.Name),
 		hostname:  hostname,
 		vc:        vc,
@@ -171,15 +202,6 @@ func NewInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 	}
 
 	level.Debug(i.logger).Log("msg", "creating instance", "hostname", hostname)
-
-	reg := prometheus.WrapRegistererWith(prometheus.Labels{
-		"instance": cfg.Name,
-	}, prometheus.DefaultRegisterer)
-	wstore, err := wal.NewStorage(i.logger, reg, i.walDir)
-	if err != nil {
-		return nil, err
-	}
-
 	go i.run(wstore)
 	return i, nil
 }
@@ -191,7 +213,7 @@ func (i *Instance) Err() error {
 	return i.exitErr
 }
 
-func (i *Instance) run(wstore *wal.Storage) {
+func (i *Instance) run(wstore walStorage) {
 	ctxScrape, cancelScrape := context.WithCancel(context.Background())
 	i.cancelScrape = cancelScrape
 
@@ -340,7 +362,7 @@ func (i *Instance) run(wstore *wal.Storage) {
 	close(i.exited)
 }
 
-func (i *Instance) truncateLoop(ctx context.Context, wal *wal.Storage) {
+func (i *Instance) truncateLoop(ctx context.Context, wal walStorage) {
 	for {
 		select {
 		case <-ctx.Done():

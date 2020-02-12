@@ -111,6 +111,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 
 // StartTime returns the oldest timestamp stored in the storage.
 func (*Storage) StartTime() (int64, error) {
+	// TODO(rfratto): use the replay to track this?
 	return 0, nil
 }
 
