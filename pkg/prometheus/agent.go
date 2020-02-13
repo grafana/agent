@@ -44,7 +44,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
-	// TODO(rfratto): move rest of ApplyDefaults to UnmarshalYAML
+	for i := range c.Configs {
+		c.Configs[i].ApplyDefaults(&c.Global)
+	}
+
 	return nil
 }
 
@@ -53,20 +56,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.WALDir, "prometheus.wal-directory", "", "base directory to store the WAL in")
 }
 
-// ApplyDefaults applies default configurations to the configuration to all
-// values that have not been changed to their non-zero value.
-func (c *Config) ApplyDefaults() {
-	if zeroGlobalConfig(c.Global) {
-		c.Global = config.DefaultGlobalConfig
-	}
-
-	for i := range c.Configs {
-		c.Configs[i].ApplyDefaults(&c.Global)
-	}
-}
-
-// Validate checks if the Config has all required fields filled out. This
-// should only be called after ApplyDefaults.
+// Validate checks if the Config has all required fields filled out.
 func (c *Config) Validate() error {
 	if c.WALDir == "" {
 		return errors.New("no wal_directory configured")
@@ -89,29 +79,6 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
-}
-
-// zeroGlobalConfig checks if a GlobalConfig is unchanged from
-// all zero values. Copied from Prometheus.
-func zeroGlobalConfig(c config.GlobalConfig) bool {
-	return c.ExternalLabels == nil &&
-		c.ScrapeInterval == 0 &&
-		c.ScrapeTimeout == 0 &&
-		c.EvaluationInterval == 0
-}
-
-// instance is an interface implemented by Instance, and used by tests
-// to isolate agent from instance functionality.
-type instance interface {
-	Wait() error
-	Config() InstanceConfig
-	Stop()
-}
-
-type instanceFactory = func(global config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (instance, error)
-
-func defaultInstanceFactory(global config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (instance, error) {
-	return NewInstance(global, cfg, walDir, logger)
 }
 
 // Agent is an agent for collecting Prometheus metrics. It acts as a
@@ -175,12 +142,10 @@ func (a *Agent) run() {
 			}
 
 			// Try to recreate the instance.
-			inst, err = a.instanceFactory(a.cfg.Global, inst.Config(), a.cfg.WALDir, a.logger)
+			cfg := inst.Config()
+			inst, err = a.instanceFactory(a.cfg.Global, cfg, a.cfg.WALDir, a.logger)
 			if err != nil {
 				level.Error(a.logger).Log("msg", "failed to recreate instance", "err", err)
-				// TODO(rfratto): should this be a panic? if we let the function return here
-				// then that's an entire agent instance that's lost and won't recover until
-				// the entire process is restarted.
 				return
 			}
 
@@ -287,4 +252,18 @@ func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) (
 	}
 
 	return vals, nil
+}
+
+// instance is an interface implemented by Instance, and used by tests
+// to isolate agent from instance functionality.
+type instance interface {
+	Wait() error
+	Config() InstanceConfig
+	Stop()
+}
+
+type instanceFactory = func(global config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (instance, error)
+
+func defaultInstanceFactory(global config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (instance, error) {
+	return NewInstance(global, cfg, walDir, logger)
 }

@@ -84,11 +84,8 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	}
 
 	storage.bufPool.New = func() interface{} {
-		// staticcheck wants slices in a sync.Pool to be pointers to
-		// avoid overhead of allocating a struct with the length, capacity, and
-		// pointer to underlying array.
 		b := make([]byte, 0, 1024)
-		return &b
+		return b
 	}
 
 	storage.appenderPool.New = func() interface{} {
@@ -109,15 +106,191 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	return storage, nil
 }
 
-// StartTime returns the oldest timestamp stored in the storage.
-func (*Storage) StartTime() (int64, error) {
-	// TODO(rfratto): use the replay to track this?
-	return 0, nil
+func (w *Storage) replayWAL() error {
+	level.Info(w.logger).Log("msg", "replaying WAL, this may take awhile", "dir", w.wal.Dir())
+	dir, startFrom, err := wal.LastCheckpoint(w.wal.Dir())
+	if err != nil && err != record.ErrNotFound {
+		return errors.Wrap(err, "find last checkpoint")
+	}
+
+	if err == nil {
+		sr, err := wal.NewSegmentsReader(dir)
+		if err != nil {
+			return errors.Wrap(err, "open checkpoint")
+		}
+		defer func() {
+			if err := sr.Close(); err != nil {
+				level.Warn(w.logger).Log("msg", "error while closing the wal segments reader", "err", err)
+			}
+		}()
+
+		// A corrupted checkpoint is a hard error for now and requires user
+		// intervention. There's likely little data that can be recovered anyway.
+		if err := w.loadWAL(wal.NewReader(sr)); err != nil {
+			return errors.Wrap(err, "backfill checkpoint")
+		}
+		startFrom++
+		level.Info(w.logger).Log("msg", "WAL checkpoint loaded")
+	}
+
+	// Find the last segment.
+	_, last, err := w.wal.Segments()
+	if err != nil {
+		return errors.Wrap(err, "finding WAL segments")
+	}
+
+	// Backfill segments from the most recent checkpoint onwards.
+	for i := startFrom; i <= last; i++ {
+		s, err := wal.OpenReadSegment(wal.SegmentName(w.wal.Dir(), i))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("open WAL segment: %d", i))
+		}
+
+		sr := wal.NewSegmentBufReader(s)
+		err = w.loadWAL(wal.NewReader(sr))
+		if err := sr.Close(); err != nil {
+			level.Warn(w.logger).Log("msg", "error while closing the wal segments reader", "err", err)
+		}
+		if err != nil {
+			return err
+		}
+		level.Info(w.logger).Log("msg", "WAL segment loaded", "segment", i, "maxSegment", last)
+	}
+
+	return nil
+}
+
+func (w *Storage) loadWAL(r *wal.Reader) (err error) {
+	var (
+		dec record.Decoder
+	)
+
+	var (
+		decoded    = make(chan interface{}, 10)
+		errCh      = make(chan error, 1)
+		seriesPool = sync.Pool{
+			New: func() interface{} {
+				return []record.RefSeries{}
+			},
+		}
+		samplesPool = sync.Pool{
+			New: func() interface{} {
+				return []record.RefSample{}
+			},
+		}
+	)
+
+	go func() {
+		defer close(decoded)
+		for r.Next() {
+			rec := r.Record()
+			switch dec.Type(rec) {
+			case record.Series:
+				series := seriesPool.Get().([]record.RefSeries)[:0]
+				series, err = dec.Series(rec, series)
+				if err != nil {
+					errCh <- &wal.CorruptionErr{
+						Err:     errors.Wrap(err, "decode series"),
+						Segment: r.Segment(),
+						Offset:  r.Offset(),
+					}
+					return
+				}
+				decoded <- series
+			case record.Samples:
+				// We don't care about samples
+				samples := samplesPool.Get().([]record.RefSample)[:0]
+				samples, err = dec.Samples(rec, samples)
+				if err != nil {
+					errCh <- &wal.CorruptionErr{
+						Err:     errors.Wrap(err, "decode samples"),
+						Segment: r.Segment(),
+						Offset:  r.Offset(),
+					}
+				}
+				decoded <- samples
+			case record.Tombstones:
+				// We don't care about tombstones
+				continue
+			default:
+				errCh <- &wal.CorruptionErr{
+					Err:     errors.Errorf("invalid record type %v", dec.Type(rec)),
+					Segment: r.Segment(),
+					Offset:  r.Offset(),
+				}
+				return
+			}
+		}
+	}()
+
+	for d := range decoded {
+		switch v := d.(type) {
+		case []record.RefSeries:
+			for _, s := range v {
+				// If this is a new series, create it in memory without a timestamp.
+				// If we read in a sample for it, we'll use the timestamp of the latest
+				// sample. Otherwise, the series is stale and will be deleted once
+				// the truncation is performed.
+				if w.series.getByHash(s.Labels.Hash(), s.Labels) == nil {
+					series := &memSeries{ref: s.Ref, lastTs: 0, lset: s.Labels}
+					w.series.set(s.Labels.Hash(), series)
+					w.metrics.numActiveSeries.Inc()
+
+					w.mtx.Lock()
+					if w.nextRef <= s.Ref {
+						w.nextRef = s.Ref + 1
+					}
+					w.mtx.Unlock()
+				}
+			}
+
+			//nolint:staticcheck
+			seriesPool.Put(v)
+		case []record.RefSample:
+			for _, s := range v {
+				// Update the lastTs for the series based
+				series := w.series.getByID(s.Ref)
+				if series == nil {
+					level.Warn(w.logger).Log("msg", "found sample referencing non-existing series, skipping")
+					return
+				}
+
+				series.Lock()
+				if s.T > series.lastTs {
+					series.lastTs = s.T
+				}
+				series.Unlock()
+			}
+
+			//nolint:staticcheck
+			samplesPool.Put(v)
+		default:
+			panic(fmt.Errorf("unexpected decoded type: %T", d))
+		}
+	}
+
+	select {
+	case err := <-errCh:
+		return err
+	default:
+	}
+
+	if r.Err() != nil {
+		return errors.Wrap(r.Err(), "read records")
+	}
+
+	return nil
 }
 
 // Appender returns a new appender against the storage.
 func (w *Storage) Appender() (storage.Appender, error) {
 	return w.appenderPool.Get().(storage.Appender), nil
+}
+
+// StartTime always returns 0, nil. It is implemented for compatibility with
+// Prometheus, but is unused in the agent.
+func (*Storage) StartTime() (int64, error) {
+	return 0, nil
 }
 
 // Truncate removes all data from the WAL prior to the timestamp specified by
@@ -196,57 +369,56 @@ func (w *Storage) Truncate(mint int64) error {
 	return nil
 }
 
+// gc removes data before the minimum timestamp from the head.
+func (w *Storage) gc(mint int64) {
+	deleted := w.series.gc(mint)
+	w.metrics.numActiveSeries.Sub(float64(len(deleted)))
+
+	_, last, _ := w.wal.Segments()
+	w.deletedMtx.Lock()
+	defer w.deletedMtx.Unlock()
+
+	// We want to keep series records for any newly deleted series
+	// until we've passed the last recorded segment. The WAL will
+	// still contain samples records with all of the ref IDs until
+	// the segment's samples has been deleted from the checkpoint.
+	//
+	// If the series weren't kept on startup when the WAL was replied,
+	// the samples wouldn't be able to be used since there wouldn't
+	// be any labels for that ref ID.
+	for ref := range deleted {
+		w.deleted[ref] = last
+	}
+
+	w.metrics.numDeletedSeries.Set(float64(len(deleted)))
+}
+
 // WriteStalenessMarkers appends a staleness sample for all active series.
 func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 	var lastErr error
 	var lastTs int64
-
-	s := w.series
 
 	app, err := w.Appender()
 	if err != nil {
 		return err
 	}
 
-	// TODO(rfratto): write a series iterator to refactor this
-	for i := 0; i < s.size; i++ {
-		s.locks[i].RLock()
+	it := w.series.iterator()
+	for series := range it.Channel() {
+		var (
+			labels = series.lset
+			ref    = series.ref
+		)
 
-		for _, all := range s.hashes[i] {
-			for _, series := range all {
-				series.Lock()
-
-				j := int(series.ref) & (s.size - 1)
-
-				if i != j {
-					s.locks[j].RLock()
-				}
-
-				// Get values from the series before unlocking it
-				var (
-					labels = series.lset
-					ref    = series.ref
-				)
-
-				if i != j {
-					s.locks[j].RUnlock()
-				}
-
-				series.Unlock()
-
-				ts := timestamp.FromTime(time.Now())
-				err = app.AddFast(labels, ref, ts, math.Float64frombits(value.StaleNaN))
-				if err != nil {
-					lastErr = err
-				}
-
-				// Remove millisecond precision; the remote write timestamp we get
-				// only has second precision.
-				lastTs = (ts / 1000) * 1000
-			}
+		ts := timestamp.FromTime(time.Now())
+		err = app.AddFast(labels, ref, ts, math.Float64frombits(value.StaleNaN))
+		if err != nil {
+			lastErr = err
 		}
 
-		s.locks[i].RUnlock()
+		// Remove millisecond precision; the remote write timestamp we get
+		// only has second precision.
+		lastTs = (ts / 1000) * 1000
 	}
 
 	if lastErr == nil {
@@ -283,178 +455,6 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 	}
 
 	return lastErr
-}
-
-// gc removes data before the minimum timestamp from the head.
-func (w *Storage) gc(mint int64) {
-	deleted := w.series.gc(mint)
-	w.metrics.numActiveSeries.Sub(float64(len(deleted)))
-
-	_, last, _ := w.wal.Segments()
-	w.deletedMtx.Lock()
-	defer w.deletedMtx.Unlock()
-
-	// We want to keep series records for any newly deleted series
-	// until we've passed the last recorded segment. The WAL will
-	// still contain samples records with all of the ref IDs until
-	// the segment's samples has been deleted from the checkpoint.
-	//
-	// If the series weren't kept on startup when the WAL was replied,
-	// the samples wouldn't be able to be used since there wouldn't
-	// be any labels for that ref ID.
-	for ref := range deleted {
-		w.deleted[ref] = last
-	}
-
-	w.metrics.numDeletedSeries.Set(float64(len(deleted)))
-}
-
-func (w *Storage) replayWAL() error {
-	level.Info(w.logger).Log("msg", "replaying WAL, this may take awhile", "dir", w.wal.Dir())
-	dir, startFrom, err := wal.LastCheckpoint(w.wal.Dir())
-	if err != nil && err != record.ErrNotFound {
-		return errors.Wrap(err, "find last checkpoint")
-	}
-
-	if err == nil {
-		sr, err := wal.NewSegmentsReader(dir)
-		if err != nil {
-			return errors.Wrap(err, "open checkpoint")
-		}
-		defer func() {
-			if err := sr.Close(); err != nil {
-				level.Warn(w.logger).Log("msg", "error while closing the wal segments reader", "err", err)
-			}
-		}()
-
-		// A corrupted checkpoint is a hard error for now and requires user
-		// intervention. There's likely little data that can be recovered anyway.
-		if err := w.loadWAL(wal.NewReader(sr)); err != nil {
-			return errors.Wrap(err, "backfill checkpoint")
-		}
-		startFrom++
-		level.Info(w.logger).Log("msg", "WAL checkpoint loaded")
-	}
-
-	// Find the last segment.
-	_, last, err := w.wal.Segments()
-	if err != nil {
-		return errors.Wrap(err, "finding WAL segments")
-	}
-
-	// Backfill segments from the most recent checkpoint onwards.
-	for i := startFrom; i <= last; i++ {
-		s, err := wal.OpenReadSegment(wal.SegmentName(w.wal.Dir(), i))
-		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("open WAL segment: %d", i))
-		}
-
-		sr := wal.NewSegmentBufReader(s)
-		err = w.loadWAL(wal.NewReader(sr))
-		if err := sr.Close(); err != nil {
-			level.Warn(w.logger).Log("msg", "error while closing the wal segments reader", "err", err)
-		}
-		if err != nil {
-			return err
-		}
-		level.Info(w.logger).Log("msg", "WAL segment loaded", "segment", i, "maxSegment", last)
-	}
-
-	return nil
-}
-
-func (w *Storage) loadWAL(r *wal.Reader) (err error) {
-	var (
-		dec record.Decoder
-	)
-
-	var (
-		decoded    = make(chan interface{}, 10)
-		errCh      = make(chan error, 1)
-		seriesPool = sync.Pool{
-			New: func() interface{} {
-				return []record.RefSeries{}
-			},
-		}
-	)
-
-	go func() {
-		defer close(decoded)
-		for r.Next() {
-			rec := r.Record()
-			switch dec.Type(rec) {
-			case record.Series:
-				series := seriesPool.Get().([]record.RefSeries)[:0]
-				series, err = dec.Series(rec, series)
-				if err != nil {
-					errCh <- &wal.CorruptionErr{
-						Err:     errors.Wrap(err, "decode series"),
-						Segment: r.Segment(),
-						Offset:  r.Offset(),
-					}
-					return
-				}
-				decoded <- series
-			case record.Samples:
-				// We don't care about samples
-				continue
-			case record.Tombstones:
-				// We don't care about tombstones
-				continue
-			default:
-				errCh <- &wal.CorruptionErr{
-					Err:     errors.Errorf("invalid record type %v", dec.Type(rec)),
-					Segment: r.Segment(),
-					Offset:  r.Offset(),
-				}
-				return
-			}
-		}
-	}()
-
-	for d := range decoded {
-		switch v := d.(type) {
-		case []record.RefSeries:
-			for _, s := range v {
-				// If this is a new series, create it in memory with the time it
-				// was read. This guarantees it will exist for at least two Truncation
-				// cycles in case it gets appended to late.
-				//
-				// TODO(rfratto): we should expect some samples from the series to
-				// exist. Iterate over the samples and use the TS as lastTs instead
-				// so churned series don't stick around longer than they need to.
-				if w.series.getByHash(s.Labels.Hash(), s.Labels) == nil {
-					ts := timestamp.FromTime(time.Now())
-					series := &memSeries{ref: s.Ref, lastTs: ts, lset: s.Labels}
-					w.series.set(s.Labels.Hash(), series)
-					w.metrics.numActiveSeries.Inc()
-
-					w.mtx.Lock()
-					if w.nextRef <= s.Ref {
-						w.nextRef = s.Ref + 1
-					}
-					w.mtx.Unlock()
-				}
-			}
-
-			//nolint:staticcheck
-			seriesPool.Put(v)
-		default:
-			panic(fmt.Errorf("unexpected decoded type: %T", d))
-		}
-	}
-
-	select {
-	case err := <-errCh:
-		return err
-	default:
-	}
-
-	if r.Err() != nil {
-		return errors.Wrap(r.Err(), "read records")
-	}
-
-	return nil
 }
 
 // Close closes the storage and all its underlying resources.
@@ -518,8 +518,7 @@ func (a *appender) AddFast(_ labels.Labels, ref uint64, t int64, v float64) erro
 // Commit submits the collected samples and purges the batch.
 func (a *appender) Commit() error {
 	var encoder record.Encoder
-	bufp := a.w.bufPool.Get().(*[]byte)
-	buf := *bufp
+	buf := a.w.bufPool.Get().([]byte)
 
 	buf = encoder.Series(a.series, buf)
 	if err := a.w.wal.Log(buf); err != nil {
@@ -533,7 +532,9 @@ func (a *appender) Commit() error {
 	}
 
 	buf = buf[:0]
-	a.w.bufPool.Put(&buf)
+
+	//nolint:staticcheck
+	a.w.bufPool.Put(buf)
 	return a.Rollback()
 }
 

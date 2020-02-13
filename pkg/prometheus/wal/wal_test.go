@@ -95,6 +95,12 @@ func TestStorage_ExistingWAL(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
+	// Verify that the storage picked up existing series when it
+	// replayed the WAL.
+	for series := range s.series.iterator().Channel() {
+		require.Greater(t, series.lastTs, int64(0), "series timestamp not updated")
+	}
+
 	app, err = s.Appender()
 	require.NoError(t, err)
 

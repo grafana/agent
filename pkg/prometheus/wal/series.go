@@ -185,3 +185,48 @@ func (s *stripeSeries) set(hash uint64, series *memSeries) {
 	s.series[i][series.ref] = series
 	s.locks[i].Unlock()
 }
+
+func (s *stripeSeries) iterator() *stripeSeriesIterator {
+	return &stripeSeriesIterator{s}
+}
+
+// stripeSeriesIterator allows to iterate over series through a channel.
+// The channel should always be completely consumed to not leak.
+type stripeSeriesIterator struct {
+	s *stripeSeries
+}
+
+func (it *stripeSeriesIterator) Channel() <-chan *memSeries {
+	ret := make(chan *memSeries)
+
+	go func() {
+		for i := 0; i < it.s.size; i++ {
+			it.s.locks[i].RLock()
+
+			for _, all := range it.s.hashes[i] {
+				for _, series := range all {
+					series.Lock()
+
+					j := int(series.ref) & (it.s.size - 1)
+					if i != j {
+						it.s.locks[j].RLock()
+					}
+
+					ret <- series
+
+					if i != j {
+						it.s.locks[j].RUnlock()
+					}
+
+					series.Unlock()
+				}
+			}
+
+			it.s.locks[i].RUnlock()
+		}
+
+		close(ret)
+	}()
+
+	return ret
+}

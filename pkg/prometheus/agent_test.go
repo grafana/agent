@@ -12,7 +12,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
@@ -48,17 +47,6 @@ func TestConfig_UnmarshalYAML_DefaultsOverride(t *testing.T) {
 	err := yaml.Unmarshal([]byte(data), &c)
 	require.NoError(t, err)
 	require.Equal(t, expect, c.Global)
-}
-
-func TestZeroGlobalConfig(t *testing.T) {
-	dur := model.Duration(time.Minute)
-	lbls := []labels.Label{{Name: "foo", Value: "bar"}}
-
-	require.True(t, zeroGlobalConfig(config.GlobalConfig{}))
-	require.False(t, zeroGlobalConfig(config.GlobalConfig{ScrapeInterval: dur}))
-	require.False(t, zeroGlobalConfig(config.GlobalConfig{ScrapeTimeout: dur}))
-	require.False(t, zeroGlobalConfig(config.GlobalConfig{EvaluationInterval: dur}))
-	require.False(t, zeroGlobalConfig(config.GlobalConfig{ExternalLabels: lbls}))
 }
 
 func TestNew_ValidatesConfig(t *testing.T) {
