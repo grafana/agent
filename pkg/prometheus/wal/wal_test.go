@@ -8,15 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
 	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/pkg/value"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/tsdb/record"
-	"github.com/prometheus/prometheus/tsdb/wal"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,16 +27,6 @@ func TestStorage(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
-	collector := walDataCollector{}
-
-	watcher := wal.NewWatcher(nil, wal.NewWatcherMetrics(nil), nil, "test", &collector, walDir)
-	go watcher.Start()
-	defer watcher.Stop()
-
-	// Sample timestamps have to at least be after when the WAL watcher started,
-	// so we use the current timestamp and fudge it a bit.
-	baseTs := timestamp.FromTime(time.Now()) + 10000
-
 	app, err := s.Appender()
 	require.NoError(t, err)
 
@@ -51,35 +37,25 @@ func TestStorage(t *testing.T) {
 		{name: "baz", samples: []sample{{3, 30.0}, {30, 300.0}}},
 	}
 	for _, metric := range payload {
-		metric.Write(t, baseTs, app)
+		metric.Write(t, app)
 	}
 
 	require.NoError(t, app.Commit())
 
-	// Wait for series to be written. Expect them to be in same order from earlier.
-	test.Poll(t, 10*time.Second, true, func() interface{} {
-		collector.mut.Lock()
-		defer collector.mut.Unlock()
+	collector := walDataCollector{}
+	replayer := walReplayer{w: &collector}
+	require.NoError(t, replayer.Replay(s.wal.Dir()))
 
-		names := []string{}
-		for _, series := range collector.series {
-			names = append(names, series.Labels.Get("__name__"))
-		}
+	names := []string{}
+	for _, series := range collector.series {
+		names = append(names, series.Labels.Get("__name__"))
+	}
+	require.Equal(t, payload.SeriesNames(), names)
 
-		return assert.ObjectsAreEqual(payload.SeriesNames(), names)
-	})
-
-	// Wait for samples to be written.
-	expectedSamples := payload.ExpectedSamples(baseTs)
-	test.Poll(t, 10*time.Second, true, func() interface{} {
-		collector.mut.Lock()
-		defer collector.mut.Unlock()
-
-		actual := collector.samples
-		sort.Sort(byRefSample(actual))
-
-		return assert.ObjectsAreEqual(expectedSamples, actual)
-	})
+	expectedSamples := payload.ExpectedSamples()
+	actual := collector.samples
+	sort.Sort(byRefSample(actual))
+	require.Equal(t, expectedSamples, actual)
 }
 
 func TestStorage_ExistingWAL(t *testing.T) {
@@ -89,15 +65,6 @@ func TestStorage_ExistingWAL(t *testing.T) {
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
-
-	collector := walDataCollector{}
-	watcher := wal.NewWatcher(nil, wal.NewWatcherMetrics(nil), nil, "test", &collector, walDir)
-	go watcher.Start()
-	defer watcher.Stop()
-
-	// Sample timestamps have to at least be after when the WAL watcher started,
-	// so we use the current timestamp and fudge it a bit.
-	baseTs := timestamp.FromTime(time.Now()) + 10000
 
 	app, err := s.Appender()
 	require.NoError(t, err)
@@ -111,7 +78,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 
 	// Write half of the samples.
 	for _, metric := range payload[0 : len(payload)/2] {
-		metric.Write(t, baseTs, app)
+		metric.Write(t, app)
 	}
 
 	require.NoError(t, app.Commit())
@@ -132,35 +99,25 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, metric := range payload[len(payload)/2:] {
-		metric.Write(t, baseTs, app)
+		metric.Write(t, app)
 	}
 
 	require.NoError(t, app.Commit())
 
-	// Wait for series to be written. Expect them to be in same order from earlier.
-	test.Poll(t, 10*time.Second, true, func() interface{} {
-		collector.mut.Lock()
-		defer collector.mut.Unlock()
+	collector := walDataCollector{}
+	replayer := walReplayer{w: &collector}
+	require.NoError(t, replayer.Replay(s.wal.Dir()))
 
-		names := []string{}
-		for _, series := range collector.series {
-			names = append(names, series.Labels.Get("__name__"))
-		}
+	names := []string{}
+	for _, series := range collector.series {
+		names = append(names, series.Labels.Get("__name__"))
+	}
+	require.Equal(t, payload.SeriesNames(), names)
 
-		return assert.ObjectsAreEqual(payload.SeriesNames(), names)
-	})
-
-	// Wait for samples to be written.
-	expectedSamples := payload.ExpectedSamples(baseTs)
-
-	test.Poll(t, 10*time.Second, true, func() interface{} {
-		collector.mut.Lock()
-		defer collector.mut.Unlock()
-
-		actual := collector.samples
-		sort.Sort(byRefSample(actual))
-		return assert.ObjectsAreEqual(expectedSamples, actual)
-	})
+	expectedSamples := payload.ExpectedSamples()
+	actual := collector.samples
+	sort.Sort(byRefSample(actual))
+	require.Equal(t, expectedSamples, actual)
 }
 
 func TestStorage_Truncate(t *testing.T) {
@@ -189,7 +146,7 @@ func TestStorage_Truncate(t *testing.T) {
 	}
 
 	for _, metric := range payload {
-		metric.Write(t, 0, app)
+		metric.Write(t, app)
 	}
 
 	require.NoError(t, app.Commit())
@@ -209,25 +166,22 @@ func TestStorage_Truncate(t *testing.T) {
 	payload = payload.Filter(func(s sample) bool {
 		return s.ts >= keepTs
 	})
-	expectedSamples := payload.ExpectedSamples(0)
+	expectedSamples := payload.ExpectedSamples()
 
-	test.Poll(t, 10*time.Second, true, func() interface{} {
-		// Read back the WAL, collect series and samples.
-		collector := walDataCollector{}
-		replayer := walReplayer{w: &collector}
-		require.NoError(t, replayer.Replay(s.wal.Dir()))
+	// Read back the WAL, collect series and samples.
+	collector := walDataCollector{}
+	replayer := walReplayer{w: &collector}
+	require.NoError(t, replayer.Replay(s.wal.Dir()))
 
-		names := []string{}
-		for _, series := range collector.series {
-			names = append(names, series.Labels.Get("__name__"))
-		}
+	names := []string{}
+	for _, series := range collector.series {
+		names = append(names, series.Labels.Get("__name__"))
+	}
+	require.Equal(t, payload.SeriesNames(), names)
 
-		actual := collector.samples
-		sort.Sort(byRefSample(actual))
-
-		return assert.ObjectsAreEqual(payload.SeriesNames(), names) &&
-			assert.ObjectsAreEqual(expectedSamples, actual)
-	})
+	actual := collector.samples
+	sort.Sort(byRefSample(actual))
+	require.Equal(t, expectedSamples, actual)
 }
 
 func TestStorage_WriteStalenessMarkers(t *testing.T) {
@@ -251,7 +205,7 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 		{name: "baz", samples: []sample{{3, 30.0}, {30, 300.0}}},
 	}
 	for _, metric := range payload {
-		metric.Write(t, 0, app)
+		metric.Write(t, app)
 	}
 
 	require.NoError(t, app.Commit())
@@ -262,32 +216,27 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 		return math.MaxInt64
 	}))
 
-	test.Poll(t, 10*time.Second, true, func() interface{} {
-		// Read back the WAL, collect series and samples.
-		collector := walDataCollector{}
-		replayer := walReplayer{w: &collector}
-		require.NoError(t, replayer.Replay(s.wal.Dir()))
+	// Read back the WAL, collect series and samples.
+	collector := walDataCollector{}
+	replayer := walReplayer{w: &collector}
+	require.NoError(t, replayer.Replay(s.wal.Dir()))
 
-		actual := collector.samples
-		sort.Sort(byRefSample(actual))
+	actual := collector.samples
+	sort.Sort(byRefSample(actual))
 
-		staleMap := map[uint64]bool{}
-		for _, sample := range actual {
-			if _, ok := staleMap[sample.Ref]; !ok {
-				staleMap[sample.Ref] = false
-			}
-			if value.IsStaleNaN(sample.V) {
-				staleMap[sample.Ref] = true
-			}
+	staleMap := map[uint64]bool{}
+	for _, sample := range actual {
+		if _, ok := staleMap[sample.Ref]; !ok {
+			staleMap[sample.Ref] = false
 		}
-
-		for _, v := range staleMap {
-			if !v {
-				return false
-			}
+		if value.IsStaleNaN(sample.V) {
+			staleMap[sample.Ref] = true
 		}
-		return true
-	})
+	}
+
+	for ref, v := range staleMap {
+		require.True(t, v, "ref %d doesn't have stale marker", ref)
+	}
 }
 
 type sample struct {
@@ -302,7 +251,7 @@ type series struct {
 	ref *uint64
 }
 
-func (s *series) Write(t *testing.T, baseTs int64, app storage.Appender) {
+func (s *series) Write(t *testing.T, app storage.Appender) {
 	t.Helper()
 
 	labels := labels.FromMap(map[string]string{"__name__": s.name})
@@ -310,7 +259,7 @@ func (s *series) Write(t *testing.T, baseTs int64, app storage.Appender) {
 	offset := 0
 	if s.ref == nil {
 		// Write first sample to get ref ID
-		ref, err := app.Add(labels, baseTs+s.samples[0].ts, s.samples[0].val)
+		ref, err := app.Add(labels, s.samples[0].ts, s.samples[0].val)
 		require.NoError(t, err)
 
 		s.ref = &ref
@@ -319,7 +268,7 @@ func (s *series) Write(t *testing.T, baseTs int64, app storage.Appender) {
 
 	// Write other data points with AddFast
 	for _, sample := range s.samples[offset:] {
-		err := app.AddFast(labels, *s.ref, baseTs+sample.ts, sample.val)
+		err := app.AddFast(labels, *s.ref, sample.ts, sample.val)
 		require.NoError(t, err)
 	}
 }
@@ -361,13 +310,13 @@ func (s seriesList) SeriesNames() []string {
 }
 
 // ExpectedSamples returns the list of expected samples, sorted by ref ID and timestamp
-func (s seriesList) ExpectedSamples(baseTs int64) []record.RefSample {
+func (s seriesList) ExpectedSamples() []record.RefSample {
 	expect := []record.RefSample{}
 	for _, series := range s {
 		for _, sample := range series.samples {
 			expect = append(expect, record.RefSample{
 				Ref: *series.ref,
-				T:   baseTs + sample.ts,
+				T:   sample.ts,
 				V:   sample.val,
 			})
 		}
