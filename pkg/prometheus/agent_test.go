@@ -227,11 +227,13 @@ func (i *mockInstance) Config() InstanceConfig {
 }
 
 func (i *mockInstance) Stop() {
-	i.exitCalled.Store(true)
-	if i.exitErr == nil {
-		i.exitErr = errInstanceStoppedNormally
+	if !i.exitCalled.Load() {
+		i.exitCalled.Store(true)
+		if i.exitErr == nil {
+			i.exitErr = errInstanceStoppedNormally
+		}
+		close(i.exited)
 	}
-	close(i.exited)
 }
 
 type mockInstanceFactory struct {
