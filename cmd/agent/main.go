@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	// Adds version information
@@ -30,12 +31,6 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Prometheus.RegisterFlags(f)
 }
 
-// ApplyDefaults applies default values to the config for fields that
-// have not changed to their non-zero value.
-func (c *Config) ApplyDefaults() {
-	c.Prometheus.ApplyDefaults()
-}
-
 func init() {
 	prometheus.MustRegister(version.NewCollector("agent"))
 }
@@ -52,7 +47,10 @@ func main() {
 	fs.StringVar(&configFile, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	cfg.RegisterFlags(fs)
-	errCheck(fs.Parse(os.Args[1:]), "error parsing flags")
+
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		log.Fatalf("error parsing flags: %v\n", err)
+	}
 
 	if printVersion {
 		fmt.Println(version.Print("agent"))
@@ -60,17 +58,18 @@ func main() {
 	}
 
 	if configFile == "" {
-		exitWithError("-config.file flag required")
+		log.Fatalln("-config.file flag required")
 	} else if err := loadConfig(configFile, &cfg); err != nil {
-		exitWithError("error loading config file %s: %v", configFile, err)
+		log.Fatalf("error loading config file %s: %v\n", configFile, err)
 	}
 
-	// Parse the flags again to override any yaml stuff with command line flags
-	errCheck(fs.Parse(os.Args[1:]), "error parsing flags")
+	// Parse the flags again to override any yaml values with command line flags
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		log.Fatalf("error parsing flags: %v\n", err)
+	}
 
+	// After this point we can use util.Logger and stop using the log package
 	util.InitLogger(&cfg.Server)
-
-	cfg.ApplyDefaults()
 
 	promMetrics, err := prom.New(cfg.Prometheus, util.Logger)
 	if err != nil {
@@ -88,18 +87,6 @@ func main() {
 
 	promMetrics.Stop()
 	level.Info(util.Logger).Log("msg", "agent exiting")
-}
-
-func errCheck(err error, msg string) {
-	if err != nil {
-		fmt.Fprintln(os.Stderr, msg)
-		os.Exit(1)
-	}
-}
-
-func exitWithError(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, args...)
-	os.Exit(1)
 }
 
 func loadConfig(filename string, config *Config) error {

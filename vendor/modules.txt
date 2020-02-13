@@ -67,6 +67,7 @@ github.com/cespare/xxhash/v2
 # github.com/cortexproject/cortex v0.4.0
 github.com/cortexproject/cortex/pkg/prom1/storage/metric
 github.com/cortexproject/cortex/pkg/util
+github.com/cortexproject/cortex/pkg/util/test
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
