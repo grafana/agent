@@ -40,13 +40,13 @@ services:
   #
   # Launch a Prometheus just for comparison against the Agent
   #
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./prometheus/config/prometheus.yml:/etc/prometheus.yaml
-    entrypoint:
-      - /bin/prometheus
-      - --config.file=/etc/prometheus.yaml
+  # prometheus:
+  # image: prom/prometheus:latest
+  # volumes:
+  #   - ./prometheus/config/prometheus.yml:/etc/prometheus.yaml
+  # entrypoint:
+  #   - /bin/prometheus
+  #   - --config.file=/etc/prometheus.yaml
 
   #
   # Launch avalanche instances with a relatively low churn rate
@@ -54,20 +54,20 @@ services:
   avalanche-1:
     image: quay.io/freshtracks.io/avalanche:latest
     command:
-      - --metric-count=1000
+      - --metric-count=3000
       - --series-interval=3600
       - --metric-interval=7200
 
   avalanche-2:
     image: quay.io/freshtracks.io/avalanche:latest
     command:
-      - --metric-count=1000
+      - --metric-count=3000
       - --series-interval=3600
       - --metric-interval=7200
 
   avalanche-3:
     image: quay.io/freshtracks.io/avalanche:latest
     command:
-      - --metric-count=1000
+      - --metric-count=3000
       - --series-interval=3600
       - --metric-interval=7200

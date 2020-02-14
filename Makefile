@@ -28,6 +28,10 @@ endif
 BUILD_IN_CONTAINER ?= true
 BUILD_IMAGE_VERSION := 0.9.0
 
+# Enables the binary to be built with optimizations (i.e., doesn't strip the image of
+# symbols, etc.)
+RELEASE_BUILD ?= false
+
 # Docker image info
 IMAGE_PREFIX ?= grafana
 IMAGE_TAG := $(shell ./tools/image-tag)
@@ -41,6 +45,11 @@ VPREFIX        := github.com/grafana/agent/cmd/agent/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags netgo $(MOD_FLAG)
 DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags netgo $(MOD_FLAG)
+
+# If we're not building the release, use the debug flags instead.
+ifeq ($(RELEASE_BUILD),false)
+GO_FLAGS = $(DEBUG_GO_FLAGS)
+endif
 
 NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
        rm $@; \
