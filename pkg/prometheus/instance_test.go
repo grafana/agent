@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http/httptest"
 	"os"
+	"path"
 	"sync"
 	"testing"
 	"time"
@@ -46,6 +47,32 @@ func TestInstanceConfig_ApplyDefaults(t *testing.T) {
 	}
 }
 
+func TestInstance_Path(t *testing.T) {
+	scrapeAddr, closeSrv := getTestServer(t)
+	defer closeSrv()
+
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	globalConfig := getTestGlobalConfig(t)
+
+	cfg := getTestInstanceConfig(t, &globalConfig, scrapeAddr)
+	cfg.WALTruncateFrequency = time.Hour
+	cfg.RemoteFlushDeadline = time.Hour
+
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	inst, err := NewInstance(globalConfig, cfg, walDir, logger)
+	require.NoError(t, err)
+	defer inst.Stop()
+
+	// <walDir>/<inst.name> path should exist for WAL
+	test.Poll(t, time.Second*5, true, func() interface{} {
+		_, err := os.Stat(path.Join(walDir, "test"))
+		return err == nil
+	})
+}
+
 // TestInstance tests that discovery and scraping are working by using a mock
 // instance of the WAL storage and testing that samples get written to it.
 // This test touches most of Instance and is enough for a basic integration test.
@@ -68,7 +95,7 @@ func TestInstance(t *testing.T) {
 	}
 
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	inst, err := newInstance(globalConfig, cfg, walDir, logger, &mockStorage)
+	inst, err := newInstance(globalConfig, cfg, nil, walDir, logger, &mockStorage)
 	require.NoError(t, err)
 	defer inst.Stop()
 

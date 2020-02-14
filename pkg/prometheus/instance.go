@@ -8,7 +8,7 @@ import (
 	"errors"
 	"math"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -147,23 +147,27 @@ type Instance struct {
 	exitErr error
 }
 
-// NewInstance creates and starts a new Instance.
+// NewInstance creates and starts a new Instance. NewInstance creates a WAL in
+// a folder with the same name as the instance's name in a subdirectory of the
+// walDir parameter.
 func NewInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (*Instance, error) {
 	logger = log.With(logger, "instance", cfg.Name)
+
+	instWALDir := filepath.Join(walDir, cfg.Name)
 
 	reg := prometheus.WrapRegistererWith(prometheus.Labels{
 		"instance": cfg.Name,
 	}, prometheus.DefaultRegisterer)
 
-	wstore, err := wal.NewStorage(logger, reg, walDir)
+	wstore, err := wal.NewStorage(logger, reg, instWALDir)
 	if err != nil {
 		return nil, err
 	}
 
-	return newInstance(globalCfg, cfg, walDir, logger, wstore)
+	return newInstance(globalCfg, cfg, reg, instWALDir, logger, wstore)
 }
 
-func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger, wstore walStorage) (*Instance, error) {
+func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, reg prometheus.Registerer, walDir string, logger log.Logger, wstore walStorage) (*Instance, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
@@ -179,22 +183,22 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 		cfg:       cfg,
 		globalCfg: globalCfg,
 		logger:    logger,
-		walDir:    path.Join(walDir, cfg.Name),
+		walDir:    walDir,
 		hostname:  hostname,
 		vc:        vc,
 		exited:    make(chan bool),
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	i.cancelScrape = cancel
+
 	level.Debug(i.logger).Log("msg", "creating instance", "hostname", hostname)
-	go i.run(wstore)
+	go i.run(ctx, reg, wstore)
 	return i, nil
 }
 
-func (i *Instance) run(wstore walStorage) {
-	ctxScrape, cancelScrape := context.WithCancel(context.Background())
-	i.cancelScrape = cancelScrape
-
-	discoveryManagerScrape := discovery.NewManager(ctxScrape, log.With(i.logger, "component", "discovery manager scrape"), discovery.Name("scrape"))
+func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore walStorage) {
+	discoveryManagerScrape := discovery.NewManager(ctx, log.With(i.logger, "component", "discovery manager scrape"), discovery.Name("scrape"))
 	{
 		// TODO(rfratto): refactor this to a function?
 		// TODO(rfratto): ensure job name name is unique
@@ -210,7 +214,7 @@ func (i *Instance) run(wstore walStorage) {
 	}
 
 	// TODO(rfratto): tunable flush deadline?
-	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), prometheus.DefaultRegisterer, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline)
+	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), reg, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline)
 	i.exitErr = remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg,
 		RemoteWriteConfigs: i.cfg.RemoteWrite,
