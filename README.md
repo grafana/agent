@@ -26,7 +26,7 @@ The agent will be exposed locally at `http://localhost:12345`; this is useful
 for running pprof against:
 
 ```
-go tool pprof -http=:6060 http://localhost:12345/debug/pprof/heap?debug=1`
+go tool pprof -http=:6060 http://localhost:12345/debug/pprof/heap?debug=1
 ```
 
 Useful queries to run once everything is running:
