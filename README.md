@@ -22,7 +22,14 @@ Slightly modified versions of the Prometheus mixin dashboards will be added to
 the launched Grafana instance; see the "Agent" and "Agent Remote Write"
 dashboards for details.
 
-Useful metrics to look at once everything is running:
+The agent will be exposed locally at `http://localhost:12345`; this is useful
+for running pprof against:
+
+```
+go tool pprof -http=:6060 http://localhost:12345/debug/pprof/heap?debug=1`
+```
+
+Useful queries to run once everything is running:
 
 1. `agent_wal_storage_active_series`: How many series are active in the WAL
 2. `cortex_ingester_memory_series`: How many series are active in Cortex.
@@ -32,3 +39,4 @@ Useful metrics to look at once everything is running:
 4. `max by (container,instance,job)
    (avg_over_time(go_memstats_heap_inuse_bytes[10m])) / 1e6`: Current memory
    usage of the agent and Cortex averaged out from the last 10 minutes.
+
