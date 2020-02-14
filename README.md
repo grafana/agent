@@ -21,3 +21,14 @@ see metrics in Cortex that are sent from the agent.
 Slightly modified versions of the Prometheus mixin dashboards will be added to
 the launched Grafana instance; see the "Agent" and "Agent Remote Write"
 dashboards for details.
+
+Useful metrics to look at once everything is running:
+
+1. `agent_wal_storage_active_series`: How many series are active in the WAL
+2. `cortex_ingester_memory_series`: How many series are active in Cortex.
+   Should be equal to the previous metric.
+3. `go_memstats_heap_inuse_bytes{container="agent"} / 1e6`: Current memory
+   usage of agent in megabytes.
+4. `max by (container,instance,job)
+   (avg_over_time(go_memstats_heap_inuse_bytes[10m])) / 1e6`: Current memory
+   usage of the agent and Cortex averaged out from the last 10 minutes.
