@@ -71,7 +71,8 @@ cmd/agent/agent: cmd/agent/main.go
 	$(NETGO_CHECK)
 
 agent-image:
-	docker build -t $(IMAGE_PREFIX)/agent:latest -f cmd/agent/Dockerfile .
+	docker build --build-arg RELEASE_BUILD=$(RELEASE_BUILD) \
+		-t $(IMAGE_PREFIX)/agent:latest -f cmd/agent/Dockerfile .
 	docker tag $(IMAGE_PREFIX)/agent:latest $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
 
 #######################
