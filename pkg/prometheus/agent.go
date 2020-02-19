@@ -14,7 +14,15 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
+)
+
+var (
+	instanceAbnormalExits = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "agent_prometheus_instance_abnormal_exits_total",
+		Help: "Total number of times a Prometheus instance exited unexpectedly, causing it to be restarted.",
+	}, []string{"instance_name"})
 )
 
 var (
@@ -133,7 +141,7 @@ func (a *Agent) run() {
 			err := inst.Wait()
 
 			if err == nil || err != errInstanceStoppedNormally {
-				// TODO(rfratto): metric for abnormal instance exits
+				instanceAbnormalExits.WithLabelValues(inst.Config().Name).Inc()
 				level.Error(a.logger).Log("msg", "instance stopped abnormally, restarting after backoff period", "err", err, "backoff", a.cfg.InstanceRestartBackoff)
 				time.Sleep(a.cfg.InstanceRestartBackoff)
 			} else {

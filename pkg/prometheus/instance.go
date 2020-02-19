@@ -213,7 +213,6 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 		}
 	}
 
-	// TODO(rfratto): tunable flush deadline?
 	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), reg, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline)
 	i.exitErr = remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg,
