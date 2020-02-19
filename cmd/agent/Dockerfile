@@ -1,7 +1,8 @@
 FROM golang:1.13 as build
 COPY . /src/agent
 WORKDIR /src/agent
-RUN make clean && make BUILD_IN_CONTAINER=false agent
+ARG RELEASE_BUILD=false
+RUN make clean && make RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent
 
 FROM alpine:3.9
 RUN apk add --update --no-cache ca-certificates
