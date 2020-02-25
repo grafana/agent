@@ -20,8 +20,10 @@ import (
 )
 
 type storageMetrics struct {
-	numActiveSeries  prometheus.Gauge
-	numDeletedSeries prometheus.Gauge
+	numActiveSeries    prometheus.Gauge
+	numDeletedSeries   prometheus.Gauge
+	totalCreatedSeries prometheus.Counter
+	totalRemovedSeries prometheus.Counter
 }
 
 func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
@@ -37,10 +39,22 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 		Help: "Current number of series marked for deletion from memory",
 	})
 
+	m.totalCreatedSeries = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_wal_storage_created_series_total",
+		Help: "Total number of created series appended to the WAL",
+	})
+
+	m.totalRemovedSeries = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_wal_storage_removed_series_total",
+		Help: "Total number of created series removed from the WAL",
+	})
+
 	if r != nil {
 		r.MustRegister(
 			m.numActiveSeries,
 			m.numDeletedSeries,
+			m.totalCreatedSeries,
+			m.totalRemovedSeries,
 		)
 	}
 
@@ -352,6 +366,7 @@ func (w *Storage) Truncate(mint int64) error {
 	for ref, segment := range w.deleted {
 		if segment < first {
 			delete(w.deleted, ref)
+			w.metrics.totalRemovedSeries.Inc()
 		}
 	}
 	w.metrics.numDeletedSeries.Set(float64(len(w.deleted)))
@@ -485,6 +500,7 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 		series = &memSeries{ref: ref, lset: l, lastTs: t}
 		a.w.series.set(hash, series)
 		a.w.metrics.numActiveSeries.Inc()
+		a.w.metrics.totalCreatedSeries.Inc()
 
 		a.series = append(a.series, record.RefSeries{
 			Ref:    ref,
@@ -505,7 +521,7 @@ func (a *appender) AddFast(_ labels.Labels, ref uint64, t int64, v float64) erro
 
 	// Update last recorded timestamp. Used by Storage.gc to determine if a
 	// series is dead.
-	series.lastTs = t
+	series.updateTs(t)
 
 	a.samples = append(a.samples, record.RefSample{
 		Ref: ref,
@@ -520,18 +536,21 @@ func (a *appender) Commit() error {
 	var encoder record.Encoder
 	buf := a.w.bufPool.Get().([]byte)
 
-	buf = encoder.Series(a.series, buf)
-	if err := a.w.wal.Log(buf); err != nil {
-		return err
+	if len(a.series) > 0 {
+		buf = encoder.Series(a.series, buf)
+		if err := a.w.wal.Log(buf); err != nil {
+			return err
+		}
+		buf = buf[:0]
 	}
 
-	buf = buf[:0]
-	buf = encoder.Samples(a.samples, buf)
-	if err := a.w.wal.Log(buf); err != nil {
-		return err
+	if len(a.samples) > 0 {
+		buf = encoder.Samples(a.samples, buf)
+		if err := a.w.wal.Log(buf); err != nil {
+			return err
+		}
+		buf = buf[:0]
 	}
-
-	buf = buf[:0]
 
 	//nolint:staticcheck
 	a.w.bufPool.Put(buf)

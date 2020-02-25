@@ -12,6 +12,25 @@ type memSeries struct {
 	ref    uint64
 	lset   labels.Labels
 	lastTs int64
+
+	// TODO(rfratto): this solution below isn't perfect, and there's still
+	// the possibility for a series to be deleted before it's
+	// completely gone from the WAL. Rather, we should have gc return
+	// a "should delete" map and be given a "deleted" map.
+	// If a series that is going to be marked for deletion is in the
+	// "deleted" map, then it should be deleted instead.
+	//
+	// The "deleted" map will be populated by the Truncate function.
+	// It will be cleared with every call to gc.
+
+	// willDelete marks a series as to be deleted on the next garbage
+	// collection. If it receives a write, willDelete is disabled.
+	willDelete bool
+}
+
+func (s *memSeries) updateTs(ts int64) {
+	s.lastTs = ts
+	s.willDelete = false
 }
 
 // seriesHashmap is a simple hashmap for memSeries by their label set. It is
@@ -118,6 +137,16 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 				// If the series has received a write after mint, there's still
 				// data and it's not gone yet.
 				if series.lastTs >= mint {
+					series.willDelete = false
+					series.Unlock()
+					continue
+				}
+
+				// The series hasn't received any data and might be gone, but we
+				// want to give it an opportunity to survive one more cycle before
+				// marking it as deleted.
+				if !series.willDelete {
+					series.willDelete = true
 					series.Unlock()
 					continue
 				}
