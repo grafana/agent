@@ -164,6 +164,7 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 
 				deleted[series.ref] = struct{}{}
 				s.hashes[i].del(hash, series.lset)
+				releaseLabels(series.lset)
 				delete(s.series[j], series.ref)
 
 				if i != j {
