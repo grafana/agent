@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/intern"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -19,6 +20,8 @@ import (
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
 
+var interner = intern.New()
+
 type storageMetrics struct {
 	numActiveSeries    prometheus.Gauge
 	numDeletedSeries   prometheus.Gauge
@@ -28,7 +31,6 @@ type storageMetrics struct {
 
 func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 	var m storageMetrics
-
 	m.numActiveSeries = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "agent_wal_storage_active_series",
 		Help: "Current number of active series being tracked by the WAL storage",
@@ -212,7 +214,6 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				}
 				decoded <- series
 			case record.Samples:
-				// We don't care about samples
 				samples := samplesPool.Get().([]record.RefSample)[:0]
 				samples, err = dec.Samples(rec, samples)
 				if err != nil {
@@ -246,6 +247,8 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				// sample. Otherwise, the series is stale and will be deleted once
 				// the truncation is performed.
 				if w.series.getByHash(s.Labels.Hash(), s.Labels) == nil {
+					internLabels(s.Labels)
+
 					series := &memSeries{ref: s.Ref, lastTs: 0, lset: s.Labels}
 					w.series.set(s.Labels.Hash(), series)
 					w.metrics.numActiveSeries.Inc()
@@ -266,7 +269,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				series := w.series.getByID(s.Ref)
 				if series == nil {
 					level.Warn(w.logger).Log("msg", "found sample referencing non-existing series, skipping")
-					return
+					continue
 				}
 
 				series.Lock()
@@ -492,6 +495,8 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 
 	series = a.w.series.getByHash(hash, l)
 	if series == nil {
+		internLabels(l)
+
 		a.w.mtx.Lock()
 		ref := a.w.nextRef
 		a.w.nextRef++
@@ -562,4 +567,18 @@ func (a *appender) Rollback() error {
 	a.samples = a.samples[:0]
 	a.w.appenderPool.Put(a)
 	return nil
+}
+
+func internLabels(lbls labels.Labels) {
+	for i, l := range lbls {
+		lbls[i].Name = interner.Intern(l.Name)
+		lbls[i].Value = interner.Intern(l.Value)
+	}
+}
+
+func releaseLabels(ls labels.Labels) {
+	for _, l := range ls {
+		interner.Release(l.Name)
+		interner.Release(l.Value)
+	}
 }
