@@ -13,7 +13,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.8.0
-	github.com/prometheus/prometheus v1.8.2-0.20200106144642-d9613e5c466c
+	github.com/prometheus/prometheus v1.8.2-0.20200213233353-b90be6f32a33
 	github.com/stretchr/testify v1.4.0
 	github.com/weaveworks/common v0.0.0-20190822150010-afb9996716e4
 	go.uber.org/atomic v1.4.0
