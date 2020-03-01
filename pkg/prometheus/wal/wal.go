@@ -97,6 +97,10 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		deleted: map[uint64]int{},
 		series:  newStripeSeries(),
 		metrics: newStorageMetrics(registerer),
+
+		// The first ref ID must be non-zero, as the scraping code treats 0 as a
+		// non-existant ID and won't cache it.
+		nextRef: 1,
 	}
 
 	storage.bufPool.New = func() interface{} {
