@@ -13,7 +13,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.8.0
-	github.com/prometheus/prometheus v1.8.2-0.20200213233353-b90be6f32a33
+	github.com/prometheus/prometheus v1.8.2-0.20200106144642-d9613e5c466c
 	github.com/stretchr/testify v1.4.0
 	github.com/weaveworks/common v0.0.0-20190822150010-afb9996716e4
 	go.uber.org/atomic v1.4.0
@@ -30,3 +30,6 @@ replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.0+incompatible
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
 )
+
+// Temporarily use a fork for memory improvements (see #5)
+replace github.com/prometheus/prometheus => github.com/rfratto/prometheus v1.8.2-0.20200302181437-c756a790c075

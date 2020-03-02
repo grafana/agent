@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/intern"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -19,8 +18,6 @@ import (
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
-
-var interner = intern.New()
 
 type storageMetrics struct {
 	numActiveSeries    prometheus.Gauge
@@ -99,7 +96,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		metrics: newStorageMetrics(registerer),
 
 		// The first ref ID must be non-zero, as the scraping code treats 0 as a
-		// non-existant ID and won't cache it.
+		// non-existent ID and won't cache it.
 		nextRef: 1,
 	}
 
@@ -250,12 +247,18 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				// If we read in a sample for it, we'll use the timestamp of the latest
 				// sample. Otherwise, the series is stale and will be deleted once
 				// the truncation is performed.
-				if w.series.getByHash(s.Labels.Hash(), s.Labels) == nil {
-					internLabels(s.Labels)
+				if w.series.getByID(s.Ref) == nil {
+					series := &memSeries{ref: s.Ref, hash: s.Labels.Hash(), lastTs: 0}
 
-					series := &memSeries{ref: s.Ref, lastTs: 0, lset: s.Labels}
-					w.series.set(s.Labels.Hash(), series)
+					// Store both the series and the labels so the appender's Add function
+					// can look up this series later. We only want to store the labels for
+					// replayed series and delete the entry for the after it's read to save
+					// on memory usage.
+					w.series.set(series)
+					w.series.saveLabels(series.hash, series, s.Labels)
+
 					w.metrics.numActiveSeries.Inc()
+					w.metrics.totalCreatedSeries.Inc()
 
 					w.mtx.Lock()
 					if w.nextRef <= s.Ref {
@@ -428,12 +431,11 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 	it := w.series.iterator()
 	for series := range it.Channel() {
 		var (
-			labels = series.lset
-			ref    = series.ref
+			ref = series.ref
 		)
 
 		ts := timestamp.FromTime(time.Now())
-		err = app.AddFast(labels, ref, ts, math.Float64frombits(value.StaleNaN))
+		err = app.AddFast(labels.Labels{}, ref, ts, math.Float64frombits(value.StaleNaN))
 		if err != nil {
 			lastErr = err
 		}
@@ -491,31 +493,59 @@ type appender struct {
 }
 
 func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
-	var (
-		series *memSeries
+	// The normal procedure here would be to see if we have any in-memory
+	// series with the same label set and return the same ref ID if such
+	// a series exists. However, storing all these labels takes up a fair
+	// amount of memory, so we take a shortcut here: return a series if its
+	// labels were already stored, but don't store labels for new series.
+	//
+	// This shortcut is utilized by the WAL replay to make sure that replayed
+	// series retain the same ref ID, but new series or existing series that go
+	// stale and come back will be assigned new ref IDs.
+	//
+	// In most cases, this won't be a problem, and both the scraping and remote
+	// write code will handle this gracefully. There is a slightly chance of samples
+	// being skipped if the following happens, in order:
+	//
+	// 1. A series goes stale and is not present in a scrape. The saved series ID
+	//    is removed from the scrape cache as a result.
+	// 2. Samples from that stale series are still pending to be sent to the
+	//    remote.
+	// 3. The series comes back and is assigned a new ref ID per the code below this
+	//    comment block.
+	// 4. Samples from the series with the new ref ID are sent before the pending
+	//    series.
+	// 5. When the samples from the previous ref ID get sent, they are rejected as
+	//    being out of order.
 
-		hash = l.Hash()
-	)
+	hash := l.Hash()
 
-	series = a.w.series.getByHash(hash, l)
-	if series == nil {
-		internLabels(l)
+	series := a.w.series.getByHash(hash, l)
+	if series != nil {
+		// Unlikely path: existing series whose labels have been saved.
 
-		a.w.mtx.Lock()
-		ref := a.w.nextRef
-		a.w.nextRef++
-		a.w.mtx.Unlock()
-
-		series = &memSeries{ref: ref, lset: l, lastTs: t}
-		a.w.series.set(hash, series)
-		a.w.metrics.numActiveSeries.Inc()
-		a.w.metrics.totalCreatedSeries.Inc()
-
-		a.series = append(a.series, record.RefSeries{
-			Ref:    ref,
-			Labels: l,
-		})
+		// Now that the series has been read and will be cached by the scraping code,
+		// we can remove the stored labels from memory.
+		a.w.series.delLabels(hash, series)
+		return series.ref, a.AddFast(l, series.ref, t, v)
 	}
+
+	// More common path: we haven't saved the labels for this series,
+	// create a new ref ID for it.
+	a.w.mtx.Lock()
+	ref := a.w.nextRef
+	a.w.nextRef++
+	a.w.mtx.Unlock()
+
+	series = &memSeries{ref: ref, hash: hash, lastTs: t}
+	a.series = append(a.series, record.RefSeries{
+		Ref:    ref,
+		Labels: l,
+	})
+
+	a.w.series.set(series)
+	a.w.metrics.numActiveSeries.Inc()
+	a.w.metrics.totalCreatedSeries.Inc()
 
 	return series.ref, a.AddFast(l, series.ref, t, v)
 }
@@ -571,18 +601,4 @@ func (a *appender) Rollback() error {
 	a.samples = a.samples[:0]
 	a.w.appenderPool.Put(a)
 	return nil
-}
-
-func internLabels(lbls labels.Labels) {
-	for i, l := range lbls {
-		lbls[i].Name = interner.Intern(l.Name)
-		lbls[i].Value = interner.Intern(l.Value)
-	}
-}
-
-func releaseLabels(ls labels.Labels) {
-	for _, l := range ls {
-		interner.Release(l.Name)
-		interner.Release(l.Value)
-	}
 }
