@@ -1,6 +1,3 @@
-// This file is modified from the interner found in Prometheus. The original
-// license follows:
-//
 // Copyright 2019 The Prometheus Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,10 +21,21 @@ package intern
 import (
 	"sync"
 	"sync/atomic"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/pkg/labels"
+)
+
+// Shared interner
+var (
+	Global Interner = New(prometheus.DefaultRegisterer)
 )
 
 // Iterner is a string interner.
 type Interner interface {
+	// Metrics returns Metrics for the interner.
+	Metrics() *Metrics
+
 	// Intern will intern an input string, returning the interned string as
 	// a result.
 	Intern(string) string
@@ -36,13 +44,36 @@ type Interner interface {
 	Release(string)
 }
 
-func New() Interner {
+func New(r prometheus.Registerer) Interner {
 	return &pool{
+		m:    NewMetrics(r),
 		pool: map[string]*entry{},
 	}
 }
 
+type Metrics struct {
+	NoReferenceReleases prometheus.Counter
+}
+
+func NewMetrics(r prometheus.Registerer) *Metrics {
+	var m Metrics
+	m.NoReferenceReleases = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: "prometheus",
+		Subsystem: "interner",
+		Name:      "string_interner_zero_reference_releases_total",
+		Help:      "The number of times release has been called for strings that are not interned.",
+	})
+
+	if r != nil {
+		r.MustRegister(m.NoReferenceReleases)
+	}
+
+	return &m
+}
+
 type pool struct {
+	m *Metrics
+
 	mtx  sync.RWMutex
 	pool map[string]*entry
 }
@@ -55,18 +86,13 @@ type entry struct {
 	s string
 }
 
+func (p *pool) Metrics() *Metrics { return p.m }
+
 func (p *pool) Intern(s string) string {
 	if s == "" {
 		return ""
 	}
 
-	p.mtx.RLock()
-	interned, ok := p.pool[s]
-	p.mtx.RUnlock()
-	if ok {
-		atomic.AddInt64(&interned.refs, 1)
-		return interned.s
-	}
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
 	if interned, ok := p.pool[s]; ok {
@@ -87,7 +113,7 @@ func (p *pool) Release(s string) {
 	p.mtx.RUnlock()
 
 	if !ok {
-		// TODO(rfratto): no reference releases metric?
+		p.m.NoReferenceReleases.Inc()
 		return
 	}
 
@@ -102,4 +128,22 @@ func (p *pool) Release(s string) {
 		return
 	}
 	delete(p.pool, s)
+}
+
+// InternLabels is a helper function for interning all label
+// names and values to a given interner.
+func InternLabels(interner Interner, lbls labels.Labels) {
+	for i, l := range lbls {
+		lbls[i].Name = interner.Intern(l.Name)
+		lbls[i].Value = interner.Intern(l.Value)
+	}
+}
+
+// ReleaseLabels is a helper function for releasing all label
+// names and values from a given interner.
+func ReleaseLabels(interner Interner, ls labels.Labels) {
+	for _, l := range ls {
+		interner.Release(l.Name)
+		interner.Release(l.Value)
+	}
 }

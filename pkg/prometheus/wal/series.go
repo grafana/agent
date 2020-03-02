@@ -3,6 +3,7 @@ package wal
 import (
 	"sync"
 
+	"github.com/prometheus/prometheus/pkg/intern"
 	"github.com/prometheus/prometheus/pkg/labels"
 )
 
@@ -10,7 +11,7 @@ type memSeries struct {
 	sync.Mutex
 
 	ref    uint64
-	lset   labels.Labels
+	hash   uint64
 	lastTs int64
 
 	// TODO(rfratto): this solution below isn't perfect, and there's still
@@ -39,33 +40,44 @@ func (s *memSeries) updateTs(ts int64) {
 // avoid re-computations throughout the code.
 //
 // This code is copied from the Prometheus TSDB.
-type seriesHashmap map[uint64][]*memSeries
+type seriesHashmap map[uint64][]*refLabelsPair
 
-func (m seriesHashmap) get(hash uint64, lset labels.Labels) *memSeries {
-	for _, s := range m[hash] {
-		if labels.Equal(s.lset, lset) {
-			return s
-		}
-	}
-	return nil
+type refLabelsPair struct {
+	ref    uint64
+	labels labels.Labels
 }
 
-func (m seriesHashmap) set(hash uint64, s *memSeries) {
+func (m seriesHashmap) get(hash uint64, lset labels.Labels) (uint64, bool) {
+	for _, s := range m[hash] {
+		if labels.Equal(s.labels, lset) {
+			return s.ref, true
+		}
+	}
+	return 0, false
+}
+
+func (m seriesHashmap) set(hash uint64, lset labels.Labels, ref uint64) {
+	intern.InternLabels(intern.Global, lset)
+
+	pair := refLabelsPair{ref: ref, labels: lset}
+
 	l := m[hash]
 	for i, prev := range l {
-		if labels.Equal(prev.lset, s.lset) {
-			l[i] = s
+		if labels.Equal(prev.labels, lset) {
+			l[i] = &pair
 			return
 		}
 	}
-	m[hash] = append(l, s)
+	m[hash] = append(l, &pair)
 }
 
-func (m seriesHashmap) del(hash uint64, lset labels.Labels) {
-	var rem []*memSeries
+func (m seriesHashmap) del(hash uint64, ref uint64) {
+	var rem []*refLabelsPair
 	for _, s := range m[hash] {
-		if !labels.Equal(s.lset, lset) {
+		if s.ref != ref {
 			rem = append(rem, s)
+		} else {
+			intern.ReleaseLabels(intern.Global, s.labels)
 		}
 	}
 	if len(rem) == 0 {
@@ -130,49 +142,45 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 	for i := 0; i < s.size; i++ {
 		s.locks[i].Lock()
 
-		for hash, all := range s.hashes[i] {
-			for _, series := range all {
-				series.Lock()
+		for _, series := range s.series[i] {
+			series.Lock()
 
-				// If the series has received a write after mint, there's still
-				// data and it's not gone yet.
-				if series.lastTs >= mint {
-					series.willDelete = false
-					series.Unlock()
-					continue
-				}
-
-				// The series hasn't received any data and might be gone, but we
-				// want to give it an opportunity to survive one more cycle before
-				// marking it as deleted.
-				if !series.willDelete {
-					series.willDelete = true
-					series.Unlock()
-					continue
-				}
-
-				// The series is gone entirely. We need to keep the series lock
-				// and make sure we have acquired the stripe locks for hash and ID of the
-				// series alike.
-				// If we don't hold them all, there's a very small chance that a series receives
-				// samples again while we are half-way into deleting it.
-				j := int(series.ref) & (s.size - 1)
-
-				if i != j {
-					s.locks[j].Lock()
-				}
-
-				deleted[series.ref] = struct{}{}
-				s.hashes[i].del(hash, series.lset)
-				releaseLabels(series.lset)
-				delete(s.series[j], series.ref)
-
-				if i != j {
-					s.locks[j].Unlock()
-				}
-
+			// If the series has received a write after mint, there's still
+			// data and it's not completely gone yet.
+			if series.lastTs >= mint {
+				series.willDelete = false
 				series.Unlock()
+				continue
 			}
+
+			// The series hasn't received any data and *might* be gone, but
+			// we want to give it an opportunity to come back before marking
+			// it as deleted, so we wait one more GC cycle.
+			if !series.willDelete {
+				series.willDelete = true
+				series.Unlock()
+				continue
+			}
+
+			// The series is gone entirely. We'll need to delete the label
+			// hash (if one exists) so we'll obtain a lock for that too.
+			j := int(series.hash) & (s.size - 1)
+			if i != j {
+				s.locks[j].Lock()
+			}
+
+			deleted[series.ref] = struct{}{}
+			delete(s.series[i], series.ref)
+
+			// This may be a no-op: only series replayed from the WAL are
+			// present in the hashes collection and are removed over time.
+			s.hashes[j].del(series.hash, series.ref)
+
+			if i != j {
+				s.locks[j].Unlock()
+			}
+
+			series.Unlock()
 		}
 
 		s.locks[i].Unlock()
@@ -191,28 +199,48 @@ func (s *stripeSeries) getByID(id uint64) *memSeries {
 	return series
 }
 
+// getByHash looks up a series that was saved via saveLabels.
 func (s *stripeSeries) getByHash(hash uint64, lset labels.Labels) *memSeries {
 	i := hash & uint64(s.size-1)
 
 	s.locks[i].RLock()
-	series := s.hashes[i].get(hash, lset)
-	s.locks[i].RUnlock()
+	defer s.locks[i].RUnlock()
 
-	return series
+	ref, ok := s.hashes[i].get(hash, lset)
+	if !ok {
+		return nil
+	}
+
+	j := ref & uint64(s.size-1)
+	if j != i {
+		s.locks[j].RLock()
+		defer s.locks[j].RUnlock()
+	}
+
+	return s.series[j][ref]
 }
 
-func (s *stripeSeries) set(hash uint64, series *memSeries) {
-	i := hash & uint64(s.size-1)
-
-	s.locks[i].Lock()
-
-	s.hashes[i].set(hash, series)
-	s.locks[i].Unlock()
-
-	i = series.ref & uint64(s.size-1)
+func (s *stripeSeries) set(series *memSeries) {
+	i := series.ref & uint64(s.size-1)
 
 	s.locks[i].Lock()
 	s.series[i][series.ref] = series
+	s.locks[i].Unlock()
+}
+
+func (s *stripeSeries) saveLabels(hash uint64, series *memSeries, lbls labels.Labels) {
+	i := hash & uint64(s.size-1)
+
+	s.locks[i].Lock()
+	s.hashes[i].set(hash, lbls, series.ref)
+	s.locks[i].Unlock()
+}
+
+func (s *stripeSeries) delLabels(hash uint64, series *memSeries) {
+	i := hash & uint64(s.size-1)
+
+	s.locks[i].Lock()
+	s.hashes[i].del(hash, series.ref)
 	s.locks[i].Unlock()
 }
 
@@ -233,23 +261,20 @@ func (it *stripeSeriesIterator) Channel() <-chan *memSeries {
 		for i := 0; i < it.s.size; i++ {
 			it.s.locks[i].RLock()
 
-			for _, all := range it.s.hashes[i] {
-				for _, series := range all {
-					series.Lock()
+			for _, series := range it.s.series[i] {
+				series.Lock()
 
-					j := int(series.ref) & (it.s.size - 1)
-					if i != j {
-						it.s.locks[j].RLock()
-					}
-
-					ret <- series
-
-					if i != j {
-						it.s.locks[j].RUnlock()
-					}
-
-					series.Unlock()
+				j := int(series.hash) & (it.s.size - 1)
+				if i != j {
+					it.s.locks[j].RLock()
 				}
+
+				ret <- series
+
+				if i != j {
+					it.s.locks[j].RUnlock()
+				}
+				series.Unlock()
 			}
 
 			it.s.locks[i].RUnlock()
