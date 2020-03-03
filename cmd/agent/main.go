@@ -29,6 +29,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.MetricsNamespace = "agent"
 	c.Server.RegisterInstrumentation = true
 	c.Prometheus.RegisterFlags(f)
+	c.Server.RegisterFlags(f)
 }
 
 func init() {
