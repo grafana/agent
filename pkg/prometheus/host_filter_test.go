@@ -47,55 +47,55 @@ func TestFilterGroups(t *testing.T) {
 			shouldRemove: true,
 		},
 		{
-			name: "__host__ match",
+			name: "kubneretes host match",
 			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                "mycontainer",
-				model.LabelName(hostAddressLabel): "myhost",
+				model.AddressLabel:                       "mycontainer",
+				model.LabelName(kubernetesNodeNameLabel): "myhost",
 			}}),
 			inputHost:    "myhost",
 			shouldRemove: false,
 		},
 		{
-			name: "__host__ mismatch",
+			name: "kubernetes host mismatch",
 			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                "mycontainer",
-				model.LabelName(hostAddressLabel): "notmyhost",
+				model.AddressLabel:                       "mycontainer",
+				model.LabelName(kubernetesNodeNameLabel): "notmyhost",
 			}}),
 			inputHost:    "myhost",
 			shouldRemove: true,
 		},
 		{
-			name: "__host__ match with port",
+			name: "kubernetes host match with port",
 			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                "mycontainer:12345",
-				model.LabelName(hostAddressLabel): "myhost:12345",
+				model.AddressLabel:                       "mycontainer:12345",
+				model.LabelName(kubernetesNodeNameLabel): "myhost:12345",
 			}}),
 			inputHost:    "myhost",
 			shouldRemove: false,
 		},
 		{
-			name: "__host__ mismatch with port",
+			name: "kubernetes host mismatch with port",
 			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                "mycontainer:12345",
-				model.LabelName(hostAddressLabel): "notmyhost:12345",
+				model.AddressLabel:                       "mycontainer:12345",
+				model.LabelName(kubernetesNodeNameLabel): "notmyhost:12345",
 			}}),
 			inputHost:    "myhost",
 			shouldRemove: true,
 		},
 		{
-			name: "__host__ mismatch, __address__ match",
+			name: "kubernetes host mismatch, __address__ match",
 			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                "mycontainer",
-				model.LabelName(hostAddressLabel): "notmyhost",
+				model.AddressLabel:                       "mycontainer",
+				model.LabelName(kubernetesNodeNameLabel): "notmyhost",
 			}}),
 			inputHost:    "mycontainer",
 			shouldRemove: false,
 		},
 		{
-			name: "__host__ mismatch, __address__ match with port",
+			name: "kubernetes host mismatch, __address__ match with port",
 			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                "mycontainer:12345",
-				model.LabelName(hostAddressLabel): "notmyhost:12345",
+				model.AddressLabel:                       "mycontainer:12345",
+				model.LabelName(kubernetesNodeNameLabel): "notmyhost:12345",
 			}}),
 			inputHost:    "mycontainer",
 			shouldRemove: false,
@@ -103,8 +103,8 @@ func TestFilterGroups(t *testing.T) {
 		{
 			name: "always allow localhost",
 			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                "localhost:12345",
-				model.LabelName(hostAddressLabel): "notmyhost:12345",
+				model.AddressLabel:                       "localhost:12345",
+				model.LabelName(kubernetesNodeNameLabel): "notmyhost:12345",
 			}}),
 			inputHost:    "mycontainer",
 			shouldRemove: false,
@@ -112,8 +112,8 @@ func TestFilterGroups(t *testing.T) {
 		{
 			name: "always allow 127.0.0.1",
 			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                "127.0.0.1:12345",
-				model.LabelName(hostAddressLabel): "notmyhost:12345",
+				model.AddressLabel:                       "127.0.0.1:12345",
+				model.LabelName(kubernetesNodeNameLabel): "notmyhost:12345",
 			}}),
 			inputHost:    "mycontainer",
 			shouldRemove: false,

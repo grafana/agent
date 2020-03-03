@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	hostAddressLabel = "__host__"
+	kubernetesNodeNameLabel = "__meta_kubernetes_pod_node_name"
 )
 
 // DiscoveredGroups is a set of groups found via service discovery.
@@ -77,9 +77,9 @@ func (f *HostFilter) SyncCh() GroupChannel {
 //
 // This is done by looking at two labels:
 //
-//   1. __host__ is used first to represent the host machine of networked
-//      containers. Primarily useful for Kubernetes. This label is
-//      automatically added when using Kubernetes service discovery.
+//   1. __meta_kubernetes_pod_node_name is used first to represent the host
+//      machine of networked containers. Primarily useful for Kubernetes. This
+//      label is automatically added when using Kubernetes service discovery.
 //
 //   2. __address__ is used next to represent the address of the service
 //      to scrape. In a containerized envirment, __address__ will be the
@@ -160,8 +160,8 @@ func shouldFilterTarget(target model.LabelSet, common model.LabelSet, host strin
 		return false
 	}
 
-	// Fall back to testing __host__
-	if hostAddress := lset.Get(hostAddressLabel); hostAddress != "" {
+	// Fall back to testing __meta_kubernetes_pod_node_name
+	if hostAddress := lset.Get(kubernetesNodeNameLabel); hostAddress != "" {
 		return shouldFilterTargetByLabelValue(hostAddress)
 	}
 
