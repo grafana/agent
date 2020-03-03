@@ -4,8 +4,6 @@ import (
 	"context"
 	"net"
 
-	"github.com/cortexproject/cortex/pkg/util"
-	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -102,11 +100,7 @@ func FilterGroups(in DiscoveredGroups, host string) DiscoveredGroups {
 
 			for _, target := range group.Targets {
 				if !shouldFilterTarget(target, group.Labels, host) {
-					level.Debug(util.Logger).Log("msg", "including target", "target_labels", target.String(), "common_labels", group.Labels.String(), "host", host)
-
 					newGroup.Targets = append(newGroup.Targets, target)
-				} else {
-					level.Debug(util.Logger).Log("msg", "ignoring target", "target_labels", target.String(), "common_labels", group.Labels.String(), "host", host)
 				}
 			}
 
