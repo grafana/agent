@@ -75,6 +75,10 @@ agent-image:
 		-t $(IMAGE_PREFIX)/agent:latest -f cmd/agent/Dockerfile .
 	docker tag $(IMAGE_PREFIX)/agent:latest $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
 
+push-agent-image:
+	docker push $(IMAGE_PREFIX)/agent:latest
+	docker push $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
+
 #######################
 # Development targets #
 #######################
