@@ -1,42 +1,54 @@
 # Grafana Cloud Agent
 
-## Running Example
+Grafana Cloud Agent is an observability data collector optimized for sending
+metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud/).
 
-A docker-compose config is provided in `example/`. Before you can run it, you
-need to build the agent image:
+Users of Prometheus cloud storage vendors can struggle sending their data at
+scale: Prometheus is a single point of failure, a "special snowflake," and
+generally requires a giant machine with a lot of resources allocated to it.
 
-```
-make agent-image
-cd example/ && docker-compose up -d
-```
+The Grafana Cloud Agent tackles these issues by stripping Prometheus down to its
+most relavant parts:
 
-This will create Cortex storage in `/tmp/cortex` and the agent WAL in
-`/tmp/agent`; you may want to delete those directories after you are done
-testing.
+1. Service Discovery
+2. Scraping
+3. Write Ahead Log (WAL)
+4. Remote Write
 
-Once the containers are running, a Grafana instance will be exposed at
-`http://localhost:3000` with Cortex as the only datasource. You should shortly
-see metrics in Cortex that are sent from the agent.
+On top of these, the Grafana Cloud Agent allows for an optional host filter
+mechanism, enabling users to distribute the resource requirements of metrics
+collection by running one agent per machine.
 
-Slightly modified versions of the Prometheus mixin dashboards will be added to
-the launched Grafana instance; see the "Agent" and "Agent Remote Write"
-dashboards for details.
+A typical deployment of the Grafana Cloud Agent for Prometheus metrics can see
+up to a 40% reduction in memory usage with comparable scrape loads.
 
-The agent will be exposed locally at `http://localhost:12345`; this is useful
-for running pprof against:
+## Trade-offs
 
-```
-go tool pprof -http=:6060 http://localhost:12345/debug/pprof/heap?debug=1
-```
+By heavily optimizing Prometheus for remote write and resource reduction, some
+trade-offs have been made:
 
-Useful queries to run once everything is running:
+- You can't query the Agent; you can only query metrics from the remote write
+  storage.
+- Recording rules aren't supported.
+- Alerts aren't supported.
 
-1. `agent_wal_storage_active_series`: How many series are active in the WAL
-2. `cortex_ingester_memory_series`: How many series are active in Cortex.
-   Should be equal to the previous metric.
-3. `go_memstats_heap_inuse_bytes{container="agent"} / 1e6`: Current memory
-   usage of agent in megabytes.
-4. `max by (container,instance,job)
-   (avg_over_time(go_memstats_heap_inuse_bytes[10m])) / 1e6`: Current memory
-   usage of the agent and Cortex averaged out from the last 10 minutes.
+The Agent sets the expectation that recording rules and alerts should be the
+responsibility of the remote write system rather than the responsibility of the
+metrics collector.
+
+## Roadmap
+
+- [x] Prometheus metrics
+- [ ] Promtail for Loki logs
+- [ ] `carbon-relay-ng` for Graphite metrics.
+
+## Getting Started
+
+TODO
+
+## Example
+
+A docker-compose config is provided in `example/`. It deploys the Agent, Cortex,
+Grafana, and Avalanche for load testing. See the
+[README in example/](./example/README.md) for more information.
 
