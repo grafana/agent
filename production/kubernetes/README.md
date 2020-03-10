@@ -1,12 +1,31 @@
 # Kubernetes Config
 
-This directory contains an `agent.yaml` file that can be used to deploy the
-Grafana Cloud Agent. The Grafana Cloud Agent install script utilizes this
-file to create the final manifests to deploy.
+This directory contains an [`agent.yaml`](./agent.yaml) template file
+and an [install script](./install.sh) that renders the template
+for application against Kubernetes.
 
-Note that without using the install script, the file is *not* ready for applying
-out of the box and you will have to manually reproduce the steps that the
-install script follows:
+## Install Script
+
+The install script does the following:
+
+1. Prmopts the user for their remote write URL, username, and password
+2. Downloads `agent.yaml` from GitHub
+3. Substitutes variables in the template with the provided input from
+   step 1.
+4. Prints out the final manifest to stdout without applying it.
+
+Here's a one-line script to copy and paste to install the Agent on
+Kubernetes:
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/master/production/kubernetes/install.sh)" | kubectl apply -f -
+```
+
+## Manually Applying
+
+Since the `agent.yaml` file is just a template, note that it is *not* ready for
+applying out of the box and you'll have to manually reproduce the steps that the
+install script does:
 
 1. Download `agent.yaml` locally.
 
@@ -30,8 +49,9 @@ install script follows:
 ## Rebuilding the YAML file
 
 The YAML file provided is created using Grafana Labs' production
-[Tanka configs](../tanka/grafana-agent) with some default values. If you want to build the YAML file with some custom values, you will need the
-following pieces of software installed:
+[Tanka configs](../tanka/grafana-agent) with some default values. If you want to
+build the YAML file with some custom values, you will need the following pieces
+of software installed:
 
 1. Tanka
 2. `jsonnet-bundler`
