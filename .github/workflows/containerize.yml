@@ -1,0 +1,21 @@
+name: Containerize
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build-container:
+    name: Build Container
+    runs-on: ubuntu-latest
+    steps:
+    - name: Login to Docker Hub
+      run: docker login -u ${{ secrets.DOCKER_USER }}} -p ${{ secrets.DOCKER_PASS }}
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Make Container
+      run: make agent-image
+
+    - name: Push Container
+      run: make push-agent-image
