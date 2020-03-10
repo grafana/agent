@@ -49,7 +49,7 @@ var (
 	}
 
 	DefaultInstanceConfig = InstanceConfig{
-		HostFilter:           true,
+		HostFilter:           false,
 		WALTruncateFrequency: 1 * time.Minute,
 		RemoteFlushDeadline:  1 * time.Minute,
 		WriteStaleOnShutdown: true,
