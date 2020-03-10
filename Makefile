@@ -93,6 +93,9 @@ clean:
 	rm -rf cmd/agent/agent
 	go clean $(MOD_FLAG) ./...
 
+example-kubernetes:
+	cd production/kubernetes/build && bash build.sh
+
 example-dashboards:
 	cd example/grafana/dashboards && \
 		jsonnet template.jsonnet -J ../../vendor -m .
