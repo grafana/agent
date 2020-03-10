@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Login to Docker Hub
-      run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
 
     - name: Checkout code
       uses: actions/checkout@v2
