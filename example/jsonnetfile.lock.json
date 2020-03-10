@@ -11,6 +11,16 @@
     {
       "source": {
         "git": {
+          "remote": "https://github.com/grafana/grafonnet-lib",
+          "subdir": "grafonnet"
+        }
+      },
+      "version": "db36a706bd1c87056759eacb686102133eb4740c",
+      "sum": "g1aMw5iYEP/Dkw1wo1pcfe7q4LIpXc4wqDZsjaCpsRc="
+    },
+    {
+      "source": {
+        "git": {
           "remote": "https://github.com/grafana/jsonnet-libs",
           "subdir": "grafana-builder"
         }
