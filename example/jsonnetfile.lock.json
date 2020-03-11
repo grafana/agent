@@ -3,7 +3,7 @@
     {
       "source": {
         "local": {
-          "directory": "../production/agent-mixin"
+          "directory": "../production/grafana-agent-mixin"
         }
       },
       "version": ""
