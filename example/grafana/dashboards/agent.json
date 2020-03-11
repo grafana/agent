@@ -155,7 +155,7 @@
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Prometheus Stats",
+               "title": "Agent Stats",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -194,7 +194,7 @@
          "repeatIteration": null,
          "repeatRowId": null,
          "showTitle": true,
-         "title": "Prometheus Stats",
+         "title": "Agent Stats",
          "titleSize": "h6"
       },
       {
@@ -358,7 +358,7 @@
          "repeatIteration": null,
          "repeatRowId": null,
          "showTitle": true,
-         "title": "Discovery",
+         "title": "Prometheus Discovery",
          "titleSize": "h6"
       },
       {
@@ -622,7 +622,7 @@
          "repeatIteration": null,
          "repeatRowId": null,
          "showTitle": true,
-         "title": "Retrieval",
+         "title": "Prometheus Retrieval",
          "titleSize": "h6"
       }
    ],
