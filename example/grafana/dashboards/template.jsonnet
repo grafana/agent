@@ -1,5 +1,5 @@
-local agentDashboards = import 'agent-mixin/dashboards.libsonnet';
-local agentDebugging = import 'agent-mixin/debugging.libsonnet';
+local agentDashboards = import 'grafana-agent-mixin/dashboards.libsonnet';
+local agentDebugging = import 'grafana-agent-mixin/debugging.libsonnet';
 
 local result = agentDashboards + agentDebugging {
   files: {
