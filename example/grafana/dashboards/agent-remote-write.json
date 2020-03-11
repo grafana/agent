@@ -1,4 +1,6 @@
 {
+   "__inputs": [ ],
+   "__requires": [ ],
    "annotations": {
       "list": [ ]
    },
@@ -6,12 +8,13 @@
    "gnetId": null,
    "graphTooltip": 0,
    "hideControls": false,
+   "id": null,
    "links": [ ],
-   "refresh": "10s",
+   "refresh": "",
    "rows": [
       {
          "collapse": false,
-         "height": "250px",
+         "collapsed": false,
          "panels": [
             {
                "aliasColors": { },
@@ -20,12 +23,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
-               "id": 1,
+               "gridPos": { },
+               "id": 2,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -33,11 +39,12 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 6,
@@ -45,18 +52,17 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "(\n  prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}\n-\n  ignoring(url, remote_name) group_right(instance) prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}\n)\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Highest Timestamp Sent",
+               "title": "Highest Timestamp In vs. Highest Timestamp Sent",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -72,11 +78,11 @@
                },
                "yaxes": [
                   {
-                     "format": "s",
+                     "format": "short",
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -85,7 +91,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             },
@@ -96,12 +102,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
-               "id": 2,
+               "gridPos": { },
+               "id": 3,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -109,11 +118,12 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 6,
@@ -121,12 +131,11 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
+                     "expr": "(\n  rate(prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n-\n  ignoring (url, remote_name) group_right(instance) rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n)\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
@@ -152,7 +161,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -161,7 +170,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             }
@@ -171,11 +180,12 @@
          "repeatRowId": null,
          "showTitle": true,
          "title": "Timestamps",
-         "titleSize": "h6"
+         "titleSize": "h6",
+         "type": "row"
       },
       {
          "collapse": false,
-         "height": "250px",
+         "collapsed": false,
          "panels": [
             {
                "aliasColors": { },
@@ -184,88 +194,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
-               "id": 3,
-               "legend": {
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "show": true,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null as zero",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 6,
-               "stack": false,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "rate(prometheus_remote_storage_samples_in_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "Sample Rate [5m]",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 0,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": false
-                  }
-               ]
-            },
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 1,
+               "gridPos": { },
                "id": 4,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -273,24 +210,24 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 6,
+               "span": 12,
                "stack": false,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(prometheus_remote_storage_succeeded_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m]) - ignoring(queue) group_right(instance) rate(prometheus_remote_storage_dropped_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
+                     "expr": "rate(\n  prometheus_remote_storage_samples_in_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n-\n  ignoring(url, remote_name) group_right(instance) rate(prometheus_remote_storage_succeeded_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n-\n  rate(prometheus_remote_storage_dropped_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
@@ -316,7 +253,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -325,7 +262,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             }
@@ -335,11 +272,12 @@
          "repeatRowId": null,
          "showTitle": true,
          "title": "Samples",
-         "titleSize": "h6"
+         "titleSize": "h6",
+         "type": "row"
       },
       {
          "collapse": false,
-         "height": "250px",
+         "collapsed": false,
          "panels": [
             {
                "aliasColors": { },
@@ -348,12 +286,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
+               "gridPos": { },
                "id": 5,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -361,14 +302,16 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "minSpan": 6,
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 6,
+               "span": 12,
                "stack": false,
                "steppedLine": false,
                "targets": [
@@ -376,15 +319,14 @@
                      "expr": "prometheus_remote_storage_shards{cluster=~\"$cluster\", instance=~\"$instance\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Num. Shards",
+               "title": "Current Shards",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -404,7 +346,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -413,7 +355,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             },
@@ -424,12 +366,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
+               "gridPos": { },
                "id": 6,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -437,30 +382,30 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 6,
+               "span": 4,
                "stack": false,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_remote_storage_shard_capacity{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "prometheus_remote_storage_shards_max{cluster=~\"$cluster\", instance=~\"$instance\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Capacity",
+               "title": "Max Shards",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -480,7 +425,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -489,7 +434,165 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
+                  }
+               ]
+            },
+            {
+               "aliasColors": { },
+               "bars": false,
+               "dashLength": 10,
+               "dashes": false,
+               "datasource": "$datasource",
+               "fill": 1,
+               "gridPos": { },
+               "id": 7,
+               "legend": {
+                  "alignAsTable": false,
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+               },
+               "lines": true,
+               "linewidth": 1,
+               "links": [ ],
+               "nullPointMode": "null",
+               "percentage": false,
+               "pointradius": 5,
+               "points": false,
+               "renderer": "flot",
+               "repeat": null,
+               "seriesOverrides": [ ],
+               "spaceLength": 10,
+               "span": 4,
+               "stack": false,
+               "steppedLine": false,
+               "targets": [
+                  {
+                     "expr": "prometheus_remote_storage_shards_min{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
+                  }
+               ],
+               "thresholds": [ ],
+               "timeFrom": null,
+               "timeShift": null,
+               "title": "Min Shards",
+               "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+               },
+               "type": "graph",
+               "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": [ ]
+               },
+               "yaxes": [
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  },
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  }
+               ]
+            },
+            {
+               "aliasColors": { },
+               "bars": false,
+               "dashLength": 10,
+               "dashes": false,
+               "datasource": "$datasource",
+               "fill": 1,
+               "gridPos": { },
+               "id": 8,
+               "legend": {
+                  "alignAsTable": false,
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+               },
+               "lines": true,
+               "linewidth": 1,
+               "links": [ ],
+               "nullPointMode": "null",
+               "percentage": false,
+               "pointradius": 5,
+               "points": false,
+               "renderer": "flot",
+               "repeat": null,
+               "seriesOverrides": [ ],
+               "spaceLength": 10,
+               "span": 4,
+               "stack": false,
+               "steppedLine": false,
+               "targets": [
+                  {
+                     "expr": "prometheus_remote_storage_shards_desired{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
+                  }
+               ],
+               "thresholds": [ ],
+               "timeFrom": null,
+               "timeShift": null,
+               "title": "Desired Shards",
+               "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+               },
+               "type": "graph",
+               "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": [ ]
+               },
+               "yaxes": [
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  },
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
                   }
                ]
             }
@@ -499,11 +602,12 @@
          "repeatRowId": null,
          "showTitle": true,
          "title": "Shards",
-         "titleSize": "h6"
+         "titleSize": "h6",
+         "type": "row"
       },
       {
          "collapse": false,
-         "height": "250px",
+         "collapsed": false,
          "panels": [
             {
                "aliasColors": { },
@@ -512,12 +616,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
-               "id": 7,
+               "gridPos": { },
+               "id": 9,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -525,11 +632,275 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
+               "seriesOverrides": [ ],
+               "spaceLength": 10,
+               "span": 6,
+               "stack": false,
+               "steppedLine": false,
+               "targets": [
+                  {
+                     "expr": "prometheus_remote_storage_shard_capacity{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
+                  }
+               ],
+               "thresholds": [ ],
+               "timeFrom": null,
+               "timeShift": null,
+               "title": "Shard Capacity",
+               "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+               },
+               "type": "graph",
+               "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": [ ]
+               },
+               "yaxes": [
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  },
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  }
+               ]
+            },
+            {
+               "aliasColors": { },
+               "bars": false,
+               "dashLength": 10,
+               "dashes": false,
+               "datasource": "$datasource",
+               "fill": 1,
+               "gridPos": { },
+               "id": 10,
+               "legend": {
+                  "alignAsTable": false,
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+               },
+               "lines": true,
+               "linewidth": 1,
+               "links": [ ],
+               "nullPointMode": "null",
+               "percentage": false,
+               "pointradius": 5,
+               "points": false,
+               "renderer": "flot",
+               "repeat": null,
+               "seriesOverrides": [ ],
+               "spaceLength": 10,
+               "span": 6,
+               "stack": false,
+               "steppedLine": false,
+               "targets": [
+                  {
+                     "expr": "prometheus_remote_storage_pending_samples{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
+                  }
+               ],
+               "thresholds": [ ],
+               "timeFrom": null,
+               "timeShift": null,
+               "title": "Pending Samples",
+               "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+               },
+               "type": "graph",
+               "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": [ ]
+               },
+               "yaxes": [
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  },
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  }
+               ]
+            }
+         ],
+         "repeat": null,
+         "repeatIteration": null,
+         "repeatRowId": null,
+         "showTitle": true,
+         "title": "Shard Details",
+         "titleSize": "h6",
+         "type": "row"
+      },
+      {
+         "collapse": false,
+         "collapsed": false,
+         "panels": [
+            {
+               "aliasColors": { },
+               "bars": false,
+               "dashLength": 10,
+               "dashes": false,
+               "datasource": "$datasource",
+               "fill": 1,
+               "gridPos": { },
+               "id": 11,
+               "legend": {
+                  "alignAsTable": false,
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+               },
+               "lines": true,
+               "linewidth": 1,
+               "links": [ ],
+               "nullPointMode": "null",
+               "percentage": false,
+               "pointradius": 5,
+               "points": false,
+               "renderer": "flot",
+               "repeat": null,
+               "seriesOverrides": [ ],
+               "spaceLength": 10,
+               "span": 6,
+               "stack": false,
+               "steppedLine": false,
+               "targets": [
+                  {
+                     "expr": "prometheus_wal_watcher_current_segment{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
+                  }
+               ],
+               "thresholds": [ ],
+               "timeFrom": null,
+               "timeShift": null,
+               "title": "Remote Write Current Segment",
+               "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+               },
+               "type": "graph",
+               "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": [ ]
+               },
+               "yaxes": [
+                  {
+                     "format": "none",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  },
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  }
+               ]
+            }
+         ],
+         "repeat": null,
+         "repeatIteration": null,
+         "repeatRowId": null,
+         "showTitle": true,
+         "title": "Segments",
+         "titleSize": "h6",
+         "type": "row"
+      },
+      {
+         "collapse": false,
+         "collapsed": false,
+         "panels": [
+            {
+               "aliasColors": { },
+               "bars": false,
+               "dashLength": 10,
+               "dashes": false,
+               "datasource": "$datasource",
+               "fill": 1,
+               "gridPos": { },
+               "id": 12,
+               "legend": {
+                  "alignAsTable": false,
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "total": false,
+                  "values": false
+               },
+               "lines": true,
+               "linewidth": 1,
+               "links": [ ],
+               "nullPointMode": "null",
+               "percentage": false,
+               "pointradius": 5,
+               "points": false,
+               "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 3,
@@ -540,9 +911,8 @@
                      "expr": "rate(prometheus_remote_storage_dropped_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
@@ -568,7 +938,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -577,7 +947,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             },
@@ -588,12 +958,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
-               "id": 8,
+               "gridPos": { },
+               "id": 13,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -601,11 +974,12 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 3,
@@ -616,9 +990,8 @@
                      "expr": "rate(prometheus_remote_storage_failed_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
@@ -644,7 +1017,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -653,7 +1026,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             },
@@ -664,12 +1037,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
-               "id": 9,
+               "gridPos": { },
+               "id": 14,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -677,11 +1053,12 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 3,
@@ -692,9 +1069,8 @@
                      "expr": "rate(prometheus_remote_storage_retried_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
@@ -720,7 +1096,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -729,7 +1105,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             },
@@ -740,12 +1116,15 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
-               "id": 10,
+               "gridPos": { },
+               "id": 15,
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
                   "total": false,
                   "values": false
@@ -753,11 +1132,12 @@
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 3,
@@ -768,9 +1148,8 @@
                      "expr": "rate(prometheus_remote_storage_enqueue_retries_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{queue}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
@@ -796,7 +1175,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -805,7 +1184,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             }
@@ -814,8 +1193,9 @@
          "repeatIteration": null,
          "repeatRowId": null,
          "showTitle": true,
-         "title": "Misc Rates.",
-         "titleSize": "h6"
+         "title": "Misc. Rates",
+         "titleSize": "h6",
+         "type": "row"
       }
    ],
    "schemaVersion": 14,
@@ -824,10 +1204,6 @@
    "templating": {
       "list": [
          {
-            "current": {
-               "text": "default",
-               "value": "default"
-            },
             "hide": 0,
             "label": null,
             "name": "datasource",
@@ -840,21 +1216,28 @@
          {
             "allValue": null,
             "current": {
-               "selected": true,
-               "text": "All",
-               "value": "$__all"
+               "text": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               },
+               "value": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               }
             },
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "instance",
-            "multi": true,
+            "label": null,
+            "multi": false,
             "name": "instance",
             "options": [ ],
             "query": "label_values(agent_build_info, instance)",
-            "refresh": 1,
+            "refresh": 2,
             "regex": "",
-            "sort": 2,
+            "sort": 0,
             "tagValuesQuery": "",
             "tags": [ ],
             "tagsQuery": "",
@@ -864,21 +1247,48 @@
          {
             "allValue": null,
             "current": {
-               "selected": true,
-               "text": "All",
-               "value": "$__all"
+               "text": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               },
+               "value": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               }
             },
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "cluster",
-            "multi": true,
+            "label": null,
+            "multi": false,
             "name": "cluster",
             "options": [ ],
             "query": "label_values(agent_build_info, cluster)",
-            "refresh": 1,
+            "refresh": 2,
             "regex": "",
-            "sort": 2,
+            "sort": 0,
+            "tagValuesQuery": "",
+            "tags": [ ],
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+         },
+         {
+            "allValue": null,
+            "current": { },
+            "datasource": "$datasource",
+            "hide": 0,
+            "includeAll": true,
+            "label": null,
+            "multi": false,
+            "name": "url",
+            "options": [ ],
+            "query": "label_values(prometheus_remote_storage_shards{cluster=~\"$cluster\", instance=~\"$instance\"}, url)",
+            "refresh": 2,
+            "regex": "",
+            "sort": 0,
             "tagValuesQuery": "",
             "tags": [ ],
             "tagsQuery": "",
@@ -888,7 +1298,7 @@
       ]
    },
    "time": {
-      "from": "now-1h",
+      "from": "now-6h",
       "to": "now"
    },
    "timepicker": {
@@ -918,6 +1328,5 @@
    },
    "timezone": "",
    "title": "Agent Prometheus Remote Write",
-   "uid": "",
    "version": 0
 }
