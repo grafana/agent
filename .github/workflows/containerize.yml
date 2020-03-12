@@ -27,4 +27,6 @@ jobs:
       run: make agent-image
 
     - name: Push Container
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: make push-agent-image
