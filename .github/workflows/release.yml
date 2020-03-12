@@ -19,8 +19,11 @@ jobs:
 
     - name: Install gox and ghr
       run: |
-        go install github.com/mitchellh/gox
-        go install github.com/tcnksm/ghr
+        GO111MODULE=on go get \
+          github.com/mitchellh/gox \
+          github.com/tcnksm/ghr
+        which gox
+        which ghr
 
     - name: Checkout code
       uses: actions/checkout@v2
