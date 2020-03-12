@@ -22,6 +22,9 @@ collection by running one agent per machine.
 A typical deployment of the Grafana Cloud Agent for Prometheus metrics can see
 up to a 40% reduction in memory usage with comparable scrape loads.
 
+Despite called the "Grafana Cloud Agent," it can be utilized with any Prometheus
+remote_write API.
+
 ## Trade-offs
 
 By heavily optimizing Prometheus for remote write and resource reduction, some
@@ -44,7 +47,19 @@ metrics collector.
 
 ## Getting Started
 
-TODO
+The easiest way to get started with the Grafana Cloud Agent is to use the
+Kubernetes install script. Simply copy and paste the following line in your
+terminal:
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/master/production/kubernetes/install.sh)" | kubectl apply -f -
+```
+
+Other installation methods can be found in our
+[Production](./production/README.md) documentation.
+
+More detailed [documentation](./docs/README.md) is provided as part of the
+repository.
 
 ## Example
 
@@ -52,3 +67,11 @@ A docker-compose config is provided in `example/`. It deploys the Agent, Cortex,
 Grafana, and Avalanche for load testing. See the
 [README in example/](./example/README.md) for more information.
 
+## Getting Help
+
+If you have any questions or feedback regarding the Grafana Cloud Agent:
+
+* Ask a question on the Agent Slack channel. To invite yourself to the Grafana
+  Slack, visit https://slack.grafana.com/ and join the #agent channel.
+* [File an issue](https://github.com/grafana/agent/issues/new) for bugs, issues
+  and feature suggestions.
