@@ -111,4 +111,4 @@ dist:
 	pushd dist && sha256sum * > SHA256SUMS && popd
 
 publish: dist
-	RELEASE_TAG=$(IMAGE_TAG) ./tools/release
+	./tools/release
