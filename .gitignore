@@ -4,3 +4,4 @@
 cover.out
 
 cmd/agent/agent
+dist/

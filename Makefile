@@ -99,3 +99,16 @@ example-kubernetes:
 example-dashboards:
 	cd example/grafana/dashboards && \
 		jsonnet template.jsonnet -J ../../vendor -m .
+
+#############
+# Releasing #
+#############
+
+GOX = gox $(GO_FLAGS) -parallel=2 -output="dist/{{.Dir}}-{{.OS}}-{{.Arch}}"
+dist:
+	CGO_ENABLED=0 $(GOX) -osarch="linux/amd64 darwin/amd64 windows/amd64 freebsd/amd64" ./cmd/agent
+	for i in dist/*; do zip -j -m $$i.zip $$i; done
+	pushd dist && sha256sum * > SHA256SUMS && popd
+
+publish: dist
+	./tools/release
