@@ -31,12 +31,12 @@ jobs:
     - name: Test
       run: make test
 
-    - name: Make Container
-      run: make agent-image
-
-    - name: Push Container
-      run: make push-agent-image
-
-    - name: Publish Release
+    - name: Make Release
       run: |
-        RELEASE_TAG=${GITHUB_REF##*/} make publish
+        # This is required so gox and ghr are available
+        export PATH="$(go env GOPATH)/bin:$PATH"
+
+        export RELEASE_TAG=${GITHUB_REF##*/}
+        make agent-image
+        make push-agent-image
+        make publish
