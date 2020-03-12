@@ -32,6 +32,8 @@ jobs:
       run: make test
 
     - name: Make Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # This is required so gox and ghr are available
         export PATH="$(go env GOPATH)/bin:$PATH"
