@@ -19,8 +19,8 @@ jobs:
 
     - name: Install gox and ghr
       run: |
-        go get github.com/mitchellh/gox
-        go get github.com/tcnksm/ghr
+        go install github.com/mitchellh/gox
+        go install github.com/tcnksm/ghr
 
     - name: Checkout code
       uses: actions/checkout@v2
@@ -35,4 +35,5 @@ jobs:
       run: make push-agent-image
 
     - name: Publish Release
-      run: make publish
+      run: |
+        RELEASE_TAG=${GITHUB_REF##*/} make publish
