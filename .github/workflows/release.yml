@@ -17,16 +17,14 @@ jobs:
         go-version: 1.14
       id: go
 
-    - name: Install gox and ghr
-      run: |
-        GO111MODULE=on go get \
-          github.com/mitchellh/gox \
-          github.com/tcnksm/ghr
-        which gox
-        which ghr
-
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Install gox and ghr
+      run: |
+        GO111MODULE=on go get -u \
+          github.com/mitchellh/gox \
+          github.com/tcnksm/ghr
 
     - name: Test
       run: make test
