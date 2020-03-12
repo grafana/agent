@@ -4,6 +4,7 @@ set -o pipefail
 
 if [ ! -z "${RELEASE_TAG}" ]; then
   echo ${RELEASE_TAG}
+  exit 0
 fi
 
 set -o nounset
