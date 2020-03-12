@@ -6,4 +6,4 @@ ghr \
   -c "${CIRCLE_SHA1}" \
   -b="$(cat ./tools/release-note.md | envsubst)" \
   -delete -draft \
-  "${CIRCLE_TAG}" ./dist/
+  "${RELEASE_TAG}" ./dist/

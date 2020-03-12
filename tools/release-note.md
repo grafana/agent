@@ -1,4 +1,4 @@
-This is release `${CIRCLE_TAG}` of the Grafana Cloud Agent.
+This is release `${RELEASE_TAG}` of the Grafana Cloud Agent.
 
 ### Notable changes:
 :warning: **ADD RELEASE NOTES HERE** :warning:
@@ -12,7 +12,7 @@ use-case best.
 #### Kubernetes Install Script
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${CIRCLE_TAG}/production/kubernetes/install.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl apply -f -
 ```
 
 #### Docker container:
@@ -20,7 +20,7 @@ use-case best.
 * https://hub.docker.com/r/grafana/agent
 
 ```bash
-docker pull "grafana/agent:${CIRCLE_TAG}"
+docker pull "grafana/agent:${RELEASE_TAG}"
 ```
 
 #### Binary
@@ -31,7 +31,7 @@ Choose from the assets below for your matching operating system. Example for the
 
 ```bash
 # download the binary
-curl -O -L "https://github.com/grafana/agent/releases/download/${CIRCLE_TAG}/agent-linux-amd64.zip"
+curl -O -L "https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/agent-linux-amd64.zip"
 
 # extract the binary
 unzip "agent-linux-amd64.zip"
