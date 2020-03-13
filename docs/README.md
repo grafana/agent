@@ -15,11 +15,11 @@ main problems users of large deployments of Prometheus face:
 ## Table of Contents
 
 1. [Overview](./overview.md)
-  1. [Comparison to alternatives](./overview.md#comparison-to-alternatives)
-  2. [Roadmap](./overview.md#roadmap)
+    1. [Comparison to alternatives](./overview.md#comparison-to-alternatives)
+    2. [Roadmap](./overview.md#roadmap)
 2. [Getting Started](./getting-started.md)
-  1. [Docker-Compose Example](./getting-started.md#docker_compose-example)
-  2. [Installing](./getting-started.md#installing)
-  3. [Migrating from Prometheus](./getting-started.md#migrating-from-prometheus)
-  4. [Running](./getting-started.md#running)
+    1. [Docker-Compose Example](./getting-started.md#docker_compose-example)
+    2. [Installing](./getting-started.md#installing)
+    3. [Migrating from Prometheus](./getting-started.md#migrating-from-prometheus)
+    4. [Running](./getting-started.md#running)
 3. [Configuration Reference](./configuration-reference.md)
