@@ -8,6 +8,10 @@ the following components:
 3. Grafana to visualize metrics
 4. Avalanche to load test the Agent.
 
+This example is used for seeing how a single instance of the Agent performs
+under moderate load; the Docker Compose configuration as present in this
+directory will generate roughly 90,000 metrics.
+
 To get started, run the following from this directory:
 
 ```
