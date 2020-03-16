@@ -8,7 +8,7 @@ RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUI
 FROM alpine:3.9
 RUN apk add --update --no-cache ca-certificates
 COPY --from=build /src/agent/cmd/agent/agent /bin/agent
-COPY cmd/agent/agent-local-config.yaml /etc/agent/local-config.yaml
+COPY cmd/agent/agent-local-config.yaml /etc/agent/agent.yaml
 
 ENTRYPOINT ["/bin/agent"]
-CMD ["-config.file=/etc/agent/local-config.yaml"]
+CMD ["--config.file=/etc/agent/agent.yaml", "--prometheus.wal-directory=/etc/agent/data"]

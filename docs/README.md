@@ -1,16 +1,16 @@
 # Grafana Cloud Agent
 
-Grafana Cloud Agent is an observability data collector optimized for sending
+The Grafana Cloud Agent is an observability data collector optimized for sending
 metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud/).
 Today, with its Prometheus metrics collection, it is designed to handle the
-main problems users of large deployments of Prometheus face:
+main problems faced by users of large deployments of Prometheus:
 
-- Grafana Cloud Agent uses less memory on average than Prometheus by doing less
+- Grafana Cloud Agent uses less memory on average than Prometheus – by doing less
   (only focusing on `remote_write`-related functionality).
-- Grafana Cloud Agent allows for deloying multiple instances of the Agent in a
-  cluster and only scraping metrics from targets that the host the agent is
-  running on. This allows distributing memory requirements across the cluster
-  rather than on a single node.
+- Grafana Cloud Agent allows for deploying multiple instances of the Agent in a
+  cluster and only scraping metrics from targets that running at the same host.
+  This allows distributing memory requirements across the cluster
+  rather than pressurizing a single node.
 
 ## Table of Contents
 

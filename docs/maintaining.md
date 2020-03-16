@@ -66,7 +66,7 @@ export GPG_TTY=$(tty)
        RELEASE=v1.2.3 # UPDATE ME to reference new release
        git checkout master # If not already on master
        git pull
-       git tag -s $RELEASE -m "tagging release $RELEASE"
+       git tag -s $RELEASE -m "release $RELEASE"
        git push origin $RELEASE
        ```
 8. Watch GitHub Actions and wait for all the jobs to finish running.
