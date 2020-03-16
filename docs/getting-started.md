@@ -19,10 +19,10 @@ docker-compose up -d
 Currently, there are five ways to install the agent:
 
 1. Use our Docker container
-2. Use the Kubernetes install script
+2. Use the Kubernetes install script (_recommended basic_)
 3. Use the Kubernetes manifest
 4. Installing the static binaries locally
-5. Using Grafana Labs' official Tanka configs
+5. Using Grafana Labs' official Tanka configs (_recommended advanced_)
 
 ### Docker Container
 
@@ -35,6 +35,8 @@ docker pull grafana/agent:v0.1.0
 Running this script will automatically download and apply our recommended
 Grafana Cloud Agent Kubernetes deployment manifest:
 
+> **Warning**: Always verify scripts from the internet before running them.
+
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.1.0/production/kubernetes/install.sh)" | kubectl apply -f -
 ```
@@ -42,7 +44,7 @@ Grafana Cloud Agent Kubernetes deployment manifest:
 ### Kubernetes Manifest
 
 If you wish to manually modify the Kubernetes manifest before deploying it
-yourself, you can do so by downloading [this](/production/kubernetes/agent.yaml) file.
+yourself, you can do so by downloading the [`agent.yaml` file](/production/kubernetes/agent.yaml).
 
 ### Installing Locally
 
@@ -51,7 +53,7 @@ instructions for downloading static binaries that are published with every relea
 
 ### Tanka
 
-We provide Tanka configurations in our [production](/production/tanka/grafana-agent) directory.
+We provide [Tanka](https://tanka.dev) configurations in our [`production/`](/production/tanka/grafana-agent) directory.
 
 ## Migrating from Prometheus
 
@@ -62,7 +64,7 @@ configuration file. Use this Agent config as a template:
 ```yaml
 prometheus:
   global:
-    # PASTE PROMETHEUS global SECTION HERE
+  # PASTE PROMETHEUS global SECTION HERE
   configs:
     - name: agent
       # Leave this as false for a Prometheus-like agent process
@@ -89,22 +91,20 @@ path of your Agent's YAML configuration file.
 docker run \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  --entrypoint "/bin/agent -config.file=/etc/agent-config/agent.yaml -prometheus.wal-directory=/etc/agent/data"
   grafana/agent:v0.1.0
 ```
 
 ### Locally
 
-This section is only relavant if you have installed the static binary of the
+This section is only relavant if you installed the static binary of the
 Agent. We do not yet provide system packages or configurations to run the Agent
 as a daemon process.
 
 To run the agent, you need to pass the following flags to it:
 
-- `-config.file=path/to/agent.yaml`, replacing the argument with the full path
-   to your Agent's YAML configuration file.
+- `--config.file=path/to/agent.yaml`, replacing the argument with the full path
+  to your Agent's YAML configuration file.
 
-- `-prometheus.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
+- `--prometheus.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
   the directory you wish to use for storing data. Note that `/tmp` may get
   deleted by most operating systems after a reboot.
-
