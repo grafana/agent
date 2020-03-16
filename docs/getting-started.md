@@ -100,7 +100,8 @@ This section is only relavant if you installed the static binary of the
 Agent. We do not yet provide system packages or configurations to run the Agent
 as a daemon process.
 
-To run the agent, you need to pass the following flags to it:
+To override the default flags passed to the container, add the following flags
+to the end of the `docker run` command:
 
 - `--config.file=path/to/agent.yaml`, replacing the argument with the full path
   to your Agent's YAML configuration file.
@@ -108,3 +109,6 @@ To run the agent, you need to pass the following flags to it:
 - `--prometheus.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
   the directory you wish to use for storing data. Note that `/tmp` may get
   deleted by most operating systems after a reboot.
+
+Note that using paths on your host machine must be exposed to the Docker
+container through a bind mount for the flags to work properly.
