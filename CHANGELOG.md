@@ -1,6 +1,7 @@
 # Next (master/unreleased)
 
 - Fix various dashboard mixin problems from v0.1.0 (@rfratto)
+- Pass through release tag to `docker build` (@rfratto)
 
 # v0.1.0 (2020-03-16)
 

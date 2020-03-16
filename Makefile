@@ -34,7 +34,7 @@ RELEASE_BUILD ?= false
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
-IMAGE_TAG := $(shell ./tools/image-tag)
+IMAGE_TAG ?= $(shell ./tools/image-tag)
 
 # Version info for binaries
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -71,7 +71,7 @@ cmd/agent/agent: cmd/agent/main.go
 	$(NETGO_CHECK)
 
 agent-image:
-	docker build --build-arg RELEASE_BUILD=$(RELEASE_BUILD) \
+	docker build --build-arg RELEASE_BUILD=$(RELEASE_BUILD)  --build-arg IMAGE_TAG=$(IMAGE_TAG) \
 		-t $(IMAGE_PREFIX)/agent:latest -f cmd/agent/Dockerfile .
 	docker tag $(IMAGE_PREFIX)/agent:latest $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
 
