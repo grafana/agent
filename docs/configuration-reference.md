@@ -4,7 +4,6 @@ The Grafana Cloud Agent is configured in a YAML file (usually called
 `agent.yaml`) which contains information on the Grafana Cloud Agent and its
 Prometheus instances.
 
-
 * [server_config](#server_config)
 * [prometheus_config](#prometheus_config)
 

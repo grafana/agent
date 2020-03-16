@@ -2,7 +2,7 @@ global:
   scrape_interval:     5s
 
 scrape_configs:
-  - job_name: 'local_scrape'
+  - job_name: 'prometheus_scrape'
     static_configs:
       - targets: ['localhost:9090']
         labels:

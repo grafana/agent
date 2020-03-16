@@ -75,6 +75,10 @@ prometheus:
 
 ## Running
 
+If you've installed the agent with Kubernetes, it's already running! The
+following sections below describe running the agent in environments that need
+extra steps.
+
 ### Docker Container
 
 Copy the following block below, replacing `/tmp/agent` with the host directory
