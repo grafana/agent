@@ -23,3 +23,4 @@ main problems users of large deployments of Prometheus face:
     3. [Migrating from Prometheus](./getting-started.md#migrating-from-prometheus)
     4. [Running](./getting-started.md#running)
 3. [Configuration Reference](./configuration-reference.md)
+4. [Maintainers Guide](./maintaining.md)
