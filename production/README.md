@@ -24,6 +24,20 @@ See the [Kubernetes README](./kubernetes/README.md) for more information.
 
 ## Running the Agent with Docker
 
+To run the Agent with Docker, you should have a configuration file on
+your local machine ready to bind mount into the container. Then modify
+the following command for your environment. Replace `/path/to/config.yaml` with
+the full path to your YAML configuration, and replace `/tmp/agent` with the
+directory on your host that you want the agent to store its WAL.
+
+```
+docker run \
+  -v /tmp/agent:/etc/agent \
+  -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
+  --entrypoint "/bin/agent -config.file=/etc/agent-config/agent.yaml -prometheus.wal-directory=/etc/agent/data"
+  grafana/agent:v0.1.0
+```
+
 ## Running the Agent locally
 
 Currently, you must provide your own system configuration files to run the
@@ -31,8 +45,18 @@ Agent as a long-living process (e.g., write your own systemd unit files).
 
 ## Use the example Kubernetes configs
 
+The install script replaces variable placeholders in the [example Kubernetes
+manifest](./kubernetes/agent.yaml) in the Kubernetes directory. Feel free to
+examine that file and modify it for your own needs!
+
 ## Build the Agent from source
+
+Go 1.14 is currently needed to build the agent from source. Run `make agent`
+from the root of this repository, and then the build agent binary will be placed
+at `./cmd/agent/agent`.
 
 ## Use our production Tanka configs
 
-
+The Tanka configs we use to deploy the agent ourselves can be found in our
+[production Tanka directory](./tanka/grafana-agent). These configs are also used
+to generate the Kubernetes configs for the install script.

@@ -8,6 +8,10 @@ the following components:
 3. Grafana to visualize metrics
 4. Avalanche to load test the Agent.
 
+This example is used for seeing how a single instance of the Agent performs
+under moderate load; the Docker Compose configuration as present in this
+directory will generate roughly 90,000 metrics.
+
 To get started, run the following from this directory:
 
 ```
@@ -30,6 +34,9 @@ The Agent is exposed on the host at `http://localhost:12345`.
 The reduced memory requirements is a critical feature of the Agent, and
 the example provides a good launching point to end-to-end test and validate
 the usage.
+
+To build the image locally, run `make agent-image` at the root of this
+repository.
 
 To get a memory profile, you can use `pprof` against the Agent:
 

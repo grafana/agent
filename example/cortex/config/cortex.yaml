@@ -46,3 +46,7 @@ storage:
     directory: /tmp/cortex/index
   filesystem:
     directory: /tmp/cortex/chunks
+
+limits:
+  ingestion_rate: 250000
+  ingestion_burst_size: 500000
