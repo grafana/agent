@@ -31,6 +31,9 @@ The reduced memory requirements is a critical feature of the Agent, and
 the example provides a good launching point to end-to-end test and validate
 the usage.
 
+To build the image locally, run `make agent-image` at the root of this
+repository.
+
 To get a memory profile, you can use `pprof` against the Agent:
 
 ```

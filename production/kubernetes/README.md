@@ -53,10 +53,10 @@ The YAML file provided is created using Grafana Labs' production
 build the YAML file with some custom values, you will need the following pieces
 of software installed:
 
-1. Tanka
-2. `jsonnet-bundler`
+1. [Tanka](https://github.com/grafana/tanka) >= v0.8
+2. [`jsonnet-bundler`](https://github.com/jsonnet-bundler/jsonnet-bundler) >= v0.2.1
 
-See the [`template` environment](./build/template) for the current settings
-that initialize the Grafana Agent tanka configs. To build the YAML file,
-execute the `./build/build.sh` script or run `make example-kubernetes` from the
-project's root directory.
+See the [`template` Tanka environment](./build/template) for the current
+settings that initialize the Grafana Agent Tanka configs. To build the YAML
+file, execute the `./build/build.sh` script or run `make example-kubernetes`
+from the project's root directory.
