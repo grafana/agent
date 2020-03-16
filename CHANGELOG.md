@@ -1,5 +1,8 @@
 # Next (master/unreleased)
 
+# v0.1.1
+
+- Nits in documentation (@sh0rez)
 - Fix various dashboard mixin problems from v0.1.0 (@rfratto)
 - Pass through release tag to `docker build` (@rfratto)
 

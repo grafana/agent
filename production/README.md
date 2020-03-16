@@ -35,7 +35,7 @@ docker run \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
   --entrypoint "/bin/agent -config.file=/etc/agent-config/agent.yaml -prometheus.wal-directory=/etc/agent/data"
-  grafana/agent:v0.1.0
+  grafana/agent:v0.1.1
 ```
 
 ## Running the Agent locally
