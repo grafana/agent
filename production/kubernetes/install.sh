@@ -21,7 +21,7 @@
 # URL must always be provided.
 #
 
-MANIFEST_BRANCH=v0.1.0
+MANIFEST_BRANCH=v0.1.1
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent.yaml}
 
 REMOTE_WRITE_USERNAME_SET=0
