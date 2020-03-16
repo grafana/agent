@@ -24,7 +24,7 @@ jobs:
       run: make test
 
     - name: Make Container
-      run: make agent-image
+      run: RELEASE_BUILD=true make agent-image
 
     - name: Push Container
-      run: make push-agent-image
+      run: RELEASE_BUILD=true make push-agent-image
