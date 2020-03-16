@@ -36,21 +36,21 @@ local g = import 'grafana-builder/grafana.libsonnet';
         .addPanel(
           g.panel('CPU') +
           g.queryPanel(
-            'rate(container_cpu_usage_seconds_total{cluster=~"$cluster", namespace=~"$namespace", job=~"$job"}[5m])',
+            'rate(container_cpu_usage_seconds_total{cluster=~"$cluster", pod_name=~".*grafana-agent.*"}[5m])',
             '{{job}}',
           )
         )
         .addPanel(
           g.panel('WSS') +
           g.queryPanel(
-            'container_memory_working_set_bytes{cluster=~"$cluster", namespace=~"$namespace", job=~"$job"}',
+            'container_memory_working_set_bytes{cluster=~"$cluster", pod_name=~".*grafana-agent.*"}',
             '{{job}}',
           )
         )
         .addPanel(
           g.panel('Bad Words') +
           g.queryPanel(
-            'rate(promtail_custom_bad_words_total{cluster=~"$cluster", exported_namespace=~"$namespace", job=~"$job"}[5m])',
+            'rate(promtail_custom_bad_words_total{cluster=~"$cluster", exported_namespace=~"$namespace", exported_job=~"$job"}[5m])',
             '{{job}}',
           )
         )
@@ -60,14 +60,14 @@ local g = import 'grafana-builder/grafana.libsonnet';
         .addPanel(
           g.panel('RX') +
           g.queryPanel(
-            'rate(container_network_receive_bytes_total{cluster=~"$cluster", namespace=~"$namespace", job=~"$job"}[5m])',
+            'rate(container_network_receive_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod_name=~".*grafana-agent.*"}[5m])',
             '{{job}}',
           )
         )
         .addPanel(
           g.panel('TX') +
           g.queryPanel(
-            'rate(container_network_send_bytes_total{cluster=~"$cluster", namespace=~"$namespace", job=~"$job"}[5m])',
+            'rate(container_network_transmit_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod_name=~".*grafana-agent.*"}[5m])',
             '{{job}}',
           )
         )
