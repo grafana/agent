@@ -68,7 +68,7 @@ repository.
 
 A docker-compose config is provided in `example/`. It deploys the Agent, Cortex,
 Grafana, and Avalanche for load testing. See the
-[README in example/](./example/README.md) for more information.
+[README in `example/`](./example/README.md) for more information.
 
 ## Getting Help
 

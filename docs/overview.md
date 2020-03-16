@@ -1,9 +1,9 @@
 # Overview
 
 The Grafana Cloud Agent is an observability data collector optimized for sending
-metrics and log data to [Grafan Cloud](https://grafana.com/products/cloud).
+metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud).
 
-Currently, it only comes with support for collecting and sending Prometheus
+Currently, it comes with support for collecting and sending Prometheus
 metrics, accomplished through utilizing the same battle-tested code that
 Prometheus contains.
 
@@ -13,7 +13,7 @@ and alerts aren't present. `remote_write`, service discovery, and relabeling
 rules are included.
 
 The Grafana Cloud Agent has a concept of an "instance", each of which acts as
-its own mini Prometheus agent with own `scrape_configs` section and
+its own mini Prometheus agent with their own `scrape_configs` section and
 `remote_write` rules. Most users will only ever need to define one instance.
 Multiple instances will be more useful in the future when a clustering mode is
 added to the Agent.
@@ -21,17 +21,17 @@ added to the Agent.
 The Grafana Cloud Agent can be deployed in two modes:
 
 - Prometheus `remote_write` drop-in
-- Host Filtering mode
+- [Host Filtering mode](#host-filtering)
 
-The default deployment mode of the Grafana Cloud Agent is the drop-in
+The default deployment mode of the Grafana Cloud Agent is the _drop-in_
 replacement for Prometheus `remote_write`. The Agent will act similarly to a
-single-processed Prometheus, doing service discovery, scraping, and remote
+single-process Prometheus, doing service discovery, scraping, and remote
 writing.
 
-The other deployment mode, Host Filtering mode, is achieved by setting a
+The other deployment mode, _Host Filtering mode_, is achieved by setting a
 `host_filter` flag on a specific instance inside the Agent's configuration file.
 When this flag is set, the instance will only scrape metrics from targets that
-are running on the same machine as the target. This is extremely useful to
+are running on the same machine as the itself. This is extremely useful to
 migrate to sharded Prometheus instances in a Kubernetes cluster, where the Agent
 can then be deployed as a DaemonSet and distribute memory requirements across
 multiple nodes.
@@ -84,4 +84,4 @@ Grafana Cloud hosted platforms:
 Operationally, we are also planning on adding a distributed scraping service
 mode, where the Agent could be deployed as a cluster. This will be the third
 deployment mechanism supported, outside of the currently supported
-single-process and DaemonSet modes.
+single-process and `DaemonSet` modes.
