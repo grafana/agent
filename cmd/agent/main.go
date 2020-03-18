@@ -75,15 +75,18 @@ func main() {
 	promMetrics, err := prom.New(cfg.Prometheus, util.Logger)
 	if err != nil {
 		level.Error(util.Logger).Log("msg", "failed to create prometheus instance", "err", err)
+		os.Exit(1)
 	}
 
 	srv, err := server.New(cfg.Server)
 	if err != nil {
 		level.Error(util.Logger).Log("msg", "failed to create server", "err", err)
+		os.Exit(1)
 	}
 
 	if err := srv.Run(); err != nil {
 		level.Error(util.Logger).Log("msg", "error running agent", "err", err)
+		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
 
 	promMetrics.Stop()
