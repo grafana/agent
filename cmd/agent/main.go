@@ -86,6 +86,7 @@ func main() {
 
 	if err := srv.Run(); err != nil {
 		level.Error(util.Logger).Log("msg", "error running agent", "err", err)
+		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
 
 	promMetrics.Stop()
