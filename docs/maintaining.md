@@ -83,3 +83,12 @@ Once the steps are completed, you can publish your draft!
 3. Optionally, have other team members review the release draft so you feel
    comfortable with it.
 4. Publish the release!
+
+## Updating Release Branch
+
+The `release` branch should always point at the SHA of the commit of the latest
+release tag. This is used so that the install instructions can be generic and
+made to always install the latest released version.
+
+Update the release branch by fast-forwarding it to the appropriate SHA (matching
+the latest tag) and pushing it back upstream.
