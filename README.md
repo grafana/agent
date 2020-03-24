@@ -3,14 +3,14 @@
 Grafana Cloud Agent is an observability data collector optimized for sending
 metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud/).
 
-Users of Prometheus cloud storage vendors with a single Prometheus instance can 
-struggle sending their data at massive scale (millions of active series): 
-Prometheus is sometimes called a single point of failure that generally requires 
+Users of Prometheus cloud storage vendors with a single Prometheus instance can
+struggle sending their data at massive scale (millions of active series):
+Prometheus is sometimes called a single point of failure that generally requires
 a giant machine with a lot of resources allocated to it.
 
-The Grafana Cloud Agent uses the same code as Prometheus, but tackles these issues 
-by only using the most relevant parts of Prometheus for interaction with hosted 
-metrics: 
+The Grafana Cloud Agent uses the same code as Prometheus, but tackles these issues
+by only using the most relevant parts of Prometheus for interaction with hosted
+metrics:
 
 1. Service Discovery
 2. Scraping
@@ -39,11 +39,11 @@ trade-offs have been made:
 - When sharding the Agent, if your node has problems that interrupt metric
   availability, metrics tracking that node won't be sent for alerting on.
 
-While the Agent can't use recording rules and alerts, `remote_write` systems such 
-as Cortex currently support server-side rules and alerts. Note that this trade-off 
-means that reliability of alerts are tied to the reliability of the remote system 
-and alerts will be delayed at least by the time it takes for samples to reach 
-the remote system. 
+While the Agent can't use recording rules and alerts, `remote_write` systems such
+as Cortex currently support server-side rules and alerts. Note that this trade-off
+means that reliability of alerts are tied to the reliability of the remote system
+and alerts will be delayed at least by the time it takes for samples to reach
+the remote system.
 
 ## Roadmap
 
@@ -59,7 +59,7 @@ Kubernetes install script. Simply copy and paste the following line in your
 terminal:
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/master/production/kubernetes/install.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
 ```
 
 Other installation methods can be found in our
