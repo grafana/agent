@@ -32,4 +32,4 @@ replace (
 )
 
 // Temporarily use a fork for memory improvements (see #5)
-replace github.com/prometheus/prometheus => github.com/rfratto/prometheus v1.8.2-0.20200302181437-c756a790c075
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200323174628-4396be2c5617
