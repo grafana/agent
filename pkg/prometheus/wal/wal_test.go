@@ -27,8 +27,7 @@ func TestStorage(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
-	app, err := s.Appender()
-	require.NoError(t, err)
+	app := s.Appender()
 
 	// Write some samples
 	payload := seriesList{
@@ -66,9 +65,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
 
-	app, err := s.Appender()
-	require.NoError(t, err)
-
+	app := s.Appender()
 	payload := seriesList{
 		{name: "foo", samples: []sample{{1, 10.0}, {10, 100.0}}},
 		{name: "bar", samples: []sample{{2, 20.0}, {20, 200.0}}},
@@ -101,8 +98,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 		require.Greater(t, series.lastTs, int64(0), "series timestamp not updated")
 	}
 
-	app, err = s.Appender()
-	require.NoError(t, err)
+	app = s.Appender()
 
 	for _, metric := range payload[len(payload)/2:] {
 		metric.Write(t, app)
@@ -141,8 +137,7 @@ func TestStorage_Truncate(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
-	app, err := s.Appender()
-	require.NoError(t, err)
+	app := s.Appender()
 
 	payload := seriesList{
 		{name: "foo", samples: []sample{{1, 10.0}, {10, 100.0}}},
@@ -201,8 +196,7 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
-	app, err := s.Appender()
-	require.NoError(t, err)
+	app := s.Appender()
 
 	// Write some samples
 	payload := seriesList{
@@ -274,7 +268,7 @@ func (s *series) Write(t *testing.T, app storage.Appender) {
 
 	// Write other data points with AddFast
 	for _, sample := range s.samples[offset:] {
-		err := app.AddFast(labels, *s.ref, sample.ts, sample.val)
+		err := app.AddFast(*s.ref, sample.ts, sample.val)
 		require.NoError(t, err)
 	}
 }

@@ -3,7 +3,6 @@ package wal
 import (
 	"sync"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
@@ -13,7 +12,7 @@ type walReplayer struct {
 }
 
 func (r walReplayer) Replay(dir string) error {
-	w, err := wal.Open(nil, prometheus.DefaultRegisterer, dir)
+	w, err := wal.Open(nil, dir)
 	if err != nil {
 		return err
 	}

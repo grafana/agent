@@ -307,8 +307,8 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 }
 
 // Appender returns a new appender against the storage.
-func (w *Storage) Appender() (storage.Appender, error) {
-	return w.appenderPool.Get().(storage.Appender), nil
+func (w *Storage) Appender() storage.Appender {
+	return w.appenderPool.Get().(storage.Appender)
 }
 
 // StartTime always returns 0, nil. It is implemented for compatibility with
@@ -423,11 +423,7 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 	var lastErr error
 	var lastTs int64
 
-	app, err := w.Appender()
-	if err != nil {
-		return err
-	}
-
+	app := w.Appender()
 	it := w.series.iterator()
 	for series := range it.Channel() {
 		var (
@@ -435,7 +431,7 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 		)
 
 		ts := timestamp.FromTime(time.Now())
-		err = app.AddFast(labels.Labels{}, ref, ts, math.Float64frombits(value.StaleNaN))
+		err := app.AddFast(ref, ts, math.Float64frombits(value.StaleNaN))
 		if err != nil {
 			lastErr = err
 		}
@@ -527,7 +523,7 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 		// Now that the series has been read and will be cached by the scraping code,
 		// we can remove the stored labels from memory.
 		a.w.series.delLabels(hash, series)
-		return series.ref, a.AddFast(l, series.ref, t, v)
+		return series.ref, a.AddFast(series.ref, t, v)
 	}
 
 	// More common path: we haven't saved the labels for this series,
@@ -547,10 +543,10 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	a.w.metrics.numActiveSeries.Inc()
 	a.w.metrics.totalCreatedSeries.Inc()
 
-	return series.ref, a.AddFast(l, series.ref, t, v)
+	return series.ref, a.AddFast(series.ref, t, v)
 }
 
-func (a *appender) AddFast(_ labels.Labels, ref uint64, t int64, v float64) error {
+func (a *appender) AddFast(ref uint64, t int64, v float64) error {
 	series := a.w.series.getByID(ref)
 	if series == nil {
 		return storage.ErrNotFound

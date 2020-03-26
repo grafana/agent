@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/tsdb/record"
@@ -33,7 +32,7 @@ func main() {
 		walDir = filepath.Join(walDir, "wal")
 	}
 
-	w, err := wal.Open(nil, prometheus.DefaultRegisterer, walDir)
+	w, err := wal.Open(nil, walDir)
 	if err != nil {
 		panic(err)
 	}
