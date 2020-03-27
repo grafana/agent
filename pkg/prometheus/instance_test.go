@@ -168,8 +168,8 @@ func (s *mockWalStorage) WriteStalenessMarkers(f func() int64) error { return ni
 func (s *mockWalStorage) Close() error                               { return nil }
 func (s *mockWalStorage) Truncate(mint int64) error                  { return nil }
 
-func (s *mockWalStorage) Appender() (storage.Appender, error) {
-	return &mockAppender{s: s}, nil
+func (s *mockWalStorage) Appender() storage.Appender {
+	return &mockAppender{s: s}
 }
 
 type mockAppender struct {
@@ -187,7 +187,7 @@ func (a *mockAppender) Add(l labels.Labels, t int64, v float64) (uint64, error) 
 }
 
 // AddFast increments the number of writes to an existing series.
-func (a *mockAppender) AddFast(l labels.Labels, ref uint64, t int64, v float64) error {
+func (a *mockAppender) AddFast(ref uint64, t int64, v float64) error {
 	a.s.mut.Lock()
 	defer a.s.mut.Unlock()
 	_, ok := a.s.series[ref]
