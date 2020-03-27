@@ -430,7 +430,7 @@ type walStorage interface {
 
 	StartTime() (int64, error)
 	WriteStalenessMarkers(remoteTsFunc func() int64) error
-	Appender() (storage.Appender, error)
+	Appender() storage.Appender
 	Truncate(mint int64) error
 
 	Close() error
