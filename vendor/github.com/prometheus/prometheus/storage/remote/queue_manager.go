@@ -32,6 +32,7 @@ import (
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/prometheus/prometheus/prompb"
+	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
@@ -44,12 +45,19 @@ const (
 
 	// Allow 30% too many shards before scaling down.
 	shardToleranceFraction = 0.3
+
+	// We use a label to identify samples and metadata on some metrics. These represent the values they can have.
+	samples  = "samples"
+	metadata = "metadata"
 )
 
 type queueManagerMetrics struct {
 	succeededSamplesTotal     *prometheus.CounterVec
+	succeededMetadataTotal    *prometheus.CounterVec
 	failedSamplesTotal        *prometheus.CounterVec
+	failedMetadataTotal       *prometheus.CounterVec
 	retriedSamplesTotal       *prometheus.CounterVec
+	retriedMetadataTotal      *prometheus.CounterVec
 	droppedSamplesTotal       *prometheus.CounterVec
 	enqueueRetriesTotal       *prometheus.CounterVec
 	sentBatchDuration         *prometheus.HistogramVec
@@ -75,6 +83,15 @@ func newQueueManagerMetrics(r prometheus.Registerer) *queueManagerMetrics {
 		},
 		[]string{remoteName, endpoint},
 	)
+	m.succeededMetadataTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: namespace,
+			Subsystem: subsystem,
+			Name:      "succeeded_metadata_total",
+			Help:      "Total number of metadata entries successfully sent to remote storage.",
+		},
+		[]string{remoteName, endpoint},
+	)
 	m.failedSamplesTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
@@ -84,12 +101,30 @@ func newQueueManagerMetrics(r prometheus.Registerer) *queueManagerMetrics {
 		},
 		[]string{remoteName, endpoint},
 	)
+	m.failedMetadataTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: namespace,
+			Subsystem: subsystem,
+			Name:      "failed_metadata_total",
+			Help:      "Total number of metadata entries which failed on send to remote storage, non-recoverable errors.",
+		},
+		[]string{remoteName, endpoint},
+	)
 	m.retriedSamplesTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: subsystem,
 			Name:      "retried_samples_total",
 			Help:      "Total number of samples which failed on send to remote storage but were retried because the send error was recoverable.",
+		},
+		[]string{remoteName, endpoint},
+	)
+	m.retriedMetadataTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: namespace,
+			Subsystem: subsystem,
+			Name:      "retried_metadata_total",
+			Help:      "Total number of metadata entries which failed on send to remote storage but were retried because the send error was recoverable.",
 		},
 		[]string{remoteName, endpoint},
 	)
@@ -116,10 +151,10 @@ func newQueueManagerMetrics(r prometheus.Registerer) *queueManagerMetrics {
 			Namespace: namespace,
 			Subsystem: subsystem,
 			Name:      "sent_batch_duration_seconds",
-			Help:      "Duration of sample batch send calls to the remote storage.",
+			Help:      "Duration of send calls to the remote storage.",
 			Buckets:   prometheus.DefBuckets,
 		},
-		[]string{remoteName, endpoint},
+		[]string{remoteName, endpoint, "type"},
 	)
 	m.queueHighestSentTimestamp = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -189,16 +224,19 @@ func newQueueManagerMetrics(r prometheus.Registerer) *queueManagerMetrics {
 			Namespace: namespace,
 			Subsystem: subsystem,
 			Name:      "sent_bytes_total",
-			Help:      "The total number of bytes sent by the queue.",
+			Help:      "The total number of bytes sent by the queue after compression.",
 		},
-		[]string{remoteName, endpoint},
+		[]string{remoteName, endpoint, "type"},
 	)
 
 	if r != nil {
 		r.MustRegister(
 			m.succeededSamplesTotal,
+			m.succeededMetadataTotal,
 			m.failedSamplesTotal,
+			m.failedMetadataTotal,
 			m.retriedSamplesTotal,
+			m.retriedMetadataTotal,
 			m.droppedSamplesTotal,
 			m.enqueueRetriesTotal,
 			m.sentBatchDuration,
@@ -233,13 +271,15 @@ type QueueManager struct {
 	// https://golang.org/pkg/sync/atomic/#pkg-note-BUG
 	lastSendTimestamp int64
 
-	logger         log.Logger
-	flushDeadline  time.Duration
-	cfg            config.QueueConfig
-	externalLabels labels.Labels
-	relabelConfigs []*relabel.Config
-	client         StorageClient
-	watcher        *wal.Watcher
+	logger          log.Logger
+	flushDeadline   time.Duration
+	cfg             config.QueueConfig
+	mcfg            config.MetadataConfig
+	externalLabels  labels.Labels
+	relabelConfigs  []*relabel.Config
+	client          StorageClient
+	watcher         *wal.Watcher
+	metadataWatcher *MetadataWatcher
 
 	seriesMtx            sync.Mutex
 	seriesLabels         map[uint64]labels.Labels
@@ -261,18 +301,23 @@ type QueueManager struct {
 	droppedSamplesTotal        prometheus.Counter
 	numShardsMetric            prometheus.Gauge
 	failedSamplesTotal         prometheus.Counter
+	failedMetadataTotal        prometheus.Counter
 	sentBatchDuration          prometheus.Observer
+	sentMetadataDuration       prometheus.Observer
 	succeededSamplesTotal      prometheus.Counter
+	succeededMetadataTotal     prometheus.Counter
 	retriedSamplesTotal        prometheus.Counter
+	retriedMetadataTotal       prometheus.Counter
 	shardCapacity              prometheus.Gauge
 	maxNumShards               prometheus.Gauge
 	minNumShards               prometheus.Gauge
 	desiredNumShards           prometheus.Gauge
 	bytesSent                  prometheus.Counter
+	metadataBytesSent          prometheus.Counter
 }
 
 // NewQueueManager builds a new QueueManager.
-func NewQueueManager(metrics *queueManagerMetrics, watcherMetrics *wal.WatcherMetrics, readerMetrics *wal.LiveReaderMetrics, logger log.Logger, walDir string, samplesIn *ewmaRate, cfg config.QueueConfig, externalLabels labels.Labels, relabelConfigs []*relabel.Config, client StorageClient, flushDeadline time.Duration) *QueueManager {
+func NewQueueManager(metrics *queueManagerMetrics, watcherMetrics *wal.WatcherMetrics, readerMetrics *wal.LiveReaderMetrics, logger log.Logger, walDir string, samplesIn *ewmaRate, mCfg config.MetadataConfig, cfg config.QueueConfig, externalLabels labels.Labels, relabelConfigs []*relabel.Config, client StorageClient, flushDeadline time.Duration, sm scrape.ReadyManager) *QueueManager {
 	if logger == nil {
 		logger = log.NewNopLogger()
 	}
@@ -282,6 +327,7 @@ func NewQueueManager(metrics *queueManagerMetrics, watcherMetrics *wal.WatcherMe
 		logger:         logger,
 		flushDeadline:  flushDeadline,
 		cfg:            cfg,
+		mcfg:           mCfg,
 		externalLabels: externalLabels,
 		relabelConfigs: relabelConfigs,
 		client:         client,
@@ -303,9 +349,55 @@ func NewQueueManager(metrics *queueManagerMetrics, watcherMetrics *wal.WatcherMe
 	}
 
 	t.watcher = wal.NewWatcher(watcherMetrics, readerMetrics, logger, client.Name(), t, walDir)
+	if t.mcfg.Send {
+		t.metadataWatcher = NewMetadataWatcher(logger, sm, client.Name(), t, t.mcfg.SendInterval, flushDeadline)
+	}
 	t.shards = t.newShards()
 
 	return t
+}
+
+// AppendMetadata queues metadata to be sent to the remote storage. Metadata is sent all at once and is not parallelized.
+func (t *QueueManager) AppendMetadata(ctx context.Context, metadata []scrape.MetricMetadata) {
+	mm := make([]prompb.MetricMetadata, 0, len(metadata))
+	for _, entry := range metadata {
+		mm = append(mm, prompb.MetricMetadata{
+			MetricName: entry.Metric,
+			Help:       entry.Help,
+			Type:       metricTypeToMetricTypeProto(entry.Type),
+			Unit:       entry.Unit,
+		})
+	}
+
+	err := t.sendMetadataWithBackoff(ctx, mm)
+
+	if err != nil {
+		t.failedMetadataTotal.Add(float64(len(metadata)))
+		level.Error(t.logger).Log("msg", "non-recoverable error while sending metadata", "count", len(metadata), "err", err)
+	}
+}
+
+func (t *QueueManager) sendMetadataWithBackoff(ctx context.Context, metadata []prompb.MetricMetadata) error {
+	// Build the WriteRequest with no samples.
+	req, _, err := buildWriteRequest(nil, metadata, nil)
+	if err != nil {
+		return err
+	}
+
+	reportFailureFunc := func() {
+		t.retriedMetadataTotal.Add(float64(len(metadata)))
+	}
+	elapsed, err := sendWriteRequestWithBackoff(ctx, t.cfg, t.client, t.logger, req, reportFailureFunc)
+	if err != context.Canceled {
+		t.sentMetadataDuration.Observe(elapsed)
+	}
+	if err != nil {
+		return err
+	}
+
+	t.succeededMetadataTotal.Add(float64(len(metadata)))
+	t.metadataBytesSent.Add(float64(len(req)))
+	return nil
 }
 
 // Append queues a sample to be sent to the remote storage. Blocks until all samples are
@@ -369,14 +461,19 @@ func (t *QueueManager) Start() {
 	t.droppedSamplesTotal = t.metrics.droppedSamplesTotal.WithLabelValues(name, ep)
 	t.numShardsMetric = t.metrics.numShards.WithLabelValues(name, ep)
 	t.failedSamplesTotal = t.metrics.failedSamplesTotal.WithLabelValues(name, ep)
-	t.sentBatchDuration = t.metrics.sentBatchDuration.WithLabelValues(name, ep)
+	t.failedMetadataTotal = t.metrics.failedMetadataTotal.WithLabelValues(name, ep)
+	t.sentBatchDuration = t.metrics.sentBatchDuration.WithLabelValues(name, ep, samples)
+	t.sentMetadataDuration = t.metrics.sentBatchDuration.WithLabelValues(name, ep, metadata)
 	t.succeededSamplesTotal = t.metrics.succeededSamplesTotal.WithLabelValues(name, ep)
+	t.succeededMetadataTotal = t.metrics.succeededMetadataTotal.WithLabelValues(name, ep)
 	t.retriedSamplesTotal = t.metrics.retriedSamplesTotal.WithLabelValues(name, ep)
+	t.retriedMetadataTotal = t.metrics.retriedMetadataTotal.WithLabelValues(name, ep)
 	t.shardCapacity = t.metrics.shardCapacity.WithLabelValues(name, ep)
 	t.maxNumShards = t.metrics.maxNumShards.WithLabelValues(name, ep)
 	t.minNumShards = t.metrics.minNumShards.WithLabelValues(name, ep)
 	t.desiredNumShards = t.metrics.desiredNumShards.WithLabelValues(name, ep)
-	t.bytesSent = t.metrics.bytesSent.WithLabelValues(name, ep)
+	t.bytesSent = t.metrics.bytesSent.WithLabelValues(name, ep, samples)
+	t.metadataBytesSent = t.metrics.bytesSent.WithLabelValues(name, ep, metadata)
 
 	// Initialise some metrics.
 	t.shardCapacity.Set(float64(t.cfg.Capacity))
@@ -387,6 +484,9 @@ func (t *QueueManager) Start() {
 
 	t.shards.start(t.numShards)
 	t.watcher.Start()
+	if t.mcfg.Send {
+		t.metadataWatcher.Start()
+	}
 
 	t.wg.Add(2)
 	go t.updateShardsLoop()
@@ -401,11 +501,14 @@ func (t *QueueManager) Stop() {
 
 	close(t.quit)
 	t.wg.Wait()
-	// Wait for all QueueManager routines to end before stopping shards and WAL watcher. This
+	// Wait for all QueueManager routines to end before stopping shards, metadata watcher, and WAL watcher. This
 	// is to ensure we don't end up executing a reshard and shards.stop() at the same time, which
 	// causes a closed channel panic.
 	t.shards.stop()
 	t.watcher.Stop()
+	if t.mcfg.Send {
+		t.metadataWatcher.Stop()
+	}
 
 	// On shutdown, release the strings in the labels from the intern pool.
 	t.seriesMtx.Lock()
@@ -422,13 +525,19 @@ func (t *QueueManager) Stop() {
 	t.metrics.droppedSamplesTotal.DeleteLabelValues(name, ep)
 	t.metrics.numShards.DeleteLabelValues(name, ep)
 	t.metrics.failedSamplesTotal.DeleteLabelValues(name, ep)
-	t.metrics.sentBatchDuration.DeleteLabelValues(name, ep)
+	t.metrics.failedMetadataTotal.DeleteLabelValues(name, ep)
+	t.metrics.sentBatchDuration.DeleteLabelValues(name, ep, samples)
+	t.metrics.sentBatchDuration.DeleteLabelValues(name, ep, metadata)
 	t.metrics.succeededSamplesTotal.DeleteLabelValues(name, ep)
+	t.metrics.succeededMetadataTotal.DeleteLabelValues(name, ep)
 	t.metrics.retriedSamplesTotal.DeleteLabelValues(name, ep)
+	t.metrics.retriedMetadataTotal.DeleteLabelValues(name, ep)
 	t.metrics.shardCapacity.DeleteLabelValues(name, ep)
 	t.metrics.maxNumShards.DeleteLabelValues(name, ep)
 	t.metrics.minNumShards.DeleteLabelValues(name, ep)
 	t.metrics.desiredNumShards.DeleteLabelValues(name, ep)
+	t.metrics.bytesSent.DeleteLabelValues(name, ep, samples)
+	t.metrics.bytesSent.DeleteLabelValues(name, ep, metadata)
 }
 
 // StoreSeries keeps track of which series we know about for lookups when sending samples to remote.
@@ -836,8 +945,8 @@ func (s *shards) sendSamples(ctx context.Context, samples []prompb.TimeSeries, b
 
 // sendSamples to the remote storage with backoff for recoverable errors.
 func (s *shards) sendSamplesWithBackoff(ctx context.Context, samples []prompb.TimeSeries, buf *[]byte) error {
-	backoff := s.qm.cfg.MinBackoff
-	req, highest, err := buildWriteRequest(samples, *buf)
+	// Build the WriteRequest with no metadata.
+	req, highest, err := buildWriteRequest(samples, nil, *buf)
 	*buf = req
 	if err != nil {
 		// Failing to build the write request is non-recoverable, since it will
@@ -845,40 +954,58 @@ func (s *shards) sendSamplesWithBackoff(ctx context.Context, samples []prompb.Ti
 		return err
 	}
 
+	reportFailureFunc := func() {
+		s.qm.retriedSamplesTotal.Add(float64(len(samples)))
+	}
+	elapsed, err := sendWriteRequestWithBackoff(ctx, s.qm.cfg, s.qm.client, s.qm.logger, req, reportFailureFunc)
+	if err != context.Canceled {
+		s.qm.sentBatchDuration.Observe(elapsed)
+	}
+	if err != nil {
+		return err
+	}
+	s.qm.succeededSamplesTotal.Add(float64(len(samples)))
+	s.qm.bytesSent.Add(float64(len(*buf)))
+	s.qm.highestSentTimestampMetric.Set(float64(highest / 1000))
+	atomic.StoreInt64(&s.qm.lastSendTimestamp, time.Now().Unix())
+	return nil
+}
+
+func sendWriteRequestWithBackoff(ctx context.Context, cfg config.QueueConfig, s StorageClient, l log.Logger, req []byte, reportFailureFunc func()) (elapsed float64, err error) {
+	backoff := cfg.MinBackoff
+
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return 0, ctx.Err()
 		default:
 		}
-		begin := time.Now()
-		err := s.qm.client.Store(ctx, req)
 
-		s.qm.sentBatchDuration.Observe(time.Since(begin).Seconds())
+		begin := time.Now()
+		err := s.Store(ctx, req)
+		elapsed = time.Since(begin).Seconds()
 
 		if err == nil {
-			s.qm.succeededSamplesTotal.Add(float64(len(samples)))
-			s.qm.bytesSent.Add(float64(len(req)))
-			s.qm.highestSentTimestampMetric.Set(float64(highest / 1000))
-			atomic.StoreInt64(&s.qm.lastSendTimestamp, time.Now().Unix())
-			return nil
+			return elapsed, nil
 		}
 
 		if _, ok := err.(recoverableError); !ok {
-			return err
+			return elapsed, err
 		}
-		s.qm.retriedSamplesTotal.Add(float64(len(samples)))
-		level.Debug(s.qm.logger).Log("msg", "failed to send batch, retrying", "err", err)
+
+		reportFailureFunc()
+		level.Debug(l).Log("msg", "failed to send batch, retrying", "err", err)
 
 		time.Sleep(time.Duration(backoff))
 		backoff = backoff * 2
-		if backoff > s.qm.cfg.MaxBackoff {
-			backoff = s.qm.cfg.MaxBackoff
+
+		if backoff > cfg.MaxBackoff {
+			backoff = cfg.MaxBackoff
 		}
 	}
 }
 
-func buildWriteRequest(samples []prompb.TimeSeries, buf []byte) ([]byte, int64, error) {
+func buildWriteRequest(samples []prompb.TimeSeries, metadata []prompb.MetricMetadata, buf []byte) ([]byte, int64, error) {
 	var highest int64
 	for _, ts := range samples {
 		// At the moment we only ever append a TimeSeries with a single sample in it.
@@ -886,8 +1013,10 @@ func buildWriteRequest(samples []prompb.TimeSeries, buf []byte) ([]byte, int64, 
 			highest = ts.Samples[0].Timestamp
 		}
 	}
+
 	req := &prompb.WriteRequest{
 		Timeseries: samples,
+		Metadata:   metadata,
 	}
 
 	data, err := proto.Marshal(req)
