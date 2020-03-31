@@ -3,8 +3,6 @@ module github.com/grafana/agent
 go 1.12
 
 require (
-	github.com/Azure/go-autorest/autorest/to v0.3.0 // indirect
-	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/cortexproject/cortex v0.4.0
 	github.com/go-kit/kit v0.10.0
 	github.com/golang/protobuf v1.3.5 // indirect
@@ -35,4 +33,4 @@ replace (
 )
 
 // Temporarily use a fork for memory improvements (see #5)
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200326205120-ca4918999cce
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200330171229-fc3d977ea463

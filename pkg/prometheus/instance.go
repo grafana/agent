@@ -213,7 +213,8 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 		}
 	}
 
-	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), reg, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline)
+	readyScrapeManager := &scrape.ReadyScrapeManager{}
+	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), reg, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline, readyScrapeManager)
 	i.exitErr = remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg,
 		RemoteWriteConfigs: i.cfg.RemoteWrite,
@@ -234,6 +235,8 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 		level.Error(i.logger).Log("msg", "failed applying config to scrape manager", "err", i.exitErr)
 		return
 	}
+
+	readyScrapeManager.Set(scrapeManager)
 
 	level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", i.hostname)
 	filterer := NewHostFilter(i.hostname)
