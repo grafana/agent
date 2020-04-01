@@ -18,118 +18,70 @@ func makeGroup(labels []model.LabelSet) *targetgroup.Group {
 func TestFilterGroups(t *testing.T) {
 	tt := []struct {
 		name         string
-		group        *targetgroup.Group
+		labelHost    string
 		inputHost    string
 		shouldRemove bool
 	}{
 		{
-			name:         "__address__ match",
-			group:        makeGroup([]model.LabelSet{{model.AddressLabel: "myhost"}}),
+			name:         "complete match",
+			labelHost:    "myhost",
 			inputHost:    "myhost",
 			shouldRemove: false,
 		},
 		{
-			name:         "__address__ mismatch",
-			group:        makeGroup([]model.LabelSet{{model.AddressLabel: "notmyhost"}}),
-			inputHost:    "myhost",
-			shouldRemove: true,
-		},
-		{
-			name:         "__address__ match with port",
-			group:        makeGroup([]model.LabelSet{{model.AddressLabel: "myhost:12345"}}),
-			inputHost:    "myhost",
-			shouldRemove: false,
-		},
-		{
-			name:         "__address__ mismatch with port",
-			group:        makeGroup([]model.LabelSet{{model.AddressLabel: "notmyhost:12345"}}),
+			name:         "mismatch",
+			labelHost:    "notmyhost",
 			inputHost:    "myhost",
 			shouldRemove: true,
 		},
 		{
-			name: "kubneretes host match",
-			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                          "mycontainer",
-				model.LabelName(kubernetesPodNodeNameLabel): "myhost",
-			}}),
+			name:         "match with port",
+			labelHost:    "myhost:12345",
 			inputHost:    "myhost",
 			shouldRemove: false,
 		},
 		{
-			name: "kubernetes host mismatch",
-			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                          "mycontainer",
-				model.LabelName(kubernetesPodNodeNameLabel): "notmyhost",
-			}}),
+			name:         "mismatch with port",
+			labelHost:    "notmyhost:12345",
 			inputHost:    "myhost",
 			shouldRemove: true,
 		},
-		{
-			name: "kubernetes host match with port",
-			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                          "mycontainer:12345",
-				model.LabelName(kubernetesPodNodeNameLabel): "myhost:12345",
-			}}),
-			inputHost:    "myhost",
-			shouldRemove: false,
-		},
-		{
-			name: "kubernetes host mismatch with port",
-			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                          "mycontainer:12345",
-				model.LabelName(kubernetesPodNodeNameLabel): "notmyhost:12345",
-			}}),
-			inputHost:    "myhost",
-			shouldRemove: true,
-		},
-		{
-			name: "kubernetes host mismatch, __address__ match",
-			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                          "mycontainer",
-				model.LabelName(kubernetesPodNodeNameLabel): "notmyhost",
-			}}),
-			inputHost:    "mycontainer",
-			shouldRemove: false,
-		},
-		{
-			name: "kubernetes host mismatch, __address__ match with port",
-			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                          "mycontainer:12345",
-				model.LabelName(kubernetesPodNodeNameLabel): "notmyhost:12345",
-			}}),
-			inputHost:    "mycontainer",
-			shouldRemove: false,
-		},
-		{
-			name: "always allow localhost",
-			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                          "localhost:12345",
-				model.LabelName(kubernetesPodNodeNameLabel): "notmyhost:12345",
-			}}),
-			inputHost:    "mycontainer",
-			shouldRemove: false,
-		},
-		{
-			name: "always allow 127.0.0.1",
-			group: makeGroup([]model.LabelSet{{
-				model.AddressLabel:                          "127.0.0.1:12345",
-				model.LabelName(kubernetesPodNodeNameLabel): "notmyhost:12345",
-			}}),
-			inputHost:    "mycontainer",
-			shouldRemove: false,
-		},
+	}
+
+	// Sets of labels we want to test against.
+	labels := []model.LabelName{
+		model.AddressLabel,
+		model.LabelName(kubernetesNodeNameLabel),
+		model.LabelName(kubernetesPodNodeNameLabel),
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			groups := DiscoveredGroups{"test": []*targetgroup.Group{tc.group}}
-			result := FilterGroups(groups, tc.inputHost)
+			for _, label := range labels {
+				t.Run(string(label), func(t *testing.T) {
+					lset := model.LabelSet{
+						label: model.LabelValue(tc.labelHost),
+					}
 
-			require.NotNil(t, result["test"])
-			if tc.shouldRemove {
-				require.NotEqual(t, len(result["test"][0].Targets), len(groups["test"][0].Targets))
-			} else {
-				require.Equal(t, len(result["test"][0].Targets), len(groups["test"][0].Targets))
+					// Special case: if label is not model.AddressLabel, we need to give
+					// it a fake value. model.AddressLabel is always expected to be present and
+					// is considered an error if it isn't.
+					if label != model.AddressLabel {
+						lset[model.AddressLabel] = "fake"
+					}
+
+					group := makeGroup([]model.LabelSet{lset})
+
+					groups := DiscoveredGroups{"test": []*targetgroup.Group{group}}
+					result := FilterGroups(groups, tc.inputHost)
+
+					require.NotNil(t, result["test"])
+					if tc.shouldRemove {
+						require.NotEqual(t, len(result["test"][0].Targets), len(groups["test"][0].Targets))
+					} else {
+						require.Equal(t, len(result["test"][0].Targets), len(groups["test"][0].Targets))
+					}
+				})
 			}
 		})
 	}

@@ -161,16 +161,11 @@ func shouldFilterTarget(target model.LabelSet, common model.LabelSet, host strin
 		return false
 	}
 
-	// Fall back to checking metalabels as long as their values are nonempty
+	// Fall back to checking metalabels as long as their values are nonempty.
 	for _, check := range labelMatchers {
-		addr := lset.Get(check)
-		if addr == "" {
-			continue
-		}
-
 		// If any of the checked labels match for not being filtered out, we can
-		// return early
-		if !shouldFilterTargetByLabelValue(addr) {
+		// return before checking any of the other matchers.
+		if addr := lset.Get(check); addr != "" && !shouldFilterTargetByLabelValue(addr) {
 			return false
 		}
 	}
