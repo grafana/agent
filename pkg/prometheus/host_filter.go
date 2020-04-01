@@ -10,7 +10,14 @@ import (
 )
 
 var (
-	kubernetesNodeNameLabel = "__meta_kubernetes_pod_node_name"
+	kubernetesPodNodeNameLabel = "__meta_kubernetes_pod_node_name"
+	kubernetesNodeNameLabel    = "__meta_kubernetes_node_name"
+
+	// Labels we'll check for a node name
+	labelMatchers = []string{
+		kubernetesPodNodeNameLabel,
+		kubernetesNodeNameLabel,
+	}
 )
 
 // DiscoveredGroups is a set of groups found via service discovery.
@@ -154,9 +161,13 @@ func shouldFilterTarget(target model.LabelSet, common model.LabelSet, host strin
 		return false
 	}
 
-	// Fall back to testing __meta_kubernetes_pod_node_name
-	if hostAddress := lset.Get(kubernetesNodeNameLabel); hostAddress != "" {
-		return shouldFilterTargetByLabelValue(hostAddress)
+	// Fall back to checking metalabels as long as their values are nonempty.
+	for _, check := range labelMatchers {
+		// If any of the checked labels match for not being filtered out, we can
+		// return before checking any of the other matchers.
+		if addr := lset.Get(check); addr != "" && !shouldFilterTargetByLabelValue(addr) {
+			return false
+		}
 	}
 
 	// Nothing matches, filter it out.
