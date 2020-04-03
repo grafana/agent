@@ -153,8 +153,8 @@ updated for any reason:
    feature branch.
 2. Open a PR to merge the new changes from the feature branch into the
    associated release branch.
-3. Once the release branch is updated, open a PR to update `grafana/agent` to
-   use the latest release branch SHA.
+3. Once the release branch is updated, open a PR to update `grafana/agent` by vendoring
+   the changes using the latest release branch SHA.
 
 ### Handling New Upstream Release
 
