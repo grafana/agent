@@ -42,5 +42,4 @@ replace (
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
 )
 
-// Temporarily use a fork for memory improvements (see #5)
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200330171229-fc3d977ea463
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200403162459-09b8b1048e6c
