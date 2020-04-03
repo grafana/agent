@@ -187,7 +187,7 @@ branch, an upstream PR cannot be merged due to the merge conflicts. There are a
 few ways this can be handled at the feature author's discrection:
 
 1. Rebase the feature branch to `prometheus/prometheus` master so it can be
-   merged upstream. Doing this means that we cannot have the feature in th agent
+   merged upstream. Doing this means that we cannot have the feature in the agent
    until a new upstream release is available containing the feature.
 2. Wait until a new `prometheus/prometheus` release is available and rebase the
    feature branch on top. The upstream PR will now be compatible with master,
