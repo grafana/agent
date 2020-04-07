@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,6 +38,7 @@ var (
 type Config struct {
 	Global                 config.GlobalConfig `yaml:"global"`
 	WALDir                 string              `yaml:"wal_directory"`
+	ServiceConfig          ServiceConfig       `yaml:"service"`
 	Configs                []InstanceConfig    `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
 }
@@ -62,6 +64,9 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // RegisterFlags defines flags corresponding to the Config.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.WALDir, "prometheus.wal-directory", "", "base directory to store the WAL in")
+	f.DurationVar(&c.InstanceRestartBackoff, "prometheus.instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
+
+	c.ServiceConfig.RegisterFlagsWithPrefix("prometheus.service.", f)
 }
 
 // Validate checks if the Config has all required fields filled out.
@@ -89,6 +94,19 @@ func (c *Config) Validate() error {
 	return nil
 }
 
+// ServiceConfig describes the configuration for the scraping service.
+type ServiceConfig struct {
+	Enabled bool      `yaml:"enabled"`
+	KVStore kv.Config `yaml:"kvstore"`
+}
+
+// RegisterFlagsWithPrefix adds the flags required to config this to the given
+// FlagSet with a specified prefix.
+func (c *ServiceConfig) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
+	c.KVStore.RegisterFlagsWithPrefix(prefix, "configurations/", f)
+	f.BoolVar(&c.Enabled, prefix+"enabled", false, "enables the scraping service mode")
+}
+
 // Agent is an agent for collecting Prometheus metrics. It acts as a
 // Prometheus-lite; only running the service discovery, remote_write,
 // and WAL components of Prometheus. It is broken down into a series
@@ -101,6 +119,8 @@ type Agent struct {
 	instances   []instance
 
 	instanceFactory instanceFactory
+
+	kv kv.Client
 }
 
 // New creates and starts a new Agent.
@@ -125,6 +145,14 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 			return nil, err
 		}
 		a.instances = append(a.instances, inst)
+	}
+
+	if cfg.ServiceConfig.Enabled {
+		var err error
+		a.kv, err = kv.NewClient(cfg.ServiceConfig.KVStore, GetCodec())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	go a.run()

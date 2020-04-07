@@ -1,7 +1,6 @@
 package prometheus
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"testing"
@@ -109,11 +108,11 @@ func TestConfig_Validate(t *testing.T) {
 }
 
 func copyConfig(t *testing.T, c Config) Config {
-	bb, err := json.Marshal(c)
+	bb, err := yaml.Marshal(c)
 	require.NoError(t, err)
 
 	var cp Config
-	err = json.Unmarshal(bb, &cp)
+	err = yaml.Unmarshal(bb, &cp)
 	require.NoError(t, err)
 	return cp
 }

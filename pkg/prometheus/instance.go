@@ -59,16 +59,16 @@ var (
 // InstanceConfig is a specific agent that runs within the overall Prometheus
 // agent. It has its own set of scrape_configs and remote_write rules.
 type InstanceConfig struct {
-	Name          string                      `yaml:"name"`
-	HostFilter    bool                        `yaml:"host_filter"`
-	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty"`
-	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
+	Name          string                      `yaml:"name" json:"name"`
+	HostFilter    bool                        `yaml:"host_filter" json:"host_filter"`
+	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty" json:"scrape_configs,omitempty"`
+	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty" json:"remote_write,omitempty"`
 
 	// How frequently the WAL should be truncated.
-	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty"`
+	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty" json:"wal_truncate_frequency,omitempty"`
 
-	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty"`
-	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty"`
+	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty" json:"remote_flush_deadline,omitempty"`
+	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty" json:"write_stale_on_shutdown,omitempty"`
 }
 
 func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {

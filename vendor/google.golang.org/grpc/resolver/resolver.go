@@ -24,7 +24,6 @@ import (
 	"context"
 	"net"
 
-	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/serviceconfig"
 )
@@ -74,18 +73,12 @@ func GetDefaultScheme() string {
 }
 
 // AddressType indicates the address type returned by name resolution.
-//
-// Deprecated: use Attributes in Address instead.
 type AddressType uint8
 
 const (
 	// Backend indicates the address is for a backend server.
-	//
-	// Deprecated: use Attributes in Address instead.
 	Backend AddressType = iota
 	// GRPCLB indicates the address is for a grpclb load balancer.
-	//
-	// Deprecated: use Attributes in Address instead.
 	GRPCLB
 )
 
@@ -94,7 +87,8 @@ const (
 type Address struct {
 	// Addr is the server address on which a connection will be established.
 	Addr string
-
+	// Type is the type of this address.
+	Type AddressType
 	// ServerName is the name of this address.
 	// If non-empty, the ServerName is used as the transport certification authority for
 	// the address, instead of the hostname from the Dial target string. In most cases,
@@ -107,26 +101,14 @@ type Address struct {
 	// is insecure to populate it with data from untrusted inputs since untrusted
 	// values could be used to bypass the authority checks performed by TLS.
 	ServerName string
-
-	// Attributes contains arbitrary data about this address intended for
-	// consumption by the load balancing policy.
-	Attributes *attributes.Attributes
-
-	// Type is the type of this address.
-	//
-	// Deprecated: use Attributes instead.
-	Type AddressType
-
 	// Metadata is the information associated with Addr, which may be used
 	// to make load balancing decision.
-	//
-	// Deprecated: use Attributes instead.
 	Metadata interface{}
 }
 
-// BuildOptions includes additional information for the builder to create
+// BuildOption includes additional information for the builder to create
 // the resolver.
-type BuildOptions struct {
+type BuildOption struct {
 	// DisableServiceConfig indicates whether a resolver implementation should
 	// fetch service config data.
 	DisableServiceConfig bool
@@ -159,10 +141,6 @@ type State struct {
 	// config.  If it is nil, it indicates no service config is present or the
 	// resolver does not provide service configs.
 	ServiceConfig *serviceconfig.ParseResult
-
-	// Attributes contains arbitrary data about the resolver intended for
-	// consumption by the load balancing policy.
-	Attributes *attributes.Attributes
 }
 
 // ClientConn contains the callbacks for resolver to notify any updates
@@ -224,14 +202,14 @@ type Builder interface {
 	//
 	// gRPC dial calls Build synchronously, and fails if the returned error is
 	// not nil.
-	Build(target Target, cc ClientConn, opts BuildOptions) (Resolver, error)
+	Build(target Target, cc ClientConn, opts BuildOption) (Resolver, error)
 	// Scheme returns the scheme supported by this resolver.
 	// Scheme is defined at https://github.com/grpc/grpc/blob/master/doc/naming.md.
 	Scheme() string
 }
 
-// ResolveNowOptions includes additional information for ResolveNow.
-type ResolveNowOptions struct{}
+// ResolveNowOption includes additional information for ResolveNow.
+type ResolveNowOption struct{}
 
 // Resolver watches for the updates on the specified target.
 // Updates include address updates and service config updates.
@@ -240,7 +218,7 @@ type Resolver interface {
 	// again. It's just a hint, resolver can ignore this if it's not necessary.
 	//
 	// It could be called multiple times concurrently.
-	ResolveNow(ResolveNowOptions)
+	ResolveNow(ResolveNowOption)
 	// Close closes the resolver.
 	Close()
 }
