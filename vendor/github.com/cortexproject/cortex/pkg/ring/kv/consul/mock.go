@@ -187,16 +187,11 @@ func (m *mockKV) List(prefix string, q *consul.QueryOptions) (consul.KVPairs, *c
 	return result, &consul.QueryMeta{LastIndex: m.current}, nil
 }
 
-func (m *mockKV) DeleteCAS(key *consul.KVPair, q *consul.WriteOptions) (bool, *consul.WriteMeta, error) {
+func (m *mockKV) Delete(key string, q *consul.WriteOptions) (*consul.WriteMeta, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-
-	if _, ok := m.kvps[key.Key]; !ok {
-		return false, nil, nil
-	}
-
-	delete(m.kvps, key.Key)
-	return true, nil, nil
+	delete(m.kvps, key)
+	return nil, nil
 }
 
 func (m *mockKV) ResetIndex() {

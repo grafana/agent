@@ -66,10 +66,6 @@ type APIResponse struct {
 }
 
 func (r *APIResponse) WriteTo(w http.ResponseWriter, statusCode int, contentType ContentType) error {
-	return r.writeTo(w, statusCode, contentType)
-}
-
-func (r *APIResponse) writeTo(w http.ResponseWriter, statusCode int, contentType ContentType) error {
 	var (
 		bb  []byte
 		err error

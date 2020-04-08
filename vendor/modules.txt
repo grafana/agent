@@ -11,9 +11,9 @@ github.com/Azure/go-autorest/autorest/azure
 github.com/Azure/go-autorest/autorest/adal
 # github.com/Azure/go-autorest/autorest/date v0.2.0
 github.com/Azure/go-autorest/autorest/date
-# github.com/Azure/go-autorest/autorest/to v0.3.0
+# github.com/Azure/go-autorest/autorest/to v0.3.1-0.20191028180845-3492b2aff503
 github.com/Azure/go-autorest/autorest/to
-# github.com/Azure/go-autorest/autorest/validation v0.2.0
+# github.com/Azure/go-autorest/autorest/validation v0.2.1-0.20191028180845-3492b2aff503
 github.com/Azure/go-autorest/autorest/validation
 # github.com/Azure/go-autorest/logger v0.1.0
 github.com/Azure/go-autorest/logger
@@ -70,13 +70,13 @@ github.com/blang/semver
 github.com/cespare/xxhash
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
-# github.com/coreos/go-semver v0.2.0
+# github.com/coreos/go-semver v0.3.0
 github.com/coreos/go-semver/semver
-# github.com/coreos/go-systemd v0.0.0-20180511133405-39ca1b05acc7
+# github.com/coreos/go-systemd v0.0.0-20181012123002-c6f51f82210d
 github.com/coreos/go-systemd/journal
-# github.com/coreos/pkg v0.0.0-20160727233714-3ac0863d7acf
+# github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
 github.com/coreos/pkg/capnslog
-# github.com/cortexproject/cortex v0.6.1-0.20200228110116-92ab6cbe0995 => /home/robert/dev/grafana/cortex
+# github.com/cortexproject/cortex v1.0.1-0.20200408160835-e5c409df5194
 github.com/cortexproject/cortex/pkg/prom1/storage/metric
 github.com/cortexproject/cortex/pkg/ring/kv
 github.com/cortexproject/cortex/pkg/ring/kv/codec
@@ -110,7 +110,7 @@ github.com/gogo/protobuf/sortkeys
 github.com/gogo/protobuf/types
 # github.com/gogo/status v1.0.3
 github.com/gogo/status
-# github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6
+# github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9
 github.com/golang/groupcache/lru
 # github.com/golang/protobuf v1.3.5
 github.com/golang/protobuf/descriptor
@@ -140,7 +140,7 @@ github.com/google/gofuzz
 github.com/google/uuid
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
-# github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d
+# github.com/googleapis/gnostic v0.3.1
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
@@ -159,7 +159,7 @@ github.com/gophercloud/gophercloud/openstack/utils
 github.com/gophercloud/gophercloud/pagination
 # github.com/gorilla/mux v1.7.3
 github.com/gorilla/mux
-# github.com/gorilla/websocket v0.0.0-20170926233335-4201258b820c
+# github.com/gorilla/websocket v1.4.0
 github.com/gorilla/websocket
 # github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 github.com/grpc-ecosystem/go-grpc-middleware
@@ -177,9 +177,9 @@ github.com/hashicorp/errwrap
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-hclog v0.12.0
 github.com/hashicorp/go-hclog
-# github.com/hashicorp/go-immutable-radix v1.0.0
+# github.com/hashicorp/go-immutable-radix v1.1.0
 github.com/hashicorp/go-immutable-radix
-# github.com/hashicorp/go-msgpack v0.5.3
+# github.com/hashicorp/go-msgpack v0.5.5
 github.com/hashicorp/go-msgpack/codec
 # github.com/hashicorp/go-multierror v1.0.0
 github.com/hashicorp/go-multierror
@@ -192,7 +192,7 @@ github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
 # github.com/hashicorp/memberlist v0.1.5
 github.com/hashicorp/memberlist
-# github.com/hashicorp/serf v0.8.2
+# github.com/hashicorp/serf v0.8.5
 github.com/hashicorp/serf/coordinate
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
@@ -309,7 +309,7 @@ github.com/spf13/pflag
 # github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8
+# github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5
 github.com/tmc/grpc-websocket-proxy/wsproxy
 # github.com/uber/jaeger-client-go v2.20.1+incompatible
 github.com/uber/jaeger-client-go
@@ -514,7 +514,7 @@ google.golang.org/api/internal/third_party/uritemplates
 google.golang.org/api/option
 google.golang.org/api/transport/http
 google.golang.org/api/transport/http/internal/propagation
-# google.golang.org/appengine v1.6.1
+# google.golang.org/appengine v1.6.5
 google.golang.org/appengine
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/app_identity
@@ -740,7 +740,7 @@ k8s.io/client-go/util/retry
 k8s.io/client-go/util/workqueue
 # k8s.io/klog v1.0.0 => github.com/simonpasquier/klog-gokit v0.1.0
 k8s.io/klog
-# k8s.io/utils v0.0.0-20190221042446-c2654d5206da
+# k8s.io/utils v0.0.0-20191114200735-6ca3b61696b6
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace

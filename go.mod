@@ -3,7 +3,7 @@ module github.com/grafana/agent
 go 1.12
 
 require (
-	github.com/cortexproject/cortex v0.6.1-0.20200228110116-92ab6cbe0995
+	github.com/cortexproject/cortex v1.0.1-0.20200408160835-e5c409df5194
 	github.com/go-kit/kit v0.10.0
 	github.com/golang/protobuf v1.3.5 // indirect
 	github.com/gorilla/mux v1.7.3
@@ -40,6 +40,3 @@ replace (
 
 // Temporarily use a fork for memory improvements (see #5)
 replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200330171229-fc3d977ea463
-
-// TODO(rfratto): don't merge this :)
-replace github.com/cortexproject/cortex => /home/robert/dev/grafana/cortex

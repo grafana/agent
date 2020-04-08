@@ -30,17 +30,26 @@ func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {
 		ctype, err := configapi.ContentTypeFromRequest(r)
 		if err != nil {
 			level.Warn(a.logger).Log("msg", "failed to parse content-type", "err", err)
-			configapi.WriteError(w, http.StatusBadRequest, configapi.DefaultContentType, err)
+			err := configapi.WriteError(w, http.StatusBadRequest, configapi.DefaultContentType, err)
+			if err != nil {
+				level.Error(a.logger).Log("msg", "failed writing error resposne to client", "err", err)
+			}
 			return
 		}
 
 		resp, err := next(r)
 		if err != nil {
 			httpErr, ok := err.(*httpError)
+			var err error
+
 			if ok {
-				configapi.WriteError(w, httpErr.StatusCode, ctype, httpErr.Err)
+				err = configapi.WriteError(w, httpErr.StatusCode, ctype, httpErr.Err)
 			} else {
-				configapi.WriteError(w, http.StatusInternalServerError, ctype, err)
+				err = configapi.WriteError(w, http.StatusInternalServerError, ctype, err)
+			}
+
+			if err != nil {
+				level.Error(a.logger).Log("msg", "failed writing error response to client", "err", err)
 			}
 			return
 		}
@@ -109,17 +118,25 @@ func (a *Agent) PutConfiguration(r *http.Request) (interface{}, error) {
 // DeleteConfiguration deletes an existing named configuration.
 func (a *Agent) DeleteConfiguration(r *http.Request) (interface{}, error) {
 	configKey := getConfigName(r)
-	ok, err := a.kv.Delete(r.Context(), configKey)
-	if err != nil {
-		level.Error(a.logger).Log("msg", "error deleting configuration from kv store", "err", err)
-		return nil, fmt.Errorf("error deleting configuration: %w", err)
-	}
 
-	if !ok {
-		err = &httpError{
+	v, err := a.kv.Get(r.Context(), configKey)
+	if err != nil {
+		// Silently ignore the error; Get is just used for validation since Delete
+		// will never return an error if the key doesn't exist. We'll log it anyway
+		// but the user will be left unaware of there being a problem here.
+		level.Error(a.logger).Log("msg", "error validating key existence for deletion", "err", err)
+	} else if v == nil {
+		// But if the object doesn't exist, there's nothing to delete.
+		return nil, &httpError{
 			StatusCode: http.StatusBadRequest,
 			Err:        fmt.Errorf("configuration %s does not exist", configKey),
 		}
+	}
+
+	err = a.kv.Delete(r.Context(), configKey)
+	if err != nil {
+		level.Error(a.logger).Log("msg", "error deleting configuration from kv store", "err", err)
+		return nil, fmt.Errorf("error deleting configuration: %w", err)
 	}
 	return nil, err
 }
