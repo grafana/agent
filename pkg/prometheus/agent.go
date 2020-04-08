@@ -38,7 +38,7 @@ var (
 type Config struct {
 	Global                 config.GlobalConfig `yaml:"global"`
 	WALDir                 string              `yaml:"wal_directory"`
-	ServiceConfig          ServiceConfig       `yaml:"service"`
+	ServiceConfig          ServiceConfig       `yaml:"scraping_service"`
 	Configs                []InstanceConfig    `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
 }
@@ -76,6 +76,10 @@ func (c *Config) Validate() error {
 	}
 
 	usedNames := map[string]struct{}{}
+
+	if c.ServiceConfig.Enabled && len(c.Configs) > 0 {
+		return errors.New("cannot use configs when scraping_service mode is enabled")
+	}
 
 	for i, cfg := range c.Configs {
 		if _, ok := usedNames[cfg.Name]; ok {

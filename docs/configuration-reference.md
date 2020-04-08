@@ -96,6 +96,9 @@ Instances, each of which is its own mini-Agent. Most users will only need to
 define one instance.
 
 ```yaml
+# Configures the optinal scraping service to cluster agents.
+[scraping_service: <scraping_service_config>]
+
 # Configure values for all Prometheus instances.
 [global: <global_config>]
 
@@ -110,6 +113,62 @@ configs:
 # to restart it. 0s disables the backoff period and restarts the agent
 # immediately.
 [instance_restart_backoff: <duration> | default = "5s"]
+```
+
+### scraping_service_config
+
+The `scraping_service` block configures the scraping service, an operational
+mode where configurations are stored centrally in a KV store and a cluster of
+agents distribute discovery and scrape load between nodes.
+
+```yaml
+# Whether to enable scraping service mode. When enabled, local configs
+# cannot be used.
+[enabled: boolean | default = false]
+
+# Configuration for the KV store to store metrics
+[kvstore: <kvstore_config>]
+```
+
+### kvstore_config
+
+The `kvstore_config` block configures the KV store used as storage for
+configurations in the scraping service mode.
+
+```yaml
+# Which underlying KV store to use. Can be either consul or etcd
+[store: <string> | default = ""]
+
+# Key prefix to store all configurations with. Must end in /.
+[prefix: <string> | default = "configurations/"]
+
+# Configuration for a Consul client. Only applies if store
+# is "consul"
+consul:
+  # The hostname and port of Consul.
+  [host: <string> | duration = "localhost:8500"]
+
+  # The ACL Token used to interact with Consul.
+  [acltoken: <string>]
+
+  # The HTTP timeout when communicating with Consul
+  [httpclienttimeout: <duration> | default = 20s]
+
+  # Whether or not consistent reads to Consul are enabled.
+  [consistentreads: <boolean> | default = true]
+
+# Configuration for an ETCD v3 client. Only applies if
+# store is "etcd"
+etcd:
+  # The ETCD endpoints to connect to.
+  endpoints:
+    - <string>
+
+  # The Dial timeout for the ETCD connection.
+  [dial_tmeout: <duration> | default = 10s]
+
+  # The maximum number of retries to do for failed ops to ETCD.
+  [max_retries: <int> | default = 10]
 ```
 
 ### global_config

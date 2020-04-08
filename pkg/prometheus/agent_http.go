@@ -34,35 +34,18 @@ var (
 type APIHandler func(r *http.Request) (interface{}, error)
 
 // WrapHandler is responsible for turning an APIHandler into an HTTP
-// handler by managing responses that are written and the
-// content type to write them as.
-//
-// WrapHandler first reads the Content-Type header and validates
-// it as one of the expected values. If Content-Type is not present,
-// the type used defaults to JSON. WrapHandler then invokes the
-// APIHandler specified by next and formats the response based
-// on whether the internal handler failed or gave a valid response.
+// handler by wrapping responses and writing them as JSON.
 func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctype, err := configapi.ContentTypeFromRequest(r)
-		if err != nil {
-			level.Warn(a.logger).Log("msg", "failed to parse content-type", "err", err)
-			err := configapi.WriteError(w, http.StatusBadRequest, configapi.DefaultContentType, err)
-			if err != nil {
-				level.Error(a.logger).Log("msg", "failed writing error resposne to client", "err", err)
-			}
-			return
-		}
-
 		resp, err := next(r)
 		if err != nil {
 			httpErr, ok := err.(*httpError)
 			var err error
 
 			if ok {
-				err = configapi.WriteError(w, httpErr.StatusCode, ctype, httpErr.Err)
+				err = configapi.WriteError(w, httpErr.StatusCode, httpErr.Err)
 			} else {
-				err = configapi.WriteError(w, http.StatusInternalServerError, ctype, err)
+				err = configapi.WriteError(w, http.StatusInternalServerError, err)
 			}
 
 			if err != nil {
@@ -71,7 +54,7 @@ func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {
 			return
 		}
 
-		if err := configapi.WriteResponse(w, http.StatusOK, ctype, resp); err != nil {
+		if err := configapi.WriteResponse(w, http.StatusOK, resp); err != nil {
 			level.Error(a.logger).Log("msg", "failed to write valid response", "err", err)
 		}
 	})

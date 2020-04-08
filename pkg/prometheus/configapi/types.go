@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
 // ContentType holds the content type of data that is either
@@ -65,21 +63,8 @@ type APIResponse struct {
 	Data   interface{} `json:"data,omitempty" yaml:"data,omitempty"`
 }
 
-func (r *APIResponse) WriteTo(w http.ResponseWriter, statusCode int, contentType ContentType) error {
-	var (
-		bb  []byte
-		err error
-	)
-
-	switch contentType {
-	case ContentTypeUnknown:
-		panic("should not be able to reach this; content type should be validated before a response is sent")
-	case ContentTypeJSON:
-		bb, err = json.Marshal(r)
-	case ContentTypeYAML:
-		bb, err = yaml.Marshal(r)
-	}
-
+func (r *APIResponse) WriteTo(w http.ResponseWriter, statusCode int) error {
+	bb, err := json.Marshal(r)
 	if err == nil {
 		// If we fail here, we should at least write a 500 back.
 		w.WriteHeader(http.StatusInternalServerError)
@@ -121,13 +106,13 @@ type GetConfigurationResponse struct {
 	Value string `json:"value" yaml:"value"`
 }
 
-func WriteResponse(w http.ResponseWriter, statusCode int, contentType ContentType, resp interface{}) error {
+func WriteResponse(w http.ResponseWriter, statusCode int, resp interface{}) error {
 	apiResp := &APIResponse{Status: "success", Data: resp}
-	return apiResp.WriteTo(w, statusCode, contentType)
+	return apiResp.WriteTo(w, statusCode)
 }
 
 // WriteError writes an error response back to the ResponseWriter.
-func WriteError(w http.ResponseWriter, statusCode int, contentType ContentType, err error) error {
+func WriteError(w http.ResponseWriter, statusCode int, err error) error {
 	resp := &APIResponse{Status: "error", Data: &ErrorResponse{Error: err.Error()}}
-	return resp.WriteTo(w, statusCode, contentType)
+	return resp.WriteTo(w, statusCode)
 }
