@@ -9,7 +9,24 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/prometheus/configapi"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	totalCreatedConfigs = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "agent_prometheus_scraping_service_configs_created_total",
+		Help: "Total number of created scraping service configs",
+	})
+	totalUpdatedConfigs = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "agent_prometheus_scraping_service_configs_updated_total",
+		Help: "Total number of updated scraping service configs",
+	})
+	totalDeletedConfigs = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "agent_prometheus_scraping_service_configs_deleted_total",
+		Help: "Total number of deleted scraping service configs",
+	})
 )
 
 // APIHandler is a function that returns a configapi Response type
@@ -109,9 +126,21 @@ func (a *Agent) PutConfiguration(r *http.Request) (interface{}, error) {
 	}
 	inst.Name = getConfigName(r)
 
+	var newConfig bool
 	err = a.kv.CAS(r.Context(), inst.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+		// The configuration is new if there's no previous value from the CAS
+		newConfig = (in == nil)
 		return inst, false, nil
 	})
+
+	if err == nil {
+		if newConfig {
+			totalCreatedConfigs.Inc()
+		} else {
+			totalUpdatedConfigs.Inc()
+		}
+	}
+
 	return nil, err
 }
 
@@ -138,6 +167,8 @@ func (a *Agent) DeleteConfiguration(r *http.Request) (interface{}, error) {
 		level.Error(a.logger).Log("msg", "error deleting configuration from kv store", "err", err)
 		return nil, fmt.Errorf("error deleting configuration: %w", err)
 	}
+
+	totalDeletedConfigs.Inc()
 	return nil, err
 }
 
