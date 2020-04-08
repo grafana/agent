@@ -1,6 +1,8 @@
 package prometheus
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 
@@ -16,14 +18,21 @@ func GetCodec() codec.Codec {
 type jsonCodec struct{}
 
 func (*jsonCodec) Decode(bb []byte) (interface{}, error) {
+	r, err := gzip.NewReader(bytes.NewReader(bb))
+	if err != nil {
+		return nil, err
+	}
+
 	var inst InstanceConfig
-	if err := json.Unmarshal(bb, &inst); err != nil {
+	if err := json.NewDecoder(r).Decode(&inst); err != nil {
 		return nil, err
 	}
 	return inst, nil
 }
 
 func (*jsonCodec) Encode(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+
 	switch v.(type) {
 	case InstanceConfig, *InstanceConfig:
 		break
@@ -31,7 +40,12 @@ func (*jsonCodec) Encode(v interface{}) ([]byte, error) {
 		panic(fmt.Sprintf("unexpected type %T passed to jsonCodec.Encode", v))
 	}
 
-	return json.Marshal(v)
+	jsonEncoder := json.NewEncoder(gzip.NewWriter(&buf))
+	if err := jsonEncoder.Encode(v); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 func (*jsonCodec) CodecID() string {
