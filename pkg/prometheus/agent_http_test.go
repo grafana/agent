@@ -23,7 +23,7 @@ import (
 )
 
 func TestAgent_ListConfigurations(t *testing.T) {
-	env := newApiTestEnvironment(t)
+	env := newAPITestEnvironment(t)
 
 	// Store some configs
 	cfgs := []*InstanceConfig{
@@ -50,7 +50,7 @@ func TestAgent_ListConfigurations(t *testing.T) {
 }
 
 func TestAgent_GetConfiguration_YAML(t *testing.T) {
-	env := newApiTestEnvironment(t)
+	env := newAPITestEnvironment(t)
 
 	cfg := DefaultInstanceConfig
 	cfg.Name = "a"
@@ -75,7 +75,7 @@ func TestAgent_GetConfiguration_YAML(t *testing.T) {
 }
 
 func TestAgent_GetConfiguration_JSON(t *testing.T) {
-	env := newApiTestEnvironment(t)
+	env := newAPITestEnvironment(t)
 
 	cfg := DefaultInstanceConfig
 	cfg.Name = "a"
@@ -104,7 +104,7 @@ func TestAgent_GetConfiguration_JSON(t *testing.T) {
 }
 
 func TestAgent_PutConfiguation(t *testing.T) {
-	env := newApiTestEnvironment(t)
+	env := newAPITestEnvironment(t)
 
 	cfg := DefaultInstanceConfig
 	cfg.Name = "newconfig"
@@ -132,7 +132,7 @@ func TestAgent_PutConfiguation(t *testing.T) {
 }
 
 func TestAgent_PutConfiguation_JSON(t *testing.T) {
-	env := newApiTestEnvironment(t)
+	env := newAPITestEnvironment(t)
 
 	cfg := DefaultInstanceConfig
 	cfg.Name = "newconfig"
@@ -164,7 +164,7 @@ func TestAgent_PutConfiguation_JSON(t *testing.T) {
 }
 
 func TestAgent_DeleteConfiguration(t *testing.T) {
-	env := newApiTestEnvironment(t)
+	env := newAPITestEnvironment(t)
 
 	// Store some configs
 	cfgs := []*InstanceConfig{
@@ -206,7 +206,7 @@ type apiTestEnvironment struct {
 	router *mux.Router
 }
 
-func newApiTestEnvironment(t *testing.T) apiTestEnvironment {
+func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 	t.Helper()
 
 	dir, err := ioutil.TempDir(os.TempDir(), "etcd_backend_test")
@@ -241,11 +241,6 @@ func newApiTestEnvironment(t *testing.T) apiTestEnvironment {
 		srv:    srv,
 		router: router,
 	}
-}
-
-type testResponse struct {
-	Status string          `json:"status"`
-	Data   json.RawMessage `json:"data"`
 }
 
 // unmarshalTestResponse will unmarshal a test response's data to v. If v is
