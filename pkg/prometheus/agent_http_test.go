@@ -49,6 +49,19 @@ func TestAgent_ListConfigurations(t *testing.T) {
 	require.Equal(t, expect, apiResp)
 }
 
+// TestAgent_GetConfiguration_Invalid makes sure that requesting an invalid
+// config does not panic.
+func TestAgent_GetConfiguration_Invalid(t *testing.T) {
+	env := newAPITestEnvironment(t)
+
+	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/does-not-exist")
+	require.NoError(t, err)
+
+	var apiResp configapi.ErrorResponse
+	unmarshalTestResponse(t, resp.Body, &apiResp)
+	require.Equal(t, "configuration does-not-exist does not exist", apiResp.Error)
+}
+
 func TestAgent_GetConfiguration_YAML(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
@@ -74,36 +87,7 @@ func TestAgent_GetConfiguration_YAML(t *testing.T) {
 	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
 }
 
-func TestAgent_GetConfiguration_JSON(t *testing.T) {
-	env := newAPITestEnvironment(t)
-
-	cfg := DefaultInstanceConfig
-	cfg.Name = "a"
-	cfg.HostFilter = true
-	cfg.RemoteFlushDeadline = 10 * time.Minute
-	err := env.agent.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
-		return &cfg, false, nil
-	})
-	require.NoError(t, err)
-
-	req, err := http.NewRequest("GET", env.srv.URL+"/agent/api/v1/configs/a", nil)
-	require.NoError(t, err)
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-
-	var apiResp configapi.GetConfigurationResponse
-	unmarshalTestResponse(t, resp.Body, &apiResp)
-
-	var actual InstanceConfig
-	err = json.Unmarshal([]byte(apiResp.Value), &actual)
-	require.NoError(t, err)
-
-	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
-}
-
-func TestAgent_PutConfiguation(t *testing.T) {
+func TestAgent_PutConfiguration(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
 	cfg := DefaultInstanceConfig
@@ -115,38 +99,6 @@ func TestAgent_PutConfiguation(t *testing.T) {
 	require.NoError(t, err)
 
 	resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/newconfig", "", bytes.NewReader(bb))
-	require.NoError(t, err)
-	unmarshalTestResponse(t, resp.Body, nil)
-
-	// Get the stored config back
-	resp, err = http.Get(env.srv.URL + "/agent/api/v1/configs/newconfig")
-	require.NoError(t, err)
-	var apiResp configapi.GetConfigurationResponse
-	unmarshalTestResponse(t, resp.Body, &apiResp)
-
-	var actual InstanceConfig
-	err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
-	require.NoError(t, err)
-
-	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
-}
-
-func TestAgent_PutConfiguation_JSON(t *testing.T) {
-	env := newAPITestEnvironment(t)
-
-	cfg := DefaultInstanceConfig
-	cfg.Name = "newconfig"
-	cfg.HostFilter = true
-	cfg.RemoteFlushDeadline = 10 * time.Minute
-
-	bb, err := json.Marshal(cfg)
-	require.NoError(t, err)
-
-	req, err := http.NewRequest("POST", env.srv.URL+"/agent/api/v1/config/jsonconfig", bytes.NewReader(bb))
-	require.NoError(t, err)
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	unmarshalTestResponse(t, resp.Body, nil)
 

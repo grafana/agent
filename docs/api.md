@@ -72,14 +72,10 @@ Response on success:
 {
   "status": "success",
   "data": {
-    "value": "/* configuration in the string */"
+    "value": "/* YAML configuration */"
   }
 }
 ```
-
-By default, the configuration contained in "value" will be YAML, even if it was
-initially stored as JSON. To get back a JSON config string, add a
-`Content-Type: application/json` header to the request.
 
 Get config
 
@@ -96,10 +92,8 @@ with the same name already exists, it will be completely overwritten.
 The request body passed to this endpoint must match the format of
 [prometheus_instance_config](./configuration-reference.md#prometheus_instance_config)
 defined in the Configuration Reference. The name field of the configuration is
-ignored and the name in the URL takes precedence.
-
-By default, the request body is expected to be JSON. To pass a YAML config, add
-a `Content-Type: text/yaml` header to the request.
+ignored and the name in the URL takes precedence. The request body must be
+formatted as YAML.
 
 Response on success:
 

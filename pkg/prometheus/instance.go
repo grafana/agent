@@ -193,11 +193,14 @@ func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, reg promethe
 	i.cancelScrape = cancel
 
 	level.Debug(i.logger).Log("msg", "creating instance", "hostname", hostname)
+
 	go i.run(ctx, reg, wstore)
 	return i, nil
 }
 
 func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore walStorage) {
+	trackingReg := unregisterAllRegisterer{wrap: reg}
+
 	discoveryManagerScrape := discovery.NewManager(ctx, log.With(i.logger, "component", "discovery manager scrape"), discovery.Name("scrape"))
 	{
 		// TODO(rfratto): refactor this to a function?
@@ -214,7 +217,7 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 	}
 
 	readyScrapeManager := &scrape.ReadyScrapeManager{}
-	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), reg, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline, readyScrapeManager)
+	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), &trackingReg, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline, readyScrapeManager)
 	i.exitErr = remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg,
 		RemoteWriteConfigs: i.cfg.RemoteWrite,
@@ -342,6 +345,7 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 		i.exitErr = err
 	}
 
+	trackingReg.UnregisterAll()
 	close(i.exited)
 }
 
@@ -437,6 +441,59 @@ type walStorage interface {
 	Truncate(mint int64) error
 
 	Close() error
+}
+
+type unregisterAllRegisterer struct {
+	wrap prometheus.Registerer
+	cs   map[prometheus.Collector]struct{}
+}
+
+// Register implements prometheus.Registerer.
+func (u *unregisterAllRegisterer) Register(c prometheus.Collector) error {
+	if u.wrap == nil {
+		return nil
+	}
+
+	err := u.wrap.Register(c)
+	if err != nil {
+		return err
+	}
+	if u.cs == nil {
+		u.cs = make(map[prometheus.Collector]struct{})
+	}
+	return nil
+}
+
+// MustRegister implements prometheus.Registerer.
+func (u *unregisterAllRegisterer) MustRegister(cs ...prometheus.Collector) {
+	for _, c := range cs {
+		if err := u.Register(c); err != nil {
+			panic(err)
+		}
+	}
+}
+
+// Unregister implements prometheus.Registerer.
+func (u *unregisterAllRegisterer) Unregister(c prometheus.Collector) bool {
+	if u.wrap == nil {
+		return false
+	}
+	ok := u.wrap.Unregister(c)
+	if ok && u.cs != nil {
+		delete(u.cs, c)
+	}
+	return ok
+}
+
+// UnregisterAll unregisters all collectors that were registered through the
+// Reigsterer.
+func (u *unregisterAllRegisterer) UnregisterAll() {
+	if u.cs == nil {
+		return
+	}
+	for c := range u.cs {
+		u.Unregister(c)
+	}
 }
 
 func hostname() (string, error) {

@@ -1,7 +1,6 @@
 package prometheus
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,6 +35,10 @@ type APIHandler func(r *http.Request) (interface{}, error)
 // WireAPI injects routes into the provided mux router for the config
 // management API.
 func (a *Agent) WireAPI(r *mux.Router) {
+	if !a.cfg.ServiceConfig.Enabled {
+		return
+	}
+
 	listConfig := a.WrapHandler(a.ListConfigurations)
 	getConfig := a.WrapHandler(a.GetConfiguration)
 	putConfig := a.WrapHandler(a.PutConfiguration)
@@ -54,7 +57,6 @@ func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {
 		resp, err := next(r)
 		if err != nil {
 			httpErr, ok := err.(*httpError)
-			var err error
 
 			if ok {
 				err = configapi.WriteError(w, httpErr.StatusCode, httpErr.Err)
@@ -88,19 +90,19 @@ func (a *Agent) ListConfigurations(r *http.Request) (interface{}, error) {
 
 // GetConfiguration returns an existing named configuration.
 func (a *Agent) GetConfiguration(r *http.Request) (interface{}, error) {
-	ctype, err := configapi.ContentTypeFromRequest(r)
-	if err != nil {
-		return nil, err
-	}
-
 	configKey := getConfigName(r)
 	v, err := a.kv.Get(r.Context(), configKey)
 	if err != nil {
 		level.Error(a.logger).Log("msg", "error getting configuration from kv store", "err", err)
 		return nil, fmt.Errorf("error getting configuration: %w", err)
+	} else if v == nil {
+		return nil, &httpError{
+			StatusCode: http.StatusBadRequest,
+			Err:        fmt.Errorf("configuration %s does not exist", configKey),
+		}
 	}
 
-	cfg, err := MarshalInstanceConfig(v.(*InstanceConfig), ctype)
+	cfg, err := MarshalInstanceConfig(v.(*InstanceConfig))
 	if err != nil {
 		level.Error(a.logger).Log("msg", "error marshaling configuration", "err", err)
 		return nil, err
@@ -112,12 +114,7 @@ func (a *Agent) GetConfiguration(r *http.Request) (interface{}, error) {
 // PutConfiguration creates or updates a named configuration. Completely
 // overrides the previous configuration if it exists.
 func (a *Agent) PutConfiguration(r *http.Request) (interface{}, error) {
-	ctype, err := configapi.ContentTypeFromRequest(r)
-	if err != nil {
-		return nil, err
-	}
-
-	inst, err := UnmarshalInstanceConfig(r.Body, ctype)
+	inst, err := UnmarshalInstanceConfig(r.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -136,6 +133,8 @@ func (a *Agent) PutConfiguration(r *http.Request) (interface{}, error) {
 		} else {
 			totalUpdatedConfigs.Inc()
 		}
+	} else {
+		level.Error(a.logger).Log("msg", "failed to put config", "err", err)
 	}
 
 	return nil, err
@@ -189,43 +188,15 @@ func getConfigName(r *http.Request) string {
 
 // UnmarshalInstanceConfig unmarshals an instance config from a reader
 // based on a provided content type.
-func UnmarshalInstanceConfig(r io.Reader, ctype configapi.ContentType) (*InstanceConfig, error) {
-	var (
-		cfg InstanceConfig
-		err error
-	)
-
-	switch ctype {
-	case configapi.ContentTypeJSON:
-		err = json.NewDecoder(r).Decode(&cfg)
-	case configapi.ContentTypeYAML:
-		err = yaml.NewDecoder(r).Decode(&cfg)
-	default:
-		panic(fmt.Sprintf("unhandled content type %s", ctype))
-	}
-
+func UnmarshalInstanceConfig(r io.Reader) (*InstanceConfig, error) {
+	var cfg InstanceConfig
+	err := yaml.NewDecoder(r).Decode(&cfg)
 	return &cfg, err
 }
 
 // MarshalInstanceConfig marshals an instance config based on a provided
 // content type.
-func MarshalInstanceConfig(c *InstanceConfig, ctype configapi.ContentType) (string, error) {
-	var (
-		bb  []byte
-		err error
-	)
-
-	switch ctype {
-	case configapi.ContentTypeJSON:
-		bb, err = json.Marshal(c)
-	case configapi.ContentTypeYAML:
-		bb, err = yaml.Marshal(c)
-	default:
-		panic(fmt.Sprintf("unhandled content type %s", ctype))
-	}
-
-	if err != nil {
-		return "", err
-	}
+func MarshalInstanceConfig(c *InstanceConfig) (string, error) {
+	bb, err := yaml.Marshal(c)
 	return string(bb), err
 }

@@ -2,33 +2,31 @@ package prometheus
 
 import (
 	"testing"
-	"time"
 
-	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 func TestCodec(t *testing.T) {
-	// Not a full scrape config but fills out enough to make
-	// sure the Codec is working properly.
-	in := &InstanceConfig{
-		Name:                "test",
-		HostFilter:          true,
-		RemoteFlushDeadline: 10 * time.Minute,
-		RemoteWrite: []*config.RemoteWriteConfig{{
-			Name: "remote",
-		}},
-		ScrapeConfigs: []*config.ScrapeConfig{{
-			JobName: "job",
-			Scheme:  "http",
-		}},
-	}
+	exampleConfig := `name: 'test'
+host_filter: false
+scrape_configs:
+  - job_name: process-1
+    static_configs:
+      - targets: ['process-1:80']
+        labels:
+          cluster: 'local'
+          origin: 'agent'`
 
-	c := &jsonCodec{}
+	var in InstanceConfig
+	err := yaml.Unmarshal([]byte(exampleConfig), &in)
+	require.NoError(t, err)
+
+	c := &yamlCodec{}
 	bb, err := c.Encode(in)
 	require.NoError(t, err)
 
 	out, err := c.Decode(bb)
 	require.NoError(t, err)
-	require.Equal(t, in, out)
+	require.Equal(t, &in, out)
 }

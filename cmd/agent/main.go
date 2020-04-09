@@ -26,6 +26,10 @@ type Config struct {
 	Prometheus prom.Config   `yaml:"prometheus,omitempty"`
 }
 
+func (c *Config) ApplyDefaults() {
+	c.Prometheus.ApplyDefaults()
+}
+
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.MetricsNamespace = "agent"
 	c.Server.RegisterInstrumentation = true
@@ -103,5 +107,11 @@ func loadConfig(filename string, config *Config) error {
 		return errors.Wrap(err, "Error reading config file")
 	}
 
-	return yaml.Unmarshal(buf, config)
+	err = yaml.Unmarshal(buf, config)
+	if err != nil {
+		return err
+	}
+
+	config.ApplyDefaults()
+	return nil
 }
