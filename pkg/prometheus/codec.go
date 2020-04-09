@@ -27,7 +27,7 @@ func (*jsonCodec) Decode(bb []byte) (interface{}, error) {
 	if err := json.NewDecoder(r).Decode(&inst); err != nil {
 		return nil, err
 	}
-	return inst, nil
+	return &inst, nil
 }
 
 func (*jsonCodec) Encode(v interface{}) ([]byte, error) {

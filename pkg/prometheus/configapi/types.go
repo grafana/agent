@@ -22,7 +22,7 @@ const (
 	ContentTypeYAML    ContentType = "text/yaml"
 
 	// DefaultContentType is the default content type to use if none is specified.
-	DefaultContentType = ContentTypeJSON
+	DefaultContentType = ContentTypeYAML
 )
 
 // SupportedContentTypes is the full list of allowed Content-Type

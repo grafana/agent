@@ -77,11 +77,9 @@ Response on success:
 }
 ```
 
-By default, the configuration contained in "value" will be JSON, even if it was
-initially stored as YAML. To get back a YAML config, add a
-`Content-Type: text/yaml` header to the request. Note this header will not
-change the entire response to YAML; just the string for the `"value"` JSON
-field.
+By default, the configuration contained in "value" will be YAML, even if it was
+initially stored as JSON. To get back a JSON config string, add a
+`Content-Type: application/json` header to the request.
 
 Get config
 

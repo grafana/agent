@@ -11,7 +11,7 @@ import (
 func TestCodec(t *testing.T) {
 	// Not a full scrape config but fills out enough to make
 	// sure the Codec is working properly.
-	in := InstanceConfig{
+	in := &InstanceConfig{
 		Name:                "test",
 		HostFilter:          true,
 		RemoteFlushDeadline: 10 * time.Minute,

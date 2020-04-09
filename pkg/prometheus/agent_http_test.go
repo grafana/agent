@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/go-kit/kit/log"
@@ -17,9 +19,9 @@ import (
 	"github.com/grafana/agent/pkg/prometheus/configapi"
 	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
-// Going to do HTTP tests here including API paths.
 func TestAgent_ListConfigurations(t *testing.T) {
 	env := newApiTestEnvironment(t)
 
@@ -45,6 +47,157 @@ func TestAgent_ListConfigurations(t *testing.T) {
 
 	expect := configapi.ListConfigurationsResponse{Configs: []string{"a", "b", "c"}}
 	require.Equal(t, expect, apiResp)
+}
+
+func TestAgent_GetConfiguration_YAML(t *testing.T) {
+	env := newApiTestEnvironment(t)
+
+	cfg := DefaultInstanceConfig
+	cfg.Name = "a"
+	cfg.HostFilter = true
+	cfg.RemoteFlushDeadline = 10 * time.Minute
+	err := env.agent.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+		return &cfg, false, nil
+	})
+	require.NoError(t, err)
+
+	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/a")
+	require.NoError(t, err)
+
+	var apiResp configapi.GetConfigurationResponse
+	unmarshalTestResponse(t, resp.Body, &apiResp)
+
+	var actual InstanceConfig
+	err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
+	require.NoError(t, err)
+
+	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+}
+
+func TestAgent_GetConfiguration_JSON(t *testing.T) {
+	env := newApiTestEnvironment(t)
+
+	cfg := DefaultInstanceConfig
+	cfg.Name = "a"
+	cfg.HostFilter = true
+	cfg.RemoteFlushDeadline = 10 * time.Minute
+	err := env.agent.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+		return &cfg, false, nil
+	})
+	require.NoError(t, err)
+
+	req, err := http.NewRequest("GET", env.srv.URL+"/agent/api/v1/configs/a", nil)
+	require.NoError(t, err)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	var apiResp configapi.GetConfigurationResponse
+	unmarshalTestResponse(t, resp.Body, &apiResp)
+
+	var actual InstanceConfig
+	err = json.Unmarshal([]byte(apiResp.Value), &actual)
+	require.NoError(t, err)
+
+	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+}
+
+func TestAgent_PutConfiguation(t *testing.T) {
+	env := newApiTestEnvironment(t)
+
+	cfg := DefaultInstanceConfig
+	cfg.Name = "newconfig"
+	cfg.HostFilter = true
+	cfg.RemoteFlushDeadline = 10 * time.Minute
+
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+
+	resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/newconfig", "", bytes.NewReader(bb))
+	require.NoError(t, err)
+	unmarshalTestResponse(t, resp.Body, nil)
+
+	// Get the stored config back
+	resp, err = http.Get(env.srv.URL + "/agent/api/v1/configs/newconfig")
+	require.NoError(t, err)
+	var apiResp configapi.GetConfigurationResponse
+	unmarshalTestResponse(t, resp.Body, &apiResp)
+
+	var actual InstanceConfig
+	err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
+	require.NoError(t, err)
+
+	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+}
+
+func TestAgent_PutConfiguation_JSON(t *testing.T) {
+	env := newApiTestEnvironment(t)
+
+	cfg := DefaultInstanceConfig
+	cfg.Name = "newconfig"
+	cfg.HostFilter = true
+	cfg.RemoteFlushDeadline = 10 * time.Minute
+
+	bb, err := json.Marshal(cfg)
+	require.NoError(t, err)
+
+	req, err := http.NewRequest("POST", env.srv.URL+"/agent/api/v1/config/jsonconfig", bytes.NewReader(bb))
+	require.NoError(t, err)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	unmarshalTestResponse(t, resp.Body, nil)
+
+	// Get the stored config back
+	resp, err = http.Get(env.srv.URL + "/agent/api/v1/configs/newconfig")
+	require.NoError(t, err)
+	var apiResp configapi.GetConfigurationResponse
+	unmarshalTestResponse(t, resp.Body, &apiResp)
+
+	var actual InstanceConfig
+	err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
+	require.NoError(t, err)
+
+	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+}
+
+func TestAgent_DeleteConfiguration(t *testing.T) {
+	env := newApiTestEnvironment(t)
+
+	// Store some configs
+	cfgs := []*InstanceConfig{
+		{Name: "a"},
+		{Name: "b"},
+		{Name: "c"},
+	}
+	for _, cfg := range cfgs {
+		err := env.agent.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+			return cfg, false, nil
+		})
+		require.NoError(t, err)
+	}
+
+	// Delete the configs
+	for _, cfg := range cfgs {
+		req, err := http.NewRequest("DELETE", env.srv.URL+"/agent/api/v1/config/"+cfg.Name, nil)
+		require.NoError(t, err)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		unmarshalTestResponse(t, resp.Body, nil)
+	}
+
+	// Do a list, nothing we stored should be there anymore.
+	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs")
+	require.NoError(t, err)
+
+	var apiResp configapi.ListConfigurationsResponse
+	unmarshalTestResponse(t, resp.Body, &apiResp)
+	for _, cfg := range cfgs {
+		require.NotContains(t, apiResp.Configs, cfg.Name)
+	}
 }
 
 type apiTestEnvironment struct {
