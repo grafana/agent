@@ -2,7 +2,7 @@
 
 # v0.2.0 (2020-04-09)
 
-- [FEATURE] The Prometheus remote write protocol will now send scraped metadata (metric name, help, type and unit). This results in almost negligent bytes sent increase as metadata is only sent every minute. It is on by default.
+- [FEATURE] The Prometheus remote write protocol will now send scraped metadata (metric name, help, type and unit). This results in almost negligent bytes sent increase as metadata is only sent every minute. It is on by default. (@gotjosh)
 
   These metrics are available to monitor metadata being sent:
     - `prometheus_remote_storage_succeeded_metadata_total`
