@@ -3,7 +3,7 @@ module github.com/grafana/agent
 go 1.12
 
 require (
-	github.com/cortexproject/cortex v1.0.1-0.20200408160835-e5c409df5194
+	github.com/cortexproject/cortex v1.0.1-0.20200409122148-163437e76cad
 	github.com/go-kit/kit v0.10.0
 	github.com/golang/protobuf v1.3.5 // indirect
 	github.com/gorilla/mux v1.7.3

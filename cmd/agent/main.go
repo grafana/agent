@@ -8,7 +8,7 @@ import (
 	"os"
 
 	// Adds version information
-	"github.com/gorilla/mux"
+
 	_ "github.com/grafana/agent/cmd/agent/build"
 
 	"github.com/cortexproject/cortex/pkg/util"
@@ -86,7 +86,7 @@ func main() {
 	}
 
 	// Hook up API paths to the router
-	wireAgentConfigsAPI(srv.HTTP, promMetrics)
+	promMetrics.WireAPI(srv.HTTP)
 
 	if err := srv.Run(); err != nil {
 		level.Error(util.Logger).Log("msg", "error running agent", "err", err)
@@ -95,18 +95,6 @@ func main() {
 
 	promMetrics.Stop()
 	level.Info(util.Logger).Log("msg", "agent exiting")
-}
-
-func wireAgentConfigsAPI(r *mux.Router, a *prom.Agent) {
-	listConfig := a.WrapHandler(a.ListConfigurations)
-	getConfig := a.WrapHandler(a.GetConfiguration)
-	putConfig := a.WrapHandler(a.PutConfiguration)
-	deleteConfig := a.WrapHandler(a.DeleteConfiguration)
-
-	r.HandleFunc("/agent/api/v1/configs", listConfig).Methods("GET")
-	r.HandleFunc("/agent/api/v1/configs/{name}", getConfig).Methods("GET")
-	r.HandleFunc("/agent/api/v1/config/{name}", putConfig).Methods("PUT", "POST")
-	r.HandleFunc("/agent/api/v1/config/{name}", deleteConfig).Methods("DELETE")
 }
 
 func loadConfig(filename string, config *Config) error {

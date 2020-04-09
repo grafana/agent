@@ -33,6 +33,20 @@ var (
 // and optionally an error.
 type APIHandler func(r *http.Request) (interface{}, error)
 
+// WireAPI injects routes into the provided mux router for the config
+// management API.
+func (a *Agent) WireAPI(r *mux.Router) {
+	listConfig := a.WrapHandler(a.ListConfigurations)
+	getConfig := a.WrapHandler(a.GetConfiguration)
+	putConfig := a.WrapHandler(a.PutConfiguration)
+	deleteConfig := a.WrapHandler(a.DeleteConfiguration)
+
+	r.HandleFunc("/agent/api/v1/configs", listConfig).Methods("GET")
+	r.HandleFunc("/agent/api/v1/configs/{name}", getConfig).Methods("GET")
+	r.HandleFunc("/agent/api/v1/config/{name}", putConfig).Methods("PUT", "POST")
+	r.HandleFunc("/agent/api/v1/config/{name}", deleteConfig).Methods("DELETE")
+}
+
 // WrapHandler is responsible for turning an APIHandler into an HTTP
 // handler by wrapping responses and writing them as JSON.
 func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {

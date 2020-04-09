@@ -21,14 +21,13 @@ const (
 	ContentTypeJSON    ContentType = "application/json"
 	ContentTypeYAML    ContentType = "text/yaml"
 
+	// DefaultContentType is the default content type to use if none is specified.
 	DefaultContentType = ContentTypeJSON
 )
 
 // SupportedContentTypes is the full list of allowed Content-Type
 // values.
 var SupportedContentTypes = []ContentType{ContentTypeJSON, ContentTypeYAML}
-
-// DefaultContentType is the default content type to use if none is specified.
 
 // ContentTypeFromRequest returns the content type given an http Request,
 // pulling it out of the header.
@@ -65,7 +64,7 @@ type APIResponse struct {
 
 func (r *APIResponse) WriteTo(w http.ResponseWriter, statusCode int) error {
 	bb, err := json.Marshal(r)
-	if err == nil {
+	if err != nil {
 		// If we fail here, we should at least write a 500 back.
 		w.WriteHeader(http.StatusInternalServerError)
 		return err

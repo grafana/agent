@@ -40,11 +40,13 @@ func (*jsonCodec) Encode(v interface{}) ([]byte, error) {
 		panic(fmt.Sprintf("unexpected type %T passed to jsonCodec.Encode", v))
 	}
 
-	jsonEncoder := json.NewEncoder(gzip.NewWriter(&buf))
+	w := gzip.NewWriter(&buf)
+	jsonEncoder := json.NewEncoder(w)
 	if err := jsonEncoder.Encode(v); err != nil {
 		return nil, err
 	}
 
+	w.Close()
 	return buf.Bytes(), nil
 }
 
