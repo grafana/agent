@@ -1,4 +1,5 @@
-package prometheus
+// Package instance provides a mini Prometheus scraper and remote_writer.
+package instance
 
 import (
 	"context"
@@ -9,6 +10,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -27,7 +29,7 @@ import (
 )
 
 var (
-	errInstanceStoppedNormally = errors.New("instance shutdown normally")
+	ErrInstanceStoppedNormally = errors.New("instance shutdown normally")
 	remoteWriteMetricName      = "queue_highest_sent_timestamp_seconds"
 )
 
@@ -48,7 +50,7 @@ var (
 		},
 	}
 
-	DefaultInstanceConfig = InstanceConfig{
+	DefaultConfig = Config{
 		HostFilter:           false,
 		WALTruncateFrequency: 1 * time.Minute,
 		RemoteFlushDeadline:  1 * time.Minute,
@@ -56,9 +58,9 @@ var (
 	}
 )
 
-// InstanceConfig is a specific agent that runs within the overall Prometheus
+// Config is a specific agent that runs within the overall Prometheus
 // agent. It has its own set of scrape_configs and remote_write rules.
-type InstanceConfig struct {
+type Config struct {
 	Name          string                      `yaml:"name" json:"name"`
 	HostFilter    bool                        `yaml:"host_filter" json:"host_filter"`
 	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty" json:"scrape_configs,omitempty"`
@@ -71,10 +73,10 @@ type InstanceConfig struct {
 	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty" json:"write_stale_on_shutdown,omitempty"`
 }
 
-func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultInstanceConfig
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
 
-	type plain InstanceConfig
+	type plain Config
 	if err := unmarshal((*plain)(c)); err != nil {
 		return err
 	}
@@ -104,7 +106,7 @@ func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error 
 
 // ApplyDefaults applies default configurations to the configuration to all
 // values that have not been changed to their non-zero value.
-func (c *InstanceConfig) ApplyDefaults(global *config.GlobalConfig) {
+func (c *Config) ApplyDefaults(global *config.GlobalConfig) {
 	for _, sc := range c.ScrapeConfigs {
 		if sc.ScrapeInterval == 0 {
 			sc.ScrapeInterval = global.ScrapeInterval
@@ -121,9 +123,9 @@ func (c *InstanceConfig) ApplyDefaults(global *config.GlobalConfig) {
 	}
 }
 
-// Validate checks if the InstanceConfig has all required fields filled out.
+// Validate checks if the Config has all required fields filled out.
 // This should only be called after ApplyDefaults.
-func (c *InstanceConfig) Validate() error {
+func (c *Config) Validate() error {
 	if c.Name == "" {
 		return errors.New("missing instance name")
 	}
@@ -133,7 +135,7 @@ func (c *InstanceConfig) Validate() error {
 
 // Instance is an individual metrics collector and remote_writer.
 type Instance struct {
-	cfg       InstanceConfig
+	cfg       Config
 	globalCfg config.GlobalConfig
 	logger    log.Logger
 
@@ -147,10 +149,10 @@ type Instance struct {
 	exitErr error
 }
 
-// NewInstance creates and starts a new Instance. NewInstance creates a WAL in
+// New creates and starts a new Instance. NewInstance creates a WAL in
 // a folder with the same name as the instance's name in a subdirectory of the
 // walDir parameter.
-func NewInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (*Instance, error) {
+func New(globalCfg config.GlobalConfig, cfg Config, walDir string, logger log.Logger) (*Instance, error) {
 	logger = log.With(logger, "instance", cfg.Name)
 
 	instWALDir := filepath.Join(walDir, cfg.Name)
@@ -167,7 +169,7 @@ func NewInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, walDir strin
 	return newInstance(globalCfg, cfg, reg, instWALDir, logger, wstore)
 }
 
-func newInstance(globalCfg config.GlobalConfig, cfg InstanceConfig, reg prometheus.Registerer, walDir string, logger log.Logger, wstore walStorage) (*Instance, error) {
+func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Registerer, walDir string, logger log.Logger, wstore walStorage) (*Instance, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
@@ -405,7 +407,7 @@ func (i *Instance) getRemoteWriteTimestamp() int64 {
 }
 
 // Config returns the instance's config.
-func (i *Instance) Config() InstanceConfig {
+func (i *Instance) Config() Config {
 	return i.cfg
 }
 
@@ -417,7 +419,7 @@ func (i *Instance) Wait() error {
 
 // Stop stops the instance.
 func (i *Instance) Stop() {
-	i.exitErr = errInstanceStoppedNormally
+	i.exitErr = ErrInstanceStoppedNormally
 
 	i.cancelScrape()
 	<-i.exited
@@ -512,4 +514,77 @@ func getHash(data interface{}) (string, error) {
 	}
 	hash := md5.Sum(bytes)
 	return hex.EncodeToString(hash[:]), nil
+}
+
+// MetricValueCollector wraps around a Gatherer and provides utilities for
+// pulling metric values from a given metric name and label matchers.
+//
+// This is used by the agent instances to find the most recent timestamp
+// successfully remote_written to for pruposes of safely truncating the WAL.
+//
+// MetricValueCollector is only intended for use with Gauges and Counters.
+type MetricValueCollector struct {
+	g     prometheus.Gatherer
+	match string
+}
+
+// NewMetricValueCollector creates a new MetricValueCollector.
+func NewMetricValueCollector(g prometheus.Gatherer, match string) *MetricValueCollector {
+	return &MetricValueCollector{
+		g:     g,
+		match: match,
+	}
+}
+
+// GetValues looks through all the tracked metrics and returns all values
+// for metrics that match some key value pair.
+func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) ([]float64, error) {
+	vals := []float64{}
+
+	families, err := vc.g.Gather()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, family := range families {
+		if !strings.Contains(family.GetName(), vc.match) {
+			continue
+		}
+
+		for _, m := range family.GetMetric() {
+			matches := false
+			for _, l := range m.GetLabel() {
+				if l.GetName() != label {
+					continue
+				}
+
+				v := l.GetValue()
+				for _, match := range labelValues {
+					if match == v {
+						matches = true
+						break
+					}
+				}
+				break
+			}
+			if !matches {
+				continue
+			}
+
+			var value float64
+			if m.Gauge != nil {
+				value = m.Gauge.GetValue()
+			} else if m.Counter != nil {
+				value = m.Counter.GetValue()
+			} else if m.Untyped != nil {
+				value = m.Untyped.GetValue()
+			} else {
+				return nil, errors.New("tracking unexpected metric type")
+			}
+
+			vals = append(vals, value)
+		}
+	}
+
+	return vals, nil
 }

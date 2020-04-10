@@ -8,13 +8,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/prometheus/ha"
+	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
@@ -44,8 +45,8 @@ var (
 type Config struct {
 	Global                 config.GlobalConfig `yaml:"global"`
 	WALDir                 string              `yaml:"wal_directory"`
-	ServiceConfig          ServiceConfig       `yaml:"scraping_service"`
-	Configs                []InstanceConfig    `yaml:"configs,omitempty"`
+	ServiceConfig          ha.Config           `yaml:"scraping_service"`
+	Configs                []instance.Config   `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
 }
 
@@ -92,19 +93,6 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-// ServiceConfig describes the configuration for the scraping service.
-type ServiceConfig struct {
-	Enabled bool      `yaml:"enabled"`
-	KVStore kv.Config `yaml:"kvstore"`
-}
-
-// RegisterFlagsWithPrefix adds the flags required to config this to the given
-// FlagSet with a specified prefix.
-func (c *ServiceConfig) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
-	c.KVStore.RegisterFlagsWithPrefix(prefix, "configurations/", f)
-	f.BoolVar(&c.Enabled, prefix+"enabled", false, "enables the scraping service mode")
-}
-
 // Agent is an agent for collecting Prometheus metrics. It acts as a
 // Prometheus-lite; only running the service discovery, remote_write,
 // and WAL components of Prometheus. It is broken down into a series
@@ -117,7 +105,7 @@ type Agent struct {
 
 	instanceFactory instanceFactory
 
-	kv kv.Client
+	ha *ha.Server
 }
 
 // New creates and starts a new Agent.
@@ -143,7 +131,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 
 	if cfg.ServiceConfig.Enabled {
 		var err error
-		a.kv, err = kv.NewClient(cfg.ServiceConfig.KVStore, GetCodec())
+		a.ha, err = ha.New(cfg.ServiceConfig, a.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -152,14 +140,14 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 	return a, nil
 }
 
-// spawnInstance takes an InstanceConfig and launches an instance, restarting
+// spawnInstance takes an instance.Config and launches an instance, restarting
 // it if it stops unexpectedly. The instance will be stopped whenever ctx
 // is canceled. This function will not return until the launched instance
 // has fully shut down.
-func (a *Agent) spawnInstance(ctx context.Context, c InstanceConfig) {
+func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
 	var (
 		mut  sync.Mutex
-		inst instance
+		inst inst
 		err  error
 	)
 
@@ -190,7 +178,7 @@ func (a *Agent) spawnInstance(ctx context.Context, c InstanceConfig) {
 		mut.Unlock()
 
 		err = inst.Wait()
-		if err == nil || err != errInstanceStoppedNormally {
+		if err == nil || err != instance.ErrInstanceStoppedNormally {
 			instanceAbnormalExits.WithLabelValues(c.Name).Inc()
 			level.Error(a.logger).Log("msg", "instance stopped abnormally, restarting after backoff period", "err", err, "backoff", a.cfg.InstanceRestartBackoff, "instance", c.Name)
 			time.Sleep(a.cfg.InstanceRestartBackoff)
@@ -201,12 +189,19 @@ func (a *Agent) spawnInstance(ctx context.Context, c InstanceConfig) {
 	}
 }
 
+// WireAPI adds API routes to the provided mux router.
+func (a *Agent) WireAPI(r *mux.Router) {
+	if a.cfg.ServiceConfig.Enabled {
+		a.ha.WireAPI(r)
+	}
+}
+
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
 	a.cm.Stop()
 }
 
-// ConfigManager manages a set of InstanceConfigs, calling a function whenever
+// ConfigManager manages a set of instance.Configs, calling a function whenever
 // a Config should be "started."
 type ConfigManager struct {
 	// Take care when locking mut: if you hold onto a lock of mut while calling
@@ -214,11 +209,11 @@ type ConfigManager struct {
 	mut       sync.Mutex
 	processes map[string]configManagerProcess
 
-	newProcess func(ctx context.Context, c InstanceConfig)
+	newProcess func(ctx context.Context, c instance.Config)
 }
 
 type configManagerProcess struct {
-	cfg    InstanceConfig
+	cfg    instance.Config
 	cancel context.CancelFunc
 	done   chan bool
 }
@@ -230,9 +225,9 @@ func (p configManagerProcess) Stop() {
 }
 
 // NewConfigManager creates a new ConfigManager. The function f will be invoked
-// any time a new InstanceConfig is tracked. The context provided to the function
-// will be cancelled when that InstanceConfig is no longer being tracked.
-func NewConfigManager(f func(ctx context.Context, c InstanceConfig)) *ConfigManager {
+// any time a new instance.Config is tracked. The context provided to the function
+// will be cancelled when that instance.Config is no longer being tracked.
+func NewConfigManager(f func(ctx context.Context, c instance.Config)) *ConfigManager {
 	return &ConfigManager{
 		processes:  make(map[string]configManagerProcess),
 		newProcess: f,
@@ -240,26 +235,26 @@ func NewConfigManager(f func(ctx context.Context, c InstanceConfig)) *ConfigMana
 }
 
 // ListConfigs lists the current active configs managed by the ConfigManager.
-func (cm *ConfigManager) ListConfigs() map[string]InstanceConfig {
+func (cm *ConfigManager) ListConfigs() map[string]instance.Config {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 
-	cfgs := make(map[string]InstanceConfig, len(cm.processes))
+	cfgs := make(map[string]instance.Config, len(cm.processes))
 	for name, process := range cm.processes {
 		cfgs[name] = process.cfg
 	}
 	return cfgs
 }
 
-// ApplyConfig takes an InstanceConfig and either adds a new tracked config
+// ApplyConfig takes an instance.Config and either adds a new tracked config
 // or updates an existing track config. The value for Name in c is used to
-// uniquely identify the InstanceConfig and determine whether it is new
+// uniquely identify the instance.Config and determine whether it is new
 // or existing.
-func (cm *ConfigManager) ApplyConfig(c InstanceConfig) {
+func (cm *ConfigManager) ApplyConfig(c instance.Config) {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 
-	// Is there an existing process for the InstanceConfig? If so, stop it.
+	// Is there an existing process for the instance.Config? If so, stop it.
 	if proc, ok := cm.processes[c.Name]; ok {
 		proc.Stop()
 	}
@@ -269,7 +264,7 @@ func (cm *ConfigManager) ApplyConfig(c InstanceConfig) {
 	currentActiveConfigs.Inc()
 }
 
-func (cm *ConfigManager) spawnProcess(c InstanceConfig) {
+func (cm *ConfigManager) spawnProcess(c instance.Config) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan bool)
 
@@ -290,8 +285,8 @@ func (cm *ConfigManager) spawnProcess(c InstanceConfig) {
 	}()
 }
 
-// DeleteConfig removes an InstanceConfig by its name. Returns an error if
-// the InstanceConfig is not currently being tracked.
+// DeleteConfig removes an instance.Config by its name. Returns an error if
+// the instance.Config is not currently being tracked.
 func (cm *ConfigManager) DeleteConfig(name string) error {
 	// Does it exist?
 	cm.mut.Lock()
@@ -325,89 +320,16 @@ func (cm *ConfigManager) Stop() {
 	wg.Wait()
 }
 
-// MetricValueCollector wraps around a Gatherer and provides utilities for
-// pulling metric values from a given metric name and label matchers.
-//
-// This is used by the agent instances to find the most recent timestamp
-// successfully remote_written to for pruposes of safely truncating the WAL.
-//
-// MetricValueCollector is only intended for use with Gauges and Counters.
-type MetricValueCollector struct {
-	g     prometheus.Gatherer
-	match string
-}
-
-// NewMetricValueCollector creates a new MetricValueCollector.
-func NewMetricValueCollector(g prometheus.Gatherer, match string) *MetricValueCollector {
-	return &MetricValueCollector{
-		g:     g,
-		match: match,
-	}
-}
-
-// GetValues looks through all the tracked metrics and returns all values
-// for metrics that match some key value pair.
-func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) ([]float64, error) {
-	vals := []float64{}
-
-	families, err := vc.g.Gather()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, family := range families {
-		if !strings.Contains(family.GetName(), vc.match) {
-			continue
-		}
-
-		for _, m := range family.GetMetric() {
-			matches := false
-			for _, l := range m.GetLabel() {
-				if l.GetName() != label {
-					continue
-				}
-
-				v := l.GetValue()
-				for _, match := range labelValues {
-					if match == v {
-						matches = true
-						break
-					}
-				}
-				break
-			}
-			if !matches {
-				continue
-			}
-
-			var value float64
-			if m.Gauge != nil {
-				value = m.Gauge.GetValue()
-			} else if m.Counter != nil {
-				value = m.Counter.GetValue()
-			} else if m.Untyped != nil {
-				value = m.Untyped.GetValue()
-			} else {
-				return nil, errors.New("tracking unexpected metric type")
-			}
-
-			vals = append(vals, value)
-		}
-	}
-
-	return vals, nil
-}
-
-// instance is an interface implemented by Instance, and used by tests
+// inst is an interface implemented by Instance, and used by tests
 // to isolate agent from instance functionality.
-type instance interface {
+type inst interface {
 	Wait() error
-	Config() InstanceConfig
+	Config() instance.Config
 	Stop()
 }
 
-type instanceFactory = func(global config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (instance, error)
+type instanceFactory = func(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (inst, error)
 
-func defaultInstanceFactory(global config.GlobalConfig, cfg InstanceConfig, walDir string, logger log.Logger) (instance, error) {
-	return NewInstance(global, cfg, walDir, logger)
+func defaultInstanceFactory(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (inst, error) {
+	return instance.New(global, cfg, walDir, logger)
 }

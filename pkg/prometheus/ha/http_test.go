@@ -1,4 +1,4 @@
-package prometheus
+package ha
 
 import (
 	"bytes"
@@ -16,23 +16,23 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prometheus/configapi"
-	"github.com/prometheus/prometheus/config"
+	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
+	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
 
-func TestAgent_ListConfigurations(t *testing.T) {
+func TestServer_ListConfigurations(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
 	// Store some configs
-	cfgs := []*InstanceConfig{
+	cfgs := []*instance.Config{
 		{Name: "a"},
 		{Name: "b"},
 		{Name: "c"},
 	}
 	for _, cfg := range cfgs {
-		err := env.agent.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+		err := env.ha.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 			return cfg, false, nil
 		})
 		require.NoError(t, err)
@@ -50,9 +50,9 @@ func TestAgent_ListConfigurations(t *testing.T) {
 	require.Equal(t, expect, apiResp)
 }
 
-// TestAgent_GetConfiguration_Invalid makes sure that requesting an invalid
+// TestServer_GetConfiguration_Invalid makes sure that requesting an invalid
 // config does not panic.
-func TestAgent_GetConfiguration_Invalid(t *testing.T) {
+func TestServer_GetConfiguration_Invalid(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/does-not-exist")
@@ -64,14 +64,14 @@ func TestAgent_GetConfiguration_Invalid(t *testing.T) {
 	require.Equal(t, "configuration does-not-exist does not exist", apiResp.Error)
 }
 
-func TestAgent_GetConfiguration_YAML(t *testing.T) {
+func TestServer_GetConfiguration(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
-	cfg := DefaultInstanceConfig
+	cfg := instance.DefaultConfig
 	cfg.Name = "a"
 	cfg.HostFilter = true
 	cfg.RemoteFlushDeadline = 10 * time.Minute
-	err := env.agent.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+	err := env.ha.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 		return &cfg, false, nil
 	})
 	require.NoError(t, err)
@@ -83,17 +83,17 @@ func TestAgent_GetConfiguration_YAML(t *testing.T) {
 	var apiResp configapi.GetConfigurationResponse
 	unmarshalTestResponse(t, resp.Body, &apiResp)
 
-	var actual InstanceConfig
+	var actual instance.Config
 	err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
 	require.NoError(t, err)
 
 	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
 }
 
-func TestAgent_PutConfiguration(t *testing.T) {
+func TestServer_PutConfiguration(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
-	cfg := DefaultInstanceConfig
+	cfg := instance.DefaultConfig
 	cfg.Name = "newconfig"
 	cfg.HostFilter = true
 	cfg.RemoteFlushDeadline = 10 * time.Minute
@@ -116,25 +116,24 @@ func TestAgent_PutConfiguration(t *testing.T) {
 		var apiResp configapi.GetConfigurationResponse
 		unmarshalTestResponse(t, resp.Body, &apiResp)
 
-		var actual InstanceConfig
+		var actual instance.Config
 		err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
 		require.NoError(t, err)
-
 		require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
 	}
 }
 
-func TestAgent_DeleteConfiguration(t *testing.T) {
+func TestServer_DeleteConfiguration(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
 	// Store some configs
-	cfgs := []*InstanceConfig{
+	cfgs := []*instance.Config{
 		{Name: "a"},
 		{Name: "b"},
 		{Name: "c"},
 	}
 	for _, cfg := range cfgs {
-		err := env.agent.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+		err := env.ha.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 			return cfg, false, nil
 		})
 		require.NoError(t, err)
@@ -163,7 +162,7 @@ func TestAgent_DeleteConfiguration(t *testing.T) {
 }
 
 type apiTestEnvironment struct {
-	agent  *Agent
+	ha     *Server
 	srv    *httptest.Server
 	router *mux.Router
 }
@@ -179,27 +178,22 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 	srv := httptest.NewServer(router)
 	t.Cleanup(srv.Close)
 
-	// Create a new agent with an HTTP store
+	// Create a new HA service with an HTTP store
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	a, err := New(Config{
-		WALDir: dir,
-		Global: config.DefaultGlobalConfig,
-		ServiceConfig: ServiceConfig{
-			Enabled: true,
-			KVStore: kv.Config{
-				Store:  "inmemory",
-				Prefix: "configs/",
-			},
+	ha, err := New(Config{
+		Enabled: true,
+		KVStore: kv.Config{
+			Store:  "inmemory",
+			Prefix: "configs/",
 		},
 	}, logger)
 	require.NoError(t, err)
-	t.Cleanup(a.Stop)
 
 	// Wire the API
-	a.WireAPI(router)
+	ha.WireAPI(router)
 
 	return apiTestEnvironment{
-		agent:  a,
+		ha:     ha,
 		srv:    srv,
 		router: router,
 	}

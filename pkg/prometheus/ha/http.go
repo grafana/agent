@@ -1,29 +1,28 @@
-package prometheus
+package ha
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prometheus/configapi"
+	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
+	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"gopkg.in/yaml.v2"
 )
 
 var (
 	totalCreatedConfigs = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "agent_prometheus_scraping_service_configs_created_total",
+		Name: "agent_prometheus_ha_configs_created_total",
 		Help: "Total number of created scraping service configs",
 	})
 	totalUpdatedConfigs = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "agent_prometheus_scraping_service_configs_updated_total",
+		Name: "agent_prometheus_ha_configs_updated_total",
 		Help: "Total number of updated scraping service configs",
 	})
 	totalDeletedConfigs = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "agent_prometheus_scraping_service_configs_deleted_total",
+		Name: "agent_prometheus_ha_configs_deleted_total",
 		Help: "Total number of deleted scraping service configs",
 	})
 )
@@ -34,15 +33,11 @@ type APIHandler func(r *http.Request) (interface{}, error)
 
 // WireAPI injects routes into the provided mux router for the config
 // management API.
-func (a *Agent) WireAPI(r *mux.Router) {
-	if !a.cfg.ServiceConfig.Enabled {
-		return
-	}
-
-	listConfig := a.WrapHandler(a.ListConfigurations)
-	getConfig := a.WrapHandler(a.GetConfiguration)
-	putConfig := a.WrapHandler(a.PutConfiguration)
-	deleteConfig := a.WrapHandler(a.DeleteConfiguration)
+func (s *Server) WireAPI(r *mux.Router) {
+	listConfig := s.WrapHandler(s.ListConfigurations)
+	getConfig := s.WrapHandler(s.GetConfiguration)
+	putConfig := s.WrapHandler(s.PutConfiguration)
+	deleteConfig := s.WrapHandler(s.DeleteConfiguration)
 
 	r.HandleFunc("/agent/api/v1/configs", listConfig).Methods("GET")
 	r.HandleFunc("/agent/api/v1/configs/{name}", getConfig).Methods("GET")
@@ -52,7 +47,7 @@ func (a *Agent) WireAPI(r *mux.Router) {
 
 // WrapHandler is responsible for turning an APIHandler into an HTTP
 // handler by wrapping responses and writing them as JSON.
-func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {
+func (s *Server) WrapHandler(next APIHandler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp, err := next(r)
 		if err != nil {
@@ -65,7 +60,7 @@ func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {
 			}
 
 			if err != nil {
-				level.Error(a.logger).Log("msg", "failed writing error response to client", "err", err)
+				level.Error(s.logger).Log("msg", "failed writing error response to client", "err", err)
 			}
 			return
 		}
@@ -83,17 +78,17 @@ func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {
 		}
 
 		if err := configapi.WriteResponse(w, statusCode, data); err != nil {
-			level.Error(a.logger).Log("msg", "failed to write valid response", "err", err)
+			level.Error(s.logger).Log("msg", "failed to write valid response", "err", err)
 		}
 	})
 }
 
 // ListConfigurations returns a list of the named configurations or all
 // configurations associated with the Prometheus agent.
-func (a *Agent) ListConfigurations(r *http.Request) (interface{}, error) {
-	vv, err := a.kv.List(r.Context(), "")
+func (s *Server) ListConfigurations(r *http.Request) (interface{}, error) {
+	vv, err := s.kv.List(r.Context(), "")
 	if err != nil {
-		level.Error(a.logger).Log("msg", "failed to list keys in kv store", "err", err)
+		level.Error(s.logger).Log("msg", "failed to list keys in kv store", "err", err)
 		return nil, err
 	}
 
@@ -101,11 +96,11 @@ func (a *Agent) ListConfigurations(r *http.Request) (interface{}, error) {
 }
 
 // GetConfiguration returns an existing named configuration.
-func (a *Agent) GetConfiguration(r *http.Request) (interface{}, error) {
+func (s *Server) GetConfiguration(r *http.Request) (interface{}, error) {
 	configKey := getConfigName(r)
-	v, err := a.kv.Get(r.Context(), configKey)
+	v, err := s.kv.Get(r.Context(), configKey)
 	if err != nil {
-		level.Error(a.logger).Log("msg", "error getting configuration from kv store", "err", err)
+		level.Error(s.logger).Log("msg", "error getting configuration from kv store", "err", err)
 		return nil, fmt.Errorf("error getting configuration: %w", err)
 	} else if v == nil {
 		return nil, &httpError{
@@ -114,9 +109,9 @@ func (a *Agent) GetConfiguration(r *http.Request) (interface{}, error) {
 		}
 	}
 
-	cfg, err := MarshalInstanceConfig(v.(*InstanceConfig))
+	cfg, err := instance.MarshalConfig(v.(*instance.Config))
 	if err != nil {
-		level.Error(a.logger).Log("msg", "error marshaling configuration", "err", err)
+		level.Error(s.logger).Log("msg", "error marshaling configuration", "err", err)
 		return nil, err
 	}
 
@@ -125,22 +120,22 @@ func (a *Agent) GetConfiguration(r *http.Request) (interface{}, error) {
 
 // PutConfiguration creates or updates a named configuration. Completely
 // overrides the previous configuration if it exists.
-func (a *Agent) PutConfiguration(r *http.Request) (interface{}, error) {
-	inst, err := UnmarshalInstanceConfig(r.Body)
+func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
+	inst, err := instance.UnmarshalConfig(r.Body)
 	if err != nil {
 		return nil, err
 	}
 	inst.Name = getConfigName(r)
 
 	var newConfig bool
-	err = a.kv.CAS(r.Context(), inst.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+	err = s.kv.CAS(r.Context(), inst.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 		// The configuration is new if there's no previous value from the CAS
 		newConfig = (in == nil)
 		return inst, false, nil
 	})
 
 	if err != nil {
-		level.Error(a.logger).Log("msg", "failed to put config", "err", err)
+		level.Error(s.logger).Log("msg", "failed to put config", "err", err)
 		return nil, err
 	}
 
@@ -154,15 +149,15 @@ func (a *Agent) PutConfiguration(r *http.Request) (interface{}, error) {
 }
 
 // DeleteConfiguration deletes an existing named configuration.
-func (a *Agent) DeleteConfiguration(r *http.Request) (interface{}, error) {
+func (s *Server) DeleteConfiguration(r *http.Request) (interface{}, error) {
 	configKey := getConfigName(r)
 
-	v, err := a.kv.Get(r.Context(), configKey)
+	v, err := s.kv.Get(r.Context(), configKey)
 	if err != nil {
 		// Silently ignore the error; Get is just used for validation since Delete
 		// will never return an error if the key doesn't exist. We'll log it anyway
 		// but the user will be left unaware of there being a problem here.
-		level.Error(a.logger).Log("msg", "error validating key existence for deletion", "err", err)
+		level.Error(s.logger).Log("msg", "error validating key existence for deletion", "err", err)
 	} else if v == nil {
 		// But if the object doesn't exist, there's nothing to delete.
 		return nil, &httpError{
@@ -171,9 +166,9 @@ func (a *Agent) DeleteConfiguration(r *http.Request) (interface{}, error) {
 		}
 	}
 
-	err = a.kv.Delete(r.Context(), configKey)
+	err = s.kv.Delete(r.Context(), configKey)
 	if err != nil {
-		level.Error(a.logger).Log("msg", "error deleting configuration from kv store", "err", err)
+		level.Error(s.logger).Log("msg", "error deleting configuration from kv store", "err", err)
 		return nil, fmt.Errorf("error deleting configuration: %w", err)
 	}
 
@@ -198,19 +193,4 @@ type httpResponse struct {
 func getConfigName(r *http.Request) string {
 	vars := mux.Vars(r)
 	return vars["name"]
-}
-
-// UnmarshalInstanceConfig unmarshals an instance config from a reader
-// based on a provided content type.
-func UnmarshalInstanceConfig(r io.Reader) (*InstanceConfig, error) {
-	var cfg InstanceConfig
-	err := yaml.NewDecoder(r).Decode(&cfg)
-	return &cfg, err
-}
-
-// MarshalInstanceConfig marshals an instance config based on a provided
-// content type.
-func MarshalInstanceConfig(c *InstanceConfig) (string, error) {
-	bb, err := yaml.Marshal(c)
-	return string(bb), err
 }

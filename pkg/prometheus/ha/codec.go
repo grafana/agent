@@ -1,4 +1,4 @@
-package prometheus
+package ha
 
 import (
 	"bytes"
@@ -6,10 +6,11 @@ import (
 	"fmt"
 
 	"github.com/cortexproject/cortex/pkg/ring/kv/codec"
+	"github.com/grafana/agent/pkg/prometheus/instance"
 	"gopkg.in/yaml.v2"
 )
 
-// GetCodec returns the codec for encoding and decoding InstanceConfigs
+// GetCodec returns the codec for encoding and decoding instance.Configs
 func GetCodec() codec.Codec {
 	return &yamlCodec{}
 }
@@ -22,7 +23,7 @@ func (*yamlCodec) Decode(bb []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	var inst InstanceConfig
+	var inst instance.Config
 	if err := yaml.NewDecoder(r).Decode(&inst); err != nil {
 		return nil, err
 	}
@@ -33,7 +34,7 @@ func (*yamlCodec) Encode(v interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 
 	switch v.(type) {
-	case InstanceConfig, *InstanceConfig:
+	case instance.Config, *instance.Config:
 		break
 	default:
 		panic(fmt.Sprintf("unexpected type %T passed to yamlCodec.Encode", v))

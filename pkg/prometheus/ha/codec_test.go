@@ -1,8 +1,9 @@
-package prometheus
+package ha
 
 import (
 	"testing"
 
+	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -18,7 +19,7 @@ scrape_configs:
           cluster: 'local'
           origin: 'agent'`
 
-	var in InstanceConfig
+	var in instance.Config
 	err := yaml.Unmarshal([]byte(exampleConfig), &in)
 	require.NoError(t, err)
 
