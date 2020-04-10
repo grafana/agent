@@ -43,6 +43,9 @@ func (s *Server) WireAPI(r *mux.Router) {
 	r.HandleFunc("/agent/api/v1/configs/{name}", getConfig).Methods("GET")
 	r.HandleFunc("/agent/api/v1/config/{name}", putConfig).Methods("PUT", "POST")
 	r.HandleFunc("/agent/api/v1/config/{name}", deleteConfig).Methods("DELETE")
+
+	// Debug ring page
+	r.Handle("/ring", s.ring)
 }
 
 // WrapHandler is responsible for turning an APIHandler into an HTTP

@@ -131,7 +131,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 
 	if cfg.ServiceConfig.Enabled {
 		var err error
-		a.ha, err = ha.New(cfg.ServiceConfig, a.logger)
+		a.ha, err = ha.New(cfg.ServiceConfig, a.logger, a.cm)
 		if err != nil {
 			return nil, err
 		}
@@ -198,6 +198,9 @@ func (a *Agent) WireAPI(r *mux.Router) {
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
+	if a.ha != nil {
+		a.ha.Stop()
+	}
 	a.cm.Stop()
 }
 

@@ -12,3 +12,10 @@ prometheus:
       etcd:
         endpoints:
           - etcd:2379
+    lifecycler:
+      ring:
+        kvstore:
+          store: etcd
+          etcd:
+            endpoints:
+              - etcd:2379

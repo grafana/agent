@@ -19,6 +19,8 @@ type Config struct {
 // ApplyDefaults sets default values in the config
 func (c *Config) ApplyDefaults() {
 	c.Prometheus.ApplyDefaults()
+
+	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = &c.Server.GRPCListenPort
 }
 
 // RegisterFlags registers flags in underlying configs

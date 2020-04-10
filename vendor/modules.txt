@@ -78,6 +78,7 @@ github.com/coreos/go-systemd/journal
 github.com/coreos/pkg/capnslog
 # github.com/cortexproject/cortex v1.0.1-0.20200409122148-163437e76cad
 github.com/cortexproject/cortex/pkg/prom1/storage/metric
+github.com/cortexproject/cortex/pkg/ring
 github.com/cortexproject/cortex/pkg/ring/kv
 github.com/cortexproject/cortex/pkg/ring/kv/codec
 github.com/cortexproject/cortex/pkg/ring/kv/consul
