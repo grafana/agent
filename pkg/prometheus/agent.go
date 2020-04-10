@@ -145,6 +145,13 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 // is canceled. This function will not return until the launched instance
 // has fully shut down.
 func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
+	// Make sure defaults are applied to the config in case it is
+	// incomplete.
+	//
+	// TODO(rfratto): maybe applying defaults should happen somewhere else.
+	// ConfigManager?
+	c.ApplyDefaults(&a.cfg.Global)
+
 	var (
 		mut  sync.Mutex
 		inst inst

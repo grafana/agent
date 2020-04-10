@@ -21,3 +21,5 @@ scrape_configs:
           cluster: 'docker_compose'
           origin: 'agent'
           container: 'agent-3'
+remote_write:
+  - url: http://cortex:9009/api/prom/push

@@ -243,7 +243,7 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 
 	readyScrapeManager.Set(scrapeManager)
 
-	level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", i.hostname)
+	level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", i.hostname, "enabled", i.cfg.HostFilter)
 	filterer := NewHostFilter(i.hostname)
 
 	var g run.Group
