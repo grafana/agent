@@ -1,1 +1,3 @@
-(import 'dashboards.libsonnet')
+(import 'dashboards.libsonnet') + {
+  grafanaDashboardFolder: 'Agent',
+}

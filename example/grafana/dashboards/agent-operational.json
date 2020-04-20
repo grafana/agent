@@ -273,7 +273,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\"}[5m])",
+                     "expr": "rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\", pod_name=~\".*grafana-agent.*\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{job}}",
@@ -349,7 +349,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "container_memory_working_set_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\"}",
+                     "expr": "container_memory_working_set_bytes{cluster=~\"$cluster\", pod_name=~\".*grafana-agent.*\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{job}}",
@@ -425,7 +425,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(promtail_custom_bad_words_total{cluster=~\"$cluster\", exported_namespace=~\"$namespace\", job=~\"$job\"}[5m])",
+                     "expr": "rate(promtail_custom_bad_words_total{cluster=~\"$cluster\", exported_namespace=~\"$namespace\", exported_job=~\"$job\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{job}}",
@@ -513,7 +513,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(container_network_receive_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\"}[5m])",
+                     "expr": "rate(container_network_receive_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", pod_name=~\".*grafana-agent.*\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{job}}",
@@ -589,7 +589,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(container_network_send_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\"}[5m])",
+                     "expr": "rate(container_network_transmit_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", pod_name=~\".*grafana-agent.*\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{job}}",
