@@ -16,7 +16,7 @@
     cluster_name: error 'must specify cluster name',
     namespace: error 'must specify namespace',
 
-    use_tanka_yaml_manifest: true,
+    agent_config_hash_annotation: true,
 
     //
     // Prometheus instance options

@@ -40,9 +40,17 @@ k + config {
     container.mixin.securityContext.withPrivileged(true) +
     container.mixin.securityContext.withRunAsUser(0),
 
+  local config_hash_mixin =
+    if $._config.agent_config_hash_annotation then
+    daemonSet.mixin.spec.template.metadata.withAnnotationsMixin({
+      config_hash: std.md5(std.toString($._config.agent_config)),
+    })
+    else {},
+
   // TODO(rfratto): persistent storage for the WAL here is missing. hostVolume?
   agent_daemonset:
     daemonSet.new($._config.agent_pod_name, [$.agent_container]) +
     daemonSet.mixin.spec.template.spec.withServiceAccount($._config.agent_cluster_role_name) +
+    config_hash_mixin +
     $.util.configVolumeMount($._config.agent_configmap_name, '/etc/agent'),
 }
