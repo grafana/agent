@@ -10,5 +10,10 @@ agent {
         password: '${REMOTE_WRITE_PASSWORD}',
       },
     }],
+
+    // Since the config map isn't managed by Tanka, we don't want to
+    // add the configmap's hash as an annotation for the Kubernetes
+    // YAML manifest.
+    agent_config_hash_annotation: false,
   },
 }
