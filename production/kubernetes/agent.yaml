@@ -1,37 +1,7 @@
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
+apiVersion: v1
+kind: ServiceAccount
 metadata:
   name: grafana-agent
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - nodes
-  - nodes/proxy
-  - services
-  - endpoints
-  - pods
-  verbs:
-  - get
-  - list
-  - watch
-- nonResourceURLs:
-  - /metrics
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: grafana-agent
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: grafana-agent
-subjects:
-- kind: ServiceAccount
-  name: grafana-agent
-  namespace: default
 ---
 apiVersion: v1
 data:
@@ -225,6 +195,41 @@ kind: ConfigMap
 metadata:
   name: grafana-agent
 ---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: grafana-agent
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-agent
+subjects:
+- kind: ServiceAccount
+  name: grafana-agent
+  namespace: default
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -270,8 +275,3 @@ spec:
         name: grafana-agent
   updateStrategy:
     type: RollingUpdate
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: grafana-agent
