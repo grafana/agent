@@ -74,6 +74,20 @@ A docker-compose config is provided in `example/`. It deploys the Agent, Cortex,
 Grafana, and Avalanche for load testing. See the
 [README in `example/`](./example/README.md) for more information.
 
+## Prometheus Vendoring
+
+The Grafana Cloud Agent vendors a downstream Prometheus repository maintained by 
+[Grafana Labs](https://github.com/grafana/prometheus). This is done so experimental
+features Grafana Labs wants to contribute upstream can first be tested and iterated on
+quickly within the Agent. We aim to always base our vendor off of a recent official 
+Prometheus release and to keep the experimental changes not available in the upstream 
+repository to a minimum.
+
+The current vendored Prometheus release is **v2.17.1**.
+
+For more context on our vendoring strategy, read our 
+[repo maintenance guide](./docs/maintaining.md#grafanaprometheus-maintenance).
+
 ## Getting Help
 
 If you have any questions or feedback regarding the Grafana Cloud Agent:
