@@ -179,8 +179,7 @@ func (e httpError) Error() string { return e.Err.Error() }
 // "name" variable. If not found, getConfigName will panic.
 func getConfigName(r *http.Request) string {
 	vars := mux.Vars(r)
-	name, _ := vars["name"]
-	return name
+	return vars["name"]
 }
 
 // UnmarshalInstanceConfig unmarshals an instance config from a reader
