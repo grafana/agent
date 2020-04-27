@@ -179,10 +179,7 @@ func (e httpError) Error() string { return e.Err.Error() }
 // "name" variable. If not found, getConfigName will panic.
 func getConfigName(r *http.Request) string {
 	vars := mux.Vars(r)
-	name, ok := vars["name"]
-	if !ok {
-		panic("name not found in mux vars - the mux route is misconfigured")
-	}
+	name, _ := vars["name"]
 	return name
 }
 

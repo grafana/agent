@@ -57,7 +57,7 @@ Response:
 }
 ```
 
-### Get Config:
+### Get Config
 
 ```
 GET /agent/api/v1/configs/{name}
@@ -76,8 +76,6 @@ Response on success:
   }
 }
 ```
-
-Get config
 
 ### Update Config
 
@@ -103,7 +101,7 @@ Response on success:
 }
 ```
 
-### Delete Config:
+### Delete Config
 
 ```
 DELETE /agent/api/v1/config/{name}
