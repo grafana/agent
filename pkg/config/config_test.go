@@ -32,7 +32,7 @@ func TestConfig_StrictYamlParsing(t *testing.T) {
 prometheus:
   global:
     scrape_timeout: 10s
-	scrape_timeout: 15s`
+    scrape_timeout: 15s`
 		var c Config
 		err := Load([]byte(cfg), &c)
 		require.Error(t, err)
