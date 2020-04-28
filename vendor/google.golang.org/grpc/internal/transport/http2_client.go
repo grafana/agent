@@ -45,14 +45,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// clientConnectionCounter counts the number of connections a client has
-// initiated (equal to the number of http2Clients created). Must be accessed
-// atomically.
-var clientConnectionCounter uint64
-
 // http2Client implements the ClientTransport interface with HTTP2.
 type http2Client struct {
-	lastRead   int64 // Keep this field 64-bit aligned. Accessed atomically.
+	lastRead   int64 // keep this field 64-bit aligned
 	ctx        context.Context
 	cancel     context.CancelFunc
 	ctxDone    <-chan struct{} // Cache the ctx.Done() chan.
@@ -131,8 +126,6 @@ type http2Client struct {
 	onClose  func()
 
 	bufferPool *bufferPool
-
-	connectionID uint64
 }
 
 func dial(ctx context.Context, fn func(context.Context, string) (net.Conn, error), addr string) (net.Conn, error) {
@@ -336,8 +329,6 @@ func newHTTP2Client(connectCtx, ctx context.Context, addr TargetInfo, opts Conne
 		}
 	}
 
-	t.connectionID = atomic.AddUint64(&clientConnectionCounter, 1)
-
 	if err := t.framer.writer.Flush(); err != nil {
 		return nil, err
 	}
@@ -403,8 +394,7 @@ func (t *http2Client) getPeer() *peer.Peer {
 func (t *http2Client) createHeaderFields(ctx context.Context, callHdr *CallHdr) ([]hpack.HeaderField, error) {
 	aud := t.createAudience(callHdr)
 	ri := credentials.RequestInfo{
-		Method:   callHdr.Method,
-		AuthInfo: t.authInfo,
+		Method: callHdr.Method,
 	}
 	ctxWithRequestInfo := internal.NewRequestInfoContext.(func(context.Context, credentials.RequestInfo) context.Context)(ctx, ri)
 	authData, err := t.getTrAuthData(ctxWithRequestInfo, aud)
@@ -434,7 +424,6 @@ func (t *http2Client) createHeaderFields(ctx context.Context, callHdr *CallHdr) 
 
 	if callHdr.SendCompress != "" {
 		headerFields = append(headerFields, hpack.HeaderField{Name: "grpc-encoding", Value: callHdr.SendCompress})
-		headerFields = append(headerFields, hpack.HeaderField{Name: "grpc-accept-encoding", Value: callHdr.SendCompress})
 	}
 	if dl, ok := ctx.Deadline(); ok {
 		// Send out timeout regardless its value. The server can detect timeout context by itself.
@@ -680,19 +669,12 @@ func (t *http2Client) NewStream(ctx context.Context, callHdr *CallHdr) (_ *Strea
 		}
 	}
 	if t.statsHandler != nil {
-		header, ok := metadata.FromOutgoingContext(ctx)
-		if ok {
-			header.Set("user-agent", t.userAgent)
-		} else {
-			header = metadata.Pairs("user-agent", t.userAgent)
-		}
 		outHeader := &stats.OutHeader{
 			Client:      true,
 			FullMethod:  callHdr.Method,
 			RemoteAddr:  t.remoteAddr,
 			LocalAddr:   t.localAddr,
 			Compression: callHdr.SendCompress,
-			Header:      header,
 		}
 		t.statsHandler.HandleRPC(s.ctx, outHeader)
 	}
@@ -1195,14 +1177,12 @@ func (t *http2Client) operateHeaders(frame *http2.MetaHeadersFrame) {
 				inHeader := &stats.InHeader{
 					Client:     true,
 					WireLength: int(frame.Header().Length),
-					Header:     s.header.Copy(),
 				}
 				t.statsHandler.HandleRPC(s.ctx, inHeader)
 			} else {
 				inTrailer := &stats.InTrailer{
 					Client:     true,
 					WireLength: int(frame.Header().Length),
-					Trailer:    s.trailer.Copy(),
 				}
 				t.statsHandler.HandleRPC(s.ctx, inTrailer)
 			}
@@ -1389,6 +1369,7 @@ func (t *http2Client) keepalive() {
 			// acked).
 			sleepDuration := minTime(t.kp.Time, timeoutLeft)
 			timeoutLeft -= sleepDuration
+			prevNano = lastRead
 			timer.Reset(sleepDuration)
 		case <-t.ctx.Done():
 			if !timer.Stop() {

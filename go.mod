@@ -3,22 +3,28 @@ module github.com/grafana/agent
 go 1.12
 
 require (
-	github.com/cortexproject/cortex v0.4.0
+	github.com/cortexproject/cortex v1.0.1-0.20200409122148-163437e76cad
 	github.com/go-kit/kit v0.10.0
 	github.com/golang/protobuf v1.3.5 // indirect
+	github.com/gorilla/mux v1.7.3
 	github.com/oklog/run v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/common v0.9.1
 	github.com/prometheus/procfs v0.0.11 // indirect
-	github.com/prometheus/prometheus v1.8.2-0.20200106144642-d9613e5c466c
-	github.com/sercand/kuberesolver v2.4.0+incompatible // indirect
+	github.com/prometheus/prometheus v1.8.2-0.20200213233353-b90be6f32a33
 	github.com/stretchr/testify v1.4.0
-	github.com/weaveworks/common v0.0.0-20190822150010-afb9996716e4
+	github.com/weaveworks/common v0.0.0-20200310113808-2708ba4e60a4
 	go.uber.org/atomic v1.5.0
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
-	google.golang.org/grpc v1.28.0 // indirect
+	golang.org/x/sys v0.0.0-20200406155108-e3b113bbe6a4 // indirect
 	gopkg.in/yaml.v2 v2.2.8
+)
+
+// Needed for Cortex's dependencies to work properly.
+replace (
+	google.golang.org/api => google.golang.org/api v0.14.0
+	google.golang.org/grpc => google.golang.org/grpc v1.25.1
 )
 
 // Replace directives from Prometheus
