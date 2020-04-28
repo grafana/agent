@@ -96,7 +96,7 @@ Instances, each of which is its own mini-Agent. Most users will only need to
 define one instance.
 
 ```yaml
-# Configures the optinal scraping service to cluster agents.
+# Configures the optional scraping service to cluster agents.
 [scraping_service: <scraping_service_config>]
 
 # Configure values for all Prometheus instances.

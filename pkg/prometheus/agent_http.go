@@ -70,7 +70,19 @@ func (a *Agent) WrapHandler(next APIHandler) http.HandlerFunc {
 			return
 		}
 
-		if err := configapi.WriteResponse(w, http.StatusOK, resp); err != nil {
+		// Prepare data and status code to send back to the writer: if the handler
+		// returned an *httpResponse, use the status code defined there and send the
+		// internal data. Otherwise, assume HTTP 200 OK and marshal the raw response.
+		var (
+			data       interface{} = resp
+			statusCode int         = http.StatusOK
+		)
+		if httpResp, ok := data.(*httpResponse); ok {
+			data = httpResp.Data
+			statusCode = httpResp.StatusCode
+		}
+
+		if err := configapi.WriteResponse(w, statusCode, data); err != nil {
 			level.Error(a.logger).Log("msg", "failed to write valid response", "err", err)
 		}
 	})
@@ -127,17 +139,18 @@ func (a *Agent) PutConfiguration(r *http.Request) (interface{}, error) {
 		return inst, false, nil
 	})
 
-	if err == nil {
-		if newConfig {
-			totalCreatedConfigs.Inc()
-		} else {
-			totalUpdatedConfigs.Inc()
-		}
-	} else {
+	if err != nil {
 		level.Error(a.logger).Log("msg", "failed to put config", "err", err)
+		return nil, err
 	}
 
-	return nil, err
+	if newConfig {
+		totalCreatedConfigs.Inc()
+		return &httpResponse{StatusCode: http.StatusCreated}, nil
+	}
+
+	totalUpdatedConfigs.Inc()
+	return &httpResponse{StatusCode: http.StatusOK}, nil
 }
 
 // DeleteConfiguration deletes an existing named configuration.
@@ -174,6 +187,11 @@ type httpError struct {
 }
 
 func (e httpError) Error() string { return e.Err.Error() }
+
+type httpResponse struct {
+	StatusCode int
+	Data       interface{}
+}
 
 // getConfigName uses gorilla/mux's route variables to extract the
 // "name" variable. If not found, getConfigName will panic.

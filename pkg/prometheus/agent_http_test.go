@@ -40,6 +40,7 @@ func TestAgent_ListConfigurations(t *testing.T) {
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs")
 	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var apiResp configapi.ListConfigurationsResponse
 	unmarshalTestResponse(t, resp.Body, &apiResp)
@@ -56,6 +57,7 @@ func TestAgent_GetConfiguration_Invalid(t *testing.T) {
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/does-not-exist")
 	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	var apiResp configapi.ErrorResponse
 	unmarshalTestResponse(t, resp.Body, &apiResp)
@@ -76,6 +78,7 @@ func TestAgent_GetConfiguration_YAML(t *testing.T) {
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/a")
 	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var apiResp configapi.GetConfigurationResponse
 	unmarshalTestResponse(t, resp.Body, &apiResp)
@@ -98,21 +101,27 @@ func TestAgent_PutConfiguration(t *testing.T) {
 	bb, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
 
-	resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/newconfig", "", bytes.NewReader(bb))
-	require.NoError(t, err)
-	unmarshalTestResponse(t, resp.Body, nil)
+	// Try calling Put twice; first time should create the config and the second
+	// should update it.
+	expectedResponses := []int{http.StatusCreated, http.StatusOK}
+	for _, expectedResp := range expectedResponses {
+		resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/newconfig", "", bytes.NewReader(bb))
+		require.NoError(t, err)
+		require.Equal(t, expectedResp, resp.StatusCode)
+		unmarshalTestResponse(t, resp.Body, nil)
 
-	// Get the stored config back
-	resp, err = http.Get(env.srv.URL + "/agent/api/v1/configs/newconfig")
-	require.NoError(t, err)
-	var apiResp configapi.GetConfigurationResponse
-	unmarshalTestResponse(t, resp.Body, &apiResp)
+		// Get the stored config back
+		resp, err = http.Get(env.srv.URL + "/agent/api/v1/configs/newconfig")
+		require.NoError(t, err)
+		var apiResp configapi.GetConfigurationResponse
+		unmarshalTestResponse(t, resp.Body, &apiResp)
 
-	var actual InstanceConfig
-	err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
-	require.NoError(t, err)
+		var actual InstanceConfig
+		err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
+		require.NoError(t, err)
 
-	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+		require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+	}
 }
 
 func TestAgent_DeleteConfiguration(t *testing.T) {
@@ -144,6 +153,7 @@ func TestAgent_DeleteConfiguration(t *testing.T) {
 	// Do a list, nothing we stored should be there anymore.
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs")
 	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var apiResp configapi.ListConfigurationsResponse
 	unmarshalTestResponse(t, resp.Body, &apiResp)

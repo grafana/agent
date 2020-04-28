@@ -25,7 +25,9 @@ properly:
 
 Status will be either `success` or `error`. All 2xx responses will be
 accompanied with a `success` value for the status field. 4xx and 5xx
-responses will provide a value of `error`.
+responses will provide a value of `error`. All requests may potentially
+return 500 on an internal error. Other non-500 responses will be documented
+per API.
 
 The data field may or may not be present, depending on the endpoint. It
 provides extra information for the query. The documentation for each endpoint
@@ -40,6 +42,7 @@ GET /agent/api/v1/configs
 List Configs returns a list of the named configurations currently known by the
 underlying KV store.
 
+Status code: 200 on success.
 Response:
 
 ```
@@ -66,6 +69,7 @@ GET /agent/api/v1/configs/{name}
 Get Config will return a single configuration by name. The configuration must
 exist or an error will be returned.
 
+Status code: 200 on success, 400 on invalid config name.
 Response on success:
 
 ```
@@ -93,6 +97,7 @@ defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.
 
+Status code: 201 with a new config, 200 on updated config.
 Response on success:
 
 ```
@@ -111,6 +116,7 @@ Delete Config will attempt to delete a configuration by name. The named
 configuration must exist; deleting a nonexistent config will result in an
 error.
 
+Status code: 200 on success, 400 with invalid config name.
 Response on success:
 
 ```
