@@ -13,7 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/cortexproject/cortex/pkg/ring/kv"
+	"github.com/cortexproject/cortex/pkg/ring/kv/consul"
+	"github.com/cortexproject/cortex/pkg/util/flagext"
 	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
@@ -186,7 +189,8 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 			Store:  "inmemory",
 			Prefix: "configs/",
 		},
-	}, logger)
+		Lifecycler: testLifecyclerConfig(t),
+	}, logger, newMockConfigManager())
 	require.NoError(t, err)
 
 	// Wire the API
@@ -197,6 +201,21 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 		srv:    srv,
 		router: router,
 	}
+}
+
+func testLifecyclerConfig(t *testing.T) ring.LifecyclerConfig {
+	var cfg ring.LifecyclerConfig
+	flagext.DefaultValues(&cfg)
+	cfg.NumTokens = 1
+	cfg.ListenPort = func(i int) *int { return &i }(0)
+	cfg.Addr = "localhost"
+	cfg.ID = "localhost"
+	cfg.FinalSleep = 0
+
+	inmemoryKV := consul.NewInMemoryClient(ring.GetCodec())
+	cfg.RingConfig.ReplicationFactor = 1
+	cfg.RingConfig.KVStore.Mock = inmemoryKV
+	return cfg
 }
 
 // unmarshalTestResponse will unmarshal a test response's data to v. If v is
@@ -221,4 +240,26 @@ func unmarshalTestResponse(t *testing.T, r io.ReadCloser, v interface{}) {
 
 	err = json.Unmarshal(resp.Data, v)
 	require.NoError(t, err)
+}
+
+type mockConfigManager struct {
+	cfgs map[string]instance.Config
+}
+
+func newMockConfigManager() *mockConfigManager {
+	cm := mockConfigManager{cfgs: make(map[string]instance.Config)}
+	return &cm
+}
+
+func (cm *mockConfigManager) ListConfigs() map[string]instance.Config {
+	return cm.cfgs
+}
+
+func (cm *mockConfigManager) ApplyConfig(c instance.Config) {
+	cm.cfgs[c.Name] = c
+}
+
+func (cm *mockConfigManager) DeleteConfig(name string) error {
+	delete(cm.cfgs, name)
+	return nil
 }
