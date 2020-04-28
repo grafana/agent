@@ -96,7 +96,7 @@ func TestAgent(t *testing.T) {
 		InstanceRestartBackoff: time.Duration(0),
 	}
 
-	var fact mockInstanceFactory
+	fact := newMockInstanceFactory()
 
 	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
@@ -160,7 +160,7 @@ func TestAgent_Stop(t *testing.T) {
 		InstanceRestartBackoff: time.Duration(0),
 	}
 
-	var fact mockInstanceFactory
+	fact := newMockInstanceFactory()
 
 	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
@@ -223,11 +223,11 @@ type mockInstanceFactory struct {
 	created *atomic.Int64
 }
 
-func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg InstanceConfig, _ string, _ log.Logger) (instance, error) {
+func newMockInstanceFactory() *mockInstanceFactory {
+	return &mockInstanceFactory{created: atomic.NewInt64(0)}
+}
 
-	if f.created == nil {
-		f.created = atomic.NewInt64(0)
-	}
+func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg InstanceConfig, _ string, _ log.Logger) (instance, error) {
 	f.created.Add(1)
 
 	f.mut.Lock()
