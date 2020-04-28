@@ -1,53 +1,20 @@
 package prometheus
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
 )
-
-func TestConfig_UnmarshalYAML_Defaults(t *testing.T) {
-	var c Config
-
-	// Static compilation test: *Config should be an unmarshaller
-	var _ yaml.Unmarshaler = &c
-
-	err := yaml.Unmarshal([]byte("{}"), &c)
-	require.NoError(t, err)
-	require.Equal(t, config.DefaultGlobalConfig, c.Global)
-
-	t.Run("Invalid YAML", func(t *testing.T) {
-		var c Config
-		err := yaml.Unmarshal([]byte("<h1>I'm pretty sure this is XML.</h1>"), &c)
-		require.Error(t, err)
-	})
-}
-
-func TestConfig_UnmarshalYAML_DefaultsOverride(t *testing.T) {
-	data := `global: { scrape_timeout: '33s' }`
-
-	expect := config.GlobalConfig{
-		ScrapeInterval:     model.Duration(1 * time.Minute),
-		ScrapeTimeout:      model.Duration(33 * time.Second),
-		EvaluationInterval: model.Duration(1 * time.Minute),
-	}
-
-	var c Config
-	err := yaml.Unmarshal([]byte(data), &c)
-	require.NoError(t, err)
-	require.Equal(t, expect, c.Global)
-}
 
 func TestNew_ValidatesConfig(t *testing.T) {
 	// Zero value of Config is invalid; it needs at least a
@@ -109,11 +76,11 @@ func TestConfig_Validate(t *testing.T) {
 }
 
 func copyConfig(t *testing.T, c Config) Config {
-	bb, err := json.Marshal(c)
+	bb, err := yaml.Marshal(c)
 	require.NoError(t, err)
 
 	var cp Config
-	err = json.Unmarshal(bb, &cp)
+	err = yaml.Unmarshal(bb, &cp)
 	require.NoError(t, err)
 	return cp
 }
@@ -129,34 +96,39 @@ func TestAgent(t *testing.T) {
 		InstanceRestartBackoff: time.Duration(0),
 	}
 
-	var fact mockInstanceFactory
+	fact := newMockInstanceFactory()
 
 	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
-	require.Equal(t, fact.created.Load(), int64(2))
-	require.Len(t, a.instances, 2)
+
+	test.Poll(t, time.Second*30, true, func() interface{} {
+		if fact.created == nil {
+			return false
+		}
+		return fact.created.Load() == 2 && len(a.cm.processes) == 2
+	})
 
 	t.Run("wait should be called on each instance", func(t *testing.T) {
-		a.forAllInstances(func(_ int, i instance) {
-			mi := i.(*mockInstance)
+		fact.mut.Lock()
+		defer fact.mut.Unlock()
 
+		for _, mi := range fact.mocks {
 			// Each instance should have wait called on it
 			test.Poll(t, time.Millisecond*500, true, func() interface{} {
 				return mi.waitCalled.Load()
 			})
-		})
+		}
 	})
 
 	t.Run("instances should be restarted when stopped", func(t *testing.T) {
 		oldInstances := fact.created.Load()
 
-		a.forAllInstances(func(_ int, i instance) {
-			// Set abnormal error so the instance is restarted
-			mi := i.(*mockInstance)
+		fact.mut.Lock()
+		for _, mi := range fact.mocks {
 			mi.exitErr = io.EOF
-
-			i.Stop()
-		})
+			mi.Stop()
+		}
+		fact.mut.Unlock()
 
 		test.Poll(t, time.Millisecond*500, oldInstances*2, func() interface{} {
 			return fact.created.Load()
@@ -166,9 +138,11 @@ func TestAgent(t *testing.T) {
 	t.Run("instances should not be restarted when stopped normally", func(t *testing.T) {
 		oldInstances := fact.created.Load()
 
-		a.forAllInstances(func(_ int, i instance) {
-			i.Stop()
-		})
+		fact.mut.Lock()
+		for _, mi := range fact.mocks {
+			mi.Stop()
+		}
+		fact.mut.Unlock()
 
 		time.Sleep(time.Millisecond * 100)
 		require.Equal(t, oldInstances, fact.created.Load())
@@ -186,12 +160,17 @@ func TestAgent_Stop(t *testing.T) {
 		InstanceRestartBackoff: time.Duration(0),
 	}
 
-	var fact mockInstanceFactory
+	fact := newMockInstanceFactory()
 
 	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
-	require.Equal(t, fact.created.Load(), int64(2))
-	require.Len(t, a.instances, 2)
+
+	test.Poll(t, time.Second*30, true, func() interface{} {
+		if fact.created == nil {
+			return false
+		}
+		return fact.created.Load() == 2 && len(a.cm.processes) == 2
+	})
 
 	oldInstances := fact.created.Load()
 
@@ -200,10 +179,11 @@ func TestAgent_Stop(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 	require.Equal(t, oldInstances, fact.created.Load(), "new instances shuold not have been created")
 
-	a.forAllInstances(func(_ int, inst instance) {
-		mi := inst.(*mockInstance)
+	fact.mut.Lock()
+	for _, mi := range fact.mocks {
 		require.True(t, mi.exitCalled.Load())
-	})
+	}
+	fact.mut.Unlock()
 }
 
 type mockInstance struct {
@@ -237,22 +217,31 @@ func (i *mockInstance) Stop() {
 }
 
 type mockInstanceFactory struct {
+	mut   sync.Mutex
+	mocks []*mockInstance
+
 	created *atomic.Int64
 }
 
-func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg InstanceConfig, _ string, _ log.Logger) (instance, error) {
+func newMockInstanceFactory() *mockInstanceFactory {
+	return &mockInstanceFactory{created: atomic.NewInt64(0)}
+}
 
-	if f.created == nil {
-		f.created = atomic.NewInt64(0)
-	}
+func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg InstanceConfig, _ string, _ log.Logger) (instance, error) {
 	f.created.Add(1)
 
-	return &mockInstance{
+	f.mut.Lock()
+	defer f.mut.Unlock()
+
+	inst := &mockInstance{
 		cfg:        cfg,
 		exited:     make(chan bool),
 		waitCalled: atomic.NewBool(false),
 		exitCalled: atomic.NewBool(false),
-	}, nil
+	}
+
+	f.mocks = append(f.mocks, inst)
+	return inst, nil
 }
 
 func TestMetricValueCollector(t *testing.T) {

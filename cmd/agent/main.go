@@ -8,6 +8,7 @@ import (
 	"os"
 
 	// Adds version information
+
 	_ "github.com/grafana/agent/cmd/agent/build"
 
 	"github.com/cortexproject/cortex/pkg/util"
@@ -23,6 +24,10 @@ import (
 type Config struct {
 	Server     server.Config `yaml:"server"`
 	Prometheus prom.Config   `yaml:"prometheus,omitempty"`
+}
+
+func (c *Config) ApplyDefaults() {
+	c.Prometheus.ApplyDefaults()
 }
 
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
@@ -84,6 +89,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Hook up API paths to the router
+	promMetrics.WireAPI(srv.HTTP)
+
 	if err := srv.Run(); err != nil {
 		level.Error(util.Logger).Log("msg", "error running agent", "err", err)
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
@@ -99,5 +107,11 @@ func loadConfig(filename string, config *Config) error {
 		return errors.Wrap(err, "Error reading config file")
 	}
 
-	return yaml.Unmarshal(buf, config)
+	err = yaml.Unmarshal(buf, config)
+	if err != nil {
+		return err
+	}
+
+	config.ApplyDefaults()
+	return nil
 }

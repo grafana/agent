@@ -1,0 +1,9 @@
+host_filter: false
+scrape_configs:
+  - job_name: avalanche-3
+    static_configs:
+      - targets: ['avalanche-3:9001']
+        labels:
+          cluster: 'docker_compose'
+          origin: 'agent'
+          container: 'avalanche-3'
