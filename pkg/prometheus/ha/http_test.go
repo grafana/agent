@@ -189,7 +189,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 			Store:  "inmemory",
 			Prefix: "configs/",
 		},
-		Lifecycler: testLifecyclerConfig(t),
+		Lifecycler: testLifecyclerConfig(),
 	}, logger, newMockConfigManager())
 	require.NoError(t, err)
 
@@ -203,7 +203,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 	}
 }
 
-func testLifecyclerConfig(t *testing.T) ring.LifecyclerConfig {
+func testLifecyclerConfig() ring.LifecyclerConfig {
 	var cfg ring.LifecyclerConfig
 	flagext.DefaultValues(&cfg)
 	cfg.NumTokens = 1

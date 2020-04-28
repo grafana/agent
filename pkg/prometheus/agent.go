@@ -206,7 +206,9 @@ func (a *Agent) WireAPI(r *mux.Router) {
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
 	if a.ha != nil {
-		a.ha.Stop()
+		if err := a.ha.Stop(); err != nil {
+			level.Error(a.logger).Log("msg", "failed to stop scraping service server", "err", err)
+		}
 	}
 	a.cm.Stop()
 }

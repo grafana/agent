@@ -102,13 +102,17 @@ func New(cfg Config, logger log.Logger, cm ConfigManager) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.lc.StartAsync(context.Background())
+	if err := s.lc.StartAsync(context.Background()); err != nil {
+		return nil, err
+	}
 
 	s.ring, err = ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent")
 	if err != nil {
 		return nil, err
 	}
-	s.ring.StartAsync(context.Background())
+	if err := s.ring.StartAsync(context.Background()); err != nil {
+		return nil, err
+	}
 
 	/*
 		TODO(rfratto): scraping service node lifecycle
