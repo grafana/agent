@@ -101,7 +101,7 @@ func TestAgent(t *testing.T) {
 	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
 
-	test.Poll(t, time.Second*5, true, func() interface{} {
+	test.Poll(t, time.Second*30, true, func() interface{} {
 		if fact.created == nil {
 			return false
 		}
@@ -165,7 +165,7 @@ func TestAgent_Stop(t *testing.T) {
 	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
 
-	test.Poll(t, time.Second*5, true, func() interface{} {
+	test.Poll(t, time.Second*30, true, func() interface{} {
 		if fact.created == nil {
 			return false
 		}
