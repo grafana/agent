@@ -54,7 +54,7 @@ var (
 		HostFilter:           false,
 		WALTruncateFrequency: 1 * time.Minute,
 		RemoteFlushDeadline:  1 * time.Minute,
-		WriteStaleOnShutdown: true,
+		WriteStaleOnShutdown: false,
 	}
 )
 
@@ -158,7 +158,7 @@ func New(globalCfg config.GlobalConfig, cfg Config, walDir string, logger log.Lo
 	instWALDir := filepath.Join(walDir, cfg.Name)
 
 	reg := prometheus.WrapRegistererWith(prometheus.Labels{
-		"instance": cfg.Name,
+		"instance_name": cfg.Name,
 	}, prometheus.DefaultRegisterer)
 
 	wstore, err := wal.NewStorage(logger, reg, instWALDir)

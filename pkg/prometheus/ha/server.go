@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"fmt"
 	"hash/fnv"
 	"sync"
 	"time"
@@ -26,6 +25,7 @@ import (
 	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/weaveworks/common/user"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 )
@@ -111,6 +111,8 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 		cm: cm,
 
 		keyToHash: make(map[string]uint32),
+
+		exited: make(chan bool),
 	}
 
 	var err error
@@ -139,15 +141,6 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 		return nil, err
 	}
 
-	if err := s.waitNotifyReshard(); err != nil {
-		return nil, fmt.Errorf("could not run cluster-wide reshard: %w", err)
-	}
-
-	level.Info(s.logger).Log("msg", "cluster-wide reshard finished. running local reshard")
-	if _, err := s.Reshard(context.Background(), &agentproto.ReshardRequest{}); err != nil {
-		return nil, fmt.Errorf("failed running local reshard: %w", err)
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 	s.cancel = cancel
 
@@ -155,54 +148,20 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 	return s, nil
 }
 
-func (s *Server) waitNotifyReshard() error {
-	level.Info(s.logger).Log("msg", "retrieving agents in cluster for cluster-wide reshard")
-
-	var (
-		rs  ring.ReplicationSet
-		err error
-	)
-
-	backoff := util.NewBackoff(context.Background(), util.BackoffConfig{
-		MinBackoff: time.Second,
-		MaxBackoff: 2 * time.Minute,
-		MaxRetries: 10,
-	})
-	for backoff.Ongoing() {
-		rs, err = s.ring.GetAll()
-		if err == nil {
-			break
-		}
-
-		level.Warn(s.logger).Log("msg", "could not get agents in cluster", "err", err)
-		backoff.Wait()
-	}
-	if err := backoff.Err(); err != nil {
-		return err
-	}
-
-	return s.notifyReshard(context.Background(), rs)
-}
-
-func (s *Server) notifyReshard(ctx context.Context, set ring.ReplicationSet) error {
-	_, err := set.Do(ctx, time.Millisecond*250, func(desc *ring.IngesterDesc) (interface{}, error) {
-		// Skip over ourselves; we'll reshard after this process finishes.
-		if desc.Addr == s.lc.Addr {
-			return nil, nil
-		}
-
-		cli, err := client.New(s.clientConfig, desc.Addr)
-		if err != nil {
-			return nil, err
-		}
-		defer cli.Close()
-
-		return cli.Reshard(ctx, &agentproto.ReshardRequest{})
-	})
-	return err
-}
-
 func (s *Server) loop(ctx context.Context) {
+	defer close(s.exited)
+
+	if err := s.waitNotifyReshard(); err != nil {
+		level.Error(s.logger).Log("msg", "could not run cluster-wide reshard", "err", err)
+		return
+	}
+
+	level.Info(s.logger).Log("msg", "cluster-wide reshard finished. running local reshard")
+	if _, err := s.Reshard(context.Background(), &agentproto.ReshardRequest{}); err != nil {
+		level.Error(s.logger).Log("msg", "failed running local reshard", "err", err)
+		return
+	}
+
 	kvWatchExit := make(chan bool)
 
 	// KV watch loop
@@ -249,7 +208,73 @@ func (s *Server) loop(ctx context.Context) {
 	}()
 
 	<-kvWatchExit
-	defer close(s.exited)
+}
+
+func (s *Server) waitNotifyReshard() error {
+	level.Info(s.logger).Log("msg", "retrieving agents in cluster for cluster-wide reshard")
+
+	var (
+		rs  ring.ReplicationSet
+		err error
+	)
+
+	backoff := util.NewBackoff(context.Background(), util.BackoffConfig{
+		MinBackoff: time.Second,
+		MaxBackoff: 2 * time.Minute,
+		MaxRetries: 10,
+	})
+	for backoff.Ongoing() {
+		rs, err = s.ring.GetAll()
+		if err == nil {
+			break
+		}
+
+		level.Warn(s.logger).Log("msg", "could not get agents in cluster", "err", err)
+		backoff.Wait()
+	}
+	if err := backoff.Err(); err != nil {
+		return err
+	}
+
+	return s.notifyReshardAll(context.Background(), rs)
+}
+
+func (s *Server) notifyReshardAll(ctx context.Context, set ring.ReplicationSet) error {
+	_, err := set.Do(ctx, time.Millisecond*250, func(desc *ring.IngesterDesc) (interface{}, error) {
+		// Skip over ourselves; we'll reshard after this process finishes.
+		if desc.Addr == s.lc.Addr {
+			return nil, nil
+		}
+
+		ctx = user.InjectOrgID(ctx, "fake")
+		return nil, s.notifyReshard(ctx, desc)
+	})
+	return err
+}
+
+func (s *Server) notifyReshard(ctx context.Context, desc *ring.IngesterDesc) error {
+	cli, err := client.New(s.clientConfig, desc.Addr)
+	if err != nil {
+		return err
+	}
+	defer cli.Close()
+
+	backoff := util.NewBackoff(context.Background(), util.BackoffConfig{
+		MinBackoff: time.Second,
+		MaxBackoff: 2 * time.Minute,
+		MaxRetries: 10,
+	})
+	for backoff.Ongoing() {
+		_, err := cli.Reshard(ctx, &agentproto.ReshardRequest{})
+		if err == nil {
+			break
+		}
+
+		level.Warn(s.logger).Log("failed to tell remote agent to reshard", "err", err, "addr", desc.Addr)
+		backoff.Wait()
+	}
+
+	return backoff.Err()
 }
 
 // processKey handles a config name and value from the store. One of the
@@ -383,8 +408,10 @@ func (s *Server) Flush() {}
 // TransferOut satisfies ring.FlushTransferer. It connects to all other
 // healthy agents in the cluster and tells them to reshard.
 func (s *Server) TransferOut(ctx context.Context) error {
+	level.Info(s.logger).Log("msg", "leaving cluster; getting all agents to perform cluster-wide reshard")
 	rs, err := s.ring.GetAll()
 	if err != nil {
+		level.Error(s.logger).Log("msg", "failed to get agents for cluster-wide reshard", "err", err)
 		return err
 	}
 
@@ -392,7 +419,8 @@ func (s *Server) TransferOut(ctx context.Context) error {
 	// as LEAVING. So when other agents reshard, OwnsConfig will properly
 	// detect that our agent is about to leave and will reshard as if
 	// we're already completely out of the ring.
-	return s.notifyReshard(ctx, rs)
+	level.Info(s.logger).Log("msg", "performing cluster-wide reshard")
+	return s.notifyReshardAll(ctx, rs)
 }
 
 // Stop stops the HA server and its dependencies.

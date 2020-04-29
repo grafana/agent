@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/prometheus/ha"
 	"github.com/grafana/agent/pkg/prometheus/ha/client"
 	"github.com/grafana/agent/pkg/prometheus/instance"
@@ -197,13 +196,6 @@ func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
 			level.Info(a.logger).Log("msg", "stopped instance", "instance", c.Name)
 			break
 		}
-	}
-}
-
-// WireAPI adds API routes to the provided mux router.
-func (a *Agent) WireAPI(r *mux.Router) {
-	if a.cfg.ServiceConfig.Enabled {
-		a.ha.WireAPI(r)
 	}
 }
 

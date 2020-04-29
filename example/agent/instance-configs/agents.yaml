@@ -1,4 +1,5 @@
 host_filter: false
+write_stale_on_shutdown: true
 scrape_configs:
   - job_name: agent-1
     static_configs:

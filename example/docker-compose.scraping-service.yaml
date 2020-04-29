@@ -22,6 +22,8 @@ services:
       - /bin/agent
       - -config.file=/etc/agent-config/agent-scraping-service.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
+    ports:
+      - "12346:12345"
 
   agent-3:
     image: grafana/agent:latest
@@ -32,6 +34,8 @@ services:
       - /bin/agent
       - -config.file=/etc/agent-config/agent-scraping-service.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
+    ports:
+      - "12347:12345"
 
   etcd:
     image: gcr.io/etcd-development/etcd:v3.4.7
