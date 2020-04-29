@@ -47,5 +47,4 @@ prometheus:
 		err := Load([]byte(cfg), &c)
 		require.Error(t, err)
 	})
-
 }
