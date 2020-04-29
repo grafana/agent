@@ -20,6 +20,9 @@ type Config struct {
 func (c *Config) ApplyDefaults() {
 	c.Prometheus.ApplyDefaults()
 
+	// The default port exposed to the lifecycler should be the gRPC listen
+	// port since the agents will use gRPC for notifying other agents of
+	// resharding.
 	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = &c.Server.GRPCListenPort
 }
 

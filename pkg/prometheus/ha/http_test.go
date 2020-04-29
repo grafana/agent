@@ -19,6 +19,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/flagext"
 	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/prometheus/ha/client"
 	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
 	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/stretchr/testify/require"
@@ -184,13 +185,14 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 	// Create a new HA service with an HTTP store
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	ha, err := New(Config{
-		Enabled: true,
+		Enabled:         true,
+		ReshardInterval: time.Minute * 999,
 		KVStore: kv.Config{
 			Store:  "inmemory",
 			Prefix: "configs/",
 		},
 		Lifecycler: testLifecyclerConfig(),
-	}, logger, newMockConfigManager())
+	}, client.Config{}, logger, newMockConfigManager())
 	require.NoError(t, err)
 
 	// Wire the API

@@ -86,6 +86,7 @@ github.com/cortexproject/cortex/pkg/ring/kv/etcd
 github.com/cortexproject/cortex/pkg/ring/kv/memberlist
 github.com/cortexproject/cortex/pkg/util
 github.com/cortexproject/cortex/pkg/util/flagext
+github.com/cortexproject/cortex/pkg/util/grpcclient
 github.com/cortexproject/cortex/pkg/util/services
 github.com/cortexproject/cortex/pkg/util/test
 # github.com/davecgh/go-spew v1.1.1

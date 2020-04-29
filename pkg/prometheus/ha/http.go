@@ -72,8 +72,8 @@ func (s *Server) WrapHandler(next APIHandler) http.HandlerFunc {
 		// returned an *httpResponse, use the status code defined there and send the
 		// internal data. Otherwise, assume HTTP 200 OK and marshal the raw response.
 		var (
-			data       interface{} = resp
-			statusCode int         = http.StatusOK
+			data       = resp
+			statusCode = http.StatusOK
 		)
 		if httpResp, ok := data.(*httpResponse); ok {
 			data = httpResp.Data

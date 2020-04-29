@@ -73,6 +73,7 @@ func main() {
 
 	// Hook up API paths to the router
 	promMetrics.WireAPI(srv.HTTP)
+	promMetrics.WireGRPC(srv.GRPC)
 
 	if err := srv.Run(); err != nil {
 		level.Error(util.Logger).Log("msg", "error running agent", "err", err)

@@ -15,10 +15,12 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/prometheus/ha"
+	"github.com/grafana/agent/pkg/prometheus/ha/client"
 	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -46,6 +48,7 @@ type Config struct {
 	Global                 config.GlobalConfig `yaml:"global"`
 	WALDir                 string              `yaml:"wal_directory"`
 	ServiceConfig          ha.Config           `yaml:"scraping_service"`
+	ServiceClientConfig    client.Config       `yaml:"scraping_service_client"`
 	Configs                []instance.Config   `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
 }
@@ -62,6 +65,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.DurationVar(&c.InstanceRestartBackoff, "prometheus.instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
 
 	c.ServiceConfig.RegisterFlagsWithPrefix("prometheus.service.", f)
+	c.ServiceClientConfig.RegisterFlags(f)
 }
 
 // Validate checks if the Config has all required fields filled out.
@@ -131,7 +135,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 
 	if cfg.ServiceConfig.Enabled {
 		var err error
-		a.ha, err = ha.New(cfg.ServiceConfig, a.logger, a.cm)
+		a.ha, err = ha.New(cfg.ServiceConfig, cfg.ServiceClientConfig, a.logger, a.cm)
 		if err != nil {
 			return nil, err
 		}
@@ -203,6 +207,12 @@ func (a *Agent) WireAPI(r *mux.Router) {
 	}
 }
 
+func (a *Agent) WireGRPC(s *grpc.Server) {
+	if a.cfg.ServiceConfig.Enabled {
+		a.ha.WireGRPC(s)
+	}
+}
+
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
 	if a.ha != nil {
@@ -211,125 +221,6 @@ func (a *Agent) Stop() {
 		}
 	}
 	a.cm.Stop()
-}
-
-// ConfigManager manages a set of instance.Configs, calling a function whenever
-// a Config should be "started."
-type ConfigManager struct {
-	// Take care when locking mut: if you hold onto a lock of mut while calling
-	// Stop on one of the processes below, you will deadlock.
-	mut       sync.Mutex
-	processes map[string]configManagerProcess
-
-	newProcess func(ctx context.Context, c instance.Config)
-}
-
-type configManagerProcess struct {
-	cfg    instance.Config
-	cancel context.CancelFunc
-	done   chan bool
-}
-
-// Stop stops the process and waits for it to exit.
-func (p configManagerProcess) Stop() {
-	p.cancel()
-	<-p.done
-}
-
-// NewConfigManager creates a new ConfigManager. The function f will be invoked
-// any time a new instance.Config is tracked. The context provided to the function
-// will be cancelled when that instance.Config is no longer being tracked.
-func NewConfigManager(f func(ctx context.Context, c instance.Config)) *ConfigManager {
-	return &ConfigManager{
-		processes:  make(map[string]configManagerProcess),
-		newProcess: f,
-	}
-}
-
-// ListConfigs lists the current active configs managed by the ConfigManager.
-func (cm *ConfigManager) ListConfigs() map[string]instance.Config {
-	cm.mut.Lock()
-	defer cm.mut.Unlock()
-
-	cfgs := make(map[string]instance.Config, len(cm.processes))
-	for name, process := range cm.processes {
-		cfgs[name] = process.cfg
-	}
-	return cfgs
-}
-
-// ApplyConfig takes an instance.Config and either adds a new tracked config
-// or updates an existing track config. The value for Name in c is used to
-// uniquely identify the instance.Config and determine whether it is new
-// or existing.
-func (cm *ConfigManager) ApplyConfig(c instance.Config) {
-	cm.mut.Lock()
-	defer cm.mut.Unlock()
-
-	// Is there an existing process for the instance.Config? If so, stop it.
-	if proc, ok := cm.processes[c.Name]; ok {
-		proc.Stop()
-	}
-
-	// Spawn a new process for the new config.
-	cm.spawnProcess(c)
-	currentActiveConfigs.Inc()
-}
-
-func (cm *ConfigManager) spawnProcess(c instance.Config) {
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan bool)
-
-	cm.processes[c.Name] = configManagerProcess{
-		cancel: cancel,
-		done:   done,
-	}
-
-	go func() {
-		cm.newProcess(ctx, c)
-
-		// Delete the process from the tracked map
-		cm.mut.Lock()
-		delete(cm.processes, c.Name)
-		close(done)
-		cm.mut.Unlock()
-		currentActiveConfigs.Dec()
-	}()
-}
-
-// DeleteConfig removes an instance.Config by its name. Returns an error if
-// the instance.Config is not currently being tracked.
-func (cm *ConfigManager) DeleteConfig(name string) error {
-	// Does it exist?
-	cm.mut.Lock()
-	proc, ok := cm.processes[name]
-	if !ok {
-		return errors.New("config does not exist")
-	}
-	cm.mut.Unlock()
-
-	// spawnProcess is responsible for removing the process from the
-	// map after it stops so we don't need to delete anything from
-	// cm.processses here.
-	proc.Stop()
-	return nil
-}
-
-// Stop stops the ConfigManager and stops all active processes for configs.
-func (cm *ConfigManager) Stop() {
-	var wg sync.WaitGroup
-
-	cm.mut.Lock()
-	wg.Add(len(cm.processes))
-	for _, proc := range cm.processes {
-		go func(proc configManagerProcess) {
-			proc.Stop()
-			wg.Done()
-		}(proc)
-	}
-	cm.mut.Unlock()
-
-	wg.Wait()
 }
 
 // inst is an interface implemented by Instance, and used by tests
