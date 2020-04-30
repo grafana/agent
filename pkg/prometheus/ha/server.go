@@ -9,7 +9,7 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"hash/fnv"
+	"fmt"
 	"sync"
 	"time"
 
@@ -19,7 +19,6 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/services"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prometheus/ha/client"
 	"github.com/grafana/agent/pkg/prometheus/instance"
@@ -27,7 +26,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/user"
 	"google.golang.org/grpc"
-	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -35,6 +33,15 @@ var (
 		Name: "agent_prometheus_scraping_service_reshard_duration",
 		Help: "How long it took for resharding to run.",
 	}, []string{"success"})
+)
+
+var (
+	// util.BackoffConfig used for a backoff period when resharding after join.
+	backoffConfig = util.BackoffConfig{
+		MinBackoff: time.Second,
+		MaxBackoff: 2 * time.Minute,
+		MaxRetries: 10,
+	}
 )
 
 // ConfigManager is an interface to manipulating a set of running
@@ -144,73 +151,52 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 	ctx, cancel := context.WithCancel(context.Background())
 	s.cancel = cancel
 
-	go s.loop(ctx)
+	go s.run(ctx)
 	return s, nil
 }
 
-func (s *Server) loop(ctx context.Context) {
+func (s *Server) run(ctx context.Context) {
 	defer close(s.exited)
 
-	if err := s.waitNotifyReshard(); err != nil {
-		level.Error(s.logger).Log("msg", "could not run cluster-wide reshard", "err", err)
+	if err := s.join(ctx); err != nil {
+		level.Error(s.logger).Log("msg", "exiting scraping service loop due to error", "err", err)
 		return
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		s.watchKV(ctx)
+		wg.Done()
+		level.Info(s.logger).Log("msg", "watch kv store process exited")
+	}()
+
+	go func() {
+		s.reshardLoop(ctx)
+		wg.Done()
+		level.Info(s.logger).Log("msg", "reshard loop process exited")
+	}()
+
+	wg.Wait()
+}
+
+func (s *Server) join(ctx context.Context) error {
+	if err := s.waitNotifyReshard(ctx); err != nil {
+		level.Error(s.logger).Log("msg", "could not run cluster-wide reshard", "err", err)
+		return fmt.Errorf("could not complete join: %w", err)
 	}
 
 	level.Info(s.logger).Log("msg", "cluster-wide reshard finished. running local reshard")
-	if _, err := s.Reshard(context.Background(), &agentproto.ReshardRequest{}); err != nil {
+	if _, err := s.Reshard(ctx, &agentproto.ReshardRequest{}); err != nil {
 		level.Error(s.logger).Log("msg", "failed running local reshard", "err", err)
-		return
+		return fmt.Errorf("could not complete join: %w", err)
 	}
 
-	kvWatchExit := make(chan bool)
-
-	// KV watch loop
-	go func() {
-		defer close(kvWatchExit)
-
-		level.Info(s.logger).Log("msg", "watching for changes to configs")
-
-		s.kv.WatchPrefix(ctx, "", func(key string, v interface{}) bool {
-			s.shardMut.Lock()
-			defer s.shardMut.Unlock()
-
-			if ctx.Err() != nil {
-				return false
-			}
-
-			s.processKey(key, v)
-			return true
-		})
-
-		level.Info(s.logger).Log("msg", "stopped watching for changes to configs")
-	}()
-
-	// Reshard ticker loop
-	go func() {
-		level.Info(s.logger).Log("msg", "resharding agent on interval", "interval", s.cfg.ReshardInterval)
-		t := time.NewTicker(s.cfg.ReshardInterval)
-		defer t.Stop()
-
-		for {
-			select {
-			case <-t.C:
-				level.Info(s.logger).Log("msg", "resharding agent")
-				_, err := s.Reshard(ctx, &agentproto.ReshardRequest{})
-				if err != nil {
-					level.Error(s.logger).Log("msg", "resharding failed", "err", err)
-				}
-			case <-ctx.Done():
-				return
-			case <-s.exited:
-				return
-			}
-		}
-	}()
-
-	<-kvWatchExit
+	return nil
 }
 
-func (s *Server) waitNotifyReshard() error {
+func (s *Server) waitNotifyReshard(ctx context.Context) error {
 	level.Info(s.logger).Log("msg", "retrieving agents in cluster for cluster-wide reshard")
 
 	var (
@@ -218,11 +204,7 @@ func (s *Server) waitNotifyReshard() error {
 		err error
 	)
 
-	backoff := util.NewBackoff(context.Background(), util.BackoffConfig{
-		MinBackoff: time.Second,
-		MaxBackoff: 2 * time.Minute,
-		MaxRetries: 10,
-	})
+	backoff := util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
 		rs, err = s.ring.GetAll()
 		if err == nil {
@@ -236,12 +218,8 @@ func (s *Server) waitNotifyReshard() error {
 		return err
 	}
 
-	return s.notifyReshardAll(context.Background(), rs)
-}
-
-func (s *Server) notifyReshardAll(ctx context.Context, set ring.ReplicationSet) error {
-	_, err := set.Do(ctx, time.Millisecond*250, func(desc *ring.IngesterDesc) (interface{}, error) {
-		// Skip over ourselves; we'll reshard after this process finishes.
+	_, err = rs.Do(ctx, time.Millisecond*250, func(desc *ring.IngesterDesc) (interface{}, error) {
+		// Skip over ourselves; we'll reshard locally after this process finishes.
 		if desc.Addr == s.lc.Addr {
 			return nil, nil
 		}
@@ -259,11 +237,7 @@ func (s *Server) notifyReshard(ctx context.Context, desc *ring.IngesterDesc) err
 	}
 	defer cli.Close()
 
-	backoff := util.NewBackoff(context.Background(), util.BackoffConfig{
-		MinBackoff: time.Second,
-		MaxBackoff: 2 * time.Minute,
-		MaxRetries: 10,
-	})
+	backoff := util.NewBackoff(context.Background(), backoffConfig)
 	for backoff.Ongoing() {
 		_, err := cli.Reshard(ctx, &agentproto.ReshardRequest{})
 		if err == nil {
@@ -277,129 +251,48 @@ func (s *Server) notifyReshard(ctx context.Context, desc *ring.IngesterDesc) err
 	return backoff.Err()
 }
 
-// processKey handles a config name and value from the store. One of the
-// following will happen:
-//
-// 1. If the config is nil, the key will be treated as deleted and removed.
-//
-// 2. If the config is owned by the current Server, it will be tracked.
-//
-// 3. If the config is not owned by the current Server, it will be removed
-//    from the tracked list if it is already tracked.
-func (s *Server) processKey(key string, v interface{}) {
-	if v == nil {
-		level.Info(s.logger).Log("msg", "detected deleted config", "name", key)
-		s.untrackConfig(key)
-		return
-	}
+func (s *Server) watchKV(ctx context.Context) {
+	level.Info(s.logger).Log("msg", "watching for changes to configs")
 
-	cfg, err := HashConfig(*v.(*instance.Config))
-	if err != nil {
-		level.Error(s.logger).Log("msg", "failed to hash config", "err", err)
-	}
+	s.kv.WatchPrefix(ctx, "", func(key string, v interface{}) bool {
+		s.shardMut.Lock()
+		defer s.shardMut.Unlock()
 
-	owned, err := s.OwnsConfig(cfg)
-	if err != nil {
-		level.Error(s.logger).Log("msg", "failed to check if a config is owned. if the config is owned by this ingester, it won't be used until at least the next poll period.", "err", err)
-	}
+		if ctx.Err() != nil {
+			return false
+		}
 
-	if owned {
-		s.trackConfig(cfg)
-	} else {
-		s.untrackConfig(key)
-	}
+		s.processKey(key, v)
+		return true
+	})
+
+	level.Info(s.logger).Log("msg", "stopped watching for changes to configs")
 }
 
-// untrackConfig will remove a track config if it's currently being tracked.
-// untrackConfig is a no-op if the config is not already tracked.
-func (s *Server) untrackConfig(key string) {
-	_, owned := s.keyToHash[key]
-	if !owned {
-		return
-	}
+func (s *Server) reshardLoop(ctx context.Context) {
+	level.Info(s.logger).Log("msg", "resharding agent on interval", "interval", s.cfg.ReshardInterval)
+	t := time.NewTicker(s.cfg.ReshardInterval)
+	defer t.Stop()
 
-	level.Info(s.logger).Log("msg", "untracking config", "name", key)
-	if err := s.cm.DeleteConfig(key); err != nil {
-		level.Error(s.logger).Log("msg", "failed to remove config", "name", key)
+	for {
+		select {
+		case <-t.C:
+			level.Info(s.logger).Log("msg", "resharding agent")
+			_, err := s.Reshard(ctx, &agentproto.ReshardRequest{})
+			if err != nil {
+				level.Error(s.logger).Log("msg", "resharding failed", "err", err)
+			}
+		case <-ctx.Done():
+			return
+		case <-s.exited:
+			return
+		}
 	}
-	delete(s.keyToHash, key)
-}
-
-// trackConfig tracks a config. If the config is already tracked and the hash
-// hasn't changed since the last time it was tracked, nothing happens here.
-// Otherwise, trackConfig tracks the hash of the config and passes it through
-// to the Server's ConfigManager.
-//
-// trackConfig does not check if the Server owns the HashedConfig; this is the
-// responsibility of the caller.
-func (s *Server) trackConfig(c HashedConfig) {
-	// If we're already tracking this config and its hash hasn't changed, we
-	// don't need to do anything here.
-	if s.keyToHash[c.Name] == c.Hash() {
-		return
-	}
-
-	// This is a new or updated config: we need to pass it to our ConfigManager
-	// and track it locally.
-	level.Info(s.logger).Log("msg", "tracking new config", "name", c.Name)
-	s.keyToHash[c.Name] = c.Hash()
-	s.cm.ApplyConfig(c.Config)
 }
 
 // WireGRPC injects gRPC server handlers into the provided gRPC server.
 func (s *Server) WireGRPC(srv *grpc.Server) {
 	agentproto.RegisterScrapingServiceServer(srv, s)
-}
-
-// Reshard initiates an entire reshard of the current HA scraping service instance.
-// All configs will be reloaded from the KV store and the scraping service instance
-// will see what should be managed locally.
-//
-// Satisfies agentproto.ScrapingServiceServer.
-func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *empty.Empty, err error) {
-	s.shardMut.Lock()
-	defer s.shardMut.Unlock()
-
-	start := time.Now()
-	defer func() {
-		success := "1"
-		if err != nil {
-			success = "0"
-		}
-		reshardDuration.WithLabelValues(success).Observe(time.Since(start).Seconds())
-	}()
-
-	var (
-		// current configs the agent is tracking
-		currentConfigs = s.cm.ListConfigs()
-
-		// configs found in the KV store. currentConfigs - discoveredConfigs is the
-		// list of configs that was removed from the KV store since the last reshard.
-		discoveredConfigs = map[string]struct{}{}
-	)
-
-	configCh, err := s.AllConfigs(ctx)
-	if err != nil {
-		level.Error(s.logger).Log("msg", "failed getting config list when resharding", "err", err)
-		return nil, err
-	}
-	for ch := range configCh {
-		key := ch.Name
-		discoveredConfigs[key] = struct{}{}
-		s.processKey(key, &ch)
-	}
-
-	// Find the set of configs that weren't present in the KV store response but are
-	// being tracked locally. Any config that wasn't still in the KV store must be
-	// removed from our tracked list.
-	for runningConfig := range currentConfigs {
-		_, keyInStore := discoveredConfigs[runningConfig]
-		if !keyInStore {
-			s.untrackConfig(runningConfig)
-		}
-	}
-
-	return &empty.Empty{}, nil
 }
 
 // Flush satisfies ring.FlushTransferer. It is a no-op for the Agent.
@@ -408,19 +301,8 @@ func (s *Server) Flush() {}
 // TransferOut satisfies ring.FlushTransferer. It connects to all other
 // healthy agents in the cluster and tells them to reshard.
 func (s *Server) TransferOut(ctx context.Context) error {
-	level.Info(s.logger).Log("msg", "leaving cluster; getting all agents to perform cluster-wide reshard")
-	rs, err := s.ring.GetAll()
-	if err != nil {
-		level.Error(s.logger).Log("msg", "failed to get agents for cluster-wide reshard", "err", err)
-		return err
-	}
-
-	// Note that we're still in the ring at this point but we're marked
-	// as LEAVING. So when other agents reshard, OwnsConfig will properly
-	// detect that our agent is about to leave and will reshard as if
-	// we're already completely out of the ring.
-	level.Info(s.logger).Log("msg", "performing cluster-wide reshard")
-	return s.notifyReshardAll(ctx, rs)
+	level.Info(s.logger).Log("msg", "leaving cluster, starting cluster-wide reshard process")
+	return s.waitNotifyReshard(ctx)
 }
 
 // Stop stops the HA server and its dependencies.
@@ -441,78 +323,4 @@ func (s *Server) Stop() error {
 	}
 
 	return lcErr
-}
-
-// AllConfigs gets all configs known to the KV store.
-func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error) {
-	keys, err := s.kv.List(ctx, "")
-	if err != nil {
-		return nil, err
-	}
-
-	ch := make(chan instance.Config)
-
-	var wg sync.WaitGroup
-	wg.Add(len(keys))
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	for _, key := range keys {
-		go func(key string) {
-			defer wg.Done()
-
-			// TODO(rfratto): retries might be useful here
-			v, err := s.kv.Get(ctx, key)
-			if err != nil {
-				level.Error(s.logger).Log("failed to get key for resharding", "key", key)
-				return
-			} else if v == nil {
-				level.Warn(s.logger).Log("skipping key that was deleted after list was called", "key", key)
-				return
-			}
-
-			cfg := v.(*instance.Config)
-			ch <- *cfg
-		}(key)
-	}
-	return ch, nil
-}
-
-// HashedConfig is a config with a hash associated with its content.
-type HashedConfig struct {
-	instance.Config
-	hash uint32
-}
-
-// HashedConfig converts an instance.Config into a HashedConfig.
-func HashConfig(c instance.Config) (HashedConfig, error) {
-	bb, err := yaml.Marshal(c)
-	if err != nil {
-		return HashedConfig{}, err
-	}
-	h := fnv.New32()
-	_, _ = h.Write(bb)
-	v := h.Sum32()
-
-	return HashedConfig{Config: c, hash: v}, nil
-}
-
-// Hash returns the hash of the HashedConfig.
-func (c HashedConfig) Hash() uint32 { return c.hash }
-
-// OwnsConfig returns true if a given HashedConfig matches any of the
-// tokens belonging to the current server.
-func (s *Server) OwnsConfig(c HashedConfig) (bool, error) {
-	rs, err := s.ring.Get(c.Hash(), ring.Write, nil)
-	if err != nil {
-		return false, err
-	}
-	for _, r := range rs.Ingesters {
-		if r.Addr == s.lc.Addr {
-			return true, nil
-		}
-	}
-	return false, nil
 }
