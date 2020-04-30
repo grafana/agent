@@ -237,7 +237,7 @@ func (s *Server) notifyReshard(ctx context.Context, desc *ring.IngesterDesc) err
 	}
 	defer cli.Close()
 
-	backoff := util.NewBackoff(context.Background(), backoffConfig)
+	backoff := util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
 		_, err := cli.Reshard(ctx, &agentproto.ReshardRequest{})
 		if err == nil {
