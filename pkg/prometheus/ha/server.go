@@ -9,7 +9,7 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
@@ -77,31 +77,32 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f)
 }
 
+// readRing is implemented by ring.Ring. Brought out to a minimal interface for
+// testing.
+type readRing interface {
+	http.Handler
+
+	Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
+	GetAll() (ring.ReplicationSet, error)
+}
+
 // Server implements the HA scraping service.
 type Server struct {
 	cfg          Config
 	clientConfig client.Config
 	logger       log.Logger
+	addr         string
 
-	cm ConfigManager
+	configManagerMut sync.Mutex
+	cm               ConfigManager
 
-	// Mutex to lock during sharding or responding to a KV store event.
-	shardMut sync.Mutex
-
-	// Stored hashes for a key
-	keyToHash map[string]uint32
-
-	// Interface to storing and retreiving config objects
-	kv kv.Client
-
-	// Management for being a cluster member
-	lc *ring.Lifecycler
-
-	// View into members of the cluster
-	ring *ring.Ring
+	kv   kv.Client
+	ring readRing
 
 	cancel context.CancelFunc
 	exited chan bool
+
+	closeDependencies func() error
 }
 
 // New creates a new HA scraping service instance.
@@ -110,47 +111,46 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 		return nil, errors.New("replication_factor must be 1")
 	}
 
+	kvClient, err := kv.NewClient(cfg.KVStore, GetCodec())
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent")
+	if err != nil {
+		return nil, err
+	}
+	if err := services.StartAndAwaitRunning(context.Background(), r); err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
 	s := &Server{
 		cfg:          cfg,
 		clientConfig: clientConfig,
 		logger:       log.With(logger, "component", "ha"),
 
-		cm: cm,
+		kv:   kvClient,
+		ring: r,
 
-		keyToHash: make(map[string]uint32),
-
+		cancel: cancel,
 		exited: make(chan bool),
-	}
-
-	var err error
-	s.kv, err = kv.NewClient(cfg.KVStore, GetCodec())
-	if err != nil {
-		return nil, err
-	}
-
-	// Start the ring first so there's a chance that it will be filled by the time we want to
-	// tell other agents to reshard.
-	s.ring, err = ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent")
-	if err != nil {
-		return nil, err
-	}
-	if err := s.ring.StartAsync(context.Background()); err != nil {
-		return nil, err
 	}
 
 	// TODO(rfratto): switching to a BasicLifecycler would be nice here, it'd allow
 	// the joining/leaving process to include waiting for resharding.
-	s.lc, err = ring.NewLifecycler(cfg.Lifecycler, s, "agent", "agent", true)
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, s, "agent", "agent", true)
 	if err != nil {
 		return nil, err
 	}
-	if err := services.StartAndAwaitRunning(context.Background(), s.lc); err != nil {
+	if err := services.StartAndAwaitRunning(context.Background(), lc); err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	s.cancel = cancel
+	s.cm = NewShardingConfigManager(s.logger, cm, r, lc.Addr)
 
+	s.addr = lc.Addr
+	s.closeDependencies = stopServices(r, lc)
 	go s.run(ctx)
 	return s, nil
 }
@@ -159,7 +159,7 @@ func (s *Server) run(ctx context.Context) {
 	defer close(s.exited)
 
 	if err := s.join(ctx); err != nil {
-		level.Error(s.logger).Log("msg", "exiting scraping service loop due to error", "err", err)
+		level.Error(s.logger).Log("msg", "could not complete join, stopping HA server", "err", err)
 		return
 	}
 
@@ -184,13 +184,13 @@ func (s *Server) run(ctx context.Context) {
 func (s *Server) join(ctx context.Context) error {
 	if err := s.waitNotifyReshard(ctx); err != nil {
 		level.Error(s.logger).Log("msg", "could not run cluster-wide reshard", "err", err)
-		return fmt.Errorf("could not complete join: %w", err)
+		return err
 	}
 
 	level.Info(s.logger).Log("msg", "cluster-wide reshard finished. running local reshard")
 	if _, err := s.Reshard(ctx, &agentproto.ReshardRequest{}); err != nil {
 		level.Error(s.logger).Log("msg", "failed running local reshard", "err", err)
-		return fmt.Errorf("could not complete join: %w", err)
+		return err
 	}
 
 	return nil
@@ -220,7 +220,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 
 	_, err = rs.Do(ctx, time.Millisecond*250, func(desc *ring.IngesterDesc) (interface{}, error) {
 		// Skip over ourselves; we'll reshard locally after this process finishes.
-		if desc.Addr == s.lc.Addr {
+		if desc.Addr == s.addr {
 			return nil, nil
 		}
 
@@ -255,14 +255,22 @@ func (s *Server) watchKV(ctx context.Context) {
 	level.Info(s.logger).Log("msg", "watching for changes to configs")
 
 	s.kv.WatchPrefix(ctx, "", func(key string, v interface{}) bool {
-		s.shardMut.Lock()
-		defer s.shardMut.Unlock()
+		s.configManagerMut.Lock()
+		defer s.configManagerMut.Unlock()
 
 		if ctx.Err() != nil {
 			return false
 		}
 
-		s.processKey(key, v)
+		if v == nil {
+			if err := s.cm.DeleteConfig(key); err != nil {
+				level.Error(s.logger).Log("msg", "failed to delete config", "name", key, "err", err)
+			}
+			return true
+		}
+
+		cfg := v.(*instance.Config)
+		s.cm.ApplyConfig(*cfg)
 		return true
 	})
 
@@ -311,16 +319,20 @@ func (s *Server) Stop() error {
 	s.cancel()
 	<-s.exited
 
-	s.ring.StopAsync()
-	ringErr := s.ring.AwaitTerminated(context.Background())
+	return s.closeDependencies()
+}
 
-	s.lc.StopAsync()
-	lcErr := s.lc.AwaitTerminated(context.Background())
-
-	// TODO(rfratto): combine errors?
-	if ringErr != nil {
-		return ringErr
+// stopServices stops services in argument-call order. Blocks until all services
+// have stopped.
+func stopServices(svcs ...services.Service) func() error {
+	return func() error {
+		var firstErr error
+		for _, s := range svcs {
+			err := services.StopAndAwaitTerminated(context.Background(), s)
+			if err != nil && firstErr == nil {
+				firstErr = err
+			}
+		}
+		return firstErr
 	}
-
-	return lcErr
 }

@@ -3,10 +3,12 @@ package ha
 import (
 	"context"
 	"hash/fnv"
+	"net/http"
 	"sync"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
+	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
@@ -14,37 +16,14 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// HashedConfig is a config with a hash associated with its content. Used
-// for sharding configs to an instance of Server.
-type HashedConfig struct {
-	instance.Config
-	hash uint32
-}
-
-// HashedConfig converts an instance.Config into a HashedConfig.
-func HashConfig(c instance.Config) (HashedConfig, error) {
-	bb, err := yaml.Marshal(c)
-	if err != nil {
-		return HashedConfig{}, err
-	}
-	h := fnv.New32()
-	_, _ = h.Write(bb)
-	v := h.Sum32()
-
-	return HashedConfig{Config: c, hash: v}, nil
-}
-
-// Hash returns the hash of the HashedConfig.
-func (c HashedConfig) Hash() uint32 { return c.hash }
-
 // Reshard initiates an entire reshard of the current HA scraping service instance.
 // All configs will be reloaded from the KV store and the scraping service instance
 // will see what should be managed locally.
 //
 // Satisfies agentproto.ScrapingServiceServer.
 func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *empty.Empty, err error) {
-	s.shardMut.Lock()
-	defer s.shardMut.Unlock()
+	s.configManagerMut.Lock()
+	defer s.configManagerMut.Unlock()
 
 	start := time.Now()
 	defer func() {
@@ -70,9 +49,8 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 		return nil, err
 	}
 	for ch := range configCh {
-		key := ch.Name
-		discoveredConfigs[key] = struct{}{}
-		s.processKey(key, &ch)
+		discoveredConfigs[ch.Name] = struct{}{}
+		s.cm.ApplyConfig(ch)
 	}
 
 	// Find the set of configs that weren't present in the KV store response but are
@@ -80,8 +58,13 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 	// removed from our tracked list.
 	for runningConfig := range currentConfigs {
 		_, keyInStore := discoveredConfigs[runningConfig]
-		if !keyInStore {
-			s.untrackConfig(runningConfig)
+		if keyInStore {
+			continue
+		}
+
+		err := s.cm.DeleteConfig(runningConfig)
+		if err != nil {
+			level.Error(s.logger).Log("msg", "failed to delete stale config", "err", err)
 		}
 	}
 
@@ -125,86 +108,118 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 	return ch, nil
 }
 
-// OwnsConfig returns true if a given HashedConfig matches any of the
-// tokens belonging to the current server.
-func (s *Server) OwnsConfig(c HashedConfig) (bool, error) {
-	rs, err := s.ring.Get(c.Hash(), ring.Write, nil)
+// ReadRing is a subset of the Cortex ring.ReadRing interface with only the
+// functionality used by the HA server.
+type ReadRing interface {
+	http.Handler
+
+	Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
+	GetAll() (ring.ReplicationSet, error)
+}
+
+// ShardingConfigManager wraps around an existing ConfigManager and uses a
+// hash ring to determine if a config should be applied. If an applied
+// config used to be owned by the local address but no longer does, it
+// will be deleted on the next apply.
+type ShardingConfigManager struct {
+	log   log.Logger
+	inner ConfigManager
+	ring  ReadRing
+	addr  string
+
+	keyToHash map[string]uint32
+}
+
+// NewShardingConfigManager creates a new ShardingConfigManager. The wrap
+// argument holds the underlying config manager, while ring and addr are
+// used together to do hash ring lookups: for a given hash, a config is
+// owned by the ShardingConfigManager if the address of a node from a
+// lookup matches the addr argument passed to NewShardingConfigManager.
+func NewShardingConfigManager(logger log.Logger, wrap ConfigManager, ring ReadRing, addr string) ShardingConfigManager {
+	return ShardingConfigManager{
+		log:       logger,
+		inner:     wrap,
+		ring:      ring,
+		addr:      addr,
+		keyToHash: make(map[string]uint32),
+	}
+}
+
+// ListConfigs implements ConfigManager.ListConfigs.
+func (m ShardingConfigManager) ListConfigs() map[string]instance.Config {
+	// Direct pass through; no sharding needed here.
+	return m.inner.ListConfigs()
+}
+
+// ApplyConfig implements ConfigManager.ApplyConfig.
+func (m ShardingConfigManager) ApplyConfig(c instance.Config) {
+	hash, err := configHash(&c)
+	if err != nil {
+		level.Error(m.log).Log("msg", "failed to hash config", "err", err)
+		return
+	}
+
+	owned, err := m.owns(hash)
+	if err != nil {
+		level.Error(m.log).Log("msg", "failed to check if a config is owned, skipping config until next reshard", "err", err)
+		return
+	}
+
+	if owned {
+		// If the config is unchanged, do nothing.
+		if m.keyToHash[c.Name] == hash {
+			return
+		}
+
+		level.Info(m.log).Log("msg", "detected new or changed config", "name", c.Name)
+		m.keyToHash[c.Name] = hash
+		m.inner.ApplyConfig(c)
+	} else {
+		// If we don't own the config, it's possible that we owned it before
+		// and need to delete it now.
+		err := m.DeleteConfig(c.Name)
+		if err != nil {
+			level.Error(m.log).Log("msg", "failed to delete stale config", "err", err)
+		}
+	}
+}
+
+// DeleteConfig implements ConfigManager.DeleteConfig.
+func (m ShardingConfigManager) DeleteConfig(name string) error {
+	// Doesn't exist, ignore.
+	if _, exist := m.keyToHash[name]; !exist {
+		return nil
+	}
+
+	level.Info(m.log).Log("msg", "removing config", "name", name)
+	err := m.inner.DeleteConfig(name)
+	if err == nil {
+		delete(m.keyToHash, name)
+	}
+	return err
+}
+
+// owns checks if the ShardingConfigManager is responsible for
+// a given hash.
+func (m ShardingConfigManager) owns(hash uint32) (bool, error) {
+	rs, err := m.ring.Get(hash, ring.Write, nil)
 	if err != nil {
 		return false, err
 	}
 	for _, r := range rs.Ingesters {
-		if r.Addr == s.lc.Addr {
+		if r.Addr == m.addr {
 			return true, nil
 		}
 	}
 	return false, nil
 }
 
-// processKey handles a config name and value from the store. One of the
-// following will happen:
-//
-// 1. If the config is nil, the key will be treated as deleted and removed.
-//
-// 2. If the config is owned by the current Server, it will be tracked.
-//
-// 3. If the config is not owned by the current Server, it will be removed
-//    from the tracked list if it is already tracked.
-func (s *Server) processKey(key string, v interface{}) {
-	if v == nil {
-		level.Info(s.logger).Log("msg", "detected deleted config", "name", key)
-		s.untrackConfig(key)
-		return
-	}
-
-	cfg, err := HashConfig(*v.(*instance.Config))
+func configHash(c *instance.Config) (uint32, error) {
+	bb, err := yaml.Marshal(c)
 	if err != nil {
-		level.Error(s.logger).Log("msg", "failed to hash config", "err", err)
+		return 0, err
 	}
-
-	owned, err := s.OwnsConfig(cfg)
-	if err != nil {
-		level.Error(s.logger).Log("msg", "failed to check if a config is owned. if the config is owned by this ingester, it won't be used until at least the next reshard period.", "err", err)
-	}
-
-	if owned {
-		s.trackConfig(cfg)
-	} else {
-		s.untrackConfig(key)
-	}
-}
-
-// untrackConfig will remove a track config if it's currently being tracked.
-// untrackConfig is a no-op if the config is not already tracked.
-func (s *Server) untrackConfig(key string) {
-	_, owned := s.keyToHash[key]
-	if !owned {
-		return
-	}
-
-	level.Info(s.logger).Log("msg", "untracking config", "name", key)
-	if err := s.cm.DeleteConfig(key); err != nil {
-		level.Error(s.logger).Log("msg", "failed to remove config", "name", key)
-	}
-	delete(s.keyToHash, key)
-}
-
-// trackConfig tracks a config. If the config is already tracked and the hash
-// hasn't changed since the last time it was tracked, nothing happens here.
-// Otherwise, trackConfig tracks the hash of the config and passes it through
-// to the Server's ConfigManager.
-//
-// trackConfig does not check if the Server owns the HashedConfig; this is the
-// responsibility of the caller.
-func (s *Server) trackConfig(c HashedConfig) {
-	// If we're already tracking this config and its hash hasn't changed, we
-	// don't need to do anything here.
-	if s.keyToHash[c.Name] == c.Hash() {
-		return
-	}
-
-	// This is a new or updated config: we need to pass it to our ConfigManager
-	// and track it locally.
-	level.Info(s.logger).Log("msg", "tracking new config", "name", c.Name)
-	s.keyToHash[c.Name] = c.Hash()
-	s.cm.ApplyConfig(c.Config)
+	h := fnv.New32()
+	_, _ = h.Write(bb)
+	return h.Sum32(), nil
 }
