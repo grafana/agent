@@ -161,7 +161,7 @@ func New(globalCfg config.GlobalConfig, cfg Config, walDir string, logger log.Lo
 		"instance_name": cfg.Name,
 	}, prometheus.DefaultRegisterer)
 
-	wstore, err := wal.NewStorage(logger, reg, instWALDir)
+	wstore, err := newWalStorage(logger, reg, instWALDir)
 	if err != nil {
 		return nil, err
 	}
@@ -463,6 +463,7 @@ func (u *unregisterAllRegisterer) Register(c prometheus.Collector) error {
 	if u.cs == nil {
 		u.cs = make(map[prometheus.Collector]struct{})
 	}
+	u.cs[c] = struct{}{}
 	return nil
 }
 
@@ -496,6 +497,43 @@ func (u *unregisterAllRegisterer) UnregisterAll() {
 	for c := range u.cs {
 		u.Unregister(c)
 	}
+}
+
+// recreatableWalStorage implements walStorage but uses an unregisteringAllRegisterer
+// for unregistering metrics when the storage is closed, enabling it to be eventually
+// recreated.
+type recreatableWalStorage struct {
+	// walStorage implements Queryable for compatibility, but is unused.
+	storage.Queryable
+
+	reg   *unregisterAllRegisterer
+	inner walStorage
+}
+
+// newWalStorage creates a new walStorage whose metrics will be unregistered when it
+// is closed. This allows an equivalent walStorage to be recreated later.
+func newWalStorage(logger log.Logger, reg prometheus.Registerer, walDir string) (walStorage, error) {
+	wrappedReg := &unregisterAllRegisterer{wrap: reg}
+
+	wstore, err := wal.NewStorage(logger, wrappedReg, walDir)
+	if err != nil {
+		return nil, err
+	}
+
+	return &recreatableWalStorage{reg: wrappedReg, inner: wstore}, nil
+}
+
+func (s *recreatableWalStorage) StartTime() (int64, error)  { return s.inner.StartTime() }
+func (s *recreatableWalStorage) Appender() storage.Appender { return s.inner.Appender() }
+func (s *recreatableWalStorage) Truncate(mint int64) error  { return s.inner.Truncate(mint) }
+func (s *recreatableWalStorage) WriteStalenessMarkers(f func() int64) error {
+	return s.inner.WriteStalenessMarkers(f)
+}
+
+func (s *recreatableWalStorage) Close() error {
+	err := s.inner.Close()
+	s.reg.UnregisterAll()
+	return err
 }
 
 func hostname() (string, error) {

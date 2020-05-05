@@ -107,6 +107,40 @@ func TestInstance(t *testing.T) {
 	})
 }
 
+// TestInstance_Recreate ensures that creating an instance with the same name twice
+// does not cause any duplicate metrics registration that leads to a panic.
+func TestInstance_Recreate(t *testing.T) {
+	scrapeAddr, closeSrv := getTestServer(t)
+	defer closeSrv()
+
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	globalConfig := getTestGlobalConfig(t)
+
+	cfg := getTestConfig(t, &globalConfig, scrapeAddr)
+	cfg.Name = "recreate_test"
+	cfg.WALTruncateFrequency = time.Hour
+	cfg.RemoteFlushDeadline = time.Hour
+
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	inst, err := New(globalConfig, cfg, walDir, logger)
+	require.NoError(t, err)
+
+	time.Sleep(1 * time.Second)
+	inst.Stop()
+
+	// Recreate the instance, no panic should happen.
+	require.NotPanics(t, func() {
+		inst, err := New(globalConfig, cfg, walDir, logger)
+		require.NoError(t, err)
+		defer inst.Stop()
+
+		time.Sleep(1 * time.Second)
+	})
+}
+
 func TestMetricValueCollector(t *testing.T) {
 	r := prometheus.NewRegistry()
 	vc := NewMetricValueCollector(r, "this_should_be_tracked")
