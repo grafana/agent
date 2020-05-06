@@ -7,7 +7,6 @@ package ha
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"net/http"
 	"sync"
@@ -115,9 +114,9 @@ type Server struct {
 
 // New creates a new HA scraping service instance.
 func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigManager) (*Server, error) {
-	if cfg.Lifecycler.RingConfig.ReplicationFactor != 1 {
-		return nil, errors.New("replication_factor must be 1")
-	}
+	// Force ReplicationFactor to be 1, since replication isn't supported for the
+	// scraping service yet.
+	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
 
 	kvClient, err := kv.NewClient(cfg.KVStore, GetCodec())
 	if err != nil {
