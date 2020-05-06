@@ -18,6 +18,13 @@ func GetCodec() codec.Codec {
 type yamlCodec struct{}
 
 func (*yamlCodec) Decode(bb []byte) (interface{}, error) {
+	// Decode is called by kv.Clients with an empty slice when a
+	// key is deleted. We should stop early here and don't return
+	// an error so the deletion event propagates to watchers.
+	if len(bb) == 0 {
+		return nil, nil
+	}
+
 	r, err := gzip.NewReader(bytes.NewReader(bb))
 	if err != nil {
 		return nil, err

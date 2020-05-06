@@ -25,6 +25,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/user"
+	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 )
 
@@ -68,6 +69,12 @@ type Config struct {
 	Lifecycler      ring.LifecyclerConfig `yaml:"lifecycler"`
 }
 
+// RegisterFlags adds the flags required to config the Server to the given
+// FlagSet.
+func (c *Config) RegisterFlags(f *flag.FlagSet) {
+	c.RegisterFlagsWithPrefix("", f)
+}
+
 // RegisterFlagsWithPrefix adds the flags required to config this to the given
 // FlagSet with a specified prefix.
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
@@ -95,6 +102,7 @@ type Server struct {
 
 	configManagerMut sync.Mutex
 	cm               ConfigManager
+	joined           *atomic.Bool
 
 	kv   kv.Client
 	ring readRing
@@ -124,22 +132,11 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 		return nil, err
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	s := &Server{
-		cfg:          cfg,
-		clientConfig: clientConfig,
-		logger:       log.With(logger, "component", "ha"),
-
-		kv:   kvClient,
-		ring: r,
-
-		cancel: cancel,
-		exited: make(chan bool),
-	}
+	lazy := &lazyTransferer{}
 
 	// TODO(rfratto): switching to a BasicLifecycler would be nice here, it'd allow
 	// the joining/leaving process to include waiting for resharding.
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, s, "agent", "agent", true)
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, lazy, "agent", "agent", true)
 	if err != nil {
 		return nil, err
 	}
@@ -147,12 +144,47 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 		return nil, err
 	}
 
-	s.cm = NewShardingConfigManager(s.logger, cm, r, lc.Addr)
+	logger = log.With(logger, "component", "ha")
+	s := newServer(
+		cfg,
+		clientConfig,
+		logger,
 
-	s.addr = lc.Addr
-	s.closeDependencies = stopServices(r, lc)
-	go s.run(ctx)
+		NewShardingConfigManager(logger, cm, r, lc.Addr),
+
+		lc.Addr,
+		r,
+		kvClient,
+		stopServices(r, lc),
+	)
+
+	lazy.inner = s
 	return s, nil
+}
+
+// newServer creates a new Server. Abstracted from New for testing.
+func newServer(cfg Config, clientCfg client.Config, log log.Logger, cm ConfigManager, addr string, r readRing, kv kv.Client, stopFunc func() error) *Server {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	s := &Server{
+		cfg:          cfg,
+		clientConfig: clientCfg,
+		logger:       log,
+		addr:         addr,
+
+		cm:     cm,
+		joined: atomic.NewBool(false),
+
+		kv:   kv,
+		ring: r,
+
+		cancel:            cancel,
+		exited:            make(chan bool),
+		closeDependencies: stopFunc,
+	}
+
+	go s.run(ctx)
+	return s
 }
 
 func (s *Server) run(ctx context.Context) {
@@ -162,6 +194,8 @@ func (s *Server) run(ctx context.Context) {
 		level.Error(s.logger).Log("msg", "could not complete join, stopping HA server", "err", err)
 		return
 	}
+
+	s.joined.Store(true)
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)

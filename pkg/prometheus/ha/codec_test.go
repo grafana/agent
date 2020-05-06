@@ -31,3 +31,17 @@ scrape_configs:
 	require.NoError(t, err)
 	require.Equal(t, &in, out)
 }
+
+// TestCodec_Decode_Nil makes sure that if Decode is called with an empty value,
+// which may happen when a key is deleted, that no error occurs and instead an
+// nil value is returned.
+func TestCodec_Decode_Nil(t *testing.T) {
+	c := &yamlCodec{}
+
+	input := [][]byte{nil, make([]byte, 0)}
+	for _, bb := range input {
+		out, err := c.Decode(bb)
+		require.Nil(t, err)
+		require.Nil(t, out)
+	}
+}
