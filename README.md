@@ -50,7 +50,7 @@ the remote system.
 - [x] Prometheus metrics
 - [ ] Promtail for Loki logs
 - [ ] `carbon-relay-ng` for Graphite metrics.
-- [ ] A second clustering mode to solve sharding monitoring availability problems.
+- [x] A second clustering mode to solve sharding monitoring availability problems.
 
 ## Getting Started
 

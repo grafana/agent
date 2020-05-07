@@ -21,7 +21,7 @@ type ScrapingServiceClient interface {
 
 // Config controls how scraping service clients are created.
 type Config struct {
-	GRPCClientConfig grpcclient.Config
+	GRPCClientConfig grpcclient.Config `yaml:"grpc_client_config"`
 }
 
 // RegisterFlags registers flags to the provided flag set.

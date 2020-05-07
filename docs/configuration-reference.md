@@ -99,6 +99,10 @@ define one instance.
 # Configures the optional scraping service to cluster agents.
 [scraping_service: <scraping_service_config>]
 
+# Configures the gRPC client used for agents to connect to other
+# clustered agents.
+[scraping_service_client: <scraping_service_client_config>]
+
 # Configure values for all Prometheus instances.
 [global: <global_config>]
 
@@ -117,7 +121,8 @@ configs:
 
 ### scraping_service_config
 
-The `scraping_service` block configures the scraping service, an operational
+The `scraping_service` block configures the
+[scraping service](./scraping-service.md), an operational
 mode where configurations are stored centrally in a KV store and a cluster of
 agents distribute discovery and scrape load between nodes.
 
@@ -126,8 +131,15 @@ agents distribute discovery and scrape load between nodes.
 # cannot be used.
 [enabled: boolean | default = false]
 
+# How often should the agent manually reshard. Useful for if KV change
+# events are not sent by an agent.
+[reshard_interval: <duration> | default = "1m"]
+
 # Configuration for the KV store to store metrics
-[kvstore: <kvstore_config>]
+kvstore: <kvstore_config>
+
+# Configuration for how agents will cluster together.
+lifecycler: <lifecycler_config>
 ```
 
 ### kvstore_config
@@ -171,6 +183,97 @@ etcd:
   [max_retries: <int> | default = 10]
 ```
 
+### lifecycler_config
+
+The `lifecycler_config` block configures the lifecycler; the component that
+Agents use to cluster together.
+
+```yaml
+# Configures the distributed hash ring storage.
+ring:
+  # KV store for getting and sending distributed hash ring updates.
+  kvstore: <kvstore_config>
+
+  # Specifies when other agents in the clsuter should be considered
+  # unhealthy if they haven't sent a heartbeat within this duration.
+  [heartbeat_timeout: <duration> | default = "1m"]
+
+# Number of tokens to generate for the distributed hash ring.
+[num_tokens: <int> | default = 128]
+
+# How often agents should send a heartbeat to the distributed hash
+# ring.
+[heartbeat_period: <duration> | default = "5s"]
+
+# How long to wait for tokens from other agents after generating
+# a new set to resolve collisions. Useful only when using a gossip
+# KV store.
+[observe_period: <duration> | default = "0s"]
+
+# Period to wait before joining the ring. 0s means to join immediately.
+[join_after: <duration> | default = "0s"]
+
+# Minimum duration to wait before marking the agent as ready to receive
+# traffic. Used to work around race conditions for multiple agents exiting
+# the distributed hash ring at the same time.
+[min_ready_duration: <duration> | default = "1m"]
+
+# Network interfaces to resolve addresses defined by other agents
+# registered in distributed hash ring.
+[interface_names: <string array> | default = ["eth0", "en0"]]
+
+# Duration to sleep before exiting. Ensures that metrics get scraped
+# before the process quits.
+[final_sleep: <duration> | default = "30s"]
+
+# File path to store tokens. If empty, tokens will not be stored during
+# shutdown and will not be restored at startup.
+[tokens_file_path: <string> | default = ""]
+
+# Availability zone of the host the agent is running on. Default is an
+# empty string which disables zone awareness for writes.
+[availability_zone: <string> | default = ""]
+```
+
+### scraping_service_client_config
+
+The `scraping_service_client_config` block configures how clustered Agents will
+generate gRPC clients to connect to each other.
+
+```yaml
+grpc_client_config:
+  # Maximum size in bytes the gRPC client will accept from the connected server.
+  [max_recv_msg_size: <int> | default = 104857600]
+
+  # Maximum size in bytes the gRPC client will sent to the connected server.
+  [max_send_msg_size: <int> | deafult = 16777216]
+
+  # Whether messages should be gzipped.
+  [use_gzip_compression: <boolean> | default = false]
+
+  # The rate limit for gRPC clients; 0 means no rate limit.
+  [rate_limit: <float64> | default = 0]
+
+  # gRPC burst allowed for rate limits.
+  [rate_limit_burst: <int> | default = 0]
+
+  # Controls if when a rate limit is hit whether the client should
+  # retry the request.
+  [backoff_on_ratelimits: <boolean> | default = false]
+
+  # Configures the retry backoff when backoff_on_ratelimits is
+  # true.
+  backoff_config:
+    # The minimum delay when backing off.
+    [min_period: <duration> | default = "100ms"]
+
+    # The maximum delay when backing off.
+    [max_period: <duration> | default = "10s"]
+
+    # The number of times to backoff and retry before failing.
+    [max_retries: <int> | deafult = 10]
+```
+
 ### global_config
 
 The `global_config` block configures global values for all launched Prometheus
@@ -211,7 +314,7 @@ name: string
 
 # When true, writes staleness markers to all active series to
 # remote_write.
-[write_stale_on_shutdown: <boolean> | default = true]
+[write_stale_on_shutdown: <boolean> | default = false]
 
 # A list of scrape configuration rules.
 scrape_configs:
