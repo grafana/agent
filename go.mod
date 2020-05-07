@@ -16,6 +16,7 @@ require (
 	github.com/prometheus/common v0.9.1
 	github.com/prometheus/procfs v0.0.11 // indirect
 	github.com/prometheus/prometheus v1.8.2-0.20200213233353-b90be6f32a33
+	github.com/spf13/cobra v0.0.3
 	github.com/stretchr/testify v1.4.0
 	github.com/weaveworks/common v0.0.0-20200310113808-2708ba4e60a4
 	go.uber.org/atomic v1.5.0
