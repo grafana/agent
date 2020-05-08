@@ -5,9 +5,12 @@ go 1.12
 require (
 	github.com/cortexproject/cortex v1.0.1-0.20200409122148-163437e76cad
 	github.com/go-kit/kit v0.10.0
-	github.com/golang/protobuf v1.3.5 // indirect
+	github.com/gogo/protobuf v1.3.1
+	github.com/golang/protobuf v1.3.5
 	github.com/gorilla/mux v1.7.3
 	github.com/oklog/run v1.1.0
+	github.com/opentracing-contrib/go-grpc v0.0.0-20180928155321-4b5a12d3ff02
+	github.com/opentracing/opentracing-go v1.1.1-0.20200124165624-2876d2018785
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/common v0.9.1
@@ -18,6 +21,7 @@ require (
 	go.uber.org/atomic v1.5.0
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/sys v0.0.0-20200406155108-e3b113bbe6a4 // indirect
+	google.golang.org/grpc v1.27.1
 	gopkg.in/yaml.v2 v2.2.8
 )
 

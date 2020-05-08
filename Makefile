@@ -1,7 +1,7 @@
 # TODO(rfratto): docker images
 
 .DEFAULT_GOAL := all
-.PHONY: all agent check-mod int test clean cmd/agent/agent
+.PHONY: all agent check-mod int test clean cmd/agent/agent protos
 
 SHELL = /usr/bin/env bash
 
@@ -40,6 +40,10 @@ IMAGE_TAG ?= $(shell ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
+# When running find there's a set of directories we'll never care about; we
+# define the list here to make scanning faster.
+DONT_FIND := -name tools -prune -o -name vendor -prune -o -name .git -prune -o -name .cache -prune -o -name .pkg -prune -o
+
 # Build flags
 VPREFIX        := github.com/grafana/agent/cmd/agent/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -60,10 +64,39 @@ NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
        false; \
 }
 
+# Protobuf files
+PROTO_DEFS := $(shell find . $(DONT_FIND) -type f -name '*.proto' -print)
+PROTO_GOS := $(patsubst %.proto,%.pb.go,$(PROTO_DEFS))
+
+#############
+# Protobufs #
+#############
+
+protos: $(PROTO_GOS)
+
+# Use with care; this signals to make that the proto definitions don't need recompiling.
+touch-protos:
+	for proto in $(PROTO_GOS); do [ -f "./$${proto}" ] && touch "$${proto}" && echo "touched $${proto}"; done
+
+%.pb.go: $(PROTO_DEFS)
+# We use loki-build-image here which expects /src/loki so we bind mount the agent
+# repo to /src/loki just for building the protobufs.
+ifeq ($(BUILD_IN_CONTAINER),true)
+	@mkdir -p $(shell pwd)/.pkg
+	@mkdir -p $(shell pwd)/.cache
+	docker run -i \
+		-v $(shell pwd)/.cache:/go/cache \
+		-v $(shell pwd)/.pkg:/go/pkg \
+		-v $(shell pwd):/src/loki \
+		$(IMAGE_PREFIX)/loki-build-image:$(BUILD_IMAGE_VERSION) $@;
+else
+	protoc -I .:./vendor:./$(@D) --gogoslick_out=Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,plugins=grpc,paths=source_relative:./ ./$(patsubst %.pb.go,%.proto,$@);
+endif
+
 ###################
 # Primary Targets #
 ###################
-all: agent
+all: protos agent
 agent: cmd/agent/agent
 
 cmd/agent/agent: cmd/agent/main.go

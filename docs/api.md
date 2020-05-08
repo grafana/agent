@@ -3,7 +3,8 @@
 ## Config Management API
 
 Grafana Cloud Agent exposes a REST API for managing instance configurations when
-it is running in scraping service mode. The following endpoints are exposed:
+it is running in [scraping service mode](./scraping-service.md). The following
+endpoints are exposed:
 
 - List configs: [`GET /agent/api/v1/configs`](#list-configs)
 - Get config: [`GET /agent/api/v1/configs/{name}`](#get-config)

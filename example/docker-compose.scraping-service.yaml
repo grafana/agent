@@ -1,16 +1,41 @@
 version: "2"
 services:
-  agent:
+  agent-1:
     image: grafana/agent:latest
     volumes:
-      - /tmp/agent:/tmp/agent
+      - /tmp/agent-1:/tmp/agent
       - ./agent/config:/etc/agent-config
     entrypoint:
       - /bin/agent
       - -config.file=/etc/agent-config/agent-scraping-service.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
     ports:
+      # Only the first agent needs to be exposed since they're clustered.
       - "12345:12345"
+
+  agent-2:
+    image: grafana/agent:latest
+    volumes:
+      - /tmp/agent-2:/tmp/agent
+      - ./agent/config:/etc/agent-config
+    entrypoint:
+      - /bin/agent
+      - -config.file=/etc/agent-config/agent-scraping-service.yaml
+      - -prometheus.wal-directory=/tmp/agent/wal
+    ports:
+      - "12346:12345"
+
+  agent-3:
+    image: grafana/agent:latest
+    volumes:
+      - /tmp/agent-3:/tmp/agent
+      - ./agent/config:/etc/agent-config
+    entrypoint:
+      - /bin/agent
+      - -config.file=/etc/agent-config/agent-scraping-service.yaml
+      - -prometheus.wal-directory=/tmp/agent/wal
+    ports:
+      - "12347:12345"
 
   etcd:
     image: gcr.io/etcd-development/etcd:v3.4.7
