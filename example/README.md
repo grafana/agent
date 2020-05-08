@@ -69,6 +69,6 @@ configurations. A set of instance configuration files is provided in
 [`agent/instance-configs`](./agent/instance-configs) that will work with the
 Docker Compose example.
 
-A bash script has been provided to automatically deploy these example
-instance configuration files to the running cluster; run
-`bash ./scripts/deploy-configs.sh` from this directory to do so.
+The `agentctl` tool provided by this repository can automatically deploy 
+those configs for you; run `agentctl config-sync -a http://localhost:12345 ./agent/instance-configs`
+from this directory to do so.

@@ -1,7 +1,7 @@
 # TODO(rfratto): docker images
 
 .DEFAULT_GOAL := all
-.PHONY: all agent check-mod int test clean cmd/agent/agent protos
+.PHONY: all agent agentctl check-mod int test clean cmd/agent/agent cmd/agentctl/agentctl protos
 
 SHELL = /usr/bin/env bash
 
@@ -21,7 +21,7 @@ else
 	GOLANGCI_ARG=--modules-download-mode=$(GOMOD)
 endif
 
-# Certain aspects of the build are done in containers for consistency.
+# Certain aspects of the build2 are done in containers for consistency.
 # If you have the correct tools installed and want to speed up development,
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
@@ -45,7 +45,7 @@ GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 DONT_FIND := -name tools -prune -o -name vendor -prune -o -name .git -prune -o -name .cache -prune -o -name .pkg -prune -o
 
 # Build flags
-VPREFIX        := github.com/grafana/agent/cmd/agent/build
+VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags netgo $(MOD_FLAG)
 DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags netgo $(MOD_FLAG)
@@ -79,7 +79,7 @@ touch-protos:
 	for proto in $(PROTO_GOS); do [ -f "./$${proto}" ] && touch "$${proto}" && echo "touched $${proto}"; done
 
 %.pb.go: $(PROTO_DEFS)
-# We use loki-build-image here which expects /src/loki so we bind mount the agent
+# We use loki-build2-image here which expects /src/loki so we bind mount the agent
 # repo to /src/loki just for building the protobufs.
 ifeq ($(BUILD_IN_CONTAINER),true)
 	@mkdir -p $(shell pwd)/.pkg
@@ -96,10 +96,15 @@ endif
 ###################
 # Primary Targets #
 ###################
-all: protos agent
+all: protos agent agentctl
 agent: cmd/agent/agent
+agentctl: cmd/agentctl/agentctl
 
 cmd/agent/agent: cmd/agent/main.go
+	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+	$(NETGO_CHECK)
+
+cmd/agentctl/agentctl: cmd/agentctl/main.go
 	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
@@ -108,9 +113,22 @@ agent-image:
 		-t $(IMAGE_PREFIX)/agent:latest -f cmd/agent/Dockerfile .
 	docker tag $(IMAGE_PREFIX)/agent:latest $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
 
+agentctl-image:
+	docker build --build-arg RELEASE_BUILD=$(RELEASE_BUILD)  --build-arg IMAGE_TAG=$(IMAGE_TAG) \
+		-t $(IMAGE_PREFIX)/agentctl:latest -f cmd/agentctl/Dockerfile .
+	docker tag $(IMAGE_PREFIX)/agentctl:latest $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG)
+
 push-agent-image:
 	docker push $(IMAGE_PREFIX)/agent:latest
 	docker push $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
+
+push-agentctl-image:
+	docker push $(IMAGE_PREFIX)/agentctl:latest
+	docker push $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG)
+
+install:
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
 
 #######################
 # Development targets #
@@ -140,6 +158,7 @@ example-dashboards:
 GOX = gox $(GO_FLAGS) -parallel=2 -output="dist/{{.Dir}}-{{.OS}}-{{.Arch}}"
 dist:
 	CGO_ENABLED=0 $(GOX) -osarch="linux/amd64 darwin/amd64 windows/amd64 freebsd/amd64" ./cmd/agent
+	CGO_ENABLED=0 $(GOX) -osarch="linux/amd64 darwin/amd64 windows/amd64 freebsd/amd64" ./cmd/agentctl
 	for i in dist/*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 

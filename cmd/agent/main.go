@@ -7,8 +7,7 @@ import (
 	"os"
 
 	// Adds version information
-
-	_ "github.com/grafana/agent/cmd/agent/build"
+	_ "github.com/grafana/agent/pkg/build"
 
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"
@@ -33,7 +32,7 @@ func main() {
 
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	fs.StringVar(&configFile, "config.file", "", "configuration file to load")
-	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
+	fs.BoolVar(&printVersion, "version", false, "Print this build2's version information")
 	cfg.RegisterFlags(fs)
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
