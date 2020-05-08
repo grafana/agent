@@ -22,25 +22,33 @@ The Grafana Cloud Agent can be deployed in two modes:
 
 - Prometheus `remote_write` drop-in
 - [Host Filtering mode](#host-filtering)
+- [Scraping Service Mode](./scraping-service.md)
 
 The default deployment mode of the Grafana Cloud Agent is the _drop-in_
 replacement for Prometheus `remote_write`. The Agent will act similarly to a
 single-process Prometheus, doing service discovery, scraping, and remote
 writing.
 
-The other deployment mode, _Host Filtering mode_, is achieved by setting a
-`host_filter` flag on a specific instance inside the Agent's configuration file.
-When this flag is set, the instance will only scrape metrics from targets that
-are running on the same machine as the itself. This is extremely useful to
-migrate to sharded Prometheus instances in a Kubernetes cluster, where the Agent
-can then be deployed as a DaemonSet and distribute memory requirements across
-multiple nodes.
+_Host Filtering mode_ is achieved by setting a `host_filter` flag on a specific
+instance inside the Agent's configuration file. When this flag is set, the
+instance will only scrape metrics from targets that are running on the same
+machine as the itself. This is extremely useful to migrate to sharded Prometheus
+instances in a Kubernetes cluster, where the Agent can then be deployed as a
+DaemonSet and distribute memory requirements across multiple nodes.
 
 Note that Host Filtering mode and sharding your instances means that if an
 Agent's metrics are being sent to an alerting system, alerts for that Agent may
 not be able to be generated if the entire node has problems. This changes the
 semantics of failure detection, and alerts would have to be configured to catch
 agents not reporting in.
+
+The final mode, _Scraping Service Mode_ is a third operational mode that
+clusters a subset of agents. It acts as the in-between of the drop-in mode
+(which does no automatic sharding) and host_filter mode (which forces sharding
+by node). The Scraping Service Mode clusters a set of agents with a set of
+shared configs and distributes the scrape load automatically between them. For
+more information, please read the dedicated
+[Scraping Service Mode](./scraping-service.md) documentation.
 
 For more information on installing and running the agent, see
 [Getting started](./getting-started.md) or
@@ -81,7 +89,3 @@ Grafana Cloud hosted platforms:
 - Graphite metrics
 - Loki logs
 
-Operationally, we are also planning on adding a distributed scraping service
-mode, where the Agent could be deployed as a cluster. This will be the third
-deployment mechanism supported, outside of the currently supported
-single-process and `DaemonSet` modes.

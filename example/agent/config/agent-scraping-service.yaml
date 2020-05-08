@@ -12,3 +12,11 @@ prometheus:
       etcd:
         endpoints:
           - etcd:2379
+    lifecycler:
+      ring:
+        replication_factor: 1
+        kvstore:
+          store: etcd
+          etcd:
+            endpoints:
+              - etcd:2379

@@ -20,6 +20,8 @@ import (
 )
 
 type storageMetrics struct {
+	r prometheus.Registerer
+
 	numActiveSeries    prometheus.Gauge
 	numDeletedSeries   prometheus.Gauge
 	totalCreatedSeries prometheus.Counter
@@ -27,7 +29,7 @@ type storageMetrics struct {
 }
 
 func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
-	var m storageMetrics
+	m := storageMetrics{r: r}
 	m.numActiveSeries = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "agent_wal_storage_active_series",
 		Help: "Current number of active series being tracked by the WAL storage",
@@ -58,6 +60,21 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 	}
 
 	return &m
+}
+
+func (m *storageMetrics) Unregister() {
+	if m.r == nil {
+		return
+	}
+	cs := []prometheus.Collector{
+		m.numActiveSeries,
+		m.numDeletedSeries,
+		m.totalCreatedSeries,
+		m.totalRemovedSeries,
+	}
+	for _, c := range cs {
+		m.r.Unregister(c)
+	}
 }
 
 // Storage implements storage.Storage, and just writes to the WAL.
@@ -479,6 +496,9 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 
 // Close closes the storage and all its underlying resources.
 func (w *Storage) Close() error {
+	if w.metrics != nil {
+		w.metrics.Unregister()
+	}
 	return w.wal.Close()
 }
 

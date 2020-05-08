@@ -104,8 +104,16 @@ local g = import 'grafana-builder/grafana.libsonnet';
           g.panel('Series/Instance') +
           { stack: 'true' } +
           g.queryPanel(
-            'agent_wal_storage_active_series{cluster=~"$cluster", job=~"$job", instance=~"$instance"}',
+            'sum by (instance) (agent_wal_storage_active_series{cluster=~"$cluster", job=~"$job", instance=~"$instance"})',
             '{{instance}}',
+          )
+        )
+        .addPanel(
+          g.panel('Series/Config') +
+          { stack: 'true' } +
+          g.queryPanel(
+            'sum by (instance_name) (agent_wal_storage_active_series{cluster=~"$cluster", job=~"$job", instance=~"$instance"})',
+            '{{instance_name}}',
           )
         )
         .addPanel(

@@ -55,3 +55,20 @@ Useful one-off queries to run once everything is up:
    (avg_over_time(go_memstats_heap_inuse_bytes[10m])) / 1e6`: Current memory
    usage of the agent and Cortex averaged out from the last 10 minutes.
 
+## Scraping Service
+
+A [Scraping Service](../docs/scraping-service.md) cluster example is also
+present in this directory. To start it, run:
+
+```
+docker-compose -f docker-compose.scraping-service.yaml up -d
+```
+
+The Scraping Service cluster will start with an empty KV store for instance
+configurations. A set of instance configuration files is provided in
+[`agent/instance-configs`](./agent/instance-configs) that will work with the
+Docker Compose example.
+
+A bash script has been provided to automatically deploy these example
+instance configuration files to the running cluster; run
+`bash ./scripts/deploy-configs.sh` from this directory to do so.
