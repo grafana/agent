@@ -22,7 +22,7 @@ func TestConfigSync_EmptyStore(t *testing.T) {
 		return nil
 	}
 
-	err := ConfigSync(cli, "./testdata")
+	err := ConfigSync(nil, cli, "./testdata")
 	require.NoError(t, err)
 
 	expect := []string{
@@ -53,7 +53,7 @@ func TestConfigSync_PrepopulatedStore(t *testing.T) {
 		return nil
 	}
 
-	err := ConfigSync(cli, "./testdata")
+	err := ConfigSync(nil, cli, "./testdata")
 	require.NoError(t, err)
 
 	expectUpdated := []string{
