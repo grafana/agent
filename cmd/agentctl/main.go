@@ -49,7 +49,7 @@ func configSyncCmd() *cobra.Command {
 			err := agentctl.ConfigSync(logger, cli.PrometheusClient, directory)
 			if err != nil {
 				level.Error(logger).Log("msg", "failed to sync config", "err", err)
-				return
+				os.Exit(1)
 			}
 		},
 	}
