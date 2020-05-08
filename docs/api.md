@@ -1,5 +1,10 @@
 # API
 
+The API is divided into several parts: 
+
+- [Config Management API](#config-management-api)
+- [Ready/Healthy API](#ready--health-api)
+
 ## Config Management API
 
 Grafana Cloud Agent exposes a REST API for managing instance configurations when
@@ -124,4 +129,32 @@ Response on success:
 {
   "status": "success"
 }
+```
+
+## Ready / Health API
+
+### Readiness Check
+
+```
+GET /-/ready
+```
+
+Status code: 200 on success. 
+
+Response: 
+```
+Agent is Ready.
+```
+
+### Healthiness Check 
+
+```
+GET /-/healthy
+```
+
+Status code: 200 on success. 
+
+Response:
+```
+Agent is Healthy.
 ```

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	// Adds version information
@@ -74,6 +75,15 @@ func main() {
 	// Hook up API paths to the router
 	promMetrics.WireAPI(srv.HTTP)
 	promMetrics.WireGRPC(srv.GRPC)
+
+	srv.HTTP.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Agent is Healthy.\n")
+	})
+	srv.HTTP.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Agent is Ready.\n")
+	})
 
 	if err := srv.Run(); err != nil {
 		level.Error(util.Logger).Log("msg", "error running agent", "err", err)
