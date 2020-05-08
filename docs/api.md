@@ -1,6 +1,6 @@
 # API
 
-The API is divided into several parts: 
+The API is divided into several parts:
 
 - [Config Management API](#config-management-api)
 - [Ready/Healthy API](#ready--health-api)
@@ -139,20 +139,20 @@ Response on success:
 GET /-/ready
 ```
 
-Status code: 200 on success. 
+Status code: 200 if ready.
 
-Response: 
+Response:
 ```
 Agent is Ready.
 ```
 
-### Healthiness Check 
+### Healthiness Check
 
 ```
 GET /-/healthy
 ```
 
-Status code: 200 on success. 
+Status code: 200 if healthy.
 
 Response:
 ```
