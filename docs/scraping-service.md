@@ -153,10 +153,9 @@ for how to run a Scraping Service Agent cluster locally.
 ## agentctl
 
 `agentctl` is a tool included with this repository that helps users to interact
-with the new Config Management API. Currently, it has one subcommand,
-`agentctl config-sync` that uses all YAML files as a source of truth and syncs
-their contents with the API. Entries in the API not in the synced directly will
-be deleted.
+with the new Config Management API. The `agentctl config-sync` subcommand uses
+all YAML files as a source of truth and syncs their contents with the API.
+Entries in the API not in the synced directly will be deleted.
 
 `agentctl` is distributed in binary form with each release and as a Docker
 container with the `grafana/agentctl` image. Tanka configurations that
