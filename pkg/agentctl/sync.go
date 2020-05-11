@@ -40,7 +40,7 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string) erro
 		return err
 	}
 
-	uploaded := map[string]struct{}{}
+	uploaded := make(map[string]struct{}, 0, len(cfgs)) 
 
 	for _, cfg := range cfgs {
 		level.Info(logger).Log("msg", "uploading config", "name", cfg.Name)
