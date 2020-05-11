@@ -43,10 +43,8 @@ contents.
 
 When Scraping Service Mode is enabled, Agents **disallow** specifying
 instance configurations locally in the configuration file; using the KV store
-is required.
-
-GitOps-friendly tooling is planned to automatically load instance configuration
-files.
+is required. [`agentctl`](#agentctl) can be used to manually sync
+instance configuration files to the Agent's API server.
 
 ## Distributed Hash Ring
 
@@ -151,3 +149,15 @@ Note that there are no instance configs present in this example; instance
 configs must be passed to the API for the Agent to start scraping metrics.
 See [the docker-compose Scraping Service Example](../example/README.md)
 for how to run a Scraping Service Agent cluster locally.
+
+## agentctl
+
+`agentctl` is a tool included with this repository that helps users to interact
+with the new Config Management API. The `agentctl config-sync` subcommand uses
+all YAML files as a source of truth and syncs their contents with the API.
+Entries in the API not in the synced directly will be deleted.
+
+`agentctl` is distributed in binary form with each release and as a Docker
+container with the `grafana/agentctl` image. Tanka configurations that
+utilize `grafana/agentctl` and sync a set of configurations to the API
+are planned for the future.

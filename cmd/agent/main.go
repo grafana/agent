@@ -8,8 +8,7 @@ import (
 	"os"
 
 	// Adds version information
-
-	_ "github.com/grafana/agent/cmd/agent/build"
+	_ "github.com/grafana/agent/pkg/build"
 
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"

@@ -39,6 +39,6 @@ jobs:
         export PATH="$(go env GOPATH)/bin:$PATH"
 
         export RELEASE_TAG=${GITHUB_REF##*/}
-        make RELEASE_BUILD=true agent-image
-        make RELEASE_BUILD=true push-agent-image
+        make RELEASE_BUILD=true agent-image agentctl-image
+        make RELEASE_BUILD=true push-agent-image push-agentctl-image
         make RELEASE_BUILD=true publish
