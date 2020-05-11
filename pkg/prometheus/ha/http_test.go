@@ -19,7 +19,8 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/flagext"
 	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prometheus/ha/client"
+	"github.com/grafana/agent/pkg/client"
+	haClient "github.com/grafana/agent/pkg/prometheus/ha/client"
 	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
 	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/stretchr/testify/require"
@@ -52,6 +53,17 @@ func TestServer_ListConfigurations(t *testing.T) {
 
 	expect := configapi.ListConfigurationsResponse{Configs: []string{"a", "b", "c"}}
 	require.Equal(t, expect, apiResp)
+
+	t.Run("With Client", func(t *testing.T) {
+		cli := client.New(env.srv.URL)
+		apiResp, err := cli.ListConfigs(context.Background())
+		require.NoError(t, err)
+
+		sort.Strings(apiResp.Configs)
+
+		expect := &configapi.ListConfigurationsResponse{Configs: []string{"a", "b", "c"}}
+		require.Equal(t, expect, apiResp)
+	})
 }
 
 // TestServer_GetConfiguration_Invalid makes sure that requesting an invalid
@@ -66,6 +78,13 @@ func TestServer_GetConfiguration_Invalid(t *testing.T) {
 	var apiResp configapi.ErrorResponse
 	unmarshalTestResponse(t, resp.Body, &apiResp)
 	require.Equal(t, "configuration does-not-exist does not exist", apiResp.Error)
+
+	t.Run("With Client", func(t *testing.T) {
+		cli := client.New(env.srv.URL)
+		_, err := cli.GetConfiguration(context.Background(), "does-not-exist")
+		require.NotNil(t, err)
+		require.Equal(t, "configuration does-not-exist does not exist", err.Error())
+	})
 }
 
 func TestServer_GetConfiguration(t *testing.T) {
@@ -92,6 +111,13 @@ func TestServer_GetConfiguration(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+
+	t.Run("With Client", func(t *testing.T) {
+		cli := client.New(env.srv.URL)
+		actual, err := cli.GetConfiguration(context.Background(), "a")
+		require.NoError(t, err)
+		require.Equal(t, &cfg, actual)
+	})
 }
 
 func TestServer_PutConfiguration(t *testing.T) {
@@ -125,6 +151,24 @@ func TestServer_PutConfiguration(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
 	}
+}
+
+func TestServer_PutConfiguration_WithClient(t *testing.T) {
+	env := newAPITestEnvironment(t)
+
+	cfg := instance.DefaultConfig
+	cfg.Name = "newconfig-withclient"
+	cfg.HostFilter = true
+	cfg.RemoteFlushDeadline = 10 * time.Minute
+
+	cli := client.New(env.srv.URL)
+	err := cli.PutConfiguration(context.Background(), "newconfig-withclient", &cfg)
+	require.NoError(t, err)
+
+	// Get the config back now
+	resp, err := cli.GetConfiguration(context.Background(), "newconfig-withclient")
+	require.NoError(t, err)
+	require.Equal(t, &cfg, resp, "stored configuration did not match input")
 }
 
 func TestServer_DeleteConfiguration(t *testing.T) {
@@ -165,6 +209,37 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 	}
 }
 
+func TestServer_DeleteConfiguration_WithClient(t *testing.T) {
+	env := newAPITestEnvironment(t)
+
+	// Store some configs
+	cfgs := []*instance.Config{
+		{Name: "a"},
+		{Name: "b"},
+		{Name: "c"},
+	}
+	for _, cfg := range cfgs {
+		err := env.ha.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
+			return cfg, false, nil
+		})
+		require.NoError(t, err)
+	}
+
+	cli := client.New(env.srv.URL)
+
+	// Delete the configs
+	for _, cfg := range cfgs {
+		err := cli.DeleteConfiguration(context.Background(), cfg.Name)
+		require.NoError(t, err)
+	}
+
+	resp, err := cli.ListConfigs(context.Background())
+	require.NoError(t, err)
+	for _, cfg := range cfgs {
+		require.NotContains(t, resp.Configs, cfg.Name)
+	}
+}
+
 type apiTestEnvironment struct {
 	ha     *Server
 	srv    *httptest.Server
@@ -192,7 +267,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 			Prefix: "configs/",
 		},
 		Lifecycler: testLifecyclerConfig(),
-	}, client.Config{}, logger, newMockConfigManager())
+	}, haClient.Config{}, logger, newMockConfigManager())
 	require.NoError(t, err)
 
 	// Wire the API
