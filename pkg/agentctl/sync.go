@@ -2,6 +2,7 @@ package agentctl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -41,12 +42,14 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string) erro
 	}
 
 	uploaded := make(map[string]struct{}, len(cfgs))
+	var hadErrors bool
 
 	for _, cfg := range cfgs {
 		level.Info(logger).Log("msg", "uploading config", "name", cfg.Name)
 		err := cli.PutConfiguration(ctx, cfg.Name, cfg)
 		if err != nil {
-			level.Error(logger).Log("msg", "failed to uupload config", "name", cfg.Name, "err", err)
+			level.Error(logger).Log("msg", "failed to upload config", "name", cfg.Name, "err", err)
+			hadErrors = true
 		}
 		uploaded[cfg.Name] = struct{}{}
 	}
@@ -58,8 +61,13 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string) erro
 			err := cli.DeleteConfiguration(ctx, existing)
 			if err != nil {
 				level.Error(logger).Log("msg", "failed to delete outdated config", "name", existing, "err", err)
+				hadErrors = true
 			}
 		}
+	}
+
+	if hadErrors {
+		return errors.New("one or more configurations failed to be modified; check the logs for more details")
 	}
 
 	return nil
