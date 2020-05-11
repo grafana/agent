@@ -44,7 +44,7 @@ contents.
 When Scraping Service Mode is enabled, Agents **disallow** specifying
 instance configurations locally in the configuration file; using the KV store
 is required. [`agentctl`](#agentctl) can be used to manually sync
-instance configuration files to the API server.
+instance configuration files to the Agent's API server.
 
 ## Distributed Hash Ring
 
