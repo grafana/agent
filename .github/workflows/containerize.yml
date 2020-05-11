@@ -27,4 +27,4 @@ jobs:
       run: RELEASE_BUILD=true make agent-image agentctl-image
 
     - name: Push Container
-      run: RELEASE_BUILD=true make push-agent-image push-agent-ctl-image
+      run: RELEASE_BUILD=true make push-agent-image push-agentctl-image
