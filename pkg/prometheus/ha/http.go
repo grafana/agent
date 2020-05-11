@@ -112,7 +112,7 @@ func (s *Server) GetConfiguration(r *http.Request) (interface{}, error) {
 		}
 	}
 
-	cfg, err := instance.MarshalConfig(v.(*instance.Config))
+	cfg, err := instance.MarshalConfig(v.(*instance.Config), true)
 	if err != nil {
 		level.Error(s.logger).Log("msg", "error marshaling configuration", "err", err)
 		return nil, err

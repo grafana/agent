@@ -61,10 +61,10 @@ var (
 // Config is a specific agent that runs within the overall Prometheus
 // agent. It has its own set of scrape_configs and remote_write rules.
 type Config struct {
-	Name          string                      `yaml:"name" json:"name"`
-	HostFilter    bool                        `yaml:"host_filter" json:"host_filter"`
-	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty" json:"scrape_configs,omitempty"`
-	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty" json:"remote_write,omitempty"`
+	Name          string                 `yaml:"name" json:"name"`
+	HostFilter    bool                   `yaml:"host_filter" json:"host_filter"`
+	ScrapeConfigs []*config.ScrapeConfig `yaml:"scrape_configs,omitempty" json:"scrape_configs,omitempty"`
+	RemoteWrite   []*RemoteWriteConfig   `yaml:"remote_write,omitempty" json:"remote_write,omitempty"`
 
 	// How frequently the WAL should be truncated.
 	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty" json:"wal_truncate_frequency,omitempty"`
@@ -218,11 +218,16 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 		}
 	}
 
+	remoteWriteConfigs := []*config.RemoteWriteConfig{}
+	for _, c := range i.cfg.RemoteWrite {
+		remoteWriteConfigs = append(remoteWriteConfigs, c.PrometheusConfig())
+	}
+
 	readyScrapeManager := &scrape.ReadyScrapeManager{}
 	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), &trackingReg, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline, readyScrapeManager)
 	i.exitErr = remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg,
-		RemoteWriteConfigs: i.cfg.RemoteWrite,
+		RemoteWriteConfigs: remoteWriteConfigs,
 	})
 	if i.exitErr != nil {
 		level.Error(i.logger).Log("msg", "failed applying config to remote storage", "err", i.exitErr)

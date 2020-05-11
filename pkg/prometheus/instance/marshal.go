@@ -15,7 +15,13 @@ func UnmarshalConfig(r io.Reader) (*Config, error) {
 }
 
 // MarshalConfig marshals an instance config based on a provided content type.
-func MarshalConfig(c *Config) (string, error) {
+func MarshalConfig(c *Config, sanitize bool) (string, error) {
+	if sanitize {
+		for _, rw := range c.RemoteWrite {
+			rw.Sanitize()
+		}
+	}
+
 	bb, err := yaml.Marshal(c)
 	return string(bb), err
 }
