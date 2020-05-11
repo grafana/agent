@@ -38,7 +38,16 @@ func configSyncCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config-sync [directory]",
 		Short: "Sync config files from a directory to an Agent's config management API",
-		Args:  cobra.ExactArgs(1),
+		Long: `config-sync loads all files ending with .yml or .yaml from the specified
+directory and uploads them the the config management API. The name of the config
+uploaded will be the base name of the file (e.g., the name of the file without
+its extension).
+
+The directory is used as the source-of-truth for the entire set of configs that
+should be present in the API. config-sync will delete all existing configs from the API 
+that do not match any of the names of the configs that were uploaded from the 
+source-of-truth directory.`,
+		Args: cobra.ExactArgs(1),
 
 		Run: func(_ *cobra.Command, args []string) {
 			directory := args[0]

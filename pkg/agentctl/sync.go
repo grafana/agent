@@ -40,13 +40,13 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string) erro
 		return err
 	}
 
-	uploaded := make(map[string]struct{}, 0, len(cfgs)) 
+	uploaded := make(map[string]struct{}, len(cfgs))
 
 	for _, cfg := range cfgs {
 		level.Info(logger).Log("msg", "uploading config", "name", cfg.Name)
 		err := cli.PutConfiguration(ctx, cfg.Name, cfg)
 		if err != nil {
-			return err
+			level.Error(logger).Log("msg", "failed to uupload config", "name", cfg.Name, "err", err)
 		}
 		uploaded[cfg.Name] = struct{}{}
 	}
@@ -57,7 +57,7 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string) erro
 			level.Info(logger).Log("msg", "deleting config", "name", existing)
 			err := cli.DeleteConfiguration(ctx, existing)
 			if err != nil {
-				return err
+				level.Error(logger).Log("msg", "failed to delete outdated config", "name", existing, "err", err)
 			}
 		}
 	}

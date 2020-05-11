@@ -21,7 +21,7 @@ else
 	GOLANGCI_ARG=--modules-download-mode=$(GOMOD)
 endif
 
-# Certain aspects of the build2 are done in containers for consistency.
+# Certain aspects of the build are done in containers for consistency.
 # If you have the correct tools installed and want to speed up development,
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
@@ -79,7 +79,7 @@ touch-protos:
 	for proto in $(PROTO_GOS); do [ -f "./$${proto}" ] && touch "$${proto}" && echo "touched $${proto}"; done
 
 %.pb.go: $(PROTO_DEFS)
-# We use loki-build2-image here which expects /src/loki so we bind mount the agent
+# We use loki-build-image here which expects /src/loki so we bind mount the agent
 # repo to /src/loki just for building the protobufs.
 ifeq ($(BUILD_IN_CONTAINER),true)
 	@mkdir -p $(shell pwd)/.pkg
