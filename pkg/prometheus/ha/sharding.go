@@ -221,16 +221,5 @@ func configHash(c *instance.Config) (uint32, error) {
 	}
 	h := fnv.New32()
 	_, _ = h.Write(bb)
-
-	// Secrets need to be hashed separately since when marshaled they are
-	// removed by the a custom marshaler. We want changes to secrets to result in
-	// a different hash.
-	for _, rwr := range c.RemoteWrite {
-		if basic := rwr.HTTPClientConfig.BasicAuth; basic != nil {
-			_, _ = h.Write([]byte(basic.Password))
-		}
-		_, _ = h.Write([]byte(rwr.HTTPClientConfig.BearerToken))
-	}
-
 	return h.Sum32(), nil
 }
