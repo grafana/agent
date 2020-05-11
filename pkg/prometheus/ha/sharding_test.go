@@ -3,6 +3,7 @@ package ha
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"sort"
 	"testing"
@@ -13,12 +14,13 @@ import (
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 func TestServer_Reshard(t *testing.T) {
 	// Resharding should do the following:
-	// 	- All configs in the store should be applied
-	// 	- All configs not in the store but in the existing ConfigManager should be deleted
+	//	- All configs in the store should be applied
+	//	- All configs not in the store but in the existing ConfigManager should be deleted
 	mockCm := newMockConfigManager()
 	for _, name := range []string{"keep_a", "keep_b", "remove_a", "remove_b"} {
 		mockCm.ApplyConfig(instance.Config{Name: name})
@@ -195,6 +197,78 @@ func TestShardingConfigManager(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, len(mockCm.cfgs), "owned config was not deleted")
 	})
+}
+
+func TestConfigHash_Secrets_BasicAuth(t *testing.T) {
+	configTemplate := `name: 'test'
+host_filter: false
+scrape_configs:
+  - job_name: process-1
+    static_configs:
+      - targets: ['process-1:80']
+        labels:
+          cluster: 'local'
+          origin: 'agent'
+remote_write:
+  - name: test-abcdef
+    url: http://cortex:9090/api/prom/push
+    basic_auth:
+      username: test_username
+      password: %s`
+
+	configA := fmt.Sprintf(configTemplate, "password_a")
+	configB := fmt.Sprintf(configTemplate, "password_b")
+
+	var inA instance.Config
+	err := yaml.Unmarshal([]byte(configA), &inA)
+	require.NoError(t, err)
+
+	hashA, err := configHash(&inA)
+	require.NoError(t, err)
+
+	var inB instance.Config
+	err = yaml.Unmarshal([]byte(configB), &inB)
+	require.NoError(t, err)
+
+	hashB, err := configHash(&inB)
+	require.NoError(t, err)
+
+	require.NotEqual(t, hashA, hashB, "secrets were not hashed separately")
+}
+
+func TestConfigHash_Secrets_BearerToken(t *testing.T) {
+	configTemplate := `name: 'test'
+host_filter: false
+scrape_configs:
+  - job_name: process-1
+    static_configs:
+      - targets: ['process-1:80']
+        labels:
+          cluster: 'local'
+          origin: 'agent'
+remote_write:
+  - name: test-abcdef
+    url: http://cortex:9090/api/prom/push
+    bearer_token: %s`
+
+	configA := fmt.Sprintf(configTemplate, "bearer_a")
+	configB := fmt.Sprintf(configTemplate, "bearer_b")
+
+	var inA instance.Config
+	err := yaml.Unmarshal([]byte(configA), &inA)
+	require.NoError(t, err)
+
+	hashA, err := configHash(&inA)
+	require.NoError(t, err)
+
+	var inB instance.Config
+	err = yaml.Unmarshal([]byte(configB), &inB)
+	require.NoError(t, err)
+
+	hashB, err := configHash(&inB)
+	require.NoError(t, err)
+
+	require.NotEqual(t, hashA, hashB, "secrets were not hashed separately")
 }
 
 type mockFuncReadRing struct {
