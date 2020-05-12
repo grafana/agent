@@ -22,7 +22,7 @@ func TestConfigSync_EmptyStore(t *testing.T) {
 		return nil
 	}
 
-	err := ConfigSync(nil, cli, "./testdata")
+	err := ConfigSync(nil, cli, "./testdata", false)
 	require.NoError(t, err)
 
 	expect := []string{
@@ -53,7 +53,7 @@ func TestConfigSync_PrepopulatedStore(t *testing.T) {
 		return nil
 	}
 
-	err := ConfigSync(nil, cli, "./testdata")
+	err := ConfigSync(nil, cli, "./testdata", false)
 	require.NoError(t, err)
 
 	expectUpdated := []string{
@@ -69,6 +69,28 @@ func TestConfigSync_PrepopulatedStore(t *testing.T) {
 		"delete-c",
 	}
 	require.Equal(t, expectDeleted, deletedConfigs)
+}
+
+func TestConfigSync_DryRun(t *testing.T) {
+	cli := &mockFuncPromClient{}
+	cli.ListConfigsFunc = func(_ context.Context) (*configapi.ListConfigurationsResponse, error) {
+		return &configapi.ListConfigurationsResponse{
+			Configs: []string{"delete-a", "agent-1", "delete-b", "delete-c"},
+		}, nil
+	}
+
+	cli.PutConfigurationFunc = func(_ context.Context, name string, _ *instance.Config) error {
+		t.FailNow()
+		return nil
+	}
+
+	cli.DeleteConfigurationFunc = func(_ context.Context, name string) error {
+		t.FailNow()
+		return nil
+	}
+
+	err := ConfigSync(nil, cli, "./testdata", true)
+	require.NoError(t, err)
 }
 
 type mockFuncPromClient struct {
