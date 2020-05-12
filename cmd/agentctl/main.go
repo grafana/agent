@@ -33,6 +33,7 @@ func main() {
 func configSyncCmd() *cobra.Command {
 	var (
 		agentAddr string
+		dryRun    bool
 	)
 
 	cmd := &cobra.Command{
@@ -55,7 +56,7 @@ source-of-truth directory.`,
 
 			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
 
-			err := agentctl.ConfigSync(logger, cli.PrometheusClient, directory)
+			err := agentctl.ConfigSync(logger, cli.PrometheusClient, directory, dryRun)
 			if err != nil {
 				level.Error(logger).Log("msg", "failed to sync config", "err", err)
 				os.Exit(1)
@@ -64,6 +65,7 @@ source-of-truth directory.`,
 	}
 
 	cmd.Flags().StringVarP(&agentAddr, "addr", "a", "http://localhost:12345", "address of the agent to connect to")
+	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "use the dry run option to validate config files without attempting to upload")
 	must(cmd.MarkFlagRequired("addr"))
 	return cmd
 }

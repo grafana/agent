@@ -25,20 +25,20 @@ import (
 // ConfigSync will completely overwrite the set of active configs
 // present in the provided PrometheusClient - configs present in the
 // API but not in the directory will be deleted.
-func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string) error {
+func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string, dryRun bool) error {
 	if logger == nil {
 		logger = log.NewNopLogger()
 	}
 
 	ctx := context.Background()
-	existing, err := cli.ListConfigs(ctx)
-	if err != nil {
-		return fmt.Errorf("could not list configs: %w", err)
-	}
-
 	cfgs, err := ConfigsFromDirectory(dir)
 	if err != nil {
 		return err
+	}
+
+	if dryRun {
+		level.Info(logger).Log("msg", "config files validated successfully")
+		return nil
 	}
 
 	uploaded := make(map[string]struct{}, len(cfgs))
@@ -52,6 +52,11 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string) erro
 			hadErrors = true
 		}
 		uploaded[cfg.Name] = struct{}{}
+	}
+
+	existing, err := cli.ListConfigs(ctx)
+	if err != nil {
+		return fmt.Errorf("could not list configs: %w", err)
 	}
 
 	// Delete configs from the existing API list that we didn't upload.
