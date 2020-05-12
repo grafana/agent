@@ -37,7 +37,7 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string, dryR
 	}
 
 	if dryRun {
-		fmt.Println("Dry run successful")
+		level.Info(logger).Log("msg", "config files validated successfully")
 		return nil
 	}
 

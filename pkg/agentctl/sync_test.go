@@ -79,23 +79,18 @@ func TestConfigSync_DryRun(t *testing.T) {
 		}, nil
 	}
 
-	var putConfigs []string
 	cli.PutConfigurationFunc = func(_ context.Context, name string, _ *instance.Config) error {
-		putConfigs = append(putConfigs, name)
+		t.FailNow()
 		return nil
 	}
 
-	var deletedConfigs []string
 	cli.DeleteConfigurationFunc = func(_ context.Context, name string) error {
-		deletedConfigs = append(deletedConfigs, name)
+		t.FailNow()
 		return nil
 	}
 
 	err := ConfigSync(nil, cli, "./testdata", true)
 	require.NoError(t, err)
-
-	require.Empty(t, putConfigs)
-	require.Empty(t, deletedConfigs)
 }
 
 type mockFuncPromClient struct {
