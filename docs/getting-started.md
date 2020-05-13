@@ -27,7 +27,7 @@ Currently, there are five ways to install the agent:
 ### Docker Container
 
 ```
-docker pull grafana/agent:v0.2.0
+docker pull grafana/agent:v0.3.0
 ```
 
 ### Kubernetes Install Script
@@ -38,7 +38,7 @@ Grafana Cloud Agent Kubernetes deployment manifest:
 > **Warning**: Always verify scripts from the internet before running them.
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.2.0/production/kubernetes/install.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.3.0/production/kubernetes/install.sh)" | kubectl apply -f -
 ```
 
 ### Kubernetes Manifest
@@ -91,7 +91,7 @@ path of your Agent's YAML configuration file.
 docker run \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.2.0
+  grafana/agent:v0.3.0
 ```
 
 ### Locally
