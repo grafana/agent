@@ -20,3 +20,4 @@ prometheus:
           etcd:
             endpoints:
               - etcd:2379
+

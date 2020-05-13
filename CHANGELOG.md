@@ -1,5 +1,29 @@
 # Next (master/unreleased)
 
+# v0.3.0 (2020-05-13)
+
+- [FEATURE] A third operational mode called "scraping service mode" has been
+  added. A KV store is used to store instance configs which are distributed
+  amongst a clustered set of Agent processes, dividing the total scrape load
+  across each agent. An API is exposed on the Agents to list, create, update,
+  and delete instance configurations from the KV store. (@rfratto)
+
+- [FEATURE] An "agentctl" binary has been released to interact with the new
+  instance config management API created by the "scraping service mode."
+  (@rfratto, @hoenn)
+
+- [FEATURE] The Agent now includes readiness and healthiness endpoints.
+  (@rfratto)
+
+- [ENHANCEMENT] The YAML files are now parsed strictly and an invalid YAML will
+  generate an error at runtime. (@hoenn)
+
+- [ENHANCEMENT] The default build mode for the Docker containers is now release,
+  not debug. (@rfratto)
+
+- [ENHANCEMENT] The Grafana Agent Tanka Mixins now are placed in an "Agent"
+  folder within Grafana. (@cyriltovena)
+
 # v0.2.0 (2020-04-09)
 
 - [FEATURE] The Prometheus remote write protocol will now send scraped metadata (metric name, help, type and unit). This results in almost negligent bytes sent increase as metadata is only sent every minute. It is on by default. (@gotjosh)
