@@ -361,7 +361,7 @@
         }],
 
         // Drop some high cardinality metrics.
-        metric_label_configs: [
+        metric_relabel_configs: [
           {
             source_labels: ['__name__'],
             regex: 'apiserver_admission_controller_admission_latencies_seconds_.*',
