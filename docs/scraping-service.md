@@ -1,4 +1,4 @@
-into # Scraping Service Mode
+# Scraping Service Mode
 
 Scraping Service Mode is a third operational mode of the Grafana Cloud Agent
 that allows for clustering a set of Agent processes and distributing scrape load
