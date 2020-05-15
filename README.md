@@ -3,10 +3,12 @@
 Grafana Cloud Agent is an observability data collector optimized for sending
 metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud/).
 
-Users of Prometheus cloud storage vendors with a single Prometheus instance can
-struggle sending their data at massive scale (millions of active series):
-Prometheus is sometimes called a single point of failure that generally requires
-a giant machine with a lot of resources allocated to it.
+Users of Prometheus operating at a massive scale (i.e., millions of active 
+series) can struggle to run an unsharded singleton Prometheus instance: it becomes a 
+single point of failure and requires a giant machine with a lot of resources 
+allocated to it. Even with proper sharding across multiple Prometheus instances, 
+using Prometheus to send data to a cloud vendor can seem redundant: why pay for 
+cloud storage if data is already stored locally?
 
 The Grafana Cloud Agent uses the same code as Prometheus, but tackles these issues
 by only using the most relevant parts of Prometheus for interaction with hosted
@@ -17,12 +19,12 @@ metrics:
 3. Write Ahead Log (WAL)
 4. Remote Write
 
-On top of these, the Grafana Cloud Agent allows for an optional host filter
-mechanism, enabling users to easily shard the Agent across their cluster and
-lower the memory requirements per machine.
+On top of these, the Grafana Cloud Agent enables easier sharding mechanisms that 
+enable users to shard Agents across their cluster and lower the memory requirements
+per machine.
 
 A typical deployment of the Grafana Cloud Agent for Prometheus metrics can see
-up to a 40% reduction in memory usage with comparable scrape loads.
+up to a 40% reduction in memory usage with equal scrape loads.
 
 Despite called the "Grafana Cloud Agent," it can be utilized with any Prometheus
 `remote_write` API.
@@ -73,6 +75,20 @@ repository.
 A docker-compose config is provided in `example/`. It deploys the Agent, Cortex,
 Grafana, and Avalanche for load testing. See the
 [README in `example/`](./example/README.md) for more information.
+
+## Prometheus Vendoring
+
+The Grafana Cloud Agent vendors a downstream Prometheus repository maintained by 
+[Grafana Labs](https://github.com/grafana/prometheus). This is done so experimental
+features Grafana Labs wants to contribute upstream can first be tested and iterated on
+quickly within the Agent. We aim to always base our vendor off of a recent official 
+Prometheus release and to keep the experimental changes not available in the upstream 
+repository to a minimum.
+
+The current vendored Prometheus release is **v2.17.1**.
+
+For more context on our vendoring strategy, read our 
+[repo maintenance guide](./docs/maintaining.md#grafanaprometheus-maintenance).
 
 ## Getting Help
 
