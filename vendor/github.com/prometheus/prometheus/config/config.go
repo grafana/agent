@@ -678,7 +678,7 @@ type QueueConfig struct {
 type MetadataConfig struct {
 	// Send controls whenever we send metric metadata to remote storage.
 	Send bool `yaml:"send"`
-	// MetadataSendInterval controls how frequently we send metric metadata.
+	// SendInterval controls how frequently we send metric metadata.
 	SendInterval model.Duration `yaml:"send_interval"`
 }
 
