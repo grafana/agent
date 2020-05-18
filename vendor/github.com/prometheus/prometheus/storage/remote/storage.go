@@ -17,12 +17,12 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"gopkg.in/yaml.v2"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -146,7 +146,7 @@ func (s *Storage) Querier(ctx context.Context, mint, maxt int64) (storage.Querie
 		}
 		queriers = append(queriers, q)
 	}
-	return storage.NewMergeQuerier(nil, queriers), nil
+	return storage.NewMergeQuerier(nil, queriers, storage.ChainedSeriesMerge), nil
 }
 
 // Appender implements storage.Storage.
@@ -175,7 +175,7 @@ func labelsToEqualityMatchers(ls model.LabelSet) []*labels.Matcher {
 
 // Used for hashing configs and diff'ing hashes in ApplyConfig.
 func toHash(data interface{}) (string, error) {
-	bytes, err := json.Marshal(data)
+	bytes, err := yaml.Marshal(data)
 	if err != nil {
 		return "", err
 	}
