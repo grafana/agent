@@ -3,11 +3,11 @@
 Grafana Cloud Agent is an observability data collector optimized for sending
 metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud/).
 
-Users of Prometheus operating at a massive scale (i.e., millions of active 
-series) can struggle to run an unsharded singleton Prometheus instance: it becomes a 
-single point of failure and requires a giant machine with a lot of resources 
-allocated to it. Even with proper sharding across multiple Prometheus instances, 
-using Prometheus to send data to a cloud vendor can seem redundant: why pay for 
+Users of Prometheus operating at a massive scale (i.e., millions of active
+series) can struggle to run an unsharded singleton Prometheus instance: it becomes a
+single point of failure and requires a giant machine with a lot of resources
+allocated to it. Even with proper sharding across multiple Prometheus instances,
+using Prometheus to send data to a cloud vendor can seem redundant: why pay for
 cloud storage if data is already stored locally?
 
 The Grafana Cloud Agent uses the same code as Prometheus, but tackles these issues
@@ -19,7 +19,7 @@ metrics:
 3. Write Ahead Log (WAL)
 4. Remote Write
 
-On top of these, the Grafana Cloud Agent enables easier sharding mechanisms that 
+On top of these, the Grafana Cloud Agent enables easier sharding mechanisms that
 enable users to shard Agents across their cluster and lower the memory requirements
 per machine.
 
@@ -78,16 +78,16 @@ Grafana, and Avalanche for load testing. See the
 
 ## Prometheus Vendoring
 
-The Grafana Cloud Agent vendors a downstream Prometheus repository maintained by 
+The Grafana Cloud Agent vendors a downstream Prometheus repository maintained by
 [Grafana Labs](https://github.com/grafana/prometheus). This is done so experimental
 features Grafana Labs wants to contribute upstream can first be tested and iterated on
-quickly within the Agent. We aim to always base our vendor off of a recent official 
-Prometheus release and to keep the experimental changes not available in the upstream 
+quickly within the Agent. We aim to always base our vendor off of a recent official
+Prometheus release and to keep the experimental changes not available in the upstream
 repository to a minimum.
 
-The current vendored Prometheus release is **v2.17.1**.
+The current vendored Prometheus release is **v2.18.1**.
 
-For more context on our vendoring strategy, read our 
+For more context on our vendoring strategy, read our
 [repo maintenance guide](./docs/maintaining.md#grafanaprometheus-maintenance).
 
 ## Getting Help

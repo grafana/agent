@@ -277,9 +277,11 @@ type QueueManager struct {
 	mcfg            config.MetadataConfig
 	externalLabels  labels.Labels
 	relabelConfigs  []*relabel.Config
-	client          StorageClient
 	watcher         *wal.Watcher
 	metadataWatcher *MetadataWatcher
+
+	clientMtx   sync.RWMutex
+	storeClient StorageClient
 
 	seriesMtx            sync.Mutex
 	seriesLabels         map[uint64]labels.Labels
@@ -330,7 +332,7 @@ func NewQueueManager(metrics *queueManagerMetrics, watcherMetrics *wal.WatcherMe
 		mcfg:           mCfg,
 		externalLabels: externalLabels,
 		relabelConfigs: relabelConfigs,
-		client:         client,
+		storeClient:    client,
 
 		seriesLabels:         make(map[uint64]labels.Labels),
 		seriesSegmentIndexes: make(map[uint64]int),
@@ -411,7 +413,7 @@ outer:
 			t.droppedSamplesTotal.Inc()
 			t.samplesDropped.incr(1)
 			if _, ok := t.droppedSeries[s.Ref]; !ok {
-				level.Info(t.logger).Log("msg", "dropped sample for series that was not explicitly dropped via relabelling", "ref", s.Ref)
+				level.Info(t.logger).Log("msg", "Dropped sample for series that was not explicitly dropped via relabelling", "ref", s.Ref)
 			}
 			t.seriesMtx.Unlock()
 			continue
@@ -451,8 +453,8 @@ func (t *QueueManager) Start() {
 	// Setup the QueueManagers metrics. We do this here rather than in the
 	// constructor because of the ordering of creating Queue Managers's, stopping them,
 	// and then starting new ones in storage/remote/storage.go ApplyConfig.
-	name := t.client.Name()
-	ep := t.client.Endpoint()
+	name := t.client().Name()
+	ep := t.client().Endpoint()
 	t.highestSentTimestampMetric = &maxGauge{
 		Gauge: t.metrics.queueHighestSentTimestamp.WithLabelValues(name, ep),
 	}
@@ -517,8 +519,8 @@ func (t *QueueManager) Stop() {
 	}
 	t.seriesMtx.Unlock()
 	// Delete metrics so we don't have alerts for queues that are gone.
-	name := t.client.Name()
-	ep := t.client.Endpoint()
+	name := t.client().Name()
+	ep := t.client().Endpoint()
 	t.metrics.queueHighestSentTimestamp.DeleteLabelValues(name, ep)
 	t.metrics.queuePendingSamples.DeleteLabelValues(name, ep)
 	t.metrics.enqueueRetriesTotal.DeleteLabelValues(name, ep)
@@ -582,6 +584,20 @@ func (t *QueueManager) SeriesReset(index int) {
 	}
 }
 
+// SetClient updates the client used by a queue. Used when only client specific
+// fields are updated to avoid restarting the queue.
+func (t *QueueManager) SetClient(c StorageClient) {
+	t.clientMtx.Lock()
+	t.storeClient = c
+	t.clientMtx.Unlock()
+}
+
+func (t *QueueManager) client() StorageClient {
+	t.clientMtx.RLock()
+	defer t.clientMtx.RUnlock()
+	return t.storeClient
+}
+
 // processExternalLabels merges externalLabels into ls. If ls contains
 // a label in externalLabels, the value in ls wins.
 func processExternalLabels(ls labels.Labels, externalLabels labels.Labels) labels.Labels {
@@ -624,7 +640,7 @@ func (t *QueueManager) updateShardsLoop() {
 		select {
 		case <-ticker.C:
 			desiredShards := t.calculateDesiredShards()
-			if desiredShards == t.numShards {
+			if !t.shouldReshard(desiredShards) {
 				continue
 			}
 			// Resharding can take some time, and we want this loop
@@ -640,6 +656,22 @@ func (t *QueueManager) updateShardsLoop() {
 			return
 		}
 	}
+}
+
+// shouldReshard returns if resharding should occur
+func (t *QueueManager) shouldReshard(desiredShards int) bool {
+	if desiredShards == t.numShards {
+		return false
+	}
+	// We shouldn't reshard if Prometheus hasn't been able to send to the
+	// remote endpoint successfully within some period of time.
+	minSendTimestamp := time.Now().Add(-2 * time.Duration(t.cfg.BatchSendDeadline)).Unix()
+	lsts := atomic.LoadInt64(&t.lastSendTimestamp)
+	if lsts < minSendTimestamp {
+		level.Warn(t.logger).Log("msg", "Skipping resharding, last successful send was beyond threshold", "lastSendTimestamp", lsts, "minSendTimestamp", minSendTimestamp)
+		return false
+	}
+	return true
 }
 
 // calculateDesiredShards returns the number of desired shards, which will be
@@ -668,15 +700,6 @@ func (t *QueueManager) calculateDesiredShards() int {
 	)
 
 	if samplesOutRate <= 0 {
-		return t.numShards
-	}
-
-	// We shouldn't reshard if Prometheus hasn't been able to send to the
-	// remote endpoint successfully within some period of time.
-	minSendTimestamp := time.Now().Add(-2 * time.Duration(t.cfg.BatchSendDeadline)).Unix()
-	lsts := atomic.LoadInt64(&t.lastSendTimestamp)
-	if lsts < minSendTimestamp {
-		level.Warn(t.logger).Log("msg", "Skipping resharding, last successful send was beyond threshold", "lastSendTimestamp", lsts, "minSendTimestamp", minSendTimestamp)
 		return t.numShards
 	}
 
@@ -941,6 +964,7 @@ func (s *shards) sendSamples(ctx context.Context, samples []prompb.TimeSeries, b
 	// should be maintained irrespective of success or failure.
 	s.qm.samplesOut.incr(int64(len(samples)))
 	s.qm.samplesOutDuration.incr(int64(time.Since(begin)))
+	atomic.StoreInt64(&s.qm.lastSendTimestamp, time.Now().Unix())
 }
 
 // sendSamples to the remote storage with backoff for recoverable errors.
@@ -971,7 +995,7 @@ func (s *shards) sendSamplesWithBackoff(ctx context.Context, samples []prompb.Ti
 	return nil
 }
 
-func sendWriteRequestWithBackoff(ctx context.Context, cfg config.QueueConfig, s StorageClient, l log.Logger, req []byte, reportFailureFunc func()) (elapsed float64, err error) {
+func sendWriteRequestWithBackoff(ctx context.Context, cfg config.QueueConfig, s func() StorageClient, l log.Logger, req []byte, reportFailureFunc func()) (elapsed float64, err error) {
 	backoff := cfg.MinBackoff
 
 	for {
@@ -982,7 +1006,7 @@ func sendWriteRequestWithBackoff(ctx context.Context, cfg config.QueueConfig, s 
 		}
 
 		begin := time.Now()
-		err := s.Store(ctx, req)
+		err := s().Store(ctx, req)
 		elapsed = time.Since(begin).Seconds()
 
 		if err == nil {
