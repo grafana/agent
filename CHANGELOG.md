@@ -1,5 +1,8 @@
 # Next (master/unreleased)
 
+- [ENHANCEMENT] agentctl and the config API will now validate that the YAML they
+  receive are valid instance configs. (@rfratto)
+
 # v0.3.0 (2020-05-13)
 
 - [FEATURE] A third operational mode called "scraping service mode" has been

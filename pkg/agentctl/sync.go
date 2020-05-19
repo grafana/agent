@@ -12,7 +12,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/client"
 	"github.com/grafana/agent/pkg/prometheus/instance"
-	"gopkg.in/yaml.v2"
 )
 
 // ConfigSync loads YAML files from a directory and syncs them to the
@@ -128,10 +127,10 @@ func configFromFile(path string) (*instance.Config, error) {
 		return nil, err
 	}
 
-	var cfg instance.Config
-	dec := yaml.NewDecoder(f)
-	dec.SetStrict(true)
-	err = dec.Decode(&cfg)
+	cfg, err := instance.UnmarshalConfig(f)
+	if err != nil {
+		return nil, err
+	}
 	cfg.Name = configName
-	return &cfg, err
+	return cfg, nil
 }
