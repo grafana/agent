@@ -129,7 +129,9 @@ func configFromFile(path string) (*instance.Config, error) {
 	}
 
 	var cfg instance.Config
-	err = yaml.NewDecoder(f).Decode(&cfg)
+	dec := yaml.NewDecoder(f)
+	dec.SetStrict(true)
+	err = dec.Decode(&cfg)
 	cfg.Name = configName
 	return &cfg, err
 }
