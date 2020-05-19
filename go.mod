@@ -6,7 +6,7 @@ require (
 	github.com/cortexproject/cortex v1.0.1-0.20200409122148-163437e76cad
 	github.com/go-kit/kit v0.10.0
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/protobuf v1.3.5
+	github.com/golang/protobuf v1.4.0
 	github.com/gorilla/mux v1.7.3
 	github.com/oklog/run v1.1.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20180928155321-4b5a12d3ff02
@@ -14,15 +14,12 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/common v0.9.1
-	github.com/prometheus/procfs v0.0.11 // indirect
 	github.com/prometheus/prometheus v1.8.2-0.20200213233353-b90be6f32a33
 	github.com/spf13/cobra v0.0.3
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	github.com/weaveworks/common v0.0.0-20200310113808-2708ba4e60a4
-	go.uber.org/atomic v1.5.0
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
-	golang.org/x/sys v0.0.0-20200406155108-e3b113bbe6a4 // indirect
-	google.golang.org/grpc v1.27.1
+	go.uber.org/atomic v1.6.0
+	google.golang.org/grpc v1.29.0
 	gopkg.in/yaml.v2 v2.2.8
 )
 
@@ -40,7 +37,6 @@ replace (
 	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.0+incompatible
-	k8s.io/client-go => k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
 )
 
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200403162459-09b8b1048e6c
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200518163447-007aa83a0a1f
