@@ -10,7 +10,9 @@ import (
 // provided content type.
 func UnmarshalConfig(r io.Reader) (*Config, error) {
 	var cfg Config
-	err := yaml.NewDecoder(r).Decode(&cfg)
+	dec := yaml.NewDecoder(r)
+	dec.SetStrict(true)
+	err := dec.Decode(&cfg)
 	return &cfg, err
 }
 
