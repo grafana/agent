@@ -100,42 +100,42 @@ func TestConfigSync_DryRun(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestConfigFromFile_InvalidFile(t *testing.T) {
+func TestConfigFromFile_InvalidConfig(t *testing.T) {
 	dir, err := ioutil.TempDir("", "*")
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = os.RemoveAll(dir) })
 
-	invalidFile := `whyWouldAnyoneThinkThisisAValidConfig: 12345`
-	invalidFilePath := filepath.Join(dir, "testfile.yaml")
-	f, err := os.Create(invalidFilePath)
+	invalidConfigContent := `whyWouldAnyoneThinkThisisAValidConfig: 12345`
+	invalidConfigPath := filepath.Join(dir, "not-a-config.yaml")
+	f, err := os.Create(invalidConfigPath)
 	require.NoError(t, err)
 	defer f.Close()
 
-	_, err = io.Copy(f, strings.NewReader(invalidFile))
+	_, err = io.Copy(f, strings.NewReader(invalidConfigContent))
 	require.NoError(t, err)
 
-	_, err = configFromFile(invalidFilePath)
+	_, err = configFromFile(invalidConfigPath)
 	require.Error(t, err)
 }
 
-func TestConfigFile_ValidFile(t *testing.T) {
+func TestConfigFile_ValidConfig(t *testing.T) {
 	dir, err := ioutil.TempDir("", "*")
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = os.RemoveAll(dir) })
 
 	validConfig := instance.DefaultConfig
-	validFile, err := yaml.Marshal(validConfig)
+	validConfigContent, err := yaml.Marshal(validConfig)
 	require.NoError(t, err)
 
-	validFilePath := filepath.Join(dir, "testfile.yaml")
-	f, err := os.Create(validFilePath)
+	validConfigPath := filepath.Join(dir, "testfile.yaml")
+	f, err := os.Create(validConfigPath)
 	require.NoError(t, err)
 	defer f.Close()
 
-	_, err = io.Copy(f, bytes.NewReader(validFile))
+	_, err = io.Copy(f, bytes.NewReader(validConfigContent))
 	require.NoError(t, err)
 
-	_, err = configFromFile(validFilePath)
+	_, err = configFromFile(validConfigPath)
 	require.NoError(t, err)
 }
 
