@@ -1,13 +1,20 @@
 package agentctl
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
 	"github.com/grafana/agent/pkg/prometheus/instance"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 func TestConfigSync_EmptyStore(t *testing.T) {
@@ -90,6 +97,45 @@ func TestConfigSync_DryRun(t *testing.T) {
 	}
 
 	err := ConfigSync(nil, cli, "./testdata", true)
+	require.NoError(t, err)
+}
+
+func TestConfigFromFile_InvalidConfig(t *testing.T) {
+	dir, err := ioutil.TempDir("", "*")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+
+	invalidConfigContent := `whyWouldAnyoneThinkThisisAValidConfig: 12345`
+	invalidConfigPath := filepath.Join(dir, "not-a-config.yaml")
+	f, err := os.Create(invalidConfigPath)
+	require.NoError(t, err)
+	defer f.Close()
+
+	_, err = io.Copy(f, strings.NewReader(invalidConfigContent))
+	require.NoError(t, err)
+
+	_, err = configFromFile(invalidConfigPath)
+	require.Error(t, err)
+}
+
+func TestConfigFile_ValidConfig(t *testing.T) {
+	dir, err := ioutil.TempDir("", "*")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+
+	validConfig := instance.DefaultConfig
+	validConfigContent, err := yaml.Marshal(validConfig)
+	require.NoError(t, err)
+
+	validConfigPath := filepath.Join(dir, "testfile.yaml")
+	f, err := os.Create(validConfigPath)
+	require.NoError(t, err)
+	defer f.Close()
+
+	_, err = io.Copy(f, bytes.NewReader(validConfigContent))
+	require.NoError(t, err)
+
+	_, err = configFromFile(validConfigPath)
 	require.NoError(t, err)
 }
 
