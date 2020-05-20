@@ -147,9 +147,8 @@ type Instance struct {
 	vc *MetricValueCollector
 }
 
-// New creates and starts a new Instance. NewInstance creates a WAL in
-// a folder with the same name as the instance's name in a subdirectory of the
-// walDir parameter.
+// New creates a new Instance with a directory for storing the WAL. The instance
+// will not start until Run is called on the instance.
 func New(globalCfg config.GlobalConfig, cfg Config, walDir string, logger log.Logger) (*Instance, error) {
 	logger = log.With(logger, "instance", cfg.Name)
 
