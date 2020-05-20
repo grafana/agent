@@ -1,6 +1,7 @@
 package instance
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http/httptest"
 	"os"
@@ -64,7 +65,7 @@ func TestInstance_Path(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	inst, err := New(globalConfig, cfg, walDir, logger)
 	require.NoError(t, err)
-	defer inst.Stop()
+	runInstance(t, inst)
 
 	// <walDir>/<inst.name> path should exist for WAL
 	test.Poll(t, time.Second*5, true, func() interface{} {
@@ -91,13 +92,15 @@ func TestInstance(t *testing.T) {
 	cfg.RemoteFlushDeadline = time.Hour
 
 	mockStorage := mockWalStorage{
-		series: make(map[uint64]int),
+		series:    make(map[uint64]int),
+		directory: walDir,
 	}
+	newWal := func(_ prometheus.Registerer) (walStorage, error) { return &mockStorage, nil }
 
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	inst, err := newInstance(globalConfig, cfg, nil, walDir, logger, &mockStorage)
+	inst, err := newInstance(globalConfig, cfg, nil, logger, newWal)
 	require.NoError(t, err)
-	defer inst.Stop()
+	runInstance(t, inst)
 
 	// Wait until mockWalStorage has had a series added to it.
 	test.Poll(t, 30*time.Second, true, func() interface{} {
@@ -128,14 +131,26 @@ func TestInstance_Recreate(t *testing.T) {
 	inst, err := New(globalConfig, cfg, walDir, logger)
 	require.NoError(t, err)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	exited := make(chan bool)
+	go func() {
+		err := inst.Run(ctx)
+		close(exited)
+
+		if err != nil {
+			require.Equal(t, context.Canceled, err)
+		}
+	}()
+
 	time.Sleep(1 * time.Second)
-	inst.Stop()
+	cancel()
+	<-exited
 
 	// Recreate the instance, no panic should happen.
 	require.NotPanics(t, func() {
 		inst, err := New(globalConfig, cfg, walDir, logger)
 		require.NoError(t, err)
-		defer inst.Stop()
+		runInstance(t, inst)
 
 		time.Sleep(1 * time.Second)
 	})
@@ -251,10 +266,12 @@ func getTestConfig(t *testing.T, global *config.GlobalConfig, scrapeAddr string)
 type mockWalStorage struct {
 	storage.Queryable
 
-	mut    sync.Mutex
-	series map[uint64]int
+	directory string
+	mut       sync.Mutex
+	series    map[uint64]int
 }
 
+func (s *mockWalStorage) Directory() string                          { return s.directory }
 func (s *mockWalStorage) StartTime() (int64, error)                  { return 0, nil }
 func (s *mockWalStorage) WriteStalenessMarkers(f func() int64) error { return nil }
 func (s *mockWalStorage) Close() error                               { return nil }
@@ -297,4 +314,12 @@ func (a *mockAppender) Commit() error {
 
 func (a *mockAppender) Rollback() error {
 	return nil
+}
+
+func runInstance(t *testing.T, i *Instance) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(func() { cancel() })
+	go require.NotPanics(t, func() {
+		_ = i.Run(ctx)
+	})
 }

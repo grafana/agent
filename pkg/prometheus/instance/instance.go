@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -29,8 +30,7 @@ import (
 )
 
 var (
-	ErrInstanceStoppedNormally = errors.New("instance shutdown normally")
-	remoteWriteMetricName      = "queue_highest_sent_timestamp_seconds"
+	remoteWriteMetricName = "queue_highest_sent_timestamp_seconds"
 )
 
 // Default configuration values
@@ -133,20 +133,18 @@ func (c *Config) Validate() error {
 	return nil
 }
 
+type walStorageFactory func(reg prometheus.Registerer) (walStorage, error)
+
 // Instance is an individual metrics collector and remote_writer.
 type Instance struct {
 	cfg       Config
 	globalCfg config.GlobalConfig
 	logger    log.Logger
 
-	walDir   string
-	hostname string
+	reg    prometheus.Registerer
+	newWal walStorageFactory
 
-	cancelScrape context.CancelFunc
-	vc           *MetricValueCollector
-
-	exited  chan bool
-	exitErr error
+	vc *MetricValueCollector
 }
 
 // New creates and starts a new Instance. NewInstance creates a WAL in
@@ -161,21 +159,15 @@ func New(globalCfg config.GlobalConfig, cfg Config, walDir string, logger log.Lo
 		"instance_name": cfg.Name,
 	}, prometheus.DefaultRegisterer)
 
-	wstore, err := newWalStorage(logger, reg, instWALDir)
-	if err != nil {
-		return nil, err
+	newWal := func(reg prometheus.Registerer) (walStorage, error) {
+		return wal.NewStorage(logger, reg, instWALDir)
 	}
 
-	return newInstance(globalCfg, cfg, reg, instWALDir, logger, wstore)
+	return newInstance(globalCfg, cfg, reg, logger, newWal)
 }
 
-func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Registerer, walDir string, logger log.Logger, wstore walStorage) (*Instance, error) {
+func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
 	if err := cfg.Validate(); err != nil {
-		return nil, err
-	}
-
-	hostname, err := hostname()
-	if err != nil {
 		return nil, err
 	}
 
@@ -185,71 +177,64 @@ func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Regis
 		cfg:       cfg,
 		globalCfg: globalCfg,
 		logger:    logger,
-		walDir:    walDir,
-		hostname:  hostname,
 		vc:        vc,
-		exited:    make(chan bool),
+
+		reg:    reg,
+		newWal: newWal,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	i.cancelScrape = cancel
-
-	level.Debug(i.logger).Log("msg", "creating instance", "hostname", hostname)
-
-	go i.run(ctx, reg, wstore)
 	return i, nil
 }
 
-func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore walStorage) {
-	trackingReg := unregisterAllRegisterer{wrap: reg}
+// Run starts the instance and will run until an error happens during running
+// or until context was canceled.
+//
+// Run can be re-called after exiting.
+func (i *Instance) Run(ctx context.Context) error {
+	// Wrap our context so we can cancel ourselves.
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithCancel(ctx)
+	defer cancel()
 
-	discoveryManagerScrape := discovery.NewManager(ctx, log.With(i.logger, "component", "discovery manager scrape"), discovery.Name("scrape"))
-	{
-		// TODO(rfratto): refactor this to a function?
-		// TODO(rfratto): ensure job name name is unique
-		c := map[string]sd_config.ServiceDiscoveryConfig{}
-		for _, v := range i.cfg.ScrapeConfigs {
-			c[v.JobName] = v.ServiceDiscoveryConfig
-		}
-		i.exitErr = discoveryManagerScrape.ApplyConfig(c)
-		if i.exitErr != nil {
-			level.Error(i.logger).Log("msg", "failed applying config to discovery manager", "err", i.exitErr)
-			return
-		}
+	level.Debug(i.logger).Log("msg", "running instance", "name", i.cfg.Name)
+
+	// trackingReg wraps the register for the instance to make sure that if Run
+	// exits, any metrics Prometheus registers are removed and can be
+	// re-registered if Run is called again.
+	trackingReg := unregisterAllRegisterer{wrap: i.reg}
+	defer trackingReg.UnregisterAll()
+
+	wstore, err := i.newWal(&trackingReg)
+	if err != nil {
+		return err
 	}
 
-	remoteWriteConfigs := []*config.RemoteWriteConfig{}
-	for _, c := range i.cfg.RemoteWrite {
-		remoteWriteConfigs = append(remoteWriteConfigs, c.PrometheusConfig())
+	discoveryManager, err := i.newDiscoveryManager(ctx)
+	if err != nil {
+		return err
 	}
 
 	readyScrapeManager := &scrape.ReadyScrapeManager{}
-	remoteStore := remote.NewStorage(log.With(i.logger, "component", "remote"), &trackingReg, wstore.StartTime, i.walDir, i.cfg.RemoteFlushDeadline, readyScrapeManager)
-	i.exitErr = remoteStore.ApplyConfig(&config.Config{
-		GlobalConfig:       i.globalCfg,
-		RemoteWriteConfigs: remoteWriteConfigs,
-	})
-	if i.exitErr != nil {
-		level.Error(i.logger).Log("msg", "failed applying config to remote storage", "err", i.exitErr)
-		return
+	fanoutStorage, err := i.newStorage(&trackingReg, wstore, readyScrapeManager)
+	if err != nil {
+		return err
 	}
 
-	fanoutStorage := storage.NewFanout(i.logger, wstore, remoteStore)
-
 	scrapeManager := scrape.NewManager(log.With(i.logger, "component", "scrape manager"), fanoutStorage)
-	i.exitErr = scrapeManager.ApplyConfig(&config.Config{
+	err = scrapeManager.ApplyConfig(&config.Config{
 		GlobalConfig:  i.globalCfg,
 		ScrapeConfigs: i.cfg.ScrapeConfigs,
 	})
-	if i.exitErr != nil {
-		level.Error(i.logger).Log("msg", "failed applying config to scrape manager", "err", i.exitErr)
-		return
+	if err != nil {
+		level.Error(i.logger).Log("msg", "failed applying config to scrape manager", "err", err)
+		return fmt.Errorf("failed applying config to scrape manager: %w", err)
 	}
-
 	readyScrapeManager.Set(scrapeManager)
 
-	level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", i.hostname, "enabled", i.cfg.HostFilter)
-	filterer := NewHostFilter(i.hostname)
+	filterer, err := i.newHostFilter()
+	if err != nil {
+		return err
+	}
 
 	var g run.Group
 
@@ -262,16 +247,27 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 	// This is done to allow the instance to write stale markers for all active
 	// series.
 	{
+		// Context watcher. This ensures that the entire group stops when the context
+		// is canceled.
+		g.Add(
+			func() error {
+				<-ctx.Done()
+				return ctx.Err()
+			},
+			func(err error) { /* no op */ },
+		)
+	}
+	{
 		// Scrape discovery manager
 		g.Add(
 			func() error {
-				err := discoveryManagerScrape.Run()
+				err := discoveryManager.Run()
 				level.Info(i.logger).Log("msg", "service discovery manager stopped")
 				return err
 			},
 			func(err error) {
 				level.Info(i.logger).Log("msg", "stopping scrape discovery manager...")
-				i.cancelScrape()
+				cancel()
 			},
 		)
 	}
@@ -279,7 +275,7 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 		// Target host filterer
 		g.Add(
 			func() error {
-				filterer.Run(discoveryManagerScrape.SyncCh())
+				filterer.Run(discoveryManager.SyncCh())
 				level.Info(i.logger).Log("msg", "host filterer stopped")
 				return nil
 			},
@@ -313,7 +309,7 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 				if i.cfg.HostFilter {
 					readCh = filterer.SyncCh()
 				} else {
-					readCh = discoveryManagerScrape.SyncCh()
+					readCh = discoveryManager.SyncCh()
 				}
 
 				err := scrapeManager.Run(readCh)
@@ -344,16 +340,61 @@ func (i *Instance) run(ctx context.Context, reg prometheus.Registerer, wstore wa
 		)
 	}
 
-	err := g.Run()
+	err = g.Run()
 	if err != nil {
 		level.Error(i.logger).Log("msg", "agent instance stopped with error", "err", err)
 	}
-	if i.exitErr == nil {
-		i.exitErr = err
+	return err
+}
+
+func (i *Instance) newDiscoveryManager(ctx context.Context) (*discovery.Manager, error) {
+	manager := discovery.NewManager(ctx, log.With(i.logger, "component", "discovery manager scrape"), discovery.Name("scrape"))
+
+	// TODO(rfratto): refactor this to a function?
+	// TODO(rfratto): ensure job name name is unique
+	c := map[string]sd_config.ServiceDiscoveryConfig{}
+	for _, v := range i.cfg.ScrapeConfigs {
+		c[v.JobName] = v.ServiceDiscoveryConfig
+	}
+	err := manager.ApplyConfig(c)
+	if err != nil {
+		level.Error(i.logger).Log("msg", "failed applying config to discovery manager", "err", err)
+		return manager, fmt.Errorf("failed applying config to discovery manager: %w", err)
 	}
 
-	trackingReg.UnregisterAll()
-	close(i.exited)
+	return manager, nil
+}
+
+func (i *Instance) newStorage(reg prometheus.Registerer, wal walStorage, sm scrape.ReadyManager) (storage.Storage, error) {
+	logger := log.With(i.logger, "component", "remote")
+
+	var cfgs []*config.RemoteWriteConfig
+	for _, c := range i.cfg.RemoteWrite {
+		cfgs = append(cfgs, c.PrometheusConfig())
+	}
+
+	store := remote.NewStorage(logger, reg, wal.StartTime, wal.Directory(), i.cfg.RemoteFlushDeadline, sm)
+	err := store.ApplyConfig(&config.Config{
+		GlobalConfig:       i.globalCfg,
+		RemoteWriteConfigs: cfgs,
+	})
+	if err != nil {
+		level.Error(i.logger).Log("msg", "failed applying config to remote storage", "err", err)
+		return nil, fmt.Errorf("failed applying config to remote storage: %w", err)
+	}
+
+	fanoutStorage := storage.NewFanout(i.logger, wal, store)
+	return fanoutStorage, nil
+}
+
+func (i *Instance) newHostFilter() (*HostFilter, error) {
+	hostname, err := hostname()
+	if err != nil {
+		return nil, err
+	}
+
+	level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", hostname, "enabled", i.cfg.HostFilter)
+	return NewHostFilter(hostname), nil
 }
 
 func (i *Instance) truncateLoop(ctx context.Context, wal walStorage) {
@@ -411,36 +452,12 @@ func (i *Instance) getRemoteWriteTimestamp() int64 {
 	return ts * 1000
 }
 
-// Config returns the instance's config.
-func (i *Instance) Config() Config {
-	return i.cfg
-}
-
-// Wait blocks until the instance exits, returning its error, if any.
-func (i *Instance) Wait() error {
-	<-i.exited
-	return i.exitErr
-}
-
-// Stop stops the instance.
-func (i *Instance) Stop() {
-	i.exitErr = ErrInstanceStoppedNormally
-
-	i.cancelScrape()
-	<-i.exited
-}
-
-// Err returns the error generated by instance when shut down. If the shutdown
-// was intentional (i.e., the user called stop), then Err returns
-// errInstanceStoppedNormally.
-func (i *Instance) Err() error {
-	return i.exitErr
-}
-
 // walStorage is an interface satisfied by wal.Storage, and created for testing.
 type walStorage interface {
 	// walStorage implements Queryable for compatibility, but is unused.
 	storage.Queryable
+
+	Directory() string
 
 	StartTime() (int64, error)
 	WriteStalenessMarkers(remoteTsFunc func() int64) error
@@ -502,43 +519,6 @@ func (u *unregisterAllRegisterer) UnregisterAll() {
 	for c := range u.cs {
 		u.Unregister(c)
 	}
-}
-
-// recreatableWalStorage implements walStorage but uses an unregisteringAllRegisterer
-// for unregistering metrics when the storage is closed, enabling it to be eventually
-// recreated.
-type recreatableWalStorage struct {
-	// walStorage implements Queryable for compatibility, but is unused.
-	storage.Queryable
-
-	reg   *unregisterAllRegisterer
-	inner walStorage
-}
-
-// newWalStorage creates a new walStorage whose metrics will be unregistered when it
-// is closed. This allows an equivalent walStorage to be recreated later.
-func newWalStorage(logger log.Logger, reg prometheus.Registerer, walDir string) (walStorage, error) {
-	wrappedReg := &unregisterAllRegisterer{wrap: reg}
-
-	wstore, err := wal.NewStorage(logger, wrappedReg, walDir)
-	if err != nil {
-		return nil, err
-	}
-
-	return &recreatableWalStorage{reg: wrappedReg, inner: wstore}, nil
-}
-
-func (s *recreatableWalStorage) StartTime() (int64, error)  { return s.inner.StartTime() }
-func (s *recreatableWalStorage) Appender() storage.Appender { return s.inner.Appender() }
-func (s *recreatableWalStorage) Truncate(mint int64) error  { return s.inner.Truncate(mint) }
-func (s *recreatableWalStorage) WriteStalenessMarkers(f func() int64) error {
-	return s.inner.WriteStalenessMarkers(f)
-}
-
-func (s *recreatableWalStorage) Close() error {
-	err := s.inner.Close()
-	s.reg.UnregisterAll()
-	return err
 }
 
 func hostname() (string, error) {
