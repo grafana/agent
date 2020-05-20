@@ -82,6 +82,7 @@ type Storage struct {
 	// Embed Queryable for compatibility, but don't actually implement it.
 	storage.Queryable
 
+	path   string
 	wal    *wal.WAL
 	logger log.Logger
 
@@ -106,6 +107,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	}
 
 	storage := &Storage{
+		path:    path,
 		wal:     w,
 		logger:  logger,
 		deleted: map[uint64]int{},
@@ -321,6 +323,11 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 	}
 
 	return nil
+}
+
+// Directory returns the path where the WAL storage is held.
+func (w *Storage) Directory() string {
+	return w.path
 }
 
 // Appender returns a new appender against the storage.

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -155,40 +154,15 @@ func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
 	// ConfigManager?
 	c.ApplyDefaults(&a.cfg.Global)
 
-	var (
-		mut  sync.Mutex
-		inst inst
-		err  error
-	)
-
-	// Done is used to make sure the goroutine below doesn't leak.
-	done := make(chan bool)
-	defer close(done)
-
-	go func() {
-		select {
-		case <-ctx.Done():
-		case <-done:
-		}
-
-		mut.Lock()
-		defer mut.Unlock()
-		if inst != nil {
-			inst.Stop()
-		}
-	}()
+	inst, err := a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
+	if err != nil {
+		level.Error(a.logger).Log("msg", "failed to create instance", "err", err)
+		return
+	}
 
 	for {
-		mut.Lock()
-		inst, err = a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
-		if err != nil {
-			level.Error(a.logger).Log("msg", "failed to create instance", "err", err)
-			return
-		}
-		mut.Unlock()
-
-		err = inst.Wait()
-		if err == nil || err != instance.ErrInstanceStoppedNormally {
+		err = inst.Run(ctx)
+		if err == nil || err != context.Canceled {
 			instanceAbnormalExits.WithLabelValues(c.Name).Inc()
 			level.Error(a.logger).Log("msg", "instance stopped abnormally, restarting after backoff period", "err", err, "backoff", a.cfg.InstanceRestartBackoff, "instance", c.Name)
 			time.Sleep(a.cfg.InstanceRestartBackoff)
@@ -218,9 +192,7 @@ func (a *Agent) Stop() {
 // inst is an interface implemented by Instance, and used by tests
 // to isolate agent from instance functionality.
 type inst interface {
-	Wait() error
-	Config() instance.Config
-	Stop()
+	Run(ctx context.Context) error
 }
 
 type instanceFactory = func(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (inst, error)

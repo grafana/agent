@@ -1,8 +1,9 @@
 package prometheus
 
 import (
+	"context"
 	"errors"
-	"io"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -108,41 +109,40 @@ func TestAgent(t *testing.T) {
 		return fact.created.Load() == 2 && len(a.cm.processes) == 2
 	})
 
-	t.Run("wait should be called on each instance", func(t *testing.T) {
-		fact.mut.Lock()
-		defer fact.mut.Unlock()
-
-		for _, mi := range fact.mocks {
+	t.Run("instances should be running", func(t *testing.T) {
+		for _, mi := range fact.Mocks() {
 			// Each instance should have wait called on it
 			test.Poll(t, time.Millisecond*500, true, func() interface{} {
-				return mi.waitCalled.Load()
+				return mi.running.Load()
 			})
 		}
 	})
 
 	t.Run("instances should be restarted when stopped", func(t *testing.T) {
-		oldInstances := fact.created.Load()
-
-		fact.mut.Lock()
-		for _, mi := range fact.mocks {
-			mi.exitErr = io.EOF
-			mi.Stop()
+		for _, mi := range fact.Mocks() {
+			test.Poll(t, time.Millisecond*500, int64(1), func() interface{} {
+				return mi.startedCount.Load()
+			})
 		}
-		fact.mut.Unlock()
 
-		test.Poll(t, time.Millisecond*500, oldInstances*2, func() interface{} {
-			return fact.created.Load()
-		})
+		for _, mi := range fact.Mocks() {
+			mi.err <- fmt.Errorf("really bad error")
+		}
+
+		for _, mi := range fact.Mocks() {
+			test.Poll(t, time.Millisecond*500, int64(2), func() interface{} {
+				return mi.startedCount.Load()
+			})
+		}
 	})
 
 	t.Run("instances should not be restarted when stopped normally", func(t *testing.T) {
 		oldInstances := fact.created.Load()
 
-		fact.mut.Lock()
-		for _, mi := range fact.mocks {
-			mi.Stop()
+		for _, mi := range fact.Mocks() {
+			// Simulate a stop by saying the context was cancelled
+			mi.err <- context.Canceled
 		}
-		fact.mut.Unlock()
 
 		time.Sleep(time.Millisecond * 100)
 		require.Equal(t, oldInstances, fact.created.Load())
@@ -172,47 +172,33 @@ func TestAgent_Stop(t *testing.T) {
 		return fact.created.Load() == 2 && len(a.cm.processes) == 2
 	})
 
-	oldInstances := fact.created.Load()
-
 	a.Stop()
 
 	time.Sleep(time.Millisecond * 100)
-	require.Equal(t, oldInstances, fact.created.Load(), "new instances shuold not have been created")
 
-	fact.mut.Lock()
-	for _, mi := range fact.mocks {
-		require.True(t, mi.exitCalled.Load())
+	for _, mi := range fact.Mocks() {
+		require.False(t, mi.running.Load(), "instance should not have been restarted")
 	}
-	fact.mut.Unlock()
 }
 
 type mockInstance struct {
 	cfg instance.Config
 
-	waitCalled *atomic.Bool
-	exitCalled *atomic.Bool
-
-	exited  chan bool
-	exitErr error
+	err          chan error
+	startedCount *atomic.Int64
+	running      *atomic.Bool
 }
 
-func (i *mockInstance) Wait() error {
-	i.waitCalled.Store(true)
-	<-i.exited
-	return i.exitErr
-}
+func (i *mockInstance) Run(ctx context.Context) error {
+	i.startedCount.Inc()
+	i.running.Store(true)
+	defer i.running.Store(false)
 
-func (i *mockInstance) Config() instance.Config {
-	return i.cfg
-}
-
-func (i *mockInstance) Stop() {
-	if !i.exitCalled.Load() {
-		i.exitCalled.Store(true)
-		if i.exitErr == nil {
-			i.exitErr = instance.ErrInstanceStoppedNormally
-		}
-		close(i.exited)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-i.err:
+		return err
 	}
 }
 
@@ -227,6 +213,12 @@ func newMockInstanceFactory() *mockInstanceFactory {
 	return &mockInstanceFactory{created: atomic.NewInt64(0)}
 }
 
+func (f *mockInstanceFactory) Mocks() []*mockInstance {
+	f.mut.Lock()
+	defer f.mut.Unlock()
+	return f.mocks
+}
+
 func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config, _ string, _ log.Logger) (inst, error) {
 	f.created.Add(1)
 
@@ -234,10 +226,10 @@ func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config
 	defer f.mut.Unlock()
 
 	inst := &mockInstance{
-		cfg:        cfg,
-		exited:     make(chan bool),
-		waitCalled: atomic.NewBool(false),
-		exitCalled: atomic.NewBool(false),
+		cfg:          cfg,
+		running:      atomic.NewBool(false),
+		startedCount: atomic.NewInt64(0),
+		err:          make(chan error),
 	}
 
 	f.mocks = append(f.mocks, inst)
