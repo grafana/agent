@@ -215,12 +215,12 @@ func (i *Instance) Run(ctx context.Context) error {
 	}
 
 	readyScrapeManager := &scrape.ReadyScrapeManager{}
-	fanoutStorage, err := i.newStorage(&trackingReg, wstore, readyScrapeManager)
+	storage, err := i.newStorage(&trackingReg, wstore, readyScrapeManager)
 	if err != nil {
 		return err
 	}
 
-	scrapeManager := scrape.NewManager(log.With(i.logger, "component", "scrape manager"), fanoutStorage)
+	scrapeManager := scrape.NewManager(log.With(i.logger, "component", "scrape manager"), storage)
 	err = scrapeManager.ApplyConfig(&config.Config{
 		GlobalConfig:  i.globalCfg,
 		ScrapeConfigs: i.cfg.ScrapeConfigs,
@@ -333,7 +333,7 @@ func (i *Instance) Run(ctx context.Context) error {
 				}
 
 				level.Info(i.logger).Log("msg", "closing storage...")
-				if err := fanoutStorage.Close(); err != nil {
+				if err := storage.Close(); err != nil {
 					level.Error(i.logger).Log("msg", "error stopping storage", "err", err)
 				}
 			},
