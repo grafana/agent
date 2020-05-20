@@ -168,7 +168,7 @@ data:
                 job_name: default/kubernetes
                 kubernetes_sd_configs:
                   - role: endpoints
-                metric_label_configs:
+                metric_relabel_configs:
                   - action: drop
                     regex: apiserver_admission_controller_admission_latencies_seconds_.*
                     source_labels:
