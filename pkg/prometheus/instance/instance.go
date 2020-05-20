@@ -389,7 +389,7 @@ func (i *Instance) newStorage(reg prometheus.Registerer, wal walStorage, sm scra
 func (i *Instance) newHostFilter() (*HostFilter, error) {
 	hostname, err := hostname()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create host filterer: %w", err)
 	}
 
 	level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", hostname, "enabled", i.cfg.HostFilter)
@@ -526,7 +526,11 @@ func hostname() (string, error) {
 		return hostname, nil
 	}
 
-	return os.Hostname()
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "", fmt.Errorf("failed to get hostname: %w", err)
+	}
+	return hostname, nil
 }
 
 func getHash(data interface{}) (string, error) {
