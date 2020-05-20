@@ -39,3 +39,26 @@ unzip "agent-linux-amd64.zip"
 # make sure it is executable
 chmod a+x "agent-linux-amd64"
 ```
+
+#### `agentctl`
+
+`agentctl`, a tool for helping you interact with the Agent,
+is available as a Docker image:
+
+```bash
+docker pull "grafana/agentctl:${RELEASE_TAG}"
+```
+
+Or as a binary. Like before, choose the assets below that matches your
+operating system. For example, with `linux` on `amd64`:
+
+```bash
+# download the binary
+curl -O -L "https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/agentctl-linux-amd64.zip"
+
+# extract the binary
+unzip "agentctl-linux-amd64.zip"
+
+# make sure it is executable
+chmod a+x "agentctl-linux-amd64"
+```
