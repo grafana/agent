@@ -101,8 +101,9 @@ func (c *HTTPClientConfig) PrometheusConfig() config_util.HTTPClientConfig {
 	var basic *config_util.BasicAuth
 	if c.BasicAuth != nil {
 		basic = &config_util.BasicAuth{
-			Username: c.BasicAuth.Username,
-			Password: config_util.Secret(c.BasicAuth.Password),
+			Username:     c.BasicAuth.Username,
+			Password:     config_util.Secret(c.BasicAuth.Password),
+			PasswordFile: c.BasicAuth.PasswordFile,
 		}
 	}
 
