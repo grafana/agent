@@ -40,9 +40,9 @@ unzip "agent-linux-amd64.zip"
 chmod a+x "agent-linux-amd64"
 ```
 
-#### Agentctl
+#### `agentctl`
 
-Agentctl, a tool for helping you interact with the Agent,
+`agentctl`, a tool for helping you interact with the Agent,
 is available as a Docker image:
 
 ```bash
