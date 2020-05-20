@@ -1,4 +1,5 @@
 {
+  "version": 1,
   "dependencies": [
     {
       "source": {
@@ -7,8 +8,8 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "c19a92e586a6752f11745b47f309b13f02ef7147",
-      "sum": "LKsTTBcH8TXX5ANgRUu5I7Y1tf5le4nANFV3/W53I+c="
+      "version": "811ccb022bc2bdcd0b8281ed0a0c858c63e20542",
+      "sum": "smRyjpmKy4pURM47XTv+9azXjP6L/n4gXjxzRxAvY1Q="
     },
     {
       "source": {

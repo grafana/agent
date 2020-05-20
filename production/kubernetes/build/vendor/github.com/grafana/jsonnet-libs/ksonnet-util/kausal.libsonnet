@@ -44,6 +44,9 @@ k {
         fromSecret(name, secret)::
           super.withName(name) +
           super.mixin.secret.withSecretName(secret),
+
+        // Rename emptyDir to claimName
+        fromPersistentVolumeClaim(name='', claimName=''):: super.fromPersistentVolumeClaim(name=name, emptyDir=claimName),
       },
 
       volumeMount:: $.core.v1.container.volumeMountsType {
@@ -122,7 +125,7 @@ k {
   local appsExtentions = {
     daemonSet+: {
       new(name, containers)::
-        local labels = {name: name};
+        local labels = { name: name };
 
         super.new() +
         super.mixin.metadata.withName(name) +
@@ -207,18 +210,18 @@ k {
     ],
 
     // serviceFor create service for a given deployment.
-    serviceFor(deployment, ignored_labels=[], nameFormat="%(container)s-%(port)s")::
+    serviceFor(deployment, ignored_labels=[], nameFormat='%(container)s-%(port)s')::
       local container = $.core.v1.container;
       local service = $.core.v1.service;
       local servicePort = service.mixin.spec.portsType;
       local ports = [
         servicePort.newNamed(
-          name=(nameFormat % {container: c.name, port: port.name}),
+          name=(nameFormat % { container: c.name, port: port.name }),
           port=port.containerPort,
           targetPort=port.containerPort
         ) +
         if std.objectHas(port, 'protocol')
-          then servicePort.withProtocol(port.protocol)
+        then servicePort.withProtocol(port.protocol)
         else {}
         for c in deployment.spec.template.spec.containers
         for port in (c + container.withPortsMixin([])).ports
@@ -419,6 +422,19 @@ k {
       {
         local deployment = $.apps.v1.deployment,
         local podAntiAffinity = deployment.mixin.spec.template.spec.affinity.podAntiAffinity,
+        local name = super.spec.template.metadata.labels.name,
+
+        spec+: podAntiAffinity.withRequiredDuringSchedulingIgnoredDuringExecution([
+          podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecutionType.new() +
+          podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecutionType.mixin.labelSelector.withMatchLabels({ name: name }) +
+          podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecutionType.withTopologyKey('kubernetes.io/hostname'),
+        ]).spec,
+      },
+
+    antiAffinityStatefulSet:
+      {
+        local statefulSet = $.apps.v1.statefulSet,
+        local podAntiAffinity = statefulSet.mixin.spec.template.spec.affinity.podAntiAffinity,
         local name = super.spec.template.metadata.labels.name,
 
         spec+: podAntiAffinity.withRequiredDuringSchedulingIgnoredDuringExecution([
