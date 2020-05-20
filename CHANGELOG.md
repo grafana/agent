@@ -1,10 +1,23 @@
 # Next (master/unreleased)
 
+# v0.3.1 (2020-05-20)
+
 - [ENHANCEMENT] agentctl and the config API will now validate that the YAML they
   receive are valid instance configs. (@rfratto)
 
 - [FEATURE] The Agent has upgraded its vendored Prometheus to v2.18.1
   (@rfratto, @gotjosh)
+
+- [BUGFIX] A typo in the Tanka configs and Kubernetes manifests that prevents
+  the Agent launching with v0.3.0 has been fixed (@captncraig)
+
+- [BUGFIX] Fixed a bug where Tanka mixins could not be used due to an issue with
+  the folder placement enhancement (@rfratto)
+
+- [ENHANCEMENT] `agentctl` and the config API will now validate that the YAML
+  they receive are valid instance configs. (@rfratto)
+
+- [FEATURE] The Agent has upgraded its vendored Prometheus to v2.18.1 (@gotjosh, @rfratto)
 
 # v0.3.0 (2020-05-13)
 
