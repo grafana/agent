@@ -145,7 +145,7 @@ func TestShardingConfigManager(t *testing.T) {
 
 		// Internally delete the config and try to reapply; our wrapper should ignore
 		// it since the hash hasn't changed from the last time it was applied.
-		mockCm.DeleteConfig("test")
+		_ = mockCm.DeleteConfig("test")
 		cm.ApplyConfig(instance.Config{Name: "test"})
 		require.Equal(t, 0, len(mockCm.ListConfigs()), "unchanged config got reapplied")
 	})
