@@ -73,6 +73,18 @@ type Config struct {
 	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty" json:"write_stale_on_shutdown,omitempty"`
 }
 
+func (c *Config) MarshalYAML() (interface{}, error) {
+	// NOTE: Marshaling instance configs to YAML is unsupported because
+	// it may store secret types whose value get removed by its custom
+	// marshal implementation.
+	//
+	// Rather, using the Marshal* methods in this package to marshal a
+	// config instead. It adds YAML encoding hooks to prevent secret
+	// values from being scrubbed when a parameter is provided to not
+	// scrub values.
+	return nil, errors.New("instance configs should not be marshaled directly")
+}
+
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 

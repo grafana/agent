@@ -19,20 +19,20 @@ func UnmarshalConfig(r io.Reader) (*Config, error) {
 }
 
 // MarshalConfig marshals an instance config based on a provided content type.
-func MarshalConfig(c *Config, sanitize bool) (string, error) {
+func MarshalConfig(c *Config, scrubSecrets bool) (string, error) {
 	var buf strings.Builder
-	err := MarshalConfigToWriter(c, &buf, sanitize)
+	err := MarshalConfigToWriter(c, &buf, scrubSecrets)
 	return buf.String(), err
 }
 
 // MarshalConfigToWriter marshals a config to an io.Writer.
-func MarshalConfigToWriter(c *Config, w io.Writer, sanitize bool) error {
+func MarshalConfigToWriter(c *Config, w io.Writer, scrubSecrets bool) error {
 	enc := yaml.NewEncoder(w)
 
 	// If we're not sanitizing the marshaled config, we want to add in an
 	// encoding hook to ignore how Secrets marshal (i.e., scrubbing the value
 	// and replacing it with <secret>).
-	if !sanitize {
+	if !scrubSecrets {
 		enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
 			switch v := in.(type) {
 			case config_util.Secret:
@@ -43,5 +43,6 @@ func MarshalConfigToWriter(c *Config, w io.Writer, sanitize bool) error {
 		})
 	}
 
-	return enc.Encode(c)
+	type plain Config
+	return enc.Encode((*plain)(c))
 }
