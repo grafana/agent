@@ -190,11 +190,6 @@ func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Regis
 //
 // Run can be re-called after exiting.
 func (i *Instance) Run(ctx context.Context) error {
-	// Wrap our context so we can cancel ourselves.
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithCancel(ctx)
-	defer cancel()
-
 	level.Debug(i.logger).Log("msg", "running instance", "name", i.cfg.Name)
 
 	// trackingReg wraps the register for the instance to make sure that if Run
@@ -208,7 +203,7 @@ func (i *Instance) Run(ctx context.Context) error {
 		return err
 	}
 
-	discoveryManager, err := i.newDiscoveryManager(ctx)
+	discovery, err := i.newDiscoveryManager()
 	if err != nil {
 		return err
 	}
@@ -230,12 +225,7 @@ func (i *Instance) Run(ctx context.Context) error {
 	}
 	readyScrapeManager.Set(scrapeManager)
 
-	filterer, err := i.newHostFilter()
-	if err != nil {
-		return err
-	}
-
-	var g run.Group
+	rg := newRunGroup(ctx)
 
 	// The actors defined here are defined in the order we want them to shut down.
 	// Primarily, we want to ensure that the following shutdown order is
@@ -246,49 +236,14 @@ func (i *Instance) Run(ctx context.Context) error {
 	// This is done to allow the instance to write stale markers for all active
 	// series.
 	{
-		// Context watcher. This ensures that the entire group stops when the context
-		// is canceled.
-		g.Add(
-			func() error {
-				<-ctx.Done()
-				return ctx.Err()
-			},
-			func(err error) { /* no op */ },
-		)
-	}
-	{
-		// Scrape discovery manager
-		g.Add(
-			func() error {
-				err := discoveryManager.Run()
-				level.Info(i.logger).Log("msg", "service discovery manager stopped")
-				return err
-			},
-			func(err error) {
-				level.Info(i.logger).Log("msg", "stopping scrape discovery manager...")
-				cancel()
-			},
-		)
-	}
-	if i.cfg.HostFilter {
-		// Target host filterer
-		g.Add(
-			func() error {
-				filterer.Run(discoveryManager.SyncCh())
-				level.Info(i.logger).Log("msg", "host filterer stopped")
-				return nil
-			},
-			func(err error) {
-				level.Info(i.logger).Log("msg", "stopping host filterer...")
-				filterer.Stop()
-			},
-		)
+		// Target Discovery
+		rg.Add(discovery.Run, discovery.Stop)
 	}
 	{
 		// Truncation loop
 		ctx, contextCancel := context.WithCancel(context.Background())
 		defer contextCancel()
-		g.Add(
+		rg.Add(
 			func() error {
 				i.truncateLoop(ctx, wstore)
 				level.Info(i.logger).Log("msg", "truncation loop stopped")
@@ -302,16 +257,9 @@ func (i *Instance) Run(ctx context.Context) error {
 	}
 	{
 		// Scrape manager
-		g.Add(
+		rg.Add(
 			func() error {
-				var readCh GroupChannel
-				if i.cfg.HostFilter {
-					readCh = filterer.SyncCh()
-				} else {
-					readCh = discoveryManager.SyncCh()
-				}
-
-				err := scrapeManager.Run(readCh)
+				err := scrapeManager.Run(discovery.SyncCh())
 				level.Info(i.logger).Log("msg", "scrape manager stopped")
 				return err
 			},
@@ -339,15 +287,32 @@ func (i *Instance) Run(ctx context.Context) error {
 		)
 	}
 
-	err = g.Run()
+	err = rg.Run()
 	if err != nil {
 		level.Error(i.logger).Log("msg", "agent instance stopped with error", "err", err)
 	}
 	return err
 }
 
-func (i *Instance) newDiscoveryManager(ctx context.Context) (*discovery.Manager, error) {
-	manager := discovery.NewManager(ctx, log.With(i.logger, "component", "discovery manager scrape"), discovery.Name("scrape"))
+type discoveryService struct {
+	RunFunc    func() error
+	StopFunc   func(err error)
+	SyncChFunc func() GroupChannel
+}
+
+func (s *discoveryService) Run() error           { return s.RunFunc() }
+func (s *discoveryService) Stop(err error)       { s.StopFunc(err) }
+func (s *discoveryService) SyncCh() GroupChannel { return s.SyncChFunc() }
+
+// newDiscoveryManager returns an implementation of a runnable service
+// that outputs discovered targets to a channel. The implementation
+// uses the Prometheus Discovery Manager. Targets will be filtered
+// if the instance is configured to perform host filtering.
+func (i *Instance) newDiscoveryManager() (*discoveryService, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	logger := log.With(i.logger, "component", "discover manager scrape")
+	manager := discovery.NewManager(ctx, logger, discovery.Name("scrape"))
 
 	// TODO(rfratto): refactor this to a function?
 	// TODO(rfratto): ensure job name name is unique
@@ -357,11 +322,51 @@ func (i *Instance) newDiscoveryManager(ctx context.Context) (*discovery.Manager,
 	}
 	err := manager.ApplyConfig(c)
 	if err != nil {
+		cancel()
 		level.Error(i.logger).Log("msg", "failed applying config to discovery manager", "err", err)
-		return manager, fmt.Errorf("failed applying config to discovery manager: %w", err)
+		return nil, fmt.Errorf("failed applying config to discovery manager: %w", err)
 	}
 
-	return manager, nil
+	rg := newRunGroup(ctx)
+
+	// Run the manager
+	rg.Add(func() error {
+		err := manager.Run()
+		level.Info(i.logger).Log("msg", "service discovery manager stopped")
+		return err
+	}, func(err error) {
+		level.Info(i.logger).Log("msg", "stopping scrape discovery manager...")
+		cancel()
+	})
+
+	syncChFunc := manager.SyncCh
+
+	// If host filtering is enabled, run it and use its channel for discovered
+	// targets.
+	if i.cfg.HostFilter {
+		filterer, err := i.newHostFilter()
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+
+		rg.Add(func() error {
+			filterer.Run(manager.SyncCh())
+			level.Info(i.logger).Log("msg", "host filterer stopped")
+			return nil
+		}, func(_ error) {
+			level.Info(i.logger).Log("msg", "stopping host filterer...")
+			filterer.Stop()
+		})
+
+		syncChFunc = filterer.SyncCh
+	}
+
+	return &discoveryService{
+		RunFunc:    rg.Run,
+		StopFunc:   rg.Stop,
+		SyncChFunc: syncChFunc,
+	}, nil
 }
 
 func (i *Instance) newStorage(reg prometheus.Registerer, wal walStorage, sm scrape.ReadyManager) (storage.Storage, error) {
@@ -614,3 +619,32 @@ func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) (
 
 	return vals, nil
 }
+
+type runGroup struct {
+	cancel context.CancelFunc
+
+	g *run.Group
+}
+
+// newRunGroup wraps around run.Group but accepts a context. The run group will
+// be stopped if the context gets canceled.
+func newRunGroup(ctx context.Context) *runGroup {
+	ctx, cancel := context.WithCancel(ctx)
+
+	var g run.Group
+	g.Add(func() error {
+		<-ctx.Done()
+		return nil
+	}, func(_ error) {
+		cancel()
+	})
+
+	return &runGroup{cancel: cancel, g: &g}
+}
+
+func (rg *runGroup) Add(execute func() error, interrupt func(error)) {
+	rg.g.Add(execute, interrupt)
+}
+
+func (rg *runGroup) Run() error   { return rg.g.Run() }
+func (rg *runGroup) Stop(_ error) { rg.cancel() }
