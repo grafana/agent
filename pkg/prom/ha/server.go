@@ -257,7 +257,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 			return nil, nil
 		}
 
-		ctx = user.InjectOrgID(ctx, "fake")
+		ctx := user.InjectOrgID(ctx, "fake")
 		return nil, s.notifyReshard(ctx, desc)
 	})
 	return err
