@@ -13,7 +13,6 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prometheus/instance"
-	"gopkg.in/yaml.v2"
 )
 
 // Reshard initiates an entire reshard of the current HA scraping service instance.
@@ -215,11 +214,11 @@ func (m ShardingConfigManager) owns(hash uint32) (bool, error) {
 }
 
 func configHash(c *instance.Config) (uint32, error) {
-	bb, err := yaml.Marshal(c)
+	val, err := instance.MarshalConfig(c, false)
 	if err != nil {
 		return 0, err
 	}
 	h := fnv.New32()
-	_, _ = h.Write(bb)
+	_, _ = h.Write(val)
 	return h.Sum32(), nil
 }
