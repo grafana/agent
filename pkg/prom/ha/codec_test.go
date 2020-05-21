@@ -3,7 +3,7 @@ package ha
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )

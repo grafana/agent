@@ -1,11 +1,11 @@
-package prometheus
+package prom
 
 import (
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/stretchr/testify/require"
 )
 

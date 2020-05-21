@@ -1,4 +1,4 @@
-package prometheus
+package prom
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"

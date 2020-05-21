@@ -1,11 +1,11 @@
-package prometheus
+package prom
 
 import (
 	"context"
 	"errors"
 	"sync"
 
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/instance"
 )
 
 // ConfigManager manages a set of instance.Configs, calling a function whenever

@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/ha/configapi"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"gopkg.in/yaml.v2"
 )
 

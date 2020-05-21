@@ -19,8 +19,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/agentproto"
-	"github.com/grafana/agent/pkg/prometheus/ha/client"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/ha/client"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/user"
@@ -46,7 +46,7 @@ var (
 
 // ConfigManager is an interface to manipulating a set of running
 // instance.Configs. It is satisfied by the ConfigManager struct in
-// pkg/prometheus, but is provided as an interface here for testing and
+// pkg/prom, but is provided as an interface here for testing and
 // avoiding import cycles.
 type ConfigManager interface {
 	// ListConfigs gets the list of currently known configs.

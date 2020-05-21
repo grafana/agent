@@ -13,7 +13,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/config"
-	prom "github.com/grafana/agent/pkg/prometheus"
+	"github.com/grafana/agent/pkg/prom"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
 	"github.com/weaveworks/common/server"
