@@ -311,7 +311,7 @@ func (s *discoveryService) SyncCh() GroupChannel { return s.SyncChFunc() }
 func (i *Instance) newDiscoveryManager(ctx context.Context) (*discoveryService, error) {
 	ctx, cancel := context.WithCancel(ctx)
 
-	logger := log.With(i.logger, "component", "discover manager scrape")
+	logger := log.With(i.logger, "component", "discovery manager")
 	manager := discovery.NewManager(ctx, logger, discovery.Name("scrape"))
 
 	// TODO(rfratto): refactor this to a function?
@@ -332,10 +332,10 @@ func (i *Instance) newDiscoveryManager(ctx context.Context) (*discoveryService, 
 	// Run the manager
 	rg.Add(func() error {
 		err := manager.Run()
-		level.Info(i.logger).Log("msg", "service discovery manager stopped")
+		level.Info(i.logger).Log("msg", "discovery manager stopped")
 		return err
 	}, func(err error) {
-		level.Info(i.logger).Log("msg", "stopping service discovery manager...")
+		level.Info(i.logger).Log("msg", "stopping discovery manager...")
 		cancel()
 	})
 
