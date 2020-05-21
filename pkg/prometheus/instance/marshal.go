@@ -1,8 +1,8 @@
 package instance
 
 import (
+	"bytes"
 	"io"
-	"strings"
 
 	config_util "github.com/prometheus/common/config"
 	"gopkg.in/yaml.v2"
@@ -19,10 +19,10 @@ func UnmarshalConfig(r io.Reader) (*Config, error) {
 }
 
 // MarshalConfig marshals an instance config based on a provided content type.
-func MarshalConfig(c *Config, scrubSecrets bool) (string, error) {
-	var buf strings.Builder
+func MarshalConfig(c *Config, scrubSecrets bool) ([]byte, error) {
+	var buf bytes.Buffer
 	err := MarshalConfigToWriter(c, &buf, scrubSecrets)
-	return buf.String(), err
+	return buf.Bytes(), err
 }
 
 // MarshalConfigToWriter marshals a config to an io.Writer.

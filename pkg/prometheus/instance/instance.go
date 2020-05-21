@@ -27,6 +27,7 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -73,16 +74,22 @@ type Config struct {
 	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty" json:"write_stale_on_shutdown,omitempty"`
 }
 
-func (c *Config) MarshalYAML() (interface{}, error) {
-	// NOTE: Marshaling instance configs to YAML is unsupported because
-	// it may store secret types whose value get removed by its custom
-	// marshal implementation.
-	//
-	// Rather, using the Marshal* methods in this package to marshal a
-	// config instead. It adds YAML encoding hooks to prevent secret
-	// values from being scrubbed when a parameter is provided to not
-	// scrub values.
-	return nil, errors.New("instance configs should not be marshaled directly")
+func (c Config) MarshalYAML() (interface{}, error) {
+	// We want users to be able to marshal instance.Configs directly without
+	// *needing* to call instance.MarshalConfig, so we call it internally
+	// here and return a map.
+	bb, err := MarshalConfig(&c, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use a yaml.MapSlice rather than a map[string]interface{} so
+	// order of keys is retained compared to just calling MarshalConfig.
+	var m yaml.MapSlice
+	if err := yaml.Unmarshal(bb, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {

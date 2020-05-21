@@ -219,6 +219,6 @@ func configHash(c *instance.Config) (uint32, error) {
 		return 0, err
 	}
 	h := fnv.New32()
-	_, _ = h.Write([]byte(val))
+	_, _ = h.Write(val)
 	return h.Sum32(), nil
 }
