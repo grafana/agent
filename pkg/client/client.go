@@ -3,7 +3,6 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -105,12 +104,12 @@ func (c *prometheusClient) GetConfiguration(ctx context.Context, name string) (*
 func (c *prometheusClient) PutConfiguration(ctx context.Context, name string, cfg *instance.Config) error {
 	url := fmt.Sprintf("%s/agent/api/v1/config/%s", c.addr, name)
 
-	bb, err := yaml.Marshal(cfg)
+	str, err := instance.MarshalConfig(cfg, false)
 	if err != nil {
 		return err
 	}
 
-	resp, err := c.doRequest(ctx, "POST", url, bytes.NewReader(bb))
+	resp, err := c.doRequest(ctx, "POST", url, strings.NewReader(str))
 	if err != nil {
 		return err
 	}
