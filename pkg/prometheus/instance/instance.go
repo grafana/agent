@@ -335,7 +335,7 @@ func (i *Instance) newDiscoveryManager(ctx context.Context) (*discoveryService, 
 		level.Info(i.logger).Log("msg", "service discovery manager stopped")
 		return err
 	}, func(err error) {
-		level.Info(i.logger).Log("msg", "stopping scrape discovery manager...")
+		level.Info(i.logger).Log("msg", "stopping service discovery manager...")
 		cancel()
 	})
 
