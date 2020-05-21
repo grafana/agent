@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/cortexproject/cortex/pkg/ring/kv/codec"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/instance"
 )
 
 // GetCodec returns the codec for encoding and decoding instance.Configs

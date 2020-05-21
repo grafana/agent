@@ -20,9 +20,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/client"
-	haClient "github.com/grafana/agent/pkg/prometheus/ha/client"
-	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	haClient "github.com/grafana/agent/pkg/prom/ha/client"
+	"github.com/grafana/agent/pkg/prom/ha/configapi"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )

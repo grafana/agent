@@ -1,4 +1,4 @@
-package prometheus
+package prom
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prometheus/ha/configapi"
+	"github.com/grafana/agent/pkg/prom/ha/configapi"
 )
 
 // WireAPI adds API routes to the provided mux router.

@@ -12,7 +12,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring/kv/consul"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/agentproto"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
