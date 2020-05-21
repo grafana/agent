@@ -40,16 +40,20 @@ func (*yamlCodec) Decode(bb []byte) (interface{}, error) {
 func (*yamlCodec) Encode(v interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 
-	switch v.(type) {
-	case instance.Config, *instance.Config:
-		break
+	var cfg *instance.Config
+
+	switch v := v.(type) {
+	case instance.Config:
+		cfg = &v
+	case *instance.Config:
+		cfg = v
 	default:
 		panic(fmt.Sprintf("unexpected type %T passed to yamlCodec.Encode", v))
 	}
 
 	w := gzip.NewWriter(&buf)
-	yamlEncoder := yaml.NewEncoder(w)
-	if err := yamlEncoder.Encode(v); err != nil {
+	err := instance.MarshalConfigToWriter(cfg, w, false)
+	if err != nil {
 		return nil, err
 	}
 

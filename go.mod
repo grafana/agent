@@ -40,3 +40,5 @@ replace (
 )
 
 replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200518163447-007aa83a0a1f
+
+replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
