@@ -118,7 +118,7 @@ func (s *Server) GetConfiguration(r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return &configapi.GetConfigurationResponse{Value: cfg}, nil
+	return &configapi.GetConfigurationResponse{Value: string(cfg)}, nil
 }
 
 // PutConfiguration creates or updates a named configuration. Completely

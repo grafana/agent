@@ -105,7 +105,7 @@ func (c *prometheusClient) GetConfiguration(ctx context.Context, name string) (*
 func (c *prometheusClient) PutConfiguration(ctx context.Context, name string, cfg *instance.Config) error {
 	url := fmt.Sprintf("%s/agent/api/v1/config/%s", c.addr, name)
 
-	bb, err := yaml.Marshal(cfg)
+	bb, err := instance.MarshalConfig(cfg, false)
 	if err != nil {
 		return err
 	}
