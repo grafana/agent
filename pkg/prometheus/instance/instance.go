@@ -203,7 +203,7 @@ func (i *Instance) Run(ctx context.Context) error {
 		return err
 	}
 
-	discovery, err := i.newDiscoveryManager()
+	discovery, err := i.newDiscoveryManager(ctx)
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func (i *Instance) Run(ctx context.Context) error {
 	}
 	readyScrapeManager.Set(scrapeManager)
 
-	rg := newRunGroup(ctx)
+	rg := runGroupWithContext(ctx)
 
 	// The actors defined here are defined in the order we want them to shut down.
 	// Primarily, we want to ensure that the following shutdown order is
@@ -308,8 +308,8 @@ func (s *discoveryService) SyncCh() GroupChannel { return s.SyncChFunc() }
 // that outputs discovered targets to a channel. The implementation
 // uses the Prometheus Discovery Manager. Targets will be filtered
 // if the instance is configured to perform host filtering.
-func (i *Instance) newDiscoveryManager() (*discoveryService, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (i *Instance) newDiscoveryManager(ctx context.Context) (*discoveryService, error) {
+	ctx, cancel := context.WithCancel(ctx)
 
 	logger := log.With(i.logger, "component", "discover manager scrape")
 	manager := discovery.NewManager(ctx, logger, discovery.Name("scrape"))
@@ -327,7 +327,7 @@ func (i *Instance) newDiscoveryManager() (*discoveryService, error) {
 		return nil, fmt.Errorf("failed applying config to discovery manager: %w", err)
 	}
 
-	rg := newRunGroup(ctx)
+	rg := runGroupWithContext(ctx)
 
 	// Run the manager
 	rg.Add(func() error {
@@ -620,15 +620,16 @@ func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) (
 	return vals, nil
 }
 
-type runGroup struct {
+type runGroupContext struct {
 	cancel context.CancelFunc
 
 	g *run.Group
 }
 
-// newRunGroup wraps around run.Group but accepts a context. The run group will
-// be stopped if the context gets canceled.
-func newRunGroup(ctx context.Context) *runGroup {
+// runGroupWithContext creates a new run.Group that will be stopped if the
+// context gets canceled in addition to the normal behavior of stopping
+// when any of the actors stop.
+func runGroupWithContext(ctx context.Context) *runGroupContext {
 	ctx, cancel := context.WithCancel(ctx)
 
 	var g run.Group
@@ -639,12 +640,12 @@ func newRunGroup(ctx context.Context) *runGroup {
 		cancel()
 	})
 
-	return &runGroup{cancel: cancel, g: &g}
+	return &runGroupContext{cancel: cancel, g: &g}
 }
 
-func (rg *runGroup) Add(execute func() error, interrupt func(error)) {
+func (rg *runGroupContext) Add(execute func() error, interrupt func(error)) {
 	rg.g.Add(execute, interrupt)
 }
 
-func (rg *runGroup) Run() error   { return rg.g.Run() }
-func (rg *runGroup) Stop(_ error) { rg.cancel() }
+func (rg *runGroupContext) Run() error   { return rg.g.Run() }
+func (rg *runGroupContext) Stop(_ error) { rg.cancel() }
