@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/instance"
 )
 
 // Reshard initiates an entire reshard of the current HA scraping service instance.

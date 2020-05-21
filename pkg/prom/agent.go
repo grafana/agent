@@ -1,7 +1,7 @@
-// Package prometheus implements a Prometheus-lite client for service discovery,
+// Package prom implements a Prometheus-lite client for service discovery,
 // scraping metrics into a WAL, and remote_write. Clients are broken into a
 // set of instances, each of which contain their own set of configs.
-package prometheus
+package prom
 
 import (
 	"context"
@@ -12,9 +12,9 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/prometheus/ha"
-	"github.com/grafana/agent/pkg/prometheus/ha/client"
-	"github.com/grafana/agent/pkg/prometheus/instance"
+	"github.com/grafana/agent/pkg/prom/ha"
+	"github.com/grafana/agent/pkg/prom/ha/client"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
