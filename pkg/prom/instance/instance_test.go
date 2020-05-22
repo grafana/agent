@@ -2,6 +2,7 @@ package instance
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http/httptest"
 	"os"
@@ -47,6 +48,111 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		require.Equal(t, sc.ScrapeInterval, global.ScrapeInterval)
 		require.Equal(t, sc.ScrapeTimeout, global.ScrapeTimeout)
 		require.Equal(t, sc.RelabelConfigs, DefaultRelabelConfigs)
+	}
+}
+
+func TestConfig_ApplyDefaults_Validations(t *testing.T) {
+	global := config.DefaultGlobalConfig
+	cfg := Config{
+		Name: "instance",
+		ScrapeConfigs: []*config.ScrapeConfig{{
+			JobName: "scrape",
+			ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
+				StaticConfigs: []*targetgroup.Group{{
+					Targets: []model.LabelSet{{
+						model.AddressLabel: model.LabelValue("127.0.0.1:12345"),
+					}},
+					Labels: model.LabelSet{"cluster": "localhost"},
+				}},
+			},
+		}},
+		RemoteWrite: []*config.RemoteWriteConfig{{
+			Name: "write",
+		}},
+	}
+
+	tt := []struct {
+		name     string
+		mutation func(c *Config)
+		err      error
+	}{
+		{
+			"valid config",
+			nil,
+			nil,
+		},
+		{
+			"requires name",
+			func(c *Config) { c.Name = "" },
+			fmt.Errorf("missing instance name"),
+		},
+		{
+			"missing scrape",
+			func(c *Config) { c.ScrapeConfigs[0] = nil },
+			fmt.Errorf("empty or null scrape config section"),
+		},
+		{
+			"scrape timeout too high",
+			func(c *Config) { c.ScrapeConfigs[0].ScrapeTimeout = global.ScrapeInterval + 1 },
+			fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name \"scrape\""),
+		},
+		{
+			"multiple scrape configs with same name",
+			func(c *Config) {
+				c.ScrapeConfigs = append(c.ScrapeConfigs, &config.ScrapeConfig{
+					JobName: "scrape",
+				})
+			},
+			fmt.Errorf("found multiple scrape configs with job name \"scrape\""),
+		},
+		{
+			"empty remote write",
+			func(c *Config) { c.RemoteWrite = append(c.RemoteWrite, nil) },
+			fmt.Errorf("empty or null remote write config section"),
+		},
+		{
+			"multiple remote writes with same name",
+			func(c *Config) {
+				c.RemoteWrite = append(c.RemoteWrite,
+					&config.RemoteWriteConfig{Name: "foo"},
+					&config.RemoteWriteConfig{Name: "foo"},
+				)
+			},
+			fmt.Errorf("found duplicate remote write configs with name \"foo\""),
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+
+			// Copy the input and all of its slices
+			input := cfg
+
+			var scrapeConfigs []*config.ScrapeConfig
+			for _, sc := range input.ScrapeConfigs {
+				scCopy := *sc
+				scrapeConfigs = append(scrapeConfigs, &scCopy)
+			}
+			input.ScrapeConfigs = scrapeConfigs
+
+			var remoteWrites []*config.RemoteWriteConfig
+			for _, rw := range input.RemoteWrite {
+				rwCopy := *rw
+				remoteWrites = append(remoteWrites, &rwCopy)
+			}
+			input.RemoteWrite = remoteWrites
+
+			if tc.mutation != nil {
+				tc.mutation(&input)
+			}
+
+			err := input.ApplyDefaults(&global)
+			if tc.err == nil {
+				require.NoError(t, err)
+			} else {
+				require.EqualError(t, err, tc.err.Error())
+			}
+		})
 	}
 }
 

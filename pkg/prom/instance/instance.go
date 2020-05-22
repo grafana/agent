@@ -157,7 +157,7 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
 			if generatedName {
 				return fmt.Errorf("found two identical remote_write configs")
 			}
-			return fmt.Errorf("found duplicate remove write configs with name %q", cfg.Name)
+			return fmt.Errorf("found duplicate remote write configs with name %q", cfg.Name)
 		}
 		rwNames[cfg.Name] = struct{}{}
 	}
