@@ -23,6 +23,7 @@ import (
 	haClient "github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/ha/configapi"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -153,6 +154,18 @@ func TestServer_PutConfiguration(t *testing.T) {
 	}
 }
 
+func TestServer_PutConfiguration_Invalid(t *testing.T) {
+	env := newAPITestEnvironment(t)
+
+	cfg := instance.DefaultConfig
+	cfg.Name = "newconfig"
+	cfg.ScrapeConfigs = []*config.ScrapeConfig{nil}
+
+	cli := client.New(env.srv.URL)
+	err := cli.PutConfiguration(context.Background(), "newconfig-invalid", &cfg)
+	require.EqualError(t, err, "empty or null scrape config section")
+}
+
 func TestServer_PutConfiguration_WithClient(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
@@ -267,7 +280,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 			Prefix: "configs/",
 		},
 		Lifecycler: testLifecyclerConfig(),
-	}, haClient.Config{}, logger, newMockConfigManager())
+	}, &config.DefaultGlobalConfig, haClient.Config{}, logger, newMockConfigManager())
 	require.NoError(t, err)
 
 	// Wire the API

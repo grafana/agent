@@ -92,43 +92,27 @@ func (c Config) MarshalYAML() (interface{}, error) {
 	return m, nil
 }
 
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	if err := unmarshal((*plain)(c)); err != nil {
-		return err
-	}
-
-	// We need to be able to pull the metrics of the last written timestamp for all the remote_writes.
-	// This can currently only be done using the remote_name label Prometheus adds to the
-	// prometheus_remote_storage_queue_highest_sent_time_seconds label, so we force a name here
-	// that we can lookup later.
-	for _, cfg := range c.RemoteWrite {
-		if cfg.Name != "" {
-			continue
-		}
-
-		hash, err := getHash(cfg)
-		if err != nil {
-			return err
-		}
-
-		// We have to add the name of the instance to ensure that generated metrics
-		// are unique across multiple agent instances. The remote write queues currently
-		// globally register their metrics so we can't inject labels here.
-		cfg.Name = c.Name + "-" + hash[:6]
-	}
-
-	return nil
-}
-
 // ApplyDefaults applies default configurations to the configuration to all
-// values that have not been changed to their non-zero value.
-func (c *Config) ApplyDefaults(global *config.GlobalConfig) {
+// values that have not been changed to their non-zero value. ApplyDefaults
+// also validates the config.
+func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
+	if c.Name == "" {
+		return errors.New("missing instance name")
+	}
+
+	jobNames := map[string]struct{}{}
 	for _, sc := range c.ScrapeConfigs {
+		if sc == nil {
+			return fmt.Errorf("empty or null scrape config section")
+		}
+
+		// First set the correct scrape interval, then check that the timeout
+		// (inferred or explicit) is not greater than that.
 		if sc.ScrapeInterval == 0 {
 			sc.ScrapeInterval = global.ScrapeInterval
+		}
+		if sc.ScrapeTimeout > sc.ScrapeInterval {
+			return fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name %q", sc.JobName)
 		}
 		if sc.ScrapeTimeout == 0 {
 			if global.ScrapeTimeout > sc.ScrapeInterval {
@@ -138,15 +122,44 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig) {
 			}
 		}
 
+		if _, ok := jobNames[sc.JobName]; ok {
+			return fmt.Errorf("found multiple scrape configs with job name %q", sc.JobName)
+		}
+		jobNames[sc.JobName] = struct{}{}
+
 		sc.RelabelConfigs = append(sc.RelabelConfigs, DefaultRelabelConfigs...)
 	}
-}
 
-// Validate checks if the Config has all required fields filled out.
-// This should only be called after ApplyDefaults.
-func (c *Config) Validate() error {
-	if c.Name == "" {
-		return errors.New("missing instance name")
+	rwNames := map[string]struct{}{}
+	for _, cfg := range c.RemoteWrite {
+		if cfg == nil {
+			return fmt.Errorf("empty or null remote write config section")
+		}
+
+		// Typically Prometheus ignores empty names here, but we need to assign a
+		// unique name to the config so we can pull metrics from it when running
+		// an instance.
+		var generatedName bool
+		if cfg.Name == "" {
+			hash, err := getHash(cfg)
+			if err != nil {
+				return err
+			}
+
+			// We have to add the name of the instance to ensure that generated metrics
+			// are unique across multiple agent instances. The remote write queues currently
+			// globally register their metrics so we can't inject labels here.
+			cfg.Name = c.Name + "-" + hash[:6]
+			generatedName = true
+		}
+
+		if _, ok := rwNames[cfg.Name]; ok {
+			if generatedName {
+				return fmt.Errorf("found two identical remote_write configs")
+			}
+			return fmt.Errorf("found duplicate remove write configs with name %q", cfg.Name)
+		}
+		rwNames[cfg.Name] = struct{}{}
 	}
 
 	return nil
@@ -185,10 +198,6 @@ func New(globalCfg config.GlobalConfig, cfg Config, walDir string, logger log.Lo
 }
 
 func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
-	if err := cfg.Validate(); err != nil {
-		return nil, err
-	}
-
 	vc := NewMetricValueCollector(prometheus.DefaultGatherer, remoteWriteMetricName)
 
 	i := &Instance{

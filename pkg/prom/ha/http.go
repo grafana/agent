@@ -130,6 +130,11 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 	}
 	inst.Name = getConfigName(r)
 
+	// Validate the incoming config
+	if err := inst.ApplyDefaults(s.globalConfig); err != nil {
+		return nil, err
+	}
+
 	var newConfig bool
 	err = s.kv.CAS(r.Context(), inst.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 		// The configuration is new if there's no previous value from the CAS

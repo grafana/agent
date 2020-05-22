@@ -40,7 +40,9 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		}},
 	}
 
-	cfg.ApplyDefaults(&global)
+	err := cfg.ApplyDefaults(&global)
+	require.NoError(t, err)
+
 	for _, sc := range cfg.ScrapeConfigs {
 		require.Equal(t, sc.ScrapeInterval, global.ScrapeInterval)
 		require.Equal(t, sc.ScrapeTimeout, global.ScrapeTimeout)

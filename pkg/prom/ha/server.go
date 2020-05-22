@@ -23,6 +23,7 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/prometheus/config"
 	"github.com/weaveworks/common/user"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
@@ -96,6 +97,7 @@ type readRing interface {
 type Server struct {
 	cfg          Config
 	clientConfig client.Config
+	globalConfig *config.GlobalConfig
 	logger       log.Logger
 	addr         string
 
@@ -113,7 +115,7 @@ type Server struct {
 }
 
 // New creates a new HA scraping service instance.
-func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigManager) (*Server, error) {
+func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, cm ConfigManager) (*Server, error) {
 	// Force ReplicationFactor to be 1, since replication isn't supported for the
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
@@ -146,6 +148,7 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 	logger = log.With(logger, "component", "ha")
 	s := newServer(
 		cfg,
+		globalConfig,
 		clientConfig,
 		logger,
 
@@ -162,11 +165,12 @@ func New(cfg Config, clientConfig client.Config, logger log.Logger, cm ConfigMan
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
-func newServer(cfg Config, clientCfg client.Config, log log.Logger, cm ConfigManager, addr string, r readRing, kv kv.Client, stopFunc func() error) *Server {
+func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, cm ConfigManager, addr string, r readRing, kv kv.Client, stopFunc func() error) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &Server{
 		cfg:          cfg,
+		globalConfig: globalCfg,
 		clientConfig: clientCfg,
 		logger:       log,
 		addr:         addr,

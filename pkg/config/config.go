@@ -17,13 +17,16 @@ type Config struct {
 }
 
 // ApplyDefaults sets default values in the config
-func (c *Config) ApplyDefaults() {
-	c.Prometheus.ApplyDefaults()
+func (c *Config) ApplyDefaults() error {
+	if err := c.Prometheus.ApplyDefaults(); err != nil {
+		return err
+	}
 
 	// The default port exposed to the lifecycler should be the gRPC listen
 	// port since the agents will use gRPC for notifying other agents of
 	// resharding.
 	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = &c.Server.GRPCListenPort
+	return nil
 }
 
 // RegisterFlags registers flags in underlying configs
@@ -51,7 +54,5 @@ func Load(buf []byte, c *Config) error {
 		return err
 	}
 
-	c.ApplyDefaults()
-
-	return nil
+	return c.ApplyDefaults()
 }

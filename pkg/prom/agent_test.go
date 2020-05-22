@@ -17,14 +17,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestNew_ValidatesConfig(t *testing.T) {
-	// Zero value of Config is invalid; it needs at least a
-	// WAL dir defined
-	invalidConfig := Config{}
-	_, err := New(invalidConfig, nil)
-	require.Error(t, err)
-}
-
 func TestConfig_Validate(t *testing.T) {
 	valid := Config{
 		WALDir: "/tmp/data",
@@ -51,7 +43,7 @@ func TestConfig_Validate(t *testing.T) {
 		{
 			name:    "missing instance name",
 			mutator: func(c *Config) { c.Configs[0].Name = "" },
-			expect:  errors.New("error validating instance 0: missing instance name"),
+			expect:  errors.New("error validating instance at index 0: missing instance name"),
 		},
 		{
 			name: "duplicate config name",
@@ -70,8 +62,12 @@ func TestConfig_Validate(t *testing.T) {
 			cfg := copyConfig(t, valid)
 			tc.mutator(&cfg)
 
-			err := cfg.Validate()
-			require.Equal(t, tc.expect, err)
+			err := cfg.ApplyDefaults()
+			if tc.expect == nil {
+				require.NoError(t, err)
+			} else {
+				require.EqualError(t, err, tc.expect.Error())
+			}
 		})
 	}
 }
