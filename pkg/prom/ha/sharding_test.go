@@ -55,6 +55,27 @@ func TestServer_Reshard(t *testing.T) {
 func TestShardingConfigManager(t *testing.T) {
 	logger := log.NewNopLogger()
 
+	t.Run("only lists configs applied through sharded config manager", func(t *testing.T) {
+		mockCm := newMockConfigManager()
+		mockRing := &mockFuncReadRing{}
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+			return ring.ReplicationSet{
+				Ingesters: []ring.IngesterDesc{{Addr: "same_machine"}},
+			}, nil
+		}
+
+		mockCm.ApplyConfig(instance.Config{Name: "applied_elsewhere"})
+
+		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
+		cm.ApplyConfig(instance.Config{Name: "test"})
+
+		var keys []string
+		for k := range cm.ListConfigs() {
+			keys = append(keys, k)
+		}
+		require.Equal(t, []string{"test"}, keys)
+	})
+
 	t.Run("applies owned config", func(t *testing.T) {
 		mockCm := newMockConfigManager()
 		mockRing := &mockFuncReadRing{}

@@ -144,10 +144,26 @@ func NewShardingConfigManager(logger log.Logger, wrap ConfigManager, ring ReadRi
 	}
 }
 
-// ListConfigs implements ConfigManager.ListConfigs.
+// ListConfigs returns the list of configs that have been applied through
+// the ShardingConfigManager. It will return a subset of the overall
+// set of configs passed to the ConfigManager as a whole.
+//
+// Returning the subset of configs that only the ShardingConfigManager
+// applied itself allows for the underlying ConfigManager to manage
+// its own set of configs that will not be affected by the scraping
+// service resharding and deleting configs that aren't found in the KV
+// store.
 func (m ShardingConfigManager) ListConfigs() map[string]instance.Config {
-	// Direct pass through; no sharding needed here.
-	return m.inner.ListConfigs()
+	innerConfigs := m.inner.ListConfigs()
+	shardedConfigs := make(map[string]instance.Config, len(innerConfigs))
+
+	for k, v := range innerConfigs {
+		if _, sharded := m.keyToHash[k]; sharded {
+			shardedConfigs[k] = v
+		}
+	}
+
+	return shardedConfigs
 }
 
 // ApplyConfig implements ConfigManager.ApplyConfig.
