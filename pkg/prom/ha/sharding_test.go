@@ -67,7 +67,7 @@ func TestShardingConfigManager(t *testing.T) {
 		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
 		cm.ApplyConfig(instance.Config{Name: "test"})
 
-		require.Equal(t, 1, len(mockCm.cfgs))
+		require.Equal(t, 1, len(mockCm.ListConfigs()))
 	})
 
 	t.Run("ignores apply of unowned config", func(t *testing.T) {
@@ -82,7 +82,7 @@ func TestShardingConfigManager(t *testing.T) {
 		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
 		cm.ApplyConfig(instance.Config{Name: "test"})
 
-		require.Equal(t, 0, len(mockCm.cfgs))
+		require.Equal(t, 0, len(mockCm.ListConfigs()))
 	})
 
 	t.Run("properly hashes config", func(t *testing.T) {
@@ -119,14 +119,14 @@ func TestShardingConfigManager(t *testing.T) {
 
 		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
 		cm.ApplyConfig(instance.Config{Name: "test"})
-		require.Equal(t, 1, len(mockCm.cfgs))
+		require.Equal(t, 1, len(mockCm.ListConfigs()))
 
 		// Pretend the ring changed and that ring doesn't hash to us anymore.
 		// The next apply should delete it.
 		returnRingAddr = "not_localhost"
 
 		cm.ApplyConfig(instance.Config{Name: "test"})
-		require.Equal(t, 0, len(mockCm.cfgs), "unowned config was not deleted")
+		require.Equal(t, 0, len(mockCm.ListConfigs()), "unowned config was not deleted")
 	})
 
 	t.Run("doesn't reapply unchanged config", func(t *testing.T) {
@@ -141,13 +141,13 @@ func TestShardingConfigManager(t *testing.T) {
 		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
 		cm.ApplyConfig(instance.Config{Name: "test"})
 
-		require.Equal(t, 1, len(mockCm.cfgs))
+		require.Equal(t, 1, len(mockCm.ListConfigs()))
 
 		// Internally delete the config and try to reapply; our wrapper should ignore
 		// it since the hash hasn't changed from the last time it was applied.
-		delete(mockCm.cfgs, "test")
+		_ = mockCm.DeleteConfig("test")
 		cm.ApplyConfig(instance.Config{Name: "test"})
-		require.Equal(t, 0, len(mockCm.cfgs), "unchanged config got reapplied")
+		require.Equal(t, 0, len(mockCm.ListConfigs()), "unchanged config got reapplied")
 	})
 
 	t.Run("reapplies changed config", func(t *testing.T) {
@@ -162,11 +162,11 @@ func TestShardingConfigManager(t *testing.T) {
 		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
 		cm.ApplyConfig(instance.Config{Name: "test"})
 
-		require.Equal(t, 1, len(mockCm.cfgs))
+		require.Equal(t, 1, len(mockCm.ListConfigs()))
 
 		cm.ApplyConfig(instance.Config{Name: "test", HostFilter: true})
-		require.Equal(t, 1, len(mockCm.cfgs))
-		require.True(t, mockCm.cfgs["test"].HostFilter)
+		require.Equal(t, 1, len(mockCm.ListConfigs()))
+		require.True(t, mockCm.GetConfig("test").HostFilter)
 	})
 
 	t.Run("ignores deletes of unowned config", func(t *testing.T) {
@@ -178,7 +178,7 @@ func TestShardingConfigManager(t *testing.T) {
 		err := cm.DeleteConfig("test")
 		require.NoError(t, err)
 
-		require.Equal(t, 1, len(mockCm.cfgs), "untracked config was not ignored")
+		require.Equal(t, 1, len(mockCm.ListConfigs()), "untracked config was not ignored")
 	})
 
 	t.Run("deletes owned config", func(t *testing.T) {
@@ -195,7 +195,7 @@ func TestShardingConfigManager(t *testing.T) {
 
 		err := cm.DeleteConfig("test")
 		require.NoError(t, err)
-		require.Equal(t, 0, len(mockCm.cfgs), "owned config was not deleted")
+		require.Equal(t, 0, len(mockCm.ListConfigs()), "owned config was not deleted")
 	})
 }
 
