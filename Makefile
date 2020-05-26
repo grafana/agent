@@ -138,7 +138,7 @@ lint:
 	GO111MODULE=on GOGC=10 golangci-lint run -v $(GOLANGCI_ARG)
 
 test:
-	GOGC=10 go test $(MOD_FLAG) -cover -coverprofile=cover.out -p=4 ./...
+	GOGC=10 go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
 
 clean:
 	rm -rf cmd/agent/agent

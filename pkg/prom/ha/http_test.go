@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"sort"
+	"sync"
 	"testing"
 	"time"
 
@@ -320,6 +321,7 @@ func unmarshalTestResponse(t *testing.T, r io.ReadCloser, v interface{}) {
 }
 
 type mockConfigManager struct {
+	mut  sync.Mutex
 	cfgs map[string]instance.Config
 }
 
@@ -328,15 +330,32 @@ func newMockConfigManager() *mockConfigManager {
 	return &cm
 }
 
+func (cm *mockConfigManager) GetConfig(key string) instance.Config {
+	cm.mut.Lock()
+	defer cm.mut.Unlock()
+	return cm.cfgs[key]
+}
+
 func (cm *mockConfigManager) ListConfigs() map[string]instance.Config {
-	return cm.cfgs
+	cm.mut.Lock()
+	defer cm.mut.Unlock()
+
+	cp := make(map[string]instance.Config, len(cm.cfgs))
+	for k, v := range cm.cfgs {
+		cp[k] = v
+	}
+	return cp
 }
 
 func (cm *mockConfigManager) ApplyConfig(c instance.Config) {
+	cm.mut.Lock()
+	defer cm.mut.Unlock()
 	cm.cfgs[c.Name] = c
 }
 
 func (cm *mockConfigManager) DeleteConfig(name string) error {
+	cm.mut.Lock()
+	defer cm.mut.Unlock()
 	delete(cm.cfgs, name)
 	return nil
 }

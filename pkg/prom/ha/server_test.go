@@ -7,12 +7,12 @@ import (
 	"net"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/cortexproject/cortex/pkg/ring/kv"
-	"github.com/cortexproject/cortex/pkg/ring/kv/etcd"
 	"github.com/cortexproject/cortex/pkg/util/flagext"
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
@@ -29,10 +29,7 @@ func TestServer_Reshard_On_Start(t *testing.T) {
 	r := &mockFuncReadRing{}
 	cm := newMockConfigManager()
 
-	kv, closer, err := etcd.Mock(GetCodec())
-	require.NoError(t, err)
-	t.Cleanup(func() { closer.Close() })
-
+	kv := newMockKV(true)
 	injectRingIngester(r)
 
 	// Preconfigure some configs for the server to reshard and use.
@@ -55,10 +52,7 @@ func TestServer_NewConfig_Detection(t *testing.T) {
 	r := &mockFuncReadRing{}
 	cm := newMockConfigManager()
 
-	kv, closer, err := etcd.Mock(GetCodec())
-	require.NoError(t, err)
-	t.Cleanup(func() { closer.Close() })
-
+	kv := newMockKV(true)
 	injectRingIngester(r)
 
 	srv := newTestServer(r, kv, cm, time.Minute*60)
@@ -68,7 +62,7 @@ func TestServer_NewConfig_Detection(t *testing.T) {
 	test.Poll(t, time.Second*5, true, func() interface{} {
 		return srv.joined.Load()
 	})
-	err = kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
+	err := kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
 		return &instance.Config{Name: "a"}, false, nil
 	})
 	require.NoError(t, err)
@@ -82,13 +76,10 @@ func TestServer_DeletedConfig_Detection(t *testing.T) {
 	r := &mockFuncReadRing{}
 	cm := newMockConfigManager()
 
-	kv, closer, err := etcd.Mock(GetCodec())
-	require.NoError(t, err)
-	t.Cleanup(func() { closer.Close() })
-
+	kv := newMockKV(true)
 	injectRingIngester(r)
 
-	err = kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
+	err := kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
 		return &instance.Config{Name: "a"}, false, nil
 	})
 	require.NoError(t, err)
@@ -117,7 +108,7 @@ func TestServer_Reshard_On_Interval(t *testing.T) {
 
 	// use a poll only KV so watch events aren't detected - we want this
 	// test to make sure polling the KV store works for resharding.
-	kv := newPollOnlyKV()
+	kv := newMockKV(false)
 	injectRingIngester(r)
 
 	srv := newTestServer(r, kv, cm, time.Millisecond*250)
@@ -161,7 +152,7 @@ func TestServer_Cluster_Reshard_On_Start_And_Leave(t *testing.T) {
 
 	r := &mockFuncReadRing{}
 	cm := newMockConfigManager()
-	kv := newPollOnlyKV()
+	kv := newMockKV(false)
 
 	// Inject the GetFunc to always return the local node but override GetAll to
 	// return our custom fake nodes.
@@ -236,17 +227,28 @@ func getRunningConfigs(cm ConfigManager) []string {
 	return configKeys
 }
 
-type pollOnlyKV struct {
-	keys map[string]interface{}
+type mockKV struct {
+	keys       map[string]interface{}
+	allowWatch bool
+
+	mut  *sync.Mutex
+	cond *sync.Cond
 }
 
-func newPollOnlyKV() *pollOnlyKV {
-	return &pollOnlyKV{
-		keys: make(map[string]interface{}),
+func newMockKV(allowWatch bool) *mockKV {
+	kv := &mockKV{
+		keys:       make(map[string]interface{}),
+		allowWatch: allowWatch,
+		mut:        &sync.Mutex{},
 	}
+	kv.cond = sync.NewCond(kv.mut)
+	return kv
 }
 
-func (kv pollOnlyKV) List(ctx context.Context, prefix string) ([]string, error) {
+func (kv *mockKV) List(ctx context.Context, prefix string) ([]string, error) {
+	kv.mut.Lock()
+	defer kv.mut.Unlock()
+
 	keys := make([]string, 0, len(kv.keys))
 	for k := range kv.keys {
 		if strings.HasPrefix(k, prefix) {
@@ -256,33 +258,132 @@ func (kv pollOnlyKV) List(ctx context.Context, prefix string) ([]string, error) 
 	return keys, nil
 }
 
-func (kv pollOnlyKV) Get(ctx context.Context, key string) (interface{}, error) {
+func (kv *mockKV) Get(ctx context.Context, key string) (interface{}, error) {
+	kv.mut.Lock()
+	defer kv.mut.Unlock()
+
 	return kv.keys[key], nil
 }
 
-func (kv pollOnlyKV) Delete(ctx context.Context, key string) error {
+func (kv *mockKV) Delete(ctx context.Context, key string) error {
+	kv.mut.Lock()
+	defer kv.mut.Unlock()
+
 	delete(kv.keys, key)
+	kv.cond.Broadcast()
 	return nil
 }
 
-func (kv pollOnlyKV) CAS(ctx context.Context, key string, f func(in interface{}) (out interface{}, retry bool, err error)) error {
+func (kv *mockKV) CAS(ctx context.Context, key string, f func(in interface{}) (out interface{}, retry bool, err error)) error {
+	kv.mut.Lock()
+	defer kv.mut.Unlock()
+
 	old := kv.keys[key]
 	new, _, err := f(old)
 	if err != nil {
 		return err
 	}
 	kv.keys[key] = new
+
+	kv.cond.Broadcast()
 	return nil
 }
 
-func (kv pollOnlyKV) WatchKey(ctx context.Context, _ string, _ func(interface{}) bool) {
-	// WatchKey does nothing - pollOnlyKV can only be used for polling.
-	<-ctx.Done()
+func (kv *mockKV) WatchKey(ctx context.Context, key string, f func(interface{}) bool) {
+	if !kv.allowWatch {
+		// Do nothing, watching isn't allowed
+		<-ctx.Done()
+		return
+	}
+
+	// When the context is canceled, wake up all watchers so they can check to see
+	// if they need to exit.
+	go func() {
+		<-ctx.Done()
+		kv.cond.Broadcast()
+	}()
+
+	kv.cond.L.Lock()
+
+	// Retrieve the key's initial value before waiting.
+	prev := kv.keys[key]
+
+	for {
+		// Wait for a key to change. If the key we're watching has a new value,
+		// call f and then save it for the next wakeup.
+		kv.cond.Wait()
+		if v := kv.keys[key]; v != prev {
+			_ = f(v)
+			prev = v
+		}
+		kv.cond.L.Unlock()
+
+		// We might've been woken up by the context being canceled, check that.
+		if ctx.Err() != nil {
+			break
+		}
+
+		// Relock the mutex for the next wait cycle
+		kv.mut.Lock()
+	}
 }
 
-func (kv pollOnlyKV) WatchPrefix(ctx context.Context, _ string, _ func(string, interface{}) bool) {
-	// WatchPrefix does nothing - pollOnlyKV can only be used for polling.
-	<-ctx.Done()
+func (kv *mockKV) WatchPrefix(ctx context.Context, prefix string, f func(string, interface{}) bool) {
+	if !kv.allowWatch {
+		// Do nothing, watching isn't allowed
+		<-ctx.Done()
+		return
+	}
+
+	// When the context is canceled, wake up all watchers so they can check to see
+	// if they need to exit.
+	go func() {
+		<-ctx.Done()
+		kv.cond.Broadcast()
+	}()
+
+	kv.mut.Lock()
+
+	// Retrieve the initial value for everything within the prefix
+	// before waiting.
+	cache := map[string]interface{}{}
+	for k, v := range kv.keys {
+		if strings.HasPrefix(k, prefix) {
+			cache[k] = v
+		}
+	}
+
+	for {
+		// Wait for a key to change. If any of the keys in the prefix we're watching
+		// has a new value, call f and save its value for the next wakeup.
+		kv.cond.Wait()
+		for k, v := range kv.keys {
+			if cached, ok := cache[k]; ok && cached != v {
+				_ = f(k, v)
+				cache[k] = v
+			} else if !ok && strings.HasPrefix(k, prefix) {
+				// New value to watch
+				_ = f(k, v)
+				cache[k] = v
+			}
+		}
+		// Check for deleted keys
+		for k := range cache {
+			if _, exist := kv.keys[k]; !exist {
+				_ = f(k, nil)
+				delete(cache, k)
+			}
+		}
+		kv.mut.Unlock()
+
+		// We might've been woken up by the context being canceled, check that.
+		if ctx.Err() != nil {
+			break
+		}
+
+		// Relock the mutex for the next wait cycle
+		kv.mut.Lock()
+	}
 }
 
 type mockFuncAgentProtoServer struct {
