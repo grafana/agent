@@ -57,23 +57,22 @@ remote_write:
 
 func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 	global := config.DefaultGlobalConfig
-	cfg := Config{
-		Name: "instance",
-		ScrapeConfigs: []*config.ScrapeConfig{{
-			JobName: "scrape",
-			ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
-				StaticConfigs: []*targetgroup.Group{{
-					Targets: []model.LabelSet{{
-						model.AddressLabel: model.LabelValue("127.0.0.1:12345"),
-					}},
-					Labels: model.LabelSet{"cluster": "localhost"},
+	cfg := DefaultConfig
+	cfg.Name = "instance"
+	cfg.ScrapeConfigs = []*config.ScrapeConfig{{
+		JobName: "scrape",
+		ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
+			StaticConfigs: []*targetgroup.Group{{
+				Targets: []model.LabelSet{{
+					model.AddressLabel: model.LabelValue("127.0.0.1:12345"),
 				}},
-			},
-		}},
-		RemoteWrite: []*config.RemoteWriteConfig{{
-			Name: "write",
-		}},
-	}
+				Labels: model.LabelSet{"cluster": "localhost"},
+			}},
+		},
+	}}
+	cfg.RemoteWrite = []*config.RemoteWriteConfig{{
+		Name: "write",
+	}}
 
 	tt := []struct {
 		name     string
@@ -96,9 +95,19 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			fmt.Errorf("empty or null scrape config section"),
 		},
 		{
+			"missing wal truncate frequency",
+			func(c *Config) { c.WALTruncateFrequency = 0 },
+			fmt.Errorf("wal_truncate_frequency must be greater than 0s"),
+		},
+		{
 			"scrape timeout too high",
 			func(c *Config) { c.ScrapeConfigs[0].ScrapeTimeout = global.ScrapeInterval + 1 },
 			fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name \"scrape\""),
+		},
+		{
+			"scrape interval greater than truncate frequency",
+			func(c *Config) { c.ScrapeConfigs[0].ScrapeInterval = model.Duration(c.WALTruncateFrequency + 1) },
+			fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape config with job name \"scrape\""),
 		},
 		{
 			"multiple scrape configs with same name",

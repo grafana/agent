@@ -107,8 +107,13 @@ func (c Config) MarshalYAML() (interface{}, error) {
 // values that have not been changed to their non-zero value. ApplyDefaults
 // also validates the config.
 func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
-	if c.Name == "" {
+	switch {
+	case c.Name == "":
 		return errors.New("missing instance name")
+	case c.WALTruncateFrequency <= 0:
+		return errors.New("wal_truncate_frequency must be greater than 0s")
+	case c.RemoteFlushDeadline <= 0:
+		return errors.New("remote_flush_deadline must be greater than 0s")
 	}
 
 	jobNames := map[string]struct{}{}
@@ -124,6 +129,9 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
 		}
 		if sc.ScrapeTimeout > sc.ScrapeInterval {
 			return fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name %q", sc.JobName)
+		}
+		if time.Duration(sc.ScrapeInterval) > c.WALTruncateFrequency {
+			return fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape config with job name %q", sc.JobName)
 		}
 		if sc.ScrapeTimeout == 0 {
 			if global.ScrapeTimeout > sc.ScrapeInterval {
