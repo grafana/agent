@@ -122,7 +122,7 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
 			}
 		}
 
-		if _, ok := jobNames[sc.JobName]; ok {
+		if _, exists := jobNames[sc.JobName]; exists {
 			return fmt.Errorf("found multiple scrape configs with job name %q", sc.JobName)
 		}
 		jobNames[sc.JobName] = struct{}{}
@@ -153,7 +153,7 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
 			generatedName = true
 		}
 
-		if _, ok := rwNames[cfg.Name]; ok {
+		if _, exists := rwNames[cfg.Name]; exists {
 			if generatedName {
 				return fmt.Errorf("found two identical remote_write configs")
 			}
