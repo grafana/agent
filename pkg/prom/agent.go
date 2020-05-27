@@ -165,7 +165,7 @@ func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
 
 	for {
 		err = inst.Run(ctx)
-		if err == nil || err != context.Canceled {
+		if err != nil && err != context.Canceled {
 			instanceAbnormalExits.WithLabelValues(c.Name).Inc()
 			level.Error(a.logger).Log("msg", "instance stopped abnormally, restarting after backoff period", "err", err, "backoff", a.cfg.InstanceRestartBackoff, "instance", c.Name)
 			time.Sleep(a.cfg.InstanceRestartBackoff)
