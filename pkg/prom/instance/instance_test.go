@@ -100,6 +100,11 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			fmt.Errorf("wal_truncate_frequency must be greater than 0s"),
 		},
 		{
+			"missing remote flush deadline",
+			func(c *Config) { c.RemoteFlushDeadline = 0 },
+			fmt.Errorf("remote_flush_deadline must be greater than 0s"),
+		},
+		{
 			"scrape timeout too high",
 			func(c *Config) { c.ScrapeConfigs[0].ScrapeTimeout = global.ScrapeInterval + 1 },
 			fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name \"scrape\""),
