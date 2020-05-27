@@ -51,10 +51,47 @@ type Config struct {
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
 }
 
-func (c *Config) ApplyDefaults() {
-	for i := range c.Configs {
-		c.Configs[i].ApplyDefaults(&c.Global)
+// ApplyDefaults applies default values to the Config and validates it.
+func (c *Config) ApplyDefaults() error {
+	if c.WALDir == "" {
+		return errors.New("no wal_directory configured")
 	}
+
+	if c.ServiceConfig.Enabled && len(c.Configs) > 0 {
+		return errors.New("cannot use configs when scraping_service mode is enabled")
+	}
+
+	usedNames := map[string]struct{}{}
+
+	for i, cfg := range c.Configs {
+		err := c.Configs[i].ApplyDefaults(&c.Global)
+		if err != nil {
+			// Try to show a helpful name in the error
+			name := cfg.Name
+			if name == "" {
+				name = fmt.Sprintf("at index %d", i)
+			}
+
+			return fmt.Errorf("error validating instance %s: %w", name, err)
+		}
+
+		if _, ok := usedNames[cfg.Name]; ok {
+			return fmt.Errorf(
+				"prometheus instance names must be unique. found multiple instances with name %s",
+				cfg.Name,
+			)
+		}
+		usedNames[cfg.Name] = struct{}{}
+	}
+
+	for i := range c.Configs {
+		err := c.Configs[i].ApplyDefaults(&c.Global)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // RegisterFlags defines flags corresponding to the Config.
@@ -64,35 +101,6 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 	c.ServiceConfig.RegisterFlagsWithPrefix("prometheus.service.", f)
 	c.ServiceClientConfig.RegisterFlags(f)
-}
-
-// Validate checks if the Config has all required fields filled out.
-func (c *Config) Validate() error {
-	if c.WALDir == "" {
-		return errors.New("no wal_directory configured")
-	}
-
-	usedNames := map[string]struct{}{}
-
-	if c.ServiceConfig.Enabled && len(c.Configs) > 0 {
-		return errors.New("cannot use configs when scraping_service mode is enabled")
-	}
-
-	for i, cfg := range c.Configs {
-		if _, ok := usedNames[cfg.Name]; ok {
-			return fmt.Errorf(
-				"prometheus instance names must be unique. found multiple instances with name %s",
-				cfg.Name,
-			)
-		}
-		usedNames[cfg.Name] = struct{}{}
-
-		if err := cfg.Validate(); err != nil {
-			return fmt.Errorf("error validating instance %d: %s", i, err)
-		}
-	}
-
-	return nil
 }
 
 // Agent is an agent for collecting Prometheus metrics. It acts as a
@@ -116,10 +124,6 @@ func New(cfg Config, logger log.Logger) (*Agent, error) {
 }
 
 func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, error) {
-	if err := cfg.Validate(); err != nil {
-		return nil, err
-	}
-
 	a := &Agent{
 		cfg:             cfg,
 		logger:          log.With(logger, "agent", "prometheus"),
@@ -133,7 +137,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 
 	if cfg.ServiceConfig.Enabled {
 		var err error
-		a.ha, err = ha.New(cfg.ServiceConfig, cfg.ServiceClientConfig, a.logger, a.cm)
+		a.ha, err = ha.New(cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.cm)
 		if err != nil {
 			return nil, err
 		}
@@ -147,12 +151,12 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 // is canceled. This function will not return until the launched instance
 // has fully shut down.
 func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
-	// Make sure defaults are applied to the config in case it is
-	// incomplete.
-	//
-	// TODO(rfratto): maybe applying defaults should happen somewhere else.
-	// ConfigManager?
-	c.ApplyDefaults(&a.cfg.Global)
+	// Make sure to validate the config before we run it.
+	err := c.ApplyDefaults(&a.cfg.Global)
+	if err != nil {
+		level.Error(a.logger).Log("msg", "not creating instance because it has an invalid config", "err", err)
+		return
+	}
 
 	inst, err := a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
 	if err != nil {
