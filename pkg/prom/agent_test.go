@@ -131,18 +131,63 @@ func TestAgent(t *testing.T) {
 			})
 		}
 	})
+}
 
-	t.Run("instances should not be restarted when stopped normally", func(t *testing.T) {
-		oldInstances := fact.created.Load()
+func TestAgent_NormalInstanceExits(t *testing.T) {
+	tt := []struct {
+		name          string
+		simulateError error
+	}{
+		{"no error", nil},
+		{"context cancelled", context.Canceled},
+	}
 
-		for _, mi := range fact.Mocks() {
-			// Simulate a stop by saying the context was cancelled
-			mi.err <- context.Canceled
-		}
+	cfg := Config{
+		WALDir: "/tmp/wal",
+		Configs: []instance.Config{
+			makeInstanceConfig("instance_a"),
+			makeInstanceConfig("instance_b"),
+		},
+		InstanceRestartBackoff: time.Duration(0),
+	}
 
-		time.Sleep(time.Millisecond * 100)
-		require.Equal(t, oldInstances, fact.created.Load())
-	})
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			fact := newMockInstanceFactory()
+
+			a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
+			require.NoError(t, err)
+
+			test.Poll(t, time.Second*30, true, func() interface{} {
+				if fact.created == nil {
+					return false
+				}
+				return fact.created.Load() == 2 && len(a.cm.processes) == 2
+			})
+
+			// Get the total amount of instances that started before
+			// we send errors through
+			var oldStartedCount int64
+			for _, i := range fact.Mocks() {
+				oldStartedCount += i.startedCount.Load()
+			}
+
+			for _, mi := range fact.Mocks() {
+				mi.err <- tc.simulateError
+			}
+
+			time.Sleep(time.Millisecond * 100)
+
+			// Get the new total amount of instances starts; value should
+			// be unchanged.
+			var startedCount int64
+			for _, i := range fact.Mocks() {
+				startedCount += i.startedCount.Load()
+			}
+
+			require.Equal(t, startedCount, oldStartedCount, "instances should not have restarted")
+		})
+	}
 }
 
 func TestAgent_Stop(t *testing.T) {
