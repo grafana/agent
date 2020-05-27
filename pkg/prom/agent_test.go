@@ -21,7 +21,7 @@ func TestConfig_Validate(t *testing.T) {
 	valid := Config{
 		WALDir: "/tmp/data",
 		Configs: []instance.Config{
-			{Name: "instance"},
+			makeInstanceConfig("instance"),
 		},
 	}
 
@@ -49,8 +49,8 @@ func TestConfig_Validate(t *testing.T) {
 			name: "duplicate config name",
 			mutator: func(c *Config) {
 				c.Configs = append(c.Configs,
-					instance.Config{Name: "newinstance"},
-					instance.Config{Name: "instance"},
+					makeInstanceConfig("newinstance"),
+					makeInstanceConfig("instance"),
 				)
 			},
 			expect: errors.New("prometheus instance names must be unique. found multiple instances with name instance"),
@@ -87,8 +87,8 @@ func TestAgent(t *testing.T) {
 	cfg := Config{
 		WALDir: "/tmp/wal",
 		Configs: []instance.Config{
-			{Name: "instance_a"},
-			{Name: "instance_b"},
+			makeInstanceConfig("instance_a"),
+			makeInstanceConfig("instance_b"),
 		},
 		InstanceRestartBackoff: time.Duration(0),
 	}
@@ -150,8 +150,8 @@ func TestAgent_Stop(t *testing.T) {
 	cfg := Config{
 		WALDir: "/tmp/wal",
 		Configs: []instance.Config{
-			{Name: "instance_a"},
-			{Name: "instance_b"},
+			makeInstanceConfig("instance_a"),
+			makeInstanceConfig("instance_b"),
 		},
 		InstanceRestartBackoff: time.Duration(0),
 	}
@@ -230,4 +230,10 @@ func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config
 
 	f.mocks = append(f.mocks, inst)
 	return inst, nil
+}
+
+func makeInstanceConfig(name string) instance.Config {
+	cfg := instance.DefaultConfig
+	cfg.Name = name
+	return cfg
 }
