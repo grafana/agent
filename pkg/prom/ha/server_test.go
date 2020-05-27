@@ -20,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
@@ -214,7 +215,7 @@ func newTestServer(r readRing, kv kv.Client, cm ConfigManager, reshard time.Dura
 	logger := log.NewNopLogger()
 	closer := func() error { return nil }
 
-	return newServer(cfg, clientConfig, logger, cm, "test", r, kv, closer)
+	return newServer(cfg, &config.DefaultGlobalConfig, clientConfig, logger, cm, "test", r, kv, closer)
 }
 
 func getRunningConfigs(cm ConfigManager) []string {
