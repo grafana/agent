@@ -35,7 +35,6 @@ var (
 
 var (
 	DefaultConfig = Config{
-		Global:                 config.DefaultGlobalConfig,
 		InstanceRestartBackoff: 5 * time.Second,
 	}
 )

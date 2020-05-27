@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -24,25 +25,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfig_ApplyDefaults(t *testing.T) {
+func TestConfig_Unmarshal_Defaults(t *testing.T) {
 	global := config.DefaultGlobalConfig
-	cfg := &Config{
-		Name: "instance",
-		ScrapeConfigs: []*config.ScrapeConfig{{
-			JobName: "scrape",
-			ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
-				StaticConfigs: []*targetgroup.Group{{
-					Targets: []model.LabelSet{{
-						model.AddressLabel: model.LabelValue("127.0.0.1:12345"),
-					}},
-					Labels: model.LabelSet{"cluster": "localhost"},
-				}},
-			},
-		}},
-	}
+	cfgText := `name: test
+scrape_configs:
+  - job_name: local_scrape
+    static_configs:
+      - targets: ['127.0.0.1:12345']
+        labels:
+          cluster: 'localhost'
+remote_write:
+  - url: http://localhost:9009/api/prom/push`
 
-	err := cfg.ApplyDefaults(&global)
+	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
+
+	err = cfg.ApplyDefaults(&global)
+	require.NoError(t, err)
+
+	require.Equal(t, DefaultConfig.HostFilter, cfg.HostFilter)
+	require.Equal(t, DefaultConfig.WALTruncateFrequency, cfg.WALTruncateFrequency)
+	require.Equal(t, DefaultConfig.RemoteFlushDeadline, cfg.RemoteFlushDeadline)
+	require.Equal(t, DefaultConfig.WriteStaleOnShutdown, cfg.WriteStaleOnShutdown)
 
 	for _, sc := range cfg.ScrapeConfigs {
 		require.Equal(t, sc.ScrapeInterval, global.ScrapeInterval)
@@ -53,23 +57,22 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 
 func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 	global := config.DefaultGlobalConfig
-	cfg := Config{
-		Name: "instance",
-		ScrapeConfigs: []*config.ScrapeConfig{{
-			JobName: "scrape",
-			ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
-				StaticConfigs: []*targetgroup.Group{{
-					Targets: []model.LabelSet{{
-						model.AddressLabel: model.LabelValue("127.0.0.1:12345"),
-					}},
-					Labels: model.LabelSet{"cluster": "localhost"},
+	cfg := DefaultConfig
+	cfg.Name = "instance"
+	cfg.ScrapeConfigs = []*config.ScrapeConfig{{
+		JobName: "scrape",
+		ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
+			StaticConfigs: []*targetgroup.Group{{
+				Targets: []model.LabelSet{{
+					model.AddressLabel: model.LabelValue("127.0.0.1:12345"),
 				}},
-			},
-		}},
-		RemoteWrite: []*config.RemoteWriteConfig{{
-			Name: "write",
-		}},
-	}
+				Labels: model.LabelSet{"cluster": "localhost"},
+			}},
+		},
+	}}
+	cfg.RemoteWrite = []*config.RemoteWriteConfig{{
+		Name: "write",
+	}}
 
 	tt := []struct {
 		name     string
@@ -92,9 +95,24 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			fmt.Errorf("empty or null scrape config section"),
 		},
 		{
+			"missing wal truncate frequency",
+			func(c *Config) { c.WALTruncateFrequency = 0 },
+			fmt.Errorf("wal_truncate_frequency must be greater than 0s"),
+		},
+		{
+			"missing remote flush deadline",
+			func(c *Config) { c.RemoteFlushDeadline = 0 },
+			fmt.Errorf("remote_flush_deadline must be greater than 0s"),
+		},
+		{
 			"scrape timeout too high",
 			func(c *Config) { c.ScrapeConfigs[0].ScrapeTimeout = global.ScrapeInterval + 1 },
 			fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name \"scrape\""),
+		},
+		{
+			"scrape interval greater than truncate frequency",
+			func(c *Config) { c.ScrapeConfigs[0].ScrapeInterval = model.Duration(c.WALTruncateFrequency + 1) },
+			fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape config with job name \"scrape\""),
 		},
 		{
 			"multiple scrape configs with same name",
