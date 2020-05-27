@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -24,25 +25,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfig_ApplyDefaults(t *testing.T) {
+func TestConfig_Unmarshal_Defaults(t *testing.T) {
 	global := config.DefaultGlobalConfig
-	cfg := &Config{
-		Name: "instance",
-		ScrapeConfigs: []*config.ScrapeConfig{{
-			JobName: "scrape",
-			ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
-				StaticConfigs: []*targetgroup.Group{{
-					Targets: []model.LabelSet{{
-						model.AddressLabel: model.LabelValue("127.0.0.1:12345"),
-					}},
-					Labels: model.LabelSet{"cluster": "localhost"},
-				}},
-			},
-		}},
-	}
+	cfgText := `name: test
+scrape_configs:
+  - job_name: local_scrape
+    static_configs:
+      - targets: ['127.0.0.1:12345']
+        labels:
+          cluster: 'localhost'
+remote_write:
+  - url: http://localhost:9009/api/prom/push`
 
-	err := cfg.ApplyDefaults(&global)
+	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
+
+	err = cfg.ApplyDefaults(&global)
+	require.NoError(t, err)
+
+	require.Equal(t, DefaultConfig.HostFilter, cfg.HostFilter)
+	require.Equal(t, DefaultConfig.WALTruncateFrequency, cfg.WALTruncateFrequency)
+	require.Equal(t, DefaultConfig.RemoteFlushDeadline, cfg.RemoteFlushDeadline)
+	require.Equal(t, DefaultConfig.WriteStaleOnShutdown, cfg.WriteStaleOnShutdown)
 
 	for _, sc := range cfg.ScrapeConfigs {
 		require.Equal(t, sc.ScrapeInterval, global.ScrapeInterval)
