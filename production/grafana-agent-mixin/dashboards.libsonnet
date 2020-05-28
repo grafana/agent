@@ -12,18 +12,20 @@ local template = grafana.template;
   grafanaDashboards+:: {
     'agent.json':
       g.dashboard('Agent')
-      .addMultiTemplate('job', 'agent_build_info', 'job')
-      .addMultiTemplate('instance', 'agent_build_info', 'instance')
+      .addMultiTemplate('cluster', 'agent_build_info', 'cluster')
+      .addMultiTemplate('namespace', 'agent_build_info', 'namespace')
+      .addMultiTemplate('container', 'agent_build_info', 'container')
+      .addMultiTemplate('pod', 'agent_build_info{container=~"$container"}', 'pod')
       .addRow(
         g.row('Agent Stats')
         .addPanel(
           g.panel('Agent Stats') +
           g.tablePanel([
-            'count by (job, instance, version) (agent_build_info{job=~"$job", instance=~"$instance"})',
-            'max by (job, instance) (time() - process_start_time_seconds{job=~"$job", instance=~"$instance"})',
+            'count by (pod, container, version) (agent_build_info{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})',
+            'max by (pod, container) (time() - process_start_time_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})',
           ], {
-            job: { alias: 'Job' },
-            instance: { alias: 'Instance' },
+            pod: { alias: 'Pod' },
+            container: { alias: 'Container' },
             version: { alias: 'Version' },
             'Value #A': { alias: 'Count', type: 'hidden' },
             'Value #B': { alias: 'Uptime' },
@@ -34,12 +36,12 @@ local template = grafana.template;
         g.row('Prometheus Discovery')
         .addPanel(
           g.panel('Target Sync') +
-          g.queryPanel('sum(rate(prometheus_target_sync_length_seconds_sum{job=~"$job",instance=~"$instance"}[5m])) by (scrape_job) * 1e3', '{{scrape_job}}') +
+          g.queryPanel('sum(rate(prometheus_target_sync_length_seconds_sum{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])) by (pod, scrape_job) * 1e3', '{{pod}}/{{scrape_job}}') +
           { yaxes: g.yaxes('ms') }
         )
         .addPanel(
           g.panel('Targets') +
-          g.queryPanel('sum(prometheus_sd_discovered_targets{job=~"$job",instance=~"$instance"})', 'Targets') +
+          g.queryPanel('sum(prometheus_sd_discovered_targets{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})', 'Targets') +
           g.stack
         )
       )
@@ -47,7 +49,12 @@ local template = grafana.template;
         g.row('Prometheus Retrieval')
         .addPanel(
           g.panel('Average Scrape Interval Duration') +
-          g.queryPanel('rate(prometheus_target_interval_length_seconds_sum{job=~"$job",instance=~"$instance"}[5m]) / rate(prometheus_target_interval_length_seconds_count{job=~"$job",instance=~"$instance"}[5m]) * 1e3', '{{interval}} configured') +
+          g.queryPanel(|||
+            rate(prometheus_target_interval_length_seconds_sum{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
+            /
+            rate(prometheus_target_interval_length_seconds_count{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
+            * 1e3
+          |||, '{{pod}} {{interval}} configured') +
           { yaxes: g.yaxes('ms') }
         )
         .addPanel(
@@ -67,7 +74,7 @@ local template = grafana.template;
         )
         .addPanel(
           g.panel('Appended Samples') +
-          g.queryPanel('rate(prometheus_tsdb_head_samples_appended_total{job=~"$job",instance=~"$instance"}[5m])', '{{job}} {{instance}}') +
+          g.queryPanel('sum by (job, instance_name) (rate(agent_wal_storage_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))', '{{job}} {{instance_name}}') +
           g.stack
         )
       ),
@@ -83,12 +90,13 @@ local template = grafana.template;
         .addTarget(prometheus.target(
           |||
             (
-              prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", instance=~"$instance"}
-            -
-              ignoring(url, remote_name) group_right(instance) prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", instance=~"$instance"}
+              prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}
+              -
+              ignoring(url, instance_name, remote_name) group_right(pod)
+              prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}
             )
           |||,
-          legendFormat='{{cluster}}:{{instance}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local timestampComparisonRate =
@@ -100,12 +108,13 @@ local template = grafana.template;
         .addTarget(prometheus.target(
           |||
             (
-              rate(prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", instance=~"$instance"}[5m])
-            -
-              ignoring (url, remote_name) group_right(instance) rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", instance=~"$instance"}[5m])
+              rate(prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
+              -
+              ignoring(url, instance_name, remote_name) group_right(pod)
+              rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
             )
           |||,
-          legendFormat='{{cluster}}:{{instance}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local samplesRate =
@@ -117,13 +126,14 @@ local template = grafana.template;
         .addTarget(prometheus.target(
           |||
             rate(
-              prometheus_remote_storage_samples_in_total{cluster=~"$cluster", instance=~"$instance"}[5m])
+              prometheus_remote_storage_samples_in_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
             -
-              ignoring(url, remote_name) group_right(instance) rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m])
+              ignoring(url, instance_name, remote_name) group_right(pod)
+              rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
             -
-              rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m])
+              rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
           |||,
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local currentShards =
@@ -134,8 +144,8 @@ local template = grafana.template;
           min_span=6,
         )
         .addTarget(prometheus.target(
-          'prometheus_remote_storage_shards{cluster=~"$cluster", instance=~"$instance"}',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'prometheus_remote_storage_shards{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local maxShards =
@@ -145,8 +155,8 @@ local template = grafana.template;
           span=4,
         )
         .addTarget(prometheus.target(
-          'prometheus_remote_storage_shards_max{cluster=~"$cluster", instance=~"$instance"}',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'prometheus_remote_storage_shards_max{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local minShards =
@@ -156,8 +166,8 @@ local template = grafana.template;
           span=4,
         )
         .addTarget(prometheus.target(
-          'prometheus_remote_storage_shards_min{cluster=~"$cluster", instance=~"$instance"}',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'prometheus_remote_storage_shards_min{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local desiredShards =
@@ -167,8 +177,8 @@ local template = grafana.template;
           span=4,
         )
         .addTarget(prometheus.target(
-          'prometheus_remote_storage_shards_desired{cluster=~"$cluster", instance=~"$instance"}',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'prometheus_remote_storage_shards_desired{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local shardsCapacity =
@@ -178,8 +188,8 @@ local template = grafana.template;
           span=6,
         )
         .addTarget(prometheus.target(
-          'prometheus_remote_storage_shard_capacity{cluster=~"$cluster", instance=~"$instance"}',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'prometheus_remote_storage_shard_capacity{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local pendingSamples =
@@ -189,8 +199,8 @@ local template = grafana.template;
           span=6,
         )
         .addTarget(prometheus.target(
-          'prometheus_remote_storage_pending_samples{cluster=~"$cluster", instance=~"$instance"}',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'prometheus_remote_storage_pending_samples{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local queueSegment =
@@ -201,8 +211,8 @@ local template = grafana.template;
           formatY1='none',
         )
         .addTarget(prometheus.target(
-          'prometheus_wal_watcher_current_segment{cluster=~"$cluster", instance=~"$instance"}',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'prometheus_wal_watcher_current_segment{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local droppedSamples =
@@ -212,8 +222,8 @@ local template = grafana.template;
           span=3,
         )
         .addTarget(prometheus.target(
-          'rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m])',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local failedSamples =
@@ -223,8 +233,8 @@ local template = grafana.template;
           span=3,
         )
         .addTarget(prometheus.target(
-          'rate(prometheus_remote_storage_failed_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m])',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'rate(prometheus_remote_storage_failed_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local retriedSamples =
@@ -234,8 +244,8 @@ local template = grafana.template;
           span=3,
         )
         .addTarget(prometheus.target(
-          'rate(prometheus_remote_storage_retried_samples_total{cluster=~"$cluster", instance=~"$instance"}[5m])',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'rate(prometheus_remote_storage_retried_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       local enqueueRetries =
@@ -245,8 +255,8 @@ local template = grafana.template;
           span=3,
         )
         .addTarget(prometheus.target(
-          'rate(prometheus_remote_storage_enqueue_retries_total{cluster=~"$cluster", instance=~"$instance"}[5m])',
-          legendFormat='{{cluster}}:{{instance}}-{{url}}'
+          'rate(prometheus_remote_storage_enqueue_retries_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
         ));
 
       dashboard.new('Agent Prometheus Remote Write', editable=true)
@@ -264,20 +274,6 @@ local template = grafana.template;
       )
       .addTemplate(
         template.new(
-          'instance',
-          '$datasource',
-          'label_values(agent_build_info, instance)',
-          refresh='time',
-          current={
-            selected: true,
-            text: 'All',
-            value: '$__all',
-          },
-          includeAll=true,
-        ),
-      )
-      .addTemplate(
-        template.new(
           'cluster',
           '$datasource',
           'label_values(agent_build_info, cluster)',
@@ -292,9 +288,51 @@ local template = grafana.template;
       )
       .addTemplate(
         template.new(
+          'namespace',
+          '$datasource',
+          'label_values(agent_build_info, namespace)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
+          'container',
+          '$datasource',
+          'label_values(agent_build_info, container)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
+          'pod',
+          '$datasource',
+          'label_values(agent_build_info{container=~"$container"}, pod)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
           'url',
           '$datasource',
-          'label_values(prometheus_remote_storage_shards{cluster=~"$cluster", instance=~"$instance"}, url)',
+          'label_values(prometheus_remote_storage_shards{cluster=~"$cluster", pod=~"$pod"}, url)',
           refresh='time',
           includeAll=true,
         )

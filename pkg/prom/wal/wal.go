@@ -22,10 +22,11 @@ import (
 type storageMetrics struct {
 	r prometheus.Registerer
 
-	numActiveSeries    prometheus.Gauge
-	numDeletedSeries   prometheus.Gauge
-	totalCreatedSeries prometheus.Counter
-	totalRemovedSeries prometheus.Counter
+	numActiveSeries      prometheus.Gauge
+	numDeletedSeries     prometheus.Gauge
+	totalCreatedSeries   prometheus.Counter
+	totalRemovedSeries   prometheus.Counter
+	totalAppendedSamples prometheus.Counter
 }
 
 func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
@@ -48,6 +49,11 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 	m.totalRemovedSeries = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "agent_wal_storage_removed_series_total",
 		Help: "Total number of created series removed from the WAL",
+	})
+
+	m.totalAppendedSamples = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_wal_samples_appended_total",
+		Help: "Total number of samples appended to the WAL",
 	})
 
 	if r != nil {
