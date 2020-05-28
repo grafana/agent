@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "dependencies": [
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/cortex-jsonnet",
+          "subdir": "cortex-mixin"
+        }
+      },
+      "version": "56cb5e3d73950b977ba2e4bfd7e46e2acb0b77b2",
+      "sum": "CcTh9gpP5UlOs0f8xrqT8f677c4GbkM5AGvl1yWcnyc="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/grafonnet-lib",
+          "subdir": "grafonnet"
+        }
+      },
+      "version": "7ab8a79738de007c407b939b35e54e84c213d542",
+      "sum": "q2B0w9iyqTD99PJacSpHg9XshQN7kiupxaORQcAlb2E="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs",
+          "subdir": "grafana-builder"
+        }
+      },
+      "version": "b9cc0f3529833096c043084c04bc7b3562a134c4",
+      "sum": "slxrtftVDiTlQK22ertdfrg4Epnq97gdrLI63ftUfaE="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs",
+          "subdir": "ksonnet-util"
+        }
+      },
+      "version": "b9cc0f3529833096c043084c04bc7b3562a134c4",
+      "sum": "smRyjpmKy4pURM47XTv+9azXjP6L/n4gXjxzRxAvY1Q="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs",
+          "subdir": "mixin-utils"
+        }
+      },
+      "version": "b9cc0f3529833096c043084c04bc7b3562a134c4",
+      "sum": "mtTAh8vSa4Eb8ojviyZ9zE2pPq5OgwhK75qsEWkifhI="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/loki",
+          "subdir": "production/ksonnet/promtail"
+        }
+      },
+      "version": "10a1f28a85b5506c662688611442d31867fe2bc0",
+      "sum": "MOoAhHzLkR7NSqD7ZVqjlcSDNRUz3fVgJQiYM1hd+us="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/ksonnet/ksonnet-lib",
+          "subdir": "ksonnet.beta.4"
+        }
+      },
+      "version": "0d2f82676817bbf9e4acf6495b2090205f323b9f",
+      "sum": "ur22hPQq0JAPBxm8hNMcwjumj4MkozDwOKiGZvVMYh4="
+    },
+    {
+      "source": {
+        "local": {
+          "directory": "../../production/tanka/grafana-agent"
+        }
+      },
+      "version": ""
+    },
+    {
+      "source": {
+        "local": {
+          "directory": "../../production/grafana-agent-mixin"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "legacyImports": false
+}
