@@ -95,9 +95,9 @@ func (cm *ConfigManager) spawnProcess(c instance.Config) {
 		// After the process stops, we can remove it from our tracked
 		// list. It will then stop showing up in the result of
 		// ListConfigs.
+		close(done)
 		cm.mut.Lock()
 		delete(cm.processes, c.Name)
-		close(done)
 		cm.mut.Unlock()
 		currentActiveConfigs.Dec()
 	}()

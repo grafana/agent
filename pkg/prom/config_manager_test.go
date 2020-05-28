@@ -1,0 +1,40 @@
+package prom
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/cortexproject/cortex/pkg/util/test"
+	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/prometheus/prometheus/config"
+)
+
+func TestConfigManager_ApplyConfig(t *testing.T) {
+	fact := newMockInstanceFactory()
+	spawner := mockInstanceSpawner(fact)
+
+	cm := NewConfigManager(spawner)
+	cm.ApplyConfig(instance.Config{Name: "test"})
+
+	test.Poll(t, time.Second, true, func() interface{} {
+		return fact.created.Load() == 1
+	})
+
+	cm.ApplyConfig(instance.Config{Name: "test", HostFilter: true})
+
+	test.Poll(t, time.Second, true, func() interface{} {
+		return fact.created.Load() == 2
+	})
+}
+
+func mockInstanceSpawner(fact *mockInstanceFactory) func(context.Context, instance.Config) {
+	return func(ctx context.Context, c instance.Config) {
+		inst, err := fact.factory(config.DefaultGlobalConfig, c, "", nil)
+		if err != nil {
+			return
+		}
+
+		inst.Run(ctx)
+	}
+}
