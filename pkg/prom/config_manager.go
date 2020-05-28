@@ -14,7 +14,7 @@ type ConfigManager struct {
 	// Take care when locking mut: if you hold onto a lock of mut while calling
 	// Stop on one of the processes below, you will deadlock.
 	mut       sync.Mutex
-	processes map[string]configManagerProcess
+	processes map[string]*configManagerProcess
 
 	newProcess func(ctx context.Context, c instance.Config)
 }
@@ -44,7 +44,7 @@ func (p configManagerProcess) Stop() {
 // list.
 func NewConfigManager(f func(ctx context.Context, c instance.Config)) *ConfigManager {
 	return &ConfigManager{
-		processes:  make(map[string]configManagerProcess),
+		processes:  make(map[string]*configManagerProcess),
 		newProcess: f,
 	}
 }
@@ -84,21 +84,29 @@ func (cm *ConfigManager) spawnProcess(c instance.Config) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan bool)
 
-	cm.processes[c.Name] = configManagerProcess{
+	proc := &configManagerProcess{
 		cancel: cancel,
 		done:   done,
 	}
 
+	cm.processes[c.Name] = proc
+
 	go func() {
 		cm.newProcess(ctx, c)
-
-		// After the process stops, we can remove it from our tracked
-		// list. It will then stop showing up in the result of
-		// ListConfigs.
-		cm.mut.Lock()
-		delete(cm.processes, c.Name)
 		close(done)
+
+		cm.mut.Lock()
+		// Now that the process is stopped, we can remove it from our tracked
+		// list. It will stop showing up in the result of ListConfigs.
+		//
+		// However, it's possible that a new config has been applied and overwrote
+		// the initial value in our map. We should only delete the process from
+		// the map if it hasn't changed from what we initially set it to.
+		if storedProc, exist := cm.processes[c.Name]; exist && storedProc == proc {
+			delete(cm.processes, c.Name)
+		}
 		cm.mut.Unlock()
+
 		currentActiveConfigs.Dec()
 	}()
 }
@@ -127,7 +135,7 @@ func (cm *ConfigManager) Stop() {
 	cm.mut.Lock()
 	wg.Add(len(cm.processes))
 	for _, proc := range cm.processes {
-		go func(proc configManagerProcess) {
+		go func(proc *configManagerProcess) {
 			proc.Stop()
 			wg.Done()
 		}(proc)
