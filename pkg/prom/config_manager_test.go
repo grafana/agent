@@ -39,6 +39,6 @@ func mockInstanceSpawner(fact *mockInstanceFactory) func(context.Context, instan
 			return
 		}
 
-		inst.Run(ctx)
+		_ = inst.Run(ctx)
 	}
 }
