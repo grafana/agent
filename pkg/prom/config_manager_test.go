@@ -26,6 +26,10 @@ func TestConfigManager_ApplyConfig(t *testing.T) {
 	test.Poll(t, time.Second, true, func() interface{} {
 		return fact.created.Load() == 2
 	})
+
+	test.Poll(t, time.Second, 1, func() interface{} {
+		return len(cm.ListConfigs())
+	})
 }
 
 func mockInstanceSpawner(fact *mockInstanceFactory) func(context.Context, instance.Config) {
