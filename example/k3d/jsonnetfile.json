@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "dependencies": [
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/cortex-jsonnet",
+          "subdir": "cortex-mixin"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs",
+          "subdir": "ksonnet-util"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/loki",
+          "subdir": "production/ksonnet/promtail"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/ksonnet/ksonnet-lib",
+          "subdir": "ksonnet.beta.4"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "local": {
+          "directory": "../../production/tanka/grafana-agent"
+        }
+      },
+      "version": ""
+    },
+    {
+      "source": {
+        "local": {
+          "directory": "../../production/grafana-agent-mixin"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "legacyImports": true
+}

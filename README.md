@@ -72,9 +72,10 @@ repository.
 
 ## Example
 
-A docker-compose config is provided in `example/`. It deploys the Agent, Cortex,
-Grafana, and Avalanche for load testing. See the
-[README in `example/`](./example/README.md) for more information.
+The [`example/`](./example) folder contains docker-compose configs and a local
+k3d/Tanka environment. Both examples deploy the Agent, Cortex and Grafana for
+testing the agent. See the [docker-compose README](./example/docker-compose/README.md)
+and the [k3d example README](./example/k3d/README.md) for more information.
 
 ## Prometheus Vendoring
 
