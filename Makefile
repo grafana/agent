@@ -148,7 +148,7 @@ example-kubernetes:
 	cd production/kubernetes/build && bash build.sh
 
 example-dashboards:
-	cd example/grafana/dashboards && \
+	cd example/docker-compose/grafana/dashboards && \
 		jsonnet template.jsonnet -J ../../vendor -m .
 
 #############
