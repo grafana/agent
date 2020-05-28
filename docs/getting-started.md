@@ -3,15 +3,34 @@
 ## Docker-Compose Example
 
 The quickest way to try out the Agent with a full Cortex, Grafana, and Agent
-stack is to check out this repository's [Docker-Compose Example](/example):
+stack is to check out this repository's [Docker-Compose Example](../example/docker-compose/README.md):
 
 ```
 # Clone the Grafana Cloud Agent repository
 git clone https://github.com/grafana/agent.git
-cd agent/example
+cd agent/example/docker-compose
 docker-compose up -d
 
 # Navigate to localhost:3000 in your browser
+```
+
+## k3d Example
+
+A more advanced [Kubernetes example](../example/k3d/README.md) using a local
+cluster and Tanka is provided to deploy the Agent "normally" alongside a
+[Scraping Service](./scraping-service.md) deployment:
+
+```
+# Clone the Grafana Cloud Agent repository
+git clone https://github.com/grafana/agent.git
+cd agent/example/k3d
+./scripts/create.bash
+
+# Wait a little bit, 5-10 seconds
+./scripts/merge_k3d.bash
+tk apply ./environment
+
+# Navigate to localhost:30080 in your browser
 ```
 
 ## Installing

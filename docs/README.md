@@ -19,6 +19,7 @@ main problems faced by users of large deployments of Prometheus:
     2. [Roadmap](./overview.md#roadmap)
 2. [Getting Started](./getting-started.md)
     1. [Docker-Compose Example](./getting-started.md#docker-compose-example)
+    1. [k3d Example](./getting-started.md#k3d-example)
     2. [Installing](./getting-started.md#installing)
     3. [Migrating from Prometheus](./getting-started.md#migrating-from-prometheus)
     4. [Running](./getting-started.md#running)

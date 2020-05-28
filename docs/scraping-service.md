@@ -147,7 +147,7 @@ prometheus:
 
 Note that there are no instance configs present in this example; instance
 configs must be passed to the API for the Agent to start scraping metrics.
-See [the docker-compose Scraping Service Example](../example/README.md)
+See [the docker-compose Scraping Service Example](../example/docker-compose/README.md)
 for how to run a Scraping Service Agent cluster locally.
 
 ## agentctl
