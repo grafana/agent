@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
@@ -123,12 +124,13 @@ func (m *Manager) runIntegration(ctx context.Context, i Integration) {
 	// this should be a panic
 	globalConfig := m.prom.Config().Global
 	instanceConfig := m.instanceConfigForIntegration(i)
-	instanceConfig.ApplyDefaults(&globalConfig)
-
-	fmt.Printf("%+v\n", instanceConfig)
+	if err := instanceConfig.ApplyDefaults(&globalConfig); err != nil {
+		level.Error(util.Logger).Log("msg", "failed to apply default config to integration. integration will not run", "err", err)
+		return
+	}
 
 	// Apply the config so an instance is launched to scrape our integration.
-	m.prom.ConfigManager().ApplyConfig(instanceConfig)
+	m.prom.InstanceManager().ApplyConfig(instanceConfig)
 
 	for {
 		err := i.Run(ctx)

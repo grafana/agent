@@ -75,9 +75,13 @@ func main() {
 	manager := integrations.NewManager(cfg.Integrations, util.Logger, promMetrics)
 
 	// Hook up API paths to the router
-	manager.WireAPI(srv.HTTP)
 	promMetrics.WireAPI(srv.HTTP)
 	promMetrics.WireGRPC(srv.GRPC)
+
+	if err := manager.WireAPI(srv.HTTP); err != nil {
+		level.Error(util.Logger).Log("msg", "failed wiring endpoints for integrations", "err", err)
+		os.Exit(1)
+	}
 
 	srv.HTTP.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

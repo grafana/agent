@@ -110,7 +110,7 @@ type Agent struct {
 	cfg    Config
 	logger log.Logger
 
-	cm *ConfigManager
+	cm *InstanceManager
 
 	instanceFactory instanceFactory
 
@@ -129,7 +129,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 		instanceFactory: fact,
 	}
 
-	a.cm = NewConfigManager(a.spawnInstance)
+	a.cm = NewInstanceManager(a.spawnInstance)
 	for _, c := range cfg.Configs {
 		a.cm.ApplyConfig(c)
 	}
@@ -186,7 +186,7 @@ func (a *Agent) Config() Config {
 	return a.cfg
 }
 
-func (a *Agent) ConfigManager() *ConfigManager {
+func (a *Agent) InstanceManager() *InstanceManager {
 	return a.cm
 }
 

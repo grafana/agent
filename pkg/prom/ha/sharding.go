@@ -35,7 +35,7 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 
 	var (
 		// current configs the agent is tracking
-		currentConfigs = s.cm.ListConfigs()
+		currentConfigs = s.im.ListConfigs()
 
 		// configs found in the KV store. currentConfigs - discoveredConfigs is the
 		// list of configs that was removed from the KV store since the last reshard.
@@ -49,7 +49,7 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 	}
 	for ch := range configCh {
 		discoveredConfigs[ch.Name] = struct{}{}
-		s.cm.ApplyConfig(ch)
+		s.im.ApplyConfig(ch)
 	}
 
 	// Find the set of configs that weren't present in the KV store response but are
@@ -61,7 +61,7 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 			continue
 		}
 
-		err := s.cm.DeleteConfig(runningConfig)
+		err := s.im.DeleteConfig(runningConfig)
 		if err != nil {
 			level.Error(s.logger).Log("msg", "failed to delete stale config", "err", err)
 		}
@@ -116,26 +116,26 @@ type ReadRing interface {
 	GetAll() (ring.ReplicationSet, error)
 }
 
-// ShardingConfigManager wraps around an existing ConfigManager and uses a
+// ShardingInstanceManager wraps around an existing InstanceManager and uses a
 // hash ring to determine if a config should be applied. If an applied
 // config used to be owned by the local address but no longer does, it
 // will be deleted on the next apply.
-type ShardingConfigManager struct {
+type ShardingInstanceManager struct {
 	log   log.Logger
-	inner ConfigManager
+	inner InstanceManager
 	ring  ReadRing
 	addr  string
 
 	keyToHash map[string]uint32
 }
 
-// NewShardingConfigManager creates a new ShardingConfigManager. The wrap
-// argument holds the underlying config manager, while ring and addr are
-// used together to do hash ring lookups: for a given hash, a config is
-// owned by the ShardingConfigManager if the address of a node from a
-// lookup matches the addr argument passed to NewShardingConfigManager.
-func NewShardingConfigManager(logger log.Logger, wrap ConfigManager, ring ReadRing, addr string) ShardingConfigManager {
-	return ShardingConfigManager{
+// NewShardingInstanceManager creates a new ShardingInstanceManager that wraps
+// around an underlying InstanceManager. ring and addr are used together to do
+// hash ring lookups; for a given applied config, it is owned by the instance of
+// ShardingInstanceManager if looking up its hash in the ring results in the
+// address specified by addr.
+func NewShardingInstanceManager(logger log.Logger, wrap InstanceManager, ring ReadRing, addr string) ShardingInstanceManager {
+	return ShardingInstanceManager{
 		log:       logger,
 		inner:     wrap,
 		ring:      ring,
@@ -145,15 +145,15 @@ func NewShardingConfigManager(logger log.Logger, wrap ConfigManager, ring ReadRi
 }
 
 // ListConfigs returns the list of configs that have been applied through
-// the ShardingConfigManager. It will return a subset of the overall
-// set of configs passed to the ConfigManager as a whole.
+// the ShardingInstanceManager. It will return a subset of the overall
+// set of configs passed to the InstanceManager as a whole.
 //
-// Returning the subset of configs that only the ShardingConfigManager
-// applied itself allows for the underlying ConfigManager to manage
+// Returning the subset of configs that only the ShardingInstanceManager
+// applied itself allows for the underlying InstanceManager to manage
 // its own set of configs that will not be affected by the scraping
 // service resharding and deleting configs that aren't found in the KV
 // store.
-func (m ShardingConfigManager) ListConfigs() map[string]instance.Config {
+func (m ShardingInstanceManager) ListConfigs() map[string]instance.Config {
 	innerConfigs := m.inner.ListConfigs()
 	shardedConfigs := make(map[string]instance.Config, len(innerConfigs))
 
@@ -166,8 +166,8 @@ func (m ShardingConfigManager) ListConfigs() map[string]instance.Config {
 	return shardedConfigs
 }
 
-// ApplyConfig implements ConfigManager.ApplyConfig.
-func (m ShardingConfigManager) ApplyConfig(c instance.Config) {
+// ApplyConfig implements InstanceManager.ApplyConfig.
+func (m ShardingInstanceManager) ApplyConfig(c instance.Config) {
 	hash, err := configHash(&c)
 	if err != nil {
 		level.Error(m.log).Log("msg", "failed to hash config", "err", err)
@@ -199,8 +199,8 @@ func (m ShardingConfigManager) ApplyConfig(c instance.Config) {
 	}
 }
 
-// DeleteConfig implements ConfigManager.DeleteConfig.
-func (m ShardingConfigManager) DeleteConfig(name string) error {
+// DeleteConfig implements InstanceManager.DeleteConfig.
+func (m ShardingInstanceManager) DeleteConfig(name string) error {
 	// Doesn't exist, ignore.
 	if _, exist := m.keyToHash[name]; !exist {
 		return nil
@@ -214,9 +214,9 @@ func (m ShardingConfigManager) DeleteConfig(name string) error {
 	return err
 }
 
-// owns checks if the ShardingConfigManager is responsible for
+// owns checks if the ShardingInstanceManager is responsible for
 // a given hash.
-func (m ShardingConfigManager) owns(hash uint32) (bool, error) {
+func (m ShardingInstanceManager) owns(hash uint32) (bool, error) {
 	rs, err := m.ring.Get(hash, ring.Write, nil)
 	if err != nil {
 		return false, err

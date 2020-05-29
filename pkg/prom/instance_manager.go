@@ -8,9 +8,11 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 )
 
-// ConfigManager manages a set of instance.Configs, calling a function whenever
-// a Config should be "started."
-type ConfigManager struct {
+// InstanceManager manages a set of instance.Configs, calling a function whenever
+// a Config should be "started." It is detacted from the concept of actual instances
+// to allow for mocking. The New function in this package creates an Agent that
+// utilizes InstanceManager for actually launching real instances.
+type InstanceManager struct {
 	// Take care when locking mut: if you hold onto a lock of mut while calling
 	// Stop on one of the processes below, you will deadlock.
 	mut       sync.Mutex
@@ -34,7 +36,7 @@ func (p configManagerProcess) Stop() {
 	<-p.done
 }
 
-// NewConfigManager creates a new ConfigManager. The function f will be invoked
+// NewInstanceManager creates a new InstanceManager. The function f will be invoked
 // any time a new instance.Config is tracked. The context provided to the function
 // will be cancelled when that instance.Config is no longer being tracked.
 //
@@ -42,15 +44,15 @@ func (p configManagerProcess) Stop() {
 // It is valid for f to run forever until the provided context is cancelled. Once
 // f exits, the config associated with it is automatically removed from the active
 // list.
-func NewConfigManager(f func(ctx context.Context, c instance.Config)) *ConfigManager {
-	return &ConfigManager{
+func NewInstanceManager(f func(ctx context.Context, c instance.Config)) *InstanceManager {
+	return &InstanceManager{
 		processes:  make(map[string]*configManagerProcess),
 		newProcess: f,
 	}
 }
 
-// ListConfigs lists the current active configs managed by the ConfigManager.
-func (cm *ConfigManager) ListConfigs() map[string]instance.Config {
+// ListConfigs lists the current active configs managed by the InstanceManager.
+func (cm *InstanceManager) ListConfigs() map[string]instance.Config {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 
@@ -65,7 +67,7 @@ func (cm *ConfigManager) ListConfigs() map[string]instance.Config {
 // or updates an existing track config. The value for Name in c is used to
 // uniquely identify the instance.Config and determine whether it is new
 // or existing.
-func (cm *ConfigManager) ApplyConfig(c instance.Config) {
+func (cm *InstanceManager) ApplyConfig(c instance.Config) {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 
@@ -80,7 +82,7 @@ func (cm *ConfigManager) ApplyConfig(c instance.Config) {
 	currentActiveConfigs.Inc()
 }
 
-func (cm *ConfigManager) spawnProcess(c instance.Config) {
+func (cm *InstanceManager) spawnProcess(c instance.Config) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan bool)
 
@@ -113,7 +115,7 @@ func (cm *ConfigManager) spawnProcess(c instance.Config) {
 
 // DeleteConfig removes an instance.Config by its name. Returns an error if
 // the instance.Config is not currently being tracked.
-func (cm *ConfigManager) DeleteConfig(name string) error {
+func (cm *InstanceManager) DeleteConfig(name string) error {
 	cm.mut.Lock()
 	proc, ok := cm.processes[name]
 	if !ok {
@@ -128,8 +130,8 @@ func (cm *ConfigManager) DeleteConfig(name string) error {
 	return nil
 }
 
-// Stop stops the ConfigManager and stops all active processes for configs.
-func (cm *ConfigManager) Stop() {
+// Stop stops the InstanceManager and stops all active processes for configs.
+func (cm *InstanceManager) Stop() {
 	var wg sync.WaitGroup
 
 	cm.mut.Lock()

@@ -10,11 +10,11 @@ import (
 	"github.com/prometheus/prometheus/config"
 )
 
-func TestConfigManager_ApplyConfig(t *testing.T) {
+func TestInstanceManager_ApplyConfig(t *testing.T) {
 	fact := newMockInstanceFactory()
 	spawner := mockInstanceSpawner(fact)
 
-	cm := NewConfigManager(spawner)
+	cm := NewInstanceManager(spawner)
 	cm.ApplyConfig(instance.Config{Name: "test"})
 
 	test.Poll(t, time.Second, true, func() interface{} {
