@@ -1,5 +1,40 @@
 # Next (master/unreleased)
 
+# v0.3.2 (2020-05-29)
+
+- [FEATURE] Tanka configs that deploy the scraping service mode are now
+  available (@rfratto)
+
+- [FEATURE] A k3d example has been added as a counterpart to the docker-compose
+  example. (@rfratto)
+
+- [ENHANCEMENT] Labels provided by the default deployment of the Agent
+  (Kubernetes and Tanka) have been changed to align with the latest changes to
+  grafana/jsonnet-libs. The old `instance` label is now called `pod`, and the
+  new `instance` label is unique. A `container` label has also been added. The
+  Agent mixin has been subsequently updated to also incorporate these label
+  changes. (@rfratto)
+
+- [ENHANCEMENT] The `remote_write` and `scrape_config` sections now share the
+  same validations as Prometheus (@rfratto)
+
+- [ENHANCEMENT] Setting `wal_truncation_frequency` to less than the scrape
+  interval is now disallowed (@rfratto)
+
+- [BUGFIX] A deadlock in scraping service mode when updating a config that
+  shards to the same node has been fixed (@rfratto)
+
+- [BUGFIX] `remote_write` config stanzas will no longer ignore `password_file`
+  (@rfratto)
+
+- [BUGFIX] `scrape_config` client secrets (e.g., basic auth, bearer token,
+  `password_file`) will now be properly retained in scraping service mode
+  (@rfratto)
+
+- [BUGFIX] Labels for CPU, RX, and TX graphs in the Agent Operational dashboard
+  now correctly show the pod name of the Agent instead of the exporter name.
+  (@rfratto)
+
 # v0.3.1 (2020-05-20)
 
 - [BUGFIX] A typo in the Tanka configs and Kubernetes manifests that prevents
