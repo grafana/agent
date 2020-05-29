@@ -18,7 +18,7 @@ Here's a one-line script to copy and paste to install the Agent on
 Kubernetes:
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.3.1/production/kubernetes/install.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.3.2/production/kubernetes/install.sh)" | kubectl apply -f -
 ```
 
 ## Manually Applying
