@@ -8,12 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/agent"
-	"github.com/grafana/agent/pkg/prom"
+	"github.com/grafana/agent/pkg/prom/ha"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -76,14 +75,15 @@ type Manager struct {
 	logger       log.Logger
 	integrations []Integration
 
-	prom   *prom.Agent
+	im     ha.InstanceManager
 	cancel context.CancelFunc
 	done   chan bool
 }
 
-// NewManager creates a new integrations manager. NewManager must be given a prom.Agent
-// which is responsible for scraping and sending metrics from the running integrations.
-func NewManager(c Config, logger log.Logger, prom *prom.Agent) *Manager {
+// NewManager creates a new integrations manager. NewManager must be given an
+// InstanceManager which is responsible for accepting instance configs to
+// scrape and send metrics from running integrations.
+func NewManager(c Config, logger log.Logger, im ha.InstanceManager) *Manager {
 	var integrations []Integration
 	if c.Agent.Enabled {
 		integrations = append(integrations, agent.New())
@@ -95,7 +95,7 @@ func NewManager(c Config, logger log.Logger, prom *prom.Agent) *Manager {
 		c:            c,
 		logger:       logger,
 		integrations: integrations,
-		prom:         prom,
+		im:           im,
 		cancel:       cancel,
 		done:         make(chan bool),
 	}
@@ -122,8 +122,8 @@ func (m *Manager) run(ctx context.Context) {
 func (m *Manager) runIntegration(ctx context.Context, i Integration) {
 	// Apply the config so an instance is launched to scrape our integration.
 	instanceConfig := m.instanceConfigForIntegration(i)
-	if err := m.prom.InstanceManager().ApplyConfig(instanceConfig); err != nil {
-		level.Error(util.Logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err)
+	if err := m.im.ApplyConfig(instanceConfig); err != nil {
+		level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err)
 		return
 	}
 
@@ -140,13 +140,13 @@ func (m *Manager) runIntegration(ctx context.Context, i Integration) {
 }
 
 func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
-	prometheusName := fmt.Sprintf("__integration_%s", i.Name())
+	prometheusName := fmt.Sprintf("integration/%s", i.Name())
 
 	var scrapeConfigs []*config.ScrapeConfig
 	for idx, endpoint := range i.MetricsEndpoints() {
 		metricsPath := path.Join("/integrations", i.Name(), endpoint)
 		sc := &config.ScrapeConfig{
-			JobName:         fmt.Sprintf("__integration_%s_%d", i.Name(), idx),
+			JobName:         fmt.Sprintf("integration/%s/%d", i.Name(), idx),
 			MetricsPath:     metricsPath,
 			Scheme:          "http",
 			HonorLabels:     false,

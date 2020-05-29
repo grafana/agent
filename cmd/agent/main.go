@@ -72,7 +72,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	manager := integrations.NewManager(cfg.Integrations, util.Logger, promMetrics)
+	manager := integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager())
 
 	// Hook up API paths to the router
 	promMetrics.WireAPI(srv.HTTP)
