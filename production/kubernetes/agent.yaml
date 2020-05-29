@@ -8,7 +8,7 @@ data:
   agent.yml: |
     prometheus:
         configs:
-          - host_filter: true
+          - host_filter: false
             name: agent
             remote_write:
               - basic_auth:
@@ -66,6 +66,17 @@ data:
                   - action: replace
                     source_labels:
                       - __meta_kubernetes_pod_name
+                    target_label: pod
+                  - action: replace
+                    source_labels:
+                      - __meta_kubernetes_pod_container_name
+                    target_label: container
+                  - action: replace
+                    separator: ':'
+                    source_labels:
+                      - __meta_kubernetes_pod_name
+                      - __meta_kubernetes_pod_container_name
+                      - __meta_kubernetes_pod_container_port_name
                     target_label: instance
                   - action: labelmap
                     regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
@@ -93,6 +104,7 @@ data:
                     separator: ':'
                     source_labels:
                       - __meta_kubernetes_pod_name
+                      - __meta_kubernetes_pod_container_name
                       - __meta_kubernetes_pod_container_port_name
                     target_label: instance
                 tls_config:
