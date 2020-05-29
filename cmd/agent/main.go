@@ -9,6 +9,7 @@ import (
 
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/integrations"
 
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"
@@ -71,7 +72,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	manager := integrations.NewManager(cfg.Integrations, util.Logger, promMetrics)
+
 	// Hook up API paths to the router
+	manager.WireAPI(srv.HTTP)
 	promMetrics.WireAPI(srv.HTTP)
 	promMetrics.WireGRPC(srv.GRPC)
 

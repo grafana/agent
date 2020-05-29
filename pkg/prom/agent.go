@@ -182,6 +182,14 @@ func (a *Agent) WireGRPC(s *grpc.Server) {
 	}
 }
 
+func (a *Agent) Config() Config {
+	return a.cfg
+}
+
+func (a *Agent) ConfigManager() *ConfigManager {
+	return a.cm
+}
+
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
 	if a.ha != nil {
