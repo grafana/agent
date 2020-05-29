@@ -120,17 +120,12 @@ func (m *Manager) run(ctx context.Context) {
 }
 
 func (m *Manager) runIntegration(ctx context.Context, i Integration) {
-	// TODO(rfratto): apply defaults and validate the config, if it fails
-	// this should be a panic
-	globalConfig := m.prom.Config().Global
+	// Apply the config so an instance is launched to scrape our integration.
 	instanceConfig := m.instanceConfigForIntegration(i)
-	if err := instanceConfig.ApplyDefaults(&globalConfig); err != nil {
-		level.Error(util.Logger).Log("msg", "failed to apply default config to integration. integration will not run", "err", err)
+	if err := m.prom.InstanceManager().ApplyConfig(instanceConfig); err != nil {
+		level.Error(util.Logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err)
 		return
 	}
-
-	// Apply the config so an instance is launched to scrape our integration.
-	m.prom.InstanceManager().ApplyConfig(instanceConfig)
 
 	for {
 		err := i.Run(ctx)

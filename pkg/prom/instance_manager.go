@@ -3,6 +3,7 @@ package prom
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/grafana/agent/pkg/prom/instance"
@@ -18,7 +19,8 @@ type InstanceManager struct {
 	mut       sync.Mutex
 	processes map[string]*configManagerProcess
 
-	newProcess func(ctx context.Context, c instance.Config)
+	launch   InstanceLauncher
+	validate ConfigValidator
 }
 
 // configManagerProcess represents a goroutine managing an instance.Config. In
@@ -40,16 +42,21 @@ func (p configManagerProcess) Stop() {
 // any time a new instance.Config is tracked. The context provided to the function
 // will be cancelled when that instance.Config is no longer being tracked.
 //
-// f is spawned in a goroutine and is associated with a configManagerProcess.
-// It is valid for f to run forever until the provided context is cancelled. Once
-// f exits, the config associated with it is automatically removed from the active
-// list.
-func NewInstanceManager(f func(ctx context.Context, c instance.Config)) *InstanceManager {
+// The InstanceLauncher will be called in a goroutine and is expected to run forever
+// until the associate instance stops or the context is canceled.
+//
+// The ConfigValidator will be called before launching an instance. If the config
+// is not valid, the config will not be launched.
+func NewInstanceManager(launch InstanceLauncher, validate ConfigValidator) *InstanceManager {
 	return &InstanceManager{
-		processes:  make(map[string]*configManagerProcess),
-		newProcess: f,
+		processes: make(map[string]*configManagerProcess),
+		launch:    launch,
+		validate:  validate,
 	}
 }
+
+type InstanceLauncher func(ctx context.Context, c instance.Config)
+type ConfigValidator func(c *instance.Config) error
 
 // ListConfigs lists the current active configs managed by the InstanceManager.
 func (cm *InstanceManager) ListConfigs() map[string]instance.Config {
@@ -67,7 +74,14 @@ func (cm *InstanceManager) ListConfigs() map[string]instance.Config {
 // or updates an existing track config. The value for Name in c is used to
 // uniquely identify the instance.Config and determine whether it is new
 // or existing.
-func (cm *InstanceManager) ApplyConfig(c instance.Config) {
+func (cm *InstanceManager) ApplyConfig(c instance.Config) error {
+	if cm.validate != nil {
+		err := cm.validate(&c)
+		if err != nil {
+			return fmt.Errorf("failed to validate instance %s: %w", c.Name, err)
+		}
+	}
+
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 
@@ -80,6 +94,7 @@ func (cm *InstanceManager) ApplyConfig(c instance.Config) {
 	// Spawn a new process for the new config.
 	cm.spawnProcess(c)
 	currentActiveConfigs.Inc()
+	return nil
 }
 
 func (cm *InstanceManager) spawnProcess(c instance.Config) {
@@ -94,7 +109,7 @@ func (cm *InstanceManager) spawnProcess(c instance.Config) {
 	cm.processes[c.Name] = proc
 
 	go func() {
-		cm.newProcess(ctx, c)
+		cm.launch(ctx, c)
 		close(done)
 
 		cm.mut.Lock()

@@ -54,7 +54,7 @@ type InstanceManager interface {
 	ListConfigs() map[string]instance.Config
 
 	// ApplyConfig adds or updates a config.
-	ApplyConfig(c instance.Config)
+	ApplyConfig(c instance.Config) error
 
 	// DeleteConfig deletes a config by name, uniquely keyed by the
 	// Name field in instance.Config.
@@ -307,7 +307,9 @@ func (s *Server) watchKV(ctx context.Context) {
 		}
 
 		cfg := v.(*instance.Config)
-		s.im.ApplyConfig(*cfg)
+		if err := s.im.ApplyConfig(*cfg); err != nil {
+			level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
+		}
 		return true
 	})
 

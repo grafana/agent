@@ -14,14 +14,14 @@ func TestInstanceManager_ApplyConfig(t *testing.T) {
 	fact := newMockInstanceFactory()
 	spawner := mockInstanceSpawner(fact)
 
-	cm := NewInstanceManager(spawner)
-	cm.ApplyConfig(instance.Config{Name: "test"})
+	cm := NewInstanceManager(spawner, nil)
+	_ = cm.ApplyConfig(instance.Config{Name: "test"})
 
 	test.Poll(t, time.Second, true, func() interface{} {
 		return fact.created.Load() == 1
 	})
 
-	cm.ApplyConfig(instance.Config{Name: "test", HostFilter: true})
+	_ = cm.ApplyConfig(instance.Config{Name: "test", HostFilter: true})
 
 	test.Poll(t, time.Second, true, func() interface{} {
 		return fact.created.Load() == 2

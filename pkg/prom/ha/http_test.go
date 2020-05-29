@@ -360,10 +360,11 @@ func (cm *mockInstanceManager) ListConfigs() map[string]instance.Config {
 	return cp
 }
 
-func (cm *mockInstanceManager) ApplyConfig(c instance.Config) {
+func (cm *mockInstanceManager) ApplyConfig(c instance.Config) error {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 	cm.cfgs[c.Name] = c
+	return nil
 }
 
 func (cm *mockInstanceManager) DeleteConfig(name string) error {

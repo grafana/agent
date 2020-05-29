@@ -2,6 +2,7 @@ package ha
 
 import (
 	"context"
+	"fmt"
 	"hash/fnv"
 	"net/http"
 	"sync"
@@ -49,7 +50,9 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 	}
 	for ch := range configCh {
 		discoveredConfigs[ch.Name] = struct{}{}
-		s.im.ApplyConfig(ch)
+		if err := s.im.ApplyConfig(ch); err != nil {
+			level.Error(s.logger).Log("msg", "failed to apply config when resharding", "err", err)
+		}
 	}
 
 	// Find the set of configs that weren't present in the KV store response but are
@@ -61,6 +64,7 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 			continue
 		}
 
+		level.Info(s.logger).Log("msg", "deleting config removed from store", "name", runningConfig)
 		err := s.im.DeleteConfig(runningConfig)
 		if err != nil {
 			level.Error(s.logger).Log("msg", "failed to delete stale config", "err", err)
@@ -167,36 +171,32 @@ func (m ShardingInstanceManager) ListConfigs() map[string]instance.Config {
 }
 
 // ApplyConfig implements InstanceManager.ApplyConfig.
-func (m ShardingInstanceManager) ApplyConfig(c instance.Config) {
+func (m ShardingInstanceManager) ApplyConfig(c instance.Config) error {
 	hash, err := configHash(&c)
 	if err != nil {
-		level.Error(m.log).Log("msg", "failed to hash config", "err", err)
-		return
+		return fmt.Errorf("failed to hash config: %w", err)
 	}
 
 	owned, err := m.owns(hash)
 	if err != nil {
 		level.Error(m.log).Log("msg", "failed to check if a config is owned, skipping config until next reshard", "err", err)
-		return
+		return nil
 	}
 
 	if owned {
 		// If the config is unchanged, do nothing.
 		if m.keyToHash[c.Name] == hash {
-			return
+			return nil
 		}
 
 		level.Info(m.log).Log("msg", "detected new or changed config", "name", c.Name)
 		m.keyToHash[c.Name] = hash
-		m.inner.ApplyConfig(c)
-	} else {
-		// If we don't own the config, it's possible that we owned it before
-		// and need to delete it now.
-		err := m.DeleteConfig(c.Name)
-		if err != nil {
-			level.Error(m.log).Log("msg", "failed to delete stale config", "err", err)
-		}
+		return m.inner.ApplyConfig(c)
 	}
+
+	// If we don't own the config, it's possible that we owned it before
+	// and need to delete it now.
+	return m.DeleteConfig(c.Name)
 }
 
 // DeleteConfig implements InstanceManager.DeleteConfig.
