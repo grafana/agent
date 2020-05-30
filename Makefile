@@ -14,7 +14,7 @@ SHELL = /usr/bin/env bash
 # In Go 1.14, "vendor" and "mod" can be used instead.
 GOMOD?=vendor
 ifeq ($(strip $(GOMOD)),) # Is empty?
-	MOD_FLAG=
+	bash=
 	GOLANGCI_ARG=
 else
 	MOD_FLAG=-mod=$(GOMOD)
@@ -188,8 +188,8 @@ seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABL
 #
 # We use rfratto/seego for building these cross-platform images. seego provides
 # a docker image with gcc toolchains for all of these platforms.
-dist: dist-agent dist-agentctl
-	for i in dist/*; do zip -j -m $$i.zip $$i; done
+dist: dist-agent dist-agentctl dist-packages
+	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
@@ -215,7 +215,48 @@ dist/agentctl-windows-amd64.exe:
 
 clean-dist:
 	rm -rf dist
-.PHONY: clean
+.PHONY: clean-dist
+
+fpm := @docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -u $(shell id -u) digitalocean/fpm:latest
+
+# output packages
+# deb files should end in _version_arch.deb
+# rpm files should end in -version-release.arch.rpm
+package_version := $(shell tag=$$(echo $(IMAGE_TAG)); echo $${tag:1})
+package_name := grafana-agent
+rpm_package  := ./dist/$(package_name).$(package_version).amd64.rpm
+
+dist-packages: rpm
+
+rpm: $(rpm_package)
+$(rpm_package):
+	@mkdir -p $(dir $@)
+	@$(fpm) \
+		--verbose \
+		--input-type dir \
+		--output-type rpm \
+		--force \
+		--architecture amd64 \
+		--package $@ \
+		--no-depends \
+		--name $(package_name) \
+		--maintainer "Grafana Labs" \
+		--version $(package_version) \
+		--description "Grafana Cloud Agent" \
+		--license apache-2.0 \
+		--vendor "Grafana Labs" \
+		--url https://github.com/grafana/agent \
+		--log info \
+		--config-files /etc/systemd/system/grafana-agent.service \
+		--config-files /opt/grafana-agent/etc/config.yaml \
+		--after-install packaging/rpm/control/postinst \
+		--rpm-posttrans packaging/rpm/control/posttrans \
+		dist/agent-linux-amd64=/opt/grafana-agent/bin/grafana-agent \
+		dist/agentctl-linux-amd64=/opt/grafana-agent/bin/grafana-agentctl \
+		packaging/etc/systemd/system/grafana-agent.service=/etc/systemd/system/grafana-agent.service \
+		packaging/etc/config.yaml=/opt/grafana-agent/etc/config.yaml
+	chown -R $(USER):$(USER) dist
+	@docker run --rm -i -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" centos:7 rpm -qilp $@
 
 publish: dist
 	./tools/release

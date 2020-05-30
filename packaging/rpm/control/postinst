@@ -1,0 +1,49 @@
+#!/bin/sh
+
+SERVICE_USER=grafana-agent
+SERVICE_GROUP=grafana-agent
+
+set -e
+
+startAgent() {
+  if [ -x /bin/systemctl ]; then
+    /bin/systemctl daemon-reload
+    /bin/systemctl start grafana-agent.service
+  fi
+}
+
+stopAgent() {
+  if [ -x /bin/systemctl ]; then
+    /bin/systemctl stop grafana-agent.service >/dev/null 2>&1 || true
+  fi
+}
+
+# Initial installation: $1 == 1.
+# Upgrade: $1 == 2, and configured to restart on upgrade
+if [ $1 -eq 1 ]; then
+  if ! getent group "$SERVICE_GROUP" >/dev/null 2>&1; then
+    groupadd -r $SERVICE_GROUP
+  fi
+  if ! getent passwd "$SERVICE_USER" >/dev/null 2>&1; then
+    useradd -r -g $SERVICE_GROUP -d /opt/grafana-agent -s /sbin/nologin \
+      -c "grafana-agent user" $SERVICE_USER
+  fi
+
+  # Set user permissions in /opt/grafana-agent
+  mkdir -p /opt/grafana-agent
+  chown -R $SERVICE_USER:$SERVICE_GROUP /opt/grafana-agent
+
+  if [ -x /bin/systemctl ]; then
+    echo "### grafana-agent does NOT start by default. Please modify"
+    echo "### /opt/grafana-agent/etc/config.yaml to meet your needs"
+    echo "### and then run the following to enable grafana-agent to"
+    echo "### run automatically:"
+    echo "    sudo systemctl daemon-reload"
+    echo "    sudo systemctl enable grafana-agent.service"
+    echo "### Then start grafana-agent with the following:"
+    echo "    sudo systemctl start grafana-agent.service"
+  fi
+elif [ $1 -ge 2 ]; then
+  stopAgent
+  startAgent
+fi

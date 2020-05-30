@@ -1,0 +1,21 @@
+[Unit]
+Description=Grafana Cloud Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=grafana-agent
+Group=grafana-agent
+Type=simple
+Restart=on-failure
+ExecStart=/opt/grafana-agent/bin/grafana-agent -config.file=/opt/grafana-agent/etc/config.yaml
+
+OOMScoreAdjust=-900
+SyslogIdentifier=grafana-agent
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
