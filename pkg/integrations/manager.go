@@ -30,6 +30,12 @@ var (
 	}, []string{"integration_name"})
 )
 
+var (
+	DefaultConfig = Config{
+		IntegrationRestartBackoff: 5 * time.Second,
+	}
+)
+
 // Config holds the configuration for all integrations.
 type Config struct {
 	// When true, adds an agent_hostname label to all samples from integrations.
@@ -43,6 +49,8 @@ type Config struct {
 	// Prometheus RW configs to use for all integrations.
 	PrometheusRemoteWrite []*config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
 
+	IntegrationRestartBackoff time.Duration `yaml:"integration_restart_backoff,omitempty"`
+
 	// ListenPort tells the integration Manager which port the Agent is
 	// listening on for generating Prometheus instance configs.
 	ListenPort *int `yaml:"-"`
@@ -50,6 +58,7 @@ type Config struct {
 
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.BoolVar(&c.UseHostnameLabel, "integrations.use-hostname-label", true, "When true, adds an agent_hostname label to all samples from integrations.")
+	f.DurationVar(&c.IntegrationRestartBackoff, "integrations.integration-restart-backoff", DefaultConfig.IntegrationRestartBackoff, "how long to wait before restarting a failed integration")
 
 	c.Agent.RegisterFlagsWithPrefix("integrations.", f)
 }
@@ -103,6 +112,10 @@ func NewManager(c Config, logger log.Logger, im ha.InstanceManager) (*Manager, e
 		integrations = append(integrations, agent.New(c.Agent))
 	}
 
+	return newManager(c, logger, im, integrations)
+}
+
+func newManager(c Config, logger log.Logger, im ha.InstanceManager, integrations []Integration) (*Manager, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Manager{
@@ -153,10 +166,11 @@ func (m *Manager) runIntegration(ctx context.Context, i Integration) {
 		err := i.Run(ctx)
 		if err != nil && err != context.Canceled {
 			integrationAbnormalExits.WithLabelValues(i.Name()).Inc()
-			level.Error(m.logger).Log("msg", "integration stopped abnormally, restarting after 5s", "err", err, "integration", i.Name())
-			time.Sleep(5 * time.Second)
+			level.Error(m.logger).Log("msg", "integration stopped abnormally, restarting after backoff", "err", err, "integration", i.Name(), "backoff", m.c.IntegrationRestartBackoff)
+			time.Sleep(m.c.IntegrationRestartBackoff)
 		} else {
 			level.Info(m.logger).Log("msg", "stopped integration", "integration", i.Name())
+			break
 		}
 	}
 }
@@ -182,11 +196,11 @@ func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 		scrapeConfigs = append(scrapeConfigs, sc)
 	}
 
-	return instance.Config{
-		Name:          prometheusName,
-		ScrapeConfigs: scrapeConfigs,
-		RemoteWrite:   m.c.PrometheusRemoteWrite,
-	}
+	instanceCfg := instance.DefaultConfig
+	instanceCfg.Name = prometheusName
+	instanceCfg.ScrapeConfigs = scrapeConfigs
+	instanceCfg.RemoteWrite = m.c.PrometheusRemoteWrite
+	return instanceCfg
 }
 
 func (m *Manager) scrapeServiceDiscovery() sd_config.ServiceDiscoveryConfig {
