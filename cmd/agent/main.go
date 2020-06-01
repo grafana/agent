@@ -101,6 +101,7 @@ func main() {
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
 
+	manager.Stop()
 	promMetrics.Stop()
 	level.Info(util.Logger).Log("msg", "agent exiting")
 }
