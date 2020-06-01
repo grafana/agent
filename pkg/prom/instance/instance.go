@@ -24,6 +24,7 @@ import (
 	"github.com/prometheus/prometheus/discovery"
 	sd_config "github.com/prometheus/prometheus/discovery/config"
 	"github.com/prometheus/prometheus/pkg/relabel"
+	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
@@ -467,8 +468,13 @@ func (i *Instance) truncateLoop(ctx context.Context, wal walStorage) {
 }
 
 // getRemoteWriteTimestamp looks up the last successful remote write timestamp.
-// This is passed to wal.Storage for its truncation.
+// This is passed to wal.Storage for its truncation. If no remote write sections
+// are configured, getRemoteWriteTimestamp returns the current time.
 func (i *Instance) getRemoteWriteTimestamp() int64 {
+	if len(i.cfg.RemoteWrite) == 0 {
+		return timestamp.FromTime(time.Now())
+	}
+
 	lbls := make([]string, len(i.cfg.RemoteWrite))
 	for idx := 0; idx < len(lbls); idx++ {
 		lbls[idx] = i.cfg.RemoteWrite[idx].Name
