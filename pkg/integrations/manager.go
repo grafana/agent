@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"path"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/agent"
+	integrationCfg "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/prom/ha"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,7 +32,13 @@ var (
 
 // Config holds the configuration for all integrations.
 type Config struct {
+	// When true, adds an agent_hostname label to all samples from integrations.
+	UseHostnameLabel bool `yaml:"use_hostname_label"`
+
 	Agent agent.Config `yaml:"agent"`
+
+	// Extra labels to add for all integration samples
+	Labels model.LabelSet `yaml:"labels"`
 
 	// Prometheus RW configs to use for all integrations.
 	PrometheusRemoteWrite []*config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
@@ -42,6 +49,8 @@ type Config struct {
 }
 
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
+	f.BoolVar(&c.UseHostnameLabel, "integrations.use-hostname-label", true, "When true, adds an agent_hostname label to all samples from integrations.")
+
 	c.Agent.RegisterFlagsWithPrefix("integrations.", f)
 }
 
@@ -49,6 +58,10 @@ type Integration interface {
 	// Name returns the name of the integration. Each registered integration must
 	// have a unique name.
 	Name() string
+
+	// CommonConfig returns the set of common configuration values present across
+	// all integrations.
+	CommonConfig() integrationCfg.Common
 
 	// RegisterRoutes should register any HTTP handlers used for the integration.
 	//
@@ -59,9 +72,9 @@ type Integration interface {
 	// be exposed as /integrations/database/metrics.
 	RegisterRoutes(r *mux.Router) error
 
-	// MetricsEndpoints should return any endpoints (as defined by RegisterRoutes)
-	// that expose Prometheus/OpenMetrics metrics.
-	MetricsEndpoints() []string
+	// ScrapeConfigs should return a set of integration scrape configs that inform
+	// the integration how samples should be collected.
+	ScrapeConfigs() []integrationCfg.ScrapeConfig
 
 	// Run should start the integration and do any required tasks. Run should *not*
 	// exit until context is canceled. If an integration doesn't need to do anything,
@@ -74,6 +87,7 @@ type Manager struct {
 	c            Config
 	logger       log.Logger
 	integrations []Integration
+	hostname     string
 
 	im     ha.InstanceManager
 	cancel context.CancelFunc
@@ -83,10 +97,10 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(c Config, logger log.Logger, im ha.InstanceManager) *Manager {
+func NewManager(c Config, logger log.Logger, im ha.InstanceManager) (*Manager, error) {
 	var integrations []Integration
 	if c.Agent.Enabled {
-		integrations = append(integrations, agent.New())
+		integrations = append(integrations, agent.New(c.Agent))
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -100,8 +114,16 @@ func NewManager(c Config, logger log.Logger, im ha.InstanceManager) *Manager {
 		done:         make(chan bool),
 	}
 
+	if c.UseHostnameLabel {
+		var err error
+		m.hostname, err = instance.Hostname()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	go m.run(ctx)
-	return m
+	return m, nil
 }
 
 func (m *Manager) run(ctx context.Context) {
@@ -142,25 +164,19 @@ func (m *Manager) runIntegration(ctx context.Context, i Integration) {
 func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 	prometheusName := fmt.Sprintf("integration/%s", i.Name())
 
+	common := i.CommonConfig()
+
 	var scrapeConfigs []*config.ScrapeConfig
-	for idx, endpoint := range i.MetricsEndpoints() {
-		metricsPath := path.Join("/integrations", i.Name(), endpoint)
+	for _, cfg := range i.ScrapeConfigs() {
 		sc := &config.ScrapeConfig{
-			JobName:         fmt.Sprintf("integration/%s/%d", i.Name(), idx),
-			MetricsPath:     metricsPath,
-			Scheme:          "http",
-			HonorLabels:     false,
-			HonorTimestamps: true,
-			ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
-				StaticConfigs: []*targetgroup.Group{{
-					Targets: []model.LabelSet{{
-						model.AddressLabel: m.scrapeAddress(),
-					}},
-					Labels: model.LabelSet{
-						"integration": model.LabelValue(i.Name()),
-					},
-				}},
-			},
+			JobName:                fmt.Sprintf("integrations/%s", cfg.JobName),
+			MetricsPath:            filepath.Join("/integrations", i.Name(), cfg.MetricsPath),
+			Scheme:                 "http",
+			HonorLabels:            false,
+			HonorTimestamps:        true,
+			ScrapeInterval:         model.Duration(common.ScrapeInterval),
+			ScrapeTimeout:          model.Duration(common.ScrapeTimeout),
+			ServiceDiscoveryConfig: m.scrapeServiceDiscovery(),
 		}
 
 		scrapeConfigs = append(scrapeConfigs, sc)
@@ -173,10 +189,23 @@ func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 	}
 }
 
-func (m *Manager) scrapeAddress() model.LabelValue {
-	return model.LabelValue(
-		fmt.Sprintf("127.0.0.1:%d", *m.c.ListenPort),
-	)
+func (m *Manager) scrapeServiceDiscovery() sd_config.ServiceDiscoveryConfig {
+	localAddr := fmt.Sprintf("127.0.0.1:%d", *m.c.ListenPort)
+
+	labels := model.LabelSet{}
+	if m.c.UseHostnameLabel {
+		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
+	}
+	for k, v := range m.c.Labels {
+		labels[k] = v
+	}
+
+	return sd_config.ServiceDiscoveryConfig{
+		StaticConfigs: []*targetgroup.Group{{
+			Targets: []model.LabelSet{{model.AddressLabel: model.LabelValue(localAddr)}},
+			Labels:  labels,
+		}},
+	}
 }
 
 func (m *Manager) WireAPI(r *mux.Router) error {

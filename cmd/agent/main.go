@@ -72,7 +72,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	manager := integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager())
+	manager, err := integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager())
+	if err != nil {
+		level.Error(util.Logger).Log("msg", "failed to create integrations manager", "err", err)
+		os.Exit(1)
+	}
 
 	// Hook up API paths to the router
 	promMetrics.WireAPI(srv.HTTP)

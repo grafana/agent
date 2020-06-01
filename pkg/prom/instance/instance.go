@@ -434,7 +434,7 @@ func (i *Instance) newStorage(reg prometheus.Registerer, wal walStorage, sm scra
 }
 
 func (i *Instance) newHostFilter() (*HostFilter, error) {
-	hostname, err := hostname()
+	hostname, err := Hostname()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create host filterer: %w", err)
 	}
@@ -567,7 +567,10 @@ func (u *unregisterAllRegisterer) UnregisterAll() {
 	}
 }
 
-func hostname() (string, error) {
+// Hostname retrieves the hostname identifying the machine the process is
+// running on. It will return the value of $HOSTNAME, if defined, and fall
+// back to Go's os.Hostname.
+func Hostname() (string, error) {
 	hostname := os.Getenv("HOSTNAME")
 	if hostname != "" {
 		return hostname, nil

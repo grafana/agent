@@ -8,11 +8,14 @@ import (
 	"flag"
 
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Config controls the Agent integration.
 type Config struct {
+	CommonConfig config.Common `yaml:",inline"`
+
 	// Enabled enables the Agent integration.
 	Enabled bool
 }
@@ -23,11 +26,16 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 
 // Integration is the Agent integration. The Agent integration scrapes the
 // Agent's own metrics.
-type Integration struct{}
-
-func New() *Integration {
-	return &Integration{}
+type Integration struct {
+	c Config
 }
+
+func New(c Config) *Integration {
+	return &Integration{c: c}
+}
+
+// CommonConfig satisfies Integration.CommonConfig.
+func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
 
 // Name satisfies Integration.Name.
 func (i *Integration) Name() string { return "agent" }
@@ -42,9 +50,12 @@ func (i *Integration) RegisterRoutes(r *mux.Router) error {
 	return nil
 }
 
-// MetricsEndpoints satisfies Integration.MetricsEndpoints.
-func (i *Integration) MetricsEndpoints() []string {
-	return []string{"/metrics"}
+// ScrapeConfigs satisfies Integration.ScrapeConfigs.
+func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
+	return []config.ScrapeConfig{{
+		JobName:     i.Name(),
+		MetricsPath: "/metrics",
+	}}
 }
 
 // Run satisfies Integration.Run.
