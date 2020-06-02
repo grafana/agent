@@ -110,7 +110,7 @@ type Agent struct {
 	cfg    Config
 	logger log.Logger
 
-	cm *ConfigManager
+	cm *InstanceManager
 
 	instanceFactory instanceFactory
 
@@ -129,9 +129,17 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 		instanceFactory: fact,
 	}
 
-	a.cm = NewConfigManager(a.spawnInstance)
+	a.cm = NewInstanceManager(a.spawnInstance, a.validateInstance)
+
+	allConfigsValid := true
 	for _, c := range cfg.Configs {
-		a.cm.ApplyConfig(c)
+		if err := a.cm.ApplyConfig(c); err != nil {
+			level.Error(logger).Log("msg", "failed to apply config", "name", c.Name, "err", err)
+			allConfigsValid = false
+		}
+	}
+	if !allConfigsValid {
+		return nil, fmt.Errorf("one or more configs was found to be invalid")
 	}
 
 	if cfg.ServiceConfig.Enabled {
@@ -145,18 +153,15 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 	return a, nil
 }
 
+func (a *Agent) validateInstance(c *instance.Config) error {
+	return c.ApplyDefaults(&a.cfg.Global)
+}
+
 // spawnInstance takes an instance.Config and launches an instance, restarting
 // it if it stops unexpectedly. The instance will be stopped whenever ctx
 // is canceled. This function will not return until the launched instance
 // has fully shut down.
 func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
-	// Make sure to validate the config before we run it.
-	err := c.ApplyDefaults(&a.cfg.Global)
-	if err != nil {
-		level.Error(a.logger).Log("msg", "not creating instance because it has an invalid config", "err", err)
-		return
-	}
-
 	inst, err := a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
 	if err != nil {
 		level.Error(a.logger).Log("msg", "failed to create instance", "err", err)
@@ -180,6 +185,14 @@ func (a *Agent) WireGRPC(s *grpc.Server) {
 	if a.cfg.ServiceConfig.Enabled {
 		a.ha.WireGRPC(s)
 	}
+}
+
+func (a *Agent) Config() Config {
+	return a.cfg
+}
+
+func (a *Agent) InstanceManager() *InstanceManager {
+	return a.cm
 }
 
 // Stop stops the agent and all its instances.

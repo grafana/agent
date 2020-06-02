@@ -20,10 +20,10 @@ import (
 func TestServer_Reshard(t *testing.T) {
 	// Resharding should do the following:
 	//	- All configs in the store should be applied
-	//	- All configs not in the store but in the existing ConfigManager should be deleted
-	mockCm := newMockConfigManager()
+	//	- All configs not in the store but in the existing InstanceManager should be deleted
+	mockCm := newMockInstanceManager()
 	for _, name := range []string{"keep_a", "keep_b", "remove_a", "remove_b"} {
-		mockCm.ApplyConfig(instance.Config{Name: name})
+		_ = mockCm.ApplyConfig(instance.Config{Name: name})
 	}
 
 	mockKv := consul.NewInMemoryClient(GetCodec())
@@ -34,7 +34,7 @@ func TestServer_Reshard(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	srv := Server{kv: mockKv, cm: mockCm}
+	srv := Server{kv: mockKv, im: mockCm, logger: log.NewNopLogger()}
 	_, err := srv.Reshard(context.Background(), &agentproto.ReshardRequest{})
 	require.NoError(t, err)
 
@@ -52,11 +52,11 @@ func TestServer_Reshard(t *testing.T) {
 	require.Equal(t, expect, actual)
 }
 
-func TestShardingConfigManager(t *testing.T) {
+func TestShardingInstanceManager(t *testing.T) {
 	logger := log.NewNopLogger()
 
-	t.Run("applies owned config", func(t *testing.T) {
-		mockCm := newMockConfigManager()
+	t.Run("only lists configs applied through sharded instance manager", func(t *testing.T) {
+		mockCm := newMockInstanceManager()
 		mockRing := &mockFuncReadRing{}
 		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
@@ -64,14 +64,35 @@ func TestShardingConfigManager(t *testing.T) {
 			}, nil
 		}
 
-		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
-		cm.ApplyConfig(instance.Config{Name: "test"})
+		_ = mockCm.ApplyConfig(instance.Config{Name: "applied_elsewhere"})
+
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
+
+		var keys []string
+		for k := range cm.ListConfigs() {
+			keys = append(keys, k)
+		}
+		require.Equal(t, []string{"test"}, keys)
+	})
+
+	t.Run("applies owned config", func(t *testing.T) {
+		mockCm := newMockInstanceManager()
+		mockRing := &mockFuncReadRing{}
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+			return ring.ReplicationSet{
+				Ingesters: []ring.IngesterDesc{{Addr: "same_machine"}},
+			}, nil
+		}
+
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
 
 		require.Equal(t, 1, len(mockCm.ListConfigs()))
 	})
 
 	t.Run("ignores apply of unowned config", func(t *testing.T) {
-		mockCm := newMockConfigManager()
+		mockCm := newMockInstanceManager()
 		mockRing := &mockFuncReadRing{}
 		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
@@ -79,8 +100,8 @@ func TestShardingConfigManager(t *testing.T) {
 			}, nil
 		}
 
-		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
-		cm.ApplyConfig(instance.Config{Name: "test"})
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
 
 		require.Equal(t, 0, len(mockCm.ListConfigs()))
 	})
@@ -88,7 +109,7 @@ func TestShardingConfigManager(t *testing.T) {
 	t.Run("properly hashes config", func(t *testing.T) {
 		var hashes []uint32
 
-		mockCm := newMockConfigManager()
+		mockCm := newMockInstanceManager()
 		mockRing := &mockFuncReadRing{}
 		mockRing.GetFunc = func(key uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
 			hashes = append(hashes, key)
@@ -98,9 +119,9 @@ func TestShardingConfigManager(t *testing.T) {
 		}
 
 		// Each config here should be given a different hash when checked against the ring
-		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
-		cm.ApplyConfig(instance.Config{Name: "test1"})
-		cm.ApplyConfig(instance.Config{Name: "test2"})
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
+		_ = cm.ApplyConfig(instance.Config{Name: "test1"})
+		_ = cm.ApplyConfig(instance.Config{Name: "test2"})
 
 		require.Len(t, hashes, 2)
 		require.NotEqual(t, hashes[0], hashes[1])
@@ -109,7 +130,7 @@ func TestShardingConfigManager(t *testing.T) {
 	t.Run("deletes previously owned config on apply", func(t *testing.T) {
 		returnRingAddr := "same_machine"
 
-		mockCm := newMockConfigManager()
+		mockCm := newMockInstanceManager()
 		mockRing := &mockFuncReadRing{}
 		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
@@ -117,20 +138,20 @@ func TestShardingConfigManager(t *testing.T) {
 			}, nil
 		}
 
-		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
-		cm.ApplyConfig(instance.Config{Name: "test"})
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
 		require.Equal(t, 1, len(mockCm.ListConfigs()))
 
 		// Pretend the ring changed and that ring doesn't hash to us anymore.
 		// The next apply should delete it.
 		returnRingAddr = "not_localhost"
 
-		cm.ApplyConfig(instance.Config{Name: "test"})
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
 		require.Equal(t, 0, len(mockCm.ListConfigs()), "unowned config was not deleted")
 	})
 
 	t.Run("doesn't reapply unchanged config", func(t *testing.T) {
-		mockCm := newMockConfigManager()
+		mockCm := newMockInstanceManager()
 		mockRing := &mockFuncReadRing{}
 		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
@@ -138,20 +159,20 @@ func TestShardingConfigManager(t *testing.T) {
 			}, nil
 		}
 
-		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
-		cm.ApplyConfig(instance.Config{Name: "test"})
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
 
 		require.Equal(t, 1, len(mockCm.ListConfigs()))
 
 		// Internally delete the config and try to reapply; our wrapper should ignore
 		// it since the hash hasn't changed from the last time it was applied.
 		_ = mockCm.DeleteConfig("test")
-		cm.ApplyConfig(instance.Config{Name: "test"})
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
 		require.Equal(t, 0, len(mockCm.ListConfigs()), "unchanged config got reapplied")
 	})
 
 	t.Run("reapplies changed config", func(t *testing.T) {
-		mockCm := newMockConfigManager()
+		mockCm := newMockInstanceManager()
 		mockRing := &mockFuncReadRing{}
 		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
@@ -159,22 +180,22 @@ func TestShardingConfigManager(t *testing.T) {
 			}, nil
 		}
 
-		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
-		cm.ApplyConfig(instance.Config{Name: "test"})
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
 
 		require.Equal(t, 1, len(mockCm.ListConfigs()))
 
-		cm.ApplyConfig(instance.Config{Name: "test", HostFilter: true})
+		_ = cm.ApplyConfig(instance.Config{Name: "test", HostFilter: true})
 		require.Equal(t, 1, len(mockCm.ListConfigs()))
 		require.True(t, mockCm.GetConfig("test").HostFilter)
 	})
 
 	t.Run("ignores deletes of unowned config", func(t *testing.T) {
-		mockCm := newMockConfigManager()
+		mockCm := newMockInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
 
-		mockCm.ApplyConfig(instance.Config{Name: "test"})
+		_ = mockCm.ApplyConfig(instance.Config{Name: "test"})
 		err := cm.DeleteConfig("test")
 		require.NoError(t, err)
 
@@ -182,7 +203,7 @@ func TestShardingConfigManager(t *testing.T) {
 	})
 
 	t.Run("deletes owned config", func(t *testing.T) {
-		mockCm := newMockConfigManager()
+		mockCm := newMockInstanceManager()
 		mockRing := &mockFuncReadRing{}
 		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
@@ -190,8 +211,8 @@ func TestShardingConfigManager(t *testing.T) {
 			}, nil
 		}
 
-		cm := NewShardingConfigManager(logger, mockCm, mockRing, "same_machine")
-		cm.ApplyConfig(instance.Config{Name: "test"})
+		cm := NewShardingInstanceManager(logger, mockCm, mockRing, "same_machine")
+		_ = cm.ApplyConfig(instance.Config{Name: "test"})
 
 		err := cm.DeleteConfig("test")
 		require.NoError(t, err)

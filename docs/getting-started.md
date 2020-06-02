@@ -74,11 +74,62 @@ instructions for downloading static binaries that are published with every relea
 
 We provide [Tanka](https://tanka.dev) configurations in our [`production/`](/production/tanka/grafana-agent) directory.
 
-## Migrating from Prometheus
+## Creating a Config File
 
-Migrating from Prometheus is relatively painless, requiring just copying and
-pasting sections from the Prometheus configuration file into the Agent
-configuration file. Use this Agent config as a template:
+The Grafana Cloud Agent can be configured with **integrations** and a
+**Prometheus-like** config. Both may coexist in the same configuration file for
+the Agent.
+
+Integrations are recommended for first-time users of monitoring or Prometheus;
+users that have more experience with Prometheus or already have an existing
+Prometheus config file should use the Prometheus-like config.
+
+### Integrations
+
+**Integrations** are subsystems that collect metrics for you. For example, the
+`agent` integration collects metrics from that running instance of the Grafana
+Cloud Agent. The `node_exporter` integration will collect metrics from the Linux
+machine that the Grafana Cloud Agent is running on.
+
+```yaml
+prometheus:
+  wal_directory: /tmp/wal
+
+integrations:
+  agent:
+    enabled: true
+  prometheus_remote_write:
+    - url: http://localhost:9009/api/prom/push
+```
+
+In this example, we first must configure the `wal_directory` which is used to
+store metrics in a Write-Ahead Log. This is required, but ensures that samples
+will be resent in case of failure (e.g., network issues, machine reboot).
+
+Then, the `integrations` are configured. In this example, just the `agent`
+integration is enabled. Finally, `prometheus_remote_write` is configured with a
+location to send metrics. You will have to replace this URL with the appropriate
+URL for your `remote_write` system (such as a Grafana Cloud Hosted Prometheus
+instance).
+
+When the Agent is run with this file, it will collect metrics from itself and
+send those metrics to the `remote_write` endpoint. All metrics will have (by
+default) an `agent_hostname` label equal to the hostname of the machine the
+Agent is running on. This label helps to uniquly identify the source of metrics
+if you run multiple Agent processes across multiple machines.
+
+Full configuration options can be found in the
+[configuration reference](./configuration-reference.md).
+
+## Prometheus-like Config/Migrating from Prometheus
+
+The Prometheus-like Config is useful for those migrating from Prometheus and
+those who want to scrape metrics from something that currently does not have an
+associated integration.
+
+To migrate from an existing Prometheus config, use this Agent config as a
+template and copy and paste subsections from your existing Prometheus config
+into it:
 
 ```yaml
 prometheus:
@@ -93,6 +144,31 @@ prometheus:
       remote_write:
         # PASTE remote_write SECTION HERE
 ```
+
+For example, this configuration file configures the Grafana Cloud Agent to
+scrape itself without using the integration:
+
+```yaml
+server:
+  log_level: info
+  http_listen_port: 12345
+
+prometheus:
+  global:
+    scrape_interval: 5s
+  configs:
+    - name: agent
+      host_filter: false
+      scrape_configs:
+        - job_name: agent
+          static_configs:
+            - targets: ['127.0.0.1:12345']
+      remote_write:
+        - url: http://localhost:9009/api/prom/push
+```
+
+Like with integrations, full configuration options can be found in the
+[configuration reference](./configuration-reference.md).
 
 ## Running
 

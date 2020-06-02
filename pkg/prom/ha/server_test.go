@@ -28,7 +28,7 @@ import (
 
 func TestServer_Reshard_On_Start(t *testing.T) {
 	r := &mockFuncReadRing{}
-	cm := newMockConfigManager()
+	cm := newMockInstanceManager()
 
 	kv := newMockKV(true)
 	injectRingIngester(r)
@@ -51,7 +51,7 @@ func TestServer_Reshard_On_Start(t *testing.T) {
 
 func TestServer_NewConfig_Detection(t *testing.T) {
 	r := &mockFuncReadRing{}
-	cm := newMockConfigManager()
+	cm := newMockInstanceManager()
 
 	kv := newMockKV(true)
 	injectRingIngester(r)
@@ -75,7 +75,7 @@ func TestServer_NewConfig_Detection(t *testing.T) {
 
 func TestServer_DeletedConfig_Detection(t *testing.T) {
 	r := &mockFuncReadRing{}
-	cm := newMockConfigManager()
+	cm := newMockInstanceManager()
 
 	kv := newMockKV(true)
 	injectRingIngester(r)
@@ -105,7 +105,7 @@ func TestServer_DeletedConfig_Detection(t *testing.T) {
 
 func TestServer_Reshard_On_Interval(t *testing.T) {
 	r := &mockFuncReadRing{}
-	cm := newMockConfigManager()
+	cm := newMockInstanceManager()
 
 	// use a poll only KV so watch events aren't detected - we want this
 	// test to make sure polling the KV store works for resharding.
@@ -152,7 +152,7 @@ func TestServer_Cluster_Reshard_On_Start_And_Leave(t *testing.T) {
 	agent2Desc := startScrapingServiceServer(t, &agent2)
 
 	r := &mockFuncReadRing{}
-	cm := newMockConfigManager()
+	cm := newMockInstanceManager()
 	kv := newMockKV(false)
 
 	// Inject the GetFunc to always return the local node but override GetAll to
@@ -204,7 +204,7 @@ func injectRingIngester(r *mockFuncReadRing) {
 	}
 }
 
-func newTestServer(r readRing, kv kv.Client, cm ConfigManager, reshard time.Duration) *Server {
+func newTestServer(r readRing, kv kv.Client, cm InstanceManager, reshard time.Duration) *Server {
 	var (
 		cfg          Config
 		clientConfig client.Config
@@ -218,7 +218,7 @@ func newTestServer(r readRing, kv kv.Client, cm ConfigManager, reshard time.Dura
 	return newServer(cfg, &config.DefaultGlobalConfig, clientConfig, logger, cm, "test", r, kv, closer)
 }
 
-func getRunningConfigs(cm ConfigManager) []string {
+func getRunningConfigs(cm InstanceManager) []string {
 	configs := cm.ListConfigs()
 	configKeys := make([]string, 0, len(configs))
 	for n := range configs {

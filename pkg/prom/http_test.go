@@ -3,9 +3,10 @@ package prom
 import (
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,14 +28,14 @@ func TestAgent_ListInstancesHandler(t *testing.T) {
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		a.cm.ApplyConfig(instance.Config{Name: "foo"})
-		a.cm.ApplyConfig(instance.Config{Name: "bar"})
+		require.NoError(t, a.cm.ApplyConfig(makeInstanceConfig("foo")))
+		require.NoError(t, a.cm.ApplyConfig(makeInstanceConfig("bar")))
 
-		// Responses must be sorted
-		rr := httptest.NewRecorder()
-		a.ListInstancesHandler(rr, r)
 		expect := `{"status":"success","data":["bar","foo"]}`
-		require.Equal(t, expect, rr.Body.String())
+		test.Poll(t, time.Second, true, func() interface{} {
+			rr := httptest.NewRecorder()
+			a.ListInstancesHandler(rr, r)
+			return expect == rr.Body.String()
+		})
 	})
-
 }

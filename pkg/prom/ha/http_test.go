@@ -281,7 +281,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 			Prefix: "configs/",
 		},
 		Lifecycler: testLifecyclerConfig(),
-	}, &config.DefaultGlobalConfig, haClient.Config{}, logger, newMockConfigManager())
+	}, &config.DefaultGlobalConfig, haClient.Config{}, logger, newMockInstanceManager())
 	require.NoError(t, err)
 
 	// Wire the API
@@ -333,23 +333,23 @@ func unmarshalTestResponse(t *testing.T, r io.ReadCloser, v interface{}) {
 	require.NoError(t, err)
 }
 
-type mockConfigManager struct {
+type mockInstanceManager struct {
 	mut  sync.Mutex
 	cfgs map[string]instance.Config
 }
 
-func newMockConfigManager() *mockConfigManager {
-	cm := mockConfigManager{cfgs: make(map[string]instance.Config)}
+func newMockInstanceManager() *mockInstanceManager {
+	cm := mockInstanceManager{cfgs: make(map[string]instance.Config)}
 	return &cm
 }
 
-func (cm *mockConfigManager) GetConfig(key string) instance.Config {
+func (cm *mockInstanceManager) GetConfig(key string) instance.Config {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 	return cm.cfgs[key]
 }
 
-func (cm *mockConfigManager) ListConfigs() map[string]instance.Config {
+func (cm *mockInstanceManager) ListConfigs() map[string]instance.Config {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 
@@ -360,13 +360,14 @@ func (cm *mockConfigManager) ListConfigs() map[string]instance.Config {
 	return cp
 }
 
-func (cm *mockConfigManager) ApplyConfig(c instance.Config) {
+func (cm *mockInstanceManager) ApplyConfig(c instance.Config) error {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 	cm.cfgs[c.Name] = c
+	return nil
 }
 
-func (cm *mockConfigManager) DeleteConfig(name string) error {
+func (cm *mockInstanceManager) DeleteConfig(name string) error {
 	cm.mut.Lock()
 	defer cm.mut.Unlock()
 	delete(cm.cfgs, name)
