@@ -6,21 +6,23 @@ require (
 	github.com/cortexproject/cortex v1.0.1-0.20200409122148-163437e76cad
 	github.com/go-kit/kit v0.10.0
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/protobuf v1.4.0
+	github.com/golang/protobuf v1.4.1
 	github.com/gorilla/mux v1.7.3
 	github.com/oklog/run v1.1.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20180928155321-4b5a12d3ff02
 	github.com/opentracing/opentracing-go v1.1.1-0.20200124165624-2876d2018785
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.5.1
-	github.com/prometheus/common v0.9.1
+	github.com/prometheus/client_golang v1.6.0
+	github.com/prometheus/common v0.10.0
+	github.com/prometheus/node_exporter v1.0.0
 	github.com/prometheus/prometheus v1.8.2-0.20200213233353-b90be6f32a33
 	github.com/spf13/cobra v0.0.3
 	github.com/stretchr/testify v1.5.1
 	github.com/weaveworks/common v0.0.0-20200310113808-2708ba4e60a4
 	go.uber.org/atomic v1.6.0
 	google.golang.org/grpc v1.29.0
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	gopkg.in/yaml.v2 v2.3.0
 )
 
 // Needed for Cortex's dependencies to work properly.

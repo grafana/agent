@@ -22,6 +22,7 @@ type Config struct {
 
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.BoolVar(&c.Enabled, prefix+"agent.enabled", false, "enable the Agent integration to scrape the Agent's own metrics")
+	c.CommonConfig.RegisterFlagsWithPrefix(prefix+"agent.", f)
 }
 
 // Integration is the Agent integration. The Agent integration scrapes the

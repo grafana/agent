@@ -10,5 +10,11 @@ prometheus:
 integrations:
   agent:
     enabled: true
+  node_exporter:
+    enabled: true
+    disable_collectors_by_default: true
+    enable_cpu_collector: true
+    enable_meminfo_collector: true
+
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push
