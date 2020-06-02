@@ -1,4 +1,4 @@
-package node_exporter
+package node_exporter //nolint:golint
 
 import (
 	"flag"
@@ -515,7 +515,7 @@ func MapConfigToNodeExporterFlags(c *Config) []string {
 			continue
 		}
 
-		if *setting == false {
+		if !*setting {
 			flags = append(flags, disabledPrefix+key)
 		} else {
 			flags = append(flags, enabledPrefix+key)

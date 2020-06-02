@@ -1,4 +1,4 @@
-package node_exporter
+package node_exporter //nolint:golint
 
 import (
 	"context"
