@@ -47,8 +47,11 @@ DONT_FIND := -name tools -prune -o -name vendor -prune -o -name .git -prune -o -
 # Build flags
 VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags netgo $(MOD_FLAG)
-DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags netgo $(MOD_FLAG)
+GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
+DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
+
+CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
+DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
 
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
@@ -101,7 +104,11 @@ agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
 cmd/agent/agent: cmd/agent/main.go
+ifeq ($(shell go env GOOS),darwin)
+	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
+else
 	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+endif
 	$(NETGO_CHECK)
 
 cmd/agentctl/agentctl: cmd/agentctl/main.go
@@ -127,7 +134,11 @@ push-agentctl-image:
 	docker push $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG)
 
 install:
+ifeq ($(shell go env GOOS),darwin)
+	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
+else
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent
+endif
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
 
 #######################
