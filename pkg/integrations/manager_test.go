@@ -34,7 +34,7 @@ func TestManager_ValidInstanceConfigs(t *testing.T) {
 
 	// If the config doesn't show up in ListConfigs, it wasn't valid.
 	test.Poll(t, time.Second, 1, func() interface{} {
-		return int(len(im.ListConfigs()))
+		return len(im.ListConfigs())
 	})
 }
 
@@ -50,7 +50,7 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	defer m.Stop()
 
 	test.Poll(t, time.Second, 1, func() interface{} {
-		return int(len(im.ListConfigs()))
+		return len(im.ListConfigs())
 	})
 
 	// Check that the instance was set to run
