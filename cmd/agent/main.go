@@ -9,6 +9,7 @@ import (
 
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/integrations"
 
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"
@@ -71,9 +72,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	manager, err := integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager())
+	if err != nil {
+		level.Error(util.Logger).Log("msg", "failed to create integrations manager", "err", err)
+		os.Exit(1)
+	}
+
 	// Hook up API paths to the router
 	promMetrics.WireAPI(srv.HTTP)
 	promMetrics.WireGRPC(srv.GRPC)
+
+	if err := manager.WireAPI(srv.HTTP); err != nil {
+		level.Error(util.Logger).Log("msg", "failed wiring endpoints for integrations", "err", err)
+		os.Exit(1)
+	}
 
 	srv.HTTP.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -89,6 +101,7 @@ func main() {
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
 
+	manager.Stop()
 	promMetrics.Stop()
 	level.Info(util.Logger).Log("msg", "agent exiting")
 }

@@ -36,6 +36,9 @@ Support contents and default values of `agent.yaml`:
 
 # Configures Prometheus instances.
 [prometheus: <prometheus_config>]
+
+# Configures integrations for the Agent.
+[integrations: <integrations_config>]
 ```
 
 ## server_config
@@ -1396,3 +1399,45 @@ metadata_config:
   # How frequently metric metadata is sent to remote storage.
   [ send_interval: <duration> | default = 1m ]
 ```
+
+### integrations_config
+
+The `integrations_config` block configures how the Agent runs integrations that
+scrape and send metrics without needing to run specific Prometheus exporters or
+manually write `scrape_configs`:
+
+```yaml
+# Controls the Agent integration
+agent:
+  # Enables the Agent integration, allowing the Agent to automatically
+  # collect and send metrics about itself.
+  [enabled: <boolean> | default = false]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timtout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+# When true, adds an agent_hostname label to all samples coming from
+# integrations. The value of the agent_hostname label will be the
+# value of $HOSTNAME (if available) or the machine's hostname.
+[use_hostname_label: <boolean> | default = true]
+
+# Extra labels to add to all samples coming from integrations.
+labels:
+  { <string>: <string> }
+
+# The period to wait before restarting an integration that exits with an
+# error.
+[integration_restart_backoff: <duration> | default = "5s"]
+
+# A list of remote_write targets. Samples coming from integrations will be
+# sent to all addresses specified here.
+prometheus_remote_write:
+  - [<remote_write>]
+```
+
+
