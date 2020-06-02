@@ -76,8 +76,9 @@ We provide [Tanka](https://tanka.dev) configurations in our [`production/`](/pro
 
 ## Creating a Config File
 
-The Grafana Cloud Agent can be configured with **integrations** or a
-**Prometheus-like** config.
+The Grafana Cloud Agent can be configured with **integrations** and a
+**Prometheus-like** config. Both may coexist in the same configuration file for
+the Agent.
 
 Integrations are recommended for first-time users of monitoring or Prometheus;
 users that have more experience with Prometheus or already have an existing

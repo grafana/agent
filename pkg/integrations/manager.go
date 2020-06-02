@@ -158,7 +158,7 @@ func (m *Manager) runIntegration(ctx context.Context, i Integration) {
 	// Apply the config so an instance is launched to scrape our integration.
 	instanceConfig := m.instanceConfigForIntegration(i)
 	if err := m.im.ApplyConfig(instanceConfig); err != nil {
-		level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err)
+		level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err, "integration", i.Name())
 		return
 	}
 

@@ -1410,7 +1410,7 @@ manually write `scrape_configs`:
 # Controls the Agent integration
 agent:
   # Enables the Agent integration, allowing the Agent to automatically
-  # collect and send its own metrics.
+  # collect and send metrics about itself.
   [enabled: <boolean> | default = false]
 
   # How often should the metrics be collected? Defaults to

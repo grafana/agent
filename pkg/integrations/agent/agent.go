@@ -1,4 +1,4 @@
-// Package agent is a "example" integration that does very little functionally,
+// Package agent is an "example" integration that has very little functionality,
 // but is still useful in practice. The Agent integration re-exposes the Agent's
 // own metrics endpoint and allows the Agent to scrape itself.
 package agent
