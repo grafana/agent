@@ -34,7 +34,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	// in a custom kingpin application or expose methods to explicitly enable/disable
 	// collectors that we can use instead of this command line hack.
 	flags := MapConfigToNodeExporterFlags(&c)
-	level.Debug(log).Log("msg", "initializing node_exporter with flags", "flags", strings.Join(flags, " "))
+	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent config", "flags", strings.Join(flags, " "))
 
 	_, err := kingpin.CommandLine.Parse(flags)
 	if err != nil {
@@ -43,7 +43,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 
 	nc, err := collector.NewNodeCollector(log)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create node_exporter: %w", err)
 	}
 
 	level.Info(log).Log("msg", "Enabled node_exporter collectors")
