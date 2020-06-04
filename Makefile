@@ -103,8 +103,16 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
-cmd/agent/agent: cmd/agent/main.go
+# some platforms need CGO_ENABLED=1 for node_exporter
+need_cgo = 0
 ifeq ($(shell go env GOOS),darwin)
+need_cgo = 1
+else ifeq ($(shell go env GOOS),freebsd)
+need_cgo = 1
+endif
+
+cmd/agent/agent: cmd/agent/main.go
+ifeq ($(need_cgo),1)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
 	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
@@ -134,7 +142,7 @@ push-agentctl-image:
 	docker push $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG)
 
 install:
-ifeq ($(shell go env GOOS),darwin)
+ifeq ($(need_cgo),1)
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
 else
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent
@@ -166,12 +174,37 @@ example-dashboards:
 # Releasing #
 #############
 
-GOX = gox $(GO_FLAGS) -parallel=2 -output="dist/{{.Dir}}-{{.OS}}-{{.Arch}}"
-dist:
-	CGO_ENABLED=0 $(GOX) -osarch="linux/amd64 darwin/amd64 windows/amd64 freebsd/amd64" ./cmd/agent
-	CGO_ENABLED=0 $(GOX) -osarch="linux/amd64 darwin/amd64 windows/amd64 freebsd/amd64" ./cmd/agentctl
+seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
+
+# This is going to be fairly slow; try running with make -jX dist where X is # of CPUS
+dist: dist-agent dist-agentctl
 	for i in dist/*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
+.PHONY: dist
+
+dist-agent: dist/agent-linux-amd64 dist/agent-darwin-amd64 dist/agent-freebsd-amd64 dist/agent-windows-amd64.exe
+dist/agent-linux-amd64:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-darwin-amd64:
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-freebsd-amd64:
+	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-windows-amd64.exe:
+	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
+dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-darwin-amd64 dist/agentctl-freebsd-amd64 dist/agentctl-windows-amd64.exe
+dist/agentctl-linux-amd64:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-darwin-amd64:
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-freebsd-amd64:
+	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-windows-amd64.exe:
+	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+clean-dist:
+	rm -rf dist
+.PHONY: clean
 
 publish: dist
 	./tools/release
