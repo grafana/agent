@@ -253,7 +253,7 @@ grpc_client_config:
   [max_recv_msg_size: <int> | default = 104857600]
 
   # Maximum size in bytes the gRPC client will sent to the connected server.
-  [max_send_msg_size: <int> | deafult = 16777216]
+  [max_send_msg_size: <int> | default = 16777216]
 
   # Whether messages should be gzipped.
   [use_gzip_compression: <boolean> | default = false]
@@ -278,7 +278,7 @@ grpc_client_config:
     [max_period: <duration> | default = "10s"]
 
     # The number of times to backoff and retry before failing.
-    [max_retries: <int> | deafult = 10]
+    [max_retries: <int> | default = 10]
 ```
 
 ### global_config
@@ -1440,6 +1440,9 @@ agent:
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
+# Controls the node_exporter integration
+node_exporter: <node_exporter_config>
+
 # When true, adds an agent_hostname label to all samples coming from
 # integrations. The value of the agent_hostname label will be the
 # value of $HOSTNAME (if available) or the machine's hostname.
@@ -1459,4 +1462,462 @@ prometheus_remote_write:
   - [<remote_write>]
 ```
 
+### node_exporter_config
 
+The `node_exporter_config` block configures the `node_exporter` integration,
+which is an embedded version of
+[`node_exporter`](https://github.com/prometheus/node_exporter)
+and allows for collecting metrics from UNIX systems. It provides a massive
+amount of configuration options for scraping metrics from various collectors
+that are responsible for monitoring various aspects of the host system.
+
+The `node_exporter` integration will collect metrics from the host system.
+Note that if running the Agent in a container, you will need to bind mount
+folders from the host system so the integration can monitor them:
+
+```
+docker run \
+  --net="host" \
+  --pid="host" \
+  --cap-add=SYS_TIME \
+  -v "/:/host:ro,rslave" \
+  -v /tmp/agent:/etc/agent \
+  -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
+  grafana/agent:v0.3.2 \
+  --integrations.node_exporter.rootfs-path=/host
+```
+
+For running on Kubernetes, ensure to set the equivalent mounts and capabilities
+there as well. The manifest and Tanka configs provided by this repository do not
+have the mounts or capabilities required for running this integration.
+
+```yaml
+  # Enables the node_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the host UNIX system.
+  [enabled: <boolean> | default = false]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <boolean> | default = false]
+
+  # procfs mountpoint.
+  [procfs_path: <string> | default = "/proc"]
+
+  # sysfs mountpoint.
+  [sysfs_path: <string> | default = "/sys"]
+
+  # rootfs mountpoint. If running in docker, the root filesystem of the host
+  # machine should be mounted and this value should be changed to the mount
+  # directory.
+  [rootfs_path: <string> | default = "/"]
+
+  # Exposes ARP statistics from /proc/net/arp.
+  #
+  # OS: Linux
+  [enable-arp-collector: <boolean> | default = true]
+
+  # Exposes bcache statistics from /sys/fs/bcache.
+  #
+  # OS: Linux
+  [enable-bcache-collector: <boolean> | default = true]
+
+  # Exposes the number of configured and active slaves of Linux bonding
+  # interfaces.
+  #
+  # OS: Linux
+  [enable-bonding-collector: <boolean> | default = true]
+
+  # Exposes system boot time derived from the kern.boottime sysctl.
+  #
+  # OS: Darwin, Dragonfly, FreeBSD, NetBSD, OpenBSD, Solaris
+  [enable-boottime-collector: <boolean> | default = true]
+
+  # Exposes statistics on btrfs.
+  #
+  # OS: Linux
+  [enable-btrfs-collector: <boolean> | default = true]
+
+  # Exposes CPU frequency statistics.
+  #
+  # OS: Linux, Solaris
+  [enable-cpufreq-collector: <boolean> | default = true]
+
+  # Shows conntrack statistics (does nothing if no /proc/sys/net/netfilter/
+  # present).
+  #
+  # OS: Linux
+  [enable-conntrack-collector: <boolean> | default = true]
+
+  # Exposes error detection and correction statistics.
+  #
+  # OS: Linux
+  [enable-edac-collector: <boolean> | default = true]
+
+  # Exposes available entropy.
+  #
+  # OS: Linux
+  [enable-entropy-collector: <boolean> | default = true]
+
+  # Exposes execution statistics.
+  #
+  # OS: Dragonfly, FreeBSD
+  [enable-exec-collector: <boolean> | default = true]
+
+  # Exposes file descriptor statistics from /proc/sys/fs/file-nr.
+  #
+  # OS: Linux
+  [enable-filefd-collector: <boolean> | default = true]
+
+  # Exposes hardware monitoring and sensor data from /sys/class/hwmon.
+  #
+  # OS: Linux
+  [enable-hwmon-collector: <boolean> | default = true]
+
+  # Exposes IPVS status from /proc/net/ip_vs and stats from
+  # /proc/net/ip_vs_stats.
+  #
+  # OS: Linux
+  [enable-ipvs-collector: <boolean> | default = true]
+
+  # Exposes network statistics specific to InfiniBand and Intel OmniPath
+  # configurations.
+  #
+  # OS: Linux
+  [enable-infiniband-collector: <boolean> | default = true]
+
+  # Exposes load average.
+  #
+  # OS: Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris
+  [enable-load-avg-collector: <boolean> | default = true]
+
+  # Exposes statistics about devices in /proc/mdstat (does nothing if no
+  # /proc/mdstat present).
+  #
+  # OS: Linux
+  [enable-mdadm-collector: <boolean> | default = true]
+
+  # Exposes memory statistics.
+  #
+  # OS: Darwin, Dragonfly, FreeBSD, Linux, OpenBSD
+  [enable-meminfo-collector: <boolean> | default = true]
+
+  # Exposes NFS client statistics from /proc/net/rpc/nfs. This is the same
+  # information as nfsstat -c.
+  #
+  # OS: Linux
+  [enable-nfs-collector: <boolean> | default = true]
+
+  # Exposes NFS kernel server statistics from /proc/net/rpc/nfsd. This is the
+  # same information as nfsstat -s.
+  #
+  # OS: Linux
+  [enable-nfsd-collector: <boolean> | default = true]
+
+  # Exposes pressure stall statistics from /proc/pressure/.
+  #
+  # OS: Linux (kernel 4.20+ and/or CONFIG_PSI)
+  [enable-pressure-collector: <boolean> | default = true]
+
+  # Exposes various statistics from /sys/class/powercap.
+  #
+  # OS: Linux
+  [enable-rapl-collector: <boolean> | default = true]
+
+  # Exposes task scheduler statistics from /proc/schedstat.
+  #
+  # OS: Linux
+  [enable-schedstat-collector: <boolean> | default = true]
+
+  # Exposes various statistics from /proc/net/sockstat.
+  #
+  # OS: Linux
+  [enable-sockstat-collector: <boolean> | default = true]
+
+  # Exposes statistics from /proc/net/softnet_stat.
+  #
+  # OS: Linux
+  [enable-softnet-collector: <boolean> | default = true]
+
+  # Exposes various statistics from /proc/stat. This includes boot time, forks
+  # and interrupts.
+  #
+  # OS: Linux
+  [enable-stat-collector: <boolean> | default = true]
+
+  # Exposes thermal zone & cooling device statistics from /sys/class/thermal.
+  #
+  # OS: Linux
+  [enable-thermal-zone-collector: <boolean> | default = true]
+
+  # Exposes the current system time.
+  #
+  # OS: any
+  [enable-time-collector: <boolean> | default = true]
+
+  # Exposes selected adjtimex(2) system call stats.
+  #
+  # OS: Linux
+  [enable-timex-collector: <boolean> | default = true]
+
+  # Exposes UDP total lengths of the rx_queue and tx_queue from /proc/net/udp
+  # and /proc/net/udp6.
+  #
+  # OS: Linux
+  [enable-udp-queues-collector: <boolean> | default = true]
+
+  # Exposes system information as provided by the uname system call.
+  #
+  # OS: Darwin, FreeBSD, Linux, OpenBSD
+  [enable-uname-collector: <boolean> | default = true]
+
+  # Exposes XFS runtime statistics.
+  #
+  # OS: Linux (kernel 4.4+)
+  [enable-xfs-collector: <boolean> | default = true]
+
+  # Exposes ZFS performance statistics.
+  #
+  # OS: Linux, Solaris
+  [enable-zfs-collector: <boolean> | default = true]
+
+  # Exposes statistics of memory fragments as reported by /proc/buddyinfo.
+  #
+  # OS: Linux
+  [enable-buddyinfo-collector: <boolean> | default = false]
+
+  # Exposes Distributed Replicated Block Device statistics (to version 8.4).
+  #
+  # OS: Linux
+  [enable-drbd-collector: <boolean> | default = false]
+
+  # Exposes device statistics.
+  #
+  # OS: Dragonfly, FreeBSD
+  [enable-devstat-collector: <boolean> | default = false]
+
+  # Exposes detailed interrupts statistics.
+  #
+  # OS: Linux, OpenBSD
+  [enable-interrupts-collector: <boolean> | default = false]
+
+  # Exposes kernel and system statistics from /sys/kernel/mm/ksm.
+  #
+  # OS: Linux
+  [enable-ksmd-collector: <boolean> | default = false]
+
+  # Exposes session counts from logind.
+  #
+  # OS: Linux
+  [enable-logind-collector: <boolean> | default = false]
+
+  # Exposes memory statistics from /proc/meminfo_numa.
+  #
+  # OS: Linux
+  [enable-meminfo-numa-collector: <boolean> | default = false]
+
+  # Exposes filesystem statistics from /proc/self/mountstats. Exposes detailed
+  # NFS client statistics.
+  #
+  # OS: Linux
+  [enable-mountstats-collector: <boolean> | default = false]
+
+  # Exposes aggregate process statistics from /proc.
+  #
+  # OS: Linux
+  [enable-processes-collector: <boolean> | default = false]
+
+  # Exposes queuing discipline statistics.
+  #
+  # OS: Linux
+  [enable-qdisc-collector: <boolean> | default = false]
+
+  # Exposes TCP connection status information from /proc/net/tcp and
+  # /proc/net/tcp6. (Warning: the current version has potential performance issues
+  # in high load situations).
+  #
+  # OS: Linux
+  [enable-tcpstat-collector: <boolean> | default = false]
+
+  # Exposes WiFi device and station statistics.
+  #
+  # OS: Linux
+  [enable-wifi-collector: <boolean> | default = false]
+
+  # Exposes CPU statistics.
+  #
+  # OS: Darwin, Dragonfly, FreeBSD, Linux, Solaris
+  cpu_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Enable the cpu_info metric.
+    [enable_cpu_info_metric: <boolean> | default = true]
+
+  # Exposes disk I/O statistics.
+  #
+  # OS: Darwin, Linux, OpenBSD
+  diskstats_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Regexmp of devices to ignore for diskstats.
+    [ignored_devices: <string> | default = "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"]
+
+  # Exposes filesystem statistics, such as disk space used.
+  #
+  # OS: Darwin, Dragonfly, FreeBSD, Linux, OpenBSD
+  filesystem_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Regexp of mount points to ignore for filesystem collector.
+    [ignored_mount_points: <string> | default = "^/(dev|proc|sys|var/lib/docker/.+)($|/)"]
+
+    # Regexp of filesystem types to ignore for filesystem collector.
+    [ignored_fs_types: <string> | default = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"]
+
+  # Exposes local NTP daemon helath to check time.
+  #
+  # OS: any
+  ntp_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = false]
+
+    # NTP server to use for ntp collector
+    [server: <string> | default = "127.0.0.1"]
+
+    # NTP protocol version
+    [protocol_version: <int> | default = 4]
+
+    # Certify that the server address is not a public ntp server.
+    [server_is_local: <boolean> | default = false]
+
+    # IP TTL to use wile sending NTP query.
+    [ip_ttl: <int> | default = 1]
+
+    # Max accumulated distance to the root.
+    [max_distance: <duration> | default = "3466080us"]
+
+    # Offset between local clock and local ntpd time to tolerate.
+    [local_offset_tolerance: <duration> | default = "1ms"]
+
+  # Exposes network interface info from /sys/class/net.
+  #
+  # OS: Linux
+  netclass_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Regexp of net devices to ignore for netclass collector.
+    [ignored_devices: <string> | default = "^$"]
+
+  # Exposes network interface statistics such as bytes transferred.
+  #
+  # OS: Darwin, Dragonfly, FreeBSD, Linux, OpenBSD
+  netdev_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Regexp of net devices to blacklist (mutually exclusive with whitelist)
+    [device_blacklist: <string> | default = ""]
+
+    # Regexp of net devices to whitelist (mutually exclusive with blacklist)
+    [device_whitelist: <string> | default = ""]
+
+  # Exposes network statistics from /proc/net/netstat. This is the same
+  # information as netstat -s.
+  #
+  # OS: Linux
+  netstat_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Regexp of fields to return for netstat collector.
+    [fields: <string> | default = "^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans)|Tcp_(ActiveOpens|InSegs|OutSegs|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$"]
+
+  # Exposes perf based metrics (Warning: Metrics are dependent on kernel
+  # configuration and settings).
+  #
+  # OS: Linux
+  perf_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = false]
+
+    # List of CPUs from which perf metrics should be collected.
+    [cpus: <string> | default = ""]
+
+  # Collects information on PSU metrics.
+  #
+  # OS: Any
+  powersupply_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Regexp of power supplies to ignore.
+    [ignored_supplies: <string> | default = "^$"]
+
+  # Exposes service status from runit.
+  #
+  # OS: any
+  runit_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = false]
+
+    # Path to runit service directory.
+    [service_dir: <string> | default = "/etc/service"]
+
+  # Exposes service status from supervisord.
+  #
+  # OS: any
+  supervisord_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = false]
+
+    # XML RPC endpoint.
+    [url: <string> | default = "http://localhost:9001/RPC2"]
+
+  # Exposes service and system status from systemd.
+  #
+  # OS: Linux
+  systemd_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = false]
+
+    # Regexp of systemd units to whitelist. Units must both match whitelist
+    # and not match blacklist to be included.
+    [unit_whitelist: <string> | default = ".+"]
+
+    # Regexp of systemd units to blacklist. Units must both match whitelist
+    # and not match blacklist to be included.
+    [unit_blacklist: <string> | default = ".+\\.(automount|device|mount|scope|slice)"]
+
+    # Enables service unit tasks metrics unit_tasks_current and unit_tasks_max
+    [enable_task_metrics: <boolean> | default = false]
+
+    # Enables service unit metric service_restart_total
+    [enable_restarts_metrics: <boolean> | default = false]
+
+    # Enables service unit metric unit_start_time_seconds
+    [enable_start_time_metrics: <boolean> | default = false]
+
+  # Collects metrics from files in a directory matching the filename pattern *.prom.
+  # The files must be using the text format defined here:
+  #   https://prometheus.io/docs/instrumenting/exposition_formats/
+  #
+  # OS: Any
+  textfile_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Directory to read *.prom files from.
+    [directory: <string> | default = ""]
+
+  # Exposes statistics from /proc/vmstat.
+  #
+  # OS: Linux
+  vmstat_collector:
+    # Enables the collector.
+    [enabled: <boolean> | default = true]
+
+    # Regexp of fields to return.
+    [fields: <string> | default = "^(oom_kill|pgpg|pswp|pg.*fault).*"]
+```

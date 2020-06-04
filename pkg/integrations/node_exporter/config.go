@@ -14,7 +14,7 @@ type Config struct {
 	CommonConfig config.Common `yaml:",inline"`
 
 	// Enabled enables the node_exporter integration.
-	Enabled bool
+	Enabled bool `yaml:"enabled"`
 
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 
@@ -330,7 +330,7 @@ type NTPConfig struct {
 	Enabled              bool          `yaml:"enabled"`
 	Server               string        `yaml:"server"`
 	ProtocolVersion      int           `yaml:"protocol_version"`
-	ServerIsLocal        bool          `yaml:"server-is-local"`
+	ServerIsLocal        bool          `yaml:"server_is_local"`
 	IPTTL                int           `yaml:"ip_ttl"`
 	MaxDistance          time.Duration `yaml:"max_distance"`
 	LocalOffsetTolerance time.Duration `yaml:"local_offset_tolerance"`
@@ -468,7 +468,7 @@ type SupervisordConfig struct {
 
 func (c *SupervisordConfig) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.BoolVar(&c.Enabled, prefix+"supervisord-collector.enabled", false, "Exposes service status from supervisord. OS: any")
-	f.StringVar(&c.URL, prefix+"supervisord-collector.url", "http://localhost:9001/RPC2", "XML RFC endpoint")
+	f.StringVar(&c.URL, prefix+"supervisord-collector.url", "http://localhost:9001/RPC2", "XML RPC endpoint")
 }
 
 func (c *SupervisordConfig) NodeExporterFlags() (flags []string) {
@@ -565,7 +565,7 @@ type TextfileConfig struct {
 
 func (c *TextfileConfig) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.BoolVar(&c.Enabled, prefix+"textfile-collector.enabled", true, "enables the textfile collector")
-	f.StringVar(&c.Directory, prefix+"textfil-collectore.directory", "", "directory for the textfile collector to read from")
+	f.StringVar(&c.Directory, prefix+"textfile-collector.directory", "", "directory for the textfile collector to read from")
 }
 
 func (c *TextfileConfig) NodeExporterFlags() (flags []string) {
