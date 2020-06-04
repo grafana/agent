@@ -1517,234 +1517,234 @@ running on is a no-op.
   # Exposes ARP statistics from /proc/net/arp.
   #
   # OS: Linux
-  [enable-arp-collector: <boolean> | default = true]
+  [enable_arp_collector: <boolean> | default = true]
 
   # Exposes bcache statistics from /sys/fs/bcache.
   #
   # OS: Linux
-  [enable-bcache-collector: <boolean> | default = true]
+  [enable_bcache_collector: <boolean> | default = true]
 
   # Exposes the number of configured and active slaves of Linux bonding
   # interfaces.
   #
   # OS: Linux
-  [enable-bonding-collector: <boolean> | default = true]
+  [enable_bonding_collector: <boolean> | default = true]
 
   # Exposes system boot time derived from the kern.boottime sysctl.
   #
   # OS: Darwin, Dragonfly, FreeBSD, NetBSD, OpenBSD, Solaris
-  [enable-boottime-collector: <boolean> | default = true]
+  [enable_boottime_collector: <boolean> | default = true]
 
   # Exposes statistics on btrfs.
   #
   # OS: Linux
-  [enable-btrfs-collector: <boolean> | default = true]
+  [enable_btrfs_collector: <boolean> | default = true]
 
   # Exposes CPU frequency statistics.
   #
   # OS: Linux, Solaris
-  [enable-cpufreq-collector: <boolean> | default = true]
+  [enable_cpufreq_collector: <boolean> | default = true]
 
   # Shows conntrack statistics (does nothing if no /proc/sys/net/netfilter/
   # present).
   #
   # OS: Linux
-  [enable-conntrack-collector: <boolean> | default = true]
+  [enable_conntrack_collector: <boolean> | default = true]
 
   # Exposes error detection and correction statistics.
   #
   # OS: Linux
-  [enable-edac-collector: <boolean> | default = true]
+  [enable_edac_collector: <boolean> | default = true]
 
   # Exposes available entropy.
   #
   # OS: Linux
-  [enable-entropy-collector: <boolean> | default = true]
+  [enable_entropy_collector: <boolean> | default = true]
 
   # Exposes execution statistics.
   #
   # OS: Dragonfly, FreeBSD
-  [enable-exec-collector: <boolean> | default = true]
+  [enable_exec_collector: <boolean> | default = true]
 
   # Exposes file descriptor statistics from /proc/sys/fs/file-nr.
   #
   # OS: Linux
-  [enable-filefd-collector: <boolean> | default = true]
+  [enable_filefd_collector: <boolean> | default = true]
 
   # Exposes hardware monitoring and sensor data from /sys/class/hwmon.
   #
   # OS: Linux
-  [enable-hwmon-collector: <boolean> | default = true]
+  [enable_hwmon_collector: <boolean> | default = true]
 
   # Exposes IPVS status from /proc/net/ip_vs and stats from
   # /proc/net/ip_vs_stats.
   #
   # OS: Linux
-  [enable-ipvs-collector: <boolean> | default = true]
+  [enable_ipvs_collector: <boolean> | default = true]
 
   # Exposes network statistics specific to InfiniBand and Intel OmniPath
   # configurations.
   #
   # OS: Linux
-  [enable-infiniband-collector: <boolean> | default = true]
+  [enable_infiniband_collector: <boolean> | default = true]
 
   # Exposes load average.
   #
   # OS: Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris
-  [enable-load-avg-collector: <boolean> | default = true]
+  [enable_load_avg_collector: <boolean> | default = true]
 
   # Exposes statistics about devices in /proc/mdstat (does nothing if no
   # /proc/mdstat present).
   #
   # OS: Linux
-  [enable-mdadm-collector: <boolean> | default = true]
+  [enable_mdadm_collector: <boolean> | default = true]
 
   # Exposes memory statistics.
   #
   # OS: Darwin, Dragonfly, FreeBSD, Linux, OpenBSD
-  [enable-meminfo-collector: <boolean> | default = true]
+  [enable_meminfo_collector: <boolean> | default = true]
 
   # Exposes NFS client statistics from /proc/net/rpc/nfs. This is the same
   # information as nfsstat -c.
   #
   # OS: Linux
-  [enable-nfs-collector: <boolean> | default = true]
+  [enable_nfs_collector: <boolean> | default = true]
 
   # Exposes NFS kernel server statistics from /proc/net/rpc/nfsd. This is the
   # same information as nfsstat -s.
   #
   # OS: Linux
-  [enable-nfsd-collector: <boolean> | default = true]
+  [enable_nfsd_collector: <boolean> | default = true]
 
   # Exposes pressure stall statistics from /proc/pressure/.
   #
   # OS: Linux (kernel 4.20+ and/or CONFIG_PSI)
-  [enable-pressure-collector: <boolean> | default = true]
+  [enable_pressure_collector: <boolean> | default = true]
 
   # Exposes various statistics from /sys/class/powercap.
   #
   # OS: Linux
-  [enable-rapl-collector: <boolean> | default = true]
+  [enable_rapl_collector: <boolean> | default = true]
 
   # Exposes task scheduler statistics from /proc/schedstat.
   #
   # OS: Linux
-  [enable-schedstat-collector: <boolean> | default = true]
+  [enable_schedstat_collector: <boolean> | default = true]
 
   # Exposes various statistics from /proc/net/sockstat.
   #
   # OS: Linux
-  [enable-sockstat-collector: <boolean> | default = true]
+  [enable_sockstat_collector: <boolean> | default = true]
 
   # Exposes statistics from /proc/net/softnet_stat.
   #
   # OS: Linux
-  [enable-softnet-collector: <boolean> | default = true]
+  [enable_softnet_collector: <boolean> | default = true]
 
   # Exposes various statistics from /proc/stat. This includes boot time, forks
   # and interrupts.
   #
   # OS: Linux
-  [enable-stat-collector: <boolean> | default = true]
+  [enable_stat_collector: <boolean> | default = true]
 
   # Exposes thermal zone & cooling device statistics from /sys/class/thermal.
   #
   # OS: Linux
-  [enable-thermal-zone-collector: <boolean> | default = true]
+  [enable_thermal_zone_collector: <boolean> | default = true]
 
   # Exposes the current system time.
   #
   # OS: any
-  [enable-time-collector: <boolean> | default = true]
+  [enable_time_collector: <boolean> | default = true]
 
   # Exposes selected adjtimex(2) system call stats.
   #
   # OS: Linux
-  [enable-timex-collector: <boolean> | default = true]
+  [enable_timex_collector: <boolean> | default = true]
 
   # Exposes UDP total lengths of the rx_queue and tx_queue from /proc/net/udp
   # and /proc/net/udp6.
   #
   # OS: Linux
-  [enable-udp-queues-collector: <boolean> | default = true]
+  [enable_udp_queues_collector: <boolean> | default = true]
 
   # Exposes system information as provided by the uname system call.
   #
   # OS: Darwin, FreeBSD, Linux, OpenBSD
-  [enable-uname-collector: <boolean> | default = true]
+  [enable_uname_collector: <boolean> | default = true]
 
   # Exposes XFS runtime statistics.
   #
   # OS: Linux (kernel 4.4+)
-  [enable-xfs-collector: <boolean> | default = true]
+  [enable_xfs_collector: <boolean> | default = true]
 
   # Exposes ZFS performance statistics.
   #
   # OS: Linux, Solaris
-  [enable-zfs-collector: <boolean> | default = true]
+  [enable_zfs_collector: <boolean> | default = true]
 
   # Exposes statistics of memory fragments as reported by /proc/buddyinfo.
   #
   # OS: Linux
-  [enable-buddyinfo-collector: <boolean> | default = false]
+  [enable_buddyinfo_collector: <boolean> | default = false]
 
   # Exposes Distributed Replicated Block Device statistics (to version 8.4).
   #
   # OS: Linux
-  [enable-drbd-collector: <boolean> | default = false]
+  [enable_drbd_collector: <boolean> | default = false]
 
   # Exposes device statistics.
   #
   # OS: Dragonfly, FreeBSD
-  [enable-devstat-collector: <boolean> | default = false]
+  [enable_devstat_collector: <boolean> | default = false]
 
   # Exposes detailed interrupts statistics.
   #
   # OS: Linux, OpenBSD
-  [enable-interrupts-collector: <boolean> | default = false]
+  [enable_interrupts_collector: <boolean> | default = false]
 
   # Exposes kernel and system statistics from /sys/kernel/mm/ksm.
   #
   # OS: Linux
-  [enable-ksmd-collector: <boolean> | default = false]
+  [enable_ksmd_collector: <boolean> | default = false]
 
   # Exposes session counts from logind.
   #
   # OS: Linux
-  [enable-logind-collector: <boolean> | default = false]
+  [enable_logind_collector: <boolean> | default = false]
 
   # Exposes memory statistics from /proc/meminfo_numa.
   #
   # OS: Linux
-  [enable-meminfo-numa-collector: <boolean> | default = false]
+  [enable_meminfo_numa_collector: <boolean> | default = false]
 
   # Exposes filesystem statistics from /proc/self/mountstats. Exposes detailed
   # NFS client statistics.
   #
   # OS: Linux
-  [enable-mountstats-collector: <boolean> | default = false]
+  [enable_mountstats_collector: <boolean> | default = false]
 
   # Exposes aggregate process statistics from /proc.
   #
   # OS: Linux
-  [enable-processes-collector: <boolean> | default = false]
+  [enable_processes_collector: <boolean> | default = false]
 
   # Exposes queuing discipline statistics.
   #
   # OS: Linux
-  [enable-qdisc-collector: <boolean> | default = false]
+  [enable_qdisc_collector: <boolean> | default = false]
 
   # Exposes TCP connection status information from /proc/net/tcp and
   # /proc/net/tcp6. (Warning: the current version has potential performance issues
   # in high load situations).
   #
   # OS: Linux
-  [enable-tcpstat-collector: <boolean> | default = false]
+  [enable_tcpstat_collector: <boolean> | default = false]
 
   # Exposes WiFi device and station statistics.
   #
   # OS: Linux
-  [enable-wifi-collector: <boolean> | default = false]
+  [enable_wifi_collector: <boolean> | default = false]
 
   # Exposes CPU statistics.
   #
