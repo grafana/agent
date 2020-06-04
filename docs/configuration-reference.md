@@ -44,7 +44,10 @@ Support contents and default values of `agent.yaml`:
 ## server_config
 
 The `server_config` block configures the Agent's behavior as an HTTP server,
-which is currently only used to expose its own metrics for scraping:
+gRPC server, and the log level for the whole process.
+
+The Agent exposes an HTTP server for scraping its own metrics and gRPC for the
+scraping service mode.
 
 ```yaml
 # HTTP server listen host
@@ -85,7 +88,8 @@ which is currently only used to expose its own metrics for scraping:
 [grpc_server_max_concurrent_streams: <int> | default = 100]
 
 # Log only messages with the given severity or above. Supported values [debug,
-# info, warn, error]
+# info, warn, error]. This level affects logging for the whole application, not
+# just the Agent's HTTP/gRPC server.
 [log_level: <string> | default = "info"]
 
 # Base path to server all API routes from (e.g., /v1/). Unused.
