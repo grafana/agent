@@ -1491,6 +1491,10 @@ For running on Kubernetes, ensure to set the equivalent mounts and capabilities
 there as well. The manifest and Tanka configs provided by this repository do not
 have the mounts or capabilities required for running this integration.
 
+Some collectors only work on specific operating systems, documented below.
+Enabling a collector that is not supported by the operating system the Agent is
+running on is a no-op.
+
 ```yaml
   # Enables the node_exporter integration, allowing the Agent to automatically
   # collect system metrics from the host UNIX system.
