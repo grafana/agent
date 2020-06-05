@@ -82,6 +82,31 @@ func copyConfig(t *testing.T, c Config) Config {
 	return cp
 }
 
+func TestConfigNonzeroDefaultScrapeInterval(t *testing.T) {
+	cfgText := `
+wal_directory: ./wal
+configs:
+  - name: testconfig
+    scrape_configs:
+      - job_name: 'node'
+        static_configs:
+          - targets: ['localhost:9100']
+`
+
+	var cfg Config
+
+	err := yaml.Unmarshal([]byte(cfgText), &cfg)
+	require.NoError(t, err)
+	err = cfg.ApplyDefaults()
+	require.NoError(t, err)
+
+	require.Equal(t, len(cfg.Configs), 1)
+	instanceConfig := cfg.Configs[0]
+	require.Equal(t, len(instanceConfig.ScrapeConfigs), 1)
+	scrapeConfig := instanceConfig.ScrapeConfigs[0]
+	require.Greater(t, int64(scrapeConfig.ScrapeInterval), int64(0))
+}
+
 func TestAgent(t *testing.T) {
 	// Lanch two instances
 	cfg := Config{
