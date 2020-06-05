@@ -35,6 +35,7 @@ var (
 
 var (
 	DefaultConfig = Config{
+		Global:                 config.DefaultGlobalConfig,
 		InstanceRestartBackoff: 5 * time.Second,
 	}
 )
@@ -48,6 +49,13 @@ type Config struct {
 	ServiceClientConfig    client.Config       `yaml:"scraping_service_client"`
 	Configs                []instance.Config   `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
+}
+
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
 }
 
 // ApplyDefaults applies default values to the Config and validates it.
