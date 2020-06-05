@@ -35,6 +35,7 @@ var (
 
 var (
 	DefaultConfig = Config{
+		Global:                 config.DefaultGlobalConfig,
 		InstanceRestartBackoff: 5 * time.Second,
 	}
 )
@@ -50,6 +51,13 @@ type Config struct {
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
 }
 
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
+}
+
 // ApplyDefaults applies default values to the Config and validates it.
 func (c *Config) ApplyDefaults() error {
 	if c.WALDir == "" {
@@ -62,11 +70,10 @@ func (c *Config) ApplyDefaults() error {
 
 	usedNames := map[string]struct{}{}
 
-	for i, cfg := range c.Configs {
-		err := c.Configs[i].ApplyDefaults(&c.Global)
-		if err != nil {
+	for i := range c.Configs {
+		name := c.Configs[i].Name
+		if err := c.Configs[i].ApplyDefaults(&c.Global); err != nil {
 			// Try to show a helpful name in the error
-			name := cfg.Name
 			if name == "" {
 				name = fmt.Sprintf("at index %d", i)
 			}
@@ -74,22 +81,14 @@ func (c *Config) ApplyDefaults() error {
 			return fmt.Errorf("error validating instance %s: %w", name, err)
 		}
 
-		if _, ok := usedNames[cfg.Name]; ok {
+		if _, ok := usedNames[name]; ok {
 			return fmt.Errorf(
 				"prometheus instance names must be unique. found multiple instances with name %s",
-				cfg.Name,
+				name,
 			)
 		}
-		usedNames[cfg.Name] = struct{}{}
+		usedNames[name] = struct{}{}
 	}
-
-	for i := range c.Configs {
-		err := c.Configs[i].ApplyDefaults(&c.Global)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
