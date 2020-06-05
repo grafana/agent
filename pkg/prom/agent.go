@@ -81,14 +81,6 @@ func (c *Config) ApplyDefaults() error {
 		}
 		usedNames[name] = struct{}{}
 	}
-
-	for i := range c.Configs {
-		err := c.Configs[i].ApplyDefaults(&c.Global)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
