@@ -8,7 +8,7 @@ data:
   agent.yml: |
     prometheus:
         configs:
-          - host_filter: false
+          - host_filter: true
             name: agent
             remote_write:
               - basic_auth:
