@@ -30,7 +30,7 @@
     // as a DaemonSet (like it is here by default), then disabling this will
     // scrape all metrics multiple times, once per node, leading to
     // duplicate samples being rejected and might hit limits.
-    agent_host_filter: false,
+    agent_host_filter: true,
 
     // The directory where the WAL is stored for all instances.
     agent_wal_dir: '/var/lib/agent/data',
