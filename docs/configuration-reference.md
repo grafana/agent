@@ -1562,6 +1562,14 @@ the Agent is running on is a no-op.
   # collect system metrics from the host UNIX system.
   [enabled: <boolean> | default = false]
 
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timtout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <boolean> | default = false]
 
