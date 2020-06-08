@@ -312,11 +312,17 @@ name: string
 # same machine as the agent process.
 [host_filter: <boolean> | default = false]
 
-# How frequently the WAL should be truncated of its old data.
+# How frequently the WAL truncation process should run. Every iteration of 
+# truncation will checkpoint old series, create a new segment for new samples,
+# and remove old samples that have been succesfully sent via remote_write. 
+# If there are are multiple remote_write endpoints, the endpoint with the 
+# earliest timestamp is used for the cutoff period, ensuring that no data 
+# gets truncated until all remote_write configurations have been able to 
+# send the data.
 [wal_truncate_frequency: <duration> | default = "1m"]
 
-# Deadline for flushing data to the remote write before marking it
-# as an error.
+# Deadline for flushing data when a Prometheus instance shuts down 
+# before giving up and letting the shutdown proceed.
 [remote_flush_deadline: <duration> | default = "1m"]
 
 # When true, writes staleness markers to all active series to
