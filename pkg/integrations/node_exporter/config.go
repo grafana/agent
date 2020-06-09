@@ -33,45 +33,33 @@ type Config struct {
 	// listed.
 	SetCollectors flagext.StringSlice `yaml:"set_collectors"`
 
-	CPUEnableCPUInfo bool `yaml:"enable_cpu_info_metric"` // --collector.cpu.info
-
-	DiskStatsIgnoredDevices string `yaml:"diskstats_ignored_devices"` // --collector.diskstats.ignored-devices
-
-	FilesystemIgnoredMountPoints string `yaml:"filesystem_ignored_mount_points"` // --collector.filesystem.ignored-mount-points
-	FilesystemIgnoredFSTypes     string `yaml:"filesystem_ignored_fs_types"`     // --collector.filesystem.ignored-fs-types
-
-	NetclassIgnoredDevices string `yaml:"netclass_ignored_devices"` // --collector.netclass.ignored-devices
-
-	NetdevDeviceBlacklist string `yaml:"netdev_device_blacklist"` // --collector.netdev.device-blacklist
-	NetdevDeviceWhitelist string `yaml:"netdev_device_whitelist"` // --collector.netdev.device-whitelist
-
-	NetstatFields string `yaml:"netstat_fields"` // --collector.netstat.fields
-
-	NTPServer               string        `yaml:"ntp_server"`                 // --collector.ntp.server
-	NTPProtocolVersion      int           `yaml:"ntp_protocol_version"`       // --collector.ntp.protocol-version
-	NTPServerIsLocal        bool          `yaml:"ntp_server_is_local"`        // --collector.ntp.server-is-local
-	NTPIPTTL                int           `yaml:"ntp_ip_ttl"`                 // --collector.ntp.ip-ttl
-	NTPMaxDistance          time.Duration `yaml:"ntp_max_distance"`           // --collector.ntp.max-distance
-	NTPLocalOffsetTolerance time.Duration `yaml:"ntp_local_offset_tolerance"` // --collector.ntp.local-offset-tolerance
-
-	PerfCPUS       string              `yaml:"perf_cpus"`       // --collector.perf.cpus
-	PerfTracepoint flagext.StringSlice `yaml:"perf_tracepoint"` // --collector.perf.tracepoint
-
-	PowersupplyIgnoredSupplies string `yaml:"powersupply_ignored_supplies"` // --collector.powersupply.ignored-supplies
-
-	RunitServiceDir string `yaml:"runit_service_dir"` // --collector.runit.service-dir
-
-	SupervisordURL string `yaml:"supervisord_url"` // --collector.supervisord.url
-
-	SystemdUnitWhitelist          string `yaml:"systemd_unit_whitelist"`            // --collector.systemd.unit-whitelist
-	SystemdUnitBlacklist          string `yaml:"systemd_unit_blacklist"`            // --collector.systemd.unit-blacklist
-	SystemdEnableTaskMetrics      bool   `yaml:"systemd_enable_task_metrics"`       // --collector.systemd.enable-task-metrics
-	SystemdEnableRestartsMetrics  bool   `yaml:"systemd_enable_restarts_metrics"`   // --collector.systemd.enable-restarts-metrics
-	SystemdEnableStartTimeMetrics bool   `yaml:"systemd_enable_start_time_metrics"` // --collector.systemd.enable-start-time-metrics
-
-	VMStatFields string `yaml:"vmstat_fields"` // --collector.vmstat.fields
-
-	TextfileDirectory string `yaml:"textfile_directory"` // --collector.textfile.directory
+	// Collector-specific config options
+	CPUEnableCPUInfo              bool                `yaml:"enable_cpu_info_metric"`
+	DiskStatsIgnoredDevices       string              `yaml:"diskstats_ignored_devices"`
+	FilesystemIgnoredMountPoints  string              `yaml:"filesystem_ignored_mount_points"`
+	FilesystemIgnoredFSTypes      string              `yaml:"filesystem_ignored_fs_types"`
+	NetclassIgnoredDevices        string              `yaml:"netclass_ignored_devices"`
+	NetdevDeviceBlacklist         string              `yaml:"netdev_device_blacklist"`
+	NetdevDeviceWhitelist         string              `yaml:"netdev_device_whitelist"`
+	NetstatFields                 string              `yaml:"netstat_fields"`
+	NTPServer                     string              `yaml:"ntp_server"`
+	NTPProtocolVersion            int                 `yaml:"ntp_protocol_version"`
+	NTPServerIsLocal              bool                `yaml:"ntp_server_is_local"`
+	NTPIPTTL                      int                 `yaml:"ntp_ip_ttl"`
+	NTPMaxDistance                time.Duration       `yaml:"ntp_max_distance"`
+	NTPLocalOffsetTolerance       time.Duration       `yaml:"ntp_local_offset_tolerance"`
+	PerfCPUS                      string              `yaml:"perf_cpus"`
+	PerfTracepoint                flagext.StringSlice `yaml:"perf_tracepoint"`
+	PowersupplyIgnoredSupplies    string              `yaml:"powersupply_ignored_supplies"`
+	RunitServiceDir               string              `yaml:"runit_service_dir"`
+	SupervisordURL                string              `yaml:"supervisord_url"`
+	SystemdUnitWhitelist          string              `yaml:"systemd_unit_whitelist"`
+	SystemdUnitBlacklist          string              `yaml:"systemd_unit_blacklist"`
+	SystemdEnableTaskMetrics      bool                `yaml:"systemd_enable_task_metrics"`
+	SystemdEnableRestartsMetrics  bool                `yaml:"systemd_enable_restarts_metrics"`
+	SystemdEnableStartTimeMetrics bool                `yaml:"systemd_enable_start_time_metrics"`
+	VMStatFields                  string              `yaml:"vmstat_fields"`
+	TextfileDirectory             string              `yaml:"textfile_directory"`
 }
 
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
