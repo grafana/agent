@@ -1573,6 +1573,36 @@ the Agent is running on is a no-op.
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <boolean> | default = false]
 
+  # Optionally defines the the list of enabled-by-default collectors. 
+  # Anything not provided in the list below will be disabled by default, 
+  # but requires at least one element to be treated as defined. 
+  # 
+  # This is useful if you have a very explicit set of collectors you wish 
+  # to run.
+  set_collectors:
+    - [<string>]
+
+  # Additional collectors to enable on top of the default set of enabled 
+  # collectors or on top of the list provided by set_collectors.
+  # 
+  # This is useful if you have a few collectors you wish to run that are 
+  # not enabled by default, but do not want to explicitly provide an entire 
+  # list through set_collectors.
+  enable_collectors: 
+    - [<string>]
+
+  # Additional collectors to disable on top of the default set of disabled 
+  # collectors. Takes precedence over enable_collectors.
+
+  # Additional collectors to disable from the set of enabled collectors. 
+  # Takes precedence over enabled_collectors.
+  #
+  # This is useful if you have a few collectors you do not want to run that 
+  # are enabled by default, but do not want to explicitly provide an entire 
+  # list through set_collectors.
+  disable_collectors:
+    - [<string>]
+
   # procfs mountpoint.
   [procfs_path: <string> | default = "/proc"]
 
