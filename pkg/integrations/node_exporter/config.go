@@ -79,7 +79,7 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 
 	c.CommonConfig.RegisterFlagsWithPrefix(prefix, f)
 
-	f.BoolVar(&c.Enabled, prefix+"enabled", false, "enable the node_exporter integration collect metrics from the host Linux system")
+	f.BoolVar(&c.Enabled, prefix+"enabled", false, "enable the node_exporter integration to collect metrics from the host Linux system")
 	f.BoolVar(&c.IncludeExporterMetrics, prefix+"include-exporter-metrics", false, "include metrics on the integration itself")
 
 	f.Var(&c.SetCollectors, prefix+"set-collectors",

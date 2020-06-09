@@ -5,7 +5,9 @@ import (
 	"sort"
 
 	"gopkg.in/alecthomas/kingpin.v2"
-) // CollectorState represents the default state of the collector, where it can
+)
+
+// CollectorState represents the default state of the collector, where it can
 // either be enabled or disabled
 type CollectorState bool
 
