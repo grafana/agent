@@ -50,12 +50,9 @@ func LoadFile(filename string, c *Config) error {
 	return Load(buf, c)
 }
 
-// Load loads a config and applies defaults
+// Load loads a config, but doesn't apply defaults. Defaults
+// should be deferred to a separate process to allow flags
+// to override values unmarshaled here.
 func Load(buf []byte, c *Config) error {
-	err := yaml.UnmarshalStrict(buf, c)
-	if err != nil {
-		return err
-	}
-
-	return c.ApplyDefaults()
+	return yaml.UnmarshalStrict(buf, c)
 }

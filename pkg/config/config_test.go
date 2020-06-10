@@ -2,30 +2,9 @@ package config
 
 import (
 	"testing"
-	"time"
 
-	"github.com/prometheus/common/model"
-	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
 )
-
-func TestConfig_OverrideDefaultsOnLoad(t *testing.T) {
-	cfg := `
-prometheus:
-  wal_directory: /tmp/wal
-  global:
-    scrape_timeout: 33s`
-	expect := promCfg.GlobalConfig{
-		ScrapeInterval:     model.Duration(1 * time.Minute),
-		ScrapeTimeout:      model.Duration(33 * time.Second),
-		EvaluationInterval: model.Duration(1 * time.Minute),
-	}
-
-	var c Config
-	err := Load([]byte(cfg), &c)
-	require.NoError(t, err)
-	require.Equal(t, expect, c.Prometheus.Global)
-}
 
 func TestConfig_StrictYamlParsing(t *testing.T) {
 	t.Run("duplicate key", func(t *testing.T) {

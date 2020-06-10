@@ -57,6 +57,10 @@ func main() {
 		log.Fatalf("error parsing flags: %v\n", err)
 	}
 
+	if err := cfg.ApplyDefaults(); err != nil {
+		log.Fatalln("error in config file: %w", err)
+	}
+
 	// After this point we can use util.Logger and stop using the log package
 	util.InitLogger(&cfg.Server)
 
