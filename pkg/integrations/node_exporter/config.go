@@ -244,7 +244,7 @@ func MapConfigToNodeExporterFlags(c *Config) []string {
 			"--collector.ntp.protocol-version", fmt.Sprintf("%d", c.NTPProtocolVersion),
 			"--collector.ntp.ip-ttl", fmt.Sprintf("%d", c.NTPIPTTL),
 			"--collector.ntp.max-distance", c.NTPMaxDistance.String(),
-			"--collector.ntp.local-offset-distance", c.NTPLocalOffsetTolerance.String(),
+			"--collector.ntp.local-offset-tolerance", c.NTPLocalOffsetTolerance.String(),
 		)
 
 		flags = append(flags, booleanFlagMap(map[*bool]string{
@@ -265,7 +265,7 @@ func MapConfigToNodeExporterFlags(c *Config) []string {
 	}
 
 	if collectors[CollectorRunit] {
-		flags = append(flags, "--collector.runit.service-dir", c.RunitServiceDir)
+		flags = append(flags, "--collector.runit.servicedir", c.RunitServiceDir)
 	}
 
 	if collectors[CollectorSupervisord] {
