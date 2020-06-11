@@ -21,6 +21,16 @@
 # URL must always be provided.
 #
 
+check_installed() {
+  if ! type $1 >/dev/null 2>&1; then
+    echo "error: $1 not installed" >&2
+    exit 1
+  fi
+}
+
+check_installed curl
+check_installed envsubst
+
 MANIFEST_BRANCH=v0.3.2
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent.yaml}
 

@@ -52,7 +52,7 @@ docker pull grafana/agent:v0.3.2
 ### Kubernetes Install Script
 
 Running this script will automatically download and apply our recommended
-Grafana Cloud Agent Kubernetes deployment manifest:
+Grafana Cloud Agent Kubernetes deployment manifest (requires `envsubst` (GNU gettext)):
 
 > **Warning**: Always verify scripts from the internet before running them.
 
