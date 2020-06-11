@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -33,6 +34,7 @@ import (
 
 var (
 	remoteWriteMetricName = "queue_highest_sent_timestamp_seconds"
+	managerMtx            sync.Mutex
 )
 
 // Default configuration values
@@ -258,7 +260,8 @@ func (i *Instance) Run(ctx context.Context) error {
 		return err
 	}
 
-	scrapeManager := scrape.NewManager(log.With(i.logger, "component", "scrape manager"), storage)
+	scrapeManager := newScrapeManager(log.With(i.logger, "component", "scrape manager"), storage)
+
 	err = scrapeManager.ApplyConfig(&config.Config{
 		GlobalConfig:  i.globalCfg,
 		ScrapeConfigs: i.cfg.ScrapeConfigs,
@@ -665,6 +668,14 @@ func (vc *MetricValueCollector) GetValues(label string, labelValues ...string) (
 	}
 
 	return vals, nil
+}
+
+func newScrapeManager(logger log.Logger, app storage.Appendable) *scrape.Manager {
+	// scrape.NewManager modifies a global variable in Prometheus. To avoid a
+	// data race of modifying that global, we lock a mutex here briefly.
+	managerMtx.Lock()
+	defer managerMtx.Unlock()
+	return scrape.NewManager(logger, app)
 }
 
 type runGroupContext struct {
