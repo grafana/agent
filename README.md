@@ -59,7 +59,7 @@ the remote system.
 
 The easiest way to get started with the Grafana Cloud Agent is to use the
 Kubernetes install script. Simply copy and paste the following line in your
-terminal:
+terminal (requires `envsubst` (GNU gettext)):
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
