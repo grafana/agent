@@ -47,8 +47,13 @@ DONT_FIND := -name tools -prune -o -name vendor -prune -o -name .git -prune -o -
 # Build flags
 VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags netgo $(MOD_FLAG)
-DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags netgo $(MOD_FLAG)
+GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
+DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
+
+# We need a separate set of flags for CGO, where building with -static can
+# cause problems with some C libraries.
+CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(MOD_FLAG)
+DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(MOD_FLAG)
 
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
@@ -100,8 +105,20 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
+# some platforms need CGO_ENABLED=1 for node_exporter
+need_cgo = 0
+ifeq ($(shell go env GOOS),darwin)
+need_cgo = 1
+else ifeq ($(shell go env GOOS),freebsd)
+need_cgo = 1
+endif
+
 cmd/agent/agent: cmd/agent/main.go
+ifeq ($(need_cgo),1)
+	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
+else
 	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+endif
 	$(NETGO_CHECK)
 
 cmd/agentctl/agentctl: cmd/agentctl/main.go
@@ -127,7 +144,11 @@ push-agentctl-image:
 	docker push $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG)
 
 install:
+ifeq ($(need_cgo),1)
+	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
+else
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent
+endif
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
 
 #######################
@@ -137,8 +158,11 @@ install:
 lint:
 	GO111MODULE=on GOGC=10 golangci-lint run -v $(GOLANGCI_ARG)
 
+# We have to run test twice: once for all packages with -race and then once more without -race
+# for packages that have known race detection issues
 test:
 	GOGC=10 go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
+	GOGC=10 go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter
 
 clean:
 	rm -rf cmd/agent/agent
@@ -155,12 +179,43 @@ example-dashboards:
 # Releasing #
 #############
 
-GOX = gox $(GO_FLAGS) -parallel=2 -output="dist/{{.Dir}}-{{.OS}}-{{.Arch}}"
-dist:
-	CGO_ENABLED=0 $(GOX) -osarch="linux/amd64 darwin/amd64 windows/amd64 freebsd/amd64" ./cmd/agent
-	CGO_ENABLED=0 $(GOX) -osarch="linux/amd64 darwin/amd64 windows/amd64 freebsd/amd64" ./cmd/agentctl
+seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
+
+# dist builds the agent and agentctl for all different supported platforms.
+# Most of these platforms need CGO_ENABLED=1, but to simplify things we'll
+# use CGO_ENABLED for all of them. We define them all as separate targets
+# to allow for parallelization with make -jX.
+#
+# We use rfratto/seego for building these cross-platform images. seego provides
+# a docker image with gcc toolchains for all of these platforms.
+dist: dist-agent dist-agentctl
 	for i in dist/*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
+.PHONY: dist
+
+dist-agent: dist/agent-linux-amd64 dist/agent-darwin-amd64 dist/agent-freebsd-amd64 dist/agent-windows-amd64.exe
+dist/agent-linux-amd64:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-darwin-amd64:
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-freebsd-amd64:
+	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-windows-amd64.exe:
+	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
+dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-darwin-amd64 dist/agentctl-freebsd-amd64 dist/agentctl-windows-amd64.exe
+dist/agentctl-linux-amd64:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-darwin-amd64:
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-freebsd-amd64:
+	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-windows-amd64.exe:
+	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+clean-dist:
+	rm -rf dist
+.PHONY: clean
 
 publish: dist
 	./tools/release
