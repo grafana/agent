@@ -2,6 +2,7 @@ package node_exporter //nolint:golint
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util/flagext"
@@ -139,48 +140,50 @@ func MapConfigToNodeExporterFlags(c *Config) []string {
 	}
 
 	DisableUnavailableCollectors(collectors)
-	flags := MapCollectorsToFlags(collectors)
 
-	flags = append(flags,
+	var flags flags
+	flags = append(flags, MapCollectorsToFlags(collectors)...)
+
+	flags.add(
 		"--path.procfs", c.ProcFSPath,
 		"--path.sysfs", c.SysFSPath,
 		"--path.rootfs", c.RootFSPath,
 	)
 
 	if collectors[CollectorCPU] {
-		flags = append(flags, booleanFlagMap(map[*bool]string{
+		flags.addBools(map[*bool]string{
 			&c.CPUEnableCPUInfo: "collector.cpu.info",
-		})...)
+		})
 	}
 
 	if collectors[CollectorDiskstats] {
-		flags = append(flags, "--collector.diskstats.ignored-devices", c.DiskStatsIgnoredDevices)
+		flags.add("--collector.diskstats.ignored-devices", c.DiskStatsIgnoredDevices)
 	}
 
 	if collectors[CollectorFilesystem] {
-		flags = append(flags,
+		flags.add(
 			"--collector.filesystem.ignored-mount-points", c.FilesystemIgnoredMountPoints,
 			"--collector.filesystem.ignored-fs-types", c.FilesystemIgnoredFSTypes,
 		)
 	}
 
 	if collectors[CollectorNetclass] {
-		flags = append(flags, "--collector.netclass.ignored-devices", c.NetclassIgnoredDevices)
+		flags.add("--collector.netclass.ignored-devices", c.NetclassIgnoredDevices)
 	}
 
 	if collectors[CollectorNetdev] {
-		flags = append(flags,
+		flags.add(
 			"--collector.netdev.device-blacklist", c.NetdevDeviceBlacklist,
 			"--collector.netdev.device-whitelist", c.NetdevDeviceWhitelist,
 		)
 	}
 
 	if collectors[CollectorNetstat] {
-		flags = append(flags, "--collector.netstat.fields", c.NetstatFields)
+		flags.add("--collector.netstat.fields", c.NetstatFields)
 	}
 
 	if collectors[CollectorNTP] {
-		flags = append(flags,
+		flags.add(
 			"--collector.ntp.server", c.NTPServer,
 			"--collector.ntp.protocol-version", fmt.Sprintf("%d", c.NTPProtocolVersion),
 			"--collector.ntp.ip-ttl", fmt.Sprintf("%d", c.NTPIPTTL),
@@ -188,56 +191,78 @@ func MapConfigToNodeExporterFlags(c *Config) []string {
 			"--collector.ntp.local-offset-tolerance", c.NTPLocalOffsetTolerance.String(),
 		)
 
-		flags = append(flags, booleanFlagMap(map[*bool]string{
+		flags.addBools(map[*bool]string{
 			&c.NTPServerIsLocal: "collector.ntp.server-is-local",
-		})...)
+		})
 	}
 
 	if collectors[CollectorPerf] {
-		flags = append(flags, "--collector.perf.cpus", c.PerfCPUS)
+		flags.add("--collector.perf.cpus", c.PerfCPUS)
 
 		for _, tp := range c.PerfTracepoint {
-			flags = append(flags, "--collector.perf.tracepoint", tp)
+			flags.add("--collector.perf.tracepoint", tp)
 		}
 	}
 
 	if collectors[CollectorPowersuppply] {
-		flags = append(flags, "--collector.powersupply.ignored-supplies", c.PowersupplyIgnoredSupplies)
+		flags.add("--collector.powersupply.ignored-supplies", c.PowersupplyIgnoredSupplies)
 	}
 
 	if collectors[CollectorRunit] {
-		flags = append(flags, "--collector.runit.servicedir", c.RunitServiceDir)
+		flags.add("--collector.runit.servicedir", c.RunitServiceDir)
 	}
 
 	if collectors[CollectorSupervisord] {
-		flags = append(flags, "--collector.supervisord.url", c.SupervisordURL)
+		flags.add("--collector.supervisord.url", c.SupervisordURL)
 	}
 
 	if collectors[CollectorSystemd] {
-		flags = append(flags,
+		flags.add(
 			"--collector.systemd.unit-whitelist", c.SystemdUnitWhitelist,
 			"--collector.systemd.unit-blacklist", c.SystemdUnitBlacklist,
 		)
 
-		flags = append(flags, booleanFlagMap(map[*bool]string{
+		flags.addBools(map[*bool]string{
 			&c.SystemdEnableTaskMetrics:      "collector.systemd.enable-task-metrics",
 			&c.SystemdEnableRestartsMetrics:  "collector.systemd.enable-restarts-metrics",
 			&c.SystemdEnableStartTimeMetrics: "collector.systemd.enable-start-time-metrics",
-		})...)
+		})
 	}
 
 	if collectors[CollectorVMStat] {
-		flags = append(flags, "--collector.vmstat.fields", c.VMStatFields)
+		flags.add("--collector.vmstat.fields", c.VMStatFields)
 	}
 
 	if collectors[CollectorTextfile] {
-		flags = append(flags, "--collector.textfile.directory", c.TextfileDirectory)
+		flags.add("--collector.textfile.directory", c.TextfileDirectory)
 	}
 
 	return flags
 }
 
-func booleanFlagMap(m map[*bool]string) (flags []string) {
+type flags []string
+
+// add pushes new flags as key value pairs. If the flag isn't registered with kingpin,
+// it will be ignored.
+func (f *flags) add(kvp ...string) {
+	if (len(kvp) % 2) != 0 {
+		panic("missing value for added flag")
+	}
+
+	for i := 0; i < len(kvp); i += 2 {
+		key := kvp[i+0]
+		value := kvp[i+1]
+
+		rawFlag := strings.TrimPrefix(key, "--")
+		if kingpin.CommandLine.GetFlag(rawFlag) == nil {
+			continue
+		}
+
+		*f = append(*f, key, value)
+	}
+}
+
+func (f *flags) addBools(m map[*bool]string) {
 	for setting, key := range m {
 		// The flag might not exist on this platform, so skip it if it's not
 		// defined.
@@ -246,11 +271,9 @@ func booleanFlagMap(m map[*bool]string) (flags []string) {
 		}
 
 		if *setting {
-			flags = append(flags, "--"+key)
+			*f = append(*f, "--"+key)
 		} else {
-			flags = append(flags, "--no-"+key)
+			*f = append(*f, "--no-"+key)
 		}
 	}
-
-	return
 }
