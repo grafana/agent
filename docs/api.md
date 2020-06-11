@@ -3,6 +3,7 @@
 The API is divided into several parts:
 
 - [Config Management API](#config-management-api)
+- [Agent API](#agent-api)
 - [Ready/Healthy API](#ready--health-api)
 
 ## Config Management API
@@ -128,6 +129,26 @@ Response on success:
 ```
 {
   "status": "success"
+}
+```
+
+## Agent API 
+
+### List current running instances 
+
+```
+GET /agent/api/v1/instances
+```
+
+Status code: 200 on success.
+Response on success:
+
+```
+{
+  "status": "success",
+  "data": [
+    <strings of instance names that are currently running>
+  ]
 }
 ```
 
