@@ -49,6 +49,7 @@ var (
 )
 
 func init() {
+	fmt.Println(runtime.GOOS)
 	switch runtime.GOOS {
 	case "freebsd", "netbsd", "openbsd":
 		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev)($|/)"

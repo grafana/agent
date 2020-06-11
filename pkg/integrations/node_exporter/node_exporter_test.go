@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"testing"
 
 	"github.com/go-kit/kit/log"
@@ -18,7 +19,7 @@ import (
 // TestNodeExporter runs an integration test for node_exporter, doing the
 // following:
 //
-// 1. Enabling all collectors (minus perf, which I couldn't get to work in a VM)
+// 1. Enabling all collectors (minus some that cause issues in cross-platform testing)
 // 2. Creating the integration
 // 3. Scrape the integration once
 // 4. Parse the result of the scrape
@@ -34,7 +35,7 @@ func TestNodeExporter(t *testing.T) {
 	for c := range Collectors {
 		cfg.SetCollectors = append(cfg.SetCollectors, c)
 	}
-	cfg.DisableCollectors = []string{CollectorPerf}
+	cfg.DisableCollectors = []string{CollectorPerf, CollectorBuddyInfo}
 
 	// Check that the flags convert and the integration initiailizes
 	logger := log.NewNopLogger()
@@ -79,6 +80,11 @@ func TestNodeExporter_IgnoredFlags(t *testing.T) {
 
 	_, ignored := MapConfigToNodeExporterFlags(&cfg)
 	var expect []string
+
+	switch runtime.GOOS {
+	case "darwin":
+		expect = []string{"collector.cpu.info", "collector.diskstats.ignored-devices"}
+	}
 
 	require.Equal(t, expect, ignored)
 }
