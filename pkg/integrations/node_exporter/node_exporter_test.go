@@ -1,3 +1,5 @@
+// +build !race
+
 package node_exporter //nolint:golint
 
 import (

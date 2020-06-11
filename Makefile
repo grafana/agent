@@ -158,8 +158,11 @@ endif
 lint:
 	GO111MODULE=on GOGC=10 golangci-lint run -v $(GOLANGCI_ARG)
 
+# We have to run test twice: once for all packages with -race and then once more without -race 
+# for packages that have known race detection issues
 test:
-	GOGC=10 go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
+	GOGC=10 go test $(MOD_FLAG) -v -race -cover -coverprofile=cover.out -p=4 ./...
+	GOGC=10 go test $(MOD_FLAG) -v -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter
 
 clean:
 	rm -rf cmd/agent/agent
