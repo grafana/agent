@@ -158,11 +158,11 @@ endif
 lint:
 	GO111MODULE=on GOGC=10 golangci-lint run -v $(GOLANGCI_ARG)
 
-# We have to run test twice: once for all packages with -race and then once more without -race 
+# We have to run test twice: once for all packages with -race and then once more without -race
 # for packages that have known race detection issues
 test:
-	GOGC=10 go test $(MOD_FLAG) -v -race -cover -coverprofile=cover.out -p=4 ./...
-	GOGC=10 go test $(MOD_FLAG) -v -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter
+	GOGC=10 go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
+	GOGC=10 go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter
 
 clean:
 	rm -rf cmd/agent/agent
@@ -182,11 +182,11 @@ example-dashboards:
 seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
 
 # dist builds the agent and agentctl for all different supported platforms.
-# Most of these platforms need CGO_ENABLED=1, but to simplify things we'll 
-# use CGO_ENABLED for all of them. We define them all as separate targets 
+# Most of these platforms need CGO_ENABLED=1, but to simplify things we'll
+# use CGO_ENABLED for all of them. We define them all as separate targets
 # to allow for parallelization with make -jX.
 #
-# We use rfratto/seego for building these cross-platform images. seego provides 
+# We use rfratto/seego for building these cross-platform images. seego provides
 # a docker image with gcc toolchains for all of these platforms.
 dist: dist-agent dist-agentctl
 	for i in dist/*; do zip -j -m $$i.zip $$i; done
