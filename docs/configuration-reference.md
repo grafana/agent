@@ -1598,6 +1598,15 @@ the Agent is running on is a no-op.
   # prometheus.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
+  # Allows for relabeling labels on the target. 
+  relabel_configs:
+    [- <relabel_config> ... ]
+  
+  # Relabel metrics coming from the integration, allowing to drop series 
+  # from the integration that you don't care about. 
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <boolean> | default = false]
 
