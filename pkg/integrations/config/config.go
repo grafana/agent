@@ -3,7 +3,6 @@
 package config
 
 import (
-	"flag"
 	"time"
 
 	"github.com/prometheus/prometheus/pkg/relabel"
@@ -20,11 +19,6 @@ type Common struct {
 	ScrapeTimeout        time.Duration     `yaml:"scrape_timeout"`
 	RelabelConfigs       []*relabel.Config `yaml:"relabel_configs,omitempty"`
 	MetricRelabelConfigs []*relabel.Config `yaml:"metric_relabel_configs,omitempty"`
-}
-
-func (c *Common) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
-	f.DurationVar(&c.ScrapeInterval, prefix+"scrape-interval", 0, "how frequently should the integration be scraped. 0 = use global default")
-	f.DurationVar(&c.ScrapeTimeout, prefix+"scrape-timeout", 0, "timeout for scraping metrics. 0 = use global default")
 }
 
 // ScrapeConfig is a subset of options used by integrations to inform how samples

@@ -10,5 +10,7 @@ prometheus:
 integrations:
   agent:
     enabled: true
+  node_exporter:
+    enabled: true
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push

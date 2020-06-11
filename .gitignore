@@ -2,7 +2,7 @@
 .uptodate
 .pkg
 .cache
-cover.out
+cover*.out
 
 cmd/agent/agent
 cmd/agentctl/agentctl
