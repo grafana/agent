@@ -65,12 +65,30 @@ func TestNodeExporter(t *testing.T) {
 	}
 }
 
+// TestFTestNodeExporter_IgnoredFlags ensures that flags don't get ignored for
+// misspellings.
+func TestNodeExporter_IgnoredFlags(t *testing.T) {
+	cfg := DefaultConfig
+
+	// Enable all collectors except perf
+	cfg.SetCollectors = make([]string, 0, len(Collectors))
+	for c := range Collectors {
+		cfg.SetCollectors = append(cfg.SetCollectors, c)
+	}
+	cfg.DisableCollectors = []string{CollectorPerf}
+
+	_, ignored := MapConfigToNodeExporterFlags(&cfg)
+	var expect []string
+
+	require.Equal(t, expect, ignored)
+}
+
 // TestFlags makes sure that boolean flags and some known non-boolean flags
 // work as expected
 func TestFlags(t *testing.T) {
 	var f flags
 	f.add("--path.rootfs", "/")
-	require.Equal(t, []string{"--path.rootfs", "/"}, []string(f))
+	require.Equal(t, []string{"--path.rootfs", "/"}, f.accepted)
 
 	// Set up booleans to use as pointers
 	var (
@@ -82,9 +100,9 @@ func TestFlags(t *testing.T) {
 
 	f = flags{}
 	f.addBools(map[*bool]string{&truth: "collector.textfile"})
-	require.Equal(t, []string{"--collector.textfile"}, []string(f))
+	require.Equal(t, []string{"--collector.textfile"}, f.accepted)
 
 	f = flags{}
 	f.addBools(map[*bool]string{&falth: "collector.textfile"})
-	require.Equal(t, []string{"--no-collector.textfile"}, []string(f))
+	require.Equal(t, []string{"--no-collector.textfile"}, f.accepted)
 }

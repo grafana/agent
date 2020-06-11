@@ -2,11 +2,14 @@ package node_exporter //nolint:golint
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util/flagext"
 	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/prometheus/procfs"
+	"github.com/prometheus/procfs/sysfs"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -14,12 +17,13 @@ var (
 	// DefaultConfig holds non-zero default options for the Config when it is
 	// unmarshaled from YAML.
 	DefaultConfig = Config{
-		ProcFSPath: "/proc",
-		SysFSPath:  "/sys",
+		ProcFSPath: procfs.DefaultMountPoint,
+		SysFSPath:  sysfs.DefaultMountPoint,
 		RootFSPath: "/",
 
 		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 
+		// These use the linux defaults. The init function below appropriately sets defaults for other systems.
 		FilesystemIgnoredMountPoints: "^/(dev|proc|sys|var/lib/docker/.+)($|/)",
 		FilesystemIgnoredFSTypes:     "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
 
@@ -43,6 +47,17 @@ var (
 		VMStatFields:         "^(oom_kill|pgpg|pswp|pg.*fault).*",
 	}
 )
+
+func init() {
+	switch runtime.GOOS {
+	case "freebsd", "netbsd", "openbsd":
+		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev)($|/)"
+		DefaultConfig.FilesystemIgnoredFSTypes = "^devfs$"
+	default:
+		DefaultConfig.FilesystemIgnoredMountPoints = ""
+		DefaultConfig.FilesystemIgnoredFSTypes = ""
+	}
+}
 
 // Config controls the node_exporter integration.
 type Config struct {
@@ -107,7 +122,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // MapConfigToNodeExporterFlags takes in a node_exporter Config and converts
 // it to the set of flags that node_exporter usually expects when running as a
 // separate binary.
-func MapConfigToNodeExporterFlags(c *Config) []string {
+func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []string) {
 	collectors := make(map[string]CollectorState, len(Collectors))
 	for k, v := range Collectors {
 		collectors[k] = v
@@ -142,7 +157,7 @@ func MapConfigToNodeExporterFlags(c *Config) []string {
 	DisableUnavailableCollectors(collectors)
 
 	var flags flags
-	flags = append(flags, MapCollectorsToFlags(collectors)...)
+	flags.accepted = append(flags.accepted, MapCollectorsToFlags(collectors)...)
 
 	flags.add(
 		"--path.procfs", c.ProcFSPath,
@@ -237,10 +252,13 @@ func MapConfigToNodeExporterFlags(c *Config) []string {
 		flags.add("--collector.textfile.directory", c.TextfileDirectory)
 	}
 
-	return flags
+	return flags.accepted, flags.ignored
 }
 
-type flags []string
+type flags struct {
+	accepted []string
+	ignored  []string
+}
 
 // add pushes new flags as key value pairs. If the flag isn't registered with kingpin,
 // it will be ignored.
@@ -255,10 +273,11 @@ func (f *flags) add(kvp ...string) {
 
 		rawFlag := strings.TrimPrefix(key, "--")
 		if kingpin.CommandLine.GetFlag(rawFlag) == nil {
+			f.ignored = append(f.ignored, rawFlag)
 			continue
 		}
 
-		*f = append(*f, key, value)
+		f.accepted = append(f.accepted, key, value)
 	}
 }
 
@@ -267,13 +286,14 @@ func (f *flags) addBools(m map[*bool]string) {
 		// The flag might not exist on this platform, so skip it if it's not
 		// defined.
 		if kingpin.CommandLine.GetFlag(key) == nil {
+			f.ignored = append(f.ignored, key)
 			continue
 		}
 
 		if *setting {
-			*f = append(*f, "--"+key)
+			f.accepted = append(f.accepted, "--"+key)
 		} else {
-			*f = append(*f, "--no-"+key)
+			f.accepted = append(f.accepted, "--no-"+key)
 		}
 	}
 }

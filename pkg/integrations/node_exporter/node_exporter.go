@@ -33,7 +33,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	// kingpin across the codebase. node_exporter may need a PR eventually to pass
 	// in a custom kingpin application or expose methods to explicitly enable/disable
 	// collectors that we can use instead of this command line hack.
-	flags := MapConfigToNodeExporterFlags(&c)
+	flags, _ := MapConfigToNodeExporterFlags(&c)
 	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent config", "flags", strings.Join(flags, " "))
 
 	_, err := kingpin.CommandLine.Parse(flags)
