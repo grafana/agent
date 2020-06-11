@@ -71,7 +71,9 @@ func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
 // Name satisfies Integration.Name.
 func (i *Integration) Name() string { return "node_exporter" }
 
-// RegisterRoutes satisfies Integration.RegisterRoutes.
+// RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
+// here is expected to be a subrouter, where all registered paths will be
+// registered within that subroute.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {
 	handler, err := i.handler()
 	if err != nil {

@@ -1467,11 +1467,10 @@ prometheus_remote_write:
 The `node_exporter_config` block configures the `node_exporter` integration,
 which is an embedded version of
 [`node_exporter`](https://github.com/prometheus/node_exporter)
-and allows for collecting metrics from UNIX systems. It provides a significant
-amount of collectors that are responsible for monitoring various aspects of the
-host system.
+and allows for collecting metrics from the UNIX system that `node_exporter` is
+running on. It provides a significant amount of collectors that are responsible
+for monitoring various aspects of the host system.
 
-The `node_exporter` integration will collect metrics from the host system.
 Note that if running the Agent in a container, you will need to bind mount
 folders from the host system so the integration can monitor them:
 
@@ -1484,12 +1483,41 @@ docker run \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
   grafana/agent:v0.3.2 \
+  --config.file=/etc/agent-config/agent.yaml \
   --integrations.node_exporter.rootfs-path=/host
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities
-there as well. The manifest and Tanka configs provided by this repository do not
-have the mounts or capabilities required for running this integration.
+there as well:
+
+```yaml
+apiVersion: v1 
+kind: Pod 
+metadata:
+  name: agent 
+spec:
+  containers:
+  - image: grafana/agent:v0.3.2
+    name: agent 
+    args:
+    - --config.file=/etc/agent-config/agent.yaml 
+    - --integrations.node_exporter.rootfs-path=/host
+    securityContext:
+      capabilities:
+        add: ["SYS_TIME"]
+    volumeMounts:
+    - name: rootfs 
+      mountPath: /host 
+      readOnly: true 
+  volumes:
+  - name: rootfs 
+    hostPath:
+      path: /
+```
+
+
+The manifest and Tanka configs provided by this repository do not have the
+mounts or capabilities required for running this integration.
 
 Some collectors only work on specific operating systems, documented in the
 table below. Enabling a collector that is not supported by the operating system

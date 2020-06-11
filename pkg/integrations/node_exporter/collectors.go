@@ -149,10 +149,10 @@ var Collectors = map[string]CollectorState{
 	CollectorZFS:          CollectorStateEnabled,
 }
 
-// MapCollectorsToFlags takes in a map of collector keys and their
-// states and converts them into flags that node_exporter expects.
-// Collectors that are not defined will be ignored, which will be the
-// case for collectors that are not supported on the host system.
+// MapCollectorsToFlags takes in a map of collector keys and their states and
+// converts them into flags that node_exporter expects. Collectors that are not
+// defined will be ignored, which will be the case for collectors that are not
+// supported on the host system.
 func MapCollectorsToFlags(cs map[string]CollectorState) (flags []string) {
 	for collector, state := range cs {
 		flag := fmt.Sprintf("collector.%s", collector)
@@ -174,8 +174,8 @@ func MapCollectorsToFlags(cs map[string]CollectorState) (flags []string) {
 	return
 }
 
-// DisabDisableUnavailableCollectors disables collectors that are not
-// available on the host machine.
+// DisableUnavailableCollectors disables collectors that are not available on
+// the host machine.
 func DisableUnavailableCollectors(cs map[string]CollectorState) {
 	for collector := range cs {
 		flag := fmt.Sprintf("collector.%s", collector)

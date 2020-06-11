@@ -50,8 +50,10 @@ GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMA
 GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
 DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
 
-CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
-DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
+# We need a separate set of flags for CGO, where building with -static can
+# cause problems with some C libraries.
+CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(MOD_FLAG)
+DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(MOD_FLAG)
 
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
@@ -176,7 +178,13 @@ example-dashboards:
 
 seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
 
-# This is going to be fairly slow; try running with make -jX dist where X is # of CPUS
+# dist builds the agent and agentctl for all different supported platforms.
+# Most of these platforms need CGO_ENABLED=1, but to simplify things we'll 
+# use CGO_ENABLED for all of them. We define them all as separate targets 
+# to allow for parallelization with make -jX.
+#
+# We use rfratto/seego for building these cross-platform images. seego provides 
+# a docker image with gcc toolchains for all of these platforms.
 dist: dist-agent dist-agentctl
 	for i in dist/*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
