@@ -15,7 +15,7 @@ The install script does the following:
 4. Prints out the final manifest to stdout without applying it.
 
 Here's a one-line script to copy and paste to install the Agent on
-Kubernetes:
+Kubernetes (requires `envsubst` (GNU gettext)):
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.3.2/production/kubernetes/install.sh)" | kubectl apply -f -
