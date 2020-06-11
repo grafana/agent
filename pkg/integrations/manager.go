@@ -191,6 +191,8 @@ func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 			ScrapeInterval:         model.Duration(common.ScrapeInterval),
 			ScrapeTimeout:          model.Duration(common.ScrapeTimeout),
 			ServiceDiscoveryConfig: m.scrapeServiceDiscovery(),
+			RelabelConfigs:         common.RelabelConfigs,
+			MetricRelabelConfigs:   common.MetricRelabelConfigs,
 		}
 
 		scrapeConfigs = append(scrapeConfigs, sc)

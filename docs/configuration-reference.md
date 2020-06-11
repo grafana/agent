@@ -1431,6 +1431,15 @@ agent:
   # prometheus.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
+  # Allows for relabeling labels on the target. 
+  relabel_configs:
+    [- <relabel_config> ... ]
+  
+  # Relabel metrics coming from the integration, allowing to drop series 
+  # from the integration that you don't care about. 
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
 # When true, adds an agent_hostname label to all samples coming from
 # integrations. The value of the agent_hostname label will be the
 # value of $HOSTNAME (if available) or the machine's hostname.
