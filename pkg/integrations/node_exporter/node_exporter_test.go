@@ -3,7 +3,6 @@
 package node_exporter //nolint:golint
 
 import (
-	"flag"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -28,13 +27,7 @@ import (
 // set up properly. We do not test the contents of the scrape, just that it
 // was parsable by Prometheus.
 func TestNodeExporter(t *testing.T) {
-	var cfg Config
-
-	// Parse flags to fill in defaults
-	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	cfg.RegisterFlagsWithPrefix("", fs)
-	err := fs.Parse([]string{})
-	require.NoError(t, err)
+	cfg := DefaultConfig
 
 	// Enable all collectors except perf
 	cfg.SetCollectors = make([]string, 0, len(Collectors))

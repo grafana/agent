@@ -38,7 +38,6 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.RegisterInstrumentation = true
 	c.Prometheus.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
-	c.Integrations.RegisterFlags(f)
 }
 
 // LoadFile reads a file and passes the contents to Load

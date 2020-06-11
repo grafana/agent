@@ -2,7 +2,6 @@ package integrations
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"path/filepath"
 	"sync"
@@ -34,6 +33,7 @@ var (
 var (
 	DefaultConfig = Config{
 		IntegrationRestartBackoff: 5 * time.Second,
+		UseHostnameLabel:          true,
 	}
 )
 
@@ -58,12 +58,12 @@ type Config struct {
 	ListenPort *int `yaml:"-"`
 }
 
-func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	f.BoolVar(&c.UseHostnameLabel, "integrations.use-hostname-label", true, "When true, adds an agent_hostname label to all samples from integrations.")
-	f.DurationVar(&c.IntegrationRestartBackoff, "integrations.integration-restart-backoff", DefaultConfig.IntegrationRestartBackoff, "how long to wait before restarting a failed integration")
+// UnmarshalYAML implements yaml.Unmarshaler for Config.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
 
-	c.Agent.RegisterFlagsWithPrefix("integrations.", f)
-	c.NodeExporter.RegisterFlagsWithPrefix("integrations.", f)
+	type plain Config
+	return unmarshal((*plain)(c))
 }
 
 type Integration interface {

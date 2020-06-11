@@ -5,7 +5,6 @@ package agent
 
 import (
 	"context"
-	"flag"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
@@ -18,11 +17,6 @@ type Config struct {
 
 	// Enabled enables the Agent integration.
 	Enabled bool
-}
-
-func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
-	f.BoolVar(&c.Enabled, prefix+"agent.enabled", false, "enable the Agent integration to scrape the Agent's own metrics")
-	c.CommonConfig.RegisterFlagsWithPrefix(prefix+"agent.", f)
 }
 
 // Integration is the Agent integration. The Agent integration scrapes the
