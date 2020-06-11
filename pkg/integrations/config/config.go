@@ -5,6 +5,8 @@ package config
 import (
 	"flag"
 	"time"
+
+	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
 // Common is a set of common options shared by all integrations. It should be
@@ -14,8 +16,10 @@ import (
 //   Common config.Common `yaml:",inline"`
 // }
 type Common struct {
-	ScrapeInterval time.Duration `yaml:"scrape_interval"`
-	ScrapeTimeout  time.Duration `yaml:"scrape_timeout"`
+	ScrapeInterval       time.Duration     `yaml:"scrape_interval"`
+	ScrapeTimeout        time.Duration     `yaml:"scrape_timeout"`
+	RelabelConfigs       []*relabel.Config `yaml:"relabel_configs,omitempty"`
+	MetricRelabelConfigs []*relabel.Config `yaml:"metric_relabel_configs,omitempty"`
 }
 
 func (c *Common) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
