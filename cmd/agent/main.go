@@ -58,7 +58,7 @@ func main() {
 	}
 
 	if err := cfg.ApplyDefaults(); err != nil {
-		log.Fatalln("error in config file: %w", err)
+		log.Fatalf("error in config file: %s\n", err)
 	}
 
 	// After this point we can use util.Logger and stop using the log package
