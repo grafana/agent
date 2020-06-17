@@ -2,11 +2,14 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/pkg/errors"
+	"github.com/prometheus/common/version"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
@@ -47,12 +50,61 @@ func LoadFile(filename string, c *Config) error {
 		return errors.Wrap(err, "error reading config file")
 	}
 
-	return Load(buf, c)
+	return LoadBytes(buf, c)
 }
 
-// Load loads a config, but doesn't apply defaults. Defaults
-// should be deferred to a separate process to allow flags
-// to override values unmarshaled here.
-func Load(buf []byte, c *Config) error {
+// LoadBytes unmarshals a config from a buffer. Defaults are not
+// applied to the file and must be done manually if LoadBytes
+// is called directly.
+func LoadBytes(buf []byte, c *Config) error {
 	return yaml.UnmarshalStrict(buf, c)
+}
+
+// Load loads a config file from a flagset. Flags will be registered
+// to the flagset before parsing them with the values specified by
+// args.
+func Load(fs *flag.FlagSet, args []string) (*Config, error) {
+	return load(fs, args, LoadFile)
+}
+
+// load allows for tests to inject a function for retreiving the config file that
+// doesn't require having a literal file on disk.
+func load(fs *flag.FlagSet, args []string, loader func(string, *Config) error) (*Config, error) {
+	var (
+		printVersion bool
+		cfg          Config
+		file         string
+	)
+
+	fs.StringVar(&file, "config.file", "", "configuration file to load")
+	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
+	cfg.RegisterFlags(fs)
+
+	if err := fs.Parse(args); err != nil {
+		return nil, fmt.Errorf("error parsing flags: %w", err)
+	}
+
+	if printVersion {
+		fmt.Println(version.Print("agent"))
+		os.Exit(0)
+	}
+
+	if file == "" {
+		return nil, fmt.Errorf("-config.file flag required")
+	} else if err := loader(file, &cfg); err != nil {
+		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+	}
+
+	// Parse the flags again to override any YAML values with command line flag
+	// values
+	if err := fs.Parse(args); err != nil {
+		return nil, fmt.Errorf("error parsing flags: %w", err)
+	}
+
+	// Finally, apply defaults to config that wasn't specified by file or flag
+	if err := cfg.ApplyDefaults(); err != nil {
+		return nil, fmt.Errorf("error in config file: %w", err)
+	}
+
+	return &cfg, nil
 }
