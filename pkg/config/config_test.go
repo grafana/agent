@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"testing"
 	"time"
 
@@ -21,10 +22,31 @@ prometheus:
 		EvaluationInterval: model.Duration(1 * time.Minute),
 	}
 
-	var c Config
-	err := Load([]byte(cfg), &c)
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, c *Config) error {
+		return LoadBytes([]byte(cfg), c)
+	})
 	require.NoError(t, err)
 	require.Equal(t, expect, c.Prometheus.Global)
+}
+
+func TestConfig_FlagsAreAccepted(t *testing.T) {
+	cfg := `
+prometheus:
+  global:
+    scrape_timeout: 33s`
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	args := []string{
+		"-config.file", "test",
+		"-prometheus.wal-directory", "/tmp/wal",
+	}
+
+	c, err := load(fs, args, func(_ string, c *Config) error {
+		return LoadBytes([]byte(cfg), c)
+	})
+	require.NoError(t, err)
+	require.Equal(t, "/tmp/wal", c.Prometheus.WALDir)
 }
 
 func TestConfig_StrictYamlParsing(t *testing.T) {
@@ -36,7 +58,7 @@ prometheus:
     scrape_timeout: 10s
     scrape_timeout: 15s`
 		var c Config
-		err := Load([]byte(cfg), &c)
+		err := LoadBytes([]byte(cfg), &c)
 		require.Error(t, err)
 	})
 
@@ -47,7 +69,7 @@ prometheus:
   global:
   scrape_timeout: 10s`
 		var c Config
-		err := Load([]byte(cfg), &c)
+		err := LoadBytes([]byte(cfg), &c)
 		require.Error(t, err)
 	})
 }
