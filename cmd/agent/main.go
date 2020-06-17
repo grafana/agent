@@ -25,36 +25,10 @@ func init() {
 }
 
 func main() {
-	var (
-		printVersion bool
-
-		cfg        config.Config
-		configFile string
-	)
-
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	fs.StringVar(&configFile, "config.file", "", "configuration file to load")
-	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
-	cfg.RegisterFlags(fs)
-
-	if err := fs.Parse(os.Args[1:]); err != nil {
-		log.Fatalf("error parsing flags: %v\n", err)
-	}
-
-	if printVersion {
-		fmt.Println(version.Print("agent"))
-		return
-	}
-
-	if configFile == "" {
-		log.Fatalln("-config.file flag required")
-	} else if err := config.LoadFile(configFile, &cfg); err != nil {
-		log.Fatalf("error loading config file %s: %v\n", configFile, err)
-	}
-
-	// Parse the flags again to override any yaml values with command line flags
-	if err := fs.Parse(os.Args[1:]); err != nil {
-		log.Fatalf("error parsing flags: %v\n", err)
+	cfg, err := config.Load(fs, os.Args[1:])
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	// After this point we can use util.Logger and stop using the log package
