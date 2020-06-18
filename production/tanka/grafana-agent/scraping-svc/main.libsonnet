@@ -99,6 +99,8 @@ local policyRule = k.rbac.v1beta1.policyRule;
       syncer.new(this._images.agentctl, this._config),
   },
 
+  withImagesMixin(images):: { _images+: images },
+
   // withConfig overrides the config used for the agent.
   withConfig(config):: { _config: config },
 

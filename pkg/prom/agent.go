@@ -37,6 +37,8 @@ var (
 	DefaultConfig = Config{
 		Global:                 config.DefaultGlobalConfig,
 		InstanceRestartBackoff: 5 * time.Second,
+		ServiceConfig:          ha.DefaultConfig,
+		ServiceClientConfig:    client.DefaultConfig,
 	}
 )
 
@@ -51,6 +53,7 @@ type Config struct {
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 

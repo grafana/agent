@@ -10,6 +10,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestConfig_FlagDefaults makes sure that default values of flags are kept
+// when parsing the config.
+func TestConfig_FlagDefaults(t *testing.T) {
+	cfg := `
+prometheus:
+  wal_directory: /tmp/wal
+  global:
+    scrape_timeout: 33s`
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, c *Config) error {
+		return LoadBytes([]byte(cfg), c)
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, c.Prometheus.ServiceConfig.Lifecycler.InfNames)
+	require.NotZero(t, c.Prometheus.ServiceConfig.Lifecycler.NumTokens)
+	require.NotZero(t, c.Prometheus.ServiceConfig.Lifecycler.HeartbeatPeriod)
+}
+
 func TestConfig_OverrideDefaultsOnLoad(t *testing.T) {
 	cfg := `
 prometheus:

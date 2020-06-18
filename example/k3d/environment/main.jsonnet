@@ -5,6 +5,10 @@ local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
 local service = k.core.v1.service;
+local images = {
+  agent: 'grafana/agent:latest',
+  agentctl: 'grafana/agentctl:latest',
+};
 
 {
   default: default.new(namespace='default') {
@@ -21,11 +25,7 @@ local service = k.core.v1.service;
   },
 
   agent: grafana_agent {
-    _images+:: {
-      agent: 'grafana/agent:latest',
-      agentctl: 'grafana/agentctl:latest',
-    },
-
+    _images+:: images, 
     _config+:: {
       namespace: 'default',
 
@@ -62,6 +62,7 @@ local service = k.core.v1.service;
 
   agent_cluster:
     agent_cluster.new('default', 'kube-system') +
+    agent_cluster.withImagesMixin(images) +
     agent_cluster.withConfigMixin({
       local kvstore = {
         store: 'etcd',
