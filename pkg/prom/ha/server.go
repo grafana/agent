@@ -21,6 +21,7 @@ import (
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/instance"
+	flagutil "github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
@@ -45,17 +46,8 @@ var (
 	}
 
 	// DefaultConfig provides default values for the config
-	DefaultConfig = GetDefaultConfig()
+	DefaultConfig = *flagutil.DefaultConfigFromFlags(&Config{}).(*Config)
 )
-
-// GetDefaultConfig gets the default config.
-func GetDefaultConfig() Config {
-	fs := flag.NewFlagSet("temp", flag.PanicOnError)
-
-	var c Config
-	c.RegisterFlagsWithPrefix("", fs)
-	return c
-}
 
 // InstanceManager is an interface to manipulating a set of running
 // instance.Configs. It is satisfied by the InstanceManager struct in

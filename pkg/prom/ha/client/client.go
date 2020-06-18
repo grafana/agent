@@ -7,6 +7,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/grpcclient"
 
 	"github.com/grafana/agent/pkg/agentproto"
+	"github.com/grafana/agent/pkg/util"
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/weaveworks/common/middleware"
@@ -21,17 +22,8 @@ type ScrapingServiceClient interface {
 
 var (
 	// DefaultConfig provides default Config values.
-	DefaultConfig = GetDefaultConfig()
+	DefaultConfig = *util.DefaultConfigFromFlags(&Config{}).(*Config)
 )
-
-// GetDefaultConfig gets the default config.
-func GetDefaultConfig() Config {
-	fs := flag.NewFlagSet("temp", flag.PanicOnError)
-
-	var c Config
-	c.RegisterFlags(fs)
-	return c
-}
 
 // Config controls how scraping service clients are created.
 type Config struct {
