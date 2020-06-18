@@ -1,5 +1,36 @@
 # Next (master/unreleased)
 
+# v0.4.0 (2020-06-18)
+
+- [FEATURE] Support for integrations has been added. Integrations can be any
+  embedded tool, but are currently used for embedding exporters and generating
+  scrape configs. (@rfratto)
+
+- [FEATURE] node_exporter has been added as an integration. This is the full
+  version of node_exporter with the same configuration options. (@rfratto)
+
+- [FEATURE] An Agent integration that makes the Agent automatically scrape
+  itself has been added. (@rfratto)
+
+- [ENHANCEMENT] The WAL can now be truncated if running the Agent without any
+  remote_write endpoints. (@rfratto)
+
+- [ENHANCEMENT] Clarify server_config description in documentation. (@rfratto)
+
+- [ENHANCEMENT] Clarify wal_truncate_frequency and remote_flush_deadline in
+  documentation. (@rfratto)
+
+- [ENHANCEMENT] Document /agent/api/v1/instances endpoint (@rfratto)
+
+- [ENHANCEMENT] Be explicit about envsubst requirement for Kubernetes install
+  script. (@robx)
+
+- [BUGFIX] Prevent the Agent from crashing when a global Prometheus config
+  stanza is not provided. (@robx)
+
+- [BUGFIX] Enable agent host_filter in the Tanka configs, which was disabled by
+  default by mistake. (@rfratto)
+
 # v0.3.2 (2020-05-29)
 
 - [FEATURE] Tanka configs that deploy the scraping service mode are now
