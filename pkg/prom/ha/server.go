@@ -21,6 +21,7 @@ import (
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/instance"
+	flagutil "github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
@@ -43,6 +44,9 @@ var (
 		MaxBackoff: 2 * time.Minute,
 		MaxRetries: 10,
 	}
+
+	// DefaultConfig provides default values for the config
+	DefaultConfig = *flagutil.DefaultConfigFromFlags(&Config{}).(*Config)
 )
 
 // InstanceManager is an interface to manipulating a set of running
@@ -67,6 +71,14 @@ type Config struct {
 	ReshardInterval time.Duration         `yaml:"reshard_interval"`
 	KVStore         kv.Config             `yaml:"kvstore"`
 	Lifecycler      ring.LifecyclerConfig `yaml:"lifecycler"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
 }
 
 // RegisterFlags adds the flags required to config the Server to the given
@@ -157,7 +169,10 @@ func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Conf
 		lc.Addr,
 		r,
 		kvClient,
-		stopServices(r, lc),
+
+		// The lifecycler must stop first since the shutdown process depends on the
+		// ring still polling.
+		stopServices(lc, r),
 	)
 
 	lazy.inner = s
@@ -281,7 +296,7 @@ func (s *Server) notifyReshard(ctx context.Context, desc *ring.IngesterDesc) err
 			break
 		}
 
-		level.Warn(s.logger).Log("failed to tell remote agent to reshard", "err", err, "addr", desc.Addr)
+		level.Warn(s.logger).Log("msg", "failed to tell remote agent to reshard", "err", err, "addr", desc.Addr)
 		backoff.Wait()
 	}
 

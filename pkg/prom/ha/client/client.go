@@ -7,6 +7,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/grpcclient"
 
 	"github.com/grafana/agent/pkg/agentproto"
+	"github.com/grafana/agent/pkg/util"
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/weaveworks/common/middleware"
@@ -19,9 +20,22 @@ type ScrapingServiceClient interface {
 	io.Closer
 }
 
+var (
+	// DefaultConfig provides default Config values.
+	DefaultConfig = *util.DefaultConfigFromFlags(&Config{}).(*Config)
+)
+
 // Config controls how scraping service clients are created.
 type Config struct {
 	GRPCClientConfig grpcclient.Config `yaml:"grpc_client_config"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
 }
 
 // RegisterFlags registers flags to the provided flag set.
