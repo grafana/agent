@@ -19,9 +19,31 @@ type ScrapingServiceClient interface {
 	io.Closer
 }
 
+var (
+	// DefaultConfig provides default Config values.
+	DefaultConfig = GetDefaultConfig()
+)
+
+// GetDefaultConfig gets the default config.
+func GetDefaultConfig() Config {
+	fs := flag.NewFlagSet("temp", flag.PanicOnError)
+
+	var c Config
+	c.RegisterFlags(fs)
+	return c
+}
+
 // Config controls how scraping service clients are created.
 type Config struct {
 	GRPCClientConfig grpcclient.Config `yaml:"grpc_client_config"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
 }
 
 // RegisterFlags registers flags to the provided flag set.
