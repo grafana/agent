@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/cortexproject/cortex/pkg/ring/kv/codec"
 	"github.com/cortexproject/cortex/pkg/ring/kv/memberlist"
@@ -17,6 +17,13 @@ type ByToken []TokenDesc
 func (ts ByToken) Len() int           { return len(ts) }
 func (ts ByToken) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
 func (ts ByToken) Less(i, j int) bool { return ts[i].Token < ts[j].Token }
+
+// ByAddr is a sortable list of IngesterDesc.
+type ByAddr []IngesterDesc
+
+func (ts ByAddr) Len() int           { return len(ts) }
+func (ts ByAddr) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
+func (ts ByAddr) Less(i, j int) bool { return ts[i].Addr < ts[j].Addr }
 
 // ProtoDescFactory makes new Descs
 func ProtoDescFactory() proto.Message {
@@ -126,13 +133,19 @@ func (i *IngesterDesc) IsHealthy(op Operation, heartbeatTimeout time.Duration) b
 
 	switch op {
 	case Write:
-		healthy = (i.State == ACTIVE)
+		healthy = i.State == ACTIVE
 
 	case Read:
 		healthy = (i.State == ACTIVE) || (i.State == LEAVING) || (i.State == PENDING)
 
 	case Reporting:
 		healthy = true
+
+	case BlocksSync:
+		healthy = (i.State == JOINING) || (i.State == ACTIVE) || (i.State == LEAVING)
+
+	case BlocksRead:
+		healthy = i.State == ACTIVE
 	}
 
 	return healthy && time.Since(time.Unix(i.Timestamp, 0)) <= heartbeatTimeout
@@ -382,7 +395,7 @@ type TokenDesc struct {
 	Zone     string
 }
 
-// Returns sorted list of tokens with ingester names.
+// getTokens returns sorted list of tokens with ingester IDs, owned by each ingester in the ring.
 func (d *Desc) getTokens() []TokenDesc {
 	numTokens := 0
 	for _, ing := range d.Ingesters {
@@ -399,7 +412,7 @@ func (d *Desc) getTokens() []TokenDesc {
 	return tokens
 }
 
-func getOrCreateRingDesc(d interface{}) *Desc {
+func GetOrCreateRingDesc(d interface{}) *Desc {
 	if d == nil {
 		return NewDesc()
 	}

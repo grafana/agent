@@ -117,7 +117,7 @@ type ReadRing interface {
 	http.Handler
 
 	Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAll() (ring.ReplicationSet, error)
+	GetAll(op ring.Operation) (ring.ReplicationSet, error)
 }
 
 // ShardingInstanceManager wraps around an existing instance.Manager and uses a

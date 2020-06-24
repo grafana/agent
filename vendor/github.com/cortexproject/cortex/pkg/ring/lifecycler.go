@@ -46,7 +46,6 @@ type LifecyclerConfig struct {
 	RingConfig Config `yaml:"ring"`
 
 	// Config for the ingester lifecycle control
-	ListenPort       *int          `yaml:"-"`
 	NumTokens        int           `yaml:"num_tokens"`
 	HeartbeatPeriod  time.Duration `yaml:"heartbeat_period"`
 	ObservePeriod    time.Duration `yaml:"observe_period"`
@@ -62,6 +61,9 @@ type LifecyclerConfig struct {
 	Port           int    `doc:"hidden"`
 	ID             string `doc:"hidden"`
 	SkipUnregister bool   `yaml:"-"`
+
+	// Injected internally
+	ListenPort int `yaml:"-"`
 }
 
 // RegisterFlags adds the flags required to config this to the given FlagSet
@@ -138,21 +140,19 @@ type Lifecycler struct {
 }
 
 // NewLifecycler creates new Lifecycler. It must be started via StartAsync.
-func NewLifecycler(cfg LifecyclerConfig, flushTransferer FlushTransferer, ringName, ringKey string, flushOnShutdown bool) (*Lifecycler, error) {
-	addr := cfg.Addr
-	if addr == "" {
-		var err error
-		addr, err = util.GetFirstAddressOf(cfg.InfNames)
-		if err != nil {
-			return nil, err
-		}
+func NewLifecycler(cfg LifecyclerConfig, flushTransferer FlushTransferer, ringName, ringKey string, flushOnShutdown bool, reg prometheus.Registerer) (*Lifecycler, error) {
+	addr, err := GetInstanceAddr(cfg.Addr, cfg.InfNames)
+	if err != nil {
+		return nil, err
 	}
-	port := cfg.Port
-	if port == 0 {
-		port = *cfg.ListenPort
-	}
+	port := GetInstancePort(cfg.Port, cfg.ListenPort)
 	codec := GetCodec()
-	store, err := kv.NewClient(cfg.RingConfig.KVStore, codec)
+	// Suffix all client names with "-lifecycler" to denote this kv client is used by the lifecycler
+	store, err := kv.NewClient(
+		cfg.RingConfig.KVStore,
+		codec,
+		kv.RegistererWithKVName(reg, ringName+"-lifecycler"),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -513,6 +513,17 @@ func (i *Lifecycler) initRing(ctx context.Context) error {
 			// Either we are a new ingester, or consul must have restarted
 			level.Info(util.Logger).Log("msg", "instance not found in ring, adding with no tokens", "ring", i.RingName)
 			ringDesc.AddIngester(i.ID, i.Addr, i.Zone, []uint32{}, i.GetState())
+			return ringDesc, true, nil
+		}
+
+		// If the ingester is in the JOINING state this means it crashed due to
+		// a failed token transfer or some other reason during startup. We want
+		// to set it back to PENDING in order to start the lifecycle from the
+		// beginning.
+		if ingesterDesc.State == JOINING {
+			level.Warn(util.Logger).Log("msg", "instance found in ring as JOINING, setting to PENDING",
+				"ring", i.RingName)
+			ingesterDesc.State = PENDING
 			return ringDesc, true, nil
 		}
 
