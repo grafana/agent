@@ -77,9 +77,17 @@
       },
     },
     deployment_agent_config: self.agent_config {
-      configs: std.map(function(c) c {
-        host_filter: false,
-      }, super.configs),
+      prometheus+: {
+        configs: [{
+          name: 'agent',
+
+          host_filter: false,
+
+          scrape_configs: $._config.deployment_scrape_configs,
+          remote_write: $._config.agent_remote_write,
+        }],
+      },
+
     },
 
     //
@@ -105,7 +113,6 @@
           insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
         },
         bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-
         relabel_configs: [{
           source_labels: ['__meta_kubernetes_service_label_component'],
           regex: 'apiserver',
