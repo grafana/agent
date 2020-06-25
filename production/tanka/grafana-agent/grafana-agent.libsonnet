@@ -41,72 +41,30 @@ k + config {
     container.mixin.securityContext.withPrivileged(true) +
     container.mixin.securityContext.withRunAsUser(0),
 
-  local config_hash_mixin =
-    if $._config.agent_config_hash_annotation then
-      daemonSet.mixin.spec.template.metadata.withAnnotationsMixin({
-        config_hash: std.md5(std.toString($._config.agent_config)),
-      })
-    else {},
+  config_hash_mixin:: {
+    local hash(config) = { config_hash: std.md5(std.toString(config)) },
+    daemonSet:
+      if $._config.agent_config_hash_annotation then
+        daemonSet.mixin.spec.template.metadata.withAnnotationsMixin(hash($._config.agent_config))
+      else {},
+    deployment:
+      if $._config.agent_config_hash_annotation then
+        deployment.mixin.spec.template.metadata.withAnnotationsMixin(hash($._config.deployment_agent_config))
+      else {},
+  },
 
   // TODO(rfratto): persistent storage for the WAL here is missing. hostVolume?
   agent_daemonset:
     daemonSet.new($._config.agent_pod_name, [$.agent_container]) +
     daemonSet.mixin.spec.template.spec.withServiceAccount($._config.agent_cluster_role_name) +
-    config_hash_mixin +
+    self.config_hash_mixin.daemonSet +
     $.util.configVolumeMount($._config.agent_configmap_name, '/etc/agent'),
 
-
-  local agent_deployment_configmap_name = $._config.agent_configmap_name + '_deployment',
-  // If running on GKE, you cannot scrape API server pods, and must
-  // instead scrape the API server service endpoints. On AKS this doesn't
-  // work.
   agent_deployment_config_map:
     if $._config.agent_host_filter then
-      configMap.new(agent_deployment_configmap_name) +
+      configMap.new($._config.agent_deployment_configmap_name) +
       configMap.withData({
-        'agent.yml': $.util.manifestYaml($._config.agent_config {
-          configs: [{
-            name: 'agent',
-            host_filter: $._config.agent_host_filter,
-            remote_write: $._config.agent_remote_write,
-            scrape_configs: [{
-              job_name: 'default/kubernetes',
-              kubernetes_sd_configs: [{
-                role:
-                  if $._config.scrape_api_server_endpoints
-                  then 'endpoints'
-                  else 'service',
-              }],
-              scheme: 'https',
-
-              tls_config: {
-                ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-                insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
-              },
-              bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-
-              relabel_configs: [{
-                source_labels: ['__meta_kubernetes_service_label_component'],
-                regex: 'apiserver',
-                action: 'keep',
-              }],
-
-              // Drop some high cardinality metrics.
-              metric_relabel_configs: [
-                {
-                  source_labels: ['__name__'],
-                  regex: 'apiserver_admission_controller_admission_latencies_seconds_.*',
-                  action: 'drop',
-                },
-                {
-                  source_labels: ['__name__'],
-                  regex: 'apiserver_admission_step_admission_latencies_seconds_.*',
-                  action: 'drop',
-                },
-              ],
-            }],
-          }],
-        }),
+        'agent.yml': $.util.manifestYaml($._config.deployment_agent_config),
       })
     else {},
 
@@ -115,6 +73,7 @@ k + config {
       deployment.new($._config.agent_pod_name, 1, [$.agent_container]) +
       deployment.mixin.spec.template.spec.withServiceAccount($._config.agent_cluster_role_name) +
       deployment.mixin.spec.withReplicas(1) +
-      $.util.configVolumeMount(agent_deployment_configmap_name, '/etc/agent')
+      self.config_hash_mixin.deployment +
+      $.util.configVolumeMount($._config.agent_deployment_configmap_name, '/etc/agent')
     else {},
 }
