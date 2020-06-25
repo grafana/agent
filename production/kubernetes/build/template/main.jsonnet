@@ -1,6 +1,10 @@
 local agent = import 'grafana-agent/grafana-agent.libsonnet';
 
 agent {
+  _images+:: {
+    agent: 'grafana/agent:v0.4.0',
+  },
+
   _config+:: {
     namespace: 'default',
     agent_remote_write: [{
