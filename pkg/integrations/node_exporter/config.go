@@ -23,10 +23,6 @@ var (
 
 		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 
-		// These use the linux defaults. The init function below appropriately sets defaults for other systems.
-		FilesystemIgnoredMountPoints: "^/(dev|proc|sys|var/lib/docker/.+)($|/)",
-		FilesystemIgnoredFSTypes:     "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
-
 		NetclassIgnoredDevices: "^$",
 		NetstatFields:          "^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans)|Tcp_(ActiveOpens|InSegs|OutSegs|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$",
 
@@ -49,13 +45,17 @@ var (
 )
 
 func init() {
+	// The default values for the filesystem collector are to ignore everything,
+	// but some platforms have specific defaults. We'll fill these in below at
+	// initialization time, but the values can still be overridden via the config
+	// file.
 	switch runtime.GOOS {
+	case "linux":
+		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev|proc|sys|var/lib/docker/.+)($|/)"
+		DefaultConfig.FilesystemIgnoredFSTypes = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
 	case "freebsd", "netbsd", "openbsd":
 		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev)($|/)"
 		DefaultConfig.FilesystemIgnoredFSTypes = "^devfs$"
-	default:
-		DefaultConfig.FilesystemIgnoredMountPoints = ""
-		DefaultConfig.FilesystemIgnoredFSTypes = ""
 	}
 }
 
