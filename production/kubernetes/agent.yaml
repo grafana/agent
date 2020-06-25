@@ -207,6 +207,50 @@ kind: ConfigMap
 metadata:
   name: grafana-agent
 ---
+apiVersion: v1
+data:
+  agent.yml: |
+    prometheus:
+        configs:
+          - host_filter: false
+            name: agent
+            remote_write:
+              - basic_auth:
+                    password: ${REMOTE_WRITE_PASSWORD}
+                    username: ${REMOTE_WRITE_USERNAME}
+                url: ${REMOTE_WRITE_URL}
+            scrape_configs:
+              - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+                job_name: default/kubernetes
+                kubernetes_sd_configs:
+                  - role: endpoints
+                metric_relabel_configs:
+                  - action: drop
+                    regex: apiserver_admission_controller_admission_latencies_seconds_.*
+                    source_labels:
+                      - __name__
+                  - action: drop
+                    regex: apiserver_admission_step_admission_latencies_seconds_.*
+                    source_labels:
+                      - __name__
+                relabel_configs:
+                  - action: keep
+                    regex: apiserver
+                    source_labels:
+                      - __meta_kubernetes_service_label_component
+                scheme: https
+                tls_config:
+                    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                    insecure_skip_verify: false
+        global:
+            scrape_interval: 15s
+        wal_directory: /var/lib/agent/data
+    server:
+        log_level: info
+kind: ConfigMap
+metadata:
+  name: grafana-agent-deployment
+---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -287,3 +331,46 @@ spec:
         name: grafana-agent
   updateStrategy:
     type: RollingUpdate
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-agent-deployment
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: grafana-agent-deployment
+  template:
+    metadata:
+      labels:
+        name: grafana-agent-deployment
+    spec:
+      containers:
+      - args:
+        - -config.file=/etc/agent/agent.yml
+        - -prometheus.wal-directory=/tmp/agent/data
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        image: grafana/agent:latest
+        imagePullPolicy: IfNotPresent
+        name: agent
+        ports:
+        - containerPort: 80
+          name: http-metrics
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /etc/agent
+          name: grafana-agent-deployment
+      serviceAccount: grafana-agent
+      volumes:
+      - configMap:
+          name: grafana-agent-deployment
+        name: grafana-agent-deployment
