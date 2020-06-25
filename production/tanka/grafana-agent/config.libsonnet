@@ -10,7 +10,9 @@
     //
     agent_cluster_role_name: 'grafana-agent',
     agent_configmap_name: 'grafana-agent',
+    agent_deployment_configmap_name: self.agent_configmap_name + '-deployment',
     agent_pod_name: 'grafana-agent',
+    agent_deployment_pod_name: self.agent_pod_name + '-deployment',
 
     cluster_dns_tld: 'local',
     cluster_dns_suffix: 'cluster.' + self.cluster_dns_tld,
@@ -46,6 +48,9 @@
     // to control the agent. A single instance is hard-coded and its
     // scrape_configs are defined below.
     //
+    // deployment_agent_config is a copy of `agent_config` that is used by the
+    // single-replica deployment to scrape jobs that don't work in host
+    // filtering mode.
     agent_config: {
       server: {
         log_level: 'info',
@@ -63,12 +68,74 @@
 
           host_filter: $._config.agent_host_filter,
 
-          scrape_configs: $._config.kubernetes_scrape_configs,
+          scrape_configs:
+            if $._config.agent_host_filter then
+              $._config.kubernetes_scrape_configs + $._config.deployment_scrape_configs
+            else
+              $._config.kubernetes_scrape_configs,
           remote_write: $._config.agent_remote_write,
         }],
       },
     },
+    deployment_agent_config: self.agent_config {
+      prometheus+: {
+        configs: [{
+          name: 'agent',
 
+          host_filter: false,
+
+          scrape_configs: $._config.deployment_scrape_configs,
+          remote_write: $._config.agent_remote_write,
+        }],
+      },
+
+    },
+
+    //
+    // We have two optional extension points for scrape config. One for the
+    // statefulset that holds all the agents attached to a node
+    // (kubernetes_scrape_configs) and One for the single replica deployment
+    // that is used to scrape jobs that don't work with host filtering mode
+    // (deployment_scrape_configs) the later is only used when host_filter =
+    // true.
+    deployment_scrape_configs: [
+      {
+        job_name: 'default/kubernetes',
+        kubernetes_sd_configs: [{
+          role:
+            if $._config.scrape_api_server_endpoints
+            then 'endpoints'
+            else 'service',
+        }],
+        scheme: 'https',
+
+        tls_config: {
+          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+          insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
+        },
+        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+        relabel_configs: [{
+          source_labels: ['__meta_kubernetes_service_label_component'],
+          regex: 'apiserver',
+          action: 'keep',
+        }],
+
+        // Drop some high cardinality metrics.
+        metric_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'apiserver_admission_controller_admission_latencies_seconds_.*',
+            action: 'drop',
+          },
+          {
+            source_labels: ['__name__'],
+            regex: 'apiserver_admission_step_admission_latencies_seconds_.*',
+            action: 'drop',
+          },
+        ],
+
+      },
+    ],
     kubernetes_scrape_configs: [
       {
         job_name: 'kubernetes-pods',
@@ -351,46 +418,6 @@
           {
             source_labels: ['__name__'],
             regex: 'container_(network_tcp_usage_total|network_udp_usage_total|tasks_state|cpu_load_average_10s)',
-            action: 'drop',
-          },
-        ],
-      },
-
-      // If running on GKE, you cannot scrape API server pods, and must
-      // instead scrape the API server service endpoints. On AKS this doesn't
-      // work.
-      {
-        job_name: 'default/kubernetes',
-        kubernetes_sd_configs: [{
-          role:
-            if $._config.scrape_api_server_endpoints
-            then 'endpoints'
-            else 'service',
-        }],
-        scheme: 'https',
-
-        tls_config: {
-          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-          insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
-        },
-        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-
-        relabel_configs: [{
-          source_labels: ['__meta_kubernetes_service_label_component'],
-          regex: 'apiserver',
-          action: 'keep',
-        }],
-
-        // Drop some high cardinality metrics.
-        metric_relabel_configs: [
-          {
-            source_labels: ['__name__'],
-            regex: 'apiserver_admission_controller_admission_latencies_seconds_.*',
-            action: 'drop',
-          },
-          {
-            source_labels: ['__name__'],
-            regex: 'apiserver_admission_step_admission_latencies_seconds_.*',
             action: 'drop',
           },
         ],
