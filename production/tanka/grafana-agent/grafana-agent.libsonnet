@@ -5,7 +5,7 @@ k + config {
   local configMap = $.core.v1.configMap,
   local container = $.core.v1.container,
   local daemonSet = $.apps.v1.daemonSet,
-  local deployment = $.core.v1.deployment,
+  local deployment = $.apps.v1.deployment,
   local policyRule = $.rbac.v1beta1.policyRule,
 
   agent_rbac:
@@ -70,7 +70,7 @@ k + config {
 
   agent_deployment:
     if $._config.agent_host_filter then
-      deployment.new($._config.agent_pod_name, 1, [$.agent_container]) +
+      deployment.new($._config.agent_deployment_pod_name, 1, [$.agent_container]) +
       deployment.mixin.spec.template.spec.withServiceAccount($._config.agent_cluster_role_name) +
       deployment.mixin.spec.withReplicas(1) +
       self.config_hash_mixin.deployment +
