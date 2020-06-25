@@ -12,6 +12,7 @@
     agent_configmap_name: 'grafana-agent',
     agent_deployment_configmap_name: self.agent_configmap_name + '-deployment',
     agent_pod_name: 'grafana-agent',
+    agent_deployment_pod_name: self.agent_pod_name + '-deployment',
 
     cluster_dns_tld: 'local',
     cluster_dns_suffix: 'cluster.' + self.cluster_dns_tld,
