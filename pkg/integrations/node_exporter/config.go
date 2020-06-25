@@ -45,6 +45,10 @@ var (
 )
 
 func init() {
+	// The default values for the filesystem collector are to ignore everything,
+	// but some platforms have specific defaults. We'll fill these in below at
+	// initialization time, but the values can still be overridden via the config
+	// file.
 	switch runtime.GOOS {
 	case "linux":
 		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev|proc|sys|var/lib/docker/.+)($|/)"
@@ -52,9 +56,6 @@ func init() {
 	case "freebsd", "netbsd", "openbsd":
 		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev)($|/)"
 		DefaultConfig.FilesystemIgnoredFSTypes = "^devfs$"
-	default:
-		DefaultConfig.FilesystemIgnoredMountPoints = ""
-		DefaultConfig.FilesystemIgnoredFSTypes = ""
 	}
 }
 
