@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+#
+#we want to name the binary grafana-agent not agent-linux-amd64
+#
+fpm.ruby2.6 -s dir -t rpm -f \
+  --package ../dist \
+  --log warn \
+  -v 0.4.0 \
+  -n grafana-agent \
+  --license "Apache 2.0" \
+  --vendor "Grafana Labs" \
+  --url "https://github.com/grafana/agent" \
+  --after-install after_install.sh \
+  --before-remove before_remove.sh \
+  --config-files etc/grafana-agent.yaml \
+  --config-files etc/sysconfig/grafana-agent  \
+  ../dist/agent-linux-amd64=/usr/bin/grafana-agent \
+  var=/ grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
