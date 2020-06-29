@@ -36,12 +36,23 @@ prometheus:
       #                                                                                             #
       #This example will scrape a windows WMI exporter running on the local network                 #
       ###############################################################################################
-      scrape_configs:
-        - job_name: "wmi_exporter"
-          static_configs:
-            - targets: ['192.168.0.91']
-              labels:
-                name_in_static_config: "wmi/servername"
+      #scrape_configs:
+      #  - job_name: "wmi_exporter"
+      #    static_configs:
+      #      - targets: ['192.168.0.91']
+      #        labels:
+      #          name_in_static_config: "wmi/servername"
+      #
+           #you need both remote_write section for scrapes, as well as prometheus_remote_write 
+           #    for integrations in teh next section.  
+      #    remote_write:
+      #      - url: https://prometheus-us-central1.grafana.net/api/prom/push
+      #      basic_auth:
+      #        username:       #your username from hosted-metrics details page.
+      #        password:       #your password form the hosted-metrics details page.
+
+
+
 
                 
 ##This section lists the different integrations, and if they are enabled or not
@@ -56,6 +67,7 @@ integrations:
       - "mdadm" 
 
   
+  # Integrations needs it's own prometehus_remote_write section. 
   prometheus_remote_write:
     - url: https://prometheus-us-central1.grafana.net/api/prom/push
       basic_auth:
