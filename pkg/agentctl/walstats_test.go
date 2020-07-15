@@ -29,7 +29,7 @@ func TestWALStats(t *testing.T) {
 		From:             stats.From,
 		To:               stats.To,
 		CheckpointNumber: 1,
-		FirstSegment:     2,
+		FirstSegment:     0,
 		LastSegment:      3,
 		HashCollisions:   1,
 		InvalidRefs:      1,
@@ -91,7 +91,6 @@ func setupTestWAL(t *testing.T) string {
 	// Checkpoint the previous segment.
 	_, err = wal.Checkpoint(w, 0, 1, func(_ uint64) bool { return true }, 0)
 	require.NoError(t, err)
-	require.NoError(t, w.Truncate(2))
 	require.NoError(t, w.NextSegment())
 
 	// Create some samples and then make a new segment.
