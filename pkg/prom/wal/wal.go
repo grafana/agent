@@ -62,6 +62,7 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 			m.numDeletedSeries,
 			m.totalCreatedSeries,
 			m.totalRemovedSeries,
+			m.totalAppendedSamples,
 		)
 	}
 
@@ -547,6 +548,7 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 
 	a.w.metrics.numActiveSeries.Inc()
 	a.w.metrics.totalCreatedSeries.Inc()
+	a.w.metrics.totalAppendedSamples.Inc()
 
 	return series.ref, a.AddFast(series.ref, t, v)
 }
@@ -568,6 +570,8 @@ func (a *appender) AddFast(ref uint64, t int64, v float64) error {
 		T:   t,
 		V:   v,
 	})
+
+	a.w.metrics.totalAppendedSamples.Inc()
 	return nil
 }
 
