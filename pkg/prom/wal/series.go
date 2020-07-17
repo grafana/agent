@@ -237,14 +237,6 @@ func (s *stripeSeries) saveLabels(hash uint64, series *memSeries, lbls labels.La
 	s.locks[i].Unlock()
 }
 
-func (s *stripeSeries) delLabels(hash uint64, series *memSeries) {
-	i := hash & uint64(s.size-1)
-
-	s.locks[i].Lock()
-	s.hashes[i].del(hash, series.ref)
-	s.locks[i].Unlock()
-}
-
 func (s *stripeSeries) iterator() *stripeSeriesIterator {
 	return &stripeSeriesIterator{s}
 }
