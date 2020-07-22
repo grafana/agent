@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/scrape"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
@@ -266,6 +267,10 @@ func (i *mockInstance) Run(ctx context.Context) error {
 	case err := <-i.err:
 		return err
 	}
+}
+
+func (i *mockInstance) TargetsActive() map[string][]*scrape.Target {
+	return nil
 }
 
 type mockInstanceFactory struct {

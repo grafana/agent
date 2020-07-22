@@ -195,6 +195,8 @@ type Instance struct {
 	newWal walStorageFactory
 
 	vc *MetricValueCollector
+
+	readyScrapeManager *scrape.ReadyScrapeManager
 }
 
 // New creates a new Instance with a directory for storing the WAL. The instance
@@ -226,6 +228,8 @@ func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Regis
 
 		reg:    reg,
 		newWal: newWal,
+
+		readyScrapeManager: &scrape.ReadyScrapeManager{},
 	}
 
 	return i, nil
@@ -254,8 +258,7 @@ func (i *Instance) Run(ctx context.Context) error {
 		return err
 	}
 
-	readyScrapeManager := &scrape.ReadyScrapeManager{}
-	storage, err := i.newStorage(&trackingReg, wstore, readyScrapeManager)
+	storage, err := i.newStorage(&trackingReg, wstore, i.readyScrapeManager)
 	if err != nil {
 		return err
 	}
@@ -270,7 +273,7 @@ func (i *Instance) Run(ctx context.Context) error {
 		level.Error(i.logger).Log("msg", "failed applying config to scrape manager", "err", err)
 		return fmt.Errorf("failed applying config to scrape manager: %w", err)
 	}
-	readyScrapeManager.Set(scrapeManager)
+	i.readyScrapeManager.Set(scrapeManager)
 
 	rg := runGroupWithContext(ctx)
 
@@ -339,6 +342,19 @@ func (i *Instance) Run(ctx context.Context) error {
 		level.Error(i.logger).Log("msg", "agent instance stopped with error", "err", err)
 	}
 	return err
+}
+
+// TargetsActive returns the set of active targets from the scrape manager. Returns nil
+// if the scrape manager is not ready yet.
+func (i *Instance) TargetsActive() map[string][]*scrape.Target {
+	mgr, err := i.readyScrapeManager.Get()
+	if err == scrape.ErrNotReady {
+		return nil
+	} else if err != nil {
+		level.Error(i.logger).Log("msg", "failed to get scrape manager when collecting active targets", "err", err)
+		return nil
+	}
+	return mgr.TargetsActive()
 }
 
 type discoveryService struct {

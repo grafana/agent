@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -18,6 +19,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/scrape"
 	"google.golang.org/grpc"
 )
 
@@ -116,6 +118,9 @@ type Agent struct {
 
 	instanceFactory instanceFactory
 
+	instancesMut sync.Mutex
+	instances    map[string]inst
+
 	ha *ha.Server
 }
 
@@ -129,6 +134,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 		cfg:             cfg,
 		logger:          log.With(logger, "agent", "prometheus"),
 		instanceFactory: fact,
+		instances:       make(map[string]inst),
 	}
 
 	a.cm = NewInstanceManager(a.spawnInstance, a.validateInstance)
@@ -169,6 +175,19 @@ func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
 		level.Error(a.logger).Log("msg", "failed to create instance", "err", err)
 		return
 	}
+
+	// Internally keep track of the instance. This is used by the Agent API to
+	// pull metadata from the instances. When this function exits, we'll remove
+	// the in-memory reference.
+	a.instancesMut.Lock()
+	a.instances[c.Name] = inst
+	a.instancesMut.Unlock()
+
+	defer func() {
+		a.instancesMut.Lock()
+		delete(a.instances, c.Name)
+		a.instancesMut.Unlock()
+	}()
 
 	for {
 		err = inst.Run(ctx)
@@ -211,6 +230,7 @@ func (a *Agent) Stop() {
 // to isolate agent from instance functionality.
 type inst interface {
 	Run(ctx context.Context) error
+	TargetsActive() map[string][]*scrape.Target
 }
 
 type instanceFactory = func(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (inst, error)
