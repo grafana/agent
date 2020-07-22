@@ -43,7 +43,7 @@ func (a *Agent) ListTargetsHandler(w http.ResponseWriter, _ *http.Request) {
 	a.instancesMut.Lock()
 	defer a.instancesMut.Unlock()
 
-	var resp ListTargetsResponse
+	resp := ListTargetsResponse{}
 
 	for instName, inst := range a.instances {
 		tps := inst.TargetsActive()

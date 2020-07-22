@@ -61,7 +61,7 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		a.ListTargetsHandler(rr, r)
-		expect := `{"status":"success","data":null}`
+		expect := `{"status":"success","data":[]}`
 		require.Equal(t, expect, rr.Body.String())
 	})
 
