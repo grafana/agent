@@ -3,21 +3,21 @@ module github.com/grafana/agent
 go 1.12
 
 require (
-	github.com/cortexproject/cortex v1.1.1-0.20200624173659-7f6f8798b3b4
+	github.com/cortexproject/cortex v1.2.1-0.20200709155522-19502213923d
 	github.com/go-kit/kit v0.10.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/mux v1.7.3
-	github.com/grafana/loki v1.5.1-0.20200623155902-70900be57dd2
+	github.com/grafana/loki v1.5.1-0.20200723135610-35feea5a58cf
 	github.com/oklog/run v1.1.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20180928155321-4b5a12d3ff02
 	github.com/opentracing/opentracing-go v1.1.1-0.20200124165624-2876d2018785
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.6.1-0.20200604110148-03575cad4e55
+	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/common v0.10.0
 	github.com/prometheus/node_exporter v1.0.0
-	github.com/prometheus/procfs v0.0.11
-	github.com/prometheus/prometheus v1.8.2-0.20200622142935-153f859b7499
+	github.com/prometheus/procfs v0.1.3
+	github.com/prometheus/prometheus v1.8.2-0.20200707115909-30505a202a4c
 	github.com/spf13/cobra v0.0.3
 	github.com/stretchr/testify v1.5.1
 	github.com/weaveworks/common v0.0.0-20200512154658-384f10054ec5
