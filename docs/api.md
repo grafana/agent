@@ -176,7 +176,7 @@ Response on success:
       "endpoint": <string, URL being scraped>
       "state": <string, one of up, down, unknown>,
       "labels": {
-        "label_a", "value_a",
+        "label_a": "value_a",
         ...
       },
       "last_scrape": <string, RFC 3339 timestamp of last scrape>,
