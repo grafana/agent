@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/scrape"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
@@ -190,13 +191,6 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 				return fact.created.Load() == 2 && len(a.cm.processes) == 2
 			})
 
-			// Get the total amount of instances that started before
-			// we send errors through
-			var oldStartedCount int64
-			for _, i := range fact.Mocks() {
-				oldStartedCount += i.startedCount.Load()
-			}
-
 			for _, mi := range fact.Mocks() {
 				mi.err <- tc.simulateError
 			}
@@ -210,7 +204,9 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 				startedCount += i.startedCount.Load()
 			}
 
-			require.Equal(t, startedCount, oldStartedCount, "instances should not have restarted")
+			// There should only be two instances that started. If there's more, something
+			// restarted despite our error.
+			require.Equal(t, int64(2), startedCount, "instances should not have restarted")
 		})
 	}
 }
@@ -266,6 +262,10 @@ func (i *mockInstance) Run(ctx context.Context) error {
 	case err := <-i.err:
 		return err
 	}
+}
+
+func (i *mockInstance) TargetsActive() map[string][]*scrape.Target {
+	return nil
 }
 
 type mockInstanceFactory struct {
