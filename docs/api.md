@@ -132,9 +132,9 @@ Response on success:
 }
 ```
 
-## Agent API 
+## Agent API
 
-### List current running instances 
+### List current running instances
 
 ```
 GET /agent/api/v1/instances
@@ -148,6 +148,42 @@ Response on success:
   "status": "success",
   "data": [
     <strings of instance names that are currently running>
+  ]
+}
+```
+
+### List current scrape targets
+
+```
+GET /agent/api/v1/targets
+```
+
+This endpoint collects all targets known to the Agent across all running
+instances. Only targets being scraped from the local Agent will be returned. If
+running in scraping service mode, this endpoint must be invoked in all Agents
+separately to get the combined set of targets across the whole Agent cluster.
+
+Status code: 200 on success.
+Response on success:
+
+```
+{
+  "status": "success",
+  "data": [
+    {
+      "instance": <string, instance config name>,
+      "target_group": <string, scrape config group name>,
+      "endpoint": <string, URL being scraped>
+      "state": <string, one of up, down, unknown>,
+      "labels": {
+        "label_a": "value_a",
+        ...
+      },
+      "last_scrape": <string, RFC 3339 timestamp of last scrape>,
+      "scrape_duration_ms": <number, last scrape duration in milliseconds>,
+      "scrape_error": <string, last error. empty if scrape succeeded>
+    },
+    ...
   ]
 }
 ```
