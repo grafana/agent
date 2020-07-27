@@ -62,6 +62,7 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 			m.numDeletedSeries,
 			m.totalCreatedSeries,
 			m.totalRemovedSeries,
+			m.totalAppendedSamples,
 		)
 	}
 
@@ -373,9 +374,9 @@ func (w *Storage) Truncate(mint int64) error {
 		return nil // no segments yet.
 	}
 
-	// The lower third of segments should contain mostly obsolete samples.
-	// If we have less than three segments, it's not worth checkpointing yet.
-	last = first + (last-first)/3
+	// The lower two thirds of segments should contain mostly obsolete samples.
+	// If we have less than two segments, it's not worth checkpointing yet.
+	last = first + (last-first)*2/3
 	if last <= first {
 		return nil
 	}
@@ -445,7 +446,7 @@ func (w *Storage) gc(mint int64) {
 		w.deleted[ref] = last
 	}
 
-	w.metrics.numDeletedSeries.Set(float64(len(deleted)))
+	w.metrics.numDeletedSeries.Set(float64(len(w.deleted)))
 }
 
 // WriteStalenessMarkers appends a staleness sample for all active series.
@@ -522,59 +523,32 @@ type appender struct {
 }
 
 func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
-	// The normal procedure here would be to see if we have any in-memory
-	// series with the same label set and return the same ref ID if such
-	// a series exists. However, storing all these labels takes up a fair
-	// amount of memory, so we take a shortcut here: return a series if its
-	// labels were already stored, but don't store labels for new series.
-	//
-	// This shortcut is utilized by the WAL replay to make sure that replayed
-	// series retain the same ref ID, but new series or existing series that go
-	// stale and come back will be assigned new ref IDs.
-	//
-	// In most cases, this won't be a problem, and both the scraping and remote
-	// write code will handle this gracefully. There is a slightly chance of samples
-	// being skipped if the following happens, in order:
-	//
-	// 1. A series goes stale and is not present in a scrape. The saved series ID
-	//    is removed from the scrape cache as a result.
-	// 2. Samples from that stale series are still pending to be sent to the
-	//    remote.
-	// 3. The series comes back and is assigned a new ref ID per the code below this
-	//    comment block.
-	// 4. Samples from the series with the new ref ID are sent before the pending
-	//    series.
-	// 5. When the samples from the previous ref ID get sent, they are rejected as
-	//    being out of order.
-
 	hash := l.Hash()
 
 	series := a.w.series.getByHash(hash, l)
 	if series != nil {
-		// Unlikely path: existing series whose labels have been saved.
-
-		// Now that the series has been read and will be cached by the scraping code,
-		// we can remove the stored labels from memory.
-		a.w.series.delLabels(hash, series)
 		return series.ref, a.AddFast(series.ref, t, v)
 	}
 
-	// More common path: we haven't saved the labels for this series,
-	// create a new ref ID for it.
 	a.w.mtx.Lock()
 	ref := a.w.nextRef
 	a.w.nextRef++
 	a.w.mtx.Unlock()
 
-	series = &memSeries{ref: ref, hash: hash, lastTs: t}
+	series = &memSeries{ref: ref, hash: hash}
+	series.updateTs(t)
+
 	a.series = append(a.series, record.RefSeries{
 		Ref:    ref,
 		Labels: l,
 	})
 
 	a.w.series.set(series)
+	a.w.series.saveLabels(series.hash, series, l)
+
 	a.w.metrics.numActiveSeries.Inc()
 	a.w.metrics.totalCreatedSeries.Inc()
+	a.w.metrics.totalAppendedSamples.Inc()
 
 	return series.ref, a.AddFast(series.ref, t, v)
 }
@@ -596,6 +570,8 @@ func (a *appender) AddFast(ref uint64, t int64, v float64) error {
 		T:   t,
 		V:   v,
 	})
+
+	a.w.metrics.totalAppendedSamples.Inc()
 	return nil
 }
 
@@ -622,6 +598,16 @@ func (a *appender) Commit() error {
 
 	//nolint:staticcheck
 	a.w.bufPool.Put(buf)
+
+	for _, sample := range a.samples {
+		series := a.w.series.getByID(sample.Ref)
+		if series != nil {
+			series.Lock()
+			series.pendingCommit = false
+			series.Unlock()
+		}
+	}
+
 	return a.Rollback()
 }
 
