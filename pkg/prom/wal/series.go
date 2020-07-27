@@ -27,11 +27,15 @@ type memSeries struct {
 	// willDelete marks a series as to be deleted on the next garbage
 	// collection. If it receives a write, willDelete is disabled.
 	willDelete bool
+
+	// Whether this series has samples waiting to be committed to the WAL
+	pendingCommit bool
 }
 
 func (s *memSeries) updateTs(ts int64) {
 	s.lastTs = ts
 	s.willDelete = false
+	s.pendingCommit = true
 }
 
 // seriesHashmap is a simple hashmap for memSeries by their label set. It is
@@ -147,7 +151,7 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 
 			// If the series has received a write after mint, there's still
 			// data and it's not completely gone yet.
-			if series.lastTs >= mint {
+			if series.lastTs >= mint || series.pendingCommit {
 				series.willDelete = false
 				series.Unlock()
 				continue
@@ -171,9 +175,6 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 
 			deleted[series.ref] = struct{}{}
 			delete(s.series[i], series.ref)
-
-			// This may be a no-op: only series replayed from the WAL are
-			// present in the hashes collection and are removed over time.
 			s.hashes[j].del(series.hash, series.ref)
 
 			if i != j {
@@ -233,14 +234,6 @@ func (s *stripeSeries) saveLabels(hash uint64, series *memSeries, lbls labels.La
 
 	s.locks[i].Lock()
 	s.hashes[i].set(hash, lbls, series.ref)
-	s.locks[i].Unlock()
-}
-
-func (s *stripeSeries) delLabels(hash uint64, series *memSeries) {
-	i := hash & uint64(s.size-1)
-
-	s.locks[i].Lock()
-	s.hashes[i].del(hash, series.ref)
 	s.locks[i].Unlock()
 }
 
