@@ -24,7 +24,7 @@ func TestManager_ValidInstanceConfigs(t *testing.T) {
 	mock := newMockIntegration()
 
 	integrations := []Integration{mock}
-	im := prom.NewInstanceManager(mockInstanceLauncher, func(c *instance.Config) error {
+	im := prom.NewInstanceManager(prom.DefaultInstanceManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
 	})
@@ -44,7 +44,8 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 
 	integrations := []Integration{mock}
-	im := prom.NewInstanceManager(mockInstanceLauncher, nil)
+
+	im := prom.NewInstanceManager(prom.DefaultInstanceManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
 	defer m.Stop()
@@ -63,7 +64,7 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 
 	integrations := []Integration{mock}
-	im := prom.NewInstanceManager(mockInstanceLauncher, nil)
+	im := prom.NewInstanceManager(prom.DefaultInstanceManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
 	defer m.Stop()
@@ -79,7 +80,7 @@ func TestManager_GracefulStop(t *testing.T) {
 	mock := newMockIntegration()
 
 	integrations := []Integration{mock}
-	im := prom.NewInstanceManager(mockInstanceLauncher, nil)
+	im := prom.NewInstanceManager(prom.DefaultInstanceManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
 
@@ -136,7 +137,9 @@ func (i *mockIntegration) Run(ctx context.Context) error {
 	}
 }
 
-func mockInstanceLauncher(ctx context.Context, _ instance.Config) { <-ctx.Done() }
+func mockInstanceFactory(_ instance.Config) prom.Instance {
+	return instance.NoOpInstance{}
+}
 
 func mockManagerConfig() Config {
 	listenPort := 0

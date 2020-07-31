@@ -1,11 +1,11 @@
 package prom
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util/test"
+	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/prometheus/config"
 )
@@ -14,7 +14,7 @@ func TestInstanceManager_ApplyConfig(t *testing.T) {
 	fact := newMockInstanceFactory()
 	spawner := mockInstanceSpawner(fact)
 
-	cm := NewInstanceManager(spawner, nil)
+	cm := NewInstanceManager(DefaultInstanceManagerConfig, log.NewNopLogger(), spawner, nil)
 	_ = cm.ApplyConfig(instance.Config{Name: "test"})
 
 	test.Poll(t, time.Second, true, func() interface{} {
@@ -32,13 +32,12 @@ func TestInstanceManager_ApplyConfig(t *testing.T) {
 	})
 }
 
-func mockInstanceSpawner(fact *mockInstanceFactory) func(context.Context, instance.Config) {
-	return func(ctx context.Context, c instance.Config) {
+func mockInstanceSpawner(fact *mockInstanceFactory) InstanceFactory {
+	return func(c instance.Config) Instance {
 		inst, err := fact.factory(config.DefaultGlobalConfig, c, "", nil)
 		if err != nil {
-			return
+			return nil
 		}
-
-		_ = inst.Run(ctx)
+		return inst
 	}
 }
