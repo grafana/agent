@@ -4,11 +4,9 @@
 package prom
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -16,23 +14,8 @@ import (
 	"github.com/grafana/agent/pkg/prom/ha"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/instance"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/scrape"
 	"google.golang.org/grpc"
-)
-
-var (
-	instanceAbnormalExits = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "agent_prometheus_instance_abnormal_exits_total",
-		Help: "Total number of times a Prometheus instance exited unexpectedly, causing it to be restarted.",
-	}, []string{"instance_name"})
-
-	currentActiveConfigs = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "agent_prometheus_active_configs",
-		Help: "Current number of active configs being used by the agent.",
-	})
 )
 
 var (
@@ -107,9 +90,9 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 }
 
 // Agent is an agent for collecting Prometheus metrics. It acts as a
-// Prometheus-lite; only running the service discovery, remote_write,
-// and WAL components of Prometheus. It is broken down into a series
-// of Instances, each of which perform metric collection.
+// Prometheus-lite; only running the service discovery, remote_write, and WAL
+// components of Prometheus. It is broken down into a series of Instances, each
+// of which perform metric collection.
 type Agent struct {
 	cfg    Config
 	logger log.Logger
@@ -117,9 +100,6 @@ type Agent struct {
 	cm *InstanceManager
 
 	instanceFactory instanceFactory
-
-	instancesMut sync.Mutex
-	instances    map[string]inst
 
 	ha *ha.Server
 }
@@ -134,10 +114,11 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 		cfg:             cfg,
 		logger:          log.With(logger, "agent", "prometheus"),
 		instanceFactory: fact,
-		instances:       make(map[string]inst),
 	}
 
-	a.cm = NewInstanceManager(a.spawnInstance, a.validateInstance)
+	a.cm = NewInstanceManager(InstanceManagerConfig{
+		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
+	}, a.logger, a.newInstance, a.validateInstance)
 
 	allConfigsValid := true
 	for _, c := range cfg.Configs {
@@ -161,45 +142,13 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 	return a, nil
 }
 
-func (a *Agent) validateInstance(c *instance.Config) error {
-	return c.ApplyDefaults(&a.cfg.Global)
+// newInstance creates a new Instance given a config.
+func (a *Agent) newInstance(c instance.Config) (Instance, error) {
+	return a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
 }
 
-// spawnInstance takes an instance.Config and launches an instance, restarting
-// it if it stops unexpectedly. The instance will be stopped whenever ctx
-// is canceled. This function will not return until the launched instance
-// has fully shut down.
-func (a *Agent) spawnInstance(ctx context.Context, c instance.Config) {
-	inst, err := a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
-	if err != nil {
-		level.Error(a.logger).Log("msg", "failed to create instance", "err", err)
-		return
-	}
-
-	// Internally keep track of the instance. This is used by the Agent API to
-	// pull metadata from the instances. When this function exits, we'll remove
-	// the in-memory reference.
-	a.instancesMut.Lock()
-	a.instances[c.Name] = inst
-	a.instancesMut.Unlock()
-
-	defer func() {
-		a.instancesMut.Lock()
-		delete(a.instances, c.Name)
-		a.instancesMut.Unlock()
-	}()
-
-	for {
-		err = inst.Run(ctx)
-		if err != nil && err != context.Canceled {
-			instanceAbnormalExits.WithLabelValues(c.Name).Inc()
-			level.Error(a.logger).Log("msg", "instance stopped abnormally, restarting after backoff period", "err", err, "backoff", a.cfg.InstanceRestartBackoff, "instance", c.Name)
-			time.Sleep(a.cfg.InstanceRestartBackoff)
-		} else {
-			level.Info(a.logger).Log("msg", "stopped instance", "instance", c.Name)
-			break
-		}
-	}
+func (a *Agent) validateInstance(c *instance.Config) error {
+	return c.ApplyDefaults(&a.cfg.Global)
 }
 
 func (a *Agent) WireGRPC(s *grpc.Server) {
@@ -208,13 +157,8 @@ func (a *Agent) WireGRPC(s *grpc.Server) {
 	}
 }
 
-func (a *Agent) Config() Config {
-	return a.cfg
-}
-
-func (a *Agent) InstanceManager() *InstanceManager {
-	return a.cm
-}
+func (a *Agent) Config() Config                    { return a.cfg }
+func (a *Agent) InstanceManager() *InstanceManager { return a.cm }
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
@@ -226,15 +170,8 @@ func (a *Agent) Stop() {
 	a.cm.Stop()
 }
 
-// inst is an interface implemented by Instance, and used by tests
-// to isolate agent from instance functionality.
-type inst interface {
-	Run(ctx context.Context) error
-	TargetsActive() map[string][]*scrape.Target
-}
+type instanceFactory = func(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (Instance, error)
 
-type instanceFactory = func(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (inst, error)
-
-func defaultInstanceFactory(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (inst, error) {
+func defaultInstanceFactory(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (Instance, error) {
 	return instance.New(global, cfg, walDir, logger)
 }

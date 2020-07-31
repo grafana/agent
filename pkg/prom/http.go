@@ -40,12 +40,10 @@ func (a *Agent) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
 // ListTargetsHandler retrieves the full set of targets across all instances and shows
 // information on them.
 func (a *Agent) ListTargetsHandler(w http.ResponseWriter, _ *http.Request) {
-	a.instancesMut.Lock()
-	defer a.instancesMut.Unlock()
-
+	instances := a.cm.ListInstances()
 	resp := ListTargetsResponse{}
 
-	for instName, inst := range a.instances {
+	for instName, inst := range instances {
 		tps := inst.TargetsActive()
 
 		for key, targets := range tps {

@@ -56,8 +56,8 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 	r := httptest.NewRequest("GET", "/agent/api/v1/targets", nil)
 
 	t.Run("scrape manager not ready", func(t *testing.T) {
-		a.instances = map[string]inst{
-			"test_instance": &mockInstanceScrape{},
+		a.cm.processes = map[string]*instanceManagerProcess{
+			"test_instance": {inst: &mockInstanceScrape{}},
 		}
 
 		rr := httptest.NewRecorder()
@@ -80,10 +80,12 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 		startTime := time.Date(1994, time.January, 12, 0, 0, 0, 0, time.UTC)
 		tgt.Report(startTime, time.Minute, fmt.Errorf("something went wrong"))
 
-		a.instances = map[string]inst{
-			"test_instance": &mockInstanceScrape{
-				tgts: map[string][]*scrape.Target{
-					"group_a": {tgt},
+		a.cm.processes = map[string]*instanceManagerProcess{
+			"test_instance": {
+				inst: &mockInstanceScrape{
+					tgts: map[string][]*scrape.Target{
+						"group_a": {tgt},
+					},
 				},
 			},
 		}
