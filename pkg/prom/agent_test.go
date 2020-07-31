@@ -285,7 +285,7 @@ func (f *mockInstanceFactory) Mocks() []*mockInstance {
 	return f.mocks
 }
 
-func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config, _ string, _ log.Logger) (inst, error) {
+func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config, _ string, _ log.Logger) (Instance, error) {
 	f.created.Add(1)
 
 	f.mut.Lock()
