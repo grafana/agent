@@ -143,13 +143,8 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 }
 
 // newInstance creates a new Instance given a config.
-func (a *Agent) newInstance(c instance.Config) Instance {
-	inst, err := a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
-	if err != nil {
-		level.Error(a.logger).Log("msg", "failed to create instance", "err", err)
-		return nil
-	}
-	return inst
+func (a *Agent) newInstance(c instance.Config) (Instance, error) {
+	return a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
 }
 
 func (a *Agent) validateInstance(c *instance.Config) error {

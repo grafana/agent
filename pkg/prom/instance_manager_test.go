@@ -33,11 +33,7 @@ func TestInstanceManager_ApplyConfig(t *testing.T) {
 }
 
 func mockInstanceSpawner(fact *mockInstanceFactory) InstanceFactory {
-	return func(c instance.Config) Instance {
-		inst, err := fact.factory(config.DefaultGlobalConfig, c, "", nil)
-		if err != nil {
-			return nil
-		}
-		return inst
+	return func(c instance.Config) (Instance, error) {
+		return fact.factory(config.DefaultGlobalConfig, c, "", nil)
 	}
 }

@@ -137,8 +137,8 @@ func (i *mockIntegration) Run(ctx context.Context) error {
 	}
 }
 
-func mockInstanceFactory(_ instance.Config) prom.Instance {
-	return instance.NoOpInstance{}
+func mockInstanceFactory(_ instance.Config) (prom.Instance, error) {
+	return instance.NoOpInstance{}, nil
 }
 
 func mockManagerConfig() Config {

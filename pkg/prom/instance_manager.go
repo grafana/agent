@@ -89,7 +89,7 @@ func NewInstanceManager(cfg InstanceManagerConfig, logger log.Logger, launch Ins
 }
 
 // An InstanceFactory should return an unstarted instance given some config.
-type InstanceFactory func(c instance.Config) Instance
+type InstanceFactory func(c instance.Config) (Instance, error)
 
 // A ConfigValidator should validate an instance.Config and return an error if
 // a problem was found.
@@ -149,20 +149,28 @@ func (im *InstanceManager) ApplyConfig(c instance.Config) error {
 	}
 
 	// Spawn a new process for the new config.
-	im.spawnProcess(c)
+	err := im.spawnProcess(c)
+	if err != nil {
+		return err
+	}
 	currentActiveConfigs.Inc()
 	return nil
 }
 
-func (im *InstanceManager) spawnProcess(c instance.Config) {
+func (im *InstanceManager) spawnProcess(c instance.Config) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan bool)
+
+	inst, err := im.launch(c)
+	if err != nil {
+		return err
+	}
 
 	proc := &instanceManagerProcess{
 		cancel: cancel,
 		done:   done,
 		cfg:    c,
-		inst:   im.launch(c),
+		inst:   inst,
 	}
 
 	im.processes[c.Name] = proc
@@ -185,6 +193,8 @@ func (im *InstanceManager) spawnProcess(c instance.Config) {
 
 		currentActiveConfigs.Dec()
 	}()
+
+	return nil
 }
 
 // runProcess runs an instance and keeps it alive until the context is canceled.
