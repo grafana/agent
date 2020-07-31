@@ -158,13 +158,13 @@ func (im *InstanceManager) ApplyConfig(c instance.Config) error {
 }
 
 func (im *InstanceManager) spawnProcess(c instance.Config) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan bool)
-
 	inst, err := im.launch(c)
 	if err != nil {
 		return err
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan bool)
 
 	proc := &instanceManagerProcess{
 		cancel: cancel,
