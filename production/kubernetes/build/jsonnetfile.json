@@ -4,8 +4,8 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/ksonnet/ksonnet-lib",
-          "subdir": "ksonnet.beta.4"
+          "remote": "https://github.com/jsonnet-libs/k8s-alpha",
+          "subdir": "1.14"
         }
       },
       "version": "master"

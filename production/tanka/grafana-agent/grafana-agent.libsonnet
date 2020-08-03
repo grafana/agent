@@ -6,16 +6,14 @@ k + config {
   local container = $.core.v1.container,
   local daemonSet = $.apps.v1.daemonSet,
   local deployment = $.apps.v1.deployment,
-  local policyRule = $.rbac.v1beta1.policyRule,
+  local policyRule = $.rbac.v1.policyRule,
 
   agent_rbac:
     $.util.rbac($._config.agent_cluster_role_name, [
-      policyRule.new() +
       policyRule.withApiGroups(['']) +
       policyRule.withResources(['nodes', 'nodes/proxy', 'services', 'endpoints', 'pods']) +
       policyRule.withVerbs(['get', 'list', 'watch']),
 
-      policyRule.new() +
       policyRule.withNonResourceUrls('/metrics') +
       policyRule.withVerbs(['get']),
     ]),
@@ -36,7 +34,7 @@ k + config {
     container.withPorts($.core.v1.containerPort.new('http-metrics', 80)) +
     container.withArgsMixin($.util.mapToFlags($.agent_args)) +
     container.withEnv([
-      container.envType.fromFieldPath('HOSTNAME', 'spec.nodeName'),
+      $.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
     ]) +
     container.mixin.securityContext.withPrivileged(true) +
     container.mixin.securityContext.withRunAsUser(0),

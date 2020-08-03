@@ -6,7 +6,7 @@ local containerPort = k.core.v1.containerPort;
 local configMap = k.core.v1.configMap;
 local container = k.core.v1.container;
 local deployment = k.apps.v1.deployment;
-local policyRule = k.rbac.v1beta1.policyRule;
+local policyRule = k.rbac.v1.policyRule;
 
 {
   new(namespace='default', kube_namespace='kube-system'):: config {
@@ -53,12 +53,10 @@ local policyRule = k.rbac.v1beta1.policyRule;
     rbac:
       // Need to do a hack here so ksonnet util has our configs :(
       (k { _config+: this._config }).util.rbac(this._config.agent_cluster_role_name, [
-        policyRule.new() +
         policyRule.withApiGroups(['']) +
         policyRule.withResources(['nodes', 'nodes/proxy', 'services', 'endpoints', 'pods']) +
         policyRule.withVerbs(['get', 'list', 'watch']),
 
-        policyRule.new() +
         policyRule.withNonResourceUrls('/metrics') +
         policyRule.withVerbs(['get']),
       ]),
@@ -77,7 +75,7 @@ local policyRule = k.rbac.v1beta1.policyRule;
         'prometheus.wal-directory': '/tmp/agent/data',
       })) +
       container.withEnv([
-        container.envType.fromFieldPath('HOSTNAME', 'spec.nodeName'),
+        k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
       ]) +
       container.mixin.securityContext.withPrivileged(true) +
       container.mixin.securityContext.withRunAsUser(0),
