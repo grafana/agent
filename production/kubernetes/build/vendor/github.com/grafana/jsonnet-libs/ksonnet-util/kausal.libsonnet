@@ -35,15 +35,19 @@ k {
 
       // Expose volumes type.
       volume:: $.core.v1.pod.mixin.spec.volumesType {
-        // Remove items parameter from fromConfigMap
-        fromConfigMap(name, configMapName)::
-          super.withName(name) +
-          super.mixin.configMap.withName(configMapName),
+        // Make items parameter optional from fromConfigMap
+        fromConfigMap(name, configMapName, configMapItems=[])::
+          {
+            configMap+:
+              if configMapItems == [] then { items:: null }
+              else {},
+          }
+          + super.fromConfigMap(name, configMapName, configMapItems),
 
         // Shortcut constructor for secret volumes.
-        fromSecret(name, secret)::
+        fromSecret(name, secretName)::
           super.withName(name) +
-          super.mixin.secret.withSecretName(secret),
+          super.mixin.secret.withSecretName(secretName),
 
         // Rename emptyDir to claimName
         fromPersistentVolumeClaim(name='', claimName=''):: super.fromPersistentVolumeClaim(name=name, emptyDir=claimName),
@@ -124,8 +128,8 @@ k {
 
   local appsExtentions = {
     daemonSet+: {
-      new(name, containers)::
-        local labels = { name: name };
+      new(name, containers, podLabels={})::
+        local labels = podLabels { name: name };
 
         super.new() +
         super.mixin.metadata.withName(name) +
@@ -374,7 +378,7 @@ k {
 
       deployment.mapContainers(addMount) +
       deployment.mixin.spec.template.spec.withVolumesMixin([
-        volume.fromSecret(name, name) +
+        volume.fromSecret(name, secretName=name) +
         volume.mixin.secret.withDefaultMode(defaultMode),
       ]),
 
