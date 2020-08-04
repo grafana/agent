@@ -196,6 +196,12 @@ type Instance struct {
 
 	vc *MetricValueCollector
 
+	// Components are stored as struct members to allow other methods to
+	// access components from different goroutines. They're protected by a
+	// mutex to prevent concurrent reading/writing of the pointers.
+	//
+	// All components may be nil; methods using these should take care to
+	// do nil checks.
 	componentMtx       sync.Mutex
 	wal                walStorage
 	discovery          *discoveryService
@@ -339,10 +345,6 @@ func (i *Instance) Run(ctx context.Context) error {
 // settings. initialize will be called each time the Instance is run. Prometheus
 // components cannot be reused after they are stopped so we need to recreate them
 // each run.
-//
-// Components are stored as struct members to allow other methods to access
-// components from different goroutines (as opposed to keeping them completely
-// defined within the Run method where nothing else can access them).
 func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer) error {
 	i.componentMtx.Lock()
 	defer i.componentMtx.Unlock()
@@ -369,7 +371,6 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer) er
 		RemoteWriteConfigs: i.cfg.RemoteWrite,
 	})
 	if err != nil {
-		level.Error(i.logger).Log("msg", "failed applying config to remote storage", "err", err)
 		return fmt.Errorf("failed applying config to remote storage: %w", err)
 	}
 
@@ -381,7 +382,6 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer) er
 		ScrapeConfigs: i.cfg.ScrapeConfigs,
 	})
 	if err != nil {
-		level.Error(i.logger).Log("msg", "failed applying config to scrape manager", "err", err)
 		return fmt.Errorf("failed applying config to scrape manager: %w", err)
 	}
 
