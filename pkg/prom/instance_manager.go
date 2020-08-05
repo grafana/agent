@@ -100,6 +100,7 @@ type ConfigValidator func(c *instance.Config) error
 // interface here for the sake of testing.
 type Instance interface {
 	Run(ctx context.Context) error
+	Update(c instance.Config) error
 	TargetsActive() map[string][]*scrape.Target
 }
 
@@ -142,8 +143,38 @@ func (im *InstanceManager) ApplyConfig(c instance.Config) error {
 	im.mut.Lock()
 	defer im.mut.Unlock()
 
-	// If the config already exists, we need to "restart" it. We do this by
-	// stopping the old process and spawning a new one with the updated config.
+	// If the config already exists, we should attempt to dynamically update
+	// it first. If that fails, we need to do a full restart by stopping
+	// the old process and spawning a new one with the new config.
+	if proc, ok := im.processes[c.Name]; ok {
+		err := proc.inst.Update(c)
+		if errors.Is(err, instance.ErrInvalidUpdate{}) {
+			level.Info(im.logger).Log("msg", "could not dynamically update instance, will manually restart", "instance", c.Name, "reason", err)
+			return im.forceApply(c)
+		} else if err != nil {
+			// Something other than the update being invalid went wrong, return this
+			// error to the caller and give up for now.
+			return err
+		}
+
+		level.Info(im.logger).Log("msg", "dynamically updated instance", "instance", c.Name)
+		return nil
+	}
+
+	// Spawn a new process for the new config.
+	err := im.spawnProcess(c)
+	if err != nil {
+		return err
+	}
+	currentActiveConfigs.Inc()
+	return nil
+}
+
+// forceApply is called when the instance exists but updating it dynamically
+// failed, indicating that the instance config changed in an incompatible way
+// and it must be fully stopped and replaced with a new instance for the new
+// config to apply.
+func (im *InstanceManager) forceApply(c instance.Config) error {
 	if proc, ok := im.processes[c.Name]; ok {
 		proc.Stop()
 	}
