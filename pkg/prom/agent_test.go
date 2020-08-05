@@ -128,7 +128,7 @@ func TestAgent(t *testing.T) {
 		if fact.created == nil {
 			return false
 		}
-		return fact.created.Load() == 2 && len(a.cm.processes) == 2
+		return fact.created.Load() == 2 && len(a.cm.ListInstances()) == 2
 	})
 
 	t.Run("instances should be running", func(t *testing.T) {
@@ -188,7 +188,7 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 				if fact.created == nil {
 					return false
 				}
-				return fact.created.Load() == 2 && len(a.cm.processes) == 2
+				return fact.created.Load() == 2 && len(a.cm.ListInstances()) == 2
 			})
 
 			for _, mi := range fact.Mocks() {
@@ -231,7 +231,7 @@ func TestAgent_Stop(t *testing.T) {
 		if fact.created == nil {
 			return false
 		}
-		return fact.created.Load() == 2 && len(a.cm.processes) == 2
+		return fact.created.Load() == 2 && len(a.cm.ListInstances()) == 2
 	})
 
 	a.Stop()
@@ -291,7 +291,7 @@ func (f *fakeInstanceFactory) Mocks() []*fakeInstance {
 	return f.mocks
 }
 
-func (f *fakeInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config, _ string, _ log.Logger) (Instance, error) {
+func (f *fakeInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config, _ string, _ log.Logger) (instance.ManagedInstance, error) {
 	f.created.Add(1)
 
 	f.mut.Lock()

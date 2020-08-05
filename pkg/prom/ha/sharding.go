@@ -120,13 +120,13 @@ type ReadRing interface {
 	GetAll() (ring.ReplicationSet, error)
 }
 
-// ShardingInstanceManager wraps around an existing InstanceManager and uses a
+// ShardingInstanceManager wraps around an existing instance.Manager and uses a
 // hash ring to determine if a config should be applied. If an applied
 // config used to be owned by the local address but no longer does, it
 // will be deleted on the next apply.
 type ShardingInstanceManager struct {
 	log   log.Logger
-	inner InstanceManager
+	inner instance.Manager
 	ring  ReadRing
 	addr  string
 
@@ -134,11 +134,11 @@ type ShardingInstanceManager struct {
 }
 
 // NewShardingInstanceManager creates a new ShardingInstanceManager that wraps
-// around an underlying InstanceManager. ring and addr are used together to do
+// around an underlying instance.Manager. ring and addr are used together to do
 // hash ring lookups; for a given applied config, it is owned by the instance of
 // ShardingInstanceManager if looking up its hash in the ring results in the
 // address specified by addr.
-func NewShardingInstanceManager(logger log.Logger, wrap InstanceManager, ring ReadRing, addr string) ShardingInstanceManager {
+func NewShardingInstanceManager(logger log.Logger, wrap instance.Manager, ring ReadRing, addr string) ShardingInstanceManager {
 	return ShardingInstanceManager{
 		log:       logger,
 		inner:     wrap,
@@ -148,29 +148,51 @@ func NewShardingInstanceManager(logger log.Logger, wrap InstanceManager, ring Re
 	}
 }
 
-// ListConfigs returns the list of configs that have been applied through
+// ListInstances returns the list of instances that have been applied through
 // the ShardingInstanceManager. It will return a subset of the overall
-// set of configs passed to the InstanceManager as a whole.
+// set of configs passed to the instance.Manager as a whole.
 //
 // Returning the subset of configs that only the ShardingInstanceManager
-// applied itself allows for the underlying InstanceManager to manage
+// applied itself allows for the underlying instance.Manager to manage
+// its own set of configs that will not be affected by the scraping
+// service resharding and deleting configs that aren't found in the KV
+// store.
+func (m ShardingInstanceManager) ListInstances() map[string]instance.ManagedInstance {
+	inner := m.inner.ListInstances()
+	sharded := make(map[string]instance.ManagedInstance, len(inner))
+
+	for k, v := range inner {
+		if _, isSharded := m.keyToHash[k]; isSharded {
+			sharded[k] = v
+		}
+	}
+
+	return sharded
+}
+
+// ListConfigs returns the list of configs that have been applied through
+// the ShardingInstanceManager. It will return a subset of the overall
+// set of configs passed to the instance.Manager as a whole.
+//
+// Returning the subset of configs that only the ShardingInstanceManager
+// applied itself allows for the underlying instance.Manager to manage
 // its own set of configs that will not be affected by the scraping
 // service resharding and deleting configs that aren't found in the KV
 // store.
 func (m ShardingInstanceManager) ListConfigs() map[string]instance.Config {
-	innerConfigs := m.inner.ListConfigs()
-	shardedConfigs := make(map[string]instance.Config, len(innerConfigs))
+	inner := m.inner.ListConfigs()
+	sharded := make(map[string]instance.Config, len(inner))
 
-	for k, v := range innerConfigs {
-		if _, sharded := m.keyToHash[k]; sharded {
-			shardedConfigs[k] = v
+	for k, v := range inner {
+		if _, isSharded := m.keyToHash[k]; isSharded {
+			sharded[k] = v
 		}
 	}
 
-	return shardedConfigs
+	return sharded
 }
 
-// ApplyConfig implements InstanceManager.ApplyConfig.
+// ApplyConfig implements instance.Manager.ApplyConfig.
 func (m ShardingInstanceManager) ApplyConfig(c instance.Config) error {
 	hash, err := configHash(&c)
 	if err != nil {
@@ -199,7 +221,7 @@ func (m ShardingInstanceManager) ApplyConfig(c instance.Config) error {
 	return m.DeleteConfig(c.Name)
 }
 
-// DeleteConfig implements InstanceManager.DeleteConfig.
+// DeleteConfig implements instance.Manager.DeleteConfig.
 func (m ShardingInstanceManager) DeleteConfig(name string) error {
 	// Doesn't exist, ignore.
 	if _, exist := m.keyToHash[name]; !exist {
@@ -213,6 +235,9 @@ func (m ShardingInstanceManager) DeleteConfig(name string) error {
 	}
 	return err
 }
+
+// Stop implements instance.Manager.Stop.
+func (m ShardingInstanceManager) Stop() { m.inner.Stop() }
 
 // owns checks if the ShardingInstanceManager is responsible for
 // a given hash.
