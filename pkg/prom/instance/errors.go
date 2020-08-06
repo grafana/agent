@@ -1,5 +1,7 @@
 package instance
 
+import "fmt"
+
 // ErrInvalidUpdate is returned whenever Update is called against an instance
 // but an invalid field is changed between configs. If ErrInvalidUpdate is
 // returned, the instance must be fully stopped and replaced with a new one
@@ -31,4 +33,12 @@ func (e ErrInvalidUpdate) As(err interface{}) bool {
 		return false
 	}
 	return true
+}
+
+// errImmutableField is the error describing a field that cannot be changed. It
+// is wrapped inside of a ErrInvalidUpdate.
+type errImmutableField struct{ Field string }
+
+func (e errImmutableField) Error() string {
+	return fmt.Sprintf("%s cannot be changed dynamically", e.Field)
 }
