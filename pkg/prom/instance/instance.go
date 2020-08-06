@@ -428,8 +428,7 @@ func (i *Instance) Update(c Config) error {
 	}
 
 	// Check to see if the components exist yet.
-	switch {
-	case i.discovery == nil || i.remoteStore == nil || i.readyScrapeManager == nil:
+	if i.discovery == nil || i.remoteStore == nil || i.readyScrapeManager == nil {
 		return ErrInvalidUpdate{
 			Inner: fmt.Errorf("cannot dynamically update because instance is not running"),
 		}
