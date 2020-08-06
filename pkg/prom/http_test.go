@@ -10,6 +10,7 @@ import (
 
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/scrape"
@@ -17,7 +18,7 @@ import (
 )
 
 func TestAgent_ListInstancesHandler(t *testing.T) {
-	fact := newMockInstanceFactory()
+	fact := newFakeInstanceFactory()
 	a, err := newAgent(Config{
 		WALDir: "/tmp/agent",
 	}, log.NewNopLogger(), fact.factory)
@@ -47,7 +48,7 @@ func TestAgent_ListInstancesHandler(t *testing.T) {
 }
 
 func TestAgent_ListTargetsHandler(t *testing.T) {
-	fact := newMockInstanceFactory()
+	fact := newFakeInstanceFactory()
 	a, err := newAgent(Config{
 		WALDir: "/tmp/agent",
 	}, log.NewNopLogger(), fact.factory)
@@ -120,6 +121,10 @@ type mockInstanceScrape struct {
 
 func (i *mockInstanceScrape) Run(ctx context.Context) error {
 	<-ctx.Done()
+	return nil
+}
+
+func (i *mockInstanceScrape) Update(_ instance.Config) error {
 	return nil
 }
 
