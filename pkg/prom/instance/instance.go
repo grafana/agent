@@ -187,7 +187,19 @@ type walStorageFactory func(reg prometheus.Registerer) (walStorage, error)
 
 // Instance is an individual metrics collector and remote_writer.
 type Instance struct {
-	cfg       Config
+	// All fields in the following block may be accessed and modified by
+	// concurrently running goroutines.
+	//
+	// Note that all Prometheus components listed here may be nil at any
+	// given time; methods reading them should take care to do nil checks.
+	mut                sync.Mutex
+	cfg                Config
+	wal                walStorage
+	discovery          *discoveryService
+	readyScrapeManager *scrape.ReadyScrapeManager
+	remoteStore        *remote.Storage
+	storage            storage.Storage
+
 	globalCfg config.GlobalConfig
 	logger    log.Logger
 
@@ -195,19 +207,6 @@ type Instance struct {
 	newWal walStorageFactory
 
 	vc *MetricValueCollector
-
-	// Components are stored as struct members to allow other methods to
-	// access components from different goroutines. They're protected by a
-	// mutex to prevent concurrent reading/writing of the pointers.
-	//
-	// All components may be nil; methods using these should take care to
-	// do nil checks.
-	componentMtx       sync.Mutex
-	wal                walStorage
-	discovery          *discoveryService
-	readyScrapeManager *scrape.ReadyScrapeManager
-	remoteStore        *remote.Storage
-	storage            storage.Storage
 }
 
 // New creates a new Instance with a directory for storing the WAL. The instance
@@ -253,7 +252,15 @@ func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Regis
 // Run may be re-called after exiting, as components will be reinitialized each
 // time Run is called.
 func (i *Instance) Run(ctx context.Context) error {
-	level.Debug(i.logger).Log("msg", "running instance", "name", i.cfg.Name)
+	// i.cfg may change at any point in the middle of this method but not in a way
+	// that affects any of the code below; rather than grabbing a mutex every time
+	// we want to read the config, we'll simplify the access and just grab a copy
+	// now.
+	i.mut.Lock()
+	cfg := i.cfg
+	i.mut.Unlock()
+
+	level.Debug(i.logger).Log("msg", "initializing instance", "name", cfg.Name)
 
 	// trackingReg wraps the register for the instance to make sure that if Run
 	// exits, any metrics Prometheus registers are removed and can be
@@ -261,7 +268,7 @@ func (i *Instance) Run(ctx context.Context) error {
 	trackingReg := unregisterAllRegisterer{wrap: i.reg}
 	defer trackingReg.UnregisterAll()
 
-	if err := i.initialize(ctx, &trackingReg); err != nil {
+	if err := i.initialize(ctx, &trackingReg, &cfg); err != nil {
 		level.Error(i.logger).Log("msg", "failed to initialize instance", "err", err)
 		return fmt.Errorf("failed to initialize instance: %w", err)
 	}
@@ -286,7 +293,7 @@ func (i *Instance) Run(ctx context.Context) error {
 		defer contextCancel()
 		rg.Add(
 			func() error {
-				i.truncateLoop(ctx, i.wal)
+				i.truncateLoop(ctx, i.wal, &cfg)
 				level.Info(i.logger).Log("msg", "truncation loop stopped")
 				return nil
 			},
@@ -318,7 +325,7 @@ func (i *Instance) Run(ctx context.Context) error {
 
 				// On a graceful shutdown, write staleness markers. If something went
 				// wrong, then the instance will be relaunched.
-				if err == nil && i.cfg.WriteStaleOnShutdown {
+				if err == nil && cfg.WriteStaleOnShutdown {
 					level.Info(i.logger).Log("msg", "writing staleness markers...")
 					err := i.wal.WriteStalenessMarkers(i.getRemoteWriteTimestamp)
 					if err != nil {
@@ -334,6 +341,7 @@ func (i *Instance) Run(ctx context.Context) error {
 		)
 	}
 
+	level.Debug(i.logger).Log("msg", "running instance", "name", cfg.Name)
 	err := rg.Run()
 	if err != nil {
 		level.Error(i.logger).Log("msg", "agent instance stopped with error", "err", err)
@@ -345,9 +353,9 @@ func (i *Instance) Run(ctx context.Context) error {
 // settings. initialize will be called each time the Instance is run. Prometheus
 // components cannot be reused after they are stopped so we need to recreate them
 // each run.
-func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer) error {
-	i.componentMtx.Lock()
-	defer i.componentMtx.Unlock()
+func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cfg *Config) error {
+	i.mut.Lock()
+	defer i.mut.Unlock()
 
 	var err error
 
@@ -356,7 +364,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer) er
 		return fmt.Errorf("error creating WAL: %w", err)
 	}
 
-	i.discovery, err = i.newDiscoveryManager(ctx)
+	i.discovery, err = i.newDiscoveryManager(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("error creating discovery manager: %w", err)
 	}
@@ -365,10 +373,10 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer) er
 
 	// Setup the remote storage
 	remoteLogger := log.With(i.logger, "component", "remote")
-	i.remoteStore = remote.NewStorage(remoteLogger, reg, i.wal.StartTime, i.wal.Directory(), i.cfg.RemoteFlushDeadline, i.readyScrapeManager)
+	i.remoteStore = remote.NewStorage(remoteLogger, reg, i.wal.StartTime, i.wal.Directory(), cfg.RemoteFlushDeadline, i.readyScrapeManager)
 	err = i.remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg,
-		RemoteWriteConfigs: i.cfg.RemoteWrite,
+		RemoteWriteConfigs: cfg.RemoteWrite,
 	})
 	if err != nil {
 		return fmt.Errorf("failed applying config to remote storage: %w", err)
@@ -379,7 +387,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer) er
 	scrapeManager := newScrapeManager(log.With(i.logger, "component", "scrape manager"), i.storage)
 	err = scrapeManager.ApplyConfig(&config.Config{
 		GlobalConfig:  i.globalCfg,
-		ScrapeConfigs: i.cfg.ScrapeConfigs,
+		ScrapeConfigs: cfg.ScrapeConfigs,
 	})
 	if err != nil {
 		return fmt.Errorf("failed applying config to scrape manager: %w", err)
@@ -390,11 +398,80 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer) er
 	return nil
 }
 
+// Update accepts a new Config for the Instance and will dynamically update any
+// running Prometheus components with the new values from Config. Update will
+// return an ErrInvalidUpdate if the Update could not be applied.
+func (i *Instance) Update(c Config) error {
+	i.mut.Lock()
+	defer i.mut.Unlock()
+
+	// It's only (currently) valid to update scrape_configs and remote_write, so
+	// if any other field has changed here, return the error.
+	var err error
+	switch {
+	// This first case should never happen in practice but it's included here for
+	// completions sake.
+	case i.cfg.Name != c.Name:
+		err = errImmutableField{Field: "name"}
+	case i.cfg.HostFilter != c.HostFilter:
+		err = errImmutableField{Field: "host_filter"}
+	case i.cfg.WALTruncateFrequency != c.WALTruncateFrequency:
+		err = errImmutableField{Field: "wal_truncate_frequency"}
+	case i.cfg.RemoteFlushDeadline != c.RemoteFlushDeadline:
+		err = errImmutableField{Field: "remote_flush_deadline"}
+	case i.cfg.WriteStaleOnShutdown != c.WriteStaleOnShutdown:
+		err = errImmutableField{Field: "write_stale_on_shutdown"}
+	}
+	if err != nil {
+		return ErrInvalidUpdate{Inner: err}
+	}
+
+	// Check to see if the components exist yet.
+	if i.discovery == nil || i.remoteStore == nil || i.readyScrapeManager == nil {
+		return ErrInvalidUpdate{
+			Inner: fmt.Errorf("cannot dynamically update because instance is not running"),
+		}
+	}
+
+	sdConfigs := map[string]sd_config.ServiceDiscoveryConfig{}
+	for _, v := range c.ScrapeConfigs {
+		sdConfigs[v.JobName] = v.ServiceDiscoveryConfig
+	}
+	err = i.discovery.Manager.ApplyConfig(sdConfigs)
+	if err != nil {
+		return fmt.Errorf("failed applying configs to discovery manager: %w", err)
+	}
+
+	err = i.remoteStore.ApplyConfig(&config.Config{
+		GlobalConfig:       i.globalCfg,
+		RemoteWriteConfigs: c.RemoteWrite,
+	})
+	if err != nil {
+		return fmt.Errorf("error applying new remote_write configs: %w", err)
+	}
+
+	sm, err := i.readyScrapeManager.Get()
+	if err != nil {
+		return fmt.Errorf("couldn't get scrape manager to apply new scrape configs: %w", err)
+	}
+
+	err = sm.ApplyConfig(&config.Config{
+		GlobalConfig:  i.globalCfg,
+		ScrapeConfigs: c.ScrapeConfigs,
+	})
+	if err != nil {
+		return fmt.Errorf("error applying updated configs to scrape manager: %w", err)
+	}
+
+	i.cfg = c
+	return nil
+}
+
 // TargetsActive returns the set of active targets from the scrape manager. Returns nil
 // if the scrape manager is not ready yet.
 func (i *Instance) TargetsActive() map[string][]*scrape.Target {
-	i.componentMtx.Lock()
-	defer i.componentMtx.Unlock()
+	i.mut.Lock()
+	defer i.mut.Unlock()
 
 	if i.readyScrapeManager == nil {
 		return nil
@@ -426,7 +503,7 @@ func (s *discoveryService) SyncCh() GroupChannel { return s.SyncChFunc() }
 // that outputs discovered targets to a channel. The implementation
 // uses the Prometheus Discovery Manager. Targets will be filtered
 // if the instance is configured to perform host filtering.
-func (i *Instance) newDiscoveryManager(ctx context.Context) (*discoveryService, error) {
+func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*discoveryService, error) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	logger := log.With(i.logger, "component", "discovery manager")
@@ -435,7 +512,7 @@ func (i *Instance) newDiscoveryManager(ctx context.Context) (*discoveryService, 
 	// TODO(rfratto): refactor this to a function?
 	// TODO(rfratto): ensure job name name is unique
 	c := map[string]sd_config.ServiceDiscoveryConfig{}
-	for _, v := range i.cfg.ScrapeConfigs {
+	for _, v := range cfg.ScrapeConfigs {
 		c[v.JobName] = v.ServiceDiscoveryConfig
 	}
 	err := manager.ApplyConfig(c)
@@ -461,7 +538,7 @@ func (i *Instance) newDiscoveryManager(ctx context.Context) (*discoveryService, 
 
 	// If host filtering is enabled, run it and use its channel for discovered
 	// targets.
-	if i.cfg.HostFilter {
+	if cfg.HostFilter {
 		hostname, err := Hostname()
 		if err != nil {
 			cancel()
@@ -492,12 +569,12 @@ func (i *Instance) newDiscoveryManager(ctx context.Context) (*discoveryService, 
 	}, nil
 }
 
-func (i *Instance) truncateLoop(ctx context.Context, wal walStorage) {
+func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(i.cfg.WALTruncateFrequency):
+		case <-time.After(cfg.WALTruncateFrequency):
 			ts := i.getRemoteWriteTimestamp()
 			if ts == 0 {
 				level.Debug(i.logger).Log("msg", "can't truncate the WAL yet")
@@ -519,6 +596,9 @@ func (i *Instance) truncateLoop(ctx context.Context, wal walStorage) {
 // This is passed to wal.Storage for its truncation. If no remote write sections
 // are configured, getRemoteWriteTimestamp returns the current time.
 func (i *Instance) getRemoteWriteTimestamp() int64 {
+	i.mut.Lock()
+	defer i.mut.Unlock()
+
 	if len(i.cfg.RemoteWrite) == 0 {
 		return timestamp.FromTime(time.Now())
 	}

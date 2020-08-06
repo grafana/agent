@@ -15,6 +15,10 @@ func (NoOpInstance) Run(ctx context.Context) error {
 	return nil
 }
 
+func (NoOpInstance) Update(_ Config) error {
+	return nil
+}
+
 func (NoOpInstance) TargetsActive() map[string][]*scrape.Target {
 	return nil
 }

@@ -119,7 +119,7 @@ func TestAgent(t *testing.T) {
 		InstanceRestartBackoff: time.Duration(0),
 	}
 
-	fact := newMockInstanceFactory()
+	fact := newFakeInstanceFactory()
 
 	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
@@ -179,7 +179,7 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			fact := newMockInstanceFactory()
+			fact := newFakeInstanceFactory()
 
 			a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 			require.NoError(t, err)
@@ -222,7 +222,7 @@ func TestAgent_Stop(t *testing.T) {
 		InstanceRestartBackoff: time.Duration(0),
 	}
 
-	fact := newMockInstanceFactory()
+	fact := newFakeInstanceFactory()
 
 	a, err := newAgent(cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
@@ -243,7 +243,7 @@ func TestAgent_Stop(t *testing.T) {
 	}
 }
 
-type mockInstance struct {
+type fakeInstance struct {
 	cfg instance.Config
 
 	err          chan error
@@ -251,7 +251,7 @@ type mockInstance struct {
 	running      *atomic.Bool
 }
 
-func (i *mockInstance) Run(ctx context.Context) error {
+func (i *fakeInstance) Run(ctx context.Context) error {
 	i.startedCount.Inc()
 	i.running.Store(true)
 	defer i.running.Store(false)
@@ -264,34 +264,40 @@ func (i *mockInstance) Run(ctx context.Context) error {
 	}
 }
 
-func (i *mockInstance) TargetsActive() map[string][]*scrape.Target {
+func (i *fakeInstance) Update(_ instance.Config) error {
+	return instance.ErrInvalidUpdate{
+		Inner: fmt.Errorf("can't dynamically update fakeInstance"),
+	}
+}
+
+func (i *fakeInstance) TargetsActive() map[string][]*scrape.Target {
 	return nil
 }
 
-type mockInstanceFactory struct {
+type fakeInstanceFactory struct {
 	mut   sync.Mutex
-	mocks []*mockInstance
+	mocks []*fakeInstance
 
 	created *atomic.Int64
 }
 
-func newMockInstanceFactory() *mockInstanceFactory {
-	return &mockInstanceFactory{created: atomic.NewInt64(0)}
+func newFakeInstanceFactory() *fakeInstanceFactory {
+	return &fakeInstanceFactory{created: atomic.NewInt64(0)}
 }
 
-func (f *mockInstanceFactory) Mocks() []*mockInstance {
+func (f *fakeInstanceFactory) Mocks() []*fakeInstance {
 	f.mut.Lock()
 	defer f.mut.Unlock()
 	return f.mocks
 }
 
-func (f *mockInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config, _ string, _ log.Logger) (Instance, error) {
+func (f *fakeInstanceFactory) factory(_ config.GlobalConfig, cfg instance.Config, _ string, _ log.Logger) (Instance, error) {
 	f.created.Add(1)
 
 	f.mut.Lock()
 	defer f.mut.Unlock()
 
-	inst := &mockInstance{
+	inst := &fakeInstance{
 		cfg:          cfg,
 		running:      atomic.NewBool(false),
 		startedCount: atomic.NewInt64(0),
