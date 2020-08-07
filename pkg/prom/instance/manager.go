@@ -84,7 +84,7 @@ type BasicManager struct {
 }
 
 // managedProcess represents a goroutine running a ManagedInstance. cancel
-// requests that the goroutine should should down. done will be closed after the
+// requests that the goroutine should shutdown. done will be closed after the
 // goroutine exists.
 type managedProcess struct {
 	cfg    Config
