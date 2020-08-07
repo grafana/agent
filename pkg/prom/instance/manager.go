@@ -46,7 +46,7 @@ type Manager interface {
 	// one with Config.Name already exists.
 	ApplyConfig(Config) error
 
-	// DeleteConfig should delete a given managed instance from its Config.Name.
+	// DeleteConfig deletes a given managed instance based on its Config.Name.
 	DeleteConfig(name string) error
 
 	// Stop must stop the Manager and all managed instances.
