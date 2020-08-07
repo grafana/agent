@@ -34,7 +34,7 @@ var (
 // Manager represents a set of methods for manipulating running instances at
 // runtime.
 type Manager interface {
-	// ListInstances should return all currently managed instances running
+	// ListInstances returns all currently managed instances running
 	// within the Manager. The key will be the instance name from their config.
 	ListInstances() map[string]ManagedInstance
 
