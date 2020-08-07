@@ -21,7 +21,7 @@ import (
 var (
 	DefaultConfig = Config{
 		Global:                 config.DefaultGlobalConfig,
-		InstanceRestartBackoff: 5 * time.Second,
+		InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
 		ServiceConfig:          ha.DefaultConfig,
 		ServiceClientConfig:    client.DefaultConfig,
 	}
@@ -97,7 +97,7 @@ type Agent struct {
 	cfg    Config
 	logger log.Logger
 
-	cm *InstanceManager
+	cm instance.Manager
 
 	instanceFactory instanceFactory
 
@@ -116,7 +116,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 		instanceFactory: fact,
 	}
 
-	a.cm = NewInstanceManager(InstanceManagerConfig{
+	a.cm = instance.NewBasicManager(instance.BasicManagerConfig{
 		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
 	}, a.logger, a.newInstance, a.validateInstance)
 
@@ -143,7 +143,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 }
 
 // newInstance creates a new Instance given a config.
-func (a *Agent) newInstance(c instance.Config) (Instance, error) {
+func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
 	return a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
 }
 
@@ -158,7 +158,7 @@ func (a *Agent) WireGRPC(s *grpc.Server) {
 }
 
 func (a *Agent) Config() Config                    { return a.cfg }
-func (a *Agent) InstanceManager() *InstanceManager { return a.cm }
+func (a *Agent) InstanceManager() instance.Manager { return a.cm }
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
@@ -170,8 +170,8 @@ func (a *Agent) Stop() {
 	a.cm.Stop()
 }
 
-type instanceFactory = func(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (Instance, error)
+type instanceFactory = func(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
 
-func defaultInstanceFactory(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (Instance, error) {
+func defaultInstanceFactory(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {
 	return instance.New(global, cfg, walDir, logger)
 }

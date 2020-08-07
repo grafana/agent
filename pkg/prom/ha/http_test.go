@@ -281,7 +281,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 			Prefix: "configs/",
 		},
 		Lifecycler: testLifecyclerConfig(),
-	}, &config.DefaultGlobalConfig, haClient.Config{}, logger, newMockInstanceManager())
+	}, &config.DefaultGlobalConfig, haClient.Config{}, logger, newFakeInstanceManager())
 	require.NoError(t, err)
 
 	// Wire the API
@@ -333,43 +333,40 @@ func unmarshalTestResponse(t *testing.T, r io.ReadCloser, v interface{}) {
 	require.NoError(t, err)
 }
 
-type mockInstanceManager struct {
-	mut  sync.Mutex
-	cfgs map[string]instance.Config
-}
+func newFakeInstanceManager() instance.Manager {
+	var mut sync.Mutex
+	var cfgs = make(map[string]instance.Config)
 
-func newMockInstanceManager() *mockInstanceManager {
-	cm := mockInstanceManager{cfgs: make(map[string]instance.Config)}
-	return &cm
-}
+	return &instance.MockManager{
+		// ListInstances isn't used in this package, so we won't bother to try to
+		// fake it here.
+		ListInstancesFunc: func() map[string]instance.ManagedInstance { return nil },
 
-func (cm *mockInstanceManager) GetConfig(key string) instance.Config {
-	cm.mut.Lock()
-	defer cm.mut.Unlock()
-	return cm.cfgs[key]
-}
+		ListConfigsFunc: func() map[string]instance.Config {
+			mut.Lock()
+			defer mut.Unlock()
 
-func (cm *mockInstanceManager) ListConfigs() map[string]instance.Config {
-	cm.mut.Lock()
-	defer cm.mut.Unlock()
+			cp := make(map[string]instance.Config, len(cfgs))
+			for k, v := range cfgs {
+				cp[k] = v
+			}
+			return cp
+		},
 
-	cp := make(map[string]instance.Config, len(cm.cfgs))
-	for k, v := range cm.cfgs {
-		cp[k] = v
+		ApplyConfigFunc: func(c instance.Config) error {
+			mut.Lock()
+			defer mut.Unlock()
+			cfgs[c.Name] = c
+			return nil
+		},
+
+		DeleteConfigFunc: func(name string) error {
+			mut.Lock()
+			defer mut.Unlock()
+			delete(cfgs, name)
+			return nil
+		},
+
+		StopFunc: func() {},
 	}
-	return cp
-}
-
-func (cm *mockInstanceManager) ApplyConfig(c instance.Config) error {
-	cm.mut.Lock()
-	defer cm.mut.Unlock()
-	cm.cfgs[c.Name] = c
-	return nil
-}
-
-func (cm *mockInstanceManager) DeleteConfig(name string) error {
-	cm.mut.Lock()
-	defer cm.mut.Unlock()
-	delete(cm.cfgs, name)
-	return nil
 }

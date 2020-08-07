@@ -13,7 +13,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations/agent"
 	integrationCfg "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
-	"github.com/grafana/agent/pkg/prom/ha"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -101,7 +100,7 @@ type Manager struct {
 	integrations []Integration
 	hostname     string
 
-	im     ha.InstanceManager
+	im     instance.Manager
 	cancel context.CancelFunc
 	done   chan bool
 }
@@ -109,7 +108,7 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(c Config, logger log.Logger, im ha.InstanceManager) (*Manager, error) {
+func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, error) {
 	var integrations []Integration
 
 	if c.Agent.Enabled {
@@ -127,7 +126,7 @@ func NewManager(c Config, logger log.Logger, im ha.InstanceManager) (*Manager, e
 	return newManager(c, logger, im, integrations)
 }
 
-func newManager(c Config, logger log.Logger, im ha.InstanceManager, integrations []Integration) (*Manager, error) {
+func newManager(c Config, logger log.Logger, im instance.Manager, integrations []Integration) (*Manager, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Manager{

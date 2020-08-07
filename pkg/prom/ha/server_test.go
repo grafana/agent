@@ -28,7 +28,7 @@ import (
 
 func TestServer_Reshard_On_Start(t *testing.T) {
 	r := &mockFuncReadRing{}
-	cm := newMockInstanceManager()
+	im := newFakeInstanceManager()
 
 	kv := newMockKV(true)
 	injectRingIngester(r)
@@ -41,22 +41,22 @@ func TestServer_Reshard_On_Start(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	srv := newTestServer(r, kv, cm, time.Minute*60)
+	srv := newTestServer(r, kv, im, time.Minute*60)
 	defer func() { require.NoError(t, srv.Stop()) }()
 
 	test.Poll(t, time.Second*5, []string{"a", "b", "c"}, func() interface{} {
-		return getRunningConfigs(cm)
+		return getRunningConfigs(im)
 	})
 }
 
 func TestServer_NewConfig_Detection(t *testing.T) {
 	r := &mockFuncReadRing{}
-	cm := newMockInstanceManager()
+	im := newFakeInstanceManager()
 
 	kv := newMockKV(true)
 	injectRingIngester(r)
 
-	srv := newTestServer(r, kv, cm, time.Minute*60)
+	srv := newTestServer(r, kv, im, time.Minute*60)
 	defer func() { require.NoError(t, srv.Stop()) }()
 
 	// Wait for the server to finish joining before applying a new config.
@@ -69,13 +69,13 @@ func TestServer_NewConfig_Detection(t *testing.T) {
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second*5, []string{"a"}, func() interface{} {
-		return getRunningConfigs(cm)
+		return getRunningConfigs(im)
 	})
 }
 
 func TestServer_DeletedConfig_Detection(t *testing.T) {
 	r := &mockFuncReadRing{}
-	cm := newMockInstanceManager()
+	im := newFakeInstanceManager()
 
 	kv := newMockKV(true)
 	injectRingIngester(r)
@@ -85,7 +85,7 @@ func TestServer_DeletedConfig_Detection(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	srv := newTestServer(r, kv, cm, time.Minute*60)
+	srv := newTestServer(r, kv, im, time.Minute*60)
 	defer func() { require.NoError(t, srv.Stop()) }()
 
 	// Wait for the server to finish joining before deleting the config.
@@ -93,26 +93,26 @@ func TestServer_DeletedConfig_Detection(t *testing.T) {
 		return srv.joined.Load()
 	})
 	test.Poll(t, time.Second*5, []string{"a"}, func() interface{} {
-		return getRunningConfigs(cm)
+		return getRunningConfigs(im)
 	})
 	err = kv.Delete(context.Background(), "a")
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second*10, []string{}, func() interface{} {
-		return getRunningConfigs(cm)
+		return getRunningConfigs(im)
 	})
 }
 
 func TestServer_Reshard_On_Interval(t *testing.T) {
 	r := &mockFuncReadRing{}
-	cm := newMockInstanceManager()
+	im := newFakeInstanceManager()
 
 	// use a poll only KV so watch events aren't detected - we want this
 	// test to make sure polling the KV store works for resharding.
 	kv := newMockKV(false)
 	injectRingIngester(r)
 
-	srv := newTestServer(r, kv, cm, time.Millisecond*250)
+	srv := newTestServer(r, kv, im, time.Millisecond*250)
 	defer func() { require.NoError(t, srv.Stop()) }()
 
 	// Wait for the server to finish joining before applying a new config.
@@ -125,7 +125,7 @@ func TestServer_Reshard_On_Interval(t *testing.T) {
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second*5, []string{"a"}, func() interface{} {
-		return getRunningConfigs(cm)
+		return getRunningConfigs(im)
 	})
 }
 
@@ -152,7 +152,7 @@ func TestServer_Cluster_Reshard_On_Start_And_Leave(t *testing.T) {
 	agent2Desc := startScrapingServiceServer(t, &agent2)
 
 	r := &mockFuncReadRing{}
-	cm := newMockInstanceManager()
+	im := newFakeInstanceManager()
 	kv := newMockKV(false)
 
 	// Inject the GetFunc to always return the local node but override GetAll to
@@ -170,7 +170,7 @@ func TestServer_Cluster_Reshard_On_Start_And_Leave(t *testing.T) {
 
 	// Launch a local agent. It should connect over gRPC to our fake agents
 	// and tell them to reshard on startup and after TransferOut is called.
-	srv := newTestServer(r, kv, cm, time.Minute*60)
+	srv := newTestServer(r, kv, im, time.Minute*60)
 
 	test.Poll(t, time.Second*5, true, func() interface{} {
 		return agent1Resharded.Load() && agent2Resharded.Load()
@@ -204,7 +204,7 @@ func injectRingIngester(r *mockFuncReadRing) {
 	}
 }
 
-func newTestServer(r readRing, kv kv.Client, cm InstanceManager, reshard time.Duration) *Server {
+func newTestServer(r readRing, kv kv.Client, im instance.Manager, reshard time.Duration) *Server {
 	var (
 		cfg          Config
 		clientConfig client.Config
@@ -215,11 +215,11 @@ func newTestServer(r readRing, kv kv.Client, cm InstanceManager, reshard time.Du
 	logger := log.NewNopLogger()
 	closer := func() error { return nil }
 
-	return newServer(cfg, &config.DefaultGlobalConfig, clientConfig, logger, cm, "test", r, kv, closer)
+	return newServer(cfg, &config.DefaultGlobalConfig, clientConfig, logger, im, "test", r, kv, closer)
 }
 
-func getRunningConfigs(cm InstanceManager) []string {
-	configs := cm.ListConfigs()
+func getRunningConfigs(im instance.Manager) []string {
+	configs := im.ListConfigs()
 	configKeys := make([]string, 0, len(configs))
 	for n := range configs {
 		configKeys = append(configKeys, n)
