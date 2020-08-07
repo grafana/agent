@@ -49,22 +49,6 @@ var (
 	DefaultConfig = *flagutil.DefaultConfigFromFlags(&Config{}).(*Config)
 )
 
-// InstanceManager is an interface to manipulating a set of running
-// instance.Configs. It is satisfied by the InstanceManager struct in
-// pkg/prom, but is provided as an interface here for testing and
-// avoiding import cycles.
-type InstanceManager interface {
-	// ListConfigs gets the list of currently known configs.
-	ListConfigs() map[string]instance.Config
-
-	// ApplyConfig adds or updates a config.
-	ApplyConfig(c instance.Config) error
-
-	// DeleteConfig deletes a config by name, uniquely keyed by the
-	// Name field in instance.Config.
-	DeleteConfig(name string) error
-}
-
 // Config describes how to instantiate a scraping service Server instance.
 type Config struct {
 	Enabled         bool                  `yaml:"enabled"`
@@ -114,7 +98,7 @@ type Server struct {
 	addr         string
 
 	configManagerMut sync.Mutex
-	im               InstanceManager
+	im               instance.Manager
 	joined           *atomic.Bool
 
 	kv   kv.Client
@@ -127,7 +111,7 @@ type Server struct {
 }
 
 // New creates a new HA scraping service instance.
-func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im InstanceManager) (*Server, error) {
+func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager) (*Server, error) {
 	// Force ReplicationFactor to be 1, since replication isn't supported for the
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
@@ -180,7 +164,7 @@ func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Conf
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
-func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, cm InstanceManager, addr string, r readRing, kv kv.Client, stopFunc func() error) *Server {
+func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r readRing, kv kv.Client, stopFunc func() error) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &Server{
@@ -190,7 +174,7 @@ func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Conf
 		logger:       log,
 		addr:         addr,
 
-		im:     cm,
+		im:     im,
 		joined: atomic.NewBool(false),
 
 		kv:   kv,

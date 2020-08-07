@@ -54,11 +54,22 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 	}, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
 
+	mockManager := &instance.MockManager{
+		ListInstancesFunc: func() map[string]instance.ManagedInstance { return nil },
+		ListConfigsFunc:   func() map[string]instance.Config { return nil },
+		ApplyConfigFunc:   func(_ instance.Config) error { return nil },
+		DeleteConfigFunc:  func(name string) error { return nil },
+		StopFunc:          func() {},
+	}
+	a.cm = mockManager
+
 	r := httptest.NewRequest("GET", "/agent/api/v1/targets", nil)
 
 	t.Run("scrape manager not ready", func(t *testing.T) {
-		a.cm.processes = map[string]*instanceManagerProcess{
-			"test_instance": {inst: &mockInstanceScrape{}},
+		mockManager.ListInstancesFunc = func() map[string]instance.ManagedInstance {
+			return map[string]instance.ManagedInstance{
+				"test_instance": &mockInstanceScrape{},
+			}
 		}
 
 		rr := httptest.NewRecorder()
@@ -81,14 +92,14 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 		startTime := time.Date(1994, time.January, 12, 0, 0, 0, 0, time.UTC)
 		tgt.Report(startTime, time.Minute, fmt.Errorf("something went wrong"))
 
-		a.cm.processes = map[string]*instanceManagerProcess{
-			"test_instance": {
-				inst: &mockInstanceScrape{
+		mockManager.ListInstancesFunc = func() map[string]instance.ManagedInstance {
+			return map[string]instance.ManagedInstance{
+				"test_instance": &mockInstanceScrape{
 					tgts: map[string][]*scrape.Target{
 						"group_a": {tgt},
 					},
 				},
-			},
+			}
 		}
 
 		rr := httptest.NewRecorder()
