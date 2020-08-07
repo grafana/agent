@@ -42,7 +42,7 @@ type Manager interface {
 	// instance. The key will be the Name field from Config.
 	ListConfigs() map[string]Config
 
-	// ApplyConfig should create a new Config or update an existing Config if
+	// ApplyConfig creates a new Config or updates an existing Config if
 	// one with Config.Name already exists.
 	ApplyConfig(Config) error
 
