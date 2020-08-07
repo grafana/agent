@@ -38,7 +38,7 @@ type Manager interface {
 	// within the Manager. The key will be the instance name from their config.
 	ListInstances() map[string]ManagedInstance
 
-	// ListConfigs will return the config objects associated with a managed
+	// ListConfigs returns the config objects associated with a managed
 	// instance. The key will be the Name field from Config.
 	ListConfigs() map[string]Config
 
