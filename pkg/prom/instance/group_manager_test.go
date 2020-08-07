@@ -34,7 +34,7 @@ write_stale_on_shutdown: false`,
 name: configC
 host_filter: false
 scrape_configs: []
-remote_write: 
+remote_write:
 - url: http://localhost:9090
 wal_truncate_frequency: 1m
 remote_flush_deadline: 1m
@@ -66,6 +66,56 @@ func testUnmarshalConfig(t *testing.T, cfg string) Config {
 }
 
 func TestGroupManager_ApplyConfig(t *testing.T) {
+	t.Run("combining configs", func(t *testing.T) {
+		inner := newFakeManager()
+		gm := NewGroupManager(inner)
+		err := gm.ApplyConfig(testUnmarshalConfig(t, `
+name: configA
+host_filter: false
+scrape_configs: []
+remote_write: []
+wal_truncate_frequency: 1m
+remote_flush_deadline: 1m
+write_stale_on_shutdown: false
+`))
+		require.NoError(t, err)
+
+		err = gm.ApplyConfig(testUnmarshalConfig(t, `
+name: configB
+host_filter: false
+scrape_configs:
+- job_name: test_job
+  static_configs:
+    - targets: [127.0.0.1:12345]
+remote_write: []
+wal_truncate_frequency: 1m
+remote_flush_deadline: 1m
+write_stale_on_shutdown: false
+`))
+		require.NoError(t, err)
+
+		require.Equal(t, 1, len(gm.groups))
+		require.Equal(t, 2, len(gm.groupLookup))
+
+		// Check the underlying grouped config and make sure it was updated.
+		expect := testUnmarshalConfig(t, fmt.Sprintf(`
+name: %s
+host_filter: false
+scrape_configs:
+- job_name: test_job
+  static_configs:
+    - targets: [127.0.0.1:12345]
+remote_write: []
+wal_truncate_frequency: 1m
+remote_flush_deadline: 1m
+write_stale_on_shutdown: false
+`, gm.groupLookup["configA"]))
+
+		innerConfigs := inner.ListConfigs()
+		require.Equal(t, 1, len(innerConfigs))
+		require.Equal(t, expect, innerConfigs[gm.groupLookup["configA"]])
+	})
+
 	t.Run("updating existing config within group", func(t *testing.T) {
 		inner := newFakeManager()
 		gm := NewGroupManager(inner)
@@ -85,8 +135,8 @@ write_stale_on_shutdown: false
 		err = gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 host_filter: false
-scrape_configs: 
-- job_name: test_job 
+scrape_configs:
+- job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
 remote_write: []
@@ -113,6 +163,58 @@ write_stale_on_shutdown: false
 `, gm.groupLookup["configA"]))
 		actual := inner.ListConfigs()[gm.groupLookup["configA"]]
 		require.Equal(t, expect, actual)
+	})
+
+	t.Run("updating existing config to new group", func(t *testing.T) {
+		inner := newFakeManager()
+		gm := NewGroupManager(inner)
+		err := gm.ApplyConfig(testUnmarshalConfig(t, `
+name: configA
+host_filter: false
+scrape_configs: []
+remote_write: []
+wal_truncate_frequency: 1m
+remote_flush_deadline: 1m
+write_stale_on_shutdown: false
+`))
+		require.NoError(t, err)
+		require.Equal(t, 1, len(gm.groups))
+		require.Equal(t, 1, len(gm.groupLookup))
+		oldGroup := gm.groupLookup["configA"]
+
+		// Reapply the config but give it a setting change that would
+		// force it into a new group. We should still have only one
+		// group and only one entry in the group lookup table.
+		err = gm.ApplyConfig(testUnmarshalConfig(t, `
+name: configA
+host_filter: true
+scrape_configs: []
+remote_write: []
+wal_truncate_frequency: 1m
+remote_flush_deadline: 1m
+write_stale_on_shutdown: false
+`))
+		require.NoError(t, err)
+		require.Equal(t, 1, len(gm.groups))
+		require.Equal(t, 1, len(gm.groupLookup))
+		newGroup := gm.groupLookup["configA"]
+
+		// Check the underlying grouped config and make sure it was updated.
+		expect := testUnmarshalConfig(t, fmt.Sprintf(`
+name: %s
+host_filter: true
+scrape_configs: []
+remote_write: []
+wal_truncate_frequency: 1m
+remote_flush_deadline: 1m
+write_stale_on_shutdown: false
+`, gm.groupLookup["configA"]))
+		actual := inner.ListConfigs()[newGroup]
+		require.Equal(t, expect, actual)
+
+		// The old underlying ngroup should be gone.
+		require.NotContains(t, inner.ListConfigs(), oldGroup)
+		require.Equal(t, 1, len(inner.ListConfigs()))
 	})
 }
 
@@ -155,8 +257,8 @@ write_stale_on_shutdown: false`
 		configBText := `
 name: configB
 host_filter: false
-scrape_configs: 
-- job_name: test_job 
+scrape_configs:
+- job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
 remote_write: []
@@ -173,7 +275,7 @@ write_stale_on_shutdown: false`
 name: configA
 host_filter: false
 scrape_configs: []
-remote_write: 
+remote_write:
 - url: http://localhost:9009/api/prom/push1
 - url: http://localhost:9009/api/prom/push2
 wal_truncate_frequency: 1m
@@ -184,7 +286,7 @@ write_stale_on_shutdown: false`
 name: configB
 host_filter: false
 scrape_configs: []
-remote_write: 
+remote_write:
 - url: http://localhost:9009/api/prom/push2
 - url: http://localhost:9009/api/prom/push1
 wal_truncate_frequency: 1m
@@ -200,7 +302,7 @@ write_stale_on_shutdown: false`
 name: configA
 host_filter: false
 scrape_configs: []
-remote_write: 
+remote_write:
 - url: http://localhost:9009/api/prom/push1
 - url: http://localhost:9009/api/prom/push2
 wal_truncate_frequency: 1m
@@ -211,7 +313,7 @@ write_stale_on_shutdown: false`
 name: configB
 host_filter: false
 scrape_configs: []
-remote_write: 
+remote_write:
 - url: http://localhost:9009/api/prom/push1
 - url: http://localhost:9009/api/prom/push1
 wal_truncate_frequency: 1m
@@ -263,11 +365,11 @@ func Test_groupConfigs(t *testing.T) {
 	configAText := `
 name: configA
 host_filter: false
-scrape_configs: 
-- job_name: test_job 
+scrape_configs:
+- job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
-remote_write: 
+remote_write:
 - url: http://localhost:9009/api/prom/push1
 - url: http://localhost:9009/api/prom/push2
 wal_truncate_frequency: 1m
@@ -277,11 +379,11 @@ write_stale_on_shutdown: false`
 	configBText := `
 name: configB
 host_filter: false
-scrape_configs: 
+scrape_configs:
 - job_name: test_job2
   static_configs:
     - targets: [127.0.0.1:12345]
-remote_write: 
+remote_write:
 - url: http://localhost:9009/api/prom/push2
 - url: http://localhost:9009/api/prom/push1
 wal_truncate_frequency: 1m
@@ -297,14 +399,14 @@ write_stale_on_shutdown: false`
 	expectText := fmt.Sprintf(`
 name: %s
 host_filter: false
-scrape_configs: 
-- job_name: test_job 
+scrape_configs:
+- job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
 - job_name: test_job2
   static_configs:
     - targets: [127.0.0.1:12345]
-remote_write: 
+remote_write:
 - url: http://localhost:9009/api/prom/push1
 - url: http://localhost:9009/api/prom/push2
 wal_truncate_frequency: 1m

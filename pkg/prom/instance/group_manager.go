@@ -292,6 +292,9 @@ func copyConfig(c Config) (Config, error) {
 	// Some tests will trip up on this; the marshal/unmarshal cycle might set
 	// an empty slice to nil. Set it back to an empty slice if we detect this
 	// happening.
+	if cfg.ScrapeConfigs == nil && c.ScrapeConfigs != nil {
+		cfg.ScrapeConfigs = []*config.ScrapeConfig{}
+	}
 	if cfg.RemoteWrite == nil && c.RemoteWrite != nil {
 		cfg.RemoteWrite = []*config.RemoteWriteConfig{}
 	}
@@ -318,7 +321,7 @@ func groupConfigs(groupName string, grouped groupedConfigs) (Config, error) {
 		return Config{}, err
 	}
 	combined.Name = groupName
-	combined.ScrapeConfigs = nil
+	combined.ScrapeConfigs = []*config.ScrapeConfig{}
 
 	// Combine all the scrape configs. It's possible that two different ungrouped
 	// configs had a matching job name, but this will be detected and rejected
