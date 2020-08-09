@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 #
 #we want to name the binary grafana-agent not agent-linux-amd64
 #
