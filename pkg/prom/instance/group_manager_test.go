@@ -16,29 +16,17 @@ func TestGroupManager_ListInstances_Configs(t *testing.T) {
 	configs := []string{
 		`
 name: configA
-host_filter: false
 scrape_configs: []
-remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`,
+remote_write: []`,
 		`
 name: configB
-host_filter: false
 scrape_configs: []
-remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`,
+remote_write: []`,
 		`
 name: configC
-host_filter: false
 scrape_configs: []
 remote_write:
-- url: http://localhost:9090
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`,
+- url: http://localhost:9090`,
 	}
 
 	for _, cfg := range configs {
@@ -71,26 +59,18 @@ func TestGroupManager_ApplyConfig(t *testing.T) {
 		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
-host_filter: false
 scrape_configs: []
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `))
 		require.NoError(t, err)
 
 		err = gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configB
-host_filter: false
 scrape_configs:
 - job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `))
 		require.NoError(t, err)
 
@@ -100,15 +80,11 @@ write_stale_on_shutdown: false
 		// Check the underlying grouped config and make sure it was updated.
 		expect := testUnmarshalConfig(t, fmt.Sprintf(`
 name: %s
-host_filter: false
 scrape_configs:
 - job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `, gm.groupLookup["configA"]))
 
 		innerConfigs := inner.ListConfigs()
@@ -121,12 +97,8 @@ write_stale_on_shutdown: false
 		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
-host_filter: false
 scrape_configs: []
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `))
 		require.NoError(t, err)
 		require.Equal(t, 1, len(gm.groups))
@@ -134,15 +106,11 @@ write_stale_on_shutdown: false
 
 		err = gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
-host_filter: false
 scrape_configs:
 - job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `))
 		require.NoError(t, err)
 		require.Equal(t, 1, len(gm.groups))
@@ -151,15 +119,11 @@ write_stale_on_shutdown: false
 		// Check the underlying grouped config and make sure it was updated.
 		expect := testUnmarshalConfig(t, fmt.Sprintf(`
 name: %s
-host_filter: false
 scrape_configs:
 - job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `, gm.groupLookup["configA"]))
 		actual := inner.ListConfigs()[gm.groupLookup["configA"]]
 		require.Equal(t, expect, actual)
@@ -170,12 +134,8 @@ write_stale_on_shutdown: false
 		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
-host_filter: false
 scrape_configs: []
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `))
 		require.NoError(t, err)
 		require.Equal(t, 1, len(gm.groups))
@@ -190,9 +150,6 @@ name: configA
 host_filter: true
 scrape_configs: []
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `))
 		require.NoError(t, err)
 		require.Equal(t, 1, len(gm.groups))
@@ -205,9 +162,6 @@ name: %s
 host_filter: true
 scrape_configs: []
 remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false
 `, gm.groupLookup["configA"]))
 		actual := inner.ListConfigs()[newGroup]
 		require.Equal(t, expect, actual)
@@ -227,7 +181,6 @@ func TestGroupManager_DeleteConfig(t *testing.T) {
 		// should still be active with the one config inside of it.
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
-host_filter: false
 scrape_configs: 
 - job_name: test_job
   static_configs:
@@ -238,7 +191,6 @@ remote_write: []
 
 		err = gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configB
-host_filter: false
 scrape_configs: 
 - job_name: test_job2
   static_configs:
@@ -252,15 +204,11 @@ remote_write: []
 
 		expect := testUnmarshalConfig(t, fmt.Sprintf(`
 name: %s
-host_filter: false
 scrape_configs:
 - job_name: test_job2
   static_configs:
     - targets: [127.0.0.1:12345]
-remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`, gm.groupLookup["configB"]))
+remote_write: []`, gm.groupLookup["configB"]))
 		actual := inner.ListConfigs()[gm.groupLookup["configB"]]
 		require.Equal(t, expect, actual)
 		require.Equal(t, 1, len(gm.groups))
@@ -274,7 +222,6 @@ write_stale_on_shutdown: false`, gm.groupLookup["configB"]))
 		// Apply a single config but delete the entire group.
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
-host_filter: false
 scrape_configs: 
 - job_name: test_job
   static_configs:
@@ -321,24 +268,16 @@ func Test_hashConfig(t *testing.T) {
 	t.Run("name and scrape configs are ignored", func(t *testing.T) {
 		configAText := `
 name: configA
-host_filter: false
 scrape_configs: []
-remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+remote_write: []`
 
 		configBText := `
 name: configB
-host_filter: false
 scrape_configs:
 - job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
-remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+remote_write: []`
 
 		hashA, hashB := getHashesFromConfigs(t, configAText, configBText)
 		require.Equal(t, hashA, hashB)
@@ -347,25 +286,17 @@ write_stale_on_shutdown: false`
 	t.Run("remote_writes are unordered", func(t *testing.T) {
 		configAText := `
 name: configA
-host_filter: false
 scrape_configs: []
 remote_write:
 - url: http://localhost:9009/api/prom/push1
-- url: http://localhost:9009/api/prom/push2
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+- url: http://localhost:9009/api/prom/push2`
 
 		configBText := `
 name: configB
-host_filter: false
 scrape_configs: []
 remote_write:
 - url: http://localhost:9009/api/prom/push2
-- url: http://localhost:9009/api/prom/push1
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+- url: http://localhost:9009/api/prom/push1`
 
 		hashA, hashB := getHashesFromConfigs(t, configAText, configBText)
 		require.Equal(t, hashA, hashB)
@@ -374,25 +305,17 @@ write_stale_on_shutdown: false`
 	t.Run("remote_writes must match", func(t *testing.T) {
 		configAText := `
 name: configA
-host_filter: false
 scrape_configs: []
 remote_write:
 - url: http://localhost:9009/api/prom/push1
-- url: http://localhost:9009/api/prom/push2
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+- url: http://localhost:9009/api/prom/push2`
 
 		configBText := `
 name: configB
-host_filter: false
 scrape_configs: []
 remote_write:
 - url: http://localhost:9009/api/prom/push1
-- url: http://localhost:9009/api/prom/push1
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+- url: http://localhost:9009/api/prom/push1`
 
 		hashA, hashB := getHashesFromConfigs(t, configAText, configBText)
 		require.NotEqual(t, hashA, hashB)
@@ -403,19 +326,13 @@ write_stale_on_shutdown: false`
 name: configA
 host_filter: true
 scrape_configs: []
-remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+remote_write: []`
 
 		configBText := `
 name: configB
 host_filter: false
 scrape_configs: []
-remote_write: []
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+remote_write: []`
 
 		hashA, hashB := getHashesFromConfigs(t, configAText, configBText)
 		require.NotEqual(t, hashA, hashB)
@@ -438,31 +355,23 @@ func getHashesFromConfigs(t *testing.T, configAText, configBText string) (string
 func Test_groupConfigs(t *testing.T) {
 	configAText := `
 name: configA
-host_filter: false
 scrape_configs:
 - job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
 remote_write:
 - url: http://localhost:9009/api/prom/push1
-- url: http://localhost:9009/api/prom/push2
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+- url: http://localhost:9009/api/prom/push2`
 
 	configBText := `
 name: configB
-host_filter: false
 scrape_configs:
 - job_name: test_job2
   static_configs:
     - targets: [127.0.0.1:12345]
 remote_write:
 - url: http://localhost:9009/api/prom/push2
-- url: http://localhost:9009/api/prom/push1
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`
+- url: http://localhost:9009/api/prom/push1`
 
 	configA := testUnmarshalConfig(t, configAText)
 	configB := testUnmarshalConfig(t, configBText)
@@ -472,7 +381,6 @@ write_stale_on_shutdown: false`
 
 	expectText := fmt.Sprintf(`
 name: %s
-host_filter: false
 scrape_configs:
 - job_name: test_job
   static_configs:
@@ -482,10 +390,7 @@ scrape_configs:
     - targets: [127.0.0.1:12345]
 remote_write:
 - url: http://localhost:9009/api/prom/push1
-- url: http://localhost:9009/api/prom/push2
-wal_truncate_frequency: 1m
-remote_flush_deadline: 1m
-write_stale_on_shutdown: false`, groupName)
+- url: http://localhost:9009/api/prom/push2`, groupName)
 
 	expect, err := UnmarshalConfig(strings.NewReader(expectText))
 	require.NoError(t, err)
