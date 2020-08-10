@@ -249,11 +249,16 @@ func hashConfig(c Config) (string, error) {
 	// of simplifying responsibility of GroupManager.
 	for _, cfg := range groupable.RemoteWrite {
 		if cfg != nil {
+			// We don't care if the names are different, just that the other settings
+			// are the same. Blank out the name here before hashing the remote
+			// write config.
+			cfg.Name = ""
+
 			hash, err := getHash(cfg)
 			if err != nil {
 				return "", err
 			}
-			cfg.Name = groupable.Name + "-" + hash[:6]
+			cfg.Name = hash[:6]
 		}
 	}
 

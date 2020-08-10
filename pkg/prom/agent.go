@@ -186,7 +186,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
 	// Controls the label
 	instanceLabel := "instance_name"
-	if a.cfg.InstanceMode == InstanceModeDistinct {
+	if a.cfg.InstanceMode == InstanceModeShared {
 		instanceLabel = "instance_group_name"
 	}
 
