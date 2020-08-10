@@ -28,4 +28,5 @@ main problems faced by users of large deployments of Prometheus:
 3. [Configuration Reference](./configuration-reference.md)
 4. [API](./api.md)
 5. [Scraping Service Mode](./scraping-service.md)
-6. [Maintainers Guide](./maintaining.md)
+6. [Operation Guide](./operation-guide.md)
+7. [Maintainers Guide](./maintaining.md)
