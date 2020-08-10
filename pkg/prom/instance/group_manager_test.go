@@ -218,6 +218,80 @@ write_stale_on_shutdown: false
 	})
 }
 
+func TestGroupManager_DeleteConfig(t *testing.T) {
+	t.Run("partial delete", func(t *testing.T) {
+		inner := newFakeManager()
+		gm := NewGroupManager(inner)
+
+		// Apply two configs in the same group and then delete one. The group
+		// should still be active with the one config inside of it.
+		err := gm.ApplyConfig(testUnmarshalConfig(t, `
+name: configA
+host_filter: false
+scrape_configs: 
+- job_name: test_job
+  static_configs:
+    - targets: [127.0.0.1:12345]
+remote_write: []
+`))
+		require.NoError(t, err)
+
+		err = gm.ApplyConfig(testUnmarshalConfig(t, `
+name: configB
+host_filter: false
+scrape_configs: 
+- job_name: test_job2
+  static_configs:
+    - targets: [127.0.0.1:12345]
+remote_write: []
+`))
+		require.NoError(t, err)
+
+		err = gm.DeleteConfig("configA")
+		require.NoError(t, err)
+
+		expect := testUnmarshalConfig(t, fmt.Sprintf(`
+name: %s
+host_filter: false
+scrape_configs:
+- job_name: test_job2
+  static_configs:
+    - targets: [127.0.0.1:12345]
+remote_write: []
+wal_truncate_frequency: 1m
+remote_flush_deadline: 1m
+write_stale_on_shutdown: false`, gm.groupLookup["configB"]))
+		actual := inner.ListConfigs()[gm.groupLookup["configB"]]
+		require.Equal(t, expect, actual)
+		require.Equal(t, 1, len(gm.groups))
+		require.Equal(t, 1, len(gm.groupLookup))
+	})
+
+	t.Run("full delete", func(t *testing.T) {
+		inner := newFakeManager()
+		gm := NewGroupManager(inner)
+
+		// Apply a single config but delete the entire group.
+		err := gm.ApplyConfig(testUnmarshalConfig(t, `
+name: configA
+host_filter: false
+scrape_configs: 
+- job_name: test_job
+  static_configs:
+    - targets: [127.0.0.1:12345]
+remote_write: []
+`))
+		require.NoError(t, err)
+
+		err = gm.DeleteConfig("configA")
+		require.NoError(t, err)
+		require.Equal(t, 0, len(inner.ListConfigs()))
+		require.Equal(t, 0, len(inner.ListInstances()))
+		require.Equal(t, 0, len(gm.groups))
+		require.Equal(t, 0, len(gm.groupLookup))
+	})
+}
+
 func newFakeManager() Manager {
 	instances := make(map[string]ManagedInstance)
 	configs := make(map[string]Config)

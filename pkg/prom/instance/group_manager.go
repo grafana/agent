@@ -190,7 +190,7 @@ func (m *GroupManager) deleteConfig(name string) error {
 	}
 
 	// Grab a copy of the stored group and delete our entry. We can
-	// persist it after we sucessfully remove the config.
+	// persist it after we successfully remove the config.
 	group := m.groups[groupName].Copy()
 	delete(group, name)
 
