@@ -124,6 +124,10 @@ configs:
 # to restart it. 0s disables the backoff period and restarts the agent
 # immediately.
 [instance_restart_backoff: <duration> | default = "5s"]
+
+# How to spawn instances based on instance configs. Supported values: shared,
+# distinct.
+[instance_mode: <string> | default = "shared"]
 ```
 
 ### scraping_service_config

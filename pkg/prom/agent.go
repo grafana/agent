@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/prom/ha"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 	"google.golang.org/grpc"
 )
@@ -24,8 +25,42 @@ var (
 		InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
 		ServiceConfig:          ha.DefaultConfig,
 		ServiceClientConfig:    client.DefaultConfig,
+		InstanceMode:           DefaultInstanceMode,
 	}
 )
+
+// InstanceMode controls how instances are created.
+type InstanceMode string
+
+// Types of instance modes
+var (
+	InstanceModeDistinct InstanceMode = "distinct"
+	InstanceModeShared   InstanceMode = "shared"
+
+	DefaultInstanceMode = InstanceModeShared
+)
+
+// UnmarshalYAML unmarshals a string to an InstanceMode. Fails if the string is
+// unrecognized.
+func (m *InstanceMode) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*m = DefaultInstanceMode
+
+	var plain string
+	if err := unmarshal(&plain); err != nil {
+		return err
+	}
+
+	switch plain {
+	case string(InstanceModeDistinct):
+		*m = InstanceModeDistinct
+		return nil
+	case string(InstanceModeShared):
+		*m = InstanceModeShared
+		return nil
+	default:
+		return fmt.Errorf("unsupported instance_mode '%s'. supported values 'shared', 'distinct'", plain)
+	}
+}
 
 // Config defines the configuration for the entire set of Prometheus client
 // instances, along with a global configuration.
@@ -36,6 +71,7 @@ type Config struct {
 	ServiceClientConfig    client.Config       `yaml:"scraping_service_client"`
 	Configs                []instance.Config   `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
+	InstanceMode           InstanceMode        `yaml:"instance_mode"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -120,6 +156,10 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
 	}, a.logger, a.newInstance, a.validateInstance)
 
+	if cfg.InstanceMode == InstanceModeShared {
+		a.cm = instance.NewGroupManager(a.cm)
+	}
+
 	allConfigsValid := true
 	for _, c := range cfg.Configs {
 		if err := a.cm.ApplyConfig(c); err != nil {
@@ -144,7 +184,17 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 
 // newInstance creates a new Instance given a config.
 func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
-	return a.instanceFactory(a.cfg.Global, c, a.cfg.WALDir, a.logger)
+	// Controls the label
+	instanceLabel := "instance_name"
+	if a.cfg.InstanceMode == InstanceModeShared {
+		instanceLabel = "instance_group_name"
+	}
+
+	reg := prometheus.WrapRegistererWith(prometheus.Labels{
+		instanceLabel: c.Name,
+	}, prometheus.DefaultRegisterer)
+
+	return a.instanceFactory(reg, a.cfg.Global, c, a.cfg.WALDir, a.logger)
 }
 
 func (a *Agent) validateInstance(c *instance.Config) error {
@@ -170,8 +220,8 @@ func (a *Agent) Stop() {
 	a.cm.Stop()
 }
 
-type instanceFactory = func(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
+type instanceFactory = func(reg prometheus.Registerer, global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
 
-func defaultInstanceFactory(global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {
-	return instance.New(global, cfg, walDir, logger)
+func defaultInstanceFactory(reg prometheus.Registerer, global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {
+	return instance.New(reg, global, cfg, walDir, logger)
 }

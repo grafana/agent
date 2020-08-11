@@ -49,7 +49,7 @@ type Manager interface {
 	// DeleteConfig deletes a given managed instance based on its Config.Name.
 	DeleteConfig(name string) error
 
-	// Stop must stop the Manager and all managed instances.
+	// Stop stops the Manager and all managed instances.
 	Stop()
 }
 
