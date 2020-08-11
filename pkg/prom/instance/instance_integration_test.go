@@ -30,8 +30,6 @@ import (
 // 4. Validates that after 15 seconds, the scrape endpoint and remote_write
 //    endpoint has been called.
 func TestInstance_Update(t *testing.T) {
-	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
 	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
@@ -68,7 +66,7 @@ name: integration_test
 scrape_configs: []
 remote_write: []
 `)
-	inst, err := New(config.DefaultGlobalConfig, initialConfig, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), config.DefaultGlobalConfig, initialConfig, walDir, logger)
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
@@ -111,8 +109,6 @@ remote_write:
 // config and performs various unacceptable updates that should return an
 // error.
 func TestInstance_Update_InvalidChanges(t *testing.T) {
-	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
 	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
@@ -125,7 +121,7 @@ name: integration_test
 scrape_configs: []
 remote_write: []
 `)
-	inst, err := New(config.DefaultGlobalConfig, initialConfig, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), config.DefaultGlobalConfig, initialConfig, walDir, logger)
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
