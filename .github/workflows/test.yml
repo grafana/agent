@@ -5,6 +5,9 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install libsystemd-dev
+
     - name: Set up Go 1.14
       uses: actions/setup-go@v1
       with:
@@ -25,6 +28,10 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install libsystemd-dev
+      if: matrix.platform == 'ubuntu-latest'
+
     - name: Set up Go 1.14
       uses: actions/setup-go@v1
       with:
@@ -42,6 +49,10 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install libsystemd-dev
+      if: matrix.platform == 'ubuntu-latest'
+
     - name: Set up Go 1.14
       uses: actions/setup-go@v1
       with:
