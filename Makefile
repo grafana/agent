@@ -105,20 +105,8 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
-# some platforms need CGO_ENABLED=1 for node_exporter
-need_cgo = 0
-ifeq ($(shell go env GOOS),darwin)
-need_cgo = 1
-else ifeq ($(shell go env GOOS),freebsd)
-need_cgo = 1
-endif
-
 cmd/agent/agent: cmd/agent/main.go
-ifeq ($(need_cgo),1)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
-endif
 	$(NETGO_CHECK)
 
 cmd/agentctl/agentctl: cmd/agentctl/main.go
@@ -144,11 +132,7 @@ push-agentctl-image:
 	docker push $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG)
 
 install:
-ifeq ($(need_cgo),1)
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
-else
-	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent
-endif
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
 
 #######################
