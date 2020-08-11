@@ -4,6 +4,7 @@ package loki
 import (
 	"flag"
 
+	"github.com/go-kit/kit/log"
 	"github.com/grafana/loki/pkg/promtail"
 	"github.com/grafana/loki/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/promtail/config"
@@ -22,9 +23,8 @@ type Config struct {
 }
 
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	// TODO(rfratto): make this a RegisterFlagsWithPrefix function
-	c.PositionsConfig.RegisterFlags(f)
-	c.TargetConfig.RegisterFlags(f)
+	c.PositionsConfig.RegisterFlagsWithPrefix("loki.", f)
+	c.TargetConfig.RegisterFlagsWithPrefix("loki.", f)
 }
 
 type Loki struct {
@@ -32,14 +32,16 @@ type Loki struct {
 }
 
 // New creates and starts Loki log collection.
-func New(c Config) (*Loki, error) {
+func New(c Config, l log.Logger) (*Loki, error) {
+	l = log.With(l, "component", "loki")
+
 	p, err := promtail.New(config.Config{
 		ServerConfig:    server.Config{Disable: true},
 		ClientConfigs:   c.ClientConfigs,
 		PositionsConfig: c.PositionsConfig,
 		ScrapeConfig:    c.ScrapeConfig,
 		TargetConfig:    c.TargetConfig,
-	}, false)
+	}, false, promtail.WithLogger(l))
 	if err != nil {
 		return nil, err
 	}

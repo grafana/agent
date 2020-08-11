@@ -41,7 +41,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	lokiLogs, err := loki.New(cfg.Loki)
+	lokiLogs, err := loki.New(cfg.Loki, util.Logger)
 	if err != nil {
 		level.Error(util.Logger).Log("msg", "failed to create loki log collection instance", "err", err)
 	}
