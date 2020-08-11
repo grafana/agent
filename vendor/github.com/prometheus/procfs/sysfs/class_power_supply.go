@@ -110,7 +110,7 @@ func (fs FS) PowerSupplyClass() (PowerSupplyClass, error) {
 
 	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list power supplies at %q: %v", path, err)
 	}
 
 	psc := make(PowerSupplyClass, len(dirs))

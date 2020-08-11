@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build aix darwin dragonfly freebsd linux netbsd openbsd solaris
+// +build !windows
 
 package procfs
 
@@ -25,7 +25,6 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// ProcMapPermissions contains permission settings read from /proc/[pid]/maps
 type ProcMapPermissions struct {
 	// mapping has the [R]ead flag set
 	Read bool

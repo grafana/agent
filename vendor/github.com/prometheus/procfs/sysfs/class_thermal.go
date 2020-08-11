@@ -16,11 +16,9 @@
 package sysfs
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/prometheus/procfs/internal/util"
 )
@@ -31,7 +29,7 @@ import (
 type ClassThermalZoneStats struct {
 	Name    string  // The name of the zone from the directory structure.
 	Type    string  // The type of thermal zone.
-	Temp    int64   // Temperature in millidegree Celsius.
+	Temp    uint64  // Temperature in millidegree Celsius.
 	Policy  string  // One of the various thermal governors used for a particular zone.
 	Mode    *bool   // Optional: One of the predefined values in [enabled, disabled].
 	Passive *uint64 // Optional: millidegrees Celsius. (0 for disabled, > 1000 for enabled+value)
@@ -41,20 +39,20 @@ type ClassThermalZoneStats struct {
 func (fs FS) ClassThermalZoneStats() ([]ClassThermalZoneStats, error) {
 	zones, err := filepath.Glob(fs.sys.Path("class/thermal/thermal_zone[0-9]*"))
 	if err != nil {
-		return nil, err
+		return []ClassThermalZoneStats{}, err
 	}
 
-	stats := make([]ClassThermalZoneStats, 0, len(zones))
-	for _, zone := range zones {
-		zoneStats, err := parseClassThermalZone(zone)
+	var zoneStats = ClassThermalZoneStats{}
+	stats := make([]ClassThermalZoneStats, len(zones))
+	for i, zone := range zones {
+		zoneName := strings.TrimPrefix(filepath.Base(zone), "thermal_zone")
+
+		zoneStats, err = parseClassThermalZone(zone)
 		if err != nil {
-			if errors.Is(err, syscall.ENODATA) {
-				continue
-			}
-			return nil, err
+			return []ClassThermalZoneStats{}, err
 		}
-		zoneStats.Name = strings.TrimPrefix(filepath.Base(zone), "thermal_zone")
-		stats = append(stats, zoneStats)
+		zoneStats.Name = zoneName
+		stats[i] = zoneStats
 	}
 	return stats, nil
 }
@@ -69,7 +67,7 @@ func parseClassThermalZone(zone string) (ClassThermalZoneStats, error) {
 	if err != nil {
 		return ClassThermalZoneStats{}, err
 	}
-	zoneTemp, err := util.ReadIntFromFile(filepath.Join(zone, "temp"))
+	zoneTemp, err := util.ReadUintFromFile(filepath.Join(zone, "temp"))
 	if err != nil {
 		return ClassThermalZoneStats{}, err
 	}

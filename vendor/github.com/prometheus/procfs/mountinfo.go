@@ -77,7 +77,7 @@ func parseMountInfoString(mountString string) (*MountInfo, error) {
 
 	mountInfo := strings.Split(mountString, " ")
 	mountInfoLength := len(mountInfo)
-	if mountInfoLength < 10 {
+	if mountInfoLength < 11 {
 		return nil, fmt.Errorf("couldn't find enough fields in mount string: %s", mountString)
 	}
 
@@ -144,7 +144,7 @@ func mountOptionsParseOptionalFields(o []string) (map[string]string, error) {
 	return optionalFields, nil
 }
 
-// mountOptionsParser parses the mount options, superblock options.
+// Parses the mount options, superblock options.
 func mountOptionsParser(mountOptions string) map[string]string {
 	opts := make(map[string]string)
 	options := strings.Split(mountOptions, ",")
@@ -161,7 +161,7 @@ func mountOptionsParser(mountOptions string) map[string]string {
 	return opts
 }
 
-// GetMounts retrieves mountinfo information from `/proc/self/mountinfo`.
+// Retrieves mountinfo information from `/proc/self/mountinfo`.
 func GetMounts() ([]*MountInfo, error) {
 	data, err := util.ReadFileNoStat("/proc/self/mountinfo")
 	if err != nil {
@@ -170,7 +170,7 @@ func GetMounts() ([]*MountInfo, error) {
 	return parseMountInfo(data)
 }
 
-// GetProcMounts retrieves mountinfo information from a processes' `/proc/<pid>/mountinfo`.
+// Retrieves mountinfo information from a processes' `/proc/<pid>/mountinfo`.
 func GetProcMounts(pid int) ([]*MountInfo, error) {
 	data, err := util.ReadFileNoStat(fmt.Sprintf("/proc/%d/mountinfo", pid))
 	if err != nil {
