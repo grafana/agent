@@ -173,7 +173,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 
 	if cfg.ServiceConfig.Enabled {
 		var err error
-		a.ha, err = ha.New(cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.cm)
+		a.ha, err = ha.New(prometheus.DefaultRegisterer, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.cm)
 		if err != nil {
 			return nil, err
 		}

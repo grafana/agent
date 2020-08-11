@@ -101,17 +101,17 @@ type Server struct {
 }
 
 // New creates a new HA scraping service instance.
-func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager) (*Server, error) {
+func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager) (*Server, error) {
 	// Force ReplicationFactor to be 1, since replication isn't supported for the
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
 
-	kvClient, err := kv.NewClient(cfg.KVStore, GetCodec(), prometheus.DefaultRegisterer)
+	kvClient, err := kv.NewClient(cfg.KVStore, GetCodec(), reg)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", prometheus.DefaultRegisterer)
+	r, err := ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Conf
 
 	// TODO(rfratto): switching to a BasicLifecycler would be nice here, it'd allow
 	// the joining/leaving process to include waiting for resharding.
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, lazy, "agent", "agent", true, prometheus.DefaultRegisterer)
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, lazy, "agent", "agent", true, reg)
 	if err != nil {
 		return nil, err
 	}
