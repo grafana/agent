@@ -20,6 +20,7 @@ import (
 	"github.com/prometheus/prometheus/config"
 	sd_config "github.com/prometheus/prometheus/discovery/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
 var (
@@ -33,12 +34,17 @@ var (
 	DefaultConfig = Config{
 		IntegrationRestartBackoff: 5 * time.Second,
 		UseHostnameLabel:          true,
+		ReplaceInstanceLabel:      true,
 	}
 )
 
 // Config holds the configuration for all integrations.
 type Config struct {
-	// When true, adds an agent_hostname label to all samples from integrations.
+	// When true, replaces the instance label with the agent hostname.
+	ReplaceInstanceLabel bool `yaml:"replace_instance_label"`
+
+	// DEPRECATED. When true, adds an agent_hostname label to all samples from integrations.
+	// ReplaceInstanceLabel should be used instead.
 	UseHostnameLabel bool `yaml:"use_hostname_label"`
 
 	Agent        agent.Config         `yaml:"agent"`
@@ -63,6 +69,30 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain Config
 	return unmarshal((*plain)(c))
+}
+
+func (c *Config) ApplyDefaults() error {
+	if c.ReplaceInstanceLabel {
+		hostname, err := instance.Hostname()
+		if err != nil {
+			return err
+		}
+
+		replacement := fmt.Sprintf("%s:%d", hostname, *c.ListenPort)
+
+		for _, rwCfg := range c.PrometheusRemoteWrite {
+			rwCfg.WriteRelabelConfigs = append([]*relabel.Config{
+				{
+					SourceLabels: model.LabelNames{model.InstanceLabel},
+					Action:       relabel.Replace,
+					Replacement:  replacement,
+					TargetLabel:  model.InstanceLabel,
+				},
+			}, rwCfg.WriteRelabelConfigs...)
+		}
+	}
+
+	return nil
 }
 
 type Integration interface {
