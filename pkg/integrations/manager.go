@@ -34,17 +34,17 @@ var (
 	DefaultConfig = Config{
 		IntegrationRestartBackoff: 5 * time.Second,
 		UseHostnameLabel:          true,
-		ReplaceIntanceLabel:       true,
+		ReplaceInstanceLabel:      true,
 	}
 )
 
 // Config holds the configuration for all integrations.
 type Config struct {
 	// When true, replaces the instance label with the agent hostname.
-	ReplaceIntanceLabel bool `yaml:"replace_instance_label"`
+	ReplaceInstanceLabel bool `yaml:"replace_instance_label"`
 
 	// DEPRECATED. When true, adds an agent_hostname label to all samples from integrations.
-	// ReplaceIntanceLabel should be used instead.
+	// ReplaceInstanceLabel should be used instead.
 	UseHostnameLabel bool `yaml:"use_hostname_label"`
 
 	Agent        agent.Config         `yaml:"agent"`
@@ -72,7 +72,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (c *Config) ApplyDefaults() error {
-	if c.ReplaceIntanceLabel {
+	if c.ReplaceInstanceLabel {
 		hostname, err := instance.Hostname()
 		if err != nil {
 			return err
