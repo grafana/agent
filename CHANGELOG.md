@@ -2,9 +2,10 @@
 
 # v0.5.0 (2020-08-12)
 
-- [FEATURE] A "scrape targets API" has been added to show every target the Agent
-  is currently scraping, when it was last scraped, how long it took to scrape,
-  and errors from the last scrape, if any. (@rfratto)
+- [FEATURE] A [scrape targets API](https://github.com/grafana/agent/blob/master/docs/api.md#list-current-scrape-targets)
+  has been added to show every target the Agent is currently scraping, when it
+  was last scraped, how long it took to scrape, and errors from the last scrape,
+  if any. (@rfratto)
 
 - [FEATURE]  "Shared Instance Mode" is the new default mode for spawning
   Prometheus instances, and will improve CPU and memory usage for users of
