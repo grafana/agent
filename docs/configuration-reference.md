@@ -1473,9 +1473,19 @@ agent:
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
 
+# When true, replaces the instance label with the hostname of the machine,
+# rather than 127.0.0.1:<server.http_listen_port>. Useful when running multiple 
+# Agents with the same integrations and uniquely identifying where metrics are 
+# coming from.
+[replace_instance_label: <boolean> | default = true]
+
 # When true, adds an agent_hostname label to all samples coming from
 # integrations. The value of the agent_hostname label will be the
 # value of $HOSTNAME (if available) or the machine's hostname.
+#
+# DEPRECATED. May be removed in a future version. Rely on 
+# replace_instance_label instead, since it has better compatability 
+# with existing dashboards.
 [use_hostname_label: <boolean> | default = true]
 
 # Extra labels to add to all samples coming from integrations.
