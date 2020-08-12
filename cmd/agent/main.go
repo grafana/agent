@@ -10,6 +10,7 @@ import (
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/loki"
 
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"
@@ -38,6 +39,11 @@ func main() {
 	if err != nil {
 		level.Error(util.Logger).Log("msg", "failed to create prometheus instance", "err", err)
 		os.Exit(1)
+	}
+
+	lokiLogs, err := loki.New(cfg.Loki, util.Logger)
+	if err != nil {
+		level.Error(util.Logger).Log("msg", "failed to create loki log collection instance", "err", err)
 	}
 
 	srv, err := server.New(cfg.Server)
@@ -76,6 +82,7 @@ func main() {
 	}
 
 	manager.Stop()
+	lokiLogs.Stop()
 	promMetrics.Stop()
 	level.Info(util.Logger).Log("msg", "agent exiting")
 }

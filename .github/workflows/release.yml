@@ -8,6 +8,9 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install libsystemd-dev
+
     - name: Login to Docker Hub
       run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
 

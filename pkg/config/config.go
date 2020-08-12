@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
@@ -18,6 +19,7 @@ import (
 type Config struct {
 	Server       server.Config       `yaml:"server"`
 	Prometheus   prom.Config         `yaml:"prometheus,omitempty"`
+	Loki         loki.Config         `yaml:"loki,omitempty"`
 	Integrations integrations.Config `yaml:"integrations"`
 }
 
@@ -30,7 +32,7 @@ func (c *Config) ApplyDefaults() error {
 	// The default port exposed to the lifecycler should be the gRPC listen
 	// port since the agents will use gRPC for notifying other agents of
 	// resharding.
-	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = &c.Server.GRPCListenPort
+	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
 	c.Integrations.ListenPort = &c.Server.HTTPListenPort
 	return nil
 }
@@ -41,6 +43,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.RegisterInstrumentation = true
 	c.Prometheus.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
+	c.Loki.RegisterFlags(f)
 }
 
 // LoadFile reads a file and passes the contents to Load

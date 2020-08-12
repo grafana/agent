@@ -14,6 +14,7 @@ import (
 	perrors "github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"go.uber.org/atomic"
 
 	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/cortexproject/cortex/pkg/util"
@@ -46,7 +47,6 @@ type LifecyclerConfig struct {
 	RingConfig Config `yaml:"ring"`
 
 	// Config for the ingester lifecycle control
-	ListenPort       *int          `yaml:"-"`
 	NumTokens        int           `yaml:"num_tokens"`
 	HeartbeatPeriod  time.Duration `yaml:"heartbeat_period"`
 	ObservePeriod    time.Duration `yaml:"observe_period"`
@@ -62,6 +62,9 @@ type LifecyclerConfig struct {
 	Port           int    `doc:"hidden"`
 	ID             string `doc:"hidden"`
 	SkipUnregister bool   `yaml:"-"`
+
+	// Injected internally
+	ListenPort int `yaml:"-"`
 }
 
 // RegisterFlags adds the flags required to config this to the given FlagSet
@@ -119,7 +122,7 @@ type Lifecycler struct {
 	Zone     string
 
 	// Whether to flush if transfer fails on shutdown.
-	flushOnShutdown bool
+	flushOnShutdown *atomic.Bool
 
 	// We need to remember the ingester state just in case consul goes away and comes
 	// back empty.  And it changes during lifecycle of ingester.
@@ -138,21 +141,19 @@ type Lifecycler struct {
 }
 
 // NewLifecycler creates new Lifecycler. It must be started via StartAsync.
-func NewLifecycler(cfg LifecyclerConfig, flushTransferer FlushTransferer, ringName, ringKey string, flushOnShutdown bool) (*Lifecycler, error) {
-	addr := cfg.Addr
-	if addr == "" {
-		var err error
-		addr, err = util.GetFirstAddressOf(cfg.InfNames)
-		if err != nil {
-			return nil, err
-		}
+func NewLifecycler(cfg LifecyclerConfig, flushTransferer FlushTransferer, ringName, ringKey string, flushOnShutdown bool, reg prometheus.Registerer) (*Lifecycler, error) {
+	addr, err := GetInstanceAddr(cfg.Addr, cfg.InfNames)
+	if err != nil {
+		return nil, err
 	}
-	port := cfg.Port
-	if port == 0 {
-		port = *cfg.ListenPort
-	}
+	port := GetInstancePort(cfg.Port, cfg.ListenPort)
 	codec := GetCodec()
-	store, err := kv.NewClient(cfg.RingConfig.KVStore, codec)
+	// Suffix all client names with "-lifecycler" to denote this kv client is used by the lifecycler
+	store, err := kv.NewClient(
+		cfg.RingConfig.KVStore,
+		codec,
+		kv.RegistererWithKVName(reg, ringName+"-lifecycler"),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +178,7 @@ func NewLifecycler(cfg LifecyclerConfig, flushTransferer FlushTransferer, ringNa
 		ID:              cfg.ID,
 		RingName:        ringName,
 		RingKey:         ringKey,
-		flushOnShutdown: flushOnShutdown,
+		flushOnShutdown: atomic.NewBool(flushOnShutdown),
 		Zone:            zone,
 
 		actorChan: make(chan func()),
@@ -226,6 +227,9 @@ func (i *Lifecycler) CheckReady(ctx context.Context) error {
 	}
 
 	if err := ringDesc.Ready(time.Now(), i.cfg.RingConfig.HeartbeatTimeout); err != nil {
+		level.Warn(util.Logger).Log("msg", "found an existing ingester(s) with a problem in the ring, "+
+			"this ingester cannot complete joining and become ready until this problem is resolved. "+
+			"The /ring http endpoint on the distributor (or single binary) provides visibility into the ring.", "err", err)
 		return err
 	}
 
@@ -516,6 +520,17 @@ func (i *Lifecycler) initRing(ctx context.Context) error {
 			return ringDesc, true, nil
 		}
 
+		// If the ingester is in the JOINING state this means it crashed due to
+		// a failed token transfer or some other reason during startup. We want
+		// to set it back to PENDING in order to start the lifecycle from the
+		// beginning.
+		if ingesterDesc.State == JOINING {
+			level.Warn(util.Logger).Log("msg", "instance found in ring as JOINING, setting to PENDING",
+				"ring", i.RingName)
+			ingesterDesc.State = PENDING
+			return ringDesc, true, nil
+		}
+
 		// If the ingester failed to clean it's ring entry up in can leave it's state in LEAVING.
 		// Move it into ACTIVE to ensure the ingester joins the ring.
 		if ingesterDesc.State == LEAVING && len(ingesterDesc.Tokens) == i.cfg.NumTokens {
@@ -716,17 +731,17 @@ func (i *Lifecycler) updateCounters(ringDesc *Desc) {
 
 // FlushOnShutdown returns if flushing is enabled if transfer fails on a shutdown.
 func (i *Lifecycler) FlushOnShutdown() bool {
-	return i.flushOnShutdown
+	return i.flushOnShutdown.Load()
 }
 
 // SetFlushOnShutdown enables/disables flush on shutdown if transfer fails.
 // Passing 'true' enables it, and 'false' disabled it.
 func (i *Lifecycler) SetFlushOnShutdown(flushOnShutdown bool) {
-	i.flushOnShutdown = flushOnShutdown
+	i.flushOnShutdown.Store(flushOnShutdown)
 }
 
 func (i *Lifecycler) processShutdown(ctx context.Context) {
-	flushRequired := i.flushOnShutdown
+	flushRequired := i.flushOnShutdown.Load()
 	transferStart := time.Now()
 	if err := i.flushTransferer.TransferOut(ctx); err != nil {
 		if err == ErrTransferDisabled {

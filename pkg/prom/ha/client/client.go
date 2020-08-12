@@ -40,7 +40,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // RegisterFlags registers flags to the provided flag set.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	c.GRPCClientConfig.RegisterFlags("prometheus.service-client", f)
+	c.GRPCClientConfig.RegisterFlagsWithPrefix("prometheus.service-client", f)
 }
 
 // New returns a new scraping service client.

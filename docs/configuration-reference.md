@@ -6,6 +6,8 @@ Prometheus instances.
 
 * [server_config](#server_config)
 * [prometheus_config](#prometheus_config)
+* [loki_config](#loki_config)
+* [integrations_config](#integrations_config)
 
 ## File Format
 
@@ -36,6 +38,9 @@ Support contents and default values of `agent.yaml`:
 
 # Configures Prometheus instances.
 [prometheus: <prometheus_config>]
+
+# Configures Loki log collection.
+[loki: <loki_config>]
 
 # Configures integrations for the Agent.
 [integrations: <integrations_config>]
@@ -1412,6 +1417,27 @@ metadata_config:
   [ send: <boolean> | default = true ]
   # How frequently metric metadata is sent to remote storage.
   [ send_interval: <duration> | default = 1m ]
+```
+
+### loki_config
+
+The `loki_config` block configures how the Agent collects logs and sends them to a Loki push API endpoint. `loki_config` is identical to how Promtail is configured, except deprecated
+fields have been removed and the server_config is not supported.
+
+Please refer to the
+[Promtail documentation](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#client_config)
+for the supported values for these fields.
+
+```yaml
+clients:
+  - [<promtail.client_config>]
+
+[positions: <promtail.position_config>]
+
+scrape_configs:
+  - [<promtail.scrape_config>]
+
+[target_config: <promtail.target_config>]
 ```
 
 ### integrations_config

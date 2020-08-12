@@ -8,7 +8,6 @@ package ha
 import (
 	"context"
 	"flag"
-	"net/http"
 	"sync"
 	"time"
 
@@ -80,15 +79,6 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f)
 }
 
-// readRing is implemented by ring.Ring. Brought out to a minimal interface for
-// testing.
-type readRing interface {
-	http.Handler
-
-	Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAll() (ring.ReplicationSet, error)
-}
-
 // Server implements the HA scraping service.
 type Server struct {
 	cfg          Config
@@ -102,7 +92,7 @@ type Server struct {
 	joined           *atomic.Bool
 
 	kv   kv.Client
-	ring readRing
+	ring ReadRing
 
 	cancel context.CancelFunc
 	exited chan bool
@@ -111,17 +101,17 @@ type Server struct {
 }
 
 // New creates a new HA scraping service instance.
-func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager) (*Server, error) {
+func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager) (*Server, error) {
 	// Force ReplicationFactor to be 1, since replication isn't supported for the
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
 
-	kvClient, err := kv.NewClient(cfg.KVStore, GetCodec())
+	kvClient, err := kv.NewClient(cfg.KVStore, GetCodec(), reg)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent")
+	r, err := ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +123,7 @@ func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Conf
 
 	// TODO(rfratto): switching to a BasicLifecycler would be nice here, it'd allow
 	// the joining/leaving process to include waiting for resharding.
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, lazy, "agent", "agent", true)
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, lazy, "agent", "agent", true, reg)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +154,7 @@ func New(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Conf
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
-func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r readRing, kv kv.Client, stopFunc func() error) *Server {
+func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, kv kv.Client, stopFunc func() error) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &Server{
@@ -242,7 +232,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 
 	backoff := util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
-		rs, err = s.ring.GetAll()
+		rs, err = s.ring.GetAll(ring.Read)
 		if err == nil {
 			break
 		}
