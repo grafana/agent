@@ -5,12 +5,19 @@ services:
     volumes:
       - /tmp/agent:/tmp/agent
       - ./agent/config:/etc/agent-config
+      - /var/log:/var/log
     entrypoint:
       - /bin/agent
       - -config.file=/etc/agent-config/agent.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
     ports:
       - "12345:12345"
+
+  loki:
+    image: grafana/loki:1.5.0
+    ports: 
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
 
   cortex:
     image: cortexproject/cortex:v0.6.1

@@ -297,7 +297,7 @@ type mockFuncReadRing struct {
 	http.Handler
 
 	GetFunc    func(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAllFunc func() (ring.ReplicationSet, error)
+	GetAllFunc func(ring.Operation) (ring.ReplicationSet, error)
 }
 
 func (r *mockFuncReadRing) Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error) {
@@ -307,9 +307,9 @@ func (r *mockFuncReadRing) Get(key uint32, op ring.Operation, buf []ring.Ingeste
 	return ring.ReplicationSet{}, errors.New("not implemented")
 }
 
-func (r *mockFuncReadRing) GetAll() (ring.ReplicationSet, error) {
+func (r *mockFuncReadRing) GetAll(op ring.Operation) (ring.ReplicationSet, error) {
 	if r.GetAllFunc != nil {
-		return r.GetAllFunc()
+		return r.GetAllFunc(op)
 	}
 	return ring.ReplicationSet{}, errors.New("not implemented")
 }

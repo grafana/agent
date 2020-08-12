@@ -24,6 +24,7 @@ import (
 	haClient "github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/ha/configapi"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -273,7 +274,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 
 	// Create a new HA service with an HTTP store
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	ha, err := New(Config{
+	ha, err := New(prometheus.NewRegistry(), Config{
 		Enabled:         true,
 		ReshardInterval: time.Minute * 999,
 		KVStore: kv.Config{
@@ -298,7 +299,7 @@ func testLifecyclerConfig() ring.LifecyclerConfig {
 	var cfg ring.LifecyclerConfig
 	flagext.DefaultValues(&cfg)
 	cfg.NumTokens = 1
-	cfg.ListenPort = func(i int) *int { return &i }(0)
+	cfg.ListenPort = 0
 	cfg.Addr = "localhost"
 	cfg.ID = "localhost"
 	cfg.FinalSleep = 0
