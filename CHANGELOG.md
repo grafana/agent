@@ -1,5 +1,35 @@
 # Next (master/unreleased)
 
+# v0.5.0 (2020-08-12)
+
+- [FEATURE] A "scrape targets API" has been added to show every target the Agent
+  is currently scraping, when it was last scraped, how long it took to scrape,
+  and errors from the last scrape, if any. (@rfratto)
+
+- [FEATURE]  "Shared Instance Mode" is the new default mode for spawning
+  Prometheus instances, and will improve CPU and memory usage for users of
+  integrations and the scraping service. (@rfratto)
+
+- [ENHANCEMENT] Memory stability and utilization of the WAL has been improved,
+  and the reported number of active series in the WAL will stop double-counting
+  recently churned series. (@rfratto)
+
+- [ENHANCEMENT] Changing scrape_configs and remote_write configs for an instance
+  will now be dynamically applied without restarting the instance. This will
+  result in less missing metrics for users of the scraping service that change a
+  config. (@rfratto)
+
+- [ENHANCEMENT] The Tanka configuration now uses k8s-alpha. (@duologic)
+
+- [BUGFIX] The Tanka configuration will now also deploy a single-replica
+  deployment specifically for scraping the Kubernetes API. This deployment acts
+  together with the Daemonset to scrape the full cluster and the control plane.
+  (@gotjosh)
+
+- [BUGFIX] The node_exporter filesystem collector will now work on Linux systems
+  without needing to manually set the blocklist and allowlist of filesystems.
+  (@rfratto)
+
 # v0.4.0 (2020-06-18)
 
 - [FEATURE] Support for integrations has been added. Integrations can be any
