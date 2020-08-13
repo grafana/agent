@@ -5,6 +5,7 @@ import (
 	"flag"
 
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/loki/pkg/promtail"
 	"github.com/grafana/loki/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/promtail/config"
@@ -35,6 +36,11 @@ type Loki struct {
 func New(c Config, l log.Logger) (*Loki, error) {
 	l = log.With(l, "component", "loki")
 
+	if len(c.ClientConfigs) == 0 {
+		level.Info(l).Log("msg", "skipping creation of a promtail because no client_configs are present")
+		return &Loki{}, nil
+	}
+
 	p, err := promtail.New(config.Config{
 		ServerConfig:    server.Config{Disable: true},
 		ClientConfigs:   c.ClientConfigs,
@@ -50,5 +56,8 @@ func New(c Config, l log.Logger) (*Loki, error) {
 }
 
 func (l *Loki) Stop() {
-	l.p.Shutdown()
+	// l.p will be nil when there weren't any client_configs set.
+	if l.p != nil {
+		l.p.Shutdown()
+	}
 }
