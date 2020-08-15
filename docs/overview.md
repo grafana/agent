@@ -3,9 +3,10 @@
 The Grafana Cloud Agent is an observability data collector optimized for sending
 metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud).
 
-Currently, it comes with support for collecting and sending Prometheus
-metrics, accomplished through utilizing the same battle-tested code that
-Prometheus contains.
+The Agent supports collecting Prometheus metrics and Loki logs, both utilizing
+the same battle-tested code from the official platforms.
+
+## Metrics
 
 Unlike Prometheus, the Grafana Cloud Agent is _just_ targeting `remote_write`,
 so some Prometheus features, such as querying, local storage, recording rules,
@@ -13,10 +14,11 @@ and alerts aren't present. `remote_write`, service discovery, and relabeling
 rules are included.
 
 The Grafana Cloud Agent has a concept of an "instance", each of which acts as
-its own mini Prometheus agent with its own `scrape_configs` section and
-`remote_write` rules. Most users will only ever need to define one instance.
-Multiple instances are useful when running in
-[Scraping Service Mode](./scraping-service.md).
+its own mini Prometheus agent with their own `scrape_configs` section and
+`remote_write` rules. More than one instance is useful when you want to have
+completely separated configs that write to two different locations without
+needing to worry about advanced metric relabeling rules. Multiple instances also
+come into play for the [Scraping Service Mode](./scraping-service.md).
 
 The Grafana Cloud Agent can be deployed in three modes:
 
@@ -44,18 +46,13 @@ agents not reporting in.
 
 The final mode, _Scraping Service Mode_ is a third operational mode that
 clusters a subset of agents. It acts as the in-between of the drop-in mode
-(which does no automatic sharding) and host_filter mode (which forces sharding
+(which does no automatic sharding) and `host_filter` mode (which forces sharding
 by node). The Scraping Service Mode clusters a set of agents with a set of
 shared configs and distributes the scrape load automatically between them. For
 more information, please read the dedicated
 [Scraping Service Mode](./scraping-service.md) documentation.
 
-For more information on installing and running the agent, see
-[Getting started](./getting-started.md) or
-[Configuration Reference](./configuration-reference.md) for a detailed reference
-on the configuration file.
-
-## Host Filtering
+### Host Filtering
 
 Host Filtering currently works best with Kubernetes Service Discovery. It does
 the following:
@@ -68,24 +65,27 @@ the following:
 If the filter passes, the target is allowed to be scraped. Otherwise, the target
 will be silently ignored and not scraped.
 
+## Logs
+
+Grafana Cloud Agent supports collecting logs and sending them to Loki using its
+`loki` subsystem. This is done by utilizing the upstream
+[Promtail](https://grafana.com/docs/loki/latest/clients/promtail/) client, which
+is the official first-party log collection client created by the Loki
+developer team.
+
 ## Comparison to Alternatives
 
-Grafana Cloud Agent aims to give an experience closest to Prometheus, by
-providing Prometheus features like service discovery, meta labels, and
-relabeling. This is primarily achieved by the Agent vendoring Prometheus and
-using its code.
+Grafana Cloud Agent is custom built for Grafana Cloud, but can be used while
+using an on-prem `remote_write`-compatible Prometheus API and an on-prem Loki.
+Unlike alternatives, Grafana Cloud Agent extends the official code with extra
+functionality. This allows the Agent to give an experience closest to its
+official counterparts compared to alternatives which may try to reimplement
+everything from scratch.
 
-Alternatives that support Prometheus metrics try to incorporate more than just
-Prometheus metrics ingestion, and tend to reimplement the code for doing so.
-This leads to missing features or the other agents feeling like a
-jack-of-all-trades, master-of-none.
+## Next Steps
 
-## Roadmap
-
-Today, the Grafana Cloud Agent can only scrape Prometheus metrics. In the
-future, we are planning on adding support for data corresponding to the other
-Grafana Cloud hosted platforms:
-
-- Graphite metrics
-- Loki logs
+For more information on installing and running the agent, see
+[Getting started](./getting-started.md) or
+[Configuration Reference](./configuration-reference.md) for a detailed reference
+on the configuration file.
 
