@@ -4,9 +4,9 @@ Scraping Service Mode is a third operational mode of the Grafana Cloud Agent
 that allows for clustering a set of Agent processes and distributing scrape load
 across them.
 
-Determining what to scrape is done by storing instance configuration files to an
-[API](./api.md) which then stores the configuration files in a KV store backend.
-All agents in the cluster **must** use the same KV store so they read the same set
+Determining what to scrape is done by writing instance configuration files to an
+[API](./api.md), which then stores the configuration files in a KV store backend.
+All agents in the cluster **must** use the same KV store so they see the same set
 of config files.
 
 Each process of the Grafana Cloud Agent can be running multiple independent
@@ -15,7 +15,7 @@ Each process of the Grafana Cloud Agent can be running multiple independent
 - Service discovery for all `scrape_configs` within that loaded config
 - Scrapes metrics from all discovered targets
 - Stores data in its own Write-Ahead Log specific to the loaded config
-- Remote Writes scraped metrics to the configured `remote_write` clients
+- Remote Writes scraped metrics to the configured `remote_write` destinations
   specified within the loaded config.
 
 The "instance configuration file," then, is the configuration file that
@@ -38,8 +38,8 @@ available in the
 [`prometheus_instance_config` section of Configuration Reference](./configuration-reference.md#prometheus_instance_config).
 
 Having multiple instance configuration files is necessary for sharding; each
-file is distributed to a different agent on the cluster based on the hash of its
-contents.
+config file is distributed to a particular agent on the cluster based on the
+hash of its contents.
 
 When Scraping Service Mode is enabled, Agents **disallow** specifying
 instance configurations locally in the configuration file; using the KV store
@@ -54,8 +54,8 @@ Agent joins the ring with a random distinct set of _tokens_ that are used for
 sharding. The default number of generated tokens is 128.
 
 The Distributed Hash Ring is also stored in a KV store. Since a KV store is
-also needed for storing configuration files, it is common practice to re-use
-that same KV store for the ring.
+also needed for storing configuration files, it is encouraged to re-use
+the same KV store for the ring.
 
 When sharding, the Agent currently uses the entire contents of a config file
 stored in the KV store for load distribution. The hash of the config file is
@@ -74,7 +74,7 @@ new instance from the instance config. If a config is deleted from the KV store,
 this will be detected by the owning Agent and it will stop the metric collection
 process for that config file.
 
-When an Agent receive an event for an updated configuration file that they used to
+When an Agent receives an event for an updated configuration file that they used to
 be the owner of but are no longer the owner, the associated instance for that
 configuration file is stopped for that Agent. This can happen when the cluster
 size changes.
@@ -152,10 +152,10 @@ for how to run a Scraping Service Agent cluster locally.
 
 ## agentctl
 
-`agentctl` is a tool included with this repository that helps users to interact
+`agentctl` is a tool included with this repository that helps users interact
 with the new Config Management API. The `agentctl config-sync` subcommand uses
-all YAML files as a source of truth and syncs their contents with the API.
-Entries in the API not in the synced directly will be deleted.
+local YAML files as a source of truth and syncs their contents with the API.
+Entries in the API not in the synced directory will be deleted.
 
 `agentctl` is distributed in binary form with each release and as a Docker
 container with the `grafana/agentctl` image. Tanka configurations that
