@@ -59,4 +59,30 @@ at `./cmd/agent/agent`.
 
 The Tanka configs we use to deploy the agent ourselves can be found in our
 [production Tanka directory](./tanka/grafana-agent). These configs are also used
-to generate the Kubernetes configs for the install script.
+to generate the Kubernetes configs for the install script. To get started with
+the tanka configs, do the following:
+```
+mkdir tanka-agent
+cd tanka-agent
+tk init --k8s=false
+jb install github.com/grafana/agent/production/tanka/grafana-agent
+
+# substitute your target k8s version for "1.16" in the next few commands
+jb install github.com/jsonnet-libs/k8s-alpha/1.16
+echo '(import "github.com/jsonnet-libs/k8s-alpha/1.16/main.libsonnet")' > lib/k.libsonnet
+echo '+ (import "github.com/jsonnet-libs/k8s-alpha/1.16/extensions/kausal-shim.libsonnet")' >> lib/k.libsonnet
+```
+
+Then put this in `environments/default/main.jsonnet`:
+```
+local agent = import 'grafana-agent/grafana-agent.libsonnet';
+
+agent {
+	_config+:: {
+		namespace: 'grafana-agent'
+	},
+}
+```
+
+If all these steps worked, `tk eval environments/default` should output the
+default JSON we use to build our kubernetes manifests.
