@@ -23,6 +23,9 @@ endif
 IMAGE_PREFIX ?= grafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 
+# Flags used for controlling cross compilation.
+CROSS_BUILD ?= false
+
 # Certain aspects of the build are done in containers for consistency.
 # If you have the correct tools installed and want to speed up development,
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
@@ -108,13 +111,34 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
+agent-crossbuild:
+	bash ./tools/cross_build.bash
+
+# The logic here can be pretty confusing, but there's three cases:
+#
+# 1) CROSS_BUILD=false :: build with native go
+# 2) CROSS_BUILD=false, BUILD_IN_CONTAINER=true  :: build with docker and seego
+# 3) CROSS_BUILD=false, BUILD_IN_CONTAINER=false :: build with /seego.sh, assuming it exists
 cmd/agent/agent: cmd/agent/main.go
+ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
+else
+ifeq ($(BUILD_IN_CONTAINER),true)
+	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+else
+	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); /seego.sh build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+endif
 	$(NETGO_CHECK)
 
 cmd/agentctl/agentctl: cmd/agentctl/main.go
 	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
+
+agent-x-image:
+	docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
+		--build-arg RELEASE_BUILD=$(RELEASE_BUILD)  --build-arg IMAGE_TAG=$(IMAGE_TAG) \
+		-t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/Dockerfile.buildx --push .
 
 agent-image:
 	docker build --build-arg RELEASE_BUILD=$(RELEASE_BUILD)  --build-arg IMAGE_TAG=$(IMAGE_TAG) \

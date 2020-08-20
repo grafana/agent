@@ -1,0 +1,24 @@
+FROM --platform=$BUILDPLATFORM rfratto/seego:latest as build
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+COPY . /src/agent
+WORKDIR /src/agent
+ARG RELEASE_BUILD=true
+ARG IMAGE_TAG
+
+# Rename seego's /go_wrapper.sh to /seego.sh for readability in the
+# Makefile.
+RUN cp /go_wrapper.sh /seego.sh
+RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent-crossbuild
+
+FROM debian:stretch-slim
+RUN apt-get update && \
+  apt-get install -qy \
+  tzdata ca-certificates libsystemd-dev && \
+  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+COPY --from=build /src/agent/cmd/agent/agent /bin/agent
+COPY cmd/agent/agent-local-config.yaml /etc/agent/agent.yaml
+
+ENTRYPOINT ["/bin/agent"]
+CMD ["--config.file=/etc/agent/agent.yaml", "--prometheus.wal-directory=/etc/agent/data"]
