@@ -13,12 +13,12 @@ and alerts aren't present. `remote_write`, service discovery, and relabeling
 rules are included.
 
 The Grafana Cloud Agent has a concept of an "instance", each of which acts as
-its own mini Prometheus agent with their own `scrape_configs` section and
+its own mini Prometheus agent with its own `scrape_configs` section and
 `remote_write` rules. Most users will only ever need to define one instance.
-Multiple instances will be more useful in the future when a clustering mode is
-added to the Agent.
+Multiple instances are useful when running in
+[Scraping Service Mode](./scraping-service.md).
 
-The Grafana Cloud Agent can be deployed in two modes:
+The Grafana Cloud Agent can be deployed in three modes:
 
 - Prometheus `remote_write` drop-in
 - [Host Filtering mode](#host-filtering)
@@ -32,9 +32,9 @@ writing.
 _Host Filtering mode_ is achieved by setting a `host_filter` flag on a specific
 instance inside the Agent's configuration file. When this flag is set, the
 instance will only scrape metrics from targets that are running on the same
-machine as the itself. This is extremely useful to migrate to sharded Prometheus
-instances in a Kubernetes cluster, where the Agent can then be deployed as a
-DaemonSet and distribute memory requirements across multiple nodes.
+machine as the instance itself. This is extremely useful to migrate to sharded
+Prometheus instances in a Kubernetes cluster, where the Agent can be deployed as
+a DaemonSet and distribute memory requirements across multiple nodes.
 
 Note that Host Filtering mode and sharding your instances means that if an
 Agent's metrics are being sent to an alerting system, alerts for that Agent may
@@ -72,7 +72,7 @@ will be silently ignored and not scraped.
 
 Grafana Cloud Agent aims to give an experience closest to Prometheus, by
 providing Prometheus features like service discovery, meta labels, and
-relabeling. This is primarily achieved by the Agent vendoring Prometheus an
+relabeling. This is primarily achieved by the Agent vendoring Prometheus and
 using its code.
 
 Alternatives that support Prometheus metrics try to incorporate more than just
