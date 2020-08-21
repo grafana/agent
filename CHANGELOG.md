@@ -1,5 +1,23 @@
 # Next (master/unreleased)
 
+- [FEATURE] The Grafana Cloud Agent can now collect logs and send to Loki. This
+  is done by embedding Promtail, the official Loki log collection client.
+  (@rfratto)
+
+- [ENHANCEMENT] A new config option, `replace_instance_label`, is now available
+  for use with integrations. When this is true, the instance label for all 
+  metrics coming from an integration will be replaced with the machine's
+  hostname rather than 127.0.0.1. (@rfratto)
+
+- [BUGFIX] The documentation for Tanka configs is now correct. (@amckinley)
+
+- [BUGFIX] Minor corrections and spelling issues have been fixed in the Overview
+  documentation. (@amckinley)
+
+- [DEPRECATION] `use_hostname_label` is now supplanted by
+  `replace_instance_label`. `use_hostname_label` will be removed in a future
+  version. (@rfratto)
+
 # v0.5.0 (2020-08-12)
 
 - [FEATURE] A [scrape targets API](https://github.com/grafana/agent/blob/master/docs/api.md#list-current-scrape-targets)
