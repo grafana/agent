@@ -9,6 +9,9 @@
   metrics coming from an integration will be replaced with the machine's
   hostname rather than 127.0.0.1. (@rfratto)
 
+- [EHANCEMENT] The embedded Prometheus version has been updated to 2.20.1.
+  (@rfratto, @gotjosh)
+
 - [BUGFIX] The documentation for Tanka configs is now correct. (@amckinley)
 
 - [BUGFIX] Minor corrections and spelling issues have been fixed in the Overview
