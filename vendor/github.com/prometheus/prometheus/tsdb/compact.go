@@ -656,7 +656,9 @@ func (c *LeveledCompactor) populateBlock(blocks []BlockReader, meta *BlockMeta, 
 	defer func() {
 		var merr tsdb_errors.MultiError
 		merr.Add(err)
-		merr.Add(closeAll(closers))
+		if cerr := closeAll(closers); cerr != nil {
+			merr.Add(errors.Wrap(cerr, "close"))
+		}
 		err = merr.Err()
 		c.metrics.populatingBlocks.Set(0)
 	}()
@@ -683,19 +685,19 @@ func (c *LeveledCompactor) populateBlock(blocks []BlockReader, meta *BlockMeta, 
 
 		indexr, err := b.Index()
 		if err != nil {
-			return errors.Wrapf(err, "open index reader for block %s", b)
+			return errors.Wrapf(err, "open index reader for block %+v", b.Meta())
 		}
 		closers = append(closers, indexr)
 
 		chunkr, err := b.Chunks()
 		if err != nil {
-			return errors.Wrapf(err, "open chunk reader for block %s", b)
+			return errors.Wrapf(err, "open chunk reader for block %+v", b.Meta())
 		}
 		closers = append(closers, chunkr)
 
 		tombsr, err := b.Tombstones()
 		if err != nil {
-			return errors.Wrapf(err, "open tombstone reader for block %s", b)
+			return errors.Wrapf(err, "open tombstone reader for block %+v", b.Meta())
 		}
 		closers = append(closers, tombsr)
 
@@ -708,7 +710,6 @@ func (c *LeveledCompactor) populateBlock(blocks []BlockReader, meta *BlockMeta, 
 
 		s := newCompactionSeriesSet(indexr, chunkr, tombsr, all)
 		syms := indexr.Symbols()
-
 		if i == 0 {
 			set = s
 			symbols = syms

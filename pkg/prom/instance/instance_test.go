@@ -391,6 +391,7 @@ func getTestConfig(t *testing.T, global *config.GlobalConfig, scrapeAddr string)
 
 type mockWalStorage struct {
 	storage.Queryable
+	storage.ChunkQueryable
 
 	directory string
 	mut       sync.Mutex
