@@ -76,13 +76,14 @@ We provide [Tanka](https://tanka.dev) configurations in our [`production/`](/pro
 
 ## Creating a Config File
 
-The Grafana Cloud Agent can be configured with **integrations** and a
-**Prometheus-like** config. Both may coexist in the same configuration file for
-the Agent.
+The Grafana Cloud Agent supports configuring **integrations**, a
+**Prometheus-like** config, and a **Loki** config. All may coexist together
+within the same configuration file for the Agent.
 
-Integrations are recommended for first-time users of monitoring or Prometheus;
-users that have more experience with Prometheus or already have an existing
-Prometheus config file should use the Prometheus-like config.
+Integrations are recommended for first-time users of observability platforms,
+especially newcomers to Prometheus. Users with more experience with Prometheus
+or users that already have an existing Prometheus config file should use the
+Prometheus-like config.
 
 ### Integrations
 
@@ -121,7 +122,7 @@ if you run multiple Agent processes across multiple machines.
 Full configuration options can be found in the
 [configuration reference](./configuration-reference.md).
 
-## Prometheus-like Config/Migrating from Prometheus
+### Prometheus-like Config/Migrating from Prometheus
 
 The Prometheus-like Config is useful for those migrating from Prometheus and
 those who want to scrape metrics from something that currently does not have an
@@ -169,6 +170,67 @@ prometheus:
 
 Like with integrations, full configuration options can be found in the
 [configuration reference](./configuration-reference.md).
+
+### Loki Config/Migrating from Promtail
+
+The Loki Config allows for collecting logs to send to a Loki API. Users that are
+familiar with Promtail will notice that the Loki config for the Agent matches
+their existing Promtail config with the following exceptions:
+
+1. The deprecated field `client` is not present
+2. The `server` field is not present
+
+To migrate from an existing Promtail config, make sure you are using `clients`
+instead of `client` and remove the `server` block if present. Then paste your
+Promtail config into the Agent config file inside of a `loki` section:
+
+```yaml
+server:
+  # AGENT SERVER SETTINGS
+
+prometheus:
+  # AGENT PROMETHEUS SETTINGS
+
+loki:
+  # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
+
+integrations:
+  # AGENT INTEGRATIONS SETTINGS
+```
+
+Here is an example full config file, using integrations,
+Prometheus, and Loki:
+
+```yaml
+server:
+  log_level: info
+  http_listen_port: 12345
+
+prometheus:
+  global:
+    scrape_interval: 5s
+  configs:
+    - name: default
+      scrape_configs:
+        - job_name: agent
+          static_configs:
+            - targets: ['127.0.0.1:12345']
+      remote_write:
+        - url: http://localhost:9009/api/prom/push
+
+loki:
+  positions:
+    filename: /tmp/positions.yaml
+  scrape_configs:
+    - job_name: varlogs
+      static_configs:
+        - targets: [localhost]
+          labels:
+            job: varlogs
+            __path__: /var/log/*log
+  clients:
+    - url: http://localhost:3100/loki/api/v1/push
+```
 
 ## Running
 
