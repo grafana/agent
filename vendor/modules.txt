@@ -234,7 +234,7 @@ github.com/gophercloud/gophercloud/pagination
 github.com/gorilla/mux
 # github.com/gorilla/websocket v1.4.0
 github.com/gorilla/websocket
-# github.com/grafana/loki v1.6.0
+# github.com/grafana/loki v1.6.1
 github.com/grafana/loki/pkg/build
 github.com/grafana/loki/pkg/distributor
 github.com/grafana/loki/pkg/helpers
