@@ -75,12 +75,12 @@ developer team.
 
 ## Comparison to Alternatives
 
-Grafana Cloud Agent is custom built for Grafana Cloud, but can be used while
-using an on-prem `remote_write`-compatible Prometheus API and an on-prem Loki.
-Unlike alternatives, Grafana Cloud Agent extends the official code with extra
-functionality. This allows the Agent to give an experience closest to its
-official counterparts compared to alternatives which may try to reimplement
-everything from scratch.
+Grafana Cloud Agent is custom built for [Grafana Cloud](https://grafana.com/products/cloud/),
+but can be used while using an on-prem `remote_write`-compatible Prometheus API
+and an on-prem Loki. Unlike alternatives, Grafana Cloud Agent extends the
+official code with extra functionality. This allows the Agent to give an
+experience closest to its official counterparts compared to alternatives which
+may try to reimplement everything from scratch.
 
 ## Next Steps
 
