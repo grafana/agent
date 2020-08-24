@@ -160,6 +160,10 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 		a.cm = instance.NewGroupManager(a.cm)
 	}
 
+	// Regardless of the instance mode, wrap the manager in a CountingManager so we can
+	// collect metrics on the number of active configs.
+	a.cm = instance.NewCountingManager(prometheus.DefaultRegisterer, a.cm)
+
 	allConfigsValid := true
 	for _, c := range cfg.Configs {
 		if err := a.cm.ApplyConfig(c); err != nil {

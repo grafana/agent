@@ -20,9 +20,9 @@ var (
 		Help: "Total number of times a Prometheus instance exited unexpectedly, causing it to be restarted.",
 	}, []string{"instance_name"})
 
-	currentActiveConfigs = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "agent_prometheus_active_configs",
-		Help: "Current number of active configs being used by the agent.",
+	currentActiveInstances = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_prometheus_active_instances",
+		Help: "Current number of active instances being used by the agent.",
 	})
 
 	// DefaultBasicManagerConfig is the default config for the BasicManager.
@@ -194,7 +194,7 @@ func (m *BasicManager) ApplyConfig(c Config) error {
 		return err
 	}
 
-	currentActiveConfigs.Inc()
+	currentActiveInstances.Inc()
 	return nil
 }
 
@@ -236,7 +236,7 @@ func (m *BasicManager) spawnProcess(c Config) error {
 		}
 		m.mut.Unlock()
 
-		currentActiveConfigs.Dec()
+		currentActiveInstances.Dec()
 	}()
 
 	return nil
