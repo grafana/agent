@@ -50,7 +50,7 @@ func TestCountingManager(t *testing.T) {
 
 	requireGaugeValue(0)
 
-	// Apply two diferent configs, but each config twice. The gauge should
+	// Apply two different configs, but each config twice. The gauge should
 	// only be set to 2.
 	_ = cm.ApplyConfig(Config{Name: "config-a"})
 	_ = cm.ApplyConfig(Config{Name: "config-a"})
