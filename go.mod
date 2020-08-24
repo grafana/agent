@@ -33,7 +33,7 @@ replace (
 	go.etcd.io/etcd => go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738
 	google.golang.org/api => google.golang.org/api v0.14.0
 	google.golang.org/grpc => google.golang.org/grpc v1.25.1
-	k8s.io/client-go => k8s.io/client-go v0.17.5
+	k8s.io/client-go => k8s.io/client-go v0.18.5
 )
 
 // Replace directives from Prometheus
@@ -42,14 +42,12 @@ replace k8s.io/klog => github.com/simonpasquier/klog-gokit v0.1.0
 // Replace directives from Cortex
 replace (
 	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
-	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
-	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.0+incompatible
 	github.com/gocql/gocql => github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85
 	github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20191024143944-0b54ddf21fe7
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.0
 )
 
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200518163447-007aa83a0a1f
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20200821135656-2efe42db3b77
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
 
