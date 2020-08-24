@@ -630,8 +630,9 @@ func (i *Instance) getRemoteWriteTimestamp() int64 {
 
 // walStorage is an interface satisfied by wal.Storage, and created for testing.
 type walStorage interface {
-	// walStorage implements Queryable for compatibility, but is unused.
+	// walStorage implements Queryable/ChunkQueryable for compatibility, but is unused.
 	storage.Queryable
+	storage.ChunkQueryable
 
 	Directory() string
 

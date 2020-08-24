@@ -86,8 +86,9 @@ func (m *storageMetrics) Unregister() {
 
 // Storage implements storage.Storage, and just writes to the WAL.
 type Storage struct {
-	// Embed Queryable for compatibility, but don't actually implement it.
+	// Embed Queryable/ChunkQueryable for compatibility, but don't actually implement it.
 	storage.Queryable
+	storage.ChunkQueryable
 
 	path   string
 	wal    *wal.WAL
@@ -391,7 +392,7 @@ func (w *Storage) Truncate(mint int64) error {
 		w.deletedMtx.Unlock()
 		return ok
 	}
-	if _, err = wal.Checkpoint(w.wal, first, last, keep, mint); err != nil {
+	if _, err = wal.Checkpoint(w.logger, w.wal, first, last, keep, mint); err != nil {
 		return errors.Wrap(err, "create checkpoint")
 	}
 	if err := w.wal.Truncate(last + 1); err != nil {
