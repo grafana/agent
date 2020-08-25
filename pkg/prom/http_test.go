@@ -11,6 +11,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/scrape"
@@ -19,7 +20,7 @@ import (
 
 func TestAgent_ListInstancesHandler(t *testing.T) {
 	fact := newFakeInstanceFactory()
-	a, err := newAgent(Config{
+	a, err := newAgent(prometheus.NewRegistry(), Config{
 		WALDir: "/tmp/agent",
 	}, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
@@ -49,7 +50,7 @@ func TestAgent_ListInstancesHandler(t *testing.T) {
 
 func TestAgent_ListTargetsHandler(t *testing.T) {
 	fact := newFakeInstanceFactory()
-	a, err := newAgent(Config{
+	a, err := newAgent(prometheus.NewRegistry(), Config{
 		WALDir: "/tmp/agent",
 	}, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
