@@ -21,7 +21,7 @@
   the number of unique configs applied. This behavior was broken in 0.5.0 with
   the introduction of instance sharing. An `agent_prometheus_active_instances`
   metric has also been added to track the number of running instances (e.g.,
-  configs post-sharing). If instance sharing is not enabled, these two metrics
+  configs post-sharing). If instance sharing is not enabled, both metrics
   will have the same value. (@rfratto)
 
 - [DEPRECATION] `use_hostname_label` is now supplanted by
