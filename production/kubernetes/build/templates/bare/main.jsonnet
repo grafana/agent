@@ -1,22 +1,22 @@
-local agent = import 'grafana-agent/grafana-agent.libsonnet';
+local agent = import 'grafana-agent/v1/main.libsonnet';
 
-agent {
-  _images+:: {
-    agent: (import 'version.libsonnet'),
-  },
-
-  _config+:: {
-    namespace: 'default',
-
+{
+  local deployment =
+    agent.new() +
+    agent.withImages({
+      agent: (import 'version.libsonnet'),
+      agentctl: 'grafana/agentctl:v0.5.0',
+    }) +
     // Since the config map isn't managed by Tanka, we don't want to
     // add the configmap's hash as an annotation for the Kubernetes
     // YAML manifest.
-    agent_config_hash_annotation: false,
-  },
+    agent.withConfigHash(false),
 
-  // We're describing a deployment where the ConfigMap isn't available, 
-  // so remove the various config maps and components that aren't relevant.
-  agent_config_map:: {},
-  agent_deployment_config_map:: {},
-  agent_deployment:: {},
+  // The bare deployment doesn't have the config map, so we'll 
+  // hack into the internal state and remove it here.
+  agent: deployment {
+    agent+: {
+      config_map:: {},
+    },
+  },
 }

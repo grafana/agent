@@ -42,6 +42,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: grafana-agent
+  namespace: default
 spec:
   minReadySeconds: 10
   selector:
@@ -54,32 +55,23 @@ spec:
     spec:
       containers:
       - args:
-        - -config.file=/etc/agent/agent.yml
-        - -prometheus.wal-directory=/tmp/agent/data
-        env:
-        - name: HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
+        - -config.file=/etc/agent/agent.yaml
         image: grafana/agent:v0.5.0
         imagePullPolicy: IfNotPresent
         name: agent
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http-metrics
-        securityContext:
-          privileged: true
-          runAsUser: 0
         volumeMounts:
         - mountPath: /etc/agent
-          name: grafana-agent
+          name: grafana-agent-config
       serviceAccount: grafana-agent
       tolerations:
       - effect: NoSchedule
         operator: Exists
       volumes:
       - configMap:
-          name: grafana-agent
-        name: grafana-agent
+          name: grafana-agent-config
+        name: grafana-agent-config
   updateStrategy:
     type: RollingUpdate
