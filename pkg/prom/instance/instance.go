@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/prom/wal"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,6 +32,10 @@ import (
 	"github.com/prometheus/prometheus/storage/remote"
 	"gopkg.in/yaml.v2"
 )
+
+func init() {
+	remote.UserAgent = fmt.Sprintf("GrafanaCloudAgent/%s", build.Version)
+}
 
 var (
 	remoteWriteMetricName = "queue_highest_sent_timestamp_seconds"

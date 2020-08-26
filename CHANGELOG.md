@@ -12,6 +12,10 @@
 - [EHANCEMENT] The embedded Prometheus version has been updated to 2.20.1.
   (@rfratto, @gotjosh)
 
+- [ENHANCEMENT] The User-Agent header written by the Agent when remote_writing 
+  will now be `GrafanaCloudAgent/<Version>` instead of `Prometheus/<Prometheus Version>`.
+  (@rfratto)
+
 - [BUGFIX] The documentation for Tanka configs is now correct. (@amckinley)
 
 - [BUGFIX] Minor corrections and spelling issues have been fixed in the Overview
