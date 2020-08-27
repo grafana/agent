@@ -11,7 +11,7 @@ SHELL = /usr/bin/env bash
 
 # When the value of empty, no -mod parameter will be passed to go.
 # For Go 1.13, "readonly" and "vendor" can be used here.
-# In Go 1.14, "vendor" and "mod" can be used instead.
+# In Go >=1.14, "vendor" and "mod" can be used instead.
 GOMOD?=vendor
 ifeq ($(strip $(GOMOD)),) # Is empty?
 	MOD_FLAG=
