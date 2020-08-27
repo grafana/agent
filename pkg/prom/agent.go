@@ -132,6 +132,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 type Agent struct {
 	cfg    Config
 	logger log.Logger
+	reg    prometheus.Registerer
 
 	cm instance.Manager
 
@@ -141,11 +142,11 @@ type Agent struct {
 }
 
 // New creates and starts a new Agent.
-func New(cfg Config, logger log.Logger) (*Agent, error) {
-	return newAgent(cfg, logger, defaultInstanceFactory)
+func New(reg prometheus.Registerer, cfg Config, logger log.Logger) (*Agent, error) {
+	return newAgent(reg, cfg, logger, defaultInstanceFactory)
 }
 
-func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, error) {
+func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact instanceFactory) (*Agent, error) {
 	a := &Agent{
 		cfg:             cfg,
 		logger:          log.With(logger, "agent", "prometheus"),
@@ -160,6 +161,10 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 		a.cm = instance.NewGroupManager(a.cm)
 	}
 
+	// Regardless of the instance mode, wrap the manager in a CountingManager so we can
+	// collect metrics on the number of active configs.
+	a.cm = instance.NewCountingManager(reg, a.cm)
+
 	allConfigsValid := true
 	for _, c := range cfg.Configs {
 		if err := a.cm.ApplyConfig(c); err != nil {
@@ -173,7 +178,7 @@ func newAgent(cfg Config, logger log.Logger, fact instanceFactory) (*Agent, erro
 
 	if cfg.ServiceConfig.Enabled {
 		var err error
-		a.ha, err = ha.New(prometheus.DefaultRegisterer, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.cm)
+		a.ha, err = ha.New(reg, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.cm)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +197,7 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 
 	reg := prometheus.WrapRegistererWith(prometheus.Labels{
 		instanceLabel: c.Name,
-	}, prometheus.DefaultRegisterer)
+	}, a.reg)
 
 	return a.instanceFactory(reg, a.cfg.Global, c, a.cfg.WALDir, a.logger)
 }

@@ -5,7 +5,7 @@
   (@rfratto)
 
 - [ENHANCEMENT] A new config option, `replace_instance_label`, is now available
-  for use with integrations. When this is true, the instance label for all 
+  for use with integrations. When this is true, the instance label for all
   metrics coming from an integration will be replaced with the machine's
   hostname rather than 127.0.0.1. (@rfratto)
 
@@ -20,6 +20,13 @@
 
 - [BUGFIX] Minor corrections and spelling issues have been fixed in the Overview
   documentation. (@amckinley)
+
+- [BUGFIX] The new default of `shared` instances mode broke the metric value for
+  `agent_prometheus_active_configs`, which was tracking the number of combined
+  configs (i.e., number of launched instances). This metric has been fixed and
+  a new metric, `agent_prometheus_active_instances`, has been added to track
+  the numbger of launched instances. If instance sharing is not enabled, both
+  metrics will share the same value. (@rfratto)
 
 - [DEPRECATION] `use_hostname_label` is now supplanted by
   `replace_instance_label`. `use_hostname_label` will be removed in a future
