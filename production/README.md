@@ -17,7 +17,7 @@ configure remote write and return a Kubernetes manifest that uses our preferred
 defaults. To run the script, copy and paste this line in your terminal:
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/master/production/kubernetes/install.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
 ```
 
 See the [Kubernetes README](./kubernetes/README.md) for more information.

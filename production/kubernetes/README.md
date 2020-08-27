@@ -18,7 +18,7 @@ Here's a one-line script to copy and paste to install the Agent on
 Kubernetes (requires `envsubst` (GNU gettext)):
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.5.0/production/kubernetes/install.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.5.0/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
 ```
 
 ## Manually Applying
@@ -44,7 +44,7 @@ install script does:
      replace `${REMOTE_WRITE_USERNAME}` with the username used to connect to
      the remote write API.
 
-3. Apply the modified `agent.yaml` file: `kubectl apply -f agent.yaml`.
+3. Apply the modified `agent.yaml` file: `kubectl -ndefault apply -f agent.yaml`.
 
 ## Rebuilding the YAML file
 

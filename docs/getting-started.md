@@ -57,7 +57,7 @@ Grafana Cloud Agent Kubernetes deployment manifest (requires `envsubst` (GNU get
 > **Warning**: Always verify scripts from the internet before running them.
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.5.0/production/kubernetes/install.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
 ```
 
 ### Kubernetes Manifest
