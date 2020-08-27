@@ -1,4 +1,4 @@
-FROM golang:1.14 as build
+FROM golang:1.15 as build
 COPY . /src/agent
 WORKDIR /src/agent
 ARG RELEASE_BUILD=true
