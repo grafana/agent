@@ -15,7 +15,7 @@ The following script will download a Kubernetes manifest for the Agent and
 prompt for remote_write credentials. It requires curl and envsubst (GNU gettext).
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
 ```
 
 #### Docker container:
