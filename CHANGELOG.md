@@ -17,12 +17,12 @@
 - [BUGFIX] Minor corrections and spelling issues have been fixed in the Overview
   documentation. (@amckinley)
 
-- [BUGFIX] The `agent_prometheus_active_configs` metric will now properly track
-  the number of unique configs applied. This behavior was broken in 0.5.0 with
-  the introduction of instance sharing. An `agent_prometheus_active_instances`
-  metric has also been added to track the number of running instances (e.g.,
-  configs post-sharing). If instance sharing is not enabled, both metrics
-  will have the same value. (@rfratto)
+- [BUGFIX] The new default of `shared` instances mode broke the metric value for
+  `agent_prometheus_active_configs`, which was tracking the number of combined
+  configs (i.e., number of launched instances). This metric has been fixed and
+  a new metric, `agent_prometheus_active_instances`, has been added to track
+  the numbger of launched instances. If instance sharing is not enabled, both
+  metrics will share the same value. (@rfratto)
 
 - [DEPRECATION] `use_hostname_label` is now supplanted by
   `replace_instance_label`. `use_hostname_label` will be removed in a future
