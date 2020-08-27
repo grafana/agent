@@ -35,7 +35,7 @@ func main() {
 	// After this point we can use util.Logger and stop using the log package
 	util.InitLogger(&cfg.Server)
 
-	promMetrics, err := prom.New(cfg.Prometheus, util.Logger)
+	promMetrics, err := prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, util.Logger)
 	if err != nil {
 		level.Error(util.Logger).Log("msg", "failed to create prometheus instance", "err", err)
 		os.Exit(1)
