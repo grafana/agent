@@ -37,6 +37,50 @@ func TestManager_ValidInstanceConfigs(t *testing.T) {
 	})
 }
 
+// TestManager_NoIntegrationsScrape ensures that configs don't get generates
+// when the ScrapeIntegrations flag is disabled.
+func TestManager_NoIntegrationsScrape(t *testing.T) {
+	mock := newMockIntegration()
+
+	integrations := []Integration{mock}
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
+		globalConfig := prom_config.DefaultConfig.GlobalConfig
+		return c.ApplyDefaults(&globalConfig)
+	})
+
+	cfg := mockManagerConfig()
+	cfg.ScrapeIntegrations = false
+
+	m, err := newManager(cfg, log.NewNopLogger(), im, integrations)
+	require.NoError(t, err)
+	defer m.Stop()
+
+	time.Sleep(time.Second)
+	require.Zero(t, len(im.ListConfigs()))
+}
+
+// TestManager_NoIntegrationScrape ensures that configs don't get generates
+// when the ScrapeIntegration flag is disabled on the integration.
+func TestManager_NoIntegrationScrape(t *testing.T) {
+	mock := newMockIntegration()
+
+	noScrape := false
+	mock.commonCfg.ScrapeIntegration = &noScrape
+
+	integrations := []Integration{mock}
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
+		globalConfig := prom_config.DefaultConfig.GlobalConfig
+		return c.ApplyDefaults(&globalConfig)
+	})
+
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	require.NoError(t, err)
+	defer m.Stop()
+
+	time.Sleep(time.Second)
+	require.Zero(t, len(im.ListConfigs()))
+}
+
 // TestManager_StartsIntegrations tests that, when given an integration to
 // launch, TestManager applies a config and runs the integration.
 func TestManager_StartsIntegrations(t *testing.T) {
@@ -98,6 +142,7 @@ func TestManager_GracefulStop(t *testing.T) {
 }
 
 type mockIntegration struct {
+	commonCfg    config.Common
 	startedCount *atomic.Uint32
 	running      *atomic.Bool
 	err          chan error
@@ -112,7 +157,7 @@ func newMockIntegration() *mockIntegration {
 }
 
 func (i *mockIntegration) Name() string                { return "mock" }
-func (i *mockIntegration) CommonConfig() config.Common { return config.Common{} }
+func (i *mockIntegration) CommonConfig() config.Common { return i.commonCfg }
 func (i *mockIntegration) RegisterRoutes(r *mux.Router) error {
 	r.Handle("/metrics", promhttp.Handler())
 	return nil
@@ -143,6 +188,7 @@ func mockInstanceFactory(_ instance.Config) (instance.ManagedInstance, error) {
 func mockManagerConfig() Config {
 	listenPort := 0
 	return Config{
+		ScrapeIntegrations:        true,
 		IntegrationRestartBackoff: 0,
 		ListenPort:                &listenPort,
 	}
