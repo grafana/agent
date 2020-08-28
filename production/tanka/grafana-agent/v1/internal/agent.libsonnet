@@ -15,10 +15,12 @@ local policyRule = k.rbac.v1.policyRule;
 
     rbac:
       k.util.rbac(name, [
+        // Need for k8s SD on Loki/Prometheus subsystems
         policyRule.withApiGroups(['']) +
         policyRule.withResources(['nodes', 'nodes/proxy', 'services', 'endpoints', 'pods']) +
         policyRule.withVerbs(['get', 'list', 'watch']),
 
+        // Needed for Prometheus subsystem to scrape k8s API
         policyRule.withNonResourceUrls('/metrics') +
         policyRule.withVerbs(['get']),
       ]),
