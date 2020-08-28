@@ -35,17 +35,11 @@ func main() {
 	// After this point we can use util.Logger and stop using the log package
 	util.InitLogger(&cfg.Server)
 
-	promMetrics, err := prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, util.Logger)
-	if err != nil {
-		level.Error(util.Logger).Log("msg", "failed to create prometheus instance", "err", err)
-		os.Exit(1)
-	}
-
-	lokiLogs, err := loki.New(cfg.Loki, util.Logger)
-	if err != nil {
-		level.Error(util.Logger).Log("msg", "failed to create loki log collection instance", "err", err)
-		os.Exit(1)
-	}
+	var (
+		promMetrics *prom.Agent
+		lokiLogs    *loki.Loki
+		manager     *integrations.Manager
+	)
 
 	srv, err := server.New(cfg.Server)
 	if err != nil {
@@ -53,19 +47,37 @@ func main() {
 		os.Exit(1)
 	}
 
-	manager, err := integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager())
-	if err != nil {
-		level.Error(util.Logger).Log("msg", "failed to create integrations manager", "err", err)
-		os.Exit(1)
+	if cfg.Prometheus.Enabled {
+		promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, util.Logger)
+		if err != nil {
+			level.Error(util.Logger).Log("msg", "failed to create prometheus instance", "err", err)
+			os.Exit(1)
+		}
+
+		// Hook up API paths to the router
+		promMetrics.WireAPI(srv.HTTP)
+		promMetrics.WireGRPC(srv.GRPC)
 	}
 
-	// Hook up API paths to the router
-	promMetrics.WireAPI(srv.HTTP)
-	promMetrics.WireGRPC(srv.GRPC)
+	if cfg.Loki.Enabled {
+		lokiLogs, err = loki.New(cfg.Loki, util.Logger)
+		if err != nil {
+			level.Error(util.Logger).Log("msg", "failed to create loki log collection instance", "err", err)
+			os.Exit(1)
+		}
+	}
 
-	if err := manager.WireAPI(srv.HTTP); err != nil {
-		level.Error(util.Logger).Log("msg", "failed wiring endpoints for integrations", "err", err)
-		os.Exit(1)
+	if cfg.Integrations.Enabled {
+		manager, err = integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager())
+		if err != nil {
+			level.Error(util.Logger).Log("msg", "failed to create integrations manager", "err", err)
+			os.Exit(1)
+		}
+
+		if err := manager.WireAPI(srv.HTTP); err != nil {
+			level.Error(util.Logger).Log("msg", "failed wiring endpoints for integrations", "err", err)
+			os.Exit(1)
+		}
 	}
 
 	srv.HTTP.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
@@ -82,8 +94,15 @@ func main() {
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
 
-	manager.Stop()
-	lokiLogs.Stop()
-	promMetrics.Stop()
+	// Stop enabled subsystems
+	if manager != nil {
+		manager.Stop()
+	}
+	if lokiLogs != nil {
+		lokiLogs.Stop()
+	}
+	if promMetrics != nil {
+		promMetrics.Stop()
+	}
 	level.Info(util.Logger).Log("msg", "agent exiting")
 }

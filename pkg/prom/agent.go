@@ -65,6 +65,9 @@ func (m *InstanceMode) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Config defines the configuration for the entire set of Prometheus client
 // instances, along with a global configuration.
 type Config struct {
+	// Whether the Prometheus subsystem should be enabled.
+	Enabled bool `yaml:"-"`
+
 	Global                 config.GlobalConfig `yaml:"global"`
 	WALDir                 string              `yaml:"wal_directory"`
 	ServiceConfig          ha.Config           `yaml:"scraping_service"`
@@ -77,6 +80,10 @@ type Config struct {
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
+
+	// If the Config is unmarshaled, it's present in the config and should be
+	// enabled.
+	c.Enabled = true
 
 	type plain Config
 	return unmarshal((*plain)(c))

@@ -25,20 +25,31 @@ type Config struct {
 
 // ApplyDefaults sets default values in the config
 func (c *Config) ApplyDefaults() error {
-	if err := c.Prometheus.ApplyDefaults(); err != nil {
-		return err
+	// The integration subsystem depends on Prometheus; so if it's enabled, force Prometheus
+	// to be enabled.
+	if c.Integrations.Enabled {
+		c.Prometheus.Enabled = true
 	}
 
-	// The default port exposed to the lifecycler should be the gRPC listen
-	// port since the agents will use gRPC for notifying other agents of
-	// resharding.
-	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
-	c.Integrations.ListenPort = &c.Server.HTTPListenPort
+	if c.Prometheus.Enabled {
+		if err := c.Prometheus.ApplyDefaults(); err != nil {
+			return err
+		}
 
-	// Apply the defaults for integrations *after* manual defaults are applied
-	// (like the c.Integrations.ListenPort) above.
-	if err := c.Integrations.ApplyDefaults(); err != nil {
-		return err
+		// The default port exposed to the lifecycler should be the gRPC listen
+		// port since the agents will use gRPC for notifying other agents of
+		// resharding.
+		c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	}
+
+	if c.Integrations.Enabled {
+		c.Integrations.ListenPort = &c.Server.HTTPListenPort
+
+		// Apply the defaults for integrations *after* manual defaults are applied
+		// (like the c.Integrations.ListenPort) above.
+		if err := c.Integrations.ApplyDefaults(); err != nil {
+			return err
+		}
 	}
 
 	return nil
