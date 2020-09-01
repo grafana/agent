@@ -150,7 +150,9 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
 		}
 		jobNames[sc.JobName] = struct{}{}
 
-		sc.RelabelConfigs = append(sc.RelabelConfigs, DefaultRelabelConfigs...)
+		if c.HostFilter {
+			sc.RelabelConfigs = append(sc.RelabelConfigs, DefaultRelabelConfigs...)
+		}
 	}
 
 	rwNames := map[string]struct{}{}

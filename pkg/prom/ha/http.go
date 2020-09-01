@@ -1,6 +1,7 @@
 package ha
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -135,6 +136,11 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	// Validate that the job names from the incoming config are unique
+	if err := s.checkUnique(r.Context(), inst); err != nil {
+		return nil, err
+	}
+
 	var newConfig bool
 	err = s.kv.CAS(r.Context(), inst.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 		// The configuration is new if there's no previous value from the CAS
@@ -154,6 +160,44 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 
 	totalUpdatedConfigs.Inc()
 	return &httpResponse{StatusCode: http.StatusOK}, nil
+}
+
+// checkUnique looks at all the existing configs and ensures that no other
+// config shares a job_name with the incoming config.
+func (s *Server) checkUnique(ctx context.Context, cfg *instance.Config) error {
+	cfgCh, err := s.AllConfigs(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		// Make sure we drain the channel. This will need to be done if we are
+		// returning an error.
+		for range cfgCh {
+		}
+	}()
+
+	newJobNames := make(map[string]struct{}, len(cfg.ScrapeConfigs))
+	for _, sc := range cfg.ScrapeConfigs {
+		newJobNames[sc.JobName] = struct{}{}
+	}
+
+	for otherConfig := range cfgCh {
+		// Skip over the config if it's the same one we're about to apply.
+		if otherConfig.Name == cfg.Name {
+			continue
+		}
+
+		for _, otherScrape := range otherConfig.ScrapeConfigs {
+			if _, exist := newJobNames[otherScrape.JobName]; exist {
+				return &httpError{
+					StatusCode: http.StatusBadRequest,
+					Err:        fmt.Errorf("found multiple scrape configs with job name %q", otherScrape.JobName),
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // DeleteConfiguration deletes an existing named configuration.
