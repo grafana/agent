@@ -21,6 +21,11 @@
   will now be `GrafanaCloudAgent/<Version>` instead of `Prometheus/<Prometheus Version>`.
   (@rfratto)
 
+- [ENHANCEMENT] The subsystems of the Agent (`prometheus`, `loki`) are now made
+  optional. Enabling integrations also implicitly enables the associated
+  subsystem. For example, enabling the `agent` or `node_exporter` integration will
+  force the `prometheus` subsystem to be enabled.  (@rfratto)
+
 - [BUGFIX] The documentation for Tanka configs is now correct. (@amckinley)
 
 - [BUGFIX] Minor corrections and spelling issues have been fixed in the Overview

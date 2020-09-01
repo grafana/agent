@@ -41,9 +41,11 @@ var (
 
 // Config holds the configuration for all integrations.
 type Config struct {
+	// Whether the Integration subsystem should be enabled.
+	Enabled bool `yaml:"-"`
+
 	// When true, scrapes metrics from integrations.
 	ScrapeIntegrations bool `yaml:"scrape_integrations"`
-
 	// When true, replaces the instance label with the agent hostname.
 	ReplaceInstanceLabel bool `yaml:"replace_instance_label"`
 
@@ -70,6 +72,10 @@ type Config struct {
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
+
+	// If the Config is unmarshaled, it's present in the config and should be
+	// enabled.
+	c.Enabled = true
 
 	type plain Config
 	return unmarshal((*plain)(c))
