@@ -55,6 +55,9 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 	require.NoError(t, err)
 	defer m.Stop()
 
+	// Normally we'd use test.Poll here, but since im.ListConfigs starts out with a
+	// length of zero, test.Poll would immediately pass. Instead we want to wait for a
+	// bit to make sure that the length of ListConfigs doesn't become non-zero.
 	time.Sleep(time.Second)
 	require.Zero(t, len(im.ListConfigs()))
 }
