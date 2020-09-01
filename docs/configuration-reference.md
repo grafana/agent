@@ -1643,7 +1643,7 @@ the Agent is running on is a no-op.
   [enabled: <boolean> | default = false]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the node_exporter integration will be run but not scraped. Metrics for the
+  # the node_exporter integration will be run but not scraped and thus not remote-written. Metrics for the
   # integration will be exposed at /integrations/node_exporter/metrics and can
   # be scraped by an external process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
