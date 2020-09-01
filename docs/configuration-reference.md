@@ -1454,9 +1454,9 @@ agent:
   [enabled: <boolean> | default = false]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the agent integration will be run but not scraped. Metrics for the
-  # integration will be exposed at /integrations/agent/metrics and can be
-  # scraped by an external process.
+  # the agent integration will be run but not scraped and thus not
+  # remote_written. Metrics for the integration will be exposed at
+  # /integrations/agent/metrics and can be scraped by an external process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
   # How often should the metrics be collected? Defaults to
@@ -1480,9 +1480,9 @@ agent:
 node_exporter: <node_exporter_config>
 
 # Automatically collect metrics from enabled integrations. If disabled,
-# integrations will be run but not scraped. Metrics for integrations will be
-# exposed at /integrations/<integration_key>/metrics and can be scraped by
-# an external process.
+# integrations will be run but not scraped and thus not remote_written. Metrics
+# for integrations will be exposed at /integrations/<integration_key>/metrics
+# and can be scraped by an external process.
 [scrape_integrations: <boolean> | default = true]
 
 # When true, replaces the instance label with the hostname of the machine,
