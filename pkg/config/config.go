@@ -27,6 +27,9 @@ type Config struct {
 func (c *Config) ApplyDefaults() error {
 	// The integration subsystem depends on Prometheus; so if it's enabled, force Prometheus
 	// to be enabled.
+	//
+	// TODO(rfratto): when Loki integrations are added, this line will no longer work; each
+	// integration will then have to be associated with a subsystem.
 	if c.Integrations.Enabled && !c.Prometheus.Enabled {
 		fmt.Println("NOTE: enabling Prometheus subsystem as Integrations are enabled")
 		c.Prometheus.Enabled = true
