@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
@@ -35,10 +36,16 @@ type APIHandler func(r *http.Request) (interface{}, error)
 // WireAPI injects routes into the provided mux router for the config
 // management API.
 func (s *Server) WireAPI(r *mux.Router) {
-	listConfig := s.WrapHandler(s.ListConfigurations)
-	getConfig := s.WrapHandler(s.GetConfiguration)
-	putConfig := s.WrapHandler(s.PutConfiguration)
-	deleteConfig := s.WrapHandler(s.DeleteConfiguration)
+	// PutConfiguration below is wrapped in a nonConcurrentHandler to prevent a
+	// race condition of two conflicting instance configs being applied at the same time.
+	// Since applying config performs KV store-wide validations, it is possible that
+	// concurrently applied configs that conflict each other may not be rejected if
+	// neither conflicting config has been persisted to the KV store yet.
+
+	listConfig := s.wrapHandler(s.ListConfigurations)
+	getConfig := s.wrapHandler(s.GetConfiguration)
+	putConfig := s.wrapHandler(nonConcurrentHandler(s.PutConfiguration))
+	deleteConfig := s.wrapHandler(s.DeleteConfiguration)
 
 	r.HandleFunc("/agent/api/v1/configs", listConfig).Methods("GET")
 	r.HandleFunc("/agent/api/v1/configs/{name}", getConfig).Methods("GET")
@@ -49,9 +56,20 @@ func (s *Server) WireAPI(r *mux.Router) {
 	r.Handle("/debug/ring", s.ring)
 }
 
-// WrapHandler is responsible for turning an APIHandler into an HTTP
+// nonConcurrentHandler wraps an APIHandler in a mutex to prevent it from being
+// called concurrently.
+func nonConcurrentHandler(next APIHandler) APIHandler {
+	var mut sync.Mutex
+	return func(r *http.Request) (interface{}, error) {
+		mut.Lock()
+		defer mut.Unlock()
+		return next(r)
+	}
+}
+
+// wrapHandler is responsible for turning an APIHandler into an HTTP
 // handler by wrapping responses and writing them as JSON.
-func (s *Server) WrapHandler(next APIHandler) http.HandlerFunc {
+func (s *Server) wrapHandler(next APIHandler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp, err := next(r)
 		if err != nil {
