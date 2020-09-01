@@ -32,6 +32,7 @@ var (
 
 var (
 	DefaultConfig = Config{
+		ScrapeIntegrations:        true,
 		IntegrationRestartBackoff: 5 * time.Second,
 		UseHostnameLabel:          true,
 		ReplaceInstanceLabel:      true,
@@ -40,6 +41,9 @@ var (
 
 // Config holds the configuration for all integrations.
 type Config struct {
+	// When true, scrapes metrics from integrations.
+	ScrapeIntegrations bool `yaml:"scrape_integrations"`
+
 	// When true, replaces the instance label with the agent hostname.
 	ReplaceInstanceLabel bool `yaml:"replace_instance_label"`
 
@@ -196,11 +200,17 @@ func (m *Manager) run(ctx context.Context) {
 }
 
 func (m *Manager) runIntegration(ctx context.Context, i Integration) {
-	// Apply the config so an instance is launched to scrape our integration.
-	instanceConfig := m.instanceConfigForIntegration(i)
-	if err := m.im.ApplyConfig(instanceConfig); err != nil {
-		level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err, "integration", i.Name())
-		return
+	shouldCollect := m.c.ScrapeIntegrations
+	if common := i.CommonConfig(); common.ScrapeIntegration != nil {
+		shouldCollect = *common.ScrapeIntegration
+	}
+	if shouldCollect {
+		// Apply the config so an instance is launched to scrape our integration.
+		instanceConfig := m.instanceConfigForIntegration(i)
+		if err := m.im.ApplyConfig(instanceConfig); err != nil {
+			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err, "integration", i.Name())
+			return
+		}
 	}
 
 	for {

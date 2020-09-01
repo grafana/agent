@@ -321,16 +321,16 @@ name: string
 # same machine as the agent process.
 [host_filter: <boolean> | default = false]
 
-# How frequently the WAL truncation process should run. Every iteration of 
+# How frequently the WAL truncation process should run. Every iteration of
 # truncation will checkpoint old series, create a new segment for new samples,
-# and remove old samples that have been succesfully sent via remote_write. 
-# If there are are multiple remote_write endpoints, the endpoint with the 
-# earliest timestamp is used for the cutoff period, ensuring that no data 
-# gets truncated until all remote_write configurations have been able to 
+# and remove old samples that have been succesfully sent via remote_write.
+# If there are are multiple remote_write endpoints, the endpoint with the
+# earliest timestamp is used for the cutoff period, ensuring that no data
+# gets truncated until all remote_write configurations have been able to
 # send the data.
 [wal_truncate_frequency: <duration> | default = "1m"]
 
-# Deadline for flushing data when a Prometheus instance shuts down 
+# Deadline for flushing data when a Prometheus instance shuts down
 # before giving up and letting the shutdown proceed.
 [remote_flush_deadline: <duration> | default = "1m"]
 
@@ -1453,6 +1453,12 @@ agent:
   # collect and send metrics about itself.
   [enabled: <boolean> | default = false]
 
+  # Automatically collect metrics from this integration. If disabled,
+  # the agent integration will be run but not scraped and thus not
+  # remote_written. Metrics for the integration will be exposed at
+  # /integrations/agent/metrics and can be scraped by an external process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
   # How often should the metrics be collected? Defaults to
   # prometheus.global.scrape_interval.
   [scrape_interval: <duration> | default = <global_config.scrape_interval>]
@@ -1461,21 +1467,27 @@ agent:
   # prometheus.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
-  # Allows for relabeling labels on the target. 
+  # Allows for relabeling labels on the target.
   relabel_configs:
     [- <relabel_config> ... ]
-  
-  # Relabel metrics coming from the integration, allowing to drop series 
-  # from the integration that you don't care about. 
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
 
+# Automatically collect metrics from enabled integrations. If disabled,
+# integrations will be run but not scraped and thus not remote_written. Metrics
+# for integrations will be exposed at /integrations/<integration_key>/metrics
+# and can be scraped by an external process.
+[scrape_integrations: <boolean> | default = true]
+
 # When true, replaces the instance label with the hostname of the machine,
-# rather than 127.0.0.1:<server.http_listen_port>. Useful when running multiple 
-# Agents with the same integrations and uniquely identifying where metrics are 
+# rather than 127.0.0.1:<server.http_listen_port>. Useful when running multiple
+# Agents with the same integrations and uniquely identifying where metrics are
 # coming from.
 [replace_instance_label: <boolean> | default = true]
 
@@ -1483,8 +1495,8 @@ node_exporter: <node_exporter_config>
 # integrations. The value of the agent_hostname label will be the
 # value of $HOSTNAME (if available) or the machine's hostname.
 #
-# DEPRECATED. May be removed in a future version. Rely on 
-# replace_instance_label instead, since it has better compatability 
+# DEPRECATED. May be removed in a future version. Rely on
+# replace_instance_label instead, since it has better compatability
 # with existing dashboards.
 [use_hostname_label: <boolean> | default = true]
 
@@ -1531,26 +1543,26 @@ For running on Kubernetes, ensure to set the equivalent mounts and capabilities
 there as well:
 
 ```yaml
-apiVersion: v1 
-kind: Pod 
+apiVersion: v1
+kind: Pod
 metadata:
-  name: agent 
+  name: agent
 spec:
   containers:
   - image: grafana/agent:v0.5.0
-    name: agent 
+    name: agent
     args:
-    - --config.file=/etc/agent-config/agent.yaml 
+    - --config.file=/etc/agent-config/agent.yaml
     - --integrations.node_exporter.rootfs-path=/host
     securityContext:
       capabilities:
         add: ["SYS_TIME"]
     volumeMounts:
-    - name: rootfs 
-      mountPath: /host 
-      readOnly: true 
+    - name: rootfs
+      mountPath: /host
+      readOnly: true
   volumes:
-  - name: rootfs 
+  - name: rootfs
     hostPath:
       path: /
 ```
@@ -1630,6 +1642,12 @@ the Agent is running on is a no-op.
   # collect system metrics from the host UNIX system.
   [enabled: <boolean> | default = false]
 
+  # Automatically collect metrics from this integration. If disabled,
+  # the node_exporter integration will be run but not scraped and thus not remote-written. Metrics for the
+  # integration will be exposed at /integrations/node_exporter/metrics and can
+  # be scraped by an external process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
   # How often should the metrics be collected? Defaults to
   # prometheus.global.scrape_interval.
   [scrape_interval: <duration> | default = <global_config.scrape_interval>]
@@ -1638,44 +1656,44 @@ the Agent is running on is a no-op.
   # prometheus.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
-  # Allows for relabeling labels on the target. 
+  # Allows for relabeling labels on the target.
   relabel_configs:
     [- <relabel_config> ... ]
-  
-  # Relabel metrics coming from the integration, allowing to drop series 
-  # from the integration that you don't care about. 
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <boolean> | default = false]
 
-  # Optionally defines the the list of enabled-by-default collectors. 
-  # Anything not provided in the list below will be disabled by default, 
-  # but requires at least one element to be treated as defined. 
-  # 
-  # This is useful if you have a very explicit set of collectors you wish 
+  # Optionally defines the the list of enabled-by-default collectors.
+  # Anything not provided in the list below will be disabled by default,
+  # but requires at least one element to be treated as defined.
+  #
+  # This is useful if you have a very explicit set of collectors you wish
   # to run.
   set_collectors:
     - [<string>]
 
-  # Additional collectors to enable on top of the default set of enabled 
+  # Additional collectors to enable on top of the default set of enabled
   # collectors or on top of the list provided by set_collectors.
-  # 
-  # This is useful if you have a few collectors you wish to run that are 
-  # not enabled by default, but do not want to explicitly provide an entire 
+  #
+  # This is useful if you have a few collectors you wish to run that are
+  # not enabled by default, but do not want to explicitly provide an entire
   # list through set_collectors.
-  enable_collectors: 
+  enable_collectors:
     - [<string>]
 
-  # Additional collectors to disable on top of the default set of disabled 
+  # Additional collectors to disable on top of the default set of disabled
   # collectors. Takes precedence over enable_collectors.
 
-  # Additional collectors to disable from the set of enabled collectors. 
+  # Additional collectors to disable from the set of enabled collectors.
   # Takes precedence over enabled_collectors.
   #
-  # This is useful if you have a few collectors you do not want to run that 
-  # are enabled by default, but do not want to explicitly provide an entire 
+  # This is useful if you have a few collectors you do not want to run that
+  # are enabled by default, but do not want to explicitly provide an entire
   # list through set_collectors.
   disable_collectors:
     - [<string>]
