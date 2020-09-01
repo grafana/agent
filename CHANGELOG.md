@@ -38,6 +38,15 @@
   the numbger of launched instances. If instance sharing is not enabled, both
   metrics will share the same value. (@rfratto)
 
+- [BUGFIX] The Configs API will now disallows two instance configs having
+  multiple `scrape_configs` with the same `job_name`. THIS IS A BREAKING CHANGE.
+  This was needed for the instance sharing mode, where combined instances may
+  have duplicate `job_names` across their `scrape_configs`. This brings the
+  scraping service more in line with Prometheus, where `job_names` must globally
+  be unique. This change also disallows concurrent requests to the put/apply
+  config API endpoint to prevent a race condition of two conflicting configs
+  being applied at the same time. (@rfratto)
+
 - [DEPRECATION] `use_hostname_label` is now supplanted by
   `replace_instance_label`. `use_hostname_label` will be removed in a future
   version. (@rfratto)
