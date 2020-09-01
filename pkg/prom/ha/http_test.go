@@ -135,7 +135,7 @@ func TestServer_PutConfiguration(t *testing.T) {
 		MetricsPath: "/metrics",
 		Scheme:      "http",
 	}}
-	cfg.ApplyDefaults(&config.DefaultGlobalConfig)
+	_ = cfg.ApplyDefaults(&config.DefaultGlobalConfig)
 
 	bb, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
@@ -174,7 +174,7 @@ func TestServer_PutConfiguration_NonUnique(t *testing.T) {
 		MetricsPath: "/metrics",
 		Scheme:      "http",
 	}}
-	conflictA.ApplyDefaults(&config.DefaultGlobalConfig)
+	_ = conflictA.ApplyDefaults(&config.DefaultGlobalConfig)
 
 	//
 	// Put conflict A; it should succeed

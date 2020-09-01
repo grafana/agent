@@ -51,7 +51,6 @@ remote_write:
 	for _, sc := range cfg.ScrapeConfigs {
 		require.Equal(t, sc.ScrapeInterval, global.ScrapeInterval)
 		require.Equal(t, sc.ScrapeTimeout, global.ScrapeTimeout)
-		require.Equal(t, sc.RelabelConfigs, DefaultRelabelConfigs)
 	}
 }
 
