@@ -4,6 +4,11 @@
   is done by embedding Promtail, the official Loki log collection client.
   (@rfratto)
 
+- [FEATURE] Integrations can now be enabled without scraping. Set
+  scrape_integrations to `false` at the `integrations` key or within the
+  specific integration you don't want to scrape. This is useful when another
+  Agent or Prometheus server will scrape the integration. (@rfratto)
+
 - [ENHANCEMENT] A new config option, `replace_instance_label`, is now available
   for use with integrations. When this is true, the instance label for all
   metrics coming from an integration will be replaced with the machine's
@@ -12,7 +17,7 @@
 - [EHANCEMENT] The embedded Prometheus version has been updated to 2.20.1.
   (@rfratto, @gotjosh)
 
-- [ENHANCEMENT] The User-Agent header written by the Agent when remote_writing 
+- [ENHANCEMENT] The User-Agent header written by the Agent when remote_writing
   will now be `GrafanaCloudAgent/<Version>` instead of `Prometheus/<Prometheus Version>`.
   (@rfratto)
 
