@@ -128,8 +128,14 @@ func TestServer_PutConfiguration(t *testing.T) {
 
 	cfg := instance.DefaultConfig
 	cfg.Name = "newconfig"
-	cfg.HostFilter = true
+	cfg.HostFilter = false
 	cfg.RemoteFlushDeadline = 10 * time.Minute
+	cfg.ScrapeConfigs = []*config.ScrapeConfig{{
+		JobName:     "test_job",
+		MetricsPath: "/metrics",
+		Scheme:      "http",
+	}}
+	_ = cfg.ApplyDefaults(&config.DefaultGlobalConfig)
 
 	bb, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
@@ -154,6 +160,50 @@ func TestServer_PutConfiguration(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
 	}
+}
+
+func TestServer_PutConfiguration_NonUnique(t *testing.T) {
+	env := newAPITestEnvironment(t)
+
+	conflictA := instance.DefaultConfig
+	conflictA.Name = "conflict-a"
+	conflictA.HostFilter = false
+	conflictA.RemoteFlushDeadline = 10 * time.Minute
+	conflictA.ScrapeConfigs = []*config.ScrapeConfig{{
+		JobName:     "conflicting",
+		MetricsPath: "/metrics",
+		Scheme:      "http",
+	}}
+	_ = conflictA.ApplyDefaults(&config.DefaultGlobalConfig)
+
+	//
+	// Put conflict A; it should succeed
+	//
+	bb, err := yaml.Marshal(conflictA)
+	require.NoError(t, err)
+
+	resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/conflict-a", "", bytes.NewReader(bb))
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+	unmarshalTestResponse(t, resp.Body, nil)
+
+	//
+	// Put conflict B; it should fail because conflict-a already
+	// has a job with the name "conflicting."
+	//
+	conflictB := conflictA
+	conflictB.Name = "conflict-b"
+
+	bb, err = yaml.Marshal(conflictB)
+	require.NoError(t, err)
+
+	resp, err = http.Post(env.srv.URL+"/agent/api/v1/config/conflict-b", "", bytes.NewReader(bb))
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var errResp configapi.ErrorResponse
+	unmarshalTestResponse(t, resp.Body, &errResp)
+	require.Equal(t, `found multiple scrape configs with job name "conflicting"`, errResp.Error)
 }
 
 func TestServer_PutConfiguration_Invalid(t *testing.T) {
