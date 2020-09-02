@@ -521,8 +521,6 @@ github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoA
 github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85/go.mod h1:crI9WX6p0IhrqB+DqIUHulRW853PaNFf7o4UprV//3I=
 github.com/grafana/loki v1.6.1 h1:Ly9LKSEZfrxDCOt1QoAu3b4f+jrwKa1sH6BMF7TrcRs=
 github.com/grafana/loki v1.6.1/go.mod h1:X+GvtCzAf2ok/xRLLvGB8kuWP1R+75nXnvjCEnenP0s=
-github.com/grafana/process-exporter v0.7.3-0.20200902185136-b04cee3374c6 h1:3jCEjNx4sTNTo5Pp/EOM4X/KUONvyXlLHMU/Dglr5EI=
-github.com/grafana/process-exporter v0.7.3-0.20200902185136-b04cee3374c6/go.mod h1:d7Yf/brhprE2fjCdtZ2Edt0so30RY5PmtRu6qD0gUOc=
 github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf h1:InA1PiQc0blPSWIgomq4w8L6yHCK6yMj3+FL1YAjtEo=
 github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf/go.mod h1:d7Yf/brhprE2fjCdtZ2Edt0so30RY5PmtRu6qD0gUOc=
 github.com/grafana/prometheus v1.8.2-0.20200821135656-2efe42db3b77 h1:BDISe7QQ7yvfYMSDuOlNrTZZO7qD4DQHrgUmU+vVwiI=
@@ -921,8 +919,6 @@ github.com/prometheus/common v0.9.1/go.mod h1:yhUN8i9wzaXS3w1O07YhxHEBxD+W35wd8b
 github.com/prometheus/common v0.10.0 h1:RyRA7RzGXQZiW+tGMr7sxa85G1z0yOpM1qq5c8lNawc=
 github.com/prometheus/common v0.10.0/go.mod h1:Tlit/dnDKsSWFlCLTWaA1cyBgKHSMdTB80sz/V91rCo=
 github.com/prometheus/node_exporter v1.0.0-rc.0.0.20200428091818-01054558c289/go.mod h1:FGbBv5OPKjch+jNUJmEQpMZytIdyW0NdBtWFcfSKusc=
-github.com/prometheus/node_exporter v1.0.0 h1:n1ZpWq13IKb+5D3E9N7YhiFbSodNCTQ4xZNdMrnKiDE=
-github.com/prometheus/node_exporter v1.0.0/go.mod h1:NNSSAhWYgSCW41Qg/5apo16YOZ0BfRP4XfYPu0yFUTk=
 github.com/prometheus/node_exporter v1.0.1 h1:xTBtauxuNCMhuF4FKiNo2wDCuCAWgS3PoTlVbXLzNO0=
 github.com/prometheus/node_exporter v1.0.1/go.mod h1:IC23eAmBHxDOtCRUgP9uqJewluDPwjStnbvWJEYtisQ=
 github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d/go.mod h1:c3At6R/oaqEKCNdg8wHV1ftS6bRYblBhIjjI8uT2IGk=
@@ -1306,8 +1302,6 @@ golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20200331124033-c3d80250170d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f h1:gWF768j/LaZugp8dyS4UwsslYCYz9XgFxvlgsn0n9H8=
 golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
-golang.org/x/sys v0.0.0-20200523222454-059865788121 h1:rITEj+UZHYC927n8GT97eC3zrpzXdb/voyeOuVKS46o=
-golang.org/x/sys v0.0.0-20200523222454-059865788121/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1 h1:ogLJMz+qpzav7lGMh10LMvAkM/fAoGlaiiHYiFYdm80=
 golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
