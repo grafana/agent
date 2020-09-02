@@ -189,7 +189,7 @@ func TestServer_PutConfiguration_NonUnique(t *testing.T) {
 
 	//
 	// Put conflict B; it should fail because conflict-a already
-	// has a job with the name test_job
+	// has a job with the name "conflicting."
 	//
 	conflictB := conflictA
 	conflictB.Name = "conflict-b"

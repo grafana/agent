@@ -36,12 +36,10 @@ type APIHandler func(r *http.Request) (interface{}, error)
 // WireAPI injects routes into the provided mux router for the config
 // management API.
 func (s *Server) WireAPI(r *mux.Router) {
-	// PutConfiguration below is wrapped in a nonConcurrentHandler to prevent a
-	// race condition of two conflicting instance configs being applied at the same time.
-	// Since applying config performs KV store-wide validations, it is possible that
-	// concurrently applied configs that conflict each other may not be rejected if
-	// neither conflicting config has been persisted to the KV store yet.
-
+	// PutConfiguration is wrapped in a mutex below to prevent concurrent calls. Configs
+	// are validated by reading the state of the KV store. To ensure the validation is
+	// correct, the KV store must not receive any new keys until after we finsh
+	// our write.
 	listConfig := s.wrapHandler(s.ListConfigurations)
 	getConfig := s.wrapHandler(s.GetConfiguration)
 	putConfig := s.wrapHandler(nonConcurrentHandler(s.PutConfiguration))
