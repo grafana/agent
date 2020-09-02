@@ -9,13 +9,14 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/mux v1.7.3
 	github.com/grafana/loki v1.6.1
+	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
 	github.com/oklog/run v1.1.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20180928155321-4b5a12d3ff02
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/common v0.10.0
-	github.com/prometheus/node_exporter v1.0.0
+	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.1.3
 	github.com/prometheus/prometheus v1.8.2-0.20200727090838-6f296594a852
 	github.com/spf13/cobra v0.0.3
@@ -51,6 +52,5 @@ replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
 
-// Needed to keep FreeBSD builds working; newer versions of procfs use
-// syscall.ENODATA which doesn't work with FreeBSD.
-replace github.com/prometheus/procfs => github.com/prometheus/procfs v0.0.11
+// TODO(rfratto): remove fork when changes are merged upstream
+replace github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf

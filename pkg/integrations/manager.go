@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/agent"
 	integrationCfg "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
+	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -53,8 +54,9 @@ type Config struct {
 	// ReplaceInstanceLabel should be used instead.
 	UseHostnameLabel bool `yaml:"use_hostname_label"`
 
-	Agent        agent.Config         `yaml:"agent"`
-	NodeExporter node_exporter.Config `yaml:"node_exporter"`
+	Agent           agent.Config            `yaml:"agent"`
+	NodeExporter    node_exporter.Config    `yaml:"node_exporter"`
+	ProcessExporter process_exporter.Config `yaml:"process_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -157,6 +159,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.NodeExporter.Enabled {
 		l := log.With(logger, "integration", "node_exporter")
 		i, err := node_exporter.New(l, c.NodeExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.ProcessExporter.Enabled {
+		l := log.With(logger, "integration", "process_exporter")
+		i, err := process_exporter.New(l, c.ProcessExporter)
 		if err != nil {
 			return nil, err
 		}
