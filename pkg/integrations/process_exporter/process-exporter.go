@@ -5,7 +5,6 @@ package process_exporter //nolint:golint
 
 import (
 	"context"
-	"log"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
