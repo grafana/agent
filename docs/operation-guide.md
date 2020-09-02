@@ -1,4 +1,4 @@
-# Operation Guide 
+# Operation Guide
 
 ## Prometheus "Instances"
 
@@ -7,7 +7,7 @@ its own mini Prometheus-lite server. The Instance runs a combination of
 Prometheus service discovery, scraping, a WAL for storage, and `remote_write`.
 
 Instances allow for fine grained control of what data gets scraped and where it
-gets sent. Users can easily define two Instances that scrape different subsets 
+gets sent. Users can easily define two Instances that scrape different subsets
 of metrics and send them two two completely different remote_write systems.
 
 Instances are especially relevant to the [scraping service
@@ -15,7 +15,7 @@ mode](./scraping-service.md), where breaking up your scrape configs into
 multiple Instances is required for sharding and balancing scrape load across a
 cluster of Agents.
 
-## Instance Sharing 
+## Instance Sharing
 
 The v0.5.0 release of the Agent introduced the concept of _Instance sharing_,
 which combines scrape_configs from compatible Instance configs into a single,
@@ -23,6 +23,11 @@ shared Instance. Instance configs are compatible when they have no differences
 in configuration with the exception of what they scrape. `remote_write` configs
 may also differ in the order which endpoints are declared, but the unsorted
 `remote_writes` must still be an exact match.
+
+In the shared Instances mode, the `name` field of `remote_write` configs is
+ignored. The resulting `remote_write` configs will have a name identical to the
+first six characters of the group name and the first six characters of the hash
+from that `remote_write` config separated by a `-`.
 
 The shared Instances mode is the new default, and the previous behavior is
 deprecated. If you wish to restore the old behavior, set `instance_mode:

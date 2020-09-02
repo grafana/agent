@@ -172,6 +172,30 @@ remote_write: []
 	})
 }
 
+func TestGroupManager_ApplyConfig_RemoteWriteName(t *testing.T) {
+	inner := newFakeManager()
+	gm := NewGroupManager(inner)
+	err := gm.ApplyConfig(testUnmarshalConfig(t, `
+name: configA
+scrape_configs: []
+remote_write:
+- name: rw-cfg-a
+  url: http://localhost:9009/api/prom/push
+`))
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(gm.groups))
+	require.Equal(t, 1, len(gm.groupLookup))
+
+	// Check the underlying grouped config and make sure the group_name
+	// didn't get copied from the remote_name of A.
+	innerConfigs := inner.ListConfigs()
+	require.Equal(t, 1, len(innerConfigs))
+
+	cfg := innerConfigs[gm.groupLookup["configA"]]
+	require.NotEqual(t, "rw-cfg-a", cfg.RemoteWrite[0].Name)
+}
+
 func TestGroupManager_DeleteConfig(t *testing.T) {
 	t.Run("partial delete", func(t *testing.T) {
 		inner := newFakeManager()
@@ -181,7 +205,7 @@ func TestGroupManager_DeleteConfig(t *testing.T) {
 		// should still be active with the one config inside of it.
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
-scrape_configs: 
+scrape_configs:
 - job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
@@ -191,7 +215,7 @@ remote_write: []
 
 		err = gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configB
-scrape_configs: 
+scrape_configs:
 - job_name: test_job2
   static_configs:
     - targets: [127.0.0.1:12345]
@@ -222,7 +246,7 @@ remote_write: []`, gm.groupLookup["configB"]))
 		// Apply a single config but delete the entire group.
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
-scrape_configs: 
+scrape_configs:
 - job_name: test_job
   static_configs:
     - targets: [127.0.0.1:12345]
@@ -394,6 +418,13 @@ remote_write:
 
 	expect, err := UnmarshalConfig(strings.NewReader(expectText))
 	require.NoError(t, err)
+
+	// Generate expected remote_write names
+	for _, rwConfig := range expect.RemoteWrite {
+		hash, err := getHash(rwConfig)
+		require.NoError(t, err)
+		rwConfig.Name = groupName[:6] + "-" + hash[:6]
+	}
 
 	group := groupedConfigs{
 		"configA": configA,
