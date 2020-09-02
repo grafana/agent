@@ -1,5 +1,3 @@
-# TODO(rfratto): docker images
-
 .DEFAULT_GOAL := all
 .PHONY: all agent agentctl check-mod int test clean cmd/agent/agent cmd/agentctl/agentctl protos
 
@@ -177,23 +175,19 @@ dist: dist-agent dist-agentctl
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
-dist-agent: dist/agent-linux-amd64 dist/agent-darwin-amd64 dist/agent-freebsd-amd64 dist/agent-windows-amd64.exe
+dist-agent: dist/agent-linux-amd64 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
 dist/agent-linux-amd64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-freebsd-amd64:
-	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-darwin-amd64 dist/agentctl-freebsd-amd64 dist/agentctl-windows-amd64.exe
+dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
 dist/agentctl-linux-amd64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-freebsd-amd64:
-	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
