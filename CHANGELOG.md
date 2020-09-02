@@ -38,7 +38,7 @@
   the numbger of launched instances. If instance sharing is not enabled, both
   metrics will share the same value. (@rfratto)
 
-- [BUGFIX] The Configs API will now disallows two instance configs having
+- [BUGFIX] The Configs API will now disallow two instance configs having
   multiple `scrape_configs` with the same `job_name`. THIS IS A BREAKING CHANGE.
   This was needed for the instance sharing mode, where combined instances may
   have duplicate `job_names` across their `scrape_configs`. This brings the
