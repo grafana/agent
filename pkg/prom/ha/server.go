@@ -106,7 +106,11 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
 
-	kvClient, err := kv.NewClient(cfg.KVStore, GetCodec(), reg)
+	kvClient, err := kv.NewClient(
+		cfg.KVStore,
+		GetCodec(),
+		kv.RegistererWithKVName(reg, "agent_configs"),
+	)
 	if err != nil {
 		return nil, err
 	}
