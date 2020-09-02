@@ -1,5 +1,9 @@
 # Next (master/unreleased)
 
+NOTE: FreeBSD builds will not be included for this release. There is a bug in an
+upstream library preventing cross-compilation of the Grafana Cloud Agent for
+this platform. FreeBSD builds will return in a future release.
+
 - [FEATURE] The Grafana Cloud Agent can now collect logs and send to Loki. This
   is done by embedding Promtail, the official Loki log collection client.
   (@rfratto)
@@ -8,6 +12,11 @@
   scrape_integrations to `false` at the `integrations` key or within the
   specific integration you don't want to scrape. This is useful when another
   Agent or Prometheus server will scrape the integration. (@rfratto)
+
+- [FEATURE] [process-exporter](https://github.com/ncabatoff/process-exporter) is
+  now embedded as `process_exporter`. The hypen has been changed to an
+  underscore in the config file to retain consistency with `node_exporter`.
+  (@rfratto)
 
 - [ENHANCEMENT] A new config option, `replace_instance_label`, is now available
   for use with integrations. When this is true, the instance label for all
