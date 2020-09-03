@@ -1,5 +1,7 @@
 local g = import 'grafana-builder/grafana.libsonnet';
+local utils = import './utils.libsonnet';
 local grafana = import 'grafonnet/grafana.libsonnet';
+
 local dashboard = grafana.dashboard;
 local row = grafana.row;
 local singlestat = grafana.singlestat;
@@ -11,11 +13,11 @@ local template = grafana.template;
 {
   grafanaDashboards+:: {
     'agent.json':
-      g.dashboard('Agent')
+      utils.injectUtils(g.dashboard('Agent'))
       .addMultiTemplate('cluster', 'agent_build_info', 'cluster')
       .addMultiTemplate('namespace', 'agent_build_info', 'namespace')
       .addMultiTemplate('container', 'agent_build_info', 'container')
-      .addMultiTemplate('pod', 'agent_build_info{container=~"$container"}', 'pod')
+      .addMultiTemplateWithAll('pod', 'agent_build_info{container=~"$container"}', 'pod', all='grafana-agent-.*')
       .addRow(
         g.row('Agent Stats')
         .addPanel(
