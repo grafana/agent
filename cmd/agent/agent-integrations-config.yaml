@@ -12,5 +12,11 @@ integrations:
     enabled: true
   node_exporter:
     enabled: true
+  process_exporter:
+    enabled: true
+    process_names:
+      - name: "{{.Comm}}"
+        cmdline:
+        - '.+'
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push
