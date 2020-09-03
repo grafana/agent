@@ -239,6 +239,18 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 	}
 }
 
+func TestStoraeg_TruncateAfterClose(t *testing.T) {
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+
+	require.NoError(t, s.Close())
+	require.Error(t, ErrWALClosed, s.Truncate(0))
+}
+
 type sample struct {
 	ts  int64
 	val float64
