@@ -19,6 +19,10 @@ import (
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
 
+var (
+	ErrWALClosed = fmt.Errorf("WAL storage closed")
+)
+
 type storageMetrics struct {
 	r prometheus.Registerer
 
@@ -90,6 +94,13 @@ type Storage struct {
 	storage.Queryable
 	storage.ChunkQueryable
 
+	// Operations against the WAL must be protected by a mutex so it doesn't get
+	// closed in the middle of an operation. Other operations are concurrency-safe, so we
+	// use a RWMutex to allow multiple usages of the WAL at once. If the WAL is closed, all
+	// operations that change the WAL must fail.
+	walMtx    sync.RWMutex
+	walClosed bool
+
 	path   string
 	wal    *wal.WAL
 	logger log.Logger
@@ -151,6 +162,13 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 }
 
 func (w *Storage) replayWAL() error {
+	w.walMtx.RLock()
+	defer w.walMtx.RUnlock()
+
+	if w.walClosed {
+		return ErrWALClosed
+	}
+
 	level.Info(w.logger).Log("msg", "replaying WAL, this may take a while", "dir", w.wal.Dir())
 	dir, startFrom, err := wal.LastCheckpoint(w.wal.Dir())
 	if err != nil && err != record.ErrNotFound {
@@ -352,6 +370,13 @@ func (*Storage) StartTime() (int64, error) {
 // Truncate removes all data from the WAL prior to the timestamp specified by
 // mint.
 func (w *Storage) Truncate(mint int64) error {
+	w.walMtx.RLock()
+	defer w.walMtx.RUnlock()
+
+	if w.walClosed {
+		return ErrWALClosed
+	}
+
 	start := time.Now()
 
 	// Garbage collect series that haven't received an update since mint.
@@ -511,6 +536,14 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 
 // Close closes the storage and all its underlying resources.
 func (w *Storage) Close() error {
+	w.walMtx.Lock()
+	defer w.walMtx.Unlock()
+
+	if w.walClosed {
+		return fmt.Errorf("already closed")
+	}
+	w.walClosed = true
+
 	if w.metrics != nil {
 		w.metrics.Unregister()
 	}
@@ -578,6 +611,13 @@ func (a *appender) AddFast(ref uint64, t int64, v float64) error {
 
 // Commit submits the collected samples and purges the batch.
 func (a *appender) Commit() error {
+	a.w.walMtx.RLock()
+	defer a.w.walMtx.RUnlock()
+
+	if a.w.walClosed {
+		return ErrWALClosed
+	}
+
 	var encoder record.Encoder
 	buf := a.w.bufPool.Get().([]byte)
 
