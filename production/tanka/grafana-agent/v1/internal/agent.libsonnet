@@ -27,7 +27,7 @@ local policyRule = k.rbac.v1.policyRule;
       ]),
 
     config_map:
-      configMap.new(name + '-config') +
+      configMap.new(name) +
       configMap.mixin.metadata.withNamespace(namespace) +
       configMap.withData({
         'agent.yaml': k.util.manifestYaml(config),
@@ -54,7 +54,7 @@ local policyRule = k.rbac.v1.policyRule;
         })
         else {}
       ) +
-      k.util.configVolumeMount(name + '-config', '/etc/agent'),
+      k.util.configVolumeMount(name, '/etc/agent'),
   },
 
   withConfigHash(include):: { _config_hash:: include },

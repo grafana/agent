@@ -20,7 +20,7 @@ local container = k.core.v1.container;
       container.mixin.securityContext.withPrivileged(true) +
       container.mixin.securityContext.withRunAsUser(0),
 
-    local controller = self.agent._controller;
+    local controller = self.agent._controller,
     agent+::
       // procfs, sysfs, rotfs
       k.util.hostVolumeMount('proc', '/proc', '/host/proc', readOnly=true) +

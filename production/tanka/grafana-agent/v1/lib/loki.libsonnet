@@ -72,7 +72,7 @@ local container = k.core.v1.container;
       k.util.hostVolumeMount('varlibdockercontainers', '/var/lib/docker/containers', '/var/lib/docker/containers', readOnly=true) +
 
       // For reading journald
-      k.util.hostVolumeMount('etcmachineid', '/etc/machine-id', '/etc/machine-id', readOnly=true) +
+      k.util.hostVolumeMount('etcmachineid', '/etc/machine-id', '/etc/machine-id', readOnly=true),
   },
 
   // scrapeKubernetesLogs defines a Loki config that can collect logs from

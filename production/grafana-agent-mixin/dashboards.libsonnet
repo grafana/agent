@@ -74,7 +74,7 @@ local template = grafana.template;
         )
         .addPanel(
           g.panel('Appended Samples') +
-          g.queryPanel('sum by (job, instance_name) (rate(agent_wal_storage_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))', '{{job}} {{instance_name}}') +
+          g.queryPanel('sum by (job, instance_group_name) (rate(agent_wal_storage_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))', '{{job}} {{instance_group_name}}') +
           g.stack
         )
       ),
@@ -92,11 +92,11 @@ local template = grafana.template;
             (
               prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}
               -
-              ignoring(url, instance_name, remote_name) group_right(pod)
+              ignoring(url, instance_group_name, remote_name) group_right(pod)
               prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}
             )
           |||,
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local timestampComparisonRate =
@@ -110,11 +110,11 @@ local template = grafana.template;
             (
               rate(prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
               -
-              ignoring(url, instance_name, remote_name) group_right(pod)
+              ignoring(url, instance_group_name, remote_name) group_right(pod)
               rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
             )
           |||,
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local samplesRate =
@@ -128,12 +128,12 @@ local template = grafana.template;
             rate(
               prometheus_remote_storage_samples_in_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
             -
-              ignoring(url, instance_name, remote_name) group_right(pod)
+              ignoring(url, instance_group_name, remote_name) group_right(pod)
               rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
             -
               rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
           |||,
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local currentShards =
@@ -145,7 +145,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'prometheus_remote_storage_shards{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local maxShards =
@@ -156,7 +156,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'prometheus_remote_storage_shards_max{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local minShards =
@@ -167,7 +167,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'prometheus_remote_storage_shards_min{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local desiredShards =
@@ -178,7 +178,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'prometheus_remote_storage_shards_desired{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local shardsCapacity =
@@ -189,7 +189,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'prometheus_remote_storage_shard_capacity{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local pendingSamples =
@@ -200,7 +200,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'prometheus_remote_storage_pending_samples{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local queueSegment =
@@ -212,7 +212,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'prometheus_wal_watcher_current_segment{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local droppedSamples =
@@ -223,7 +223,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local failedSamples =
@@ -234,7 +234,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'rate(prometheus_remote_storage_failed_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local retriedSamples =
@@ -245,7 +245,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'rate(prometheus_remote_storage_retried_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       local enqueueRetries =
@@ -256,7 +256,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           'rate(prometheus_remote_storage_enqueue_retries_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
-          legendFormat='{{cluster}}:{{pod}}-{{instance_name}}-{{url}}',
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
       dashboard.new('Agent Prometheus Remote Write', editable=true)

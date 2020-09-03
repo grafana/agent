@@ -112,8 +112,8 @@ local g = import 'grafana-builder/grafana.libsonnet';
           g.panel('Series/Config') +
           { stack: 'true' } +
           g.queryPanel(
-            'sum by (instance_name) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})',
-            '{{instance_name}}',
+            'sum by (instance_group_name) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})',
+            '{{instance_group_name}}',
           )
         )
         .addPanel(
