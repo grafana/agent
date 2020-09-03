@@ -47,7 +47,7 @@
   config API endpoint to prevent a race condition of two conflicting configs
   being applied at the same time. (@rfratto)
 
-- [BUGFIX] remote_write names in a group will no longer be copied from the
+- [BUGFIX] `remote_write` names in a group will no longer be copied from the
   remote_write names of the first instance in the group. Rather, all
   remote_write names will be generated based on the first 6 characters of the
   group hash and the first six characters of the remote_write hash. (@rfratto)
