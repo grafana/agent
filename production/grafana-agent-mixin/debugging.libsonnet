@@ -1,19 +1,20 @@
 local g = import 'grafana-builder/grafana.libsonnet';
+local utils = import './utils.libsonnet';
 
 {
   grafanaDashboards+:: {
     'agent-operational.json':
-      g.dashboard('Agent Operational')
+      utils.injectUtils(g.dashboard('Agent Operational')) 
       .addMultiTemplate('cluster', 'agent_build_info', 'cluster')
       .addMultiTemplate('namespace', 'agent_build_info', 'namespace')
       .addMultiTemplate('container', 'agent_build_info', 'container')
-      .addMultiTemplate('pod', 'agent_build_info{container=~"$container"}', 'pod')
+      .addMultiTemplateWithAll('pod', 'agent_build_info{container=~"$container"}', 'pod', all='grafana-agent-.*')
       .addRow(
         g.row('General')
         .addPanel(
           g.panel('GCs') +
           g.queryPanel(
-            'rate(go_gc_duration_seconds_count{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
+            'rate(go_gc_duration_seconds_count{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}[5m])',
             '{{pod}}',
           )
         )
@@ -22,28 +23,28 @@ local g = import 'grafana-builder/grafana.libsonnet';
           { yaxes: g.yaxes('decbytes') } +
           { stack: 'true' } +
           g.queryPanel(
-            'go_memstats_heap_inuse_bytes{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+            'go_memstats_heap_inuse_bytes{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}',
             '{{pod}}',
           )
         )
         .addPanel(
           g.panel('Goroutines') +
           g.queryPanel(
-            'go_goroutines{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
+            'go_goroutines{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}',
             '{{pod}}',
           )
         )
         .addPanel(
           g.panel('CPU') +
           g.queryPanel(
-            'rate(container_cpu_usage_seconds_total{cluster=~"$cluster", container=~"$container"}[5m])',
+            'rate(container_cpu_usage_seconds_total{cluster=~"$cluster", container=~"$container", pod=~"$pod"}[5m])',
             '{{pod}}',
           )
         )
         .addPanel(
           g.panel('WSS') +
           g.queryPanel(
-            'container_memory_working_set_bytes{cluster=~"$cluster", container=~"$container"}',
+            'container_memory_working_set_bytes{cluster=~"$cluster", container=~"$container", pod=~"$pod"}',
             '{{pod}}',
           )
         )
@@ -60,14 +61,14 @@ local g = import 'grafana-builder/grafana.libsonnet';
         .addPanel(
           g.panel('RX by Pod') +
           g.queryPanel(
-            'rate(container_network_receive_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[5m])',
+            'sum by (pod) (rate(container_network_receive_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[5m]))',
             '{{pod}}',
           )
         )
         .addPanel(
           g.panel('TX by Pod') +
           g.queryPanel(
-            'rate(container_network_transmit_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[5m])',
+            'sum by (pod) (rate(container_network_transmit_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[5m]))',
             '{{pod}}',
           )
         )
@@ -80,9 +81,9 @@ local g = import 'grafana-builder/grafana.libsonnet';
           { stack: 'true' } +
           g.queryPanel(
             |||
-              (sum by (pod) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[1m])))
+              (sum by (pod) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}[1m])))
               /
-              (sum by (pod) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}))
+              (sum by (pod) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}))
             |||,
             '{{pod}}',
           )
@@ -93,9 +94,9 @@ local g = import 'grafana-builder/grafana.libsonnet';
           { stack: 'true' } +
           g.queryPanel(
             |||
-              (sum by (container) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[1m])))
+              (sum by (container) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}[1m])))
               /
-              (sum by (container) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}))
+              (sum by (container) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}))
             |||,
             '{{container}}',
           )
@@ -104,7 +105,7 @@ local g = import 'grafana-builder/grafana.libsonnet';
           g.panel('Series/Pod') +
           { stack: 'true' } +
           g.queryPanel(
-            'sum by (pod) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})',
+            'sum by (pod) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"})',
             '{{pod}}',
           )
         )
@@ -112,15 +113,15 @@ local g = import 'grafana-builder/grafana.libsonnet';
           g.panel('Series/Config') +
           { stack: 'true' } +
           g.queryPanel(
-            'sum by (instance_name) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})',
-            '{{instance_name}}',
+            'sum by (instance_group_name) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"})',
+            '{{instance_group_name}}',
           )
         )
         .addPanel(
           g.panel('Series') +
           { stack: 'true' } +
           g.queryPanel(
-            'sum by (container) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})',
+            'sum by (container) (agent_wal_storage_active_series{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"})',
             '{{container}}',
           )
         )

@@ -1,8 +1,10 @@
 local default = import 'default/main.libsonnet';
 local etcd = import 'etcd/main.libsonnet';
-local grafana_agent = import 'grafana-agent/grafana-agent.libsonnet';
+//local grafana_agent = import 'grafana-agent/grafana-agent.libsonnet';
 local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
+
+local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 
 local service = k.core.v1.service;
 local images = {
@@ -24,38 +26,33 @@ local images = {
     },
   },
 
-  agent: grafana_agent {
-    _images+:: images, 
-    _config+:: {
-      namespace: 'default',
+  agent:
+    local cluster_label = 'k3d-agent/daemonset';
 
-      agent_remote_write: [{
-        url: 'http://cortex.default.svc.cluster.local/api/prom/push',
-      }],
-
-      local cluster_label = 'k3d-agent/daemonset',
-      agent_config+: {
-        prometheus+: {
-          global+: {
-            external_labels+: {
-              cluster: cluster_label,
-            },
-          },
-
-          // We want our cluster and agent labels to remain static
-          // for this deployment, so if they are overwritten by a metric
-          // we will change them to the values set by external_labels.
-          configs: std.map(function(config) config {
-            scrape_configs: std.map(function(scrape_config) scrape_config {
-              relabel_configs+: [
-                { target_label: 'cluster', replacement: cluster_label },
-              ],
-            }, super.scrape_configs),
-          }, super.configs),
+    grafana_agent.new('grafana-agent', 'default') +
+    grafana_agent.withImages(images) +
+    grafana_agent.withPrometheusConfig({
+      wal_directory: '/var/lib/agent/data',
+      global: {
+        scrape_interval: '15s',
+        external_labels: {
+          cluster: cluster_label,
         },
       },
-    },
-  },
+    }) +
+    grafana_agent.withPrometheusInstances(grafana_agent.scrapeInstanceKubernetes {
+      // We want our cluster and label to remain static for this deployment, so
+      // if they are overwritten by a metric we will change them to the values
+      // set by external_labels.
+      scrape_configs: std.map(function(config) config {
+        relabel_configs+: [{
+          target_label: 'cluster', replacement: cluster_label,
+        }]
+      }, super.scrape_configs),
+    }) +
+    grafana_agent.withRemoteWrite([{
+      url: 'http://cortex.default.svc.cluster.local/api/prom/push',
+    }]),
 
   // Need to run ETCD for agent_cluster
   etcd: etcd.new('default'),
