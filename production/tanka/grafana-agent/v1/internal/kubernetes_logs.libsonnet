@@ -1,6 +1,8 @@
 local gen_scrape_config(job_name, pod_uid) = {
   job_name: job_name,
-  pipeline_stages: $._config.promtail_config.pipeline_stages,
+  pipeline_stages: [{
+    docker: {},
+  }],
   kubernetes_sd_configs: [{
     role: 'pod',
   }],
