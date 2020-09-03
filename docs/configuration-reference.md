@@ -1524,19 +1524,48 @@ running on. It provides a significant amount of collectors that are responsible
 for monitoring various aspects of the host system.
 
 Note that if running the Agent in a container, you will need to bind mount
-folders from the host system so the integration can monitor them:
+folders from the host system so the integration can monitor them. You can use
+the example below, making sure to replace `/path/to/config.yaml` with a path on
+your host machine where an Agent configuration file is:
 
 ```
 docker run \
   --net="host" \
   --pid="host" \
   --cap-add=SYS_TIME \
-  -v "/:/host:ro,rslave" \
+  -v "/:/host/root:ro,rslave" \
+  -v "/dev:/host/dev:ro,rslave" \
+  -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
   grafana/agent:v0.5.0 \
-  --config.file=/etc/agent-config/agent.yaml \
-  --integrations.node_exporter.rootfs-path=/host
+  --config.file=/etc/agent-config/agent.yaml
+```
+
+Use this configuration file for testing out `node_exporter` support, replacing
+the `prometheus_remote_write` settings with settings appropriate for you:
+
+```yaml
+server:
+  log_level: info
+  http_listen_port: 12345
+
+prometheus:
+  wal_directory: /tmp/agent
+  global:
+    scrape_interval: 15s
+
+integrations:
+  node_exporter:
+    enabled: true
+    rootfs_path: /host/root
+    devfs_path: /host/dev
+    procfs_path: /host/proc
+  prometheus_remote_write:
+    - url: https://prometheus-us-central1.grafana.net/api/prom/push
+      basic_auth:
+        username: user-id
+        password: api-token
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities
@@ -1557,16 +1586,29 @@ spec:
     securityContext:
       capabilities:
         add: ["SYS_TIME"]
+      priviliged: true
+      runAsUser: 0
     volumeMounts:
     - name: rootfs
-      mountPath: /host
+      mountPath: /host/root
+      readOnly: true
+    - name: devfs
+      mountPath: /host/dev
+      readOnly: true
+    - name: procfs
+      mountPath: /host/proc
       readOnly: true
   volumes:
   - name: rootfs
     hostPath:
       path: /
+  - name: devfs
+    hostPath:
+      path: /dev
+  - name: procfs
+    hostPath:
+      path: /proc
 ```
-
 
 The manifest and Tanka configs provided by this repository do not have the
 mounts or capabilities required for running this integration.
