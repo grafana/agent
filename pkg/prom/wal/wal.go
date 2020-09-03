@@ -94,11 +94,12 @@ type Storage struct {
 	storage.Queryable
 	storage.ChunkQueryable
 
-	// Operations against the WAL must be protected by a mutex so it doesn't get closed
-	// in the middle of an operation. If the WAL is closed, operations that change the WAL
-	// must fail.
-	walMtx    sync.Mutex
-	walClosed chan bool
+	// Operations against the WAL must be protected by a mutex so it doesn't get
+	// closed in the middle of an operation. Other operations are concurrency-safe, so we
+	// use a RWMutex to allow multiple usages of the WAL at once. If the WAL is closed, all
+	// operations that change the WAL must fail.
+	walMtx    sync.RWMutex
+	walClosed bool
 
 	path   string
 	wal    *wal.WAL
@@ -125,8 +126,6 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	}
 
 	storage := &Storage{
-		walClosed: make(chan bool),
-
 		path:    path,
 		wal:     w,
 		logger:  logger,
@@ -163,10 +162,10 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 }
 
 func (w *Storage) replayWAL() error {
-	w.walMtx.Lock()
-	defer w.walMtx.Unlock()
+	w.walMtx.RLock()
+	defer w.walMtx.RUnlock()
 
-	if w.isWALClosed() {
+	if w.walClosed {
 		return ErrWALClosed
 	}
 
@@ -371,10 +370,10 @@ func (*Storage) StartTime() (int64, error) {
 // Truncate removes all data from the WAL prior to the timestamp specified by
 // mint.
 func (w *Storage) Truncate(mint int64) error {
-	w.walMtx.Lock()
-	defer w.walMtx.Unlock()
+	w.walMtx.RLock()
+	defer w.walMtx.RUnlock()
 
-	if w.isWALClosed() {
+	if w.walClosed {
 		return ErrWALClosed
 	}
 
@@ -540,24 +539,15 @@ func (w *Storage) Close() error {
 	w.walMtx.Lock()
 	defer w.walMtx.Unlock()
 
-	if w.isWALClosed() {
+	if w.walClosed {
 		return fmt.Errorf("already closed")
 	}
-	close(w.walClosed)
+	w.walClosed = true
 
 	if w.metrics != nil {
 		w.metrics.Unregister()
 	}
 	return w.wal.Close()
-}
-
-func (w *Storage) isWALClosed() bool {
-	select {
-	case <-w.walClosed:
-		return true
-	default:
-		return false
-	}
 }
 
 type appender struct {
@@ -621,10 +611,10 @@ func (a *appender) AddFast(ref uint64, t int64, v float64) error {
 
 // Commit submits the collected samples and purges the batch.
 func (a *appender) Commit() error {
-	a.w.walMtx.Lock()
-	defer a.w.walMtx.Unlock()
+	a.w.walMtx.RLock()
+	defer a.w.walMtx.RUnlock()
 
-	if a.w.isWALClosed() {
+	if a.w.walClosed {
 		return ErrWALClosed
 	}
 
