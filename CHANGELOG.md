@@ -61,6 +61,9 @@ this platform. FreeBSD builds will return in a future release.
   remote_write names will be generated based on the first 6 characters of the
   group hash and the first six characters of the remote_write hash. (@rfratto)
 
+- [BUGFIX] Fix a panic that may occur during shutdown if the WAL is closed in
+  the middle of the WAL being truncated. (@rfratto)
+
 - [DEPRECATION] `use_hostname_label` is now supplanted by
   `replace_instance_label`. `use_hostname_label` will be removed in a future
   version. (@rfratto)
