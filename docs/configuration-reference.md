@@ -1561,6 +1561,11 @@ integrations:
     rootfs_path: /host/root
     devfs_path: /host/dev
     procfs_path: /host/proc
+  prometheus_remote_write:
+    - url: https://prometheus-us-central1.grafana.net/api/prom/push
+      basic_auth:
+        username: user-id
+        password: api-token
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities
