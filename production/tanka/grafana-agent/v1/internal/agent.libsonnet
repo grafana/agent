@@ -9,8 +9,9 @@ local policyRule = k.rbac.v1.policyRule;
 {
   newAgent(name='grafana-agent', namespace='default', image, config, use_daemonset=true):: {
     local controller = if use_daemonset then daemonSet else deployment,
-    local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: { namespace: namespace }},
+    local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: { namespace: namespace } },
 
+    _controller:: controller,
     _config_hash:: true,
 
     rbac:
@@ -29,7 +30,7 @@ local policyRule = k.rbac.v1.policyRule;
       configMap.new(name + '-config') +
       configMap.mixin.metadata.withNamespace(namespace) +
       configMap.withData({
-        'agent.yaml': k.util.manifestYaml(config)
+        'agent.yaml': k.util.manifestYaml(config),
       }),
 
     container::
@@ -53,7 +54,7 @@ local policyRule = k.rbac.v1.policyRule;
         })
         else {}
       ) +
-      k.util.configVolumeMount(name + '-config', '/etc/agent')
+      k.util.configVolumeMount(name + '-config', '/etc/agent'),
   },
 
   withConfigHash(include):: { _config_hash:: include },

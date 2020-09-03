@@ -1,4 +1,7 @@
 local scrape_k8s_logs = import '../internal/kubernetes_logs.libsonnet';
+local k = import 'ksonnet-util/kausal.libsonnet';
+
+local container = k.core.v1.container;
 
 {
   // withLokiConfig adds a Loki config to collect logs.
@@ -12,39 +15,39 @@ local scrape_k8s_logs = import '../internal/kubernetes_logs.libsonnet';
     _loki_config:: config,
   },
 
-  // newLokiClient creates a new client object. Results from this can be passed into 
+  // newLokiClient creates a new client object. Results from this can be passed into
   // withLokiClients.
   //
   // client_config should be an object of the following shape:
   //
   // {
   //   scheme: 'https', // or http
-  //   hostname: 'logs-us-central1.grafana.net', // replace with hostname to use 
-  //   username: '', // OPTIONAL username for Loki API connection 
-  //   password: '', // OPTIONAL password for Loki API connection 
+  //   hostname: 'logs-us-central1.grafana.net', // replace with hostname to use
+  //   username: '', // OPTIONAL username for Loki API connection
+  //   password: '', // OPTIONAL password for Loki API connection
   //   external_labels: {}, // OPTIONAL labels to set for connection
   // }
-  newLokiClient(client_config):: 
+  newLokiClient(client_config)::
     {
       url: (
-        if std.objectHasAll(client_config, 'username') then 
+        if std.objectHasAll(client_config, 'username') then
           '%(scheme)s://%(username)s:%(password)s@%(hostname)s/loki/api/v1/push' % client_config
-        else 
+        else
           '%(scheme)s://%(hostname)s/loki/api/v1/push' % client_config
       ),
     } + (
-      if std.objectHasAll(client_config, 'external_labels') 
+      if std.objectHasAll(client_config, 'external_labels')
       then { external_labels: client_config.external_labels }
       else {}
     ),
 
   // withLokiClients adds clients to send logs to. At least one client must be
-  // present. Clients can be created by calling newLokiClient or by creating 
-  // an object that conforms to the Promtail client_config schema specified 
+  // present. Clients can be created by calling newLokiClient or by creating
+  // an object that conforms to the Promtail client_config schema specified
   // here:
   //
   // https://grafana.com/docs/loki/latest/clients/promtail/configuration/#client_config
-  // 
+  //
   // withLokiClients should be merged with the result of withLokiConfig.
   withLokiClients(clients):: {
     assert std.objectHasAll(self, '_loki_config') : |||
@@ -54,6 +57,22 @@ local scrape_k8s_logs = import '../internal/kubernetes_logs.libsonnet';
     _loki_config+:: {
       clients: if std.isArray(clients) then clients else [clients],
     },
+  },
+
+  // lokiPermissionsMixin mutates the container and deployment to work with
+  // reading Docker container logs.
+  lokiPermissionsMixin:: {
+    container+::
+      container.mixin.securityContext.withPrivileged(true) +
+      container.mixin.securityContext.withRunAsUser(0),
+
+    agent+::
+      // For reading docker containers
+      k.util.hostVolumeMount('varlog', '/var/log', '/var/log', readOnly=true) +
+      k.util.hostVolumeMount('varlibdockercontainers', '/var/lib/docker/containers', '/var/lib/docker/containers', readOnly=true) +
+
+      // For reading journald
+      k.util.hostVolumeMount('etcmachineid', '/etc/machine-id', '/etc/machine-id', readOnly=true) +
   },
 
   // scrapeKubernetesLogs defines a Loki config that can collect logs from

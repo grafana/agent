@@ -1,15 +1,15 @@
 local agent = import './internal/agent.libsonnet';
-local k = import 'ksonnet-util/kausal.libsonnet';
 local utils = import './internal/utils.libsonnet';
+local k = import 'ksonnet-util/kausal.libsonnet';
 
 local container = k.core.v1.container;
 
 // Merge all of our libraries to create the final exposed library.
-( import './lib/deployment.libsonnet' ) +
-( import './lib/integrations.libsonnet' ) +
-( import './lib/prometheus.libsonnet' ) +
-( import './lib/scraping_service.libsonnet' ) +
-( import './lib/loki.libsonnet' ) +
+(import './lib/deployment.libsonnet') +
+(import './lib/integrations.libsonnet') +
+(import './lib/prometheus.libsonnet') +
+(import './lib/scraping_service.libsonnet') +
+(import './lib/loki.libsonnet') +
 {
   _images:: {
     agent: 'grafana/agent:v0.5.0',
@@ -76,17 +76,10 @@ local container = k.core.v1.container;
 
     agent:
       agent.newAgent(name, namespace, self._images.agent, self.config, use_daemonset=true) +
-      agent.withConfigHash(self._config_hash) + {
-        container+:: 
-          // If the Agent is running Loki, it must run as root and with privileged
-          // to be able to access container logs. This is not required when just
-          // running Prometheus.
-          if has_loki_config then
-            container.mixin.securityContext.withPrivileged(true) +
-            container.mixin.securityContext.withRunAsUser(0)
-          else {}
-      },
-      
+      agent.withConfigHash(self._config_hash) + (
+        if has_loki_config then $.lokiPermissionsMixin else {}
+      ),
+
     agent_etc: if std.length(etc_instances) > 0 then
       agent.newAgent(name + '-etc', namespace, self._images.agent, self.etc_config, use_daemonset=false) +
       agent.withConfigHash(self._config_hash),
