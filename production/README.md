@@ -61,6 +61,7 @@ The Tanka configs we use to deploy the agent ourselves can be found in our
 [production Tanka directory](./tanka/grafana-agent). These configs are also used
 to generate the Kubernetes configs for the install script. To get started with
 the tanka configs, do the following:
+
 ```
 mkdir tanka-agent
 cd tanka-agent
@@ -85,4 +86,4 @@ agent {
 ```
 
 If all these steps worked, `tk eval environments/default` should output the
-default JSON we use to build our kubernetes manifests.
+default JSON we use to build our Kubernetes manifests.

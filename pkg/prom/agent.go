@@ -158,6 +158,7 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 		cfg:             cfg,
 		logger:          log.With(logger, "agent", "prometheus"),
 		instanceFactory: fact,
+		reg:             reg,
 	}
 
 	a.cm = instance.NewBasicManager(instance.BasicManagerConfig{
