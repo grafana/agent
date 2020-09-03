@@ -52,12 +52,16 @@ docker pull grafana/agent:v0.5.0
 ### Kubernetes Install Script
 
 Running this script will automatically download and apply our recommended
-Grafana Cloud Agent Kubernetes deployment manifest (requires `envsubst` (GNU gettext)):
+Grafana Cloud Agent Kubernetes deployment manifests (requires `envsubst` (GNU gettext)).
+Two manifests will be installed: one for collecting metrics, and the other for
+collecting logs. You will be prompted for input for each manifest that is
+applied.
 
 > **Warning**: Always verify scripts from the internet before running them.
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
 ```
 
 ### Kubernetes Manifest
