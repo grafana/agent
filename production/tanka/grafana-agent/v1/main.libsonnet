@@ -69,7 +69,9 @@ local container = k.core.v1.container;
     etc_config:: if has_prometheus_config then this.config {
       // Hide loki and integrations from our extra configs, we just want the
       // scrape configs that wouldn't work for the DaemonSet.
-      prometheus+: { configs: etc_instances },
+      prometheus+: { 
+        configs: std.map(function(cfg) cfg { host_filter: false, }, etc_instances),
+      },
       loki:: {},
       integrations:: {},
     },
