@@ -166,6 +166,10 @@ func (w *Storage) replayWAL() error {
 	w.walMtx.Lock()
 	defer w.walMtx.Unlock()
 
+	if w.isWALClosed() {
+		return ErrWALClosed
+	}
+
 	level.Info(w.logger).Log("msg", "replaying WAL, this may take a while", "dir", w.wal.Dir())
 	dir, startFrom, err := wal.LastCheckpoint(w.wal.Dir())
 	if err != nil && err != record.ErrNotFound {
