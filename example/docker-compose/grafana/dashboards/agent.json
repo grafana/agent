@@ -79,7 +79,7 @@
                      "unit": "short"
                   },
                   {
-                     "alias": "Instance",
+                     "alias": "Container",
                      "colorMode": null,
                      "colors": [ ],
                      "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -87,13 +87,13 @@
                      "link": false,
                      "linkTooltip": "Drill down",
                      "linkUrl": "",
-                     "pattern": "instance",
+                     "pattern": "container",
                      "thresholds": [ ],
                      "type": "number",
                      "unit": "short"
                   },
                   {
-                     "alias": "Job",
+                     "alias": "Pod",
                      "colorMode": null,
                      "colors": [ ],
                      "dateFormat": "YYYY-MM-DD HH:mm:ss",
@@ -101,7 +101,7 @@
                      "link": false,
                      "linkTooltip": "Drill down",
                      "linkUrl": "",
-                     "pattern": "job",
+                     "pattern": "pod",
                      "thresholds": [ ],
                      "type": "number",
                      "unit": "short"
@@ -134,7 +134,7 @@
                ],
                "targets": [
                   {
-                     "expr": "count by (job, instance, version) (agent_build_info{job=~\"$job\", instance=~\"$instance\"})",
+                     "expr": "count by (pod, container, version) (agent_build_info{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"})",
                      "format": "table",
                      "instant": true,
                      "intervalFactor": 2,
@@ -143,7 +143,7 @@
                      "step": 10
                   },
                   {
-                     "expr": "max by (job, instance) (time() - process_start_time_seconds{job=~\"$job\", instance=~\"$instance\"})",
+                     "expr": "max by (pod, container) (time() - process_start_time_seconds{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"})",
                      "format": "table",
                      "instant": true,
                      "intervalFactor": 2,
@@ -233,10 +233,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum(rate(prometheus_target_sync_length_seconds_sum{job=~\"$job\",instance=~\"$instance\"}[5m])) by (scrape_job) * 1e3",
+                     "expr": "sum(rate(prometheus_target_sync_length_seconds_sum{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])) by (pod, scrape_job) * 1e3",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{scrape_job}}",
+                     "legendFormat": "{{pod}}/{{scrape_job}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -309,7 +309,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum(prometheus_sd_discovered_targets{job=~\"$job\",instance=~\"$instance\"})",
+                     "expr": "sum(prometheus_sd_discovered_targets{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"})",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "Targets",
@@ -397,10 +397,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(prometheus_target_interval_length_seconds_sum{job=~\"$job\",instance=~\"$instance\"}[5m]) / rate(prometheus_target_interval_length_seconds_count{job=~\"$job\",instance=~\"$instance\"}[5m]) * 1e3",
+                     "expr": "rate(prometheus_target_interval_length_seconds_sum{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])\n/\nrate(prometheus_target_interval_length_seconds_count{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])\n* 1e3\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{interval}} configured",
+                     "legendFormat": "{{pod}} {{interval}} configured",
                      "legendLink": null,
                      "step": 10
                   }
@@ -573,10 +573,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(prometheus_tsdb_head_samples_appended_total{job=~\"$job\",instance=~\"$instance\"}[5m])",
+                     "expr": "sum by (job, instance_group_name) (rate(agent_wal_storage_samples_appended_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}} {{instance}}",
+                     "legendFormat": "{{job}} {{instance_group_name}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -655,11 +655,11 @@
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "job",
+            "label": "cluster",
             "multi": true,
-            "name": "job",
+            "name": "cluster",
             "options": [ ],
-            "query": "label_values(agent_build_info, job)",
+            "query": "label_values(agent_build_info, cluster)",
             "refresh": 1,
             "regex": "",
             "sort": 2,
@@ -679,11 +679,59 @@
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "instance",
+            "label": "namespace",
             "multi": true,
-            "name": "instance",
+            "name": "namespace",
             "options": [ ],
-            "query": "label_values(agent_build_info, instance)",
+            "query": "label_values(agent_build_info, namespace)",
+            "refresh": 1,
+            "regex": "",
+            "sort": 2,
+            "tagValuesQuery": "",
+            "tags": [ ],
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+         },
+         {
+            "allValue": null,
+            "current": {
+               "selected": true,
+               "text": "All",
+               "value": "$__all"
+            },
+            "datasource": "$datasource",
+            "hide": 0,
+            "includeAll": true,
+            "label": "container",
+            "multi": true,
+            "name": "container",
+            "options": [ ],
+            "query": "label_values(agent_build_info, container)",
+            "refresh": 1,
+            "regex": "",
+            "sort": 2,
+            "tagValuesQuery": "",
+            "tags": [ ],
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+         },
+         {
+            "allValue": "grafana-agent-.*",
+            "current": {
+               "selected": true,
+               "text": "All",
+               "value": "$__all"
+            },
+            "datasource": "$datasource",
+            "hide": 0,
+            "includeAll": true,
+            "label": "pod",
+            "multi": true,
+            "name": "pod",
+            "options": [ ],
+            "query": "label_values(agent_build_info{container=~\"$container\"}, pod)",
             "refresh": 1,
             "regex": "",
             "sort": 2,

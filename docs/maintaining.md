@@ -53,10 +53,12 @@ export GPG_TTY=$(tty)
    for generating the list (modifying the date to the date of the previous release): `curl https://api.github.com/search/issues?q=repo:grafana/agent+is:pr+"merged:>=2019-08-02" | jq -r ' .items[] | "* [" + (.number|tostring) + "](" + .html_url + ") **" + .user.login + "**: " + .title'`
 4. Go through the entire repository and find references to the previous release
    version, updating them to reference the new version.
-5. *Without creating a tag*, create a commit based on your changes and open a PR
+5. Run `make example-kubernetes` and `make example-dashboards` to update
+   manifests in case they are stale.
+6. *Without creating a tag*, create a commit based on your changes and open a PR
    for updating the release notes.
-6. Merge the changelog PR.
-7. Create a new tag for the release.
+7. Merge the changelog PR.
+8. Create a new tag for the release.
     1. After following step 2, the CI will be triggered to create release
        artifacts and publish them to a draft release. The tag will be made
        publicly available immediately.
@@ -69,7 +71,7 @@ export GPG_TTY=$(tty)
        git tag -s $RELEASE -m "release $RELEASE"
        git push origin $RELEASE
        ```
-8. Watch GitHub Actions and wait for all the jobs to finish running.
+9. Watch GitHub Actions and wait for all the jobs to finish running.
 
 ## Publishing the Release Draft
 

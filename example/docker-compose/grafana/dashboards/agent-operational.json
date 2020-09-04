@@ -45,10 +45,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(go_gc_duration_seconds_count{cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\"}[5m])",
+                     "expr": "rate(go_gc_duration_seconds_count{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -121,10 +121,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\"}",
+                     "expr": "go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -197,10 +197,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "go_goroutines{cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\"}",
+                     "expr": "go_goroutines{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -273,10 +273,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\", pod_name=~\".*grafana-agent.*\"}[5m])",
+                     "expr": "rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\", container=~\"$container\", pod=~\"$pod\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -349,10 +349,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "container_memory_working_set_bytes{cluster=~\"$cluster\", pod_name=~\".*grafana-agent.*\"}",
+                     "expr": "container_memory_working_set_bytes{cluster=~\"$cluster\", container=~\"$container\", pod=~\"$pod\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -513,10 +513,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(container_network_receive_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", pod_name=~\".*grafana-agent.*\"}[5m])",
+                     "expr": "sum by (pod) (rate(container_network_receive_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", pod=~\"$pod\"}[5m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -524,7 +524,7 @@
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "RX",
+               "title": "RX by Pod",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -589,10 +589,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(container_network_transmit_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", pod_name=~\".*grafana-agent.*\"}[5m])",
+                     "expr": "sum by (pod) (rate(container_network_transmit_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", pod=~\"$pod\"}[5m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -600,7 +600,7 @@
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "TX",
+               "title": "TX by Pod",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -677,10 +677,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "(sum by (job, instance) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", job=~\"$job\", instance=~\"$instance\"}[1m])))\n/\n(sum by (job, instance) (agent_wal_storage_active_series{cluster=~\"$cluster\", job=~\"$job\", instance=~\"$instance\"}))\n",
+                     "expr": "(sum by (pod) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}[1m])))\n/\n(sum by (pod) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{instance}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -688,7 +688,7 @@
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Bytes/Series/Instance",
+               "title": "Bytes/Series/Pod",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -753,10 +753,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "(sum by (job) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", job=~\"$job\", instance=~\"$instance\"}[1m])))\n/\n(sum by (job) (agent_wal_storage_active_series{cluster=~\"$cluster\", job=~\"$job\", instance=~\"$instance\"}))\n",
+                     "expr": "(sum by (container) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}[1m])))\n/\n(sum by (container) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{container}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -829,10 +829,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum by (instance) (agent_wal_storage_active_series{cluster=~\"$cluster\", job=~\"$job\", instance=~\"$instance\"})",
+                     "expr": "sum by (pod) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"})",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{instance}}",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -840,7 +840,7 @@
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Series/Instance",
+               "title": "Series/Pod",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -905,10 +905,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum by (instance_name) (agent_wal_storage_active_series{cluster=~\"$cluster\", job=~\"$job\", instance=~\"$instance\"})",
+                     "expr": "sum by (instance_group_name) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"})",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{instance_name}}",
+                     "legendFormat": "{{instance_group_name}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -981,10 +981,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum by (job) (agent_wal_storage_active_series{cluster=~\"$cluster\", job=~\"$job\", instance=~\"$instance\"})",
+                     "expr": "sum by (container) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"})",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
+                     "legendFormat": "{{container}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -1111,11 +1111,11 @@
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "job",
+            "label": "container",
             "multi": true,
-            "name": "job",
+            "name": "container",
             "options": [ ],
-            "query": "label_values(agent_build_info, job)",
+            "query": "label_values(agent_build_info, container)",
             "refresh": 1,
             "regex": "",
             "sort": 2,
@@ -1126,7 +1126,7 @@
             "useTags": false
          },
          {
-            "allValue": null,
+            "allValue": "grafana-agent-.*",
             "current": {
                "selected": true,
                "text": "All",
@@ -1135,11 +1135,11 @@
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "instance",
+            "label": "pod",
             "multi": true,
-            "name": "instance",
+            "name": "pod",
             "options": [ ],
-            "query": "label_values(agent_build_info, instance)",
+            "query": "label_values(agent_build_info{container=~\"$container\"}, pod)",
             "refresh": 1,
             "regex": "",
             "sort": 2,

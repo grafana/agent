@@ -52,10 +52,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "(\n  prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}\n-\n  ignoring(url, remote_name) group_right(instance) prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}\n)\n",
+                     "expr": "(\n  prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}\n  -\n  ignoring(url, instance_group_name, remote_name) group_right(pod)\n  prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}\n)\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -131,10 +131,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "(\n  rate(prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n-\n  ignoring (url, remote_name) group_right(instance) rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n)\n",
+                     "expr": "(\n  rate(prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])\n  -\n  ignoring(url, instance_group_name, remote_name) group_right(pod)\n  rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])\n)\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -223,10 +223,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(\n  prometheus_remote_storage_samples_in_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n-\n  ignoring(url, remote_name) group_right(instance) rate(prometheus_remote_storage_succeeded_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n-\n  rate(prometheus_remote_storage_dropped_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])\n",
+                     "expr": "rate(\n  prometheus_remote_storage_samples_in_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])\n-\n  ignoring(url, instance_group_name, remote_name) group_right(pod)\n  rate(prometheus_remote_storage_succeeded_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])\n-\n  rate(prometheus_remote_storage_dropped_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -316,10 +316,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_remote_storage_shards{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "prometheus_remote_storage_shards{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -395,10 +395,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_remote_storage_shards_max{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "prometheus_remote_storage_shards_max{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -474,10 +474,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_remote_storage_shards_min{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "prometheus_remote_storage_shards_min{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -553,10 +553,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_remote_storage_shards_desired{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "prometheus_remote_storage_shards_desired{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -645,10 +645,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_remote_storage_shard_capacity{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "prometheus_remote_storage_shard_capacity{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -724,10 +724,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_remote_storage_pending_samples{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "prometheus_remote_storage_pending_samples{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -816,10 +816,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "prometheus_wal_watcher_current_segment{cluster=~\"$cluster\", instance=~\"$instance\"}",
+                     "expr": "prometheus_wal_watcher_current_segment{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -908,10 +908,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(prometheus_remote_storage_dropped_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
+                     "expr": "rate(prometheus_remote_storage_dropped_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -987,10 +987,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(prometheus_remote_storage_failed_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
+                     "expr": "rate(prometheus_remote_storage_failed_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -1066,10 +1066,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(prometheus_remote_storage_retried_samples_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
+                     "expr": "rate(prometheus_remote_storage_retried_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -1145,10 +1145,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(prometheus_remote_storage_enqueue_retries_total{cluster=~\"$cluster\", instance=~\"$instance\"}[5m])",
+                     "expr": "rate(prometheus_remote_storage_enqueue_retries_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{instance}}-{{url}}",
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
                      "refId": "A"
                   }
                ],
@@ -1232,9 +1232,9 @@
             "includeAll": true,
             "label": null,
             "multi": false,
-            "name": "instance",
+            "name": "cluster",
             "options": [ ],
-            "query": "label_values(agent_build_info, instance)",
+            "query": "label_values(agent_build_info, cluster)",
             "refresh": 2,
             "regex": "",
             "sort": 0,
@@ -1263,9 +1263,71 @@
             "includeAll": true,
             "label": null,
             "multi": false,
-            "name": "cluster",
+            "name": "namespace",
             "options": [ ],
-            "query": "label_values(agent_build_info, cluster)",
+            "query": "label_values(agent_build_info, namespace)",
+            "refresh": 2,
+            "regex": "",
+            "sort": 0,
+            "tagValuesQuery": "",
+            "tags": [ ],
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+         },
+         {
+            "allValue": null,
+            "current": {
+               "text": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               },
+               "value": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               }
+            },
+            "datasource": "$datasource",
+            "hide": 0,
+            "includeAll": true,
+            "label": null,
+            "multi": false,
+            "name": "container",
+            "options": [ ],
+            "query": "label_values(agent_build_info, container)",
+            "refresh": 2,
+            "regex": "",
+            "sort": 0,
+            "tagValuesQuery": "",
+            "tags": [ ],
+            "tagsQuery": "",
+            "type": "query",
+            "useTags": false
+         },
+         {
+            "allValue": null,
+            "current": {
+               "text": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               },
+               "value": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               }
+            },
+            "datasource": "$datasource",
+            "hide": 0,
+            "includeAll": true,
+            "label": null,
+            "multi": false,
+            "name": "pod",
+            "options": [ ],
+            "query": "label_values(agent_build_info{container=~\"$container\"}, pod)",
             "refresh": 2,
             "regex": "",
             "sort": 0,
@@ -1285,7 +1347,7 @@
             "multi": false,
             "name": "url",
             "options": [ ],
-            "query": "label_values(prometheus_remote_storage_shards{cluster=~\"$cluster\", instance=~\"$instance\"}, url)",
+            "query": "label_values(prometheus_remote_storage_shards{cluster=~\"$cluster\", pod=~\"$pod\"}, url)",
             "refresh": 2,
             "regex": "",
             "sort": 0,
