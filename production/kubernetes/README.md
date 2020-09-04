@@ -1,54 +1,67 @@
 # Kubernetes Config
 
-This directory contains an [`agent.yaml`](./agent.yaml) template file
-and an [install script](./install.sh) that renders the template
-for application against Kubernetes.
+This directory contains Kubernetes manifest templates and installation scripts
+for rendering the templates so they can be applied against Kubernetes.
 
-## Install Script
+Manifests:
 
-The install script does the following:
+- Metric collection: [`agent.yaml`](./agent.yaml)
+- Log collection: [`agent-loki.yaml`](./agent-loki.yaml)
 
-1. Prmopts the user for their remote write URL, username, and password
-2. Downloads `agent.yaml` from GitHub
+Installation script:
+
+- Metric collection: [`install.sh`](./install.sh)
+- Log collection: [`install-loki.sh`](./install-loki.sh)
+
+## Install Scripts
+
+There are two installation scripts, one for metrics and the other for logs. Each
+install script does the following:
+
+1. Prmopts the user for their remote target credentials (Prometheus remote_write, Loki client).
+2. Downloads the manifest template from GitHub
 3. Substitutes variables in the template with the provided input from
    step 1.
 4. Prints out the final manifest to stdout without applying it.
 
-Here's a one-line script to copy and paste to install the Agent on
-Kubernetes (requires `envsubst` (GNU gettext)):
+Here's a two-line script to copy and paste to install the Agent on
+Kubernetes for collecting metrics and logs (requires `envsubst` (GNU gettext)):
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.5.0/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.5.0/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
 ```
 
 ## Manually Applying
 
-Since the `agent.yaml` file is just a template, note that it is *not* ready for
-applying out of the box and you'll have to manually reproduce the steps that the
-install script does:
+Since the manifest files are just templates, note that they are *not* ready for
+applying out of the box and you will have to manually reroduce the steps that
+the installation script does:
 
-1. Download `agent.yaml` locally.
+1. Download the manifest as `manifest.yaml`.
 
-2. Modify your copy of `agent.yaml`, replacing the following strings with the
+2. Modify your copy of the manifest, replacing all variables with the
    appropriate values:
 
-  1. Replace `${REMOTE_WRITE_URL}` with the full endpoint of the remote
-     write API.
+   1. For the metrics collection manifest, replace `${REMOTE_WRITE_URL}` with
+      the full endpoint of the Prometheus remote write API. For logs collection,
+      replace `${LOKI_HOSTNAME}` with the hostname of the Loki API. Unlike the
+      remote write API, `${LOKI_HOSTNAME}` should _only_ be the hostname, such
+      as `localhost` or `logs-us-central1.grafana.net`.
 
-  2. Replace `${REMOTE_WRITE_PASSWORD}` with the password of the remote
-     write API's authentication. If you do not need authentication to the
-     remote write API, remove the entire `basic_auth` section, leaving just
-     the URL.
+  2. Replace `${REMOTE_WRITE_PASSWORD}` or `${LOKI_PASSWORD}` with the password
+     for authentication against the remote API. If you do not need
+     authentication, remove the entire authentication section. 
 
-  3. If you did not remove the `basic_auth` section from the previous step,
-     replace `${REMOTE_WRITE_USERNAME}` with the username used to connect to
-     the remote write API.
+  3. If you did not remove the authentication section from the previous step,
+     replace `${REMOTE_WRITE_USERNAME}` or `${LOKI_USERNAME}` with the username
+     used to connect to the remote API.
 
-3. Apply the modified `agent.yaml` file: `kubectl -ndefault apply -f agent.yaml`.
+3. Apply the modified manifest file: `kubectl -ndefault apply -f manifest.yaml`.
 
-## Rebuilding the YAML file
+## Rebuilding the manifests 
 
-The YAML file provided is created using Grafana Labs' production
+The manifests provided are created using Grafana Labs' production 
 [Tanka configs](../tanka/grafana-agent) with some default values. If you want to
 build the YAML file with some custom values, you will need the following pieces
 of software installed:
