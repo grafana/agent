@@ -293,14 +293,13 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				// sample. Otherwise, the series is stale and will be deleted once
 				// the truncation is performed.
 				if w.series.getByID(s.Ref) == nil {
-					series := &memSeries{ref: s.Ref, hash: s.Labels.Hash(), lastTs: 0}
+					series := &memSeries{ref: s.Ref, lset: s.Labels, lastTs: 0}
 
 					// Store both the series and the labels so the appender's Add function
 					// can look up this series later. We only want to store the labels for
 					// replayed series and delete the entry for the after it's read to save
 					// on memory usage.
-					w.series.set(series)
-					w.series.saveLabels(series.hash, series, s.Labels)
+					w.series.set(s.Labels.Hash(), series)
 
 					w.metrics.numActiveSeries.Inc()
 					w.metrics.totalCreatedSeries.Inc()
@@ -558,7 +557,6 @@ type appender struct {
 
 func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	hash := l.Hash()
-
 	series := a.w.series.getByHash(hash, l)
 	if series != nil {
 		return series.ref, a.AddFast(series.ref, t, v)
@@ -569,7 +567,7 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	a.w.nextRef++
 	a.w.mtx.Unlock()
 
-	series = &memSeries{ref: ref, hash: hash}
+	series = &memSeries{ref: ref, lset: l}
 	series.updateTs(t)
 
 	a.series = append(a.series, record.RefSeries{
@@ -577,8 +575,7 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 		Labels: l,
 	})
 
-	a.w.series.set(series)
-	a.w.series.saveLabels(series.hash, series, l)
+	a.w.series.set(hash, series)
 
 	a.w.metrics.numActiveSeries.Inc()
 	a.w.metrics.totalCreatedSeries.Inc()

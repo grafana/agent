@@ -11,7 +11,7 @@ type memSeries struct {
 	sync.Mutex
 
 	ref    uint64
-	hash   uint64
+	lset   labels.Labels
 	lastTs int64
 
 	// TODO(rfratto): this solution below isn't perfect, and there's still
@@ -44,44 +44,37 @@ func (s *memSeries) updateTs(ts int64) {
 // avoid re-computations throughout the code.
 //
 // This code is copied from the Prometheus TSDB.
-type seriesHashmap map[uint64][]*refLabelsPair
+type seriesHashmap map[uint64][]*memSeries
 
-type refLabelsPair struct {
-	ref    uint64
-	labels labels.Labels
-}
-
-func (m seriesHashmap) get(hash uint64, lset labels.Labels) (uint64, bool) {
+func (m seriesHashmap) get(hash uint64, lset labels.Labels) *memSeries {
 	for _, s := range m[hash] {
-		if labels.Equal(s.labels, lset) {
-			return s.ref, true
+		if labels.Equal(s.lset, lset) {
+			return s
 		}
 	}
-	return 0, false
+	return nil
 }
 
-func (m seriesHashmap) set(hash uint64, lset labels.Labels, ref uint64) {
-	intern.InternLabels(intern.Global, lset)
-
-	pair := refLabelsPair{ref: ref, labels: lset}
+func (m seriesHashmap) set(hash uint64, s *memSeries) {
+	intern.InternLabels(intern.Global, s.lset)
 
 	l := m[hash]
 	for i, prev := range l {
-		if labels.Equal(prev.labels, lset) {
-			l[i] = &pair
+		if labels.Equal(prev.lset, s.lset) {
+			l[i] = s
 			return
 		}
 	}
-	m[hash] = append(l, &pair)
+	m[hash] = append(l, s)
 }
 
 func (m seriesHashmap) del(hash uint64, ref uint64) {
-	var rem []*refLabelsPair
+	var rem []*memSeries
 	for _, s := range m[hash] {
 		if s.ref != ref {
 			rem = append(rem, s)
 		} else {
-			intern.ReleaseLabels(intern.Global, s.labels)
+			intern.ReleaseLabels(intern.Global, s.lset)
 		}
 	}
 	if len(rem) == 0 {
@@ -148,6 +141,7 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 
 		for _, series := range s.series[i] {
 			series.Lock()
+			seriesHash := series.lset.Hash()
 
 			// If the series has received a write after mint, there's still
 			// data and it's not completely gone yet.
@@ -168,14 +162,14 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 
 			// The series is gone entirely. We'll need to delete the label
 			// hash (if one exists) so we'll obtain a lock for that too.
-			j := int(series.hash) & (s.size - 1)
+			j := int(seriesHash) & (s.size - 1)
 			if i != j {
 				s.locks[j].Lock()
 			}
 
 			deleted[series.ref] = struct{}{}
 			delete(s.series[i], series.ref)
-			s.hashes[j].del(series.hash, series.ref)
+			s.hashes[j].del(seriesHash, series.ref)
 
 			if i != j {
 				s.locks[j].Unlock()
@@ -200,40 +194,25 @@ func (s *stripeSeries) getByID(id uint64) *memSeries {
 	return series
 }
 
-// getByHash looks up a series that was saved via saveLabels.
 func (s *stripeSeries) getByHash(hash uint64, lset labels.Labels) *memSeries {
 	i := hash & uint64(s.size-1)
 
 	s.locks[i].RLock()
-	defer s.locks[i].RUnlock()
+	series := s.hashes[i].get(hash, lset)
+	s.locks[i].RUnlock()
 
-	ref, ok := s.hashes[i].get(hash, lset)
-	if !ok {
-		return nil
-	}
-
-	j := ref & uint64(s.size-1)
-	if j != i {
-		s.locks[j].RLock()
-		defer s.locks[j].RUnlock()
-	}
-
-	return s.series[j][ref]
+	return series
 }
 
-func (s *stripeSeries) set(series *memSeries) {
-	i := series.ref & uint64(s.size-1)
+func (s *stripeSeries) set(hash uint64, series *memSeries) {
+	i := hash & uint64(s.size-1)
+	s.locks[i].Lock()
+	s.hashes[i].set(hash, series)
+	s.locks[i].Unlock()
 
+	i = series.ref & uint64(s.size-1)
 	s.locks[i].Lock()
 	s.series[i][series.ref] = series
-	s.locks[i].Unlock()
-}
-
-func (s *stripeSeries) saveLabels(hash uint64, series *memSeries, lbls labels.Labels) {
-	i := hash & uint64(s.size-1)
-
-	s.locks[i].Lock()
-	s.hashes[i].set(hash, lbls, series.ref)
 	s.locks[i].Unlock()
 }
 
@@ -257,7 +236,7 @@ func (it *stripeSeriesIterator) Channel() <-chan *memSeries {
 			for _, series := range it.s.series[i] {
 				series.Lock()
 
-				j := int(series.hash) & (it.s.size - 1)
+				j := int(series.lset.Hash()) & (it.s.size - 1)
 				if i != j {
 					it.s.locks[j].RLock()
 				}
