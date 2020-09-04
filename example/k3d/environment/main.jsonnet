@@ -1,6 +1,5 @@
 local default = import 'default/main.libsonnet';
 local etcd = import 'etcd/main.libsonnet';
-//local grafana_agent = import 'grafana-agent/grafana-agent.libsonnet';
 local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 

@@ -11,11 +11,14 @@ use-case best.
 
 #### Kubernetes Install Script
 
-The following script will download a Kubernetes manifest for the Agent and
-prompt for remote_write credentials. It requires curl and envsubst (GNU gettext).
+The following scripts will download and install two Kubernetes manifests for the
+Agent. The first manifest will collect metrics and the second will collect logs. 
+You will be prompted for input for each manifest. The script requires curl and
+envsubst (GNU gettext).
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
 ```
 
 #### Docker container:

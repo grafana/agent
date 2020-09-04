@@ -66,7 +66,7 @@ local container = k.core.v1.container;
       container.mixin.securityContext.withPrivileged(true) +
       container.mixin.securityContext.withRunAsUser(0),
 
-    agent+::
+    agent+:
       // For reading docker containers
       k.util.hostVolumeMount('varlog', '/var/log', '/var/log', readOnly=true) +
       k.util.hostVolumeMount('varlibdockercontainers', '/var/lib/docker/containers', '/var/lib/docker/containers', readOnly=true) +
