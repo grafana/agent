@@ -16,7 +16,7 @@ check_installed() {
 check_installed curl
 check_installed envsubst
 
-MANIFEST_BRANCH=master
+MANIFEST_BRANCH=v0.6.0
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent-bare.yaml}
 
 curl -fsSL $MANIFEST_URL | envsubst
