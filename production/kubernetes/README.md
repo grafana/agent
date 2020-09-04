@@ -28,8 +28,8 @@ Here's a two-line script to copy and paste to install the Agent on
 Kubernetes for collecting metrics and logs (requires `envsubst` (GNU gettext)):
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.5.0/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.5.0/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.6.0/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.6.0/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
 ```
 
 ## Manually Applying

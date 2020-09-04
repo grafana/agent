@@ -12,8 +12,8 @@ local container = k.core.v1.container;
 (import './lib/loki.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v0.5.0',
-    agentctl: 'grafana/agentctl:v0.5.0',
+    agent: 'grafana/agent:v0.6.0',
+    agentctl: 'grafana/agentctl:v0.6.0',
   },
 
   // new creates a new DaemonSet deployment of the grafana-agent. By default,

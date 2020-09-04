@@ -4,6 +4,12 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+# v0.6.0 (2020-09-04)
+
+NOTE: FreeBSD builds will not be included for this release. There is a bug in an
+upstream library preventing cross-compilation of the Grafana Cloud Agent for
+this platform. FreeBSD builds will return in a future release.
+
 - [FEATURE] The Grafana Cloud Agent can now collect logs and send to Loki. This
   is done by embedding Promtail, the official Loki log collection client.
   (@rfratto)
