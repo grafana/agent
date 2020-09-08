@@ -1,149 +1,139 @@
 package tempo
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/build"
-	"github.com/spf13/viper"
+	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
-	"go.opentelemetry.io/collector/exporter/otlpexporter"
-	"go.opentelemetry.io/collector/extension/healthcheckextension"
-	"go.opentelemetry.io/collector/extension/pprofextension"
-	"go.opentelemetry.io/collector/extension/zpagesextension"
-	"go.opentelemetry.io/collector/processor/attributesprocessor"
-	"go.opentelemetry.io/collector/processor/batchprocessor"
-	"go.opentelemetry.io/collector/processor/filterprocessor"
-	"go.opentelemetry.io/collector/processor/memorylimiter"
-	"go.opentelemetry.io/collector/processor/queuedprocessor"
-	"go.opentelemetry.io/collector/processor/resourceprocessor"
-	"go.opentelemetry.io/collector/processor/samplingprocessor/probabilisticsamplerprocessor"
-	"go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor"
-	"go.opentelemetry.io/collector/processor/spanprocessor"
-	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
-	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
-	"go.opentelemetry.io/collector/service"
+	"go.opentelemetry.io/collector/service/builder"
 )
 
-// Config controls the configuration of the Tempo log scraper.
-type Config struct {
-	// Whether the Tempo subsystem should be enabled.
-	Enabled bool `yaml:"-"`
-
-	// OpenTelemetry Collector configuration: https://github.com/open-telemetry/opentelemetry-collector/blob/master/docs/design.md
-	TracingPipelines map[string]interface{} `yaml:",inline"`
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// If the Config is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
+/*
+jpe - document somewhere:
+tempo:
+  receivers:
+    jaeger:
+      ...
+  remote_write:
+    url: doesntexist:12345
+    batch_config:
+      send_batch_size: 1024
+      timeout: 5s
+*/
 
 // Tempo wraps the OpenTelemetry collector to enablet tracing pipelines
 type Tempo struct {
-	svc *service.Application
+	logger *zap.Logger
+
+	exporter  builder.Exporters
+	pipelines builder.BuiltPipelines
+	receivers builder.Receivers
 }
 
 // New creates and starts Loki log collection.
-func New(c Config, l log.Logger) (*Tempo, error) {
+func New(cfg Config, l log.Logger) (*Tempo, error) { // jpe what do with logger?
+	var err error
 
-	info := service.ApplicationStartInfo{
-		ExeName:  "grafana-agent",
-		LongName: "Grafana Agent",
-		Version:  build.Version,
-		GitHash:  build.Revision,
-	}
-
-	cfgFactory := func(v *viper.Viper, factories config.Factories) (*configmodels.Config, error) {
-		return nil, nil
-	}
-
-	componentFactories, err := tracingFactories()
+	tempo := &Tempo{}
+	tempo.logger, err = zap.NewProduction()
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize factories %w", err)
+		return nil, fmt.Errorf("failed to create zap prod logger %w", err)
 	}
 
-	svc, err := service.New(service.Parameters{
-		ApplicationStartInfo: info,
-		Factories:            componentFactories,
-		ConfigFactory:        service.ConfigFactory(cfgFactory),
-	})
+	createCtx := context.Background()
+	err = tempo.buildAndStartPipeline(createCtx, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create OpenTelemetry Collector service %w", err)
+		return nil, fmt.Errorf("failed to create exporter %w", err)
 	}
 
-	// jpe only allow trace pipelines?
-
-	// jpe async start?  ruh-roh
-	err = svc.Start()
-	if err != nil {
-		return nil, fmt.Errorf("unable to start OpenTelemetry Collector service %w", err)
-	}
-
-	return &Tempo{}, nil
+	return tempo, nil
 }
 
 // Stop stops the OpenTelemetry collector subsystem
 func (t *Tempo) Stop() {
-	if t.svc != nil {
-		// jpe - how to stop.  service doesn't have a way to stop it.  listens to signals channel on its own
+	shutdownCtx := context.Background()
+
+	if err := t.receivers.ShutdownAll(shutdownCtx); err != nil {
+		t.logger.Error("failed to shutdown receiver", zap.Error(err))
+	}
+
+	if err := t.pipelines.ShutdownProcessors(shutdownCtx); err != nil {
+		t.logger.Error("failed to shutdown processors", zap.Error(err))
+	}
+
+	if err := t.receivers.ShutdownAll(shutdownCtx); err != nil {
+		t.logger.Error("failed to shutdown receivers", zap.Error(err))
 	}
 }
 
-func tracingFactories() (config.Factories, error) {
-	extensions, err := component.MakeExtensionFactoryMap(
-		&healthcheckextension.Factory{},
-		&pprofextension.Factory{},
-		&zpagesextension.Factory{},
-	)
+func (t *Tempo) buildAndStartPipeline(ctx context.Context, cfg Config) error {
+	// create component factories
+	otelConfig, err := cfg.otelConfig()
 	if err != nil {
-		return config.Factories{}, err
+		return fmt.Errorf("failed to load otelConfig from agent tempo config %w", err)
 	}
 
-	receivers, err := component.MakeReceiverFactoryMap(
-		jaegerreceiver.NewFactory(),
-		&zipkinreceiver.Factory{},
-		otlpreceiver.NewFactory(),
-	)
+	factories, err := tracingFactories()
 	if err != nil {
-		return config.Factories{}, err
+		return fmt.Errorf("failed to load tracing factories %w", err)
 	}
 
-	exporters, err := component.MakeExporterFactoryMap(
-		&otlpexporter.Factory{},
-	)
+	// start exporter
+	t.exporter, err = builder.NewExportersBuilder(t.logger, otelConfig, factories.Exporters).Build()
 	if err != nil {
-		return config.Factories{}, err
+		return fmt.Errorf("failed to build exporters %w", err)
 	}
 
-	processors, err := component.MakeProcessorFactoryMap(
-		attributesprocessor.NewFactory(),
-		resourceprocessor.NewFactory(),
-		queuedprocessor.NewFactory(),
-		batchprocessor.NewFactory(),
-		memorylimiter.NewFactory(),
-		&tailsamplingprocessor.Factory{},
-		&probabilisticsamplerprocessor.Factory{},
-		spanprocessor.NewFactory(),
-		filterprocessor.NewFactory(),
-	)
+	err = t.exporter.StartAll(ctx, t)
 	if err != nil {
-		return config.Factories{}, err
+		return fmt.Errorf("failed to start exporters %w", err)
 	}
 
-	return config.Factories{
-		Extensions: extensions,
-		Receivers:  receivers,
-		Processors: processors,
-		Exporters:  exporters,
-	}, nil
+	// start pipelines
+	t.pipelines, err = builder.NewPipelinesBuilder(t.logger, otelConfig, t.exporter, factories.Processors).Build()
+	if err != nil {
+		return fmt.Errorf("failed to build exporters %w", err)
+	}
+
+	err = t.pipelines.StartProcessors(ctx, t)
+	if err != nil {
+		return fmt.Errorf("failed to start processors %w", err)
+	}
+
+	// start receivers
+	t.receivers, err = builder.NewReceiversBuilder(t.logger, otelConfig, t.pipelines, factories.Receivers).Build()
+	if err != nil {
+		return fmt.Errorf("failed to start receivers %w", err)
+	}
+
+	err = t.receivers.StartAll(ctx, t)
+	if err != nil {
+		return fmt.Errorf("failed to start receivers %w", err)
+	}
+
+	return nil
+}
+
+// ReportFatalError implements component.Host
+func (t *Tempo) ReportFatalError(err error) {
+	t.logger.Error("fatal error reported", zap.Error(err))
+}
+
+// GetFactory implements component.Host
+func (t *Tempo) GetFactory(kind component.Kind, componentType configmodels.Type) component.Factory {
+	return nil
+}
+
+// GetExtensions implements component.Host
+func (t *Tempo) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
+	return nil
+}
+
+// GetExporters implements component.Host
+func (t *Tempo) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+	return nil
 }

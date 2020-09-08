@@ -1,7 +1,5 @@
 # cloud.google.com/go v0.56.0
 cloud.google.com/go/compute/metadata
-# contrib.go.opencensus.io/exporter/prometheus v0.2.0
-contrib.go.opencensus.io/exporter/prometheus
 # github.com/Azure/azure-sdk-for-go v44.0.0+incompatible
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network
@@ -485,7 +483,6 @@ github.com/jaegertracing/jaeger/model
 github.com/jaegertracing/jaeger/model/converter/thrift/jaeger
 github.com/jaegertracing/jaeger/model/converter/thrift/zipkin
 github.com/jaegertracing/jaeger/pkg/clientcfg/clientcfghttp
-github.com/jaegertracing/jaeger/pkg/healthcheck
 github.com/jaegertracing/jaeger/pkg/multierror
 github.com/jaegertracing/jaeger/pkg/queue
 github.com/jaegertracing/jaeger/plugin/sampling/strategystore/static
@@ -636,7 +633,6 @@ github.com/prometheus/client_model/go
 github.com/prometheus/common/config
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
-github.com/prometheus/common/log
 github.com/prometheus/common/model
 github.com/prometheus/common/version
 # github.com/prometheus/node_exporter v1.0.1
@@ -704,9 +700,6 @@ github.com/prometheus/prometheus/util/strutil
 github.com/prometheus/prometheus/util/teststorage
 github.com/prometheus/prometheus/util/testutil
 github.com/prometheus/prometheus/util/treecache
-# github.com/prometheus/statsd_exporter v0.15.0
-github.com/prometheus/statsd_exporter/pkg/mapper
-github.com/prometheus/statsd_exporter/pkg/mapper/fsm
 # github.com/quasilyte/go-ruleguard v0.1.2-0.20200318202121-b00d7a75d3d8
 github.com/quasilyte/go-ruleguard/dslgen
 github.com/quasilyte/go-ruleguard/internal/mvdan.cc/gogrep
@@ -920,7 +913,6 @@ go.opencensus.io
 go.opencensus.io/internal
 go.opencensus.io/internal/tagencoding
 go.opencensus.io/metric/metricdata
-go.opencensus.io/metric/metricexport
 go.opencensus.io/metric/metricproducer
 go.opencensus.io/plugin/ocgrpc
 go.opencensus.io/plugin/ochttp
@@ -934,14 +926,11 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-go.opencensus.io/zpages
-go.opencensus.io/zpages/internal
 # go.opentelemetry.io/collector v0.6.1
 go.opentelemetry.io/collector/client
 go.opentelemetry.io/collector/component
 go.opentelemetry.io/collector/component/componenterror
 go.opentelemetry.io/collector/config
-go.opentelemetry.io/collector/config/configcheck
 go.opentelemetry.io/collector/config/configerror
 go.opentelemetry.io/collector/config/configgrpc
 go.opentelemetry.io/collector/config/confighttp
@@ -957,9 +946,6 @@ go.opentelemetry.io/collector/consumer/pdata
 go.opentelemetry.io/collector/consumer/pdatautil
 go.opentelemetry.io/collector/exporter/exporterhelper
 go.opentelemetry.io/collector/exporter/otlpexporter
-go.opentelemetry.io/collector/extension/healthcheckextension
-go.opentelemetry.io/collector/extension/pprofextension
-go.opentelemetry.io/collector/extension/zpagesextension
 go.opentelemetry.io/collector/internal
 go.opentelemetry.io/collector/internal/collector/telemetry
 go.opentelemetry.io/collector/internal/data
@@ -970,37 +956,19 @@ go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/logs/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/metrics/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/resource/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/trace/v1
-go.opentelemetry.io/collector/internal/processor/attraction
-go.opentelemetry.io/collector/internal/processor/filterhelper
-go.opentelemetry.io/collector/internal/processor/filtermetric
-go.opentelemetry.io/collector/internal/processor/filterset
-go.opentelemetry.io/collector/internal/processor/filterset/regexp
-go.opentelemetry.io/collector/internal/processor/filterset/strict
-go.opentelemetry.io/collector/internal/processor/filterspan
 go.opentelemetry.io/collector/internal/version
 go.opentelemetry.io/collector/obsreport
 go.opentelemetry.io/collector/processor
-go.opentelemetry.io/collector/processor/attributesprocessor
 go.opentelemetry.io/collector/processor/batchprocessor
-go.opentelemetry.io/collector/processor/filterprocessor
-go.opentelemetry.io/collector/processor/memorylimiter
 go.opentelemetry.io/collector/processor/processorhelper
 go.opentelemetry.io/collector/processor/queuedprocessor
-go.opentelemetry.io/collector/processor/resourceprocessor
-go.opentelemetry.io/collector/processor/samplingprocessor/probabilisticsamplerprocessor
-go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor
-go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor/idbatcher
-go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor/sampling
-go.opentelemetry.io/collector/processor/spanprocessor
 go.opentelemetry.io/collector/receiver/jaegerreceiver
 go.opentelemetry.io/collector/receiver/otlpreceiver
 go.opentelemetry.io/collector/receiver/otlpreceiver/metrics
 go.opentelemetry.io/collector/receiver/otlpreceiver/trace
 go.opentelemetry.io/collector/receiver/receiverhelper
 go.opentelemetry.io/collector/receiver/zipkinreceiver
-go.opentelemetry.io/collector/service
 go.opentelemetry.io/collector/service/builder
-go.opentelemetry.io/collector/service/internal
 go.opentelemetry.io/collector/translator/conventions
 go.opentelemetry.io/collector/translator/internaldata
 go.opentelemetry.io/collector/translator/trace
@@ -1061,9 +1029,6 @@ golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-golang.org/x/sys/windows/registry
-golang.org/x/sys/windows/svc
-golang.org/x/sys/windows/svc/eventlog
 # golang.org/x/text v0.3.3
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform

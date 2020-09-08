@@ -62,3 +62,4 @@ loki:
         labels:
           job: varlogs
           __path__: /var/log/*log
+
