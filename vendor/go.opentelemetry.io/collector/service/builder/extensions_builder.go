@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,8 @@ package builder
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/collector/component"
@@ -71,7 +71,10 @@ func (exts Extensions) ShutdownAll(ctx context.Context) error {
 		}
 	}
 
-	return componenterror.CombineErrors(errs)
+	if len(errs) != 0 {
+		return componenterror.CombineErrors(errs)
+	}
+	return nil
 }
 
 func (exts Extensions) NotifyPipelineReady() error {
@@ -99,7 +102,11 @@ func (exts Extensions) NotifyPipelineNotReady() error {
 		}
 	}
 
-	return componenterror.CombineErrors(errs)
+	if len(errs) != 0 {
+		return componenterror.CombineErrors(errs)
+	}
+
+	return nil
 }
 
 func (exts Extensions) ToMap() map[configmodels.Extension]component.ServiceExtension {
@@ -113,7 +120,6 @@ func (exts Extensions) ToMap() map[configmodels.Extension]component.ServiceExten
 // ExportersBuilder builds exporters from config.
 type ExtensionsBuilder struct {
 	logger    *zap.Logger
-	appInfo   component.ApplicationStartInfo
 	config    *configmodels.Config
 	factories map[configmodels.Type]component.ExtensionFactory
 }
@@ -121,11 +127,10 @@ type ExtensionsBuilder struct {
 // NewExportersBuilder creates a new ExportersBuilder. Call BuildExporters() on the returned value.
 func NewExtensionsBuilder(
 	logger *zap.Logger,
-	appInfo component.ApplicationStartInfo,
 	config *configmodels.Config,
 	factories map[configmodels.Type]component.ExtensionFactory,
 ) *ExtensionsBuilder {
-	return &ExtensionsBuilder{logger.With(zap.String(kindLogKey, kindLogExtension)), appInfo, config, factories}
+	return &ExtensionsBuilder{logger.With(zap.String(kindLogKey, kindLogExtension)), config, factories}
 }
 
 // Build extensions from config.
@@ -135,11 +140,11 @@ func (eb *ExtensionsBuilder) Build() (Extensions, error) {
 	for _, extName := range eb.config.Service.Extensions {
 		extCfg, exists := eb.config.Extensions[extName]
 		if !exists {
-			return nil, fmt.Errorf("extension %q is not configured", extName)
+			return nil, errors.Errorf("extension %q is not configured", extName)
 		}
 
 		componentLogger := eb.logger.With(zap.String(typeLogKey, string(extCfg.Type())), zap.String(nameLogKey, extCfg.Name()))
-		ext, err := eb.buildExtension(componentLogger, eb.appInfo, extCfg)
+		ext, err := eb.buildExtension(componentLogger, extCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -150,29 +155,24 @@ func (eb *ExtensionsBuilder) Build() (Extensions, error) {
 	return extensions, nil
 }
 
-func (eb *ExtensionsBuilder) buildExtension(logger *zap.Logger, appInfo component.ApplicationStartInfo, cfg configmodels.Extension) (*builtExtension, error) {
+func (eb *ExtensionsBuilder) buildExtension(logger *zap.Logger, cfg configmodels.Extension) (*builtExtension, error) {
 	factory := eb.factories[cfg.Type()]
 	if factory == nil {
-		return nil, fmt.Errorf("extension factory for type %q is not configured", cfg.Type())
+		return nil, errors.Errorf("extension factory for type %q is not configured", cfg.Type())
 	}
 
 	ext := &builtExtension{
 		logger: logger,
 	}
 
-	creationParams := component.ExtensionCreateParams{
-		Logger:               logger,
-		ApplicationStartInfo: appInfo,
-	}
-
-	ex, err := factory.CreateExtension(context.Background(), creationParams, cfg)
+	ex, err := factory.CreateExtension(context.Background(), component.ExtensionCreateParams{Logger: eb.logger}, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create extension %q: %w", cfg.Name(), err)
+		return nil, errors.Wrapf(err, "failed to create extension %q", cfg.Name())
 	}
 
 	// Check if the factory really created the extension.
 	if ex == nil {
-		return nil, fmt.Errorf("factory for %q produced a nil extension", cfg.Name())
+		return nil, errors.Errorf("factory for %q produced a nil extension", cfg.Name())
 	}
 
 	ext.extension = ex

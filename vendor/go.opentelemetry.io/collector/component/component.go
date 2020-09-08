@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,6 @@ package component
 
 import (
 	"context"
-
-	"github.com/spf13/viper"
 
 	"go.opentelemetry.io/collector/config/configmodels"
 )
@@ -87,39 +85,4 @@ type Host interface {
 type Factory interface {
 	// Type gets the type of the component created by this factory.
 	Type() configmodels.Type
-}
-
-// ConfigUnmarshaler interface is an optional interface that if implemented by a Factory,
-// the configuration loading system will use to unmarshal the config.
-type ConfigUnmarshaler interface {
-	// Unmarshal is a function that un-marshals a viper data into a config struct in a custom way.
-	// componentViperSection *viper.Viper
-	//   The config for this specific component. May be nil or empty if no config available.
-	// intoCfg interface{}
-	//   An empty interface wrapping a pointer to the config struct to unmarshal into.
-	Unmarshal(componentViperSection *viper.Viper, intoCfg interface{}) error
-}
-
-// CustomUnmarshaler is a function that un-marshals a viper data into a config struct
-// in a custom way.
-// componentViperSection *viper.Viper
-//   The config for this specific component. May be nil or empty if no config available.
-// intoCfg interface{}
-//   An empty interface wrapping a pointer to the config struct to unmarshal into.
-type CustomUnmarshaler func(componentViperSection *viper.Viper, intoCfg interface{}) error
-
-// ApplicationStartInfo is the information that is logged at the application start and
-// passed into each component. This information can be overridden in custom builds.
-type ApplicationStartInfo struct {
-	// Executable file name, e.g. "otelcol".
-	ExeName string
-
-	// Long name, used e.g. in the logs.
-	LongName string
-
-	// Version string.
-	Version string
-
-	// Git hash of the source code.
-	GitHash string
 }

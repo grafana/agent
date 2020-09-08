@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -135,16 +135,17 @@ func MetricViews(level telemetry.Level) []*view.View {
 
 // ServiceNameForNode gets the service name for a specified node.
 func ServiceNameForNode(node *commonpb.Node) string {
-	switch {
-	case node == nil:
-		return "<nil-batch-node>"
-	case node.ServiceInfo == nil:
-		return "<nil-service-info>"
-	case node.ServiceInfo.Name == "":
-		return "<empty-service-info-name>"
-	default:
-		return node.ServiceInfo.Name
+	var serviceName string
+	if node == nil {
+		serviceName = "<nil-batch-node>"
+	} else if node.ServiceInfo == nil {
+		serviceName = "<nil-service-info>"
+	} else if node.ServiceInfo.Name == "" {
+		serviceName = "<empty-service-info-name>"
+	} else {
+		serviceName = node.ServiceInfo.Name
 	}
+	return serviceName
 }
 
 // ServiceNameForResource gets the service name for a specified Resource.

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,8 @@ import (
 	"regexp"
 	"strings"
 
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
+	"go.opentelemetry.io/collector/config"
 )
 
 // The regular expression for valid config field tag.
@@ -33,7 +33,7 @@ var configFieldTagRegExp = regexp.MustCompile("^[a-z0-9][a-z0-9_]*$")
 
 // ValidateConfigFromFactories checks if all configurations for the given factories
 // are satisfying the patterns used by the collector.
-func ValidateConfigFromFactories(factories component.Factories) error {
+func ValidateConfigFromFactories(factories config.Factories) error {
 	var errs []error
 	var configs []interface{}
 

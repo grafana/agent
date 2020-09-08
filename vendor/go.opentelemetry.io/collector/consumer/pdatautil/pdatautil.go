@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@ import (
 	commonpb "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1"
 	metricspb "github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1"
 	resourcepb "github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1"
-	googleproto "google.golang.org/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 
 	"go.opentelemetry.io/collector/consumer/consumerdata"
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -116,23 +116,18 @@ func MetricAndDataPointCount(md pdata.Metrics) (int, int) {
 	panic("Unsupported metrics type.")
 }
 
-func MetricPointCount(md pdata.Metrics) int {
-	_, points := MetricAndDataPointCount(md)
-	return points
-}
-
 // CloneMetricsDataOld copied from processors.cloneMetricsDataOld
 func CloneMetricsDataOld(md consumerdata.MetricsData) consumerdata.MetricsData {
 	clone := consumerdata.MetricsData{
-		Node:     googleproto.Clone(md.Node).(*commonpb.Node),
-		Resource: googleproto.Clone(md.Resource).(*resourcepb.Resource),
+		Node:     proto.Clone(md.Node).(*commonpb.Node),
+		Resource: proto.Clone(md.Resource).(*resourcepb.Resource),
 	}
 
 	if md.Metrics != nil {
 		clone.Metrics = make([]*metricspb.Metric, 0, len(md.Metrics))
 
 		for _, metric := range md.Metrics {
-			metricClone := googleproto.Clone(metric).(*metricspb.Metric)
+			metricClone := proto.Clone(metric).(*metricspb.Metric)
 			clone.Metrics = append(clone.Metrics, metricClone)
 		}
 	}

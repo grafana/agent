@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,10 +31,8 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumerdata"
-	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor/idbatcher"
 	"go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor/sampling"
-	"go.opentelemetry.io/collector/translator/internaldata"
 )
 
 // Policy combines a sampling policy evaluator with the destinations to be
@@ -56,7 +54,7 @@ type traceKey string
 // policy to sample traces.
 type tailSamplingSpanProcessor struct {
 	ctx             context.Context
-	nextConsumer    consumer.TraceConsumer
+	nextConsumer    consumer.TraceConsumerOld
 	start           sync.Once
 	maxNumTraces    uint64
 	policies        []*Policy
@@ -74,7 +72,7 @@ const (
 
 // newTraceProcessor returns a processor.TraceProcessor that will perform tail sampling according to the given
 // configuration.
-func newTraceProcessor(logger *zap.Logger, nextConsumer consumer.TraceConsumer, cfg Config) (component.TraceProcessor, error) {
+func newTraceProcessor(logger *zap.Logger, nextConsumer consumer.TraceConsumerOld, cfg Config) (component.TraceProcessorOld, error) {
 	if nextConsumer == nil {
 		return nil, componenterror.ErrNilNextConsumer
 	}
@@ -86,7 +84,7 @@ func newTraceProcessor(logger *zap.Logger, nextConsumer consumer.TraceConsumer, 
 	}
 
 	ctx := context.Background()
-	var policies []*Policy
+	policies := []*Policy{}
 	for i := range cfg.PolicyCfgs {
 		policyCfg := &cfg.PolicyCfgs[i]
 		policyCtx, err := tag.New(ctx, tag.Upsert(tagPolicyKey, policyCfg.Name), tag.Upsert(tagSourceFormat, sourceFormat))
@@ -181,7 +179,7 @@ func (tsp *tailSamplingSpanProcessor) samplingPolicyOnTick() {
 				trace.Unlock()
 
 				for j := 0; j < len(traceBatches); j++ {
-					tsp.nextConsumer.ConsumeTraces(policy.ctx, internaldata.OCToTraceData(traceBatches[j]))
+					tsp.nextConsumer.ConsumeTraceData(policy.ctx, traceBatches[j])
 				}
 			case sampling.NotSampled:
 				stats.RecordWithTags(
@@ -215,23 +213,11 @@ func (tsp *tailSamplingSpanProcessor) samplingPolicyOnTick() {
 }
 
 // ConsumeTraceData is required by the SpanProcessor interface.
-func (tsp *tailSamplingSpanProcessor) ConsumeTraces(_ context.Context, td pdata.Traces) error {
+func (tsp *tailSamplingSpanProcessor) ConsumeTraceData(ctx context.Context, td consumerdata.TraceData) error {
 	tsp.start.Do(func() {
 		tsp.logger.Info("First trace data arrived, starting tail_sampling timers")
 		tsp.policyTicker.Start(1 * time.Second)
 	})
-
-	octds := internaldata.TraceDataToOC(td)
-	var errs []error
-	for _, octd := range octds {
-		if err := tsp.processTraces(octd); err != nil {
-			errs = append(errs, err)
-		}
-	}
-	return componenterror.CombineErrors(errs)
-}
-
-func (tsp *tailSamplingSpanProcessor) processTraces(td consumerdata.TraceData) error {
 
 	// Groupd spans per their traceId to minimize contention on idToTrace
 	idToSpans := make(map[traceKey][]*tracepb.Span)
@@ -258,7 +244,7 @@ func (tsp *tailSamplingSpanProcessor) processTraces(td consumerdata.TraceData) e
 			ArrivalTime: time.Now(),
 			SpanCount:   lenSpans,
 		}
-		d, loaded := tsp.idToTrace.LoadOrStore(id, initialTraceData)
+		d, loaded := tsp.idToTrace.LoadOrStore(traceKey(id), initialTraceData)
 
 		actualData := d.(*sampling.TraceData)
 		if loaded {
@@ -301,7 +287,7 @@ func (tsp *tailSamplingSpanProcessor) processTraces(td consumerdata.TraceData) e
 			case sampling.Sampled:
 				// Forward the spans to the policy destinations
 				traceTd := prepareTraceBatch(spans, singleTrace, td)
-				if err := tsp.nextConsumer.ConsumeTraces(policy.ctx, internaldata.OCToTraceData(traceTd)); err != nil {
+				if err := tsp.nextConsumer.ConsumeTraceData(policy.ctx, traceTd); err != nil {
 					tsp.logger.Warn("Error sending late arrived spans to destination",
 						zap.String("policy", policy.Name),
 						zap.Error(err))
@@ -328,7 +314,7 @@ func (tsp *tailSamplingSpanProcessor) GetCapabilities() component.ProcessorCapab
 }
 
 // Start is invoked during service startup.
-func (tsp *tailSamplingSpanProcessor) Start(context.Context, component.Host) error {
+func (tsp *tailSamplingSpanProcessor) Start(ctx context.Context, host component.Host) error {
 	return nil
 }
 

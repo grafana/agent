@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +15,7 @@
 package data
 
 import (
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
 	otlpmetrics "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/metrics/v1"
@@ -86,18 +86,6 @@ func (md MetricData) MetricCount() int {
 		}
 	}
 	return metricCount
-}
-
-// Size returns size in bytes.
-func (md MetricData) Size() int {
-	size := 0
-	for i := 0; i < len(*md.orig); i++ {
-		if (*md.orig)[i] == nil {
-			continue
-		}
-		size += (*(*md.orig)[i]).Size()
-	}
-	return size
 }
 
 // MetricAndDataPointCount calculates the total number of metrics and data points.

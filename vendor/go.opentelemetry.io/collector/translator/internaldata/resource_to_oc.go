@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,45 +22,11 @@ import (
 
 	occommon "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1"
 	ocresource "github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1"
-	"go.opencensus.io/resource/resourcekeys"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/golang/protobuf/ptypes"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
 )
-
-type ocInferredResourceType struct {
-	// label presence to check against
-	labelKeyPresent string
-	// inferred resource type
-	resourceType string
-}
-
-// mapping of label presence to inferred OC resource type
-// NOTE: defined in the priority order (first match wins)
-var labelPresenceToResourceType = []ocInferredResourceType{
-	{
-		// See https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/resource/semantic_conventions/container.md
-		labelKeyPresent: conventions.AttributeContainerName,
-		resourceType:    resourcekeys.ContainerType,
-	},
-	{
-		// See https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/resource/semantic_conventions/k8s.md#pod
-		labelKeyPresent: conventions.AttributeK8sPod,
-		// NOTE: OpenCensus is using "k8s" rather than "k8s.pod" for Pod
-		resourceType: resourcekeys.K8SType,
-	},
-	{
-		// See https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/resource/semantic_conventions/host.md
-		labelKeyPresent: conventions.AttributeHostName,
-		resourceType:    resourcekeys.HostType,
-	},
-	{
-		// See https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/resource/semantic_conventions/cloud.md
-		labelKeyPresent: conventions.AttributeCloudProvider,
-		resourceType:    resourcekeys.CloudType,
-	},
-}
 
 func internalResourceToOC(resource pdata.Resource) (*occommon.Node, *ocresource.Resource) {
 	if resource.IsNil() {
@@ -92,7 +58,10 @@ func internalResourceToOC(resource pdata.Resource) (*occommon.Node, *ocresource.
 			if err != nil {
 				return
 			}
-			ts := timestamppb.New(t)
+			ts, err := ptypes.TimestampProto(t)
+			if err != nil {
+				return
+			}
 			if ocNode.Identifier == nil {
 				ocNode.Identifier = &occommon.ProcessIdentifier{}
 			}
@@ -134,14 +103,6 @@ func internalResourceToOC(resource pdata.Resource) (*occommon.Node, *ocresource.
 		}
 	})
 	ocResource.Labels = labels
-
-	// If resource type is missing, try to infer it
-	// based on the presence of resource labels (semantic conventions)
-	if ocResource.Type == "" {
-		if resType, ok := inferResourceType(ocResource.Labels); ok {
-			ocResource.Type = resType
-		}
-	}
 
 	return &ocNode, &ocResource
 }
@@ -185,40 +146,9 @@ func attributeValueToString(attr pdata.AttributeValue, jsonLike bool) string {
 		sb.WriteString("}")
 		return sb.String()
 
-	case pdata.AttributeValueARRAY:
-		// OpenCensus attributes cannot represent arrays natively. Convert the
-		// array to a JSON-like string.
-		var sb strings.Builder
-		sb.WriteString("[")
-		m := attr.ArrayVal()
-		first := true
-		len := m.Len()
-		for i := 0; i < len; i++ {
-			v := m.At(i)
-			if !first {
-				sb.WriteString(",")
-			}
-			first = false
-			sb.WriteString(attributeValueToString(v, true))
-		}
-		sb.WriteString("]")
-		return sb.String()
-
 	default:
 		return fmt.Sprintf("<Unknown OpenTelemetry attribute value type %q>", attr.Type())
 	}
-}
 
-func inferResourceType(labels map[string]string) (string, bool) {
-	if labels == nil {
-		return "", false
-	}
-
-	for _, mapping := range labelPresenceToResourceType {
-		if _, ok := labels[mapping.labelKeyPresent]; ok {
-			return mapping.resourceType, true
-		}
-	}
-
-	return "", false
+	// TODO: Add support for ARRAY type.
 }

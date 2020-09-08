@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,18 +77,6 @@ func (td Traces) SpanCount() int {
 		}
 	}
 	return spanCount
-}
-
-// Size returns size in bytes.
-func (td Traces) Size() int {
-	size := 0
-	for i := 0; i < len(*td.orig); i++ {
-		if (*td.orig)[i] == nil {
-			continue
-		}
-		size += (*td.orig)[i].Size()
-	}
-	return size
 }
 
 func (td Traces) ResourceSpans() ResourceSpansSlice {

@@ -65,11 +65,8 @@ const (
 	Int8Type
 	// StringType indicates that the field carries a string.
 	StringType
-	// TimeType indicates that the field carries a time.Time that is
-	// representable by a UnixNano() stored as an int64.
+	// TimeType indicates that the field carries a time.Time.
 	TimeType
-	// TimeFullType indicates that the field carries a time.Time stored as-is.
-	TimeFullType
 	// Uint64Type indicates that the field carries a uint64.
 	Uint64Type
 	// Uint32Type indicates that the field carries a uint32.
@@ -148,8 +145,6 @@ func (f Field) AddTo(enc ObjectEncoder) {
 			// Fall back to UTC if location is nil.
 			enc.AddTime(f.Key, time.Unix(0, f.Integer))
 		}
-	case TimeFullType:
-		enc.AddTime(f.Key, f.Interface.(time.Time))
 	case Uint64Type:
 		enc.AddUint64(f.Key, uint64(f.Integer))
 	case Uint32Type:

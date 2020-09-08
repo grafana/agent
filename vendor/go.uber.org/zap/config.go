@@ -32,14 +32,10 @@ import (
 // global CPU and I/O load that logging puts on your process while attempting
 // to preserve a representative subset of your logs.
 //
-// If specified, the Sampler will invoke the Hook after each decision.
-//
-// Values configured here are per-second. See zapcore.NewSamplerWithOptions for
-// details.
+// Values configured here are per-second. See zapcore.NewSampler for details.
 type SamplingConfig struct {
-	Initial    int                                           `json:"initial" yaml:"initial"`
-	Thereafter int                                           `json:"thereafter" yaml:"thereafter"`
-	Hook       func(zapcore.Entry, zapcore.SamplingDecision) `json:"-" yaml:"-"`
+	Initial    int `json:"initial" yaml:"initial"`
+	Thereafter int `json:"thereafter" yaml:"thereafter"`
 }
 
 // Config offers a declarative way to construct a logger. It doesn't do
@@ -212,19 +208,9 @@ func (cfg Config) buildOptions(errSink zapcore.WriteSyncer) []Option {
 		opts = append(opts, AddStacktrace(stackLevel))
 	}
 
-	if scfg := cfg.Sampling; scfg != nil {
+	if cfg.Sampling != nil {
 		opts = append(opts, WrapCore(func(core zapcore.Core) zapcore.Core {
-			var samplerOpts []zapcore.SamplerOption
-			if scfg.Hook != nil {
-				samplerOpts = append(samplerOpts, zapcore.SamplerHook(scfg.Hook))
-			}
-			return zapcore.NewSamplerWithOptions(
-				core,
-				time.Second,
-				cfg.Sampling.Initial,
-				cfg.Sampling.Thereafter,
-				samplerOpts...,
-			)
+			return zapcore.NewSampler(core, time.Second, int(cfg.Sampling.Initial), int(cfg.Sampling.Thereafter))
 		}))
 	}
 

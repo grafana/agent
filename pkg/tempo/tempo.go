@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/spf13/viper"
-	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/service"
 )
@@ -36,18 +36,18 @@ type Tempo struct {
 
 // New creates and starts Loki log collection.
 func New(c Config, l log.Logger) (*Tempo, error) {
-	info := component.ApplicationStartInfo{
+	info := service.ApplicationStartInfo{
 		ExeName:  "jpe",
 		LongName: "jpe",
 		Version:  "?",
 		GitHash:  "?",
 	}
 
-	cfgFactory := func(v *viper.Viper, factories component.Factories) (*configmodels.Config, error) {
+	cfgFactory := func(v *viper.Viper, factories config.Factories) (*configmodels.Config, error) {
 		return nil, nil
 	}
 
-	componentFactories := component.Factories{}
+	componentFactories := config.Factories{}
 
 	svc, err := service.New(service.Parameters{
 		ApplicationStartInfo: info,

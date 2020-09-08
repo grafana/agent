@@ -15,7 +15,6 @@ Supported processors (sorted alphabetically):
 - [Attributes Processor](attributesprocessor/README.md)
 - [Batch Processor](batchprocessor/README.md)
 - [Filter Processor](filterprocessor/README.md)
-- [Group by Trace Processor](groupbytraceprocessor/README.md)
 - [Memory Limiter Processor](memorylimiter/README.md)
 - [Queued Retry Processor](queuedprocessor/README.md)
 - [Resource Processor](resourceprocessor/README.md)
@@ -135,8 +134,6 @@ are checked before the `exclude` properties.
 
 ```yaml
 filter:
-  # metrics indicates this processor applies to metrics
-  metrics:
     # include and/or exclude can be specified. However, the include properties
     # are always checked before the exclude properties.
     {include, exclude}:
@@ -151,7 +148,7 @@ filter:
 
       # metric_names specify an array of items to match the metric name against.
       # This is a required field.
-      metric_names: [<item1>, ..., <itemN>]
+      metric_name: [<item1>, ..., <itemN>]
 ```
 
 #### Match Configuration

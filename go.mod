@@ -23,7 +23,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/weaveworks/common v0.0.0-20200625145055-4b1847531bc9
-	go.opentelemetry.io/collector v0.9.0
+	go.opentelemetry.io/collector v0.6.1
 	go.uber.org/atomic v1.6.0
 	google.golang.org/grpc v1.31.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6

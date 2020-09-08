@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,13 +15,14 @@
 package tailsamplingprocessor
 
 import (
-	"context"
 	"time"
 
+	"go.uber.org/zap"
+
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configerror"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
 const (
@@ -29,27 +30,38 @@ const (
 	typeStr = "tail_sampling"
 )
 
-// NewFactory returns a new factory for the Tail Sampling processor.
-func NewFactory() component.ProcessorFactory {
-	return processorhelper.NewFactory(
-		typeStr,
-		createDefaultConfig,
-		processorhelper.WithTraces(createTraceProcessor))
+// Factory is the factory for Tail Sampling processor.
+type Factory struct {
 }
 
-func createDefaultConfig() configmodels.Processor {
+// Type gets the type of the config created by this factory.
+func (f *Factory) Type() configmodels.Type {
+	return typeStr
+}
+
+// CreateDefaultConfig creates the default configuration for processor.
+func (f *Factory) CreateDefaultConfig() configmodels.Processor {
 	return &Config{
 		DecisionWait: 30 * time.Second,
 		NumTraces:    50000,
 	}
 }
 
-func createTraceProcessor(
-	_ context.Context,
-	params component.ProcessorCreateParams,
+// CreateTraceProcessor creates a trace processor based on this config.
+func (f *Factory) CreateTraceProcessor(
+	logger *zap.Logger,
+	nextConsumer consumer.TraceConsumerOld,
 	cfg configmodels.Processor,
-	nextConsumer consumer.TraceConsumer,
-) (component.TraceProcessor, error) {
+) (component.TraceProcessorOld, error) {
 	tCfg := cfg.(*Config)
-	return newTraceProcessor(params.Logger, nextConsumer, *tCfg)
+	return newTraceProcessor(logger, nextConsumer, *tCfg)
+}
+
+// CreateMetricsProcessor creates a metrics processor based on this config.
+func (f *Factory) CreateMetricsProcessor(
+	logger *zap.Logger,
+	nextConsumer consumer.MetricsConsumerOld,
+	cfg configmodels.Processor,
+) (component.MetricsProcessorOld, error) {
+	return nil, configerror.ErrDataTypeIsNotSupported
 }
