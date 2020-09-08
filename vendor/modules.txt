@@ -41,6 +41,8 @@ github.com/alecthomas/template
 github.com/alecthomas/template/parse
 # github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d
 github.com/alecthomas/units
+# github.com/apache/thrift v0.13.0
+github.com/apache/thrift/lib/go/thrift
 # github.com/armon/go-metrics v0.3.3
 github.com/armon/go-metrics
 github.com/armon/go-metrics/prometheus
@@ -94,6 +96,8 @@ github.com/bmatcuk/doublestar
 github.com/bombsimon/wsl/v3
 # github.com/c2h5oh/datasize v0.0.0-20200112174442-28bbd4740fee
 github.com/c2h5oh/datasize
+# github.com/cenkalti/backoff v2.2.1+incompatible
+github.com/cenkalti/backoff
 # github.com/census-instrumentation/opencensus-proto v0.2.1
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1
@@ -231,9 +235,11 @@ github.com/godbus/dbus
 # github.com/gofrs/flock v0.7.1
 github.com/gofrs/flock
 # github.com/gogo/googleapis v1.3.0
+github.com/gogo/googleapis/google/api
 github.com/gogo/googleapis/google/rpc
 # github.com/gogo/protobuf v1.3.1
 github.com/gogo/protobuf/gogoproto
+github.com/gogo/protobuf/jsonpb
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/protoc-gen-gogo/descriptor
 github.com/gogo/protobuf/sortkeys
@@ -251,6 +257,7 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/empty
+github.com/golang/protobuf/ptypes/struct
 github.com/golang/protobuf/ptypes/timestamp
 github.com/golang/protobuf/ptypes/wrappers
 # github.com/golang/snappy v0.0.1
@@ -400,6 +407,7 @@ github.com/grpc-ecosystem/go-grpc-prometheus
 github.com/grpc-ecosystem/go-grpc-prometheus/packages/grpcstatus
 # github.com/grpc-ecosystem/grpc-gateway v1.14.6
 github.com/grpc-ecosystem/grpc-gateway/internal
+github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/options
 github.com/grpc-ecosystem/grpc-gateway/runtime
 github.com/grpc-ecosystem/grpc-gateway/utilities
 # github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645
@@ -461,7 +469,32 @@ github.com/influxdata/go-syslog/v3/nontransparent
 github.com/influxdata/go-syslog/v3/octetcounting
 github.com/influxdata/go-syslog/v3/rfc5424
 # github.com/jaegertracing/jaeger v1.18.2-0.20200707061226-97d2319ff2be
+github.com/jaegertracing/jaeger/cmd/agent/app/configmanager
+github.com/jaegertracing/jaeger/cmd/agent/app/configmanager/grpc
+github.com/jaegertracing/jaeger/cmd/agent/app/customtransport
+github.com/jaegertracing/jaeger/cmd/agent/app/httpserver
+github.com/jaegertracing/jaeger/cmd/agent/app/processors
+github.com/jaegertracing/jaeger/cmd/agent/app/servers
+github.com/jaegertracing/jaeger/cmd/agent/app/servers/thriftudp
+github.com/jaegertracing/jaeger/cmd/collector/app/handler
+github.com/jaegertracing/jaeger/cmd/collector/app/processor
+github.com/jaegertracing/jaeger/cmd/collector/app/sampling
+github.com/jaegertracing/jaeger/cmd/collector/app/sampling/strategystore
+github.com/jaegertracing/jaeger/cmd/collector/app/sanitizer/zipkin
+github.com/jaegertracing/jaeger/model
+github.com/jaegertracing/jaeger/model/converter/thrift/jaeger
+github.com/jaegertracing/jaeger/model/converter/thrift/zipkin
+github.com/jaegertracing/jaeger/pkg/clientcfg/clientcfghttp
+github.com/jaegertracing/jaeger/pkg/healthcheck
+github.com/jaegertracing/jaeger/pkg/multierror
 github.com/jaegertracing/jaeger/pkg/queue
+github.com/jaegertracing/jaeger/plugin/sampling/strategystore/static
+github.com/jaegertracing/jaeger/proto-gen/api_v2
+github.com/jaegertracing/jaeger/thrift-gen/agent
+github.com/jaegertracing/jaeger/thrift-gen/baggage
+github.com/jaegertracing/jaeger/thrift-gen/jaeger
+github.com/jaegertracing/jaeger/thrift-gen/sampling
+github.com/jaegertracing/jaeger/thrift-gen/zipkincore
 # github.com/jingyugao/rowserrcheck v0.0.0-20191204022205-72ab7603b68a
 github.com/jingyugao/rowserrcheck/passes/rowserr
 # github.com/jirfag/go-printf-func-name v0.0.0-20191110105641-45db9963cdd3
@@ -567,6 +600,9 @@ github.com/opentracing-contrib/go-stdlib/nethttp
 github.com/opentracing/opentracing-go
 github.com/opentracing/opentracing-go/ext
 github.com/opentracing/opentracing-go/log
+# github.com/openzipkin/zipkin-go v0.2.2
+github.com/openzipkin/zipkin-go/model
+github.com/openzipkin/zipkin-go/proto/v2
 # github.com/ory/go-acc v0.2.1
 github.com/ory/go-acc
 github.com/ory/go-acc/cmd
@@ -678,6 +714,8 @@ github.com/quasilyte/go-ruleguard/ruleguard
 github.com/quasilyte/go-ruleguard/ruleguard/typematch
 # github.com/quasilyte/regex/syntax v0.0.0-20200407221936-30656e2c4a95
 github.com/quasilyte/regex/syntax
+# github.com/rs/cors v1.7.0
+github.com/rs/cors
 # github.com/ryancurrah/gomodguard v1.1.0
 github.com/ryancurrah/gomodguard
 # github.com/ryanrolds/sqlclosecheck v0.3.0
@@ -896,13 +934,19 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
+go.opencensus.io/zpages
+go.opencensus.io/zpages/internal
 # go.opentelemetry.io/collector v0.6.1
+go.opentelemetry.io/collector/client
 go.opentelemetry.io/collector/component
 go.opentelemetry.io/collector/component/componenterror
 go.opentelemetry.io/collector/config
 go.opentelemetry.io/collector/config/configcheck
 go.opentelemetry.io/collector/config/configerror
+go.opentelemetry.io/collector/config/configgrpc
+go.opentelemetry.io/collector/config/confighttp
 go.opentelemetry.io/collector/config/configmodels
+go.opentelemetry.io/collector/config/confignet
 go.opentelemetry.io/collector/config/configprotocol
 go.opentelemetry.io/collector/config/configtls
 go.opentelemetry.io/collector/consumer
@@ -911,29 +955,57 @@ go.opentelemetry.io/collector/consumer/consumererror
 go.opentelemetry.io/collector/consumer/converter
 go.opentelemetry.io/collector/consumer/pdata
 go.opentelemetry.io/collector/consumer/pdatautil
+go.opentelemetry.io/collector/exporter/exporterhelper
+go.opentelemetry.io/collector/exporter/otlpexporter
+go.opentelemetry.io/collector/extension/healthcheckextension
+go.opentelemetry.io/collector/extension/pprofextension
+go.opentelemetry.io/collector/extension/zpagesextension
 go.opentelemetry.io/collector/internal
 go.opentelemetry.io/collector/internal/collector/telemetry
 go.opentelemetry.io/collector/internal/data
+go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/metrics/v1
+go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/common/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/logs/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/metrics/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/resource/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/trace/v1
+go.opentelemetry.io/collector/internal/processor/attraction
+go.opentelemetry.io/collector/internal/processor/filterhelper
+go.opentelemetry.io/collector/internal/processor/filtermetric
+go.opentelemetry.io/collector/internal/processor/filterset
+go.opentelemetry.io/collector/internal/processor/filterset/regexp
+go.opentelemetry.io/collector/internal/processor/filterset/strict
+go.opentelemetry.io/collector/internal/processor/filterspan
 go.opentelemetry.io/collector/internal/version
 go.opentelemetry.io/collector/obsreport
 go.opentelemetry.io/collector/processor
+go.opentelemetry.io/collector/processor/attributesprocessor
 go.opentelemetry.io/collector/processor/batchprocessor
+go.opentelemetry.io/collector/processor/filterprocessor
+go.opentelemetry.io/collector/processor/memorylimiter
 go.opentelemetry.io/collector/processor/processorhelper
 go.opentelemetry.io/collector/processor/queuedprocessor
+go.opentelemetry.io/collector/processor/resourceprocessor
+go.opentelemetry.io/collector/processor/samplingprocessor/probabilisticsamplerprocessor
 go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor
 go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor/idbatcher
 go.opentelemetry.io/collector/processor/samplingprocessor/tailsamplingprocessor/sampling
+go.opentelemetry.io/collector/processor/spanprocessor
+go.opentelemetry.io/collector/receiver/jaegerreceiver
+go.opentelemetry.io/collector/receiver/otlpreceiver
+go.opentelemetry.io/collector/receiver/otlpreceiver/metrics
+go.opentelemetry.io/collector/receiver/otlpreceiver/trace
+go.opentelemetry.io/collector/receiver/receiverhelper
+go.opentelemetry.io/collector/receiver/zipkinreceiver
 go.opentelemetry.io/collector/service
 go.opentelemetry.io/collector/service/builder
 go.opentelemetry.io/collector/service/internal
 go.opentelemetry.io/collector/translator/conventions
 go.opentelemetry.io/collector/translator/internaldata
 go.opentelemetry.io/collector/translator/trace
+go.opentelemetry.io/collector/translator/trace/jaeger
+go.opentelemetry.io/collector/translator/trace/zipkin
 # go.uber.org/atomic v1.6.0
 go.uber.org/atomic
 # go.uber.org/multierr v1.5.0
@@ -1089,6 +1161,7 @@ google.golang.org/appengine/urlfetch
 # google.golang.org/genproto v0.0.0-20200710124503-20a17af7bd0e
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/api/httpbody
+google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/protobuf/field_mask
 # google.golang.org/grpc v1.31.0 => google.golang.org/grpc v1.25.1
@@ -1169,6 +1242,7 @@ google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/fieldmaskpb
+google.golang.org/protobuf/types/known/structpb
 google.golang.org/protobuf/types/known/timestamppb
 google.golang.org/protobuf/types/known/wrapperspb
 # gopkg.in/alecthomas/kingpin.v2 v2.2.6
