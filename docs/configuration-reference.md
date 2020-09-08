@@ -1562,7 +1562,7 @@ integrations:
   node_exporter:
     enabled: true
     rootfs_path: /host/root
-    devfs_path: /host/dev
+    sysfs_path: /host/sys
     procfs_path: /host/proc
   prometheus_remote_write:
     - url: https://prometheus-us-central1.grafana.net/api/prom/push
@@ -1585,7 +1585,6 @@ spec:
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
-    - --integrations.node_exporter.rootfs-path=/host
     securityContext:
       capabilities:
         add: ["SYS_TIME"]
@@ -1595,8 +1594,8 @@ spec:
     - name: rootfs
       mountPath: /host/root
       readOnly: true
-    - name: devfs
-      mountPath: /host/dev
+    - name: sysfs
+      mountPath: /host/sys
       readOnly: true
     - name: procfs
       mountPath: /host/proc
@@ -1605,9 +1604,9 @@ spec:
   - name: rootfs
     hostPath:
       path: /
-  - name: devfs
+  - name: sysfs
     hostPath:
-      path: /dev
+      path: /sys
   - name: procfs
     hostPath:
       path: /proc
