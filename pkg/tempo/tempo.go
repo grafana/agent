@@ -101,9 +101,9 @@ func (t *Tempo) Stop() {
 
 func tracingFactories() (config.Factories, error) {
 	extensions, err := component.MakeExtensionFactoryMap(
-		healthcheckextension.NewFactory(),
-		pprofextension.NewFactory(),
-		zpagesextension.NewFactory(),
+		&healthcheckextension.Factory{},
+		&pprofextension.Factory{},
+		&zpagesextension.Factory{},
 	)
 	if err != nil {
 		return config.Factories{}, err
@@ -111,7 +111,7 @@ func tracingFactories() (config.Factories, error) {
 
 	receivers, err := component.MakeReceiverFactoryMap(
 		jaegerreceiver.NewFactory(),
-		zipkinreceiver.NewFactory(),
+		&zipkinreceiver.Factory{},
 		otlpreceiver.NewFactory(),
 	)
 	if err != nil {
@@ -119,7 +119,7 @@ func tracingFactories() (config.Factories, error) {
 	}
 
 	exporters, err := component.MakeExporterFactoryMap(
-		otlpexporter.NewFactory(),
+		&otlpexporter.Factory{},
 	)
 	if err != nil {
 		return config.Factories{}, err
@@ -132,7 +132,7 @@ func tracingFactories() (config.Factories, error) {
 		batchprocessor.NewFactory(),
 		memorylimiter.NewFactory(),
 		&tailsamplingprocessor.Factory{},
-		probabilisticsamplerprocessor.NewFactory(),
+		&probabilisticsamplerprocessor.Factory{},
 		spanprocessor.NewFactory(),
 		filterprocessor.NewFactory(),
 	)
