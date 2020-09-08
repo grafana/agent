@@ -1,7 +1,10 @@
 package tempo
 
 import (
+	"encoding/base64"
+	"errors"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
@@ -29,7 +32,7 @@ type Config struct {
 // RWConfig controls the configuration of exporting to Grafana Cloud
 type RWConfig struct {
 	URL       string                  `yaml:"url"`
-	BasicAuth BasicAuthConfig         `yaml:"basic_auth"`
+	BasicAuth *BasicAuthConfig        `yaml:"basic_auth,omitempty"`
 	Batch     *batchprocessor.Config  `yaml:"batch,omitempty"`
 	Queue     *queuedprocessor.Config `yaml:"queue,omitempty"`
 }
@@ -54,18 +57,73 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 func (c *Config) otelConfig() (*configmodels.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
-	// basic auth header
-	/*encodedAuth := base64.StdEncoding.EncodeToString([]byte(cfg.TenantID + ":" + cfg.Token))
-	otlpConfig := factory.CreateDefaultConfig().(*otlpexporter.Config)
+	if !c.Enabled {
+		return nil, errors.New("tempo config not enabled")
+	}
 
-	// config
-	otlpConfig.Endpoint = cfg.Endpoint
-	otlpConfig.Headers = map[string]string{
-		"Authorization": "Basic " + encodedAuth,
-	}*/
+	if len(c.Receivers) == 0 {
+		return nil, errors.New("must have at least one configured receiver")
+	}
 
-	// add receivers
+	if len(c.RemoteWrite.URL) == 0 {
+		return nil, errors.New("must have a configured remote_write.url")
+	}
+
+	// exporter
+	var headers map[string]string
+	if c.RemoteWrite.BasicAuth != nil {
+		password := c.RemoteWrite.BasicAuth.Password
+
+		if len(c.RemoteWrite.BasicAuth.PasswordFile) > 0 {
+			buff, err := ioutil.ReadFile(c.RemoteWrite.BasicAuth.PasswordFile)
+			if err != nil {
+				return nil, fmt.Errorf("unable to load password file %s %w", c.RemoteWrite.BasicAuth.PasswordFile, err)
+			}
+			password = string(buff)
+		}
+
+		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.RemoteWrite.BasicAuth.Username + ":" + password))
+		headers = map[string]string{
+			"Authorization": "Basic " + encodedAuth,
+		}
+	}
+
+	otelMapStructure["exporters"] = map[string]interface{}{
+		"otlp": map[string]interface{}{
+			"endpoint": c.RemoteWrite.URL,
+			"headers":  headers,
+		},
+	}
+
+	// processors
+	processors := map[string]interface{}{}
+	processorNames := []string{}
+	if c.RemoteWrite.Batch != nil {
+		processors["batch"] = c.RemoteWrite.Batch
+		processorNames = append(processorNames, "batch")
+	}
+
+	if c.RemoteWrite.Queue != nil {
+		processors["queue"] = c.RemoteWrite.Queue
+		processorNames = append(processorNames, "queue")
+	}
+	otelMapStructure["processors"] = processors
+
+	// receivers
 	otelMapStructure["receivers"] = c.Receivers
+	receiverNames := []string{}
+	for name := range c.Receivers {
+		receiverNames = append(receiverNames, name)
+	}
+
+	// pipelines
+	otelMapStructure["pipelines"] = map[string]interface{}{
+		"traces": map[string]interface{}{
+			"exporters":  []string{"otlp"},
+			"processors": processorNames,
+			"receivers":  receiverNames,
+		},
+	}
 
 	// now build the otel configmodel from the mapstructure
 	v := viper.New()
