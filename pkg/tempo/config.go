@@ -71,7 +71,7 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	}
 
 	// exporter
-	var headers map[string]string
+	headers := map[string]string{}
 	if c.RemoteWrite.BasicAuth != nil {
 		password := c.RemoteWrite.BasicAuth.Password
 
@@ -85,7 +85,7 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 
 		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.RemoteWrite.BasicAuth.Username + ":" + password))
 		headers = map[string]string{
-			"Authorization": "Basic " + encodedAuth,
+			"authorization": "Basic " + encodedAuth,
 		}
 	}
 
@@ -98,6 +98,8 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	}
 
 	// processors
+	// todo: when we update otel collector to the latest we can just use the settings on the exporter
+	//       https://github.com/open-telemetry/opentelemetry-collector/tree/master/exporter/otlpexporter
 	processors := map[string]interface{}{}
 	processorNames := []string{}
 	if c.RemoteWrite.Batch != nil {
