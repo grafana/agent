@@ -39,7 +39,7 @@ func New(cfg Config, l log.Logger) (*Tempo, error) { // jpe what do with logger?
 	var err error
 
 	tempo := &Tempo{}
-	tempo.logger, err = zap.NewProduction()
+	tempo.logger, err = zap.NewDevelopment()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create zap prod logger %w", err)
 	}

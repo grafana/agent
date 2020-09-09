@@ -31,10 +31,11 @@ type Config struct {
 
 // RWConfig controls the configuration of exporting to Grafana Cloud
 type RWConfig struct {
-	URL       string                  `yaml:"url"`
-	BasicAuth *BasicAuthConfig        `yaml:"basic_auth,omitempty"`
-	Batch     *batchprocessor.Config  `yaml:"batch,omitempty"`
-	Queue     *queuedprocessor.Config `yaml:"queue,omitempty"`
+	URL       string                 `yaml:"url"`
+	Insecure  bool                   `yaml:"insecure"`
+	BasicAuth *BasicAuthConfig       `yaml:"basic_auth,omitempty"`
+	Batch     map[string]interface{} `yaml:"batch,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/batchprocessor/config.go#L24
+	Queue     map[string]interface{} `yaml:"queue,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/queuedprocessor/config.go#L24
 }
 
 // BasicAuthConfig controls the configuration of basic auth to Grafana cloud
@@ -92,6 +93,7 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		"otlp": map[string]interface{}{
 			"endpoint": c.RemoteWrite.URL,
 			"headers":  headers,
+			"insecure": c.RemoteWrite.Insecure,
 		},
 	}
 
@@ -104,8 +106,8 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	}
 
 	if c.RemoteWrite.Queue != nil {
-		processors["queue"] = c.RemoteWrite.Queue
-		processorNames = append(processorNames, "queue")
+		processors["queued_retry"] = c.RemoteWrite.Queue
+		processorNames = append(processorNames, "queued_retry")
 	}
 	otelMapStructure["processors"] = processors
 
@@ -117,11 +119,13 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	}
 
 	// pipelines
-	otelMapStructure["pipelines"] = map[string]interface{}{
-		"traces": map[string]interface{}{
-			"exporters":  []string{"otlp"},
-			"processors": processorNames,
-			"receivers":  receiverNames,
+	otelMapStructure["service"] = map[string]interface{}{
+		"pipelines": map[string]interface{}{
+			"traces": map[string]interface{}{
+				"exporters":  []string{"otlp"},
+				"processors": processorNames,
+				"receivers":  receiverNames,
+			},
 		},
 	}
 

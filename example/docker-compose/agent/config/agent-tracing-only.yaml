@@ -1,35 +1,20 @@
-# jpe - where to put this
-
 server:
   log_level: debug
   http_listen_port: 12345
 
 tempo:
-  exporters:
-    otlp:
-      endpoint: doesntexist:12345
-  extensions:
-    health_check: {}
-    pprof: {}
-    zpages: {}
-  processors:
-    batch:
-      send_batch_size: 1024
-      timeout: 5s
   receivers:
     jaeger:
       protocols:
-        grpc: null
-  service:
-    extensions:
-    - pprof
-    - zpages
-    - health_check
-    pipelines:
-      traces:
-      exporters:
-      - otlp
-      processors:
-      - batch
-      receivers:
-      - jaeger
+        thrift_http: 
+  remote_write:
+    url: otel-collector:55680
+    insecure: true
+    basic_auth:
+      username: blerg
+      password: superblerg
+    batch:
+      timeout: 5s
+      send_batch_size: 100
+    queue:
+      retry_on_failure: true

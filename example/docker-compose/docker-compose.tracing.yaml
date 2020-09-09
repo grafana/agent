@@ -1,0 +1,30 @@
+version: "2"
+services:
+  synthetic-load-generator:
+    image: omnition/synthetic-load-generator:1.0.25
+    volumes:
+      - ./load-generator/load-generator.json:/etc/load-generator.json
+    environment:
+      - TOPOLOGY_FILE=/etc/load-generator.json
+      - JAEGER_COLLECTOR_URL=http://agent:14268
+    depends_on:
+      - agent
+
+  agent:
+    image: grafana/agent:latest
+    volumes:
+      - ./agent/config:/etc/agent-config
+    entrypoint:
+      - /bin/agent
+      - -config.file=/etc/agent-config/agent-tracing-only.yaml
+    ports:
+      - "12345:12345"
+    depends_on:
+      - otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.9.0
+    volumes:
+      - ./otel-collector/config.yaml:/etc/config.yaml
+    command:
+      - --config=/etc/config.yaml
