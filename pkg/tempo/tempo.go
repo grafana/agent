@@ -6,14 +6,18 @@ import (
 	"os"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/prometheus"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
+	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/weaveworks/common/logging"
+	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/service/builder"
 )
 
@@ -32,7 +36,8 @@ tempo:
 
 // Tempo wraps the OpenTelemetry collector to enablet tracing pipelines
 type Tempo struct {
-	logger *zap.Logger
+	logger      *zap.Logger
+	metricViews []*view.View
 
 	exporter  builder.Exporters
 	pipelines builder.BuiltPipelines
@@ -43,8 +48,11 @@ type Tempo struct {
 func New(cfg Config, level logging.Level) (*Tempo, error) {
 	var err error
 
-	tempo := &Tempo{
-		logger: newLogger(level),
+	tempo := &Tempo{}
+	tempo.logger = newLogger(level)
+	tempo.metricViews, err = newMetricViews()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create metric views %w", err)
 	}
 
 	createCtx := context.Background()
@@ -71,6 +79,8 @@ func (t *Tempo) Stop() {
 	if err := t.receivers.ShutdownAll(shutdownCtx); err != nil {
 		t.logger.Error("failed to shutdown receivers", zap.Error(err))
 	}
+
+	view.Unregister(t.metricViews...)
 }
 
 func (t *Tempo) buildAndStartPipeline(ctx context.Context, cfg Config) error {
@@ -172,4 +182,24 @@ func newLogger(level logging.Level) *zap.Logger {
 	logger.Info("Tempo Logger Initialized")
 
 	return logger
+}
+
+func newMetricViews() ([]*view.View, error) {
+	views := obsreport.Configure(false, true)
+	err := view.Register(views...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register views %w", err)
+	}
+
+	pe, err := prometheus.NewExporter(prometheus.Options{
+		Namespace:  "tempo",
+		Registerer: prom_client.DefaultRegisterer,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create prometheus exporter %w", err)
+	}
+
+	view.RegisterExporter(pe)
+
+	return views, nil
 }

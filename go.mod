@@ -3,6 +3,7 @@ module github.com/grafana/agent
 go 1.12
 
 require (
+	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/cortexproject/cortex v1.2.1-0.20200803161316-7014ff11ed70
 	github.com/go-kit/kit v0.10.0
 	github.com/gogo/protobuf v1.3.1
@@ -25,6 +26,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/weaveworks/common v0.0.0-20200625145055-4b1847531bc9
+	go.opencensus.io v0.22.3
 	go.opentelemetry.io/collector v0.6.1
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.14.1
