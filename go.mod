@@ -9,10 +9,9 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.1
-	github.com/jsternberg/zap-logfmt v1.0.0
+	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
 	github.com/oklog/run v1.1.0
-	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -21,6 +20,7 @@ require (
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.1.3
 	github.com/prometheus/prometheus v1.8.2-0.20200727090838-6f296594a852
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
