@@ -198,12 +198,15 @@ prometheus:
 loki:
   # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
 
+tempo:
+  # AGENT TEMPO SETTINGS
+
 integrations:
   # AGENT INTEGRATIONS SETTINGS
 ```
 
 Here is an example full config file, using integrations,
-Prometheus, and Loki:
+Prometheus, Loki, and Tempo:
 
 ```yaml
 server:
@@ -234,6 +237,19 @@ loki:
             __path__: /var/log/*log
   clients:
     - url: http://localhost:3100/loki/api/v1/push
+
+tempo:
+  receivers:
+    jaeger:
+      protocols:
+        grpc: 
+  remote_write:
+    url: localhost:55680
+    batch:
+      timeout: 5s
+      send_batch_size: 100
+    queue:
+      retry_on_failure: true
 ```
 
 ## Running

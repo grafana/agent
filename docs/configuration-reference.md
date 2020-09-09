@@ -7,6 +7,7 @@ Prometheus instances.
 * [server_config](#server_config)
 * [prometheus_config](#prometheus_config)
 * [loki_config](#loki_config)
+* [tempo_config](#tempo_config)
 * [integrations_config](#integrations_config)
 
 ## File Format
@@ -41,6 +42,9 @@ Support contents and default values of `agent.yaml`:
 
 # Configures Loki log collection.
 [loki: <loki_config>]
+
+# Configures Tempo trace collection.
+[tempo: <tempo_config>]
 
 # Configures integrations for the Agent.
 [integrations: <integrations_config>]
@@ -1438,6 +1442,39 @@ scrape_configs:
   - [<promtail.scrape_config>]
 
 [target_config: <promtail.target_config>]
+```
+
+### tempo_config
+
+The `tempo_config` block configures how the Agent receives traces and sends them to Tempo. 
+
+```yaml
+remote_write:
+  # host:port to send traces to.  Required.
+  url: <string> | default = ""
+
+  # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
+  insecure: <boolean> | default = false
+
+  # Basic Auth settings for pushing traces
+  basic_auth:
+    # Username to use for basic auth.  Probably your Tenant ID
+    username: <string> | default = ""
+    # Password to use for basic auth.  Probably your token.
+    password: <string> | default = ""
+    # File whose contents will be used for the password.  Overrides password.
+    password_file: <string> | default = ""
+
+  # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/batchprocessor
+  batch: <batch.config>
+
+  # Queue options are the same as: https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/queuedprocessor
+  queue: <queued_retry.config>
+
+# Receiver configurations are mapped directly into the OpenTelmetry receivers block.
+#   At least one receiver is required.
+#   https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/receiver
+receivers:
 ```
 
 ### integrations_config
