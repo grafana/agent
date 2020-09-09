@@ -508,6 +508,8 @@ github.com/json-iterator/go
 github.com/jstemmer/go-junit-report
 github.com/jstemmer/go-junit-report/formatter
 github.com/jstemmer/go-junit-report/parser
+# github.com/jsternberg/zap-logfmt v1.0.0
+github.com/jsternberg/zap-logfmt
 # github.com/kisielk/gotool v1.0.0
 github.com/kisielk/gotool
 github.com/kisielk/gotool/internal/load
@@ -584,6 +586,8 @@ github.com/nishanths/exhaustive
 github.com/oklog/run
 # github.com/oklog/ulid v1.3.1
 github.com/oklog/ulid
+# github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
+github.com/op/go-logging
 # github.com/opencontainers/go-digest v1.0.0
 github.com/opencontainers/go-digest
 # github.com/opencontainers/image-spec v1.0.1

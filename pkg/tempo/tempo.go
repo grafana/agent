@@ -3,9 +3,14 @@ package tempo
 import (
 	"context"
 	"fmt"
+	"os"
+	"time"
 
-	"github.com/go-kit/kit/log"
+	zaplogfmt "github.com/jsternberg/zap-logfmt"
+	"github.com/sirupsen/logrus"
+	"github.com/weaveworks/common/logging"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
@@ -35,13 +40,11 @@ type Tempo struct {
 }
 
 // New creates and starts Loki log collection.
-func New(cfg Config, l log.Logger) (*Tempo, error) { // jpe what do with logger?
+func New(cfg Config, level logging.Level) (*Tempo, error) {
 	var err error
 
-	tempo := &Tempo{}
-	tempo.logger, err = zap.NewDevelopment()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create zap prod logger %w", err)
+	tempo := &Tempo{
+		logger: newLogger(level),
 	}
 
 	createCtx := context.Background()
@@ -136,4 +139,37 @@ func (t *Tempo) GetExtensions() map[configmodels.Extension]component.ServiceExte
 // GetExporters implements component.Host
 func (t *Tempo) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
 	return nil
+}
+
+func newLogger(level logging.Level) *zap.Logger {
+	zapLevel := zapcore.InfoLevel
+
+	switch level.Logrus {
+	case logrus.PanicLevel:
+		zapLevel = zapcore.PanicLevel
+	case logrus.FatalLevel:
+		zapLevel = zapcore.FatalLevel
+	case logrus.ErrorLevel:
+		zapLevel = zapcore.ErrorLevel
+	case logrus.WarnLevel:
+		zapLevel = zapcore.WarnLevel
+	case logrus.InfoLevel:
+		zapLevel = zapcore.InfoLevel
+	case logrus.DebugLevel:
+	case logrus.TraceLevel:
+		zapLevel = zapcore.DebugLevel
+	}
+
+	config := zap.NewProductionEncoderConfig()
+	config.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+		encoder.AppendString(ts.UTC().Format(time.RFC3339))
+	}
+	logger := zap.New(zapcore.NewCore(
+		zaplogfmt.NewEncoder(config),
+		os.Stdout,
+		zapLevel,
+	))
+	logger.Info("Tempo Logger Initialized")
+
+	return logger
 }

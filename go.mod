@@ -9,8 +9,10 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.1
+	github.com/jsternberg/zap-logfmt v1.0.0
 	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
 	github.com/oklog/run v1.1.0
+	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
