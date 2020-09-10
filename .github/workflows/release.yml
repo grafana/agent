@@ -4,20 +4,84 @@ on:
     tags:
       - '*'
 jobs:
-  release:
-    name: Release
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
     - name: Get build dependencies
       run: sudo apt-get update && sudo apt-get install libsystemd-dev
 
+    - name: Set up Go 1.15
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.15
+      id: go
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Test
+      run: make test
+  agent-container:
+    name: Build agent Container
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
     - name: Login to Docker Hub
       run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
 
-    - name: Set up Go 1.14
+    - name: Prepare buildx
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker buildx create --name builder --driver docker-container --use
+        docker buildx inspect --bootstrap
+
+    - name: Build container
+      run: |
+        export RELEASE_TAG=${GITHUB_REF##*/}
+        CROSS_BUILD=true RELEASE_BUILD=true make agent-image
+  agentctl-container:
+    name: Build agentctl Container
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Login to Docker Hub
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+
+    - name: Prepare buildx
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker buildx create --name builder --driver docker-container --use
+        docker buildx inspect --bootstrap
+
+    - name: Build container
+      run: |
+        export RELEASE_TAG=${GITHUB_REF##*/}
+        CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
+  release:
+    name: Release
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install libsystemd-dev
+
+    - name: Set up Go 1.15
       uses: actions/setup-go@v1
       with:
-        go-version: 1.14
+        go-version: 1.15
       id: go
 
     - name: Install gox and ghr
@@ -31,9 +95,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Test
-      run: make test
-
     - name: Make Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,7 +103,6 @@ jobs:
         export PATH="$(go env GOPATH)/bin:$PATH"
 
         export RELEASE_TAG=${GITHUB_REF##*/}
-        make CROSS_BUILD=true RELEASE_BUILD=true agent-image agentctl-image
 
         # Warm up make publish by pulling rfratto/seego ahead of time
         docker pull rfratto/seego:latest

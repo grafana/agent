@@ -23,7 +23,9 @@ endif
 IMAGE_PREFIX ?= grafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 
-# Flags used for controlling cross compilation.
+# Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
+# different architectures. When true, docker buildx is used instead of docker,
+# and seego is used for building binaries instead of go.
 CROSS_BUILD ?= false
 
 # Certain aspects of the build are done in containers for consistency.
@@ -93,8 +95,7 @@ docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
 
-# TODO(rfratto): replace --output=type=local,dest=output with --push
-docker-build = docker buildx build --output=type=local,dest=output --platform linux/amd64,linux/arm64,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
+docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
 endif
 
 ifeq ($(BUILD_IN_CONTAINER),false)

@@ -4,20 +4,17 @@ on:
     branches:
       - master
 jobs:
-  build-container:
-    name: Build Container
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
     - name: Get build dependencies
       run: sudo apt-get update && sudo apt-get install libsystemd-dev
 
-    - name: Login to Docker Hub
-      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
-
-    - name: Set up Go 1.14
+    - name: Set up Go 1.15
       uses: actions/setup-go@v1
       with:
-        go-version: 1.14
+        go-version: 1.15
       id: go
 
     - name: Checkout code
@@ -25,6 +22,48 @@ jobs:
 
     - name: Test
       run: make test
+  agent-container:
+    name: Build agent Container
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Login to Docker Hub
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+
+    - name: Prepare buildx
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker buildx create --name builder --driver docker-container --use
+        docker buildx inspect --bootstrap
 
     - name: Make Containers
-      run: CROSS_BUILD=true RELEASE_BUILD=true make agent-image agentctl-image
+      run: CROSS_BUILD=true RELEASE_BUILD=true make agent-image 
+  agentctl-container:
+    name: Build agentctl Container
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Login to Docker Hub
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+
+    - name: Prepare buildx
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker buildx create --name builder --driver docker-container --use
+        docker buildx inspect --bootstrap
+
+    - name: Make Containers
+      run: CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
+
