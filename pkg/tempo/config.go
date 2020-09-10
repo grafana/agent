@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	prom_config "github.com/prometheus/common/config"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -40,9 +41,9 @@ type RWConfig struct {
 
 // BasicAuthConfig controls the configuration of basic auth to Grafana cloud
 type BasicAuthConfig struct {
-	Username     string `yaml:"username"`
-	Password     string `yaml:"password"`
-	PasswordFile string `yaml:"password_file"`
+	Username     string             `yaml:"username"`
+	Password     prom_config.Secret `yaml:"password"`
+	PasswordFile string             `yaml:"password_file"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -73,7 +74,7 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	// exporter
 	headers := map[string]string{}
 	if c.RemoteWrite.BasicAuth != nil {
-		password := c.RemoteWrite.BasicAuth.Password
+		password := string(c.RemoteWrite.BasicAuth.Password)
 
 		if len(c.RemoteWrite.BasicAuth.PasswordFile) > 0 {
 			buff, err := ioutil.ReadFile(c.RemoteWrite.BasicAuth.PasswordFile)

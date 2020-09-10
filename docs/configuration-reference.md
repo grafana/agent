@@ -1456,14 +1456,13 @@ remote_write:
   # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
   insecure: <boolean> | default = false
 
-  # Basic Auth settings for pushing traces
+  # Sets the `Authorization` header on every scrape request with the
+  # configured username and password.
+  # password and password_file are mutually exclusive.
   basic_auth:
-    # Username to use for basic auth.  Probably your Tenant ID
-    username: <string> | default = ""
-    # Password to use for basic auth.  Probably your token.
-    password: <string> | default = ""
-    # File whose contents will be used for the password.  Overrides password.
-    password_file: <string> | default = ""
+    [ username: <string> ]
+    [ password: <secret> ]
+    [ password_file: <string> ]
 
   # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/batchprocessor
   batch: <batch.config>
