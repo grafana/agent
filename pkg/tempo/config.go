@@ -164,6 +164,7 @@ func tracingFactories() (config.Factories, error) {
 		jaegerreceiver.NewFactory(),
 		&zipkinreceiver.Factory{},
 		otlpreceiver.NewFactory(), // jpe - opencensus?
+
 	)
 	if err != nil {
 		return config.Factories{}, err

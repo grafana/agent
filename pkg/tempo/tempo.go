@@ -21,19 +21,6 @@ import (
 	"go.opentelemetry.io/collector/service/builder"
 )
 
-/*
-jpe - document somewhere:
-tempo:
-  receivers:
-    jaeger:
-      ...
-  remote_write:
-    url: doesntexist:12345
-    batch_config:
-      send_batch_size: 1024
-      timeout: 5s
-*/
-
 // Tempo wraps the OpenTelemetry collector to enablet tracing pipelines
 type Tempo struct {
 	logger      *zap.Logger
