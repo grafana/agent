@@ -35,16 +35,9 @@ type Config struct {
 type RWConfig struct {
 	Endpoint  string                 `yaml:"endpoint"`
 	Insecure  bool                   `yaml:"insecure"`
-	BasicAuth *BasicAuthConfig       `yaml:"basic_auth,omitempty"`
+	BasicAuth *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
 	Batch     map[string]interface{} `yaml:"batch,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/batchprocessor/config.go#L24
 	Queue     map[string]interface{} `yaml:"queue,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/queuedprocessor/config.go#L24
-}
-
-// BasicAuthConfig controls the configuration of basic auth to Grafana cloud
-type BasicAuthConfig struct {
-	Username     string             `yaml:"username"`
-	Password     prom_config.Secret `yaml:"password"`
-	PasswordFile string             `yaml:"password_file"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
