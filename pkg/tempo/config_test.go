@@ -25,7 +25,7 @@ func TestOTelConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	// tests!
-	tests := []struct {
+	tt := []struct {
 		name           string
 		cfg            string
 		expectedError  bool
@@ -193,15 +193,15 @@ service:
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
 			cfg := &Config{}
-			err := yaml.Unmarshal([]byte(tt.cfg), cfg)
+			err := yaml.Unmarshal([]byte(tc.cfg), cfg)
 			require.NoError(t, err)
 
 			// check error
 			actualConfig, err := cfg.otelConfig()
-			if tt.expectedError {
+			if tc.expectedError {
 				assert.Error(t, err)
 				return
 			}
@@ -209,7 +209,7 @@ service:
 
 			// convert actual config to otel config
 			otelMapStructure := map[string]interface{}{}
-			err = yaml.Unmarshal([]byte(tt.expectedConfig), otelMapStructure)
+			err = yaml.Unmarshal([]byte(tc.expectedConfig), otelMapStructure)
 			require.NoError(t, err)
 
 			v := viper.New()
