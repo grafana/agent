@@ -133,11 +133,6 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
-agent-crossbuild:
-	bash ./tools/cross_build.bash agent
-agentctl-crossbuild:
-	bash ./tools/cross_build.bash agentctl
-
 cmd/agent/agent: cmd/agent/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
