@@ -42,8 +42,7 @@ jobs:
         export PATH="$(go env GOPATH)/bin:$PATH"
 
         export RELEASE_TAG=${GITHUB_REF##*/}
-        make RELEASE_BUILD=true agent-image agentctl-image
-        make RELEASE_BUILD=true push-agent-image push-agentctl-image
+        make CROSS_BUILD=true RELEASE_BUILD=true agent-image agentctl-image
 
         # Warm up make publish by pulling rfratto/seego ahead of time
         docker pull rfratto/seego:latest

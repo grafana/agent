@@ -26,8 +26,5 @@ jobs:
     - name: Test
       run: make test
 
-    - name: Make Container
-      run: RELEASE_BUILD=true make agent-image agentctl-image
-
-    - name: Push Container
-      run: RELEASE_BUILD=true make push-agent-image push-agentctl-image
+    - name: Make Containers
+      run: CROSS_BUILD=true RELEASE_BUILD=true make agent-image agentctl-image

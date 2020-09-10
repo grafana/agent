@@ -51,6 +51,7 @@ VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
 DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
+DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAGE_TAG=$(IMAGE_TAG)
 
 # We need a separate set of flags for CGO, where building with -static can
 # cause problems with some C libraries.
@@ -79,6 +80,26 @@ PROTO_GOS := $(patsubst %.proto,%.pb.go,$(PROTO_DEFS))
 PACKAGE_VERSION := $(patsubst v%,%,$(RELEASE_TAG))
 # The number of times this version of the software was released, starting with 1 for the first release.
 PACKAGE_RELEASE := 1
+
+############
+# Commands #
+############
+
+DOCKERFILE = Dockerfile
+
+seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
+docker-build = docker build $(DOCKER_BUILD_FLAGS)
+
+ifeq ($(CROSS_BUILD),true)
+DOCKERFILE = Dockerfile.buildx
+
+# TODO(rfratto): replace --output=type=local,dest=output with --push
+docker-build = docker buildx build --output=type=local,dest=output --platform linux/amd64,linux/arm64,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
+endif
+
+ifeq ($(BUILD_IN_CONTAINER),false)
+seego = "/seego.sh"
+endif
 
 #############
 # Protobufs #
@@ -112,51 +133,31 @@ agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
 agent-crossbuild:
-	bash ./tools/cross_build.bash
+	bash ./tools/cross_build.bash agent
+agentctl-crossbuild:
+	bash ./tools/cross_build.bash agentctl
 
-# The logic here can be pretty confusing, but there's three cases:
-#
-# 1) CROSS_BUILD=false :: build with native go
-# 2) CROSS_BUILD=false, BUILD_IN_CONTAINER=true  :: build with docker and seego
-# 3) CROSS_BUILD=false, BUILD_IN_CONTAINER=false :: build with /seego.sh, assuming it exists
 cmd/agent/agent: cmd/agent/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
-ifeq ($(BUILD_IN_CONTAINER),true)
 	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); /seego.sh build $(CGO_FLAGS) -o $@ ./$(@D)
-endif
 endif
 	$(NETGO_CHECK)
 
 cmd/agentctl/agentctl: cmd/agentctl/main.go
-	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+ifeq ($(CROSS_BUILD),false)
+	CGO_ENABLED=1 go build $(GO_FLAGS) -o $@ ./$(@D)
+else
+	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
 	$(NETGO_CHECK)
 
-agent-x-image:
-	docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
-		--build-arg RELEASE_BUILD=$(RELEASE_BUILD)  --build-arg IMAGE_TAG=$(IMAGE_TAG) \
-		-t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/Dockerfile.buildx --push .
-
 agent-image:
-	docker build --build-arg RELEASE_BUILD=$(RELEASE_BUILD)  --build-arg IMAGE_TAG=$(IMAGE_TAG) \
-		-t $(IMAGE_PREFIX)/agent:latest -f cmd/agent/Dockerfile .
-	docker tag $(IMAGE_PREFIX)/agent:latest $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
+	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 
 agentctl-image:
-	docker build --build-arg RELEASE_BUILD=$(RELEASE_BUILD)  --build-arg IMAGE_TAG=$(IMAGE_TAG) \
-		-t $(IMAGE_PREFIX)/agentctl:latest -f cmd/agentctl/Dockerfile .
-	docker tag $(IMAGE_PREFIX)/agentctl:latest $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG)
-
-push-agent-image:
-	docker push $(IMAGE_PREFIX)/agent:latest
-	docker push $(IMAGE_PREFIX)/agent:$(IMAGE_TAG)
-
-push-agentctl-image:
-	docker push $(IMAGE_PREFIX)/agentctl:latest
-	docker push $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG)
+	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
@@ -190,8 +191,6 @@ example-dashboards:
 # Releasing #
 #############
 
-seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
-
 # dist builds the agent and agentctl for all different supported platforms.
 # Most of these platforms need CGO_ENABLED=1, but to simplify things we'll
 # use CGO_ENABLED for all of them. We define them all as separate targets
@@ -208,6 +207,10 @@ dist: dist-agent dist-agentctl
 dist-agent: dist/agent-linux-amd64 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
 dist/agent-linux-amd64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-linux-arm64:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-linux-armv7:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-windows-amd64.exe:
@@ -216,6 +219,10 @@ dist/agent-windows-amd64.exe:
 dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
 dist/agentctl-linux-amd64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-linux-arm64:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-linux-armv7:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-windows-amd64.exe:

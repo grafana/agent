@@ -71,3 +71,18 @@ jobs:
       uses: actions/checkout@v2
     - name: Test Packages
       run: RELEASE_TAG=v0.0.0 make test-packages
+
+  # TODO(rfratto): temporary test to make sure cross builds work in CI. Remove after 
+  # verifying.
+  build-container:
+    name: Build Container
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Make Containers
+      run: CROSS_BUILD=true RELEASE_BUILD=true make agent-image agentctl-image
