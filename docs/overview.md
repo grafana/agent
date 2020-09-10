@@ -77,6 +77,8 @@ developer team.
 
 Grafana Cloud Agent supports collecting traces and sending them to Tempo using its
 `tempo` subsystem.  This is done by utilizing the upstream [OpenTelmetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
+The agent is capable of ingesting OpenTelemetry, Jaeger and Zipkin spans.  See documentation
+on how to configure [receivers](./configuration-reference.md#tempo_config).
 
 ## Comparison to Alternatives
 
