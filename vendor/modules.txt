@@ -100,6 +100,8 @@ github.com/c2h5oh/datasize
 github.com/cenkalti/backoff
 # github.com/census-instrumentation/opencensus-proto v0.2.1
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
+github.com/census-instrumentation/opencensus-proto/gen-go/agent/metrics/v1
+github.com/census-instrumentation/opencensus-proto/gen-go/agent/trace/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
@@ -972,6 +974,9 @@ go.opentelemetry.io/collector/processor/batchprocessor
 go.opentelemetry.io/collector/processor/processorhelper
 go.opentelemetry.io/collector/processor/queuedprocessor
 go.opentelemetry.io/collector/receiver/jaegerreceiver
+go.opentelemetry.io/collector/receiver/opencensusreceiver
+go.opentelemetry.io/collector/receiver/opencensusreceiver/ocmetrics
+go.opentelemetry.io/collector/receiver/opencensusreceiver/octrace
 go.opentelemetry.io/collector/receiver/otlpreceiver
 go.opentelemetry.io/collector/receiver/otlpreceiver/metrics
 go.opentelemetry.io/collector/receiver/otlpreceiver/trace
