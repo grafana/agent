@@ -83,6 +83,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+    
+    - name: Setup buildx context 
+      run: docker buildx create --use
 
     - name: Make Containers
       run: CROSS_BUILD=true RELEASE_BUILD=true make agent-image agentctl-image
