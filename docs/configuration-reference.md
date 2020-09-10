@@ -1450,13 +1450,13 @@ The `tempo_config` block configures how the Agent receives traces and sends them
 
 ```yaml
 remote_write:
-  # host:port to send traces to.  Required.
-  url: <string> | default = ""
+  # host:port to send traces to
+  url: <string>
 
   # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
-  insecure: <boolean> | default = false
+  [ insecure: <boolean> | default = false ]
 
-  # Sets the `Authorization` header on every scrape request with the
+  # Sets the `Authorization` header on every trace push with the
   # configured username and password.
   # password and password_file are mutually exclusive.
   basic_auth:
@@ -1465,10 +1465,10 @@ remote_write:
     [ password_file: <string> ]
 
   # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/batchprocessor
-  batch: <batch.config>
+  [ batch: <batch.config> ]
 
   # Queue options are the same as: https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/queuedprocessor
-  queue: <queued_retry.config>
+  [ queue: <queued_retry.config> ]
 
 # Receiver configurations are mapped directly into the OpenTelmetry receivers block.
 #   At least one receiver is required.
