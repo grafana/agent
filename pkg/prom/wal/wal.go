@@ -294,11 +294,6 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				// the truncation is performed.
 				if w.series.getByID(s.Ref) == nil {
 					series := &memSeries{ref: s.Ref, lset: s.Labels, lastTs: 0}
-
-					// Store both the series and the labels so the appender's Add function
-					// can look up this series later. We only want to store the labels for
-					// replayed series and delete the entry for the after it's read to save
-					// on memory usage.
 					w.series.set(s.Labels.Hash(), series)
 
 					w.metrics.numActiveSeries.Inc()
