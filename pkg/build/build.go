@@ -1,6 +1,13 @@
 package build
 
-import "github.com/prometheus/common/version"
+import (
+	// We do an empty import of Loki's build package to force it ahead of us on
+	// the dependency graph. This makes sure that our init function runs after it
+	// and retains the build info we set at compile time.
+	_ "github.com/grafana/loki/pkg/build"
+
+	"github.com/prometheus/common/version"
+)
 
 // Version information passed to Prometheus version package.
 // Package path as used by linker changes based on vendoring being used or not,
