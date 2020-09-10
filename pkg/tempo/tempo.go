@@ -39,13 +39,13 @@ func New(cfg Config, level logging.Level) (*Tempo, error) {
 	tempo.logger = newLogger(level)
 	tempo.metricViews, err = newMetricViews()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create metric views %w", err)
+		return nil, fmt.Errorf("failed to create metric views: %w", err)
 	}
 
 	createCtx := context.Background()
 	err = tempo.buildAndStartPipeline(createCtx, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create exporter %w", err)
+		return nil, fmt.Errorf("failed to create exporter: %w", err)
 	}
 
 	return tempo, nil
@@ -74,45 +74,45 @@ func (t *Tempo) buildAndStartPipeline(ctx context.Context, cfg Config) error {
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
-		return fmt.Errorf("failed to load otelConfig from agent tempo config %w", err)
+		return fmt.Errorf("failed to load otelConfig from agent tempo config: %w", err)
 	}
 
 	factories, err := tracingFactories()
 	if err != nil {
-		return fmt.Errorf("failed to load tracing factories %w", err)
+		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
 
 	// start exporter
 	t.exporter, err = builder.NewExportersBuilder(t.logger, otelConfig, factories.Exporters).Build()
 	if err != nil {
-		return fmt.Errorf("failed to build exporters %w", err)
+		return fmt.Errorf("failed to build exporters: %w", err)
 	}
 
 	err = t.exporter.StartAll(ctx, t)
 	if err != nil {
-		return fmt.Errorf("failed to start exporters %w", err)
+		return fmt.Errorf("failed to start exporters: %w", err)
 	}
 
 	// start pipelines
 	t.pipelines, err = builder.NewPipelinesBuilder(t.logger, otelConfig, t.exporter, factories.Processors).Build()
 	if err != nil {
-		return fmt.Errorf("failed to build exporters %w", err)
+		return fmt.Errorf("failed to build exporters: %w", err)
 	}
 
 	err = t.pipelines.StartProcessors(ctx, t)
 	if err != nil {
-		return fmt.Errorf("failed to start processors %w", err)
+		return fmt.Errorf("failed to start processors: %w", err)
 	}
 
 	// start receivers
 	t.receivers, err = builder.NewReceiversBuilder(t.logger, otelConfig, t.pipelines, factories.Receivers).Build()
 	if err != nil {
-		return fmt.Errorf("failed to start receivers %w", err)
+		return fmt.Errorf("failed to start receivers: %w", err)
 	}
 
 	err = t.receivers.StartAll(ctx, t)
 	if err != nil {
-		return fmt.Errorf("failed to start receivers %w", err)
+		return fmt.Errorf("failed to start receivers: %w", err)
 	}
 
 	return nil
@@ -175,7 +175,7 @@ func newMetricViews() ([]*view.View, error) {
 	views := obsreport.Configure(false, true)
 	err := view.Register(views...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register views %w", err)
+		return nil, fmt.Errorf("failed to register views: %w", err)
 	}
 
 	pe, err := prometheus.NewExporter(prometheus.Options{
@@ -183,7 +183,7 @@ func newMetricViews() ([]*view.View, error) {
 		Registerer: prom_client.DefaultRegisterer,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create prometheus exporter %w", err)
+		return nil, fmt.Errorf("failed to create prometheus exporter: %w", err)
 	}
 
 	view.RegisterExporter(pe)

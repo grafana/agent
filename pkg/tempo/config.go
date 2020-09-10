@@ -73,7 +73,7 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		if len(c.RemoteWrite.BasicAuth.PasswordFile) > 0 {
 			buff, err := ioutil.ReadFile(c.RemoteWrite.BasicAuth.PasswordFile)
 			if err != nil {
-				return nil, fmt.Errorf("unable to load password file %s %w", c.RemoteWrite.BasicAuth.PasswordFile, err)
+				return nil, fmt.Errorf("unable to load password file %s: %w", c.RemoteWrite.BasicAuth.PasswordFile, err)
 			}
 			password = string(buff)
 		}
@@ -130,17 +130,17 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	v := viper.New()
 	err := v.MergeConfigMap(otelMapStructure)
 	if err != nil {
-		return nil, fmt.Errorf("failed to merge in mapstructure config %w", err)
+		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
 	}
 
 	factories, err := tracingFactories()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create factories %w", err)
+		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
 
 	otelCfg, err := config.Load(v, factories)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load OTel config %w", err)
+		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
 
 	return otelCfg, nil
