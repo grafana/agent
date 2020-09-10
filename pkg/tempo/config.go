@@ -31,7 +31,7 @@ type Config struct {
 
 // RWConfig controls the configuration of exporting to Grafana Cloud
 type RWConfig struct {
-	URL       string                 `yaml:"url"`
+	Endpoint  string                 `yaml:"endpoint"`
 	Insecure  bool                   `yaml:"insecure"`
 	BasicAuth *BasicAuthConfig       `yaml:"basic_auth,omitempty"`
 	Batch     map[string]interface{} `yaml:"batch,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/batchprocessor/config.go#L24
@@ -66,8 +66,8 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		return nil, errors.New("must have at least one configured receiver")
 	}
 
-	if len(c.RemoteWrite.URL) == 0 {
-		return nil, errors.New("must have a configured remote_write.url")
+	if len(c.RemoteWrite.Endpoint) == 0 {
+		return nil, errors.New("must have a configured remote_write.endpoint")
 	}
 
 	// exporter
@@ -91,7 +91,7 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 
 	otelMapStructure["exporters"] = map[string]interface{}{
 		"otlp": map[string]interface{}{
-			"endpoint": c.RemoteWrite.URL,
+			"endpoint": c.RemoteWrite.Endpoint,
 			"headers":  headers,
 			"insecure": c.RemoteWrite.Insecure,
 		},

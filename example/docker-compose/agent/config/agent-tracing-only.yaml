@@ -8,7 +8,7 @@ tempo:
       protocols:
         thrift_http: 
   remote_write:
-    url: otel-collector:55680
+    endpoint: otel-collector:55680
     insecure: true
     basic_auth:
       username: blerg

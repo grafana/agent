@@ -44,7 +44,7 @@ receivers:
 			expectedError: true,
 		},
 		{
-			name: "no rw url",
+			name: "no rw endpoint",
 			cfg: `
 receivers:
   jaeger:
@@ -57,7 +57,7 @@ receivers:
 receivers:
   jaeger:
 remote_write:
-  url: example.com:12345
+  endpoint: example.com:12345
 `,
 			expectedError: true,
 		},
@@ -69,7 +69,7 @@ receivers:
     protocols:
       grpc:
 remote_write:
-  url: example.com:12345
+  endpoint: example.com:12345
 `,
 			expectedConfig: `
 receivers:
@@ -96,7 +96,7 @@ receivers:
       grpc:
 remote_write:
   insecure: true
-  url: example.com:12345
+  endpoint: example.com:12345
   basic_auth:
     username: test
     password: blerg
@@ -128,7 +128,7 @@ receivers:
     protocols:
       grpc:
 remote_write:
-  url: example.com:12345
+  endpoint: example.com:12345
   batch:
     timeout: 5s
     send_batch_size: 100
@@ -168,7 +168,7 @@ receivers:
       grpc:
 remote_write:
   insecure: true
-  url: example.com:12345
+  endpoint: example.com:12345
   basic_auth:
     username: test
     password_file: ` + tmpfile.Name(),
