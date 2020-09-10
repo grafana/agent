@@ -82,7 +82,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Get build dependencies
-      run: sudo apt-get update && sudo apt-get install qemu-user-static
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
 
     - name: Checkout code
       uses: actions/checkout@v2
