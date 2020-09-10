@@ -3,9 +3,9 @@ services:
   synthetic-load-generator:
     image: omnition/synthetic-load-generator:1.0.25
     volumes:
-      - ./load-generator/load-generator.json:/etc/load-generator.json
+      - ./load-generator:/etc/load-generator
     environment:
-      - TOPOLOGY_FILE=/etc/load-generator.json
+      - TOPOLOGY_FILE=/etc/load-generator/load-generator.json
       - JAEGER_COLLECTOR_URL=http://agent:14268
     depends_on:
       - agent
@@ -27,9 +27,9 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector:0.9.0
     volumes:
-      - ./otel-collector/config.yaml:/etc/config.yaml
+      - ./otel-collector:/etc/otel-collector
     command:
-      - --config=/etc/config.yaml
+      - --config=/etc/otel-collector/config.yaml
 
   cortex:
     image: cortexproject/cortex:v0.6.1
