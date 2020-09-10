@@ -1451,7 +1451,7 @@ The `tempo_config` block configures how the Agent receives traces and sends them
 ```yaml
 remote_write:
   # host:port to send traces to
-  url: <string>
+  endpoint: <string>
 
   # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
   [ insecure: <boolean> | default = false ]
