@@ -86,9 +86,15 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Setup buildx driver 
+      run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     
     - name: Setup buildx context 
-      run: docker buildx create --use
+      run: docker buildx create --name builder --driver docker-container --use 
+
+    - name: Buildx inspect 
+      run: docker buildx inspect --bootstrap
 
     - name: Make Containers
       run: CROSS_BUILD=true RELEASE_BUILD=true make agent-image agentctl-image
