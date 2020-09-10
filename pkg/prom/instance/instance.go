@@ -436,14 +436,14 @@ func (i *Instance) Update(c Config) error {
 		}
 	}
 
-	sdConfigs := map[string]sd_config.ServiceDiscoveryConfig{}
-	for _, v := range c.ScrapeConfigs {
-		sdConfigs[v.JobName] = v.ServiceDiscoveryConfig
-	}
-	err = i.discovery.Manager.ApplyConfig(sdConfigs)
-	if err != nil {
-		return fmt.Errorf("failed applying configs to discovery manager: %w", err)
-	}
+	// NOTE(rfratto): Prometheus applies configs in a specific order to ensure
+	// flow from service discovery down to the WAL continues working properly.
+	//
+	// Keep the following order below:
+	//
+	// 1. Remote Store
+	// 2. Scrape Manager
+	// 3. Discovery Manager
 
 	err = i.remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg,
@@ -457,13 +457,21 @@ func (i *Instance) Update(c Config) error {
 	if err != nil {
 		return fmt.Errorf("couldn't get scrape manager to apply new scrape configs: %w", err)
 	}
-
 	err = sm.ApplyConfig(&config.Config{
 		GlobalConfig:  i.globalCfg,
 		ScrapeConfigs: c.ScrapeConfigs,
 	})
 	if err != nil {
 		return fmt.Errorf("error applying updated configs to scrape manager: %w", err)
+	}
+
+	sdConfigs := map[string]sd_config.ServiceDiscoveryConfig{}
+	for _, v := range c.ScrapeConfigs {
+		sdConfigs[v.JobName] = v.ServiceDiscoveryConfig
+	}
+	err = i.discovery.Manager.ApplyConfig(sdConfigs)
+	if err != nil {
+		return fmt.Errorf("failed applying configs to discovery manager: %w", err)
 	}
 
 	i.cfg = c
