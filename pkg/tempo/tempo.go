@@ -53,7 +53,8 @@ func New(cfg Config, level logging.Level) (*Tempo, error) {
 
 // Stop stops the OpenTelemetry collector subsystem
 func (t *Tempo) Stop() {
-	shutdownCtx := context.Background()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	if err := t.receivers.ShutdownAll(shutdownCtx); err != nil {
 		t.logger.Error("failed to shutdown receiver", zap.Error(err))
