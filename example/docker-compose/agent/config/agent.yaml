@@ -63,3 +63,16 @@ loki:
           job: varlogs
           __path__: /var/log/*log
 
+tempo:
+  receivers:
+    jaeger:
+      protocols:
+        thrift_http: 
+  remote_write:
+    endpoint: otel-collector:55680
+    insecure: true
+    batch:
+      timeout: 5s
+      send_batch_size: 100
+    queue:
+      retry_on_failure: true

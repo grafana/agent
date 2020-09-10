@@ -72,15 +72,3 @@ Docker Compose example.
 The `agentctl` tool provided by this repository can automatically deploy 
 those configs for you; run `agentctl config-sync -a http://localhost:12345 ./agent/instance-configs`
 from this directory to do so.
-
-## Tracing
-
-A Tracing example is also present in this directory. To start it, run:
-
-```
-docker-compose -f docker-compose.tracing.yaml up -d
-```
-
-This example will push traces to a local [OTel Collector](https://github.com/open-telemetry/opentelemetry-collector) which
-will then simply print out that it has received them.  Additionally, you can check out a simple Grafana dashboard
-that highlights important metrics to watch on the tracing pipeline.
