@@ -15,7 +15,7 @@
 #
 # Flags override environment variables, and stdin is used as a fallback if a
 # value wasn't given from a flag or environment variable. An empty username
-# or password is acceptable, as it disables basic auth. However, a hostname must 
+# or password is acceptable, as it disables basic auth. However, a hostname must
 # always be provided.
 #
 
@@ -29,7 +29,7 @@ check_installed() {
 check_installed curl
 check_installed envsubst
 
-MANIFEST_BRANCH=v0.6.0
+MANIFEST_BRANCH=v0.6.1
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent-loki.yaml}
 
 LOKI_USERNAME_SET=0

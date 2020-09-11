@@ -14,14 +14,13 @@ prometheus:
             - targets: ['127.0.0.1:12345']
               labels:
                 cluster: 'docker_compose'
-                origin: 'agent'
                 container: 'agent'
+                pod: 'grafana-agent-local'
         - job_name: cortex_scrape
           static_configs:
             - targets: ['cortex:9009']
               labels:
                 cluster: 'docker_compose'
-                origin: 'agent'
                 container: 'cortex'
 
         - job_name: avalanche-1
@@ -29,21 +28,18 @@ prometheus:
             - targets: ['avalanche-1:9001']
               labels:
                 cluster: 'docker_compose'
-                origin: 'agent'
                 container: 'avalanche-1'
         - job_name: avalanche-2
           static_configs:
             - targets: ['avalanche-2:9001']
               labels:
                 cluster: 'docker_compose'
-                origin: 'agent'
                 container: 'avalanche-2'
         - job_name: avalanche-3
           static_configs:
             - targets: ['avalanche-3:9001']
               labels:
                 cluster: 'docker_compose'
-                origin: 'agent'
                 container: 'avalanche-3'
 
       remote_write:
