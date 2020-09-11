@@ -3,27 +3,34 @@ module github.com/grafana/agent
 go 1.12
 
 require (
+	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/cortexproject/cortex v1.2.1-0.20200803161316-7014ff11ed70
 	github.com/go-kit/kit v0.10.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.2
-	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.1
+	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
 	github.com/oklog/run v1.1.0
-	github.com/opentracing-contrib/go-grpc v0.0.0-20180928155321-4b5a12d3ff02
+	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
-	github.com/prometheus/common v0.10.0
+	github.com/prometheus/common v0.11.1
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.1.3
 	github.com/prometheus/prometheus v1.8.2-0.20200727090838-6f296594a852
-	github.com/spf13/cobra v0.0.3
-	github.com/stretchr/testify v1.5.1
+	github.com/sirupsen/logrus v1.6.0
+	github.com/spf13/cobra v1.0.0
+	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.6.1
 	github.com/weaveworks/common v0.0.0-20200625145055-4b1847531bc9
+	go.opencensus.io v0.22.3
+	go.opentelemetry.io/collector v0.6.1
 	go.uber.org/atomic v1.6.0
-	google.golang.org/grpc v1.30.0
+	go.uber.org/zap v1.14.1
+	google.golang.org/grpc v1.31.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.3.0
 )

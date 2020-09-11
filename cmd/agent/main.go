@@ -11,6 +11,7 @@ import (
 	_ "github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/tempo"
 
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log/level"
@@ -38,6 +39,7 @@ func main() {
 	var (
 		promMetrics *prom.Agent
 		lokiLogs    *loki.Loki
+		tempoTraces *tempo.Tempo
 		manager     *integrations.Manager
 	)
 
@@ -63,6 +65,14 @@ func main() {
 		lokiLogs, err = loki.New(cfg.Loki, util.Logger)
 		if err != nil {
 			level.Error(util.Logger).Log("msg", "failed to create loki log collection instance", "err", err)
+			os.Exit(1)
+		}
+	}
+
+	if cfg.Tempo.Enabled {
+		tempoTraces, err = tempo.New(cfg.Tempo, cfg.Server.LogLevel)
+		if err != nil {
+			level.Error(util.Logger).Log("msg", "failed to create tempo trace collection instance", "err", err)
 			os.Exit(1)
 		}
 	}
@@ -103,6 +113,9 @@ func main() {
 	}
 	if promMetrics != nil {
 		promMetrics.Stop()
+	}
+	if tempoTraces != nil {
+		tempoTraces.Stop()
 	}
 	level.Info(util.Logger).Log("msg", "agent exiting")
 }

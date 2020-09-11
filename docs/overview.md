@@ -73,6 +73,14 @@ Grafana Cloud Agent supports collecting logs and sending them to Loki using its
 is the official first-party log collection client created by the Loki
 developer team.
 
+## Traces
+
+Grafana Cloud Agent supports collecting traces and sending them to Tempo using its
+`tempo` subsystem. This is done by utilizing the upstream [OpenTelmetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
+The agent is capable of ingesting OpenTelemetry, OpenCensus, Jaeger or Zipkin spans.
+See documentation on how to configure [receivers](./configuration-reference.md#tempo_config).
+The agent is capable of exporting to any OpenTelemetry GRPC compatible system.
+
 ## Comparison to Alternatives
 
 Grafana Cloud Agent is custom built for [Grafana Cloud](https://grafana.com/products/cloud/),

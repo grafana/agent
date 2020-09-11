@@ -12,6 +12,8 @@ services:
       - -prometheus.wal-directory=/tmp/agent/wal
     ports:
       - "12345:12345"
+    depends_on:
+      - otel-collector
 
   loki:
     image: grafana/loki:1.5.0
@@ -29,6 +31,25 @@ services:
       - -config.file=/etc/cortex-config/cortex.yaml
     ports:
       - "9009:9009"
+
+  # tracing load generator
+  synthetic-load-generator:
+    image: omnition/synthetic-load-generator:1.0.25
+    volumes:
+      - ./load-generator:/etc/load-generator
+    environment:
+      - TOPOLOGY_FILE=/etc/load-generator/load-generator.json
+      - JAEGER_COLLECTOR_URL=http://agent:14268
+    depends_on:
+      - agent
+
+  # tracing backend
+  otel-collector:
+    image: otel/opentelemetry-collector:0.9.0
+    volumes:
+      - ./otel-collector:/etc/otel-collector
+    command:
+      - --config=/etc/otel-collector/config.yaml
 
   grafana:
     image: grafana/grafana:6.6.1
