@@ -6,21 +6,21 @@ scrape_configs:
       - targets: ['agent-1:12345']
         labels:
           cluster: 'docker_compose'
-          origin: 'agent'
           container: 'agent-1'
+          pod: 'grafana-agent-1'
   - job_name: agent-2
     static_configs:
       - targets: ['agent-2:12345']
         labels:
           cluster: 'docker_compose'
-          origin: 'agent'
           container: 'agent-2'
+          pod: 'grafana-agent-2'
   - job_name: agent-3
     static_configs:
       - targets: ['agent-3:12345']
         labels:
           cluster: 'docker_compose'
-          origin: 'agent'
           container: 'agent-3'
+          pod: 'grafana-agent-3'
 remote_write:
   - url: http://cortex:9009/api/prom/push
