@@ -1577,7 +1577,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.6.0 \
+  grafana/agent:v0.6.1 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -1598,7 +1598,7 @@ integrations:
   node_exporter:
     enabled: true
     rootfs_path: /host/root
-    devfs_path: /host/dev
+    sysfs_path: /host/sys
     procfs_path: /host/proc
   prometheus_remote_write:
     - url: https://prometheus-us-central1.grafana.net/api/prom/push
@@ -1617,11 +1617,10 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.6.0
+  - image: grafana/agent:v0.6.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
-    - --integrations.node_exporter.rootfs-path=/host
     securityContext:
       capabilities:
         add: ["SYS_TIME"]
@@ -1631,8 +1630,8 @@ spec:
     - name: rootfs
       mountPath: /host/root
       readOnly: true
-    - name: devfs
-      mountPath: /host/dev
+    - name: sysfs
+      mountPath: /host/sys
       readOnly: true
     - name: procfs
       mountPath: /host/proc
@@ -1641,9 +1640,9 @@ spec:
   - name: rootfs
     hostPath:
       path: /
-  - name: devfs
+  - name: sysfs
     hostPath:
-      path: /dev
+      path: /sys
   - name: procfs
     hostPath:
       path: /proc
@@ -1884,7 +1883,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.6.0 \
+  grafana/agent:v0.6.1 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -1901,7 +1900,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.6.0
+  - image: grafana/agent:v0.6.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -1978,8 +1977,8 @@ Full reference of options:
   [recheck_on_scrape: <boolean> | default = false]
 
   # A collection of matching rules to use for deciding which processes to
-  # monitor. Each config can match multiple processes to be tracked as a single 
-  # process "group." 
+  # monitor. Each config can match multiple processes to be tracked as a single
+  # process "group."
   process_names:
     [- <process_matcher_config>]
 ```
@@ -1988,10 +1987,10 @@ Full reference of options:
 
 ```yaml
 # The name to use for identifying the process group name in the metric. By
-# default, it uses the base path of the executable. 
+# default, it uses the base path of the executable.
 #
 # The following template variables are available:
-# 
+#
 # - {{.Comm}}:      Basename of the original executable from /proc/<pid>/stat
 # - {{.ExeBase}}:   Basename of the executable from argv[0]
 # - {{.ExeFull}}:   Fully qualified path of the executable
@@ -2004,7 +2003,7 @@ Full reference of options:
 #                   with PID as PIDS get reused over time.
 [name: <string> | default = "{{.ExeBase}}"]
 
-# A list of strings that match the base executable name for a process, truncated 
+# A list of strings that match the base executable name for a process, truncated
 # at 15 characters. It is derived from reading the second field of
 # /proc/<pid>/stat minus the parens.
 #
@@ -2013,7 +2012,7 @@ comm:
   [- <string>]
 
 # A list of strings that match argv[0] for a problem. If there are no slashes,
-# only the basename of argv[0] needs to match. Otherwise the name must be an 
+# only the basename of argv[0] needs to match. Otherwise the name must be an
 # exact match. For example, "postgres" may match any postgres binary but
 # "/usr/local/bin/postgres" can only match a postgres at that path exactly.
 #
@@ -2021,8 +2020,8 @@ comm:
 exe:
   [- <string>]
 
-# A list of regular expressions applied to the argv of the process. Each 
-# regex here must match the corresponding argv for the process to be tracked. 
+# A list of regular expressions applied to the argv of the process. Each
+# regex here must match the corresponding argv for the process to be tracked.
 # The first element that is matched is argv[1].
 #
 # Regex Captures are added to the .Matches map for use in the name.

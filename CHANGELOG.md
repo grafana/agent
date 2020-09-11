@@ -4,6 +4,21 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+# v0.6.1 (2020-04-11)
+
+NOTE: FreeBSD builds will not be included for this release. There is a bug in an
+upstream library preventing cross-compilation of the Grafana Cloud Agent for
+this platform. FreeBSD builds will return in a future release.
+
+- [BUGFIX] Fix issue where build information was empty when running the Agent
+  with --version. (@rfratto)
+
+- [BUGFIX] Fix issue where updating a config in the scraping service may fail to
+  pick up new targets. (@rfratto)
+
+- [BUGFIX] Fix deadlock that slowly prevents the Agent from scraping targets at
+  a high scrape volume. (@rfratto)
+
 # v0.6.0 (2020-09-04)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an

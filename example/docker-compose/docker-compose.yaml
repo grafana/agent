@@ -17,7 +17,7 @@ services:
 
   loki:
     image: grafana/loki:1.5.0
-    ports: 
+    ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
 
@@ -64,17 +64,6 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     ports:
       - "3000:3000"
-
-  #
-  # Launch a Prometheus just for comparison against the Agent
-  #
-  # prometheus:
-  # image: prom/prometheus:latest
-  # volumes:
-  #   - ./prometheus/config/prometheus.yml:/etc/prometheus.yaml
-  # entrypoint:
-  #   - /bin/prometheus
-  #   - --config.file=/etc/prometheus.yaml
 
   #
   # Launch avalanche instances with a relatively low churn rate

@@ -28,8 +28,8 @@ Here's a two-line script to copy and paste to install the Agent on
 Kubernetes for collecting metrics and logs (requires `envsubst` (GNU gettext)):
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.6.0/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/v0.6.0/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
 ```
 
 ## Manually Applying
@@ -51,7 +51,7 @@ the installation script does:
 
   2. Replace `${REMOTE_WRITE_PASSWORD}` or `${LOKI_PASSWORD}` with the password
      for authentication against the remote API. If you do not need
-     authentication, remove the entire authentication section. 
+     authentication, remove the entire authentication section.
 
   3. If you did not remove the authentication section from the previous step,
      replace `${REMOTE_WRITE_USERNAME}` or `${LOKI_USERNAME}` with the username
@@ -59,9 +59,9 @@ the installation script does:
 
 3. Apply the modified manifest file: `kubectl -ndefault apply -f manifest.yaml`.
 
-## Rebuilding the manifests 
+## Rebuilding the manifests
 
-The manifests provided are created using Grafana Labs' production 
+The manifests provided are created using Grafana Labs' production
 [Tanka configs](../tanka/grafana-agent) with some default values. If you want to
 build the YAML file with some custom values, you will need the following pieces
 of software installed:

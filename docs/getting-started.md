@@ -46,7 +46,7 @@ Currently, there are five ways to install the agent:
 ### Docker Container
 
 ```
-docker pull grafana/agent:v0.6.0
+docker pull grafana/agent:v0.6.1
 ```
 
 ### Kubernetes Install Script
@@ -269,7 +269,7 @@ path of your Agent's YAML configuration file.
 docker run \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.6.0
+  grafana/agent:v0.6.1
 ```
 
 ### Locally
