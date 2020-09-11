@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/prom"
+	"github.com/grafana/agent/pkg/tempo"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
 	"github.com/weaveworks/common/server"
@@ -21,6 +22,7 @@ type Config struct {
 	Prometheus   prom.Config         `yaml:"prometheus,omitempty"`
 	Loki         loki.Config         `yaml:"loki,omitempty"`
 	Integrations integrations.Config `yaml:"integrations"`
+	Tempo        tempo.Config        `yaml:"tempo,omitempty"`
 }
 
 // ApplyDefaults sets default values in the config
