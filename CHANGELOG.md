@@ -16,6 +16,9 @@ this platform. FreeBSD builds will return in a future release.
 - [BUGFIX] Fix issue where updating a config in the scraping service may fail to
   pick up new targets. (@rfratto)
 
+- [BUGFIX] Fix deadlock that slowly prevents the Agent from scraping targets at
+  a high scrape volume. (@rfratto)
+
 # v0.6.0 (2020-09-04)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
