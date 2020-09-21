@@ -2011,7 +2011,7 @@ Full reference of options:
 comm:
   [- <string>]
 
-# A list of strings that match argv[0] for a problem. If there are no slashes,
+# A list of strings that match argv[0] for a process. If there are no slashes,
 # only the basename of argv[0] needs to match. Otherwise the name must be an
 # exact match. For example, "postgres" may match any postgres binary but
 # "/usr/local/bin/postgres" can only match a postgres at that path exactly.
