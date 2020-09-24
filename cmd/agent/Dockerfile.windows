@@ -1,0 +1,14 @@
+FROM winamd64/golang:1.15.2-nanoserver-1809 as build
+COPY . c:\\src\\agent
+WORKDIR c:\\src\\agent
+ENV CGO_ENABLED 1
+RUN go build -ldflags "-s -w" -tags "netgo" -mod=vendor -o .\\agent.exe .\\cmd\\agent\\main.go
+
+FROM mcr.microsoft.com/windows/nanoserver:1809
+
+COPY --from=build c:\\src\\agent\\agent.exe c:\\agent\\bin\\agent.exe
+COPY .\\cmd\\agent\\agent-local-config.yaml c:\\agent\\agent.yaml
+RUN mkdir c:\\agent\\data
+
+ENTRYPOINT ["c:\\agent\\bin\\agent.exe"]
+CMD ["-config.file=c:\\agent\\agent.yaml", "-prometheus.wal-directory=c:\\agent\\data"]
