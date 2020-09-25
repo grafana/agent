@@ -5,7 +5,7 @@ ENV CGO_ENABLED 1
 RUN go build -ldflags "-s -w" -tags "netgo" -mod=vendor -o .\\agent.exe .\\cmd\\agent\\main.go
 
 FROM mcr.microsoft.com/windows/nanoserver:1809
-
+USER ContainerAdministrator
 COPY --from=build c:\\src\\agent\\agent.exe c:\\agent\\bin\\agent.exe
 COPY .\\cmd\\agent\\agent-local-config.yaml c:\\agent\\agent.yaml
 RUN mkdir c:\\agent\\data
