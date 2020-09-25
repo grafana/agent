@@ -3,7 +3,16 @@ on:
   push:
     branches:
       - master
+      - win/docker
 jobs:
+  build-container-windors:
+    name: Build Windows Container
+    runs-on: windows-2019
+    steps:
+    - name: Login to Docker Hub
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+    - name: Make Container
+      run: docker build . -t .\cmd\agent\Dockerfile.windows -t grafana/agent:nano-1809
   build-container:
     name: Build Container
     runs-on: ubuntu-latest
