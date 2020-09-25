@@ -13,11 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: SHA
-      run:  git rev-parse --short=7 HEAD > sha.txt && setx /p VERSION=<sha.txt
-    - name: test
-      run: echo %VERSION%
+      run: |
+        $sha=(git rev-parse --short=7 HEAD)
+        Write-Output $sha
     - name: Make Container
-      run: docker build . -f .\cmd\agent\Dockerfile.windows -t grafana/agent:nano-1809
+      run: docker build . -f .\cmd\agent\Dockerfile.windows -t grafana/agent:nano-1809-$sha
   # build-container:
   #   name: Build Container
   #   runs-on: ubuntu-latest
