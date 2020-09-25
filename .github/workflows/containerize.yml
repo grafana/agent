@@ -12,12 +12,11 @@ jobs:
       run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: SHA
+    - name: Build and Push Container 
       run: |
         $sha=(git rev-parse --short=7 HEAD)
-        Write-Output $sha
-    - name: Make Container
-      run: docker build . -f .\cmd\agent\Dockerfile.windows -t grafana/agent:nano-1809-$sha
+        docker build . -f .\cmd\agent\Dockerfile.windows -t grafana/agent:nano-1809-$sha
+        docker push grafana/agent:nano-1809-$sha
   # build-container:
   #   name: Build Container
   #   runs-on: ubuntu-latest
