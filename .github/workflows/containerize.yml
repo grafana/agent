@@ -12,30 +12,30 @@ jobs:
       run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
     - name: Make Container
       run: docker build . -t .\cmd\agent\Dockerfile.windows -t grafana/agent:nano-1809
-  build-container:
-    name: Build Container
-    runs-on: ubuntu-latest
-    steps:
-    - name: Get build dependencies
-      run: sudo apt-get update && sudo apt-get install libsystemd-dev
+  # build-container:
+  #   name: Build Container
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Get build dependencies
+  #     run: sudo apt-get update && sudo apt-get install libsystemd-dev
 
-    - name: Login to Docker Hub
-      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+  #   - name: Login to Docker Hub
+  #     run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
 
-    - name: Set up Go 1.14
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.14
-      id: go
+  #   - name: Set up Go 1.14
+  #     uses: actions/setup-go@v1
+  #     with:
+  #       go-version: 1.14
+  #     id: go
 
-    - name: Checkout code
-      uses: actions/checkout@v2
+  #   - name: Checkout code
+  #     uses: actions/checkout@v2
 
-    - name: Test
-      run: make test
+  #   - name: Test
+  #     run: make test
 
-    - name: Make Container
-      run: RELEASE_BUILD=true make agent-image agentctl-image
+  #   - name: Make Container
+  #     run: RELEASE_BUILD=true make agent-image agentctl-image
 
-    - name: Push Container
-      run: RELEASE_BUILD=true make push-agent-image push-agentctl-image
+  #   - name: Push Container
+  #     run: RELEASE_BUILD=true make push-agent-image push-agentctl-image
