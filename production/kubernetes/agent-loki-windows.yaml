@@ -11,7 +11,7 @@ data:
         positions:
           filename: "c:\\ProgramData\\position.yaml"
         clients:
-          - url:https://${LOKI_USERNAME}:${LOKI_PASSWORD}@logs-prod-us-central1.grafana.net/loki/api/v1/push
+          - url: https://${LOKI_USERNAME}:${LOKI_PASSWORD}@logs-prod-us-central1.grafana.net/loki/api/v1/push
         scrape_configs:
           - job_name: kubernetes-pods-name
             kubernetes_sd_configs:
