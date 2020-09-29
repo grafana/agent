@@ -170,8 +170,9 @@ seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABL
 #
 # We use rfratto/seego for building these cross-platform images. seego provides
 # a docker image with gcc toolchains for all of these platforms.
-dist: dist-agent dist-agentctl dist-packages
+dist: dist-agent dist-agentctl
 	for i in dist/*; do zip -j -m $$i.zip $$i; done
+	make dist-packages
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
