@@ -23,6 +23,7 @@ case "$1" in
         if [ -z ${2+x} ] &&  [ "$RESTART_ON_UPGRADE" == "true" ]; then
             if command -v systemctl 2>/dev/null; then
                 systemctl daemon-reload
+                systemctl restart grafana-agent
             fi
         fi
 esac

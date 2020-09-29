@@ -23,6 +23,7 @@ if [ $1 -eq 1 ] ; then
 
 elif [ $1 -ge 2 ] ; then
     if [ "$RESTART_ON_UPGRADE" == "true" ]; then
-        /bin/systemctl reload
+        systemctl daemon-reload
+        systemctl restart grafana-agent
     fi
 fi

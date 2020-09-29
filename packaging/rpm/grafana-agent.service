@@ -9,7 +9,6 @@ Restart=always
 User=grafana-agent
 EnvironmentFile=/etc/sysconfig/grafana-agent
 ExecStart=/usr/bin/grafana-agent --config.file $CONFIG_FILE --log.level $LOG_LEVEL $CUSTOM_ARGS
-ExecReload=/bin/kill -HUP $MAINPID
 TimeoutStopSec=20s
 SendSIGKILL=no
 
