@@ -71,6 +71,13 @@ NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
 PROTO_DEFS := $(shell find . $(DONT_FIND) -type f -name '*.proto' -print)
 PROTO_GOS := $(patsubst %.proto,%.pb.go,$(PROTO_DEFS))
 
+# Packaging
+PACKAGE_IN_CONTAINER := true
+PACKAGE_VERSION := $(shell ./tools/package-version 2>/dev/null)
+# The number of times this version of the software was released, starting with 1 for the first release.
+PACKAGE_RELEASE := 1
+PACKAGE_IMAGE ?= $(IMAGE_PREFIX)/fpm
+
 #############
 # Protobufs #
 #############
@@ -191,12 +198,6 @@ dist/agentctl-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-
-PACKAGE_IN_CONTAINER := true
-PACKAGE_VERSION := $(shell ./tools/package-version 2>/dev/null)
-# The number of times this version of the software was released, starting with 1 for the first release.
-PACKAGE_RELEASE := 1
-PACKAGE_IMAGE ?= $(IMAGE_PREFIX)/fpm
 
 FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a all -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
 	--log error \
