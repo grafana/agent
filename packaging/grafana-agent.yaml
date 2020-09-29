@@ -1,0 +1,26 @@
+# Sample config for Grafana Agent
+# For a full configuration reference, see: https://github.com/grafana/agent/blob/master/docs/configuration-reference.md.
+server:
+  http_listen_address: '127.0.0.1'
+  http_listen_port: 9090
+
+prometheus:
+  global:
+    scrape_interval: 15s
+  wal_directory: '/var/lib/grafana-agent'
+  configs:
+    - name: agent
+      host_filter: false
+      scrape_configs:
+        - job_name: agent
+          static_configs:
+            - targets: ['127.0.0.1:9090']
+
+integrations:
+  agent:
+    enabled: true
+  node_exporter:
+    enabled: true
+    include_exporter_metrics: true
+    disable_collectors:
+      - "mdadm"
