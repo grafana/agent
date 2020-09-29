@@ -1,3 +1,5 @@
+# Build a CentOS image with systemd configured to test RPM package installation.
+# See the `test-packages` make target and associated script for how this image is used.
 FROM centos:8
 ENV container docker
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == \
