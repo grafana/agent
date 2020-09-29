@@ -250,6 +250,10 @@ dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).deb: dist/agent-linux-a
 		packaging/deb/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
 endif
 
+test-packages: dist-packages packaging/centos-systemd/$(UPTODATE) packaging/debian-systemd/$(UPTODATE)
+	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
+.PHONY: test-package
+
 clean-dist:
 	rm -rf dist
 .PHONY: clean
