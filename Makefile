@@ -170,7 +170,7 @@ seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABL
 #
 # We use rfratto/seego for building these cross-platform images. seego provides
 # a docker image with gcc toolchains for all of these platforms.
-dist: dist-agent dist-agentctl
+dist: dist-agent dist-agentctl dist-packages
 	for i in dist/*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
@@ -190,6 +190,64 @@ dist/agentctl-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+PACKAGE_IN_CONTAINER := true
+PACKAGE_VERSION := $(shell ./tools/package-version 2>/dev/null)
+# The number of times this version of the software was released, starting with 1 for the first release.
+PACKAGE_RELEASE := 1
+PACKAGE_IMAGE ?= $(IMAGE_PREFIX)/fpm
+
+FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a all -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
+	--log error \
+	--license "Apache 2.0" \
+	--vendor "Grafana Labs" \
+	--url "https://github.com/grafana/agent"
+
+FPM_ARGS := dist/agent-linux-amd64=/usr/bin/grafana-agent packaging/grafana-agent.yaml=/etc/grafana-agent.yaml
+
+packaging/fpm/.uptodate: $(wildcard packaging/fpm/*)
+	docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)/fpm $(@D)
+	docker tag $(IMAGE_PREFIX)/fpm $(IMAGE_PREFIX)/fpm:$(IMAGE_TAG)
+	touch $@
+
+packaging/debian-systemd/.uptodate: $(wildcard packaging/debian-systemd/*)
+	docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)/debian-systemd $(@D)
+	docker tag $(IMAGE_PREFIX)/debian-systemd $(IMAGE_PREFIX)/debian-systemd:$(IMAGE_TAG)
+	touch $@
+
+packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
+	docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)/centos-systemd $(@D)
+	docker tag $(IMAGE_PREFIX)/centos-systemd $(IMAGE_PREFIX)/centos-systemd:$(IMAGE_TAG)
+	touch $@
+
+ifeq ($(PACKAGE_IN_CONTAINER), true)
+dist-packages: dist/agent-linux-amd64 packaging/fpm/.uptodate
+	docker run --rm -t \
+		-v  $(shell pwd):/src/github.com/grafana/agent:delegated \
+		-i $(PACKAGE_IMAGE) $@;
+.PHONY: dist-packages
+else
+dist-packages:
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).rpm
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).deb
+.PHONY: dist-packages
+
+dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).rpm: dist/agent-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
+	$(FPM_OPTS) -t rpm \
+		--after-install packaging/rpm/control/postinst \
+		--before-remove packaging/rpm/control/prerm \
+		--package $@ $(FPM_ARGS) \
+		packaging/environment-file=/etc/sysconfig/grafana-agent \
+		packaging/rpm/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+
+dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).deb: dist/agent-linux-amd64 $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
+	$(FPM_OPTS) -t deb \
+		--after-install packaging/deb/control/postinst \
+		--before-remove packaging/deb/control/prerm \
+		--package $@ $(FPM_ARGS) \
+		packaging/environment-file=/etc/default/grafana-agent \
+		packaging/deb/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+endif
 
 clean-dist:
 	rm -rf dist
