@@ -199,7 +199,7 @@ dist/agentctl-darwin-amd64:
 dist/agentctl-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a all -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
+FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a x86_64 -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
 	--log error \
 	--license "Apache 2.0" \
 	--vendor "Grafana Labs" \
@@ -230,11 +230,11 @@ dist-packages: dist/agent-linux-amd64 packaging/fpm/.uptodate
 .PHONY: dist-packages
 else
 dist-packages:
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).deb
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb
 .PHONY: dist-packages
 
-dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).rpm: dist/agent-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
+dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm: dist/agent-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
 	$(FPM_OPTS) -t rpm \
 		--after-install packaging/rpm/control/postinst \
 		--before-remove packaging/rpm/control/prerm \
@@ -242,7 +242,7 @@ dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).rpm: dist/agent-linux-a
 		packaging/environment-file=/etc/sysconfig/grafana-agent \
 		packaging/rpm/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
 
-dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).deb: dist/agent-linux-amd64 $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
+dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb: dist/agent-linux-amd64 $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
 	$(FPM_OPTS) -t deb \
 		--after-install packaging/deb/control/postinst \
 		--before-remove packaging/deb/control/prerm \

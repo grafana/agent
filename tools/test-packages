@@ -61,5 +61,5 @@ docker volume create grafana-agent-dist
 docker run -d --name populate-grafana-agent-dist -v grafana-agent-dist:/dist --user "${UID}":"${GID}" alpine
 docker cp dist populate-grafana-agent-dist:/
 
-test_with_systemd "${IMAGE_PREFIX}"/centos-systemd "rpm -i /dist/grafana-agent-${VERSION}-${RELEASE}.rpm"
-test_with_systemd "${IMAGE_PREFIX}"/debian-systemd "dpkg -i /dist/grafana-agent-${VERSION}-${RELEASE}.deb"
+test_with_systemd "${IMAGE_PREFIX}"/centos-systemd "rpm -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.rpm"
+test_with_systemd "${IMAGE_PREFIX}"/debian-systemd "dpkg -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.deb"
