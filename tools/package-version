@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -ef -o pipefail
+
+tag="$(git describe --exact-match 2> /dev/null || true)"
+
+if [[ -z "${tag}" ]]; then
+    echo "no tag found, trying VERSION file" >&2
+    tag="$(cat VERSION)"
+fi
+
+echo "${tag//v/}"
