@@ -199,6 +199,7 @@ dist/agentctl-windows-amd64.exe:
 
 build-image/.uptodate: build-image/Dockerfile
 	docker build -t $(IMAGE_PREFIX)/agent-build-image $(@D)
+	docker tag $(IMAGE_PREFIX)/agent-build-image $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 	touch $@
 
 build-image/.published: build-image/.uptodate
