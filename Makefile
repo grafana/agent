@@ -19,20 +19,21 @@ else
 	GOLANGCI_ARG=--modules-download-mode=$(GOMOD)
 endif
 
+# Docker image info
+IMAGE_PREFIX ?= grafana
+IMAGE_TAG ?= $(shell ./tools/image-tag)
+
 # Certain aspects of the build are done in containers for consistency.
 # If you have the correct tools installed and want to speed up development,
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.9.0
+BUILD_IMAGE_VERSION := 0.10.0
+BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
 # symbols, etc.)
 RELEASE_BUILD ?= false
-
-# Docker image info
-IMAGE_PREFIX ?= grafana
-IMAGE_TAG ?= $(shell ./tools/image-tag)
 
 # Version info for binaries
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -72,11 +73,9 @@ PROTO_DEFS := $(shell find . $(DONT_FIND) -type f -name '*.proto' -print)
 PROTO_GOS := $(patsubst %.proto,%.pb.go,$(PROTO_DEFS))
 
 # Packaging
-PACKAGE_IN_CONTAINER := true
 PACKAGE_VERSION := $(shell ./tools/package-version 2>/dev/null)
 # The number of times this version of the software was released, starting with 1 for the first release.
 PACKAGE_RELEASE := 1
-PACKAGE_IMAGE ?= $(IMAGE_PREFIX)/fpm
 
 #############
 # Protobufs #
@@ -89,16 +88,15 @@ touch-protos:
 	for proto in $(PROTO_GOS); do [ -f "./$${proto}" ] && touch "$${proto}" && echo "touched $${proto}"; done
 
 %.pb.go: $(PROTO_DEFS)
-# We use loki-build-image here which expects /src/loki so we bind mount the agent
-# repo to /src/loki just for building the protobufs.
 ifeq ($(BUILD_IN_CONTAINER),true)
 	@mkdir -p $(shell pwd)/.pkg
 	@mkdir -p $(shell pwd)/.cache
 	docker run -i \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
-		-v $(shell pwd):/src/loki \
-		$(IMAGE_PREFIX)/loki-build-image:$(BUILD_IMAGE_VERSION) $@;
+		-v $(shell pwd):/src/agent \
+		-e SRC_PATH=/src/agent \
+		$(BUILD_IMAGE) $@;
 else
 	protoc -I .:./vendor:./$(@D) --gogoslick_out=Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,plugins=grpc,paths=source_relative:./ ./$(patsubst %.pb.go,%.proto,$@);
 endif
@@ -199,18 +197,18 @@ dist/agentctl-darwin-amd64:
 dist/agentctl-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a x86_64 -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
-	--log error \
-	--license "Apache 2.0" \
-	--vendor "Grafana Labs" \
-	--url "https://github.com/grafana/agent"
-
-FPM_ARGS := dist/agent-linux-amd64=/usr/bin/grafana-agent packaging/grafana-agent.yaml=/etc/grafana-agent.yaml
-
-packaging/fpm/.uptodate: $(wildcard packaging/fpm/*)
-	docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)/fpm $(@D)
-	docker tag $(IMAGE_PREFIX)/fpm $(IMAGE_PREFIX)/fpm:$(IMAGE_TAG)
+build-image/.uptodate: build-image/Dockerfile
+	docker build -t $(IMAGE_PREFIX)/agent-build-image $(@D)
+	docker tag $(IMAGE_PREFIX)/agent-build-image $(IMAGE_PREFIX)/agent-build-image:$(IMAGE_TAG)
 	touch $@
+
+build-image/.published: build-image/.uptodate
+ifneq (,$(findstring WIP,$(IMAGE_TAG)))
+	@echo "Cannot push a WIP image, commit changes first"; \
+	false
+endif
+	$(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
+	$(IMAGE_PREFIX)/agent-build-image:latest
 
 packaging/debian-systemd/.uptodate: $(wildcard packaging/debian-systemd/*)
 	docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)/debian-systemd $(@D)
@@ -222,17 +220,26 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 	docker tag $(IMAGE_PREFIX)/centos-systemd $(IMAGE_PREFIX)/centos-systemd:$(IMAGE_TAG)
 	touch $@
 
-ifeq ($(PACKAGE_IN_CONTAINER), true)
-dist-packages: dist/agent-linux-amd64 packaging/fpm/.uptodate
+ifeq ($(BUILD_IN_CONTAINER), true)
+dist-packages: dist/agent-linux-amd64 build-image/.uptodate
 	docker run --rm -t \
-		-v  $(shell pwd):/src/github.com/grafana/agent:delegated \
-		-i $(PACKAGE_IMAGE) $@;
+		-v  $(shell pwd):/src/agent:delegated \
+		-e SRC_PATH=/src/agent \
+		-i $(BUILD_IMAGE) $@;
 .PHONY: dist-packages
 else
 dist-packages:
 	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm
 	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb
 .PHONY: dist-packages
+
+FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a x86_64 -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
+	--log error \
+	--license "Apache 2.0" \
+	--vendor "Grafana Labs" \
+	--url "https://github.com/grafana/agent"
+
+FPM_ARGS := dist/agent-linux-amd64=/usr/bin/grafana-agent packaging/grafana-agent.yaml=/etc/grafana-agent.yaml
 
 dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm: dist/agent-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
 	$(FPM_OPTS) -t rpm \
