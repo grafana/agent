@@ -206,7 +206,7 @@ ifneq (,$(findstring WIP,$(IMAGE_TAG)))
 	@echo "Cannot push a WIP image, commit changes first"; \
 	false
 endif
-	$(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
+	docker push $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 packaging/debian-systemd/.uptodate: $(wildcard packaging/debian-systemd/*)
 	docker pull $(IMAGE_PREFIX)/debian-systemd || docker build -t $(IMAGE_PREFIX)/debian-systemd $(@D)
