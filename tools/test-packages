@@ -19,25 +19,6 @@ function cleanup() {
     if [[ "${DISABLE_CLEANUP}" -ne 1 ]]; then
         docker rm --force "${CONTAINERS[@]}" &>/dev/null
     fi
-    docker rm -f populate-grafana-agent-dist
-}
-
-function ready() {
-    local -ri max_attempts=$1
-    local -ri sleep_interval=$2
-    local -ri port=$3
-    local -i attempt=1
-
-    sleep "${sleep_interval}"
-    until curl -s localhost:"${port}"/ready | grep -q ready; do
-        if [[ ${attempt} -eq ${max_attempts} ]]; then
-            echo "Cortex not ready in ${max_attempts} attempts"
-            return 1
-        else
-            (( attempt++ ))
-        fi
-        sleep "${sleep_interval}"
-    done
 }
 
 trap cleanup EXIT
@@ -48,18 +29,13 @@ function test_with_systemd() {
     local container
 
 
-    container=$(docker run --tmpfs /run --tmpfs /run/lock -v /sys/fs/cgroup:/sys/fs/cgroup:ro -itd -v grafana-agent-dist:/dist -p 9009 "${image}")
+    container=$(docker run --tmpfs /run --tmpfs /run/lock -v /sys/fs/cgroup:/sys/fs/cgroup:ro -itd -v "$(pwd)"/dist:/dist -p 9009 "${image}")
     CONTAINERS+=("${container}")
 
     port=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "9009/tcp") 0).HostPort}}' "${container}")
 
-    docker exec -it "${container}" /bin/bash -c "${install_command}; systemctl enable grafana-agent; systemctl start grafana-agent; sleep 5; systemctl --no-pager status grafana-agent"
+    docker exec -i "${container}" /bin/bash -c "${install_command}; systemctl enable grafana-agent; systemctl start grafana-agent; sleep 5; systemctl --no-pager status grafana-agent"
 }
-
-# Create a named volume and populate it with the data in dist/ to avoid ownership problems when running the systemd containers as the root user.
-docker volume create grafana-agent-dist
-docker run -d --name populate-grafana-agent-dist -v grafana-agent-dist:/dist --user "${UID}":"${GID}" alpine
-docker cp dist populate-grafana-agent-dist:/
 
 test_with_systemd "${IMAGE_PREFIX}"/centos-systemd "rpm -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.rpm"
 test_with_systemd "${IMAGE_PREFIX}"/debian-systemd "dpkg -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.deb"

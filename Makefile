@@ -198,8 +198,7 @@ dist/agentctl-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 build-image/.uptodate: build-image/Dockerfile
-	docker build -t $(IMAGE_PREFIX)/agent-build-image $(@D)
-	docker tag $(IMAGE_PREFIX)/agent-build-image $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
+	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
 	touch $@
 
 build-image/.published: build-image/.uptodate
@@ -208,16 +207,13 @@ ifneq (,$(findstring WIP,$(IMAGE_TAG)))
 	false
 endif
 	$(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
-	$(IMAGE_PREFIX)/agent-build-image:latest
 
 packaging/debian-systemd/.uptodate: $(wildcard packaging/debian-systemd/*)
-	docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)/debian-systemd $(@D)
-	docker tag $(IMAGE_PREFIX)/debian-systemd $(IMAGE_PREFIX)/debian-systemd:$(IMAGE_TAG)
+	docker pull $(IMAGE_PREFIX)/debian-systemd || docker build -t $(IMAGE_PREFIX)/debian-systemd $(@D)
 	touch $@
 
 packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
-	docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)/centos-systemd $(@D)
-	docker tag $(IMAGE_PREFIX)/centos-systemd $(IMAGE_PREFIX)/centos-systemd:$(IMAGE_TAG)
+	docker pull $(IMAGE_PREFIX)/centos-systemd || docker build -t $(IMAGE_PREFIX)/centos-systemd $(@D)
 	touch $@
 
 ifeq ($(BUILD_IN_CONTAINER), true)
@@ -258,7 +254,7 @@ dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb: dist/agent-
 		packaging/deb/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
 endif
 
-test-packages: dist-packages packaging/centos-systemd/$(UPTODATE) packaging/debian-systemd/$(UPTODATE)
+test-packages: dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
 .PHONY: test-package
 
