@@ -199,7 +199,6 @@ dist/agentctl-windows-amd64.exe:
 
 build-image/.uptodate: build-image/Dockerfile
 	docker build -t $(IMAGE_PREFIX)/agent-build-image $(@D)
-	docker tag $(IMAGE_PREFIX)/agent-build-image $(IMAGE_PREFIX)/agent-build-image:$(IMAGE_TAG)
 	touch $@
 
 build-image/.published: build-image/.uptodate
@@ -222,7 +221,7 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 
 ifeq ($(BUILD_IN_CONTAINER), true)
 dist-packages: dist/agent-linux-amd64 build-image/.uptodate
-	docker run --rm -t \
+	docker run --rm \
 		-v  $(shell pwd):/src/agent:delegated \
 		-e SRC_PATH=/src/agent \
 		-i $(BUILD_IMAGE) $@;
