@@ -64,6 +64,11 @@ tempo:
     jaeger:
       protocols:
         thrift_http: 
+  attributes:
+    actions:
+    - action: upsert
+      key: env
+      value: prod
   remote_write:
     endpoint: otel-collector:55680
     insecure: true
