@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/open-telemetry/opentelemetry-collector/processor/attributesprocessor"
 	prom_config "github.com/prometheus/common/config"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
@@ -27,8 +28,11 @@ type Config struct {
 
 	RemoteWrite RWConfig `yaml:"remote_write"`
 
-	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver
+	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/receiver
 	Receivers map[string]interface{} `yaml:"receivers"`
+
+	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/processor/attributesprocessor
+	Attributes map[string]interface{} `yaml:"attributes"`
 }
 
 // RWConfig controls the configuration of exporting to Grafana Cloud
@@ -93,10 +97,15 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	}
 
 	// processors
-	// todo: when we update otel collector to the latest we can just use the settings on the exporter
-	//       https://github.com/open-telemetry/opentelemetry-collector/tree/master/exporter/otlpexporter
 	processors := map[string]interface{}{}
 	processorNames := []string{}
+	if c.Attributes != nil {
+		processors["attributes"] = c.Attributes
+		processorNames = append(processorNames, "attributes")
+	}
+
+	// todo: when we update otel collector to the latest we can just use the settings on the exporter
+	//       https://github.com/open-telemetry/opentelemetry-collector/tree/master/exporter/otlpexporter
 	if c.RemoteWrite.Batch != nil {
 		processors["batch"] = c.RemoteWrite.Batch
 		processorNames = append(processorNames, "batch")
@@ -174,6 +183,7 @@ func tracingFactories() (config.Factories, error) {
 	processors, err := component.MakeProcessorFactoryMap(
 		queuedprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
+		attributesprocessor.NewFactory(),
 	)
 	if err != nil {
 		return config.Factories{}, err

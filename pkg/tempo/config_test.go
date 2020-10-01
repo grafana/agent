@@ -67,7 +67,7 @@ remote_write:
 receivers:
   jaeger:
     protocols:
-      grpc:
+	  grpc:
 remote_write:
   endpoint: example.com:12345
 `,
@@ -75,7 +75,7 @@ remote_write:
 receivers:
   jaeger:
     protocols:
-      grpc:
+	  grpc:
 exporters:
   otlp:
     endpoint: example.com:12345
@@ -126,7 +126,12 @@ service:
 receivers:
   jaeger:
     protocols:
-      grpc:
+	  grpc:
+attributes:
+  actions:
+  - key: testatt
+    value: 123
+    action: update
 remote_write:
   endpoint: example.com:12345
   batch:
@@ -145,17 +150,22 @@ exporters:
   otlp:
     endpoint: example.com:12345
 processors:
+  attributes:
+    actions:
+    - key: testatt
+      value: 123
+      action: update
   batch:
     timeout: 5s
     send_batch_size: 100
   queued_retry:
     backoff_delay: 10s
-    num_workers: 15	
+	num_workers: 15	 
 service:
   pipelines:
     traces:
       exporters: ["otlp"]
-      processors: ["batch", "queued_retry"]
+      processors: ["attributes", "batch", "queued_retry"]
       receivers: ["jaeger"]
 `,
 		},
