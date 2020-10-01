@@ -967,9 +967,16 @@ go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/logs/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/metrics/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/resource/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/trace/v1
+go.opentelemetry.io/collector/internal/processor/attraction
+go.opentelemetry.io/collector/internal/processor/filterhelper
+go.opentelemetry.io/collector/internal/processor/filterset
+go.opentelemetry.io/collector/internal/processor/filterset/regexp
+go.opentelemetry.io/collector/internal/processor/filterset/strict
+go.opentelemetry.io/collector/internal/processor/filterspan
 go.opentelemetry.io/collector/internal/version
 go.opentelemetry.io/collector/obsreport
 go.opentelemetry.io/collector/processor
+go.opentelemetry.io/collector/processor/attributesprocessor
 go.opentelemetry.io/collector/processor/batchprocessor
 go.opentelemetry.io/collector/processor/processorhelper
 go.opentelemetry.io/collector/processor/queuedprocessor
