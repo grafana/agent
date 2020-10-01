@@ -127,6 +127,11 @@ receivers:
   jaeger:
     protocols:
       grpc:
+attributes:
+  actions:
+  - key: montgomery
+    value: forever
+    action: update
 remote_write:
   endpoint: example.com:12345
   batch:
@@ -145,17 +150,22 @@ exporters:
   otlp:
     endpoint: example.com:12345
 processors:
+  attributes:
+    actions:
+    - key: montgomery
+      value: forever
+      action: update
   batch:
     timeout: 5s
     send_batch_size: 100
   queued_retry:
     backoff_delay: 10s
-    num_workers: 15	
+    num_workers: 15	 
 service:
   pipelines:
     traces:
       exporters: ["otlp"]
-      processors: ["batch", "queued_retry"]
+      processors: ["attributes", "batch", "queued_retry"]
       receivers: ["jaeger"]
 `,
 		},

@@ -1449,6 +1449,10 @@ scrape_configs:
 The `tempo_config` block configures how the Agent receives traces and sends them to Tempo. 
 
 ```yaml
+# Attributes options https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/attributesprocessor
+#  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
+attributes: [attributes.config] 
+
 remote_write:
   # host:port to send traces to
   endpoint: <string>
