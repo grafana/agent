@@ -54,12 +54,12 @@ func (a *promServiceDiscoProcessor) GetCapabilities() component.ProcessorCapabil
 
 // Start is invoked during service startup.
 func (p *promServiceDiscoProcessor) Start(_ context.Context, _ component.Host) error {
+	go p.watchServiceDiscovery()
+
 	err := p.discoveryMgr.Run()
 	if err != nil {
 		return err
 	}
-
-	go p.watchServiceDiscovery()
 
 	return nil
 }
@@ -81,6 +81,6 @@ func (p *promServiceDiscoProcessor) watchServiceDiscovery() {
 func (p *promServiceDiscoProcessor) syncGroups(jobName string, groups []*targetgroup.Group) { // jpe jobName?
 	for _, g := range groups {
 		// jpe ? wut
-		fmt.Println(g.Source)
+		fmt.Printf("%s: %+v\n", jobName, g)
 	}
 }

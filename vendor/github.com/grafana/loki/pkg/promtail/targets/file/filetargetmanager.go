@@ -162,6 +162,7 @@ func (tm *FileTargetManager) run() {
 			tm.syncers[jobName].sync(groups)
 		}
 	}
+	fmt.Println("?")
 }
 
 // Ready if there's at least one file target
