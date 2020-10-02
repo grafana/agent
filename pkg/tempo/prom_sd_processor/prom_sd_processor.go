@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/go-kit/kit/log"
+	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/discovery/config"
+	sd_config "github.com/prometheus/prometheus/discovery/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
@@ -19,16 +21,16 @@ type promServiceDiscoProcessor struct {
 	discoveryMgr *discovery.Manager
 }
 
-// newTraceProcessor returns a processor that modifies attributes of a span.
-// To construct the attributes processors, the use of the factory methods are required
-// in order to validate the inputs.
-func newTraceProcessor(nextConsumer consumer.TraceConsumer, sdConfig config.ServiceDiscoveryConfig) (component.TraceProcessor, error) {
-	logger := log.With(nil, "component", "tempo service disco")                                      // jpe i.logger?
+func newTraceProcessor(nextConsumer consumer.TraceConsumer, scrapeConfigs []*config.ScrapeConfig) (component.TraceProcessor, error) {
+	logger := log.With(util.Logger, "component", "tempo service disco")                              // jpe i.logger?
 	mgr := discovery.NewManager(context.Background(), logger, discovery.Name("tempo service disco")) // jpe ?
 
-	err := mgr.ApplyConfig(map[string]config.ServiceDiscoveryConfig{
-		"blerg-jpe": sdConfig,
-	})
+	cfg := map[string]sd_config.ServiceDiscoveryConfig{}
+	for _, v := range scrapeConfigs {
+		cfg[v.JobName] = v.ServiceDiscoveryConfig
+	}
+
+	err := mgr.ApplyConfig(cfg)
 	if err != nil {
 		return nil, err
 	}

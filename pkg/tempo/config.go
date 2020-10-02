@@ -36,7 +36,7 @@ type Config struct {
 	Attributes map[string]interface{} `yaml:"attributes"`
 
 	// prom service discovery
-	ServiceDiscovery map[string]interface{} `yaml:"prom_sd"`
+	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
 }
 
 // RWConfig controls the configuration of exporting to Grafana Cloud
@@ -103,14 +103,16 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	// processors
 	processors := map[string]interface{}{}
 	processorNames := []string{}
+	if c.ScrapeConfigs != nil {
+		processorNames = append(processorNames, prom_sd_processor.TypeStr)
+		processors[prom_sd_processor.TypeStr] = map[string]interface{}{
+			"scrape_configs": c.ScrapeConfigs,
+		}
+	}
+
 	if c.Attributes != nil {
 		processors["attributes"] = c.Attributes
 		processorNames = append(processorNames, "attributes")
-	}
-
-	if c.ServiceDiscovery != nil {
-		processorNames = append(processorNames, prom_sd_processor.TypeStr)
-		processors[prom_sd_processor.TypeStr] = c.ServiceDiscovery
 	}
 
 	// todo: when we update otel collector to the latest we can just use the settings on the exporter

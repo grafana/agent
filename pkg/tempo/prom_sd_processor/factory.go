@@ -2,19 +2,21 @@ package prom_sd_processor
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/prometheus/prometheus/discovery/config"
+	"github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor/processorhelper"
+	"gopkg.in/yaml.v2"
 )
 
 const TypeStr = "prom_sd_processor"
 
 type Config struct {
 	configmodels.ProcessorSettings `mapstructure:",squash"`
-	sdConfig                       config.ServiceDiscoveryConfig `mapstructure:",squash"`
+	ScrapeConfigs                  []interface{} `mapstructure:"scrape_configs"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
@@ -41,5 +43,17 @@ func createTraceProcessor(
 	nextConsumer consumer.TraceConsumer,
 ) (component.TraceProcessor, error) {
 	oCfg := cfg.(*Config)
-	return newTraceProcessor(nextConsumer, oCfg.sdConfig)
+
+	out, err := yaml.Marshal(oCfg.ScrapeConfigs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal scrapeConfigs interface{} to yaml: %w", err)
+	}
+
+	scrapeConfigs := make([]*config.ScrapeConfig, 0, 0)
+	err = yaml.Unmarshal(out, &scrapeConfigs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal bytes to []*config.ScrapeConfig: %w", err)
+	}
+
+	return newTraceProcessor(nextConsumer, scrapeConfigs)
 }
