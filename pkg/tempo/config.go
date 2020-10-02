@@ -34,6 +34,9 @@ type Config struct {
 
 	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/processor/attributesprocessor
 	Attributes map[string]interface{} `yaml:"attributes"`
+
+	// prom service discovery
+	ServiceDiscovery map[string]interface{} `yaml:"prom_sd"`
 }
 
 // RWConfig controls the configuration of exporting to Grafana Cloud
@@ -103,6 +106,11 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	if c.Attributes != nil {
 		processors["attributes"] = c.Attributes
 		processorNames = append(processorNames, "attributes")
+	}
+
+	if c.ServiceDiscovery != nil {
+		processorNames = append(processorNames, prom_sd_processor.TypeStr)
+		processors[prom_sd_processor.TypeStr] = c.ServiceDiscovery
 	}
 
 	// todo: when we update otel collector to the latest we can just use the settings on the exporter
