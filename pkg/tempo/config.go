@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/grafana/agent/pkg/tempo/prom_sd_processor"
 	prom_config "github.com/prometheus/common/config"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
@@ -184,6 +185,7 @@ func tracingFactories() (config.Factories, error) {
 		queuedprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
+		prom_sd_processor.NewFactory(),
 	)
 	if err != nil {
 		return config.Factories{}, err
