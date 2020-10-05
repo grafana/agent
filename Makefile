@@ -73,7 +73,7 @@ PROTO_DEFS := $(shell find . $(DONT_FIND) -type f -name '*.proto' -print)
 PROTO_GOS := $(patsubst %.proto,%.pb.go,$(PROTO_DEFS))
 
 # Packaging
-PACKAGE_VERSION := $(shell ./tools/package-version 2>/dev/null)
+PACKAGE_VERSION := $(patsubst v%,%,$(RELEASE_TAG))
 # The number of times this version of the software was released, starting with 1 for the first release.
 PACKAGE_RELEASE := 1
 
@@ -220,6 +220,7 @@ ifeq ($(BUILD_IN_CONTAINER), true)
 dist-packages: dist/agent-linux-amd64 build-image/.uptodate
 	docker run --rm \
 		-v  $(shell pwd):/src/agent:delegated \
+		-e RELEASE_TAG=$(RELEASE_TAG) \
 		-e SRC_PATH=/src/agent \
 		-i $(BUILD_IMAGE) $@;
 .PHONY: dist-packages
