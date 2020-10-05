@@ -69,7 +69,5 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Prepare fake version
-      run: echo "0.0.0" > VERSION
     - name: Test Packages
-      run: make test-packages
+      run: RELEASE_TAG=v0.0.0 make test-packages

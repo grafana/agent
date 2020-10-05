@@ -2,11 +2,11 @@
 
 set -ef -o pipefail
 
-tag="$(git describe --exact-match 2> /dev/null || true)"
+tag="${RELEASE_TAG:-$(git describe --exact-match 2> /dev/null || true)}"
 
 if [[ -z "${tag}" ]]; then
-    echo "no tag found, trying VERSION file" >&2
-    tag="$(cat VERSION)"
+    echo "ERROR: no tag found" >&2
+    exit 1
 fi
 
 echo "${tag//v/}"
