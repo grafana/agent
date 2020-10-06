@@ -19,20 +19,21 @@ else
 	GOLANGCI_ARG=--modules-download-mode=$(GOMOD)
 endif
 
+# Docker image info
+IMAGE_PREFIX ?= grafana
+IMAGE_TAG ?= $(shell ./tools/image-tag)
+
 # Certain aspects of the build are done in containers for consistency.
 # If you have the correct tools installed and want to speed up development,
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.9.0
+BUILD_IMAGE_VERSION := 0.10.0
+BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
 # symbols, etc.)
 RELEASE_BUILD ?= false
-
-# Docker image info
-IMAGE_PREFIX ?= grafana
-IMAGE_TAG ?= $(shell ./tools/image-tag)
 
 # Version info for binaries
 GIT_REVISION := $(shell git rev-parse --short HEAD)
@@ -71,6 +72,11 @@ NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
 PROTO_DEFS := $(shell find . $(DONT_FIND) -type f -name '*.proto' -print)
 PROTO_GOS := $(patsubst %.proto,%.pb.go,$(PROTO_DEFS))
 
+# Packaging
+PACKAGE_VERSION := $(patsubst v%,%,$(RELEASE_TAG))
+# The number of times this version of the software was released, starting with 1 for the first release.
+PACKAGE_RELEASE := 1
+
 #############
 # Protobufs #
 #############
@@ -82,16 +88,15 @@ touch-protos:
 	for proto in $(PROTO_GOS); do [ -f "./$${proto}" ] && touch "$${proto}" && echo "touched $${proto}"; done
 
 %.pb.go: $(PROTO_DEFS)
-# We use loki-build-image here which expects /src/loki so we bind mount the agent
-# repo to /src/loki just for building the protobufs.
 ifeq ($(BUILD_IN_CONTAINER),true)
 	@mkdir -p $(shell pwd)/.pkg
 	@mkdir -p $(shell pwd)/.cache
 	docker run -i \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
-		-v $(shell pwd):/src/loki \
-		$(IMAGE_PREFIX)/loki-build-image:$(BUILD_IMAGE_VERSION) $@;
+		-v $(shell pwd):/src/agent \
+		-e SRC_PATH=/src/agent \
+		$(BUILD_IMAGE) $@;
 else
 	protoc -I .:./vendor:./$(@D) --gogoslick_out=Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,plugins=grpc,paths=source_relative:./ ./$(patsubst %.pb.go,%.proto,$@);
 endif
@@ -172,6 +177,7 @@ seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABL
 # a docker image with gcc toolchains for all of these platforms.
 dist: dist-agent dist-agentctl
 	for i in dist/*; do zip -j -m $$i.zip $$i; done
+	make dist-packages
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
@@ -190,6 +196,68 @@ dist/agentctl-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+build-image/.uptodate: build-image/Dockerfile
+	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
+	touch $@
+
+build-image/.published: build-image/.uptodate
+ifneq (,$(findstring WIP,$(IMAGE_TAG)))
+	@echo "Cannot push a WIP image, commit changes first"; \
+	false
+endif
+	docker push $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
+
+packaging/debian-systemd/.uptodate: $(wildcard packaging/debian-systemd/*)
+	docker pull $(IMAGE_PREFIX)/debian-systemd || docker build -t $(IMAGE_PREFIX)/debian-systemd $(@D)
+	touch $@
+
+packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
+	docker pull $(IMAGE_PREFIX)/centos-systemd || docker build -t $(IMAGE_PREFIX)/centos-systemd $(@D)
+	touch $@
+
+ifeq ($(BUILD_IN_CONTAINER), true)
+dist-packages: dist/agent-linux-amd64 build-image/.uptodate
+	docker run --rm \
+		-v  $(shell pwd):/src/agent:delegated \
+		-e RELEASE_TAG=$(RELEASE_TAG) \
+		-e SRC_PATH=/src/agent \
+		-i $(BUILD_IMAGE) $@;
+.PHONY: dist-packages
+else
+dist-packages:
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb
+.PHONY: dist-packages
+
+FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a x86_64 -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
+	--log error \
+	--license "Apache 2.0" \
+	--vendor "Grafana Labs" \
+	--url "https://github.com/grafana/agent"
+
+FPM_ARGS := dist/agent-linux-amd64=/usr/bin/grafana-agent packaging/grafana-agent.yaml=/etc/grafana-agent.yaml
+
+dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm: dist/agent-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
+	$(FPM_OPTS) -t rpm \
+		--after-install packaging/rpm/control/postinst \
+		--before-remove packaging/rpm/control/prerm \
+		--package $@ $(FPM_ARGS) \
+		packaging/environment-file=/etc/sysconfig/grafana-agent \
+		packaging/rpm/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+
+dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb: dist/agent-linux-amd64 $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
+	$(FPM_OPTS) -t deb \
+		--after-install packaging/deb/control/postinst \
+		--before-remove packaging/deb/control/prerm \
+		--package $@ $(FPM_ARGS) \
+		packaging/environment-file=/etc/default/grafana-agent \
+		packaging/deb/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+endif
+
+test-packages: dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
+	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
+.PHONY: test-package
 
 clean-dist:
 	rm -rf dist

@@ -1,0 +1,19 @@
+## Path:
+## Description: Grafana Agent monitoring agent settings
+## Type:        string
+## Default:     ""
+## ServiceRestart: grafana-agent
+#
+# Command line options for grafana-agent
+#
+# Log level. Valid levels: [debug, info, warn, error] (default info)
+LOG_LEVEL="error"
+
+# The configuration file holding the agent config
+CONFIG_FILE="/etc/grafana-agent.yaml"
+
+# Any user defined arguments
+CUSTOM_ARGS=""
+
+# Restart on system upgrade. Default to true
+RESTART_ON_UPGRADE=true

@@ -62,3 +62,12 @@ jobs:
       uses: actions/checkout@v2
     - name: Build
       run: make cmd/agent/agent cmd/agentctl/agentctl
+
+  package:
+    name: Test Packages
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Test Packages
+      run: RELEASE_TAG=v0.0.0 make test-packages
