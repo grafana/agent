@@ -1577,7 +1577,7 @@ docker run \
   --pid="host" \
   --cap-add=SYS_TIME \
   -v "/:/host/root:ro,rslave" \
-  -v "/dev:/host/dev:ro,rslave" \
+  -v "/sys:/host/sys:ro,rslave" \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
