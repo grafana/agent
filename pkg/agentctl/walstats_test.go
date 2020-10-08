@@ -47,6 +47,8 @@ func TestWALStats(t *testing.T) {
 //
 // The directory the WAL is in is returned.
 func setupTestWAL(t *testing.T) string {
+	l := log.NewNopLogger()
+
 	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -89,7 +91,7 @@ func setupTestWAL(t *testing.T) string {
 	require.NoError(t, w.NextSegment())
 
 	// Checkpoint the previous segment.
-	_, err = wal.Checkpoint(w, 0, 1, func(_ uint64) bool { return true }, 0)
+	_, err = wal.Checkpoint(l, w, 0, 1, func(_ uint64) bool { return true }, 0)
 	require.NoError(t, err)
 	require.NoError(t, w.NextSegment())
 
