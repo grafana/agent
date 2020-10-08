@@ -8,6 +8,9 @@ this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] Add RPM and deb packaging. (@jdbaldry) (@simon6372)
 
+- [FEATURE] arm64 and arm/v7 Docker containers and release builds are now
+  available for `agent` and `agentctl`. (@rfratto) 
+
 - [FEATURE] Add `wal-stats` and `target-stats` tooling to `agentctl` to discover
   WAL and cardinality issues. (@rfratto)
 
