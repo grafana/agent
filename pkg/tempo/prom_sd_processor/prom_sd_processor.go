@@ -87,6 +87,7 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 					continue
 				}
 
+				p.processAttributes(s.Attributes())
 			}
 		}
 	}
