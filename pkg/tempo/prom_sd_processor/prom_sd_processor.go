@@ -204,13 +204,13 @@ func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) 
 		return
 	}
 
+	p.mtx.Lock()
+	defer p.mtx.Unlock()
+
 	labels, ok := p.hostLabels[ip]
 	if !ok {
 		return
 	}
-
-	p.mtx.Lock()
-	defer p.mtx.Unlock()
 	for k, v := range labels {
 		attrs.UpsertString(string(k), string(v))
 	}
