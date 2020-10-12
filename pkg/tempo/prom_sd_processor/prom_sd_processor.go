@@ -102,10 +102,12 @@ func (a *promServiceDiscoProcessor) GetCapabilities() component.ProcessorCapabil
 func (p *promServiceDiscoProcessor) Start(_ context.Context, _ component.Host) error {
 	go p.watchServiceDiscovery()
 
-	err := p.discoveryMgr.Run()
-	if err != nil {
-		return err
-	}
+	go func() {
+		err := p.discoveryMgr.Run()
+		if err != nil {
+			level.Error(p.logger).Log("msg", "failed to start prom svc disco.  relabeling disabled", "err", err)
+		}
+	}()
 
 	return nil
 }
