@@ -72,24 +72,12 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 		if rs.IsNil() {
 			continue
 		}
-
-		ilss := rs.InstrumentationLibrarySpans()
-		for j := 0; j < ilss.Len(); j++ {
-			ils := ilss.At(j)
-			if ils.IsNil() {
-				continue
-			}
-
-			ss := ils.Spans()
-			for k := 0; k < ss.Len(); k++ {
-				s := ss.At(k)
-				if s.IsNil() {
-					continue
-				}
-
-				p.processAttributes(s.Attributes())
-			}
+		r := rs.Resource()
+		if r.IsNil() {
+			continue
 		}
+
+		p.processAttributes(r.Attributes())
 	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)
@@ -177,6 +165,7 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 			}
 		}
 
+		level.Debug(p.logger).Log("msg", "adding host to hostLabels", "host", host)
 		p.hostLabels[host] = labels
 	}
 }
@@ -209,8 +198,10 @@ func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) 
 
 	labels, ok := p.hostLabels[ip]
 	if !ok {
+		level.Debug(p.logger).Log("msg", "unable to find matching hostLabels", "ip", ip)
 		return
 	}
+
 	for k, v := range labels {
 		attrs.UpsertString(string(k), string(v))
 	}
