@@ -109,24 +109,27 @@ func (p *promServiceDiscoProcessor) Shutdown(context.Context) error {
 
 func (p *promServiceDiscoProcessor) watchServiceDiscovery() {
 	for targetGoups := range p.discoveryMgr.SyncCh() {
+		// wipe and rebuild hostLabels
+		p.mtx.Lock()
+		p.hostLabels = make(map[string]model.LabelSet)
+		level.Debug(p.logger).Log("msg", "syncing target groups", "count", len(targetGoups))
 		for jobName, groups := range targetGoups {
 			p.syncGroups(jobName, groups)
 		}
+		p.mtx.Unlock()
 	}
 }
 
 func (p *promServiceDiscoProcessor) syncGroups(jobName string, groups []*targetgroup.Group) {
-	p.mtx.Lock()
-	defer p.mtx.Unlock()
-
-	// wipe and rebuild hostLabels
-	p.hostLabels = make(map[string]model.LabelSet)
+	level.Debug(p.logger).Log("msg", "syncing target group", "jobName", jobName)
 	for _, g := range groups {
 		p.syncTargets(jobName, g)
 	}
 }
 
 func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgroup.Group) {
+	level.Debug(p.logger).Log("msg", "syncing targets", "count", len(group.Targets))
+
 	relabelConfig := p.relabelConfigs[jobName]
 	if relabelConfig == nil {
 		level.Warn(p.logger).Log("msg", "relabel config not found for job. skipping labeling", "jobName", jobName)
