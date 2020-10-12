@@ -6,6 +6,11 @@ this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] Added Tracing Support. (@joe-elliott)
 
+- [FEATURE] Add RPM and deb packaging. (@jdbaldry) (@simon6372)
+
+- [FEATURE] arm64 and arm/v7 Docker containers and release builds are now
+  available for `agent` and `agentctl`. (@rfratto) 
+
 # v0.6.1 (2020-04-11)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an

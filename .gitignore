@@ -1,5 +1,6 @@
 .idea
 .uptodate
+.published
 .pkg
 .cache
 cover*.out
