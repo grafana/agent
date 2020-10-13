@@ -3,7 +3,7 @@ package integrations
 import (
 	"context"
 	"fmt"
-	"path/filepath"
+	"path"
 	"sync"
 	"time"
 
@@ -251,7 +251,7 @@ func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 	for _, cfg := range i.ScrapeConfigs() {
 		sc := &config.ScrapeConfig{
 			JobName:                fmt.Sprintf("integrations/%s", cfg.JobName),
-			MetricsPath:            filepath.Join("/integrations", i.Name(), cfg.MetricsPath),
+			MetricsPath:            path.Join("/integrations", i.Name(), cfg.MetricsPath),
 			Scheme:                 "http",
 			HonorLabels:            false,
 			HonorTimestamps:        true,

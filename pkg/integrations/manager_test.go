@@ -37,6 +37,24 @@ func TestManager_ValidInstanceConfigs(t *testing.T) {
 	})
 }
 
+func TestManager_instanceConfigForIntegration(t *testing.T) {
+	mock := newMockIntegration()
+
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
+		globalConfig := prom_config.DefaultConfig.GlobalConfig
+		return c.ApplyDefaults(&globalConfig)
+	})
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, []Integration{})
+	require.NoError(t, err)
+	defer m.Stop()
+
+	cfg := m.instanceConfigForIntegration(mock)
+
+	// Validate that the generated MetricsPath is a valid URL path
+	require.Len(t, cfg.ScrapeConfigs, 1)
+	require.Equal(t, "/integrations/mock/metrics", cfg.ScrapeConfigs[0].MetricsPath)
+}
+
 // TestManager_NoIntegrationsScrape ensures that configs don't get generates
 // when the ScrapeIntegrations flag is disabled.
 func TestManager_NoIntegrationsScrape(t *testing.T) {
