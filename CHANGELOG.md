@@ -11,6 +11,9 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] arm64 and arm/v7 Docker containers and release builds are now
   available for `agent` and `agentctl`. (@rfratto) 
 
+- [FEATURE] Add `wal-stats` and `target-stats` tooling to `agentctl` to discover
+  WAL and cardinality issues. (@rfratto)
+
 # v0.6.1 (2020-04-11)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an

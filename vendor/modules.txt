@@ -536,6 +536,8 @@ github.com/matoous/godox
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
+# github.com/mattn/go-runewidth v0.0.6
+github.com/mattn/go-runewidth
 # github.com/mattn/go-xmlrpc v0.0.3
 github.com/mattn/go-xmlrpc
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
@@ -590,6 +592,8 @@ github.com/nishanths/exhaustive
 github.com/oklog/run
 # github.com/oklog/ulid v1.3.1
 github.com/oklog/ulid
+# github.com/olekukonko/tablewriter v0.0.2
+github.com/olekukonko/tablewriter
 # github.com/opencontainers/go-digest v1.0.0
 github.com/opencontainers/go-digest
 # github.com/opencontainers/image-spec v1.0.1
