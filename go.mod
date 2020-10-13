@@ -13,6 +13,7 @@ require (
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
 	github.com/oklog/run v1.1.0
+	github.com/olekukonko/tablewriter v0.0.2
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
