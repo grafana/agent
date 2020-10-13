@@ -156,10 +156,14 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 			continue
 		}
 
-		host, _, err := net.SplitHostPort(string(address))
-		if err != nil {
-			level.Warn(p.logger).Log("msg", "unable to split host port", "address", address, "err", err)
-			continue
+		host := string(address)
+		if strings.Contains(host, ":") {
+			var err error
+			host, _, err = net.SplitHostPort(host)
+			if err != nil {
+				level.Warn(p.logger).Log("msg", "unable to split host port", "address", address, "err", err)
+				continue
+			}
 		}
 
 		for k := range labels {
