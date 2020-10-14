@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/grafana/agent/pkg/tempo/prom_sd_processor"
+	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
 	prom_config "github.com/prometheus/common/config"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
@@ -104,8 +104,8 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	processors := map[string]interface{}{}
 	processorNames := []string{}
 	if c.ScrapeConfigs != nil {
-		processorNames = append(processorNames, prom_sd_processor.TypeStr)
-		processors[prom_sd_processor.TypeStr] = map[string]interface{}{
+		processorNames = append(processorNames, promsdprocessor.TypeStr)
+		processors[promsdprocessor.TypeStr] = map[string]interface{}{
 			"scrape_configs": c.ScrapeConfigs,
 		}
 	}
@@ -195,7 +195,7 @@ func tracingFactories() (config.Factories, error) {
 		queuedprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
-		prom_sd_processor.NewFactory(),
+		promsdprocessor.NewFactory(),
 	)
 	if err != nil {
 		return config.Factories{}, err

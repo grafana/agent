@@ -1,4 +1,4 @@
-package prom_sd_processor
+package promsdprocessor
 
 import (
 	"context"
@@ -49,7 +49,7 @@ func createTraceProcessor(
 		return nil, fmt.Errorf("unable to marshal scrapeConfigs interface{} to yaml: %w", err)
 	}
 
-	scrapeConfigs := make([]*config.ScrapeConfig, 0, 0)
+	scrapeConfigs := make([]*config.ScrapeConfig, 0)
 	err = yaml.Unmarshal(out, &scrapeConfigs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to unmarshal bytes to []*config.ScrapeConfig: %w", err)

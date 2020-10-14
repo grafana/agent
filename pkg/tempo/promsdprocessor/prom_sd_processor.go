@@ -1,4 +1,4 @@
-package prom_sd_processor
+package promsdprocessor
 
 import (
 	"context"
@@ -83,7 +83,7 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func (a *promServiceDiscoProcessor) GetCapabilities() component.ProcessorCapabilities {
+func (p *promServiceDiscoProcessor) GetCapabilities() component.ProcessorCapabilities {
 	return component.ProcessorCapabilities{MutatesConsumedData: true}
 }
 

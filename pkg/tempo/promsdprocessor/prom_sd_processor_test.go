@@ -1,4 +1,4 @@
-package prom_sd_processor
+package promsdprocessor
 
 import (
 	"testing"
@@ -11,40 +11,6 @@ import (
 )
 
 func TestSyncGroups(t *testing.T) {
-
-	/*	cfgs := map[string][]*relabel.Config{
-				"test": {
-					{
-						Action:       "replace",
-						SourceLabels: model.LabelNames([]model.LabelName{"blerg"}),
-						TargetLabel:  "blarg",
-						Regex:        relabel.MustNewRegexp(""),
-					},
-				},
-			}
-
-			p := &promServiceDiscoProcessor{
-				logger:         log.NewNopLogger(),
-				relabelConfigs: cfgs,
-			}
-
-			groups := []*targetgroup.Group{
-				{
-					Targets: []model.LabelSet{
-						{
-							"__address__": "127.0.0.1",
-							"blerg":       "?",
-						},
-					},
-				},
-			}
-
-			hostLabels := make(map[string]model.LabelSet
-
-		p.syncGroups("test", groups, hostLabels)
-
-		fmt.Println(hostLabels) */
-
 	tests := []struct {
 		name        string
 		jobToSync   string
