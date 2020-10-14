@@ -1478,6 +1478,11 @@ remote_write:
 #   At least one receiver is required.
 #   https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/receiver
 receivers:
+
+# A list of prometheus scrape configs.  Targets discovered through these scrape configs have their __address__ matched against the ip on incoming spans.
+# If a match is found then relabeling rules are applied.
+scrape_configs:
+  - [<scrape_config>]
 ```
 
 ### integrations_config

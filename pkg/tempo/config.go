@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
 	prom_config "github.com/prometheus/common/config"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
@@ -33,6 +34,9 @@ type Config struct {
 
 	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/processor/attributesprocessor
 	Attributes map[string]interface{} `yaml:"attributes"`
+
+	// prom service discovery
+	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
 }
 
 // RWConfig controls the configuration of exporting to Grafana Cloud
@@ -99,6 +103,13 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	// processors
 	processors := map[string]interface{}{}
 	processorNames := []string{}
+	if c.ScrapeConfigs != nil {
+		processorNames = append(processorNames, promsdprocessor.TypeStr)
+		processors[promsdprocessor.TypeStr] = map[string]interface{}{
+			"scrape_configs": c.ScrapeConfigs,
+		}
+	}
+
 	if c.Attributes != nil {
 		processors["attributes"] = c.Attributes
 		processorNames = append(processorNames, "attributes")
@@ -184,6 +195,7 @@ func tracingFactories() (config.Factories, error) {
 		queuedprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
+		promsdprocessor.NewFactory(),
 	)
 	if err != nil {
 		return config.Factories{}, err
