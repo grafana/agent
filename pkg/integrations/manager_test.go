@@ -13,9 +13,42 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	prom_config "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
+	"gopkg.in/yaml.v3"
 )
+
+func TestConfig_InstanceRelabels(t *testing.T) {
+	cfgText := `
+agent: 
+  enabled: true
+prometheus_remote_write:
+- url: http://localhost:9090/api/prom/push`
+
+	var (
+		cfg        Config
+		listenPort int = 12345
+	)
+	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
+
+	// Listen port must be set before applying defaults. Normally applied by the
+	// config package.
+	cfg.ListenPort = &listenPort
+	require.NoError(t, cfg.ApplyDefaults())
+
+	// Ensure that the relabel configs are functional
+	require.Len(t, cfg.PrometheusRemoteWrite, 1)
+	require.Len(t, cfg.PrometheusRemoteWrite[0].WriteRelabelConfigs, 1)
+
+	rules := cfg.PrometheusRemoteWrite[0].WriteRelabelConfigs[0]
+
+	result := relabel.Process(labels.FromStrings("instance", "127.0.0.1"), rules)
+
+	expectHostname, _ := instance.Hostname()
+	require.Equal(t, result.Get("instance"), expectHostname+":12345")
+}
 
 // TestManager_ValidInstanceConfigs ensures that the instance configs
 // applied to the instance manager are valid.
