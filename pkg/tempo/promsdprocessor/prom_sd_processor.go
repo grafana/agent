@@ -163,7 +163,7 @@ func (p *promServiceDiscoProcessor) watchServiceDiscovery() {
 			p.hostLabels = hostLabels
 			p.mtx.Unlock()
 		case <-p.discoveryMgrCtx.Done():
-			break
+			return
 		}
 	}
 }
