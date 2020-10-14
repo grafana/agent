@@ -103,31 +103,30 @@ func (p *promServiceDiscoProcessor) Start(_ context.Context, _ component.Host) e
 
 // Shutdown is invoked during service shutdown.
 func (p *promServiceDiscoProcessor) Shutdown(context.Context) error {
-	// jpe - shutdown mgr?
 	return nil
 }
 
 func (p *promServiceDiscoProcessor) watchServiceDiscovery() {
 	for targetGoups := range p.discoveryMgr.SyncCh() {
-		// wipe and rebuild hostLabels
-		p.mtx.Lock()
-		p.hostLabels = make(map[string]model.LabelSet)
+		hostLabels := make(map[string]model.LabelSet)
 		level.Debug(p.logger).Log("msg", "syncing target groups", "count", len(targetGoups))
 		for jobName, groups := range targetGoups {
-			p.syncGroups(jobName, groups)
+			p.syncGroups(jobName, groups, hostLabels)
 		}
+		p.mtx.Lock()
+		p.hostLabels = hostLabels
 		p.mtx.Unlock()
 	}
 }
 
-func (p *promServiceDiscoProcessor) syncGroups(jobName string, groups []*targetgroup.Group) {
+func (p *promServiceDiscoProcessor) syncGroups(jobName string, groups []*targetgroup.Group, hostLabels map[string]model.LabelSet) {
 	level.Debug(p.logger).Log("msg", "syncing target group", "jobName", jobName)
 	for _, g := range groups {
-		p.syncTargets(jobName, g)
+		p.syncTargets(jobName, g, hostLabels)
 	}
 }
 
-func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgroup.Group) {
+func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgroup.Group, hostLabels map[string]model.LabelSet) {
 	level.Debug(p.logger).Log("msg", "syncing targets", "count", len(group.Targets))
 
 	relabelConfig := p.relabelConfigs[jobName]
@@ -139,11 +138,13 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 	for _, t := range group.Targets {
 		discoveredLabels := group.Labels.Merge(t)
 
+		level.Debug(p.logger).Log("discoveredLabels", discoveredLabels)
 		var labelMap = make(map[string]string)
 		for k, v := range discoveredLabels.Clone() {
 			labelMap[string(k)] = string(v)
 		}
 		processedLabels := relabel.Process(labels.FromMap(labelMap), relabelConfig...)
+		level.Debug(p.logger).Log("processedLabels", processedLabels)
 
 		var labels = make(model.LabelSet)
 		for k, v := range processedLabels.Map() {
@@ -173,7 +174,7 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 		}
 
 		level.Debug(p.logger).Log("msg", "adding host to hostLabels", "host", host)
-		p.hostLabels[host] = labels
+		hostLabels[host] = labels
 	}
 }
 
