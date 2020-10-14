@@ -97,6 +97,8 @@ func (c *Config) ApplyDefaults() error {
 				{
 					SourceLabels: model.LabelNames{model.InstanceLabel},
 					Action:       relabel.Replace,
+					Separator:    ";",
+					Regex:        relabel.MustNewRegexp("(.*)"),
 					Replacement:  replacement,
 					TargetLabel:  model.InstanceLabel,
 				},
