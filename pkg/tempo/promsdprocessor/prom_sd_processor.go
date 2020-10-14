@@ -131,7 +131,7 @@ func (p *promServiceDiscoProcessor) Start(_ context.Context, _ component.Host) e
 
 	go func() {
 		err := p.discoveryMgr.Run()
-		if err != nil {
+		if err != nil && err != context.Canceled {
 			level.Error(p.logger).Log("msg", "failed to start prom svc disco.  relabeling disabled", "err", err)
 		}
 	}()
