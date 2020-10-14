@@ -23,8 +23,9 @@ import (
 )
 
 type promServiceDiscoProcessor struct {
-	nextConsumer consumer.TraceConsumer
-	discoveryMgr *discovery.Manager
+	nextConsumer     consumer.TraceConsumer
+	discoveryMgr     *discovery.Manager
+	discoveryMgrStop context.CancelFunc
 
 	relabelConfigs map[string][]*relabel.Config
 	hostLabels     map[string]model.LabelSet
@@ -34,8 +35,9 @@ type promServiceDiscoProcessor struct {
 }
 
 func newTraceProcessor(nextConsumer consumer.TraceConsumer, scrapeConfigs []*config.ScrapeConfig) (component.TraceProcessor, error) {
+	ctx, cancel := context.WithCancel(context.Background())
 	logger := log.With(util.Logger, "component", "tempo service disco")
-	mgr := discovery.NewManager(context.Background(), logger, discovery.Name("tempo service disco"))
+	mgr := discovery.NewManager(ctx, logger, discovery.Name("tempo service disco"))
 
 	relabelConfigs := map[string][]*relabel.Config{}
 	cfg := map[string]sd_config.ServiceDiscoveryConfig{}
@@ -46,18 +48,21 @@ func newTraceProcessor(nextConsumer consumer.TraceConsumer, scrapeConfigs []*con
 
 	err := mgr.ApplyConfig(cfg)
 	if err != nil {
+		cancel()
 		return nil, err
 	}
 
 	if nextConsumer == nil {
+		cancel()
 		return nil, componenterror.ErrNilNextConsumer
 	}
 	return &promServiceDiscoProcessor{
-		nextConsumer:   nextConsumer,
-		discoveryMgr:   mgr,
-		relabelConfigs: relabelConfigs,
-		hostLabels:     make(map[string]model.LabelSet),
-		logger:         util.Logger,
+		nextConsumer:     nextConsumer,
+		discoveryMgr:     mgr,
+		discoveryMgrStop: cancel,
+		relabelConfigs:   relabelConfigs,
+		hostLabels:       make(map[string]model.LabelSet),
+		logger:           util.Logger,
 	}, nil
 }
 
@@ -136,6 +141,9 @@ func (p *promServiceDiscoProcessor) Start(_ context.Context, _ component.Host) e
 
 // Shutdown is invoked during service shutdown.
 func (p *promServiceDiscoProcessor) Shutdown(context.Context) error {
+	if p.discoveryMgrStop != nil {
+		p.discoveryMgrStop()
+	}
 	return nil
 }
 
