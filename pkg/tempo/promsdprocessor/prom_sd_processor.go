@@ -26,6 +26,7 @@ type promServiceDiscoProcessor struct {
 	nextConsumer     consumer.TraceConsumer
 	discoveryMgr     *discovery.Manager
 	discoveryMgrStop context.CancelFunc
+	discoveryMgrCtx  context.Context
 
 	relabelConfigs map[string][]*relabel.Config
 	hostLabels     map[string]model.LabelSet
@@ -60,6 +61,7 @@ func newTraceProcessor(nextConsumer consumer.TraceConsumer, scrapeConfigs []*con
 		nextConsumer:     nextConsumer,
 		discoveryMgr:     mgr,
 		discoveryMgrStop: cancel,
+		discoveryMgrCtx:  ctx,
 		relabelConfigs:   relabelConfigs,
 		hostLabels:       make(map[string]model.LabelSet),
 		logger:           util.Logger,
@@ -148,15 +150,21 @@ func (p *promServiceDiscoProcessor) Shutdown(context.Context) error {
 }
 
 func (p *promServiceDiscoProcessor) watchServiceDiscovery() {
-	for targetGoups := range p.discoveryMgr.SyncCh() {
-		hostLabels := make(map[string]model.LabelSet)
-		level.Debug(p.logger).Log("msg", "syncing target groups", "count", len(targetGoups))
-		for jobName, groups := range targetGoups {
-			p.syncGroups(jobName, groups, hostLabels)
+	for {
+		// p.discoveryMgr.SyncCh() is never closed so we need to watch the context as well to properly exit this goroutine
+		select {
+		case targetGoups := <-p.discoveryMgr.SyncCh():
+			hostLabels := make(map[string]model.LabelSet)
+			level.Debug(p.logger).Log("msg", "syncing target groups", "count", len(targetGoups))
+			for jobName, groups := range targetGoups {
+				p.syncGroups(jobName, groups, hostLabels)
+			}
+			p.mtx.Lock()
+			p.hostLabels = hostLabels
+			p.mtx.Unlock()
+		case <-p.discoveryMgrCtx.Done():
+			break
 		}
-		p.mtx.Lock()
-		p.hostLabels = hostLabels
-		p.mtx.Unlock()
 	}
 }
 
