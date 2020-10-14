@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/relabel"
-	"gotest.tools/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSyncGroups(t *testing.T) {
@@ -110,7 +110,7 @@ func TestSyncGroups(t *testing.T) {
 			hostLabels := make(map[string]model.LabelSet)
 			p.syncGroups(tc.jobToSync, groups, hostLabels)
 
-			assert.DeepEqual(t, tc.expected, hostLabels)
+			assert.Equal(t, tc.expected, hostLabels)
 		})
 	}
 }

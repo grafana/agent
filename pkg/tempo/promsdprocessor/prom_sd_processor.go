@@ -83,6 +83,43 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
+func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) {
+	// find the ip
+	ipTagNames := []string{
+		"ip",          // jaeger/opentracing? default
+		"net.host.ip", // otel semantics for host ip
+	}
+
+	var ip string
+	for _, name := range ipTagNames {
+		val, ok := attrs.Get(name)
+		if !ok {
+			continue
+		}
+
+		ip = val.StringVal()
+		break
+	}
+
+	// have to have an ip for labels lookup
+	if ip == "" {
+		return
+	}
+
+	p.mtx.Lock()
+	defer p.mtx.Unlock()
+
+	labels, ok := p.hostLabels[ip]
+	if !ok {
+		level.Debug(p.logger).Log("msg", "unable to find matching hostLabels", "ip", ip)
+		return
+	}
+
+	for k, v := range labels {
+		attrs.UpsertString(string(k), string(v))
+	}
+}
+
 func (p *promServiceDiscoProcessor) GetCapabilities() component.ProcessorCapabilities {
 	return component.ProcessorCapabilities{MutatesConsumedData: true}
 }
@@ -175,42 +212,5 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 
 		level.Debug(p.logger).Log("msg", "adding host to hostLabels", "host", host)
 		hostLabels[host] = labels
-	}
-}
-
-func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) {
-	// find the ip
-	ipTagNames := []string{
-		"ip",          // jaeger/opentracing? default
-		"net.host.ip", // otel semantics for host ip
-	}
-
-	var ip string
-	for _, name := range ipTagNames {
-		val, ok := attrs.Get(name)
-		if !ok {
-			continue
-		}
-
-		ip = val.StringVal()
-		break
-	}
-
-	// have to have an ip for labels lookup
-	if ip == "" {
-		return
-	}
-
-	p.mtx.Lock()
-	defer p.mtx.Unlock()
-
-	labels, ok := p.hostLabels[ip]
-	if !ok {
-		level.Debug(p.logger).Log("msg", "unable to find matching hostLabels", "ip", ip)
-		return
-	}
-
-	for k, v := range labels {
-		attrs.UpsertString(string(k), string(v))
 	}
 }

@@ -33,7 +33,6 @@ require (
 	google.golang.org/grpc v1.31.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.3.0
-	gotest.tools v2.2.0+incompatible
 )
 
 // Needed for Cortex's dependencies to work properly.
