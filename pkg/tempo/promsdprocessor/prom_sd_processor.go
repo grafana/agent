@@ -22,10 +22,6 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 )
 
-const (
-	addressLabel = "__address__"
-)
-
 type promServiceDiscoProcessor struct {
 	nextConsumer consumer.TraceConsumer
 	discoveryMgr *discovery.Manager
@@ -188,7 +184,7 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 			labels[model.LabelName(k)] = model.LabelValue(v)
 		}
 
-		address, ok := labels[addressLabel]
+		address, ok := labels[model.AddressLabel]
 		if !ok {
 			level.Warn(p.logger).Log("msg", "ignoring target, unable to find address", "labels", labels.String())
 			continue
