@@ -14,6 +14,9 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] Add `wal-stats` and `target-stats` tooling to `agentctl` to discover
   WAL and cardinality issues. (@rfratto)
 
+- [FEATURE] [mysqld_exporter](https://github.com/prometheus/mysqld_exporter) is
+  now embedded and available as an integration. (@rfratto)
+
 - [BUGFIX] Fix issue where integrations crashed with instance_mode was set to
   `distinct` (@rfratto)
 
