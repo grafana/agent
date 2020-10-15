@@ -17,7 +17,7 @@ import (
 	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 )
 
 func TestConfig_InstanceRelabels(t *testing.T) {
