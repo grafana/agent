@@ -14,6 +14,7 @@ require (
 	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
+	github.com/oliver006/redis_exporter v1.12.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -23,7 +24,7 @@ require (
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.1.3
 	github.com/prometheus/prometheus v1.8.2-0.20200727090838-6f296594a852
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
@@ -64,5 +65,10 @@ replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf
+	github.com/oliver006/redis_exporter => github.com/dafydd-t/redis_exporter v1.13.0
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 )
+
+// This forces vendoring to use the desired v.1.8.2, rather than the
+// incompatible pre-go-module v2.0.0. Required for redis_exporter dependency.
+replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2

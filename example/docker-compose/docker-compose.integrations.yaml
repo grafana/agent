@@ -6,9 +6,11 @@
 # that enable local testing of all components of the Agent.
 version: "2"
 services:
+
   #
   # Frontend
   #
+
   grafana:
     image: grafana/grafana:6.6.1
     entrypoint:
@@ -62,3 +64,8 @@ services:
       - MYSQL_ROOT_HOST=%
     ports:
       - 127.0.0.1:3306:3306
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"

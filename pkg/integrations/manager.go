@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
+	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -59,6 +60,7 @@ type Config struct {
 	NodeExporter    node_exporter.Config    `yaml:"node_exporter"`
 	ProcessExporter process_exporter.Config `yaml:"process_exporter"`
 	MysqldExporter  mysqld_exporter.Config  `yaml:"mysqld_exporter"`
+	RedisExporter   redis_exporter.Config   `yaml:"redis_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -179,6 +181,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.MysqldExporter.Enabled {
 		l := log.With(logger, "integration", "mysqld_exporter")
 		i, err := mysqld_exporter.New(l, c.MysqldExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.RedisExporter.Enabled {
+		l := log.With(logger, "integration", "redis_exporter")
+		i, err := redis_exporter.New(l, c.RedisExporter)
 		if err != nil {
 			return nil, err
 		}
