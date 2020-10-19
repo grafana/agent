@@ -3,6 +3,7 @@ local utils = import './internal/utils.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
 local container = k.core.v1.container;
+local configMap = k.core.v1.configMap;
 
 // Merge all of our libraries to create the final exposed library.
 (import './lib/deployment.libsonnet') +
@@ -10,6 +11,7 @@ local container = k.core.v1.container;
 (import './lib/prometheus.libsonnet') +
 (import './lib/scraping_service.libsonnet') +
 (import './lib/loki.libsonnet') +
+(import './lib/tempo.libsonnet') +
 {
   _images:: {
     agent: 'grafana/agent:v0.6.1',
@@ -42,9 +44,11 @@ local container = k.core.v1.container;
     _config_hash:: true,
 
     local has_loki_config = std.objectHasAll(self, '_loki_config'),
+    local has_tempo_config = std.objectHasAll(self, '_tempo_config'),
     local has_prometheus_config = std.objectHasAll(self, '_prometheus_config'),
     local has_prometheus_instances = std.objectHasAll(self, '_prometheus_instances'),
     local has_integrations = std.objectHasAll(self, '_integrations'),
+    local has_sampling_strategies = std.objectHasAll(self, '_tempo_sampling_strategies'),
 
     local prometheus_instances =
       if has_prometheus_instances then this._prometheus_instances else [],
@@ -62,6 +66,8 @@ local container = k.core.v1.container;
       else {}
     ) + (
       if has_loki_config then { loki: this._loki_config } else {}
+    ) + ( 
+      if has_tempo_config then { tempo: this._tempo_config } else {}
     ) + (
       if has_integrations then { integrations: this._integrations } else {}
     ),
@@ -73,6 +79,7 @@ local container = k.core.v1.container;
         configs: std.map(function(cfg) cfg { host_filter: false }, etc_instances),
       },
       loki:: {},
+      tempo:: {},
       integrations:: {},
     },
 
@@ -84,6 +91,20 @@ local container = k.core.v1.container;
         container+:: container.withEnvMixin([
           k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
         ]),
+  
+        // If sampling strategies were defined, we need to mount them as a JSON 
+        // file.
+        config_map+: 
+          if has_sampling_strategies 
+          then configMap.withDataMixin({
+            'strategies.json': std.toString(this._tempo_sampling_strategies),
+          }) 
+          else {},
+ 
+        // If we're deploying for tracing, applications will want to write to 
+        // a service for load balancing span delivery.
+        service:
+          if has_tempo_config then k.util.serviceFor(self.agent) else {},
       } + (
         if has_loki_config then $.lokiPermissionsMixin else {}
       ),

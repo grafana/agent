@@ -243,7 +243,7 @@ tempo:
     jaeger:
       protocols:
         grpc: # listens on the default jaeger grpc port: 14250
-  remote_write:
+  push_config:
     endpoint: localhost:55680
     insecure: true  # only add this if TLS is not required
     batch:

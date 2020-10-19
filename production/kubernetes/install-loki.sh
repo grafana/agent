@@ -35,7 +35,7 @@ MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${M
 LOKI_USERNAME_SET=0
 LOKI_PASSWORD_SET=0
 
-while getopts "l:u:p:" opt; do
+while getopts "h:u:p:" opt; do
   case "$opt" in
     h)
       LOKI_HOSTNAME=$OPTARG

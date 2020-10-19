@@ -15,11 +15,11 @@ incompatible changes will be made.
 This library is significantly more flexible than its `v0` counterpart. It tries
 to allow to deploy and configure the Agent in a feature matrix:
 
-| Mechanism        | Prometheus Metrics | Loki Logs | Integrations |
-| ---------------- | ------------------ | --------- | ------------ |
-| DaemonSet        | Yes                | Yes       | Yes          |
-| Deployment       | Yes                | No        | No           |
-| Scraping Service | Yes                | No        | No           |
+| Mechanism        | Prometheus Metrics | Loki Logs | Traces | Integrations | 
+| ---------------- | ------------------ | --------- | ------ | ------------ |
+| DaemonSet        | Yes                | Yes       | Yes    | Yes          |
+| Deployment       | Yes                | No        | No     | No           |
+| Scraping Service | Yes                | No        | No     | No           |
 
 The library can be invoked multiple times to get full coverage. For example, you
 may wish to deploy a scraping service for scalable metrics collection, and a
@@ -59,4 +59,14 @@ example, you may not deploy a scraping service with Loki logs collection.
 - `scrapeKubernetesLogs`: Default Loki config that collects logs from Kubernetes
   pods.
 
+## Configure Tempo
 
+- `withTempoConfig(config)`: Creates a Tempo config block to pass to the Agent.
+- `withTempoPushConfig(push_config)`: Configures a location to push spans to. 
+- `withTempoSamplingStrategies(strategies)`: Configures strategies for trace collection. 
+- `withTempoScrapeConfigs(scrape_configs)`: Configures scrape configs to attach
+   labels to incoming spans. 
+- `tempoScrapeKubernetes`: Default scrape configs to collect meta information
+   from pods. Aligns with the labels from `scrapeInstanceKubernetes` and
+   `scrapeKubernetesLogs` so logs, metrics, and traces all use the same set of
+   labels.

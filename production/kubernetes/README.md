@@ -7,11 +7,13 @@ Manifests:
 
 - Metric collection: [`agent.yaml`](./agent.yaml)
 - Log collection: [`agent-loki.yaml`](./agent-loki.yaml)
+- Trace collection: [`agent-tempo.yaml`](./agent-tempo.yaml)
 
 Installation script:
 
 - Metric collection: [`install.sh`](./install.sh)
 - Log collection: [`install-loki.sh`](./install-loki.sh)
+- Tempo collection: [`install-tempo.sh`](./install-tempo.sh)
 
 ## Install Scripts
 
@@ -41,21 +43,7 @@ the installation script does:
 1. Download the manifest as `manifest.yaml`.
 
 2. Modify your copy of the manifest, replacing all variables with the
-   appropriate values:
-
-   1. For the metrics collection manifest, replace `${REMOTE_WRITE_URL}` with
-      the full endpoint of the Prometheus remote write API. For logs collection,
-      replace `${LOKI_HOSTNAME}` with the hostname of the Loki API. Unlike the
-      remote write API, `${LOKI_HOSTNAME}` should _only_ be the hostname, such
-      as `localhost` or `logs-us-central1.grafana.net`.
-
-  2. Replace `${REMOTE_WRITE_PASSWORD}` or `${LOKI_PASSWORD}` with the password
-     for authentication against the remote API. If you do not need
-     authentication, remove the entire authentication section.
-
-  3. If you did not remove the authentication section from the previous step,
-     replace `${REMOTE_WRITE_USERNAME}` or `${LOKI_USERNAME}` with the username
-     used to connect to the remote API.
+   appropriate values.
 
 3. Apply the modified manifest file: `kubectl -ndefault apply -f manifest.yaml`.
 
