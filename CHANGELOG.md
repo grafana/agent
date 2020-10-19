@@ -14,6 +14,12 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] Add `wal-stats` and `target-stats` tooling to `agentctl` to discover
   WAL and cardinality issues. (@rfratto)
 
+- [BUGFIX] Fix issue where integrations crashed with instance_mode was set to
+  `distinct` (@rfratto)
+
+- [BUGFIX] Fix issue where the `agent` integration did not work on Windows
+  (@rfratto).
+
 # v0.6.1 (2020-04-11)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
