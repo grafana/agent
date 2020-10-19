@@ -56,7 +56,7 @@ while getopts "e:u:p:" opt; do
 done
 
 if [ -z "${TEMPO_ENDPOINT}" ]; then
-  read -sp 'Enter your Tempo endpoint (i.e., traces-us-central1.grafana.net): ' TEMPO_ENDPOINT
+  read -sp 'Enter your Tempo endpoint (i.e., tempo-us-central1.grafana.net): ' TEMPO_ENDPOINT
   printf $'\n' >&2
 
   # We require a endpoint for the agent; we don't do this same check for
