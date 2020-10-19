@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sync"
 
 	"github.com/go-kit/kit/log/level"
@@ -44,6 +45,10 @@ func (s *Server) WireAPI(r *mux.Router) {
 	getConfig := s.wrapHandler(s.GetConfiguration)
 	putConfig := s.wrapHandler(nonConcurrentHandler(s.PutConfiguration))
 	deleteConfig := s.wrapHandler(s.DeleteConfiguration)
+
+	// Support URL-encoded config names. The handlers will need to decode the
+	// name when reading the path variable.
+	r = r.UseEncodedPath()
 
 	r.HandleFunc("/agent/api/v1/configs", listConfig).Methods("GET")
 	r.HandleFunc("/agent/api/v1/configs/{name}", getConfig).Methods("GET")
@@ -117,7 +122,11 @@ func (s *Server) ListConfigurations(r *http.Request) (interface{}, error) {
 
 // GetConfiguration returns an existing named configuration.
 func (s *Server) GetConfiguration(r *http.Request) (interface{}, error) {
-	configKey := getConfigName(r)
+	configKey, err := getConfigName(r)
+	if err != nil {
+		return nil, err
+	}
+
 	v, err := s.kv.Get(r.Context(), configKey)
 	if err != nil {
 		level.Error(s.logger).Log("msg", "error getting configuration from kv store", "err", err)
@@ -145,7 +154,10 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	inst.Name = getConfigName(r)
+	inst.Name, err = getConfigName(r)
+	if err != nil {
+		return nil, err
+	}
 
 	// Validate the incoming config
 	if err := inst.ApplyDefaults(s.globalConfig); err != nil {
@@ -218,7 +230,10 @@ func (s *Server) checkUnique(ctx context.Context, cfg *instance.Config) error {
 
 // DeleteConfiguration deletes an existing named configuration.
 func (s *Server) DeleteConfiguration(r *http.Request) (interface{}, error) {
-	configKey := getConfigName(r)
+	configKey, err := getConfigName(r)
+	if err != nil {
+		return nil, err
+	}
 
 	v, err := s.kv.Get(r.Context(), configKey)
 	if err != nil {
@@ -258,7 +273,15 @@ type httpResponse struct {
 
 // getConfigName uses gorilla/mux's route variables to extract the
 // "name" variable. If not found, getConfigName will panic.
-func getConfigName(r *http.Request) string {
+func getConfigName(r *http.Request) (string, error) {
 	vars := mux.Vars(r)
-	return vars["name"]
+	name := vars["name"]
+	name, err := url.PathUnescape(name)
+	if err != nil {
+		return "", &httpError{
+			StatusCode: http.StatusBadRequest,
+			Err:        fmt.Errorf("could not decode config name: %w", err),
+		}
+	}
+	return name, nil
 }

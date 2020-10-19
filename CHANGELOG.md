@@ -20,6 +20,8 @@ this platform. FreeBSD builds will return in a future release.
 - [BUGFIX] Fix issue where the `agent` integration did not work on Windows
   (@rfratto).
 
+- [BUGFIX] Support URL-encoded paths in the scraping service API. (@rfratto)
+
 # v0.6.1 (2020-04-11)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
