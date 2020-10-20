@@ -2041,7 +2041,7 @@ cmdline:
   [- <string>]
 ```
 
-### mysql_exporter_config
+### mysqld_exporter_config
 
 The `mysqld_exporter_config` block configures the `mysqld_exporter` integration,
 which is an embedded version of
