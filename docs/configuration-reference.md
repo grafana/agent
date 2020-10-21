@@ -2217,19 +2217,95 @@ Full reference of options:
   # the redis_exporter integration will be run but not scraped and thus not
   # remote-written. Metrics for the integration will be exposed at
   # /integrations/redis_exporter/metrics and can be scraped by an external
-  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  # exporter-specific configuration options
 
   # Address of the redis instance. This is REQUIRED, but may also be specified
   # by the REDIS_EXPORTER_ADDRESS environment variable. If neither are set, the
   # integration will fail to start.
-  [redis_addr: <string>]
+  redis_addr: <string>
 
-  # Namespace for the metrics
+  # User name to use for authentication (Redis ACL for Redis 6.0 and newer).
+  [redis_user: <string>]
+
+  # Password of the redis instance.
+  [redis_pwd: <string>]
+
+  # Namespace for the metrics.
   [namespace: <string> | default = "redis"]
 
-  # Timeout for connection to Redis instance (in Golang duration format)
+  # What to use for the CONFIG command.
+  [config_command: <string> | default = "CONFIG"]
+
+  # Comma separated list of key-patterns to export value and length/size, searched for with SCAN.
+  [check_keys: <string>]
+
+  # Comma separated list of single keys to export value and length/size.
+  [check_single_keys: <string>]
+
+  # Comma separated list of stream-patterns to export info about streams, groups and consumers, searched for with SCAN.
+  [check_streams: <string>]
+
+  # Comma separated list of single streams to export info about streams, groups and consumers.
+  [check_single_streams: <string>]
+
+  # Comma separated list of individual keys to export counts for.
+  [count_keys: <string>]
+
+  # Path to Lua Redis script for collecting extra metrics.
+  [script_path: <string>]
+
+  # Timeout for connection to Redis instance (in Golang duration format).
   [connection_timeout: <time.Duration> | default = "15s"]
 
-  # Monitor the exporter itself and include those metrics in the results.
-  [include_exporter_metrics: <bool> | default = false]
+  # Name of the client key file (including full path) if the server requires TLS client authentication.
+  [tls_client_key_file: <string>]
+
+  # Name of the client certificate file (including full path) if the server requires TLS client authentication.
+  [tls_client_cert_file: <string>]
+
+  # Name of the CA certificate file (including full path) if the server requires TLS client authentication.
+  [tls_ca_cert_file: <string>]
+
+  # Whether to set client name to redis_exporter.
+  [set_client_name: <bool>]
+
+  # Whether to scrape Tile38 specific metrics.
+  [is_tile38: <bool>]
+
+  # Whether to scrape Client List specific metrics.
+  [export_client_list: <bool>]
+
+  # Whether to also export go runtime metrics.
+  [redis_metrics_only: <bool>]
+
+  # Whether to ping the redis instance after connecting.
+  [ping_on_connect: <bool>]
+
+  # Whether to include system metrics like e.g. redis_total_system_memory_bytes.
+  [incl_system_metrics: <bool>]
+
+  # Whether to to skip TLS verification.
+  [skip_tls_verification: <bool>]
 ```
