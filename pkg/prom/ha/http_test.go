@@ -162,6 +162,45 @@ func TestServer_PutConfiguration(t *testing.T) {
 	}
 }
 
+func TestServer_PutConfiguration_URLEncoded(t *testing.T) {
+	env := newAPITestEnvironment(t)
+
+	cfg := instance.DefaultConfig
+	cfg.Name = "url/encoded"
+	cfg.HostFilter = false
+	cfg.RemoteFlushDeadline = 10 * time.Minute
+	cfg.ScrapeConfigs = []*config.ScrapeConfig{{
+		JobName:     "encoded_test_job",
+		MetricsPath: "/metrics",
+		Scheme:      "http",
+	}}
+	_ = cfg.ApplyDefaults(&config.DefaultGlobalConfig)
+
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+
+	// Try calling Put twice; first time should create the config and the second
+	// should update it.
+	expectedResponses := []int{http.StatusCreated, http.StatusOK}
+	for _, expectedResp := range expectedResponses {
+		resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/url%2Fencoded", "", bytes.NewReader(bb))
+		require.NoError(t, err)
+		unmarshalTestResponse(t, resp.Body, nil)
+		require.Equal(t, expectedResp, resp.StatusCode)
+
+		// Get the stored config back
+		resp, err = http.Get(env.srv.URL + "/agent/api/v1/configs/url%2Fencoded")
+		require.NoError(t, err)
+		var apiResp configapi.GetConfigurationResponse
+		unmarshalTestResponse(t, resp.Body, &apiResp)
+
+		var actual instance.Config
+		err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
+		require.NoError(t, err)
+		require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+	}
+}
+
 func TestServer_PutConfiguration_NonUnique(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
@@ -376,7 +415,7 @@ func unmarshalTestResponse(t *testing.T, r io.ReadCloser, v interface{}) {
 	require.NoError(t, err)
 
 	if v == nil {
-		require.True(t, len(resp.Data) == 0, "data in response was not empty as expected")
+		require.True(t, len(resp.Data) == 0, "data in response was not empty as expected. Got %s", resp.Data)
 		return
 	}
 
