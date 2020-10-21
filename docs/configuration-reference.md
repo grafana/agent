@@ -2063,6 +2063,8 @@ mysqld_exporter:
     replacement: server-a
 ```
 
+Full reference of options:
+
 ```yaml
   # Enables the mysqld_exporter integration, allowing the Agent to automatically
   # collect system metrics from the host UNIX system.
