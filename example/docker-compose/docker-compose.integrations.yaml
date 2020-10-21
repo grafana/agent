@@ -1,0 +1,64 @@
+# The docker-compose.integrations.yaml file provides:
+#
+# - backend services
+# - integration scrape targets
+#
+# that enable local testing of all components of the Agent.
+version: "2"
+services:
+  #
+  # Frontend
+  #
+  grafana:
+    image: grafana/grafana:6.6.1
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    volumes:
+      - ./grafana/config:/etc/grafana-config
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
+
+  #
+  # Backend for remote_write components
+  #
+
+  cortex:
+    image: cortexproject/cortex:v0.6.1
+    volumes:
+      - /tmp/cortex:/tmp/cortex
+      - ./cortex/config:/etc/cortex-config
+    entrypoint:
+      - /bin/cortex
+      - -config.file=/etc/cortex-config/cortex.yaml
+    ports:
+      - "9009:9009"
+
+  loki:
+    image: grafana/loki:1.5.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tracing:
+    image: otel/opentelemetry-collector:0.9.0
+    volumes:
+      - ./otel-collector:/etc/otel-collector
+    command:
+      - --config=/etc/otel-collector/config.yaml
+
+  #
+  # Integrations
+  #
+
+  mysql:
+    image: mysql/mysql-server:5.7
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_ROOT_HOST=%
+    ports:
+      - 127.0.0.1:3306:3306

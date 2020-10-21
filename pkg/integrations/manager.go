@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/agent"
 	integrationCfg "github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/prom/instance"
@@ -57,6 +58,7 @@ type Config struct {
 	Agent           agent.Config            `yaml:"agent"`
 	NodeExporter    node_exporter.Config    `yaml:"node_exporter"`
 	ProcessExporter process_exporter.Config `yaml:"process_exporter"`
+	MysqldExporter  mysqld_exporter.Config  `yaml:"mysqld_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -169,6 +171,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.ProcessExporter.Enabled {
 		l := log.With(logger, "integration", "process_exporter")
 		i, err := process_exporter.New(l, c.ProcessExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.MysqldExporter.Enabled {
+		l := log.With(logger, "integration", "mysqld_exporter")
+		i, err := mysqld_exporter.New(l, c.MysqldExporter)
 		if err != nil {
 			return nil, err
 		}
