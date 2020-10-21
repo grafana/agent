@@ -74,7 +74,8 @@ GET /agent/api/v1/configs/{name}
 ```
 
 Get Config will return a single configuration by name. The configuration must
-exist or an error will be returned.
+exist or an error will be returned. URL-encoded names will be retrieved in decoded
+form. e.g., `hello%2Fworld` will represent the config named `hello/world`.
 
 Status code: 200 on success, 400 on invalid config name.
 Response on success:
@@ -97,6 +98,9 @@ POST /agent/api/v1/config/{name}
 
 Update Config will update or add a new configuration by name. If a configuration
 with the same name already exists, it will be completely overwritten.
+
+URL-encoded names will be stored in decoded form. e.g., `hello%2Fworld` will
+represent the config named `hello/world`.
 
 The request body passed to this endpoint must match the format of
 [prometheus_instance_config](./configuration-reference.md#prometheus_instance_config)
@@ -122,6 +126,9 @@ DELETE /agent/api/v1/config/{name}
 Delete Config will attempt to delete a configuration by name. The named
 configuration must exist; deleting a nonexistent config will result in an
 error.
+
+URL-encoded names will be interpreted in decoded form. e.g., `hello%2Fworld`
+will represent the config named `hello/world`.
 
 Status code: 200 on success, 400 with invalid config name.
 Response on success:
