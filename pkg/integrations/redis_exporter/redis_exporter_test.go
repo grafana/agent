@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const addr string = "localhost:6379"
+
 type testCase struct {
 	name                   string
 	cfg                    Config
@@ -30,7 +32,7 @@ var testCases = []testCase{
 		name: "Default config",
 		cfg: (func() Config {
 			c := DefaultConfig
-			c.RedisAddr = "localhost:6379"
+			c.RedisAddr = addr
 			return c
 		})(),
 		expectedMetrics: []string{},
@@ -40,7 +42,7 @@ var testCases = []testCase{
 		name: "Include exporter metrics",
 		cfg: (func() Config {
 			c := DefaultConfig
-			c.RedisAddr = "localhost:6379"
+			c.RedisAddr = addr
 			c.IncludeExporterMetrics = true
 			return c
 		})(),
@@ -54,7 +56,7 @@ var testCases = []testCase{
 		name: "Lua script read OK",
 		cfg: (func() Config {
 			c := DefaultConfig
-			c.RedisAddr = "localhost:6379"
+			c.RedisAddr = addr
 			c.ScriptPath = "./config.go" // file content is irrelevant
 			return c
 		})(),
@@ -64,7 +66,7 @@ var testCases = []testCase{
 		name: "Lua script read fail",
 		cfg: (func() Config {
 			c := DefaultConfig
-			c.RedisAddr = "localhost:6379"
+			c.RedisAddr = addr
 			c.ScriptPath = "/does/not/exist"
 			return c
 		})(),

@@ -2077,6 +2077,7 @@ Full reference of options:
   # the mysqld_exporter integration will be run but not scraped and thus not
   # remote-written. Metrics for the integration will be exposed at
   # /integrations/mysqld_exporter/metrics and can be scraped by an external
+  # process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
   # How often should the metrics be collected? Defaults to
@@ -2217,6 +2218,7 @@ Full reference of options:
   # the redis_exporter integration will be run but not scraped and thus not
   # remote-written. Metrics for the integration will be exposed at
   # /integrations/redis_exporter/metrics and can be scraped by an external
+  # process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
   # How often should the metrics be collected? Defaults to
