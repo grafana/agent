@@ -30,7 +30,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	if len(dsn) == 0 {
 		dsn = os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME")
 	}
-	if dsn == "" {
+	if len(dsn) == 0 {
 		return nil, fmt.Errorf("cannot create mysqld_exporter; neither mysqld_exporter.data_source_name or $MYSQLD_EXPORTER_DATA_SOURCE_NAME is set")
 	}
 
@@ -76,10 +76,7 @@ func (i *Integration) handler() (http.Handler, error) {
 	if err := r.Register(i.exporter); err != nil {
 		return nil, fmt.Errorf("couldn't register mysqld_exporter collector: %w", err)
 	}
-	handler := promhttp.HandlerFor(
-		prometheus.Gatherers{r},
-		promhttp.HandlerOpts{},
-	)
+	handler := promhttp.HandlerFor(r, promhttp.HandlerOpts{})
 	return handler, nil
 }
 

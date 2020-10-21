@@ -2059,15 +2059,15 @@ mysqld_exporter:
   data_source_name: root@(server-a:3306)/
   relabel_configs:
   - source_labels: [__address__]
-    target_label: mysql_server
+    target_label: instance
     replacement: server-a
 ```
 
 Full reference of options:
 
 ```yaml
-  # Enables the mysqld_exporter integration, allowing the Agent to automatically
-  # collect system metrics from the host UNIX system.
+  # Enables the mysqld_exporter integration, allowing the Agent to collect
+  # metrics from a MySQL server.
   [enabled: <boolean> | default = false]
 
   # Automatically collect metrics from this integration. If disabled,
