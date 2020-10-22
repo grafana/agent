@@ -1541,11 +1541,6 @@ redis_exporter: <redis_exporter_config>
 
 # When true, replaces the instance label with the hostname of the machine,
 # rather than 127.0.0.1:<server.http_listen_port>. Useful when running multiple
-# Agents with the same integrations and uniquely identifying where metrics are
-# coming from.
-
-# When true, replaces the instance label with the hostname of the machine,
-# rather than 127.0.0.1:<server.http_listen_port>. Useful when running multiple
 # Agents with the same integrations and uniquely identifying where metrics are 
 # coming from.
 #
