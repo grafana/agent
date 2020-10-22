@@ -17,103 +17,101 @@ import (
 
 const addr string = "localhost:6379"
 
-type testCase struct {
-	name                   string
-	cfg                    Config
-	expectedMetrics        []string
-	expectConstructorError bool
-	envVars                map[string]string
-}
-
-var testCases = []testCase{
-	// Test that default config results in some metrics that can be parsed by
-	// prometheus.
-	{
-		name: "Default config",
-		cfg: (func() Config {
-			c := DefaultConfig
-			c.RedisAddr = addr
-			return c
-		})(),
-		expectedMetrics: []string{},
-	},
-	// Test that exporter metrics are included when configured to do so.
-	{
-		name: "Include exporter metrics",
-		cfg: (func() Config {
-			c := DefaultConfig
-			c.RedisAddr = addr
-			c.IncludeExporterMetrics = true
-			return c
-		})(),
-		expectedMetrics: []string{
-			"promhttp_metric_handler_requests_total",
-			"promhttp_metric_handler_requests_in_flight",
-		},
-	},
-	// Test that some valid pre-constructor config logic doesn't cause errors.
-	{
-		name: "Lua script read OK",
-		cfg: (func() Config {
-			c := DefaultConfig
-			c.RedisAddr = addr
-			c.ScriptPath = "./config.go" // file content is irrelevant
-			return c
-		})(),
-	},
-	// Test that some invalid pre-constructor config logic causes an error.
-	{
-		name: "Lua script read fail",
-		cfg: (func() Config {
-			c := DefaultConfig
-			c.RedisAddr = addr
-			c.ScriptPath = "/does/not/exist"
-			return c
-		})(),
-		expectConstructorError: true,
-	},
-	// Test that exporter picks up env var
-	{
-		name: "address from env OK",
-		cfg:  Config{}, // no address in here
-		envVars: map[string]string{
-			"REDIS_EXPORTER_ADDRESS": "redis:1234",
-		},
-	},
-	// Test exporter complains when no address given via env or config.
-	{
-		name:                   "no address given",
-		cfg:                    Config{}, // no address in here
-		expectConstructorError: true,
-	},
-	// Test exporter constructs ok when password file is defined and exists
-	{
-		name: "valid password file",
-		cfg: (func() Config {
-			c := DefaultConfig
-			c.RedisAddr = addr
-			c.RedisPasswordFile = "./config.go" // contents not important
-			return c
-		})(),
-	},
-	// Test exporter construction fails when password file is defined and doesnt
-	// exist
-	{
-		name: "invalid password file",
-		cfg: (func() Config {
-			c := DefaultConfig
-			c.RedisAddr = addr
-			c.RedisPasswordFile = "/does/not/exist"
-			return c
-		})(),
-		expectConstructorError: true,
-	},
-}
-
 func TestRedisCases(t *testing.T) {
+	tt := []struct {
+		name                   string
+		cfg                    Config
+		expectedMetrics        []string
+		expectConstructorError bool
+		envVars                map[string]string
+	}{
+		// Test that default config results in some metrics that can be parsed by
+		// prometheus.
+		{
+			name: "Default config",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				return c
+			})(),
+			expectedMetrics: []string{},
+		},
+		// Test that exporter metrics are included when configured to do so.
+		{
+			name: "Include exporter metrics",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.IncludeExporterMetrics = true
+				return c
+			})(),
+			expectedMetrics: []string{
+				"promhttp_metric_handler_requests_total",
+				"promhttp_metric_handler_requests_in_flight",
+			},
+		},
+		// Test that some valid pre-constructor config logic doesn't cause errors.
+		{
+			name: "Lua script read OK",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.ScriptPath = "./config.go" // file content is irrelevant
+				return c
+			})(),
+		},
+		// Test that some invalid pre-constructor config logic causes an error.
+		{
+			name: "Lua script read fail",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.ScriptPath = "/does/not/exist"
+				return c
+			})(),
+			expectConstructorError: true,
+		},
+		// Test that exporter picks up env var
+		{
+			name: "address from env OK",
+			cfg:  Config{}, // no address in here
+			envVars: map[string]string{
+				"REDIS_EXPORTER_ADDRESS": "redis:1234",
+			},
+		},
+		// Test exporter complains when no address given via env or config.
+		{
+			name:                   "no address given",
+			cfg:                    Config{}, // no address in here
+			expectConstructorError: true,
+		},
+		// Test exporter constructs ok when password file is defined and exists
+		{
+			name: "valid password file",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.RedisPasswordFile = "./config.go" // contents not important
+				return c
+			})(),
+		},
+		// Test exporter construction fails when password file is defined and doesnt
+		// exist
+		{
+			name: "invalid password file",
+			cfg: (func() Config {
+				c := DefaultConfig
+				c.RedisAddr = addr
+				c.RedisPasswordFile = "/does/not/exist"
+				return c
+			})(),
+			expectConstructorError: true,
+		},
+	}
+
 	logger := log.NewNopLogger()
 
-	for _, test := range testCases {
+	for _, test := range tt {
 
 		// Pre-test actions
 		if len(test.envVars) > 0 {

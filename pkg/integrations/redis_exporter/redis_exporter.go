@@ -46,7 +46,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	if c.ScriptPath != "" {
 		ls, err := ioutil.ReadFile(c.ScriptPath)
 		if err != nil {
-			return nil, fmt.Errorf("Error loading script file %s    err: %s", c.ScriptPath, err)
+			return nil, fmt.Errorf("Error loading script file %s: %w", c.ScriptPath, err)
 		}
 		exporterConfig.LuaScript = ls
 	}
@@ -59,7 +59,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 		cert, err := tls.LoadX509KeyPair(c.TLSClientCertFile, c.TLSClientKeyFile)
 		if err != nil {
 
-			return nil, fmt.Errorf("couldn't load TLS client key pair, err: %s", err)
+			return nil, fmt.Errorf("couldn't load TLS client key pair: %w", err)
 		}
 		tlsClientCertificates = append(tlsClientCertificates, cert)
 	}
@@ -69,7 +69,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	if c.TLSCaCertFile != "" {
 		caCert, err := ioutil.ReadFile(c.TLSCaCertFile)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't load TLS Ca certificate, err: %s", err)
+			return nil, fmt.Errorf("couldn't load TLS Ca certificate: %w", err)
 		}
 		tlsCaCertificates = x509.NewCertPool()
 		tlsCaCertificates.AppendCertsFromPEM(caCert)
@@ -91,7 +91,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 		re.BuildInfo{},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create redis exporter: %s", err)
+		return nil, fmt.Errorf("failed to create redis exporter: %w", err)
 	}
 
 	return &Integration{

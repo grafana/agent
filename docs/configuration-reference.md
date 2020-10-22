@@ -2194,7 +2194,7 @@ The full list of collectors that are supported for `mysqld_exporter` is:
 
 ### redis_exporter_config
 
-The `redis_exporter_config` block configures the `redis_exporter` integration, which is an embedded version of [`redis_exporter`](https://github.com/oliver006/redis_exporter). This  allows for the collection of metrics from Redis servers.
+The `redis_exporter_config` block configures the `redis_exporter` integration, which is an embedded version of [`redis_exporter`](https://github.com/oliver006/redis_exporter). This allows for the collection of metrics from Redis servers.
 
 Note that currently, an Agent can only collect metrics from a single Redis server. If you want to collect metrics from multiple Redis servers, you can run multiple Agents and add labels using `relabel_configs` to differentiate between the Redis servers:
 

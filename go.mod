@@ -69,6 +69,5 @@ replace (
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 )
 
-// This forces vendoring to use the desired v.1.8.2, rather than the
-// incompatible pre-go-module v2.0.0. Required for redis_exporter dependency.
+// Required for redis_exporter, which is incompatible with v2.0.0+incompatible.
 replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
