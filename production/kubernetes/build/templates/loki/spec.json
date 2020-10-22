@@ -6,6 +6,6 @@
   },
   "spec": {
     "apiServer": "",
-    "namespace": "default"
+    "namespace": ""
   }
 }

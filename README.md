@@ -53,19 +53,22 @@ the remote system.
 - [x] A second clustering mode to solve sharding monitoring availability problems.
 - [x] Support for integrations (embedded exporters/automatic scrape configs)
 - [x] Promtail for Loki logs
+- [x] Tempo traces
 - [ ] `carbon-relay-ng` for Graphite metrics.
-- [ ] All-in-one installation script (metrics and logs)
+- [ ] All-in-one installation script (metrics, logs, and traces)
 
 ## Getting Started
 
 The easiest way to get started with the Grafana Cloud Agent is to use the
-Kubernetes install scripts. The first script installs the Agent for collecting
-metrics and the second installs the Agent for collecting logs. Simply copy and
-paste the following lines in your terminal (requires `envsubst` (GNU gettext)):
+Kubernetes install scripts. The first script installs an Agent for collecting
+metrics, the second for collecting logs, and the third for collecting traces.
+Simply copy and paste the following lines in your terminal (requires `envsubst`
+(GNU gettext)):
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
 
 Other installation methods can be found in our

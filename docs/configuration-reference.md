@@ -1453,7 +1453,7 @@ The `tempo_config` block configures how the Agent receives traces and sends them
 #  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
 attributes: [attributes.config] 
 
-remote_write:
+push_config:
   # host:port to send traces to
   endpoint: <string>
 
