@@ -66,7 +66,7 @@ local configMap = k.core.v1.configMap;
       else {}
     ) + (
       if has_loki_config then { loki: this._loki_config } else {}
-    ) + ( 
+    ) + (
       if has_tempo_config then { tempo: this._tempo_config } else {}
     ) + (
       if has_integrations then { integrations: this._integrations } else {}
@@ -91,17 +91,17 @@ local configMap = k.core.v1.configMap;
         container+:: container.withEnvMixin([
           k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
         ]),
-  
-        // If sampling strategies were defined, we need to mount them as a JSON 
+
+        // If sampling strategies were defined, we need to mount them as a JSON
         // file.
-        config_map+: 
-          if has_sampling_strategies 
+        config_map+:
+          if has_sampling_strategies
           then configMap.withDataMixin({
             'strategies.json': std.toString(this._tempo_sampling_strategies),
-          }) 
+          })
           else {},
- 
-        // If we're deploying for tracing, applications will want to write to 
+
+        // If we're deploying for tracing, applications will want to write to
         // a service for load balancing span delivery.
         service:
           if has_tempo_config then k.util.serviceFor(self.agent) else {},
@@ -120,4 +120,11 @@ local configMap = k.core.v1.configMap;
 
   // Includes or excludes the config hash annotation.
   withConfigHash(include=true):: { _config_hash:: include },
+
+  // withPortsMixin adds extra ports to expose.
+  withPortsMixin(ports=[]):: {
+    agent+: {
+      container+:: container.withPortsMixin(ports),
+    },
+  },
 }

@@ -24,10 +24,18 @@ data:
             jaeger:
                 protocols:
                     grpc: null
+                    thrift_binary: null
                     thrift_compact: null
+                    thrift_http: null
                 remote_sampling:
                     insecure: true
                     strategy_file: /etc/agent/strategies.json
+            opencensus: null
+            otlp:
+                protocols:
+                    grpc: null
+                    http: null
+            zipkin: null
         scrape_configs:
           - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
             job_name: kubernetes-pods
@@ -101,6 +109,34 @@ spec:
   - name: agent-http-metrics
     port: 8080
     targetPort: 8080
+  - name: agent-tempo-jaeger-thrift-compact
+    port: 6831
+    protocol: UDP
+    targetPort: 6831
+  - name: agent-tempo-jaeger-thrift-binary
+    port: 6832
+    protocol: UDP
+    targetPort: 6832
+  - name: agent-tempo-jaeger-thrift-http
+    port: 14268
+    protocol: TCP
+    targetPort: 14268
+  - name: agent-tempo-jaeger-grpc
+    port: 14250
+    protocol: TCP
+    targetPort: 14250
+  - name: agent-tempo-zipkin
+    port: 9411
+    protocol: TCP
+    targetPort: 9411
+  - name: agent-tempo-otlp
+    port: 55680
+    protocol: TCP
+    targetPort: 55680
+  - name: agent-tempo-opencensus
+    port: 55678
+    protocol: TCP
+    targetPort: 55678
   selector:
     name: grafana-agent-traces
 ---
@@ -133,6 +169,27 @@ spec:
         ports:
         - containerPort: 8080
           name: http-metrics
+        - containerPort: 6831
+          name: tempo-jaeger-thrift-compact
+          protocol: UDP
+        - containerPort: 6832
+          name: tempo-jaeger-thrift-binary
+          protocol: UDP
+        - containerPort: 14268
+          name: tempo-jaeger-thrift-http
+          protocol: TCP
+        - containerPort: 14250
+          name: tempo-jaeger-grpc
+          protocol: TCP
+        - containerPort: 9411
+          name: tempo-zipkin
+          protocol: TCP
+        - containerPort: 55680
+          name: tempo-otlp
+          protocol: TCP
+        - containerPort: 55678
+          name: tempo-opencensus
+          protocol: TCP
         volumeMounts:
         - mountPath: /etc/agent
           name: grafana-agent-traces
