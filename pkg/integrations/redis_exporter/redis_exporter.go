@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -34,7 +35,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	exporterConfig := c.GetExporterOptions()
 
 	if c.RedisAddr == "" {
-		return nil, fmt.Errorf("cannot create redis_exporter; redis_exporter.redis_addr is not defined")
+		return nil, errors.New("cannot create redis_exporter; redis_exporter.redis_addr is not defined")
 	}
 
 	if c.ScriptPath != "" {
@@ -47,7 +48,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 
 	var tlsClientCertificates []tls.Certificate
 	if (c.TLSClientKeyFile != "") != (c.TLSClientCertFile != "") {
-		return nil, fmt.Errorf("TLS client key file and cert file should both be present")
+		return nil, errors.New("TLS client key file and cert file should both be present")
 	}
 	if c.TLSClientKeyFile != "" && c.TLSClientCertFile != "" {
 		cert, err := tls.LoadX509KeyPair(c.TLSClientCertFile, c.TLSClientKeyFile)

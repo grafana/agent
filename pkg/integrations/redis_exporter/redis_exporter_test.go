@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/go-kit/kit/log"
@@ -23,7 +22,6 @@ func TestRedisCases(t *testing.T) {
 		cfg                    Config
 		expectedMetrics        []string
 		expectConstructorError bool
-		envVars                map[string]string
 	}{
 		// Test that default config results in some metrics that can be parsed by
 		// prometheus.
@@ -105,64 +103,50 @@ func TestRedisCases(t *testing.T) {
 
 	for _, test := range tt {
 
-		// Pre-test actions
-		if len(test.envVars) > 0 {
-			for k, v := range test.envVars {
-				os.Setenv(k, v)
+		t.Run(test.name, func(t *testing.T) {
+			integration, err := New(logger, test.cfg)
+
+			if test.expectConstructorError {
+				require.Error(t, err, "expected failure when setting up redis_exporter")
+				return
 			}
-		}
+			require.NoError(t, err, "failed to setup redis_exporter")
 
-		// Test logic
-		cfg := test.cfg
-
-		integration, err := New(logger, cfg)
-		if test.expectConstructorError {
-			require.Error(t, err, "case: %s - expected failure when setting up redis_exporter", test.name)
-			continue
-		}
-		require.NoError(t, err, "case: %s - failed to setup redis_exporter", test.name)
-
-		r := mux.NewRouter()
-		err = integration.RegisterRoutes(r)
-		require.NoError(t, err)
-
-		srv := httptest.NewServer(r)
-		defer srv.Close()
-
-		res, err := http.Get(srv.URL + "/metrics")
-		require.NoError(t, err)
-
-		body, err := ioutil.ReadAll(res.Body)
-		require.NoError(t, err)
-
-		foundMetricNames := map[string]bool{}
-		for _, name := range test.expectedMetrics {
-			foundMetricNames[name] = false
-		}
-
-		p := textparse.NewPromParser(body)
-		for {
-			entry, err := p.Next()
-			if err == io.EOF {
-				break
-			}
+			r := mux.NewRouter()
+			err = integration.RegisterRoutes(r)
 			require.NoError(t, err)
 
-			if entry == textparse.EntryHelp {
-				matchMetricNames(foundMetricNames, p)
-			}
-		}
+			srv := httptest.NewServer(r)
+			defer srv.Close()
 
-		for metric, exists := range foundMetricNames {
-			require.True(t, exists, "case: %s - could not find metric %s", test.name, metric)
-		}
+			res, err := http.Get(srv.URL + "/metrics")
+			require.NoError(t, err)
 
-		// Post-test actions
-		if len(test.envVars) > 0 {
-			for k := range test.envVars {
-				os.Unsetenv(k)
+			body, err := ioutil.ReadAll(res.Body)
+			require.NoError(t, err)
+
+			foundMetricNames := map[string]bool{}
+			for _, name := range test.expectedMetrics {
+				foundMetricNames[name] = false
 			}
-		}
+
+			p := textparse.NewPromParser(body)
+			for {
+				entry, err := p.Next()
+				if err == io.EOF {
+					break
+				}
+				require.NoError(t, err)
+
+				if entry == textparse.EntryHelp {
+					matchMetricNames(foundMetricNames, p)
+				}
+			}
+
+			for metric, exists := range foundMetricNames {
+				require.True(t, exists, "could not find metric %s", metric)
+			}
+		})
 
 	}
 }
