@@ -328,6 +328,8 @@ github.com/golangci/prealloc
 github.com/golangci/revgrep
 # github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4
 github.com/golangci/unconvert
+# github.com/gomodule/redigo v2.0.0+incompatible => github.com/gomodule/redigo v1.8.2
+github.com/gomodule/redigo/redis
 # github.com/google/addlicense v0.0.0-20200622132530-df58acafd6d5
 github.com/google/addlicense
 # github.com/google/btree v1.0.0
@@ -519,8 +521,6 @@ github.com/jsternberg/zap-logfmt
 # github.com/kisielk/gotool v1.0.0
 github.com/kisielk/gotool
 github.com/kisielk/gotool/internal/load
-# github.com/konsorten/go-windows-terminal-sequences v1.0.3
-github.com/konsorten/go-windows-terminal-sequences
 # github.com/kyoh86/exportloopref v0.1.4
 github.com/kyoh86/exportloopref
 # github.com/leodido/ragel-machinery v0.0.0-20181214104525-299bdde78165
@@ -596,6 +596,8 @@ github.com/oklog/run
 github.com/oklog/ulid
 # github.com/olekukonko/tablewriter v0.0.2
 github.com/olekukonko/tablewriter
+# github.com/oliver006/redis_exporter v1.12.0 => github.com/grafana/redis_exporter v1.13.0
+github.com/oliver006/redis_exporter/lib/exporter
 # github.com/opencontainers/go-digest v1.0.0
 github.com/opencontainers/go-digest
 # github.com/opencontainers/image-spec v1.0.1
@@ -755,7 +757,7 @@ github.com/shurcooL/httpfs/vfsutil
 github.com/shurcooL/vfsgen
 # github.com/siebenmann/go-kstat v0.0.0-20200303194639-4e8294f9e9d5
 github.com/siebenmann/go-kstat
-# github.com/sirupsen/logrus v1.6.0
+# github.com/sirupsen/logrus v1.7.0
 github.com/sirupsen/logrus
 # github.com/soheilhy/cmux v0.1.4
 github.com/soheilhy/cmux
