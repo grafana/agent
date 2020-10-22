@@ -52,6 +52,7 @@ var (
 type Config struct {
 	Enabled         bool                  `yaml:"enabled"`
 	ReshardInterval time.Duration         `yaml:"reshard_interval"`
+	ReshardTimeout  time.Duration         `yaml:"reshard_timeout"`
 	KVStore         kv.Config             `yaml:"kvstore"`
 	Lifecycler      ring.LifecyclerConfig `yaml:"lifecycler"`
 }
@@ -75,6 +76,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.BoolVar(&c.Enabled, prefix+"enabled", false, "enables the scraping service mode")
 	f.DurationVar(&c.ReshardInterval, prefix+"reshard-interval", time.Minute*1, "how often to manually reshard")
+	f.DurationVar(&c.ReshardTimeout, prefix+"reshard-timeout", time.Second*30, "timeout for cluster-wide reshards and local reshards")
 	c.KVStore.RegisterFlagsWithPrefix(prefix+"config-store.", "configurations/", f)
 	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f)
 }
@@ -212,12 +214,21 @@ func (s *Server) run(ctx context.Context) {
 }
 
 func (s *Server) join(ctx context.Context) error {
-	if err := s.waitNotifyReshard(ctx); err != nil {
-		level.Error(s.logger).Log("msg", "could not run cluster-wide reshard", "err", err)
-		return err
+	if s.cfg.ReshardTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, s.cfg.ReshardTimeout)
+		defer cancel()
 	}
 
-	level.Info(s.logger).Log("msg", "cluster-wide reshard finished. running local reshard")
+	level.Info(s.logger).Log("msg", "running cluster-wide reshard")
+	if err := s.waitNotifyReshard(ctx); err != nil {
+		// Even if this fails, we should continue onwards. Nodes are expected to
+		// reshard themselves on an interval, so they will eventually correct
+		// themselves if they don't reshard immediately when we asked them to.
+		level.Error(s.logger).Log("msg", "could not run cluster-wide reshard", "err", err)
+	}
+
+	level.Info(s.logger).Log("msg", "running local reshard")
 	if _, err := s.Reshard(ctx, &agentproto.ReshardRequest{}); err != nil {
 		level.Error(s.logger).Log("msg", "failed running local reshard", "err", err)
 		return err
@@ -269,6 +280,7 @@ func (s *Server) notifyReshard(ctx context.Context, desc *ring.IngesterDesc) err
 
 	backoff := util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
+		level.Info(s.logger).Log("msg", "telling remote agent to reshard", "addr", desc.Addr)
 		_, err := cli.Reshard(ctx, &agentproto.ReshardRequest{})
 		if err == nil {
 			break
@@ -317,16 +329,26 @@ func (s *Server) reshardLoop(ctx context.Context) {
 	for {
 		select {
 		case <-t.C:
-			level.Info(s.logger).Log("msg", "resharding agent")
-			_, err := s.Reshard(ctx, &agentproto.ReshardRequest{})
-			if err != nil {
-				level.Error(s.logger).Log("msg", "resharding failed", "err", err)
-			}
+			s.localReshard(ctx)
 		case <-ctx.Done():
 			return
 		case <-s.exited:
 			return
 		}
+	}
+}
+
+func (s *Server) localReshard(ctx context.Context) {
+	if s.cfg.ReshardTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, s.cfg.ReshardTimeout)
+		defer cancel()
+	}
+
+	level.Info(s.logger).Log("msg", "resharding agent")
+	_, err := s.Reshard(ctx, &agentproto.ReshardRequest{})
+	if err != nil {
+		level.Error(s.logger).Log("msg", "resharding failed", "err", err)
 	}
 }
 
@@ -341,6 +363,12 @@ func (s *Server) Flush() {}
 // TransferOut satisfies ring.FlushTransferer. It connects to all other
 // healthy agents in the cluster and tells them to reshard.
 func (s *Server) TransferOut(ctx context.Context) error {
+	if s.cfg.ReshardTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, s.cfg.ReshardTimeout)
+		defer cancel()
+	}
+
 	level.Info(s.logger).Log("msg", "leaving cluster, starting cluster-wide reshard process")
 	return s.waitNotifyReshard(ctx)
 }

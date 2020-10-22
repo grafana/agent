@@ -155,6 +155,11 @@ agents distribute discovery and scrape load between nodes.
 # events are not sent by an agent.
 [reshard_interval: <duration> | default = "1m"]
 
+# The timeout for a reshard. Applies to a cluster-wide reshard (done when 
+# joining or leaving the cluster) and local reshards (done every
+# reshard_interval). A timeout of 0 indicates no timeout. 
+[reshard_timeout: <duration> | default = "30s"]
+
 # Configuration for the KV store to store metrics
 kvstore: <kvstore_config>
 
