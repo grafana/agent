@@ -17,6 +17,9 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] [mysqld_exporter](https://github.com/prometheus/mysqld_exporter) is
   now embedded and available as an integration. (@rfratto)
 
+- [FEATURE] [redis_exporter](https://github.com/oliver006/redis_exporter) is
+  now embedded and available as an integration. (@dafydd-t)
+
 - [BUGFIX] Fix issue where integrations crashed with instance_mode was set to
   `distinct` (@rfratto)
 
