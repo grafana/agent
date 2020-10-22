@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -32,16 +31,11 @@ type Integration struct {
 func New(log log.Logger, c Config) (*Integration, error) {
 	level.Debug(log).Log("msg", "initialising redis_exporer with config %v", c)
 
-	address := c.RedisAddr
-	if len(address) == 0 {
-		address = os.Getenv("REDIS_EXPORTER_ADDRESS")
-	}
-	if len(address) == 0 {
-		return nil, fmt.Errorf("cannot create redis_exporter; neither redis_exporter.redis_addr or $REDIS_EXPORTER_ADDRESS is set")
-	}
-	level.Debug(log).Log("msg", "Redis exporter address is %s", address)
-
 	exporterConfig := c.GetExporterOptions()
+
+	if c.RedisAddr == "" {
+		return nil, fmt.Errorf("cannot create redis_exporter; redis_exporter.redis_addr is not defined")
+	}
 
 	if c.ScriptPath != "" {
 		ls, err := ioutil.ReadFile(c.ScriptPath)
@@ -86,7 +80,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	}
 
 	exporter, err := re.NewRedisExporter(
-		address,
+		c.RedisAddr,
 		exporterConfig,
 		re.BuildInfo{},
 	)

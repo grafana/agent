@@ -71,14 +71,6 @@ func TestRedisCases(t *testing.T) {
 			})(),
 			expectConstructorError: true,
 		},
-		// Test that exporter picks up env var
-		{
-			name: "address from env OK",
-			cfg:  Config{}, // no address in here
-			envVars: map[string]string{
-				"REDIS_EXPORTER_ADDRESS": "redis:1234",
-			},
-		},
 		// Test exporter complains when no address given via env or config.
 		{
 			name:                   "no address given",
@@ -125,10 +117,10 @@ func TestRedisCases(t *testing.T) {
 
 		integration, err := New(logger, cfg)
 		if test.expectConstructorError {
-			require.Error(t, err, "expected failure when setting up redis_exporter")
+			require.Error(t, err, "case: %s - expected failure when setting up redis_exporter", test.name)
 			continue
 		}
-		require.NoError(t, err, "failed to setup redis_exporter")
+		require.NoError(t, err, "case: %s - failed to setup redis_exporter", test.name)
 
 		r := mux.NewRouter()
 		err = integration.RegisterRoutes(r)

@@ -2243,13 +2243,7 @@ Full reference of options:
 
   # exporter-specific configuration options
 
-  # Address of the redis instance. This is REQUIRED, but may also be specified
-  # by the REDIS_EXPORTER_ADDRESS environment variable. If neither are set, the
-  # integration will fail to start.
-  #
-  # The format of this URI is described here: https://github.com/lettuce-io/lettuce-core/wiki/Redis-URI-and-connection-details. The scheme defaults to redis:// if it is omitted.
-  #
-  # A working example value for a standalone server with user and password is redis://user:password@redis-server:6379
+  # Address of the redis instance.
   redis_addr: <string>
 
   # User name to use for authentication (Redis ACL for Redis 6.0 and newer).
