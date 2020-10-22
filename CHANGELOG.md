@@ -20,6 +20,11 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] [redis_exporter](https://github.com/oliver006/redis_exporter) is
   now embedded and available as an integration. (@dafydd-t)
 
+- [ENHANCEMENT] Resharding the cluster when using the scraping service mode now 
+  supports timeouts through `reshard_timeout`. The default value is `30s.` This
+  timeout applies to cluster-wide reshards (performed when joining and leaving
+  the cluster) and local reshards (done on the `reshard_interval`). (@rfratto)
+
 - [BUGFIX] Fix issue where integrations crashed with instance_mode was set to
   `distinct` (@rfratto)
 
