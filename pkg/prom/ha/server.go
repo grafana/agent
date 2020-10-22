@@ -76,7 +76,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.BoolVar(&c.Enabled, prefix+"enabled", false, "enables the scraping service mode")
 	f.DurationVar(&c.ReshardInterval, prefix+"reshard-interval", time.Minute*1, "how often to manually reshard")
-	f.DurationVar(&c.ReshardTimeout, prefix+"reshard-timeout", time.Second*30, "timeout for cluster-wide reshards and local reshards")
+	f.DurationVar(&c.ReshardTimeout, prefix+"reshard-timeout", time.Second*30, "timeout for cluster-wide reshards and local reshards. Timeout of 0s disables timeout.")
 	c.KVStore.RegisterFlagsWithPrefix(prefix+"config-store.", "configurations/", f)
 	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f)
 }
