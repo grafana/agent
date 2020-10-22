@@ -19,16 +19,17 @@ var (
 	}
 )
 
-// Config controls the redis_exporter integration. The exporter accepts more
-// config properties than this, but these are the only fields with non-default
-// values that we need to define right now.
+// Config controls the redis_exporter integration.
 type Config struct {
 	Enabled      bool          `yaml:"enabled"`
 	CommonConfig config.Common `yaml:",inline"`
 
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 
-	// exporter-specific config
+	// exporter-specific config.
+	//
+	// The exporter binary config differs to this, but these
+	// are the only fields that are relevant to the exporter struct.
 	RedisAddr           string        `yaml:"redis_addr"`
 	RedisUser           string        `yaml:"redis_user"`
 	RedisPassword       string        `yaml:"redis_password"`
