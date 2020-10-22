@@ -188,11 +188,10 @@ func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Conf
 func (s *Server) run(ctx context.Context) {
 	defer close(s.exited)
 
-	if err := s.join(ctx); err != nil {
-		level.Error(s.logger).Log("msg", "could not complete join, stopping HA server", "err", err)
-		return
-	}
-
+	// Perform join operations. Joining can't fail; any failed operation
+	// performed will eventually correct itself due to how all Agents in the
+	// cluster reshard themselves every reshard_interval.
+	s.join(ctx)
 	s.joined.Store(true)
 
 	wg := sync.WaitGroup{}
@@ -231,10 +230,7 @@ func (s *Server) join(ctx context.Context) error {
 	level.Info(s.logger).Log("msg", "running local reshard")
 	if _, err := s.Reshard(ctx, &agentproto.ReshardRequest{}); err != nil {
 		level.Error(s.logger).Log("msg", "failed running local reshard", "err", err)
-		return err
 	}
-
-	return nil
 }
 
 func (s *Server) waitNotifyReshard(ctx context.Context) error {
