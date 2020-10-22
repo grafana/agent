@@ -76,6 +76,15 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	}
 	exporterConfig.CaCertificates = tlsCaCertificates
 
+	// optional password file to take precedence over password property
+	if c.RedisPasswordFile != "" {
+		password, err := ioutil.ReadFile(c.RedisPasswordFile)
+		if err != nil {
+			return nil, fmt.Errorf("Error loading password file %s: %w", c.RedisPasswordFile, err)
+		}
+		exporterConfig.Password = string(password)
+	}
+
 	exporter, err := re.NewRedisExporter(
 		address,
 		exporterConfig,

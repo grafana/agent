@@ -86,6 +86,28 @@ var testCases = []testCase{
 		cfg:                    Config{}, // no address in here
 		expectConstructorError: true,
 	},
+	// Test exporter constructs ok when password file is defined and exists
+	{
+		name: "valid password file",
+		cfg: (func() Config {
+			c := DefaultConfig
+			c.RedisAddr = addr
+			c.RedisPasswordFile = "./config.go" // contents not important
+			return c
+		})(),
+	},
+	// Test exporter construction fails when password file is defined and doesnt
+	// exist
+	{
+		name: "invalid password file",
+		cfg: (func() Config {
+			c := DefaultConfig
+			c.RedisAddr = addr
+			c.RedisPasswordFile = "/does/not/exist"
+			return c
+		})(),
+		expectConstructorError: true,
+	},
 }
 
 func TestRedisCases(t *testing.T) {
@@ -106,7 +128,7 @@ func TestRedisCases(t *testing.T) {
 		integration, err := New(logger, cfg)
 		if test.expectConstructorError {
 			require.Error(t, err, "expected failure when setting up redis_exporter")
-			return
+			continue
 		}
 		require.NoError(t, err, "failed to setup redis_exporter")
 

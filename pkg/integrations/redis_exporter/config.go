@@ -31,7 +31,8 @@ type Config struct {
 	// exporter-specific config
 	RedisAddr           string        `yaml:"redis_addr"`
 	RedisUser           string        `yaml:"redis_user"`
-	RedisPwd            string        `yaml:"redis_pwd"`
+	RedisPassword       string        `yaml:"redis_password"`
+	RedisPasswordFile   string        `yaml:"redis_password_file"`
 	Namespace           string        `yaml:"namespace"`
 	ConfigCommand       string        `yaml:"config_command"`
 	CheckKeys           string        `yaml:"check_keys"`
@@ -60,7 +61,7 @@ func (c Config) GetExporterOptions() re.Options {
 
 	return re.Options{
 		User:                c.RedisUser,
-		Password:            c.RedisPwd,
+		Password:            c.RedisPassword,
 		Namespace:           c.Namespace,
 		ConfigCommandName:   c.ConfigCommand,
 		CheckKeys:           c.CheckKeys,
