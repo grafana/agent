@@ -50,12 +50,6 @@ func (c *Config) ApplyDefaults() error {
 
 	if c.Integrations.Enabled {
 		c.Integrations.ListenPort = &c.Server.HTTPListenPort
-
-		// Apply the defaults for integrations *after* manual defaults are applied
-		// (like the c.Integrations.ListenPort) above.
-		if err := c.Integrations.ApplyDefaults(); err != nil {
-			return err
-		}
 	}
 
 	return nil

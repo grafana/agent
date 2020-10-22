@@ -87,30 +87,30 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *Config) ApplyDefaults() error {
+// DefaultRelabelConfigs returns the set of relabel configs that should be
+// prepended to all RelabelConfigs for an integration.
+func (c *Config) DefaultRelabelConfigs() ([]*relabel.Config, error) {
+	var cfgs []*relabel.Config
+
 	if c.ReplaceInstanceLabel {
 		hostname, err := instance.Hostname()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		replacement := fmt.Sprintf("%s:%d", hostname, *c.ListenPort)
 
-		for _, rwCfg := range c.PrometheusRemoteWrite {
-			rwCfg.WriteRelabelConfigs = append([]*relabel.Config{
-				{
-					SourceLabels: model.LabelNames{model.InstanceLabel},
-					Action:       relabel.Replace,
-					Separator:    ";",
-					Regex:        relabel.MustNewRegexp("(.*)"),
-					Replacement:  replacement,
-					TargetLabel:  model.InstanceLabel,
-				},
-			}, rwCfg.WriteRelabelConfigs...)
-		}
+		cfgs = append(cfgs, &relabel.Config{
+			SourceLabels: model.LabelNames{model.AddressLabel},
+			Action:       relabel.Replace,
+			Separator:    ";",
+			Regex:        relabel.MustNewRegexp("(.*)"),
+			Replacement:  replacement,
+			TargetLabel:  model.InstanceLabel,
+		})
 	}
 
-	return nil
+	return cfgs, nil
 }
 
 type Integration interface {
@@ -143,10 +143,11 @@ type Integration interface {
 
 // Manager manages a set of integrations and runs them.
 type Manager struct {
-	c            Config
-	logger       log.Logger
-	integrations []Integration
-	hostname     string
+	c                     Config
+	logger                log.Logger
+	integrations          []Integration
+	hostname              string
+	defaultRelabelConfigs []*relabel.Config
 
 	im     instance.Manager
 	cancel context.CancelFunc
@@ -199,15 +200,21 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 }
 
 func newManager(c Config, logger log.Logger, im instance.Manager, integrations []Integration) (*Manager, error) {
+	defaultRelabels, err := c.DefaultRelabelConfigs()
+	if err != nil {
+		return nil, fmt.Errorf("cannot get default relabel configs: %w", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Manager{
-		c:            c,
-		logger:       logger,
-		integrations: integrations,
-		im:           im,
-		cancel:       cancel,
-		done:         make(chan bool),
+		c:                     c,
+		logger:                logger,
+		integrations:          integrations,
+		defaultRelabelConfigs: defaultRelabels,
+		im:                    im,
+		cancel:                cancel,
+		done:                  make(chan bool),
 	}
 
 	if c.UseHostnameLabel {
@@ -268,6 +275,7 @@ func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 	prometheusName := fmt.Sprintf("integration/%s", i.Name())
 
 	common := i.CommonConfig()
+	relabelConfigs := append(m.defaultRelabelConfigs, common.RelabelConfigs...)
 
 	var scrapeConfigs []*config.ScrapeConfig
 	for _, cfg := range i.ScrapeConfigs() {
@@ -280,7 +288,7 @@ func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 			ScrapeInterval:         model.Duration(common.ScrapeInterval),
 			ScrapeTimeout:          model.Duration(common.ScrapeTimeout),
 			ServiceDiscoveryConfig: m.scrapeServiceDiscovery(),
-			RelabelConfigs:         common.RelabelConfigs,
+			RelabelConfigs:         relabelConfigs,
 			MetricRelabelConfigs:   common.MetricRelabelConfigs,
 		}
 
