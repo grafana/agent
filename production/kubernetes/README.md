@@ -13,7 +13,7 @@ Installation script:
 
 - Metric collection: [`install.sh`](./install.sh)
 - Log collection: [`install-loki.sh`](./install-loki.sh)
-- Tempo collection: [`install-tempo.sh`](./install-tempo.sh)
+- Trace collection: [`install-tempo.sh`](./install-tempo.sh)
 
 ## Install Scripts
 
