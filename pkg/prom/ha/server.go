@@ -221,9 +221,6 @@ func (s *Server) join(ctx context.Context) error {
 
 	level.Info(s.logger).Log("msg", "running cluster-wide reshard")
 	if err := s.waitNotifyReshard(ctx); err != nil {
-		// Even if this fails, we should continue onwards. Nodes are expected to
-		// reshard themselves on an interval, so they will eventually correct
-		// themselves if they don't reshard immediately when we asked them to.
 		level.Error(s.logger).Log("msg", "could not run cluster-wide reshard", "err", err)
 	}
 
