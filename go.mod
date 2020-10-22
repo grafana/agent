@@ -65,7 +65,7 @@ replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf
-	github.com/oliver006/redis_exporter => github.com/dafydd-t/redis_exporter v1.13.0
+	github.com/oliver006/redis_exporter => github.com/grafana/redis_exporter v1.13.0
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 )
 
