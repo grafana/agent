@@ -12,13 +12,14 @@ use-case best.
 #### Kubernetes Install Script
 
 The following scripts will download and install two Kubernetes manifests for the
-Agent. The first manifest will collect metrics and the second will collect logs. 
-You will be prompted for input for each manifest. The script requires curl and
-envsubst (GNU gettext).
+Agent. The first manifest collects metrics, the second collects logs, and the
+final collects traces. You will be prompted for input for each manifest. The
+script requires curl and envsubst (GNU gettext).
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-tempo.sh)" | kubectl -ndefault apply -f -
 ```
 
 #### Docker container:

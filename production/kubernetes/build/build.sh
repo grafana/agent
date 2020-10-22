@@ -9,4 +9,5 @@ jb install
 tk show --dangerous-allow-redirect ./templates/base > ${PWD}/../agent.yaml
 tk show --dangerous-allow-redirect ./templates/bare > ${PWD}/../agent-bare.yaml
 tk show --dangerous-allow-redirect ./templates/loki > ${PWD}/../agent-loki.yaml
+tk show --dangerous-allow-redirect ./templates/tempo > ${PWD}/../agent-tempo.yaml
 popd
