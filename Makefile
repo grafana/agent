@@ -212,7 +212,7 @@ dist/agent-darwin-amd64:
 dist/agent-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agent-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
+dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
 dist/agentctl-linux-amd64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-linux-arm64:
