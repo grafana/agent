@@ -4,6 +4,15 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+# v0.7.1 (2020-10-23)
+
+NOTE: FreeBSD builds will not be included for this release. There is a bug in an
+upstream library preventing cross-compilation of the Grafana Cloud Agent for
+this platform. FreeBSD builds will return in a future release.
+
+- [BUGFIX] Fix issue where ARM binaries were not published with the GitHub
+  release.
+
 # v0.7.0 (2020-10-23)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
