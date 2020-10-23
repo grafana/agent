@@ -32,6 +32,12 @@ this platform. FreeBSD builds will return in a future release.
   (@rfratto).
 
 - [BUGFIX] Support URL-encoded paths in the scraping service API. (@rfratto)
+ 
+- [BUGFIX] The instance label written from replace_instance_label can now be
+  overwritten with relabel_configs. This bugfix slightly modifies the behavior
+  of what data is stored. The final instance label will now be stored in the WAL 
+  rather than computed by remote_write. This change should not negatively effect
+  existing users. (@rfratto)
 
 # v0.6.1 (2020-04-11)
 
