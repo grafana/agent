@@ -212,7 +212,7 @@ func (s *Server) run(ctx context.Context) {
 	wg.Wait()
 }
 
-func (s *Server) join(ctx context.Context) error {
+func (s *Server) join(ctx context.Context) {
 	if s.cfg.ReshardTimeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, s.cfg.ReshardTimeout)
