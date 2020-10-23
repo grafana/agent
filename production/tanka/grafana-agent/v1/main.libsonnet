@@ -14,8 +14,8 @@ local configMap = k.core.v1.configMap;
 (import './lib/tempo.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v0.6.1',
-    agentctl: 'grafana/agentctl:v0.6.1',
+    agent: 'grafana/agent:v0.7.0',
+    agentctl: 'grafana/agentctl:v0.7.0',
   },
 
   // new creates a new DaemonSet deployment of the grafana-agent. By default,
