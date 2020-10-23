@@ -20,12 +20,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestConfig_InstanceRelabels(t *testing.T) {
+func TestConfig_AddressRelabels(t *testing.T) {
 	cfgText := `
 agent: 
   enabled: true
-prometheus_remote_write:
-- url: http://localhost:9090/api/prom/push`
+`
 
 	var (
 		cfg        Config
@@ -36,15 +35,13 @@ prometheus_remote_write:
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
 	cfg.ListenPort = &listenPort
-	require.NoError(t, cfg.ApplyDefaults())
+
+	relabels, err := cfg.DefaultRelabelConfigs()
+	require.NoError(t, err)
 
 	// Ensure that the relabel configs are functional
-	require.Len(t, cfg.PrometheusRemoteWrite, 1)
-	require.Len(t, cfg.PrometheusRemoteWrite[0].WriteRelabelConfigs, 1)
-
-	rules := cfg.PrometheusRemoteWrite[0].WriteRelabelConfigs[0]
-
-	result := relabel.Process(labels.FromStrings("instance", "127.0.0.1"), rules)
+	require.Len(t, relabels, 1)
+	result := relabel.Process(labels.FromStrings("__address__", "127.0.0.1"), relabels...)
 
 	expectHostname, _ := instance.Hostname()
 	require.Equal(t, result.Get("instance"), expectHostname+":12345")
