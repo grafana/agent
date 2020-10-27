@@ -1,6 +1,7 @@
 package ruleguard
 
 import (
+	"bytes"
 	"go/ast"
 	"go/printer"
 	"io/ioutil"
@@ -22,6 +23,21 @@ func newRulesRunner(ctx *Context, rules *GoRuleSet) *rulesRunner {
 		ctx:   ctx,
 		rules: rules,
 	}
+}
+
+func (rr *rulesRunner) nodeText(n ast.Node) []byte {
+	from := rr.ctx.Fset.Position(n.Pos()).Offset
+	to := rr.ctx.Fset.Position(n.End()).Offset
+	src := rr.fileBytes()
+	if (from >= 0 && int(from) < len(src)) && (to >= 0 && int(to) < len(src)) {
+		return src[from:to]
+	}
+	// Fallback to the printer.
+	var buf bytes.Buffer
+	if err := printer.Fprint(&buf, rr.ctx.Fset, n); err != nil {
+		panic(err)
+	}
+	return buf.Bytes()
 }
 
 func (rr *rulesRunner) fileBytes() []byte {
@@ -88,6 +104,11 @@ func (rr *rulesRunner) handleMatch(rule goRule, m gogrep.MatchData) bool {
 				return false
 			}
 		}
+		if filter.textPred != nil {
+			if !filter.textPred(string(rr.nodeText(expr))) {
+				return false
+			}
+		}
 		switch filter.addressable {
 		case bool3true:
 			if !isAddressable(rr.ctx.Types, expr) {
@@ -124,7 +145,7 @@ func (rr *rulesRunner) handleMatch(rule goRule, m gogrep.MatchData) bool {
 	if rule.severity != "" {
 		prefix = rule.severity + ": "
 	}
-	message := prefix + rr.renderMessage(rule.msg, m.Node, m.Values)
+	message := prefix + rr.renderMessage(rule.msg, m.Node, m.Values, true)
 	node := m.Node
 	if rule.location != "" {
 		node = m.Values[rule.location]
@@ -132,19 +153,22 @@ func (rr *rulesRunner) handleMatch(rule goRule, m gogrep.MatchData) bool {
 	var suggestion *Suggestion
 	if rule.suggestion != "" {
 		suggestion = &Suggestion{
-			Replacement: []byte(rr.renderMessage(rule.suggestion, m.Node, m.Values)),
+			Replacement: []byte(rr.renderMessage(rule.suggestion, m.Node, m.Values, false)),
 			From:        node.Pos(),
 			To:          node.End(),
 		}
 	}
-	rr.ctx.Report(node, message, suggestion)
+	info := GoRuleInfo{
+		Filename: rule.filename,
+	}
+	rr.ctx.Report(info, node, message, suggestion)
 	return true
 }
 
-func (rr *rulesRunner) renderMessage(msg string, n ast.Node, nodes map[string]ast.Node) string {
+func (rr *rulesRunner) renderMessage(msg string, n ast.Node, nodes map[string]ast.Node, truncate bool) string {
 	var buf strings.Builder
 	if strings.Contains(msg, "$$") {
-		rr.writeNode(&buf, n)
+		buf.Write(rr.nodeText(n))
 		msg = strings.ReplaceAll(msg, "$$", buf.String())
 	}
 	if len(nodes) == 0 {
@@ -156,10 +180,10 @@ func (rr *rulesRunner) renderMessage(msg string, n ast.Node, nodes map[string]as
 			continue
 		}
 		buf.Reset()
-		rr.writeNode(&buf, n)
+		buf.Write(rr.nodeText(n))
 		// Don't interpolate strings that are too long.
 		var replacement string
-		if buf.Len() > 40 {
+		if truncate && buf.Len() > 60 {
 			replacement = key
 		} else {
 			replacement = buf.String()
@@ -167,17 +191,4 @@ func (rr *rulesRunner) renderMessage(msg string, n ast.Node, nodes map[string]as
 		msg = strings.ReplaceAll(msg, key, replacement)
 	}
 	return msg
-}
-
-func (rr *rulesRunner) writeNode(buf *strings.Builder, n ast.Node) {
-	from := rr.ctx.Fset.Position(n.Pos()).Offset
-	to := rr.ctx.Fset.Position(n.End()).Offset
-	src := rr.fileBytes()
-	if (from >= 0 && int(from) < len(src)) && (to >= 0 && int(to) < len(src)) {
-		buf.Write(src[from:to])
-		return
-	}
-	if err := printer.Fprint(buf, rr.ctx.Fset, n); err != nil {
-		panic(err)
-	}
 }

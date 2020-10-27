@@ -252,13 +252,13 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 		return err
 	}
 
-	_, err = rs.Do(ctx, time.Millisecond*250, func(desc *ring.IngesterDesc) (interface{}, error) {
+	_, err = rs.Do(ctx, time.Millisecond*250, func(ctx context.Context, desc *ring.IngesterDesc) (interface{}, error) {
 		// Skip over ourselves; we'll reshard locally after this process finishes.
 		if desc.Addr == s.addr {
 			return nil, nil
 		}
 
-		ctx := user.InjectOrgID(ctx, "fake")
+		ctx = user.InjectOrgID(ctx, "fake")
 		return nil, s.notifyReshard(ctx, desc)
 	})
 	return err

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,13 +31,13 @@ func splitTrace(size int, toSplit pdata.Traces) pdata.Traces {
 		destRs := pdata.NewResourceSpans()
 		destRs.InitEmpty()
 		rs.Resource().CopyTo(destRs.Resource())
-		result.ResourceSpans().Append(&destRs)
+		result.ResourceSpans().Append(destRs)
 
 		for j := rs.InstrumentationLibrarySpans().Len() - 1; j >= 0; j-- {
 			instSpans := rs.InstrumentationLibrarySpans().At(j)
 			destInstSpans := pdata.NewInstrumentationLibrarySpans()
 			destInstSpans.InitEmpty()
-			destRs.InstrumentationLibrarySpans().Append(&destInstSpans)
+			destRs.InstrumentationLibrarySpans().Append(destInstSpans)
 			instSpans.InstrumentationLibrary().CopyTo(destInstSpans.InstrumentationLibrary())
 
 			if size-copiedSpans >= instSpans.Spans().Len() {

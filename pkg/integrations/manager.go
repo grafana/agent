@@ -21,8 +21,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
-	sd_config "github.com/prometheus/prometheus/discovery/config"
-	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
@@ -280,16 +279,16 @@ func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 	var scrapeConfigs []*config.ScrapeConfig
 	for _, cfg := range i.ScrapeConfigs() {
 		sc := &config.ScrapeConfig{
-			JobName:                fmt.Sprintf("integrations/%s", cfg.JobName),
-			MetricsPath:            path.Join("/integrations", i.Name(), cfg.MetricsPath),
-			Scheme:                 "http",
-			HonorLabels:            false,
-			HonorTimestamps:        true,
-			ScrapeInterval:         model.Duration(common.ScrapeInterval),
-			ScrapeTimeout:          model.Duration(common.ScrapeTimeout),
-			ServiceDiscoveryConfig: m.scrapeServiceDiscovery(),
-			RelabelConfigs:         relabelConfigs,
-			MetricRelabelConfigs:   common.MetricRelabelConfigs,
+			JobName:                 fmt.Sprintf("integrations/%s", cfg.JobName),
+			MetricsPath:             path.Join("/integrations", i.Name(), cfg.MetricsPath),
+			Scheme:                  "http",
+			HonorLabels:             false,
+			HonorTimestamps:         true,
+			ScrapeInterval:          model.Duration(common.ScrapeInterval),
+			ScrapeTimeout:           model.Duration(common.ScrapeTimeout),
+			ServiceDiscoveryConfigs: m.scrapeServiceDiscovery(),
+			RelabelConfigs:          relabelConfigs,
+			MetricRelabelConfigs:    common.MetricRelabelConfigs,
 		}
 
 		scrapeConfigs = append(scrapeConfigs, sc)
@@ -302,7 +301,7 @@ func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
 	return instanceCfg
 }
 
-func (m *Manager) scrapeServiceDiscovery() sd_config.ServiceDiscoveryConfig {
+func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 	localAddr := fmt.Sprintf("127.0.0.1:%d", *m.c.ListenPort)
 
 	labels := model.LabelSet{}
@@ -313,8 +312,8 @@ func (m *Manager) scrapeServiceDiscovery() sd_config.ServiceDiscoveryConfig {
 		labels[k] = v
 	}
 
-	return sd_config.ServiceDiscoveryConfig{
-		StaticConfigs: []*targetgroup.Group{{
+	return discovery.Configs{
+		discovery.StaticConfig{{
 			Targets: []model.LabelSet{{model.AddressLabel: model.LabelValue(localAddr)}},
 			Labels:  labels,
 		}},

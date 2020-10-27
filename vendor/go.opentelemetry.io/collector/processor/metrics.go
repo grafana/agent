@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 
+	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/internal/collector/telemetry"
 	"go.opentelemetry.io/collector/obsreport"
@@ -72,13 +73,13 @@ func (scm *SpanCountStats) GetAllSpansCount() int {
 }
 
 // MetricTagKeys returns the metric tag keys according to the given telemetry level.
-func MetricTagKeys(level telemetry.Level) []tag.Key {
+func MetricTagKeys(level configtelemetry.Level) []tag.Key {
 	var tagKeys []tag.Key
 	switch level {
-	case telemetry.Detailed:
+	case configtelemetry.LevelDetailed:
 		tagKeys = append(tagKeys, TagServiceNameKey)
 		fallthrough
-	case telemetry.Normal, telemetry.Basic:
+	case configtelemetry.LevelNormal, configtelemetry.LevelBasic:
 		tagKeys = append(tagKeys, TagProcessorNameKey)
 	default:
 		return nil
@@ -88,7 +89,7 @@ func MetricTagKeys(level telemetry.Level) []tag.Key {
 }
 
 // MetricViews return the metrics views according to given telemetry level.
-func MetricViews(level telemetry.Level) []*view.View {
+func MetricViews(level configtelemetry.Level) []*view.View {
 	tagKeys := MetricTagKeys(level)
 	if tagKeys == nil {
 		return nil
@@ -135,32 +136,16 @@ func MetricViews(level telemetry.Level) []*view.View {
 
 // ServiceNameForNode gets the service name for a specified node.
 func ServiceNameForNode(node *commonpb.Node) string {
-	var serviceName string
-	if node == nil {
-		serviceName = "<nil-batch-node>"
-	} else if node.ServiceInfo == nil {
-		serviceName = "<nil-service-info>"
-	} else if node.ServiceInfo.Name == "" {
-		serviceName = "<empty-service-info-name>"
-	} else {
-		serviceName = node.ServiceInfo.Name
+	switch {
+	case node == nil:
+		return "<nil-batch-node>"
+	case node.ServiceInfo == nil:
+		return "<nil-service-info>"
+	case node.ServiceInfo.Name == "":
+		return "<empty-service-info-name>"
+	default:
+		return node.ServiceInfo.Name
 	}
-	return serviceName
-}
-
-// ServiceNameForResource gets the service name for a specified Resource.
-// TODO: Find a better package for this function.
-func ServiceNameForResource(resource pdata.Resource) string {
-	if resource.IsNil() {
-		return "<nil-resource>"
-	}
-
-	service, found := resource.Attributes().Get(conventions.AttributeServiceName)
-	if !found {
-		return "<nil-service-name>"
-	}
-
-	return service.StringVal()
 }
 
 // RecordsSpanCountMetrics reports span count metrics for specified measure.
@@ -178,7 +163,7 @@ func RecordsSpanCountMetrics(ctx context.Context, scm *SpanCountStats, measure *
 
 func serviceTagsEnabled() bool {
 	level, err := telemetry.GetLevel()
-	return err == nil && level == telemetry.Detailed
+	return err == nil && level == configtelemetry.LevelDetailed
 }
 
 // spanCountByResourceStringAttribute calculates the number of spans by resource specified by

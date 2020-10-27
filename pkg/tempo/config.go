@@ -168,27 +168,27 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 
 // tracingFactories() only creates the needed factories.  if we decide to add support for a new
 // processor, exporter, receiver we need to add it here
-func tracingFactories() (config.Factories, error) {
+func tracingFactories() (component.Factories, error) {
 	extensions, err := component.MakeExtensionFactoryMap()
 	if err != nil {
-		return config.Factories{}, err
+		return component.Factories{}, err
 	}
 
 	receivers, err := component.MakeReceiverFactoryMap(
 		jaegerreceiver.NewFactory(),
-		&zipkinreceiver.Factory{},
+		zipkinreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
-		&opencensusreceiver.Factory{},
+		opencensusreceiver.NewFactory(),
 	)
 	if err != nil {
-		return config.Factories{}, err
+		return component.Factories{}, err
 	}
 
 	exporters, err := component.MakeExporterFactoryMap(
-		&otlpexporter.Factory{},
+		otlpexporter.NewFactory(),
 	)
 	if err != nil {
-		return config.Factories{}, err
+		return component.Factories{}, err
 	}
 
 	processors, err := component.MakeProcessorFactoryMap(
@@ -198,10 +198,10 @@ func tracingFactories() (config.Factories, error) {
 		promsdprocessor.NewFactory(),
 	)
 	if err != nil {
-		return config.Factories{}, err
+		return component.Factories{}, err
 	}
 
-	return config.Factories{
+	return component.Factories{
 		Extensions: extensions,
 		Receivers:  receivers,
 		Processors: processors,

@@ -18,8 +18,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
-	sd_config "github.com/prometheus/prometheus/discovery/config"
-	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
@@ -60,8 +59,8 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 	cfg.Name = "instance"
 	cfg.ScrapeConfigs = []*config.ScrapeConfig{{
 		JobName: "scrape",
-		ServiceDiscoveryConfig: sd_config.ServiceDiscoveryConfig{
-			StaticConfigs: []*targetgroup.Group{{
+		ServiceDiscoveryConfigs: discovery.Configs{
+			discovery.StaticConfig{{
 				Targets: []model.LabelSet{{
 					model.AddressLabel: model.LabelValue("127.0.0.1:12345"),
 				}},
@@ -372,8 +371,8 @@ func getTestConfig(t *testing.T, global *config.GlobalConfig, scrapeAddr string)
 	scrapeCfg.JobName = "test"
 	scrapeCfg.ScrapeInterval = global.ScrapeInterval
 	scrapeCfg.ScrapeTimeout = global.ScrapeTimeout
-	scrapeCfg.ServiceDiscoveryConfig = sd_config.ServiceDiscoveryConfig{
-		StaticConfigs: []*targetgroup.Group{{
+	scrapeCfg.ServiceDiscoveryConfigs = discovery.Configs{
+		discovery.StaticConfig{{
 			Targets: []model.LabelSet{{
 				model.AddressLabel: model.LabelValue(scrapeAddr),
 			}},
@@ -403,7 +402,7 @@ func (s *mockWalStorage) WriteStalenessMarkers(f func() int64) error { return ni
 func (s *mockWalStorage) Close() error                               { return nil }
 func (s *mockWalStorage) Truncate(mint int64) error                  { return nil }
 
-func (s *mockWalStorage) Appender() storage.Appender {
+func (s *mockWalStorage) Appender(context.Context) storage.Appender {
 	return &mockAppender{s: s}
 }
 

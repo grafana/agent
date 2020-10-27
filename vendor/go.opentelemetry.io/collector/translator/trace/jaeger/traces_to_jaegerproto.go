@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,8 +20,6 @@ import (
 	"github.com/jaegertracing/jaeger/model"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/internal"
-	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/trace/v1"
 	"go.opentelemetry.io/collector/translator/conventions"
 	tracetranslator "go.opentelemetry.io/collector/translator/trace"
 )
@@ -81,7 +79,6 @@ func resourceSpansToJaegerProto(rs pdata.ResourceSpans) (*model.Batch, error) {
 			continue
 		}
 
-		// TODO: Handle instrumentation library name and version.
 		spans := ils.Spans()
 		for j := 0; j < spans.Len(); j++ {
 			span := spans.At(j)
@@ -89,7 +86,7 @@ func resourceSpansToJaegerProto(rs pdata.ResourceSpans) (*model.Batch, error) {
 				continue
 			}
 
-			jSpan, err := spanToJaegerProto(span)
+			jSpan, err := spanToJaegerProto(span, ils.InstrumentationLibrary())
 			if err != nil {
 				return nil, err
 			}
@@ -173,11 +170,14 @@ func attributeToJaegerProtoTag(key string, attr pdata.AttributeValue) model.KeyV
 	case pdata.AttributeValueDOUBLE:
 		tag.VType = model.ValueType_FLOAT64
 		tag.VFloat64 = attr.DoubleVal()
+	case pdata.AttributeValueMAP, pdata.AttributeValueARRAY:
+		tag.VType = model.ValueType_STRING
+		tag.VStr = tracetranslator.AttributeValueToString(attr, false)
 	}
 	return tag
 }
 
-func spanToJaegerProto(span pdata.Span) (*model.Span, error) {
+func spanToJaegerProto(span pdata.Span, libraryTags pdata.InstrumentationLibrary) (*model.Span, error) {
 	if span.IsNil() {
 		return nil, nil
 	}
@@ -197,7 +197,7 @@ func spanToJaegerProto(span pdata.Span) (*model.Span, error) {
 		return nil, fmt.Errorf("error converting span links to Jaeger references: %w", err)
 	}
 
-	startTime := internal.UnixNanoToTime(span.StartTime())
+	startTime := pdata.UnixNanoToTime(span.StartTime())
 
 	return &model.Span{
 		TraceID:       traceID,
@@ -205,17 +205,19 @@ func spanToJaegerProto(span pdata.Span) (*model.Span, error) {
 		OperationName: span.Name(),
 		References:    jReferences,
 		StartTime:     startTime,
-		Duration:      internal.UnixNanoToTime(span.EndTime()).Sub(startTime),
-		Tags:          getJaegerProtoSpanTags(span),
+		Duration:      pdata.UnixNanoToTime(span.EndTime()).Sub(startTime),
+		Tags:          getJaegerProtoSpanTags(span, libraryTags),
 		Logs:          spanEventsToJaegerProtoLogs(span.Events()),
 	}, nil
 }
 
-func getJaegerProtoSpanTags(span pdata.Span) []model.KeyValue {
+func getJaegerProtoSpanTags(span pdata.Span, instrumentationLibrary pdata.InstrumentationLibrary) []model.KeyValue {
 	var spanKindTag, statusCodeTag, errorTag, statusMsgTag model.KeyValue
 	var spanKindTagFound, statusCodeTagFound, errorTagFound, statusMsgTagFound bool
 
-	tagsCount := span.Attributes().Len()
+	libraryTags, libraryTagsFound := getTagsFromInstrumentationLibrary(instrumentationLibrary)
+
+	tagsCount := span.Attributes().Len() + len(libraryTags)
 
 	spanKindTag, spanKindTagFound = getTagFromSpanKind(span.Kind())
 	if spanKindTagFound {
@@ -249,6 +251,9 @@ func getJaegerProtoSpanTags(span pdata.Span) []model.KeyValue {
 	}
 
 	tags := make([]model.KeyValue, 0, tagsCount)
+	if libraryTagsFound {
+		tags = append(tags, libraryTags...)
+	}
 	tags = appendTagsFromAttributes(tags, span.Attributes())
 	if spanKindTagFound {
 		tags = append(tags, spanKindTag)
@@ -269,7 +274,7 @@ func getJaegerProtoSpanTags(span pdata.Span) []model.KeyValue {
 }
 
 func traceIDToJaegerProto(traceID pdata.TraceID) (model.TraceID, error) {
-	traceIDHigh, traceIDLow, err := tracetranslator.BytesToUInt64TraceID([]byte(traceID))
+	traceIDHigh, traceIDLow, err := tracetranslator.TraceIDToUInt64Pair(traceID)
 	if err != nil {
 		return model.TraceID{}, err
 	}
@@ -283,7 +288,7 @@ func traceIDToJaegerProto(traceID pdata.TraceID) (model.TraceID, error) {
 }
 
 func spanIDToJaegerProto(spanID pdata.SpanID) (model.SpanID, error) {
-	uSpanID, err := tracetranslator.BytesToUInt64SpanID([]byte(spanID))
+	uSpanID, err := tracetranslator.BytesToUInt64SpanID(spanID.Bytes())
 	if err != nil {
 		return model.SpanID(0), err
 	}
@@ -378,7 +383,7 @@ func spanEventsToJaegerProtoLogs(events pdata.SpanEventSlice) []model.Log {
 		}
 		fields = appendTagsFromAttributes(fields, event.Attributes())
 		logs = append(logs, model.Log{
-			Timestamp: internal.UnixNanoToTime(event.Timestamp()),
+			Timestamp: pdata.UnixNanoToTime(event.Timestamp()),
 			Fields:    fields,
 		})
 	}
@@ -419,7 +424,7 @@ func getTagFromStatusCode(statusCode pdata.StatusCode) (model.KeyValue, bool) {
 }
 
 func getErrorTagFromStatusCode(statusCode pdata.StatusCode) (model.KeyValue, bool) {
-	if statusCode == pdata.StatusCode(otlptrace.Status_Ok) {
+	if statusCode == pdata.StatusCodeOk {
 		return model.KeyValue{}, false
 	}
 	return model.KeyValue{
@@ -453,4 +458,29 @@ func getTagsFromTraceState(traceState pdata.TraceState) ([]model.KeyValue, bool)
 		keyValues = append(keyValues, kv)
 	}
 	return keyValues, exists
+}
+
+func getTagsFromInstrumentationLibrary(il pdata.InstrumentationLibrary) ([]model.KeyValue, bool) {
+	keyValues := make([]model.KeyValue, 0)
+	if il.IsNil() {
+		return keyValues, false
+	}
+	if ilName := il.Name(); ilName != "" {
+		kv := model.KeyValue{
+			Key:   tracetranslator.TagInstrumentationName,
+			VStr:  ilName,
+			VType: model.ValueType_STRING,
+		}
+		keyValues = append(keyValues, kv)
+	}
+	if ilVersion := il.Version(); ilVersion != "" {
+		kv := model.KeyValue{
+			Key:   tracetranslator.TagInstrumentationVersion,
+			VStr:  ilVersion,
+			VType: model.ValueType_STRING,
+		}
+		keyValues = append(keyValues, kv)
+	}
+
+	return keyValues, true
 }

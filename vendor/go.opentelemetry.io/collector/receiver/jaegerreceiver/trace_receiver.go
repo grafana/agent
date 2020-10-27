@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,9 +53,9 @@ import (
 	jaegertranslator "go.opentelemetry.io/collector/translator/trace/jaeger"
 )
 
-// Configuration defines the behavior and the ports that
+// configuration defines the behavior and the ports that
 // the Jaeger receiver will use.
-type Configuration struct {
+type configuration struct {
 	CollectorThriftPort  int
 	CollectorHTTPPort    int
 	CollectorGRPCPort    int
@@ -80,7 +80,7 @@ type jReceiver struct {
 	startOnce sync.Once
 	stopOnce  sync.Once
 
-	config *Configuration
+	config *configuration
 
 	grpc            *grpc.Server
 	collectorServer *http.Server
@@ -117,14 +117,14 @@ var (
 	}
 )
 
-// New creates a TraceReceiver that receives traffic as a Jaeger collector, and
+// newJaegerReceiver creates a TraceReceiver that receives traffic as a Jaeger collector, and
 // also as a Jaeger agent.
-func New(
+func newJaegerReceiver(
 	instanceName string,
-	config *Configuration,
+	config *configuration,
 	nextConsumer consumer.TraceConsumer,
 	params component.ReceiverCreateParams,
-) (component.TraceReceiver, error) {
+) (*jReceiver, error) {
 	return &jReceiver{
 		config:       config,
 		nextConsumer: nextConsumer,
@@ -200,12 +200,10 @@ func (jr *jReceiver) Start(_ context.Context, host component.Host) error {
 	var err = componenterror.ErrAlreadyStarted
 	jr.startOnce.Do(func() {
 		if err = jr.startAgent(host); err != nil && err != componenterror.ErrAlreadyStarted {
-			jr.stopTraceReceptionLocked()
 			return
 		}
 
 		if err = jr.startCollector(host); err != nil && err != componenterror.ErrAlreadyStarted {
-			jr.stopTraceReceptionLocked()
 			return
 		}
 
@@ -215,15 +213,10 @@ func (jr *jReceiver) Start(_ context.Context, host component.Host) error {
 }
 
 func (jr *jReceiver) Shutdown(context.Context) error {
-	jr.mu.Lock()
-	defer jr.mu.Unlock()
-
-	return jr.stopTraceReceptionLocked()
-}
-
-func (jr *jReceiver) stopTraceReceptionLocked() error {
 	var err = componenterror.ErrAlreadyStopped
 	jr.stopOnce.Do(func() {
+		jr.mu.Lock()
+		defer jr.mu.Unlock()
 		var errs []error
 
 		if jr.agentServer != nil {
@@ -246,11 +239,6 @@ func (jr *jReceiver) stopTraceReceptionLocked() error {
 			jr.grpc.Stop()
 			jr.grpc = nil
 		}
-		if len(errs) == 0 {
-			err = nil
-			return
-		}
-		// Otherwise combine all these errors
 		err = componenterror.CombineErrors(errs)
 	})
 

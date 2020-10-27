@@ -12,12 +12,17 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ory/x/cmdx"
-	"github.com/ory/x/flagx"
+	"github.com/ory/viper"
 	"github.com/pborman/uuid"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
+
+func check(err error) {
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "%v", err)
+		os.Exit(1)
+	}
+}
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -38,18 +43,27 @@ You can pick an alternative go test binary using:
 GO_TEST_BINARY="go test"
 GO_TEST_BINARY="gotest"
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		mode := flagx.MustGetString(cmd, "covermode")
-		if flagx.MustGetBool(cmd, "verbose") {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		mode, err := cmd.Flags().GetString("covermode")
+		if err != nil {
+			return err
+		}
+
+		if verbose, err := cmd.Flags().GetBool("verbose"); err != nil {
+			return err
+		} else if verbose {
 			fmt.Println("Flag -v has been deprecated, use `go-acc -- -v` instead!")
 		}
 
-		ignores := flagx.MustGetStringSlice(cmd, "ignore")
+		ignores, err := cmd.Flags().GetStringSlice("ignore")
+		if err != nil {
+			return err
+		}
+
 		payload := "mode: " + mode + "\n"
 
 		var packages []string
 		var passthrough []string
-
 		for _, a := range args {
 			if len(a) == 0 {
 				continue
@@ -66,7 +80,9 @@ GO_TEST_BINARY="gotest"
 				c := exec.Command("go", "list", a)
 				c.Stdout = &buf
 				c.Stderr = &buf
-				cmdx.Must(c.Run(), "unable to run go list")
+				if err := c.Run(); err != nil {
+					check(fmt.Errorf("unable to run go list: %w", err))
+				}
 
 				var add []string
 				for _, s := range strings.Split(buf.String(), "\n") {
@@ -123,26 +139,19 @@ GO_TEST_BINARY="gotest"
 			c = exec.Command(gt[0], ca...)
 
 			stderr, err := c.StderrPipe()
-			if err != nil {
-				fatalf("%s", err)
-			}
-			stdout, err := c.StdoutPipe()
-			if err != nil {
-				fatalf("%s", err)
-			}
+			check(err)
 
-			if err := c.Start(); err != nil {
-				fatalf("%s", err)
-			}
+			stdout, err := c.StdoutPipe()
+			check(err)
+
+			check(c.Start())
 
 			var wg sync.WaitGroup
 			wg.Add(2)
 			go scan(&wg, stderr)
 			go scan(&wg, stdout)
 
-			if err := c.Wait(); err != nil {
-				fatalf("%s", err)
-			}
+			check(c.Wait())
 
 			wg.Wait()
 		}
@@ -153,22 +162,17 @@ GO_TEST_BINARY="gotest"
 			}
 
 			p, err := ioutil.ReadFile(file)
-			if err != nil {
-				fatalf("%s", err)
-			}
+			check(err)
 
 			ps := strings.Split(string(p), "\n")
 			payload += strings.Join(ps[1:], "\n")
 		}
 
 		output, err := cmd.Flags().GetString("output")
-		if err != nil {
-			fatalf("%s", err)
-		}
+		check(err)
 
-		if err := ioutil.WriteFile(output, []byte(payload), 0644); err != nil {
-			fatalf("%s", err)
-		}
+		check(ioutil.WriteFile(output, []byte(payload), 0644))
+		return nil
 	},
 }
 
@@ -195,7 +199,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	RootCmd.Flags().BoolP("verbose", "v", false, "Does nothing, there for compatibility")
 	RootCmd.Flags().StringP("output", "o", "coverage.txt", "Location for the output file")
 	RootCmd.Flags().String("covermode", "atomic", "Which code coverage mode to use")
@@ -206,12 +209,6 @@ func init() {
 func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
-}
-
-func fatalf(msg string, args ...interface{}) {
-	fmt.Printf(msg, args...)
-	fmt.Println("")
-	os.Exit(1)
 }
 
 type filter struct {

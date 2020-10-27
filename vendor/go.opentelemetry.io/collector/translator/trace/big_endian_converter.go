@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,8 @@ package tracetranslator
 import (
 	"encoding/binary"
 	"errors"
+
+	"go.opentelemetry.io/collector/consumer/pdata"
 )
 
 var (
@@ -32,11 +34,26 @@ var (
 
 // UInt64ToByteTraceID takes a two uint64 representation of a TraceID and
 // converts it to a []byte representation.
+func UInt64ToTraceID(high, low uint64) pdata.TraceID {
+	traceID := make([]byte, 16)
+	binary.BigEndian.PutUint64(traceID[:8], high)
+	binary.BigEndian.PutUint64(traceID[8:], low)
+	return pdata.NewTraceID(traceID)
+}
+
+// UInt64ToByteTraceID takes a two uint64 representation of a TraceID and
+// converts it to a []byte representation.
 func UInt64ToByteTraceID(high, low uint64) []byte {
 	traceID := make([]byte, 16)
 	binary.BigEndian.PutUint64(traceID[:8], high)
 	binary.BigEndian.PutUint64(traceID[8:], low)
 	return traceID
+}
+
+// Int64ToByteTraceID takes a two int64 representation of a TraceID and
+// converts it to a []byte representation.
+func Int64ToTraceID(high, low int64) pdata.TraceID {
+	return UInt64ToTraceID(uint64(high), uint64(low))
 }
 
 // Int64ToByteTraceID takes a two int64 representation of a TraceID and
@@ -64,6 +81,11 @@ func BytesToInt64TraceID(traceID []byte) (int64, int64, error) {
 	return int64(traceIDHigh), int64(traceIDLow), err
 }
 
+// TraceIDToUInt64Pair takes a pdata.TraceID and converts it to a pair of uint64 representation.
+func TraceIDToUInt64Pair(traceID pdata.TraceID) (uint64, uint64, error) {
+	return BytesToUInt64TraceID(traceID.Bytes())
+}
+
 // UInt64ToByteSpanID takes a uint64 representation of a SpanID and
 // converts it to a []byte representation.
 func UInt64ToByteSpanID(id uint64) []byte {
@@ -72,10 +94,22 @@ func UInt64ToByteSpanID(id uint64) []byte {
 	return spanID
 }
 
+// UInt64ToSpanID takes a uint64 representation of a SpanID and
+// converts it to a pdata.SpanID representation.
+func UInt64ToSpanID(id uint64) pdata.SpanID {
+	return pdata.NewSpanID(UInt64ToByteSpanID(id))
+}
+
 // Int64ToByteSpanID takes a int64 representation of a SpanID and
 // converts it to a []byte representation.
 func Int64ToByteSpanID(id int64) []byte {
 	return UInt64ToByteSpanID(uint64(id))
+}
+
+// Int64ToByteSpanID takes a int64 representation of a SpanID and
+// converts it to a []byte representation.
+func Int64ToSpanID(id int64) pdata.SpanID {
+	return UInt64ToSpanID(uint64(id))
 }
 
 // BytesToUInt64SpanID takes a []byte representation of a SpanID and
