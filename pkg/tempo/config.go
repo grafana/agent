@@ -27,7 +27,7 @@ type Config struct {
 	// Whether the Tempo subsystem should be enabled.
 	Enabled bool `yaml:"-"`
 
-	RemoteWrite RWConfig `yaml:"remote_write"`
+	PushConfig RWConfig `yaml:"push_config"`
 
 	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/receiver
 	Receivers map[string]interface{} `yaml:"receivers"`
@@ -69,24 +69,24 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		return nil, errors.New("must have at least one configured receiver")
 	}
 
-	if len(c.RemoteWrite.Endpoint) == 0 {
+	if len(c.PushConfig.Endpoint) == 0 {
 		return nil, errors.New("must have a configured remote_write.endpoint")
 	}
 
 	// exporter
 	headers := map[string]string{}
-	if c.RemoteWrite.BasicAuth != nil {
-		password := string(c.RemoteWrite.BasicAuth.Password)
+	if c.PushConfig.BasicAuth != nil {
+		password := string(c.PushConfig.BasicAuth.Password)
 
-		if len(c.RemoteWrite.BasicAuth.PasswordFile) > 0 {
-			buff, err := ioutil.ReadFile(c.RemoteWrite.BasicAuth.PasswordFile)
+		if len(c.PushConfig.BasicAuth.PasswordFile) > 0 {
+			buff, err := ioutil.ReadFile(c.PushConfig.BasicAuth.PasswordFile)
 			if err != nil {
-				return nil, fmt.Errorf("unable to load password file %s: %w", c.RemoteWrite.BasicAuth.PasswordFile, err)
+				return nil, fmt.Errorf("unable to load password file %s: %w", c.PushConfig.BasicAuth.PasswordFile, err)
 			}
 			password = string(buff)
 		}
 
-		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.RemoteWrite.BasicAuth.Username + ":" + password))
+		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.PushConfig.BasicAuth.Username + ":" + password))
 		headers = map[string]string{
 			"authorization": "Basic " + encodedAuth,
 		}
@@ -94,9 +94,9 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 
 	otelMapStructure["exporters"] = map[string]interface{}{
 		"otlp": map[string]interface{}{
-			"endpoint": c.RemoteWrite.Endpoint,
+			"endpoint": c.PushConfig.Endpoint,
 			"headers":  headers,
-			"insecure": c.RemoteWrite.Insecure,
+			"insecure": c.PushConfig.Insecure,
 		},
 	}
 
@@ -117,13 +117,13 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 
 	// todo: when we update otel collector to the latest we can just use the settings on the exporter
 	//       https://github.com/open-telemetry/opentelemetry-collector/tree/master/exporter/otlpexporter
-	if c.RemoteWrite.Batch != nil {
-		processors["batch"] = c.RemoteWrite.Batch
+	if c.PushConfig.Batch != nil {
+		processors["batch"] = c.PushConfig.Batch
 		processorNames = append(processorNames, "batch")
 	}
 
-	if c.RemoteWrite.Queue != nil {
-		processors["queued_retry"] = c.RemoteWrite.Queue
+	if c.PushConfig.Queue != nil {
+		processors["queued_retry"] = c.PushConfig.Queue
 		processorNames = append(processorNames, "queued_retry")
 	}
 	otelMapStructure["processors"] = processors
