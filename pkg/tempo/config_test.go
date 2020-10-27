@@ -56,7 +56,7 @@ receivers:
 			cfg: `
 receivers:
   jaeger:
-remote_write:
+push_config:
   endpoint: example.com:12345
 `,
 			expectedError: true,
@@ -68,7 +68,7 @@ receivers:
   jaeger:
     protocols:
       grpc:
-remote_write:
+push_config:
   endpoint: example.com:12345
 `,
 			expectedConfig: `
@@ -88,13 +88,13 @@ service:
 `,
 		},
 		{
-			name: "remote_write options",
+			name: "push_config options",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-remote_write:
+push_config:
   insecure: true
   endpoint: example.com:12345
   basic_auth:
@@ -132,7 +132,7 @@ attributes:
   - key: montgomery
     value: forever
     action: update
-remote_write:
+push_config:
   endpoint: example.com:12345
   batch:
     timeout: 5s
@@ -170,13 +170,13 @@ service:
 `,
 		},
 		{
-			name: "remote_write password in file",
+			name: "push_config password in file",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-remote_write:
+push_config:
   insecure: true
   endpoint: example.com:12345
   basic_auth:
