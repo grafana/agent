@@ -26,6 +26,7 @@ trap cleanup EXIT
 function test_with_systemd() {
     local -r image=$1
     local -r install_command=$2
+    local -r remove_command=$3
     local container
 
 
@@ -35,7 +36,9 @@ function test_with_systemd() {
     port=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "9009/tcp") 0).HostPort}}' "${container}")
 
     docker exec -i "${container}" /bin/bash -c "${install_command}; systemctl enable grafana-agent; systemctl start grafana-agent; sleep 5; systemctl --no-pager status grafana-agent"
+
+    docker exec -i "${container}" /bin/bash -c "${remove_command}"
 }
 
-test_with_systemd "${IMAGE_PREFIX}"/centos-systemd "rpm -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.rpm"
-test_with_systemd "${IMAGE_PREFIX}"/debian-systemd "dpkg -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.deb"
+test_with_systemd "${IMAGE_PREFIX}"/centos-systemd "rpm -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.rpm" "rpm -e grafana-agent"
+test_with_systemd "${IMAGE_PREFIX}"/debian-systemd "dpkg -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.deb" "dpkg -r grafana-agent"
