@@ -65,7 +65,7 @@ the Grafana Cloud Agent. It does the following:
 If the filter passes, the target is allowed to be scraped. Otherwise, the target
 will be silently ignored and not scraped.
 
-For detailed informatino on the host filtering mode, refer to the [operation
+For detailed information on the host filtering mode, refer to the [operation
 guide](./operation-guide.md#host-filtering)
 
 ## Logs
@@ -99,4 +99,3 @@ For more information on installing and running the agent, see
 [Getting started](./getting-started.md) or
 [Configuration Reference](./configuration-reference.md) for a detailed reference
 on the configuration file.
-
