@@ -54,8 +54,8 @@ more information, please read the dedicated
 
 ### Host Filtering
 
-Host Filtering allows to only scrape from targets running on the same machine as
-the Grafana Cloud Agent. It does the following:
+Host Filtering configures Agents to scrape targets that are running on the same
+machine as the Grafana Cloud Agent process. It does the following:
 
 1. Gets the hostname of the agent by the `HOSTNAME` environment variable or
    through the default.
