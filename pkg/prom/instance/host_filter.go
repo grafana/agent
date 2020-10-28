@@ -15,8 +15,18 @@ var (
 
 	// Labels we'll check for a node name
 	labelMatchers = []string{
-		kubernetesPodNodeNameLabel,
-		kubernetesNodeNameLabel,
+		// Consul
+		"__meta_consul_node",
+
+		// Dockerswarm
+		"__meta_dockerswarm_node_id",
+		"__meta_dockerswarm_node_hostname",
+		"__meta_dockerswarm_node_address",
+
+		// Kubernetes node labels. Labels for `role: service` are omitted as
+		// service targets have labels merged with discovered pods.
+		"__meta_kubernetes_pod_node_name",
+		"__meta_kubernetes_node_name",
 	}
 )
 

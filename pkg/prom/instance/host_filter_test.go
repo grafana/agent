@@ -51,8 +51,12 @@ func TestFilterGroups(t *testing.T) {
 	// Sets of labels we want to test against.
 	labels := []model.LabelName{
 		model.AddressLabel,
-		model.LabelName(kubernetesNodeNameLabel),
-		model.LabelName(kubernetesPodNodeNameLabel),
+		model.LabelName("__meta_consul_node"),
+		model.LabelName("__meta_dockerswarm_node_id"),
+		model.LabelName("__meta_dockerswarm_node_hostname"),
+		model.LabelName("__meta_dockerswarm_node_address"),
+		model.LabelName("__meta_kubernetes_pod_node_name"),
+		model.LabelName("__meta_kubernetes_node_name"),
 	}
 
 	for _, tc := range tt {

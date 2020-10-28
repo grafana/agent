@@ -54,16 +54,19 @@ more information, please read the dedicated
 
 ### Host Filtering
 
-Host Filtering currently works best with Kubernetes Service Discovery. It does
-the following:
+Host Filtering allows to only scrape from targets running on the same machine as
+the Grafana Cloud Agent. It does the following:
 
 1. Gets the hostname of the agent by the `HOSTNAME` environment variable or
    through the default.
 2. Checks if the hostname of the agent matches the label value for `__address__`
-   or `__meta_kubernetes_pod_node_name` on the discovered target.
+   service-discovery-specific node labels against the discovered target.
 
 If the filter passes, the target is allowed to be scraped. Otherwise, the target
 will be silently ignored and not scraped.
+
+For detailed informatino on the host filtering mode, refer to the [operation
+guide](./operation-guide.md#host-filtering)
 
 ## Logs
 
