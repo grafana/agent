@@ -11,7 +11,9 @@ this platform. FreeBSD builds will return in a future release.
 - [ENHANCEMENT] Bump Promtail dependency to 2.0. (@rfratto)
 
 - [ENHANCEMENT] Enhance host_filtering mode to support targets from Docker Swarm
-  and Consul. (@rfratto)
+  and Consul. Also, add a `host_filter_relabel_configs` to that will apply relabeling
+  rules for determining if a target should be dropped. Add a documentation
+  section explaining all of this in detail. (@rfratto)
 
 - [BUGFIX] Fix deb package prerm script so that it stops the agent on package removal. (@jdbaldry)
 

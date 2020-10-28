@@ -7,28 +7,28 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
-var (
-	kubernetesPodNodeNameLabel = "__meta_kubernetes_pod_node_name"
-	kubernetesNodeNameLabel    = "__meta_kubernetes_node_name"
+// HostFilterLabelMatchers are the set of labels that will be used to match
+// against an incoming target.
+var HostFilterLabelMatchers = []string{
+	// Consul
+	"__meta_consul_node",
 
-	// Labels we'll check for a node name
-	labelMatchers = []string{
-		// Consul
-		"__meta_consul_node",
+	// Dockerswarm
+	"__meta_dockerswarm_node_id",
+	"__meta_dockerswarm_node_hostname",
+	"__meta_dockerswarm_node_address",
 
-		// Dockerswarm
-		"__meta_dockerswarm_node_id",
-		"__meta_dockerswarm_node_hostname",
-		"__meta_dockerswarm_node_address",
+	// Kubernetes node labels. Labels for `role: service` are omitted as
+	// service targets have labels merged with discovered pods.
+	"__meta_kubernetes_pod_node_name",
+	"__meta_kubernetes_node_name",
 
-		// Kubernetes node labels. Labels for `role: service` are omitted as
-		// service targets have labels merged with discovered pods.
-		"__meta_kubernetes_pod_node_name",
-		"__meta_kubernetes_node_name",
-	}
-)
+	// Generic (applied by host_filter_relabel_configs)
+	"__host__",
+}
 
 // DiscoveredGroups is a set of groups found via service discovery.
 type DiscoveredGroups = map[string][]*targetgroup.Group
@@ -47,10 +47,12 @@ type HostFilter struct {
 
 	inputCh  GroupChannel
 	outputCh chan map[string][]*targetgroup.Group
+
+	relabels []*relabel.Config
 }
 
 // NewHostFilter creates a new HostFilter
-func NewHostFilter(host string) *HostFilter {
+func NewHostFilter(host string, relabels []*relabel.Config) *HostFilter {
 	ctx, cancel := context.WithCancel(context.Background())
 	f := &HostFilter{
 		ctx:    ctx,
@@ -71,7 +73,7 @@ func (f *HostFilter) Run(syncCh GroupChannel) {
 		case <-f.ctx.Done():
 			return
 		case data := <-f.inputCh:
-			f.outputCh <- FilterGroups(data, f.host)
+			f.outputCh <- FilterGroups(data, f.host, f.relabels)
 		}
 	}
 }
@@ -90,19 +92,11 @@ func (f *HostFilter) SyncCh() GroupChannel {
 // FilterGroups takes a set of DiscoveredGroups as input and filters out
 // any Target that is not running on the host machine provided by host.
 //
-// This is done by looking at two labels:
-//
-//   1. __meta_kubernetes_pod_node_name is used first to represent the host
-//      machine of networked containers. Primarily useful for Kubernetes. This
-//      label is automatically added when using Kubernetes service discovery.
-//
-//   2. __address__ is used next to represent the address of the service
-//      to scrape. In a containerized envirment, __address__ will be the
-//      address of the container.
+// This is done by looking at HostFilterLabelMatchers and __address__.
 //
 // If the discovered address is localhost or 127.0.0.1, the group is never
 // filtered out.
-func FilterGroups(in DiscoveredGroups, host string) DiscoveredGroups {
+func FilterGroups(in DiscoveredGroups, host string, configs []*relabel.Config) DiscoveredGroups {
 	out := make(DiscoveredGroups, len(in))
 
 	for name, groups := range in {
@@ -116,7 +110,10 @@ func FilterGroups(in DiscoveredGroups, host string) DiscoveredGroups {
 			}
 
 			for _, target := range group.Targets {
-				if !shouldFilterTarget(target, group.Labels, host) {
+				allLabels := mergeSets(target, group.Labels)
+				processedLabels := relabel.Process(toLabelSlice(allLabels), configs...)
+
+				if !shouldFilterTarget(processedLabels, host) {
 					newGroup.Targets = append(newGroup.Targets, target)
 				}
 			}
@@ -132,19 +129,7 @@ func FilterGroups(in DiscoveredGroups, host string) DiscoveredGroups {
 
 // shouldFilterTarget returns true when the target labels (combined with the set of common
 // labels) should be filtered out by FilterGroups.
-func shouldFilterTarget(target model.LabelSet, common model.LabelSet, host string) bool {
-	lbls := make([]labels.Label, 0, len(target)+len(common))
-
-	for name, value := range target {
-		lbls = append(lbls, labels.Label{Name: string(name), Value: string(value)})
-	}
-
-	for name, value := range common {
-		if _, ok := target[name]; !ok {
-			lbls = append(lbls, labels.Label{Name: string(name), Value: string(value)})
-		}
-	}
-
+func shouldFilterTarget(lbls labels.Labels, host string) bool {
 	shouldFilterTargetByLabelValue := func(labelValue string) bool {
 		if addr, _, err := net.SplitHostPort(labelValue); err == nil {
 			labelValue = addr
@@ -172,7 +157,7 @@ func shouldFilterTarget(target model.LabelSet, common model.LabelSet, host strin
 	}
 
 	// Fall back to checking metalabels as long as their values are nonempty.
-	for _, check := range labelMatchers {
+	for _, check := range HostFilterLabelMatchers {
 		// If any of the checked labels match for not being filtered out, we can
 		// return before checking any of the other matchers.
 		if addr := lset.Get(check); addr != "" && !shouldFilterTargetByLabelValue(addr) {
@@ -182,4 +167,32 @@ func shouldFilterTarget(target model.LabelSet, common model.LabelSet, host strin
 
 	// Nothing matches, filter it out.
 	return true
+}
+
+// mergeSets merges the sets of labels together. Earlier sets take priority for label names.
+func mergeSets(sets ...model.LabelSet) model.LabelSet {
+	sz := 0
+	for _, set := range sets {
+		sz += len(set)
+	}
+	result := make(model.LabelSet, sz)
+
+	for _, set := range sets {
+		for labelName, labelValue := range set {
+			if _, exist := result[labelName]; exist {
+				continue
+			}
+			result[labelName] = labelValue
+		}
+	}
+
+	return result
+}
+
+func toLabelSlice(set model.LabelSet) labels.Labels {
+	slice := make(labels.Labels, 0, len(set))
+	for name, value := range set {
+		slice = append(slice, labels.Label{Name: string(name), Value: string(value)})
+	}
+	return slice
 }
