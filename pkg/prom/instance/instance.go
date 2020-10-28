@@ -24,7 +24,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
-	sd_config "github.com/prometheus/prometheus/discovery/config"
 	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/scrape"
@@ -465,9 +464,9 @@ func (i *Instance) Update(c Config) error {
 		return fmt.Errorf("error applying updated configs to scrape manager: %w", err)
 	}
 
-	sdConfigs := map[string]sd_config.ServiceDiscoveryConfig{}
+	sdConfigs := map[string]discovery.Configs{}
 	for _, v := range c.ScrapeConfigs {
-		sdConfigs[v.JobName] = v.ServiceDiscoveryConfig
+		sdConfigs[v.JobName] = v.ServiceDiscoveryConfigs
 	}
 	err = i.discovery.Manager.ApplyConfig(sdConfigs)
 	if err != nil {
@@ -522,9 +521,9 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 
 	// TODO(rfratto): refactor this to a function?
 	// TODO(rfratto): ensure job name name is unique
-	c := map[string]sd_config.ServiceDiscoveryConfig{}
+	c := map[string]discovery.Configs{}
 	for _, v := range cfg.ScrapeConfigs {
-		c[v.JobName] = v.ServiceDiscoveryConfig
+		c[v.JobName] = v.ServiceDiscoveryConfigs
 	}
 	err := manager.ApplyConfig(c)
 	if err != nil {
@@ -653,7 +652,7 @@ type walStorage interface {
 
 	StartTime() (int64, error)
 	WriteStalenessMarkers(remoteTsFunc func() int64) error
-	Appender() storage.Appender
+	Appender(context.Context) storage.Appender
 	Truncate(mint int64) error
 
 	Close() error

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,6 @@ import (
 	"github.com/jaegertracing/jaeger/thrift-gen/jaeger"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
-	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/trace/v1"
 	"go.opentelemetry.io/collector/translator/conventions"
 	tracetranslator "go.opentelemetry.io/collector/translator/trace"
 )
@@ -84,9 +83,11 @@ func protoBatchToResourceSpans(batch model.Batch, dest pdata.ResourceSpans) {
 		return
 	}
 
+	groupByLibrary := jSpansToInternal(jSpans)
 	ilss := dest.InstrumentationLibrarySpans()
-	ilss.Resize(1)
-	jSpansToInternal(jSpans, ilss.At(0).Spans())
+	for _, v := range groupByLibrary {
+		ilss.Append(v)
+	}
 }
 
 func jProcessToInternalResource(process *model.Process, dest pdata.Resource) {
@@ -139,36 +140,47 @@ func translateJaegerVersionAttr(attrs pdata.AttributeMap) {
 	}
 }
 
-func jSpansToInternal(spans []*model.Span, dest pdata.SpanSlice) {
-	if len(spans) == 0 {
-		return
-	}
+func jSpansToInternal(spans []*model.Span) map[instrumentationLibrary]pdata.InstrumentationLibrarySpans {
+	spansByLibrary := make(map[instrumentationLibrary]pdata.InstrumentationLibrarySpans)
 
-	dest.Resize(len(spans))
-	i := 0
 	for _, span := range spans {
 		if span == nil || reflect.DeepEqual(span, blankJaegerProtoSpan) {
 			continue
 		}
-		jSpanToInternal(span, dest.At(i))
-		i++
-	}
+		span, library := jSpanToInternal(span)
+		ils, found := spansByLibrary[library]
+		if !found {
+			ils = pdata.NewInstrumentationLibrarySpans()
+			ils.InitEmpty()
+			spansByLibrary[library] = ils
 
-	if i < len(spans) {
-		dest.Resize(i)
+			if library.name != "" {
+				ils.InstrumentationLibrary().InitEmpty()
+				ils.InstrumentationLibrary().SetName(library.name)
+				ils.InstrumentationLibrary().SetVersion(library.version)
+			}
+		}
+		ils.Spans().Append(span)
 	}
+	return spansByLibrary
 }
 
-func jSpanToInternal(span *model.Span, dest pdata.Span) {
-	dest.SetTraceID(pdata.TraceID(tracetranslator.UInt64ToByteTraceID(span.TraceID.High, span.TraceID.Low)))
-	dest.SetSpanID(pdata.SpanID(tracetranslator.UInt64ToByteSpanID(uint64(span.SpanID))))
+type instrumentationLibrary struct {
+	name, version string
+}
+
+func jSpanToInternal(span *model.Span) (pdata.Span, instrumentationLibrary) {
+	dest := pdata.NewSpan()
+	dest.InitEmpty()
+	dest.SetTraceID(tracetranslator.UInt64ToTraceID(span.TraceID.High, span.TraceID.Low))
+	dest.SetSpanID(tracetranslator.UInt64ToSpanID(uint64(span.SpanID)))
 	dest.SetName(span.OperationName)
-	dest.SetStartTime(pdata.TimestampUnixNano(uint64(span.StartTime.UnixNano())))
-	dest.SetEndTime(pdata.TimestampUnixNano(uint64(span.StartTime.Add(span.Duration).UnixNano())))
+	dest.SetStartTime(pdata.TimeToUnixNano(span.StartTime))
+	dest.SetEndTime(pdata.TimeToUnixNano(span.StartTime.Add(span.Duration)))
 
 	parentSpanID := span.ParentSpanID()
 	if parentSpanID != model.SpanID(0) {
-		dest.SetParentSpanID(pdata.SpanID(tracetranslator.UInt64ToByteSpanID(uint64(parentSpanID))))
+		dest.SetParentSpanID(tracetranslator.UInt64ToSpanID(uint64(parentSpanID)))
 	}
 
 	attrs := dest.Attributes()
@@ -179,6 +191,17 @@ func jSpanToInternal(span *model.Span, dest pdata.Span) {
 		dest.SetKind(jSpanKindToInternal(spanKindAttr.StringVal()))
 		attrs.Delete(tracetranslator.TagSpanKind)
 	}
+
+	il := instrumentationLibrary{}
+	if libraryName, ok := attrs.Get(tracetranslator.TagInstrumentationName); ok {
+		il.name = libraryName.StringVal()
+		attrs.Delete(tracetranslator.TagInstrumentationName)
+		if libraryVersion, ok := attrs.Get(tracetranslator.TagInstrumentationVersion); ok {
+			il.version = libraryVersion.StringVal()
+			attrs.Delete(tracetranslator.TagInstrumentationVersion)
+		}
+	}
+
 	dest.SetTraceState(getTraceStateFromAttrs(attrs))
 
 	// drop the attributes slice if all of them were replaced during translation
@@ -188,6 +211,8 @@ func jSpanToInternal(span *model.Span, dest pdata.Span) {
 
 	jLogsToSpanEvents(span.Logs, dest.Events())
 	jReferencesToSpanLinks(span.References, parentSpanID, dest.Links())
+
+	return dest, il
 }
 
 func jTagsToInternalAttributes(tags []model.KeyValue, dest pdata.AttributeMap) {
@@ -211,13 +236,13 @@ func jTagsToInternalAttributes(tags []model.KeyValue, dest pdata.AttributeMap) {
 
 func setInternalSpanStatus(attrs pdata.AttributeMap, dest pdata.SpanStatus) {
 
-	statusCode := pdata.StatusCode(otlptrace.Status_Ok)
+	statusCode := pdata.StatusCodeOk
 	statusMessage := ""
 	statusExists := false
 
 	if errorVal, ok := attrs.Get(tracetranslator.TagError); ok {
 		if errorVal.BoolVal() {
-			statusCode = pdata.StatusCode(otlptrace.Status_UnknownError)
+			statusCode = pdata.StatusCodeUnknownError
 			attrs.Delete(tracetranslator.TagError)
 			statusExists = true
 		}
@@ -238,7 +263,7 @@ func setInternalSpanStatus(attrs pdata.AttributeMap, dest pdata.SpanStatus) {
 		if code, err := getStatusCodeFromHTTPStatusAttr(httpCodeAttr); err == nil {
 
 			// Do not set status code to OK in case it was set to Unknown based on "error" tag
-			if code != pdata.StatusCode(otlptrace.Status_Ok) {
+			if code != pdata.StatusCodeOk {
 				statusCode = code
 			}
 
@@ -263,14 +288,14 @@ func getStatusCodeFromAttr(attrVal pdata.AttributeValue) (pdata.StatusCode, erro
 	case pdata.AttributeValueSTRING:
 		i, err := strconv.Atoi(attrVal.StringVal())
 		if err != nil {
-			return pdata.StatusCode(0), err
+			return pdata.StatusCodeOk, err
 		}
 		codeVal = int64(i)
 	default:
-		return pdata.StatusCode(0), fmt.Errorf("invalid status code attribute type: %s", attrVal.Type().String())
+		return pdata.StatusCodeOk, fmt.Errorf("invalid status code attribute type: %s", attrVal.Type().String())
 	}
 	if codeVal > math.MaxInt32 || codeVal < math.MinInt32 {
-		return pdata.StatusCode(0), fmt.Errorf("invalid status code value: %d", codeVal)
+		return pdata.StatusCodeOk, fmt.Errorf("invalid status code value: %d", codeVal)
 	}
 	return pdata.StatusCode(codeVal), nil
 }
@@ -278,7 +303,7 @@ func getStatusCodeFromAttr(attrVal pdata.AttributeValue) (pdata.StatusCode, erro
 func getStatusCodeFromHTTPStatusAttr(attrVal pdata.AttributeValue) (pdata.StatusCode, error) {
 	statusCode, err := getStatusCodeFromAttr(attrVal)
 	if err != nil {
-		return pdata.StatusCode(0), err
+		return pdata.StatusCodeOk, err
 	}
 
 	// TODO: Introduce and use new HTTP -> OTLP code translator instead
@@ -340,7 +365,7 @@ func jReferencesToSpanLinks(refs []model.SpanRef, excludeParentID model.SpanID, 
 			continue
 		}
 
-		link.SetTraceID(pdata.NewTraceID(tracetranslator.UInt64ToByteTraceID(ref.TraceID.High, ref.TraceID.Low)))
+		link.SetTraceID(tracetranslator.UInt64ToTraceID(ref.TraceID.High, ref.TraceID.Low))
 		link.SetSpanID(pdata.NewSpanID(tracetranslator.UInt64ToByteSpanID(uint64(ref.SpanID))))
 		i++
 	}

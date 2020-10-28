@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,6 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/consumer/pdata"
-	"go.opentelemetry.io/collector/consumer/pdatautil"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/processor"
 )
@@ -134,7 +133,7 @@ type metricsQueueItem struct {
 }
 
 func newMetricsQueueItem(ctx context.Context, md pdata.Metrics) queueItem {
-	_, numPoints := pdatautil.MetricAndDataPointCount(md)
+	_, numPoints := md.MetricAndDataPointCount()
 	return &metricsQueueItem{
 		baseQueueItem: baseQueueItem{ctx: ctx, qt: time.Now()},
 		md:            md,

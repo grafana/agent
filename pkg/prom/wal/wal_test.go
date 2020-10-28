@@ -1,6 +1,7 @@
 package wal
 
 import (
+	"context"
 	"io/ioutil"
 	"math"
 	"os"
@@ -27,7 +28,7 @@ func TestStorage(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
-	app := s.Appender()
+	app := s.Appender(context.Background())
 
 	// Write some samples
 	payload := seriesList{
@@ -65,7 +66,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
 
-	app := s.Appender()
+	app := s.Appender(context.Background())
 	payload := seriesList{
 		{name: "foo", samples: []sample{{1, 10.0}, {10, 100.0}}},
 		{name: "bar", samples: []sample{{2, 20.0}, {20, 200.0}}},
@@ -98,7 +99,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 		require.Greater(t, series.lastTs, int64(0), "series timestamp not updated")
 	}
 
-	app = s.Appender()
+	app = s.Appender(context.Background())
 
 	for _, metric := range payload[len(payload)/2:] {
 		metric.Write(t, app)
@@ -137,7 +138,7 @@ func TestStorage_Truncate(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
-	app := s.Appender()
+	app := s.Appender(context.Background())
 
 	payload := seriesList{
 		{name: "foo", samples: []sample{{1, 10.0}, {10, 100.0}}},
@@ -196,7 +197,7 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
-	app := s.Appender()
+	app := s.Appender(context.Background())
 
 	// Write some samples
 	payload := seriesList{

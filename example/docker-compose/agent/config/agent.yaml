@@ -75,5 +75,3 @@ tempo:
     batch:
       timeout: 5s
       send_batch_size: 100
-    queue:
-      retry_on_failure: true

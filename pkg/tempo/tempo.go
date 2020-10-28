@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/grafana/agent/pkg/build"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -83,8 +84,15 @@ func (t *Tempo) buildAndStartPipeline(ctx context.Context, cfg Config) error {
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
 
+	appinfo := component.ApplicationStartInfo{
+		ExeName:  "agent",
+		GitHash:  build.Revision,
+		LongName: "agent",
+		Version:  build.Version,
+	}
+
 	// start exporter
-	t.exporter, err = builder.NewExportersBuilder(t.logger, otelConfig, factories.Exporters).Build()
+	t.exporter, err = builder.NewExportersBuilder(t.logger, appinfo, otelConfig, factories.Exporters).Build()
 	if err != nil {
 		return fmt.Errorf("failed to build exporters: %w", err)
 	}
@@ -95,7 +103,7 @@ func (t *Tempo) buildAndStartPipeline(ctx context.Context, cfg Config) error {
 	}
 
 	// start pipelines
-	t.pipelines, err = builder.NewPipelinesBuilder(t.logger, otelConfig, t.exporter, factories.Processors).Build()
+	t.pipelines, err = builder.NewPipelinesBuilder(t.logger, appinfo, otelConfig, t.exporter, factories.Processors).Build()
 	if err != nil {
 		return fmt.Errorf("failed to build exporters: %w", err)
 	}
@@ -106,7 +114,7 @@ func (t *Tempo) buildAndStartPipeline(ctx context.Context, cfg Config) error {
 	}
 
 	// start receivers
-	t.receivers, err = builder.NewReceiversBuilder(t.logger, otelConfig, t.pipelines, factories.Receivers).Build()
+	t.receivers, err = builder.NewReceiversBuilder(t.logger, appinfo, otelConfig, t.pipelines, factories.Receivers).Build()
 	if err != nil {
 		return fmt.Errorf("failed to start receivers: %w", err)
 	}

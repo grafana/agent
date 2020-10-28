@@ -109,6 +109,10 @@ var (
 		"string":     types.Typ[types.String],
 
 		"error": types.Universe.Lookup("error").Type(),
+
+		// Aliases.
+		"byte": types.Typ[types.Uint8],
+		"rune": types.Typ[types.Int32],
 	}
 
 	efaceType = types.NewInterfaceType(nil, nil)
@@ -318,9 +322,16 @@ func (p *Pattern) matchIdentical(sub *pattern, typ types.Type) bool {
 		if !ok {
 			return false
 		}
+		obj := typ.Obj()
+		pkg := obj.Pkg()
+		// pkg can be nil for builtin named types.
+		// There is no point in checking anything else as we never
+		// generate the opNamed for such types.
+		if pkg == nil {
+			return false
+		}
 		pkgPath := sub.value.([2]string)[0]
 		typeName := sub.value.([2]string)[1]
-		obj := typ.Obj()
 		return obj.Pkg().Path() == pkgPath && typeName == obj.Name()
 
 	default:

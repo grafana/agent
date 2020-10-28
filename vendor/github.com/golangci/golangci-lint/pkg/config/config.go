@@ -152,9 +152,13 @@ type Run struct {
 	UseDefaultSkipDirs bool     `mapstructure:"skip-dirs-use-default"`
 
 	AllowParallelRunners bool `mapstructure:"allow-parallel-runners"`
+	AllowSerialRunners   bool `mapstructure:"allow-serial-runners"`
 }
 
 type LintersSettings struct {
+	Gci struct {
+		LocalPrefixes string `mapstructure:"local-prefixes"`
+	}
 	Govet  GovetSettings
 	Golint struct {
 		MinConfidence float64 `mapstructure:"min-confidence"`
@@ -244,6 +248,7 @@ type LintersSettings struct {
 	Nestif      NestifSettings
 	NoLintLint  NoLintLintSettings
 	Exhaustive  ExhaustiveSettings
+	Gofumpt     GofumptSettings
 
 	Custom map[string]CustomLinterSettings
 }
@@ -351,6 +356,10 @@ type ExhaustiveSettings struct {
 	DefaultSignifiesExhaustive bool `mapstructure:"default-signifies-exhaustive"`
 }
 
+type GofumptSettings struct {
+	ExtraRules bool `mapstructure:"extra-rules"`
+}
+
 var defaultLintersSettings = LintersSettings{
 	Lll: LllSettings{
 		LineLength: 120,
@@ -403,6 +412,9 @@ var defaultLintersSettings = LintersSettings{
 	},
 	Exhaustive: ExhaustiveSettings{
 		DefaultSignifiesExhaustive: false,
+	},
+	Gofumpt: GofumptSettings{
+		ExtraRules: false,
 	},
 }
 
@@ -510,22 +522,29 @@ type Severity struct {
 	Rules         []SeverityRule `mapstructure:"rules"`
 }
 
+type Version struct {
+	Format string `mapstructure:"format"`
+}
+
 type Config struct {
 	Run Run
 
 	Output struct {
 		Format              string
 		Color               string
-		PrintIssuedLine     bool `mapstructure:"print-issued-lines"`
-		PrintLinterName     bool `mapstructure:"print-linter-name"`
-		UniqByLine          bool `mapstructure:"uniq-by-line"`
-		PrintWelcomeMessage bool `mapstructure:"print-welcome"`
+		PrintIssuedLine     bool   `mapstructure:"print-issued-lines"`
+		PrintLinterName     bool   `mapstructure:"print-linter-name"`
+		UniqByLine          bool   `mapstructure:"uniq-by-line"`
+		SortResults         bool   `mapstructure:"sort-results"`
+		PrintWelcomeMessage bool   `mapstructure:"print-welcome"`
+		PathPrefix          string `mapstructure:"path-prefix"`
 	}
 
 	LintersSettings LintersSettings `mapstructure:"linters-settings"`
 	Linters         Linters
 	Issues          Issues
 	Severity        Severity
+	Version         Version
 
 	InternalTest bool // Option is used only for testing golangci-lint code, don't use it
 }

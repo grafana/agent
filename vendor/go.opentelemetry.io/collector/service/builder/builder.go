@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,13 +24,13 @@ const (
 	configCfg      = "config"
 	memBallastFlag = "mem-ballast-size-mib"
 
-	kindLogKey       = "component_kind"
-	kindLogReceiver  = "receiver"
-	kindLogProcessor = "processor"
-	kindLogExporter  = "exporter"
-	kindLogExtension = "extension"
-	typeLogKey       = "component_type"
-	nameLogKey       = "component_name"
+	kindLogKey        = "component_kind"
+	kindLogsReceiver  = "receiver"
+	kindLogsProcessor = "processor"
+	kindLogsExporter  = "exporter"
+	kindLogExtension  = "extension"
+	typeLogKey        = "component_type"
+	nameLogKey        = "component_name"
 )
 
 var (

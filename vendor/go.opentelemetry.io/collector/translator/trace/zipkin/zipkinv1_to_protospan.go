@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@ package zipkin
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -23,12 +24,11 @@ import (
 
 	commonpb "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1"
 	tracepb "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/jaegertracing/jaeger/thrift-gen/zipkincore"
-	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.opentelemetry.io/collector/consumer/consumerdata"
-	"go.opentelemetry.io/collector/internal"
+	"go.opentelemetry.io/collector/consumer/pdata"
 	tracetranslator "go.opentelemetry.io/collector/translator/trace"
 )
 
@@ -44,7 +44,7 @@ var (
 	errHexTraceIDZero     = errors.New("traceId is zero")
 	errHexIDWrongLen      = errors.New("hex Id has wrong length (expected 16)")
 	errHexIDParsing       = errors.New("failed to parse hex Id")
-	errHexIDZero          = errors.New("Id is zero")
+	errHexIDZero          = errors.New("ID is zero")
 )
 
 // Trace translation from Zipkin V1 is a bit of special case since there is no model
@@ -85,11 +85,11 @@ type binaryAnnotation struct {
 	Endpoint *endpoint `json:"endpoint"`
 }
 
-// V1JSONBatchToOCProto converts a JSON blob with a list of Zipkin v1 spans to OC Proto.
-func V1JSONBatchToOCProto(blob []byte) ([]consumerdata.TraceData, error) {
+// v1JSONBatchToOCProto converts a JSON blob with a list of Zipkin v1 spans to OC Proto.
+func v1JSONBatchToOCProto(blob []byte) ([]consumerdata.TraceData, error) {
 	var zSpans []*zipkinV1Span
 	if err := json.Unmarshal(blob, &zSpans); err != nil {
-		return nil, errors.WithMessage(err, msgZipkinV1JSONUnmarshalError)
+		return nil, fmt.Errorf("%s: %w", msgZipkinV1JSONUnmarshalError, err)
 	}
 
 	ocSpansAndParsedAnnotations := make([]ocSpanAndParsedAnnotations, 0, len(zSpans))
@@ -131,17 +131,17 @@ func zipkinToOCProtoBatch(ocSpansAndParsedAnnotations []ocSpanAndParsedAnnotatio
 func zipkinV1ToOCSpan(zSpan *zipkinV1Span) (*tracepb.Span, *annotationParseResult, error) {
 	traceID, err := hexTraceIDToOCTraceID(zSpan.TraceID)
 	if err != nil {
-		return nil, nil, errors.WithMessage(err, msgZipkinV1TraceIDError)
+		return nil, nil, fmt.Errorf("%s: %w", msgZipkinV1TraceIDError, err)
 	}
 	spanID, err := hexIDToOCID(zSpan.ID)
 	if err != nil {
-		return nil, nil, errors.WithMessage(err, msgZipkinV1SpanIDError)
+		return nil, nil, fmt.Errorf("%s: %w", msgZipkinV1SpanIDError, err)
 	}
 	var parentID []byte
 	if zSpan.ParentID != "" {
 		id, err := hexIDToOCID(zSpan.ParentID)
 		if err != nil {
-			return nil, nil, errors.WithMessage(err, msgZipkinV1ParentIDError)
+			return nil, nil, fmt.Errorf("%s: %w", msgZipkinV1ParentIDError, err)
 		}
 		parentID = id
 	}
@@ -151,7 +151,7 @@ func zipkinV1ToOCSpan(zSpan *zipkinV1Span) (*tracepb.Span, *annotationParseResul
 	if parsedAnnotations.Endpoint.ServiceName == unknownServiceName && localComponent != "" {
 		parsedAnnotations.Endpoint.ServiceName = localComponent
 	}
-	var startTime, endTime *timestamp.Timestamp
+	var startTime, endTime *timestamppb.Timestamp
 	if zSpan.Timestamp == 0 {
 		startTime = parsedAnnotations.EarlyAnnotationTime
 		endTime = parsedAnnotations.LateAnnotationTime
@@ -253,12 +253,17 @@ func zipkinV1BinAnnotationsToOCAttributes(binAnnotations []*binaryAnnotation) (a
 func parseAnnotationValue(value string) *tracepb.AttributeValue {
 	pbAttrib := &tracepb.AttributeValue{}
 
-	if iValue, err := strconv.ParseInt(value, 10, 64); err == nil {
+	switch tracetranslator.DetermineValueType(value, false) {
+	case pdata.AttributeValueINT:
+		iValue, _ := strconv.ParseInt(value, 10, 64)
 		pbAttrib.Value = &tracepb.AttributeValue_IntValue{IntValue: iValue}
-	} else if bValue, err := strconv.ParseBool(value); err == nil {
+	case pdata.AttributeValueDOUBLE:
+		fValue, _ := strconv.ParseFloat(value, 64)
+		pbAttrib.Value = &tracepb.AttributeValue_DoubleValue{DoubleValue: fValue}
+	case pdata.AttributeValueBOOL:
+		bValue, _ := strconv.ParseBool(value)
 		pbAttrib.Value = &tracepb.AttributeValue_BoolValue{BoolValue: bValue}
-	} else {
-		// For now all else go to string
+	default:
 		pbAttrib.Value = &tracepb.AttributeValue_StringValue{StringValue: &tracepb.TruncatableString{Value: value}}
 	}
 
@@ -272,8 +277,8 @@ type annotationParseResult struct {
 	TimeEvents          *tracepb.Span_TimeEvents
 	Kind                tracepb.Span_SpanKind
 	ExtendedKind        tracetranslator.OpenTracingSpanKind
-	EarlyAnnotationTime *timestamp.Timestamp
-	LateAnnotationTime  *timestamp.Timestamp
+	EarlyAnnotationTime *timestamppb.Timestamp
+	LateAnnotationTime  *timestamppb.Timestamp
 }
 
 // Unknown service name works both as a default value and a flag to indicate that a valid endpoint was found.
@@ -427,11 +432,11 @@ func hexIDToOCID(hex string) ([]byte, error) {
 	return tracetranslator.UInt64ToByteSpanID(idValue), nil
 }
 
-func epochMicrosecondsToTimestamp(msecs int64) *timestamp.Timestamp {
+func epochMicrosecondsToTimestamp(msecs int64) *timestamppb.Timestamp {
 	if msecs <= 0 {
 		return nil
 	}
-	t := &timestamp.Timestamp{}
+	t := &timestamppb.Timestamp{}
 	t.Seconds = msecs / 1e6
 	t.Nanos = int32(msecs%1e6) * 1e3
 	return t
@@ -488,7 +493,7 @@ func setTimestampsIfUnset(span *tracepb.Span) {
 	// If this is unset, the conversion from open census to the internal trace format breaks
 	// what should be an identity transformation oc -> internal -> oc
 	if span.StartTime == nil {
-		now := internal.TimeToTimestamp(time.Now())
+		now := timestamppb.New(time.Now())
 		span.StartTime = now
 		span.EndTime = now
 
