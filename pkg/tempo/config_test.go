@@ -79,6 +79,8 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    retry_on_failure:
+      max_elapsed_time: 60s
 service:
   pipelines:
     traces:
@@ -112,6 +114,9 @@ exporters:
     insecure: true
     headers:
       authorization: Basic dGVzdDpibGVyZw==
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 60s
 service:
   pipelines:
     traces:
@@ -137,9 +142,10 @@ push_config:
   batch:
     timeout: 5s
     send_batch_size: 100
-  queue:
-    backoff_delay: 10s
-    num_workers: 15	
+  retry_on_failure:
+    initial_interval: 10s
+  sending_queue:
+    num_consumers: 15	
 `,
 			expectedConfig: `
 receivers:
@@ -149,6 +155,11 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    retry_on_failure:
+      initial_interval: 10s
+      max_elapsed_time: 60s
+    sending_queue:
+      num_consumers: 15
 processors:
   attributes:
     actions:
@@ -158,14 +169,11 @@ processors:
   batch:
     timeout: 5s
     send_batch_size: 100
-  queued_retry:
-    backoff_delay: 10s
-    num_workers: 15	 
 service:
   pipelines:
     traces:
       exporters: ["otlp"]
-      processors: ["attributes", "batch", "queued_retry"]
+      processors: ["attributes", "batch"]
       receivers: ["jaeger"]
 `,
 		},
@@ -193,6 +201,8 @@ exporters:
     insecure: true
     headers:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
+    retry_on_failure:
+      max_elapsed_time: 60s
 service:
   pipelines:
     traces:

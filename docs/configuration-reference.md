@@ -1454,7 +1454,7 @@ scrape_configs:
 The `tempo_config` block configures how the Agent receives traces and sends them to Tempo. 
 
 ```yaml
-# Attributes options https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/attributesprocessor
+# Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor
 #  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
 attributes: [attributes.config] 
 
@@ -1473,15 +1473,16 @@ push_config:
     [ password: <secret> ]
     [ password_file: <string> ]
 
-  # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/batchprocessor
+  # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor
   [ batch: <batch.config> ]
 
-  # Queue options are the same as: https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/processor/queuedprocessor
-  [ queue: <queued_retry.config> ]
+  # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/otlpexporter
+  [ sending_queue: <otlpexporter.sending_queue> ]
+  [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
 # Receiver configurations are mapped directly into the OpenTelmetry receivers block.
 #   At least one receiver is required.
-#   https://github.com/open-telemetry/opentelemetry-collector/tree/781aa072a89d0389e6a95cea54715bb05a1a5ab4/receiver
+#   https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/receiver/README.md
 receivers:
 
 # A list of prometheus scrape configs.  Targets discovered through these scrape configs have their __address__ matched against the ip on incoming spans.

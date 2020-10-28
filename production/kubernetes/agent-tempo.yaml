@@ -18,8 +18,8 @@ data:
                 send_batch_size: 1000
                 timeout: 5s
             endpoint: ${TEMPO_ENDPOINT}
-            queue:
-                retry_on_failure: false
+            retry_on_failure:
+                enabled: false
         receivers:
             jaeger:
                 protocols:

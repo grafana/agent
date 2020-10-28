@@ -29,10 +29,10 @@ type Config struct {
 
 	PushConfig RWConfig `yaml:"push_config"`
 
-	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/receiver
+	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/receiver/README.md
 	Receivers map[string]interface{} `yaml:"receivers"`
 
-	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/processor/attributesprocessor
+	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor/config.go#L30
 	Attributes map[string]interface{} `yaml:"attributes"`
 
 	// prom service discovery
@@ -41,11 +41,12 @@ type Config struct {
 
 // RWConfig controls the configuration of exporting to Grafana Cloud
 type RWConfig struct {
-	Endpoint  string                 `yaml:"endpoint"`
-	Insecure  bool                   `yaml:"insecure"`
-	BasicAuth *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
-	Batch     map[string]interface{} `yaml:"batch,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/batchprocessor/config.go#L24
-	Queue     map[string]interface{} `yaml:"queue,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/queuedprocessor/config.go#L24
+	Endpoint       string                 `yaml:"endpoint"`
+	Insecure       bool                   `yaml:"insecure"`
+	BasicAuth      *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Batch          map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor/config.go#L24
+	SendingQueue   map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L30
+	RetryOnFailure map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L54
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -92,12 +93,28 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
+	otlpExporter := map[string]interface{}{
+		"endpoint":         c.PushConfig.Endpoint,
+		"headers":          headers,
+		"insecure":         c.PushConfig.Insecure,
+		"sending_queue":    c.PushConfig.SendingQueue,
+		"retry_on_failure": c.PushConfig.RetryOnFailure,
+	}
+
+	// Apply some sane defaults to the exporter. The
+	// sending_queue.retry_on_failure default is 300s which prevents any
+	// sending-related errors to not be logged for 5 minutes. We'll lower that
+	// to 60s.
+	if retryConfig := otlpExporter["retry_on_failure"].(map[string]interface{}); retryConfig == nil {
+		otlpExporter["retry_on_failure"] = map[string]interface{}{
+			"max_elapsed_time": "60s",
+		}
+	} else if retryConfig["max_elapsed_time"] == nil {
+		retryConfig["max_elapsed_time"] = "60s"
+	}
+
 	otelMapStructure["exporters"] = map[string]interface{}{
-		"otlp": map[string]interface{}{
-			"endpoint": c.PushConfig.Endpoint,
-			"headers":  headers,
-			"insecure": c.PushConfig.Insecure,
-		},
+		"otlp": otlpExporter,
 	}
 
 	// processors
@@ -115,17 +132,11 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		processorNames = append(processorNames, "attributes")
 	}
 
-	// todo: when we update otel collector to the latest we can just use the settings on the exporter
-	//       https://github.com/open-telemetry/opentelemetry-collector/tree/master/exporter/otlpexporter
 	if c.PushConfig.Batch != nil {
 		processors["batch"] = c.PushConfig.Batch
 		processorNames = append(processorNames, "batch")
 	}
 
-	if c.PushConfig.Queue != nil {
-		processors["queued_retry"] = c.PushConfig.Queue
-		processorNames = append(processorNames, "queued_retry")
-	}
 	otelMapStructure["processors"] = processors
 
 	// receivers
