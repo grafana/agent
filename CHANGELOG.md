@@ -4,6 +4,8 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+- [BUGFIX] Fix deb package prerm script so that it stops the agent on package removal. (@jdbaldry)
+
 # v0.7.1 (2020-10-23)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
