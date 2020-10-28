@@ -17,6 +17,7 @@ import (
 
 	"github.com/grafana/loki/pkg/helpers"
 	"github.com/grafana/loki/pkg/promtail/api"
+	"github.com/grafana/loki/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/promtail/positions"
 	"github.com/grafana/loki/pkg/promtail/targets/target"
 )
@@ -73,6 +74,7 @@ func (cfg *Config) RegisterFlags(flags *flag.FlagSet) {
 }
 
 // FileTarget describes a particular set of logs.
+// nolint:golint
 type FileTarget struct {
 	logger log.Logger
 
@@ -164,7 +166,7 @@ func (t *FileTarget) run() {
 		for _, v := range t.tails {
 			v.stop()
 		}
-		level.Debug(t.logger).Log("msg", "watcher closed, tailer stopped, positions saved")
+		level.Info(t.logger).Log("msg", "filetarget: watcher closed, tailer stopped, positions saved", "path", t.path)
 		close(t.done)
 	}()
 
@@ -315,6 +317,9 @@ func (t *FileTarget) stopTailingAndRemovePosition(ps []string) {
 			tailer.stop()
 			t.positions.Remove(tailer.path)
 			delete(t.tails, p)
+		}
+		if h, ok := t.handler.(api.InstrumentedEntryHandler); ok {
+			h.UnregisterLatencyMetric(model.LabelSet{model.LabelName(client.LatencyLabel): model.LabelValue(p)})
 		}
 	}
 }

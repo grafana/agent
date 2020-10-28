@@ -56,7 +56,7 @@ receivers:
 			cfg: `
 receivers:
   jaeger:
-remote_write:
+push_config:
   endpoint: example.com:12345
 `,
 			expectedError: true,
@@ -68,7 +68,7 @@ receivers:
   jaeger:
     protocols:
       grpc:
-remote_write:
+push_config:
   endpoint: example.com:12345
 `,
 			expectedConfig: `
@@ -79,6 +79,8 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    retry_on_failure:
+      max_elapsed_time: 60s
 service:
   pipelines:
     traces:
@@ -88,13 +90,13 @@ service:
 `,
 		},
 		{
-			name: "remote_write options",
+			name: "push_config options",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-remote_write:
+push_config:
   insecure: true
   endpoint: example.com:12345
   basic_auth:
@@ -112,6 +114,9 @@ exporters:
     insecure: true
     headers:
       authorization: Basic dGVzdDpibGVyZw==
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 60s
 service:
   pipelines:
     traces:
@@ -132,14 +137,15 @@ attributes:
   - key: montgomery
     value: forever
     action: update
-remote_write:
+push_config:
   endpoint: example.com:12345
   batch:
     timeout: 5s
     send_batch_size: 100
-  queue:
-    backoff_delay: 10s
-    num_workers: 15	
+  retry_on_failure:
+    initial_interval: 10s
+  sending_queue:
+    num_consumers: 15	
 `,
 			expectedConfig: `
 receivers:
@@ -149,6 +155,11 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    retry_on_failure:
+      initial_interval: 10s
+      max_elapsed_time: 60s
+    sending_queue:
+      num_consumers: 15
 processors:
   attributes:
     actions:
@@ -158,25 +169,22 @@ processors:
   batch:
     timeout: 5s
     send_batch_size: 100
-  queued_retry:
-    backoff_delay: 10s
-    num_workers: 15	 
 service:
   pipelines:
     traces:
       exporters: ["otlp"]
-      processors: ["attributes", "batch", "queued_retry"]
+      processors: ["attributes", "batch"]
       receivers: ["jaeger"]
 `,
 		},
 		{
-			name: "remote_write password in file",
+			name: "push_config password in file",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-remote_write:
+push_config:
   insecure: true
   endpoint: example.com:12345
   basic_auth:
@@ -193,6 +201,8 @@ exporters:
     insecure: true
     headers:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
+    retry_on_failure:
+      max_elapsed_time: 60s
 service:
   pipelines:
     traces:

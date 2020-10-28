@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,6 @@ import (
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/config/confignet"
-	"go.opentelemetry.io/collector/config/configprotocol"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
@@ -129,10 +128,10 @@ func createDefaultConfig() configmodels.Receiver {
 			ThriftHTTP: &confighttp.HTTPServerSettings{
 				Endpoint: defaultHTTPBindEndpoint,
 			},
-			ThriftBinary: &configprotocol.ProtocolServerSettings{
+			ThriftBinary: &confignet.TCPAddr{
 				Endpoint: defaultThriftBinaryBindEndpoint,
 			},
-			ThriftCompact: &configprotocol.ProtocolServerSettings{
+			ThriftCompact: &confignet.TCPAddr{
 				Endpoint: defaultThriftCompactBindEndpoint,
 			},
 		},
@@ -147,20 +146,20 @@ func createTraceReceiver(
 	nextConsumer consumer.TraceConsumer,
 ) (component.TraceReceiver, error) {
 
-	// Convert settings in the source config to Configuration struct
+	// Convert settings in the source config to configuration struct
 	// that Jaeger receiver understands.
 
 	rCfg := cfg.(*Config)
 	remoteSamplingConfig := rCfg.RemoteSampling
 
-	config := Configuration{}
+	config := configuration{}
 
 	// Set ports
 	if rCfg.Protocols.GRPC != nil {
 		var err error
 		config.CollectorGRPCPort, err = extractPortFromEndpoint(rCfg.Protocols.GRPC.NetAddr.Endpoint)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to extract port for GRPC: %w", err)
 		}
 
 		config.CollectorGRPCOptions, err = rCfg.Protocols.GRPC.ToServerOption()
@@ -173,7 +172,7 @@ func createTraceReceiver(
 		var err error
 		config.CollectorHTTPPort, err = extractPortFromEndpoint(rCfg.Protocols.ThriftHTTP.Endpoint)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to extract port for ThriftHTTP: %w", err)
 		}
 	}
 
@@ -181,7 +180,7 @@ func createTraceReceiver(
 		var err error
 		config.AgentBinaryThriftPort, err = extractPortFromEndpoint(rCfg.Protocols.ThriftBinary.Endpoint)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to extract port for ThriftBinary: %w", err)
 		}
 	}
 
@@ -189,7 +188,7 @@ func createTraceReceiver(
 		var err error
 		config.AgentCompactThriftPort, err = extractPortFromEndpoint(rCfg.Protocols.ThriftCompact.Endpoint)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to extract port for ThriftCompact: %w", err)
 		}
 	}
 
@@ -221,7 +220,7 @@ func createTraceReceiver(
 
 	if (rCfg.Protocols.GRPC == nil && rCfg.Protocols.ThriftHTTP == nil && rCfg.Protocols.ThriftBinary == nil && rCfg.Protocols.ThriftCompact == nil) ||
 		(config.CollectorGRPCPort == 0 && config.CollectorHTTPPort == 0 && config.CollectorThriftPort == 0 && config.AgentBinaryThriftPort == 0 && config.AgentCompactThriftPort == 0) {
-		err := fmt.Errorf("either %v, %v, %v, or %v protocol endpoint with non-zero port must be enabled for %s receiver",
+		err := fmt.Errorf("either GRPC(%v), ThriftHTTP(%v), ThriftCompact(%v), or ThriftBinary(%v) protocol endpoint with non-zero port must be enabled for %s receiver",
 			rCfg.Protocols.GRPC,
 			rCfg.Protocols.ThriftHTTP,
 			rCfg.Protocols.ThriftCompact,
@@ -232,7 +231,7 @@ func createTraceReceiver(
 	}
 
 	// Create the receiver.
-	return New(rCfg.Name(), &config, nextConsumer, params)
+	return newJaegerReceiver(rCfg.Name(), &config, nextConsumer, params)
 }
 
 // extract the port number from string in "address:port" format. If the

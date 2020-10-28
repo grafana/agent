@@ -78,13 +78,7 @@ func checkSwitchStatements(pass *analysis.Pass, inspect *inspector.Inspector, co
 		samePkg := tagPkg == pass.Pkg
 		checkUnexported := samePkg
 
-		hitlist := make(map[string]struct{})
-		for _, m := range enumMembers {
-			if ast.IsExported(m) || checkUnexported {
-				hitlist[m] = struct{}{}
-			}
-		}
-
+		hitlist := hitlistFromEnumMembers(enumMembers, checkUnexported)
 		if len(hitlist) == 0 {
 			// can happen if external package and enum consists only of
 			// unexported members
@@ -111,6 +105,16 @@ func checkSwitchStatements(pass *analysis.Pass, inspect *inspector.Inspector, co
 					if !ok {
 						continue
 					}
+
+					// ensure X is package identifier
+					ident, ok := selExpr.X.(*ast.Ident)
+					if !ok {
+						continue
+					}
+					if !isPackageNameIdentifier(pass, ident) {
+						continue
+					}
+
 					delete(hitlist, selExpr.Sel.Name)
 				}
 			}
@@ -124,6 +128,29 @@ func checkSwitchStatements(pass *analysis.Pass, inspect *inspector.Inspector, co
 		}
 		return true
 	})
+}
+
+func isPackageNameIdentifier(pass *analysis.Pass, ident *ast.Ident) bool {
+	obj := pass.TypesInfo.ObjectOf(ident)
+	if obj == nil {
+		return false
+	}
+	_, ok := obj.(*types.PkgName)
+	return ok
+}
+
+func hitlistFromEnumMembers(enumMembers []string, checkUnexported bool) map[string]struct{} {
+	hitlist := make(map[string]struct{})
+	for _, m := range enumMembers {
+		if m == "_" {
+			// blank identifier is often used to skip entries in iota lists
+			continue
+		}
+		if ast.IsExported(m) || checkUnexported {
+			hitlist[m] = struct{}{}
+		}
+	}
+	return hitlist
 }
 
 func reportSwitch(pass *analysis.Pass, sw *ast.SwitchStmt, samePkg bool, enumType *types.Named, missingMembers map[string]struct{}, defaultCaseExists bool, f *ast.File) {

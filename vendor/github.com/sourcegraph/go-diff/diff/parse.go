@@ -6,11 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
-
-	"sourcegraph.com/sqs/pbtypes"
 )
 
 // ParseMultiFileDiff parses a multi-file unified diff. It returns an error if
@@ -70,6 +69,12 @@ func (r *MultiFileDiffReader) ReadFile() (*FileDiff, error) {
 		default:
 			return nil, err
 		}
+	}
+
+	// FileDiff is added/deleted file
+	// No further collection of hunks needed
+	if fd.NewName == "" {
+		return fd, nil
 	}
 
 	// Before reading hunks, check to see if there are any. If there
@@ -198,12 +203,10 @@ func (r *FileDiffReader) ReadAllHeaders() (*FileDiff, error) {
 		return nil, err
 	}
 	if origTime != nil {
-		ts := pbtypes.NewTimestamp(*origTime)
-		fd.OrigTime = &ts
+		fd.OrigTime = origTime
 	}
 	if newTime != nil {
-		ts := pbtypes.NewTimestamp(*newTime)
-		fd.NewTime = &ts
+		fd.NewTime = newTime
 	}
 
 	return fd, nil
@@ -223,8 +226,16 @@ func (r *FileDiffReader) HunksReader() *HunksReader {
 
 // ReadFileHeaders reads the unified file diff header (the lines that
 // start with "---" and "+++" with the orig/new file names and
-// timestamps).
+// timestamps). Or which starts with "Only in " with dir path and filename.
+// "Only in" message is supported in POSIX locale: https://pubs.opengroup.org/onlinepubs/9699919799/utilities/diff.html#tag_20_34_10
 func (r *FileDiffReader) ReadFileHeaders() (origName, newName string, origTimestamp, newTimestamp *time.Time, err error) {
+	if r.fileHeaderLine != nil {
+		if isOnlyMessage, source, filename := parseOnlyInMessage(r.fileHeaderLine); isOnlyMessage {
+			return filepath.Join(string(source), string(filename)),
+				"", nil, nil, nil
+		}
+	}
+
 	origName, origTimestamp, err = r.readOneFileHeader([]byte("--- "))
 	if err != nil {
 		return "", "", nil, nil, err
@@ -293,7 +304,7 @@ func (r *FileDiffReader) readOneFileHeader(prefix []byte) (filename string, time
 type OverflowError string
 
 func (e OverflowError) Error() string {
-	return fmt.Sprintf("overflowed into next file: %s", e)
+	return fmt.Sprintf("overflowed into next file: %s", string(e))
 }
 
 // ReadExtendedHeaders reads the extended header lines, if any, from a
@@ -326,6 +337,12 @@ func (r *FileDiffReader) ReadExtendedHeaders() ([]string, error) {
 		}
 		if bytes.HasPrefix(line, []byte("--- ")) {
 			// We've reached the file header.
+			r.fileHeaderLine = line // pass to readOneFileHeader (see fileHeaderLine field doc)
+			return xheaders, nil
+		}
+
+		// Reached message that file is added/deleted
+		if isOnlyInMessage, _, _ := parseOnlyInMessage(line); isOnlyInMessage {
 			r.fileHeaderLine = line // pass to readOneFileHeader (see fileHeaderLine field doc)
 			return xheaders, nil
 		}
@@ -376,6 +393,11 @@ func handleEmpty(fd *FileDiff) (wasEmpty bool) {
 			fd.NewName = names[1]
 		}
 		return true
+	case lineCount == 6 && strings.HasPrefix(fd.Extended[5], "Binary files ") && strings.HasPrefix(fd.Extended[2], "rename from ") && strings.HasPrefix(fd.Extended[3], "rename to "):
+		names := strings.SplitN(fd.Extended[0][len("diff --git "):], " ", 2)
+		fd.OrigName = names[0]
+		fd.NewName = names[1]
+		return true
 	case lineCount == 3 && strings.HasPrefix(fd.Extended[2], "Binary files ") || lineCount > 3 && strings.HasPrefix(fd.Extended[2], "GIT binary patch"):
 		names := strings.SplitN(fd.Extended[0][len("diff --git "):], " ", 2)
 		fd.OrigName, err = strconv.Unquote(names[0])
@@ -403,6 +425,10 @@ var (
 
 	// ErrExtendedHeadersEOF is when an EOF was encountered while reading extended file headers, which means that there were no ---/+++ headers encountered before hunks (if any) began.
 	ErrExtendedHeadersEOF = errors.New("expected file header while reading extended headers, got EOF")
+
+	// ErrBadOnlyInMessage is when a file have a malformed `only in` message
+	// Should be in format `Only in {source}: {filename}`
+	ErrBadOnlyInMessage = errors.New("bad 'only in' message")
 )
 
 // ParseHunks parses hunks from a unified diff. The diff must consist
@@ -501,7 +527,7 @@ func (r *HunksReader) ReadHunk() (*Hunk, error) {
 				return r.hunk, nil
 			}
 
-			if len(line) >= 1 && !linePrefix(line[0]) {
+			if len(line) >= 1 && (!linePrefix(line[0]) || bytes.HasPrefix(line, []byte("--- "))) {
 				// Bad hunk header line. If we're reading a multi-file
 				// diff, this may be the end of the current
 				// file. Return a "rich" error that lets our caller
@@ -610,6 +636,19 @@ func (r *HunksReader) ReadAllHunks() ([]*Hunk, error) {
 			return hunks, err
 		}
 	}
+}
+
+// parseOnlyInMessage checks if line is a "Only in {source}: {filename}" and returns source and filename
+func parseOnlyInMessage(line []byte) (bool, []byte, []byte) {
+	if !bytes.HasPrefix(line, onlyInMessagePrefix) {
+		return false, nil, nil
+	}
+	line = line[len(onlyInMessagePrefix):]
+	idx := bytes.Index(line, []byte(": "))
+	if idx < 0 {
+		return false, nil, nil
+	}
+	return true, line[:idx], line[idx+2:]
 }
 
 // A ParseError is a description of a unified diff syntax error.

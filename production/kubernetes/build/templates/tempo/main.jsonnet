@@ -56,8 +56,8 @@ local containerPort = k.core.v1.containerPort;
         timeout: '5s',
         send_batch_size: 1000,
       },
-      queue: {
-        retry_on_failure: false,
+      retry_on_failure: {
+        enabled: false,
       },
     }) +
     agent.withTempoSamplingStrategies({

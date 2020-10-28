@@ -11,7 +11,7 @@ type Context struct {
 	Types  *types.Info
 	Sizes  types.Sizes
 	Fset   *token.FileSet
-	Report func(n ast.Node, msg string, s *Suggestion)
+	Report func(rule GoRuleInfo, n ast.Node, msg string, s *Suggestion)
 	Pkg    *types.Package
 }
 
@@ -30,7 +30,16 @@ func RunRules(ctx *Context, f *ast.File, rules *GoRuleSet) error {
 	return newRulesRunner(ctx, rules).run(f)
 }
 
+type GoRuleInfo struct {
+	// Filename is a file that defined this rule.
+	Filename string
+}
+
 type GoRuleSet struct {
 	universal *scopedGoRuleSet
 	local     *scopedGoRuleSet
+}
+
+func MergeRuleSets(toMerge []*GoRuleSet) *GoRuleSet {
+	return mergeRuleSets(toMerge)
 }

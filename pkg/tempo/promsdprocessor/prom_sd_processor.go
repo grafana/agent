@@ -12,7 +12,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
-	sd_config "github.com/prometheus/prometheus/discovery/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/relabel"
@@ -41,9 +40,9 @@ func newTraceProcessor(nextConsumer consumer.TraceConsumer, scrapeConfigs []*con
 	mgr := discovery.NewManager(ctx, logger, discovery.Name("tempo service disco"))
 
 	relabelConfigs := map[string][]*relabel.Config{}
-	cfg := map[string]sd_config.ServiceDiscoveryConfig{}
+	cfg := map[string]discovery.Configs{}
 	for _, v := range scrapeConfigs {
-		cfg[v.JobName] = v.ServiceDiscoveryConfig
+		cfg[v.JobName] = v.ServiceDiscoveryConfigs
 		relabelConfigs[v.JobName] = v.RelabelConfigs
 	}
 

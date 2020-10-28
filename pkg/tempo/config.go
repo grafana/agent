@@ -27,25 +27,26 @@ type Config struct {
 	// Whether the Tempo subsystem should be enabled.
 	Enabled bool `yaml:"-"`
 
-	RemoteWrite RWConfig `yaml:"remote_write"`
+	PushConfig PushConfig `yaml:"push_config"`
 
-	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/receiver
+	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/receiver/README.md
 	Receivers map[string]interface{} `yaml:"receivers"`
 
-	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/tree/1405654d4e907b3215cece0ce04e46a6c1576382/processor/attributesprocessor
+	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor/config.go#L30
 	Attributes map[string]interface{} `yaml:"attributes"`
 
 	// prom service discovery
 	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
 }
 
-// RWConfig controls the configuration of exporting to Grafana Cloud
-type RWConfig struct {
-	Endpoint  string                 `yaml:"endpoint"`
-	Insecure  bool                   `yaml:"insecure"`
-	BasicAuth *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
-	Batch     map[string]interface{} `yaml:"batch,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/batchprocessor/config.go#L24
-	Queue     map[string]interface{} `yaml:"queue,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1405654d4e907b3215cece0ce04e46a6c1576382/processor/queuedprocessor/config.go#L24
+// PushConfig controls the configuration of exporting to Grafana Cloud
+type PushConfig struct {
+	Endpoint       string                 `yaml:"endpoint"`
+	Insecure       bool                   `yaml:"insecure"`
+	BasicAuth      *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Batch          map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor/config.go#L24
+	SendingQueue   map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L30
+	RetryOnFailure map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L54
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -69,35 +70,51 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		return nil, errors.New("must have at least one configured receiver")
 	}
 
-	if len(c.RemoteWrite.Endpoint) == 0 {
+	if len(c.PushConfig.Endpoint) == 0 {
 		return nil, errors.New("must have a configured remote_write.endpoint")
 	}
 
 	// exporter
 	headers := map[string]string{}
-	if c.RemoteWrite.BasicAuth != nil {
-		password := string(c.RemoteWrite.BasicAuth.Password)
+	if c.PushConfig.BasicAuth != nil {
+		password := string(c.PushConfig.BasicAuth.Password)
 
-		if len(c.RemoteWrite.BasicAuth.PasswordFile) > 0 {
-			buff, err := ioutil.ReadFile(c.RemoteWrite.BasicAuth.PasswordFile)
+		if len(c.PushConfig.BasicAuth.PasswordFile) > 0 {
+			buff, err := ioutil.ReadFile(c.PushConfig.BasicAuth.PasswordFile)
 			if err != nil {
-				return nil, fmt.Errorf("unable to load password file %s: %w", c.RemoteWrite.BasicAuth.PasswordFile, err)
+				return nil, fmt.Errorf("unable to load password file %s: %w", c.PushConfig.BasicAuth.PasswordFile, err)
 			}
 			password = string(buff)
 		}
 
-		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.RemoteWrite.BasicAuth.Username + ":" + password))
+		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.PushConfig.BasicAuth.Username + ":" + password))
 		headers = map[string]string{
 			"authorization": "Basic " + encodedAuth,
 		}
 	}
 
+	otlpExporter := map[string]interface{}{
+		"endpoint":         c.PushConfig.Endpoint,
+		"headers":          headers,
+		"insecure":         c.PushConfig.Insecure,
+		"sending_queue":    c.PushConfig.SendingQueue,
+		"retry_on_failure": c.PushConfig.RetryOnFailure,
+	}
+
+	// Apply some sane defaults to the exporter. The
+	// sending_queue.retry_on_failure default is 300s which prevents any
+	// sending-related errors to not be logged for 5 minutes. We'll lower that
+	// to 60s.
+	if retryConfig := otlpExporter["retry_on_failure"].(map[string]interface{}); retryConfig == nil {
+		otlpExporter["retry_on_failure"] = map[string]interface{}{
+			"max_elapsed_time": "60s",
+		}
+	} else if retryConfig["max_elapsed_time"] == nil {
+		retryConfig["max_elapsed_time"] = "60s"
+	}
+
 	otelMapStructure["exporters"] = map[string]interface{}{
-		"otlp": map[string]interface{}{
-			"endpoint": c.RemoteWrite.Endpoint,
-			"headers":  headers,
-			"insecure": c.RemoteWrite.Insecure,
-		},
+		"otlp": otlpExporter,
 	}
 
 	// processors
@@ -115,17 +132,11 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		processorNames = append(processorNames, "attributes")
 	}
 
-	// todo: when we update otel collector to the latest we can just use the settings on the exporter
-	//       https://github.com/open-telemetry/opentelemetry-collector/tree/master/exporter/otlpexporter
-	if c.RemoteWrite.Batch != nil {
-		processors["batch"] = c.RemoteWrite.Batch
+	if c.PushConfig.Batch != nil {
+		processors["batch"] = c.PushConfig.Batch
 		processorNames = append(processorNames, "batch")
 	}
 
-	if c.RemoteWrite.Queue != nil {
-		processors["queued_retry"] = c.RemoteWrite.Queue
-		processorNames = append(processorNames, "queued_retry")
-	}
 	otelMapStructure["processors"] = processors
 
 	// receivers
@@ -168,27 +179,27 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 
 // tracingFactories() only creates the needed factories.  if we decide to add support for a new
 // processor, exporter, receiver we need to add it here
-func tracingFactories() (config.Factories, error) {
+func tracingFactories() (component.Factories, error) {
 	extensions, err := component.MakeExtensionFactoryMap()
 	if err != nil {
-		return config.Factories{}, err
+		return component.Factories{}, err
 	}
 
 	receivers, err := component.MakeReceiverFactoryMap(
 		jaegerreceiver.NewFactory(),
-		&zipkinreceiver.Factory{},
+		zipkinreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
-		&opencensusreceiver.Factory{},
+		opencensusreceiver.NewFactory(),
 	)
 	if err != nil {
-		return config.Factories{}, err
+		return component.Factories{}, err
 	}
 
 	exporters, err := component.MakeExporterFactoryMap(
-		&otlpexporter.Factory{},
+		otlpexporter.NewFactory(),
 	)
 	if err != nil {
-		return config.Factories{}, err
+		return component.Factories{}, err
 	}
 
 	processors, err := component.MakeProcessorFactoryMap(
@@ -198,10 +209,10 @@ func tracingFactories() (config.Factories, error) {
 		promsdprocessor.NewFactory(),
 	)
 	if err != nil {
-		return config.Factories{}, err
+		return component.Factories{}, err
 	}
 
-	return config.Factories{
+	return component.Factories{
 		Extensions: extensions,
 		Receivers:  receivers,
 		Processors: processors,

@@ -1,6 +1,7 @@
 package wal
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"path/filepath"
@@ -351,7 +352,7 @@ func (w *Storage) Directory() string {
 }
 
 // Appender returns a new appender against the storage.
-func (w *Storage) Appender() storage.Appender {
+func (w *Storage) Appender(_ context.Context) storage.Appender {
 	return w.appenderPool.Get().(storage.Appender)
 }
 
@@ -474,7 +475,7 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 	var lastErr error
 	var lastTs int64
 
-	app := w.Appender()
+	app := w.Appender(context.Background())
 	it := w.series.iterator()
 	for series := range it.Channel() {
 		var (

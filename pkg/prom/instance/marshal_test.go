@@ -72,7 +72,7 @@ remote_flush_deadline: 1m0s
 
 		out, err := yaml.Marshal(c)
 		require.NoError(t, err)
-		require.Equal(t, cfg, string(out))
+		require.YAMLEq(t, cfg, string(out))
 	})
 
 	t.Run("direct mashal pointer", func(t *testing.T) {
@@ -82,7 +82,7 @@ remote_flush_deadline: 1m0s
 
 		out, err := yaml.Marshal(c)
 		require.NoError(t, err)
-		require.Equal(t, cfg, string(out))
+		require.YAMLEq(t, cfg, string(out))
 	})
 
 	t.Run("custom marshal methods", func(t *testing.T) {
@@ -91,6 +91,6 @@ remote_flush_deadline: 1m0s
 
 		out, err := MarshalConfig(c, false)
 		require.NoError(t, err)
-		require.Equal(t, cfg, string(out))
+		require.YAMLEq(t, cfg, string(out))
 	})
 }

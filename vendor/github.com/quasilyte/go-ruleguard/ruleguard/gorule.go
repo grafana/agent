@@ -13,6 +13,7 @@ type scopedGoRuleSet struct {
 }
 
 type goRule struct {
+	filename   string
 	severity   string
 	pat        *gogrep.Pattern
 	msg        string
@@ -23,6 +24,7 @@ type goRule struct {
 
 type submatchFilter struct {
 	typePred    func(typeQuery) bool
+	textPred    func(string) bool
 	pure        bool3
 	constant    bool3
 	addressable bool3
