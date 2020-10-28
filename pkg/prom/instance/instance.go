@@ -21,7 +21,6 @@ import (
 	"github.com/grafana/agent/pkg/prom/wal"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/relabel"
@@ -43,21 +42,6 @@ var (
 
 // Default configuration values
 var (
-	// DefaultRelabelConfigs defines a list of relabel_configs that will
-	// be automatically appended to the end of all Prometheus
-	// configurations.
-	DefaultRelabelConfigs = []*relabel.Config{
-		// Add __host__ from Kubernetes node name
-		{
-			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_node_name"},
-			TargetLabel:  "__host__",
-			Action:       relabel.Replace,
-			Separator:    ";",
-			Regex:        relabel.MustNewRegexp("(.*)"),
-			Replacement:  "$1",
-		},
-	}
-
 	DefaultConfig = Config{
 		HostFilter:           false,
 		WALTruncateFrequency: 1 * time.Minute,
@@ -69,10 +53,11 @@ var (
 // Config is a specific agent that runs within the overall Prometheus
 // agent. It has its own set of scrape_configs and remote_write rules.
 type Config struct {
-	Name          string                      `yaml:"name" json:"name"`
-	HostFilter    bool                        `yaml:"host_filter" json:"host_filter"`
-	ScrapeConfigs []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty" json:"scrape_configs,omitempty"`
-	RemoteWrite   []*config.RemoteWriteConfig `yaml:"remote_write,omitempty" json:"remote_write,omitempty"`
+	Name                     string                      `yaml:"name" json:"name"`
+	HostFilter               bool                        `yaml:"host_filter" json:"host_filter"`
+	HostFilterRelabelConfigs []*relabel.Config           `yaml:"host_filter_relabel_configs,omitempty"`
+	ScrapeConfigs            []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty" json:"scrape_configs,omitempty"`
+	RemoteWrite              []*config.RemoteWriteConfig `yaml:"remote_write,omitempty" json:"remote_write,omitempty"`
 
 	// How frequently the WAL should be truncated.
 	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty" json:"wal_truncate_frequency,omitempty"`
@@ -148,10 +133,6 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
 			return fmt.Errorf("found multiple scrape configs with job name %q", sc.JobName)
 		}
 		jobNames[sc.JobName] = struct{}{}
-
-		if c.HostFilter {
-			sc.RelabelConfigs = append(sc.RelabelConfigs, DefaultRelabelConfigs...)
-		}
 	}
 
 	rwNames := map[string]struct{}{}
@@ -556,7 +537,7 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 		}
 		level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", hostname)
 
-		filterer := NewHostFilter(hostname)
+		filterer := NewHostFilter(hostname, cfg.HostFilterRelabelConfigs)
 
 		rg.Add(func() error {
 			filterer.Run(manager.SyncCh())
