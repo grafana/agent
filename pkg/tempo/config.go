@@ -27,7 +27,7 @@ type Config struct {
 	// Whether the Tempo subsystem should be enabled.
 	Enabled bool `yaml:"-"`
 
-	PushConfig RWConfig `yaml:"push_config"`
+	PushConfig PushConfig `yaml:"push_config"`
 
 	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/receiver/README.md
 	Receivers map[string]interface{} `yaml:"receivers"`
@@ -39,8 +39,8 @@ type Config struct {
 	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
 }
 
-// RWConfig controls the configuration of exporting to Grafana Cloud
-type RWConfig struct {
+// PushConfig controls the configuration of exporting to Grafana Cloud
+type PushConfig struct {
 	Endpoint       string                 `yaml:"endpoint"`
 	Insecure       bool                   `yaml:"insecure"`
 	BasicAuth      *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
