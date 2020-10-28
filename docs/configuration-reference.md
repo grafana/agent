@@ -451,6 +451,14 @@ azure_sd_configs:
 consul_sd_configs:
   [ - <consul_sd_config> ... ]
 
+# List of Digitalocean service discovery configurations.
+digitalocean_sd_config:
+  [ - <digitalocean_sd_config> ... ]
+
+# List of Docker Swarm service discovery configurations.
+dockerswarm_sd_configs:
+  [ - <dockerswarm_sd_config> ... ]
+
 # List of DNS service discovery configurations.
 dns_sd_configs:
   [ - <dns_sd_config> ... ]
@@ -471,6 +479,10 @@ file_sd_configs:
 gce_sd_configs:
   [ - <gce_sd_config> ... ]
 
+# List of Hetzner service discovery configurations.
+hetzner_sd_configs:
+  [ - <hetzner_sd_config> ... ]
+
 # List of Kubernetes service discovery configurations.
 kubernetes_sd_configs:
   [ - <kubernetes_sd_config> ... ]
@@ -490,6 +502,10 @@ serverset_sd_configs:
 # List of Triton service discovery configurations.
 triton_sd_configs:
   [ - <triton_sd_config> ... ]
+
+# List of Eureka service discovery configurations.
+eureka_sd_configs:
+  [ - <eureka_sd_config> ... ]
 
 # List of labeled statically configured targets for this job.
 static_configs:
@@ -611,6 +627,199 @@ tags:
 # On large setup it might be a good idea to increase this value because the catalog will change all the time.
 [ refresh_interval: <duration> | default = 30s ]
 ```
+
+### digitalocean_sd_config
+
+DigitalOcean SD configurations allow retrieving scrape targets from
+[DigitalOcean's](https://www.digitalocean.com/) Droplets API. This service
+discovery uses the public IPv4 address by default, by that can be changed with
+relabelling, as demonstrated in the [Prometheus digitalocean-sd configuration
+file](https://github.com/prometheus/prometheus/blob/release-2.22/documentation/examples/prometheus-digitalocean.yml).
+
+The following meta labels are available on targets during relabeling:
+
+- `__meta_digitalocean_droplet_id`: the id of the droplet
+- `__meta_digitalocean_droplet_name`: the name of the droplet
+- `__meta_digitalocean_image`: the image name of the droplet
+- `__meta_digitalocean_private_ipv4`: the private IPv4 of the droplet
+- `__meta_digitalocean_public_ipv4`: the public IPv4 of the droplet
+- `__meta_digitalocean_public_ipv6`: the public IPv6 of the droplet
+- `__meta_digitalocean_region`: the region of the droplet
+- `__meta_digitalocean_size`: the size of the droplet
+- `__meta_digitalocean_status`: the status of the droplet
+- `__meta_digitalocean_features`: the comma-separated list of features of the droplet
+- `__meta_digitalocean_tags`: the comma-separated list of tags of the droplet
+
+```yaml
+# Authentication information used to authenticate to the API server.
+# Note that `basic_auth`, `bearer_token` and `bearer_token_file` options are
+# mutually exclusive.
+# password and password_file are mutually exclusive.
+
+# Optional HTTP basic authentication information, not currently supported by DigitalOcean.
+basic_auth:
+  [ username: <string> ]
+  [ password: <secret> ]
+  [ password_file: <string> ]
+
+# Optional bearer token authentication information.
+[ bearer_token: <secret> ]
+
+# Optional bearer token file authentication information.
+[ bearer_token_file: <filename> ]
+
+# Optional proxy URL.
+[ proxy_url: <string> ]
+
+# TLS configuration.
+tls_config:
+  [ <tls_config> ]
+
+# The port to scrape metrics from.
+[ port: <int> | default = 80 ]
+
+# The time after which the droplets are refreshed.
+[ refresh_interval: <duration> | default = 60s ]
+```
+
+### dockerswarm_sd_config
+
+Docker Swarm SD configurations allow retrieving scrape targets from [Docker
+Swarm](https://docs.docker.com/engine/swarm/) engine.
+
+One of the following roles can be configured to discover targets:
+
+#### services
+
+The `services` role discovers all [Swarm
+services](https://docs.docker.com/engine/swarm/key-concepts/#services-and-tasks)
+and exposes their ports as targets. For each published port of a service, a
+single target is generated. If a service has no published ports, a target per
+service is created using the port parameter defined in the SD configuration.
+
+Available meta labels:
+
+- `__meta_dockerswarm_service_id`: the id of the service
+- `__meta_dockerswarm_service_name`: the name of the service
+- `__meta_dockerswarm_service_mode`: the mode of the service
+- `__meta_dockerswarm_service_endpoint_port_name`: the name of the endpoint port, if available
+- `__meta_dockerswarm_service_endpoint_port_publish_mode`: the publish mode of the endpoint port
+- `__meta_dockerswarm_service_label_<labelname>`: each label of the service
+- `__meta_dockerswarm_service_task_container_hostname`: the container hostname of the target, if available
+- `__meta_dockerswarm_service_task_container_image`: the container image of the target
+- `__meta_dockerswarm_service_updating_status`: the status of the service, if available
+- `__meta_dockerswarm_network_id`: the ID of the network
+- `__meta_dockerswarm_network_name`: the name of the network
+- `__meta_dockerswarm_network_ingress`: whether the network is ingress
+- `__meta_dockerswarm_network_internal`: whether the network is internal
+- `__meta_dockerswarm_network_label_<labelname>`: each label of the network
+- `__meta_dockerswarm_network_scope`: the scope of the network
+
+#### tasks
+
+The `tasks` role discovers all [Swarm
+tasks](https://docs.docker.com/engine/swarm/key-concepts/#services-and-tasks)
+and exposes their ports as targets. For each published port of a task, a single
+target is generated. If a task has no published ports, a target per task is
+created using the `port` parameter defined in the SD configuration.
+
+Available meta labels:
+
+- `__meta_dockerswarm_task_id`: the id of the task
+- `__meta_dockerswarm_task_container_id`: the container id of the task
+- `__meta_dockerswarm_task_desired_state`: the desired state of the task
+- `__meta_dockerswarm_task_label_<labelname>`: each label of the task
+- `__meta_dockerswarm_task_slot`: the slot of the task
+- `__meta_dockerswarm_task_state`: the state of the task
+- `__meta_dockerswarm_task_port_publish_mode`: the publish mode of the task port
+- `__meta_dockerswarm_service_id`: the id of the service
+- `__meta_dockerswarm_service_name`: the name of the service
+- `__meta_dockerswarm_service_mode`: the mode of the service
+- `__meta_dockerswarm_service_label_<labelname>`: each label of the service
+- `__meta_dockerswarm_network_id`: the ID of the network
+- `__meta_dockerswarm_network_name`: the name of the network
+- `__meta_dockerswarm_network_ingress`: whether the network is ingress
+- `__meta_dockerswarm_network_internal`: whether the network is internal
+- `__meta_dockerswarm_network_label_<labelname>`: each label of the network
+- `__meta_dockerswarm_network_label`: each label of the network
+- `__meta_dockerswarm_network_scope`: the scope of the network
+- `__meta_dockerswarm_node_id`: the ID of the node
+- `__meta_dockerswarm_node_hostname`: the hostname of the node
+- `__meta_dockerswarm_node_address`: the address of the node
+- `__meta_dockerswarm_node_availability`: the availability of the node
+- `__meta_dockerswarm_node_label_<labelname>`: each label of the node
+- `__meta_dockerswarm_node_platform_architecture`: the architecture of the node
+- `__meta_dockerswarm_node_platform_os`: the operating system of the node
+- `__meta_dockerswarm_node_role`: the role of the node
+- `__meta_dockerswarm_node_status`: the status of the node
+
+The `__meta_dockerswarm_network_*` meta labels are not populated for ports which are published with mode=host.
+
+#### nodes
+
+The `nodes` role is used to discover [Swarm
+nodes](https://docs.docker.com/engine/swarm/key-concepts/#nodes).
+
+Available meta labels:
+
+- `__meta_dockerswarm_node_address`: the address of the node
+- `__meta_dockerswarm_node_availability`: the availability of the node
+- `__meta_dockerswarm_node_engine_version`: the version of the node engine
+- `__meta_dockerswarm_node_hostname`: the hostname of the node
+- `__meta_dockerswarm_node_id`: the ID of the node
+- `__meta_dockerswarm_node_label_<labelname>`: each label of the node
+- `__meta_dockerswarm_node_manager_address`: the address of the manager component of the node
+- `__meta_dockerswarm_node_manager_leader`: the leadership status of the manager component of the node (true or false)
+- `__meta_dockerswarm_node_manager_reachability`: the reachability of the manager component of the node
+- `__meta_dockerswarm_node_platform_architecture`: the architecture of the node
+- `__meta_dockerswarm_node_platform_os`: the operating system of the node
+- `__meta_dockerswarm_node_role`: the role of the node
+- `__meta_dockerswarm_node_status`: the status of the node
+
+See below for the configuration options for Docker Swarm discovery:
+
+```yaml
+# Address of the Docker daemon.
+host: <string>
+
+# Optional proxy URL.
+[ proxy_url: <string> ]
+
+# TLS configuration.
+tls_config:
+  [ <tls_config> ]
+
+# Role of the targets to retrieve. Must be `services`, `tasks`, or `nodes`.
+role: <string>
+
+# The port to scrape metrics from, when `role` is nodes, and for discovered
+# tasks and services that don't have published ports.
+[ port: <int> | default = 80 ]
+
+# The time after which the droplets are refreshed.
+[ refresh_interval: <duration> | default = 60s ]
+
+# Authentication information used to authenticate to the Docker daemon.
+# Note that `basic_auth`, `bearer_token` and `bearer_token_file` options are
+# mutually exclusive.
+# password and password_file are mutually exclusive.
+
+# Optional HTTP basic authentication information.
+basic_auth:
+  [ username: <string> ]
+  [ password: <secret> ]
+  [ password_file: <string> ]
+
+# Optional bearer token authentication information.
+[ bearer_token: <secret> ]
+
+# Optional bearer token file authentication information.
+[ bearer_token_file: <filename> ]
+```
+
+See [this example Prometheus configuration
+file](https://github.com/prometheus/prometheus/blob/release-2.22/documentation/examples/prometheus-dockerswarm.yml)
+for a detailed example of configuring Prometheus for Docker Swarm.
 
 ### dns_sd_config
 
@@ -933,6 +1142,84 @@ If Prometheus is running within GCE, the service account associated with the
 instance it is running on should have at least read-only permissions to the
 compute resources. If running outside of GCE make sure to create an appropriate
 service account and place the credential file in one of the expected locations.
+
+### hetzner_sd_config
+
+Hetzner SD configurations allow retrieving scrape targets from [Hetzner
+Cloud](https://www.hetzner.com/) API and
+[Robot](https://docs.hetzner.com/robot/) API. This service discovery uses the
+public IPv4 address by default, but that can be changed with relabeling, as
+demonstrated in the [Prometheus hetzner-sd configuration
+file](https://github.com/prometheus/prometheus/blob/release-2.22/documentation/examples/prometheus-hetzner.yml).
+
+The following meta labels are available on all targets during relabeling:
+
+- `__meta_hetzner_server_id`: the ID of the server
+- `__meta_hetzner_server_name`: the name of the server
+- `__meta_hetzner_server_status`: the status of the server
+- `__meta_hetzner_public_ipv4`: the public ipv4 address of the server
+- `__meta_hetzner_public_ipv6_network`: the public ipv6 network (/64) of the server
+- `__meta_hetzner_datacenter`: the datacenter of the server
+
+The labels below are only available for targets with `role` set to `hcloud`:
+
+- `__meta_hetzner_hcloud_image_name`: the image name of the server
+- `__meta_hetzner_hcloud_image_description`: the description of the server image
+- `__meta_hetzner_hcloud_image_os_flavor`: the OS flavor of the server image
+- `__meta_hetzner_hcloud_image_os_version`: the OS version of the server image
+- `__meta_hetzner_hcloud_image_description`: the description of the server image
+- `__meta_hetzner_hcloud_datacenter_location`: the location of the server
+- `__meta_hetzner_hcloud_datacenter_location_network_zone`: the network zone of the server
+- `__meta_hetzner_hcloud_server_type`: the type of the server
+- `__meta_hetzner_hcloud_cpu_cores`: the CPU cores count of the server
+- `__meta_hetzner_hcloud_cpu_type`: the CPU type of the server (shared or dedicated)
+- `__meta_hetzner_hcloud_memory_size_gb`: the amount of memory of the server (in GB)
+- `__meta_hetzner_hcloud_disk_size_gb`: the disk size of the server (in GB)
+- `__meta_hetzner_hcloud_private_ipv4_<networkname>`: the private ipv4 address of the server within a given network
+- `__meta_hetzner_hcloud_label_<labelname>`: each label of the server
+
+The labels below are only available for targets with `role` set to `robot`:
+
+- `__meta_hetzner_robot_product`: the product of the server
+- `__meta_hetzner_robot_cancelled`: the server cancellation status
+
+```yaml
+# The Hetzner role of entities that should be discovered.
+# One of robot or hcloud.
+role: <string>
+
+# Authentication information used to authenticate to the API server.
+# Note that `basic_auth`, `bearer_token` and `bearer_token_file` options are
+# mutually exclusive.
+# password and password_file are mutually exclusive.
+
+# Optional HTTP basic authentication information, required when role is robot
+# Role hcloud does not support basic auth.
+basic_auth:
+  [ username: <string> ]
+  [ password: <secret> ]
+  [ password_file: <string> ]
+
+# Optional bearer token authentication information, required when role is hcloud
+# Role robot does not support bearer token authentication.
+[ bearer_token: <secret> ]
+
+# Optional bearer token file authentication information.
+[ bearer_token_file: <filename> ]
+
+# Optional proxy URL.
+[ proxy_url: <string> ]
+
+# TLS configuration.
+tls_config:
+  [ <tls_config> ]
+
+# The port to scrape metrics from.
+[ port: <int> | default = 80 ]
+
+# The time after which the servers are refreshed.
+[ refresh_interval: <duration> | default = 60s ]
+```
 
 ### kubernetes_sd_config
 
@@ -1263,6 +1550,71 @@ groups:
 tls_config:
   [ <tls_config> ]
 ```
+
+### eureka_sd_config
+
+Eureka SD configurations allow retrieving scrape targets using the
+[Eureka](https://github.com/Netflix/eureka) REST API. Prometheus will
+periodically check the REST endpoint and create a target for every app instance.
+
+The following meta labels are available on targets during relabeling:
+
+- `__meta_eureka_app_name`: the name of the app
+- `__meta_eureka_app_instance_id`: the ID of the app instance
+- `__meta_eureka_app_instance_hostname`: the hostname of the instance
+- `__meta_eureka_app_instance_homepage_url`: the homepage url of the app instance
+- `__meta_eureka_app_instance_statuspage_url`: the status page url of the app instance
+- `__meta_eureka_app_instance_healthcheck_url`: the health check url of the app instance
+- `__meta_eureka_app_instance_ip_addr`: the IP address of the app instance
+- `__meta_eureka_app_instance_vip_address`: the VIP address of the app instance
+- `__meta_eureka_app_instance_secure_vip_address`: the secure VIP address of the app instance
+- `__meta_eureka_app_instance_status`: the status of the app instance
+- `__meta_eureka_app_instance_port`: the port of the app instance
+- `__meta_eureka_app_instance_port_enabled`: the port enabled of the app instance
+- `__meta_eureka_app_instance_secure_port`: the secure port address of the app instance
+- `__meta_eureka_app_instance_secure_port_enabled`: the secure port of the app instance
+- `__meta_eureka_app_instance_country_id`: the country ID of the app instance
+- `__meta_eureka_app_instance_metadata_<metadataname>`: app instance metadata
+- `__meta_eureka_app_instance_datacenterinfo_name`: the datacenter name of the app instance
+- `__meta_eureka_app_instance_datacenterinfo_<metadataname>`: the datacenter metadata
+
+See below for the configuration options for Eureka discovery:
+
+```yaml
+# The URL to connect to the Eureka server.
+server: <string>
+
+# Sets the `Authorization` header on every request with the
+# configured username and password.
+# password and password_file are mutually exclusive.
+basic_auth:
+  [ username: <string> ]
+  [ password: <secret> ]
+  [ password_file: <string> ]
+
+# Sets the `Authorization` header on every request with
+# the configured bearer token. It is mutually exclusive with `bearer_token_file`.
+[ bearer_token: <string> ]
+
+# Sets the `Authorization` header on every request with the bearer token
+# read from the configured file. It is mutually exclusive with `bearer_token`.
+[ bearer_token_file: <filename> ]
+
+# Configures the scrape request's TLS settings.
+tls_config:
+  [ <tls_config> ]
+
+# Optional proxy URL.
+[ proxy_url: <string> ]
+
+# Refresh interval to re-read the app instance list.
+[ refresh_interval: <duration> | default = 30s ]
+```
+
+See [the Prometheus eureka-sd configuration
+file](https://github.com/prometheus/prometheus/blob/release-2.22/documentation/examples/prometheus-eureka.yml)
+for a practical example on how to set up your Eureka app and your Prometheus
+configuration.
 
 ### static_config
 
