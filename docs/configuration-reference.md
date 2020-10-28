@@ -330,6 +330,11 @@ name: string
 # same machine as the agent process.
 [host_filter: <boolean> | default = false]
 
+# Relabel configs to apply against discovered targets. The relabeling is
+# temporary and just used for filtering targets.
+host_filter_relabel_configs:
+  [ - <relabel_config> ... ]
+
 # How frequently the WAL truncation process should run. Every iteration of
 # truncation will checkpoint old series, create a new segment for new samples,
 # and remove old samples that have been succesfully sent via remote_write.
