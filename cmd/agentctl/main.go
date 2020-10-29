@@ -17,6 +17,9 @@ import (
 	"github.com/grafana/agent/pkg/agentctl"
 	"github.com/grafana/agent/pkg/client"
 	"github.com/spf13/cobra"
+
+	// Register Prometheus SD components
+	_ "github.com/prometheus/prometheus/discovery/install"
 )
 
 func main() {
@@ -51,8 +54,8 @@ uploaded will be the base name of the file (e.g., the name of the file without
 its extension).
 
 The directory is used as the source-of-truth for the entire set of configs that
-should be present in the API. config-sync will delete all existing configs from the API 
-that do not match any of the names of the configs that were uploaded from the 
+should be present in the API. config-sync will delete all existing configs from the API
+that do not match any of the names of the configs that were uploaded from the
 source-of-truth directory.`,
 		Args: cobra.ExactArgs(1),
 
@@ -85,8 +88,8 @@ func targetStatsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "target-stats [WAL directory]",
 		Short: "Discover statitics on a specific target within the WAL.",
-		Long: `target-stats computes statitics on a specific target within the WAL at 
-greater detail than the general wal-stats. The statistics computed is the 
+		Long: `target-stats computes statitics on a specific target within the WAL at
+greater detail than the general wal-stats. The statistics computed is the
 cardinality of all series within that target.
 
 The cardinality for a series is defined as the total number of unique
@@ -139,13 +142,13 @@ func walStatsCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "wal-stats [WAL directory]",
 		Short: "Collect stats on the WAL",
-		Long: `wal-stats reads a WAL directory and collects information on the series and 
+		Long: `wal-stats reads a WAL directory and collects information on the series and
 samples within it.
 
 The "Hash Collisions" value refers to the number of ref IDs a label's hash was
-assigned to. A non-zero amount of collisions has no negative effect on the data 
-sent to the Remote Write endpoint, but may have an impact on memory usage. Labels 
-may collide with multiple ref IDs normally if a series flaps (i.e., gets marked for 
+assigned to. A non-zero amount of collisions has no negative effect on the data
+sent to the Remote Write endpoint, but may have an impact on memory usage. Labels
+may collide with multiple ref IDs normally if a series flaps (i.e., gets marked for
 deletion but then comes back at some point).`,
 		Args: cobra.ExactArgs(1),
 

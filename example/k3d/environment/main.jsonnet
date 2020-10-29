@@ -92,6 +92,6 @@ local images = {
         relabel_configs+: [
           { target_label: 'cluster', replacement: cluster_label },
         ],
-      }, super.kubernetes_scrape_configs),
+      }, super.deployment_scrape_configs + super.kubernetes_scrape_configs),
     }),
 }
