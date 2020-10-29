@@ -100,11 +100,11 @@ func (rz RaplZone) GetEnergyMicrojoules() (uint64, error) {
 // provided back as an integer, and stripped from the returned name. Usage
 // count is used when the index value is absent from the name.
 func getIndexAndName(countNameUsages map[string]int, name string) (int, string) {
-	length := len(name)
-	if length >= 2 {
-		index, err := strconv.Atoi(name[length-1:])
-		if name[length-2:length-1] == "-" && err == nil {
-			return index, name[:length-2]
+	s := strings.Split(name, "-")
+	if len(s) == 2 {
+		index, err := strconv.Atoi(s[1])
+		if err == nil {
+			return index, s[0]
 		}
 	}
 	// return count as the index, since name didn't have an index at the end
