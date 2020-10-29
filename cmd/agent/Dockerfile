@@ -6,7 +6,7 @@ ARG IMAGE_TAG
 RUN apt-get update && apt-get install -qy libsystemd-dev
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agent
 
-FROM debian:stretch-slim
+FROM debian:buster-slim
 RUN apt-get update && \
   apt-get install -qy \
   tzdata ca-certificates libsystemd-dev && \

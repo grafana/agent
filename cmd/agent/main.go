@@ -20,6 +20,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
 	"github.com/weaveworks/common/server"
+
+	// Register Prometheus SD components
+	_ "github.com/prometheus/prometheus/discovery/install"
 )
 
 func init() {
