@@ -21,7 +21,7 @@ import (
 	"github.com/prometheus/common/version"
 	"github.com/weaveworks/common/server"
 
-	// Register Prometheus SD mechanisms
+	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
 )
 

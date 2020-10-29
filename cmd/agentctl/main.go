@@ -18,7 +18,7 @@ import (
 	"github.com/grafana/agent/pkg/client"
 	"github.com/spf13/cobra"
 
-	// Register Prometheus SD mechanisms
+	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
 )
 
