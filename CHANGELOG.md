@@ -4,6 +4,9 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+- [FEATURE] New integration: [dnsamsq_exporter](https://github.com/google/dnsamsq_exporter)
+  (@rfratto).
+
 # v0.7.2 (2020-10-29)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
@@ -46,7 +49,7 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] Add RPM and deb packaging. (@jdbaldry) (@simon6372)
 
 - [FEATURE] arm64 and arm/v7 Docker containers and release builds are now
-  available for `agent` and `agentctl`. (@rfratto) 
+  available for `agent` and `agentctl`. (@rfratto)
 
 - [FEATURE] Add `wal-stats` and `target-stats` tooling to `agentctl` to discover
   WAL and cardinality issues. (@rfratto)
@@ -57,7 +60,7 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] [redis_exporter](https://github.com/oliver006/redis_exporter) is
   now embedded and available as an integration. (@dafydd-t)
 
-- [ENHANCEMENT] Resharding the cluster when using the scraping service mode now 
+- [ENHANCEMENT] Resharding the cluster when using the scraping service mode now
   supports timeouts through `reshard_timeout`. The default value is `30s.` This
   timeout applies to cluster-wide reshards (performed when joining and leaving
   the cluster) and local reshards (done on the `reshard_interval`). (@rfratto)
@@ -69,10 +72,10 @@ this platform. FreeBSD builds will return in a future release.
   (@rfratto).
 
 - [BUGFIX] Support URL-encoded paths in the scraping service API. (@rfratto)
- 
+
 - [BUGFIX] The instance label written from replace_instance_label can now be
   overwritten with relabel_configs. This bugfix slightly modifies the behavior
-  of what data is stored. The final instance label will now be stored in the WAL 
+  of what data is stored. The final instance label will now be stored in the WAL
   rather than computed by remote_write. This change should not negatively effect
   existing users. (@rfratto)
 

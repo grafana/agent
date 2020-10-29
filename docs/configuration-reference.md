@@ -155,9 +155,9 @@ agents distribute discovery and scrape load between nodes.
 # events are not sent by an agent.
 [reshard_interval: <duration> | default = "1m"]
 
-# The timeout for a reshard. Applies to a cluster-wide reshard (done when 
+# The timeout for a reshard. Applies to a cluster-wide reshard (done when
 # joining or leaving the cluster) and local reshards (done every
-# reshard_interval). A timeout of 0 indicates no timeout. 
+# reshard_interval). A timeout of 0 indicates no timeout.
 [reshard_timeout: <duration> | default = "30s"]
 
 # Configuration for the KV store to store metrics
@@ -1808,12 +1808,12 @@ scrape_configs:
 
 ### tempo_config
 
-The `tempo_config` block configures how the Agent receives traces and sends them to Tempo. 
+The `tempo_config` block configures how the Agent receives traces and sends them to Tempo.
 
 ```yaml
 # Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor
 #  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
-attributes: [attributes.config] 
+attributes: [attributes.config]
 
 push_config:
   # host:port to send traces to
@@ -1896,6 +1896,9 @@ mysqld_exporter: <mysqld_exporter_config>
 # Controls the redis_exporter integration
 redis_exporter: <redis_exporter_config>
 
+# Controls the dnsmasq_exporter integration
+dnsmasq_exporter: <dnsmasq_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
@@ -1904,7 +1907,7 @@ redis_exporter: <redis_exporter_config>
 
 # When true, replaces the instance label with the hostname of the machine,
 # rather than 127.0.0.1:<server.http_listen_port>. Useful when running multiple
-# Agents with the same integrations and uniquely identifying where metrics are 
+# Agents with the same integrations and uniquely identifying where metrics are
 # coming from.
 #
 # The value for the instance label can be replaced by providing custom
@@ -2475,7 +2478,7 @@ Full reference of options:
   # authentication is: "root@(localhost:3306)/"
   data_source_name: <string>
 
-  # A list of collector names to enable on top of the default set. 
+  # A list of collector names to enable on top of the default set.
   enable_collectors:
     [ - <string> ]
   # A list of collector names to disable from the default set.
@@ -2491,7 +2494,7 @@ Full reference of options:
   # by Oracle MySQL.
   [log_slow_filter: <bool> | default = false]
 
-  ## Collector-specific options 
+  ## Collector-specific options
 
   # Minimum time a thread must be in each state to be counted.
   [info_schema_processlist_min_time: <int> | default = 0]
@@ -2679,4 +2682,72 @@ Full reference of options:
 
   # Whether to to skip TLS verification.
   [skip_tls_verification: <bool>]
+```
+
+### dnsmasq_exporter_config
+
+The `dnsmasq_exporter_config` block configures the `dnsmasq_exporter` integration,
+which is an embedded version of
+[`dnsmasq_exporter`](https://github.com/google/dnsmasq_exporter). This allows for
+the collection of metrics from dnsmasq servers.
+
+Note that currently, an Agent can only collect metrics from a single dnsmasq
+server. If you want to collect metrics from multiple servers, you can run
+multiple Agents and add labels using `relabel_configs` to differentiate between
+the servers:
+
+```yaml
+dnsmasq_exporter:
+  enabled: true
+  dnsmasq_address: dnsmasq-a:53
+  relabel_configs:
+  - source_labels: [__address__]
+    target_label: instance
+    replacement: dnsmasq-a
+```
+
+Full reference of options:
+
+```yaml
+  # Enables the redis_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the configured redis address
+  [enabled: <boolean> | default = false]
+
+  # Automatically collect metrics from this integration. If disabled,
+  # the redis_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/redis_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  #
+  # Exporter-specific configuration options
+  #
+
+  # Address of the dnsmasq server in host:port form.
+  [dnsmasq_address: <string> | default = "localhost:53"]
+
+  # Path to the dnsmasq leases file. If this file doesn't exist, scraping
+  # dnsmasq # will fail with an warning log message.
+  [leases_path: <string> | default = "/var/lib/misc/dnsmasq.leases"]
 ```
