@@ -2714,7 +2714,7 @@ Full reference of options:
   [enabled: <boolean> | default = false]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the redis_exporter integration will be run but not scraped and thus not
+  # the dnsmasq_exporter integration will be run but not scraped and thus not
   # remote-written. Metrics for the integration will be exposed at
   # /integrations/redis_exporter/metrics and can be scraped by an external
   # process.
