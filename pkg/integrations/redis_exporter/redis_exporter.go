@@ -14,7 +14,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 
-	re "github.com/oliver006/redis_exporter/lib/exporter"
+	re "github.com/oliver006/redis_exporter/exporter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -83,7 +83,6 @@ func New(log log.Logger, c Config) (*Integration, error) {
 	exporter, err := re.NewRedisExporter(
 		c.RedisAddr,
 		exporterConfig,
-		re.BuildInfo{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create redis exporter: %w", err)
