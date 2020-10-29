@@ -4,12 +4,11 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
-var (
-	DefaultConfig Config = Config{
-		DnsmasqAddress: "localhost:53",
-		LeasesPath:     "/var/lib/misc/dnsmasq.leases",
-	}
-)
+// DefaultConfig is the default config for dnsmasq_exporter.
+var DefaultConfig Config = Config{
+	DnsmasqAddress: "localhost:53",
+	LeasesPath:     "/var/lib/misc/dnsmasq.leases",
+}
 
 // Config controls the mysqld_exporter integration.
 type Config struct {

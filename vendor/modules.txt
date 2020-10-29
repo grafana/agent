@@ -346,7 +346,7 @@ github.com/gomodule/redigo/redis
 github.com/google/addlicense
 # github.com/google/btree v1.0.0
 github.com/google/btree
-# github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029175341-d5c660a4eb09
+# github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23
 github.com/google/dnsmasq_exporter/collector
 # github.com/google/go-cmp v0.5.2
 github.com/google/go-cmp/cmp

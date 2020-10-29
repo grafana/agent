@@ -90,8 +90,8 @@ type Collector struct {
 	leasesPath  string
 }
 
-// NewCollector creates a new Collector.
-func NewCollector(client *dns.Client, dnsmasqAddr string, leasesPath string) *Collector {
+// New creates a new Collector.
+func New(client *dns.Client, dnsmasqAddr string, leasesPath string) *Collector {
 	return &Collector{
 		dnsClient:   client,
 		dnsmasqAddr: dnsmasqAddr,

@@ -25,7 +25,7 @@ type Integration struct {
 
 // New creates a new dnsmasq_exporter integration.
 func New(log log.Logger, c Config) (*Integration, error) {
-	exporter := collector.NewCollector(&dns.Client{
+	exporter := collector.New(&dns.Client{
 		SingleInflight: true,
 	}, c.DnsmasqAddress, c.LeasesPath)
 
