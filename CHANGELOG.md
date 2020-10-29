@@ -4,6 +4,12 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+# v0.7.2 (2020-10-29)
+
+NOTE: FreeBSD builds will not be included for this release. There is a bug in an
+upstream library preventing cross-compilation of the Grafana Cloud Agent for
+this platform. FreeBSD builds will return in a future release.
+
 - [ENHANCEMENT] Bump Prometheus dependency to 2.21. (@rfratto)
 
 - [ENHANCEMENT] Bump OpenTelemetry-collector dependency to 0.13.0 (@rfratto)
