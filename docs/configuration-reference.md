@@ -2709,7 +2709,7 @@ dnsmasq_exporter:
 Full reference of options:
 
 ```yaml
-  # Enables the redis_exporter integration, allowing the Agent to automatically
+  # Enables the dnsmasq_exporter integration, allowing the Agent to automatically
   # collect system metrics from the configured redis address
   [enabled: <boolean> | default = false]
 
