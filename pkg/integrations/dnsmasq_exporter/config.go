@@ -10,7 +10,7 @@ var DefaultConfig Config = Config{
 	LeasesPath:     "/var/lib/misc/dnsmasq.leases",
 }
 
-// Config controls the mysqld_exporter integration.
+// Config controls the dnsmasq_exporter integration.
 type Config struct {
 	// Enabled enables the integration.
 	Enabled bool `yaml:"enabled"`
