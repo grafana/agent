@@ -3,7 +3,7 @@ package redis_exporter //nolint:golint
 import (
 	"time"
 
-	re "github.com/oliver006/redis_exporter/lib/exporter"
+	re "github.com/oliver006/redis_exporter/exporter"
 
 	"github.com/grafana/agent/pkg/integrations/config"
 )
