@@ -1899,6 +1899,9 @@ redis_exporter: <redis_exporter_config>
 # Controls the dnsmasq_exporter integration
 dnsmasq_exporter: <dnsmasq_exporter_config>
 
+# Controls the memcached_exporter integration
+memcached_exporter: <memcached_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
@@ -2750,4 +2753,71 @@ Full reference of options:
   # Path to the dnsmasq leases file. If this file doesn't exist, scraping
   # dnsmasq # will fail with an warning log message.
   [leases_path: <string> | default = "/var/lib/misc/dnsmasq.leases"]
+```
+
+### memcached_exporter_config
+
+The `memcached_exporter_config` block configures the `memcached_exporter`
+integration, which is an embedded version of
+[`memcached_exporter`](https://github.com/prometheus/memcached_exporter). This
+allows for the collection of metrics from memcached servers.
+
+Note that currently, an Agent can only collect metrics from a single memcached
+server. If you want to collect metrics from multiple servers, you can run
+multiple Agents and add labels using `relabel_configs` to differentiate between
+the servers:
+
+```yaml
+memcached_exporter:
+  enabled: true
+  memcached_address: memcached-a:53
+  relabel_configs:
+  - source_labels: [__address__]
+    target_label: instance
+    replacement: memcached-a
+```
+
+Full reference of options:
+
+```yaml
+  # Enables the memcached_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the configured memcached server address
+  [enabled: <boolean> | default = false]
+
+  # Automatically collect metrics from this integration. If disabled,
+  # the memcached_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/memcached_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  #
+  # Exporter-specific configuration options
+  #
+
+  # Address of the memcached server in host:port form.
+  [memcached_address: <string> | default = "localhost:53"]
+
+  # Timeout for connecting to memcached.
+  [timeout: <duration> | default = "1s"]
 ```
