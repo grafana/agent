@@ -28,6 +28,10 @@ integrations:
     enabled: true
     dnsmasq_address: localhost:30053
     leases_path: /tmp/dnsmasq-leases/dnsmasq.leases
+  memcached_exporter:
+    enabled: true
+    memcached_address: localhost:11211
+    timeout: 10s
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push
 

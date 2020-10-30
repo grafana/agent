@@ -77,3 +77,8 @@ services:
       - /tmp/dnsmasq-leases:/var/lib/misc
     ports:
       - "30053:53/udp"
+
+  memcached:
+    image: memcached
+    ports:
+      - "11211:11211"

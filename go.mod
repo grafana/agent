@@ -23,6 +23,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0
 	github.com/prometheus/common v0.14.0
+	github.com/prometheus/memcached_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.2.0
@@ -68,6 +69,7 @@ replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984
 replace (
 	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf
+	github.com/prometheus/memcached_exporter => github.com/grafana/memcached_exporter v0.7.1-0.20201030142623-8e1997d4fbb7
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 )
 
