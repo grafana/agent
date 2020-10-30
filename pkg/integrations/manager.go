@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/agent"
 	integrationCfg "github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
@@ -60,6 +61,7 @@ type Config struct {
 	ProcessExporter process_exporter.Config `yaml:"process_exporter"`
 	MysqldExporter  mysqld_exporter.Config  `yaml:"mysqld_exporter"`
 	RedisExporter   redis_exporter.Config   `yaml:"redis_exporter"`
+	DnsmasqExporter dnsmasq_exporter.Config `yaml:"dnsmasq_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -189,6 +191,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.RedisExporter.Enabled {
 		l := log.With(logger, "integration", "redis_exporter")
 		i, err := redis_exporter.New(l, c.RedisExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.DnsmasqExporter.Enabled {
+		l := log.With(logger, "integration", "dnsmasq_exporter")
+		i, err := dnsmasq_exporter.New(l, c.DnsmasqExporter)
 		if err != nil {
 			return nil, err
 		}

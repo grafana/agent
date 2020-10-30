@@ -23,7 +23,11 @@ integrations:
     data_source_name: root@(localhost:3306)/
   redis_exporter:
     enabled: true
-    redis_addr: redis:6379
+    redis_addr: localhost:6379
+  dnsmasq_exporter:
+    enabled: true
+    dnsmasq_address: localhost:30053
+    leases_path: /tmp/dnsmasq-leases/dnsmasq.leases
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push
 
