@@ -69,3 +69,11 @@ services:
     image: redis:6
     ports:
       - "6379:6379"
+
+  dnsmasq:
+    image: andyshinn/dnsmasq:2.81
+    cap_add: [NET_ADMIN]
+    volumes:
+      - /tmp/dnsmasq-leases:/var/lib/misc
+    ports:
+      - "30053:53/udp"
