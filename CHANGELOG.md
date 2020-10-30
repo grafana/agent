@@ -7,6 +7,9 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] New integration: [dnsamsq_exporter](https://github.com/google/dnsamsq_exporter)
   (@rfratto).
 
+- [FEATURE] New integration: [memcached_exporter](https://github.com/prometheus/memcached_exporter)
+  (@rfratto).
+
 # v0.7.2 (2020-10-29)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an

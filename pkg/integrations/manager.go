@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/agent"
 	integrationCfg "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
+	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
@@ -56,12 +57,13 @@ type Config struct {
 	// ReplaceInstanceLabel should be used instead.
 	UseHostnameLabel bool `yaml:"use_hostname_label"`
 
-	Agent           agent.Config            `yaml:"agent"`
-	NodeExporter    node_exporter.Config    `yaml:"node_exporter"`
-	ProcessExporter process_exporter.Config `yaml:"process_exporter"`
-	MysqldExporter  mysqld_exporter.Config  `yaml:"mysqld_exporter"`
-	RedisExporter   redis_exporter.Config   `yaml:"redis_exporter"`
-	DnsmasqExporter dnsmasq_exporter.Config `yaml:"dnsmasq_exporter"`
+	Agent             agent.Config              `yaml:"agent"`
+	NodeExporter      node_exporter.Config      `yaml:"node_exporter"`
+	ProcessExporter   process_exporter.Config   `yaml:"process_exporter"`
+	MysqldExporter    mysqld_exporter.Config    `yaml:"mysqld_exporter"`
+	RedisExporter     redis_exporter.Config     `yaml:"redis_exporter"`
+	DnsmasqExporter   dnsmasq_exporter.Config   `yaml:"dnsmasq_exporter"`
+	MemcachedExporter memcached_exporter.Config `yaml:"memcached_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -199,6 +201,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.DnsmasqExporter.Enabled {
 		l := log.With(logger, "integration", "dnsmasq_exporter")
 		i, err := dnsmasq_exporter.New(l, c.DnsmasqExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.MemcachedExporter.Enabled {
+		l := log.With(logger, "integration", "memcached_exporter")
+		i, err := memcached_exporter.New(l, c.MemcachedExporter)
 		if err != nil {
 			return nil, err
 		}
