@@ -54,7 +54,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.ScriptPath = "./config.go" // file content is irrelevant
+				c.ScriptPath = "./redis_exporter.go" // file content is irrelevant
 				return c
 			})(),
 		},
@@ -81,7 +81,7 @@ func TestRedisCases(t *testing.T) {
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
-				c.RedisPasswordFile = "./config.go" // contents not important
+				c.RedisPasswordFile = "./redis_exporter.go" // contents not important
 				return c
 			})(),
 		},
