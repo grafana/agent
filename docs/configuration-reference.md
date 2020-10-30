@@ -2710,7 +2710,7 @@ Full reference of options:
 
 ```yaml
   # Enables the dnsmasq_exporter integration, allowing the Agent to automatically
-  # collect system metrics from the configured redis address
+  # collect system metrics from the configured dnsmasq server address
   [enabled: <boolean> | default = false]
 
   # Automatically collect metrics from this integration. If disabled,
