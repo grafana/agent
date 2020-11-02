@@ -10,6 +10,10 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] New integration: [memcached_exporter](https://github.com/prometheus/memcached_exporter)
   (@rfratto).
 
+- [BUGFIX] Error messages when retrieving configs from the KV store will
+  now be logged, rather than just logging a generic message saying that
+  retrieving the config has failed. (@rfratto)
+
 # v0.7.2 (2020-10-29)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
