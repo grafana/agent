@@ -97,7 +97,7 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 			// TODO(rfratto): retries might be useful here
 			v, err := s.kv.Get(ctx, key)
 			if err != nil {
-				level.Error(s.logger).Log("err", "failed to get config with key", "key", key, "err", err)
+				level.Error(s.logger).Log("msg", "failed to get config with key", "key", key, "err", err)
 				return
 			} else if v == nil {
 				level.Warn(s.logger).Log("skipping key that was deleted after list was called", "key", key)
