@@ -16,6 +16,10 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] New integration: [memcached_exporter](https://github.com/prometheus/memcached_exporter)
   (@rfratto).
 
+- [FEATURE] Add `sample-stats` to `agentctl` to search the WAL and return a
+  summary of samples of series matching the given label selector.
+  (@simonswine)
+
 - [ENHANCEMENT] Add `<integration name>_build_info` metric to all integrations.
   The build info displayed will match the build information of the Agent and
   *not* the embedded exporter. This metric is used by community dashboards, so
