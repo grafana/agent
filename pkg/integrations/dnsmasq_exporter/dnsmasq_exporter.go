@@ -39,7 +39,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics
 // from a dnsmasq server.
-func New(log log.Logger, c Config) (*common.CollectorIntegration, error) {
+func New(log log.Logger, c Config) (common.Integration, error) {
 	exporter := collector.New(&dns.Client{
 		SingleInflight: true,
 	}, c.DnsmasqAddress, c.LeasesPath)

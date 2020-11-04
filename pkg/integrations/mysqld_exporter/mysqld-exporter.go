@@ -78,7 +78,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // New creates a new mysqld_exporter integration. The integration scrapes
 // metrics from a mysqld process.
-func New(log log.Logger, c Config) (*common.CollectorIntegration, error) {
+func New(log log.Logger, c Config) (common.Integration, error) {
 	dsn := c.DataSourceName
 	if len(dsn) == 0 {
 		dsn = os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME")

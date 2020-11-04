@@ -98,7 +98,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // New creates a new redis_exporter integration. The integration queries
 // a redis instance's INFO and exposes the results as metrics.
-func New(log log.Logger, c Config) (*common.CollectorIntegration, error) {
+func New(log log.Logger, c Config) (common.Integration, error) {
 	level.Debug(log).Log("msg", "initialising redis_exporer with config %v", c)
 
 	exporterConfig := c.GetExporterOptions()

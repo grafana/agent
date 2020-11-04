@@ -40,7 +40,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // New creates a new memcached_exporter integration. The integration scrapes metrics
 // from a memcached server.
-func New(log log.Logger, c Config) (*common.CollectorIntegration, error) {
+func New(log log.Logger, c Config) (common.Integration, error) {
 	return common.NewCollectorIntegration(
 		"memcached_exporter",
 		c.CommonConfig,
