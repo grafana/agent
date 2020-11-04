@@ -2,34 +2,103 @@
 package redis_exporter //nolint:golint
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/mux"
 
 	re "github.com/oliver006/redis_exporter/exporter"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
-// Integration is the redis_exporter integration. The integration queries
-// a redis instance's INFO and exposes the results as metrics.
-type Integration struct {
-	c        Config
-	exporter *re.Exporter
+// DefaultConfig holds non-zero default options for the Config when it is
+// unmarshaled from YAML.
+var DefaultConfig = Config{
+	Namespace:         "redis",
+	ConfigCommand:     "CONFIG",
+	ConnectionTimeout: (15 * time.Second),
+	SetClientName:     true,
 }
 
-// New creates a new redis_exporter integration.
-func New(log log.Logger, c Config) (*Integration, error) {
+// Config controls the redis_exporter integration.
+type Config struct {
+	Enabled      bool          `yaml:"enabled"`
+	CommonConfig config.Common `yaml:",inline"`
+
+	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
+
+	// exporter-specific config.
+	//
+	// The exporter binary config differs to this, but these
+	// are the only fields that are relevant to the exporter struct.
+	RedisAddr           string        `yaml:"redis_addr"`
+	RedisUser           string        `yaml:"redis_user"`
+	RedisPassword       string        `yaml:"redis_password"`
+	RedisPasswordFile   string        `yaml:"redis_password_file"`
+	Namespace           string        `yaml:"namespace"`
+	ConfigCommand       string        `yaml:"config_command"`
+	CheckKeys           string        `yaml:"check_keys"`
+	CheckSingleKeys     string        `yaml:"check_single_keys"`
+	CheckStreams        string        `yaml:"check_streams"`
+	CheckSingleStreams  string        `yaml:"check_single_streams"`
+	CountKeys           string        `yaml:"count_keys"`
+	ScriptPath          string        `yaml:"script_path"`
+	ConnectionTimeout   time.Duration `yaml:"connection_timeout"`
+	TLSClientKeyFile    string        `yaml:"tls_client_key_file"`
+	TLSClientCertFile   string        `yaml:"tls_client_cert_file"`
+	TLSCaCertFile       string        `yaml:"tls_ca_cert_file"`
+	SetClientName       bool          `yaml:"set_client_name"`
+	IsTile38            bool          `yaml:"is_tile38"`
+	ExportClientList    bool          `yaml:"export_client_list"`
+	RedisMetricsOnly    bool          `yaml:"redis_metrics_only"`
+	PingOnConnect       bool          `yaml:"ping_on_connect"`
+	InclSystemMetrics   bool          `yaml:"incl_system_metrics"`
+	SkipTLSVerification bool          `yaml:"skip_tls_verification"`
+}
+
+// GetExporterOptions returns relevant Config properties as a redis_exporter
+// Options struct. The redis_exporter Options struct has no yaml tags, so
+// we marshal the yaml into Config and then create the re.Options from that.
+func (c Config) GetExporterOptions() re.Options {
+	return re.Options{
+		User:                c.RedisUser,
+		Password:            c.RedisPassword,
+		Namespace:           c.Namespace,
+		ConfigCommandName:   c.ConfigCommand,
+		CheckKeys:           c.CheckKeys,
+		CheckSingleKeys:     c.CheckSingleKeys,
+		CheckStreams:        c.CheckStreams,
+		CheckSingleStreams:  c.CheckSingleStreams,
+		CountKeys:           c.CountKeys,
+		InclSystemMetrics:   c.InclSystemMetrics,
+		SkipTLSVerification: c.SkipTLSVerification,
+		SetClientName:       c.SetClientName,
+		IsTile38:            c.IsTile38,
+		ExportClientList:    c.ExportClientList,
+		ConnectionTimeouts:  c.ConnectionTimeout,
+		RedisMetricsOnly:    c.RedisMetricsOnly,
+		PingOnConnect:       c.PingOnConnect,
+	}
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for Config
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
+}
+
+// New creates a new redis_exporter integration. The integration queries
+// a redis instance's INFO and exposes the results as metrics.
+func New(log log.Logger, c Config) (common.Integration, error) {
 	level.Debug(log).Log("msg", "initialising redis_exporer with config %v", c)
 
 	exporterConfig := c.GetExporterOptions()
@@ -88,65 +157,10 @@ func New(log log.Logger, c Config) (*Integration, error) {
 		return nil, fmt.Errorf("failed to create redis exporter: %w", err)
 	}
 
-	return &Integration{
-		c:        c,
-		exporter: exporter,
-	}, nil
-}
-
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
-
-// Name satisfies Integration.Name.
-func (i *Integration) Name() string { return "redis_exporter" }
-
-// RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
-// here is expected to be a subrouter, where all registered paths will be
-// registered within that subroute.
-func (i *Integration) RegisterRoutes(r *mux.Router) error {
-	handler, err := i.handler()
-	if err != nil {
-		return err
-	}
-
-	r.Handle("/metrics", handler)
-	return nil
-}
-
-func (i *Integration) handler() (http.Handler, error) {
-	r := prometheus.NewRegistry()
-	if err := r.Register(i.exporter); err != nil {
-		return nil, fmt.Errorf("couldn't register redis_exporter: %w", err)
-	}
-
-	handler := promhttp.HandlerFor(
-		r,
-		promhttp.HandlerOpts{
-			ErrorHandling: promhttp.ContinueOnError,
-		},
-	)
-
-	if i.c.IncludeExporterMetrics {
-		// Note that we have to use reg here to use the same promhttp metrics for
-		// all expositions.
-		handler = promhttp.InstrumentMetricHandler(r, handler)
-	}
-
-	return handler, nil
-}
-
-// ScrapeConfigs satisfies Integration.ScrapeConfigs.
-func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{
-		JobName:     i.Name(),
-		MetricsPath: "/metrics",
-	}}
-}
-
-// Run satisfies Integration.Run.
-func (i *Integration) Run(ctx context.Context) error {
-	// We don't need to do anything here, so we can just wait for the context to
-	// finish.
-	<-ctx.Done()
-	return ctx.Err()
+	return common.NewCollectorIntegration(
+		"redis_exporter",
+		c.CommonConfig,
+		exporter,
+		c.IncludeExporterMetrics,
+	), nil
 }

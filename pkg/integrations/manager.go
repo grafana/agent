@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/agent"
-	integrationCfg "github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
@@ -116,39 +116,11 @@ func (c *Config) DefaultRelabelConfigs() ([]*relabel.Config, error) {
 	return cfgs, nil
 }
 
-type Integration interface {
-	// Name returns the name of the integration. Each registered integration must
-	// have a unique name.
-	Name() string
-
-	// CommonConfig returns the set of common configuration values present across
-	// all integrations.
-	CommonConfig() integrationCfg.Common
-
-	// RegisterRoutes should register any HTTP handlers used for the integration.
-	//
-	// The router provided to RegisterRoutes is a subrouter for the path
-	// /integrations/<integration name>. All routes should register to the
-	// relative root path and will be automatically combined to the subroute. For
-	// example, if a metric "database" registers a /metrics endpoint, it will
-	// be exposed as /integrations/database/metrics.
-	RegisterRoutes(r *mux.Router) error
-
-	// ScrapeConfigs should return a set of integration scrape configs that inform
-	// the integration how samples should be collected.
-	ScrapeConfigs() []integrationCfg.ScrapeConfig
-
-	// Run should start the integration and do any required tasks. Run should *not*
-	// exit until context is canceled. If an integration doesn't need to do anything,
-	// it should simply wait for ctx to be canceled.
-	Run(ctx context.Context) error
-}
-
 // Manager manages a set of integrations and runs them.
 type Manager struct {
 	c                     Config
 	logger                log.Logger
-	integrations          []Integration
+	integrations          []common.Integration
 	hostname              string
 	defaultRelabelConfigs []*relabel.Config
 
@@ -161,7 +133,7 @@ type Manager struct {
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
 func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, error) {
-	var integrations []Integration
+	var integrations []common.Integration
 
 	if c.Agent.Enabled {
 		integrations = append(integrations, agent.New(c.Agent))
@@ -218,7 +190,7 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	return newManager(c, logger, im, integrations)
 }
 
-func newManager(c Config, logger log.Logger, im instance.Manager, integrations []Integration) (*Manager, error) {
+func newManager(c Config, logger log.Logger, im instance.Manager, integrations []common.Integration) (*Manager, error) {
 	defaultRelabels, err := c.DefaultRelabelConfigs()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get default relabel configs: %w", err)
@@ -253,7 +225,7 @@ func (m *Manager) run(ctx context.Context) {
 	wg.Add(len(m.integrations))
 
 	for _, i := range m.integrations {
-		go func(i Integration) {
+		go func(i common.Integration) {
 			m.runIntegration(ctx, i)
 			wg.Done()
 		}(i)
@@ -263,7 +235,7 @@ func (m *Manager) run(ctx context.Context) {
 	close(m.done)
 }
 
-func (m *Manager) runIntegration(ctx context.Context, i Integration) {
+func (m *Manager) runIntegration(ctx context.Context, i common.Integration) {
 	shouldCollect := m.c.ScrapeIntegrations
 	if common := i.CommonConfig(); common.ScrapeIntegration != nil {
 		shouldCollect = *common.ScrapeIntegration
@@ -290,7 +262,7 @@ func (m *Manager) runIntegration(ctx context.Context, i Integration) {
 	}
 }
 
-func (m *Manager) instanceConfigForIntegration(i Integration) instance.Config {
+func (m *Manager) instanceConfigForIntegration(i common.Integration) instance.Config {
 	prometheusName := fmt.Sprintf("integration/%s", i.Name())
 
 	common := i.CommonConfig()

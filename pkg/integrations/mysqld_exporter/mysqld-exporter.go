@@ -4,28 +4,81 @@ package mysqld_exporter //nolint:golint
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/mysqld_exporter/collector"
 )
 
-// Integration is the mysqld_exporter integration. The integration scrapes metrics
-// from a mysqld process.
-type Integration struct {
-	c        Config
-	logger   log.Logger
-	exporter *collector.Exporter
+var DefaultConfig = Config{
+	LockWaitTimeout: 2,
+
+	InfoSchemaProcessListProcessesByUser: true,
+	InfoSchemaProcessListProcessesByHost: true,
+	InfoSchemaTablesDatabases:            "*",
+
+	PerfSchemaEventsStatementsLimit:     250,
+	PerfSchemaEventsStatementsTimeLimit: 86400,
+	PerfSchemaEventsStatementsTextLimit: 120,
+	PerfSchemaFileInstancesFilter:       ".*",
+	PerfSchemaFileInstancesRemovePrefix: "/var/lib/mysql",
+
+	HeartbeatDatabase: "heartbeat",
+	HeartbeatTable:    "heartbeat",
 }
 
-// New creates a new mysqld_exporter integration.
-func New(log log.Logger, c Config) (*Integration, error) {
+// Config controls the mysqld_exporter integration.
+type Config struct {
+	// Enabled enables the integration.
+	Enabled bool `yaml:"enabled"`
+
+	CommonConfig config.Common `yaml:",inline"`
+
+	// DataSourceName to use to connect to MySQL.
+	DataSourceName string `yaml:"data_source_name"`
+
+	// Collectors to mark as enabled in addition to the default.
+	EnableCollectors []string `yaml:"enable_collectors"`
+	// Collectors to explicitly mark as disabled.
+	DisableCollectors []string `yaml:"disable_collectors"`
+
+	// Overrides the default set of enabled collectors with the given list.
+	SetCollectors []string `yaml:"set_collectors"`
+
+	// Collector-wide options
+	LockWaitTimeout int  `yaml:"lock_wait_timeout"`
+	LogSlowFilter   bool `yaml:"log_slow_filter"`
+
+	// Collector-specific config options
+	InfoSchemaProcessListMinTime         int    `yaml:"info_schema_processlist_min_time"`
+	InfoSchemaProcessListProcessesByUser bool   `yaml:"info_schema_processlist_processes_by_user"`
+	InfoSchemaProcessListProcessesByHost bool   `yaml:"info_schema_processlist_processes_by_host"`
+	InfoSchemaTablesDatabases            string `yaml:"info_schema_tables_databases"`
+	PerfSchemaEventsStatementsLimit      int    `yaml:"perf_schema_eventsstatements_limit"`
+	PerfSchemaEventsStatementsTimeLimit  int    `yaml:"perf_schema_eventsstatements_time_limit"`
+	PerfSchemaEventsStatementsTextLimit  int    `yaml:"perf_schema_eventsstatements_digtext_text_limit"`
+	PerfSchemaFileInstancesFilter        string `yaml:"perf_schema_file_instances_filter"`
+	PerfSchemaFileInstancesRemovePrefix  string `yaml:"perf_schema_file_instances_remove_prefix"`
+	HeartbeatDatabase                    string `yaml:"heartbeat_database"`
+	HeartbeatTable                       string `yaml:"heartbeat_table"`
+	HeartbeatUTC                         bool   `yaml:"heartbeat_utc"`
+	MySQLUserPrivileges                  bool   `yaml:"mysql_user_privileges"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for Config.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
+}
+
+// New creates a new mysqld_exporter integration. The integration scrapes
+// metrics from a mysqld process.
+func New(log log.Logger, c Config) (common.Integration, error) {
 	dsn := c.DataSourceName
 	if len(dsn) == 0 {
 		dsn = os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME")
@@ -45,53 +98,116 @@ func New(log log.Logger, c Config) (*Integration, error) {
 		level.Debug(log).Log("scraper", scraper.Name())
 	}
 
-	return &Integration{
-		c:        c,
-		logger:   log,
-		exporter: exporter,
-	}, nil
+	return common.NewCollectorIntegration(
+		"mysqld_exporter",
+		c.CommonConfig,
+		exporter,
+		false,
+	), nil
 }
 
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
+// GetScrapers returns the set of *enabled* scrapers from the config.
+// Configurable scrapers will have their configuration filled out matching the
+// Config's settings.
+func GetScrapers(c Config) []collector.Scraper {
+	scrapers := map[collector.Scraper]bool{
+		&collector.ScrapeAutoIncrementColumns{}:                false,
+		&collector.ScrapeBinlogSize{}:                          false,
+		&collector.ScrapeClientStat{}:                          false,
+		&collector.ScrapeEngineInnodbStatus{}:                  false,
+		&collector.ScrapeEngineTokudbStatus{}:                  false,
+		&collector.ScrapeGlobalStatus{}:                        true,
+		&collector.ScrapeGlobalVariables{}:                     true,
+		&collector.ScrapeInfoSchemaInnodbTablespaces{}:         false,
+		&collector.ScrapeInnodbCmpMem{}:                        true,
+		&collector.ScrapeInnodbCmp{}:                           true,
+		&collector.ScrapeInnodbMetrics{}:                       false,
+		&collector.ScrapePerfEventsStatementsSum{}:             false,
+		&collector.ScrapePerfEventsWaits{}:                     false,
+		&collector.ScrapePerfFileEvents{}:                      false,
+		&collector.ScrapePerfIndexIOWaits{}:                    false,
+		&collector.ScrapePerfReplicationApplierStatsByWorker{}: false,
+		&collector.ScrapePerfReplicationGroupMemberStats{}:     false,
+		&collector.ScrapePerfReplicationGroupMembers{}:         false,
+		&collector.ScrapePerfTableIOWaits{}:                    false,
+		&collector.ScrapePerfTableLockWaits{}:                  false,
+		&collector.ScrapeQueryResponseTime{}:                   true,
+		&collector.ScrapeReplicaHost{}:                         false,
+		&collector.ScrapeSchemaStat{}:                          false,
+		&collector.ScrapeSlaveHosts{}:                          false,
+		&collector.ScrapeSlaveStatus{}:                         true,
+		&collector.ScrapeTableStat{}:                           false,
+		&collector.ScrapeUserStat{}:                            false,
 
-// Name satisfies Integration.Name.
-func (i *Integration) Name() string { return "mysqld_exporter" }
+		// Collectors that have configuration
+		&collector.ScrapeHeartbeat{
+			Database: c.HeartbeatDatabase,
+			Table:    c.HeartbeatTable,
+			UTC:      c.HeartbeatUTC,
+		}: false,
 
-// RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
-// here is expected to be a subrouter, where all registered paths will be
-// registered within that subroute.
-func (i *Integration) RegisterRoutes(r *mux.Router) error {
-	handler, err := i.handler()
-	if err != nil {
-		return err
+		&collector.ScrapePerfEventsStatements{
+			Limit:           c.PerfSchemaEventsStatementsLimit,
+			TimeLimit:       c.PerfSchemaEventsStatementsTimeLimit,
+			DigestTextLimit: c.PerfSchemaEventsStatementsTextLimit,
+		}: false,
+
+		&collector.ScrapePerfFileInstances{
+			Filter:       c.PerfSchemaFileInstancesFilter,
+			RemovePrefix: c.PerfSchemaFileInstancesRemovePrefix,
+		}: false,
+
+		&collector.ScrapeProcesslist{
+			ProcessListMinTime:  c.InfoSchemaProcessListMinTime,
+			ProcessesByHostFlag: c.InfoSchemaProcessListProcessesByHost,
+			ProcessesByUserFlag: c.InfoSchemaProcessListProcessesByUser,
+		}: false,
+
+		&collector.ScrapeTableSchema{
+			Databases: c.InfoSchemaTablesDatabases,
+		}: false,
+
+		&collector.ScrapeUser{
+			Privileges: c.MySQLUserPrivileges,
+		}: false,
 	}
 
-	r.Handle("/metrics", handler)
-	return nil
-}
-
-func (i *Integration) handler() (http.Handler, error) {
-	r := prometheus.NewRegistry()
-	if err := r.Register(i.exporter); err != nil {
-		return nil, fmt.Errorf("couldn't register mysqld_exporter collector: %w", err)
+	// Override the defaults with the provided set of collectors if
+	// set_collectors has at least one element in it.
+	if len(c.SetCollectors) != 0 {
+		customDefaults := map[string]struct{}{}
+		for _, c := range c.SetCollectors {
+			customDefaults[c] = struct{}{}
+		}
+		for scraper := range scrapers {
+			_, enable := customDefaults[scraper.Name()]
+			scrapers[scraper] = enable
+		}
 	}
-	handler := promhttp.HandlerFor(r, promhttp.HandlerOpts{})
-	return handler, nil
-}
 
-// ScrapeConfigs satisfies Integration.ScrapeConfigs.
-func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{
-		JobName:     i.Name(),
-		MetricsPath: "/metrics",
-	}}
-}
+	// Explicitly disable/enable specific collectors.
+	for _, c := range c.DisableCollectors {
+		for scraper := range scrapers {
+			if scraper.Name() == c {
+				scrapers[scraper] = false
+				break
+			}
+		}
+	}
+	for _, c := range c.EnableCollectors {
+		for scraper := range scrapers {
+			if scraper.Name() == c {
+				scrapers[scraper] = true
+				break
+			}
+		}
+	}
 
-// Run satisfies Integration.Run.
-func (i *Integration) Run(ctx context.Context) error {
-	// We don't need to do anything here, so we can just wait for the context to
-	// finish.
-	<-ctx.Done()
-	return ctx.Err()
+	enabledScrapers := []collector.Scraper{}
+	for scraper, enabled := range scrapers {
+		if enabled {
+			enabledScrapers = append(enabledScrapers, scraper)
+		}
+	}
+	return enabledScrapers
 }
