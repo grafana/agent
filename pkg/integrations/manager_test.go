@@ -9,6 +9,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -52,7 +53,7 @@ agent:
 func TestManager_ValidInstanceConfigs(t *testing.T) {
 	mock := newMockIntegration()
 
-	integrations := []Integration{mock}
+	integrations := []common.Integration{mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
@@ -74,7 +75,7 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
 	})
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, []Integration{})
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, []common.Integration{})
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -90,7 +91,7 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 func TestManager_NoIntegrationsScrape(t *testing.T) {
 	mock := newMockIntegration()
 
-	integrations := []Integration{mock}
+	integrations := []common.Integration{mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
@@ -118,7 +119,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	noScrape := false
 	mock.commonCfg.ScrapeIntegration = &noScrape
 
-	integrations := []Integration{mock}
+	integrations := []common.Integration{mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
@@ -137,7 +138,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 
-	integrations := []Integration{mock}
+	integrations := []common.Integration{mock}
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
@@ -157,7 +158,7 @@ func TestManager_StartsIntegrations(t *testing.T) {
 func TestManager_RestartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 
-	integrations := []Integration{mock}
+	integrations := []common.Integration{mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
@@ -173,7 +174,7 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 func TestManager_GracefulStop(t *testing.T) {
 	mock := newMockIntegration()
 
-	integrations := []Integration{mock}
+	integrations := []common.Integration{mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
