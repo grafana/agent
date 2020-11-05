@@ -22,7 +22,7 @@ import (
 )
 
 type promServiceDiscoProcessor struct {
-	nextConsumer     consumer.TraceConsumer
+	nextConsumer     consumer.TracesConsumer
 	discoveryMgr     *discovery.Manager
 	discoveryMgrStop context.CancelFunc
 	discoveryMgrCtx  context.Context
@@ -34,7 +34,7 @@ type promServiceDiscoProcessor struct {
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.TraceConsumer, scrapeConfigs []*config.ScrapeConfig) (component.TraceProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.TracesConsumer, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	logger := log.With(util.Logger, "component", "tempo service disco")
 	mgr := discovery.NewManager(ctx, logger, discovery.Name("tempo service disco"))

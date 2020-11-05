@@ -34,7 +34,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/weaveworks/common v0.0.0-20200914083218-61ffdd448099
 	go.opencensus.io v0.22.4
-	go.opentelemetry.io/collector v0.13.0
+	go.opentelemetry.io/collector v0.14.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
 	google.golang.org/grpc v1.32.0

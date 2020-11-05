@@ -32,7 +32,7 @@ import (
 // processor in the pipeline or the exporter if pipeline has no processors).
 type builtPipeline struct {
 	logger  *zap.Logger
-	firstTC consumer.TraceConsumer
+	firstTC consumer.TracesConsumer
 	firstMC consumer.MetricsConsumer
 	firstLC consumer.LogsConsumer
 
@@ -122,7 +122,7 @@ func (pb *PipelinesBuilder) buildPipeline(ctx context.Context, pipelineCfg *conf
 	// BuildProcessors the pipeline backwards.
 
 	// First create a consumer junction point that fans out the data to all exporters.
-	var tc consumer.TraceConsumer
+	var tc consumer.TracesConsumer
 	var mc consumer.MetricsConsumer
 	var lc consumer.LogsConsumer
 
@@ -161,8 +161,8 @@ func (pb *PipelinesBuilder) buildPipeline(ctx context.Context, pipelineCfg *conf
 
 		switch pipelineCfg.InputType {
 		case configmodels.TracesDataType:
-			var proc component.TraceProcessor
-			proc, err = factory.CreateTraceProcessor(ctx, creationParams, procCfg, tc)
+			var proc component.TracesProcessor
+			proc, err = factory.CreateTracesProcessor(ctx, creationParams, procCfg, tc)
 			if proc != nil {
 				mutatesConsumedData = mutatesConsumedData || proc.GetCapabilities().MutatesConsumedData
 			}
@@ -229,10 +229,10 @@ func (pb *PipelinesBuilder) getBuiltExportersByNames(exporterNames []string) []*
 	return result
 }
 
-func (pb *PipelinesBuilder) buildFanoutExportersTraceConsumer(exporterNames []string) consumer.TraceConsumer {
+func (pb *PipelinesBuilder) buildFanoutExportersTraceConsumer(exporterNames []string) consumer.TracesConsumer {
 	builtExporters := pb.getBuiltExportersByNames(exporterNames)
 
-	var exporters []consumer.TraceConsumer
+	var exporters []consumer.TracesConsumer
 	for _, builtExp := range builtExporters {
 		exporters = append(exporters, builtExp.getTraceExporter())
 	}
