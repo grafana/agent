@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/version"
 )
 
 // CollectorIntegration is an integration exposing metrics from a Prometheus
@@ -55,6 +56,12 @@ func (i *CollectorIntegration) RegisterRoutes(r *mux.Router) error {
 func (i *CollectorIntegration) handler() (http.Handler, error) {
 	r := prometheus.NewRegistry()
 	if err := r.Register(i.c); err != nil {
+		return nil, fmt.Errorf("couldn't register %s: %w", i.name, err)
+	}
+
+	// Register <integration name>_build_info metrics, generally useful for
+	// dashboards that depend on them for discovering targets.
+	if err := r.Register(version.NewCollector(i.name)); err != nil {
 		return nil, fmt.Errorf("couldn't register %s: %w", i.name, err)
 	}
 

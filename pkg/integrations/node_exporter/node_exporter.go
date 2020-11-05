@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/version"
 	"github.com/prometheus/node_exporter/collector"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -97,6 +98,12 @@ func (i *Integration) handler() (http.Handler, error) {
 			Registry:            i.exporterMetricsRegistry,
 		},
 	)
+
+	// Register node_exporter_build_info metrics, generally useful for
+	// dashboards that depend on them for discovering targets.
+	if err := r.Register(version.NewCollector("node_exporter")); err != nil {
+		return nil, fmt.Errorf("couldn't register node_exporter: %w", err)
+	}
 
 	if i.c.IncludeExporterMetrics {
 		// Note that we have to use reg here to use the same promhttp metrics for

@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/version"
 
 	"github.com/ncabatoff/process-exporter/collector"
 )
@@ -67,6 +68,12 @@ func (i *Integration) handler() (http.Handler, error) {
 	r := prometheus.NewRegistry()
 	if err := r.Register(i.collector); err != nil {
 		return nil, fmt.Errorf("couldn't register process_exporter collector: %w", err)
+	}
+
+	// Register process_exporter_build_info metrics, generally useful for
+	// dashboards that depend on them for discovering targets.
+	if err := r.Register(version.NewCollector("process_exporter")); err != nil {
+		return nil, fmt.Errorf("couldn't register process_exporter: %w", err)
 	}
 
 	return promhttp.HandlerFor(
