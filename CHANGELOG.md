@@ -10,6 +10,12 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] New integration: [memcached_exporter](https://github.com/prometheus/memcached_exporter)
   (@rfratto).
 
+- [ENHANCEMENT] Add `<integration name>_build_info` metric to all integrations.
+  The build info displayed will match the build information of the Agent and
+  *not* the embedded exporter. This metric is used by community dashboards, so
+  adding it to the Agent increases compatibility with existing dashboards that
+  depend on it existing. (@rfratto)
+
 - [BUGFIX] Error messages when retrieving configs from the KV store will
   now be logged, rather than just logging a generic message saying that
   retrieving the config has failed. (@rfratto)
