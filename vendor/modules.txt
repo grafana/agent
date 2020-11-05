@@ -980,7 +980,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# go.opentelemetry.io/collector v0.13.0
+# go.opentelemetry.io/collector v0.14.0
 go.opentelemetry.io/collector/client
 go.opentelemetry.io/collector/component
 go.opentelemetry.io/collector/component/componenterror
@@ -1012,6 +1012,7 @@ go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/trace/v1
 go.opentelemetry.io/collector/internal/middleware
 go.opentelemetry.io/collector/internal/processor/filterconfig
 go.opentelemetry.io/collector/internal/processor/filterhelper
+go.opentelemetry.io/collector/internal/processor/filterlog
 go.opentelemetry.io/collector/internal/processor/filtermatcher
 go.opentelemetry.io/collector/internal/processor/filterset
 go.opentelemetry.io/collector/internal/processor/filterset/regexp

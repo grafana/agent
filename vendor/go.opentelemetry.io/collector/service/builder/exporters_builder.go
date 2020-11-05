@@ -59,12 +59,12 @@ func (bexp *builtExporter) Shutdown(ctx context.Context) error {
 	return componenterror.CombineErrors(errors)
 }
 
-func (bexp *builtExporter) getTraceExporter() component.TraceExporter {
+func (bexp *builtExporter) getTraceExporter() component.TracesExporter {
 	exp := bexp.expByDataType[configmodels.TracesDataType]
 	if exp == nil {
 		return nil
 	}
-	return exp.(component.TraceExporter)
+	return exp.(component.TracesExporter)
 }
 
 func (bexp *builtExporter) getMetricExporter() component.MetricsExporter {
@@ -232,7 +232,7 @@ func (eb *ExportersBuilder) buildExporter(
 
 	inputDataTypes := exportersInputDataTypes[config]
 	if inputDataTypes == nil {
-		logger.Info("Ignoring exporter as it is not used by any pipeline")
+		eb.logger.Info("Ignoring exporter as it is not used by any pipeline")
 		return exporter, nil
 	}
 
@@ -245,7 +245,7 @@ func (eb *ExportersBuilder) buildExporter(
 		switch dataType {
 		case configmodels.TracesDataType:
 			// Traces data type is required. Create a trace exporter based on config.
-			te, err := factory.CreateTraceExporter(ctx, creationParams, config)
+			te, err := factory.CreateTracesExporter(ctx, creationParams, config)
 			if err != nil {
 				if err == configerror.ErrDataTypeIsNotSupported {
 					// Could not create because this exporter does not support this data type.

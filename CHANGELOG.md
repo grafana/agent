@@ -16,6 +16,8 @@ this platform. FreeBSD builds will return in a future release.
   adding it to the Agent increases compatibility with existing dashboards that
   depend on it existing. (@rfratto)
 
+- [ENHANCEMENT] Bump OpenTelemetry-collector dependency to 0.14.0 (@joe-elliott)
+
 - [BUGFIX] Error messages when retrieving configs from the KV store will
   now be logged, rather than just logging a generic message saying that
   retrieving the config has failed. (@rfratto)
