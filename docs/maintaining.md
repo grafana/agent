@@ -10,6 +10,15 @@ Cloud Agent.
 Each maintainer performing a release should perform the following steps once
 before releasing the Grafana Cloud Agent.
 
+#### Prerelease testing 
+
+For testing a release, run the [K3d example](../example/k3d/README.md) locally.
+Let it run for about 90 minutes, keeping an occassional eye on the Agent
+Operational dashboard (noting that metrics from the scraping service will take
+time to show up). After 90 minutes, if nothing has crashed and you see metrics
+for both the scraping service and the non-scraping service, the Agent is ready
+for release. 
+
 #### Add Existing GPG Key to GitHub
 
 First, Navigate to your user's [SSH and GPG keys settings
@@ -49,8 +58,7 @@ export GPG_TTY=$(tty)
 1. Create a new branch to update `CHANGELOG.md` and references to version
    numbers across the entire repository (e.g. README.md in the project root).
 2. Modify `CHANGELOG.md` with the new version number and its release date.
-3. List all the merged PRs since the previous release. This command is helpful
-   for generating the list (modifying the date to the date of the previous release): `curl https://api.github.com/search/issues?q=repo:grafana/agent+is:pr+"merged:>=2019-08-02" | jq -r ' .items[] | "* [" + (.number|tostring) + "](" + .html_url + ") **" + .user.login + "**: " + .title'`
+3. Add a new section in `CHANGELOG.md` for `Master (unreleased)`.
 4. Go through the entire repository and find references to the previous release
    version, updating them to reference the new version.
 5. Run `make example-kubernetes` and `make example-dashboards` to update
@@ -85,6 +93,8 @@ After this final set of steps, you can publish your draft!
 3. Optionally, have other team members review the release draft if you wish 
    to feel more comfortable with it.
 4. Publish the release!
+
+The release isn't done yet! Keep reading for the final step.
 
 ## Updating Release Branch
 
