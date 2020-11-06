@@ -20,6 +20,8 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] New integration: [memcached_exporter](https://github.com/prometheus/memcached_exporter)
   (@rfratto).
 
+- [FEATURE] New integration: [postgres_exporter](https://github.com/wrouesnel/postgres_exporter)
+
 - [ENHANCEMENT] Add `<integration name>_build_info` metric to all integrations.
   The build info displayed will match the build information of the Agent and
   *not* the embedded exporter. This metric is used by community dashboards, so
