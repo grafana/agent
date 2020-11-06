@@ -4,6 +4,12 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+# v0.8.0 (2020-11-06)
+
+NOTE: FreeBSD builds will not be included for this release. There is a bug in an
+upstream library preventing cross-compilation of the Grafana Cloud Agent for
+this platform. FreeBSD builds will return in a future release.
+
 - [FEATURE] New integration: [dnsamsq_exporter](https://github.com/google/dnsamsq_exporter)
   (@rfratto).
 
