@@ -1,5 +1,5 @@
 {
-  new(name, url, default=false, method='GET', type='prometheus'):: {
+  new(name, url, default=false, method='GET', type='prometheus', mixin={}):: {
     apiVersion: 1,
     datasources: [{
       name: name,
@@ -12,7 +12,7 @@
       jsonData: {
         httpMethod: method,
       },
-    }],
+    } + mixin],
   },
 
   withBasicAuth(username, password):: {

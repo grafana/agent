@@ -1,6 +1,6 @@
 {
   _images: {
-    grafana: 'grafana/grafana:7.0.1',
+    grafana: 'grafana/grafana:7.3.1',
   },
 
   _config: {

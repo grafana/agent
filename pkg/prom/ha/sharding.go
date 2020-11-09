@@ -14,6 +14,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/util/spanlogger"
 )
 
 // Reshard initiates an entire reshard of the current HA scraping service instance.
@@ -22,6 +23,11 @@ import (
 //
 // Satisfies agentproto.ScrapingServiceServer.
 func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *empty.Empty, err error) {
+	l, ctx := spanlogger.NewFromLogger(ctx, s.logger, "Server.Reshard")
+	defer l.Finish()
+
+	level.Info(l).Log("msg", "resharding agent")
+
 	s.configManagerMut.Lock()
 	defer s.configManagerMut.Unlock()
 
@@ -45,13 +51,13 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 
 	configCh, err := s.AllConfigs(ctx)
 	if err != nil {
-		level.Error(s.logger).Log("msg", "failed getting config list when resharding", "err", err)
+		level.Error(l).Log("msg", "failed getting config list when resharding", "err", err)
 		return nil, err
 	}
 	for ch := range configCh {
 		discoveredConfigs[ch.Name] = struct{}{}
 		if err := s.im.ApplyConfig(ch); err != nil {
-			level.Error(s.logger).Log("msg", "failed to apply config when resharding", "err", err)
+			level.Error(l).Log("msg", "failed to apply config when resharding", "err", err)
 		}
 	}
 
@@ -64,10 +70,10 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 			continue
 		}
 
-		level.Info(s.logger).Log("msg", "deleting config removed from store", "name", runningConfig)
+		level.Info(l).Log("msg", "deleting config removed from store", "name", runningConfig)
 		err := s.im.DeleteConfig(runningConfig)
 		if err != nil {
-			level.Error(s.logger).Log("msg", "failed to delete stale config", "err", err)
+			level.Error(l).Log("msg", "failed to delete stale config", "err", err)
 		}
 	}
 
@@ -76,6 +82,9 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 
 // AllConfigs gets all configs known to the KV store.
 func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error) {
+	l, ctx := spanlogger.NewFromLogger(ctx, s.logger, "Server.AllConfigs")
+	defer l.Finish()
+
 	keys, err := s.kv.List(ctx, "")
 	if err != nil {
 		return nil, err
@@ -97,10 +106,10 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 			// TODO(rfratto): retries might be useful here
 			v, err := s.kv.Get(ctx, key)
 			if err != nil {
-				level.Error(s.logger).Log("msg", "failed to get config with key", "key", key, "err", err)
+				level.Error(l).Log("msg", "failed to get config with key", "key", key, "err", err)
 				return
 			} else if v == nil {
-				level.Warn(s.logger).Log("skipping key that was deleted after list was called", "key", key)
+				level.Warn(l).Log("skipping key that was deleted after list was called", "key", key)
 				return
 			}
 

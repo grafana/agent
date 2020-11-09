@@ -117,6 +117,16 @@ local images = {
 
   agent_cluster:
     agent_cluster.new('default', 'kube-system') +
+    agent_cluster.withEnvMixin([
+      // Configure the Agent to send spans to the DaemonSet using thrift_compact.
+      { name: 'JAEGER_AGENT_HOST', value: 'grafana-agent.default.svc.cluster.local' },
+      { name: 'JAEGER_AGENT_PORT', value: '6831' },
+
+      // Send every span. You wouldn't want this in prod, but our span
+      // throughout here is low enough that we need a high sampling rate.
+      { name: 'JAEGER_SAMPLER_TYPE', value: 'const' },
+      { name: 'JAEGER_SAMPLER_PARAM', value: '1' },
+    ]) +
     agent_cluster.withImagesMixin(images) +
     agent_cluster.withConfigMixin({
       local kvstore = {

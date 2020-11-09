@@ -97,6 +97,10 @@ local policyRule = k.rbac.v1.policyRule;
       syncer.new(this._images.agentctl, this._config),
   },
 
+  // withEnvMixin adds environment variables into the container.
+  withEnvMixin(env):: { container+: container.withEnvMixin(env) },
+
+  // withImagesMixin modifies the images used.
   withImagesMixin(images):: { _images+: images },
 
   // withConfig overrides the config used for the agent.

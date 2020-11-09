@@ -15,14 +15,17 @@ local volume = k.core.v1.volume;
 
     _images:: {
       tempo: 'grafana/tempo:0.2.0',
+      tempo_query: 'grafana/tempo-query:0.2.0',
     },
     _config:: (import './tempo-config.libsonnet'),
+    _query_config:: (import './tempo-query-config.libsonnet'),
 
     configMap:
       configMap.new('tempo-config') +
       configMap.mixin.metadata.withNamespace(namespace) +
       configMap.withData({
         'config.yaml': k.util.manifestYaml(this._config),
+        'query.yaml': k.util.manifestYaml(this._query_config),
       }),
 
     container::
@@ -41,6 +44,17 @@ local volume = k.core.v1.volume;
         }),
       ),
 
+    queryContainer::
+      container.new('tempo-query', this._images.tempo_query) +
+      container.withPorts([
+        containerPort.newNamed(name='query', containerPort=16686),
+      ]) +
+      container.withArgsMixin(
+        k.util.mapToFlags({
+          '-grpc-storage-plugin.configuration-file': '/etc/tempo/query.yaml',
+        }),
+      ),
+
     pvc:
       { apiVersion: 'v1', kind: 'PersistentVolumeClaim' } +
       pvc.new() +
@@ -50,7 +64,7 @@ local volume = k.core.v1.volume;
       pvc.mixin.spec.resources.withRequests({ storage: '10Gi' }),
 
     deployment:
-      deployment.new('tempo', 1, [this.container]) +
+      deployment.new('tempo', 1, [this.container, this.queryContainer]) +
       deployment.mixin.metadata.withNamespace(namespace) +
       deployment.mixin.spec.template.spec.withVolumesMixin([
         volume.fromPersistentVolumeClaim('tempo-data', 'tempo-data'),

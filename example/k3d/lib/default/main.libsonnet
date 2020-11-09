@@ -18,7 +18,19 @@ local mixins = import './mixins.libsonnet';
       grafana.withDashboards(mixins.grafanaDashboards) +
       grafana.withDataSources([
         datasource.new('Cortex', 'http://cortex.default.svc.cluster.local/api/prom'),
-        datasource.new('Loki', 'http://loki.default.svc.cluster.local', type='loki'),
+        datasource.new('Tempo', 'http://tempo.default.svc.cluster.local:16686', type='tempo', mixin={
+          uid: 'tempo',
+        }),
+        datasource.new('Loki', 'http://loki.default.svc.cluster.local', type='loki', mixin={
+          jsonData+: {
+            derivedFields: [{
+              matcherRegex: '(?:traceID|trace_id)=(\\w+)',
+              name: 'TraceID',
+              url: '$${__value.raw}',
+              datasourceUid: 'tempo',
+            }],
+          },
+        }),
       ]),
 
     loki: loki.new(namespace),

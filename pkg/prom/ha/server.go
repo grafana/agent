@@ -338,7 +338,6 @@ func (s *Server) localReshard(ctx context.Context) {
 		defer cancel()
 	}
 
-	level.Info(s.logger).Log("msg", "resharding agent")
 	_, err := s.Reshard(ctx, &agentproto.ReshardRequest{})
 	if err != nil {
 		level.Error(s.logger).Log("msg", "resharding failed", "err", err)
