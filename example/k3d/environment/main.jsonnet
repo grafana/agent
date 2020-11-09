@@ -1,9 +1,10 @@
+local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local default = import 'default/main.libsonnet';
 local etcd = import 'etcd/main.libsonnet';
-local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
+local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
-local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
+local containerPort = k.core.v1.containerPort;
 
 local service = k.core.v1.service;
 local images = {
@@ -64,7 +65,8 @@ local images = {
 
     grafana_agent.withEnv([
       // Configure the Agent to send spans to itself using thrift_http.
-      { name: 'JAEGER_ENDPOINT', value: 'grafana-agent:14268' },
+      { name: 'JAEGER_AGENT_HOST', value: 'localhost' },
+      { name: 'JAEGER_AGENT_PORT', value: '6831' },
 
       // Send every span. You wouldn't want this in prod, but our span
       // throughout here is low enough that we need a high sampling rate.
@@ -75,11 +77,21 @@ local images = {
       receivers: {
         jaeger: {
           protocols: {
-            thrift_http: {},
+            thrift_http: null,
+            thrift_binary: null,
+            thrift_compact: null,
+            grpc: null,
           },
         },
       },
     }) + 
+    grafana_agent.withPortsMixin([
+      // Jaeger receiver
+      containerPort.new('thrift-c', 6831) + containerPort.withProtocol('UDP'),
+      containerPort.new('thrift-bin', 6832) + containerPort.withProtocol('UDP'),
+      containerPort.new('thrift-http', 14268) + containerPort.withProtocol('TCP'),
+      containerPort.new('thrift-grpc', 14250) + containerPort.withProtocol('TCP'),
+    ]) +
     grafana_agent.withTempoPushConfig({
       endpoint: 'tempo:55680',
       insecure: true,
@@ -88,16 +100,17 @@ local images = {
         send_batch_size: 100,
       },
     }) + 
-    grafana_agent.withTempoScrapeConfigs(grafana_agent.tempoScrapeKubernetes {
-      // We want our cluster and label to remain static for this deployment, so
-      // if they are overwritten by a metric we will change them to the values
-      // set by external_labels.
-      scrape_configs: std.map(function(config) config {
+    grafana_agent.withTempoScrapeConfigs([
+      cfg {
+        // We want our cluster and label to remain static for this deployment, so
+        // if they are overwritten by a metric we will change them to the values
+        // set by external_labels.
         relabel_configs+: [{
           target_label: 'cluster', replacement: cluster_label,
         }]
-      }, super.scrape_configs),
-    }),
+      }
+      for cfg in grafana_agent.tempoScrapeKubernetes
+    ]),
 
   // Need to run ETCD for agent_cluster
   etcd: etcd.new('default'),

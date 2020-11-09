@@ -1,7 +1,8 @@
 # `k3d` Example
 
 The `k3d` example uses `k3d` and `tanka` to produce a Kubernetes environment
-that
+that runs the Agent with metrics, logs, and trace collection. Data is sent to a
+Cortex, Loki, and Tempo all running within the environment.
 
 ## Requirements
 
@@ -24,14 +25,13 @@ Run the following to create your cluster:
 # Merge the k3d cluster config with your local kubectl config
 ./scripts/merge_k3d.bash
 
-# Import images into k3d if they are not available on docker hub
-k3d import-images -n agent-k3d grafana/agent
-k3d import-images -n agent-k3d grafana/agentctl
+# Import images into k3d if you want to test local changes
+k3d import-images -n agent-k3d grafana/agent grafana/agentctl
 
 tk apply ./environment
 
 # Navigate to localhost:30080 in your browser to view dashboards
-
-# Delete the k3d cluster when you're done with it
-k3d delete -n agent-k3d
 ```
+
+When you're done with the cluster, you can tear it down with 
+`k3d delete -n agent-k3d`.

@@ -5,6 +5,7 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 local loki = import 'loki/main.libsonnet';
 local metrics = import 'metrics-server/main.libsonnet';
 local promtail = import 'promtail/promtail.libsonnet';
+local tempo = import 'tempo/main.libsonnet';
 
 local mixins = import './mixins.libsonnet';
 
@@ -21,6 +22,8 @@ local mixins = import './mixins.libsonnet';
       ]),
 
     loki: loki.new(namespace),
+
+    tempo: tempo.new(namespace),
 
     promtail: promtail {
       _config+:: {
