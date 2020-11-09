@@ -1,0 +1,127 @@
+package agentctl
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/pkg/timestamp"
+	"github.com/prometheus/prometheus/promql/parser"
+	"github.com/prometheus/prometheus/tsdb/record"
+	"github.com/prometheus/prometheus/tsdb/wal"
+)
+
+type SampleStats struct {
+	Labels  labels.Labels
+	From    time.Time
+	To      time.Time
+	Samples int64
+}
+
+// FindSamples searches the WAL and returns a summary of samples of series
+// matching the given label selector.
+func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
+	w, err := wal.Open(nil, walDir)
+	if err != nil {
+		return nil, err
+	}
+
+	selector, err := parser.ParseMetricSelector(selectorStr)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		labelsByRef = make(map[uint64]labels.Labels)
+
+		minTSByRef       = make(map[uint64]int64)
+		maxTSByRef       = make(map[uint64]int64)
+		sampleCountByRef = make(map[uint64]int64)
+	)
+
+	// get the references matching label selector
+	err = walIterate(w, func(r *wal.Reader) error {
+		return collectSeries(r, selector, labelsByRef)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not collect series: %w", err)
+	}
+
+	// find related samples
+	err = walIterate(w, func(r *wal.Reader) error {
+		return collectSamples(r, labelsByRef, minTSByRef, maxTSByRef, sampleCountByRef)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not collect samples: %w", err)
+	}
+
+	series := make([]*SampleStats, 0, len(labelsByRef))
+	for ref, labels := range labelsByRef {
+		series = append(series, &SampleStats{
+			Labels:  labels,
+			Samples: sampleCountByRef[ref],
+			From:    timestamp.Time(minTSByRef[ref]),
+			To:      timestamp.Time(maxTSByRef[ref]),
+		})
+	}
+
+	return series, nil
+}
+
+func collectSeries(r *wal.Reader, selector labels.Selector, labelsByRef map[uint64]labels.Labels) error {
+	var dec record.Decoder
+
+	for r.Next() {
+		rec := r.Record()
+
+		switch dec.Type(rec) {
+		case record.Series:
+			series, err := dec.Series(rec, nil)
+			if err != nil {
+				return err
+			}
+			for _, s := range series {
+				if selector.Matches(s.Labels) {
+					labelsByRef[s.Ref] = s.Labels.Copy()
+				}
+			}
+		}
+	}
+
+	return r.Err()
+}
+
+func collectSamples(r *wal.Reader, labelsByRef map[uint64]labels.Labels, minTS, maxTS, sampleCount map[uint64]int64) error {
+	var dec record.Decoder
+
+	for r.Next() {
+		rec := r.Record()
+
+		switch dec.Type(rec) {
+		case record.Samples:
+			samples, err := dec.Samples(rec, nil)
+			if err != nil {
+				return err
+			}
+
+			for _, s := range samples {
+				// skip unmatched series
+				if _, ok := labelsByRef[s.Ref]; !ok {
+					continue
+				}
+
+				// determine min/max TS
+				if ts, ok := minTS[s.Ref]; !ok || ts > s.T {
+					minTS[s.Ref] = s.T
+				}
+				if ts, ok := maxTS[s.Ref]; !ok || ts < s.T {
+					maxTS[s.Ref] = s.T
+				}
+
+				sampleCount[s.Ref]++
+			}
+		}
+	}
+
+	return r.Err()
+}

@@ -34,6 +34,7 @@ func main() {
 		configSyncCmd(),
 		walStatsCmd(),
 		targetStatsCmd(),
+		samplesCmd(),
 	)
 
 	_ = cmd.Execute()
@@ -76,6 +77,66 @@ source-of-truth directory.`,
 	cmd.Flags().StringVarP(&agentAddr, "addr", "a", "http://localhost:12345", "address of the agent to connect to")
 	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "use the dry run option to validate config files without attempting to upload")
 	must(cmd.MarkFlagRequired("addr"))
+	return cmd
+}
+
+func samplesCmd() *cobra.Command {
+	var selector string
+
+	cmd := &cobra.Command{
+		Use:   "sample-stats [WAL directory]",
+		Short: "Discover sample statistics for series matching a label selector within the WAL",
+		Long: `sample-stats reads a WAL directory and collects information on the series and
+samples within it. A label selector can be used to filter the series that should be targeted.
+
+Examples:
+
+Show sample stats for all series in the WAL:
+
+$ agentctl sample-stats /tmp/wal
+
+
+Show sample stats for the 'up' series:
+
+$ agentctl sample-stats -s up /tmp/wal
+
+
+Show sample stats for all series within 'job=a':
+
+$ agentctl sample-stats -s '{job="a"}' /tmp/wal
+`,
+		Args: cobra.ExactArgs(1),
+		Run: func(_ *cobra.Command, args []string) {
+			directory := args[0]
+			if _, err := os.Stat(directory); os.IsNotExist(err) {
+				fmt.Printf("%s does not exist\n", directory)
+				os.Exit(1)
+			} else if err != nil {
+				fmt.Printf("error getting wal: %v\n", err)
+				os.Exit(1)
+			}
+
+			// Check if ./wal is a subdirectory, use that instead.
+			if _, err := os.Stat(filepath.Join(directory, "wal")); err == nil {
+				directory = filepath.Join(directory, "wal")
+			}
+
+			stats, err := agentctl.FindSamples(directory, selector)
+			if err != nil {
+				fmt.Printf("failed to get sample stats: %v\n", err)
+				os.Exit(1)
+			}
+
+			for _, series := range stats {
+				fmt.Print(series.Labels.String(), "\n")
+				fmt.Printf("  Oldest Sample:      %s\n", series.From)
+				fmt.Printf("  Newest Sample:      %s\n", series.To)
+				fmt.Printf("  Total Samples:      %d\n", series.Samples)
+			}
+		},
+	}
+
+	cmd.Flags().StringVarP(&selector, "selector", "s", "{}", "label selector to search for")
 	return cmd
 }
 
