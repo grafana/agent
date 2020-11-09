@@ -65,6 +65,14 @@ services:
     ports:
       - 127.0.0.1:3306:3306
 
+  postgres:
+    image: postgres:13.0
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
+
   redis:
     image: redis:6
     ports:
