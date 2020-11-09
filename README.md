@@ -93,7 +93,9 @@ quickly within the Agent. We aim to always base our vendor off of a recent offic
 Prometheus release and to keep the experimental changes not available in the upstream
 repository to a minimum.
 
-The current vendored Prometheus release is **v2.18.1**.
+Please refer to the pinned 
+[Prometheus Vendor Update Tracking](https://github.com/grafana/agent/issues/112) issue 
+for our current vendored Prometheus release. 
 
 For more context on our vendoring strategy, read our
 [repo maintenance guide](./docs/maintaining.md#grafanaprometheus-maintenance).
