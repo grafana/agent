@@ -63,16 +63,6 @@ local images = {
     // Configure Tempo
     //
 
-    grafana_agent.withEnv([
-      // Configure the Agent to send spans to itself using thrift_http.
-      { name: 'JAEGER_AGENT_HOST', value: 'localhost' },
-      { name: 'JAEGER_AGENT_PORT', value: '6831' },
-
-      // Send every span. You wouldn't want this in prod, but our span
-      // throughout here is low enough that we need a high sampling rate.
-      { name: 'JAEGER_SAMPLER_TYPE', value: 'const' },
-      { name: 'JAEGER_SAMPLER_PARAM', value: '1' },
-    ]) +
     grafana_agent.withTempoConfig({
       receivers: {
         jaeger: {
