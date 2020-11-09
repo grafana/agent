@@ -109,31 +109,31 @@ spec:
   - name: agent-http-metrics
     port: 8080
     targetPort: 8080
-  - name: agent-tempo-jaeger-thrift-compact
+  - name: agent-thrift-c
     port: 6831
     protocol: UDP
     targetPort: 6831
-  - name: agent-tempo-jaeger-thrift-binary
+  - name: agent-thrift-bin
     port: 6832
     protocol: UDP
     targetPort: 6832
-  - name: agent-tempo-jaeger-thrift-http
+  - name: agent-thrift-http
     port: 14268
     protocol: TCP
     targetPort: 14268
-  - name: agent-tempo-jaeger-grpc
+  - name: agent-thrift-grpc
     port: 14250
     protocol: TCP
     targetPort: 14250
-  - name: agent-tempo-zipkin
+  - name: agent-zipkin
     port: 9411
     protocol: TCP
     targetPort: 9411
-  - name: agent-tempo-otlp
+  - name: agent-otlp
     port: 55680
     protocol: TCP
     targetPort: 55680
-  - name: agent-tempo-opencensus
+  - name: agent-opencensus
     port: 55678
     protocol: TCP
     targetPort: 55678
@@ -170,25 +170,25 @@ spec:
         - containerPort: 8080
           name: http-metrics
         - containerPort: 6831
-          name: tempo-jaeger-thrift-compact
+          name: thrift-c
           protocol: UDP
         - containerPort: 6832
-          name: tempo-jaeger-thrift-binary
+          name: thrift-bin
           protocol: UDP
         - containerPort: 14268
-          name: tempo-jaeger-thrift-http
+          name: thrift-http
           protocol: TCP
         - containerPort: 14250
-          name: tempo-jaeger-grpc
+          name: thrift-grpc
           protocol: TCP
         - containerPort: 9411
-          name: tempo-zipkin
+          name: zipkin
           protocol: TCP
         - containerPort: 55680
-          name: tempo-otlp
+          name: otlp
           protocol: TCP
         - containerPort: 55678
-          name: tempo-opencensus
+          name: opencensus
           protocol: TCP
         volumeMounts:
         - mountPath: /etc/agent

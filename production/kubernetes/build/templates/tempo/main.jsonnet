@@ -32,19 +32,19 @@ local containerPort = k.core.v1.containerPort;
     }) +
     agent.withPortsMixin([
       // Jaeger receiver
-      containerPort.new('tempo-jaeger-thrift-compact', 6831) + containerPort.withProtocol('UDP'),
-      containerPort.new('tempo-jaeger-thrift-binary', 6832) + containerPort.withProtocol('UDP'),
-      containerPort.new('tempo-jaeger-thrift-http', 14268) + containerPort.withProtocol('TCP'),
-      containerPort.new('tempo-jaeger-grpc', 14250) + containerPort.withProtocol('TCP'),
+      containerPort.new('thrift-c', 6831) + containerPort.withProtocol('UDP'),
+      containerPort.new('thrift-bin', 6832) + containerPort.withProtocol('UDP'),
+      containerPort.new('thrift-http', 14268) + containerPort.withProtocol('TCP'),
+      containerPort.new('thrift-grpc', 14250) + containerPort.withProtocol('TCP'),
 
       // Zipkin
-      containerPort.new('tempo-zipkin', 9411) + containerPort.withProtocol('TCP'),
+      containerPort.new('zipkin', 9411) + containerPort.withProtocol('TCP'),
 
       // OTLP
-      containerPort.new('tempo-otlp', 55680) + containerPort.withProtocol('TCP'),
+      containerPort.new('otlp', 55680) + containerPort.withProtocol('TCP'),
 
       // Opencensus
-      containerPort.new('tempo-opencensus', 55678) + containerPort.withProtocol('TCP'),
+      containerPort.new('opencensus', 55678) + containerPort.withProtocol('TCP'),
     ]) +
     agent.withTempoPushConfig({
       endpoint: '${TEMPO_ENDPOINT}',
