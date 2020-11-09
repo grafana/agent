@@ -33,6 +33,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/weaveworks/common v0.0.0-20200914083218-61ffdd448099
+	github.com/wrouesnel/postgres_exporter v0.0.0-00010101000000-000000000000
 	go.opencensus.io v0.22.4
 	go.opentelemetry.io/collector v0.14.0
 	go.uber.org/atomic v1.7.0
@@ -71,6 +72,7 @@ replace (
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf
 	github.com/prometheus/memcached_exporter => github.com/grafana/memcached_exporter v0.7.1-0.20201030142623-8e1997d4fbb7
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
+	github.com/wrouesnel/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20201106170118-5eedee00c1db
 )
 
 // Required for redis_exporter, which is incompatible with v2.0.0+incompatible.

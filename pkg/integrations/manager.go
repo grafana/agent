@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
+	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/agent/pkg/prom/instance"
@@ -64,6 +65,7 @@ type Config struct {
 	RedisExporter     redis_exporter.Config     `yaml:"redis_exporter"`
 	DnsmasqExporter   dnsmasq_exporter.Config   `yaml:"dnsmasq_exporter"`
 	MemcachedExporter memcached_exporter.Config `yaml:"memcached_exporter"`
+	PostgresExporter  postgres_exporter.Config  `yaml:"postgres_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -181,6 +183,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.MemcachedExporter.Enabled {
 		l := log.With(logger, "integration", "memcached_exporter")
 		i, err := memcached_exporter.New(l, c.MemcachedExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.PostgresExporter.Enabled {
+		l := log.With(logger, "integration", "postgres_exporter")
+		i, err := postgres_exporter.New(l, c.PostgresExporter)
 		if err != nil {
 			return nil, err
 		}
