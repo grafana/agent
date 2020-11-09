@@ -114,6 +114,9 @@ local configMap = k.core.v1.configMap;
       agent.withConfigHash(self._config_hash),
   },
 
+  // withEnv adds environment variables into the container. 
+  withEnv(env):: { agent+: agent.withEnv(env) },
+
   // withImages sets the images used for launching the Agent.
   // Keys supported: agent, agentctl
   withImages(images):: { _images+: images },

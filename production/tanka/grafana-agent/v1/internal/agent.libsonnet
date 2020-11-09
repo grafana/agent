@@ -58,4 +58,7 @@ local policyRule = k.rbac.v1.policyRule;
   },
 
   withConfigHash(include):: { _config_hash:: include },
+  withEnv(env):: {
+    container+:: container.withEnv(env),
+  },
 }

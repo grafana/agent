@@ -20,6 +20,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
 	"github.com/weaveworks/common/server"
+	"github.com/weaveworks/common/tracing"
 
 	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
@@ -51,6 +52,18 @@ func main() {
 		level.Error(util.Logger).Log("msg", "failed to create server", "err", err)
 		os.Exit(1)
 	}
+
+	trace, err := tracing.NewFromEnv("grafana-agent")
+	if err != nil {
+		level.Warn(util.Logger).Log("msg", "could not initialize tracing. tracing will not be enabled", "err", err)
+	}
+	defer func() {
+		if trace != nil {
+			if err := trace.Close(); err != nil {
+				level.Error(util.Logger).Log("msg", "error closing tracing", "err", err)
+			}
+		}
+	}()
 
 	if cfg.Prometheus.Enabled {
 		promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, util.Logger)

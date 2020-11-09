@@ -73,6 +73,7 @@ example, you may not deploy a scraping service with Loki logs collection.
 
 ## General
 
+- `withEnv(env)`: Override the environment variables passed to the containers.
 - `withImages(images)`: Use custom images.
 - `withConfigHash(include=true)`: Whether to include a config hash annotation.
 - `withPortsMixin(ports)`: Mixin ports from `k.core.v1.containerPort` against

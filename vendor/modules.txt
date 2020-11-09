@@ -849,19 +849,26 @@ github.com/tommy-muehle/go-mnd/checks
 github.com/tommy-muehle/go-mnd/config
 # github.com/uber/jaeger-client-go v2.25.0+incompatible
 github.com/uber/jaeger-client-go
+github.com/uber/jaeger-client-go/config
 github.com/uber/jaeger-client-go/internal/baggage
+github.com/uber/jaeger-client-go/internal/baggage/remote
 github.com/uber/jaeger-client-go/internal/reporterstats
 github.com/uber/jaeger-client-go/internal/spanlog
 github.com/uber/jaeger-client-go/internal/throttler
+github.com/uber/jaeger-client-go/internal/throttler/remote
 github.com/uber/jaeger-client-go/log
+github.com/uber/jaeger-client-go/rpcmetrics
 github.com/uber/jaeger-client-go/thrift
 github.com/uber/jaeger-client-go/thrift-gen/agent
+github.com/uber/jaeger-client-go/thrift-gen/baggage
 github.com/uber/jaeger-client-go/thrift-gen/jaeger
 github.com/uber/jaeger-client-go/thrift-gen/sampling
 github.com/uber/jaeger-client-go/thrift-gen/zipkincore
+github.com/uber/jaeger-client-go/transport
 github.com/uber/jaeger-client-go/utils
 # github.com/uber/jaeger-lib v2.4.0+incompatible
 github.com/uber/jaeger-lib/metrics
+github.com/uber/jaeger-lib/metrics/prometheus
 # github.com/ultraware/funlen v0.0.3
 github.com/ultraware/funlen
 # github.com/ultraware/whitespace v0.0.4
@@ -879,6 +886,7 @@ github.com/weaveworks/common/middleware
 github.com/weaveworks/common/mtime
 github.com/weaveworks/common/server
 github.com/weaveworks/common/signals
+github.com/weaveworks/common/tracing
 github.com/weaveworks/common/user
 # github.com/weaveworks/promrus v1.2.0
 github.com/weaveworks/promrus

@@ -30,6 +30,11 @@ local images = {
 
     grafana_agent.new('grafana-agent', 'default') +
     grafana_agent.withImages(images) +
+
+    //
+    // Configure Prometheus 
+    //
+
     grafana_agent.withPrometheusConfig({
       wal_directory: '/var/lib/agent/data',
       global: {
@@ -51,7 +56,48 @@ local images = {
     }) +
     grafana_agent.withRemoteWrite([{
       url: 'http://cortex.default.svc.cluster.local/api/prom/push',
-    }]),
+    }]) +
+
+    //
+    // Configure Tempo
+    //
+
+    grafana_agent.withEnv([
+      // Configure the Agent to send spans to itself using thrift_http.
+      { name: 'JAEGER_ENDPOINT', value: 'grafana-agent:14268' },
+
+      // Send every span. You wouldn't want this in prod, but our span
+      // throughout here is low enough that we need a high sampling rate.
+      { name: 'JAEGER_SAMPLER_TYPE', value: 'const' },
+      { name: 'JAEGER_SAMPLER_PARAM', value: '1' },
+    ]) +
+    grafana_agent.withTempoConfig({
+      receivers: {
+        jaeger: {
+          protocols: {
+            thrift_http: {},
+          },
+        },
+      },
+    }) + 
+    grafana_agent.withTempoPushConfig({
+      endpoint: 'tempo:55680',
+      insecure: true,
+      batch: {
+        timeout: '5s',
+        send_batch_size: 100,
+      },
+    }) + 
+    grafana_agent.withTempoScrapeConfigs(grafana_agent.tempoScrapeKubernetes {
+      // We want our cluster and label to remain static for this deployment, so
+      // if they are overwritten by a metric we will change them to the values
+      // set by external_labels.
+      scrape_configs: std.map(function(config) config {
+        relabel_configs+: [{
+          target_label: 'cluster', replacement: cluster_label,
+        }]
+      }, super.scrape_configs),
+    }),
 
   // Need to run ETCD for agent_cluster
   etcd: etcd.new('default'),
