@@ -1,6 +1,7 @@
 package agentctl
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -30,18 +31,20 @@ func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
 		return nil, err
 	}
 
-	labelsByRef := make(map[uint64]labels.Labels)
+	var (
+		labelsByRef = make(map[uint64]labels.Labels)
 
-	minTSByRef := make(map[uint64]int64)
-	maxTSByRef := make(map[uint64]int64)
-	sampleCountByRef := make(map[uint64]int64)
+		minTSByRef       = make(map[uint64]int64)
+		maxTSByRef       = make(map[uint64]int64)
+		sampleCountByRef = make(map[uint64]int64)
+	)
 
 	// get the references matching label selector
 	err = walIterate(w, func(r *wal.Reader) error {
 		return collectSeries(r, selector, labelsByRef)
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not collect series: %w", err)
 	}
 
 	// find related samples
@@ -49,10 +52,10 @@ func FindSamples(walDir string, selectorStr string) ([]*SampleStats, error) {
 		return collectSamples(r, labelsByRef, minTSByRef, maxTSByRef, sampleCountByRef)
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not collect samples: %w", err)
 	}
 
-	var series []*SampleStats
+	series := make([]*SampleStats, 0, len(labelsByRef))
 	for ref, labels := range labelsByRef {
 		series = append(series, &SampleStats{
 			Labels:  labels,
@@ -107,13 +110,6 @@ func collectSamples(r *wal.Reader, labelsByRef map[uint64]labels.Labels, minTS, 
 					continue
 				}
 
-				// count the sample
-				if c, ok := sampleCount[s.Ref]; ok {
-					sampleCount[s.Ref] = c + 1
-				} else {
-					sampleCount[s.Ref] = 1
-				}
-
 				// determine min/max TS
 				if ts, ok := minTS[s.Ref]; !ok || ts > s.T {
 					minTS[s.Ref] = s.T
@@ -121,6 +117,8 @@ func collectSamples(r *wal.Reader, labelsByRef map[uint64]labels.Labels, minTS, 
 				if ts, ok := maxTS[s.Ref]; !ok || ts < s.T {
 					maxTS[s.Ref] = s.T
 				}
+
+				sampleCount[s.Ref]++
 			}
 		}
 	}
