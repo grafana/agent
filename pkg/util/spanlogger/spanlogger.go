@@ -18,7 +18,7 @@ var (
 	loggerCtxKey = &loggerCtxMarker{}
 )
 
-// SpanLogger unifies tracing and logging to reduce reptition. Borrowed from
+// SpanLogger unifies tracing and logging to reduce repetition. Borrowed from
 // https://github.com/cortexproject/cortex/blob/master/pkg/util/spanlogger/spanlogger.go
 // with extensions to support custom loggers.
 type SpanLogger struct {
