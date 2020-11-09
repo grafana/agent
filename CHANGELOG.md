@@ -4,6 +4,10 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+- [FEATURE] Add `sample-stats` to `agentctl` to search the WAL and return a
+  summary of samples of series matching the given label selector.
+  (@simonswine)
+
 # v0.8.0 (2020-11-06)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
