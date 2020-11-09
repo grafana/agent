@@ -2872,8 +2872,8 @@ Full reference of options:
 
   # Data Source Names specifies the Postgres server(s) to connect to. This is
   # REQUIRED but may also be specified by the POSTGRES_EXPORTER_DATA_SOURCE_NAME
-  # environment variable. If neither are set, the integration will fail to
-  # start.
+  # environment variable, where DSNs the environment variable are separated by
+  # commas. If neither are set, the integration will fail to start.
   #
   # The format of this is specified here: https://pkg.go.dev/github.com/lib/pq#ParseURL
   #
@@ -2882,7 +2882,7 @@ Full reference of options:
   #
   # Multiple DSNs may be provided here, allowing for scraping from multiple
   # servers.
-  data_source_names: 
+  data_source_names:
   - <string>
 
   # Disables collection of metrics from pg_settings.
