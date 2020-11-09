@@ -11,6 +11,16 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] New integration:
   [postgres_exporter](https://github.com/wrouesnel/postgres_exporter) (@rfratto)
 
+- [ENHANCEMENT] The Agent can now send traces to a compatible backend. To do
+  configure sending spans from the Agent, the environment variable
+  JAEGER_AGENT_HOST must be set, optionally with JAEGER_AGENT_PORT. This will
+  configure the Agent to send spans using the thrift compact protocol to the
+  specified collector. 
+
+  JAEGER_AGENT_HOST and JAEGER_AGENT_PORT may be configured for the Agent to
+  send spans to itself by setting JAEGER_AGENT_HOST to localhost when the Tempo
+  subsystem is configured. (@rfratto)
+
 # v0.8.0 (2020-11-06)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
