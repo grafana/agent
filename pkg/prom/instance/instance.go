@@ -576,7 +576,15 @@ func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config
 				continue
 			}
 
-			// Subtract the minimum amount of time we want data in the WAL to live for.
+			// The ts timestamp is used to determine which series are inactive (e.g.,
+			// not being appended to with new samples) and may be deleted from the
+			// WAL. Their most recent append timestamp is compared to ts; if their
+			// most recent append timestamp is older than ts, they are considered
+			// inactive and may be deleted.
+			//
+			// Subtracting some duration from ts makes an series considered active
+			// for a longer period of time, delaying when it gets scheduled for
+			// deletion from the WAL.
 			ts -= i.cfg.MinWALTime.Milliseconds()
 
 			level.Debug(i.logger).Log("msg", "truncating the WAL", "ts", ts)
