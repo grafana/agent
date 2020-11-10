@@ -62,7 +62,7 @@ func FromContext(ctx context.Context, fallback log.Logger) *SpanLogger {
 }
 
 // Log implements go-kit's Logger interface; sends logs to underlying logger
-// and also puts the on the spans.
+// and also puts them on the spans.
 func (s *SpanLogger) Log(kvps ...interface{}) error {
 	s.Logger.Log(kvps...)
 	fields, err := otlog.InterleavedKVToFields(kvps...)
