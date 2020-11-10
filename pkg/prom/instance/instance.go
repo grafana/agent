@@ -46,6 +46,7 @@ var (
 		HostFilter:           false,
 		WALTruncateFrequency: 1 * time.Minute,
 		MinWALTime:           5 * time.Minute,
+		MaxWALTime:           4 * time.Hour,
 		RemoteFlushDeadline:  1 * time.Minute,
 		WriteStaleOnShutdown: false,
 	}
@@ -63,8 +64,9 @@ type Config struct {
 	// How frequently the WAL should be truncated.
 	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty" json:"wal_truncate_frequency,omitempty"`
 
-	// Minimum time data in the WAL should exist for.
+	// Minimum and maximum time series should exist in the WAL for.
 	MinWALTime time.Duration `yaml:"min_wal_time,omitempty" json:"min_wal_time,omitempty"`
+	MaxWALTime time.Duration `yaml:"max_wal_time,omitempty" json:"max_wal_time,omitempty"`
 
 	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty" json:"remote_flush_deadline,omitempty"`
 	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty" json:"write_stale_on_shutdown,omitempty"`
@@ -106,6 +108,8 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig) error {
 		return errors.New("wal_truncate_frequency must be greater than 0s")
 	case c.RemoteFlushDeadline <= 0:
 		return errors.New("remote_flush_deadline must be greater than 0s")
+	case c.MinWALTime > c.MaxWALTime:
+		return errors.New("min_wal_time must be less than max_wal_time")
 	}
 
 	jobNames := map[string]struct{}{}
@@ -570,22 +574,27 @@ func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config
 		case <-ctx.Done():
 			return
 		case <-time.After(cfg.WALTruncateFrequency):
+			// The timestamp ts is used to determine which series are not receiving
+			// samples and may be deleted from the WAL. Their most recent append
+			// timestamp is compared to ts, and if that timestamp is older then ts,
+			// they are considered inactive and may be deleted.
+			//
+			// Subtracting a duration from ts will delay when it will be considered
+			// inactive and scheduled for deletion.
 			ts := i.getRemoteWriteTimestamp()
 			if ts == 0 {
 				level.Debug(i.logger).Log("msg", "can't truncate the WAL yet")
 				continue
 			}
-
-			// The ts timestamp is used to determine which series are inactive (e.g.,
-			// not being appended to with new samples) and may be deleted from the
-			// WAL. Their most recent append timestamp is compared to ts; if their
-			// most recent append timestamp is older than ts, they are considered
-			// inactive and may be deleted.
-			//
-			// Subtracting some duration from ts makes an series considered active
-			// for a longer period of time, delaying when it gets scheduled for
-			// deletion from the WAL.
 			ts -= i.cfg.MinWALTime.Milliseconds()
+
+			// Network issues can prevent the result of getRemoteWriteTimestamp from
+			// changing. We don't want data in the WAL to grow forever, so we set a cap
+			// on the maximum age data can be. If our ts is older than this cutoff point,
+			// we'll shift it forward to start deleting very stale data.
+			if maxTS := timestamp.FromTime(time.Now().Add(-i.cfg.MaxWALTime)); ts < maxTS {
+				ts = maxTS
+			}
 
 			level.Debug(i.logger).Log("msg", "truncating the WAL", "ts", ts)
 			err := wal.Truncate(ts)
