@@ -45,6 +45,7 @@ var (
 	DefaultConfig = Config{
 		HostFilter:           false,
 		WALTruncateFrequency: 1 * time.Minute,
+		MinWALTime:           5 * time.Minute,
 		RemoteFlushDeadline:  1 * time.Minute,
 		WriteStaleOnShutdown: false,
 	}
@@ -61,6 +62,9 @@ type Config struct {
 
 	// How frequently the WAL should be truncated.
 	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty" json:"wal_truncate_frequency,omitempty"`
+
+	// Minimum time data in the WAL should exist for.
+	MinWALTime time.Duration `yaml:"min_wal_time,omitempty" json:"min_wal_time,omitempty"`
 
 	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty" json:"remote_flush_deadline,omitempty"`
 	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty" json:"write_stale_on_shutdown,omitempty"`
@@ -571,6 +575,9 @@ func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config
 				level.Debug(i.logger).Log("msg", "can't truncate the WAL yet")
 				continue
 			}
+
+			// Subtract the minimum amount of time we want data in the WAL to live for.
+			ts -= i.cfg.MinWALTime.Milliseconds()
 
 			level.Debug(i.logger).Log("msg", "truncating the WAL", "ts", ts)
 			err := wal.Truncate(ts)

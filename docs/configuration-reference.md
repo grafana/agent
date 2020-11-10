@@ -344,6 +344,15 @@ host_filter_relabel_configs:
 # send the data.
 [wal_truncate_frequency: <duration> | default = "1m"]
 
+# The minimum amount of time series and samples should exist in the WAL before
+# being considered for deletion. The consumed disk space of the WAL will
+# increase by making this value larger.
+#
+# Setting this value to 0s is valid, but may delete series before all
+# remote_write shards have been able to write all data, and may cause errors on
+# slower machines.
+[min_wal_time: <duration> | default = "5m"]
+
 # Deadline for flushing data when a Prometheus instance shuts down
 # before giving up and letting the shutdown proceed.
 [remote_flush_deadline: <duration> | default = "1m"]
