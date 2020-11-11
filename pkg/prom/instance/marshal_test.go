@@ -62,6 +62,8 @@ remote_write:
     send: true
     send_interval: 1m
 wal_truncate_frequency: 1m0s
+min_wal_time: 5m0s
+max_wal_time: 4h0m0s
 remote_flush_deadline: 1m0s
 `
 

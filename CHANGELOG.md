@@ -11,6 +11,13 @@ this platform. FreeBSD builds will return in a future release.
 - [FEATURE] New integration:
   [postgres_exporter](https://github.com/wrouesnel/postgres_exporter) (@rfratto)
 
+- [ENHANCEMENT] `min_wal_time` and `max_wal_time` have been added to the
+  instance config settings, guaranteeing that data in the WAL will exist for at
+  least `min_wal_time` and will not exist for longer than `max_wal_time`. This
+  change will increase the size of the WAL slightly but will prevent certain
+  scenarios where data is deleted before it is sent. To revert back to the old
+  behavior, set `min_wal_time` to `0s`. (@rfratto)
+
 # v0.8.0 (2020-11-06)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
