@@ -1,4 +1,4 @@
-# cloud.google.com/go v0.57.0
+# cloud.google.com/go v0.65.0
 cloud.google.com/go/compute/metadata
 # contrib.go.opencensus.io/exporter/prometheus v0.2.0
 contrib.go.opencensus.io/exporter/prometheus
@@ -127,7 +127,7 @@ github.com/coreos/go-systemd/journal
 github.com/coreos/go-systemd/sdjournal
 # github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
 github.com/coreos/pkg/capnslog
-# github.com/cortexproject/cortex v1.4.1-0.20201022071705-85942c5703cf
+# github.com/cortexproject/cortex v1.5.1-0.20201112080622-5c60b0d451f1
 github.com/cortexproject/cortex/pkg/distributor
 github.com/cortexproject/cortex/pkg/ingester/client
 github.com/cortexproject/cortex/pkg/prom1/storage/metric
@@ -370,7 +370,7 @@ github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
 # github.com/gookit/color v1.2.5
 github.com/gookit/color
-# github.com/gophercloud/gophercloud v0.12.0
+# github.com/gophercloud/gophercloud v0.13.0
 github.com/gophercloud/gophercloud
 github.com/gophercloud/gophercloud/openstack
 github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/floatingips
@@ -695,7 +695,7 @@ github.com/prometheus/procfs/internal/util
 github.com/prometheus/procfs/nfs
 github.com/prometheus/procfs/sysfs
 github.com/prometheus/procfs/xfs
-# github.com/prometheus/prometheus v1.8.2-0.20201014093524-73e2ce1bd643 => github.com/grafana/prometheus v1.8.2-0.20201021200247-cf00050ed1e9
+# github.com/prometheus/prometheus v1.8.2-0.20201029103703-63be30dceed9 => github.com/grafana/prometheus v1.8.2-0.20201021200247-cf00050ed1e9
 github.com/prometheus/prometheus/config
 github.com/prometheus/prometheus/discovery
 github.com/prometheus/prometheus/discovery/azure
@@ -834,9 +834,10 @@ github.com/tcnksm/go-latest
 github.com/tdakkota/asciicheck
 # github.com/tetafro/godot v0.4.8
 github.com/tetafro/godot
-# github.com/thanos-io/thanos v0.13.1-0.20201019130456-f41940581d9a
+# github.com/thanos-io/thanos v0.13.1-0.20201030101306-47f9a225cc52
 github.com/thanos-io/thanos/pkg/discovery/dns
 github.com/thanos-io/thanos/pkg/discovery/dns/miekgdns
+github.com/thanos-io/thanos/pkg/errutil
 github.com/thanos-io/thanos/pkg/extprom
 github.com/thanos-io/thanos/pkg/testutil
 # github.com/timakin/bodyclose v0.0.0-20190930140734-f7f2e9bca95e
@@ -1106,7 +1107,7 @@ golang.org/x/net/ipv6
 golang.org/x/net/netutil
 golang.org/x/net/proxy
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+# golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 golang.org/x/oauth2
 golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
@@ -1129,7 +1130,7 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/width
 # golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 golang.org/x/time/rate
-# golang.org/x/tools v0.0.0-20200822203824-307de81be3f4
+# golang.org/x/tools v0.0.0-20200825202427-b303f430e36d
 golang.org/x/tools/cmd/goimports
 golang.org/x/tools/go/analysis
 golang.org/x/tools/go/analysis/passes/asmdecl
@@ -1217,7 +1218,7 @@ google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20200815001618-f69a88009b70
+# google.golang.org/genproto v0.0.0-20200904004341-0bd0a958aa1d
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/api/httpbody
 google.golang.org/genproto/googleapis/rpc/errdetails

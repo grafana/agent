@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
+	"github.com/cortexproject/cortex/pkg/util/spanlogger"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/instance"
-	"github.com/grafana/agent/pkg/util/spanlogger"
 )
 
 // Reshard initiates an entire reshard of the current HA scraping service instance.
@@ -23,7 +23,7 @@ import (
 //
 // Satisfies agentproto.ScrapingServiceServer.
 func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *empty.Empty, err error) {
-	l, ctx := spanlogger.NewFromLogger(ctx, s.logger, "Server.Reshard")
+	l, ctx := spanlogger.NewWithLogger(ctx, s.logger, "Server.Reshard")
 	defer l.Finish()
 
 	level.Info(l).Log("msg", "resharding agent")
@@ -82,7 +82,7 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 
 // AllConfigs gets all configs known to the KV store.
 func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error) {
-	l, ctx := spanlogger.NewFromLogger(ctx, s.logger, "Server.AllConfigs")
+	l, ctx := spanlogger.NewWithLogger(ctx, s.logger, "Server.AllConfigs")
 	defer l.Finish()
 
 	keys, err := s.kv.List(ctx, "")
@@ -126,7 +126,7 @@ type ReadRing interface {
 	http.Handler
 
 	Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAll(op ring.Operation) (ring.ReplicationSet, error)
+	GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error)
 }
 
 // ShardingInstanceManager wraps around an existing instance.Manager and uses a

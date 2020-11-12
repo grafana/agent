@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/cortexproject/cortex v1.4.1-0.20201022071705-85942c5703cf
+	github.com/cortexproject/cortex v1.5.1-0.20201112080622-5c60b0d451f1
 	github.com/go-kit/kit v0.10.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.3
@@ -27,7 +27,7 @@ require (
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.2.0
-	github.com/prometheus/prometheus v1.8.2-0.20201014093524-73e2ce1bd643
+	github.com/prometheus/prometheus v1.8.2-0.20201029103703-63be30dceed9
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.1
