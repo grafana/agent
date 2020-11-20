@@ -95,7 +95,7 @@ may try to reimplement everything from scratch.
 
 ### Why not just use Telegraf?
 Telegraf is a fantastic project and was actually considered as an alternative to 
-building a custom Prometheus scraper and agent.
+to building our own agent.
 It could work, but ultimately it was not chosen due to lacking service discovery 
 and metadata label propagation.
 While these features could theoretically be added to Telegraf as OSS contributions, 
