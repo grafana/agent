@@ -105,7 +105,7 @@ Additonally, Telegraf is a much larger project with its own goals for its commun
 so any changes need to fit the general use cases it was designed for.
 
 With the Grafana Cloud Agent as its own project, we can deliver a more curated agent 
-specifically designed to work seamlessly with GrafanaCloud and other 
+specifically designed to work seamlessly with Grafana Cloud and other 
 `remote_write` compatible Prometheus endpoints as well as Loki for logs
 and Tempo for traces, all-in-one.
 
