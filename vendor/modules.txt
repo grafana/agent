@@ -750,9 +750,17 @@ github.com/prometheus/prometheus/util/strutil
 github.com/prometheus/prometheus/util/teststorage
 github.com/prometheus/prometheus/util/testutil
 github.com/prometheus/prometheus/util/treecache
-# github.com/prometheus/statsd_exporter v0.15.0
+# github.com/prometheus/statsd_exporter v0.15.0 => github.com/grafana/statsd_exporter v0.18.1-0.20201120191414-b5deeda251f5
+github.com/prometheus/statsd_exporter/pkg/address
+github.com/prometheus/statsd_exporter/pkg/clock
+github.com/prometheus/statsd_exporter/pkg/event
+github.com/prometheus/statsd_exporter/pkg/exporter
+github.com/prometheus/statsd_exporter/pkg/line
+github.com/prometheus/statsd_exporter/pkg/listener
 github.com/prometheus/statsd_exporter/pkg/mapper
 github.com/prometheus/statsd_exporter/pkg/mapper/fsm
+github.com/prometheus/statsd_exporter/pkg/metrics
+github.com/prometheus/statsd_exporter/pkg/registry
 # github.com/quasilyte/go-ruleguard v0.2.0
 github.com/quasilyte/go-ruleguard/dslgen
 github.com/quasilyte/go-ruleguard/internal/mvdan.cc/gogrep

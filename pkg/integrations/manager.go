@@ -19,6 +19,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
+	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -66,6 +67,7 @@ type Config struct {
 	DnsmasqExporter   dnsmasq_exporter.Config   `yaml:"dnsmasq_exporter"`
 	MemcachedExporter memcached_exporter.Config `yaml:"memcached_exporter"`
 	PostgresExporter  postgres_exporter.Config  `yaml:"postgres_exporter"`
+	StatsdExporter    statsd_exporter.Config    `yaml:"statsd_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -191,6 +193,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.PostgresExporter.Enabled {
 		l := log.With(logger, "integration", "postgres_exporter")
 		i, err := postgres_exporter.New(l, c.PostgresExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.StatsdExporter.Enabled {
+		l := log.With(logger, "integration", "statsd_exporter")
+		i, err := statsd_exporter.New(l, c.StatsdExporter)
 		if err != nil {
 			return nil, err
 		}

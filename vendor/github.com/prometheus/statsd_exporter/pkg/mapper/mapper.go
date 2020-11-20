@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	statsdMetricRE    = `[a-zA-Z_](-?[a-zA-Z0-9_])+`
+	statsdMetricRE    = `[a-zA-Z_](-?[a-zA-Z0-9_])*`
 	templateReplaceRE = `(\$\{?\d+\}?)`
 
 	metricLineRE = regexp.MustCompile(`^(\*\.|` + statsdMetricRE + `\.)+(\*|` + statsdMetricRE + `)$`)
@@ -35,45 +35,17 @@ var (
 	labelNameRE  = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]+$`)
 )
 
-type mapperConfigDefaults struct {
-	TimerType           TimerType         `yaml:"timer_type"`
-	Buckets             []float64         `yaml:"buckets"`
-	Quantiles           []metricObjective `yaml:"quantiles"`
-	MatchType           MatchType         `yaml:"match_type"`
-	GlobDisableOrdering bool              `yaml:"glob_disable_ordering"`
-	Ttl                 time.Duration     `yaml:"ttl"`
-}
-
 type MetricMapper struct {
-	Defaults mapperConfigDefaults `yaml:"defaults"`
-	Mappings []MetricMapping      `yaml:"mappings"`
-	FSM      *fsm.FSM
-	doFSM    bool
-	doRegex  bool
-	cache    MetricMapperCache
-	mutex    sync.RWMutex
+	Registerer prometheus.Registerer
+	Defaults   mapperConfigDefaults `yaml:"defaults"`
+	Mappings   []MetricMapping      `yaml:"mappings"`
+	FSM        *fsm.FSM
+	doFSM      bool
+	doRegex    bool
+	cache      MetricMapperCache
+	mutex      sync.RWMutex
 
 	MappingsCount prometheus.Gauge
-}
-
-type MetricMapping struct {
-	Match            string `yaml:"match"`
-	Name             string `yaml:"name"`
-	nameFormatter    *fsm.TemplateFormatter
-	regex            *regexp.Regexp
-	Labels           prometheus.Labels `yaml:"labels"`
-	labelKeys        []string
-	labelFormatters  []*fsm.TemplateFormatter
-	TimerType        TimerType         `yaml:"timer_type"`
-	LegacyBuckets    []float64         `yaml:"buckets"`
-	LegacyQuantiles  []metricObjective `yaml:"quantiles"`
-	MatchType        MatchType         `yaml:"match_type"`
-	HelpText         string            `yaml:"help"`
-	Action           ActionType        `yaml:"action"`
-	MatchMetricType  MetricType        `yaml:"match_metric_type"`
-	Ttl              time.Duration     `yaml:"ttl"`
-	SummaryOptions   *SummaryOptions   `yaml:"summary_options"`
-	HistogramOptions *HistogramOptions `yaml:"histogram_options"`
 }
 
 type SummaryOptions struct {
@@ -119,7 +91,7 @@ func (m *MetricMapper) InitFromYAMLString(fileContents string, cacheSize int, op
 
 	remainingMappingsCount := len(n.Mappings)
 
-	n.FSM = fsm.NewFSM([]string{string(MetricTypeCounter), string(MetricTypeGauge), string(MetricTypeTimer)},
+	n.FSM = fsm.NewFSM([]string{string(MetricTypeCounter), string(MetricTypeGauge), string(MetricTypeObserver)},
 		remainingMappingsCount, n.Defaults.GlobDisableOrdering)
 
 	for i := range n.Mappings {
@@ -181,8 +153,8 @@ func (m *MetricMapper) InitFromYAMLString(fileContents string, cacheSize int, op
 			n.doRegex = true
 		}
 
-		if currentMapping.TimerType == "" {
-			currentMapping.TimerType = n.Defaults.TimerType
+		if currentMapping.ObserverType == "" {
+			currentMapping.ObserverType = n.Defaults.ObserverType
 		}
 
 		if currentMapping.LegacyQuantiles != nil &&
@@ -207,9 +179,9 @@ func (m *MetricMapper) InitFromYAMLString(fileContents string, cacheSize int, op
 			return fmt.Errorf("cannot use buckets in both the top level and histogram options at the same time in %s", currentMapping.Match)
 		}
 
-		if currentMapping.TimerType == TimerTypeHistogram {
+		if currentMapping.ObserverType == ObserverTypeHistogram {
 			if currentMapping.SummaryOptions != nil {
-				return fmt.Errorf("cannot use histogram timer and summary options at the same time")
+				return fmt.Errorf("cannot use histogram observer and summary options at the same time")
 			}
 			if currentMapping.HistogramOptions == nil {
 				currentMapping.HistogramOptions = &HistogramOptions{}
@@ -222,9 +194,9 @@ func (m *MetricMapper) InitFromYAMLString(fileContents string, cacheSize int, op
 			}
 		}
 
-		if currentMapping.TimerType == TimerTypeSummary {
+		if currentMapping.ObserverType == ObserverTypeSummary {
 			if currentMapping.HistogramOptions != nil {
-				return fmt.Errorf("cannot use summary timer and histogram options at the same time")
+				return fmt.Errorf("cannot use summary observer and histogram options at the same time")
 			}
 			if currentMapping.SummaryOptions == nil {
 				currentMapping.SummaryOptions = &SummaryOptions{}
@@ -281,7 +253,7 @@ func (m *MetricMapper) InitFromFile(fileName string, cacheSize int, options ...C
 
 func (m *MetricMapper) InitCache(cacheSize int, options ...CacheOption) {
 	if cacheSize == 0 {
-		m.cache = NewMetricMapperNoopCache()
+		m.cache = NewMetricMapperNoopCache(m.Registerer)
 	} else {
 		o := cacheOptions{
 			cacheType: "lru",
@@ -296,9 +268,9 @@ func (m *MetricMapper) InitCache(cacheSize int, options ...CacheOption) {
 		)
 		switch o.cacheType {
 		case "lru":
-			cache, err = NewMetricMapperCache(cacheSize)
+			cache, err = NewMetricMapperCache(m.Registerer, cacheSize)
 		case "random":
-			cache, err = NewMetricMapperRRCache(cacheSize)
+			cache, err = NewMetricMapperRRCache(m.Registerer, cacheSize)
 		default:
 			err = fmt.Errorf("unsupported cache type %q", o.cacheType)
 		}
