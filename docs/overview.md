@@ -93,6 +93,22 @@ official code with extra functionality. This allows the Agent to give an
 experience closest to its official counterparts compared to alternatives which
 may try to reimplement everything from scratch.
 
+### Why not just use Telegraf?
+Telegraf is a fantastic project and was actually considered as an alternative to 
+to building our own agent.
+It could work, but ultimately it was not chosen due to lacking service discovery 
+and metadata label propagation.
+While these features could theoretically be added to Telegraf as OSS contributions, 
+there would be a lot of forced hacks involved due to its current design.
+
+Additonally, Telegraf is a much larger project with its own goals for its community,
+so any changes need to fit the general use cases it was designed for.
+
+With the Grafana Cloud Agent as its own project, we can deliver a more curated agent 
+specifically designed to work seamlessly with Grafana Cloud and other 
+`remote_write` compatible Prometheus endpoints as well as Loki for logs
+and Tempo for traces, all-in-one.
+
 ## Next Steps
 
 For more information on installing and running the agent, see
