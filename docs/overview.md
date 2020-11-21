@@ -94,7 +94,7 @@ experience closest to its official counterparts compared to alternatives which
 may try to reimplement everything from scratch.
 
 ### Why not just use Telegraf?
-Telegraf is a fantastic project and was actually considered as an alternative to 
+Telegraf is a fantastic project and was actually considered as an alternative 
 to building our own agent.
 It could work, but ultimately it was not chosen due to lacking service discovery 
 and metadata label propagation.
