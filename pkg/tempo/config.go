@@ -41,12 +41,13 @@ type Config struct {
 
 // PushConfig controls the configuration of exporting to Grafana Cloud
 type PushConfig struct {
-	Endpoint       string                 `yaml:"endpoint"`
-	Insecure       bool                   `yaml:"insecure"`
-	BasicAuth      *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
-	Batch          map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor/config.go#L24
-	SendingQueue   map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L30
-	RetryOnFailure map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L54
+	Endpoint           string                 `yaml:"endpoint"`
+	Insecure           bool                   `yaml:"insecure"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
+	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor/config.go#L24
+	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L30
+	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L54
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -94,11 +95,12 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 	}
 
 	otlpExporter := map[string]interface{}{
-		"endpoint":         c.PushConfig.Endpoint,
-		"headers":          headers,
-		"insecure":         c.PushConfig.Insecure,
-		"sending_queue":    c.PushConfig.SendingQueue,
-		"retry_on_failure": c.PushConfig.RetryOnFailure,
+		"endpoint":             c.PushConfig.Endpoint,
+		"headers":              headers,
+		"insecure":             c.PushConfig.Insecure,
+		"insecure_skip_verify": c.PushConfig.InsecureSkipVerify,
+		"sending_queue":        c.PushConfig.SendingQueue,
+		"retry_on_failure":     c.PushConfig.RetryOnFailure,
 	}
 
 	// Apply some sane defaults to the exporter. The

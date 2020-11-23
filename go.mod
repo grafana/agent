@@ -6,12 +6,14 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/cortexproject/cortex v1.4.1-0.20201022071705-85942c5703cf
 	github.com/go-kit/kit v0.10.0
+	github.com/go-playground/validator/v10 v10.4.0 // indirect
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.3
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20201026154740-6978ee5d7387
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
+	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909 // indirect
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/miekg/dns v1.1.31
 	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
@@ -22,25 +24,26 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0
-	github.com/prometheus/common v0.14.0
+	github.com/prometheus/common v0.15.0
 	github.com/prometheus/memcached_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.2.0
-	github.com/prometheus/prometheus v1.8.2-0.20201014093524-73e2ce1bd643
+	github.com/prometheus/prometheus v1.8.2-0.20201105135750-00f16d1ac3a4
+	github.com/sectioneight/md-to-godoc v0.0.0-20161108233149-55e43be6c335 // indirect
 	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/weaveworks/common v0.0.0-20200914083218-61ffdd448099
 	github.com/wrouesnel/postgres_exporter v0.0.0-00010101000000-000000000000
-	go.opencensus.io v0.22.4
-	go.opentelemetry.io/collector v0.14.0
+	go.opencensus.io v0.22.5
+	go.opentelemetry.io/collector v0.16.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
-	google.golang.org/grpc v1.32.0
+	google.golang.org/grpc v1.33.2
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 // Needed for Cortex's dependencies to work properly.
