@@ -11,4 +11,5 @@ jobs:
 
     - name: Invoke action
       uses: rfratto/depcheck@master
-
+      with:
+        dry_run: 'true'
