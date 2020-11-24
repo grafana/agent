@@ -51,7 +51,7 @@ type Config struct {
 	CommonConfig config.Common `yaml:",inline"`
 
 	ListenUDP      string               `yaml:"listen_udp"`
-	ListenTCP      string               `yaml:"listen_udp"`
+	ListenTCP      string               `yaml:"listen_tcp"`
 	ListenUnixgram string               `yaml:"listen_unixgram"`
 	UnixSocketMode string               `yaml:"unix_socket_mode"`
 	MappingConfig  *mapper.MetricMapper `yaml:"mapping_config"`
@@ -309,6 +309,8 @@ func (e *Exporter) Run(ctx context.Context) error {
 			}
 		}
 	}
+
+	go e.exporter.Listen(events)
 
 	<-ctx.Done()
 	return nil

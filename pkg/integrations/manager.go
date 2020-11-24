@@ -256,6 +256,13 @@ func (m *Manager) run(ctx context.Context) {
 }
 
 func (m *Manager) runIntegration(ctx context.Context, i common.Integration) {
+	defer func() {
+		if r := recover(); r != nil {
+			err := fmt.Errorf("%v", r)
+			level.Error(m.logger).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", i.Name())
+		}
+	}()
+
 	shouldCollect := m.c.ScrapeIntegrations
 	if common := i.CommonConfig(); common.ScrapeIntegration != nil {
 		shouldCollect = *common.ScrapeIntegration
