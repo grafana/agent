@@ -28,7 +28,7 @@ require (
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.2.0
 	github.com/prometheus/prometheus v1.8.2-0.20201014093524-73e2ce1bd643
-	github.com/prometheus/statsd_exporter v0.15.0
+	github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.1
@@ -73,7 +73,6 @@ replace (
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf
 	github.com/prometheus/memcached_exporter => github.com/grafana/memcached_exporter v0.7.1-0.20201030142623-8e1997d4fbb7
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
-	github.com/prometheus/statsd_exporter => github.com/grafana/statsd_exporter v0.18.1-0.20201120191414-b5deeda251f5
 	github.com/wrouesnel/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20201106170118-5eedee00c1db
 )
 

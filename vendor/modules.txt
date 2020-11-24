@@ -750,7 +750,7 @@ github.com/prometheus/prometheus/util/strutil
 github.com/prometheus/prometheus/util/teststorage
 github.com/prometheus/prometheus/util/testutil
 github.com/prometheus/prometheus/util/treecache
-# github.com/prometheus/statsd_exporter v0.15.0 => github.com/grafana/statsd_exporter v0.18.1-0.20201120191414-b5deeda251f5
+# github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 github.com/prometheus/statsd_exporter/pkg/address
 github.com/prometheus/statsd_exporter/pkg/clock
 github.com/prometheus/statsd_exporter/pkg/event
