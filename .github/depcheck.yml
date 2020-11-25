@@ -1,0 +1,16 @@
+# List of go modules to check for outdated-ness.
+go_modules:
+  - github.com/cortexproject/cortex
+  - github.com/grafana/loki
+  - github.com/oliver006/redis_exporter
+  - github.com/weaveworks/common
+  - go.opentelemetry.io/collector
+
+# List of Github repos to check for newer tags.
+github_repos:
+  - github.com/google/dnsmasq_exporter v0.2.0
+  - github.com/ncabatoff/process-exporter v0.7.2
+  - github.com/prometheus/memcached_exporter v0.7.0
+  - github.com/prometheus/mysqld_exporter v0.12.1
+  - github.com/prometheus/prometheus v2.21.0
+  - github.com/wrouesnel/postgres_exporter v0.8.0
