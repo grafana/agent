@@ -12,4 +12,5 @@ jobs:
     - name: Invoke action
       uses: rfratto/depcheck@main
       with:
-        dry_run: 'true'
+        dry-run: 'true'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
