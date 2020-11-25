@@ -3,6 +3,7 @@ go_modules:
   - github.com/cortexproject/cortex
   - github.com/grafana/loki
   - github.com/oliver006/redis_exporter
+  - github.com/prometheus/statsd_exporter
   - github.com/weaveworks/common
   - go.opentelemetry.io/collector
 
