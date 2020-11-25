@@ -19,6 +19,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
+	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -66,6 +67,7 @@ type Config struct {
 	DnsmasqExporter   dnsmasq_exporter.Config   `yaml:"dnsmasq_exporter"`
 	MemcachedExporter memcached_exporter.Config `yaml:"memcached_exporter"`
 	PostgresExporter  postgres_exporter.Config  `yaml:"postgres_exporter"`
+	StatsdExporter    statsd_exporter.Config    `yaml:"statsd_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -196,6 +198,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 		}
 		integrations = append(integrations, i)
 	}
+	if c.StatsdExporter.Enabled {
+		l := log.With(logger, "integration", "statsd_exporter")
+		i, err := statsd_exporter.New(l, c.StatsdExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
 
 	return newManager(c, logger, im, integrations)
 }
@@ -246,6 +256,13 @@ func (m *Manager) run(ctx context.Context) {
 }
 
 func (m *Manager) runIntegration(ctx context.Context, i common.Integration) {
+	defer func() {
+		if r := recover(); r != nil {
+			err := fmt.Errorf("%v", r)
+			level.Error(m.logger).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", i.Name())
+		}
+	}()
+
 	shouldCollect := m.c.ScrapeIntegrations
 	if common := i.CommonConfig(); common.ScrapeIntegration != nil {
 		shouldCollect = *common.ScrapeIntegration

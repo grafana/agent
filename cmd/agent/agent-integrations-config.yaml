@@ -36,6 +36,8 @@ integrations:
     enabled: true
     memcached_address: localhost:11211
     timeout: 10s
+  statsd_exporter:
+    enabled: true
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push
 
