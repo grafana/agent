@@ -623,7 +623,7 @@ github.com/oklog/run
 github.com/oklog/ulid
 # github.com/olekukonko/tablewriter v0.0.2
 github.com/olekukonko/tablewriter
-# github.com/oliver006/redis_exporter v1.12.2-0.20201026185157-c0a38f36299a
+# github.com/oliver006/redis_exporter v1.13.1
 github.com/oliver006/redis_exporter/exporter
 # github.com/opencontainers/go-digest v1.0.0
 github.com/opencontainers/go-digest
@@ -672,7 +672,7 @@ github.com/prometheus/client_golang/prometheus/testutil
 github.com/prometheus/client_golang/prometheus/testutil/promlint
 # github.com/prometheus/client_model v0.2.0
 github.com/prometheus/client_model/go
-# github.com/prometheus/common v0.14.0
+# github.com/prometheus/common v0.15.0
 github.com/prometheus/common/config
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
@@ -1114,7 +1114,7 @@ golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
 # golang.org/x/sync v0.0.0-20200930132711-30421366ff76
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20201015000850-e3ed0017c211
+# golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
