@@ -3,6 +3,12 @@ local agent = import 'grafana-agent/v1/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 local containerPort = k.core.v1.containerPort;
 
+local newPort(name, portNumber, protocol='TCP') =
+  // Port names for pods cannot be longer than 15 characters. 
+  if std.length(name) > 15 then 
+  error 'port name cannot be longer than 15 characters'
+  else containerPort.new(name, portNumber) + containerPort.withProtocol(protocol);
+
 {
   agent:
     agent.new('grafana-agent-traces', 'default') +
@@ -31,22 +37,20 @@ local containerPort = k.core.v1.containerPort;
       },
     }) +
     agent.withPortsMixin([
-      // NOTE: none of these may surpass 15 characters.
-
       // Jaeger receiver
-      containerPort.new('thrift-compact', 6831) + containerPort.withProtocol('UDP'),
-      containerPort.new('thrift-binary', 6832) + containerPort.withProtocol('UDP'),
-      containerPort.new('thrift-http', 14268) + containerPort.withProtocol('TCP'),
-      containerPort.new('thrift-grpc', 14250) + containerPort.withProtocol('TCP'),
+      newPort('thrift-compact', 6831, 'UDP'),
+      newPort('thrift-binary', 6832, 'UDP'),
+      newPort('thrift-http', 14268, 'TCP'),
+      newPort('thrift-grpc', 14250, 'TCP'),
 
       // Zipkin
-      containerPort.new('zipkin', 9411) + containerPort.withProtocol('TCP'),
+      newPort('zipkin', 9411, 'TCP'),
 
       // OTLP
-      containerPort.new('otlp', 55680) + containerPort.withProtocol('TCP'),
+      newPort('otlp', 55680, 'TCP'),
 
       // Opencensus
-      containerPort.new('opencensus', 55678) + containerPort.withProtocol('TCP'),
+      newPort('opencensus', 55678, 'TCP'),
     ]) +
     agent.withTempoPushConfig({
       endpoint: '${TEMPO_ENDPOINT}',
