@@ -3,9 +3,11 @@ package loki
 
 import (
 	"flag"
+	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/loki/pkg/promtail"
 	"github.com/grafana/loki/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/promtail/config"
@@ -14,6 +16,10 @@ import (
 	"github.com/grafana/loki/pkg/promtail/server"
 	"github.com/grafana/loki/pkg/promtail/targets/file"
 )
+
+func init() {
+	client.UserAgent = fmt.Sprintf("GrafanaCloudAgent/%s", build.Version)
+}
 
 // Config controls the configuration of the Loki log scraper.
 type Config struct {
