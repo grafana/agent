@@ -62,8 +62,7 @@ func (ReadRequest_ResponseType) EnumDescriptor() ([]byte, []int) {
 }
 
 type WriteRequest struct {
-	Timeseries []TimeSeries `protobuf:"bytes,1,rep,name=timeseries,proto3" json:"timeseries"`
-	// Metric metadata is sent at all once, and as a set across all targets.
+	Timeseries           []TimeSeries     `protobuf:"bytes,1,rep,name=timeseries,proto3" json:"timeseries"`
 	Metadata             []MetricMetadata `protobuf:"bytes,3,rep,name=metadata,proto3" json:"metadata"`
 	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
 	XXX_unrecognized     []byte           `json:"-"`

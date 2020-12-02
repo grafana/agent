@@ -158,7 +158,7 @@ func TestServer_Cluster_Reshard_On_Start_And_Leave(t *testing.T) {
 	// Inject the GetFunc to always return the local node but override GetAll to
 	// return our custom fake nodes.
 	injectRingIngester(r)
-	r.GetAllFunc = func(_ ring.Operation) (ring.ReplicationSet, error) {
+	r.GetAllHealthyFunc = func(_ ring.Operation) (ring.ReplicationSet, error) {
 		return ring.ReplicationSet{
 			Ingesters: []ring.IngesterDesc{
 				{Addr: "test"},
@@ -197,7 +197,7 @@ func injectRingIngester(r *mockFuncReadRing) {
 		}, nil
 	}
 
-	r.GetAllFunc = func(_ ring.Operation) (ring.ReplicationSet, error) {
+	r.GetAllHealthyFunc = func(_ ring.Operation) (ring.ReplicationSet, error) {
 		return ring.ReplicationSet{
 			Ingesters: []ring.IngesterDesc{{Addr: "test"}},
 		}, nil

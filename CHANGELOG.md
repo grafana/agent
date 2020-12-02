@@ -23,6 +23,10 @@ this platform. FreeBSD builds will return in a future release.
 
 - [ENHANCEMENT] Update `redis_exporter` to v1.13.1. (@rfratto)
 
+- [ENHANCEMENT] Update Prometheus to v2.23.0. (@rfratto)
+
+- [ENHANCEMENT] Update Cortex to v1.5.0. (@rfratto)
+
 # v0.8.0 (2020-11-06)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an

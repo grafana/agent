@@ -296,8 +296,8 @@ remote_write:
 type mockFuncReadRing struct {
 	http.Handler
 
-	GetFunc    func(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAllFunc func(ring.Operation) (ring.ReplicationSet, error)
+	GetFunc           func(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
+	GetAllHealthyFunc func(ring.Operation) (ring.ReplicationSet, error)
 }
 
 func (r *mockFuncReadRing) Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error) {
@@ -307,9 +307,9 @@ func (r *mockFuncReadRing) Get(key uint32, op ring.Operation, buf []ring.Ingeste
 	return ring.ReplicationSet{}, errors.New("not implemented")
 }
 
-func (r *mockFuncReadRing) GetAll(op ring.Operation) (ring.ReplicationSet, error) {
-	if r.GetAllFunc != nil {
-		return r.GetAllFunc(op)
+func (r *mockFuncReadRing) GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error) {
+	if r.GetAllHealthyFunc != nil {
+		return r.GetAllHealthyFunc(op)
 	}
 	return ring.ReplicationSet{}, errors.New("not implemented")
 }

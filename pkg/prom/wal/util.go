@@ -39,7 +39,7 @@ func (r walReplayer) Replay(dir string) error {
 		startFrom++
 	}
 
-	_, last, err := w.Segments()
+	_, last, err := wal.Segments(w.Dir())
 	if err != nil {
 		return err
 	}
