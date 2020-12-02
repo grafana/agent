@@ -5,8 +5,7 @@ upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] Add `sample-stats` to `agentctl` to search the WAL and return a
-  summary of samples of series matching the given label selector.
-  (@simonswine)
+  summary of samples of series matching the given label selector. (@simonswine)
 
 - [FEATURE] New integration:
   [postgres_exporter](https://github.com/wrouesnel/postgres_exporter) (@rfratto)
@@ -22,6 +21,9 @@ this platform. FreeBSD builds will return in a future release.
   behavior, set `min_wal_time` to `0s`. (@rfratto)
 
 - [ENHANCEMENT] Update `redis_exporter` to v1.13.1. (@rfratto)
+
+- [BUGFIX] Fix issue where the Tempo example manifest could not be applied
+  because the port names were too long. (@rfratto)
 
 # v0.8.0 (2020-11-06)
 
