@@ -109,11 +109,11 @@ spec:
   - name: agent-http-metrics
     port: 8080
     targetPort: 8080
-  - name: agent-thrift-c
+  - name: agent-thrift-compact
     port: 6831
     protocol: UDP
     targetPort: 6831
-  - name: agent-thrift-bin
+  - name: agent-thrift-binary
     port: 6832
     protocol: UDP
     targetPort: 6832
@@ -170,10 +170,10 @@ spec:
         - containerPort: 8080
           name: http-metrics
         - containerPort: 6831
-          name: thrift-c
+          name: thrift-compact
           protocol: UDP
         - containerPort: 6832
-          name: thrift-bin
+          name: thrift-binary
           protocol: UDP
         - containerPort: 14268
           name: thrift-http

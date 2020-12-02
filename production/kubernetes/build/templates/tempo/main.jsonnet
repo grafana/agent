@@ -31,9 +31,11 @@ local containerPort = k.core.v1.containerPort;
       },
     }) +
     agent.withPortsMixin([
+      // NOTE: none of these may surpass 15 characters.
+
       // Jaeger receiver
-      containerPort.new('thrift-c', 6831) + containerPort.withProtocol('UDP'),
-      containerPort.new('thrift-bin', 6832) + containerPort.withProtocol('UDP'),
+      containerPort.new('thrift-compact', 6831) + containerPort.withProtocol('UDP'),
+      containerPort.new('thrift-binary', 6832) + containerPort.withProtocol('UDP'),
       containerPort.new('thrift-http', 14268) + containerPort.withProtocol('TCP'),
       containerPort.new('thrift-grpc', 14250) + containerPort.withProtocol('TCP'),
 
