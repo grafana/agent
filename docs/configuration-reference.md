@@ -1928,6 +1928,9 @@ postgres_exporter: <postgres_exporter_config>
 # Controls the statsd_exporter integration
 statsd_exporter: <statsd_exporter_config>
 
+# Controls the consul_exporter integration
+consul_exporter: <consul_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
@@ -3022,4 +3025,95 @@ Full reference of options:
 
   # Parse SignalFX style tags.
   [parse_signalfx_tags: <bool> | default = true]
+```
+
+### consul_exporter_config
+
+The `statsd_exporter_config` block configures the `statsd_exporter`
+integration, which is an embedded version of
+[`statsd_exporter`](https://github.com/prometheus/statsd_exporter). This allows
+for the collection of statsd metrics and exposing them as Prometheus metrics.
+
+Full reference of options:
+
+```yaml
+  # Enables the statsd_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the configured statsd server address
+  [enabled: <boolean> | default = false]
+
+  # Automatically collect metrics from this integration. If disabled,
+  # the statsd_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/statsd_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  #
+  # Exporter-specific configuration options
+  #
+
+  # Prefix from which to expose key/value pairs.
+  [kv_prefix: <string> | default = ""]
+
+  # Regex that determines which keys to expose.
+  [kv_filter: <string> | default = ".*"]
+
+  # Generate a health summary for each service instance. Needs n+1 queries to
+  # collect all information.
+  [generate_health_summary: <bool> | default = true]
+
+  # HTTP API address of a Consul server or agent. Prefix with https:// to
+  # connect using HTTPS.
+  [server: <string> | default = "http://localhost:8500"]
+
+  # Disable TLS host verification.
+  [insecure_skip_verify: <bool> | default = false]
+
+  # File path to a PEM-encoded certificate authority used to validate the
+  # authenticity of a server certificate.
+  [ca_file: <string> | default = ""]
+
+  # File path to a PEM-encoded certificate used with the private key to verify
+  # the exporter's authenticity.
+  [cert_file: <string> | default = ""]
+
+  # File path to a PEM-encoded private key used with the certificate to verify
+  # the exporter's authenticity.
+  [key_file: <string> | default = ""]
+
+  # When provided, this overrides the hostname for the TLS certificate. It can
+  # be used to ensure that the certificate name matches the hostname we declare.
+  [server_name: <string> | default = ""]
+
+  # Timeout on HTTP requests to the Consul API.
+  [timeout: <duration> | default = "500ms"]
+
+  # Limit the maximum number of concurrent requests to consul. 0 means no limit.
+  [concurrent_request_limit: <int> | default = 0]
+
+  # Allows any Consul server (non-leader) to service a read. 
+  [allow_stale: <bool> | default = true]
+
+  # Forces the read to be fully consistent.
+  [require_consistent: <bool> | default = false]
 ```

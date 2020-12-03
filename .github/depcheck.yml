@@ -15,3 +15,4 @@ github_repos:
   - github.com/prometheus/mysqld_exporter v0.12.1
   - github.com/prometheus/prometheus v2.21.0
   - github.com/wrouesnel/postgres_exporter v0.8.0
+  - github.com/prometheus/consul_exporter v0.7.1
