@@ -1682,6 +1682,9 @@ github.com/prometheus/common v0.14.0 h1:RHRyE8UocrbjU+6UvRzwi6HjiDfxrrBU91TtbKzk
 github.com/prometheus/common v0.14.0/go.mod h1:U+gB1OBLb1lF3O42bTCL+FK18tX9Oar16Clt/msog/s=
 github.com/prometheus/common v0.15.0 h1:4fgOnadei3EZvgRwxJ7RMpG1k1pOZth5Pc13tyspaKM=
 github.com/prometheus/common v0.15.0/go.mod h1:U+gB1OBLb1lF3O42bTCL+FK18tX9Oar16Clt/msog/s=
+github.com/prometheus/memcached_exporter v0.7.0 h1:iqyuu+Up0rwb2M1efnXCCjttSEN7UZRssERfBaXUYlc=
+github.com/prometheus/memcached_exporter v0.7.1-0.20201204153924-4290508e6dcf h1:vQtiNHMX7VjIAoquNeb4oQueLxLUmXPfYMnYk+Q5ZIg=
+github.com/prometheus/memcached_exporter v0.7.1-0.20201204153924-4290508e6dcf/go.mod h1:YCz9i2SVVjyOpN8XJpPWnu6zqXO1qvlWg27qOuY0rd0=
 github.com/prometheus/node_exporter v1.0.0-rc.0.0.20200428091818-01054558c289/go.mod h1:FGbBv5OPKjch+jNUJmEQpMZytIdyW0NdBtWFcfSKusc=
 github.com/prometheus/node_exporter v1.0.1 h1:xTBtauxuNCMhuF4FKiNo2wDCuCAWgS3PoTlVbXLzNO0=
 github.com/prometheus/node_exporter v1.0.1/go.mod h1:IC23eAmBHxDOtCRUgP9uqJewluDPwjStnbvWJEYtisQ=
