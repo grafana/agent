@@ -958,6 +958,8 @@ github.com/gostaticanalysis/analysisutil v0.0.3 h1:iwp+5/UAyzQSFgQ4uR2sni99sJ8Eo
 github.com/gostaticanalysis/analysisutil v0.0.3/go.mod h1:eEOZF4jCKGi+aprrirO9e7WKB3beBRtWgqGunKl6pKE=
 github.com/gotestyourself/gotestyourself v1.3.0/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
 github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
+github.com/grafana/consul_exporter v0.7.2-0.20201202203923-5390bb9ecffc h1:jMbe0Qwt3AZ88usjD/NM3E9n9j6BlgnTG45S7SQ/V64=
+github.com/grafana/consul_exporter v0.7.2-0.20201202203923-5390bb9ecffc/go.mod h1:OwZlAa0i3Erc/Rokn9HM3zk3KKfZGM/TeHscq/kdj5o=
 github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029175341-d5c660a4eb09 h1:APAFkjGkNdNMq6vPkxJ1dNOXsMInppMY7Y4IUO2JZo0=
 github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029175341-d5c660a4eb09/go.mod h1:VkXXMzcoJSroCo6+avVowsPU78ikVuFVYGSCyzrCtXU=
 github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23 h1:unz+d8qr+wZl1V1GiA/tY/I8BW/ZomsMpC+8RbhqkzE=

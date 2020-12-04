@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/agent"
 	"github.com/grafana/agent/pkg/integrations/common"
+	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
@@ -68,6 +69,7 @@ type Config struct {
 	MemcachedExporter memcached_exporter.Config `yaml:"memcached_exporter"`
 	PostgresExporter  postgres_exporter.Config  `yaml:"postgres_exporter"`
 	StatsdExporter    statsd_exporter.Config    `yaml:"statsd_exporter"`
+	ConsulExporter    consul_exporter.Config    `yaml:"consul_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -201,6 +203,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.StatsdExporter.Enabled {
 		l := log.With(logger, "integration", "statsd_exporter")
 		i, err := statsd_exporter.New(l, c.StatsdExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.ConsulExporter.Enabled {
+		l := log.With(logger, "integration", "consul_exporter")
+		i, err := consul_exporter.New(l, c.ConsulExporter)
 		if err != nil {
 			return nil, err
 		}
