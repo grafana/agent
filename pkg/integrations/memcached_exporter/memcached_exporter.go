@@ -7,7 +7,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
-	"github.com/prometheus/memcached_exporter/exporter"
+	"github.com/prometheus/memcached_exporter/pkg/exporter"
 )
 
 // DefaultConfig is the default config for memcached_exporter.
