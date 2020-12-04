@@ -38,6 +38,8 @@ integrations:
     timeout: 10s
   statsd_exporter:
     enabled: true
+  consul_exporter:
+    enabled: true
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push
 
