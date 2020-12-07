@@ -28,6 +28,8 @@ this platform. FreeBSD builds will return in a future release.
 
 - [ENHANCEMENT] Update `redis_exporter` to v1.13.1. (@rfratto)
 
+- [ENHANCEMENT] Bump OpenTelemetry-collector dependency to v0.16.0. (@bombsimon)
+
 - [BUGFIX] Fix issue where the Tempo example manifest could not be applied
   because the port names were too long. (@rfratto)
 
