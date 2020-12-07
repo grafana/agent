@@ -33,6 +33,9 @@ this platform. FreeBSD builds will return in a future release.
 - [BUGFIX] Fix issue where the Tempo example manifest could not be applied
   because the port names were too long. (@rfratto)
 
+- [CHANGE] The User-Agent header sent for logs will now be
+  `GrafanaCloudAgent/<version>` (@rfratto)
+
 # v0.8.0 (2020-11-06)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
