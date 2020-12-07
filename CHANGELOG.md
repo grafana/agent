@@ -8,11 +8,16 @@ this platform. FreeBSD builds will return in a future release.
   insecure_skip_verify to disable TLS chain verification. (@bombsimon)
 
 - [FEATURE] Add `sample-stats` to `agentctl` to search the WAL and return a
-  summary of samples of series matching the given label selector.
-  (@simonswine)
+  summary of samples of series matching the given label selector. (@simonswine)
 
 - [FEATURE] New integration:
   [postgres_exporter](https://github.com/wrouesnel/postgres_exporter) (@rfratto)
+
+- [FEATURE] New integration:
+  [statsd_exporter](https://github.com/prometheus/statsd_exporter) (@rfratto)
+
+- [FEATURE] New integration:
+  [consul_exporter](https://github.com/prometheus/consul_exporter) (@rfratto)
 
 - [ENHANCEMENT] `min_wal_time` and `max_wal_time` have been added to the
   instance config settings, guaranteeing that data in the WAL will exist for at
@@ -20,6 +25,11 @@ this platform. FreeBSD builds will return in a future release.
   change will increase the size of the WAL slightly but will prevent certain
   scenarios where data is deleted before it is sent. To revert back to the old
   behavior, set `min_wal_time` to `0s`. (@rfratto)
+
+- [ENHANCEMENT] Update `redis_exporter` to v1.13.1. (@rfratto)
+
+- [BUGFIX] Fix issue where the Tempo example manifest could not be applied
+  because the port names were too long. (@rfratto)
 
 # v0.8.0 (2020-11-06)
 

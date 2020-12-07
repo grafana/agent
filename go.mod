@@ -12,6 +12,7 @@ require (
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20201026154740-6978ee5d7387
+	github.com/hashicorp/consul/api v1.7.0
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
 	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909 // indirect
 	github.com/jsternberg/zap-logfmt v1.2.0
@@ -19,18 +20,19 @@ require (
 	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
-	github.com/oliver006/redis_exporter v1.12.2-0.20201026185157-c0a38f36299a
+	github.com/oliver006/redis_exporter v1.13.1
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0
 	github.com/prometheus/common v0.15.0
-	github.com/prometheus/memcached_exporter v0.0.0-00010101000000-000000000000
+	github.com/prometheus/consul_exporter v0.0.0-00010101000000-000000000000
+	github.com/prometheus/memcached_exporter v0.7.1-0.20201204153924-4290508e6dcf
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.2.0
-	github.com/prometheus/prometheus v1.8.2-0.20201105135750-00f16d1ac3a4
-	github.com/sectioneight/md-to-godoc v0.0.0-20161108233149-55e43be6c335 // indirect
+	github.com/prometheus/prometheus v1.8.2-0.20201014093524-73e2ce1bd643
+	github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1
@@ -41,7 +43,8 @@ require (
 	go.opentelemetry.io/collector v0.16.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
-	google.golang.org/grpc v1.33.2
+	golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 // indirect
+	google.golang.org/grpc v1.32.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -73,7 +76,7 @@ replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984
 replace (
 	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf
-	github.com/prometheus/memcached_exporter => github.com/grafana/memcached_exporter v0.7.1-0.20201030142623-8e1997d4fbb7
+	github.com/prometheus/consul_exporter => github.com/grafana/consul_exporter v0.7.2-0.20201202203923-5390bb9ecffc
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 	github.com/wrouesnel/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20201106170118-5eedee00c1db
 )

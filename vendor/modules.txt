@@ -460,7 +460,7 @@ github.com/oklog/run
 github.com/oklog/ulid
 # github.com/olekukonko/tablewriter v0.0.2
 github.com/olekukonko/tablewriter
-# github.com/oliver006/redis_exporter v1.12.2-0.20201026185157-c0a38f36299a
+# github.com/oliver006/redis_exporter v1.13.1
 github.com/oliver006/redis_exporter/exporter
 # github.com/opencontainers/go-digest v1.0.0
 github.com/opencontainers/go-digest
@@ -504,8 +504,10 @@ github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/log
 github.com/prometheus/common/model
 github.com/prometheus/common/version
-# github.com/prometheus/memcached_exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/memcached_exporter v0.7.1-0.20201030142623-8e1997d4fbb7
-github.com/prometheus/memcached_exporter/exporter
+# github.com/prometheus/consul_exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/consul_exporter v0.7.2-0.20201202203923-5390bb9ecffc
+github.com/prometheus/consul_exporter/pkg/exporter
+# github.com/prometheus/memcached_exporter v0.7.1-0.20201204153924-4290508e6dcf
+github.com/prometheus/memcached_exporter/pkg/exporter
 # github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 github.com/prometheus/mysqld_exporter/collector
 # github.com/prometheus/node_exporter v1.0.1
@@ -575,9 +577,24 @@ github.com/prometheus/prometheus/util/strutil
 github.com/prometheus/prometheus/util/teststorage
 github.com/prometheus/prometheus/util/testutil
 github.com/prometheus/prometheus/util/treecache
-# github.com/prometheus/statsd_exporter v0.15.0
+# github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
+github.com/prometheus/statsd_exporter/pkg/address
+github.com/prometheus/statsd_exporter/pkg/clock
+github.com/prometheus/statsd_exporter/pkg/event
+github.com/prometheus/statsd_exporter/pkg/exporter
+github.com/prometheus/statsd_exporter/pkg/line
+github.com/prometheus/statsd_exporter/pkg/listener
 github.com/prometheus/statsd_exporter/pkg/mapper
 github.com/prometheus/statsd_exporter/pkg/mapper/fsm
+github.com/prometheus/statsd_exporter/pkg/metrics
+github.com/prometheus/statsd_exporter/pkg/registry
+# github.com/quasilyte/go-ruleguard v0.2.0
+github.com/quasilyte/go-ruleguard/dslgen
+github.com/quasilyte/go-ruleguard/internal/mvdan.cc/gogrep
+github.com/quasilyte/go-ruleguard/ruleguard
+github.com/quasilyte/go-ruleguard/ruleguard/typematch
+# github.com/quasilyte/regex/syntax v0.0.0-20200407221936-30656e2c4a95
+github.com/quasilyte/regex/syntax
 # github.com/rs/cors v1.7.0
 github.com/rs/cors
 # github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e
@@ -875,7 +892,7 @@ golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
 # golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20201015000850-e3ed0017c211
+# golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
