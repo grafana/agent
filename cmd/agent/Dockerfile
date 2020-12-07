@@ -15,11 +15,7 @@ FROM debian:buster-slim
 # Backports repo required to get a libsystemd version 246 or newer which is required to handle journal +ZSTD compression
 RUN echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
 RUN apt-get update && apt-get install -t buster-backports -qy libsystemd-dev && \
-  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN apt-get update && \
-  apt-get install -qy \
-  tzdata ca-certificates && \
+  apt-get install -qy tzdata ca-certificates && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=build /src/agent/cmd/agent/agent /bin/agent
