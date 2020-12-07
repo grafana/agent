@@ -1842,6 +1842,10 @@ push_config:
   # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
   [ insecure: <boolean> | default = false ]
 
+  # Disable validation of the server certificate. Only used when insecure is set
+  # to false.
+  [ insecure_skip_verify: <bool> | default = false ]
+
   # Sets the `Authorization` header on every trace push with the
   # configured username and password.
   # password and password_file are mutually exclusive.
@@ -2994,7 +2998,7 @@ Full reference of options:
   [mapping_config: <statsd_exporter.mapping_config>]
 
   # Size (in bytes) of the operating system's transmit read buffer associated
-  # with the UDP or unixgram connection. Please make sure the kernel parameters 
+  # with the UDP or unixgram connection. Please make sure the kernel parameters
   # net.core.rmem_max is set to a value greater than the value specified.
   [read_buffer: <int> | default = 0]
 
@@ -3014,7 +3018,7 @@ Full reference of options:
   # Number of events to hold in queue before flushing.
   [event_flush_interval: <duration> | default = "200ms"]
 
-  # Parse DogStatsd style tags. 
+  # Parse DogStatsd style tags.
   [parse_dogstatsd_tags: <bool> | default = true]
 
   # Parse InfluxDB style tags.
@@ -3111,7 +3115,7 @@ Full reference of options:
   # Limit the maximum number of concurrent requests to consul. 0 means no limit.
   [concurrent_request_limit: <int> | default = 0]
 
-  # Allows any Consul server (non-leader) to service a read. 
+  # Allows any Consul server (non-leader) to service a read.
   [allow_stale: <bool> | default = true]
 
   # Forces the read to be fully consistent.

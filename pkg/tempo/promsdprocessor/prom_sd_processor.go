@@ -71,15 +71,8 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	rss := td.ResourceSpans()
 	for i := 0; i < rss.Len(); i++ {
 		rs := rss.At(i)
-		if rs.IsNil() {
-			continue
-		}
-		r := rs.Resource()
-		if r.IsNil() {
-			continue
-		}
 
-		p.processAttributes(r.Attributes())
+		p.processAttributes(rs.Resource().Attributes())
 	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)

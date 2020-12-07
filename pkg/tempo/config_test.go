@@ -211,6 +211,35 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "insecure skip verify",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+push_config:
+  insecure_skip_verify: true
+  endpoint: example.com:12345`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp:
+    endpoint: example.com:12345
+    insecure_skip_verify: true
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
