@@ -37,8 +37,8 @@ type TimeoutSettings struct {
 	Timeout time.Duration `mapstructure:"timeout"`
 }
 
-// CreateDefaultTimeoutSettings returns the default settings for TimeoutSettings.
-func CreateDefaultTimeoutSettings() TimeoutSettings {
+// DefaultTimeoutSettings returns the default settings for TimeoutSettings.
+func DefaultTimeoutSettings() TimeoutSettings {
 	return TimeoutSettings{
 		Timeout: 5 * time.Second,
 	}
@@ -89,12 +89,12 @@ func fromOptions(options []Option) *baseSettings {
 	// Start from the default options:
 	opts := &baseSettings{
 		ComponentSettings: componenthelper.DefaultComponentSettings(),
-		TimeoutSettings:   CreateDefaultTimeoutSettings(),
-		// TODO: Enable queuing by default (call CreateDefaultQueueSettings)
+		TimeoutSettings:   DefaultTimeoutSettings(),
+		// TODO: Enable queuing by default (call DefaultQueueSettings)
 		QueueSettings: QueueSettings{Enabled: false},
-		// TODO: Enable retry by default (call CreateDefaultRetrySettings)
+		// TODO: Enable retry by default (call DefaultRetrySettings)
 		RetrySettings:               RetrySettings{Enabled: false},
-		ResourceToTelemetrySettings: createDefaultResourceToTelemetrySettings(),
+		ResourceToTelemetrySettings: defaultResourceToTelemetrySettings(),
 	}
 
 	for _, op := range options {
@@ -172,7 +172,7 @@ func newBaseExporter(cfg configmodels.Exporter, logger *zap.Logger, options ...O
 		convertResourceToTelemetry: bs.ResourceToTelemetrySettings.Enabled,
 	}
 
-	be.qrSender = newQueuedRetrySender(bs.QueueSettings, bs.RetrySettings, &timeoutSender{cfg: bs.TimeoutSettings}, logger)
+	be.qrSender = newQueuedRetrySender(cfg.Name(), bs.QueueSettings, bs.RetrySettings, &timeoutSender{cfg: bs.TimeoutSettings}, logger)
 	be.sender = be.qrSender
 
 	return be

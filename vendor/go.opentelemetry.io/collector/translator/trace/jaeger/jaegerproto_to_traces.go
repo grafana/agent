@@ -146,11 +146,9 @@ func jSpansToInternal(spans []*model.Span) map[instrumentationLibrary]pdata.Inst
 		ils, found := spansByLibrary[library]
 		if !found {
 			ils = pdata.NewInstrumentationLibrarySpans()
-			ils.InitEmpty()
 			spansByLibrary[library] = ils
 
 			if library.name != "" {
-				ils.InstrumentationLibrary().InitEmpty()
 				ils.InstrumentationLibrary().SetName(library.name)
 				ils.InstrumentationLibrary().SetVersion(library.version)
 			}
@@ -166,7 +164,6 @@ type instrumentationLibrary struct {
 
 func jSpanToInternal(span *model.Span) (pdata.Span, instrumentationLibrary) {
 	dest := pdata.NewSpan()
-	dest.InitEmpty()
 	dest.SetTraceID(tracetranslator.UInt64ToTraceID(span.TraceID.High, span.TraceID.Low))
 	dest.SetSpanID(tracetranslator.UInt64ToSpanID(uint64(span.SpanID)))
 	dest.SetName(span.OperationName)

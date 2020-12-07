@@ -25,7 +25,7 @@ import (
 	zipkinmodel "github.com/openzipkin/zipkin-go/model"
 
 	"go.opentelemetry.io/collector/consumer/pdata"
-	commonpb "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/common/v1"
+	"go.opentelemetry.io/collector/internal/data"
 	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/trace/v1"
 	"go.opentelemetry.io/collector/translator/conventions"
 	tracetranslator "go.opentelemetry.io/collector/translator/trace"
@@ -96,7 +96,6 @@ func V2SpansToInternalTraces(zipkinSpans []*zipkinmodel.SpanModel, parseStringTa
 			prevServiceName = localServiceName
 			rss.Resize(rsCount + 1)
 			curRscSpans = rss.At(rsCount)
-			curRscSpans.InitEmpty()
 			rsCount++
 			populateResourceFromZipkinSpan(tags, localServiceName, curRscSpans.Resource())
 			prevInstrLibName = ""
@@ -107,7 +106,6 @@ func V2SpansToInternalTraces(zipkinSpans []*zipkinmodel.SpanModel, parseStringTa
 			prevInstrLibName = instrLibName
 			curRscSpans.InstrumentationLibrarySpans().Resize(ilsCount + 1)
 			curILSpans = curRscSpans.InstrumentationLibrarySpans().At(ilsCount)
-			curILSpans.InitEmpty()
 			ilsCount++
 			populateILFromZipkinSpan(tags, instrLibName, curILSpans.InstrumentationLibrary())
 			spanCount = 0
@@ -125,8 +123,6 @@ func V2SpansToInternalTraces(zipkinSpans []*zipkinmodel.SpanModel, parseStringTa
 }
 
 func zSpanToInternal(zspan *zipkinmodel.SpanModel, tags map[string]string, dest pdata.Span, parseStringTags bool) error {
-	dest.InitEmpty()
-
 	dest.SetTraceID(tracetranslator.UInt64ToTraceID(zspan.TraceID.High, zspan.TraceID.Low))
 	dest.SetSpanID(tracetranslator.UInt64ToSpanID(uint64(zspan.ID)))
 	if value, ok := tags[tracetranslator.TagW3CTraceState]; ok {
@@ -210,10 +206,9 @@ func zTagsToSpanLinks(tags map[string]string, dest pdata.SpanLinkSlice) error {
 		dest.Resize(index + 1)
 		link := dest.At(index)
 		index++
-		link.InitEmpty()
 
 		// Convert trace id.
-		rawTrace := commonpb.TraceID{}
+		rawTrace := data.TraceID{}
 		errTrace := rawTrace.UnmarshalJSON([]byte(parts[0]))
 		if errTrace != nil {
 			return errTrace
@@ -221,7 +216,7 @@ func zTagsToSpanLinks(tags map[string]string, dest pdata.SpanLinkSlice) error {
 		link.SetTraceID(pdata.TraceID(rawTrace))
 
 		// Convert span id.
-		rawSpan := commonpb.SpanID{}
+		rawSpan := data.SpanID{}
 		errSpan := rawSpan.UnmarshalJSON([]byte(parts[1]))
 		if errSpan != nil {
 			return errSpan
@@ -400,7 +395,6 @@ func populateILFromZipkinSpan(tags map[string]string, instrLibName string, libra
 	if instrLibName == "" {
 		return
 	}
-	library.InitEmpty()
 	if value, ok := tags[tracetranslator.TagInstrumentationName]; ok {
 		library.SetName(value)
 		delete(tags, tracetranslator.TagInstrumentationName)

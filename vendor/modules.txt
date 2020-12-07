@@ -229,7 +229,7 @@ github.com/gomodule/redigo/redis
 github.com/google/btree
 # github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23
 github.com/google/dnsmasq_exporter/collector
-# github.com/google/go-cmp v0.5.3
+# github.com/google/go-cmp v0.5.4
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
@@ -588,13 +588,6 @@ github.com/prometheus/statsd_exporter/pkg/mapper
 github.com/prometheus/statsd_exporter/pkg/mapper/fsm
 github.com/prometheus/statsd_exporter/pkg/metrics
 github.com/prometheus/statsd_exporter/pkg/registry
-# github.com/quasilyte/go-ruleguard v0.2.0
-github.com/quasilyte/go-ruleguard/dslgen
-github.com/quasilyte/go-ruleguard/internal/mvdan.cc/gogrep
-github.com/quasilyte/go-ruleguard/ruleguard
-github.com/quasilyte/go-ruleguard/ruleguard/typematch
-# github.com/quasilyte/regex/syntax v0.0.0-20200407221936-30656e2c4a95
-github.com/quasilyte/regex/syntax
 # github.com/rs/cors v1.7.0
 github.com/rs/cors
 # github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e
@@ -780,7 +773,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# go.opentelemetry.io/collector v0.16.0 => ../opentelemetry-collector
+# go.opentelemetry.io/collector v0.16.0
 go.opentelemetry.io/collector/client
 go.opentelemetry.io/collector/component
 go.opentelemetry.io/collector/component/componenterror
@@ -801,6 +794,7 @@ go.opentelemetry.io/collector/consumer/pdata
 go.opentelemetry.io/collector/exporter/exporterhelper
 go.opentelemetry.io/collector/exporter/otlpexporter
 go.opentelemetry.io/collector/internal
+go.opentelemetry.io/collector/internal/data
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/logs/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/metrics/v1
 go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1
@@ -1036,7 +1030,7 @@ gopkg.in/square/go-jose.v2/cipher
 gopkg.in/square/go-jose.v2/json
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 gopkg.in/tomb.v1
-# gopkg.in/yaml.v2 v2.3.0 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
+# gopkg.in/yaml.v2 v2.4.0 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 gopkg.in/yaml.v3
