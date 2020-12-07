@@ -4,6 +4,9 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+- [FEATURE] Add support to configure TLS config for the Tempo exporter to use
+  insecure_skip_verify to disable TLS chain verification. (@bombsimon)
+
 - [FEATURE] Add `sample-stats` to `agentctl` to search the WAL and return a
   summary of samples of series matching the given label selector. (@simonswine)
 
@@ -24,6 +27,8 @@ this platform. FreeBSD builds will return in a future release.
   behavior, set `min_wal_time` to `0s`. (@rfratto)
 
 - [ENHANCEMENT] Update `redis_exporter` to v1.13.1. (@rfratto)
+
+- [ENHANCEMENT] Bump OpenTelemetry-collector dependency to v0.16.0. (@bombsimon)
 
 - [BUGFIX] Fix issue where the Tempo example manifest could not be applied
   because the port names were too long. (@rfratto)

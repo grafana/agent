@@ -37,10 +37,6 @@ func InternalTracesToJaegerProto(td pdata.Traces) ([]*model.Batch, error) {
 
 	for i := 0; i < resourceSpans.Len(); i++ {
 		rs := resourceSpans.At(i)
-		if rs.IsNil() {
-			continue
-		}
-
 		batch, err := resourceSpansToJaegerProto(rs)
 		if err != nil {
 			return nil, err
@@ -57,7 +53,7 @@ func resourceSpansToJaegerProto(rs pdata.ResourceSpans) (*model.Batch, error) {
 	resource := rs.Resource()
 	ilss := rs.InstrumentationLibrarySpans()
 
-	if resource.IsNil() && ilss.Len() == 0 {
+	if resource.Attributes().Len() == 0 && ilss.Len() == 0 {
 		return nil, nil
 	}
 
@@ -75,17 +71,9 @@ func resourceSpansToJaegerProto(rs pdata.ResourceSpans) (*model.Batch, error) {
 
 	for i := 0; i < ilss.Len(); i++ {
 		ils := ilss.At(i)
-		if ils.IsNil() {
-			continue
-		}
-
 		spans := ils.Spans()
 		for j := 0; j < spans.Len(); j++ {
 			span := spans.At(j)
-			if span.IsNil() {
-				continue
-			}
-
 			jSpan, err := spanToJaegerProto(span, ils.InstrumentationLibrary())
 			if err != nil {
 				return nil, err
@@ -102,17 +90,11 @@ func resourceSpansToJaegerProto(rs pdata.ResourceSpans) (*model.Batch, error) {
 }
 
 func resourceToJaegerProtoProcess(resource pdata.Resource) *model.Process {
-
-	process := model.Process{}
-	if resource.IsNil() {
-		process.ServiceName = tracetranslator.ResourceNotSet
-		return &process
-	}
-
+	process := &model.Process{}
 	attrs := resource.Attributes()
 	if attrs.Len() == 0 {
-		process.ServiceName = tracetranslator.ResourceNoAttrs
-		return &process
+		process.ServiceName = tracetranslator.ResourceNoServiceName
+		return process
 	}
 	attrsCount := attrs.Len()
 	if serviceName, ok := attrs.Get(conventions.AttributeServiceName); ok {
@@ -120,12 +102,12 @@ func resourceToJaegerProtoProcess(resource pdata.Resource) *model.Process {
 		attrsCount--
 	}
 	if attrsCount == 0 {
-		return &process
+		return process
 	}
 
 	tags := make([]model.KeyValue, 0, attrsCount)
 	process.Tags = appendTagsFromResourceAttributes(tags, attrs)
-	return &process
+	return process
 
 }
 
@@ -178,10 +160,6 @@ func attributeToJaegerProtoTag(key string, attr pdata.AttributeValue) model.KeyV
 }
 
 func spanToJaegerProto(span pdata.Span, libraryTags pdata.InstrumentationLibrary) (*model.Span, error) {
-	if span.IsNil() {
-		return nil, nil
-	}
-
 	traceID, err := traceIDToJaegerProto(span.TraceID())
 	if err != nil {
 		return nil, err
@@ -327,10 +305,6 @@ func makeJaegerProtoReferences(
 
 	for i := 0; i < links.Len(); i++ {
 		link := links.At(i)
-		if link.IsNil() {
-			continue
-		}
-
 		traceID, err := traceIDToJaegerProto(link.TraceID())
 		if err != nil {
 			continue // skip invalid link
@@ -363,10 +337,6 @@ func spanEventsToJaegerProtoLogs(events pdata.SpanEventSlice) []model.Log {
 	logs := make([]model.Log, 0, events.Len())
 	for i := 0; i < events.Len(); i++ {
 		event := events.At(i)
-		if event.IsNil() {
-			continue
-		}
-
 		fields := make([]model.KeyValue, 0, event.Attributes().Len()+1)
 		if event.Name() != "" {
 			fields = append(fields, model.KeyValue{
@@ -418,14 +388,15 @@ func getTagFromStatusCode(statusCode pdata.StatusCode) (model.KeyValue, bool) {
 }
 
 func getErrorTagFromStatusCode(statusCode pdata.StatusCode) (model.KeyValue, bool) {
-	if statusCode == pdata.StatusCodeOk {
-		return model.KeyValue{}, false
+	if statusCode == pdata.StatusCodeError {
+		return model.KeyValue{
+			Key:   tracetranslator.TagError,
+			VBool: true,
+			VType: model.ValueType_BOOL,
+		}, true
 	}
-	return model.KeyValue{
-		Key:   tracetranslator.TagError,
-		VBool: true,
-		VType: model.ValueType_BOOL,
-	}, true
+	return model.KeyValue{}, false
+
 }
 
 func getTagFromStatusMsg(statusMsg string) (model.KeyValue, bool) {
@@ -456,9 +427,6 @@ func getTagsFromTraceState(traceState pdata.TraceState) ([]model.KeyValue, bool)
 
 func getTagsFromInstrumentationLibrary(il pdata.InstrumentationLibrary) ([]model.KeyValue, bool) {
 	keyValues := make([]model.KeyValue, 0)
-	if il.IsNil() {
-		return keyValues, false
-	}
 	if ilName := il.Name(); ilName != "" {
 		kv := model.KeyValue{
 			Key:   tracetranslator.TagInstrumentationName,

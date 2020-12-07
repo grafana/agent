@@ -18,6 +18,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/service/builder"
 )
@@ -182,7 +183,7 @@ func newLogger(level logging.Level) *zap.Logger {
 }
 
 func newMetricViews() ([]*view.View, error) {
-	views := obsreport.Configure(false, true)
+	views := obsreport.Configure(configtelemetry.LevelBasic)
 	err := view.Register(views...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to register views: %w", err)
