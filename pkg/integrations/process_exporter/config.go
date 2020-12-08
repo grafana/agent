@@ -2,6 +2,9 @@
 package process_exporter //nolint:golint
 
 import (
+	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 
 	exporter_config "github.com/ncabatoff/process-exporter/config"
@@ -37,4 +40,16 @@ func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 
 	type plain Config
 	return unmarshal((*plain)(c))
+}
+
+func (c *Config) Name() string { return "process_exporter" }
+
+func (c *Config) IsEnabled() bool { return c.Enabled }
+
+func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+	return New(l, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
 }

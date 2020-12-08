@@ -11,9 +11,9 @@ import (
 // Common is a set of common options shared by all integrations. It should be
 // utilised by an integration's config by inlining the common options:
 //
-// type IntegrationConfig struct {
-//   Common config.Common `yaml:",inline"`
-// }
+//   type IntegrationConfig struct {
+//     Common config.Common `yaml:",inline"`
+//   }
 type Common struct {
 	ScrapeIntegration    *bool             `yaml:"scrape_integration"`
 	ScrapeInterval       time.Duration     `yaml:"scrape_interval"`

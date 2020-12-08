@@ -20,11 +20,11 @@ import (
 // metrics based on information in the /proc filesystem for Linux.
 // Agent's own metrics.
 type Integration struct {
-	c         Config
+	c         *Config
 	collector *collector.NamedProcessCollector
 }
 
-func New(logger log.Logger, c Config) (*Integration, error) {
+func New(logger log.Logger, c *Config) (*Integration, error) {
 	cfg, err := c.ProcessExporter.ToConfig()
 	if err != nil {
 		return nil, fmt.Errorf("process_names is invalid: %w", err)
@@ -50,7 +50,7 @@ func New(logger log.Logger, c Config) (*Integration, error) {
 func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
 
 // Name satisfies Integration.Name.
-func (i *Integration) Name() string { return "process_exporter" }
+func (i *Integration) Name() string { return i.c.Name() }
 
 // RegisterRoutes satisfies Integration.RegisterRoutes.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {

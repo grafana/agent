@@ -21,7 +21,7 @@ import (
 // Integration is the node_exporter integration. The integration scrapes metrics
 // from the host Linux-based system.
 type Integration struct {
-	c      Config
+	c      *Config
 	logger log.Logger
 	nc     *collector.NodeCollector
 
@@ -29,12 +29,12 @@ type Integration struct {
 }
 
 // New creates a new node_exporter integration.
-func New(log log.Logger, c Config) (*Integration, error) {
+func New(log log.Logger, c *Config) (*Integration, error) {
 	// NOTE(rfratto): this works as long as node_exporter is the only thing using
 	// kingpin across the codebase. node_exporter may need a PR eventually to pass
 	// in a custom kingpin application or expose methods to explicitly enable/disable
 	// collectors that we can use instead of this command line hack.
-	flags, _ := MapConfigToNodeExporterFlags(&c)
+	flags, _ := MapConfigToNodeExporterFlags(c)
 	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent config", "flags", strings.Join(flags, " "))
 
 	_, err := kingpin.CommandLine.Parse(flags)
@@ -70,7 +70,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
 
 // Name satisfies Integration.Name.
-func (i *Integration) Name() string { return "node_exporter" }
+func (i *Integration) Name() string { return i.c.Name() }
 
 // RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
 // here is expected to be a subrouter, where all registered paths will be

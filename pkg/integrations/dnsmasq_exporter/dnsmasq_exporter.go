@@ -4,6 +4,7 @@ package dnsmasq_exporter //nolint:golint
 import (
 	"github.com/go-kit/kit/log"
 	"github.com/google/dnsmasq_exporter/collector"
+	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/miekg/dns"
@@ -29,6 +30,14 @@ type Config struct {
 	LeasesPath string `yaml:"leases_path"`
 }
 
+func (c *Config) Name() string { return "dnsmasq_exporter" }
+
+func (c *Config) IsEnabled() bool { return c.Enabled }
+
+func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+	return New(l, c)
+}
+
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
@@ -37,9 +46,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics
 // from a dnsmasq server.
-func New(log log.Logger, c Config) (common.Integration, error) {
+func New(log log.Logger, c *Config) (common.Integration, error) {
 	exporter := collector.New(&dns.Client{
 		SingleInflight: true,
 	}, c.DnsmasqAddress, c.LeasesPath)

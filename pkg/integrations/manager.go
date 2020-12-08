@@ -10,17 +10,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/integrations/agent"
 	"github.com/grafana/agent/pkg/integrations/common"
-	"github.com/grafana/agent/pkg/integrations/consul_exporter"
-	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
-	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
-	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
-	"github.com/grafana/agent/pkg/integrations/node_exporter"
-	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
-	"github.com/grafana/agent/pkg/integrations/process_exporter"
-	"github.com/grafana/agent/pkg/integrations/redis_exporter"
-	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -60,16 +50,9 @@ type Config struct {
 	// ReplaceInstanceLabel should be used instead.
 	UseHostnameLabel bool `yaml:"use_hostname_label"`
 
-	Agent             agent.Config              `yaml:"agent"`
-	NodeExporter      node_exporter.Config      `yaml:"node_exporter"`
-	ProcessExporter   process_exporter.Config   `yaml:"process_exporter"`
-	MysqldExporter    mysqld_exporter.Config    `yaml:"mysqld_exporter"`
-	RedisExporter     redis_exporter.Config     `yaml:"redis_exporter"`
-	DnsmasqExporter   dnsmasq_exporter.Config   `yaml:"dnsmasq_exporter"`
-	MemcachedExporter memcached_exporter.Config `yaml:"memcached_exporter"`
-	PostgresExporter  postgres_exporter.Config  `yaml:"postgres_exporter"`
-	StatsdExporter    statsd_exporter.Config    `yaml:"statsd_exporter"`
-	ConsulExporter    consul_exporter.Config    `yaml:"consul_exporter"`
+	// The integration configs is merged with the manager config struct so we
+	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
+	Integrations IntegrationConfigs `yaml:"-"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -91,6 +74,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// If the Config is unmarshaled, it's present in the config and should be
 	// enabled.
 	c.Enabled = true
+
+	if err := c.Integrations.UnmarshalYAML(unmarshal); err != nil {
+		return err
+	}
 
 	type plain Config
 	return unmarshal((*plain)(c))
@@ -141,80 +128,15 @@ type Manager struct {
 func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, error) {
 	var integrations []common.Integration
 
-	if c.Agent.Enabled {
-		integrations = append(integrations, agent.New(c.Agent))
-	}
-	if c.NodeExporter.Enabled {
-		l := log.With(logger, "integration", "node_exporter")
-		i, err := node_exporter.New(l, c.NodeExporter)
-		if err != nil {
-			return nil, err
+	for _, integrationCfg := range c.Integrations {
+		if integrationCfg.IsEnabled() {
+			l := log.With(logger, "integration", integrationCfg.Name())
+			i, err := integrationCfg.NewIntegration(l)
+			if err != nil {
+				return nil, err
+			}
+			integrations = append(integrations, i)
 		}
-		integrations = append(integrations, i)
-	}
-	if c.ProcessExporter.Enabled {
-		l := log.With(logger, "integration", "process_exporter")
-		i, err := process_exporter.New(l, c.ProcessExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.MysqldExporter.Enabled {
-		l := log.With(logger, "integration", "mysqld_exporter")
-		i, err := mysqld_exporter.New(l, c.MysqldExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.RedisExporter.Enabled {
-		l := log.With(logger, "integration", "redis_exporter")
-		i, err := redis_exporter.New(l, c.RedisExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.DnsmasqExporter.Enabled {
-		l := log.With(logger, "integration", "dnsmasq_exporter")
-		i, err := dnsmasq_exporter.New(l, c.DnsmasqExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.MemcachedExporter.Enabled {
-		l := log.With(logger, "integration", "memcached_exporter")
-		i, err := memcached_exporter.New(l, c.MemcachedExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.PostgresExporter.Enabled {
-		l := log.With(logger, "integration", "postgres_exporter")
-		i, err := postgres_exporter.New(l, c.PostgresExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.StatsdExporter.Enabled {
-		l := log.With(logger, "integration", "statsd_exporter")
-		i, err := statsd_exporter.New(l, c.StatsdExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.ConsulExporter.Enabled {
-		l := log.With(logger, "integration", "consul_exporter")
-		i, err := consul_exporter.New(l, c.ConsulExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
 	}
 
 	return newManager(c, logger, im, integrations)

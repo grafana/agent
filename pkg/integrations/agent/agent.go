@@ -6,7 +6,10 @@ package agent
 import (
 	"context"
 
+	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -16,16 +19,26 @@ type Config struct {
 	CommonConfig config.Common `yaml:",inline"`
 
 	// Enabled enables the Agent integration.
-	Enabled bool
+	Enabled bool `yaml:"enabled"`
+}
+
+func (c *Config) Name() string    { return "agent" }
+func (c *Config) IsEnabled() bool { return c.Enabled }
+func (c *Config) NewIntegration(_ log.Logger) (common.Integration, error) {
+	return New(c), nil
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
 }
 
 // Integration is the Agent integration. The Agent integration scrapes the
 // Agent's own metrics.
 type Integration struct {
-	c Config
+	c *Config
 }
 
-func New(c Config) *Integration {
+func New(c *Config) *Integration {
 	return &Integration{c: c}
 }
 

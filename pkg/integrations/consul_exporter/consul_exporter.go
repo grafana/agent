@@ -50,9 +50,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+func (c *Config) Name() string { return "consul_exporter" }
+
+func (c *Config) IsEnabled() bool { return c.Enabled }
+
+func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+	return New(l, c)
+}
+
 // New creates a new consul_exporter integration. The integration scrapes
 // metrics from a consul process.
-func New(log log.Logger, c Config) (common.Integration, error) {
+func New(log log.Logger, c *Config) (common.Integration, error) {
 	var (
 		consulOpts = exporter.ConsulOpts{
 			CAFile:       c.CAFile,
@@ -76,7 +84,7 @@ func New(log log.Logger, c Config) (common.Integration, error) {
 	}
 
 	return common.NewCollectorIntegration(
-		"consul_exporter",
+		c.Name(),
 		c.CommonConfig,
 		e,
 		false,

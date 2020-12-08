@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/mysqld_exporter/collector"
@@ -76,9 +77,21 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+func (c *Config) Name() string { return "mysqld_exporter" }
+
+func (c *Config) IsEnabled() bool { return c.Enabled }
+
+func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+	return New(l, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
 // New creates a new mysqld_exporter integration. The integration scrapes
 // metrics from a mysqld process.
-func New(log log.Logger, c Config) (common.Integration, error) {
+func New(log log.Logger, c *Config) (common.Integration, error) {
 	dsn := c.DataSourceName
 	if len(dsn) == 0 {
 		dsn = os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME")
@@ -99,7 +112,7 @@ func New(log log.Logger, c Config) (common.Integration, error) {
 	}
 
 	return common.NewCollectorIntegration(
-		"mysqld_exporter",
+		c.Name(),
 		c.CommonConfig,
 		exporter,
 		false,
@@ -109,7 +122,7 @@ func New(log log.Logger, c Config) (common.Integration, error) {
 // GetScrapers returns the set of *enabled* scrapers from the config.
 // Configurable scrapers will have their configuration filled out matching the
 // Config's settings.
-func GetScrapers(c Config) []collector.Scraper {
+func GetScrapers(c *Config) []collector.Scraper {
 	scrapers := map[collector.Scraper]bool{
 		&collector.ScrapeAutoIncrementColumns{}:                false,
 		&collector.ScrapeBinlogSize{}:                          false,

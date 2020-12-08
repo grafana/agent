@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util/flagext"
+	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/procfs"
 	"github.com/prometheus/procfs/sysfs"
@@ -117,6 +120,18 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain Config
 	return unmarshal((*plain)(c))
+}
+
+func (c *Config) Name() string { return "node_exporter" }
+
+func (c *Config) IsEnabled() bool { return c.Enabled }
+
+func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+	return New(l, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
 }
 
 // MapConfigToNodeExporterFlags takes in a node_exporter Config and converts

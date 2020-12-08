@@ -77,9 +77,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+func (c *Config) Name() string { return "statsd_exporter" }
+
+func (c *Config) IsEnabled() bool { return c.Enabled }
+
+func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+	return New(l, c)
+}
+
 // Exporters defines the statsd_exporter integration.
 type Exporter struct {
-	cfg      Config
+	cfg      *Config
 	reg      *prometheus.Registry
 	metrics  *Metrics
 	exporter *exporter.Exporter
@@ -88,7 +96,7 @@ type Exporter struct {
 
 // New creates a new statsd_exporter integration. The integration scrapes
 // metrics from a statsd process.
-func New(log log.Logger, c Config) (common.Integration, error) {
+func New(log log.Logger, c *Config) (common.Integration, error) {
 	reg := prometheus.NewRegistry()
 
 	m, err := NewMetrics(reg)
