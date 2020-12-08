@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations/common"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 )
 
 var (

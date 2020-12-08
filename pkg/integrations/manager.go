@@ -75,12 +75,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// enabled.
 	c.Enabled = true
 
-	if err := c.Integrations.UnmarshalYAML(unmarshal); err != nil {
-		return err
-	}
-
-	type plain Config
-	return unmarshal((*plain)(c))
+	return UnmarshalYAML(c, unmarshal)
 }
 
 // DefaultRelabelConfigs returns the set of relabel configs that should be

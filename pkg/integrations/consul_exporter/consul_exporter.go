@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	consul_api "github.com/hashicorp/consul/api"
@@ -56,6 +57,10 @@ func (c *Config) IsEnabled() bool { return c.Enabled }
 
 func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
 	return New(l, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
 }
 
 // New creates a new consul_exporter integration. The integration scrapes

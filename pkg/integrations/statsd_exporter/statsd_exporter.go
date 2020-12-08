@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
@@ -83,6 +84,10 @@ func (c *Config) IsEnabled() bool { return c.Enabled }
 
 func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
 	return New(l, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
 }
 
 // Exporters defines the statsd_exporter integration.
