@@ -172,6 +172,10 @@ github.com/docker/go-connections/sockets
 github.com/docker/go-connections/tlsconfig
 # github.com/docker/go-units v0.4.0
 github.com/docker/go-units
+# github.com/drone/envsubst v1.0.2
+github.com/drone/envsubst
+github.com/drone/envsubst/parse
+github.com/drone/envsubst/path
 # github.com/dustin/go-humanize v1.0.0
 github.com/dustin/go-humanize
 # github.com/edsrzf/mmap-go v1.0.0

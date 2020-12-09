@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"os"
 	"testing"
 	"time"
 
@@ -20,8 +21,8 @@ prometheus:
     scrape_timeout: 33s`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, c *Config) error {
-		return LoadBytes([]byte(cfg), c)
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, c.Prometheus.ServiceConfig.Lifecycler.InfNames)
@@ -42,8 +43,29 @@ prometheus:
 	}
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, c *Config) error {
-		return LoadBytes([]byte(cfg), c)
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(cfg), false, c)
+	})
+	require.NoError(t, err)
+	require.Equal(t, expect, c.Prometheus.Global)
+}
+
+func TestConfig_OverrideByEnvironmentOnLoad(t *testing.T) {
+	cfg := `
+prometheus:
+  wal_directory: /tmp/wal
+  global:
+    scrape_timeout: ${SCRAPE_TIMEOUT}`
+	expect := promCfg.GlobalConfig{
+		ScrapeInterval:     model.Duration(1 * time.Minute),
+		ScrapeTimeout:      model.Duration(33 * time.Second),
+		EvaluationInterval: model.Duration(1 * time.Minute),
+	}
+	_ = os.Setenv("SCRAPE_TIMEOUT", "33s")
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
 	require.Equal(t, expect, c.Prometheus.Global)
@@ -59,10 +81,11 @@ prometheus:
 	args := []string{
 		"-config.file", "test",
 		"-prometheus.wal-directory", "/tmp/wal",
+		"-config.expand-env",
 	}
 
-	c, err := load(fs, args, func(_ string, c *Config) error {
-		return LoadBytes([]byte(cfg), c)
+	c, err := load(fs, args, func(_ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
 	require.Equal(t, "/tmp/wal", c.Prometheus.WALDir)
@@ -77,7 +100,7 @@ prometheus:
     scrape_timeout: 10s
     scrape_timeout: 15s`
 		var c Config
-		err := LoadBytes([]byte(cfg), &c)
+		err := LoadBytes([]byte(cfg), false, &c)
 		require.Error(t, err)
 	})
 
@@ -88,7 +111,7 @@ prometheus:
   global:
   scrape_timeout: 10s`
 		var c Config
-		err := LoadBytes([]byte(cfg), &c)
+		err := LoadBytes([]byte(cfg), false, &c)
 		require.Error(t, err)
 	})
 }
