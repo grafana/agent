@@ -71,7 +71,9 @@ func LoadFile(filename string, c *Config) error {
 		return errors.Wrap(err, "error reading config file")
 	}
 
-	return LoadBytes(buf, c)
+	// Expand from environment and load
+	expandedConfig := os.ExpandEnv(string(buf))
+	return LoadBytes([]byte(expandedConfig), c)
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not

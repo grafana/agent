@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"os"
 	"testing"
 	"time"
 
@@ -44,6 +45,28 @@ prometheus:
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, c *Config) error {
 		return LoadBytes([]byte(cfg), c)
+	})
+	require.NoError(t, err)
+	require.Equal(t, expect, c.Prometheus.Global)
+}
+
+func TestConfig_OverrideByEnvironmentOnLoad(t *testing.T) {
+	cfg := `
+prometheus:
+  wal_directory: /tmp/wal
+  global:
+    scrape_timeout: ${SCRAPE_TIMEOUT}`
+	expect := promCfg.GlobalConfig{
+		ScrapeInterval:     model.Duration(1 * time.Minute),
+		ScrapeTimeout:      model.Duration(33 * time.Second),
+		EvaluationInterval: model.Duration(1 * time.Minute),
+	}
+	_ = os.Setenv("SCRAPE_TIMEOUT", "33s")
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, c *Config) error {
+		expandedConfig := os.ExpandEnv(cfg)
+		return LoadBytes([]byte(expandedConfig), c)
 	})
 	require.NoError(t, err)
 	require.Equal(t, expect, c.Prometheus.Global)
