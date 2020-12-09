@@ -82,7 +82,7 @@ func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
 	if expandEnvVars {
 		s, err := envsubst.EvalEnv(string(buf))
 		if err != nil {
-			return errors.Wrap(err, "unable to substitute config with environment variables")
+			return fmt.Errorf("unable to substitute config with environment variables: %w", err)
 		}
 		buf = []byte(s)
 	}
