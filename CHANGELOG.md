@@ -18,6 +18,8 @@ this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] New integration:
   [consul_exporter](https://github.com/prometheus/consul_exporter) (@rfratto)
+  
+- [FEATURE] Add optional environment variable substitution of configuration file. (@dcseifert)  
 
 - [ENHANCEMENT] `min_wal_time` and `max_wal_time` have been added to the
   instance config settings, guaranteeing that data in the WAL will exist for at

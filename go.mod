@@ -5,6 +5,7 @@ go 1.12
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/cortexproject/cortex v1.4.1-0.20201022071705-85942c5703cf
+	github.com/drone/envsubst v1.0.2
 	github.com/go-kit/kit v0.10.0
 	github.com/go-playground/validator/v10 v10.4.0 // indirect
 	github.com/gogo/protobuf v1.3.1

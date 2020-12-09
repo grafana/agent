@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/drone/envsubst"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/prom"
@@ -65,21 +66,27 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 }
 
 // LoadFile reads a file and passes the contents to Load
-func LoadFile(filename string, c *Config) error {
+func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return errors.Wrap(err, "error reading config file")
 	}
-
-	// Expand from environment and load
-	expandedConfig := os.ExpandEnv(string(buf))
-	return LoadBytes([]byte(expandedConfig), c)
+	return LoadBytes(buf, expandEnvVars, c)
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
 // applied to the file and must be done manually if LoadBytes
 // is called directly.
-func LoadBytes(buf []byte, c *Config) error {
+func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
+	// (Optionally) expand with environment variables
+	if expandEnvVars {
+		s, err := envsubst.EvalEnv(string(buf))
+		if err != nil {
+			return errors.Wrap(err, "unable to substitute config with environment variables")
+		}
+		buf = []byte(s)
+	}
+	// Unmarshal yaml config
 	return yaml.UnmarshalStrict(buf, c)
 }
 
@@ -92,15 +99,17 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 
 // load allows for tests to inject a function for retreiving the config file that
 // doesn't require having a literal file on disk.
-func load(fs *flag.FlagSet, args []string, loader func(string, *Config) error) (*Config, error) {
+func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) error) (*Config, error) {
 	var (
-		printVersion bool
-		cfg          Config
-		file         string
+		printVersion    bool
+		cfg             Config
+		file            string
+		configExpandEnv bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
+	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	cfg.RegisterFlags(fs)
 
 	if err := fs.Parse(args); err != nil {
@@ -114,7 +123,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, *Config) error) (
 
 	if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
-	} else if err := loader(file, &cfg); err != nil {
+	} else if err := loader(file, configExpandEnv, &cfg); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}
 
