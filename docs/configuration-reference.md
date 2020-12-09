@@ -10,6 +10,34 @@ Prometheus instances.
 * [tempo_config](#tempo_config)
 * [integrations_config](#integrations_config)
 
+## Variable Substitution
+
+You can use environment variables in the configuration file to set values that
+need to be configurable during deployment. To enable this functionality, you
+must pass `-config.expand-env` as a command-line flag to the Agent.
+
+To refer to an environment variable in the config file, use:
+
+```
+${VAR}
+```
+
+Where VAR is the name of the environment variable.
+
+Each variable reference is replaced at startup by the value of the environment
+variable. The replacement is case-sensitive and occurs before the YAML file is
+parsed. References to undefined variables are replaced by empty strings unless
+you specify a default value or custom error text.
+
+To specify a default value, use:
+
+```
+${VAR:default_value}
+```
+
+Where default_value is the value to use if the environment variable is
+undefined.
+
 ## File Format
 
 To specify which configuration file to load, pass the `-config.file` flag at
