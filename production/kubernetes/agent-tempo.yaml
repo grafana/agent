@@ -158,6 +158,8 @@ spec:
       containers:
       - args:
         - -config.file=/etc/agent/agent.yaml
+        command:
+        - /bin/agent
         env:
         - name: HOSTNAME
           valueFrom:
