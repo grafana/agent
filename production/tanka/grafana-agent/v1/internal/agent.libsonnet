@@ -36,6 +36,7 @@ local policyRule = k.rbac.v1.policyRule;
     container::
       container.new('agent', image) +
       container.withPorts(k.core.v1.containerPort.new('http-metrics', 8080)) +
+      container.withCommand('/bin/agent') +
       container.withArgsMixin(k.util.mapToFlags({
         'config.file': '/etc/agent/agent.yaml',
       })),

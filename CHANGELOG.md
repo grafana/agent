@@ -18,8 +18,9 @@ this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] New integration:
   [consul_exporter](https://github.com/prometheus/consul_exporter) (@rfratto)
-  
-- [FEATURE] Add optional environment variable substitution of configuration file. (@dcseifert)  
+
+- [FEATURE] Add optional environment variable substitution of configuration
+  file. (@dcseifert)
 
 - [ENHANCEMENT] `min_wal_time` and `max_wal_time` have been added to the
   instance config settings, guaranteeing that data in the WAL will exist for at
@@ -34,6 +35,9 @@ this platform. FreeBSD builds will return in a future release.
 
 - [BUGFIX] Fix issue where the Tempo example manifest could not be applied
   because the port names were too long. (@rfratto)
+
+- [BUGFIX] Fix issue where the Agent Kubernetes manifests may not load properly
+  on AKS. (#279) (@rfratto)
 
 - [CHANGE] The User-Agent header sent for logs will now be
   `GrafanaCloudAgent/<version>` (@rfratto)
