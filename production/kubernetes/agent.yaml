@@ -304,6 +304,8 @@ spec:
       - args:
         - -config.file=/etc/agent/agent.yml
         - -prometheus.wal-directory=/tmp/agent/data
+        command:
+        - /bin/agent
         env:
         - name: HOSTNAME
           valueFrom:
@@ -352,6 +354,8 @@ spec:
       - args:
         - -config.file=/etc/agent/agent.yml
         - -prometheus.wal-directory=/tmp/agent/data
+        command:
+        - /bin/agent
         env:
         - name: HOSTNAME
           valueFrom:
