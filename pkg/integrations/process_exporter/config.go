@@ -4,7 +4,6 @@ package process_exporter //nolint:golint
 import (
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 
 	exporter_config "github.com/ncabatoff/process-exporter/config"
@@ -22,10 +21,7 @@ var (
 
 // Config controls the process_exporter integration.
 type Config struct {
-	// Enabled enables the process_exporter integration.
-	Enabled bool `yaml:"enabled"`
-
-	CommonConfig    config.Common                `yaml:",inline"`
+	Common          config.Common                `yaml:",inline"`
 	ProcessExporter exporter_config.MatcherRules `yaml:"process_names"`
 
 	ProcFSPath string `yaml:"procfs_path"`
@@ -42,11 +38,15 @@ func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *Config) Name() string { return "process_exporter" }
+func (c *Config) Name() string {
+	return "process_exporter"
+}
 
-func (c *Config) IsEnabled() bool { return c.Enabled }
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
 
-func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
 

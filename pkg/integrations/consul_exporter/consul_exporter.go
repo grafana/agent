@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	consul_api "github.com/hashicorp/consul/api"
 	"github.com/prometheus/consul_exporter/pkg/exporter"
@@ -22,10 +21,7 @@ var DefaultConfig = Config{
 
 // Config controls the consul_exporter integration.
 type Config struct {
-	// Enabled enables the integration.
-	Enabled bool `yaml:"enabled"`
-
-	CommonConfig config.Common `yaml:",inline"`
+	Common config.Common `yaml:",inline"`
 
 	Server             string        `yaml:"server"`
 	CAFile             string        `yaml:"ca_file"`
@@ -51,11 +47,15 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *Config) Name() string { return "consul_exporter" }
+func (c *Config) Name() string {
+	return "consul_exporter"
+}
 
-func (c *Config) IsEnabled() bool { return c.Enabled }
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
 
-func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
 
@@ -65,7 +65,7 @@ func init() {
 
 // New creates a new consul_exporter integration. The integration scrapes
 // metrics from a consul process.
-func New(log log.Logger, c *Config) (common.Integration, error) {
+func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	var (
 		consulOpts = exporter.ConsulOpts{
 			CAFile:       c.CAFile,
@@ -88,10 +88,5 @@ func New(log log.Logger, c *Config) (common.Integration, error) {
 		return nil, err
 	}
 
-	return common.NewCollectorIntegration(
-		c.Name(),
-		c.CommonConfig,
-		e,
-		false,
-	), nil
+	return integrations.NewCollectorIntegration(c.Name(), e, false), nil
 }

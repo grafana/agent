@@ -9,7 +9,6 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -28,7 +27,7 @@ agent:
 `
 
 	var (
-		cfg        Config
+		cfg        ManagerConfig
 		listenPort int = 12345
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
@@ -52,8 +51,9 @@ agent:
 // applied to the instance manager are valid.
 func TestManager_ValidInstanceConfigs(t *testing.T) {
 	mock := newMockIntegration()
+	icfg := mockConfig{integration: mock}
 
-	integrations := []common.Integration{mock}
+	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
@@ -70,16 +70,17 @@ func TestManager_ValidInstanceConfigs(t *testing.T) {
 
 func TestManager_instanceConfigForIntegration(t *testing.T) {
 	mock := newMockIntegration()
+	icfg := mockConfig{integration: mock}
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
 	})
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, []common.Integration{})
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, nil)
 	require.NoError(t, err)
 	defer m.Stop()
 
-	cfg := m.instanceConfigForIntegration(mock)
+	cfg := m.instanceConfigForIntegration(icfg, mock)
 
 	// Validate that the generated MetricsPath is a valid URL path
 	require.Len(t, cfg.ScrapeConfigs, 1)
@@ -90,8 +91,9 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 // when the ScrapeIntegrations flag is disabled.
 func TestManager_NoIntegrationsScrape(t *testing.T) {
 	mock := newMockIntegration()
+	icfg := mockConfig{integration: mock}
 
-	integrations := []common.Integration{mock}
+	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
@@ -115,11 +117,12 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 // when the ScrapeIntegration flag is disabled on the integration.
 func TestManager_NoIntegrationScrape(t *testing.T) {
 	mock := newMockIntegration()
+	icfg := mockConfig{integration: mock}
 
 	noScrape := false
 	mock.commonCfg.ScrapeIntegration = &noScrape
 
-	integrations := []common.Integration{mock}
+	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
 		return c.ApplyDefaults(&globalConfig)
@@ -137,8 +140,9 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 // launch, TestManager applies a config and runs the integration.
 func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
+	icfg := mockConfig{integration: mock}
 
-	integrations := []common.Integration{mock}
+	integrations := map[Config]Integration{icfg: mock}
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
@@ -157,8 +161,9 @@ func TestManager_StartsIntegrations(t *testing.T) {
 
 func TestManager_RestartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
+	icfg := mockConfig{integration: mock}
 
-	integrations := []common.Integration{mock}
+	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
@@ -173,8 +178,9 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 
 func TestManager_GracefulStop(t *testing.T) {
 	mock := newMockIntegration()
+	icfg := mockConfig{integration: mock}
 
-	integrations := []common.Integration{mock}
+	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
@@ -193,6 +199,16 @@ func TestManager_GracefulStop(t *testing.T) {
 	})
 }
 
+type mockConfig struct {
+	integration *mockIntegration
+}
+
+func (c mockConfig) Name() string                { return "mock" }
+func (c mockConfig) CommonConfig() config.Common { return c.integration.commonCfg }
+func (c mockConfig) NewIntegration(_ log.Logger) (Integration, error) {
+	return c.integration, nil
+}
+
 type mockIntegration struct {
 	commonCfg    config.Common
 	startedCount *atomic.Uint32
@@ -208,18 +224,18 @@ func newMockIntegration() *mockIntegration {
 	}
 }
 
-func (i *mockIntegration) Name() string                { return "mock" }
-func (i *mockIntegration) CommonConfig() config.Common { return i.commonCfg }
 func (i *mockIntegration) RegisterRoutes(r *mux.Router) error {
 	r.Handle("/metrics", promhttp.Handler())
 	return nil
 }
+
 func (i *mockIntegration) ScrapeConfigs() []config.ScrapeConfig {
 	return []config.ScrapeConfig{{
 		JobName:     "mock",
 		MetricsPath: "/metrics",
 	}}
 }
+
 func (i *mockIntegration) Run(ctx context.Context) error {
 	i.startedCount.Inc()
 	i.running.Store(true)
@@ -237,9 +253,9 @@ func mockInstanceFactory(_ instance.Config) (instance.ManagedInstance, error) {
 	return instance.NoOpInstance{}, nil
 }
 
-func mockManagerConfig() Config {
+func mockManagerConfig() ManagerConfig {
 	listenPort := 0
-	return Config{
+	return ManagerConfig{
 		ScrapeIntegrations:        true,
 		IntegrationRestartBackoff: 0,
 		ListenPort:                &listenPort,

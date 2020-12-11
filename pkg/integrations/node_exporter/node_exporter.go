@@ -66,12 +66,6 @@ func New(log log.Logger, c *Config) (*Integration, error) {
 	}, nil
 }
 
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
-
-// Name satisfies Integration.Name.
-func (i *Integration) Name() string { return i.c.Name() }
-
 // RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
 // here is expected to be a subrouter, where all registered paths will be
 // registered within that subroute.
@@ -101,8 +95,8 @@ func (i *Integration) handler() (http.Handler, error) {
 
 	// Register node_exporter_build_info metrics, generally useful for
 	// dashboards that depend on them for discovering targets.
-	if err := r.Register(version.NewCollector("node_exporter")); err != nil {
-		return nil, fmt.Errorf("couldn't register node_exporter: %w", err)
+	if err := r.Register(version.NewCollector(i.c.Name())); err != nil {
+		return nil, fmt.Errorf("couldn't register %s: %w", i.c.Name(), err)
 	}
 
 	if i.c.IncludeExporterMetrics {
@@ -117,7 +111,7 @@ func (i *Integration) handler() (http.Handler, error) {
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
 func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
 	return []config.ScrapeConfig{{
-		JobName:     i.Name(),
+		JobName:     i.c.Name(),
 		MetricsPath: "/metrics",
 	}}
 }

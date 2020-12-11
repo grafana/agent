@@ -9,22 +9,24 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Config controls the Agent integration.
 type Config struct {
-	CommonConfig config.Common `yaml:",inline"`
-
-	// Enabled enables the Agent integration.
-	Enabled bool `yaml:"enabled"`
+	Common config.Common `yaml:",inline"`
 }
 
-func (c *Config) Name() string    { return "agent" }
-func (c *Config) IsEnabled() bool { return c.Enabled }
-func (c *Config) NewIntegration(_ log.Logger) (common.Integration, error) {
+func (c *Config) Name() string {
+	return "agent"
+}
+
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
+
+func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) {
 	return New(c), nil
 }
 
@@ -42,12 +44,6 @@ func New(c *Config) *Integration {
 	return &Integration{c: c}
 }
 
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
-
-// Name satisfies Integration.Name.
-func (i *Integration) Name() string { return "agent" }
-
 // RegisterRoutes satisfies Integration.RegisterRoutes.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {
 	// Note that if the weaveworks common server is set to not register
@@ -61,7 +57,7 @@ func (i *Integration) RegisterRoutes(r *mux.Router) error {
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
 func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
 	return []config.ScrapeConfig{{
-		JobName:     i.Name(),
+		JobName:     i.c.Name(),
 		MetricsPath: "/metrics",
 	}}
 }

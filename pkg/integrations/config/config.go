@@ -15,6 +15,7 @@ import (
 //     Common config.Common `yaml:",inline"`
 //   }
 type Common struct {
+	Enabled              bool              `yaml:"enabled"`
 	ScrapeIntegration    *bool             `yaml:"scrape_integration"`
 	ScrapeInterval       time.Duration     `yaml:"scrape_interval"`
 	ScrapeTimeout        time.Duration     `yaml:"scrape_timeout"`

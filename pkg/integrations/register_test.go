@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/integrations/common"
+	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -35,7 +35,7 @@ test:
 		Name:     "John Doe",
 		Duration: 500 * time.Millisecond,
 		Default:  12345,
-		IntegrationConfigs: []IntegrationConfig{
+		Configs: []Config{
 			&testIntegrationA{Text: "Hello, world!", Truth: true},
 		},
 	}
@@ -47,10 +47,10 @@ type testIntegrationA struct {
 	Truth bool   `yaml:"truth"`
 }
 
-func (i *testIntegrationA) Name() string    { return "test" }
-func (i *testIntegrationA) IsEnabled() bool { return true }
+func (i *testIntegrationA) Name() string                { return "test" }
+func (i *testIntegrationA) CommonConfig() config.Common { return config.Common{} }
 
-func (i *testIntegrationA) NewIntegration(l log.Logger) (common.Integration, error) {
+func (i *testIntegrationA) NewIntegration(l log.Logger) (Integration, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
@@ -64,10 +64,10 @@ type testIntegrationB struct {
 	Text string `yaml:"text"`
 }
 
-func (*testIntegrationB) Name() string    { return "shouldnotbefound" }
-func (*testIntegrationB) IsEnabled() bool { return true }
+func (*testIntegrationB) Name() string                { return "shouldnotbefound" }
+func (*testIntegrationB) CommonConfig() config.Common { return config.Common{} }
 
-func (*testIntegrationB) NewIntegration(l log.Logger) (common.Integration, error) {
+func (*testIntegrationB) NewIntegration(l log.Logger) (Integration, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
@@ -77,7 +77,7 @@ type testFullConfig struct {
 	Duration time.Duration `yaml:"duration"`
 	Default  int           `yaml:"default"`
 
-	IntegrationConfigs IntegrationConfigs `yaml:"-"`
+	Configs Configs `yaml:"-"`
 }
 
 func (c *testFullConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -85,7 +85,7 @@ func (c *testFullConfig) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	c.Default = 12345
 
 	// Mock out registered integrations.
-	registered := []IntegrationConfig{
+	registered := []Config{
 		&testIntegrationA{},
 		&testIntegrationB{},
 	}

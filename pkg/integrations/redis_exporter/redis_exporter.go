@@ -15,7 +15,6 @@ import (
 	re "github.com/oliver006/redis_exporter/exporter"
 
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
@@ -30,8 +29,7 @@ var DefaultConfig = Config{
 
 // Config controls the redis_exporter integration.
 type Config struct {
-	Enabled      bool          `yaml:"enabled"`
-	CommonConfig config.Common `yaml:",inline"`
+	Common config.Common `yaml:",inline"`
 
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 
@@ -97,11 +95,15 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *Config) Name() string { return "redis_exporter" }
+func (c *Config) Name() string {
+	return "redis_exporter"
+}
 
-func (c *Config) IsEnabled() bool { return c.Enabled }
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
 
-func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
 
@@ -111,7 +113,7 @@ func init() {
 
 // New creates a new redis_exporter integration. The integration queries
 // a redis instance's INFO and exposes the results as metrics.
-func New(log log.Logger, c *Config) (common.Integration, error) {
+func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	level.Debug(log).Log("msg", "initialising redis_exporer with config %v", c)
 
 	exporterConfig := c.GetExporterOptions()
@@ -170,9 +172,8 @@ func New(log log.Logger, c *Config) (common.Integration, error) {
 		return nil, fmt.Errorf("failed to create redis exporter: %w", err)
 	}
 
-	return common.NewCollectorIntegration(
+	return integrations.NewCollectorIntegration(
 		c.Name(),
-		c.CommonConfig,
 		exporter,
 		c.IncludeExporterMetrics,
 	), nil

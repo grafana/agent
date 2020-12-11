@@ -9,7 +9,6 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/flagext"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/procfs"
 	"github.com/prometheus/procfs/sysfs"
@@ -64,10 +63,7 @@ func init() {
 
 // Config controls the node_exporter integration.
 type Config struct {
-	CommonConfig config.Common `yaml:",inline"`
-
-	// Enabled enables the node_exporter integration.
-	Enabled bool `yaml:"enabled"`
+	Common config.Common `yaml:",inline"`
 
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 
@@ -122,11 +118,15 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *Config) Name() string { return "node_exporter" }
+func (c *Config) Name() string {
+	return "node_exporter"
+}
 
-func (c *Config) IsEnabled() bool { return c.Enabled }
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
 
-func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
 

@@ -19,11 +19,11 @@ import (
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config       `yaml:"server"`
-	Prometheus   prom.Config         `yaml:"prometheus,omitempty"`
-	Loki         loki.Config         `yaml:"loki,omitempty"`
-	Integrations integrations.Config `yaml:"integrations"`
-	Tempo        tempo.Config        `yaml:"tempo,omitempty"`
+	Server       server.Config              `yaml:"server"`
+	Prometheus   prom.Config                `yaml:"prometheus,omitempty"`
+	Loki         loki.Config                `yaml:"loki,omitempty"`
+	Integrations integrations.ManagerConfig `yaml:"integrations"`
+	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
 }
 
 // ApplyDefaults sets default values in the config

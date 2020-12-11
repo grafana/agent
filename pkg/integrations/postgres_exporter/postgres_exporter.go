@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/wrouesnel/postgres_exporter/exporter"
 )
@@ -17,10 +16,7 @@ var DefaultConfig = Config{}
 
 // Config controls the postgres_exporter integration.
 type Config struct {
-	// Enabled enables the integration.
-	Enabled bool `yaml:"enabled"`
-
-	CommonConfig config.Common `yaml:",inline"`
+	Common config.Common `yaml:",inline"`
 
 	// DataSourceNames to use to connect to Postgres.
 	DataSourceNames []string `yaml:"data_source_names"`
@@ -38,11 +34,15 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *Config) Name() string { return "postgres_exporter" }
+func (c *Config) Name() string {
+	return "postgres_exporter"
+}
 
-func (c *Config) IsEnabled() bool { return c.Enabled }
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
 
-func (c *Config) NewIntegration(l log.Logger) (common.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
 
@@ -52,7 +52,7 @@ func init() {
 
 // New creates a new postgres_exporter integration. The integration scrapes
 // metrics from a postgres process.
-func New(log log.Logger, c *Config) (common.Integration, error) {
+func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	dsn := c.DataSourceNames
 	if len(dsn) == 0 {
 		dsn = strings.Split(os.Getenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME"), ",")
@@ -69,10 +69,5 @@ func New(log log.Logger, c *Config) (common.Integration, error) {
 		exporter.ExcludeDatabases(strings.Join(c.ExcludeDatabases, ",")),
 	)
 
-	return common.NewCollectorIntegration(
-		c.Name(),
-		c.CommonConfig,
-		e,
-		false,
-	), nil
+	return integrations.NewCollectorIntegration(c.Name(), e, false), nil
 }

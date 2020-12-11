@@ -23,12 +23,6 @@ func New(logger log.Logger, c *Config) (*Integration, error) {
 	return &Integration{c: c}, nil
 }
 
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
-
-// Name satisfies Integration.Name.
-func (i *Integration) Name() string { return i.c.Name() }
-
 // RegisterRoutes satisfies Integration.RegisterRoutes.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {
 	return nil

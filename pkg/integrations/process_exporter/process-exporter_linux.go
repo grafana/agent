@@ -46,12 +46,6 @@ func New(logger log.Logger, c *Config) (*Integration, error) {
 	return &Integration{c: c, collector: pc}, nil
 }
 
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
-
-// Name satisfies Integration.Name.
-func (i *Integration) Name() string { return i.c.Name() }
-
 // RegisterRoutes satisfies Integration.RegisterRoutes.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {
 	handler, err := i.handler()
@@ -88,7 +82,7 @@ func (i *Integration) handler() (http.Handler, error) {
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
 func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
 	return []config.ScrapeConfig{{
-		JobName:     i.Name(),
+		JobName:     i.c.Name(),
 		MetricsPath: "/metrics",
 	}}
 }
