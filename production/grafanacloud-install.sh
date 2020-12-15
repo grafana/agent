@@ -47,7 +47,6 @@ RELEASE_URL="https://github.com/grafana/agent/releases/download/v${RELEASE_VERSI
 DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.x86_64.deb"
 RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.x86_64.rpm"
 
-# 
 main() {
   if [ -z "$PACKAGE_SYSTEM" ]; then 
     PACKAGE_SYSTEM=$(detect_package_system)
