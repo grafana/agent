@@ -41,20 +41,20 @@ type ManagerConfig struct {
 	Enabled bool `yaml:"-"`
 
 	// When true, scrapes metrics from integrations.
-	ScrapeIntegrations bool `yaml:"scrape_integrations"`
+	ScrapeIntegrations bool `yaml:"scrape_integrations,omitempty"`
 	// When true, replaces the instance label with the agent hostname.
-	ReplaceInstanceLabel bool `yaml:"replace_instance_label"`
+	ReplaceInstanceLabel bool `yaml:"replace_instance_label,omitempty"`
 
 	// DEPRECATED. When true, adds an agent_hostname label to all samples from integrations.
 	// ReplaceInstanceLabel should be used instead.
-	UseHostnameLabel bool `yaml:"use_hostname_label"`
+	UseHostnameLabel bool `yaml:"use_hostname_label,omitempty"`
 
 	// The integration configs is merged with the manager config struct so we
 	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
 	Integrations Configs `yaml:"-"`
 
 	// Extra labels to add for all integration samples
-	Labels model.LabelSet `yaml:"labels"`
+	Labels model.LabelSet `yaml:"labels,omitempty"`
 
 	// Prometheus RW configs to use for all integrations.
 	PrometheusRemoteWrite []*config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
@@ -64,6 +64,11 @@ type ManagerConfig struct {
 	// ListenPort tells the integration Manager which port the Agent is
 	// listening on for generating Prometheus instance configs.
 	ListenPort *int `yaml:"-"`
+}
+
+// MarshalYAML implements yaml.Marshaler for ManagerConfig.
+func (c ManagerConfig) MarshalYAML() (interface{}, error) {
+	return MarshalYAML(c)
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for ManagerConfig.

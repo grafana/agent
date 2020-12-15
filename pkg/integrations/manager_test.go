@@ -20,6 +20,36 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Test that embedded integration fields in the struct can be unmarshaled and
+// remarshaled back out to text.
+func TestConfig_Remarshal(t *testing.T) {
+	RegisterIntegration(&testIntegrationA{})
+
+	cfgText := `
+scrape_integrations: true
+replace_instance_label: true
+integration_restart_backoff: 5s
+use_hostname_label: true
+test:
+  text: Hello, world!
+  truth: true
+`
+	var (
+		cfg        ManagerConfig
+		listenPort int = 12345
+	)
+	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
+
+	// Listen port must be set before applying defaults. Normally applied by the
+	// config package.
+	cfg.ListenPort = &listenPort
+
+	outBytes, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	fmt.Println(string(outBytes))
+	require.YAMLEq(t, cfgText, string(outBytes))
+}
+
 func TestConfig_AddressRelabels(t *testing.T) {
 	cfgText := `
 agent: 

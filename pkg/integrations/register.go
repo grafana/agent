@@ -10,6 +10,7 @@ import (
 
 var (
 	registeredIntegrations = []Config{}
+	configFieldNames       = make(map[reflect.Type]string)
 
 	emptyStructType = reflect.TypeOf(struct{}{})
 	configsType     = reflect.TypeOf(Configs{})
@@ -26,6 +27,7 @@ func RegisterIntegration(cfg Config) {
 		panic(fmt.Sprintf("RegisterIntegration must be given a pointer, got %T", cfg))
 	}
 	registeredIntegrations = append(registeredIntegrations, cfg)
+	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
 
 // Configs is a list of integrations.
@@ -69,7 +71,55 @@ func (c *Configs) unmarshalWithIntegrations(integrations []Config, unmarshal fun
 	return nil
 }
 
-// UnmarshalYAML helps implement yaml.Unmarshaller for structs that have an
+// MarshalYAML helps implement yaml.Marshaller for structs that have a Configs
+// field that should be inlined in the YAML string.
+func MarshalYAML(v interface{}) (interface{}, error) {
+	inVal := reflect.ValueOf(v)
+	for inVal.Kind() == reflect.Ptr {
+		inVal = inVal.Elem()
+	}
+	if inVal.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("integrations: can only marshal a struct, got %T", v)
+	}
+	inType := inVal.Type()
+
+	var (
+		cfgType    = getConfigTypeForIntegrations(registeredIntegrations, inType)
+		cfgPointer = reflect.New(cfgType)
+		cfgVal     = cfgPointer.Elem()
+	)
+
+	// Copy over any existing value from inVal to cfgVal.
+	//
+	// The ordering of fields in inVal and cfgVal match identically up until the
+	// extra fields appended to the end of cfgVal.
+	var configs Configs
+	for i, n := 0, inType.NumField(); i < n; i++ {
+		if inType.Field(i).Type == configsType {
+			configs = inVal.Field(i).Interface().(Configs)
+		}
+		if cfgType.Field(i).PkgPath != "" {
+			continue // Field is unexported: ignore.
+		}
+		cfgVal.Field(i).Set(inVal.Field(i))
+	}
+	if configs == nil {
+		return nil, fmt.Errorf("discovery: Configs field not found in type: %T", v)
+	}
+
+	for _, c := range configs {
+		fieldName, ok := configFieldNames[reflect.TypeOf(c)]
+		if !ok {
+			return nil, fmt.Errorf("discovery: cannot marshal unregistered Config type: %T", c)
+		}
+		field := cfgVal.FieldByName("XXX_Config_" + fieldName)
+		field.Set(reflect.ValueOf(c))
+	}
+
+	return cfgPointer.Interface(), nil
+}
+
+// UnmarshalYAML helps implement yaml.Unmarshaller for structs that have a
 // Configs field that should be inlined in the YAML string.
 func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 	return unmarshalIntegrationsWithList(registeredIntegrations, out, unmarshal)
