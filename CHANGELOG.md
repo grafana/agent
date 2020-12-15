@@ -4,6 +4,9 @@ NOTE: FreeBSD builds will not be included for this release. There is a bug in an
 upstream library preventing cross-compilation of the Grafana Cloud Agent for
 this platform. FreeBSD builds will return in a future release.
 
+- [ENHANCEMENT] agentctl will now be installed by the rpm and deb packages as 
+  `grafana-agentctl`. (@rfratto)
+
 # v0.9.0 (2020-12-10)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
