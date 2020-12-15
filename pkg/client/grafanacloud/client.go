@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const integrationsApiUrl = "https://integrations-api.grafana.net"
+const integrationsAPIURL = "https://integrations-api.grafana.net"
 
 // Client is a grafanacloud API client.
 type Client struct {
@@ -35,7 +35,7 @@ func NewClient(c *http.Client, apiKey string) *Client {
 func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error) {
 	req, err := http.NewRequestWithContext(
 		ctx, "GET",
-		fmt.Sprintf("%s/stacks/%s/agent_config", integrationsApiUrl, stackID),
+		fmt.Sprintf("%s/stacks/%s/agent_config", integrationsAPIURL, stackID),
 		nil,
 	)
 	if err != nil {
