@@ -244,7 +244,7 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 	touch $@
 
 ifeq ($(BUILD_IN_CONTAINER), true)
-dist-packages: dist/agent-linux-amd64 build-image/.uptodate
+dist-packages: dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
 	docker run --rm \
 		-v  $(shell pwd):/src/agent:delegated \
 		-e RELEASE_TAG=$(RELEASE_TAG) \
@@ -263,9 +263,9 @@ FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a x86_64 -n grafana-agent --iterat
 	--vendor "Grafana Labs" \
 	--url "https://github.com/grafana/agent"
 
-FPM_ARGS := dist/agent-linux-amd64=/usr/bin/grafana-agent packaging/grafana-agent.yaml=/etc/grafana-agent.yaml
+FPM_ARGS := dist/agent-linux-amd64=/usr/bin/grafana-agent dist/agentctl-linux-amd64=/usr/bin/grafana-agentctl packaging/grafana-agent.yaml=/etc/grafana-agent.yaml
 
-dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm: dist/agent-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
+dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
 	$(FPM_OPTS) -t rpm \
 		--after-install packaging/rpm/control/postinst \
 		--before-remove packaging/rpm/control/prerm \
@@ -273,7 +273,7 @@ dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm: dist/agent-
 		packaging/environment-file=/etc/sysconfig/grafana-agent \
 		packaging/rpm/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
 
-dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb: dist/agent-linux-amd64 $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
+dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
 	$(FPM_OPTS) -t deb \
 		--after-install packaging/deb/control/postinst \
 		--before-remove packaging/deb/control/prerm \
