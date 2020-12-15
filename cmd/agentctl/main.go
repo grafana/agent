@@ -307,7 +307,7 @@ config that may be used with this agent.`,
 	}
 
 	cmd.Flags().StringVarP(&stackID, "stack", "u", "", "stack ID to get a config for")
-	cmd.Flags().StringVarP(&apiKey, "api-key", "p", "", "API key authenticate against Grafana Cloud's API with")
+	cmd.Flags().StringVarP(&apiKey, "api-key", "p", "", "API key to authenticate against Grafana Cloud's API with")
 	must(cmd.MarkFlagRequired("stack"))
 	must(cmd.MarkFlagRequired("api-key"))
 
