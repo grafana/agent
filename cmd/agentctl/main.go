@@ -38,7 +38,7 @@ func main() {
 		walStatsCmd(),
 		targetStatsCmd(),
 		samplesCmd(),
-		cmdCloudConfig(),
+		cloudConfigCmd(),
 	)
 
 	_ = cmd.Execute()
@@ -266,7 +266,7 @@ deletion but then comes back at some point).`,
 	}
 }
 
-func cmdCloudConfig() *cobra.Command {
+func cloudConfigCmd() *cobra.Command {
 	var (
 		stackID string
 		apiKey  string
