@@ -71,6 +71,13 @@ main() {
   log '--- Enabling and starting grafana-agent.service'
   sudo systemctl enable grafana-agent.service
   sudo systemctl start grafana-agent.service
+
+  # Add some empty newlines to give some visual whitespace before printing the
+  # success message.
+  log ''
+  log ''
+  log 'Grafana Cloud Agent is now running! To check the status of your Agent, run:'
+  log '   sudo systemctl status grafana-agent.service'
 }
 
 # detect_package_system tries to detect the host distribution to determine if
