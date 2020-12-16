@@ -1,18 +1,18 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # grafanacloud-install.sh installs the Grafana Cloud Agent on supported x86_64
-# Linux systems for Grafana Cloud users. Those who aren't users of Grafana Cloud 
-# or need to install the Agent on a different architecture or platform should 
+# Linux systems for Grafana Cloud users. Those who aren't users of Grafana Cloud
+# or need to install the Agent on a different architecture or platform should
 # try another installation method.
 #
 # grafanacloud-install.sh has a hard dependency on being run on a supported
-# Linux system. Currently only systems that can install deb or rpm packages 
-# are supported. The target system will try to be detected, but if it cannot, 
-# PACKAGE_SYSTEM can be passed as an environment variable with either rpm or 
+# Linux system. Currently only systems that can install deb or rpm packages
+# are supported. The target system will try to be detected, but if it cannot,
+# PACKAGE_SYSTEM can be passed as an environment variable with either rpm or
 # deb.
-set -euo pipefail
+set -eu
 
 log() {
-  echo "$@" >&2 
+  echo "$@" >&2
 }
 
 fatal() {
@@ -21,7 +21,7 @@ fatal() {
 }
 
 #
-# REQUIRED environment variables. 
+# REQUIRED environment variables.
 #
 GCLOUD_STACK_ID=${GCLOUD_STACK_ID:=} # Stack ID where integrations are installed
 GCLOUD_API_KEY=${GCLOUD_API_KEY:=}   # API key to communicate to the integrations API
@@ -30,7 +30,7 @@ GCLOUD_API_KEY=${GCLOUD_API_KEY:=}   # API key to communicate to the integration
 [ -z "$GCLOUD_API_KEY" ]  && fatal "Required environment variable \$GCLOUD_API_KEY not set."
 
 #
-# OPTIONAL environment variables. 
+# OPTIONAL environment variables.
 #
 
 # Package system to install the Agent with. If not empty, MUST be either rpm or
@@ -38,7 +38,7 @@ GCLOUD_API_KEY=${GCLOUD_API_KEY:=}   # API key to communicate to the integration
 # package system to use.
 PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 
-# 
+#
 # Global constants.
 #
 RELEASE_VERSION="0.9.0"
@@ -48,7 +48,7 @@ DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.x86_64.deb"
 RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.x86_64.rpm"
 
 main() {
-  if [ -z "$PACKAGE_SYSTEM" ]; then 
+  if [ -z "$PACKAGE_SYSTEM" ]; then
     PACKAGE_SYSTEM=$(detect_package_system)
   fi
   log "--- Using package system $PACKAGE_SYSTEM. Downloading and installing package"
@@ -70,7 +70,7 @@ main() {
 
   log '--- Enabling and starting grafana-agent.service'
   sudo systemctl enable grafana-agent.service
-  sudo systemctl start grafana-agent.service 
+  sudo systemctl start grafana-agent.service
 }
 
 # detect_package_system tries to detect the host distribution to determine if
