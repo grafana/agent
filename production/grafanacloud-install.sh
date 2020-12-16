@@ -92,7 +92,7 @@ detect_package_system() {
 
 # install_deb downloads and installs the deb package of the Grafana Cloud Agent.
 install_deb() {
-  curl -sL "${DEB_URL}" -o /tmp/grfana-agent.deb
+  curl -sL "${DEB_URL}" -o /tmp/grafana-agent.deb
   sudo dpkg -i /tmp/grafana-agent.deb
   rm /tmp/grafana-agent.deb
 }
