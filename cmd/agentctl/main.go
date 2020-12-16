@@ -2,13 +2,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
+	"time"
 
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/client/grafanacloud"
 	"github.com/olekukonko/tablewriter"
 	"github.com/prometheus/common/version"
 
@@ -35,6 +38,7 @@ func main() {
 		walStatsCmd(),
 		targetStatsCmd(),
 		samplesCmd(),
+		cloudConfigCmd(),
 	)
 
 	_ = cmd.Execute()
@@ -260,6 +264,54 @@ deletion but then comes back at some point).`,
 			}
 		},
 	}
+}
+
+func cloudConfigCmd() *cobra.Command {
+	var (
+		stackID string
+		apiKey  string
+	)
+
+	cmd := &cobra.Command{
+		Use:   "cloud-config",
+		Short: "Retrieves the cloud config for the Grafana Cloud Agent",
+		Long: `cloud-config connects to Grafana Cloud and retrieves the generated
+config that may be used with this agent.`,
+		Args: cobra.ExactArgs(0),
+
+		// Hidden, this is only expected to be used by scripts.
+		Hidden: true,
+
+		RunE: func(_ *cobra.Command, args []string) error {
+			if stackID == "" {
+				return fmt.Errorf("--stack must be provided")
+			}
+			if apiKey == "" {
+				return fmt.Errorf("--api-key must be provided")
+			}
+
+			cli := grafanacloud.NewClient(nil, apiKey)
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
+
+			cfg, err := cli.AgentConfig(ctx, stackID)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "could not retrieve agent cloud config: %s\n", err)
+				os.Exit(1)
+			}
+
+			fmt.Println(cfg)
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVarP(&stackID, "stack", "u", "", "stack ID to get a config for")
+	cmd.Flags().StringVarP(&apiKey, "api-key", "p", "", "API key to authenticate against Grafana Cloud's API with")
+	must(cmd.MarkFlagRequired("stack"))
+	must(cmd.MarkFlagRequired("api-key"))
+
+	return cmd
 }
 
 func must(err error) {
