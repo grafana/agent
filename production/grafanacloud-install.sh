@@ -27,7 +27,7 @@ GCLOUD_STACK_ID=${GCLOUD_STACK_ID:=} # Stack ID where integrations are installed
 GCLOUD_API_KEY=${GCLOUD_API_KEY:=}   # API key to communicate to the integrations API
 
 [ -z "$GCLOUD_STACK_ID" ] && fatal "Required environment variable \$GCLOUD_STACK_ID not set."
-[ -z "$GCLOUD_API_KEY" ]  && fatal "Required environment variable $$GCLOUD_API_KEY not set."
+[ -z "$GCLOUD_API_KEY" ]  && fatal "Required environment variable \$GCLOUD_API_KEY not set."
 
 #
 # OPTIONAL environment variables. 
