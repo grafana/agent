@@ -1,5 +1,5 @@
-This is the list of organisations, organized alphebetically, that are using the Grafana Cloud Agent in 
-production environments. Please send PRs to add or remove organisations.
+This is the list of organizations, organized alphebetically, that are using the Grafana Cloud Agent in 
+production environments. Please send PRs to add or remove organizations.
 
 * [AB Tasty](https://www.abtasty.com/)
 * Cerner Enterprise Hosting
