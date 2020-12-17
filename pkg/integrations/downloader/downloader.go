@@ -45,7 +45,7 @@ func (d *Downloader) Download(ctx context.Context, url, file, checksum string) e
 	d.lock(file)
 	defer d.unlock(file)
 
-	if exist, err := d.exists(ctx, file, checksum); exist {
+	if exist, err := d.exists(file, checksum); exist {
 		return nil
 	} else if err != nil {
 		return err
@@ -89,15 +89,15 @@ func (d *Downloader) Download(ctx context.Context, url, file, checksum string) e
 }
 
 // Exists returns true if the target file exists and has the expected checksum.
-func (d *Downloader) Exists(ctx context.Context, file, checksum string) (bool, error) {
+func (d *Downloader) Exists(file, checksum string) (bool, error) {
 	d.lock(file)
 	defer d.unlock(file)
 
-	return d.exists(ctx, file, checksum)
+	return d.exists(file, checksum)
 }
 
 // exists is Exists but doesn't grab a lock on the file.
-func (d *Downloader) exists(ctx context.Context, file, checksum string) (bool, error) {
+func (d *Downloader) exists(file, checksum string) (bool, error) {
 	f, err := os.Open(file)
 	if os.IsNotExist(err) {
 		return false, nil
