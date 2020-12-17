@@ -1,0 +1,13 @@
+server:
+  log_level: info
+  http_listen_port: 12345
+
+prometheus:
+  wal_directory: /tmp/agent
+  global:
+    scrape_interval: 5s
+
+integrations:
+  prometheus_remote_write:
+    - url: http://localhost:9009/api/prom/push
+
