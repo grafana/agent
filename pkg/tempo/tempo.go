@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/collector/service/builder"
 )
 
-// Tempo wraps the OpenTelemetry collector to enablet tracing pipelines
+// Tempo wraps the OpenTelemetry collector to enable tracing pipelines
 type Tempo struct {
 	logger      *zap.Logger
 	metricViews []*view.View

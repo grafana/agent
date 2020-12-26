@@ -145,10 +145,10 @@ func (p *promServiceDiscoProcessor) watchServiceDiscovery() {
 	for {
 		// p.discoveryMgr.SyncCh() is never closed so we need to watch the context as well to properly exit this goroutine
 		select {
-		case targetGoups := <-p.discoveryMgr.SyncCh():
+		case targetGroups := <-p.discoveryMgr.SyncCh():
 			hostLabels := make(map[string]model.LabelSet)
-			level.Debug(p.logger).Log("msg", "syncing target groups", "count", len(targetGoups))
-			for jobName, groups := range targetGoups {
+			level.Debug(p.logger).Log("msg", "syncing target groups", "count", len(targetGroups))
+			for jobName, groups := range targetGroups {
 				p.syncGroups(jobName, groups, hostLabels)
 			}
 			p.mtx.Lock()

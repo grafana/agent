@@ -97,7 +97,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 	return load(fs, args, LoadFile)
 }
 
-// load allows for tests to inject a function for retreiving the config file that
+// load allows for tests to inject a function for retrieving the config file that
 // doesn't require having a literal file on disk.
 func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) error) (*Config, error) {
 	var (
