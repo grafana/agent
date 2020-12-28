@@ -268,7 +268,7 @@ path of your Agent's YAML configuration file.
 ```
 docker run \
   -v /tmp/agent:/etc/agent \
-  -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
+  -v /path/to/config.yaml:/etc/agent/agent.yaml \
   grafana/agent:v0.9.0
 ```
 
