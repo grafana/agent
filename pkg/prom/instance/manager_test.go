@@ -97,9 +97,10 @@ func TestBasicManager_ApplyConfig(t *testing.T) {
 }
 
 type mockInstance struct {
-	RunFunc           func(ctx context.Context) error
-	UpdateFunc        func(c Config) error
-	TargetsActiveFunc func() map[string][]*scrape.Target
+	RunFunc              func(ctx context.Context) error
+	UpdateFunc           func(c Config) error
+	TargetsActiveFunc    func() map[string][]*scrape.Target
+	StorageDirectoryFunc func() string
 }
 
 func (m mockInstance) Run(ctx context.Context) error {
@@ -121,4 +122,11 @@ func (m mockInstance) TargetsActive() map[string][]*scrape.Target {
 		return m.TargetsActiveFunc()
 	}
 	panic("TargetsActiveFunc not provided")
+}
+
+func (m mockInstance) StorageDirectory() string {
+	if m.StorageDirectoryFunc != nil {
+		return m.StorageDirectoryFunc()
+	}
+	panic("StorageDirectoryFunc not provided")
 }

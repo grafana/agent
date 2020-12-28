@@ -59,6 +59,7 @@ type ManagedInstance interface {
 	Run(ctx context.Context) error
 	Update(c Config) error
 	TargetsActive() map[string][]*scrape.Target
+	StorageDirectory() string
 }
 
 // BasicManagerConfig controls the operations of a BasicManager.

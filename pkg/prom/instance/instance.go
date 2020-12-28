@@ -486,6 +486,10 @@ func (i *Instance) TargetsActive() map[string][]*scrape.Target {
 	return mgr.TargetsActive()
 }
 
+func (i *Instance) StorageDirectory() string {
+	return i.wal.Directory()
+}
+
 type discoveryService struct {
 	Manager *discovery.Manager
 

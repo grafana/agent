@@ -153,6 +153,13 @@ define one instance.
 # Configure the directory used by instances to store their WAL.
 [wal_directory: <string> | default = ""]
 
+# Configures how long ago an abandoned (not associated with an instance) WAL
+# may be written to before being eligible to be deleted
+[wal_cleanup_age: <duration> | default = "12h"]
+
+# Configures how often checks for abandoned WALs to be delete are performed
+[wal_cleanup_period: <duration> | default = "30m"]
+
 # The list of Prometheus instances to launch with the agent.
 configs:
   [- <prometheus_instance_config>]

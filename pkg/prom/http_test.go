@@ -143,3 +143,7 @@ func (i *mockInstanceScrape) Update(_ instance.Config) error {
 func (i *mockInstanceScrape) TargetsActive() map[string][]*scrape.Target {
 	return i.tgts
 }
+
+func (i *mockInstanceScrape) StorageDirectory() string {
+	return ""
+}
