@@ -13,7 +13,7 @@ before releasing the Grafana Cloud Agent.
 #### Prerelease testing 
 
 For testing a release, run the [K3d example](../example/k3d/README.md) locally.
-Let it run for about 90 minutes, keeping an occassional eye on the Agent
+Let it run for about 90 minutes, keeping an occasional eye on the Agent
 Operational dashboard (noting that metrics from the scraping service will take
 time to show up). After 90 minutes, if nothing has crashed and you see metrics
 for both the scraping service and the non-scraping service, the Agent is ready
