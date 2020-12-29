@@ -152,8 +152,8 @@ func targetStatsCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "target-stats [WAL directory]",
-		Short: "Discover statitics on a specific target within the WAL.",
-		Long: `target-stats computes statitics on a specific target within the WAL at
+		Short: "Discover statistics on a specific target within the WAL.",
+		Long: `target-stats computes statistics on a specific target within the WAL at
 greater detail than the general wal-stats. The statistics computed is the
 cardinality of all series within that target.
 

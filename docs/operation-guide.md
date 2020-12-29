@@ -26,7 +26,7 @@ isn't defined, the Agent will use Go's [os.Hostname](https://golang.org/pkg/os/#
 to determine the hostname.
 
 The following meta-labels are used to determine if a target is running on the
-same machine as the the target:
+same machine as the target:
 
 - `__address__`
 - `__meta_consul_node`
@@ -61,7 +61,7 @@ Prometheus service discovery, scraping, a WAL for storage, and `remote_write`.
 
 Instances allow for fine grained control of what data gets scraped and where it
 gets sent. Users can easily define two Instances that scrape different subsets
-of metrics and send them two two completely different remote_write systems.
+of metrics and send them to two completely different remote_write systems.
 
 Instances are especially relevant to the [scraping service
 mode](./scraping-service.md), where breaking up your scrape configs into

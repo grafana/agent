@@ -120,7 +120,7 @@ instance).
 When the Agent is run with this file, it will collect metrics from itself and
 send those metrics to the `remote_write` endpoint. All metrics will have (by
 default) an `agent_hostname` label equal to the hostname of the machine the
-Agent is running on. This label helps to uniquly identify the source of metrics
+Agent is running on. This label helps to uniquely identify the source of metrics
 if you run multiple Agent processes across multiple machines.
 
 Full configuration options can be found in the
@@ -274,7 +274,7 @@ docker run \
 
 ### Locally
 
-This section is only relavant if you installed the static binary of the
+This section is only relevant if you installed the static binary of the
 Agent. We do not yet provide system packages or configurations to run the Agent
 as a daemon process.
 

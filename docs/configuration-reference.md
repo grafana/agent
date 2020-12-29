@@ -330,7 +330,7 @@ grpc_client_config:
 ### global_config
 
 The `global_config` block configures global values for all launched Prometheus
-instanes.
+instances.
 
 ```yaml
 # How frequently should Prometheus instances scrape.

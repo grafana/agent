@@ -101,7 +101,7 @@ and metadata label propagation.
 While these features could theoretically be added to Telegraf as OSS contributions, 
 there would be a lot of forced hacks involved due to its current design.
 
-Additonally, Telegraf is a much larger project with its own goals for its community,
+Additionally, Telegraf is a much larger project with its own goals for its community,
 so any changes need to fit the general use cases it was designed for.
 
 With the Grafana Cloud Agent as its own project, we can deliver a more curated agent 

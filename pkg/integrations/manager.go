@@ -363,7 +363,7 @@ func (m *Manager) WireAPI(r *mux.Router) error {
 	return nil
 }
 
-// Stop stops the maanger and all of its integrations.
+// Stop stops the manager and all of its integrations.
 func (m *Manager) Stop() {
 	m.cancel()
 	<-m.done
