@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/common"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
+	"github.com/grafana/agent/pkg/integrations/jmx_exporter"
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
@@ -70,6 +71,7 @@ type Config struct {
 	PostgresExporter  postgres_exporter.Config  `yaml:"postgres_exporter"`
 	StatsdExporter    statsd_exporter.Config    `yaml:"statsd_exporter"`
 	ConsulExporter    consul_exporter.Config    `yaml:"consul_exporter"`
+	JMXExporter       jmx_exporter.Config       `yaml:"jmx_exporter"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels"`
@@ -211,6 +213,14 @@ func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, err
 	if c.ConsulExporter.Enabled {
 		l := log.With(logger, "integration", "consul_exporter")
 		i, err := consul_exporter.New(l, c.ConsulExporter)
+		if err != nil {
+			return nil, err
+		}
+		integrations = append(integrations, i)
+	}
+	if c.JMXExporter.Enabled {
+		l := log.With(logger, "integration", "jmx_exporter")
+		i, err := jmx_exporter.New(l, c.JMXExporter)
 		if err != nil {
 			return nil, err
 		}

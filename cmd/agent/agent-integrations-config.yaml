@@ -40,6 +40,18 @@ integrations:
     enabled: true
   consul_exporter:
     enabled: true
+  jmx_exporter:
+    enabled: true
+    jvm_options:
+      - -Dcom.sun.management.jmxremote.ssl=false
+      - -Dcom.sun.management.jmxremote.authenticate=false
+      - -Dcom.sun.management.jmxremote.port=5555
+    exporter_config:
+      hostport: localhost:5555
+      username: ''
+      password: ''
+      rules:
+      - pattern: '.*'
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push
 
