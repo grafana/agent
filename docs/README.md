@@ -1,4 +1,4 @@
-# Grafana Cloud Agent
+<p align="center"><img src="assets/logo_and_name.png" alt="Grafana Cloud Agent logo"></p>
 
 The Grafana Cloud Agent is an observability data collector optimized for sending
 metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud/).
