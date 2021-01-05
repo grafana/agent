@@ -39,7 +39,7 @@ func TestNodeExporter(t *testing.T) {
 
 	// Check that the flags convert and the integration initiailizes
 	logger := log.NewNopLogger()
-	integration, err := New(logger, cfg)
+	integration, err := New(logger, &cfg)
 	require.NoError(t, err, "failed to setup node_exporter")
 
 	r := mux.NewRouter()

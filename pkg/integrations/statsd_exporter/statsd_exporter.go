@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/integrations/common"
+	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -45,10 +45,7 @@ var DefaultConfig = Config{
 
 // Config controls the statsd_exporter integration.
 type Config struct {
-	// Enabled enables the integration.
-	Enabled bool `yaml:"enabled"`
-
-	CommonConfig config.Common `yaml:",inline"`
+	Common config.Common `yaml:",inline"`
 
 	ListenUDP      string               `yaml:"listen_udp"`
 	ListenTCP      string               `yaml:"listen_tcp"`
@@ -77,9 +74,25 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+func (c *Config) Name() string {
+	return "statsd_exporter"
+}
+
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
+
+func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+	return New(l, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
 // Exporters defines the statsd_exporter integration.
 type Exporter struct {
-	cfg      Config
+	cfg      *Config
 	reg      *prometheus.Registry
 	metrics  *Metrics
 	exporter *exporter.Exporter
@@ -88,7 +101,7 @@ type Exporter struct {
 
 // New creates a new statsd_exporter integration. The integration scrapes
 // metrics from a statsd process.
-func New(log log.Logger, c Config) (common.Integration, error) {
+func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	reg := prometheus.NewRegistry()
 
 	m, err := NewMetrics(reg)
@@ -132,13 +145,7 @@ func New(log log.Logger, c Config) (common.Integration, error) {
 	}, nil
 }
 
-// Name satisfies common.Integration.
-func (e *Exporter) Name() string { return "statsd_exporter" }
-
-// CommonConfig satisfies common.Integration.
-func (e *Exporter) CommonConfig() config.Common { return e.cfg.CommonConfig }
-
-// RegisterRoutes satisfies common.Integration. The mux.Router provided
+// RegisterRoutes satisfies integrations.Integration. The mux.Router provided
 // here is expected to be a subrouter, where all registered paths will be
 // registered within that subroute.
 func (e *Exporter) RegisterRoutes(r *mux.Router) error {
@@ -152,7 +159,7 @@ func (e *Exporter) RegisterRoutes(r *mux.Router) error {
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
 func (e *Exporter) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{JobName: e.Name(), MetricsPath: "/metrics"}}
+	return []config.ScrapeConfig{{JobName: e.cfg.Name(), MetricsPath: "/metrics"}}
 }
 
 // Run satisfies Run.
