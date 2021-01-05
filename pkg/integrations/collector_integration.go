@@ -1,6 +1,4 @@
-// Package common implements a bare-bones Integration that can be used by
-// exporters that have no logic associated with them.
-package common
+package integrations
 
 import (
 	"context"
@@ -18,27 +16,19 @@ import (
 // collector.
 type CollectorIntegration struct {
 	name                   string
-	cfg                    config.Common
 	c                      prometheus.Collector
 	includeExporterMetrics bool
 }
 
 // NewCollectorIntegration creates a basic integration that exposes metrics
 // from a prometheus.Collector.
-func NewCollectorIntegration(name string, cfg config.Common, c prometheus.Collector, includeExporterMetrics bool) *CollectorIntegration {
+func NewCollectorIntegration(name string, c prometheus.Collector, includeExporterMetrics bool) *CollectorIntegration {
 	return &CollectorIntegration{
 		name:                   name,
-		cfg:                    cfg,
 		c:                      c,
 		includeExporterMetrics: includeExporterMetrics,
 	}
 }
-
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *CollectorIntegration) CommonConfig() config.Common { return i.cfg }
-
-// Name satisfies Integration.Name.
-func (i *CollectorIntegration) Name() string { return i.name }
 
 // RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
 // here is expected to be a subrouter, where all registered paths will be
@@ -84,7 +74,7 @@ func (i *CollectorIntegration) handler() (http.Handler, error) {
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
 func (i *CollectorIntegration) ScrapeConfigs() []config.ScrapeConfig {
 	return []config.ScrapeConfig{{
-		JobName:     i.Name(),
+		JobName:     i.name,
 		MetricsPath: "/metrics",
 	}}
 }

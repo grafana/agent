@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/integrations/common"
+	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/memcached_exporter/pkg/exporter"
 )
@@ -18,10 +18,7 @@ var DefaultConfig Config = Config{
 
 // Config controls the memcached_exporter integration.
 type Config struct {
-	// Enabled enables the integration.
-	Enabled bool `yaml:"enabled"`
-
-	CommonConfig config.Common `yaml:",inline"`
+	Common config.Common `yaml:",inline"`
 
 	// MemcachedAddress is the address of the memcached server (host:port).
 	MemcachedAddress string `yaml:"memcached_address"`
@@ -38,12 +35,27 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+func (c *Config) Name() string {
+	return "memcached_exporter"
+}
+
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
+
+func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+	return New(l, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
 // New creates a new memcached_exporter integration. The integration scrapes metrics
 // from a memcached server.
-func New(log log.Logger, c Config) (common.Integration, error) {
-	return common.NewCollectorIntegration(
-		"memcached_exporter",
-		c.CommonConfig,
+func New(log log.Logger, c *Config) (integrations.Integration, error) {
+	return integrations.NewCollectorIntegration(
+		c.Name(),
 		exporter.New(c.MemcachedAddress, c.Timeout, log),
 		false,
 	), nil
