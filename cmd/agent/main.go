@@ -9,6 +9,7 @@ import (
 
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
+
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/tempo"
@@ -23,6 +24,9 @@ import (
 
 	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
+
+	// Register integrations
+	_ "github.com/grafana/agent/pkg/integrations/install"
 )
 
 func init() {

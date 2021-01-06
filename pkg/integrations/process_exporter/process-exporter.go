@@ -15,19 +15,13 @@ import (
 // Integration is the process_exporter integration. On non-Linux platforms,
 // this integration does nothing and will print a warning if enabled.
 type Integration struct {
-	c Config
+	c *Config
 }
 
-func New(logger log.Logger, c Config) (*Integration, error) {
+func New(logger log.Logger, c *Config) (*Integration, error) {
 	level.Warn(logger).Log("msg", "the process_exporter only works on Linux; enabling it otherwise will do nothing")
 	return &Integration{c: c}, nil
 }
-
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
-
-// Name satisfies Integration.Name.
-func (i *Integration) Name() string { return "process_exporter" }
 
 // RegisterRoutes satisfies Integration.RegisterRoutes.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {

@@ -6,34 +6,43 @@ package agent
 import (
 	"context"
 
+	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Config controls the Agent integration.
 type Config struct {
-	CommonConfig config.Common `yaml:",inline"`
+	Common config.Common `yaml:",inline"`
+}
 
-	// Enabled enables the Agent integration.
-	Enabled bool
+func (c *Config) Name() string {
+	return "agent"
+}
+
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
+
+func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) {
+	return New(c), nil
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
 }
 
 // Integration is the Agent integration. The Agent integration scrapes the
 // Agent's own metrics.
 type Integration struct {
-	c Config
+	c *Config
 }
 
-func New(c Config) *Integration {
+func New(c *Config) *Integration {
 	return &Integration{c: c}
 }
-
-// CommonConfig satisfies Integration.CommonConfig.
-func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
-
-// Name satisfies Integration.Name.
-func (i *Integration) Name() string { return "agent" }
 
 // RegisterRoutes satisfies Integration.RegisterRoutes.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {
@@ -48,7 +57,7 @@ func (i *Integration) RegisterRoutes(r *mux.Router) error {
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
 func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
 	return []config.ScrapeConfig{{
-		JobName:     i.Name(),
+		JobName:     i.c.Name(),
 		MetricsPath: "/metrics",
 	}}
 }
