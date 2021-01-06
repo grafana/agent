@@ -992,6 +992,8 @@ github.com/grafana/postgres_exporter v0.8.1-0.20201106184723-f03ec91b01ac h1:uWB
 github.com/grafana/postgres_exporter v0.8.1-0.20201106184723-f03ec91b01ac/go.mod h1:0EpacXQxjcMlLqvOcA5x2WuOR2tobrsHf9avFj3TAxY=
 github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf h1:InA1PiQc0blPSWIgomq4w8L6yHCK6yMj3+FL1YAjtEo=
 github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf/go.mod h1:d7Yf/brhprE2fjCdtZ2Edt0so30RY5PmtRu6qD0gUOc=
+github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a h1:JUnP/laSl2GylHT0+fqAqOZY+7XkLh1mLefLN0n8Mmk=
+github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a/go.mod h1:RMjrx3Qn8l2pgCD27g45xbko4UDpVVuHC8Cd2YXPtWA=
 github.com/grafana/prometheus v1.8.2-0.20200821135656-2efe42db3b77 h1:BDISe7QQ7yvfYMSDuOlNrTZZO7qD4DQHrgUmU+vVwiI=
 github.com/grafana/prometheus v1.8.2-0.20200821135656-2efe42db3b77/go.mod h1:nnrpCyzNlHMAvHQl3Edz6cUiJZu3q4owFNV3oU3K7x0=
 github.com/grafana/prometheus v1.8.2-0.20201021200247-cf00050ed1e9 h1:pYjsijDKlGYurpki3DAdAgAN7MMXDmBdKjhtyqusr/E=
@@ -1483,6 +1485,7 @@ github.com/nats-io/nuid v1.0.1/go.mod h1:19wcPz3Ph3q0Jbyiqsd0kePYG7A95tJPxeL+1OS
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d h1:AREM5mwr4u1ORQBMvzfzBgpsctsbQikCVpvC+tX285E=
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d/go.mod h1:o96djdrsSGy3AWPyBgZMAGfxZNfgntdJG+11KU4QvbU=
 github.com/ncabatoff/fakescraper v0.0.0-20161023141611-15938421d91a/go.mod h1:Tx6UMSMyIsjLG/VU/F6xA1+0XI+/f9o1dGJnf1l+bPg=
+github.com/ncabatoff/fakescraper v0.0.0-20201102132415-4b37ba603d65/go.mod h1:Tx6UMSMyIsjLG/VU/F6xA1+0XI+/f9o1dGJnf1l+bPg=
 github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833 h1:t4WWQ9I797y7QUgeEjeXnVb+oYuEDQc6gLvrZJTYo94=
 github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833/go.mod h1:0CznHmXSjMEqs5Tezj/w2emQoM41wzYM9KpDKUHPYag=
 github.com/ncw/swift v1.0.50/go.mod h1:23YIA4yWVnGwv2dQlN4bB7egfYX6YLn0Yo/S6zZO/ZM=
