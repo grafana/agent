@@ -36,7 +36,7 @@ test:
 `
 	var (
 		cfg        ManagerConfig
-		listenPort int = 12345
+		listenPort int    = 12345
 		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
@@ -60,7 +60,7 @@ agent:
 
 	var (
 		cfg        ManagerConfig
-		listenPort int = 12345
+		listenPort int    = 12345
 		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
