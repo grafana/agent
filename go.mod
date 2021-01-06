@@ -21,11 +21,11 @@ require (
 	github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
-	github.com/oliver006/redis_exporter v1.13.1
+	github.com/oliver006/redis_exporter v1.15.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.8.0
+	github.com/prometheus/client_golang v1.9.0
 	github.com/prometheus/common v0.15.0
 	github.com/prometheus/consul_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/memcached_exporter v0.7.1-0.20201204153924-4290508e6dcf
@@ -44,11 +44,10 @@ require (
 	go.opentelemetry.io/collector v0.16.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
-	golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 // indirect
 	google.golang.org/grpc v1.33.2
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
 
 // Needed for Cortex's dependencies to work properly.
