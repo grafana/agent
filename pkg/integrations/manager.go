@@ -67,7 +67,7 @@ type ManagerConfig struct {
 
 	// ListenHost tells the integration Manager which port the Agent is
 	// listening on for generating Prometheus instance configs
-	ListenHost string `yaml:"-"`
+	ListenHost *string `yaml:"-"`
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -257,7 +257,7 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 
 func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 
-	localAddr := fmt.Sprintf("%s:%d", m.c.ListenHost, *m.c.ListenPort)
+	localAddr := fmt.Sprintf("%s:%d", *m.c.ListenHost, *m.c.ListenPort)
 	labels := model.LabelSet{}
 	if m.c.UseHostnameLabel {
 		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)

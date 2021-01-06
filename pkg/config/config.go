@@ -51,7 +51,7 @@ func (c *Config) ApplyDefaults() error {
 
 	if c.Integrations.Enabled {
 		c.Integrations.ListenPort = &c.Server.HTTPListenPort
-		c.Integrations.ListenHost = c.Server.HTTPListenAddress
+		c.Integrations.ListenHost = &c.Server.HTTPListenAddress
 	}
 
 	return nil
