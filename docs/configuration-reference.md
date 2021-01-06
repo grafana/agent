@@ -2699,6 +2699,18 @@ Full reference of options:
   # Comma separated list of key-patterns to export value and length/size, searched for with SCAN.
   [check_keys: <string>]
 
+  # Comma separated list of LUA regex for grouping keys. When unset, no key
+  # groups will be made.
+  [check_key_groups: <string>]
+
+  # Check key groups batch size hint for the underlying SCAN.
+  [check_key_groups_batch_size: <int> | default = 10000]
+
+  # The maximum number of distinct key groups with the most memory utilization
+  # to present as distinct metrics per database. The leftover key groups will be
+  # aggregated in the 'overflow' bucket.
+  [max_distinct_key_groups: <int> | default = 100]
+
   # Comma separated list of single keys to export value and length/size.
   [check_single_keys: <string>]
 
@@ -2734,6 +2746,10 @@ Full reference of options:
 
   # Whether to scrape Client List specific metrics.
   [export_client_list: <bool>]
+
+  # Whether to include the client's port when exporting the client list. Note
+  # that including this will increase the cardinality of all redis metrics.
+  [export_client_port: <bool>]
 
   # Whether to also export go runtime metrics.
   [redis_metrics_only: <bool>]
