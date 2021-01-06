@@ -6,6 +6,8 @@ this platform. FreeBSD builds will return in a future release.
 
 - [ENHANCEMENT] Update `redis_exporter` to v1.15.0. (@rfratto)
 
+- [ENHANCEMENT] `memcached_exporter` has been updated to v0.8.0 (@rfratto).
+
 # v0.9.1 (2021-01-04)
 
 NOTE: FreeBSD builds will not be included for this release. There is a bug in an
@@ -14,7 +16,7 @@ this platform. FreeBSD builds will return in a future release.
 
 - [ENHANCEMENT] agentctl will now be installed by the rpm and deb packages as 
   `grafana-agentctl`. (@rfratto)
-  
+
 - [BUGFIX] Integrations will now function if the HTTP listen address was set to a value other than the default. 
   [206](https://github.com/grafana/agent/issues/206) (@mattdurham) 
 

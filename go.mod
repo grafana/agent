@@ -28,7 +28,7 @@ require (
 	github.com/prometheus/client_golang v1.9.0
 	github.com/prometheus/common v0.15.0
 	github.com/prometheus/consul_exporter v0.0.0-00010101000000-000000000000
-	github.com/prometheus/memcached_exporter v0.7.1-0.20201204153924-4290508e6dcf
+	github.com/prometheus/memcached_exporter v0.8.0
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.2.0
