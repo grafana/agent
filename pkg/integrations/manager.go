@@ -258,7 +258,6 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 
 	localAddr := fmt.Sprintf("%s:%d", m.c.ListenHost, *m.c.ListenPort)
-
 	labels := model.LabelSet{}
 	if m.c.UseHostnameLabel {
 		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
