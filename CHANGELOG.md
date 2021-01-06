@@ -12,6 +12,9 @@ this platform. FreeBSD builds will return in a future release.
 
 - [ENHANCEMENT] agentctl will now be installed by the rpm and deb packages as 
   `grafana-agentctl`. (@rfratto)
+  
+- [BUGFIX] Integrations will now function if the HTTP listen address was set to a value other than the default. 
+  [206](https://github.com/grafana/agent/issues/206) (@mattdurham) 
 
 # v0.9.0 (2020-12-10)
 
