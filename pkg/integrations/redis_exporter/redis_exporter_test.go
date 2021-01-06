@@ -104,7 +104,7 @@ func TestRedisCases(t *testing.T) {
 	for _, test := range tt {
 
 		t.Run(test.name, func(t *testing.T) {
-			integration, err := New(logger, test.cfg)
+			integration, err := New(logger, &test.cfg)
 
 			if test.expectConstructorError {
 				require.Error(t, err, "expected failure when setting up redis_exporter")

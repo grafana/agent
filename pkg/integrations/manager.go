@@ -10,17 +10,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/integrations/agent"
-	"github.com/grafana/agent/pkg/integrations/common"
-	"github.com/grafana/agent/pkg/integrations/consul_exporter"
-	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
-	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
-	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
-	"github.com/grafana/agent/pkg/integrations/node_exporter"
-	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
-	"github.com/grafana/agent/pkg/integrations/process_exporter"
-	"github.com/grafana/agent/pkg/integrations/redis_exporter"
-	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -38,7 +27,7 @@ var (
 )
 
 var (
-	DefaultConfig = Config{
+	DefaultManagerConfig = ManagerConfig{
 		ScrapeIntegrations:        true,
 		IntegrationRestartBackoff: 5 * time.Second,
 		UseHostnameLabel:          true,
@@ -46,33 +35,26 @@ var (
 	}
 )
 
-// Config holds the configuration for all integrations.
-type Config struct {
+// ManagerConfig holds the configuration for all integrations.
+type ManagerConfig struct {
 	// Whether the Integration subsystem should be enabled.
 	Enabled bool `yaml:"-"`
 
 	// When true, scrapes metrics from integrations.
-	ScrapeIntegrations bool `yaml:"scrape_integrations"`
+	ScrapeIntegrations bool `yaml:"scrape_integrations,omitempty"`
 	// When true, replaces the instance label with the agent hostname.
-	ReplaceInstanceLabel bool `yaml:"replace_instance_label"`
+	ReplaceInstanceLabel bool `yaml:"replace_instance_label,omitempty"`
 
 	// DEPRECATED. When true, adds an agent_hostname label to all samples from integrations.
 	// ReplaceInstanceLabel should be used instead.
-	UseHostnameLabel bool `yaml:"use_hostname_label"`
+	UseHostnameLabel bool `yaml:"use_hostname_label,omitempty"`
 
-	Agent             agent.Config              `yaml:"agent"`
-	NodeExporter      node_exporter.Config      `yaml:"node_exporter"`
-	ProcessExporter   process_exporter.Config   `yaml:"process_exporter"`
-	MysqldExporter    mysqld_exporter.Config    `yaml:"mysqld_exporter"`
-	RedisExporter     redis_exporter.Config     `yaml:"redis_exporter"`
-	DnsmasqExporter   dnsmasq_exporter.Config   `yaml:"dnsmasq_exporter"`
-	MemcachedExporter memcached_exporter.Config `yaml:"memcached_exporter"`
-	PostgresExporter  postgres_exporter.Config  `yaml:"postgres_exporter"`
-	StatsdExporter    statsd_exporter.Config    `yaml:"statsd_exporter"`
-	ConsulExporter    consul_exporter.Config    `yaml:"consul_exporter"`
+	// The integration configs is merged with the manager config struct so we
+	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
+	Integrations Configs `yaml:"-"`
 
 	// Extra labels to add for all integration samples
-	Labels model.LabelSet `yaml:"labels"`
+	Labels model.LabelSet `yaml:"labels,omitempty"`
 
 	// Prometheus RW configs to use for all integrations.
 	PrometheusRemoteWrite []*config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
@@ -84,21 +66,25 @@ type Config struct {
 	ListenPort *int `yaml:"-"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
+// MarshalYAML implements yaml.Marshaler for ManagerConfig.
+func (c ManagerConfig) MarshalYAML() (interface{}, error) {
+	return MarshalYAML(c)
+}
 
-	// If the Config is unmarshaled, it's present in the config and should be
+// UnmarshalYAML implements yaml.Unmarshaler for ManagerConfig.
+func (c *ManagerConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultManagerConfig
+
+	// If the ManagerConfig is unmarshaled, it's present in the config and should be
 	// enabled.
 	c.Enabled = true
 
-	type plain Config
-	return unmarshal((*plain)(c))
+	return UnmarshalYAML(c, unmarshal)
 }
 
 // DefaultRelabelConfigs returns the set of relabel configs that should be
 // prepended to all RelabelConfigs for an integration.
-func (c *Config) DefaultRelabelConfigs() ([]*relabel.Config, error) {
+func (c *ManagerConfig) DefaultRelabelConfigs() ([]*relabel.Config, error) {
 	var cfgs []*relabel.Config
 
 	if c.ReplaceInstanceLabel {
@@ -124,9 +110,9 @@ func (c *Config) DefaultRelabelConfigs() ([]*relabel.Config, error) {
 
 // Manager manages a set of integrations and runs them.
 type Manager struct {
-	c                     Config
+	c                     ManagerConfig
 	logger                log.Logger
-	integrations          []common.Integration
+	integrations          map[Config]Integration
 	hostname              string
 	defaultRelabelConfigs []*relabel.Config
 
@@ -138,89 +124,24 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(c Config, logger log.Logger, im instance.Manager) (*Manager, error) {
-	var integrations []common.Integration
+func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager) (*Manager, error) {
+	integrations := make(map[Config]Integration)
 
-	if c.Agent.Enabled {
-		integrations = append(integrations, agent.New(c.Agent))
-	}
-	if c.NodeExporter.Enabled {
-		l := log.With(logger, "integration", "node_exporter")
-		i, err := node_exporter.New(l, c.NodeExporter)
-		if err != nil {
-			return nil, err
+	for _, integrationCfg := range c.Integrations {
+		if integrationCfg.CommonConfig().Enabled {
+			l := log.With(logger, "integration", integrationCfg.Name())
+			i, err := integrationCfg.NewIntegration(l)
+			if err != nil {
+				return nil, err
+			}
+			integrations[integrationCfg] = i
 		}
-		integrations = append(integrations, i)
-	}
-	if c.ProcessExporter.Enabled {
-		l := log.With(logger, "integration", "process_exporter")
-		i, err := process_exporter.New(l, c.ProcessExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.MysqldExporter.Enabled {
-		l := log.With(logger, "integration", "mysqld_exporter")
-		i, err := mysqld_exporter.New(l, c.MysqldExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.RedisExporter.Enabled {
-		l := log.With(logger, "integration", "redis_exporter")
-		i, err := redis_exporter.New(l, c.RedisExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.DnsmasqExporter.Enabled {
-		l := log.With(logger, "integration", "dnsmasq_exporter")
-		i, err := dnsmasq_exporter.New(l, c.DnsmasqExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.MemcachedExporter.Enabled {
-		l := log.With(logger, "integration", "memcached_exporter")
-		i, err := memcached_exporter.New(l, c.MemcachedExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.PostgresExporter.Enabled {
-		l := log.With(logger, "integration", "postgres_exporter")
-		i, err := postgres_exporter.New(l, c.PostgresExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.StatsdExporter.Enabled {
-		l := log.With(logger, "integration", "statsd_exporter")
-		i, err := statsd_exporter.New(l, c.StatsdExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-	if c.ConsulExporter.Enabled {
-		l := log.With(logger, "integration", "consul_exporter")
-		i, err := consul_exporter.New(l, c.ConsulExporter)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
 	}
 
 	return newManager(c, logger, im, integrations)
 }
 
-func newManager(c Config, logger log.Logger, im instance.Manager, integrations []common.Integration) (*Manager, error) {
+func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integrations map[Config]Integration) (*Manager, error) {
 	defaultRelabels, err := c.DefaultRelabelConfigs()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get default relabel configs: %w", err)
@@ -254,34 +175,34 @@ func (m *Manager) run(ctx context.Context) {
 	var wg sync.WaitGroup
 	wg.Add(len(m.integrations))
 
-	for _, i := range m.integrations {
-		go func(i common.Integration) {
-			m.runIntegration(ctx, i)
+	for cfg, i := range m.integrations {
+		go func(cfg Config, i Integration) {
+			m.runIntegration(ctx, cfg, i)
 			wg.Done()
-		}(i)
+		}(cfg, i)
 	}
 
 	wg.Wait()
 	close(m.done)
 }
 
-func (m *Manager) runIntegration(ctx context.Context, i common.Integration) {
+func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration) {
 	defer func() {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("%v", r)
-			level.Error(m.logger).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", i.Name())
+			level.Error(m.logger).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", cfg.Name())
 		}
 	}()
 
 	shouldCollect := m.c.ScrapeIntegrations
-	if common := i.CommonConfig(); common.ScrapeIntegration != nil {
+	if common := cfg.CommonConfig(); common.ScrapeIntegration != nil {
 		shouldCollect = *common.ScrapeIntegration
 	}
 	if shouldCollect {
 		// Apply the config so an instance is launched to scrape our integration.
-		instanceConfig := m.instanceConfigForIntegration(i)
+		instanceConfig := m.instanceConfigForIntegration(cfg, i)
 		if err := m.im.ApplyConfig(instanceConfig); err != nil {
-			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err, "integration", i.Name())
+			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err, "integration", cfg.Name())
 			return
 		}
 	}
@@ -289,27 +210,27 @@ func (m *Manager) runIntegration(ctx context.Context, i common.Integration) {
 	for {
 		err := i.Run(ctx)
 		if err != nil && err != context.Canceled {
-			integrationAbnormalExits.WithLabelValues(i.Name()).Inc()
-			level.Error(m.logger).Log("msg", "integration stopped abnormally, restarting after backoff", "err", err, "integration", i.Name(), "backoff", m.c.IntegrationRestartBackoff)
+			integrationAbnormalExits.WithLabelValues(cfg.Name()).Inc()
+			level.Error(m.logger).Log("msg", "integration stopped abnormally, restarting after backoff", "err", err, "integration", cfg.Name(), "backoff", m.c.IntegrationRestartBackoff)
 			time.Sleep(m.c.IntegrationRestartBackoff)
 		} else {
-			level.Info(m.logger).Log("msg", "stopped integration", "integration", i.Name())
+			level.Info(m.logger).Log("msg", "stopped integration", "integration", cfg.Name())
 			break
 		}
 	}
 }
 
-func (m *Manager) instanceConfigForIntegration(i common.Integration) instance.Config {
-	prometheusName := fmt.Sprintf("integration/%s", i.Name())
+func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instance.Config {
+	prometheusName := fmt.Sprintf("integration/%s", cfg.Name())
 
-	common := i.CommonConfig()
+	common := cfg.CommonConfig()
 	relabelConfigs := append(m.defaultRelabelConfigs, common.RelabelConfigs...)
 
 	var scrapeConfigs []*config.ScrapeConfig
-	for _, cfg := range i.ScrapeConfigs() {
+	for _, isc := range i.ScrapeConfigs() {
 		sc := &config.ScrapeConfig{
-			JobName:                 fmt.Sprintf("integrations/%s", cfg.JobName),
-			MetricsPath:             path.Join("/integrations", i.Name(), cfg.MetricsPath),
+			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
+			MetricsPath:             path.Join("/integrations", cfg.Name(), isc.MetricsPath),
 			Scheme:                  "http",
 			HonorLabels:             false,
 			HonorTimestamps:         true,
@@ -350,8 +271,8 @@ func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 }
 
 func (m *Manager) WireAPI(r *mux.Router) error {
-	for _, i := range m.integrations {
-		integrationsRoot := fmt.Sprintf("/integrations/%s", i.Name())
+	for c, i := range m.integrations {
+		integrationsRoot := fmt.Sprintf("/integrations/%s", c.Name())
 		subRouter := r.PathPrefix(integrationsRoot).Subrouter()
 
 		err := i.RegisterRoutes(subRouter)
