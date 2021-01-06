@@ -36,13 +36,15 @@ test:
 `
 	var (
 		cfg        ManagerConfig
-		listenPort int = 12345
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
 	cfg.ListenPort = &listenPort
+	cfg.ListenHost = &listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
@@ -58,13 +60,15 @@ agent:
 
 	var (
 		cfg        ManagerConfig
-		listenPort int = 12345
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
 	cfg.ListenPort = &listenPort
+	cfg.ListenHost = &listenHost
 
 	relabels, err := cfg.DefaultRelabelConfigs()
 	require.NoError(t, err)
@@ -285,9 +289,11 @@ func mockInstanceFactory(_ instance.Config) (instance.ManagedInstance, error) {
 
 func mockManagerConfig() ManagerConfig {
 	listenPort := 0
+	listenHost := "127.0.0.1"
 	return ManagerConfig{
 		ScrapeIntegrations:        true,
 		IntegrationRestartBackoff: 0,
 		ListenPort:                &listenPort,
+		ListenHost:                &listenHost,
 	}
 }
