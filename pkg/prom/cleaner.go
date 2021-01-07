@@ -230,6 +230,7 @@ func (c *WALCleaner) run() {
 	for {
 		select {
 		case <-c.done:
+			level.Debug(c.logger).Log("msg", "stopping cleaner...")
 			return
 		case <-ticker.C:
 			c.cleanup()
@@ -265,6 +266,5 @@ func (c *WALCleaner) cleanup() {
 
 // Stop the cleaner and any background tasks running
 func (c *WALCleaner) Stop() {
-	level.Debug(c.logger).Log("msg", "stopping cleaner...")
 	close(c.done)
 }
