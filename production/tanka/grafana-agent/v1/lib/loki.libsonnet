@@ -67,8 +67,9 @@ local container = k.core.v1.container;
       container.mixin.securityContext.withRunAsUser(0),
 
     agent+:
-      // For reading docker containers
-      k.util.hostVolumeMount('varlog', '/var/log', '/var/log', readOnly=true) +
+      // For reading docker containers. /var/log is used for the positions file
+      // and shouldn't be set to readonly.
+      k.util.hostVolumeMount('varlog', '/var/log', '/var/log') +
       k.util.hostVolumeMount('varlibdockercontainers', '/var/lib/docker/containers', '/var/lib/docker/containers', readOnly=true) +
 
       // For reading journald
