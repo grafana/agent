@@ -165,7 +165,7 @@ func (c *WALCleaner) getAllStorage() []string {
 			// The root WAL directory doesn't exist. Maybe this Agent isn't responsible for any
 			// instances yet. Log at debug since this isn't a big deal. We'll just try to crawl
 			// the direction again on the next periodic run.
-			level.Debug(c.logger).Log("msg", "WAL storage path does not exist", "path", p, err)
+			level.Debug(c.logger).Log("msg", "WAL storage path does not exist", "path", p, "err", err)
 		} else if err != nil {
 			// Just log any errors traversing the WAL directory. This will potentially result
 			// in a WAL (that has incorrect permissions or some similar problem) not being cleaned
