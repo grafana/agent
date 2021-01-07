@@ -21,7 +21,8 @@ this platform. FreeBSD builds will return in a future release.
   top-level Prometheus configuration section. These settings control how Write Ahead
   Logs (WALs) that are not associated with any instances are cleaned up. By default,
   WALs not associated with an instance that have not been written in the last 12 hours
-  are eligible to be cleaned up. (#304) (@56quarters)
+  are eligible to be cleaned up. This cleanup can be disabled by setting `wal_cleanup_period`
+  to `0`. (#304) (@56quarters)
 
 # v0.9.1 (2021-01-04)
 
