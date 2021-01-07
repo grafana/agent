@@ -452,7 +452,7 @@ github.com/modern-go/reflect2
 github.com/mwitkow/go-conntrack
 # github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833
 github.com/ncabatoff/go-seq/seq
-# github.com/ncabatoff/process-exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf
+# github.com/ncabatoff/process-exporter v0.7.5 => github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a
 github.com/ncabatoff/process-exporter
 github.com/ncabatoff/process-exporter/collector
 github.com/ncabatoff/process-exporter/config
