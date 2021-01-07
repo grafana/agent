@@ -186,8 +186,8 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 		a.logger,
 		a.cm,
 		cfg.WALDir,
-		WithCleanerMinAge(cfg.WALCleanupAge),
-		WithCleanerPeriod(cfg.WALCleanupPeriod),
+		cfg.WALCleanupAge,
+		cfg.WALCleanupPeriod,
 	)
 
 	allConfigsValid := true

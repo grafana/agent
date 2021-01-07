@@ -157,7 +157,8 @@ define one instance.
 # may be written to before being eligible to be deleted
 [wal_cleanup_age: <duration> | default = "12h"]
 
-# Configures how often checks for abandoned WALs to be delete are performed
+# Configures how often checks for abandoned WALs to be deleted are performed.
+# A value of 0 disables periodic cleanup of abandoned WALs
 [wal_cleanup_period: <duration> | default = "30m"]
 
 # The list of Prometheus instances to launch with the agent.
