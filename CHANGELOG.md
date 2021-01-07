@@ -13,9 +13,9 @@ this platform. FreeBSD builds will return in a future release.
 - [BUGFIX] Integrations will now function if the HTTP listen address was set to
   a value other than the default. ([#206](https://github.com/grafana/agent/issues/206)) (@mattdurham) 
 
-- [BUGFIX] The default Loki installation will no longer incorrectly mount
-  `/var/log` as readonly, which is used for saving the last read offset of
-  files. (@rfratto)
+- [BUGFIX] The default Loki installation will now be able to write its positions
+  file. This was prevented by accidentally writing to a readonly volume mount.
+  (@rfratto)
 
 # v0.9.1 (2021-01-04)
 
