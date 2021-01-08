@@ -278,6 +278,10 @@ func (i *fakeInstance) TargetsActive() map[string][]*scrape.Target {
 	return nil
 }
 
+func (i *fakeInstance) StorageDirectory() string {
+	return ""
+}
+
 type fakeInstanceFactory struct {
 	mut   sync.Mutex
 	mocks []*fakeInstance

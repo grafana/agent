@@ -23,6 +23,8 @@ var (
 	DefaultConfig = Config{
 		Global:                 config.DefaultGlobalConfig,
 		InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
+		WALCleanupAge:          DefaultCleanupAge,
+		WALCleanupPeriod:       DefaultCleanupPeriod,
 		ServiceConfig:          ha.DefaultConfig,
 		ServiceClientConfig:    client.DefaultConfig,
 		InstanceMode:           DefaultInstanceMode,
@@ -70,6 +72,8 @@ type Config struct {
 
 	Global                 config.GlobalConfig `yaml:"global"`
 	WALDir                 string              `yaml:"wal_directory"`
+	WALCleanupAge          time.Duration       `yaml:"wal_cleanup_age"`
+	WALCleanupPeriod       time.Duration       `yaml:"wal_cleanup_period"`
 	ServiceConfig          ha.Config           `yaml:"scraping_service"`
 	ServiceClientConfig    client.Config       `yaml:"scraping_service_client"`
 	Configs                []instance.Config   `yaml:"configs,omitempty"`
@@ -126,6 +130,8 @@ func (c *Config) ApplyDefaults() error {
 // RegisterFlags defines flags corresponding to the Config.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.WALDir, "prometheus.wal-directory", "", "base directory to store the WAL in")
+	f.DurationVar(&c.WALCleanupAge, "prometheus.wal-cleanup-age", DefaultConfig.WALCleanupAge, "remove abandoned (unused) WALs older than this")
+	f.DurationVar(&c.WALCleanupPeriod, "prometheus.wal-cleanup-period", DefaultConfig.WALCleanupPeriod, "how often to check for abandoned WALs")
 	f.DurationVar(&c.InstanceRestartBackoff, "prometheus.instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
 
 	c.ServiceConfig.RegisterFlagsWithPrefix("prometheus.service.", f)
@@ -141,7 +147,8 @@ type Agent struct {
 	logger log.Logger
 	reg    prometheus.Registerer
 
-	cm instance.Manager
+	cm      instance.Manager
+	cleaner *WALCleaner
 
 	instanceFactory instanceFactory
 
@@ -172,6 +179,16 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 	// Regardless of the instance mode, wrap the manager in a CountingManager so we can
 	// collect metrics on the number of active configs.
 	a.cm = instance.NewCountingManager(reg, a.cm)
+
+	// Periodically attempt to clean up WALs from instances that aren't being run by
+	// this agent anymore.
+	a.cleaner = NewWALCleaner(
+		a.logger,
+		a.cm,
+		cfg.WALDir,
+		cfg.WALCleanupAge,
+		cfg.WALCleanupPeriod,
+	)
 
 	allConfigsValid := true
 	for _, c := range cfg.Configs {
@@ -230,6 +247,7 @@ func (a *Agent) Stop() {
 			level.Error(a.logger).Log("msg", "failed to stop scraping service server", "err", err)
 		}
 	}
+	a.cleaner.Stop()
 	a.cm.Stop()
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -121,7 +120,7 @@ type Storage struct {
 
 // NewStorage makes a new Storage.
 func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
-	w, err := wal.NewSize(logger, registerer, filepath.Join(path, "wal"), wal.DefaultSegmentSize, true)
+	w, err := wal.NewSize(logger, registerer, SubDirectory(path), wal.DefaultSegmentSize, true)
 	if err != nil {
 		return nil, err
 	}
