@@ -10,19 +10,22 @@ this platform. FreeBSD builds will return in a future release.
 
 - [ENHANCEMENT] `process-exporter` has been updated to v0.7.5. (@rfratto)
 
-- [BUGFIX] Integrations will now function if the HTTP listen address was set to
-  a value other than the default. ([#206](https://github.com/grafana/agent/issues/206)) (@mattdurham) 
-
-- [BUGFIX] The default Loki installation will now be able to write its positions
-  file. This was prevented by accidentally writing to a readonly volume mount.
-  (@rfratto)
-
 - [ENHANCEMENT] `wal_cleanup_age` and `wal_cleanup_period` have been added to the
   top-level Prometheus configuration section. These settings control how Write Ahead
   Logs (WALs) that are not associated with any instances are cleaned up. By default,
   WALs not associated with an instance that have not been written in the last 12 hours
   are eligible to be cleaned up. This cleanup can be disabled by setting `wal_cleanup_period`
   to `0`. (#304) (@56quarters)
+
+- [ENHANCEMENT] Configuring logs to read from the systemd journal should now
+  work on journals that use +ZSTD compression. (@rfratto)
+
+- [BUGFIX] Integrations will now function if the HTTP listen address was set to
+  a value other than the default. ([#206](https://github.com/grafana/agent/issues/206)) (@mattdurham) 
+
+- [BUGFIX] The default Loki installation will now be able to write its positions
+  file. This was prevented by accidentally writing to a readonly volume mount.
+  (@rfratto)
 
 # v0.9.1 (2021-01-04)
 
