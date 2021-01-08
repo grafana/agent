@@ -1,8 +1,8 @@
-# Master (unreleased)
+NOTE: FreeBSD builds have not been available since v0.6.0 due to a
+cross-compilation issue. The issue for tracking adding support back 
+can be found at [#317](https://github.com/grafana/agent/issues/317).
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
+# Master (unreleased)
 
 - [ENHANCEMENT] Update `redis_exporter` to v1.15.0. (@rfratto)
 
@@ -29,18 +29,10 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.9.1 (2021-01-04)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [ENHANCEMENT] agentctl will now be installed by the rpm and deb packages as 
   `grafana-agentctl`. (@rfratto)
 
 # v0.9.0 (2020-12-10)
-
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] Add support to configure TLS config for the Tempo exporter to use
   insecure_skip_verify to disable TLS chain verification. (@bombsimon)
@@ -82,10 +74,6 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.8.0 (2020-11-06)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [FEATURE] New integration: [dnsamsq_exporter](https://github.com/google/dnsamsq_exporter)
   (@rfratto).
 
@@ -106,10 +94,6 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.7.2 (2020-10-29)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [ENHANCEMENT] Bump Prometheus dependency to 2.21. (@rfratto)
 
 - [ENHANCEMENT] Bump OpenTelemetry-collector dependency to 0.13.0 (@rfratto)
@@ -128,18 +112,10 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.7.1 (2020-10-23)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [BUGFIX] Fix issue where ARM binaries were not published with the GitHub
   release.
 
 # v0.7.0 (2020-10-23)
-
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] Added Tracing Support. (@joe-elliott)
 
@@ -178,10 +154,6 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.6.1 (2020-04-11)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [BUGFIX] Fix issue where build information was empty when running the Agent
   with --version. (@rfratto)
 
@@ -192,10 +164,6 @@ this platform. FreeBSD builds will return in a future release.
   a high scrape volume. (@rfratto)
 
 # v0.6.0 (2020-09-04)
-
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] The Grafana Cloud Agent can now collect logs and send to Loki. This
   is done by embedding Promtail, the official Loki log collection client.
