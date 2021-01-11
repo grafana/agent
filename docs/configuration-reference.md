@@ -584,6 +584,13 @@ metric_relabel_configs:
 # If more than this number of samples are present after metric relabelling
 # the entire scrape will be treated as failed. 0 means no limit.
 [ sample_limit: <int> | default = 0 ]
+
+# Per-scrape config limit on number of unique targets that will be accepted.
+# If more than this number of targets are present after target relabeling,
+# Prometheus will mark the targets as failed without scraping them. 0 means
+# no limit. This is an experimental feature of Prometheus and the behavior
+# may change in the future.
+[ target_limit: <int> | default = 0]
 ```
 
 ### azure_sd_config
