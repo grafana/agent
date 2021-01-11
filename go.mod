@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
+	github.com/aws/aws-sdk-go v1.35.5
 	github.com/cortexproject/cortex v1.4.1-0.20201022071705-85942c5703cf
 	github.com/drone/envsubst v1.0.2
 	github.com/go-kit/kit v0.10.0
@@ -69,7 +70,7 @@ replace (
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.0
 )
 
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20201021200247-cf00050ed1e9
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20210111220521-c0d5de2f0ee3
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
 
