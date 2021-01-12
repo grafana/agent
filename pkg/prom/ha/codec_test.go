@@ -88,34 +88,6 @@ remote_write:
 	require.Equal(t, &in, out)
 }
 
-func TestCodec_RetainsSigV4(t *testing.T) {
-	exampleConfig := `name: 'test'
-host_filter: false
-scrape_configs:
-  - job_name: process-1
-    static_configs:
-      - targets: ['process-1:80']
-        labels:
-          cluster: 'local'
-          origin: 'agent'
-remote_write:
-  - url: http://cortex:9090/api/prom/push
-    sigv4:
-      enabled: true`
-
-	var in instance.Config
-	err := yaml.Unmarshal([]byte(exampleConfig), &in)
-	require.NoError(t, err)
-
-	c := &yamlCodec{}
-	bb, err := c.Encode(in)
-	require.NoError(t, err)
-
-	out, err := c.Decode(bb)
-	require.NoError(t, err)
-	require.Equal(t, &in, out)
-}
-
 // TestCodec_Decode_Nil makes sure that if Decode is called with an empty value,
 // which may happen when a key is deleted, that no error occurs and instead an
 // nil value is returned.

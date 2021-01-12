@@ -105,6 +105,70 @@ remote_write:
 	})
 }
 
+func TestInstance_Update_Failed(t *testing.T) {
+	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	t.Cleanup(func() { os.RemoveAll(walDir) })
+
+	r := mux.NewRouter()
+	r.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		promhttp.Handler().ServeHTTP(w, r)
+	})
+	r.HandleFunc("/push", func(w http.ResponseWriter, r *http.Request) {})
+
+	// Start a server for exposing the router.
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer l.Close()
+	go func() {
+		_ = http.Serve(l, r)
+	}()
+
+	// Create a new instance where it's not scraping or writing anything by default.
+	initialConfig := loadConfig(t, `
+name: integration_test
+scrape_configs: []
+remote_write: []
+`)
+	inst, err := New(prometheus.NewRegistry(), config.DefaultGlobalConfig, initialConfig, walDir, logger)
+	require.NoError(t, err)
+
+	instCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		err := inst.Run(instCtx)
+		require.NoError(t, err)
+	}()
+
+	// Create a new config to use for updating
+	newConfig := loadConfig(t, fmt.Sprintf(`
+name: integration_test
+scrape_configs: 
+  - job_name: test_scrape
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['%[1]s']
+remote_write:
+  - url: http://%[1]s/push
+`, l.Addr()))
+
+	// Make sure the instance can successfully update first
+	test.Poll(t, time.Second*15, nil, func() interface{} {
+		err := inst.Update(newConfig)
+		if err != nil {
+			logger.Log("msg", "failed to update instance", "err", err)
+		}
+		return err
+	})
+
+	// Now force an update back to the original config to fail
+	inst.readyScrapeManager.Set(nil)
+	require.NotNil(t, inst.Update(initialConfig), "update should have failed")
+	require.Equal(t, newConfig, inst.cfg, "config did not roll back")
+}
+
 // TestInstance_Update_InvalidChanges runs an instance with a blank initial
 // config and performs various unacceptable updates that should return an
 // error.

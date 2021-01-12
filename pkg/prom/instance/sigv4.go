@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,13 +16,14 @@ import (
 
 // SigV4Config configures signing requests with SigV4.
 type SigV4Config struct {
-	Enabled bool   `yaml:"enabled"`
-	Region  string `yaml:"region"`
+	Enabled bool   `yaml:"enabled,omitempty"`
+	Region  string `yaml:"region,omitempty"`
 }
 
 type sigV4RoundTripper struct {
 	cfg  SigV4Config
 	next http.RoundTripper
+	pool sync.Pool
 
 	signer *signer.Signer
 }
@@ -48,22 +50,28 @@ func NewSigV4RoundTripper(cfg SigV4Config, next http.RoundTripper) (http.RoundTr
 		return nil, fmt.Errorf("could not get sigv4 credentials: %w", err)
 	}
 
-	return &sigV4RoundTripper{
-		cfg:  cfg,
-		next: next,
-
+	rt := &sigV4RoundTripper{
+		cfg:    cfg,
+		next:   next,
 		signer: signer.NewSigner(sess.Config.Credentials),
-	}, nil
+	}
+	rt.pool.New = rt.newBuf
+	return rt, nil
+}
+
+func (rt *sigV4RoundTripper) newBuf() interface{} {
+	return bytes.NewBuffer(make([]byte, 0, 1024))
 }
 
 func (rt *sigV4RoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	// rt.signer.Sign needs a seekable body, so we replace the body with a
 	// buffered reader filled with the contents of original body.
-	//
-	// TODO(rfratto): This could be enhanced with a buf pool for reading request
-	// bodies rather than creating a new buffer each time.
-	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, req.Body); err != nil {
+	buf := rt.pool.Get().(*bytes.Buffer)
+	defer func() {
+		buf.Reset()
+		rt.pool.Put(buf)
+	}()
+	if _, err := io.Copy(buf, req.Body); err != nil {
 		return nil, err
 	}
 	// Close the original body since we don't need it anymore.
@@ -71,12 +79,14 @@ func (rt *sigV4RoundTripper) RoundTrip(req *http.Request) (*http.Response, error
 
 	// Ensure our seeker is back at the start of the buffer once we return.
 	var seeker io.ReadSeeker = bytes.NewReader(buf.Bytes())
-	defer seeker.Seek(0, io.SeekStart)
+	defer func() {
+		_, _ = seeker.Seek(0, io.SeekStart)
+	}()
 	req.Body = ioutil.NopCloser(seeker)
 
 	_, err := rt.signer.Sign(req, seeker, "aps", rt.cfg.Region, time.Now().UTC())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to sign request: %w", err)
 	}
 	return rt.next.RoundTrip(req)
 }

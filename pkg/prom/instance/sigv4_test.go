@@ -29,6 +29,8 @@ func TestSigV4RoundTripper(t *testing.T) {
 			"token",
 		)),
 	}
+	rt.pool.New = rt.newBuf
+
 	cli := &http.Client{Transport: rt}
 
 	req, err := http.NewRequest(http.MethodPost, "google.com", strings.NewReader("Hello, world!"))

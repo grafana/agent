@@ -408,6 +408,7 @@ func (i *Instance) newWriteClient(name string, conf *remote.ClientConfig) (remot
 	for _, c := range i.cfg.RemoteWrite {
 		if c.Base.Name == name {
 			cfg = c
+			break
 		}
 	}
 	if cfg == nil {

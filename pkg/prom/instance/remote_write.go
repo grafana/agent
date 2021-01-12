@@ -44,23 +44,26 @@ func (c *RemoteWriteConfig) Validate() error {
 		return err
 	}
 
+	// count converts a true value to 1, allowing to sum truth conditions
+	// together to calculate how many conditions were true.
+	count := func(b bool) int {
+		if b {
+			return 1
+		}
+		return 0
+	}
+
 	// Ensure at most one auth mechanism is enabled
 	var (
-		enabledCount = 0
+		usingBearer = count(len(clientConfig.BearerToken) > 0 || len(clientConfig.BearerTokenFile) > 0)
+		usingBasic  = count(clientConfig.BasicAuth != nil)
+		usingSigV4  = count(c.SigV4.Enabled)
 
-		usingBearer = len(clientConfig.BearerToken) > 0 || len(clientConfig.BearerTokenFile) > 0
-		usingBasic  = clientConfig.BasicAuth != nil
-		usingSigV4  = c.SigV4.Enabled
+		enabled = usingBearer + usingBasic + usingSigV4
 	)
-	for _, m := range []bool{usingBearer, usingBasic, usingSigV4} {
-		if m {
-			enabledCount++
-		}
-		if enabledCount > 1 {
-			return fmt.Errorf("at most one of sigv4, basic auth, bearer tokens must be configured")
-		}
+	if enabled > 1 {
+		return fmt.Errorf("at most one of sigv4, basic auth, bearer tokens must be configured")
 	}
 
 	return nil
 }
-
