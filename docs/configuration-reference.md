@@ -1826,9 +1826,10 @@ sigv4:
   # configuring basic auth or bearer_token/bearer_token_file.
   [ enabled: <boolean> | default = false ]
 
-  # Region to use for signing the requests. Should be the region of the AMP
-  # workspace. Must be provided when sig4.enabled is true.
-  region: <string> 
+  # Region to use for signing the requests. When sigv4.enabled is true,
+  # must be non-empty and must be the region of the AMP workspace specified
+  # by the remote_write URL.
+  region: <string>
 
 # Configures the remote write request's TLS settings.
 tls_config:
