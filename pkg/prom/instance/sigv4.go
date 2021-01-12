@@ -36,6 +36,10 @@ type sigV4RoundTripper struct {
 // Credentials for signing are retrieving used the default AWS credential chain.
 // If credentials could not be found, an error will be returned.
 func NewSigV4RoundTripper(cfg SigV4Config, next http.RoundTripper) (http.RoundTripper, error) {
+	if cfg.Region == "" {
+		return nil, fmt.Errorf("region not configured")
+	}
+
 	if next == nil {
 		next = http.DefaultTransport
 	}
