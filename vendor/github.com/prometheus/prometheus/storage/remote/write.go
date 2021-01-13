@@ -60,7 +60,14 @@ type WriteStorage struct {
 	samplesIn         *ewmaRate
 	flushDeadline     time.Duration
 	scraper           scrape.ReadyManager
+
+	// NewClient defaults to NewWriteClient when creating a WriteStorage.
+	NewClient WriteClientFunc
 }
+
+// WriteClientFunc returns a WriteClient given the name of a remote write
+// config. NewWriteClient implements the signature of this function.
+type WriteClientFunc func(name string, conf *ClientConfig) (WriteClient, error)
 
 // NewWriteStorage creates and runs a WriteStorage.
 func NewWriteStorage(logger log.Logger, reg prometheus.Registerer, walDir string, flushDeadline time.Duration, sm scrape.ReadyManager) *WriteStorage {
@@ -77,6 +84,8 @@ func NewWriteStorage(logger log.Logger, reg prometheus.Registerer, walDir string
 		samplesIn:         newEWMARate(ewmaWeight, shardUpdateDuration),
 		walDir:            walDir,
 		scraper:           sm,
+
+		NewClient: NewWriteClient,
 	}
 	go rws.run()
 	return rws
@@ -122,7 +131,7 @@ func (rws *WriteStorage) ApplyConfig(conf *config.Config) error {
 			name = rwConf.Name
 		}
 
-		c, err := NewWriteClient(name, &ClientConfig{
+		c, err := rws.NewClient(name, &ClientConfig{
 			URL:              rwConf.URL,
 			Timeout:          rwConf.RemoteTimeout,
 			HTTPClientConfig: rwConf.HTTPClientConfig,
