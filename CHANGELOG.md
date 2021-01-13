@@ -4,6 +4,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+# v0.10.0 (2021-01-13)
+
 - [FEATURE] Prometheus `remote_write` now supports SigV4 authentication using 
   the [AWS default credentials
   chain](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html).
