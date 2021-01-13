@@ -4,6 +4,13 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+- [FEATURE] Prometheus `remote_write` now supports SigV4 authentication using 
+  the [AWS default credentials
+  chain](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html).
+  This enables the Agent to send metrics to Amazon Managed Prometheus without 
+  needing the [SigV4 Proxy](https://github.com/awslabs/aws-sigv4-proxy).
+  (@rfratto)
+
 - [ENHANCEMENT] Update `redis_exporter` to v1.15.0. (@rfratto)
 
 - [ENHANCEMENT] `memcached_exporter` has been updated to v0.8.0. (@rfratto)

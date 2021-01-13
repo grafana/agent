@@ -57,7 +57,7 @@ type ManagerConfig struct {
 	Labels model.LabelSet `yaml:"labels,omitempty"`
 
 	// Prometheus RW configs to use for all integrations.
-	PrometheusRemoteWrite []*config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
+	PrometheusRemoteWrite []*instance.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
 
 	IntegrationRestartBackoff time.Duration `yaml:"integration_restart_backoff,omitempty"`
 
