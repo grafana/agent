@@ -4,6 +4,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+- [BUGFIX] The K8s API server scrape job will use the API server Service name
+  when resolving IP addresses for Prometheus service discovery using the "Endpoints" role. (@hjet)
+
 # v0.10.0 (2021-01-13)
 
 - [FEATURE] Prometheus `remote_write` now supports SigV4 authentication using 

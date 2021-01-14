@@ -25,6 +25,9 @@ local k8s_tls_config(config) = {
           role: if config.scrape_api_server_endpoints then 'endpoints' else 'service',
         }],
         scheme: 'https',
+        tls_config+: {
+          server_name: 'kubernetes',
+        },
 
         relabel_configs: [{
           source_labels: ['__meta_kubernetes_service_label_component'],
