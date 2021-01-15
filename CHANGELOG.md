@@ -4,6 +4,11 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+- [FEATURE] ARMv6 builds of `agent` and `agentctl` will now be included in
+  releases to expand Agent support to cover all models of Raspberry Pis.
+  ARMv6 docker builds are also now available.
+  (@rfratto)
+
 - [BUGFIX] The K8s API server scrape job will use the API server Service name
   when resolving IP addresses for Prometheus service discovery using the "Endpoints" role. (@hjet)
 
