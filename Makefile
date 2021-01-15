@@ -196,7 +196,7 @@ example-dashboards:
 # a docker image with gcc toolchains for all of these platforms.
 dist: dist-agent dist-agentctl
 	make dist-packages
-	for i in dist/*; do zip -j -m $$i.zip $$i; done
+	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
