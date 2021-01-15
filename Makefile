@@ -95,7 +95,7 @@ docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
 
-docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
+docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
 endif
 
 ifeq ($(BUILD_IN_CONTAINER),false)
@@ -195,16 +195,18 @@ example-dashboards:
 # We use rfratto/seego for building these cross-platform images. seego provides
 # a docker image with gcc toolchains for all of these platforms.
 dist: dist-agent dist-agentctl
-	for i in dist/*; do zip -j -m $$i.zip $$i; done
 	make dist-packages
+	for i in dist/*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
-dist-agent: dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
+dist-agent: dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
 dist/agent-linux-amd64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-linux-arm64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-linux-armv6:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-linux-armv7:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-darwin-amd64:
@@ -212,11 +214,13 @@ dist/agent-darwin-amd64:
 dist/agent-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
+dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
 dist/agentctl-linux-amd64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-linux-arm64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-linux-armv6:
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-linux-armv7:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-darwin-amd64:
