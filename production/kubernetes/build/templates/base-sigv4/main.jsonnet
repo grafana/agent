@@ -1,5 +1,8 @@
 local agent = import 'grafana-agent/grafana-agent.libsonnet';
 
+local k = import 'ksonnet-util/kausal.libsonnet';
+local serviceAccount = k.core.v1.serviceAccount;
+
 agent {
   _images+:: {
     agent: (import 'version.libsonnet'),
@@ -18,5 +21,11 @@ agent {
     // add the configmap's hash as an annotation for the Kubernetes
     // YAML manifest.
     agent_config_hash_annotation: false,
+  },
+
+  agent_rbac+: {
+    service_account+: serviceAccount.mixin.metadata.withAnnotationsMixin({
+      'eks.amazonaws.com/role-arn': '${ROLE_ARN}',
+    }),
   },
 }
