@@ -11,9 +11,8 @@ data:
           - host_filter: true
             name: agent
             remote_write:
-              - basic_auth:
-                    password: ${REMOTE_WRITE_PASSWORD}
-                    username: ${REMOTE_WRITE_USERNAME}
+              - sigv4:
+                    enabled: true
                 url: ${REMOTE_WRITE_URL}
             scrape_configs:
               - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
@@ -193,9 +192,8 @@ data:
           - host_filter: false
             name: agent
             remote_write:
-              - basic_auth:
-                    password: ${REMOTE_WRITE_PASSWORD}
-                    username: ${REMOTE_WRITE_USERNAME}
+              - sigv4:
+                    enabled: true
                 url: ${REMOTE_WRITE_URL}
             scrape_configs:
               - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token

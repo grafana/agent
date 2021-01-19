@@ -9,8 +9,14 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   ARMv6 docker builds are also now available.
   (@rfratto)
 
+- [ENHANCEMENT] A sigv4 install script for Prometheus has been added. (@rfratto)
+
 - [BUGFIX] The K8s API server scrape job will use the API server Service name
-  when resolving IP addresses for Prometheus service discovery using the "Endpoints" role. (@hjet)
+  when resolving IP addresses for Prometheus service discovery using the
+  "Endpoints" role. (@hjet)
+
+- [BUGFIX] The K8s manifests will no longer include the `default/kubernetes` job
+  twice in both the DaemonSet and the Deployment. (@rfratto)
 
 # v0.10.0 (2021-01-13)
 
