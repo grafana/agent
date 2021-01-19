@@ -7,6 +7,7 @@ k + config {
   local daemonSet = $.apps.v1.daemonSet,
   local deployment = $.apps.v1.deployment,
   local policyRule = $.rbac.v1.policyRule,
+  local serviceAccount = $.core.v1.serviceAccount,
 
   agent_rbac:
     $.util.rbac($._config.agent_cluster_role_name, [
@@ -16,7 +17,10 @@ k + config {
 
       policyRule.withNonResourceUrls('/metrics') +
       policyRule.withVerbs(['get']),
-    ]),
+    ]) {
+      service_account+: 
+        serviceAccount.mixin.metadata.withNamespace($._config.namespace),
+    },
 
   agent_config_map:
     configMap.new($._config.agent_configmap_name) +

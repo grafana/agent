@@ -4,6 +4,7 @@ metadata:
   annotations:
     eks.amazonaws.com/role-arn: ${ROLE_ARN}
   name: grafana-agent
+  namespace: ${NAMESPACE}
 ---
 apiVersion: v1
 data:
