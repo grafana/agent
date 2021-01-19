@@ -36,12 +36,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: grafana-agent
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: grafana-agent
+  namespace: ${NAMESPACE}
 spec:
   minReadySeconds: 10
   selector:

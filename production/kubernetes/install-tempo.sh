@@ -7,9 +7,10 @@
 #
 # There are three ways to provide the inputs for installation:
 #
-# 1. Environment variables (TEMPO_ENDPOINT, TEMPO_USERNAME, TEMPO_PASSWORD)
+# 1. Environment variables (TEMPO_ENDPOINT, TEMPO_USERNAME, TEMPO_PASSWORD,
+#    NAMESPACE)
 #
-# 2. Flags (-e for endpoint, -u for username, -p for password)
+# 2. Flags (-e for endpoint, -u for username, -p for password, -n for namespace)
 #
 # 3. stdin from prompts
 #
@@ -31,6 +32,7 @@ check_installed envsubst
 
 MANIFEST_BRANCH=v0.10.0
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent-tempo.yaml}
+NAMESPACE=${NAMESPACE:-default}
 
 TEMPO_USERNAME_SET=0
 TEMPO_PASSWORD_SET=0
@@ -48,8 +50,11 @@ while getopts "e:u:p:" opt; do
       TEMPO_PASSWORD=$OPTARG
       TEMPO_PASSWORD_SET=1
       ;;
+    n)
+      NAMESPACE=$OPTARG
+      ;;
     ?)
-      echo "usage: $(basename $0) [-e Tempo endpoint] [-u Tempo username] [-p Tempo password]" >&2
+      echo "usage: $(basename $0) [-e Tempo endpoint] [-u Tempo username] [-p Tempo password] [-n namespace]" >&2
       exit 1
       ;;
   esac
@@ -78,6 +83,7 @@ if [ -z "${TEMPO_PASSWORD}" ] && [ "${TEMPO_PASSWORD_SET}" -eq 0 ]; then
   printf $'\n' >&2
 fi
 
+export NAMESPACE
 export TEMPO_ENDPOINT
 export TEMPO_USERNAME
 export TEMPO_PASSWORD

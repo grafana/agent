@@ -6,7 +6,7 @@ agent {
   },
 
   _config+:: {
-    namespace: 'default',
+    namespace: '${NAMESPACE}',
     agent_remote_write: [{
       url: '${REMOTE_WRITE_URL}',
       sigv4: {

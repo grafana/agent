@@ -7,9 +7,10 @@
 #
 # There are three ways to provide the inputs for installation:
 #
-# 1. Environment variables (LOKI_HOSTNAME, LOKI_USERNAME, LOKI_PASSWORD)
+# 1. Environment variables (LOKI_HOSTNAME, LOKI_USERNAME, LOKI_PASSWORD,
+#    NAMESPACE)
 #
-# 2. Flags (-h for hostname, -u for username, -p for password)
+# 2. Flags (-h for hostname, -u for username, -p for password, -n namespace)
 #
 # 3. stdin from prompts
 #
@@ -31,6 +32,7 @@ check_installed envsubst
 
 MANIFEST_BRANCH=v0.10.0
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent-loki.yaml}
+NAMESPACE=${NAMESPACE:-default}
 
 LOKI_USERNAME_SET=0
 LOKI_PASSWORD_SET=0
@@ -48,8 +50,11 @@ while getopts "h:u:p:" opt; do
       LOKI_PASSWORD=$OPTARG
       LOKI_PASSWORD_SET=1
       ;;
+    n)
+      NAMESPACE=$OPTARG
+      ;;
     ?)
-      echo "usage: $(basename $0) [-h Loki hostname] [-u Loki username] [-p Loki password]" >&2
+      echo "usage: $(basename $0) [-h Loki hostname] [-u Loki username] [-p Loki password] [-n namespace]" >&2
       exit 1
       ;;
   esac
@@ -78,6 +83,7 @@ if [ -z "${LOKI_PASSWORD}" ] && [ "${LOKI_PASSWORD_SET}" -eq 0 ]; then
   printf $'\n' >&2
 fi
 
+export NAMESPACE
 export LOKI_HOSTNAME
 export LOKI_USERNAME
 export LOKI_PASSWORD

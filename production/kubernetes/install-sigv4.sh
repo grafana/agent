@@ -7,9 +7,9 @@
 #
 # There are three ways to provide the inputs for installation:
 #
-# 1. Environment variables (REMOTE_WRITE_URL)
+# 1. Environment variables (REMOTE_WRITE_URL, NAMESPACE)
 #
-# 2. Flags (-l for remote write URL)
+# 2. Flags (-l for remote write URL, -n namespace)
 #
 # 3. stdin from prompts
 #
@@ -31,14 +31,18 @@ check_installed envsubst
 
 MANIFEST_BRANCH=v0.10.0
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent-sigv4.yaml}
+NAMESPACE=${MANIFEST_URL:-default}
 
 while getopts "l:u:p:" opt; do
   case "$opt" in
     l)
       REMOTE_WRITE_URL=$OPTARG
       ;;
+    n)
+      NAMESPACE=$OPTARG
+      ;;
     ?)
-      echo "usage: $(basename $0) [-l remote write url] [-u remote write username] [-p remote write password]" >&2
+      echo "usage: $(basename $0) [-l remote write url] [-n namespace]" >&2
       exit 1
       ;;
   esac
@@ -57,5 +61,6 @@ if [ -z "${REMOTE_WRITE_URL}" ]; then
   fi
 fi
 
+export NAMESPACE
 export REMOTE_WRITE_URL
 curl -fsSL $MANIFEST_URL | envsubst

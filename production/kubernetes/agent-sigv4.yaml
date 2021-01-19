@@ -88,11 +88,11 @@ data:
                     ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
                     insecure_skip_verify: false
               - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-                job_name: default/kube-state-metrics
+                job_name: ${NAMESPACE}/kube-state-metrics
                 kubernetes_sd_configs:
                   - namespaces:
                         names:
-                          - default
+                          - ${NAMESPACE}
                     role: pod
                 relabel_configs:
                   - action: keep
@@ -110,11 +110,11 @@ data:
                     ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
                     insecure_skip_verify: false
               - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-                job_name: default/node-exporter
+                job_name: ${NAMESPACE}/node-exporter
                 kubernetes_sd_configs:
                   - namespaces:
                         names:
-                          - default
+                          - ${NAMESPACE}
                     role: pod
                 relabel_configs:
                   - action: keep
@@ -183,6 +183,7 @@ data:
 kind: ConfigMap
 metadata:
   name: grafana-agent
+  namespace: ${NAMESPACE}
 ---
 apiVersion: v1
 data:
@@ -227,6 +228,7 @@ data:
 kind: ConfigMap
 metadata:
   name: grafana-agent-deployment
+  namespace: ${NAMESPACE}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -261,12 +263,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: grafana-agent
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: grafana-agent
+  namespace: ${NAMESPACE}
 spec:
   minReadySeconds: 10
   selector:
@@ -315,6 +318,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana-agent-deployment
+  namespace: ${NAMESPACE}
 spec:
   minReadySeconds: 10
   replicas: 1
