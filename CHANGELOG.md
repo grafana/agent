@@ -8,6 +8,10 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   releases to expand Agent support to cover all models of Raspberry Pis.
   ARMv6 docker builds are also now available.
   (@rfratto)
+  
+- [FEATURE] Added `config-check` subcommand for `agentctl` that can be used
+  to validate Agent configuration files before attempting to load them in the
+  `agent` itself. (@56quarters)
 
 - [ENHANCEMENT] A sigv4 install script for Prometheus has been added. (@rfratto)
 
