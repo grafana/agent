@@ -70,9 +70,9 @@
 
           scrape_configs:
             if $._config.agent_host_filter then
-              $._config.kubernetes_scrape_configs + $._config.deployment_scrape_configs
+              $._config.kubernetes_scrape_configs
             else
-              $._config.kubernetes_scrape_configs,
+              $._config.kubernetes_scrape_configs + $._config.deployment_scrape_configs,
           remote_write: $._config.agent_remote_write,
         }],
       },
