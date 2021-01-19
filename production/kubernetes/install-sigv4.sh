@@ -31,7 +31,7 @@ check_installed envsubst
 
 MANIFEST_BRANCH=v0.10.0
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent-sigv4.yaml}
-NAMESPACE=${MANIFEST_URL:-default}
+NAMESPACE=${NAMESPACE:-default}
 ROLE_ARN=${ROLE_ARN:-}
 
 while getopts "l:u:p:" opt; do
