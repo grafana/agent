@@ -7,9 +7,9 @@
 #
 # There are three ways to provide the inputs for installation:
 #
-# 1. Environment variables (REMOTE_WRITE_URL, ROLE_ARN, NAMESPACE)
+# 1. Environment variables (REMOTE_WRITE_URL, REGION, ROLE_ARN, NAMESPACE)
 #
-# 2. Flags (-l for remote write URL, -n for namespace, -r for ARN)
+# 2. Flags (-l for remote write URL, -n for namespace, -a for ARN, -r for region)
 #
 # 3. stdin from prompts
 #
@@ -42,8 +42,11 @@ while getopts "l:u:p:" opt; do
     n)
       NAMESPACE=$OPTARG
       ;;
-    r)
+    a)
       ROLE_ARN=$OPTARG
+      ;;
+    r)
+      REGION=$OPTARG
       ;;
     ?)
       echo "usage: $(basename $0) [-l remote write url] [-n namespace]" >&2
@@ -56,17 +59,26 @@ if [ -z "${REMOTE_WRITE_URL}" ]; then
   read -sp 'Enter your remote write URL: ' REMOTE_WRITE_URL
   printf $'\n' >&2
 
-  # We require a remote write URL for the agent; we don't do this same check for
-  # the username and password as the remote write system may not have basic
-  # auth enabled.
   if [ -z "${REMOTE_WRITE_URL}" ]; then
     echo "error: REMOTE_WRITE_URL must be provided by flag, env, or stdin" >&2
     exit 1
   fi
 fi
 
+if [ -z "${REGION}" ]; then
+  read -sp 'Enter the remote write region: ' REGION
+  printf $'\n' >&2
+
+  if [ -z "${REGION}" ]; then
+    echo "error: REGION must be provided by flag, env, or stdin" >&2
+    exit 1
+  fi
+fi
+
+
 export NAMESPACE
 export REMOTE_WRITE_URL
 export ROLE_ARN
+export REGION
 
 curl -fsSL $MANIFEST_URL | envsubst

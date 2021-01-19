@@ -14,6 +14,7 @@ agent {
       url: '${REMOTE_WRITE_URL}',
       sigv4: {
         enabled: true,
+        region: '${REGION}',
       },
     }],
 

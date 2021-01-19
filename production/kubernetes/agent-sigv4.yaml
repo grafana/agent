@@ -16,6 +16,7 @@ data:
             remote_write:
               - sigv4:
                     enabled: true
+                    region: ${REGION}
                 url: ${REMOTE_WRITE_URL}
             scrape_configs:
               - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
@@ -198,6 +199,7 @@ data:
             remote_write:
               - sigv4:
                     enabled: true
+                    region: ${REGION}
                 url: ${REMOTE_WRITE_URL}
             scrape_configs:
               - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
