@@ -4,6 +4,7 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 
 local container = k.core.v1.container;
 local configMap = k.core.v1.configMap;
+local service = k.core.v1.service;
 
 // Merge all of our libraries to create the final exposed library.
 (import './lib/deployment.libsonnet') +
@@ -104,7 +105,9 @@ local configMap = k.core.v1.configMap;
         // If we're deploying for tracing, applications will want to write to
         // a service for load balancing span delivery.
         service:
-          if has_tempo_config then k.util.serviceFor(self.agent) else {},
+          if has_tempo_config 
+          then k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
+          else {},
       } + (
         if has_loki_config then $.lokiPermissionsMixin else {}
       ),

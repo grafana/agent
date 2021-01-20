@@ -7,6 +7,7 @@ k + config {
   local daemonSet = $.apps.v1.daemonSet,
   local deployment = $.apps.v1.deployment,
   local policyRule = $.rbac.v1.policyRule,
+  local serviceAccount = $.core.v1.serviceAccount,
 
   agent_rbac:
     $.util.rbac($._config.agent_cluster_role_name, [
@@ -16,10 +17,14 @@ k + config {
 
       policyRule.withNonResourceUrls('/metrics') +
       policyRule.withVerbs(['get']),
-    ]),
+    ]) {
+      service_account+: 
+        serviceAccount.mixin.metadata.withNamespace($._config.namespace),
+    },
 
   agent_config_map:
     configMap.new($._config.agent_configmap_name) +
+    configMap.mixin.metadata.withNamespace($._config.namespace) +
     configMap.withData({
       'agent.yml': $.util.manifestYaml($._config.agent_config),
     }),
@@ -55,6 +60,7 @@ k + config {
   // TODO(rfratto): persistent storage for the WAL here is missing. hostVolume?
   agent_daemonset:
     daemonSet.new($._config.agent_pod_name, [$.agent_container]) +
+    daemonSet.mixin.metadata.withNamespace($._config.namespace) +
     daemonSet.mixin.spec.template.spec.withServiceAccount($._config.agent_cluster_role_name) +
     self.config_hash_mixin.daemonSet +
     $.util.configVolumeMount($._config.agent_configmap_name, '/etc/agent'),
@@ -62,6 +68,7 @@ k + config {
   agent_deployment_config_map:
     if $._config.agent_host_filter then
       configMap.new($._config.agent_deployment_configmap_name) +
+      configMap.mixin.metadata.withNamespace($._config.namespace) +
       configMap.withData({
         'agent.yml': $.util.manifestYaml($._config.deployment_agent_config),
       })
@@ -70,6 +77,7 @@ k + config {
   agent_deployment:
     if $._config.agent_host_filter then
       deployment.new($._config.agent_deployment_pod_name, 1, [$.agent_container]) +
+      deployment.mixin.metadata.withNamespace($._config.namespace) +
       deployment.mixin.spec.template.spec.withServiceAccount($._config.agent_cluster_role_name) +
       deployment.mixin.spec.withReplicas(1) +
       self.config_hash_mixin.deployment +

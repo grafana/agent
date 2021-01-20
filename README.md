@@ -66,9 +66,9 @@ Simply copy and paste the following lines in your terminal (requires `envsubst`
 (GNU gettext)):
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
 
 Other installation methods can be found in our
@@ -93,9 +93,9 @@ quickly within the Agent. We aim to always base our vendor off of a recent offic
 Prometheus release and to keep the experimental changes not available in the upstream
 repository to a minimum.
 
-Please refer to the pinned 
-[Prometheus Vendor Update Tracking](https://github.com/grafana/agent/issues/112) issue 
-for our current vendored Prometheus release. 
+Please refer to the pinned
+[Prometheus Vendor Update Tracking](https://github.com/grafana/agent/issues/112) issue
+for our current vendored Prometheus release.
 
 For more context on our vendoring strategy, read our
 [repo maintenance guide](./docs/maintaining.md#grafanaprometheus-maintenance).

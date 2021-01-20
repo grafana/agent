@@ -7,11 +7,11 @@
 #
 # There are three ways to provide the inputs for installation:
 #
-# 1. Environment variables (REMOTE_WRITE_URL, REMOTE_WRITE_USERNAME,
+# 1. Environment variables (NAMESPACE, REMOTE_WRITE_URL, REMOTE_WRITE_USERNAME,
 #    REMOTE_WRITE_PASSWORD)
 #
 # 2. Flags (-l for remote write URL, -u for remote write username, -p for remote
-#    write password)
+#    write password, -n for namespace)
 #
 # 3. stdin from prompts
 #
@@ -33,6 +33,7 @@ check_installed envsubst
 
 MANIFEST_BRANCH=v0.10.0
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent.yaml}
+NAMESPACE=${NAMESPACE:-default}
 
 REMOTE_WRITE_USERNAME_SET=0
 REMOTE_WRITE_PASSWORD_SET=0
@@ -50,8 +51,11 @@ while getopts "l:u:p:" opt; do
       REMOTE_WRITE_PASSWORD=$OPTARG
       REMOTE_WRITE_PASSWORD_SET=1
       ;;
+    n)
+      NAMESPACE=$OPTARG
+      ;;
     ?)
-      echo "usage: $(basename $0) [-l remote write url] [-u remote write username] [-p remote write password]" >&2
+      echo "usage: $(basename $0) [-l remote write url] [-u remote write username] [-p remote write password] [-n namespace]" >&2
       exit 1
       ;;
   esac
@@ -80,6 +84,7 @@ if [ -z "${REMOTE_WRITE_PASSWORD}" ] && [ "${REMOTE_WRITE_PASSWORD_SET}" -eq 0 ]
   printf $'\n' >&2
 fi
 
+export NAMESPACE
 export REMOTE_WRITE_URL
 export REMOTE_WRITE_USERNAME
 export REMOTE_WRITE_PASSWORD
