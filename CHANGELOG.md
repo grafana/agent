@@ -4,11 +4,13 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+# v0.11.0 (2021-01-20)
+
 - [FEATURE] ARMv6 builds of `agent` and `agentctl` will now be included in
   releases to expand Agent support to cover all models of Raspberry Pis.
   ARMv6 docker builds are also now available.
   (@rfratto)
-  
+
 - [FEATURE] Added `config-check` subcommand for `agentctl` that can be used
   to validate Agent configuration files before attempting to load them in the
   `agent` itself. (@56quarters)
