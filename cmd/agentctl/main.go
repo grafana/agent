@@ -101,13 +101,14 @@ the exit code will be 1.`,
 		Args: cobra.ExactArgs(1),
 		Run: func(_ *cobra.Command, args []string) {
 			file := args[0]
-			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
 
 			cfg := config.Config{}
 			err := config.LoadFile(file, expandEnv, &cfg)
 			if err != nil {
-				level.Error(logger).Log("msg", "failed to validate config", "err", err)
+				fmt.Fprintf(os.Stderr, "failed to validate config: %s\n", err)
 				os.Exit(1)
+			} else {
+				fmt.Fprintln(os.Stdout, "config valid")
 			}
 		},
 	}
