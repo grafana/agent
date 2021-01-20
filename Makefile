@@ -143,9 +143,9 @@ endif
 
 cmd/agentctl/agentctl: cmd/agentctl/main.go
 ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
-	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build $(GO_FLAGS) -o $@ ./$(@D)
+	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 	$(NETGO_CHECK)
 
