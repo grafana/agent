@@ -24,6 +24,9 @@ import (
 
 	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
+
+	// Register integrations
+	_ "github.com/grafana/agent/pkg/integrations/install"
 )
 
 func main() {
