@@ -1,5 +1,5 @@
 NOTE: FreeBSD builds have not been available since v0.6.0 due to a
-cross-compilation issue. The issue for tracking adding support back 
+cross-compilation issue. The issue for tracking adding support back
 can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
@@ -11,6 +11,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 - [ENHANCEMENT] A sigv4 install script for Prometheus has been added. (@rfratto)
 
+- [ENHANCEMENT] NAMESPACE may be passed as an environment variable to the
+  Kubernetes install scripts to specify an installation namespace. (@rfratto)
+
 - [BUGFIX] The K8s API server scrape job will use the API server Service name
   when resolving IP addresses for Prometheus service discovery using the
   "Endpoints" role. (@hjet)
@@ -20,10 +23,10 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # v0.10.0 (2021-01-13)
 
-- [FEATURE] Prometheus `remote_write` now supports SigV4 authentication using 
+- [FEATURE] Prometheus `remote_write` now supports SigV4 authentication using
   the [AWS default credentials
   chain](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html).
-  This enables the Agent to send metrics to Amazon Managed Prometheus without 
+  This enables the Agent to send metrics to Amazon Managed Prometheus without
   needing the [SigV4 Proxy](https://github.com/awslabs/aws-sigv4-proxy).
   (@rfratto)
 
@@ -44,7 +47,7 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   work on journals that use +ZSTD compression. (@rfratto)
 
 - [BUGFIX] Integrations will now function if the HTTP listen address was set to
-  a value other than the default. ([#206](https://github.com/grafana/agent/issues/206)) (@mattdurham) 
+  a value other than the default. ([#206](https://github.com/grafana/agent/issues/206)) (@mattdurham)
 
 - [BUGFIX] The default Loki installation will now be able to write its positions
   file. This was prevented by accidentally writing to a readonly volume mount.
@@ -52,7 +55,7 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # v0.9.1 (2021-01-04)
 
-- [ENHANCEMENT] agentctl will now be installed by the rpm and deb packages as 
+- [ENHANCEMENT] agentctl will now be installed by the rpm and deb packages as
   `grafana-agentctl`. (@rfratto)
 
 # v0.9.0 (2020-12-10)

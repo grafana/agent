@@ -17,9 +17,9 @@ final collects traces. You will be prompted for input for each manifest. The
 script requires curl and envsubst (GNU gettext).
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-tempo.sh)" | kubectl -ndefault apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
 
 #### Docker container:

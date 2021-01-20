@@ -262,7 +262,7 @@ data:
 kind: ConfigMap
 metadata:
   name: grafana-agent-logs
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -297,13 +297,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: grafana-agent-logs
-  namespace: default
+  namespace: ${NAMESPACE}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: grafana-agent-logs
-  namespace: default
+  namespace: ${NAMESPACE}
 spec:
   minReadySeconds: 10
   selector:

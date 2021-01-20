@@ -11,7 +11,7 @@ local newPort(name, portNumber, protocol='TCP') =
 
 {
   agent:
-    agent.new('grafana-agent-traces', 'default') +
+    agent.new('grafana-agent-traces', '${NAMESPACE}') +
     agent.withConfigHash(false) +
     agent.withImages({
       agent: (import 'version.libsonnet'),
