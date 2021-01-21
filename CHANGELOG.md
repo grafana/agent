@@ -4,6 +4,7 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+- [FEATURE] Added [ElasticSearch exporter](https://github.com/justwatchcom/elasticsearch_exporter) integration.
 - [BUGFIX] `agentctl config-check` will now work correctly when the supplied config file contains integrations. (@hoenn)
 
 # v0.11.0 (2021-01-20)

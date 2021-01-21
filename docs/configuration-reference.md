@@ -2866,6 +2866,102 @@ Full reference of options:
   [leases_path: <string> | default = "/var/lib/misc/dnsmasq.leases"]
 ```
 
+
+### elasticsearch_exporter_config
+
+The `elasticsearch_exporter_config` block configures the `elasticsearch_exporter` integration,
+which is an embedded version of
+[`elasticsearch_exporter`](https://github.com/justwatchcom/elasticsearch_exporter). This allows for
+the collection of metrics from ElasticSearch servers.
+
+Note that currently, an Agent can only collect metrics from a single ElasticSearch server. 
+However, the exporter is able to collect the metrics from all nodes through that server configured.
+
+The options for this integration follow the naming convention of the cli flags on the standalone exporter.
+
+Full reference of options:
+
+```yaml
+  # Enables the dnsmasq_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the configured ElasticSearch server address
+  [enabled: <boolean> | default = false]
+
+  # Automatically collect metrics from this integration. If disabled,
+  # the elasticsearch_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/elasticsearch_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  #
+  # Exporter-specific configuration options
+  #
+  
+  # HTTP API address of an Elasticsearch node.
+  [ es.api : <string> | default = "http://localhost:9200" ]
+  
+  # Timeout for trying to get stats from Elasticsearch.
+  [ es.timeout: <duration> | default = "5s" ]
+
+  # Export stats for all nodes in the cluster. If used, this flag will override the flag es.node.
+  [ es.all: <boolean> ]
+
+  # Node's name of which metrics should be exposed.
+  [ es.node: <boolean> ]
+
+  # Export stats for indices in the cluster.
+  [ es.indices: <boolean> ]
+
+  # Export stats for settings of all indices of the cluster.
+  [ es.indices_settings: <boolean> ]
+  
+  # Export stats for cluster settings.
+  [ es.cluster_settings: <boolean> ]
+  
+  # Export stats for shards in the cluster (implies es.indices).
+  [ es.shards: <boolean> ]
+
+  # Export stats for the cluster snapshots.
+  [ es.snapshots: <boolean> ]
+
+  # Cluster info update interval for the cluster label.
+  [ es.clusterinfo.interval: <duration> | default = "5m" ]
+
+  # Path to PEM file that contains trusted Certificate Authorities for the Elasticsearch connection.
+  [ es.ca: <string> ]
+
+  # Path to PEM file that contains the private key for client auth when connecting to Elasticsearch.
+  [ es.client-private-key: <string> ]
+
+  # Path to PEM file that contains the corresponding cert for the private key to connect to Elasticsearch.
+  [ es.client-cert: <string> ]
+  
+  # Skip SSL verification when connecting to Elasticsearch.
+  [ es.ssl-skip-verify: <boolean> ]
+
+```
+
+
 ### memcached_exporter_config
 
 The `memcached_exporter_config` block configures the `memcached_exporter`

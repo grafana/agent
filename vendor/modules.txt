@@ -409,6 +409,9 @@ github.com/jpillora/backoff
 github.com/json-iterator/go
 # github.com/jsternberg/zap-logfmt v1.2.0
 github.com/jsternberg/zap-logfmt
+# github.com/justwatchcom/elasticsearch_exporter v1.1.0
+github.com/justwatchcom/elasticsearch_exporter/collector
+github.com/justwatchcom/elasticsearch_exporter/pkg/clusterinfo
 # github.com/leodido/ragel-machinery v0.0.0-20181214104525-299bdde78165
 github.com/leodido/ragel-machinery
 github.com/leodido/ragel-machinery/parser
