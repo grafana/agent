@@ -10,3 +10,4 @@ cmd/agentctl/agentctl
 dist/
 
 **/grafana-agent-installer.exe
+**/.DS_Store
