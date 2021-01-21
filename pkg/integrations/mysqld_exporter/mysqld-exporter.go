@@ -113,8 +113,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 
 	return integrations.NewCollectorIntegration(
 		c.Name(),
-		exporter,
-		false,
+		integrations.WithCollectors(exporter),
 	), nil
 }
 
