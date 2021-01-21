@@ -1,0 +1,238 @@
+Unicode true
+# This installs two files, agent-windows-amd64.exe and logo.ico, creates a start menu shortcut, builds an uninstaller, and
+# adds uninstall information to the registry for Add/Remove Programs
+  
+!define APPNAME "Grafana Agent"
+!define DESCRIPTION "The Grafana Cloud Agent collects observability data and sends it to a compatible remote write endpoint"
+# These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
+!define HELPURL "https://github.com/grafana/agent" # "Support Information" link
+!define UPDATEURL "https://github.com/grafana/agent" # "Product Updates" link
+!define ABOUTURL "https://github.com/grafana/agent" # "Publisher" link
+!include LogicLib.nsh
+
+RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on)
+ 
+InstallDir "$PROGRAMFILES\${APPNAME}"
+ 
+# This will be in the installer/uninstaller's title bar
+Name "${APPNAME}"
+Icon "logo.ico"
+outFile "grafana-agent-installer.exe"
+ 
+!include LogicLib.nsh
+!include nsDialogs.nsh
+
+; Everything must be global VARS
+
+# These are handles to dialogs
+Var Dialog
+Var RemoteWriteLabel
+Var RemoteWriteText
+
+Var RemoteWriteUserLabel
+Var RemoteWriteUserText
+
+Var RemoteWritePasswordLabel
+Var RemoteWritePasswordText
+
+Var EnableExporterLabel
+Var EnableExporterCheck
+
+# These are strings that hold the values
+
+Var RemoteUrl
+Var RemoteUser
+Var RemotePassword
+Var EnableExporterValue
+ 
+page directory
+Page custom remoteWriteInfo remoteWriteInfoLeave
+Page custom enableWindowsExporter enableWindowsExporterLeave
+Page instfiles
+
+!macro VerifyUserIsAdmin
+UserInfo::GetAccountType
+pop $0
+${If} $0 != "admin" ;Require admin rights on NT4+
+        messageBox mb_iconstop "Administrator rights required!"
+        setErrorLevel 740 ;ERROR_ELEVATION_REQUIRED
+        quit
+${EndIf}
+!macroend
+
+Function remoteWriteInfo
+	nsDialogs::Create 1018
+	Pop $Dialog
+
+	${If} $Dialog == error
+		Abort
+	${EndIf}
+    ${NSD_CreateLabel} 0 0 100% 12u "Enter URL for remote write"
+	Pop $RemoteWriteLabel
+
+	${NSD_CreateText} 0 13u 100% 12u ""
+	Pop $RemoteWriteText
+
+    ${NSD_CreateLabel} 0 26u 100% 12u "Enter User for remote write"
+	Pop $RemoteWriteUserLabel
+
+	${NSD_CreateText} 0 39u 100% 12u ""
+	Pop $RemoteWriteUserText
+
+    ${NSD_CreateLabel} 0 52u 100% 12u "Enter Password for remote write"
+	Pop $RemoteWritePasswordLabel
+
+	${NSD_CreateText} 0 65u 100% 12u ""
+	Pop $RemoteWritePasswordText
+
+	nsDialogs::Show
+FunctionEnd
+
+
+Function remoteWriteInfoLeave
+    ${NSD_GetText}  $RemoteWriteText  $RemoteUrl
+    ${NSD_GetText}  $RemoteWriteUserText  $RemoteUser
+    ${NSD_GetText}  $RemoteWritePasswordText  $RemotePassword
+FunctionEnd
+ 
+Function enableWindowsExporter
+    nsDialogs::Create 1018
+	Pop $Dialog
+
+	${If} $Dialog == error
+		Abort
+	${EndIf}
+
+    ${NSD_CreateLabel} 0 0 100% 12u "Add and Enable Windows Exporter"
+	Pop $EnableExporterLabel
+
+	${NSD_CreateCheckBox} 0 13u 100% 12u ""
+	Pop $EnableExporterCheck
+
+   	nsDialogs::Show
+FunctionEnd
+
+Function enableWindowsExporterLeave
+    ${NSD_GetState} $EnableExporterCheck $EnableExporterValue
+FunctionEnd
+ 
+ 
+function .onInit
+	setShellVarContext all
+	!insertmacro VerifyUserIsAdmin
+functionEnd
+ 
+section "install"
+	# Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
+	setOutPath $INSTDIR
+	# Files added here should be removed by the uninstaller (see section "uninstall")
+	file "agent-windows-amd64.exe"
+	file "logo.ico"
+    file "nssm.exe"
+    file "windows_exporter-0.15.0-amd64.exe"
+	# Add any other files for the install directory (license files, app data, etc) here
+ 
+	# Uninstaller - See function un.onInit and section "uninstall" for configuration
+	writeUninstaller "$INSTDIR\uninstall.exe"
+ 
+	# Start Menu
+	createDirectory "$SMPROGRAMS\"
+	createShortCut "$SMPROGRAMS\${APPNAME}.lnk" "$INSTDIR\agent-windows-amd64.exe" "" "$INSTDIR\logo.ico"
+ 
+	# Registry information for add/remove programs
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME} - ${DESCRIPTION}"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "InstallLocation" "$\"$INSTDIR$\""
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayIcon" "$\"$INSTDIR\logo.ico$\""
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "Publisher" "$\"https://github.com/grafana/agent$\""
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "HelpLink" "$\"${HELPURL}$\""
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "URLUpdateInfo" "$\"${UPDATEURL}$\""
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "URLInfoAbout" "$\"${ABOUTURL}$\""
+	# There is no option for modifying or repairing the install
+	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoModify" 1
+	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoRepair" 1
+
+    # Write the config file, its easier to do this way than replacing an values in a templated file
+
+    FileOpen $9 "$INSTDIR\agent-config.yaml" w ;Opens a Empty File and fills it
+    FileWrite $9 `server:$\n`;
+    FileWrite $9 `  http_listen_port: 12345$\n`
+    FileWrite $9 `prometheus:$\n`
+    FileWrite $9 `  wal_directory: /tmp/grafana-agent-wal$\n`;
+    FileWrite $9 `  global:$\n`
+    FileWrite $9 `    scrape_interval: 15s$\n`
+    FileWrite $9 `  configs:$\n`
+    FileWrite $9 `    - name: integrations$\n`
+    FileWrite $9 `      scrape_configs:$\n`
+    ${If} $EnableExporterValue == ${BST_CHECKED}
+        FileWrite $9 `        - job_name: integrations/windows-exporter$\n`
+        FileWrite $9 `          metrics_path: /metrics$\n`
+        FileWrite $9 `          static_configs:$\n`
+        FileWrite $9 `            - targets:$\n`
+        FileWrite $9 `                - localhost:9182$\n`
+        FileWrite $9 `      remote_write:$\n`
+        FileWrite $9 `        - url: $RemoteUrl$\n`
+        FileWrite $9 `          basic_auth:$\n`
+        FileWrite $9 `            username: "$RemoteUser"$\n`
+        FileWrite $9 `            password: $RemotePassword$\n`
+    ${EndIf}
+    FileWrite $9 `integrations:$\n`
+    FileWrite $9 `  prometheus_remote_write:$\n`
+    FileWrite $9 `    - url: $RemoteUrl$\n`
+    FileWrite $9 `      basic_auth:$\n`
+    FileWrite $9 `        username: "$RemoteUser"$\n`
+    FileWrite $9 `        password: $RemotePassword`
+    FileClose $9 ; and close the file
+    # Create our batch file, since services cant run with parameters
+    ExecWait `"$INSTDIR\nssm.exe" install "Grafana Agent" "$INSTDIR\agent-windows-amd64.exe"`
+    ExecWait '"$INSTDIR\nssm.exe" set "Grafana Agent" AppParameters "--config.file=\"$INSTDIR\agent-config.yaml\""'
+    ExecWait `"$INSTDIR\nssm.exe" start "Grafana Agent"`
+    ${If} $EnableExporterValue == ${BST_CHECKED}
+        ExecWait `"$INSTDIR\nssm.exe" install "Windows Exporter" "$INSTDIR\windows_exporter-0.15.0-amd64.exe"`
+        ExecWait `"$INSTDIR\nssm.exe" start "Windows Exporter"`
+    ${EndIf}
+    
+sectionEnd
+ 
+# Uninstaller
+function un.onInit
+	SetShellVarContext all
+ 
+	#Verify the uninstaller - last chance to back out
+	MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}?" IDOK next
+		Abort
+	next:
+	!insertmacro VerifyUserIsAdmin
+functionEnd
+ 
+section "uninstall"
+ 	# Remove Start Menu launcher
+	delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
+	# Try to remove the Start Menu folder - this will only happen if it is empty
+	rmDir "$SMPROGRAMS\${APPNAME}"
+	# NSSM is the best way to wrap a generic exe has a service, else the service wont respond correctly to control messages
+	# This is cleanup on the service and removing the exporter.
+    ExecWait `"$INSTDIR\nssm.exe" stop "Grafana Agent"`
+    ExecWait `"$INSTDIR\nssm.exe" remove "Grafana Agent" confirm`
+    ${If} $EnableExporterValue == ${BST_CHECKED}
+        ExecWait `"$INSTDIR\nssm.exe" stop "Windows Exporter"`
+        ExecWait `"$INSTDIR\nssm.exe" remove "Windows Exporter" confirm`
+    ${EndIf}
+
+	# Remove files
+	delete $INSTDIR\agent-windows-amd64.exe
+	delete $INSTDIR\logo.ico
+    delete $INSTDIR\agent-config.yaml
+    delete $INSTDIR\windows_exporter-0.15.0-amd64.exe
+    delete $INSTDIR\nssm.exe
+ 
+	# Always delete uninstaller as the last action
+	delete $INSTDIR\uninstall.exe
+ 
+	# Try to remove the install directory - this will only happen if it is empty
+	rmDir $INSTDIR
+ 
+	# Remove uninstaller information from the registry
+	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+sectionEnd
