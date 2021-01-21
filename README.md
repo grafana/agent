@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/assets/logo_and_name.png" alt="Grafana Cloud Agent logo"></p>
 
 Grafana Cloud Agent is an observability data collector optimized for sending
-metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud/).
+metrics, log and trace data to [Grafana Cloud](https://grafana.com/products/cloud/).
 
 Users of Prometheus operating at a massive scale (i.e., millions of active
 series) can struggle to run an unsharded singleton Prometheus instance: it becomes a
