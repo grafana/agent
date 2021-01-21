@@ -247,7 +247,7 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 	touch $@
 
 ifeq ($(BUILD_IN_CONTAINER), true)
-dist-packages: dist-agent dist-agentctl build-image/.uptodate
+dist-packages: enforce-release-tag dist-agent dist-agentctl build-image/.uptodate
 	docker run --rm \
 		-v  $(shell pwd):/src/agent:delegated \
 		-e RELEASE_TAG=$(RELEASE_TAG) \
@@ -315,7 +315,10 @@ $(PACKAGE_PREFIX).armv7.rpm: dist/agent-linux-armv7 dist/agentctl-linux-armv7 $(
 
 endif
 
-test-packages: dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
+enforce-release-tag:
+	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
+
+test-packages: enforce-release-tag dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
 .PHONY: test-package
 
