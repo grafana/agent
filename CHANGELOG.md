@@ -4,8 +4,16 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
-- [FEATURE] Added [ElasticSearch exporter](https://github.com/justwatchcom/elasticsearch_exporter) integration. (@colega)
-- [BUGFIX] `agentctl config-check` will now work correctly when the supplied config file contains integrations. (@hoenn)
+- [FEATURE] Added [ElasticSearch exporter](https://github.com/justwatchcom/elasticsearch_exporter)
+  integration. (@colega)
+
+- [ENHANCEMENT] `.deb` and `.rpm` packages are now generated for all supported
+  architectures. The architecture of the AMD64 package in the filename has
+  been renamed to `amd64` to stay synchronized with the architecture name
+  presented from other release assets. (@rfratto)
+
+- [BUGFIX] `agentctl config-check` will now work correctly when the supplied
+  config file contains integrations. (@hoenn)
 
 # v0.11.0 (2021-01-20)
 
