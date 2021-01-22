@@ -1985,6 +1985,9 @@ redis_exporter: <redis_exporter_config>
 # Controls the dnsmasq_exporter integration
 dnsmasq_exporter: <dnsmasq_exporter_config>
 
+# Controls the elasticsearch_expoter integration
+elasticsearch_expoter: <elasticsearch_expoter_config>
+
 # Controls the memcached_exporter integration
 memcached_exporter: <memcached_exporter_config>
 
@@ -2879,7 +2882,7 @@ However, the exporter is able to collect the metrics from all nodes through that
 Full reference of options:
 
 ```yaml
-  # Enables the dnsmasq_exporter integration, allowing the Agent to automatically
+  # Enables the elasticsearch_exporter integration, allowing the Agent to automatically
   # collect system metrics from the configured ElasticSearch server address
   [enabled: <boolean> | default = false]
 
