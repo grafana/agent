@@ -70,19 +70,29 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c Config) Name() string {
+func (c *Config) Name() string {
 	return "elasticsearch_exporter"
 }
 
-func (c Config) CommonConfig() config.Common {
+func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
-// NewIntegration creates the elasticsearch integration by replicating the main() function of github.com/justwatchcom/elasticsearch_exporter
-// but using yaml configuration instead of kingpin flags.
-func (c Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+// NewIntegration creates a new elasticsearch_exporter
+func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+	return New(logger, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
+// New creates a new elasticsearch_exporter
+// This function replicates the main() function of github.com/justwatchcom/elasticsearch_exporter
+// but uses yaml configuration instead of kingpin flags.
+func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	if c.URI == "" {
-		return nil, fmt.Errorf("empty URI provided")
+		return nil, fmt.Errorf("empty uri provided")
 	}
 	esURL, err := url.Parse(c.URI)
 	if err != nil {
@@ -152,8 +162,4 @@ func (c Config) NewIntegration(logger log.Logger) (integrations.Integration, err
 		integrations.WithCollectors(collectors...),
 		integrations.WithRunner(start),
 	), nil
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
 }
