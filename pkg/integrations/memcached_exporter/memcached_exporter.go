@@ -56,7 +56,8 @@ func init() {
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	return integrations.NewCollectorIntegration(
 		c.Name(),
-		exporter.New(c.MemcachedAddress, c.Timeout, log),
-		false,
+		integrations.WithCollectors(
+			exporter.New(c.MemcachedAddress, c.Timeout, log),
+		),
 	), nil
 }

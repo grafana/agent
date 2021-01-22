@@ -69,5 +69,5 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		exporter.ExcludeDatabases(strings.Join(c.ExcludeDatabases, ",")),
 	)
 
-	return integrations.NewCollectorIntegration(c.Name(), e, false), nil
+	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(e)), nil
 }
