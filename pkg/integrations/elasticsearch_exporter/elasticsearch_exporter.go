@@ -20,7 +20,7 @@ import (
 )
 
 var DefaultConfig = Config{
-	URI:                       "http://localhost:9200",
+	Address:                   "http://localhost:9200",
 	Timeout:                   5 * time.Second,
 	Node:                      "_local",
 	ExportClusterInfoInterval: 5 * time.Minute,
@@ -33,7 +33,7 @@ type Config struct {
 	// Exporter configuration
 
 	// HTTP API address of an Elasticsearch node.
-	URI string `yaml:"uri"`
+	Address string `yaml:"address"`
 	// Timeout for trying to get stats from Elasticsearch.
 	Timeout time.Duration `yaml:"timeout"`
 	// Export stats for all nodes in the cluster. If used, this flag will override the flag es.node.
@@ -91,12 +91,12 @@ func init() {
 // This function replicates the main() function of github.com/justwatchcom/elasticsearch_exporter
 // but uses yaml configuration instead of kingpin flags.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	if c.URI == "" {
-		return nil, fmt.Errorf("empty uri provided")
+	if c.Address == "" {
+		return nil, fmt.Errorf("empty elasticsearch_address provided")
 	}
-	esURL, err := url.Parse(c.URI)
+	esURL, err := url.Parse(c.Address)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse uri: %w", err)
+		return nil, fmt.Errorf("failed to parse elasticsearch_address: %w", err)
 	}
 
 	// returns nil if not provided and falls back to simple TCP.

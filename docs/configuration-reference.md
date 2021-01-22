@@ -2918,7 +2918,7 @@ Full reference of options:
   #
   
   # HTTP API address of an Elasticsearch node.
-  [ api : <string> | default = "http://localhost:9200" ]
+  [ address : <string> | default = "http://localhost:9200" ]
   
   # Timeout for trying to get stats from Elasticsearch.
   [ timeout: <duration> | default = "5s" ]
