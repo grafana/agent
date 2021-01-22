@@ -132,14 +132,14 @@ func (c Config) NewIntegration(logger log.Logger) (integrations.Integration, err
 		// start the cluster info retriever
 		switch runErr := clusterInfoRetriever.Run(ctx); runErr {
 		case nil:
-			_ = level.Info(logger).Log(
+			level.Info(logger).Log(
 				"msg", "started cluster info retriever",
 				"interval", c.ExportClusterInfoInterval.String(),
 			)
 		case clusterinfo.ErrInitialCallTimeout:
-			_ = level.Info(logger).Log("msg", "initial cluster info call timed out")
+			level.Info(logger).Log("msg", "initial cluster info call timed out")
 		default:
-			_ = level.Error(logger).Log("msg", "failed to run cluster info retriever", "err", err)
+			level.Error(logger).Log("msg", "failed to run cluster info retriever", "err", err)
 			return err
 		}
 
