@@ -2866,7 +2866,6 @@ Full reference of options:
   [leases_path: <string> | default = "/var/lib/misc/dnsmasq.leases"]
 ```
 
-
 ### elasticsearch_exporter_config
 
 The `elasticsearch_exporter_config` block configures the `elasticsearch_exporter` integration,
@@ -2876,8 +2875,6 @@ the collection of metrics from ElasticSearch servers.
 
 Note that currently, an Agent can only collect metrics from a single ElasticSearch server. 
 However, the exporter is able to collect the metrics from all nodes through that server configured.
-
-The options for this integration follow the naming convention of the cli flags on the standalone exporter.
 
 Full reference of options:
 
@@ -2918,49 +2915,47 @@ Full reference of options:
   #
   
   # HTTP API address of an Elasticsearch node.
-  [ es.api : <string> | default = "http://localhost:9200" ]
+  [ api : <string> | default = "http://localhost:9200" ]
   
   # Timeout for trying to get stats from Elasticsearch.
-  [ es.timeout: <duration> | default = "5s" ]
+  [ timeout: <duration> | default = "5s" ]
 
-  # Export stats for all nodes in the cluster. If used, this flag will override the flag es.node.
-  [ es.all: <boolean> ]
+  # Export stats for all nodes in the cluster. If used, this flag will override the flag `node`.
+  [ all: <boolean> ]
 
   # Node's name of which metrics should be exposed.
-  [ es.node: <boolean> ]
+  [ node: <boolean> ]
 
   # Export stats for indices in the cluster.
-  [ es.indices: <boolean> ]
+  [ indices: <boolean> ]
 
   # Export stats for settings of all indices of the cluster.
-  [ es.indices_settings: <boolean> ]
+  [ indices_settings: <boolean> ]
   
   # Export stats for cluster settings.
-  [ es.cluster_settings: <boolean> ]
+  [ cluster_settings: <boolean> ]
   
-  # Export stats for shards in the cluster (implies es.indices).
-  [ es.shards: <boolean> ]
+  # Export stats for shards in the cluster (implies indices).
+  [ shards: <boolean> ]
 
   # Export stats for the cluster snapshots.
-  [ es.snapshots: <boolean> ]
+  [ snapshots: <boolean> ]
 
   # Cluster info update interval for the cluster label.
-  [ es.clusterinfo.interval: <duration> | default = "5m" ]
+  [ clusterinfo_interval: <duration> | default = "5m" ]
 
   # Path to PEM file that contains trusted Certificate Authorities for the Elasticsearch connection.
-  [ es.ca: <string> ]
+  [ ca: <string> ]
 
   # Path to PEM file that contains the private key for client auth when connecting to Elasticsearch.
-  [ es.client-private-key: <string> ]
+  [ client_private_key: <string> ]
 
   # Path to PEM file that contains the corresponding cert for the private key to connect to Elasticsearch.
-  [ es.client-cert: <string> ]
+  [ client_cert: <string> ]
   
   # Skip SSL verification when connecting to Elasticsearch.
-  [ es.ssl-skip-verify: <boolean> ]
-
+  [ ssl_skip_verify: <boolean> ]
 ```
-
 
 ### memcached_exporter_config
 

@@ -30,37 +30,36 @@ var DefaultConfig = Config{
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	// YAML-ized exporter flags.
-	// YAML keys correspond to the flags in the exporter binary.
+	// Exporter configuration
 
 	// HTTP API address of an Elasticsearch node.
-	URI string `yaml:"es.uri"`
+	URI string `yaml:"uri"`
 	// Timeout for trying to get stats from Elasticsearch.
-	Timeout time.Duration `yaml:"es.timeout"`
+	Timeout time.Duration `yaml:"timeout"`
 	// Export stats for all nodes in the cluster. If used, this flag will override the flag es.node.
-	AllNodes bool `yaml:"es.all"`
+	AllNodes bool `yaml:"all"`
 	// Node's name of which metrics should be exposed.
-	Node string `yaml:"es.node"`
+	Node string `yaml:"node"`
 	// Export stats for indices in the cluster.
-	ExportIndices bool `yaml:"es.indices"`
+	ExportIndices bool `yaml:"indices"`
 	// Export stats for settings of all indices of the cluster.
-	ExportIndicesSettings bool `yaml:"es.indices_settings"`
+	ExportIndicesSettings bool `yaml:"indices_settings"`
 	// Export stats for cluster settings.
-	ExportClusterSettings bool `yaml:"es.cluster_settings"`
-	// Export stats for shards in the cluster (implies es.indices).
-	ExportShards bool `yaml:"es.shards"`
+	ExportClusterSettings bool `yaml:"cluster_settings"`
+	// Export stats for shards in the cluster (implies indices).
+	ExportShards bool `yaml:"shards"`
 	// Export stats for the cluster snapshots.
-	ExportSnapshots bool `yaml:"es.snapshots"`
+	ExportSnapshots bool `yaml:"snapshots"`
 	// Cluster info update interval for the cluster label.
-	ExportClusterInfoInterval time.Duration `yaml:"es.clusterinfo.interval"`
+	ExportClusterInfoInterval time.Duration `yaml:"clusterinfo_interval"`
 	// Path to PEM file that contains trusted Certificate Authorities for the Elasticsearch connection.
-	CA string `yaml:"es.ca"`
+	CA string `yaml:"ca"`
 	// Path to PEM file that contains the private key for client auth when connecting to Elasticsearch.
-	ClientPrivateKey string `yaml:"es.client-private-key"`
+	ClientPrivateKey string `yaml:"client_private_key"`
 	// Path to PEM file that contains the corresponding cert for the private key to connect to Elasticsearch.
-	ClientCert string `yaml:"es.client-cert"`
+	ClientCert string `yaml:"client_cert"`
 	// Skip SSL verification when connecting to Elasticsearch.
-	InsecureSkipVerify bool `yaml:"es.ssl-skip-verify"`
+	InsecureSkipVerify bool `yaml:"ssl_skip_verify"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -87,7 +86,7 @@ func (c Config) NewIntegration(logger log.Logger) (integrations.Integration, err
 	}
 	esURL, err := url.Parse(c.URI)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse es.uri: %w", err)
+		return nil, fmt.Errorf("failed to parse uri: %w", err)
 	}
 
 	// returns nil if not provided and falls back to simple TCP.
