@@ -18,6 +18,7 @@ require (
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
 	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909 // indirect
 	github.com/jsternberg/zap-logfmt v1.2.0
+	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/miekg/dns v1.1.31
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
