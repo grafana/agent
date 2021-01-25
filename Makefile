@@ -200,6 +200,7 @@ dist: dist-agent dist-agentctl
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
+
 dist-agent: dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
 dist/agent-linux-amd64:
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
@@ -213,6 +214,8 @@ dist/agent-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
+	cp ./dist/agent-windows-amd64.exe ./packaging/windows && docker build ./packaging/windows -t windows_nsis && docker run --rm -t -v  $(CURDIR)/dist:/app windows_nsis
 
 dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
 dist/agentctl-linux-amd64:

@@ -17,7 +17,7 @@ InstallDir "$PROGRAMFILES\${APPNAME}"
 # This will be in the installer/uninstaller's title bar
 Name "${APPNAME}"
 Icon "logo.ico"
-outFile "grafana-agent-installer.exe"
+outFile "/app/grafana-agent-installer.exe"
  
 !include LogicLib.nsh
 !include nsDialogs.nsh
@@ -215,10 +215,9 @@ section "uninstall"
 	# This is cleanup on the service and removing the exporter.
     ExecWait `"$INSTDIR\nssm.exe" stop "Grafana Agent"`
     ExecWait `"$INSTDIR\nssm.exe" remove "Grafana Agent" confirm`
-    ${If} $EnableExporterValue == ${BST_CHECKED}
-        ExecWait `"$INSTDIR\nssm.exe" stop "Windows Exporter"`
-        ExecWait `"$INSTDIR\nssm.exe" remove "Windows Exporter" confirm`
-    ${EndIf}
+	# If these arent running we are going to ignore the errors
+    ExecWait `"$INSTDIR\nssm.exe" stop "Windows Exporter"`
+    ExecWait `"$INSTDIR\nssm.exe" remove "Windows Exporter" confirm`
 
 	# Remove files
 	delete $INSTDIR\agent-windows-amd64.exe

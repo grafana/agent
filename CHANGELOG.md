@@ -5,6 +5,7 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 # Master (unreleased)
 
 - [BUGFIX] `agentctl config-check` will now work correctly when the supplied config file contains integrations. (@hoenn)
+- [ENHANCEMENT] Windows NSIS (Installer) code added but not building automatically yet, along with dependencies
 
 # v0.11.0 (2021-01-20)
 
