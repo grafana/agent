@@ -194,8 +194,7 @@ example-dashboards:
 #
 # We use rfratto/seego for building these cross-platform images. seego provides
 # a docker image with gcc toolchains for all of these platforms.
-dist: dist-agent dist-agentctl
-	make dist-packages
+dist: dist-agent dist-agentctl dist-packages
 	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
@@ -251,7 +250,7 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 	touch $@
 
 ifeq ($(BUILD_IN_CONTAINER), true)
-dist-packages: dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
+dist-packages: enforce-release-tag dist-agent dist-agentctl build-image/.uptodate
 	docker run --rm \
 		-v  $(shell pwd):/src/agent:delegated \
 		-e RELEASE_TAG=$(RELEASE_TAG) \
@@ -260,36 +259,69 @@ dist-packages: dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.upt
 .PHONY: dist-packages
 else
 dist-packages:
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.rpm
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.deb
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.deb
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.rpm
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.deb
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.rpm
+	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv6.deb
 .PHONY: dist-packages
 
-FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a x86_64 -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
-	--log error \
-	--license "Apache 2.0" \
-	--vendor "Grafana Labs" \
-	--url "https://github.com/grafana/agent"
+ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
+ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
 
-FPM_ARGS := dist/agent-linux-amd64=/usr/bin/grafana-agent dist/agentctl-linux-amd64=/usr/bin/grafana-agentctl packaging/grafana-agent.yaml=/etc/grafana-agent.yaml
+# generate_fpm(deb|rpm, package arch, agent arch, output file)
+define generate_fpm =
+	fpm -s dir -v $(PACKAGE_VERSION) -a $(2) \
+		-n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
+		--log error \
+		--license "Apache 2.0" \
+		--vendor "Grafana Labs" \
+		--url "https://github.com/grafana/agent" \
+		-t $(1) \
+		--after-install packaging/$(1)/control/postinst \
+		--before-remove packaging/$(1)/control/prerm \
+		--package $(4) \
+			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
+			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
+			packaging/grafana-agent.yaml=/etc/grafana-agent.yaml \
+			packaging/environment-file=$(ENVIRONMENT_FILE_$(1)) \
+			packaging/$(1)/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+endef
 
-dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
-	$(FPM_OPTS) -t rpm \
-		--after-install packaging/rpm/control/postinst \
-		--before-remove packaging/rpm/control/prerm \
-		--package $@ $(FPM_ARGS) \
-		packaging/environment-file=/etc/sysconfig/grafana-agent \
-		packaging/rpm/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+PACKAGE_PREFIX := dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
+DEB_DEPS := $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
+RPM_DEPS := $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
 
-dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
-	$(FPM_OPTS) -t deb \
-		--after-install packaging/deb/control/postinst \
-		--before-remove packaging/deb/control/prerm \
-		--package $@ $(FPM_ARGS) \
-		packaging/environment-file=/etc/default/grafana-agent \
-		packaging/deb/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+# Build architectures for packaging based on the agent build:
+#
+# agent amd64, deb amd64, rpm x86_64
+# agent arm64, deb arm64, rpm aarch64
+# agent armv7, deb armhf, rpm armhfp
+# agent armv6, deb armhf, (No RPM for armv6)
+$(PACKAGE_PREFIX).amd64.deb: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(DEB_DEPS)
+	$(call generate_fpm,deb,amd64,amd64,$@)
+$(PACKAGE_PREFIX).arm64.deb: dist/agent-linux-arm64 dist/agentctl-linux-arm64 $(DEB_DEPS)
+	$(call generate_fpm,deb,arm64,arm64,$@)
+$(PACKAGE_PREFIX).armv7.deb: dist/agent-linux-armv7 dist/agentctl-linux-armv7 $(DEB_DEPS)
+	$(call generate_fpm,deb,armhf,armv7,$@)
+$(PACKAGE_PREFIX).armv6.deb: dist/agent-linux-armv6 dist/agentctl-linux-armv6 $(DEB_DEPS)
+	$(call generate_fpm,deb,armhf,armv6,$@)
+
+$(PACKAGE_PREFIX).amd64.rpm: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(RPM_DEPS)
+	$(call generate_fpm,rpm,x86_64,amd64,$@)
+$(PACKAGE_PREFIX).arm64.rpm: dist/agent-linux-arm64 dist/agentctl-linux-arm64 $(RPM_DEPS)
+	$(call generate_fpm,rpm,aarch64,arm64,$@)
+$(PACKAGE_PREFIX).armv7.rpm: dist/agent-linux-armv7 dist/agentctl-linux-armv7 $(RPM_DEPS)
+	$(call generate_fpm,rpm,armhfp,armv7,$@)
+
 endif
 
-test-packages: dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
+enforce-release-tag:
+	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
+
+test-packages: enforce-release-tag dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
 .PHONY: test-package
 
