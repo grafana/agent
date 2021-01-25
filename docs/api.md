@@ -170,6 +170,10 @@ instances. Only targets being scraped from the local Agent will be returned. If
 running in scraping service mode, this endpoint must be invoked in all Agents
 separately to get the combined set of targets across the whole Agent cluster.
 
+The `labels` fields shows the labels that will be added to metrics from the
+target, while the `discovered_labels` field shows all labels found during
+service discovery.
+
 Status code: 200 on success.
 Response on success:
 
@@ -182,6 +186,10 @@ Response on success:
       "target_group": <string, scrape config group name>,
       "endpoint": <string, URL being scraped>
       "state": <string, one of up, down, unknown>,
+      "discovered_labels": {
+        "__address__": "<address>",
+        ...
+      },
       "labels": {
         "label_a": "value_a",
         ...
