@@ -12,6 +12,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   been renamed to `amd64` to stay synchronized with the architecture name
   presented from other release assets. (@rfratto)
 
+- [ENHANCEMENT] The `/agent/api/v1/targets` API will now include discovered labels
+  on the target pre-relabeling in a `discovered_labels` field. (@rfratto)
+
 - [BUGFIX] `agentctl config-check` will now work correctly when the supplied
   config file contains integrations. (@hoenn)
 
