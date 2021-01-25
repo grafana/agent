@@ -186,10 +186,10 @@ Response on success:
       "target_group": <string, scrape config group name>,
       "endpoint": <string, URL being scraped>
       "state": <string, one of up, down, unknown>,
-			"discovered_labels": {
-				"__address__": "<address>",
-				...
-			},
+      "discovered_labels": {
+        "__address__": "<address>",
+        ...
+      },
       "labels": {
         "label_a": "value_a",
         ...

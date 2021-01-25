@@ -127,7 +127,6 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 				"scrape_error":"something went wrong"
 			}]
 		}`
-		fmt.Println(rr.Body.String())
 		require.JSONEq(t, expect, rr.Body.String())
 		require.Equal(t, http.StatusOK, rr.Result().StatusCode)
 	})
