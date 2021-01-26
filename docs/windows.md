@@ -12,7 +12,7 @@ The installer will install Grafana Agent into the default directory (C:\Program 
 
 ```
   prometheus_remote_write:
-    - url: https://legit.prometheus.url
+    - url: https://example.com
       basic_auth:
         username: "legit_username"
         password: "legit_password"
