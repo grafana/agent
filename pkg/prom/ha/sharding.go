@@ -116,8 +116,8 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 type ReadRing interface {
 	http.Handler
 
-	Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAll(op ring.Operation) (ring.ReplicationSet, error)
+	Get(key uint32, op ring.Operation, bufDescs []ring.IngesterDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
+	GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error)
 }
 
 // ShardingInstanceManager wraps around an existing instance.Manager and uses a
@@ -242,7 +242,7 @@ func (m ShardingInstanceManager) Stop() { m.inner.Stop() }
 // owns checks if the ShardingInstanceManager is responsible for
 // a given hash.
 func (m ShardingInstanceManager) owns(hash uint32) (bool, error) {
-	rs, err := m.ring.Get(hash, ring.Write, nil)
+	rs, err := m.ring.Get(hash, ring.Write, nil, nil, nil)
 	if err != nil {
 		return false, err
 	}

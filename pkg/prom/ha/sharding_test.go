@@ -58,7 +58,7 @@ func TestShardingInstanceManager(t *testing.T) {
 	t.Run("only lists configs applied through sharded instance manager", func(t *testing.T) {
 		fakeIm := newFakeInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
 				Ingesters: []ring.IngesterDesc{{Addr: "same_machine"}},
 			}, nil
@@ -79,7 +79,7 @@ func TestShardingInstanceManager(t *testing.T) {
 	t.Run("applies owned config", func(t *testing.T) {
 		fakeIm := newFakeInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
 				Ingesters: []ring.IngesterDesc{{Addr: "same_machine"}},
 			}, nil
@@ -94,7 +94,7 @@ func TestShardingInstanceManager(t *testing.T) {
 	t.Run("ignores apply of unowned config", func(t *testing.T) {
 		fakeIm := newFakeInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
 				Ingesters: []ring.IngesterDesc{{Addr: "remote"}},
 			}, nil
@@ -111,7 +111,7 @@ func TestShardingInstanceManager(t *testing.T) {
 
 		fakeIm := newFakeInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		mockRing.GetFunc = func(key uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+		mockRing.GetFunc = func(key uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
 			hashes = append(hashes, key)
 			return ring.ReplicationSet{
 				Ingesters: []ring.IngesterDesc{{Addr: "remote"}},
@@ -132,7 +132,7 @@ func TestShardingInstanceManager(t *testing.T) {
 
 		fakeIm := newFakeInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
 				Ingesters: []ring.IngesterDesc{{Addr: returnRingAddr}},
 			}, nil
@@ -153,7 +153,7 @@ func TestShardingInstanceManager(t *testing.T) {
 	t.Run("doesn't reapply unchanged config", func(t *testing.T) {
 		fakeIm := newFakeInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
 				Ingesters: []ring.IngesterDesc{{Addr: "same_machine"}},
 			}, nil
@@ -174,7 +174,7 @@ func TestShardingInstanceManager(t *testing.T) {
 	t.Run("reapplies changed config", func(t *testing.T) {
 		fakeIm := newFakeInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
 				Ingesters: []ring.IngesterDesc{{Addr: "same_machine"}},
 			}, nil
@@ -206,7 +206,7 @@ func TestShardingInstanceManager(t *testing.T) {
 	t.Run("deletes owned config", func(t *testing.T) {
 		fakeIm := newFakeInstanceManager()
 		mockRing := &mockFuncReadRing{}
-		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc) (ring.ReplicationSet, error) {
+		mockRing.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
 			return ring.ReplicationSet{
 				Ingesters: []ring.IngesterDesc{{Addr: "same_machine"}},
 			}, nil
@@ -296,20 +296,20 @@ remote_write:
 type mockFuncReadRing struct {
 	http.Handler
 
-	GetFunc    func(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAllFunc func(ring.Operation) (ring.ReplicationSet, error)
+	GetFunc           func(key uint32, op ring.Operation, bufDescs []ring.IngesterDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
+	GetAllHealthyFunc func(ring.Operation) (ring.ReplicationSet, error)
 }
 
-func (r *mockFuncReadRing) Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error) {
+func (r *mockFuncReadRing) Get(key uint32, op ring.Operation, bufDescs []ring.IngesterDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error) {
 	if r.GetFunc != nil {
-		return r.GetFunc(key, op, buf)
+		return r.GetFunc(key, op, bufDescs, bufHosts, bufZones)
 	}
 	return ring.ReplicationSet{}, errors.New("not implemented")
 }
 
-func (r *mockFuncReadRing) GetAll(op ring.Operation) (ring.ReplicationSet, error) {
-	if r.GetAllFunc != nil {
-		return r.GetAllFunc(op)
+func (r *mockFuncReadRing) GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error) {
+	if r.GetAllHealthyFunc != nil {
+		return r.GetAllHealthyFunc(op)
 	}
 	return ring.ReplicationSet{}, errors.New("not implemented")
 }
