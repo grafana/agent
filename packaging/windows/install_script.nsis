@@ -61,31 +61,31 @@ ${EndIf}
 !macroend
 
 Function remoteWriteInfo
-	nsDialogs::Create 1018
-	Pop $Dialog
+    nsDialogs::Create 1018
+    Pop $Dialog
 
-	${If} $Dialog == error
-		Abort
-	${EndIf}
+    ${If} $Dialog == error
+        Abort
+    ${EndIf}
     ${NSD_CreateLabel} 0 0 100% 12u "Enter URL for remote write"
-	Pop $RemoteWriteLabel
+    Pop $RemoteWriteLabel
 
-	${NSD_CreateText} 0 13u 100% 12u ""
-	Pop $RemoteWriteText
+    ${NSD_CreateText} 0 13u 100% 12u ""
+    Pop $RemoteWriteText
 
     ${NSD_CreateLabel} 0 26u 100% 12u "Enter User for remote write"
-	Pop $RemoteWriteUserLabel
+    Pop $RemoteWriteUserLabel
 
-	${NSD_CreateText} 0 39u 100% 12u ""
-	Pop $RemoteWriteUserText
+    ${NSD_CreateText} 0 39u 100% 12u ""
+    Pop $RemoteWriteUserText
 
     ${NSD_CreateLabel} 0 52u 100% 12u "Enter Password for remote write"
-	Pop $RemoteWritePasswordLabel
+    Pop $RemoteWritePasswordLabel
 
-	${NSD_CreateText} 0 65u 100% 12u ""
-	Pop $RemoteWritePasswordText
+    ${NSD_CreateText} 0 65u 100% 12u ""
+    Pop $RemoteWritePasswordText
 
-	nsDialogs::Show
+    nsDialogs::Show
 FunctionEnd
 
 
@@ -97,19 +97,19 @@ FunctionEnd
  
 Function enableWindowsExporter
     nsDialogs::Create 1018
-	Pop $Dialog
+    Pop $Dialog
 
-	${If} $Dialog == error
-		Abort
-	${EndIf}
+    ${If} $Dialog == error
+        Abort
+    ${EndIf}
 
     ${NSD_CreateLabel} 0 0 100% 12u "Add and Enable Windows Exporter"
-	Pop $EnableExporterLabel
+    Pop $EnableExporterLabel
 
-	${NSD_CreateCheckBox} 0 13u 100% 12u ""
-	Pop $EnableExporterCheck
+    ${NSD_CreateCheckBox} 0 13u 100% 12u ""
+    Pop $EnableExporterCheck
 
-   	nsDialogs::Show
+    nsDialogs::Show
 FunctionEnd
 
 Function enableWindowsExporterLeave
@@ -118,40 +118,40 @@ FunctionEnd
  
  
 function .onInit
-	setShellVarContext all
-	!insertmacro VerifyUserIsAdmin
+    setShellVarContext all
+    !insertmacro VerifyUserIsAdmin
 functionEnd
  
 section "install"
-	# Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
-	setOutPath $INSTDIR
-	# Files added here should be removed by the uninstaller (see section "uninstall")
-	file "agent-windows-amd64.exe"
-	file "logo.ico"
+    # Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
+    setOutPath $INSTDIR
+    # Files added here should be removed by the uninstaller (see section "uninstall")
+    file "agent-windows-amd64.exe"
+    file "logo.ico"
     file "nssm.exe"
     file "windows_exporter-0.15.0-amd64.exe"
-	# Add any other files for the install directory (license files, app data, etc) here
+    # Add any other files for the install directory (license files, app data, etc) here
  
-	# Uninstaller - See function un.onInit and section "uninstall" for configuration
-	writeUninstaller "$INSTDIR\uninstall.exe"
+    # Uninstaller - See function un.onInit and section "uninstall" for configuration
+    writeUninstaller "$INSTDIR\uninstall.exe"
  
-	# Start Menu
-	createDirectory "$SMPROGRAMS\"
-	createShortCut "$SMPROGRAMS\${APPNAME}.lnk" "$INSTDIR\agent-windows-amd64.exe" "" "$INSTDIR\logo.ico"
+    # Start Menu
+    createDirectory "$SMPROGRAMS\"
+    createShortCut "$SMPROGRAMS\${APPNAME}.lnk" "$INSTDIR\agent-windows-amd64.exe" "" "$INSTDIR\logo.ico"
  
-	# Registry information for add/remove programs
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME} - ${DESCRIPTION}"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "InstallLocation" "$\"$INSTDIR$\""
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayIcon" "$\"$INSTDIR\logo.ico$\""
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "Publisher" "$\"https://github.com/grafana/agent$\""
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "HelpLink" "$\"${HELPURL}$\""
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "URLUpdateInfo" "$\"${UPDATEURL}$\""
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "URLInfoAbout" "$\"${ABOUTURL}$\""
-	# There is no option for modifying or repairing the install
-	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoModify" 1
-	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoRepair" 1
+    # Registry information for add/remove programs
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME} - ${DESCRIPTION}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "InstallLocation" "$\"$INSTDIR$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayIcon" "$\"$INSTDIR\logo.ico$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "Publisher" "$\"https://github.com/grafana/agent$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "HelpLink" "$\"${HELPURL}$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "URLUpdateInfo" "$\"${UPDATEURL}$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "URLInfoAbout" "$\"${ABOUTURL}$\""
+    # There is no option for modifying or repairing the install
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoModify" 1
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoRepair" 1
 
     # Write the config file, its easier to do this way than replacing an values in a templated file
 
@@ -197,41 +197,41 @@ sectionEnd
  
 # Uninstaller
 function un.onInit
-	SetShellVarContext all
+    SetShellVarContext all
  
-	#Verify the uninstaller - last chance to back out
-	MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}?" IDOK next
-		Abort
-	next:
-	!insertmacro VerifyUserIsAdmin
+    #Verify the uninstaller - last chance to back out
+    MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}?" IDOK next
+        Abort
+    next:
+    !insertmacro VerifyUserIsAdmin
 functionEnd
  
 section "uninstall"
- 	# Remove Start Menu launcher
-	delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
-	# Try to remove the Start Menu folder - this will only happen if it is empty
-	rmDir "$SMPROGRAMS\${APPNAME}"
-	# NSSM is the best way to wrap a generic exe has a service, else the service wont respond correctly to control messages
-	# This is cleanup on the service and removing the exporter.
+    # Remove Start Menu launcher
+    delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
+    # Try to remove the Start Menu folder - this will only happen if it is empty
+    rmDir "$SMPROGRAMS\${APPNAME}"
+    # NSSM is the best way to wrap a generic exe has a service, else the service wont respond correctly to control messages
+    # This is cleanup on the service and removing the exporter.
     ExecWait `"$INSTDIR\nssm.exe" stop "Grafana Agent"`
     ExecWait `"$INSTDIR\nssm.exe" remove "Grafana Agent" confirm`
-	# If these arent running we are going to ignore the errors
+    # If these arent running we are going to ignore the errors
     ExecWait `"$INSTDIR\nssm.exe" stop "Windows Exporter"`
     ExecWait `"$INSTDIR\nssm.exe" remove "Windows Exporter" confirm`
 
-	# Remove files
-	delete $INSTDIR\agent-windows-amd64.exe
-	delete $INSTDIR\logo.ico
+    # Remove files
+    delete $INSTDIR\agent-windows-amd64.exe
+    delete $INSTDIR\logo.ico
     delete $INSTDIR\agent-config.yaml
     delete $INSTDIR\windows_exporter-0.15.0-amd64.exe
     delete $INSTDIR\nssm.exe
  
-	# Always delete uninstaller as the last action
-	delete $INSTDIR\uninstall.exe
+    # Always delete uninstaller as the last action
+    delete $INSTDIR\uninstall.exe
  
-	# Try to remove the install directory - this will only happen if it is empty
-	rmDir $INSTDIR
+    # Try to remove the install directory - this will only happen if it is empty
+    rmDir $INSTDIR
  
-	# Remove uninstaller information from the registry
-	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+    # Remove uninstaller information from the registry
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 sectionEnd
