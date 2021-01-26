@@ -40,6 +40,9 @@ integrations:
     enabled: true
   consul_exporter:
     enabled: true
+  elasticsearch_exporter:
+    enabled: true
+    address: http://localhost:9200
   prometheus_remote_write:
     - url: http://localhost:9009/api/prom/push
 

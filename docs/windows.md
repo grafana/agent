@@ -12,7 +12,7 @@ The installer will install Grafana Agent into the default directory (C:\Program 
 
 ```
   prometheus_remote_write:
-    - url: https://legit.prometheus.url
+    - url: https://example.com
       basic_auth:
         username: "legit_username"
         password: "legit_password"
@@ -28,7 +28,7 @@ After installation ensure that you can reach `http://localhost:12345/-/healthy` 
 
 ## Security
 
-The config by default is installed alongside the Agent itself, depending on your configuration you may not want that for security reasons and instead make it protected. You can do that by changing the files attributes or changing the config via `nssm.exe" set "Grafana Agent" AppParameters "--config.file=\"CustomDirectory\agent-config.yaml\""`, then restarting the service.
+The Agent configuration is installed alongside the Agent itself, by default. Depending on your configuration, you may not want that for security reasons and may instead want to make it protected. You can do that by changing the files attributes or changing the configuration via `nssm.exe" set "Grafana Agent" AppParameters "--config.file=\"CustomDirectory\agent-config.yaml\""`, then restarting the service.
 
 ## Uninstall
 

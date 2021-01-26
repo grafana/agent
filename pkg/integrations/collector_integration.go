@@ -12,21 +12,52 @@ import (
 	"github.com/prometheus/common/version"
 )
 
-// CollectorIntegration is an integration exposing metrics from a Prometheus
-// collector.
+// CollectorIntegration is an integration exposing metrics from one or more Prometheus collectors.
 type CollectorIntegration struct {
 	name                   string
-	c                      prometheus.Collector
+	cs                     []prometheus.Collector
 	includeExporterMetrics bool
+	runner                 func(context.Context) error
 }
 
-// NewCollectorIntegration creates a basic integration that exposes metrics
-// from a prometheus.Collector.
-func NewCollectorIntegration(name string, c prometheus.Collector, includeExporterMetrics bool) *CollectorIntegration {
-	return &CollectorIntegration{
-		name:                   name,
-		c:                      c,
-		includeExporterMetrics: includeExporterMetrics,
+// NewCollectorIntegration creates a basic integration that exposes metrics from multiple prometheus.Collector.
+func NewCollectorIntegration(name string, configs ...CollectorIntegrationConfig) *CollectorIntegration {
+	i := &CollectorIntegration{
+		name: name,
+		runner: func(ctx context.Context) error {
+			// We don't need to do anything by default, so we can just wait for the context to finish.
+			<-ctx.Done()
+			return ctx.Err()
+		},
+	}
+	for _, configure := range configs {
+		configure(i)
+	}
+	return i
+}
+
+// CollectorIntegrationConfig defines constructor configuration for NewCollectorIntegration
+type CollectorIntegrationConfig func(integration *CollectorIntegration)
+
+// WithCollector adds more collectors to the CollectorIntegration being created.
+func WithCollectors(cs ...prometheus.Collector) CollectorIntegrationConfig {
+	return func(i *CollectorIntegration) {
+		i.cs = append(i.cs, cs...)
+	}
+}
+
+// WithRunner replaces the runner of the CollectorIntegration.
+// The runner function should run while the context provided is not done.
+func WithRunner(runner func(context.Context) error) CollectorIntegrationConfig {
+	return func(i *CollectorIntegration) {
+		i.runner = runner
+	}
+}
+
+// WithExporterMetricsIncluded can enable the exporter metrics if the flag provided is enabled.
+func WithExporterMetricsIncluded(included bool) CollectorIntegrationConfig {
+	return func(i *CollectorIntegration) {
+		i.includeExporterMetrics = included
 	}
 }
 
@@ -45,8 +76,10 @@ func (i *CollectorIntegration) RegisterRoutes(r *mux.Router) error {
 
 func (i *CollectorIntegration) handler() (http.Handler, error) {
 	r := prometheus.NewRegistry()
-	if err := r.Register(i.c); err != nil {
-		return nil, fmt.Errorf("couldn't register %s: %w", i.name, err)
+	for _, c := range i.cs {
+		if err := r.Register(c); err != nil {
+			return nil, fmt.Errorf("couldn't register %s: %w", i.name, err)
+		}
 	}
 
 	// Register <integration name>_build_info metrics, generally useful for
@@ -81,8 +114,5 @@ func (i *CollectorIntegration) ScrapeConfigs() []config.ScrapeConfig {
 
 // Run satisfies Integration.Run.
 func (i *CollectorIntegration) Run(ctx context.Context) error {
-	// We don't need to do anything here, so we can just wait for the context to
-	// finish.
-	<-ctx.Done()
-	return ctx.Err()
+	return i.runner(ctx)
 }
