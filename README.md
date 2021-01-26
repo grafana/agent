@@ -106,5 +106,7 @@ If you have any questions or feedback regarding the Grafana Cloud Agent:
 
 * Ask a question on the Agent Slack channel. To invite yourself to the Grafana
   Slack, visit https://slack.grafana.com/ and join the #agent channel.
+* Alternatively ask questions on the
+  [Discussions page](https://github.com/grafana/agent/discussions).
 * [File an issue](https://github.com/grafana/agent/issues/new) for bugs, issues
   and feature suggestions.
