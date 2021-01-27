@@ -3,6 +3,7 @@ package loki
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -25,8 +26,11 @@ type Loki struct {
 func New(c Config, l log.Logger) (*Loki, error) {
 	l = log.With(l, "component", "loki")
 
-	if c.Version == "" {
-		level.Warn(l).Log("msg", "no Loki version field detected, defaulting to v0. the default will change in a future release!")
+	if c.PositionsDirectory != "" {
+		err := os.MkdirAll(c.PositionsDirectory, 0700)
+		if err != nil {
+			level.Warn(l).Log("msg", "failed to create the positions directory. logs may be unable to save their position", "path", c.PositionsDirectory, "err", err)
+		}
 	}
 
 	promtails := make([]*promtail.Promtail, 0, len(c.Configs))

@@ -13,9 +13,7 @@ import (
 
 // Config controls the configuration of the Loki log scraper.
 type Config struct {
-	Enabled bool   `yaml:"-"`
-	Version string `yaml:"version"`
-
+	Enabled            bool              `yaml:"-"`
 	PositionsDirectory string            `yaml:"positions_directory"`
 	Configs            []*InstanceConfig `yaml:"configs"`
 }
