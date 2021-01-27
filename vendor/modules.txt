@@ -526,7 +526,7 @@ github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/log
 github.com/prometheus/common/model
 github.com/prometheus/common/version
-# github.com/prometheus/consul_exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/consul_exporter v0.7.2-0.20201202203923-5390bb9ecffc
+# github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 github.com/prometheus/consul_exporter/pkg/exporter
 # github.com/prometheus/memcached_exporter v0.8.0
 github.com/prometheus/memcached_exporter/pkg/exporter

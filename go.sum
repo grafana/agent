@@ -1771,6 +1771,8 @@ github.com/prometheus/common v0.14.0 h1:RHRyE8UocrbjU+6UvRzwi6HjiDfxrrBU91TtbKzk
 github.com/prometheus/common v0.14.0/go.mod h1:U+gB1OBLb1lF3O42bTCL+FK18tX9Oar16Clt/msog/s=
 github.com/prometheus/common v0.15.0 h1:4fgOnadei3EZvgRwxJ7RMpG1k1pOZth5Pc13tyspaKM=
 github.com/prometheus/common v0.15.0/go.mod h1:U+gB1OBLb1lF3O42bTCL+FK18tX9Oar16Clt/msog/s=
+github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23 h1:uiqUXSekO5KtYy79evDl2Nuy6M2QXrYupqNQjUbhIwA=
+github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23/go.mod h1:OwZlAa0i3Erc/Rokn9HM3zk3KKfZGM/TeHscq/kdj5o=
 github.com/prometheus/memcached_exporter v0.7.0 h1:iqyuu+Up0rwb2M1efnXCCjttSEN7UZRssERfBaXUYlc=
 github.com/prometheus/memcached_exporter v0.7.1-0.20201204153924-4290508e6dcf h1:vQtiNHMX7VjIAoquNeb4oQueLxLUmXPfYMnYk+Q5ZIg=
 github.com/prometheus/memcached_exporter v0.7.1-0.20201204153924-4290508e6dcf/go.mod h1:YCz9i2SVVjyOpN8XJpPWnu6zqXO1qvlWg27qOuY0rd0=
