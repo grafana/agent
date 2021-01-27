@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 
 	"github.com/grafana/loki/pkg/logentry/stages"
+	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/pkg/promtail/targets/target"
@@ -56,8 +57,8 @@ type StdinTargetManager struct {
 	app Shutdownable
 }
 
-func NewStdinTargetManager(log log.Logger, app Shutdownable, client api.EntryHandler, configs []scrapeconfig.Config) (*StdinTargetManager, error) {
-	reader, err := newReaderTarget(log, stdIn, client, getStdinConfig(log, configs))
+func NewStdinTargetManager(reg prometheus.Registerer, log log.Logger, app Shutdownable, client api.EntryHandler, configs []scrapeconfig.Config) (*StdinTargetManager, error) {
+	reader, err := newReaderTarget(reg, log, stdIn, client, getStdinConfig(log, configs))
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +103,8 @@ type readerTarget struct {
 	ctx    context.Context
 }
 
-func newReaderTarget(logger log.Logger, in io.Reader, client api.EntryHandler, cfg scrapeconfig.Config) (*readerTarget, error) {
-	pipeline, err := stages.NewPipeline(log.With(logger, "component", "pipeline"), cfg.PipelineStages, &cfg.JobName, prometheus.DefaultRegisterer)
+func newReaderTarget(reg prometheus.Registerer, logger log.Logger, in io.Reader, client api.EntryHandler, cfg scrapeconfig.Config) (*readerTarget, error) {
+	pipeline, err := stages.NewPipeline(log.With(logger, "component", "pipeline"), cfg.PipelineStages, &cfg.JobName, reg)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +130,9 @@ func newReaderTarget(logger log.Logger, in io.Reader, client api.EntryHandler, c
 
 func (t *readerTarget) read() {
 	defer t.cancel()
+	defer t.out.Stop()
 
+	entries := t.out.Chan()
 	for {
 		if t.ctx.Err() != nil {
 			return
@@ -146,8 +149,12 @@ func (t *readerTarget) read() {
 			}
 			continue
 		}
-		if err := t.out.Handle(t.lbs.Clone(), time.Now(), line); err != nil {
-			level.Error(t.logger).Log("msg", "error sending line", "err", err)
+		entries <- api.Entry{
+			Labels: t.lbs.Clone(),
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      line,
+			},
 		}
 		if err == io.EOF {
 			return

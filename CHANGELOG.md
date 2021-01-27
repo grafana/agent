@@ -15,6 +15,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 - [ENHANCEMENT] The `/agent/api/v1/targets` API will now include discovered labels
   on the target pre-relabeling in a `discovered_labels` field. (@rfratto)
 
+- [ENHANCEMENT] Update to Cortex v1.7.0-rc.0 (@rfratto)
+
 - [BUGFIX] `agentctl config-check` will now work correctly when the supplied
   config file contains integrations. (@hoenn)
 

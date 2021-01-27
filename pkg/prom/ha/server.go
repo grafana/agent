@@ -240,7 +240,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 
 	backoff := util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
-		rs, err = s.ring.GetAll(ring.Read)
+		rs, err = s.ring.GetAllHealthy(ring.Read)
 		if err == nil {
 			break
 		}
