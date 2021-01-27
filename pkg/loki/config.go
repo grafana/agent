@@ -1,17 +1,30 @@
 package loki
 
-import "github.com/grafana/agent/pkg/util"
+import (
+	"flag"
+
+	"github.com/grafana/agent/pkg/util"
+)
 
 // LatestConfig is the current major config version.
 type LatestConfig = ConfigV1
 
 // Config is a versioned Config struct.
 type Config struct {
+	Enabled bool
 	Version string
 	Config  LatestConfig
 }
 
+func (c *Config) RegisterFlags(f *flag.FlagSet) {
+	c.Config.RegisterFlags(f)
+}
+
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// If the Config is unmarshaled, it's present in the config and should be
+	// enabled.
+	c.Enabled = true
+
 	var version util.Versioned
 	if err := unmarshal(&version); err != nil {
 		return err

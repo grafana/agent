@@ -13,8 +13,6 @@ import (
 
 // ConfigV0 controls the configuration of the Loki log scraper.
 type ConfigV0 struct {
-	// Whether the Loki subsystem should be enabled.
-	Enabled bool   `yaml:"-"`
 	Version string `yaml:"version"`
 
 	ClientConfigs   []client.Config       `yaml:"clients,omitempty"`
@@ -23,20 +21,9 @@ type ConfigV0 struct {
 	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *ConfigV0) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// If the Config is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
-
-	type configV0 ConfigV0
-	return unmarshal((*configV0)(c))
-}
-
 // Upgrade upgrades a ConfigV0 to ConfigV1.
 func (c *ConfigV0) Upgrade() (*ConfigV1, error) {
 	v1 := ConfigV1{
-		Enabled: c.Enabled,
 		Version: "v1",
 		Configs: []*InstanceConfig{{
 			Name:            "default",
@@ -56,8 +43,6 @@ func (c *ConfigV0) RegisterFlags(f *flag.FlagSet) {
 
 // ConfigV1 controls the configuration of the Loki log scraper.
 type ConfigV1 struct {
-	// Whether the Loki subsystem should be enabled.
-	Enabled bool   `yaml:"-"`
 	Version string `yaml:"version"`
 
 	PositionsDirectory string            `yaml:"positions_directory"`
@@ -65,10 +50,6 @@ type ConfigV1 struct {
 }
 
 func (c *ConfigV1) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// If the config is unmarshaled, it's present in the YAML and should
-	// be enabled.
-	c.Enabled = true
-
 	type configV1 ConfigV1
 	err := unmarshal((*configV1)(c))
 	if err != nil {
