@@ -4,8 +4,8 @@ go 1.12
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/aws/aws-sdk-go v1.35.5
-	github.com/cortexproject/cortex v1.4.1-0.20201022071705-85942c5703cf
+	github.com/aws/aws-sdk-go v1.35.31
+	github.com/cortexproject/cortex v1.6.1-0.20210121163251-a59b811d5952
 	github.com/drone/envsubst v1.0.2
 	github.com/go-kit/kit v0.10.0
 	github.com/go-playground/validator/v10 v10.4.0 // indirect
@@ -13,13 +13,13 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/gorilla/mux v1.8.0
-	github.com/grafana/loki v1.6.2-0.20201026154740-6978ee5d7387
+	github.com/grafana/loki v1.6.2-0.20210126101127-33abab5e4203
 	github.com/hashicorp/consul/api v1.7.0
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
 	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909 // indirect
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
-	github.com/miekg/dns v1.1.31
+	github.com/miekg/dns v1.1.35
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
@@ -34,13 +34,13 @@ require (
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.2.0
-	github.com/prometheus/prometheus v1.8.2-0.20201105135750-00f16d1ac3a4
+	github.com/prometheus/prometheus v1.8.2-0.20201119181812-c8f810083d3f
 	github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
-	github.com/weaveworks/common v0.0.0-20200914083218-61ffdd448099
+	github.com/weaveworks/common v0.0.0-20210112142934-23c8d7fa6120
 	github.com/wrouesnel/postgres_exporter v0.0.0-00010101000000-000000000000
 	go.opencensus.io v0.22.5
 	go.opentelemetry.io/collector v0.16.0
@@ -54,10 +54,8 @@ require (
 
 // Needed for Cortex's dependencies to work properly.
 replace (
-	go.etcd.io/etcd => go.etcd.io/etcd v0.5.0-alpha.5.0.20200520232829-54ba9589114f
-	google.golang.org/api => google.golang.org/api v0.14.0
 	google.golang.org/grpc => google.golang.org/grpc v1.29.1
-	k8s.io/client-go => k8s.io/client-go v0.18.5
+	k8s.io/client-go => k8s.io/client-go v0.19.2
 )
 
 // Replace directives from Prometheus
@@ -67,7 +65,7 @@ replace k8s.io/klog => github.com/simonpasquier/klog-gokit v0.1.0
 replace (
 	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 	github.com/gocql/gocql => github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85
-	github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20191024143944-0b54ddf21fe7
+  github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.0
 )
 

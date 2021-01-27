@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
+	"text/template/parse"
 )
 
 var (
@@ -14,6 +15,7 @@ var (
 
 	// Available map of functions for the text template engine.
 	functionMap = template.FuncMap{
+		// olds function deprecated.
 		"ToLower":    strings.ToLower,
 		"ToUpper":    strings.ToUpper,
 		"Replace":    strings.Replace,
@@ -23,6 +25,28 @@ var (
 		"TrimPrefix": strings.TrimPrefix,
 		"TrimSuffix": strings.TrimSuffix,
 		"TrimSpace":  strings.TrimSpace,
+
+		// New function ported from https://github.com/Masterminds/sprig/
+		// Those function takes the string as the last parameter, allowing pipe chaining.
+		// Example: .mylabel | lower | substring 0 5
+		"lower":      strings.ToLower,
+		"upper":      strings.ToUpper,
+		"title":      strings.Title,
+		"trunc":      trunc,
+		"substr":     substring,
+		"contains":   contains,
+		"hasPrefix":  hasPrefix,
+		"hasSuffix":  hasSuffix,
+		"indent":     indent,
+		"nindent":    nindent,
+		"replace":    replace,
+		"repeat":     repeat,
+		"trim":       strings.TrimSpace,
+		"trimAll":    trimAll,
+		"trimSuffix": trimSuffix,
+		"trimPrefix": trimPrefix,
+
+		// regex functions
 		"regexReplaceAll": func(regex string, s string, repl string) string {
 			r := regexp.MustCompile(regex)
 			return r.ReplaceAllString(s, repl)
@@ -51,14 +75,71 @@ func NewFormatter(tmpl string) (*LineFormatter, error) {
 	}, nil
 }
 
-func (lf *LineFormatter) Process(_ []byte, lbs *LabelsBuilder) ([]byte, bool) {
+func (lf *LineFormatter) Process(line []byte, lbs *LabelsBuilder) ([]byte, bool) {
 	lf.buf.Reset()
-	// todo(cyriltovena): handle error
-	_ = lf.Template.Execute(lf.buf, lbs.Labels().Map())
+	if err := lf.Template.Execute(lf.buf, lbs.Labels().Map()); err != nil {
+		lbs.SetErr(errTemplateFormat)
+		return line, true
+	}
 	// todo(cyriltovena): we might want to reuse the input line or a bytes buffer.
 	res := make([]byte, len(lf.buf.Bytes()))
 	copy(res, lf.buf.Bytes())
 	return res, true
+}
+
+func (lf *LineFormatter) RequiredLabelNames() []string {
+	return uniqueString(listNodeFields(lf.Root))
+}
+
+func listNodeFields(node parse.Node) []string {
+	var res []string
+	if node.Type() == parse.NodeAction {
+		res = append(res, listNodeFieldsFromPipe(node.(*parse.ActionNode).Pipe)...)
+	}
+	res = append(res, listNodeFieldsFromBranch(node)...)
+	if ln, ok := node.(*parse.ListNode); ok {
+		for _, n := range ln.Nodes {
+			res = append(res, listNodeFields(n)...)
+		}
+	}
+	return res
+}
+
+func listNodeFieldsFromBranch(node parse.Node) []string {
+	var res []string
+	var b parse.BranchNode
+	switch node.Type() {
+	case parse.NodeIf:
+		b = node.(*parse.IfNode).BranchNode
+	case parse.NodeWith:
+		b = node.(*parse.WithNode).BranchNode
+	case parse.NodeRange:
+		b = node.(*parse.RangeNode).BranchNode
+	default:
+		return res
+	}
+	if b.Pipe != nil {
+		res = append(res, listNodeFieldsFromPipe(b.Pipe)...)
+	}
+	if b.List != nil {
+		res = append(res, listNodeFields(b.List)...)
+	}
+	if b.ElseList != nil {
+		res = append(res, listNodeFields(b.ElseList)...)
+	}
+	return res
+}
+
+func listNodeFieldsFromPipe(p *parse.PipeNode) []string {
+	var res []string
+	for _, c := range p.Cmds {
+		for _, a := range c.Args {
+			if f, ok := a.(*parse.FieldNode); ok {
+				res = append(res, f.Ident...)
+			}
+		}
+	}
+	return res
 }
 
 // LabelFmt is a configuration struct for formatting a label.
@@ -150,12 +231,77 @@ func (lf *LabelsFormatter) Process(l []byte, lbs *LabelsBuilder) ([]byte, bool) 
 			continue
 		}
 		lf.buf.Reset()
-		//todo (cyriltovena): handle error
 		if data == nil {
 			data = lbs.Labels().Map()
 		}
-		_ = f.tmpl.Execute(lf.buf, data)
+		if err := f.tmpl.Execute(lf.buf, data); err != nil {
+			lbs.SetErr(errTemplateFormat)
+			continue
+		}
 		lbs.Set(f.Name, lf.buf.String())
 	}
 	return l, true
 }
+
+func (lf *LabelsFormatter) RequiredLabelNames() []string {
+	var names []string
+	return names
+}
+
+func trunc(c int, s string) string {
+	runes := []rune(s)
+	l := len(runes)
+	if c < 0 && l+c > 0 {
+		return string(runes[l+c:])
+	}
+	if c >= 0 && l > c {
+		return string(runes[:c])
+	}
+	return s
+}
+
+// substring creates a substring of the given string.
+//
+// If start is < 0, this calls string[:end].
+//
+// If start is >= 0 and end < 0 or end bigger than s length, this calls string[start:]
+//
+// Otherwise, this calls string[start, end].
+func substring(start, end int, s string) string {
+	runes := []rune(s)
+	l := len(runes)
+	if end > l {
+		end = l
+	}
+	if start > l {
+		start = l
+	}
+	if start < 0 {
+		if end < 0 {
+			return ""
+		}
+		return string(runes[:end])
+	}
+	if end < 0 {
+		return string(runes[start:])
+	}
+	if start > end {
+		return ""
+	}
+	return string(runes[start:end])
+}
+
+func contains(substr string, str string) bool  { return strings.Contains(str, substr) }
+func hasPrefix(substr string, str string) bool { return strings.HasPrefix(str, substr) }
+func hasSuffix(substr string, str string) bool { return strings.HasSuffix(str, substr) }
+func repeat(count int, str string) string      { return strings.Repeat(str, count) }
+func replace(old, new, src string) string      { return strings.Replace(src, old, new, -1) }
+func trimAll(a, b string) string               { return strings.Trim(b, a) }
+func trimSuffix(a, b string) string            { return strings.TrimSuffix(b, a) }
+func trimPrefix(a, b string) string            { return strings.TrimPrefix(b, a) }
+func indent(spaces int, v string) string {
+	pad := strings.Repeat(" ", spaces)
+	return pad + strings.Replace(v, "\n", "\n"+pad, -1)
+}
+
+func nindent(spaces int, v string) string { return "\n" + indent(spaces, v) }
