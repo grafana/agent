@@ -4,7 +4,7 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
-- [ENHANCEMENT] Windows NSIS (Installer) code added but not building automatically yet, along with dependencies
+- [ENHANCEMENT] Windows NSIS (Installer) code added but not building automatically yet, along with dependencies (@mattdurham)
 
 - [FEATURE] Added [ElasticSearch exporter](https://github.com/justwatchcom/elasticsearch_exporter)
   integration. (@colega)
