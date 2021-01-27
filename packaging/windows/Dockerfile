@@ -7,7 +7,7 @@ RUN mkdir app
 WORKDIR /home
 RUN wget https://nssm.cc/release/nssm-2.24.zip
 RUN unzip nssm-2.24.zip
-RUN wget https://github.com/prometheus-community/windows_exporter/releases/download/v0.15.0/windows_exporter-0.15.0-amd64.exe
+RUN wget --secure-protocol=auto --https-only https://github.com/prometheus-community/windows_exporter/releases/download/v0.15.0/windows_exporter-0.15.0-amd64.exe
 RUN mv ./nssm-2.24/win64/nssm.exe ./nssm.exe
 COPY logo.ico logo.ico
 COPY install_script.nsis install_script.nsis

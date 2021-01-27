@@ -2,11 +2,11 @@ Unicode true
 # This installs two files, agent-windows-amd64.exe and logo.ico, creates a start menu shortcut, builds an uninstaller, and
 # adds uninstall information to the registry for Add/Remove Programs
   
-!define APPNAME "Grafana Agent"
+!define APPNAME "Grafana Cloud Agent"
 !define DESCRIPTION "The Grafana Cloud Agent collects observability data and sends it to a compatible remote write endpoint"
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
-!define HELPURL "https://github.com/grafana/agent" # "Support Information" link
-!define UPDATEURL "https://github.com/grafana/agent" # "Product Updates" link
+!define HELPURL "https://github.com/grafana/agent/discussions" # "Support Information" link
+!define UPDATEURL "https://github.com/grafana/agent/releases" # "Product Updates" link
 !define ABOUTURL "https://github.com/grafana/agent" # "Publisher" link
 !include LogicLib.nsh
 
@@ -22,7 +22,7 @@ outFile "/app/grafana-agent-installer.exe"
 !include LogicLib.nsh
 !include nsDialogs.nsh
 
-; Everything must be global VARS
+; Everything must be global Vars
 
 # These are handles to dialogs
 Var Dialog
@@ -45,7 +45,7 @@ Var RemoteUser
 Var RemotePassword
 Var EnableExporterValue
  
-page directory
+Page directory
 Page custom remoteWriteInfo remoteWriteInfoLeave
 Page custom enableWindowsExporter enableWindowsExporterLeave
 Page instfiles
@@ -117,12 +117,12 @@ Function enableWindowsExporterLeave
 FunctionEnd
  
  
-function .onInit
+Function .onInit
     setShellVarContext all
     !insertmacro VerifyUserIsAdmin
-functionEnd
+FunctionEnd
  
-section "install"
+Section "install"
     # Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
     setOutPath $INSTDIR
     # Files added here should be removed by the uninstaller (see section "uninstall")
@@ -134,11 +134,7 @@ section "install"
  
     # Uninstaller - See function un.onInit and section "uninstall" for configuration
     writeUninstaller "$INSTDIR\uninstall.exe"
- 
-    # Start Menu
-    createDirectory "$SMPROGRAMS\"
-    createShortCut "$SMPROGRAMS\${APPNAME}.lnk" "$INSTDIR\agent-windows-amd64.exe" "" "$INSTDIR\logo.ico"
- 
+
     # Registry information for add/remove programs
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME} - ${DESCRIPTION}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
@@ -192,11 +188,10 @@ section "install"
         ExecWait `"$INSTDIR\nssm.exe" install "Windows Exporter" "$INSTDIR\windows_exporter-0.15.0-amd64.exe"`
         ExecWait `"$INSTDIR\nssm.exe" start "Windows Exporter"`
     ${EndIf}
-    
-sectionEnd
+SectionEnd
  
 # Uninstaller
-function un.onInit
+Function un.onInit
     SetShellVarContext all
  
     #Verify the uninstaller - last chance to back out
@@ -204,9 +199,9 @@ function un.onInit
         Abort
     next:
     !insertmacro VerifyUserIsAdmin
-functionEnd
+FunctionEnd
  
-section "uninstall"
+Section "uninstall"
     # Remove Start Menu launcher
     delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
     # Try to remove the Start Menu folder - this will only happen if it is empty
@@ -234,4 +229,4 @@ section "uninstall"
  
     # Remove uninstaller information from the registry
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
-sectionEnd
+SectionEnd
