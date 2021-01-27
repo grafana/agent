@@ -4,6 +4,11 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+- [FEATURE] BREAKING CHANGE: Support for multiple Loki Promtail instances has
+  been added, using the same `configs` array used by the Prometheus subsystem.
+  Read the new [migration guide](./docs/migration-guide.md) before upgrading!
+  (@rfratto)
+
 - [FEATURE] Added [ElasticSearch exporter](https://github.com/justwatchcom/elasticsearch_exporter)
   integration. (@colega)
 
