@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 
 #
 # install-tempo.sh is a really basic installer for the agent. It uses the existing

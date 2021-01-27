@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 
 #
 # install-bare.sh is a installer for the Agent without the ConfigMap. It is
