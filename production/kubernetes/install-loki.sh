@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 
 #
 # install-loki.sh is a really basic installer for the agent. It uses the existing
@@ -21,7 +22,7 @@
 #
 
 check_installed() {
-  if ! type $1 >/dev/null 2>&1; then
+  if ! type "$1" >/dev/null 2>&1; then
     echo "error: $1 not installed" >&2
     exit 1
   fi
@@ -37,7 +38,7 @@ NAMESPACE=${NAMESPACE:-default}
 LOKI_USERNAME_SET=0
 LOKI_PASSWORD_SET=0
 
-while getopts "h:u:p:" opt; do
+while getopts "h:u:p:n:" opt; do
   case "$opt" in
     h)
       LOKI_HOSTNAME=$OPTARG
@@ -54,14 +55,14 @@ while getopts "h:u:p:" opt; do
       NAMESPACE=$OPTARG
       ;;
     ?)
-      echo "usage: $(basename $0) [-h Loki hostname] [-u Loki username] [-p Loki password] [-n namespace]" >&2
+      echo "usage: $(basename "$0") [-h Loki hostname] [-u Loki username] [-p Loki password] [-n namespace]" >&2
       exit 1
       ;;
   esac
 done
 
 if [ -z "${LOKI_HOSTNAME}" ]; then
-  read -sp 'Enter your Loki hostname (i.e., logs-us-central1.grafana.net): ' LOKI_HOSTNAME
+  read -rsp 'Enter your Loki hostname (i.e., logs-us-central1.grafana.net): ' LOKI_HOSTNAME
   printf $'\n' >&2
 
   # We require a hostname for the agent; we don't do this same check for
@@ -74,12 +75,12 @@ if [ -z "${LOKI_HOSTNAME}" ]; then
 fi
 
 if [ -z "${LOKI_USERNAME}" ] && [ "${LOKI_USERNAME_SET}" -eq 0 ]; then
-  read -sp 'Enter your Loki username: ' LOKI_USERNAME
+  read -rsp 'Enter your Loki username: ' LOKI_USERNAME
   printf $'\n' >&2
 fi
 
 if [ -z "${LOKI_PASSWORD}" ] && [ "${LOKI_PASSWORD_SET}" -eq 0 ]; then
-  read -sp 'Enter your Loki password: ' LOKI_PASSWORD
+  read -rsp 'Enter your Loki password: ' LOKI_PASSWORD
   printf $'\n' >&2
 fi
 
@@ -88,4 +89,4 @@ export LOKI_HOSTNAME
 export LOKI_USERNAME
 export LOKI_PASSWORD
 
-curl -fsSL $MANIFEST_URL | envsubst
+curl -fsSL "$MANIFEST_URL" | envsubst

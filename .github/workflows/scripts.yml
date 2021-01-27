@@ -1,0 +1,11 @@
+name: Lint Scripts
+on: [pull_request]
+jobs:
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: azohra/shell-linter@latest
+      with:
+        path: "production"

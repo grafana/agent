@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 
 #
 # install-tempo.sh is a really basic installer for the agent. It uses the existing
@@ -21,7 +22,7 @@
 #
 
 check_installed() {
-  if ! type $1 >/dev/null 2>&1; then
+  if ! type "$1" >/dev/null 2>&1; then
     echo "error: $1 not installed" >&2
     exit 1
   fi
@@ -37,7 +38,7 @@ NAMESPACE=${NAMESPACE:-default}
 TEMPO_USERNAME_SET=0
 TEMPO_PASSWORD_SET=0
 
-while getopts "e:u:p:" opt; do
+while getopts "e:u:p:n:" opt; do
   case "$opt" in
     e)
       TEMPO_ENDPOINT=$OPTARG
@@ -54,14 +55,14 @@ while getopts "e:u:p:" opt; do
       NAMESPACE=$OPTARG
       ;;
     ?)
-      echo "usage: $(basename $0) [-e Tempo endpoint] [-u Tempo username] [-p Tempo password] [-n namespace]" >&2
+      echo "usage: $(basename "$0") [-e Tempo endpoint] [-u Tempo username] [-p Tempo password] [-n namespace]" >&2
       exit 1
       ;;
   esac
 done
 
 if [ -z "${TEMPO_ENDPOINT}" ]; then
-  read -sp 'Enter your Tempo endpoint (i.e., tempo-us-central1.grafana.net): ' TEMPO_ENDPOINT
+  read -rsp 'Enter your Tempo endpoint (i.e., tempo-us-central1.grafana.net): ' TEMPO_ENDPOINT
   printf $'\n' >&2
 
   # We require a endpoint for the agent; we don't do this same check for
@@ -74,12 +75,12 @@ if [ -z "${TEMPO_ENDPOINT}" ]; then
 fi
 
 if [ -z "${TEMPO_USERNAME}" ] && [ "${TEMPO_USERNAME_SET}" -eq 0 ]; then
-  read -sp 'Enter your Tempo username: ' TEMPO_USERNAME
+  read -rsp 'Enter your Tempo username: ' TEMPO_USERNAME
   printf $'\n' >&2
 fi
 
 if [ -z "${TEMPO_PASSWORD}" ] && [ "${TEMPO_PASSWORD_SET}" -eq 0 ]; then
-  read -sp 'Enter your Tempo password: ' TEMPO_PASSWORD
+  read -rsp 'Enter your Tempo password: ' TEMPO_PASSWORD
   printf $'\n' >&2
 fi
 
@@ -88,4 +89,4 @@ export TEMPO_ENDPOINT
 export TEMPO_USERNAME
 export TEMPO_PASSWORD
 
-curl -fsSL $MANIFEST_URL | envsubst
+curl -fsSL "$MANIFEST_URL" | envsubst
