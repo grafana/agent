@@ -2,22 +2,22 @@ package loki
 
 import (
 	"flag"
+	"fmt"
+	"path/filepath"
 
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/loki/pkg/promtail/client"
+	"github.com/grafana/loki/pkg/promtail/positions"
+	"github.com/grafana/loki/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/pkg/promtail/targets/file"
 )
 
-// LatestConfig is the current major config version.
-type LatestConfig = ConfigV1
-
-// Config is a versioned Config struct.
+// Config controls the configuration of the Loki log scraper.
 type Config struct {
-	Enabled bool
-	Version string
-	Config  LatestConfig
-}
+	Enabled bool   `yaml:"-"`
+	Version string `yaml:"version"`
 
-func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	c.Config.RegisterFlags(f)
+	PositionsDirectory string            `yaml:"positions_directory"`
+	Configs            []*InstanceConfig `yaml:"configs"`
 }
 
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -25,30 +25,76 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// enabled.
 	c.Enabled = true
 
-	var version util.Versioned
-	if err := unmarshal(&version); err != nil {
+	type config Config
+	err := unmarshal((*config)(c))
+	if err != nil {
 		return err
 	}
-	c.Version = string(version)
 
-	switch c.Version {
-	case "v0", "":
-		var v0 ConfigV0
-		if err := unmarshal(&v0); err != nil {
-			return err
+	return c.ApplyDefaults()
+}
+
+func (c *Config) RegisterFlags(f *flag.FlagSet) {
+	for _, ic := range c.Configs {
+		ic.RegisterFlags(f)
+	}
+}
+
+// ApplyDefaults applies defaults to the Config and ensures that it is valid.
+//
+// Validations:
+//
+//   1. No two InstanceConfigs may have the same name.
+//   2. No two InstanceConfigs may have the same positions path.
+//   3. No InstanceConfig may have an empty name.
+//   4. If InstanceConfig positions path is empty, shared PositionsDirectory
+//      must not be empty.
+//
+// Defaults:
+//
+//   1. If a positions config is empty, it will be generated based on
+//      the InstanceConfig name and Config.PositionsDirectory.
+func (c *Config) ApplyDefaults() error {
+	var (
+		names     = map[string]struct{}{}
+		positions = map[string]string{} // positions file name -> config using it
+	)
+
+	for idx, ic := range c.Configs {
+		if ic.Name == "" {
+			return fmt.Errorf("Loki config index %d must have a name", idx)
 		}
-		v1, err := v0.Upgrade()
-		if err != nil {
-			return err
+		if _, ok := names[ic.Name]; ok {
+			return fmt.Errorf("found two Loki configs with name %s", ic.Name)
 		}
-		c.Config = *v1
-	case "v1":
-		var v1 ConfigV1
-		if err := unmarshal(&v1); err != nil {
-			return err
+		names[ic.Name] = struct{}{}
+
+		if ic.PositionsConfig.PositionsFile == "" {
+			if c.PositionsDirectory == "" {
+				return fmt.Errorf("cannot generate Loki positions file path for %s because positions_directory is not configured", ic.Name)
+			}
+			ic.PositionsConfig.PositionsFile = filepath.Join(c.PositionsDirectory, ic.Name+".yml")
 		}
-		c.Config = v1
+		if orig, ok := positions[ic.PositionsConfig.PositionsFile]; ok {
+			return fmt.Errorf("Loki configs %s and %s must have different positions file paths", orig, ic.Name)
+		}
+		positions[ic.PositionsConfig.PositionsFile] = ic.Name
 	}
 
 	return nil
+}
+
+// InstanceConfig is an individual Promtail config.
+type InstanceConfig struct {
+	Name string `yaml:"name,omitempty"`
+
+	ClientConfigs   []client.Config       `yaml:"clients,omitempty"`
+	PositionsConfig positions.Config      `yaml:"positions,omitempty"`
+	ScrapeConfig    []scrapeconfig.Config `yaml:"scrape_configs,omitempty"`
+	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
+}
+
+func (c *InstanceConfig) RegisterFlags(f *flag.FlagSet) {
+	c.PositionsConfig.RegisterFlagsWithPrefix("loki."+c.Name+".", f)
+	c.TargetConfig.RegisterFlagsWithPrefix("loki."+c.Name+".", f)
 }

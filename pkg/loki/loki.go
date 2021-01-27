@@ -29,9 +29,9 @@ func New(c Config, l log.Logger) (*Loki, error) {
 		level.Warn(l).Log("msg", "no Loki version field detected, defaulting to v0. the default will change in a future release!")
 	}
 
-	promtails := make([]*promtail.Promtail, 0, len(c.Config.Configs))
+	promtails := make([]*promtail.Promtail, 0, len(c.Configs))
 
-	for _, ic := range c.Config.Configs {
+	for _, ic := range c.Configs {
 		if len(ic.ClientConfigs) == 0 {
 			level.Info(l).Log("msg", "skipping creation of a promtail because no client_configs are present", "config", ic.Name)
 			continue
