@@ -8,7 +8,7 @@
 #
 
 check_installed() {
-  if ! type $1 >/dev/null 2>&1; then
+  if ! type "$1" >/dev/null 2>&1; then
     echo "error: $1 not installed" >&2
     exit 1
   fi
@@ -23,4 +23,4 @@ NAMESPACE=${NAMESPACE:-default}
 
 export NAMESPACE
 
-curl -fsSL $MANIFEST_URL | envsubst
+curl -fsSL "$MANIFEST_URL" | envsubst

@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 # shellcheck shell=dash
+# This script should run in all POSIX environments and Dash is POSIX compliant.
+
 # grafanacloud-install.sh installs the Grafana Cloud Agent on supported x86_64
 # Linux systems for Grafana Cloud users. Those who aren't users of Grafana Cloud
 # or need to install the Agent on a different architecture or platform should

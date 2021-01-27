@@ -21,7 +21,7 @@
 #
 
 check_installed() {
-  if ! type $1 >/dev/null 2>&1; then
+  if ! type "$1" >/dev/null 2>&1; then
     echo "error: $1 not installed" >&2
     exit 1
   fi
@@ -35,7 +35,7 @@ MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${M
 NAMESPACE=${NAMESPACE:-default}
 ROLE_ARN=${ROLE_ARN:-}
 
-while getopts "l:u:p:" opt; do
+while getopts "l:u:p:n:a:r:" opt; do
   case "$opt" in
     l)
       REMOTE_WRITE_URL=$OPTARG
@@ -50,14 +50,14 @@ while getopts "l:u:p:" opt; do
       REGION=$OPTARG
       ;;
     ?)
-      echo "usage: $(basename $0) [-l remote write url] [-n namespace]" >&2
+      echo "usage: $(basename "$0") [-l remote write url] [-n namespace]" >&2
       exit 1
       ;;
   esac
 done
 
 if [ -z "${REMOTE_WRITE_URL}" ]; then
-  read -sp 'Enter your remote write URL: ' REMOTE_WRITE_URL
+  read -rsp 'Enter your remote write URL: ' REMOTE_WRITE_URL
   printf $'\n' >&2
 
   if [ -z "${REMOTE_WRITE_URL}" ]; then
@@ -67,7 +67,7 @@ if [ -z "${REMOTE_WRITE_URL}" ]; then
 fi
 
 if [ -z "${REGION}" ]; then
-  read -sp 'Enter the remote write region: ' REGION
+  read -rsp 'Enter the remote write region: ' REGION
   printf $'\n' >&2
 
   if [ -z "${REGION}" ]; then
@@ -82,4 +82,4 @@ export REMOTE_WRITE_URL
 export ROLE_ARN
 export REGION
 
-curl -fsSL $MANIFEST_URL | envsubst
+curl -fsSL "$MANIFEST_URL" | envsubst
