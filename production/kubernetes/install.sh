@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 
 #
 # install.sh is a really basic installer for the agent. It uses the existing
@@ -22,7 +23,7 @@
 #
 
 check_installed() {
-  if ! type $1 >/dev/null 2>&1; then
+  if ! type "$1" >/dev/null 2>&1; then
     echo "error: $1 not installed" >&2
     exit 1
   fi
@@ -38,7 +39,7 @@ NAMESPACE=${NAMESPACE:-default}
 REMOTE_WRITE_USERNAME_SET=0
 REMOTE_WRITE_PASSWORD_SET=0
 
-while getopts "l:u:p:" opt; do
+while getopts "l:u:p:n:" opt; do
   case "$opt" in
     l)
       REMOTE_WRITE_URL=$OPTARG
@@ -55,14 +56,14 @@ while getopts "l:u:p:" opt; do
       NAMESPACE=$OPTARG
       ;;
     ?)
-      echo "usage: $(basename $0) [-l remote write url] [-u remote write username] [-p remote write password] [-n namespace]" >&2
+      echo "usage: $(basename "$0") [-l remote write url] [-u remote write username] [-p remote write password] [-n namespace]" >&2
       exit 1
       ;;
   esac
 done
 
 if [ -z "${REMOTE_WRITE_URL}" ]; then
-  read -sp 'Enter your remote write URL: ' REMOTE_WRITE_URL
+  read -rsp 'Enter your remote write URL: ' REMOTE_WRITE_URL
   printf $'\n' >&2
 
   # We require a remote write URL for the agent; we don't do this same check for
@@ -75,12 +76,12 @@ if [ -z "${REMOTE_WRITE_URL}" ]; then
 fi
 
 if [ -z "${REMOTE_WRITE_USERNAME}" ] && [ "${REMOTE_WRITE_USERNAME_SET}" -eq 0 ]; then
-  read -sp 'Enter your remote write username: ' REMOTE_WRITE_USERNAME
+  read -rsp 'Enter your remote write username: ' REMOTE_WRITE_USERNAME
   printf $'\n' >&2
 fi
 
 if [ -z "${REMOTE_WRITE_PASSWORD}" ] && [ "${REMOTE_WRITE_PASSWORD_SET}" -eq 0 ]; then
-  read -sp 'Enter your remote write password: ' REMOTE_WRITE_PASSWORD
+  read -rsp 'Enter your remote write password: ' REMOTE_WRITE_PASSWORD
   printf $'\n' >&2
 fi
 
@@ -89,4 +90,4 @@ export REMOTE_WRITE_URL
 export REMOTE_WRITE_USERNAME
 export REMOTE_WRITE_PASSWORD
 
-curl -fsSL $MANIFEST_URL | envsubst
+curl -fsSL "$MANIFEST_URL" | envsubst
