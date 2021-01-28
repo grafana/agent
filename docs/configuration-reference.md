@@ -1879,7 +1879,7 @@ Please refer to the
 for the supported values for these fields.
 
 ```yaml
-# Directory to store Loki/Promtail positions files in. Positions files are
+# Directory to store Loki Promtail positions files in. Positions files are
 # required to read logs, and are used to store the last read offset of log
 # sources. The positions files will be stored in
 # <positions_directory>/<loki_instance_config.name>.yml.
@@ -1904,7 +1904,9 @@ Please refer to the
 for the supported values for these fields.
 
 ```yaml
-# Name of this config. REQUIRED!
+# Name of this config. Required, and must be unique across all Loki configs.
+# The name of the config will be the value of a loki_config label for all
+# Loki Promtail metrics.
 name: <string>
 
 clients:
@@ -2909,7 +2911,7 @@ which is an embedded version of
 [`elasticsearch_exporter`](https://github.com/justwatchcom/elasticsearch_exporter). This allows for
 the collection of metrics from ElasticSearch servers.
 
-Note that currently, an Agent can only collect metrics from a single ElasticSearch server. 
+Note that currently, an Agent can only collect metrics from a single ElasticSearch server.
 However, the exporter is able to collect the metrics from all nodes through that server configured.
 
 Full reference of options:
@@ -2949,10 +2951,10 @@ Full reference of options:
   #
   # Exporter-specific configuration options
   #
-  
+
   # HTTP API address of an Elasticsearch node.
   [ address : <string> | default = "http://localhost:9200" ]
-  
+
   # Timeout for trying to get stats from Elasticsearch.
   [ timeout: <duration> | default = "5s" ]
 
@@ -2967,10 +2969,10 @@ Full reference of options:
 
   # Export stats for settings of all indices of the cluster.
   [ indices_settings: <boolean> ]
-  
+
   # Export stats for cluster settings.
   [ cluster_settings: <boolean> ]
-  
+
   # Export stats for shards in the cluster (implies indices).
   [ shards: <boolean> ]
 
@@ -2988,7 +2990,7 @@ Full reference of options:
 
   # Path to PEM file that contains the corresponding cert for the private key to connect to Elasticsearch.
   [ client_cert: <string> ]
-  
+
   # Skip SSL verification when connecting to Elasticsearch.
   [ ssl_skip_verify: <boolean> ]
 ```
