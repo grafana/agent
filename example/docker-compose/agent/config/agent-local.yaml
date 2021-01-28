@@ -30,16 +30,6 @@ loki:
         labels:
           job: varlogs
           __path__: /var/log/*log
-  - name: backup
-    clients:
-      - url: http://localhost:3100/loki/api/v1/push
-    scrape_configs:
-    - job_name: system2
-      static_configs:
-      - targets: ['localhost']
-        labels:
-          job: varlogs2
-          __path__: /var/log/*log
 
 integrations:
   agent:
