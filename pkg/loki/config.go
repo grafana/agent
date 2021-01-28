@@ -32,12 +32,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return c.ApplyDefaults()
 }
 
-func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	for _, ic := range c.Configs {
-		ic.RegisterFlags(f)
-	}
-}
-
 // ApplyDefaults applies defaults to the Config and ensures that it is valid.
 //
 // Validations:
@@ -92,7 +86,16 @@ type InstanceConfig struct {
 	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
 }
 
-func (c *InstanceConfig) RegisterFlags(f *flag.FlagSet) {
-	c.PositionsConfig.RegisterFlagsWithPrefix("loki."+c.Name+".", f)
-	c.TargetConfig.RegisterFlagsWithPrefix("loki."+c.Name+".", f)
+func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// Defaults for Promtail are hidden behind flags. Register flags to a fake flagset
+	// just to set the defaults in the configs.
+	fs := flag.NewFlagSet("temp", flag.PanicOnError)
+	c.PositionsConfig.RegisterFlags(fs)
+	c.TargetConfig.RegisterFlags(fs)
+
+	// Blank out the positions file since we set our own default for that.
+	c.PositionsConfig.PositionsFile = ""
+
+	type instanceConfig InstanceConfig
+	return unmarshal((*instanceConfig)(c))
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/loki/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/promtail/config"
 	"github.com/grafana/loki/pkg/promtail/server"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
 )
 
@@ -23,7 +24,7 @@ type Loki struct {
 }
 
 // New creates and starts Loki log collection.
-func New(c Config, l log.Logger) (*Loki, error) {
+func New(reg prometheus.Registerer, c Config, l log.Logger) (*Loki, error) {
 	l = log.With(l, "component", "loki")
 
 	if c.PositionsDirectory != "" {
@@ -41,13 +42,15 @@ func New(c Config, l log.Logger) (*Loki, error) {
 			continue
 		}
 
+		r := prometheus.WrapRegistererWith(prometheus.Labels{"loki_name": ic.Name}, reg)
+
 		p, err := promtail.New(config.Config{
 			ServerConfig:    server.Config{Disable: true},
 			ClientConfigs:   ic.ClientConfigs,
 			PositionsConfig: ic.PositionsConfig,
 			ScrapeConfig:    ic.ScrapeConfig,
 			TargetConfig:    ic.TargetConfig,
-		}, false, promtail.WithLogger(l))
+		}, false, promtail.WithLogger(l), promtail.WithRegisterer(r))
 		if err != nil {
 			return nil, err
 		}
