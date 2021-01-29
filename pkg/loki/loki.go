@@ -42,7 +42,8 @@ func New(reg prometheus.Registerer, c Config, l log.Logger) (*Loki, error) {
 			continue
 		}
 
-		r := prometheus.WrapRegistererWith(prometheus.Labels{"loki_name": ic.Name}, reg)
+		r := prometheus.WrapRegistererWith(prometheus.Labels{"loki_config": ic.Name}, reg)
+		il := log.With(l, "loki_config", ic.Name)
 
 		p, err := promtail.New(config.Config{
 			ServerConfig:    server.Config{Disable: true},
@@ -50,7 +51,7 @@ func New(reg prometheus.Registerer, c Config, l log.Logger) (*Loki, error) {
 			PositionsConfig: ic.PositionsConfig,
 			ScrapeConfig:    ic.ScrapeConfig,
 			TargetConfig:    ic.TargetConfig,
-		}, false, promtail.WithLogger(l), promtail.WithRegisterer(r))
+		}, false, promtail.WithLogger(il), promtail.WithRegisterer(r))
 		if err != nil {
 			return nil, err
 		}

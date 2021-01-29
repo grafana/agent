@@ -22,10 +22,45 @@ import (
 	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
 )
 
-// Config controls the configuration of the Tempo trace pipeline.
+// Config controls the configuration of Tempo trace pipelines.
 type Config struct {
 	// Whether the Tempo subsystem should be enabled.
-	Enabled bool `yaml:"-"`
+	Enabled bool             `yaml:"-"`
+	Configs []InstanceConfig `yaml:"configs"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// If the Config is unmarshaled, it's present in the config and should be
+	// enabled.
+	c.Enabled = true
+
+	type plain Config
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
+	}
+	return c.Validate()
+}
+
+// Validate ensures that the Config is valid.
+func (c *Config) Validate() error {
+	names := make(map[string]struct{}, len(c.Configs))
+	for idx, c := range c.Configs {
+		if c.Name == "" {
+			return fmt.Errorf("tempo config at index %d is missing a name", idx)
+		}
+		if _, exist := names[c.Name]; exist {
+			return fmt.Errorf("found multiple tempo configs with name %s", c.Name)
+		}
+		names[c.Name] = struct{}{}
+	}
+
+	return nil
+}
+
+// InstanceConfig configures an individual Tempo trace pipeline.
+type InstanceConfig struct {
+	Name string `yaml:"name"`
 
 	PushConfig PushConfig `yaml:"push_config"`
 
@@ -50,22 +85,8 @@ type PushConfig struct {
 	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L54
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// If the Config is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-func (c *Config) otelConfig() (*configmodels.Config, error) {
+func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 	otelMapStructure := map[string]interface{}{}
-
-	if !c.Enabled {
-		return nil, errors.New("tempo config not enabled")
-	}
 
 	if len(c.Receivers) == 0 {
 		return nil, errors.New("must have at least one configured receiver")

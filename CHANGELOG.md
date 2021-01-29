@@ -4,9 +4,17 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+BREAKING CHANGES: This release has two breaking changes in the configuration
+file. Please read the release notes carefully and our
+[migration guide](./docs/migration-guide.md) to help migrate your configuration
+files to the new format.
+
 - [FEATURE] BREAKING CHANGE: Support for multiple Loki Promtail instances has
   been added, using the same `configs` array used by the Prometheus subsystem.
-  Read the new [migration guide](./docs/migration-guide.md) before upgrading!
+  (@rfratto)
+
+- [FEATURE] BREAKING CHANGE: Support for multiple Tempo instances has
+  been added, using the same `configs` array used by the Prometheus subsystem.
   (@rfratto)
 
 - [FEATURE] Added [ElasticSearch exporter](https://github.com/justwatchcom/elasticsearch_exporter)

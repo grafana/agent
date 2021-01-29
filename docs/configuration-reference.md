@@ -1925,9 +1925,28 @@ scrape_configs:
 
 ### tempo_config
 
-The `tempo_config` block configures how the Agent receives traces and sends them to Tempo.
+The `tempo_config` block configures a set of Tempo instances, each of which
+configures its own tracing pipeline. Having multiple configs allows you to
+configure multiple distinct pipelines, each of which collects spans and sends
+them to a different location.
+
+Note that if using multiple configs, you must manually set port numbers for
+each receiver, otherwise they will all try to use the same port and fail to
+start.
 
 ```yaml
+configs:
+ - [<tempo_instance_config>]
+ ```
+
+### tempo_instance_config
+
+```yaml
+# Name configures the name of this Tempo instance. Names must be non-empty and
+# unique across all Tempo instances. The value of the name here will appear in
+# logs and as a label on metrics.
+name: <string>
+
 # Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor
 #  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
 attributes: [attributes.config]
