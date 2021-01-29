@@ -68,29 +68,11 @@ tempo:
       jaeger:
         protocols:
           thrift_http:
-            endpoint: 0.0.0.0:14268
     attributes:
       actions:
       - action: upsert
         key: env
         value: prod
-    push_config:
-      endpoint: otel-collector:55680
-      insecure: true
-      batch:
-        timeout: 5s
-        send_batch_size: 100
-  - name: default2
-    receivers:
-      jaeger:
-        protocols:
-          thrift_http:
-            endpoint: 0.0.0.0:14269
-    attributes:
-      actions:
-      - action: upsert
-        key: env
-        value: prod2
     push_config:
       endpoint: otel-collector:55680
       insecure: true
