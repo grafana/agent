@@ -69,7 +69,7 @@ func main() {
 	}
 
 	if cfg.Loki.Enabled {
-		lokiLogs, err = loki.New(cfg.Loki, util.Logger)
+		lokiLogs, err = loki.New(prometheus.DefaultRegisterer, cfg.Loki, util.Logger)
 		if err != nil {
 			level.Error(util.Logger).Log("msg", "failed to create loki log collection instance", "err", err)
 			os.Exit(1)

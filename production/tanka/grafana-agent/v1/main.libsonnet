@@ -66,7 +66,13 @@ local service = k.core.v1.service;
       then { prometheus: this._prometheus_config { configs: host_filter_instances } }
       else {}
     ) + (
-      if has_loki_config then { loki: this._loki_config } else {}
+      if has_loki_config then { 
+        loki: { 
+          configs: [this._loki_config {
+            name: 'default',
+          }],
+        },
+      } else {}
     ) + (
       if has_tempo_config then { tempo: this._tempo_config } else {}
     ) + (
