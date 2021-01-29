@@ -203,7 +203,9 @@ prometheus:
   # AGENT PROMETHEUS SETTINGS
 
 loki:
-  # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
+  configs:
+  - name: default
+    # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
 
 tempo:
   # AGENT TEMPO SETTINGS
@@ -233,17 +235,19 @@ prometheus:
         - url: http://localhost:9009/api/prom/push
 
 loki:
-  positions:
-    filename: /tmp/positions.yaml
-  scrape_configs:
-    - job_name: varlogs
-      static_configs:
-        - targets: [localhost]
-          labels:
-            job: varlogs
-            __path__: /var/log/*log
-  clients:
-    - url: http://localhost:3100/loki/api/v1/push
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    scrape_configs:
+      - job_name: varlogs
+        static_configs:
+          - targets: [localhost]
+            labels:
+              job: varlogs
+              __path__: /var/log/*log
+    clients:
+      - url: http://localhost:3100/loki/api/v1/push
 
 tempo:
   receivers:
