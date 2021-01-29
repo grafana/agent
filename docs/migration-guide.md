@@ -46,23 +46,23 @@ Example migrated config:
 
 ```yaml
 tempo:
-	configs:
-	- name: default
-		receivers:
-			jaeger:
-				protocols:
-					thrift_http:
-		attributes:
-			actions:
-			- action: upsert
-				key: env
-				value: prod
-		push_config:
-			endpoint: otel-collector:55680
-			insecure: true
-			batch:
-				timeout: 5s
-				send_batch_size: 100
+  configs:
+  - name: default
+    receivers:
+      jaeger:
+        protocols:
+          thrift_http:
+    attributes:
+      actions:
+      - action: upsert
+        key: env
+        value: prod
+    push_config:
+      endpoint: otel-collector:55680
+      insecure: true
+      batch:
+        timeout: 5s
+        send_batch_size: 100
 ```
 
 ## Loki Promtail Config Change
