@@ -66,15 +66,22 @@ local service = k.core.v1.service;
       then { prometheus: this._prometheus_config { configs: host_filter_instances } }
       else {}
     ) + (
-      if has_loki_config then { 
-        loki: { 
+      if has_loki_config then {
+        loki: {
           configs: [this._loki_config {
             name: 'default',
           }],
         },
       } else {}
     ) + (
-      if has_tempo_config then { tempo: this._tempo_config } else {}
+      if has_tempo_config then {
+        tempo: {
+          configs: [this._tempo_config {
+            name: 'default',
+          }],
+        },
+      }
+      else {}
     ) + (
       if has_integrations then { integrations: this._integrations } else {}
     ),
@@ -111,7 +118,7 @@ local service = k.core.v1.service;
         // If we're deploying for tracing, applications will want to write to
         // a service for load balancing span delivery.
         service:
-          if has_tempo_config 
+          if has_tempo_config
           then k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
           else {},
       } + (

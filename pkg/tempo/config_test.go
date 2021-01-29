@@ -145,7 +145,7 @@ push_config:
   retry_on_failure:
     initial_interval: 10s
   sending_queue:
-    num_consumers: 15	
+    num_consumers: 15
 `,
 			expectedConfig: `
 receivers:
@@ -244,8 +244,8 @@ service:
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &Config{}
-			err := yaml.Unmarshal([]byte(tc.cfg), cfg)
+			var cfg InstanceConfig
+			err := yaml.Unmarshal([]byte(tc.cfg), &cfg)
 			require.NoError(t, err)
 
 			// check error
