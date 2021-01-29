@@ -15,7 +15,7 @@ prometheus:
           - targets: ['localhost:9009']
       - job_name: loki
         static_configs:
-          - targets: ['localhost:9009']
+          - targets: ['localhost:3100']
 
 loki:
   positions_directory: /tmp/loki-positions
