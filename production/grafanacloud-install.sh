@@ -2,7 +2,7 @@
 # shellcheck shell=dash
 # This script should run in all POSIX environments and Dash is POSIX compliant.
 
-# grafanacloud-install.sh installs the Grafana Cloud Agent on supported x86_64
+# grafanacloud-install.sh installs the Grafana Cloud Agent on supported amd64
 # Linux systems for Grafana Cloud users. Those who aren't users of Grafana Cloud
 # or need to install the Agent on a different architecture or platform should
 # try another installation method.
@@ -47,8 +47,8 @@ PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 RELEASE_VERSION="0.11.0"
 
 RELEASE_URL="https://github.com/grafana/agent/releases/download/v${RELEASE_VERSION}"
-DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.x86_64.deb"
-RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.x86_64.rpm"
+DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.amd64.deb"
+RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.amd64.rpm"
 
 main() {
   if [ -z "$PACKAGE_SYSTEM" ]; then
