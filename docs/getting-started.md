@@ -250,18 +250,20 @@ loki:
       - url: http://localhost:3100/loki/api/v1/push
 
 tempo:
-  receivers:
-    jaeger:
-      protocols:
-        grpc: # listens on the default jaeger grpc port: 14250
-  push_config:
-    endpoint: localhost:55680
-    insecure: true  # only add this if TLS is not required
-    batch:
-      timeout: 5s
-      send_batch_size: 100
-    queue:
-      retry_on_failure: true
+  configs:
+  - name: default
+    receivers:
+      jaeger:
+        protocols:
+          grpc: # listens on the default jaeger grpc port: 14250
+    push_config:
+      endpoint: localhost:55680
+      insecure: true  # only add this if TLS is not required
+      batch:
+        timeout: 5s
+        send_batch_size: 100
+      queue:
+        retry_on_failure: true
 ```
 
 ## Running

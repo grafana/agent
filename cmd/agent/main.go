@@ -77,7 +77,7 @@ func main() {
 	}
 
 	if cfg.Tempo.Enabled {
-		tempoTraces, err = tempo.New(cfg.Tempo, cfg.Server.LogLevel)
+		tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel)
 		if err != nil {
 			level.Error(util.Logger).Log("msg", "failed to create tempo trace collection instance", "err", err)
 			os.Exit(1)
