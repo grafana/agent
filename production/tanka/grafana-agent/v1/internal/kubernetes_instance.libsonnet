@@ -50,7 +50,7 @@ local k8s_tls_config(config) = {
         ],
       },
 
-      k8s_tls_config(config) {
+      {
         job_name: 'kubernetes-pods',
         kubernetes_sd_configs: [{
           role: 'pod',
