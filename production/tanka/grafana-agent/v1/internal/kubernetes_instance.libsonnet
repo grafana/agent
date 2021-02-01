@@ -207,7 +207,7 @@ local k8s_tls_config(config) = {
 
       // A separate scrape config for node-exporter which maps the node name
       // onto the instance label.
-      k8s_tls_config(config) {
+      {
         job_name: '%s/node-exporter' % namespace,
         kubernetes_sd_configs: [{
           role: 'pod',
