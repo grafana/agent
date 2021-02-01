@@ -171,7 +171,7 @@ local k8s_tls_config(config) = {
       // timeseries. This prevents the exported namespace label from being
       // renamed to exported_namesapce and allows us to route alerts based on
       // namespace.
-      k8s_tls_config(config) {
+      {
         job_name: '%s/kube-state-metrics' % namespace,
         kubernetes_sd_configs: [{
           role: 'pod',
