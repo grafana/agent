@@ -8,6 +8,7 @@ package ha
 import (
 	"context"
 	"flag"
+	"fmt"
 	"sync"
 	"time"
 
@@ -117,9 +118,12 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		return nil, err
 	}
 
-	r, err := ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
+	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
 	if err != nil {
 		return nil, err
+	}
+	if err := reg.Register(r); err != nil {
+		return nil, fmt.Errorf("failed to register Agent ring metrics: %w", err)
 	}
 	if err := services.StartAndAwaitRunning(context.Background(), r); err != nil {
 		return nil, err
@@ -157,6 +161,20 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 
 	lazy.inner = s
 	return s, nil
+}
+
+// newRing creates a new Cortex Ring that ignores unhealthy nodes.
+func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*ring.Ring, error) {
+	codec := ring.GetCodec()
+	store, err := kv.NewClient(
+		cfg.KVStore,
+		codec,
+		kv.RegistererWithKVName(reg, name+"-ring"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy())
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
