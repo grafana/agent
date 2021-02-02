@@ -30,6 +30,13 @@ files to the new format.
 
 - [ENHANCEMENT] Update to Cortex v1.7.0-rc.0 (@rfratto)
 
+- [ENHANCEMENT] Scraping service: Unhealthy Agents in the ring will no longer
+  cause job distribution to fail. (@rfratto)
+
+- [ENHANCEMENT] Scraping service: Cortex ring metrics (prefixed with
+  cortex_ring_) will now be registered for tracking the state of the hash
+  ring. (@rfratto)
+
 - [BUGFIX] `agentctl config-check` will now work correctly when the supplied
   config file contains integrations. (@hoenn)
 
