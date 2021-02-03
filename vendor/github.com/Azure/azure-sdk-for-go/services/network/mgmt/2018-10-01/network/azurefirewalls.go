@@ -35,8 +35,7 @@ func NewAzureFirewallsClient(subscriptionID string) AzureFirewallsClient {
 	return NewAzureFirewallsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAzureFirewallsClientWithBaseURI creates an instance of the AzureFirewallsClient client using a custom endpoint.
-// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+// NewAzureFirewallsClientWithBaseURI creates an instance of the AzureFirewallsClient client.
 func NewAzureFirewallsClientWithBaseURI(baseURI string, subscriptionID string) AzureFirewallsClient {
 	return AzureFirewallsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -99,8 +98,9 @@ func (client AzureFirewallsClient) CreateOrUpdatePreparer(ctx context.Context, r
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AzureFirewallsClient) CreateOrUpdateSender(req *http.Request) (future AzureFirewallsCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -113,6 +113,7 @@ func (client AzureFirewallsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client AzureFirewallsClient) CreateOrUpdateResponder(resp *http.Response) (result AzureFirewall, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -174,8 +175,9 @@ func (client AzureFirewallsClient) DeletePreparer(ctx context.Context, resourceG
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AzureFirewallsClient) DeleteSender(req *http.Request) (future AzureFirewallsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -188,6 +190,7 @@ func (client AzureFirewallsClient) DeleteSender(req *http.Request) (future Azure
 func (client AzureFirewallsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -254,7 +257,8 @@ func (client AzureFirewallsClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AzureFirewallsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -262,6 +266,7 @@ func (client AzureFirewallsClient) GetSender(req *http.Request) (*http.Response,
 func (client AzureFirewallsClient) GetResponder(resp *http.Response) (result AzureFirewall, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,9 +306,6 @@ func (client AzureFirewallsClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "List", resp, "Failure responding to request")
 	}
-	if result.aflr.hasNextLink() && result.aflr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
 
 	return
 }
@@ -331,7 +333,8 @@ func (client AzureFirewallsClient) ListPreparer(ctx context.Context, resourceGro
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AzureFirewallsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -339,6 +342,7 @@ func (client AzureFirewallsClient) ListSender(req *http.Request) (*http.Response
 func (client AzureFirewallsClient) ListResponder(resp *http.Response) (result AzureFirewallListResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -413,9 +417,6 @@ func (client AzureFirewallsClient) ListAll(ctx context.Context) (result AzureFir
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "ListAll", resp, "Failure responding to request")
 	}
-	if result.aflr.hasNextLink() && result.aflr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
 
 	return
 }
@@ -442,7 +443,8 @@ func (client AzureFirewallsClient) ListAllPreparer(ctx context.Context) (*http.R
 // ListAllSender sends the ListAll request. The method will close the
 // http.Response Body if it receives an error.
 func (client AzureFirewallsClient) ListAllSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListAllResponder handles the response to the ListAll request. The method always
@@ -450,6 +452,7 @@ func (client AzureFirewallsClient) ListAllSender(req *http.Request) (*http.Respo
 func (client AzureFirewallsClient) ListAllResponder(resp *http.Response) (result AzureFirewallListResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -35,9 +35,7 @@ func NewDefaultSecurityRulesClient(subscriptionID string) DefaultSecurityRulesCl
 	return NewDefaultSecurityRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDefaultSecurityRulesClientWithBaseURI creates an instance of the DefaultSecurityRulesClient client using a custom
-// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
-// stack).
+// NewDefaultSecurityRulesClientWithBaseURI creates an instance of the DefaultSecurityRulesClient client.
 func NewDefaultSecurityRulesClientWithBaseURI(baseURI string, subscriptionID string) DefaultSecurityRulesClient {
 	return DefaultSecurityRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -104,7 +102,8 @@ func (client DefaultSecurityRulesClient) GetPreparer(ctx context.Context, resour
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DefaultSecurityRulesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -112,6 +111,7 @@ func (client DefaultSecurityRulesClient) GetSender(req *http.Request) (*http.Res
 func (client DefaultSecurityRulesClient) GetResponder(resp *http.Response) (result SecurityRule, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,9 +152,6 @@ func (client DefaultSecurityRulesClient) List(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.DefaultSecurityRulesClient", "List", resp, "Failure responding to request")
 	}
-	if result.srlr.hasNextLink() && result.srlr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
 
 	return
 }
@@ -183,7 +180,8 @@ func (client DefaultSecurityRulesClient) ListPreparer(ctx context.Context, resou
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client DefaultSecurityRulesClient) ListSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -191,6 +189,7 @@ func (client DefaultSecurityRulesClient) ListSender(req *http.Request) (*http.Re
 func (client DefaultSecurityRulesClient) ListResponder(resp *http.Response) (result SecurityRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

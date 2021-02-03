@@ -35,9 +35,7 @@ func NewAzureFirewallFqdnTagsClient(subscriptionID string) AzureFirewallFqdnTags
 	return NewAzureFirewallFqdnTagsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAzureFirewallFqdnTagsClientWithBaseURI creates an instance of the AzureFirewallFqdnTagsClient client using a
-// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
-// Azure stack).
+// NewAzureFirewallFqdnTagsClientWithBaseURI creates an instance of the AzureFirewallFqdnTagsClient client.
 func NewAzureFirewallFqdnTagsClientWithBaseURI(baseURI string, subscriptionID string) AzureFirewallFqdnTagsClient {
 	return AzureFirewallFqdnTagsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -72,9 +70,6 @@ func (client AzureFirewallFqdnTagsClient) ListAll(ctx context.Context) (result A
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallFqdnTagsClient", "ListAll", resp, "Failure responding to request")
 	}
-	if result.afftlr.hasNextLink() && result.afftlr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
 
 	return
 }
@@ -101,7 +96,8 @@ func (client AzureFirewallFqdnTagsClient) ListAllPreparer(ctx context.Context) (
 // ListAllSender sends the ListAll request. The method will close the
 // http.Response Body if it receives an error.
 func (client AzureFirewallFqdnTagsClient) ListAllSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListAllResponder handles the response to the ListAll request. The method always
@@ -109,6 +105,7 @@ func (client AzureFirewallFqdnTagsClient) ListAllSender(req *http.Request) (*htt
 func (client AzureFirewallFqdnTagsClient) ListAllResponder(resp *http.Response) (result AzureFirewallFqdnTagListResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
