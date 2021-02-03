@@ -1,10 +1,8 @@
 name: Containerize
-# TODO(rfratto): move back to on push before merging
-on: [pull_request]
-# on:
-#   push:
-#     branches:
-#       - master
+on:
+  push:
+    branches:
+      - master
 jobs:
   test:
     name: Test
@@ -37,13 +35,9 @@ jobs:
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
+
     - name: Set up Docker Buildx
-      id: buildx
       uses: docker/setup-buildx-action@v1
-    - name: Builder instance name
-      run: echo ${{ steps.buildx.outputs.name }}
-    - name: Available platforms
-      run: echo ${{ steps.buildx.outputs.platforms }}
 
     - name: Make Containers
       run: CROSS_BUILD=true RELEASE_BUILD=true make agent-image
@@ -60,13 +54,9 @@ jobs:
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
+
     - name: Set up Docker Buildx
-      id: buildx
       uses: docker/setup-buildx-action@v1
-    - name: Builder instance name
-      run: echo ${{ steps.buildx.outputs.name }}
-    - name: Available platforms
-      run: echo ${{ steps.buildx.outputs.platforms }}
 
     - name: Make Containers
       run: CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
