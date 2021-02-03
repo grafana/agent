@@ -49,7 +49,11 @@ func New(cfg Config, addr string) (ScrapingServiceClient, error) {
 		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(cfg.GRPCClientConfig.CallOptions()...),
 	}
-	opts = append(opts, cfg.GRPCClientConfig.DialOption(instrumentation())...)
+	grpcDialOpts, err := cfg.GRPCClientConfig.DialOption(instrumentation())
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, grpcDialOpts...)
 	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return nil, err

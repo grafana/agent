@@ -35,9 +35,7 @@ func NewBgpServiceCommunitiesClient(subscriptionID string) BgpServiceCommunities
 	return NewBgpServiceCommunitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBgpServiceCommunitiesClientWithBaseURI creates an instance of the BgpServiceCommunitiesClient client using a
-// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
-// Azure stack).
+// NewBgpServiceCommunitiesClientWithBaseURI creates an instance of the BgpServiceCommunitiesClient client.
 func NewBgpServiceCommunitiesClientWithBaseURI(baseURI string, subscriptionID string) BgpServiceCommunitiesClient {
 	return BgpServiceCommunitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -72,9 +70,6 @@ func (client BgpServiceCommunitiesClient) List(ctx context.Context) (result BgpS
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "List", resp, "Failure responding to request")
 	}
-	if result.bsclr.hasNextLink() && result.bsclr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
 
 	return
 }
@@ -101,7 +96,8 @@ func (client BgpServiceCommunitiesClient) ListPreparer(ctx context.Context) (*ht
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client BgpServiceCommunitiesClient) ListSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -109,6 +105,7 @@ func (client BgpServiceCommunitiesClient) ListSender(req *http.Request) (*http.R
 func (client BgpServiceCommunitiesClient) ListResponder(resp *http.Response) (result BgpServiceCommunityListResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
