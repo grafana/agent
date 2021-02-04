@@ -104,6 +104,4 @@ jobs:
 
         export RELEASE_TAG=${GITHUB_REF##*/}
 
-        # We need to prepare the cross compilers first.
-        make seego
         make -j4 RELEASE_BUILD=true publish

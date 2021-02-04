@@ -133,7 +133,7 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
-cmd/agent/agent: cmd/agent/main.go
+cmd/agent/agent: check-seego cmd/agent/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -141,7 +141,7 @@ else
 endif
 	$(NETGO_CHECK)
 
-cmd/agentctl/agentctl: cmd/agentctl/main.go
+cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -149,10 +149,10 @@ else
 endif
 	$(NETGO_CHECK)
 
-agent-image:
+agent-image: check-seego
 	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 
-agentctl-image:
+agentctl-image: check-seego
 	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 
 install:
@@ -203,36 +203,44 @@ dist: dist-agent dist-agentctl dist-packages
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
-dist-agent: dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
-dist/agent-linux-amd64:
+dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
+dist/agent-linux-amd64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-arm64:
+dist/agent-linux-arm64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv6:
+dist/agent-linux-armv6: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv7:
+dist/agent-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-darwin-amd64:
+dist/agent-darwin-amd64: seego
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-windows-amd64.exe:
+dist/agent-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
-dist/agentctl-linux-amd64:
+dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
+dist/agentctl-linux-amd64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-arm64:
+dist/agentctl-linux-arm64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv6:
+dist/agentctl-linux-armv6: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv7:
+dist/agentctl-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-darwin-amd64:
+dist/agentctl-darwin-amd64: seego
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-windows-amd64.exe:
+dist/agentctl-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
 	docker build -t grafana/agent/seego tools/seego
+
+# Makes seego if CROSS_BUILD is true.
+check-seego:
+ifeq ($(CROSS_BUILD),false)
+	# seego not required
+else
+	$(MAKE) seego
+endif
 
 build-image/.uptodate: build-image/Dockerfile
 	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
@@ -325,7 +333,7 @@ endif
 enforce-release-tag:
 	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
-test-packages: enforce-release-tag dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
+test-packages: enforce-release-tag seego dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
 .PHONY: test-package
 
