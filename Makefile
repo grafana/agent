@@ -89,7 +89,7 @@ PACKAGE_RELEASE := 1
 
 DOCKERFILE = Dockerfile
 
-seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
+seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" grafana/agent/seego
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 
 ifeq ($(CROSS_BUILD),true)
@@ -133,7 +133,7 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
-cmd/agent/agent: cmd/agent/main.go
+cmd/agent/agent: check-seego cmd/agent/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -141,7 +141,7 @@ else
 endif
 	$(NETGO_CHECK)
 
-cmd/agentctl/agentctl: cmd/agentctl/main.go
+cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -192,40 +192,55 @@ example-dashboards:
 # use CGO_ENABLED for all of them. We define them all as separate targets
 # to allow for parallelization with make -jX.
 #
-# We use rfratto/seego for building these cross-platform images. seego provides
-# a docker image with gcc toolchains for all of these platforms.
+# We use rfratto/seego as a base for building these cross-platform images.
+# seego provides a docker image with gcc toolchains for all of these platforms.
+#
+# A custom grafana/agent/seego image is built on top of the base image with
+# specific overrides. grafana/agent/seego is not pushed to Docker Hub and
+# can be built with "make seego".
 dist: dist-agent dist-agentctl dist-packages
 	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
-dist-agent: dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
-dist/agent-linux-amd64:
+dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
+dist/agent-linux-amd64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-arm64:
+dist/agent-linux-arm64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv6:
+dist/agent-linux-armv6: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv7:
+dist/agent-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-darwin-amd64:
+dist/agent-darwin-amd64: seego
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-windows-amd64.exe:
+dist/agent-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
-dist/agentctl-linux-amd64:
+dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
+dist/agentctl-linux-amd64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-arm64:
+dist/agentctl-linux-arm64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv6:
+dist/agentctl-linux-armv6: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv7:
+dist/agentctl-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-darwin-amd64:
+dist/agentctl-darwin-amd64: seego
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-windows-amd64.exe:
+dist/agentctl-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+seego: tools/seego/Dockerfile
+	docker build -t grafana/agent/seego tools/seego
+
+# Makes seego if CROSS_BUILD is true.
+check-seego:
+ifeq ($(CROSS_BUILD),true)
+ifeq ($(BUILD_IN_CONTAINER),true)
+	$(MAKE) seego
+endif
+endif
 
 build-image/.uptodate: build-image/Dockerfile
 	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
@@ -249,20 +264,20 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 ifeq ($(BUILD_IN_CONTAINER), true)
 dist-packages: enforce-release-tag dist-agent dist-agentctl build-image/.uptodate
 	docker run --rm \
-		-v  $(shell pwd):/src/agent:delegated \
+		-v $(shell pwd):/src/agent:delegated \
 		-e RELEASE_TAG=$(RELEASE_TAG) \
 		-e SRC_PATH=/src/agent \
 		-i $(BUILD_IMAGE) $@;
 .PHONY: dist-packages
 else
 dist-packages:
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.deb
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.deb
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.deb
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv6.deb
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.rpm
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.deb
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.deb
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.rpm
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.deb
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.rpm
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv6.deb
 .PHONY: dist-packages
 
 ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
@@ -297,20 +312,24 @@ RPM_DEPS := $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
 # agent arm64, deb arm64, rpm aarch64
 # agent armv7, deb armhf, rpm armhfp
 # agent armv6, deb armhf, (No RPM for armv6)
-$(PACKAGE_PREFIX).amd64.deb: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(DEB_DEPS)
+#
+# These targets require the agent/agentctl binaries to have already been built
+# with seego. Since this usually runs inside of a Docker Container, we can't
+# build them here.
+$(PACKAGE_PREFIX).amd64.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,amd64,amd64,$@)
-$(PACKAGE_PREFIX).arm64.deb: dist/agent-linux-arm64 dist/agentctl-linux-arm64 $(DEB_DEPS)
+$(PACKAGE_PREFIX).arm64.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,arm64,arm64,$@)
-$(PACKAGE_PREFIX).armv7.deb: dist/agent-linux-armv7 dist/agentctl-linux-armv7 $(DEB_DEPS)
+$(PACKAGE_PREFIX).armv7.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,armhf,armv7,$@)
-$(PACKAGE_PREFIX).armv6.deb: dist/agent-linux-armv6 dist/agentctl-linux-armv6 $(DEB_DEPS)
+$(PACKAGE_PREFIX).armv6.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,armhf,armv6,$@)
 
-$(PACKAGE_PREFIX).amd64.rpm: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(RPM_DEPS)
+$(PACKAGE_PREFIX).amd64.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,x86_64,amd64,$@)
-$(PACKAGE_PREFIX).arm64.rpm: dist/agent-linux-arm64 dist/agentctl-linux-arm64 $(RPM_DEPS)
+$(PACKAGE_PREFIX).arm64.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,aarch64,arm64,$@)
-$(PACKAGE_PREFIX).armv7.rpm: dist/agent-linux-armv7 dist/agentctl-linux-armv7 $(RPM_DEPS)
+$(PACKAGE_PREFIX).armv7.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,armhfp,armv7,$@)
 
 endif
@@ -318,7 +337,7 @@ endif
 enforce-release-tag:
 	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
-test-packages: enforce-release-tag dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
+test-packages: enforce-release-tag seego dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
 .PHONY: test-package
 
