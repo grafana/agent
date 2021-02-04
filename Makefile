@@ -89,7 +89,7 @@ PACKAGE_RELEASE := 1
 
 DOCKERFILE = Dockerfile
 
-seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
+seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" grafana/agent/seego
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 
 ifeq ($(CROSS_BUILD),true)
@@ -192,8 +192,12 @@ example-dashboards:
 # use CGO_ENABLED for all of them. We define them all as separate targets
 # to allow for parallelization with make -jX.
 #
-# We use rfratto/seego for building these cross-platform images. seego provides
-# a docker image with gcc toolchains for all of these platforms.
+# We use rfratto/seego as a base for building these cross-platform images.
+# seego provides a docker image with gcc toolchains for all of these platforms.
+#
+# A custom grafana/agent/seego image is built on top of the base image with
+# specific overrides. grafana/agent/seego is not pushed to Docker Hub and
+# can be built with "make seego".
 dist: dist-agent dist-agentctl dist-packages
 	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
@@ -226,6 +230,9 @@ dist/agentctl-darwin-amd64:
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-windows-amd64.exe:
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+seego: tools/seego/Dockerfile
+	docker build -t grafana/agent/seego tools/seego
 
 build-image/.uptodate: build-image/Dockerfile
 	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
