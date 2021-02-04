@@ -4,6 +4,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+- [ENHANCEMENT] Only keep a handful of K8s API server metrics by default to reduce
+  default active series usage.
+
 BREAKING CHANGES: This release has two breaking changes in the configuration
 file. Please read the release notes carefully and our
 [migration guide](./docs/migration-guide.md) to help migrate your configuration
