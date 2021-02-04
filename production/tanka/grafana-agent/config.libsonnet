@@ -121,17 +121,12 @@
           action: 'keep',
         }],
 
-        // Drop some high cardinality metrics.
+        // Keep limited set of metrics to reduce default usage, drop all others
         metric_relabel_configs: [
           {
             source_labels: ['__name__'],
-            regex: 'apiserver_admission_controller_admission_latencies_seconds_.*',
-            action: 'drop',
-          },
-          {
-            source_labels: ['__name__'],
-            regex: 'apiserver_admission_step_admission_latencies_seconds_.*',
-            action: 'drop',
+            regex: 'workqueue_queue_duration_seconds_bucket|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_depth|rest_client_request_duration_seconds_bucket|workqueue_adds_total|up|rest_client_requests_total|apiserver_request_total|go_goroutines',
+            action: 'keep',
           },
         ],
 

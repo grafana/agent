@@ -205,12 +205,8 @@ data:
                 kubernetes_sd_configs:
                   - role: endpoints
                 metric_relabel_configs:
-                  - action: drop
-                    regex: apiserver_admission_controller_admission_latencies_seconds_.*
-                    source_labels:
-                      - __name__
-                  - action: drop
-                    regex: apiserver_admission_step_admission_latencies_seconds_.*
+                  - action: keep
+                    regex: workqueue_queue_duration_seconds_bucket|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_depth|rest_client_request_duration_seconds_bucket|workqueue_adds_total|up|rest_client_requests_total|apiserver_request_total|go_goroutines
                     source_labels:
                       - __name__
                 relabel_configs:
