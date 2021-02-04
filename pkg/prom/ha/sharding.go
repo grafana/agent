@@ -194,18 +194,19 @@ func (m ShardingInstanceManager) ListConfigs() map[string]instance.Config {
 
 // ApplyConfig implements instance.Manager.ApplyConfig.
 func (m ShardingInstanceManager) ApplyConfig(c instance.Config) error {
-	hash, err := configHash(&c)
-	if err != nil {
-		return fmt.Errorf("failed to hash config: %w", err)
-	}
-
-	owned, err := m.owns(hash)
+	keyHash := configKeyHash(&c)
+	owned, err := m.owns(keyHash)
 	if err != nil {
 		level.Error(m.log).Log("msg", "failed to check if a config is owned, skipping config until next reshard", "err", err)
 		return nil
 	}
 
 	if owned {
+		hash, err := configHash(&c)
+		if err != nil {
+			return fmt.Errorf("failed to hash config: %w", err)
+		}
+
 		// If the config is unchanged, do nothing.
 		if m.keyToHash[c.Name] == hash {
 			return nil
@@ -254,6 +255,7 @@ func (m ShardingInstanceManager) owns(hash uint32) (bool, error) {
 	return false, nil
 }
 
+// configHash returns the hash of the entirety of an instance config.
 func configHash(c *instance.Config) (uint32, error) {
 	val, err := instance.MarshalConfig(c, false)
 	if err != nil {
@@ -262,4 +264,13 @@ func configHash(c *instance.Config) (uint32, error) {
 	h := fnv.New32()
 	_, _ = h.Write(val)
 	return h.Sum32(), nil
+}
+
+// configKeyHash gets a hash for a config that is used to determine ownership.
+// It is based on primary keys of the instance config rather than the entire
+// config.
+func configKeyHash(c *instance.Config) uint32 {
+	h := fnv.New32()
+	_, _ = h.Write([]byte(c.Name))
+	return h.Sum32()
 }
