@@ -39,6 +39,8 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
+    - name: Prepare cross compilers
+      run: CROSS_BUILD=true RELEASE_BUILD=true make seego
     - name: Make Containers
       run: CROSS_BUILD=true RELEASE_BUILD=true make agent-image
   agentctl-container:
@@ -58,5 +60,7 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
+    - name: Prepare cross compilers
+      run: CROSS_BUILD=true RELEASE_BUILD=true make seego
     - name: Make Containers
       run: CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image

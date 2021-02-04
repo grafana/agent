@@ -104,6 +104,6 @@ jobs:
 
         export RELEASE_TAG=${GITHUB_REF##*/}
 
-        # Warm up make publish by pulling rfratto/seego ahead of time
-        docker pull rfratto/seego:latest
+        # We need to prepare the cross compilers first.
+        make seego
         make -j4 RELEASE_BUILD=true publish
