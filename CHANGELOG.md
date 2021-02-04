@@ -42,6 +42,9 @@ files to the new format.
   that updating a config is guaranteed to always hash to the same Agent,
   reducing the number of metrics gaps. (@rfratto)
 
+- [ENHANCEMENT] Only keep a handful of K8s API server metrics by default to reduce
+  default active series usage. (@hjet)
+
 - [BUGFIX] `agentctl config-check` will now work correctly when the supplied
   config file contains integrations. (@hoenn)
 
