@@ -37,6 +37,11 @@ files to the new format.
   cortex_ring_) will now be registered for tracking the state of the hash
   ring. (@rfratto)
 
+- [ENHANCEMENT] Scraping service: instance config ownership is now determined by
+  the hash of the instance config name instead of the entire config. This means
+  that updating a config is guaranteed to always hash to the same Agent,
+  reducing the number of metrics gaps. (@rfratto)
+
 - [BUGFIX] `agentctl config-check` will now work correctly when the supplied
   config file contains integrations. (@hoenn)
 
