@@ -1,6 +1,4 @@
-FROM --platform=$BUILDPLATFORM rfratto/seego:latest as build
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
+FROM rfratto/seego:latest as build
 
 # Use custom Go version instead of one prepacked in seego
 ENV GOLANG_VERSION 1.15.7
