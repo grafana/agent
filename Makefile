@@ -149,10 +149,10 @@ else
 endif
 	$(NETGO_CHECK)
 
-agent-image: check-seego
+agent-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 
-agentctl-image: check-seego
+agentctl-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 
 install:
@@ -236,10 +236,10 @@ seego: tools/seego/Dockerfile
 
 # Makes seego if CROSS_BUILD is true.
 check-seego:
-ifeq ($(CROSS_BUILD),false)
-	# seego not required
-else
+ifeq ($(CROSS_BUILD),true)
+ifeq ($(BUILD_IN_CONTAINER),true)
 	$(MAKE) seego
+endif
 endif
 
 build-image/.uptodate: build-image/Dockerfile
