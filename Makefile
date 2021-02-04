@@ -264,20 +264,20 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 ifeq ($(BUILD_IN_CONTAINER), true)
 dist-packages: enforce-release-tag dist-agent dist-agentctl build-image/.uptodate
 	docker run --rm \
-		-v  $(shell pwd):/src/agent:delegated \
+		-v $(shell pwd):/src/agent:delegated \
 		-e RELEASE_TAG=$(RELEASE_TAG) \
 		-e SRC_PATH=/src/agent \
 		-i $(BUILD_IMAGE) $@;
 .PHONY: dist-packages
 else
 dist-packages:
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.deb
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.deb
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.deb
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv6.deb
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.rpm
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.deb
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.deb
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.rpm
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.deb
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.rpm
+	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv6.deb
 .PHONY: dist-packages
 
 ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
@@ -312,20 +312,24 @@ RPM_DEPS := $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
 # agent arm64, deb arm64, rpm aarch64
 # agent armv7, deb armhf, rpm armhfp
 # agent armv6, deb armhf, (No RPM for armv6)
-$(PACKAGE_PREFIX).amd64.deb: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(DEB_DEPS)
+#
+# These targets require the agent/agentctl binaries to have already been built
+# with seego. Since this usually runs inside of a Docker Container, we can't
+# build them here.
+$(PACKAGE_PREFIX).amd64.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,amd64,amd64,$@)
-$(PACKAGE_PREFIX).arm64.deb: dist/agent-linux-arm64 dist/agentctl-linux-arm64 $(DEB_DEPS)
+$(PACKAGE_PREFIX).arm64.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,arm64,arm64,$@)
-$(PACKAGE_PREFIX).armv7.deb: dist/agent-linux-armv7 dist/agentctl-linux-armv7 $(DEB_DEPS)
+$(PACKAGE_PREFIX).armv7.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,armhf,armv7,$@)
-$(PACKAGE_PREFIX).armv6.deb: dist/agent-linux-armv6 dist/agentctl-linux-armv6 $(DEB_DEPS)
+$(PACKAGE_PREFIX).armv6.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,armhf,armv6,$@)
 
-$(PACKAGE_PREFIX).amd64.rpm: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(RPM_DEPS)
+$(PACKAGE_PREFIX).amd64.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,x86_64,amd64,$@)
-$(PACKAGE_PREFIX).arm64.rpm: dist/agent-linux-arm64 dist/agentctl-linux-arm64 $(RPM_DEPS)
+$(PACKAGE_PREFIX).arm64.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,aarch64,arm64,$@)
-$(PACKAGE_PREFIX).armv7.rpm: dist/agent-linux-armv7 dist/agentctl-linux-armv7 $(RPM_DEPS)
+$(PACKAGE_PREFIX).armv7.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,armhfp,armv7,$@)
 
 endif
