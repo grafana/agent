@@ -45,7 +45,7 @@ files to the new format.
 - [ENHANCEMENT] Only keep a handful of K8s API server metrics by default to reduce
   default active series usage. (@hjet)
 
-- [ENHANCEMENT] Go 1.15.7 is now used for all distributions of the Agent.
+- [ENHANCEMENT] Go 1.15.8 is now used for all distributions of the Agent.
   (@rfratto)
 
 - [BUGFIX] `agentctl config-check` will now work correctly when the supplied
