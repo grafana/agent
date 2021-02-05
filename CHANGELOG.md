@@ -28,7 +28,8 @@ files to the new format.
 - [ENHANCEMENT] The `/agent/api/v1/targets` API will now include discovered labels
   on the target pre-relabeling in a `discovered_labels` field. (@rfratto)
 
-- [ENHANCEMENT] Update to Cortex v1.7.0-rc.0 (@rfratto)
+- [ENHANCEMENT] Update Loki to 59a34f9867ce. This is a non-release build, and was needed
+  to support multiple Loki instances. (@rfratto)
 
 - [ENHANCEMENT] Scraping service: Unhealthy Agents in the ring will no longer
   cause job distribution to fail. (@rfratto)

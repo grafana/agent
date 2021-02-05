@@ -160,7 +160,7 @@ func TestServer_Cluster_Reshard_On_Start_And_Leave(t *testing.T) {
 	injectRingIngester(r)
 	r.GetAllHealthyFunc = func(_ ring.Operation) (ring.ReplicationSet, error) {
 		return ring.ReplicationSet{
-			Ingesters: []ring.IngesterDesc{
+			Ingesters: []ring.InstanceDesc{
 				{Addr: "test"},
 				agent1Desc,
 				agent2Desc,
@@ -191,15 +191,15 @@ func TestServer_Cluster_Reshard_On_Start_And_Leave(t *testing.T) {
 }
 
 func injectRingIngester(r *mockFuncReadRing) {
-	r.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.IngesterDesc, _, _ []string) (ring.ReplicationSet, error) {
+	r.GetFunc = func(_ uint32, _ ring.Operation, _ []ring.InstanceDesc, _, _ []string) (ring.ReplicationSet, error) {
 		return ring.ReplicationSet{
-			Ingesters: []ring.IngesterDesc{{Addr: "test"}},
+			Ingesters: []ring.InstanceDesc{{Addr: "test"}},
 		}, nil
 	}
 
 	r.GetAllHealthyFunc = func(_ ring.Operation) (ring.ReplicationSet, error) {
 		return ring.ReplicationSet{
-			Ingesters: []ring.IngesterDesc{{Addr: "test"}},
+			Ingesters: []ring.InstanceDesc{{Addr: "test"}},
 		}, nil
 	}
 }
@@ -399,10 +399,10 @@ func (m mockFuncAgentProtoServer) Reshard(ctx context.Context, req *agentproto.R
 }
 
 // startScrapingServiceServer launches a gRPC server and registers a ScrapingServiceServer
-// against it. The ring.IngesterDesc to add to a ring implementation is returned.
+// against it. The ring.InstanceDesc to add to a ring implementation is returned.
 //
 // The gRPC server will be stopped when the test exits.
-func startScrapingServiceServer(t *testing.T, srv agentproto.ScrapingServiceServer) ring.IngesterDesc {
+func startScrapingServiceServer(t *testing.T, srv agentproto.ScrapingServiceServer) ring.InstanceDesc {
 	t.Helper()
 
 	l, err := net.Listen("tcp", "127.0.0.1:0")
@@ -416,7 +416,7 @@ func startScrapingServiceServer(t *testing.T, srv agentproto.ScrapingServiceServ
 	}()
 	t.Cleanup(func() { grpcServer.Stop() })
 
-	return ring.IngesterDesc{
+	return ring.InstanceDesc{
 		Addr:      l.Addr().String(),
 		State:     ring.ACTIVE,
 		Timestamp: math.MaxInt64,

@@ -122,7 +122,7 @@ github.com/coreos/go-systemd/journal
 github.com/coreos/go-systemd/sdjournal
 # github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
 github.com/coreos/pkg/capnslog
-# github.com/cortexproject/cortex v1.6.1-0.20210129172402-0976147451ee
+# github.com/cortexproject/cortex v1.6.1-0.20210204145131-7dac81171c66
 ## explicit
 github.com/cortexproject/cortex/pkg/distributor
 github.com/cortexproject/cortex/pkg/ingester/client
@@ -247,7 +247,7 @@ github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/struct
 github.com/golang/protobuf/ptypes/timestamp
 github.com/golang/protobuf/ptypes/wrappers
-# github.com/golang/snappy v0.0.2
+# github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3
 github.com/golang/snappy
 # github.com/gomodule/redigo v2.0.0+incompatible => github.com/gomodule/redigo v1.8.2
 github.com/gomodule/redigo/redis
@@ -292,7 +292,7 @@ github.com/gophercloud/gophercloud/pagination
 github.com/gorilla/mux
 # github.com/gorilla/websocket v1.4.2
 github.com/gorilla/websocket
-# github.com/grafana/loki v1.6.2-0.20210203125540-d667dd20f287
+# github.com/grafana/loki v1.6.2-0.20210205130758-59a34f9867ce
 ## explicit
 github.com/grafana/loki/pkg/distributor
 github.com/grafana/loki/pkg/helpers
@@ -704,7 +704,7 @@ github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
-# github.com/thanos-io/thanos v0.13.1-0.20210108102609-f85e4003ba51
+# github.com/thanos-io/thanos v0.13.1-0.20210204123931-82545cdd16fe
 github.com/thanos-io/thanos/pkg/discovery/dns
 github.com/thanos-io/thanos/pkg/discovery/dns/godns
 github.com/thanos-io/thanos/pkg/discovery/dns/miekgdns
