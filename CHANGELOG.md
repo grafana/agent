@@ -4,6 +4,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+# v0.12.0 (2021-02-05)
+
 BREAKING CHANGES: This release has two breaking changes in the configuration
 file. Please read the release notes carefully and our
 [migration guide](./docs/migration-guide.md) to help migrate your configuration
