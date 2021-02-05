@@ -1,5 +1,10 @@
 This is release `${RELEASE_TAG}` of the Grafana Cloud Agent.
 
+### Upgrading
+Read the
+[migration guide](https://github.com/grafana/agent/blob/${RELEASE_TAG}/docs/migration-guide.md)
+for specific instructions on upgrading from older versions.
+
 ### Notable changes:
 :warning: **ADD RELEASE NOTES HERE** :warning:
 
