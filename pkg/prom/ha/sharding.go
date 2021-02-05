@@ -116,7 +116,7 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 type ReadRing interface {
 	http.Handler
 
-	Get(key uint32, op ring.Operation, bufDescs []ring.IngesterDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
+	Get(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
 	GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error)
 }
 

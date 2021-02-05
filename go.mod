@@ -5,7 +5,7 @@ go 1.15
 require (
   contrib.go.opencensus.io/exporter/prometheus v0.2.0
   github.com/aws/aws-sdk-go v1.36.15
-  github.com/cortexproject/cortex v1.6.1-0.20210129172402-0976147451ee
+  github.com/cortexproject/cortex v1.6.1-0.20210204145131-7dac81171c66
   github.com/drone/envsubst v1.0.2
   github.com/go-kit/kit v0.10.0
   github.com/go-playground/validator/v10 v10.4.0 // indirect
@@ -13,7 +13,7 @@ require (
   github.com/golang/protobuf v1.4.3
   github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
   github.com/gorilla/mux v1.8.0
-  github.com/grafana/loki v1.6.2-0.20210203125540-d667dd20f287
+  github.com/grafana/loki v1.6.2-0.20210205130758-59a34f9867ce
   github.com/hashicorp/consul/api v1.8.1
   github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
   github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909 // indirect
