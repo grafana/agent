@@ -42,9 +42,15 @@ docker run \
 
 ## Running the Agent locally
 
-Currently, you must provide your own system configuration files to run the
-Agent as a long-living process (e.g., write your own systemd unit files).
-
+The deb and rpm packages provides needed script to run the grafana-agent as a long-living process. 
+Don't forget to run `systemctl status grafana-agent`to check service status.
+```
+systemctl status grafana-agent
+● grafana-agent.service - Monitoring system and forwarder
+     Loaded: loaded (/lib/systemd/system/grafana-agent.service; disabled; vendor preset: enabled)
+     Active: inactive (dead)
+       Docs: https://github.com/grafana/agent/blob/master/docs/README.md
+```
 ## Use the example Kubernetes configs
 
 The install script replaces variable placeholders in the [example Kubernetes
