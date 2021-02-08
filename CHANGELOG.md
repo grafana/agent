@@ -4,6 +4,10 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+- [BUGFIX] Not providing an `-addr` flag for `agentctl config-sync` will no
+  longer report an error and will instead use the pre-existing default value.
+  (@rfratto)
+
 # v0.12.0 (2021-02-05)
 
 BREAKING CHANGES: This release has two breaking changes in the configuration
