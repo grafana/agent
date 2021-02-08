@@ -70,10 +70,15 @@ source-of-truth directory.`,
 		Args: cobra.ExactArgs(1),
 
 		Run: func(_ *cobra.Command, args []string) {
+			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
+
+			if agentAddr == "" {
+				level.Error(logger).Log("msg", "-addr must not be an empty string")
+				os.Exit(1)
+			}
+
 			directory := args[0]
 			cli := client.New(agentAddr)
-
-			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
 
 			err := agentctl.ConfigSync(logger, cli.PrometheusClient, directory, dryRun)
 			if err != nil {
@@ -85,7 +90,6 @@ source-of-truth directory.`,
 
 	cmd.Flags().StringVarP(&agentAddr, "addr", "a", "http://localhost:12345", "address of the agent to connect to")
 	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "use the dry run option to validate config files without attempting to upload")
-	must(cmd.MarkFlagRequired("addr"))
 	return cmd
 }
 
