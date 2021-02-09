@@ -628,7 +628,7 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 
 func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config) {
 	// Track the last timestamp we truncated for to prevent segments from getting
-	// deleted until at least some data has been sent.
+	// deleted until at least some new data has been sent.
 	var lastTs int64 = math.MinInt64
 
 	for {
