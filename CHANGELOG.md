@@ -13,6 +13,13 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 - [BUGFIX] Fixed a bug from v0.12.0 where the Loki installation script failed
   because positions_directory was not set. (@rfratto)
 
+- [BUGFIX] (#400) Reduce the likelihood of dataloss during a remote_write-side
+  outage by increasing the default wal_truncation_frequency to 60m and preventing
+  the WAL from being truncated if the last truncation timestamp hasn't changed.
+  This change increases the size of the WAL on average, and users may configure
+  a lower wal_truncation_frequency to deliberately choose a smaller WAL over
+  write guarantees. (@rfratto)
+
 # v0.12.0 (2021-02-05)
 
 BREAKING CHANGES: This release has two breaking changes in the configuration

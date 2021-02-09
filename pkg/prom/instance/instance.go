@@ -44,7 +44,7 @@ var (
 var (
 	DefaultConfig = Config{
 		HostFilter:           false,
-		WALTruncateFrequency: 1 * time.Minute,
+		WALTruncateFrequency: 60 * time.Minute,
 		MinWALTime:           5 * time.Minute,
 		MaxWALTime:           4 * time.Hour,
 		RemoteFlushDeadline:  1 * time.Minute,
@@ -627,6 +627,10 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 }
 
 func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config) {
+	// Track the last timestamp we truncated for to prevent segments from getting
+	// deleted until at least some data has been sent.
+	var lastTs int64 = math.MinInt64
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -653,6 +657,12 @@ func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config
 			if maxTS := timestamp.FromTime(time.Now().Add(-i.cfg.MaxWALTime)); ts < maxTS {
 				ts = maxTS
 			}
+
+			if ts == lastTs {
+				level.Debug(i.logger).Log("msg", "not truncating the WAL, remote_write timestamp is unchanged", "ts", ts)
+				continue
+			}
+			lastTs = ts
 
 			level.Debug(i.logger).Log("msg", "truncating the WAL", "ts", ts)
 			err := wal.Truncate(ts)

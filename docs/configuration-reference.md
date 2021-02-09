@@ -378,7 +378,16 @@ host_filter_relabel_configs:
 # earliest timestamp is used for the cutoff period, ensuring that no data
 # gets truncated until all remote_write configurations have been able to
 # send the data.
-[wal_truncate_frequency: <duration> | default = "1m"]
+
+# How frequently the WAL truncation process should run. Every iteration of
+# the truncation will checkpoint old series and remove old samples. If data
+# has not been sent within this window, some of it may be lost.
+#
+# The size of the WAL will increase with less frequent truncations. Making
+# truncations more frequent reduces the size of the WAL but increases the
+# chances of data loss when remote_write is failing for longer than the
+# specified frequency.
+[wal_truncate_frequency: <duration> | default = "60m"]
 
 # The minimum amount of time that series and samples should exist in the WAL
 # before being considered for deletion. The consumed disk space of the WAL will
