@@ -372,14 +372,6 @@ host_filter_relabel_configs:
   [ - <relabel_config> ... ]
 
 # How frequently the WAL truncation process should run. Every iteration of
-# truncation will checkpoint old series, create a new segment for new samples,
-# and remove old samples that have been succesfully sent via remote_write.
-# If there are are multiple remote_write endpoints, the endpoint with the
-# earliest timestamp is used for the cutoff period, ensuring that no data
-# gets truncated until all remote_write configurations have been able to
-# send the data.
-
-# How frequently the WAL truncation process should run. Every iteration of
 # the truncation will checkpoint old series and remove old samples. If data
 # has not been sent within this window, some of it may be lost.
 #
