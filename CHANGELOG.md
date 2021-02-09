@@ -4,6 +4,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Master (unreleased)
 
+- [ENHANCEMENT] Support other architectures in installation script. (@rfratto)
+
 - [BUGFIX] Not providing an `-addr` flag for `agentctl config-sync` will no
   longer report an error and will instead use the pre-existing default value.
   (@rfratto)
