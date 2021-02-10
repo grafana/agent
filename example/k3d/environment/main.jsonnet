@@ -4,6 +4,7 @@ local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
 local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
+local loki_config = import 'default/loki_config.libsonnet';
 
 local service = k.core.v1.service;
 local images = {
@@ -51,7 +52,13 @@ local images = {
     }) +
     grafana_agent.withRemoteWrite([{
       url: 'http://cortex.default.svc.cluster.local/api/prom/push',
-    }]),
+    }]) +
+    grafana_agent.withLokiConfig(loki_config) +
+    grafana_agent.withLokiClients(grafana_agent.newLokiClient({
+      scheme: 'http',
+      hostname: 'loki.default.svc.cluster.local',
+      external_labels: { cluster: cluster_label },
+    })),
 
   // Need to run ETCD for agent_cluster
   etcd: etcd.new('default'),

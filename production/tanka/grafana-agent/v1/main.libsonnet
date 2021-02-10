@@ -68,6 +68,7 @@ local service = k.core.v1.service;
     ) + (
       if has_loki_config then {
         loki: {
+          positions_directory: '/tmp/positions',
           configs: [this._loki_config {
             name: 'default',
           }],
