@@ -54,16 +54,6 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/grafana/loki.git",
-          "subdir": "production/ksonnet/promtail"
-        }
-      },
-      "version": "10a1f28a85b5506c662688611442d31867fe2bc0",
-      "sum": "MOoAhHzLkR7NSqD7ZVqjlcSDNRUz3fVgJQiYM1hd+us="
-    },
-    {
-      "source": {
-        "git": {
           "remote": "https://github.com/jsonnet-libs/k8s-alpha.git",
           "subdir": "1.14"
         }

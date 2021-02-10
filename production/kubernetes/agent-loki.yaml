@@ -258,6 +258,7 @@ data:
                       - __meta_kubernetes_pod_annotation_kubernetes_io_config_mirror
                       - __meta_kubernetes_pod_container_name
                     target_label: __path__
+        positions_directory: /tmp/positions
     server:
         http_listen_port: 8080
         log_level: info
