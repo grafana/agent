@@ -10,6 +10,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   longer report an error and will instead use the pre-existing default value.
   (@rfratto)
 
+- [BUGFIX] Fixed a bug from v0.12.0 where the Loki installation script failed
+  because positions_directory was not set. (@rfratto)
+
 # v0.12.0 (2021-02-05)
 
 BREAKING CHANGES: This release has two breaking changes in the configuration
