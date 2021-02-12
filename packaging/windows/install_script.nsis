@@ -10,7 +10,7 @@ Unicode true
 !define ABOUTURL "https://github.com/grafana/agent" # "Publisher" link
 !include LogicLib.nsh
 
-RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on)
+RequestExecutionLevel admin #Require admin rights on NT6+ (When UAC is turned on)
  
 InstallDir "$PROGRAMFILES\${APPNAME}"
  
@@ -18,11 +18,13 @@ InstallDir "$PROGRAMFILES\${APPNAME}"
 Name "${APPNAME}"
 Icon "logo.ico"
 outFile "/app/grafana-agent-installer.exe"
- 
+
 !include LogicLib.nsh
 !include nsDialogs.nsh
+!include FileFunc.nsh
 
-; Everything must be global Vars
+
+# Everything must be global Vars
 
 # These are handles to dialogs
 Var Dialog
@@ -44,21 +46,82 @@ Var RemoteUrl
 Var RemoteUser
 Var RemotePassword
 Var EnableExporterValue
- 
+
+# Silent install params
+
+Var PassedInParameters
+
 Page directory
 Page custom remoteWriteInfo remoteWriteInfoLeave
 Page custom enableWindowsExporter enableWindowsExporterLeave
 Page instfiles
 
+
+
 !macro VerifyUserIsAdmin
 UserInfo::GetAccountType
 pop $0
-${If} $0 != "admin" ;Require admin rights on NT4+
+${If} $0 != "admin" #Require admin rights on NT4+
         messageBox mb_iconstop "Administrator rights required!"
-        setErrorLevel 740 ;ERROR_ELEVATION_REQUIRED
+        setErrorLevel 740 #ERROR_ELEVATION_REQUIRED
         quit
 ${EndIf}
 !macroend
+
+
+Section SilentInstaller
+    IfSilent ThisIsSilent RunInstaller
+    ThisIsSilent:
+        ${GetParameters} $PassedInParameters
+        ${GetOptions} $PassedInParameters "-RemoteURL" $RemoteUrl
+        ${GetOptions} $PassedInParameters "-RemoteUser" $RemoteUser
+        ${GetOptions} $PassedInParameters "-RemotePassword" $RemotePassword
+        ${GetOptions} $PassedInParameters "-EnableExporter" $EnableExporterValue
+        Call Install
+        # TODO add error conditions
+        Return
+    RunInstaller:
+        Return
+SectionEnd
+
+
+Section "install"
+    IfSilent ThisIsSilent RunInstaller
+    ThisIsSilent:
+        Return
+    RunInstaller:
+        Call Install
+SectionEnd
+
+Section "uninstall"
+    # Remove Start Menu launcher
+    delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
+    # Try to remove the Start Menu folder - this will only happen if it is empty
+    rmDir "$SMPROGRAMS\${APPNAME}"
+    # NSSM is the best way to wrap a generic exe has a service, else the service wont respond correctly to control messages
+    # This is cleanup on the service and removing the exporter.
+    ExecWait `"$INSTDIR\nssm.exe" stop "Grafana Agent"`
+    ExecWait `"$INSTDIR\nssm.exe" remove "Grafana Agent" confirm`
+    # If these arent running we are going to ignore the errors
+    ExecWait `"$INSTDIR\nssm.exe" stop "Windows Exporter"`
+    ExecWait `"$INSTDIR\nssm.exe" remove "Windows Exporter" confirm`
+
+    # Remove files
+    delete $INSTDIR\agent-windows-amd64.exe
+    delete $INSTDIR\logo.ico
+    delete $INSTDIR\agent-config.yaml
+    delete $INSTDIR\windows_exporter-0.15.0-amd64.exe
+    delete $INSTDIR\nssm.exe
+ 
+    # Always delete uninstaller as the last action
+    delete $INSTDIR\uninstall.exe
+ 
+    # Try to remove the install directory - this will only happen if it is empty
+    rmDir $INSTDIR
+ 
+    # Remove uninstaller information from the registry
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+SectionEnd
 
 Function remoteWriteInfo
     nsDialogs::Create 1018
@@ -114,6 +177,11 @@ FunctionEnd
 
 Function enableWindowsExporterLeave
     ${NSD_GetState} $EnableExporterCheck $EnableExporterValue
+    ${If} $EnableExporterValue == ${BST_CHECKED}
+        StrCpy $EnableExporterValue "true"
+    ${Else}
+        StrCpy $EnableExporterValue "false"
+    ${EndIf}
 FunctionEnd
  
  
@@ -122,7 +190,18 @@ Function .onInit
     !insertmacro VerifyUserIsAdmin
 FunctionEnd
  
-Section "install"
+# Uninstaller
+Function un.onInit
+    SetShellVarContext all
+ 
+    #Verify the uninstaller - last chance to back out
+    MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}?" IDOK next
+        Abort
+    next:
+    !insertmacro VerifyUserIsAdmin
+FunctionEnd
+
+Function Install
     # Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
     setOutPath $INSTDIR
     # Files added here should be removed by the uninstaller (see section "uninstall")
@@ -148,20 +227,31 @@ Section "install"
     # There is no option for modifying or repairing the install
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoModify" 1
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoRepair" 1
+    Call WriteConfig
+  
+    # Create our batch file, since services cant run with parameters
+    ExecWait `"$INSTDIR\nssm.exe" install "Grafana Agent" "$INSTDIR\agent-windows-amd64.exe"`
+    ExecWait '"$INSTDIR\nssm.exe" set "Grafana Agent" AppParameters "--config.file=\"$INSTDIR\agent-config.yaml\""'
+    ExecWait `"$INSTDIR\nssm.exe" start "Grafana Agent"`
+    ${If} $EnableExporterValue == "true"
+        ExecWait `"$INSTDIR\nssm.exe" install "Windows Exporter" "$INSTDIR\windows_exporter-0.15.0-amd64.exe"`
+        ExecWait `"$INSTDIR\nssm.exe" start "Windows Exporter"`
+    ${EndIf}
+FunctionEnd
 
-    # Write the config file, its easier to do this way than replacing an values in a templated file
-
-    FileOpen $9 "$INSTDIR\agent-config.yaml" w ;Opens a Empty File and fills it
-    FileWrite $9 `server:$\n`;
+Function WriteConfig
+     # Write the config file, its easier to do this way than replacing an values in a templated file
+    FileOpen $9 "$INSTDIR\agent-config.yaml" w #Opens a Empty File and fills it
+    FileWrite $9 `server:$\n`
     FileWrite $9 `  http_listen_port: 12345$\n`
     FileWrite $9 `prometheus:$\n`
-    FileWrite $9 `  wal_directory: /tmp/grafana-agent-wal$\n`;
+    FileWrite $9 `  wal_directory: /tmp/grafana-agent-wal$\n`
     FileWrite $9 `  global:$\n`
     FileWrite $9 `    scrape_interval: 15s$\n`
     FileWrite $9 `  configs:$\n`
     FileWrite $9 `    - name: integrations$\n`
     FileWrite $9 `      scrape_configs:$\n`
-    ${If} $EnableExporterValue == ${BST_CHECKED}
+    ${If} $EnableExporterValue == "true"
         FileWrite $9 `        - job_name: integrations/windows-exporter$\n`
         FileWrite $9 `          metrics_path: /metrics$\n`
         FileWrite $9 `          static_configs:$\n`
@@ -179,54 +269,6 @@ Section "install"
     FileWrite $9 `      basic_auth:$\n`
     FileWrite $9 `        username: "$RemoteUser"$\n`
     FileWrite $9 `        password: $RemotePassword`
-    FileClose $9 ; and close the file
-    # Create our batch file, since services cant run with parameters
-    ExecWait `"$INSTDIR\nssm.exe" install "Grafana Agent" "$INSTDIR\agent-windows-amd64.exe"`
-    ExecWait '"$INSTDIR\nssm.exe" set "Grafana Agent" AppParameters "--config.file=\"$INSTDIR\agent-config.yaml\""'
-    ExecWait `"$INSTDIR\nssm.exe" start "Grafana Agent"`
-    ${If} $EnableExporterValue == ${BST_CHECKED}
-        ExecWait `"$INSTDIR\nssm.exe" install "Windows Exporter" "$INSTDIR\windows_exporter-0.15.0-amd64.exe"`
-        ExecWait `"$INSTDIR\nssm.exe" start "Windows Exporter"`
-    ${EndIf}
-SectionEnd
- 
-# Uninstaller
-Function un.onInit
-    SetShellVarContext all
- 
-    #Verify the uninstaller - last chance to back out
-    MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}?" IDOK next
-        Abort
-    next:
-    !insertmacro VerifyUserIsAdmin
+    FileClose $9 # and close the file
+    Return
 FunctionEnd
- 
-Section "uninstall"
-    # Remove Start Menu launcher
-    delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
-    # Try to remove the Start Menu folder - this will only happen if it is empty
-    rmDir "$SMPROGRAMS\${APPNAME}"
-    # NSSM is the best way to wrap a generic exe has a service, else the service wont respond correctly to control messages
-    # This is cleanup on the service and removing the exporter.
-    ExecWait `"$INSTDIR\nssm.exe" stop "Grafana Agent"`
-    ExecWait `"$INSTDIR\nssm.exe" remove "Grafana Agent" confirm`
-    # If these arent running we are going to ignore the errors
-    ExecWait `"$INSTDIR\nssm.exe" stop "Windows Exporter"`
-    ExecWait `"$INSTDIR\nssm.exe" remove "Windows Exporter" confirm`
-
-    # Remove files
-    delete $INSTDIR\agent-windows-amd64.exe
-    delete $INSTDIR\logo.ico
-    delete $INSTDIR\agent-config.yaml
-    delete $INSTDIR\windows_exporter-0.15.0-amd64.exe
-    delete $INSTDIR\nssm.exe
- 
-    # Always delete uninstaller as the last action
-    delete $INSTDIR\uninstall.exe
- 
-    # Try to remove the install directory - this will only happen if it is empty
-    rmDir $INSTDIR
- 
-    # Remove uninstaller information from the registry
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
-SectionEnd
