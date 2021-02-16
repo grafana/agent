@@ -73,10 +73,10 @@ Section SilentInstaller
     IfSilent ThisIsSilent RunInstaller
     ThisIsSilent:
         ${GetParameters} $PassedInParameters
-        ${GetOptions} $PassedInParameters "-RemoteURL" $RemoteUrl
-        ${GetOptions} $PassedInParameters "-RemoteUser" $RemoteUser
-        ${GetOptions} $PassedInParameters "-RemotePassword" $RemotePassword
-        ${GetOptions} $PassedInParameters "-EnableExporter" $EnableExporterValue
+        ${GetOptions} $PassedInParameters "/RemoteURL" $RemoteUrl
+        ${GetOptions} $PassedInParameters "/RemoteUser" $RemoteUser
+        ${GetOptions} $PassedInParameters "/RemotePassword" $RemotePassword
+        ${GetOptions} $PassedInParameters "/EnableExporter" $EnableExporterValue
         Call Install
         # TODO add error conditions
         Return
