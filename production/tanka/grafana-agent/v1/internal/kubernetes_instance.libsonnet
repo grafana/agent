@@ -45,7 +45,7 @@ local k8s_tls_config(config) = {
         ],
       },
 
-      k8s_tls_config(config) {
+      {
         job_name: 'kubernetes-pods',
         kubernetes_sd_configs: [{
           role: 'pod',
@@ -166,7 +166,7 @@ local k8s_tls_config(config) = {
       // timeseries. This prevents the exported namespace label from being
       // renamed to exported_namesapce and allows us to route alerts based on
       // namespace.
-      k8s_tls_config(config) {
+      {
         job_name: '%s/kube-state-metrics' % namespace,
         kubernetes_sd_configs: [{
           role: 'pod',
@@ -202,7 +202,7 @@ local k8s_tls_config(config) = {
 
       // A separate scrape config for node-exporter which maps the node name
       // onto the instance label.
-      k8s_tls_config(config) {
+      {
         job_name: '%s/node-exporter' % namespace,
         kubernetes_sd_configs: [{
           role: 'pod',
