@@ -139,12 +139,6 @@
           role: 'pod',
         }],
 
-        tls_config: {
-          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-          insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
-        },
-        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-
         // You can specify the following annotations (on pods):
         //   prometheus.io/scrape: false - don't scrape this pod
         //   prometheus.io/scheme: https - use https for scraping
@@ -269,12 +263,6 @@
           },
         }],
 
-        tls_config: {
-          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-          insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
-        },
-        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-
         relabel_configs: [
           // Drop anything whose service is not kube-state-metrics
           {
@@ -310,12 +298,6 @@
             names: [$._config.namespace],
           },
         }],
-
-        tls_config: {
-          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-          insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
-        },
-        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
 
         relabel_configs: [
           // Drop anything whose name is not node-exporter.

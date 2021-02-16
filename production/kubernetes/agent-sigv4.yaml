@@ -19,8 +19,7 @@ data:
                     region: ${REGION}
                 url: ${REMOTE_WRITE_URL}
             scrape_configs:
-              - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-                job_name: kubernetes-pods
+              - job_name: kubernetes-pods
                 kubernetes_sd_configs:
                   - role: pod
                 relabel_configs:
@@ -88,11 +87,7 @@ data:
                     regex: Succeeded|Failed
                     source_labels:
                       - __meta_kubernetes_pod_phase
-                tls_config:
-                    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-                    insecure_skip_verify: false
-              - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-                job_name: ${NAMESPACE}/kube-state-metrics
+              - job_name: ${NAMESPACE}/kube-state-metrics
                 kubernetes_sd_configs:
                   - namespaces:
                         names:
@@ -110,11 +105,7 @@ data:
                       - __meta_kubernetes_pod_container_name
                       - __meta_kubernetes_pod_container_port_name
                     target_label: instance
-                tls_config:
-                    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-                    insecure_skip_verify: false
-              - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-                job_name: ${NAMESPACE}/node-exporter
+              - job_name: ${NAMESPACE}/node-exporter
                 kubernetes_sd_configs:
                   - namespaces:
                         names:
@@ -133,9 +124,6 @@ data:
                     source_labels:
                       - __meta_kubernetes_namespace
                     target_label: namespace
-                tls_config:
-                    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-                    insecure_skip_verify: false
               - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
                 job_name: kube-system/kubelet
                 kubernetes_sd_configs:
