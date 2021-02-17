@@ -3,6 +3,17 @@
 This document provides relevant instructions for maintainers of the Grafana
 Cloud Agent.
 
+## Master Branch Rename
+
+The `master` branch was renamed to `main` on 17 Feb 2021. If you have already
+checked out the repository, you will need to update your local environment:
+
+```
+git branch -m master main
+git fetch origin
+git branch -u origin/main main
+```
+
 ## Releasing
 
 ### Prerequisites
@@ -10,14 +21,14 @@ Cloud Agent.
 Each maintainer performing a release should perform the following steps once
 before releasing the Grafana Cloud Agent.
 
-#### Prerelease testing 
+#### Prerelease testing
 
 For testing a release, run the [K3d example](../example/k3d/README.md) locally.
 Let it run for about 90 minutes, keeping an occasional eye on the Agent
 Operational dashboard (noting that metrics from the scraping service will take
 time to show up). After 90 minutes, if nothing has crashed and you see metrics
 for both the scraping service and the non-scraping service, the Agent is ready
-for release. 
+for release.
 
 #### Add Existing GPG Key to GitHub
 
@@ -58,7 +69,7 @@ export GPG_TTY=$(tty)
 1. Create a new branch to update `CHANGELOG.md` and references to version
    numbers across the entire repository (e.g. README.md in the project root).
 2. Modify `CHANGELOG.md` with the new version number and its release date.
-3. Add a new section in `CHANGELOG.md` for `Master (unreleased)`.
+3. Add a new section in `CHANGELOG.md` for `Main (unreleased)`.
 4. Go through the entire repository and find references to the previous release
    version, updating them to reference the new version.
 5. Run `make example-kubernetes` and `make example-dashboards` to update
@@ -74,7 +85,7 @@ export GPG_TTY=$(tty)
 
        ```bash
        RELEASE=v1.2.3 # UPDATE ME to reference new release
-       git checkout master # If not already on master
+       git checkout main # If not already on main
        git pull
        git tag -s $RELEASE -m "release $RELEASE"
        git push origin $RELEASE
@@ -90,7 +101,7 @@ After this final set of steps, you can publish your draft!
 2. Edit the drafted release, copying and pasting *notable changes* from the
    CHANGELOG. Add a link to the CHANGELOG, noting that the full list of changes
    can be found there. Refer to other releases for help with formatting this.
-3. Optionally, have other team members review the release draft if you wish 
+3. Optionally, have other team members review the release draft if you wish
    to feel more comfortable with it.
 4. Publish the release!
 
@@ -107,14 +118,14 @@ the latest tag) and pushing it back upstream.
 
 ## `grafana/prometheus` Maintenance
 
-Grafana Labs includes the Agent as part of their internal monitoring, running it 
-alongside Prometheus. This gives an opportunity to utilize the Agent to 
-proof-of-concept additions to Prometheus before they get moved upstream. A 
-`grafana/prometheus` repository maintained by Grafana Labs holds non-trivial 
-and experimental changes. Having this repository allows for experimental features to 
-be vendored into the Agent and enables faster development iteration. Ideally, 
-this experimental testing can help serve as evidence towards usefulness and 
-correctness when the feature becomes proposed upstream. 
+Grafana Labs includes the Agent as part of their internal monitoring, running it
+alongside Prometheus. This gives an opportunity to utilize the Agent to
+proof-of-concept additions to Prometheus before they get moved upstream. A
+`grafana/prometheus` repository maintained by Grafana Labs holds non-trivial
+and experimental changes. Having this repository allows for experimental features to
+be vendored into the Agent and enables faster development iteration. Ideally,
+this experimental testing can help serve as evidence towards usefulness and
+correctness when the feature becomes proposed upstream.
 
 We are committing ourselves to doing the following:
 
@@ -126,7 +137,7 @@ We are committing ourselves to doing the following:
    stable release; we want the Agent's Prometheus roots to be stable.
 3. Reduce code drift: The code the Agent uses on top of Prometheus will be
    layered on top of a Prometheus release rather than sandwiched in between.
-4. Keep the number of experimental changes not merged upstream to a minimum. We're 
+4. Keep the number of experimental changes not merged upstream to a minimum. We're
    not trying to fork Prometheus.
 
 Maintenance of the `grafana/prometheus` repository revolves around feature
@@ -137,7 +148,7 @@ version as the `prometheus/prometheus` release it is based off of.
 By adding features to the `grafana/prometheus` repository first, we are
 committing ourselves to extra maintenance of features that have not yet been
 merged upstream. Feature authors will have to babysit their features to
-coordinate with the Prometheus release schedule to always be compatible. Maintenance 
+coordinate with the Prometheus release schedule to always be compatible. Maintenance
 burden becomes lightened once each feature is upstreamed as breaking changes will
 no longer happen out of sync with upstream changes for the respective upstreamed
 feature.
@@ -148,9 +159,9 @@ to strive to benefit the Prometheus ecosystem at large.
 
 ### Creating a New Feature
 
-Grafana Labs developers should try to get all features upstreamed *first*. If 
+Grafana Labs developers should try to get all features upstreamed *first*. If
 it's clear the feature is experimental or more unproven than the upstream team
-is comfortable with, developers should then create a downstream 
+is comfortable with, developers should then create a downstream
 `grafana/prometheus` feature branch.
 
 For `grafana/prometheus` maintainers to create a new feature, they will do the
@@ -173,7 +184,7 @@ updated for any reason:
    feature branch.
 2. Open a PR to merge the new changes from the feature branch into the
    associated release branch.
-3. After updating the release branch, open a PR to update `grafana/agent` by 
+3. After updating the release branch, open a PR to update `grafana/agent` by
    vendoring the changes using the latest release branch SHA.
 
 ### Handling New Upstream Release
@@ -184,12 +195,12 @@ through the following process:
 1. Create a new `grafana/prometheus` release branch named
    `release-X.Y.Z-grafana`.
 2. For all feature branches still not merged upstream, rebase them on top of the
-   newly created branch. Force push them to update the `grafana/prometheus` 
+   newly created branch. Force push them to update the `grafana/prometheus`
    feature branch.
 3. Create one or more PRs to introduce the features into the newly created
    release branch.
 
-Once a new release branch has been created, the previous release branch in 
+Once a new release branch has been created, the previous release branch in
 `grafana/prometheus` is considered stale and will no longer receive updates.
 
 ### Updating the Agent's vendor
@@ -197,33 +208,33 @@ Once a new release branch has been created, the previous release branch in
 The easiest way to do this is the following:
 
 1. Edit `go.mod` and change the replace directive to the release branch name.
-2. Update `README.md` in the Agent to change which version of Prometheus 
+2. Update `README.md` in the Agent to change which version of Prometheus
    the Agent is vendoring.
 2. Run `go mod tidy && go mod vendor`.
 3. Commit and open a PR.
 
 ### Gotchas
 
-If the `grafana/prometheus` feature is incompatible with the upstream 
+If the `grafana/prometheus` feature is incompatible with the upstream
 `prometheus/prometheus` master branch, merge conflicts would prevent
-an upstream PR from being merged. There are a few ways this can be handled 
+an upstream PR from being merged. There are a few ways this can be handled
 at the feature author's discretion:
 
-When this happens, downstream feature branch maintainers should wait until 
-a new `prometheus/prometheus` release is available and rebase their feature 
-branch on top of the latest release. This will make the upstream PR compatible 
-with the master branch, though the window of compatibility is unpredictable 
-and may change at any time. 
+When this happens, downstream feature branch maintainers should wait until
+a new `prometheus/prometheus` release is available and rebase their feature
+branch on top of the latest release. This will make the upstream PR compatible
+with the master branch, though the window of compatibility is unpredictable
+and may change at any time.
 
-If it proves unfeasible to get a feature branch merged upstream within the 
+If it proves unfeasible to get a feature branch merged upstream within the
 "window of upstream compatibility," feature branch maintainers should create
-a fork of their branch that is based off of master and use that master-compatible 
-branch for the upstream PR. Note that this means any changes made to the feature 
+a fork of their branch that is based off of master and use that master-compatible
+branch for the upstream PR. Note that this means any changes made to the feature
 branch will now have to be mirrored to the master-compatible branch.
 
 ### Open Questions
 
-If two feature branches depend on one another, a combined feature branch 
-(like an "epic" branch) should be created where development of interrelated 
-features go. All features within this category go directly to the combined 
+If two feature branches depend on one another, a combined feature branch
+(like an "epic" branch) should be created where development of interrelated
+features go. All features within this category go directly to the combined
 "epic" branch rather than individual branches.

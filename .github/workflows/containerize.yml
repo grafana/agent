@@ -2,7 +2,7 @@ name: Containerize
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   test:
     name: Test

@@ -1,11 +1,11 @@
 # Operation Guide
 
-## Host Filtering 
+## Host Filtering
 
 Host Filtering implements a form of "dumb sharding," where operators may deploy
 one Grafana Cloud Agent instance per machine in a cluster, all using the same
 configuration, and the Grafana Cloud Agents will only scrape targets that are
-running on the same node as the Agent. 
+running on the same node as the Agent.
 
 Running with `host_filter: true` means that if you have a target whose host
 machine is not also running a Grafana Cloud Agent process, _that target will not
@@ -51,7 +51,7 @@ logic; only `host_filter_relabel_configs` will work.
 If the determined hostname matches any of the meta labels, the discovered target
 is allowed. Otherwise, the target is ignored, and will not show up in the
 [targets
-API](https://github.com/grafana/agent/blob/master/docs/api.md#list-current-scrape-targets).
+API](https://github.com/grafana/agent/blob/main/docs/api.md#list-current-scrape-targets).
 
 ## Prometheus "Instances"
 
