@@ -2,7 +2,7 @@ NOTE: FreeBSD builds have not been available since v0.6.0 due to a
 cross-compilation issue. The issue for tracking adding support back
 can be found at [#317](https://github.com/grafana/agent/issues/317).
 
-# Master (unreleased)
+# Main (unreleased)
 
 - [ENHANCEMENT] Support other architectures in installation script. (@rfratto)
 
@@ -329,7 +329,7 @@ files to the new format.
 
 # v0.5.0 (2020-08-12)
 
-- [FEATURE] A [scrape targets API](https://github.com/grafana/agent/blob/master/docs/api.md#list-current-scrape-targets)
+- [FEATURE] A [scrape targets API](https://github.com/grafana/agent/blob/main/docs/api.md#list-current-scrape-targets)
   has been added to show every target the Agent is currently scraping, when it
   was last scraped, how long it took to scrape, and errors from the last scrape,
   if any. (@rfratto)
