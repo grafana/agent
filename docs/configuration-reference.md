@@ -2017,7 +2017,7 @@ agent:
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Allows for relabeling labels on the target.
   relabel_configs:
@@ -2290,7 +2290,7 @@ the Agent is running on is a no-op.
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <boolean> | default = false]
@@ -2507,7 +2507,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # procfs mountpoint.
   [procfs_path: <string> | default = "/proc"]
@@ -2633,7 +2633,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Data Source Name specifies the MySQL server to connect to. This is REQUIRED
   # but may also be specified by the MYSQLD_EXPORTER_DATA_SOURCE_NAME
@@ -2777,7 +2777,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
@@ -2925,7 +2925,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
@@ -2984,7 +2984,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
@@ -3090,7 +3090,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
@@ -3145,7 +3145,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
@@ -3221,7 +3221,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
@@ -3327,7 +3327,7 @@ Full reference of options:
     [ - <relabel_config> ... ]
 
   # How frequent to truncate the WAL for this integration.
-  [wal_truncate_frequency: <duration> | default = "1m"]
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
