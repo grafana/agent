@@ -49,7 +49,7 @@ func NewSigV4RoundTripper(cfg SigV4Config, next http.RoundTripper) (http.RoundTr
 	if _, err := sess.Config.Credentials.Get(); err != nil {
 		return nil, fmt.Errorf("could not get sigv4 credentials: %w", err)
 	}
-	if sess.Config.Region == nil || *sess.Config.Region == "" {
+	if aws.StringValue(sess.Config.Region) == "" {
 		return nil, fmt.Errorf("region not configured in sigv4 or in default credentials chain")
 	}
 
