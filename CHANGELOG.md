@@ -4,6 +4,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Main (unreleased)
 
+The primary branch name has changed from `master` to `main`. You may have to
+update your local checkouts of the repository to point at the new branch name.
+
 - [ENHANCEMENT] Support other architectures in installation script. (@rfratto)
 
 - [BUGFIX] Not providing an `-addr` flag for `agentctl config-sync` will no
