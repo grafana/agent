@@ -21,9 +21,9 @@ type SigV4Config struct {
 }
 
 type sigV4RoundTripper struct {
-	cfg  SigV4Config
-	next http.RoundTripper
-	pool sync.Pool
+	region string
+	next   http.RoundTripper
+	pool   sync.Pool
 
 	signer *signer.Signer
 }
@@ -36,10 +36,6 @@ type sigV4RoundTripper struct {
 // Credentials for signing are retrieving used the default AWS credential chain.
 // If credentials could not be found, an error will be returned.
 func NewSigV4RoundTripper(cfg SigV4Config, next http.RoundTripper) (http.RoundTripper, error) {
-	if cfg.Region == "" {
-		return nil, fmt.Errorf("region not configured")
-	}
-
 	if next == nil {
 		next = http.DefaultTransport
 	}
@@ -53,9 +49,12 @@ func NewSigV4RoundTripper(cfg SigV4Config, next http.RoundTripper) (http.RoundTr
 	if _, err := sess.Config.Credentials.Get(); err != nil {
 		return nil, fmt.Errorf("could not get sigv4 credentials: %w", err)
 	}
+	if sess.Config.Region == nil || *sess.Config.Region == "" {
+		return nil, fmt.Errorf("region not configured in sigv4 or in default credentials chain")
+	}
 
 	rt := &sigV4RoundTripper{
-		cfg:    cfg,
+		region: cfg.Region,
 		next:   next,
 		signer: signer.NewSigner(sess.Config.Credentials),
 	}
@@ -88,7 +87,7 @@ func (rt *sigV4RoundTripper) RoundTrip(req *http.Request) (*http.Response, error
 	}()
 	req.Body = ioutil.NopCloser(seeker)
 
-	_, err := rt.signer.Sign(req, seeker, "aps", rt.cfg.Region, time.Now().UTC())
+	_, err := rt.signer.Sign(req, seeker, "aps", rt.region, time.Now().UTC())
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign request: %w", err)
 	}
