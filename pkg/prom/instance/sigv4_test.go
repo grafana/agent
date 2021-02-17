@@ -20,6 +20,8 @@ func TestSigV4_Inferred_Region(t *testing.T) {
 	os.Setenv("AWS_REGION", "us-west-2")
 
 	sess, err := session.NewSession(&aws.Config{
+		// Setting to an empty string to demostrate the default value from the yaml
+		// won't override the environment's region.
 		Region: aws.String(""),
 	})
 	require.NoError(t, err)
