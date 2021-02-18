@@ -1818,19 +1818,21 @@ basic_auth:
 #
 # https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-credentials
 #
-# When enabled, region must be supplied.
+# Region must be supplied if it cannot be inferred from the shared config
+# ($HOME/.aws/config when AWS_SDK_LOAD_CONFIG is truthy) or the environment
+# (AWS_REGION).
 #
-# This feature is currently exclusive to the Grafana Cloud Agent and is only
-# currently available for remote_write of Prometheus metrics.
+# This feature is only currently available for remote_write of Prometheus
+# metrics.
 sigv4:
   # Enable SigV4 request signing. May not be enabled at the same time as
   # configuring basic auth or bearer_token/bearer_token_file.
   [ enabled: <boolean> | default = false ]
 
-  # Region to use for signing the requests. When sigv4.enabled is true,
-  # must be non-empty and must be the region of the AMP workspace specified
-  # by the remote_write URL.
-  region: <string>
+  # Region to use for signing the requests. Must be supplied if region cannot
+  # be inferred from environment. Region must match the region of the AMP
+  # workspace specified by the remote_write URL.
+  [region: <string>]
 
 # Configures the remote write request's TLS settings.
 tls_config:
