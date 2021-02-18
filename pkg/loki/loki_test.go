@@ -28,13 +28,13 @@ func TestLoki(t *testing.T) {
 	positionsDir, err := ioutil.TempDir(os.TempDir(), "positions-*")
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		require.NoError(t, os.RemoveAll(positionsDir))
+		_ = os.RemoveAll(positionsDir)
 	})
 
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "*.log")
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		require.NoError(t, os.RemoveAll(tmpFile.Name()))
+		_ = os.RemoveAll(tmpFile.Name())
 	})
 
 	//
