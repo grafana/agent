@@ -250,6 +250,7 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, serverConfig serverco
 			CertFile:           serverConfig.ClientCert,
 			KeyFile:            serverConfig.ClientKey,
 			InsecureSkipVerify: false,
+			ServerName:         serverConfig.ServerName,
 		}
 	}
 	for _, isc := range i.ScrapeConfigs() {

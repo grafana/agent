@@ -86,7 +86,7 @@ func main() {
 	}
 
 	if cfg.Integrations.Enabled {
-		manager, err = integrations.NewManager(cfg.Integrations, Logger, promMetrics.InstanceManager(), cfg.Server)
+		manager, err = integrations.NewManager(cfg.Integrations, logger, promMetrics.InstanceManager(), cfg.Server)
 		if err != nil {
 			level.Error(logger).Log("msg", "failed to create integrations manager", "err", err)
 			os.Exit(1)
