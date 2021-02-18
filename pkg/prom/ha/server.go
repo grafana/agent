@@ -390,7 +390,14 @@ func (s *Server) Stop() error {
 	s.cancel()
 	<-s.exited
 
-	return s.closeDependencies()
+	err := s.closeDependencies()
+
+	// Delete all the local configs that were running.
+	s.configManagerMut.Lock()
+	defer s.configManagerMut.Unlock()
+	s.im.Stop()
+
+	return err
 }
 
 // stopServices stops services in argument-call order. Blocks until all services
