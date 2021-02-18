@@ -237,8 +237,16 @@ func (m ShardingInstanceManager) DeleteConfig(name string) error {
 	return err
 }
 
-// Stop implements instance.Manager.Stop.
-func (m ShardingInstanceManager) Stop() { m.inner.Stop() }
+// Stop implements instance.Manager.Stop. It only stops the configs
+// passed through to this manager and not all instances.
+func (m ShardingInstanceManager) Stop() {
+	for k := range m.keyToHash {
+		err := m.DeleteConfig(k)
+		if err != nil {
+			level.Error(m.log).Log("msg", "failed to remove config", "name", k)
+		}
+	}
+}
 
 // owns checks if the ShardingInstanceManager is responsible for
 // a given hash.
