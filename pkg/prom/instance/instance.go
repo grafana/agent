@@ -19,6 +19,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/prom/wal"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
@@ -269,10 +270,10 @@ func (i *Instance) Run(ctx context.Context) error {
 	// trackingReg wraps the register for the instance to make sure that if Run
 	// exits, any metrics Prometheus registers are removed and can be
 	// re-registered if Run is called again.
-	trackingReg := unregisterAllRegisterer{wrap: i.reg}
+	trackingReg := util.WrapWithUnregisterer(i.reg)
 	defer trackingReg.UnregisterAll()
 
-	if err := i.initialize(ctx, &trackingReg, &cfg); err != nil {
+	if err := i.initialize(ctx, trackingReg, &cfg); err != nil {
 		level.Error(i.logger).Log("msg", "failed to initialize instance", "err", err)
 		return fmt.Errorf("failed to initialize instance: %w", err)
 	}
@@ -729,60 +730,6 @@ type walStorage interface {
 	Truncate(mint int64) error
 
 	Close() error
-}
-
-type unregisterAllRegisterer struct {
-	wrap prometheus.Registerer
-	cs   map[prometheus.Collector]struct{}
-}
-
-// Register implements prometheus.Registerer.
-func (u *unregisterAllRegisterer) Register(c prometheus.Collector) error {
-	if u.wrap == nil {
-		return nil
-	}
-
-	err := u.wrap.Register(c)
-	if err != nil {
-		return err
-	}
-	if u.cs == nil {
-		u.cs = make(map[prometheus.Collector]struct{})
-	}
-	u.cs[c] = struct{}{}
-	return nil
-}
-
-// MustRegister implements prometheus.Registerer.
-func (u *unregisterAllRegisterer) MustRegister(cs ...prometheus.Collector) {
-	for _, c := range cs {
-		if err := u.Register(c); err != nil {
-			panic(err)
-		}
-	}
-}
-
-// Unregister implements prometheus.Registerer.
-func (u *unregisterAllRegisterer) Unregister(c prometheus.Collector) bool {
-	if u.wrap == nil {
-		return false
-	}
-	ok := u.wrap.Unregister(c)
-	if ok && u.cs != nil {
-		delete(u.cs, c)
-	}
-	return ok
-}
-
-// UnregisterAll unregisters all collectors that were registered through the
-// Reigsterer.
-func (u *unregisterAllRegisterer) UnregisterAll() {
-	if u.cs == nil {
-		return
-	}
-	for c := range u.cs {
-		u.Unregister(c)
-	}
 }
 
 // Hostname retrieves the hostname identifying the machine the process is
