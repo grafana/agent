@@ -16,6 +16,8 @@ update your local checkouts of the repository to point at the new branch name.
   (at `$HOME/.aws/config`) or environment variables (via `AWS_CONFIG`).
   (@rfratto)
 
+- [ENHANCEMENT] Update Prometheus dependency to v2.25.0. (@rfratto)
+
 - [BUGFIX] Not providing an `-addr` flag for `agentctl config-sync` will no
   longer report an error and will instead use the pre-existing default value.
   (@rfratto)
