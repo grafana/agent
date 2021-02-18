@@ -3,6 +3,7 @@ package tempo
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
@@ -20,33 +21,74 @@ import (
 
 // Tempo wraps the OpenTelemetry collector to enable tracing pipelines
 type Tempo struct {
-	instances []*Instance
+	mut       sync.Mutex
+	instances map[string]*Instance
+
+	logger *zap.Logger
+	reg    prom_client.Registerer
 }
 
 // New creates and starts Loki log collection.
 func New(reg prom_client.Registerer, cfg Config, level logging.Level) (*Tempo, error) {
-	var (
-		tempo  Tempo
-		logger = newLogger(level)
-	)
+	tempo := &Tempo{
+		instances: make(map[string]*Instance),
+		logger:    newLogger(level),
+		reg:       reg,
+	}
+	if err := tempo.ApplyConfig(cfg); err != nil {
+		return nil, err
+	}
+	return tempo, nil
+}
+
+// ApplyConfig updates Tempo with a new Config.
+func (t *Tempo) ApplyConfig(cfg Config) error {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+
+	newInstances := make(map[string]*Instance, len(cfg.Configs))
+
 	for _, c := range cfg.Configs {
+		// If an old instance exists, update it and move it to the new map.
+		if old, ok := t.instances[c.Name]; ok {
+			err := old.ApplyConfig(c)
+			if err != nil {
+				return err
+			}
+
+			newInstances[c.Name] = old
+			continue
+		}
+
 		var (
-			instLogger = logger.With(zap.String("tempo_config", c.Name))
-			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"tempo_config": c.Name}, reg)
+			instLogger = t.logger.With(zap.String("tempo_config", c.Name))
+			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"tempo_config": c.Name}, t.reg)
 		)
 
 		inst, err := NewInstance(instReg, c, instLogger)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create tempo instance %s: %w", c.Name, err)
+			return fmt.Errorf("failed to create tempo instance %s: %w", c.Name, err)
 		}
-		tempo.instances = append(tempo.instances, inst)
+		newInstances[c.Name] = inst
 	}
 
-	return &tempo, nil
+	// Any instance in l.instances that isn't in newInstances has been removed
+	// from the config. Stop them before replacing the map.
+	for key, i := range t.instances {
+		if _, exist := newInstances[key]; exist {
+			continue
+		}
+		i.Stop()
+	}
+
+	return nil
 }
 
 // Stop stops the OpenTelemetry collector subsystem
 func (t *Tempo) Stop() {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+
 	for _, i := range t.instances {
 		i.Stop()
 	}

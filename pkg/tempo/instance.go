@@ -3,8 +3,10 @@ package tempo
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
@@ -17,6 +19,8 @@ import (
 
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
 type Instance struct {
+	mut         sync.Mutex
+	cfg         InstanceConfig
 	logger      *zap.Logger
 	metricViews []*view.View
 
@@ -36,33 +40,87 @@ func NewInstance(reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logg
 		return nil, fmt.Errorf("failed to create metric views: %w", err)
 	}
 
+	if err := instance.ApplyConfig(cfg); err != nil {
+		return nil, err
+	}
+	return instance, nil
+}
+
+func (i *Instance) ApplyConfig(cfg InstanceConfig) error {
+	i.mut.Lock()
+	defer i.mut.Unlock()
+
+	if cmp.Equal(cfg, i.cfg) {
+		// No config change
+		return nil
+	}
+	i.cfg = cfg
+
+	// Shut down any existing pipeline
+	i.stop()
+
 	createCtx := context.Background()
-	err = instance.buildAndStartPipeline(createCtx, cfg)
+	err := i.buildAndStartPipeline(createCtx, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create exporter: %w", err)
+		return fmt.Errorf("failed to create pipeline: %w", err)
 	}
 
-	return instance, nil
+	return nil
 }
 
 // Stop stops the OpenTelemetry collector subsystem
 func (i *Instance) Stop() {
+	i.mut.Lock()
+	defer i.mut.Unlock()
+
+	view.Unregister(i.metricViews...)
+}
+
+func (i *Instance) stop() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := i.receivers.ShutdownAll(shutdownCtx); err != nil {
-		i.logger.Error("failed to shutdown receiver", zap.Error(err))
+	dependencies := []struct {
+		name     string
+		shutdown func() error
+	}{
+		{
+			name: "receiver",
+			shutdown: func() error {
+				if i.receivers == nil {
+					return nil
+				}
+				return i.receivers.ShutdownAll(shutdownCtx)
+			},
+		},
+		{
+			name: "processors",
+			shutdown: func() error {
+				if i.pipelines == nil {
+					return nil
+				}
+				return i.pipelines.ShutdownProcessors(shutdownCtx)
+			},
+		},
+		{
+			name: "exporters",
+			shutdown: func() error {
+				if i.receivers == nil {
+					return nil
+				}
+				return i.exporter.ShutdownAll(shutdownCtx)
+			},
+		},
 	}
 
-	if err := i.pipelines.ShutdownProcessors(shutdownCtx); err != nil {
-		i.logger.Error("failed to shutdown processors", zap.Error(err))
+	for _, dep := range dependencies {
+		if err := dep.shutdown(); err != nil {
+			i.logger.Error(fmt.Sprintf("failed to shutdown %s", dep.name), zap.Error(err))
+		}
 	}
 
-	if err := i.receivers.ShutdownAll(shutdownCtx); err != nil {
-		i.logger.Error("failed to shutdown receivers", zap.Error(err))
-	}
-
-	view.Unregister(i.metricViews...)
+	i.receivers = nil
+	i.pipelines = nil
 }
 
 func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig) error {
