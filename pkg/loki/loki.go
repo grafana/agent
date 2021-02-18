@@ -67,7 +67,6 @@ func (l *Loki) ApplyConfig(c Config) error {
 				return err
 			}
 
-			delete(l.instances, ic.Name)
 			newInstances[ic.Name] = old
 			continue
 		}
@@ -79,9 +78,12 @@ func (l *Loki) ApplyConfig(c Config) error {
 		newInstances[ic.Name] = inst
 	}
 
-	// Any remaining promtail in l.instances has been removed from the new
-	// config. Stop them before replacing the map.
-	for _, i := range l.instances {
+	// Any promtail in l.instances that isn't in newInstances has been removed
+	// from the config. Stop them before replacing the map.
+	for key, i := range l.instances {
+		if _, exist := newInstances[key]; exist {
+			continue
+		}
 		i.Stop()
 	}
 	l.instances = newInstances
@@ -146,7 +148,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	if !i.reg.UnregisterAll() {
 		// If UnregisterAll fails, we need to abort, otherwise the new promtail
 		// would try to re-register an existing metric and might panic.
-		return fmt.Errorf("failed to unregister all metrics from previous promtail. THIS IS A BUG!")
+		return fmt.Errorf("failed to unregister all metrics from previous promtail. THIS IS A BUG")
 	}
 
 	if len(c.ClientConfigs) == 0 {

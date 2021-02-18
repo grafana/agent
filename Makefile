@@ -170,7 +170,7 @@ lint:
 # for packages that have known race detection issues
 test:
 	GOGC=10 go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
-	GOGC=10 go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter
+	GOGC=10 go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
 
 clean:
 	rm -rf cmd/agent/agent

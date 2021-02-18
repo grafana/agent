@@ -1,3 +1,5 @@
+//+build !race
+
 package loki
 
 import (
@@ -45,13 +47,15 @@ func TestLoki(t *testing.T) {
 	t.Cleanup(func() {
 		require.NoError(t, lis.Close())
 	})
-	go http.Serve(lis, http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		req, err := distributor.ParseRequest(r)
-		require.NoError(t, err)
+	go func() {
+		_ = http.Serve(lis, http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			req, err := distributor.ParseRequest(r)
+			require.NoError(t, err)
 
-		pushes <- req
-		_, _ = rw.Write(nil)
-	}))
+			pushes <- req
+			_, _ = rw.Write(nil)
+		}))
+	}()
 
 	//
 	// Launch Loki so it starts tailing the file and writes to our server.
@@ -78,7 +82,8 @@ configs:
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
 
-	l, err := New(prometheus.NewRegistry(), cfg, log.NewNopLogger())
+	logger := log.NewSyncLogger(log.NewNopLogger())
+	l, err := New(prometheus.NewRegistry(), cfg, logger)
 	require.NoError(t, err)
 	defer l.Stop()
 
