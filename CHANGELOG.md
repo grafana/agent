@@ -12,6 +12,10 @@ update your local checkouts of the repository to point at the new branch name.
 - [ENHANCEMENT] Allow specifying custom wal_truncate_frequency per integration.
   (@rfratto)
 
+- [ENHANCEMENT] The SigV4 region can now be inferred using the shared config
+  (at `$HOME/.aws/config`) or environment variables (via `AWS_CONFIG`).
+  (@rfratto)
+
 - [BUGFIX] Not providing an `-addr` flag for `agentctl config-sync` will no
   longer report an error and will instead use the pre-existing default value.
   (@rfratto)
