@@ -204,7 +204,7 @@ type Instance struct {
 	cfg                Config
 	wal                walStorage
 	discovery          *discoveryService
-	readyScrapeManager *scrape.ReadyScrapeManager
+	readyScrapeManager *readyScrapeManager
 	remoteStore        *remote.Storage
 	storage            storage.Storage
 
@@ -243,7 +243,7 @@ func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Regis
 		reg:    reg,
 		newWal: newWal,
 
-		readyScrapeManager: &scrape.ReadyScrapeManager{},
+		readyScrapeManager: &readyScrapeManager{},
 	}
 
 	return i, nil
@@ -373,7 +373,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 		return fmt.Errorf("error creating discovery manager: %w", err)
 	}
 
-	i.readyScrapeManager = &scrape.ReadyScrapeManager{}
+	i.readyScrapeManager = &readyScrapeManager{}
 
 	// Setup the remote storage
 	remoteLogger := log.With(i.logger, "component", "remote")
@@ -531,7 +531,7 @@ func (i *Instance) TargetsActive() map[string][]*scrape.Target {
 	}
 
 	mgr, err := i.readyScrapeManager.Get()
-	if err == scrape.ErrNotReady {
+	if err == ErrNotReady {
 		return nil
 	} else if err != nil {
 		level.Error(i.logger).Log("msg", "failed to get scrape manager when collecting active targets", "err", err)
@@ -920,3 +920,31 @@ func (rg *runGroupContext) Add(execute func() error, interrupt func(error)) {
 
 func (rg *runGroupContext) Run() error   { return rg.g.Run() }
 func (rg *runGroupContext) Stop(_ error) { rg.cancel() }
+
+var ErrNotReady = errors.New("Scrape manager not ready")
+
+// readyScrapeManager allows a scrape manager to be retrieved. Even if it's set at a later point in time.
+type readyScrapeManager struct {
+	mtx sync.RWMutex
+	m   *scrape.Manager
+}
+
+// Set the scrape manager.
+func (rm *readyScrapeManager) Set(m *scrape.Manager) {
+	rm.mtx.Lock()
+	defer rm.mtx.Unlock()
+
+	rm.m = m
+}
+
+// Get the scrape manager. If is not ready, return an error.
+func (rm *readyScrapeManager) Get() (*scrape.Manager, error) {
+	rm.mtx.RLock()
+	defer rm.mtx.RUnlock()
+
+	if rm.m != nil {
+		return rm.m, nil
+	}
+
+	return nil, ErrNotReady
+}

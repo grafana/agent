@@ -196,7 +196,7 @@ func (w *Storage) replayWAL() error {
 	}
 
 	// Find the last segment.
-	_, last, err := w.wal.Segments()
+	_, last, err := wal.Segments(w.wal.Dir())
 	if err != nil {
 		return errors.Wrap(err, "finding WAL segments")
 	}
@@ -377,7 +377,7 @@ func (w *Storage) Truncate(mint int64) error {
 	w.gc(mint)
 	level.Info(w.logger).Log("msg", "series GC completed", "duration", time.Since(start))
 
-	first, last, err := w.wal.Segments()
+	first, last, err := wal.Segments(w.wal.Dir())
 	if err != nil {
 		return errors.Wrap(err, "get segment range")
 	}
@@ -450,7 +450,7 @@ func (w *Storage) gc(mint int64) {
 	deleted := w.series.gc(mint)
 	w.metrics.numActiveSeries.Sub(float64(len(deleted)))
 
-	_, last, _ := w.wal.Segments()
+	_, last, _ := wal.Segments(w.wal.Dir())
 	w.deletedMtx.Lock()
 	defer w.deletedMtx.Unlock()
 

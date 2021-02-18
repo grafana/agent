@@ -85,7 +85,7 @@ func lastModified(path string) (time.Time, error) {
 	// We don't care if there are errors closing the abandoned WAL
 	defer func() { _ = existing.Close() }()
 
-	_, last, err := existing.Segments()
+	_, last, err := promwal.Segments(existing.Dir())
 	if err != nil {
 		return time.Time{}, fmt.Errorf("unable to open WAL: %w", err)
 	}
