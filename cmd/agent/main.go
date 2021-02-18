@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/tempo"
 
-	"github.com/cortexproject/cortex/pkg/util"
+	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/prom"
@@ -40,8 +40,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// After this point we can use util.Logger and stop using the log package
-	util.InitLogger(&cfg.Server.Config)
+	// After this point we can use util_log.Logger and stop using the log package
+	util_log.InitLogger(&cfg.Server.Config)
+	logger := util_log.Logger
 
 	var (
 		promMetrics *prom.Agent
@@ -52,14 +53,14 @@ func main() {
 
 	srv, err := server.New(cfg.Server.Config)
 	if err != nil {
-		level.Error(util.Logger).Log("msg", "failed to create server", "err", err)
+		level.Error(logger).Log("msg", "failed to create server", "err", err)
 		os.Exit(1)
 	}
 
 	if cfg.Prometheus.Enabled {
-		promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, util.Logger)
+		promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
 		if err != nil {
-			level.Error(util.Logger).Log("msg", "failed to create prometheus instance", "err", err)
+			level.Error(logger).Log("msg", "failed to create prometheus instance", "err", err)
 			os.Exit(1)
 		}
 
@@ -69,30 +70,30 @@ func main() {
 	}
 
 	if cfg.Loki.Enabled {
-		lokiLogs, err = loki.New(cfg.Loki, util.Logger)
+		lokiLogs, err = loki.New(prometheus.DefaultRegisterer, cfg.Loki, logger)
 		if err != nil {
-			level.Error(util.Logger).Log("msg", "failed to create loki log collection instance", "err", err)
+			level.Error(logger).Log("msg", "failed to create loki log collection instance", "err", err)
 			os.Exit(1)
 		}
 	}
 
 	if cfg.Tempo.Enabled {
-		tempoTraces, err = tempo.New(cfg.Tempo, cfg.Server.LogLevel)
+		tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel)
 		if err != nil {
-			level.Error(util.Logger).Log("msg", "failed to create tempo trace collection instance", "err", err)
+			level.Error(logger).Log("msg", "failed to create tempo trace collection instance", "err", err)
 			os.Exit(1)
 		}
 	}
 
 	if cfg.Integrations.Enabled {
-		manager, err = integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager(), cfg.Server)
+		manager, err = integrations.NewManager(cfg.Integrations, Logger, promMetrics.InstanceManager(), cfg.Server)
 		if err != nil {
-			level.Error(util.Logger).Log("msg", "failed to create integrations manager", "err", err)
+			level.Error(logger).Log("msg", "failed to create integrations manager", "err", err)
 			os.Exit(1)
 		}
 
 		if err := manager.WireAPI(srv.HTTP); err != nil {
-			level.Error(util.Logger).Log("msg", "failed wiring endpoints for integrations", "err", err)
+			level.Error(logger).Log("msg", "failed wiring endpoints for integrations", "err", err)
 			os.Exit(1)
 		}
 	}
@@ -107,7 +108,7 @@ func main() {
 	})
 
 	if err := srv.Run(); err != nil {
-		level.Error(util.Logger).Log("msg", "error running agent", "err", err)
+		level.Error(logger).Log("msg", "error running agent", "err", err)
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
 
@@ -124,5 +125,5 @@ func main() {
 	if tempoTraces != nil {
 		tempoTraces.Stop()
 	}
-	level.Info(util.Logger).Log("msg", "agent exiting")
+	level.Info(logger).Log("msg", "agent exiting")
 }

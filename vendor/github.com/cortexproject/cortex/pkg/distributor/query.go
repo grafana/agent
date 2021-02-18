@@ -9,11 +9,10 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/weaveworks/common/instrument"
-	"github.com/weaveworks/common/user"
 
-	"github.com/cortexproject/cortex/pkg/ingester/client"
 	ingester_client "github.com/cortexproject/cortex/pkg/ingester/client"
 	"github.com/cortexproject/cortex/pkg/ring"
+	"github.com/cortexproject/cortex/pkg/tenant"
 	"github.com/cortexproject/cortex/pkg/util"
 	"github.com/cortexproject/cortex/pkg/util/extract"
 	grpc_util "github.com/cortexproject/cortex/pkg/util/grpc"
@@ -76,7 +75,7 @@ func (d *Distributor) QueryStream(ctx context.Context, from, to model.Time, matc
 // GetIngestersForQuery returns a replication set including all ingesters that should be queried
 // to fetch series matching input label matchers.
 func (d *Distributor) GetIngestersForQuery(ctx context.Context, matchers ...*labels.Matcher) (ring.ReplicationSet, error) {
-	userID, err := user.ExtractOrgID(ctx)
+	userID, err := tenant.TenantID(ctx)
 	if err != nil {
 		return ring.ReplicationSet{}, err
 	}
@@ -88,7 +87,7 @@ func (d *Distributor) GetIngestersForQuery(ctx context.Context, matchers ...*lab
 		lookbackPeriod := d.cfg.ShuffleShardingLookbackPeriod
 
 		if shardSize > 0 && lookbackPeriod > 0 {
-			return d.ingestersRing.ShuffleShardWithLookback(userID, shardSize, lookbackPeriod, time.Now()).GetAll(ring.Read)
+			return d.ingestersRing.ShuffleShardWithLookback(userID, shardSize, lookbackPeriod, time.Now()).GetReplicationSetForOperation(ring.Read)
 		}
 	}
 
@@ -97,17 +96,17 @@ func (d *Distributor) GetIngestersForQuery(ctx context.Context, matchers ...*lab
 		metricNameMatcher, _, ok := extract.MetricNameMatcherFromMatchers(matchers)
 
 		if ok && metricNameMatcher.Type == labels.MatchEqual {
-			return d.ingestersRing.Get(shardByMetricName(userID, metricNameMatcher.Value), ring.Read, nil)
+			return d.ingestersRing.Get(shardByMetricName(userID, metricNameMatcher.Value), ring.Read, nil, nil, nil)
 		}
 	}
 
-	return d.ingestersRing.GetAll(ring.Read)
+	return d.ingestersRing.GetReplicationSetForOperation(ring.Read)
 }
 
 // GetIngestersForMetadata returns a replication set including all ingesters that should be queried
 // to fetch metadata (eg. label names/values or series).
 func (d *Distributor) GetIngestersForMetadata(ctx context.Context) (ring.ReplicationSet, error) {
-	userID, err := user.ExtractOrgID(ctx)
+	userID, err := tenant.TenantID(ctx)
 	if err != nil {
 		return ring.ReplicationSet{}, err
 	}
@@ -119,18 +118,18 @@ func (d *Distributor) GetIngestersForMetadata(ctx context.Context) (ring.Replica
 		lookbackPeriod := d.cfg.ShuffleShardingLookbackPeriod
 
 		if shardSize > 0 && lookbackPeriod > 0 {
-			return d.ingestersRing.ShuffleShardWithLookback(userID, shardSize, lookbackPeriod, time.Now()).GetAll(ring.Read)
+			return d.ingestersRing.ShuffleShardWithLookback(userID, shardSize, lookbackPeriod, time.Now()).GetReplicationSetForOperation(ring.Read)
 		}
 	}
 
-	return d.ingestersRing.GetAll(ring.Read)
+	return d.ingestersRing.GetReplicationSetForOperation(ring.Read)
 }
 
 // queryIngesters queries the ingesters via the older, sample-based API.
-func (d *Distributor) queryIngesters(ctx context.Context, replicationSet ring.ReplicationSet, req *client.QueryRequest) (model.Matrix, error) {
+func (d *Distributor) queryIngesters(ctx context.Context, replicationSet ring.ReplicationSet, req *ingester_client.QueryRequest) (model.Matrix, error) {
 	// Fetch samples from multiple ingesters in parallel, using the replicationSet
 	// to deal with consistency.
-	results, err := replicationSet.Do(ctx, d.cfg.ExtraQueryDelay, func(ctx context.Context, ing *ring.IngesterDesc) (interface{}, error) {
+	results, err := replicationSet.Do(ctx, d.cfg.ExtraQueryDelay, func(ctx context.Context, ing *ring.InstanceDesc) (interface{}, error) {
 		client, err := d.ingesterPool.GetClientFor(ing.Addr)
 		if err != nil {
 			return nil, err
@@ -173,9 +172,9 @@ func (d *Distributor) queryIngesters(ctx context.Context, replicationSet ring.Re
 }
 
 // queryIngesterStream queries the ingesters using the new streaming API.
-func (d *Distributor) queryIngesterStream(ctx context.Context, replicationSet ring.ReplicationSet, req *client.QueryRequest) (*ingester_client.QueryStreamResponse, error) {
+func (d *Distributor) queryIngesterStream(ctx context.Context, replicationSet ring.ReplicationSet, req *ingester_client.QueryRequest) (*ingester_client.QueryStreamResponse, error) {
 	// Fetch samples from multiple ingesters
-	results, err := replicationSet.Do(ctx, d.cfg.ExtraQueryDelay, func(ctx context.Context, ing *ring.IngesterDesc) (interface{}, error) {
+	results, err := replicationSet.Do(ctx, d.cfg.ExtraQueryDelay, func(ctx context.Context, ing *ring.InstanceDesc) (interface{}, error) {
 		client, err := d.ingesterPool.GetClientFor(ing.Addr)
 		if err != nil {
 			return nil, err
@@ -220,7 +219,7 @@ func (d *Distributor) queryIngesterStream(ctx context.Context, replicationSet ri
 
 		// Parse any chunk series
 		for _, series := range response.Chunkseries {
-			key := client.LabelsToKeyString(client.FromLabelAdaptersToLabels(series.Labels))
+			key := ingester_client.LabelsToKeyString(ingester_client.FromLabelAdaptersToLabels(series.Labels))
 			existing := hashToChunkseries[key]
 			existing.Labels = series.Labels
 			existing.Chunks = append(existing.Chunks, series.Chunks...)
@@ -229,7 +228,7 @@ func (d *Distributor) queryIngesterStream(ctx context.Context, replicationSet ri
 
 		// Parse any time series
 		for _, series := range response.Timeseries {
-			key := client.LabelsToKeyString(client.FromLabelAdaptersToLabels(series.Labels))
+			key := ingester_client.LabelsToKeyString(ingester_client.FromLabelAdaptersToLabels(series.Labels))
 			existing := hashToTimeSeries[key]
 			existing.Labels = series.Labels
 			if existing.Samples == nil {
@@ -242,8 +241,8 @@ func (d *Distributor) queryIngesterStream(ctx context.Context, replicationSet ri
 	}
 
 	resp := &ingester_client.QueryStreamResponse{
-		Chunkseries: make([]client.TimeSeriesChunk, 0, len(hashToChunkseries)),
-		Timeseries:  make([]client.TimeSeries, 0, len(hashToTimeSeries)),
+		Chunkseries: make([]ingester_client.TimeSeriesChunk, 0, len(hashToChunkseries)),
+		Timeseries:  make([]ingester_client.TimeSeries, 0, len(hashToTimeSeries)),
 	}
 	for _, series := range hashToChunkseries {
 		resp.Chunkseries = append(resp.Chunkseries, series)

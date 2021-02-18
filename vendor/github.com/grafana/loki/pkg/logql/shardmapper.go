@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cortexproject/cortex/pkg/querier/astmapper"
-	"github.com/cortexproject/cortex/pkg/util"
+	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -133,6 +133,8 @@ func (m ShardMapper) Map(expr Expr, r *shardRecorder) (Expr, error) {
 		return m.mapLogSelectorExpr(e.(LogSelectorExpr), r), nil
 	case *vectorAggregationExpr:
 		return m.mapVectorAggregationExpr(e, r)
+	case *labelReplaceExpr:
+		return m.mapLabelReplaceExpr(e, r)
 	case *rangeAggregationExpr:
 		return m.mapRangeAggregationExpr(e, r), nil
 	case *binOpExpr:
@@ -204,7 +206,7 @@ func (m ShardMapper) mapVectorAggregationExpr(expr *vectorAggregationExpr, r *sh
 
 	// if this AST contains unshardable operations, don't shard this at this level,
 	// but attempt to shard a child node.
-	if shardable := isShardable(expr.Operations()); !shardable {
+	if !expr.Shardable() {
 		subMapped, err := m.Map(expr.left, r)
 		if err != nil {
 			return nil, err
@@ -269,12 +271,22 @@ func (m ShardMapper) mapVectorAggregationExpr(expr *vectorAggregationExpr, r *sh
 	default:
 		// this should not be reachable. If an operation is shardable it should
 		// have an optimization listed.
-		level.Warn(util.Logger).Log(
+		level.Warn(util_log.Logger).Log(
 			"msg", "unexpected operation which appears shardable, ignoring",
 			"operation", expr.operation,
 		)
 		return expr, nil
 	}
+}
+
+func (m ShardMapper) mapLabelReplaceExpr(expr *labelReplaceExpr, r *shardRecorder) (SampleExpr, error) {
+	subMapped, err := m.Map(expr.left, r)
+	if err != nil {
+		return nil, err
+	}
+	cpy := *expr
+	cpy.left = subMapped.(SampleExpr)
+	return &cpy, nil
 }
 
 func (m ShardMapper) mapRangeAggregationExpr(expr *rangeAggregationExpr, r *shardRecorder) SampleExpr {
@@ -310,16 +322,6 @@ func hasLabelModifier(expr *rangeAggregationExpr) bool {
 		}
 	}
 	return false
-}
-
-// isShardable returns false if any of the listed operation types are not shardable and true otherwise
-func isShardable(ops []string) bool {
-	for _, op := range ops {
-		if shardable := shardableOps[op]; !shardable {
-			return false
-		}
-	}
-	return true
 }
 
 // shardableOps lists the operations which may be sharded.

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/dustin/go-humanize"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -94,6 +95,13 @@ func (b *BinaryLabelFilter) Process(line []byte, lbs *LabelsBuilder) ([]byte, bo
 	return line, lok && rok
 }
 
+func (b *BinaryLabelFilter) RequiredLabelNames() []string {
+	var names []string
+	names = append(names, b.Left.RequiredLabelNames()...)
+	names = append(names, b.Right.RequiredLabelNames()...)
+	return uniqueString(names)
+}
+
 func (b *BinaryLabelFilter) String() string {
 	var sb strings.Builder
 	sb.WriteString("( ")
@@ -112,6 +120,7 @@ type noopLabelFilter struct{}
 
 func (noopLabelFilter) String() string                                         { return "" }
 func (noopLabelFilter) Process(line []byte, lbs *LabelsBuilder) ([]byte, bool) { return line, true }
+func (noopLabelFilter) RequiredLabelNames() []string                           { return []string{} }
 
 // ReduceAndLabelFilter Reduces multiple label filterer into one using binary and operation.
 func ReduceAndLabelFilter(filters []LabelFilterer) LabelFilterer {
@@ -178,8 +187,18 @@ func (d *BytesLabelFilter) Process(line []byte, lbs *LabelsBuilder) ([]byte, boo
 	}
 }
 
+func (d *BytesLabelFilter) RequiredLabelNames() []string {
+	return []string{d.Name}
+}
+
 func (d *BytesLabelFilter) String() string {
-	return fmt.Sprintf("%s%s%d", d.Name, d.Type, d.Value)
+	b := strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, humanize.Bytes(d.Value))
+	return fmt.Sprintf("%s%s%s", d.Name, d.Type, b)
 }
 
 type DurationLabelFilter struct {
@@ -230,6 +249,10 @@ func (d *DurationLabelFilter) Process(line []byte, lbs *LabelsBuilder) ([]byte, 
 		lbs.SetErr(errLabelFilter)
 		return line, true
 	}
+}
+
+func (d *DurationLabelFilter) RequiredLabelNames() []string {
+	return []string{d.Name}
 }
 
 func (d *DurationLabelFilter) String() string {
@@ -287,6 +310,10 @@ func (n *NumericLabelFilter) Process(line []byte, lbs *LabelsBuilder) ([]byte, b
 
 }
 
+func (n *NumericLabelFilter) RequiredLabelNames() []string {
+	return []string{n.Name}
+}
+
 func (n *NumericLabelFilter) String() string {
 	return fmt.Sprintf("%s%s%s", n.Name, n.Type, strconv.FormatFloat(n.Value, 'f', -1, 64))
 }
@@ -310,4 +337,8 @@ func (s *StringLabelFilter) Process(line []byte, lbs *LabelsBuilder) ([]byte, bo
 	}
 	v, _ := lbs.Get(s.Name)
 	return line, s.Matches(v)
+}
+
+func (s *StringLabelFilter) RequiredLabelNames() []string {
+	return []string{s.Name}
 }

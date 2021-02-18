@@ -22,10 +22,10 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"gopkg.in/yaml.v2"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
+	"gopkg.in/yaml.v2"
+
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/logging"
@@ -41,6 +41,10 @@ const (
 	endpoint   = "url"
 )
 
+type ReadyScrapeManager interface {
+	Get() (*scrape.Manager, error)
+}
+
 // startTimeCallback is a callback func that return the oldest timestamp stored in a storage.
 type startTimeCallback func() (int64, error)
 
@@ -50,7 +54,7 @@ type Storage struct {
 	logger log.Logger
 	mtx    sync.Mutex
 
-	rws *WriteStorage
+	Write *WriteStorage
 
 	// For reads.
 	queryables             []storage.SampleAndChunkQueryable
@@ -58,7 +62,7 @@ type Storage struct {
 }
 
 // NewStorage returns a remote.Storage.
-func NewStorage(l log.Logger, reg prometheus.Registerer, stCallback startTimeCallback, walDir string, flushDeadline time.Duration, sm scrape.ReadyManager) *Storage {
+func NewStorage(l log.Logger, reg prometheus.Registerer, stCallback startTimeCallback, walDir string, flushDeadline time.Duration, sm ReadyScrapeManager) *Storage {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
@@ -67,7 +71,7 @@ func NewStorage(l log.Logger, reg prometheus.Registerer, stCallback startTimeCal
 		logger:                 logging.Dedupe(l, 1*time.Minute),
 		localStartTimeCallback: stCallback,
 	}
-	s.rws = NewWriteStorage(s.logger, reg, walDir, flushDeadline, sm)
+	s.Write = NewWriteStorage(s.logger, reg, walDir, flushDeadline, sm)
 	return s
 }
 
@@ -76,7 +80,7 @@ func (s *Storage) ApplyConfig(conf *config.Config) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	if err := s.rws.ApplyConfig(conf); err != nil {
+	if err := s.Write.ApplyConfig(conf); err != nil {
 		return err
 	}
 
@@ -103,7 +107,7 @@ func (s *Storage) ApplyConfig(conf *config.Config) error {
 			name = rrConf.Name
 		}
 
-		c, err := newReadClient(name, &ClientConfig{
+		c, err := NewReadClient(name, &ClientConfig{
 			URL:              rrConf.URL,
 			Timeout:          rrConf.RemoteTimeout,
 			HTTPClientConfig: rrConf.HTTPClientConfig,
@@ -171,14 +175,14 @@ func (s *Storage) ChunkQuerier(ctx context.Context, mint, maxt int64) (storage.C
 
 // Appender implements storage.Storage.
 func (s *Storage) Appender(ctx context.Context) storage.Appender {
-	return s.rws.Appender(ctx)
+	return s.Write.Appender(ctx)
 }
 
 // Close the background processing of the storage queues.
 func (s *Storage) Close() error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	return s.rws.Close()
+	return s.Write.Close()
 }
 
 func labelsToEqualityMatchers(ls model.LabelSet) []*labels.Matcher {

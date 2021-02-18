@@ -19,6 +19,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/scrape"
 )
@@ -33,12 +34,18 @@ type Watchable interface {
 	TargetsActive() map[string][]*scrape.Target
 }
 
+type noopScrapeManager struct{}
+
+func (noop *noopScrapeManager) Get() (*scrape.Manager, error) {
+	return nil, errors.New("Scrape manager not ready")
+}
+
 // MetadataWatcher watches the Scrape Manager for a given WriteMetadataTo.
 type MetadataWatcher struct {
 	name   string
 	logger log.Logger
 
-	managerGetter scrape.ReadyManager
+	managerGetter ReadyScrapeManager
 	manager       Watchable
 	writer        MetadataAppender
 
@@ -54,13 +61,13 @@ type MetadataWatcher struct {
 }
 
 // NewMetadataWatcher builds a new MetadataWatcher.
-func NewMetadataWatcher(l log.Logger, mg scrape.ReadyManager, name string, w MetadataAppender, interval model.Duration, deadline time.Duration) *MetadataWatcher {
+func NewMetadataWatcher(l log.Logger, mg ReadyScrapeManager, name string, w MetadataAppender, interval model.Duration, deadline time.Duration) *MetadataWatcher {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
 
 	if mg == nil {
-		mg = &scrape.ReadyScrapeManager{}
+		mg = &noopScrapeManager{}
 	}
 
 	return &MetadataWatcher{
@@ -87,7 +94,7 @@ func (mw *MetadataWatcher) Start() {
 
 // Stop the MetadataWatcher.
 func (mw *MetadataWatcher) Stop() {
-	level.Info(mw.logger).Log("msg", "Stoping metadata watcher...")
+	level.Info(mw.logger).Log("msg", "Stopping metadata watcher...")
 	defer level.Info(mw.logger).Log("msg", "Scraped metadata watcher stopped")
 
 	mw.softShutdownCancel()
@@ -126,9 +133,9 @@ func (mw *MetadataWatcher) collect() {
 	// scrape.MetricMetadata. In this case, a combination of metric name, help, type, and unit.
 	metadataSet := map[scrape.MetricMetadata]struct{}{}
 	metadata := []scrape.MetricMetadata{}
-	for _, t := range mw.manager.TargetsActive() {
-		for _, tt := range t {
-			for _, entry := range tt.MetadataList() {
+	for _, tset := range mw.manager.TargetsActive() {
+		for _, target := range tset {
+			for _, entry := range target.MetadataList() {
 				if _, ok := metadataSet[entry]; !ok {
 					metadata = append(metadata, entry)
 					metadataSet[entry] = struct{}{}

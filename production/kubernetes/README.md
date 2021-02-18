@@ -26,12 +26,13 @@ install script does the following:
    step 1.
 4. Prints out the final manifest to stdout without applying it.
 
-Here's a two-line script to copy and paste to install the Agent on
-Kubernetes for collecting metrics and logs (requires `envsubst` (GNU gettext)):
+Here's a script to copy and paste to install the Agent on Kubernetes for
+collecting metrics, logs, and traces (requires `envsubst` (GNU gettext)):
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
 
 ## Manually Applying

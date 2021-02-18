@@ -82,35 +82,39 @@ type Exporter struct {
 }
 
 type Options struct {
-	User                string
-	Password            string
-	Namespace           string
-	ConfigCommandName   string
-	CheckSingleKeys     string
-	CheckStreams        string
-	CheckSingleStreams  string
-	CheckKeys           string
-	CountKeys           string
-	LuaScript           []byte
-	ClientCertificates  []tls.Certificate
-	CaCertificates      *x509.CertPool
-	InclSystemMetrics   bool
-	SkipTLSVerification bool
-	SetClientName       bool
-	IsTile38            bool
-	ExportClientList    bool
-	ConnectionTimeouts  time.Duration
-	MetricsPath         string
-	RedisMetricsOnly    bool
-	PingOnConnect       bool
-	Registry            *prometheus.Registry
-	BuildInfo           BuildInfo
+	User                    string
+	Password                string
+	Namespace               string
+	ConfigCommandName       string
+	CheckSingleKeys         string
+	CheckStreams            string
+	CheckSingleStreams      string
+	CheckKeys               string
+	CheckKeyGroups          string
+	CheckKeyGroupsBatchSize int64
+	MaxDistinctKeyGroups    int64
+	CountKeys               string
+	LuaScript               []byte
+	ClientCertificates      []tls.Certificate
+	CaCertificates          *x509.CertPool
+	InclSystemMetrics       bool
+	SkipTLSVerification     bool
+	SetClientName           bool
+	IsTile38                bool
+	ExportClientList        bool
+	ExportClientsInclPort   bool
+	ConnectionTimeouts      time.Duration
+	MetricsPath             string
+	RedisMetricsOnly        bool
+	PingOnConnect           bool
+	Registry                *prometheus.Registry
+	BuildInfo               BuildInfo
 }
 
 func (e *Exporter) scrapeHandler(w http.ResponseWriter, r *http.Request) {
 	target := r.URL.Query().Get("target")
 	if target == "" {
-		http.Error(w, "'target' parameter must be specified", 400)
+		http.Error(w, "'target' parameter must be specified", http.StatusBadRequest)
 		e.targetScrapeRequestErrors.Inc()
 		return
 	}
@@ -121,7 +125,7 @@ func (e *Exporter) scrapeHandler(w http.ResponseWriter, r *http.Request) {
 
 	u, err := url.Parse(target)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Invalid 'target' parameter, parse err: %ck ", err), 400)
+		http.Error(w, fmt.Sprintf("Invalid 'target' parameter, parse err: %ck ", err), http.StatusBadRequest)
 		e.targetScrapeRequestErrors.Inc()
 		return
 	}
@@ -157,7 +161,7 @@ func (e *Exporter) scrapeHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = NewRedisExporter(target, opts)
 	if err != nil {
-		http.Error(w, "NewRedisExporter() err: err", 400)
+		http.Error(w, "NewRedisExporter() err: err", http.StatusBadRequest)
 		e.targetScrapeRequestErrors.Inc()
 		return
 	}
@@ -428,54 +432,63 @@ func NewRedisExporter(redisURI string, opts Options) (*Exporter, error) {
 
 	e.metricDescriptions = map[string]*prometheus.Desc{}
 
+	connectedClientsLabels := []string{"name", "age", "idle", "flags", "db", "omem", "cmd", "host"}
+	if e.options.ExportClientsInclPort {
+		connectedClientsLabels = append(connectedClientsLabels, "port")
+	}
+
 	for k, desc := range map[string]struct {
 		txt  string
 		lbls []string
 	}{
-		"commands_duration_seconds_total":        {txt: `Total amount of time in seconds spent per command`, lbls: []string{"cmd"}},
-		"commands_total":                         {txt: `Total number of calls per command`, lbls: []string{"cmd"}},
-		"connected_slave_lag_seconds":            {txt: "Lag of connected slave", lbls: []string{"slave_ip", "slave_port", "slave_state"}},
-		"connected_slave_offset_bytes":           {txt: "Offset of connected slave", lbls: []string{"slave_ip", "slave_port", "slave_state"}},
-		"db_avg_ttl_seconds":                     {txt: "Avg TTL in seconds", lbls: []string{"db"}},
-		"db_keys":                                {txt: "Total number of keys by DB", lbls: []string{"db"}},
-		"db_keys_expiring":                       {txt: "Total number of expiring keys by DB", lbls: []string{"db"}},
-		"exporter_last_scrape_error":             {txt: "The last scrape error status.", lbls: []string{"err"}},
-		"instance_info":                          {txt: "Information about the Redis instance", lbls: []string{"role", "redis_version", "redis_build_id", "redis_mode", "os", "maxmemory_policy"}},
-		"key_size":                               {txt: `The length or size of "key"`, lbls: []string{"db", "key"}},
-		"key_value":                              {txt: `The value of "key"`, lbls: []string{"db", "key"}},
-		"keys_count":                             {txt: `Count of keys`, lbls: []string{"db", "key"}},
-		"last_slow_execution_duration_seconds":   {txt: `The amount of time needed for last slow execution, in seconds`},
-		"latency_spike_last":                     {txt: `When the latency spike last occurred`, lbls: []string{"event_name"}},
-		"latency_spike_duration_seconds":         {txt: `Length of the last latency spike in seconds`, lbls: []string{"event_name"}},
-		"master_link_up":                         {txt: "Master link status on Redis slave", lbls: []string{"master_host", "master_port"}},
-		"master_sync_in_progress":                {txt: "Master sync in progress", lbls: []string{"master_host", "master_port"}},
-		"master_last_io_seconds_ago":             {txt: "Master last io seconds ago", lbls: []string{"master_host", "master_port"}},
-		"script_values":                          {txt: "Values returned by the collect script", lbls: []string{"key"}},
-		"sentinel_tilt":                          {txt: "Sentinel is in TILT mode"},
-		"sentinel_masters":                       {txt: "The number of masters this sentinel is watching"},
-		"sentinel_running_scripts":               {txt: "Number of scripts in execution right now"},
-		"sentinel_scripts_queue_length":          {txt: "Queue of user scripts to execute"},
-		"sentinel_simulate_failure_flags":        {txt: "Failures simulations"},
-		"sentinel_master_status":                 {txt: "Master status on Sentinel", lbls: []string{"master_name", "master_address", "master_status"}},
-		"sentinel_master_slaves":                 {txt: "The number of slaves of the master", lbls: []string{"master_name", "master_address"}},
-		"sentinel_master_ok_slaves":              {txt: "The number of okay slaves of the master", lbls: []string{"master_name", "master_address"}},
-		"sentinel_master_sentinels":              {txt: "The number of sentinels monitoring this master", lbls: []string{"master_name", "master_address"}},
-		"sentinel_master_ok_sentinels":           {txt: "The number of okay sentinels monitoring this master", lbls: []string{"master_name", "master_address"}},
-		"slave_repl_offset":                      {txt: "Slave replication offset", lbls: []string{"master_host", "master_port"}},
-		"slave_info":                             {txt: "Information about the Redis slave", lbls: []string{"master_host", "master_port", "read_only"}},
-		"slowlog_last_id":                        {txt: `Last id of slowlog`},
-		"slowlog_length":                         {txt: `Total slowlog`},
-		"start_time_seconds":                     {txt: "Start time of the Redis instance since unix epoch in seconds."},
-		"stream_length":                          {txt: `The number of elements of the stream`, lbls: []string{"db", "stream"}},
-		"stream_radix_tree_keys":                 {txt: `Radix tree keys count"`, lbls: []string{"db", "stream"}},
-		"stream_radix_tree_nodes":                {txt: `Radix tree nodes count`, lbls: []string{"db", "stream"}},
-		"stream_groups":                          {txt: `Groups count of stream`, lbls: []string{"db", "stream"}},
-		"stream_group_consumers":                 {txt: `Consumers count of stream group`, lbls: []string{"db", "stream", "group"}},
-		"stream_group_messages_pending":          {txt: `Pending number of messages in that stream group`, lbls: []string{"db", "stream", "group"}},
-		"stream_group_consumer_messages_pending": {txt: `Pending number of messages for this specific consumer`, lbls: []string{"db", "stream", "group", "consumer"}},
-		"stream_group_consumer_idle_seconds":     {txt: `Consumer idle time in seconds`, lbls: []string{"db", "stream", "group", "consumer"}},
-		"up":                                     {txt: "Information about the Redis instance"},
-		"connected_clients_details":              {txt: "Details about connected clients", lbls: []string{"host", "port", "name", "age", "idle", "flags", "db", "omem", "cmd"}},
+		"commands_duration_seconds_total":              {txt: `Total amount of time in seconds spent per command`, lbls: []string{"cmd"}},
+		"commands_total":                               {txt: `Total number of calls per command`, lbls: []string{"cmd"}},
+		"connected_slave_lag_seconds":                  {txt: "Lag of connected slave", lbls: []string{"slave_ip", "slave_port", "slave_state"}},
+		"connected_slave_offset_bytes":                 {txt: "Offset of connected slave", lbls: []string{"slave_ip", "slave_port", "slave_state"}},
+		"db_avg_ttl_seconds":                           {txt: "Avg TTL in seconds", lbls: []string{"db"}},
+		"db_keys":                                      {txt: "Total number of keys by DB", lbls: []string{"db"}},
+		"db_keys_expiring":                             {txt: "Total number of expiring keys by DB", lbls: []string{"db"}},
+		"exporter_last_scrape_error":                   {txt: "The last scrape error status.", lbls: []string{"err"}},
+		"instance_info":                                {txt: "Information about the Redis instance", lbls: []string{"role", "redis_version", "redis_build_id", "redis_mode", "os", "maxmemory_policy"}},
+		"key_group_count":                              {txt: `Count of keys in key group`, lbls: []string{"db", "key_group"}},
+		"key_group_memory_usage_bytes":                 {txt: `Total memory usage of key group in bytes`, lbls: []string{"db", "key_group"}},
+		"key_size":                                     {txt: `The length or size of "key"`, lbls: []string{"db", "key"}},
+		"key_value":                                    {txt: `The value of "key"`, lbls: []string{"db", "key"}},
+		"keys_count":                                   {txt: `Count of keys`, lbls: []string{"db", "key"}},
+		"number_of_distinct_key_groups":                {txt: `Number of distinct key groups`, lbls: []string{"db"}},
+		"last_key_groups_scrape_duration_milliseconds": {txt: `Duration of the last key group metrics scrape in milliseconds`},
+		"last_slow_execution_duration_seconds":         {txt: `The amount of time needed for last slow execution, in seconds`},
+		"latency_spike_last":                           {txt: `When the latency spike last occurred`, lbls: []string{"event_name"}},
+		"latency_spike_duration_seconds":               {txt: `Length of the last latency spike in seconds`, lbls: []string{"event_name"}},
+		"master_link_up":                               {txt: "Master link status on Redis slave", lbls: []string{"master_host", "master_port"}},
+		"master_sync_in_progress":                      {txt: "Master sync in progress", lbls: []string{"master_host", "master_port"}},
+		"master_last_io_seconds_ago":                   {txt: "Master last io seconds ago", lbls: []string{"master_host", "master_port"}},
+		"script_values":                                {txt: "Values returned by the collect script", lbls: []string{"key"}},
+		"sentinel_tilt":                                {txt: "Sentinel is in TILT mode"},
+		"sentinel_masters":                             {txt: "The number of masters this sentinel is watching"},
+		"sentinel_running_scripts":                     {txt: "Number of scripts in execution right now"},
+		"sentinel_scripts_queue_length":                {txt: "Queue of user scripts to execute"},
+		"sentinel_simulate_failure_flags":              {txt: "Failures simulations"},
+		"sentinel_master_status":                       {txt: "Master status on Sentinel", lbls: []string{"master_name", "master_address", "master_status"}},
+		"sentinel_master_slaves":                       {txt: "The number of slaves of the master", lbls: []string{"master_name", "master_address"}},
+		"sentinel_master_ok_slaves":                    {txt: "The number of okay slaves of the master", lbls: []string{"master_name", "master_address"}},
+		"sentinel_master_sentinels":                    {txt: "The number of sentinels monitoring this master", lbls: []string{"master_name", "master_address"}},
+		"sentinel_master_ok_sentinels":                 {txt: "The number of okay sentinels monitoring this master", lbls: []string{"master_name", "master_address"}},
+		"slave_repl_offset":                            {txt: "Slave replication offset", lbls: []string{"master_host", "master_port"}},
+		"slave_info":                                   {txt: "Information about the Redis slave", lbls: []string{"master_host", "master_port", "read_only"}},
+		"slowlog_last_id":                              {txt: `Last id of slowlog`},
+		"slowlog_length":                               {txt: `Total slowlog`},
+		"start_time_seconds":                           {txt: "Start time of the Redis instance since unix epoch in seconds."},
+		"stream_length":                                {txt: `The number of elements of the stream`, lbls: []string{"db", "stream"}},
+		"stream_radix_tree_keys":                       {txt: `Radix tree keys count"`, lbls: []string{"db", "stream"}},
+		"stream_radix_tree_nodes":                      {txt: `Radix tree nodes count`, lbls: []string{"db", "stream"}},
+		"stream_groups":                                {txt: `Groups count of stream`, lbls: []string{"db", "stream"}},
+		"stream_group_consumers":                       {txt: `Consumers count of stream group`, lbls: []string{"db", "stream", "group"}},
+		"stream_group_messages_pending":                {txt: `Pending number of messages in that stream group`, lbls: []string{"db", "stream", "group"}},
+		"stream_group_consumer_messages_pending":       {txt: `Pending number of messages for this specific consumer`, lbls: []string{"db", "stream", "group", "consumer"}},
+		"stream_group_consumer_idle_seconds":           {txt: `Consumer idle time in seconds`, lbls: []string{"db", "stream", "group", "consumer"}},
+		"up":                                           {txt: "Information about the Redis instance"},
+		"connected_clients_details":                    {txt: "Details about connected clients", lbls: connectedClientsLabels},
 	} {
 		e.metricDescriptions[k] = newMetricDescr(opts.Namespace, k, desc.txt, desc.lbls)
 	}
@@ -609,38 +622,38 @@ func extractVal(s string) (val float64, err error) {
 	id=11 addr=127.0.0.1:63508 fd=8 name= age=6321 idle=6320 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=setex
 	id=14 addr=127.0.0.1:64958 fd=9 name= age=5 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=26 qbuf-free=32742 obl=0 oll=0 omem=0 events=r cmd=client
 */
-func parseClientListString(clientInfo string) (host string, port string, name string, age string, idle string, flags string, db string, omem string, cmd string, ok bool) {
-	ok = false
+func parseClientListString(clientInfo string) ([]string, bool) {
 	if matched, _ := regexp.MatchString(`^id=\d+ addr=\d+`, clientInfo); !matched {
-		return
+		return nil, false
 	}
 	connectedClient := map[string]string{}
 	for _, kvPart := range strings.Split(clientInfo, " ") {
 		vPart := strings.Split(kvPart, "=")
 		if len(vPart) != 2 {
 			log.Debugf("Invalid format for client list string, got: %s", kvPart)
-			return
+			return nil, false
 		}
 		connectedClient[vPart[0]] = vPart[1]
 	}
 
 	hostPortString := strings.Split(connectedClient["addr"], ":")
 	if len(hostPortString) != 2 {
-		return
+		return nil, false
 	}
-	host = hostPortString[0]
-	port = hostPortString[1]
 
-	name = connectedClient["name"]
-	age = connectedClient["age"]
-	idle = connectedClient["idle"]
-	flags = connectedClient["flags"]
-	db = connectedClient["db"]
-	omem = connectedClient["omem"]
-	cmd = connectedClient["cmd"]
+	return []string{
+		connectedClient["name"],
+		connectedClient["age"],
+		connectedClient["idle"],
+		connectedClient["flags"],
+		connectedClient["db"],
+		connectedClient["omem"],
+		connectedClient["cmd"],
 
-	ok = true
-	return
+		hostPortString[0], // host
+		hostPortString[1], // port
+	}, true
+
 }
 
 /*
@@ -806,8 +819,6 @@ func (e *Exporter) registerConstMetric(ch chan<- prometheus.Metric, metric strin
 
 	if m, err := prometheus.NewConstMetric(descr, valType, val, labelValues...); err == nil {
 		ch <- m
-	} else {
-		log.Debugf("NewConstMetric() err: %s", err)
 	}
 }
 
@@ -1043,7 +1054,6 @@ func (e *Exporter) extractClusterInfoMetrics(ch chan<- prometheus.Metric, info s
 		if !e.includeMetric(fieldKey) {
 			continue
 		}
-
 		e.parseAndRegisterConstMetric(ch, fieldKey, fieldValue)
 	}
 }
@@ -1251,13 +1261,23 @@ func (e *Exporter) extractTile38Metrics(ch chan<- prometheus.Metric, c redis.Con
 }
 
 func (e *Exporter) extractConnectedClientMetrics(ch chan<- prometheus.Metric, c redis.Conn) {
-	if reply, err := redis.String(doRedisCmd(c, "CLIENT", "LIST")); err == nil {
-		clients := strings.Split(reply, "\n")
+	reply, err := redis.String(doRedisCmd(c, "CLIENT", "LIST"))
+	if err != nil {
+		log.Errorf("CLIENT LIST err: %s", err)
+		return
+	}
 
-		for _, c := range clients {
-			if host, port, name, age, idle, flags, db, omem, cmd, ok := parseClientListString(c); ok {
-				e.registerConstMetricGauge(ch, "connected_clients_details", 1.0, host, port, name, age, idle, flags, db, omem, cmd)
+	for _, c := range strings.Split(reply, "\n") {
+		if lbls, ok := parseClientListString(c); ok {
+
+			// port is the last item, we'll trim it if it's not needed
+			if !e.options.ExportClientsInclPort {
+				lbls = lbls[:len(lbls)-1]
 			}
+			e.registerConstMetricGauge(
+				ch, "connected_clients_details", 1.0,
+				lbls...,
+			)
 		}
 	}
 }
@@ -1650,6 +1670,8 @@ func (e *Exporter) scrapeRedisHost(ch chan<- prometheus.Metric) error {
 	if strings.Contains(infoAll, "# Sentinel") {
 		e.extractSentinelMetrics(ch, c)
 	}
+
+	e.extractKeyGroupMetrics(ch, c, dbCount)
 
 	if e.options.LuaScript != nil && len(e.options.LuaScript) > 0 {
 		if err := e.extractLuaScriptMetrics(ch, c); err != nil {

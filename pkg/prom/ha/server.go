@@ -8,6 +8,7 @@ package ha
 import (
 	"context"
 	"flag"
+	"fmt"
 	"sync"
 	"time"
 
@@ -117,9 +118,12 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		return nil, err
 	}
 
-	r, err := ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
+	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
 	if err != nil {
 		return nil, err
+	}
+	if err := reg.Register(r); err != nil {
+		return nil, fmt.Errorf("failed to register Agent ring metrics: %w", err)
 	}
 	if err := services.StartAndAwaitRunning(context.Background(), r); err != nil {
 		return nil, err
@@ -157,6 +161,20 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 
 	lazy.inner = s
 	return s, nil
+}
+
+// newRing creates a new Cortex Ring that ignores unhealthy nodes.
+func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*ring.Ring, error) {
+	codec := ring.GetCodec()
+	store, err := kv.NewClient(
+		cfg.KVStore,
+		codec,
+		kv.RegistererWithKVName(reg, name+"-ring"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy())
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
@@ -240,7 +258,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 
 	backoff := util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
-		rs, err = s.ring.GetAll(ring.Read)
+		rs, err = s.ring.GetAllHealthy(ring.Read)
 		if err == nil {
 			break
 		}
@@ -252,7 +270,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 		return err
 	}
 
-	_, err = rs.Do(ctx, time.Millisecond*250, func(ctx context.Context, desc *ring.IngesterDesc) (interface{}, error) {
+	_, err = rs.Do(ctx, time.Millisecond*250, func(ctx context.Context, desc *ring.InstanceDesc) (interface{}, error) {
 		// Skip over ourselves; we'll reshard locally after this process finishes.
 		if desc.Addr == s.addr {
 			return nil, nil
@@ -264,7 +282,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 	return err
 }
 
-func (s *Server) notifyReshard(ctx context.Context, desc *ring.IngesterDesc) error {
+func (s *Server) notifyReshard(ctx context.Context, desc *ring.InstanceDesc) error {
 	cli, err := client.New(s.clientConfig, desc.Addr)
 	if err != nil {
 		return err
@@ -372,7 +390,14 @@ func (s *Server) Stop() error {
 	s.cancel()
 	<-s.exited
 
-	return s.closeDependencies()
+	err := s.closeDependencies()
+
+	// Delete all the local configs that were running.
+	s.configManagerMut.Lock()
+	defer s.configManagerMut.Unlock()
+	s.im.Stop()
+
+	return err
 }
 
 // stopServices stops services in argument-call order. Blocks until all services

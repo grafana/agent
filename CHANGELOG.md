@@ -1,23 +1,148 @@
-# Master (unreleased)
+NOTE: FreeBSD builds have not been available since v0.6.0 due to a
+cross-compilation issue. The issue for tracking adding support back
+can be found at [#317](https://github.com/grafana/agent/issues/317).
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
+# Main (unreleased)
+
+The primary branch name has changed from `master` to `main`. You may have to
+update your local checkouts of the repository to point at the new branch name.
+
+- [ENHANCEMENT] Support other architectures in installation script. (@rfratto)
+
+- [ENHANCEMENT] Allow specifying custom wal_truncate_frequency per integration.
+  (@rfratto)
+
+- [ENHANCEMENT] The SigV4 region can now be inferred using the shared config
+  (at `$HOME/.aws/config`) or environment variables (via `AWS_CONFIG`).
+  (@rfratto)
+
+- [ENHANCEMENT] Update Prometheus dependency to v2.25.0. (@rfratto)
+
+- [BUGFIX] Not providing an `-addr` flag for `agentctl config-sync` will no
+  longer report an error and will instead use the pre-existing default value.
+  (@rfratto)
+
+- [BUGFIX] Fixed a bug from v0.12.0 where the Loki installation script failed
+  because positions_directory was not set. (@rfratto)
+
+- [BUGFIX] (#400) Reduce the likelihood of dataloss during a remote_write-side
+  outage by increasing the default wal_truncation_frequency to 60m and preventing
+  the WAL from being truncated if the last truncation timestamp hasn't changed.
+  This change increases the size of the WAL on average, and users may configure
+  a lower wal_truncation_frequency to deliberately choose a smaller WAL over
+  write guarantees. (@rfratto)
+
+# v0.12.0 (2021-02-05)
+
+BREAKING CHANGES: This release has two breaking changes in the configuration
+file. Please read the release notes carefully and our
+[migration guide](./docs/migration-guide.md) to help migrate your configuration
+files to the new format.
+
+- [FEATURE] BREAKING CHANGE: Support for multiple Loki Promtail instances has
+  been added, using the same `configs` array used by the Prometheus subsystem.
+  (@rfratto)
+
+- [FEATURE] BREAKING CHANGE: Support for multiple Tempo instances has
+  been added, using the same `configs` array used by the Prometheus subsystem.
+  (@rfratto)
+
+- [FEATURE] Added [ElasticSearch exporter](https://github.com/justwatchcom/elasticsearch_exporter)
+  integration. (@colega)
+
+- [ENHANCEMENT] `.deb` and `.rpm` packages are now generated for all supported
+  architectures. The architecture of the AMD64 package in the filename has
+  been renamed to `amd64` to stay synchronized with the architecture name
+  presented from other release assets. (@rfratto)
+
+- [ENHANCEMENT] The `/agent/api/v1/targets` API will now include discovered labels
+  on the target pre-relabeling in a `discovered_labels` field. (@rfratto)
+
+- [ENHANCEMENT] Update Loki to 59a34f9867ce. This is a non-release build, and was needed
+  to support multiple Loki instances. (@rfratto)
+
+- [ENHANCEMENT] Scraping service: Unhealthy Agents in the ring will no longer
+  cause job distribution to fail. (@rfratto)
+
+- [ENHANCEMENT] Scraping service: Cortex ring metrics (prefixed with
+  cortex_ring_) will now be registered for tracking the state of the hash
+  ring. (@rfratto)
+
+- [ENHANCEMENT] Scraping service: instance config ownership is now determined by
+  the hash of the instance config name instead of the entire config. This means
+  that updating a config is guaranteed to always hash to the same Agent,
+  reducing the number of metrics gaps. (@rfratto)
+
+- [ENHANCEMENT] Only keep a handful of K8s API server metrics by default to reduce
+  default active series usage. (@hjet)
+
+- [ENHANCEMENT] Go 1.15.8 is now used for all distributions of the Agent.
+  (@rfratto)
+
+- [BUGFIX] `agentctl config-check` will now work correctly when the supplied
+  config file contains integrations. (@hoenn)
+
+# v0.11.0 (2021-01-20)
+
+- [FEATURE] ARMv6 builds of `agent` and `agentctl` will now be included in
+  releases to expand Agent support to cover all models of Raspberry Pis.
+  ARMv6 docker builds are also now available.
+  (@rfratto)
+
+- [FEATURE] Added `config-check` subcommand for `agentctl` that can be used
+  to validate Agent configuration files before attempting to load them in the
+  `agent` itself. (@56quarters)
+
+- [ENHANCEMENT] A sigv4 install script for Prometheus has been added. (@rfratto)
+
+- [ENHANCEMENT] NAMESPACE may be passed as an environment variable to the
+  Kubernetes install scripts to specify an installation namespace. (@rfratto)
+
+- [BUGFIX] The K8s API server scrape job will use the API server Service name
+  when resolving IP addresses for Prometheus service discovery using the
+  "Endpoints" role. (@hjet)
+
+- [BUGFIX] The K8s manifests will no longer include the `default/kubernetes` job
+  twice in both the DaemonSet and the Deployment. (@rfratto)
+
+# v0.10.0 (2021-01-13)
+
+- [FEATURE] Prometheus `remote_write` now supports SigV4 authentication using
+  the [AWS default credentials
+  chain](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html).
+  This enables the Agent to send metrics to Amazon Managed Prometheus without
+  needing the [SigV4 Proxy](https://github.com/awslabs/aws-sigv4-proxy).
+  (@rfratto)
+
+- [ENHANCEMENT] Update `redis_exporter` to v1.15.0. (@rfratto)
+
+- [ENHANCEMENT] `memcached_exporter` has been updated to v0.8.0. (@rfratto)
+
+- [ENHANCEMENT] `process-exporter` has been updated to v0.7.5. (@rfratto)
+
+- [ENHANCEMENT] `wal_cleanup_age` and `wal_cleanup_period` have been added to the
+  top-level Prometheus configuration section. These settings control how Write Ahead
+  Logs (WALs) that are not associated with any instances are cleaned up. By default,
+  WALs not associated with an instance that have not been written in the last 12 hours
+  are eligible to be cleaned up. This cleanup can be disabled by setting `wal_cleanup_period`
+  to `0`. (#304) (@56quarters)
+
+- [ENHANCEMENT] Configuring logs to read from the systemd journal should now
+  work on journals that use +ZSTD compression. (@rfratto)
+
+- [BUGFIX] Integrations will now function if the HTTP listen address was set to
+  a value other than the default. ([#206](https://github.com/grafana/agent/issues/206)) (@mattdurham)
+
+- [BUGFIX] The default Loki installation will now be able to write its positions
+  file. This was prevented by accidentally writing to a readonly volume mount.
+  (@rfratto)
 
 # v0.9.1 (2021-01-04)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
-- [ENHANCEMENT] agentctl will now be installed by the rpm and deb packages as 
+- [ENHANCEMENT] agentctl will now be installed by the rpm and deb packages as
   `grafana-agentctl`. (@rfratto)
 
 # v0.9.0 (2020-12-10)
-
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] Add support to configure TLS config for the Tempo exporter to use
   insecure_skip_verify to disable TLS chain verification. (@bombsimon)
@@ -59,10 +184,6 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.8.0 (2020-11-06)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [FEATURE] New integration: [dnsamsq_exporter](https://github.com/google/dnsamsq_exporter)
   (@rfratto).
 
@@ -83,10 +204,6 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.7.2 (2020-10-29)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [ENHANCEMENT] Bump Prometheus dependency to 2.21. (@rfratto)
 
 - [ENHANCEMENT] Bump OpenTelemetry-collector dependency to 0.13.0 (@rfratto)
@@ -105,18 +222,10 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.7.1 (2020-10-23)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [BUGFIX] Fix issue where ARM binaries were not published with the GitHub
   release.
 
 # v0.7.0 (2020-10-23)
-
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] Added Tracing Support. (@joe-elliott)
 
@@ -155,10 +264,6 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.6.1 (2020-04-11)
 
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
-
 - [BUGFIX] Fix issue where build information was empty when running the Agent
   with --version. (@rfratto)
 
@@ -169,10 +274,6 @@ this platform. FreeBSD builds will return in a future release.
   a high scrape volume. (@rfratto)
 
 # v0.6.0 (2020-09-04)
-
-NOTE: FreeBSD builds will not be included for this release. There is a bug in an
-upstream library preventing cross-compilation of the Grafana Cloud Agent for
-this platform. FreeBSD builds will return in a future release.
 
 - [FEATURE] The Grafana Cloud Agent can now collect logs and send to Loki. This
   is done by embedding Promtail, the official Loki log collection client.
@@ -240,7 +341,7 @@ this platform. FreeBSD builds will return in a future release.
 
 # v0.5.0 (2020-08-12)
 
-- [FEATURE] A [scrape targets API](https://github.com/grafana/agent/blob/master/docs/api.md#list-current-scrape-targets)
+- [FEATURE] A [scrape targets API](https://github.com/grafana/agent/blob/main/docs/api.md#list-current-scrape-targets)
   has been added to show every target the Agent is currently scraping, when it
   was last scraped, how long it took to scrape, and errors from the last scrape,
   if any. (@rfratto)

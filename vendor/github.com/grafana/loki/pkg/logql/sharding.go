@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/querier/astmapper"
-	"github.com/cortexproject/cortex/pkg/util"
+	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/prometheus/promql"
 
@@ -31,16 +31,18 @@ which can then take advantage of our sharded execution model.
 type ShardedEngine struct {
 	timeout        time.Duration
 	downstreamable Downstreamable
+	limits         Limits
 	metrics        *ShardingMetrics
 }
 
 // NewShardedEngine constructs a *ShardedEngine
-func NewShardedEngine(opts EngineOpts, downstreamable Downstreamable, metrics *ShardingMetrics) *ShardedEngine {
+func NewShardedEngine(opts EngineOpts, downstreamable Downstreamable, metrics *ShardingMetrics, limits Limits) *ShardedEngine {
 	opts.applyDefault()
 	return &ShardedEngine{
 		timeout:        opts.Timeout,
 		downstreamable: downstreamable,
 		metrics:        metrics,
+		limits:         limits,
 	}
 
 }
@@ -54,6 +56,7 @@ func (ng *ShardedEngine) Query(p Params, mapped Expr) Query {
 		parse: func(_ context.Context, _ string) (Expr, error) {
 			return mapped, nil
 		},
+		limits: ng.limits,
 	}
 }
 
@@ -165,7 +168,7 @@ func (ev DownstreamEvaluator) Downstream(ctx context.Context, queries []Downstre
 
 	for _, res := range results {
 		if err := stats.JoinResults(ctx, res.Statistics); err != nil {
-			level.Warn(util.Logger).Log("msg", "unable to merge downstream results", "err", err)
+			level.Warn(util_log.Logger).Log("msg", "unable to merge downstream results", "err", err)
 		}
 	}
 
@@ -238,7 +241,7 @@ func (ev *DownstreamEvaluator) StepEvaluator(
 		for i, res := range results {
 			stepper, err := ResultStepEvaluator(res, params)
 			if err != nil {
-				level.Warn(util.Logger).Log(
+				level.Warn(util_log.Logger).Log(
 					"msg", "could not extract StepEvaluator",
 					"err", err,
 					"expr", queries[i].Expr.String(),
@@ -303,7 +306,7 @@ func (ev *DownstreamEvaluator) Iterator(
 		for i, res := range results {
 			iter, err := ResultIterator(res, params)
 			if err != nil {
-				level.Warn(util.Logger).Log(
+				level.Warn(util_log.Logger).Log(
 					"msg", "could not extract Iterator",
 					"err", err,
 					"expr", queries[i].Expr.String(),

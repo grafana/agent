@@ -57,5 +57,5 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		SingleInflight: true,
 	}, c.DnsmasqAddress, c.LeasesPath)
 
-	return integrations.NewCollectorIntegration(c.Name(), exporter, false), nil
+	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(exporter)), nil
 }

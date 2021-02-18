@@ -12,12 +12,14 @@ easiest to hardest:
 
 ## Install Script for Kubernetes
 
-The Grafana Cloud Agent repository comes with an installation script to
-configure remote write and return a Kubernetes manifest that uses our preferred
-defaults. To run the script, copy and paste this line in your terminal:
+The Grafana Cloud Agent repository comes with installation scripts to
+configure components and return a Kubernetes manifest that uses our preferred
+defaults. To run the script, copy and paste this in your terminal:
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
 
 See the [Kubernetes README](./kubernetes/README.md) for more information.
@@ -35,7 +37,7 @@ docker run \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
   --entrypoint "/bin/agent -config.file=/etc/agent-config/agent.yaml -prometheus.wal-directory=/etc/agent/data"
-  grafana/agent:v0.9.1
+  grafana/agent:v0.12.0
 ```
 
 ## Running the Agent locally

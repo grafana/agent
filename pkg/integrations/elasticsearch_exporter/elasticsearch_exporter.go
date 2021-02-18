@@ -1,0 +1,165 @@
+// Package elasticsearch_exporter instantiates the exporter from github.com/justwatchcom/elasticsearch_exporter
+// Using the YAML config provided by the agent
+package elasticsearch_exporter //nolint:golint
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/url"
+	"time"
+
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/justwatchcom/elasticsearch_exporter/collector"
+	"github.com/justwatchcom/elasticsearch_exporter/pkg/clusterinfo"
+)
+
+var DefaultConfig = Config{
+	Address:                   "http://localhost:9200",
+	Timeout:                   5 * time.Second,
+	Node:                      "_local",
+	ExportClusterInfoInterval: 5 * time.Minute,
+}
+
+// Config controls the elasticsearch_exporter integration.
+type Config struct {
+	Common config.Common `yaml:",inline"`
+
+	// Exporter configuration
+
+	// HTTP API address of an Elasticsearch node.
+	Address string `yaml:"address"`
+	// Timeout for trying to get stats from Elasticsearch.
+	Timeout time.Duration `yaml:"timeout"`
+	// Export stats for all nodes in the cluster. If used, this flag will override the flag es.node.
+	AllNodes bool `yaml:"all"`
+	// Node's name of which metrics should be exposed.
+	Node string `yaml:"node"`
+	// Export stats for indices in the cluster.
+	ExportIndices bool `yaml:"indices"`
+	// Export stats for settings of all indices of the cluster.
+	ExportIndicesSettings bool `yaml:"indices_settings"`
+	// Export stats for cluster settings.
+	ExportClusterSettings bool `yaml:"cluster_settings"`
+	// Export stats for shards in the cluster (implies indices).
+	ExportShards bool `yaml:"shards"`
+	// Export stats for the cluster snapshots.
+	ExportSnapshots bool `yaml:"snapshots"`
+	// Cluster info update interval for the cluster label.
+	ExportClusterInfoInterval time.Duration `yaml:"clusterinfo_interval"`
+	// Path to PEM file that contains trusted Certificate Authorities for the Elasticsearch connection.
+	CA string `yaml:"ca"`
+	// Path to PEM file that contains the private key for client auth when connecting to Elasticsearch.
+	ClientPrivateKey string `yaml:"client_private_key"`
+	// Path to PEM file that contains the corresponding cert for the private key to connect to Elasticsearch.
+	ClientCert string `yaml:"client_cert"`
+	// Skip SSL verification when connecting to Elasticsearch.
+	InsecureSkipVerify bool `yaml:"ssl_skip_verify"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for Config
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
+}
+
+func (c *Config) Name() string {
+	return "elasticsearch_exporter"
+}
+
+func (c *Config) CommonConfig() config.Common {
+	return c.Common
+}
+
+// NewIntegration creates a new elasticsearch_exporter
+func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+	return New(logger, c)
+}
+
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
+// New creates a new elasticsearch_exporter
+// This function replicates the main() function of github.com/justwatchcom/elasticsearch_exporter
+// but uses yaml configuration instead of kingpin flags.
+func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+	if c.Address == "" {
+		return nil, fmt.Errorf("empty elasticsearch_address provided")
+	}
+	esURL, err := url.Parse(c.Address)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse elasticsearch_address: %w", err)
+	}
+
+	// returns nil if not provided and falls back to simple TCP.
+	tlsConfig := createTLSConfig(c.CA, c.ClientCert, c.ClientPrivateKey, c.InsecureSkipVerify)
+
+	httpClient := &http.Client{
+		Timeout: c.Timeout,
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+			Proxy:           http.ProxyFromEnvironment,
+		},
+	}
+
+	clusterInfoRetriever := clusterinfo.New(logger, httpClient, esURL, c.ExportClusterInfoInterval)
+
+	collectors := []prometheus.Collector{
+		clusterInfoRetriever,
+		collector.NewClusterHealth(logger, httpClient, esURL),
+		collector.NewNodes(logger, httpClient, esURL, c.AllNodes, c.Node),
+	}
+
+	if c.ExportIndices || c.ExportShards {
+		iC := collector.NewIndices(logger, httpClient, esURL, c.ExportShards)
+		collectors = append(collectors, iC)
+		if registerErr := clusterInfoRetriever.RegisterConsumer(iC); registerErr != nil {
+			return nil, fmt.Errorf("failed to register indices collector in cluster info: %w", err)
+		}
+	}
+
+	if c.ExportShards {
+		collectors = append(collectors, collector.NewSnapshots(logger, httpClient, esURL))
+	}
+
+	if c.ExportClusterSettings {
+		collectors = append(collectors, collector.NewClusterSettings(logger, httpClient, esURL))
+	}
+
+	if c.ExportIndicesSettings {
+		collectors = append(collectors, collector.NewIndicesSettings(logger, httpClient, esURL))
+	}
+
+	start := func(ctx context.Context) error {
+		// start the cluster info retriever
+		switch runErr := clusterInfoRetriever.Run(ctx); runErr {
+		case nil:
+			level.Info(logger).Log(
+				"msg", "started cluster info retriever",
+				"interval", c.ExportClusterInfoInterval.String(),
+			)
+		case clusterinfo.ErrInitialCallTimeout:
+			level.Info(logger).Log("msg", "initial cluster info call timed out")
+		default:
+			level.Error(logger).Log("msg", "failed to run cluster info retriever", "err", err)
+			return err
+		}
+
+		// Wait until we're done
+		<-ctx.Done()
+		return ctx.Err()
+	}
+
+	return integrations.NewCollectorIntegration(c.Name(),
+		integrations.WithCollectors(collectors...),
+		integrations.WithRunner(start),
+	), nil
+}
