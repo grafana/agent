@@ -243,7 +243,7 @@ func (m ShardingInstanceManager) Stop() {
 	for k := range m.keyToHash {
 		err := m.DeleteConfig(k)
 		if err != nil {
-			level.Error(m.log).Log("msg", "failed to remove config", "name", k, "error", err)
+			level.Error(m.log).Log("msg", "failed to remove config", "name", k, "err", err)
 		}
 	}
 }
