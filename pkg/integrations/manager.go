@@ -2,7 +2,10 @@ package integrations
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/grafana/agent/pkg/serverconfig"
+	config_util "github.com/prometheus/common/config"
 	"path"
 	"sync"
 	"time"
@@ -124,7 +127,7 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager) (*Manager, error) {
+func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, config serverconfig.ServerConfig) (*Manager, error) {
 	integrations := make(map[Config]Integration)
 
 	for _, integrationCfg := range c.Integrations {
@@ -138,10 +141,10 @@ func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager) (*Manag
 		}
 	}
 
-	return newManager(c, logger, im, integrations)
+	return newManager(c, logger, im, integrations, config)
 }
 
-func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integrations map[Config]Integration) (*Manager, error) {
+func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integrations map[Config]Integration, config serverconfig.ServerConfig) (*Manager, error) {
 	defaultRelabels, err := c.DefaultRelabelConfigs()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get default relabel configs: %w", err)
@@ -167,17 +170,17 @@ func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integra
 		}
 	}
 
-	go m.run(ctx)
+	go m.run(ctx, config)
 	return m, nil
 }
 
-func (m *Manager) run(ctx context.Context) {
+func (m *Manager) run(ctx context.Context, config serverconfig.ServerConfig) {
 	var wg sync.WaitGroup
 	wg.Add(len(m.integrations))
 
 	for cfg, i := range m.integrations {
 		go func(cfg Config, i Integration) {
-			m.runIntegration(ctx, cfg, i)
+			m.runIntegration(ctx, cfg, config, i)
 			wg.Done()
 		}(cfg, i)
 	}
@@ -186,7 +189,7 @@ func (m *Manager) run(ctx context.Context) {
 	close(m.done)
 }
 
-func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration) {
+func (m *Manager) runIntegration(ctx context.Context, cfg Config, config serverconfig.ServerConfig, i Integration) {
 	defer func() {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("%v", r)
@@ -200,7 +203,7 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration)
 	}
 	if shouldCollect {
 		// Apply the config so an instance is launched to scrape our integration.
-		instanceConfig := m.instanceConfigForIntegration(cfg, i)
+		instanceConfig := m.instanceConfigForIntegration(cfg, config, i)
 		if err := m.im.ApplyConfig(instanceConfig); err != nil {
 			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err, "integration", cfg.Name())
 			return
@@ -220,18 +223,36 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration)
 	}
 }
 
-func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instance.Config {
+func (m *Manager) instanceConfigForIntegration(cfg Config, serverConfig serverconfig.ServerConfig, i Integration) instance.Config {
 	prometheusName := fmt.Sprintf("integration/%s", cfg.Name())
 
 	common := cfg.CommonConfig()
 	relabelConfigs := append(m.defaultRelabelConfigs, common.RelabelConfigs...)
 
 	var scrapeConfigs []*config.ScrapeConfig
+	schema := "http"
+
+	// If there is a TLS cert path then assume we need to use client certificates
+	httpClientConfig := config_util.HTTPClientConfig{}
+	if serverConfig.HTTPTLSConfig.TLSCertPath != "" {
+		if serverConfig.ClientKey == "" || serverConfig.ClientCert == "" {
+			err := errors.New("client key or client cert was not specific but TLS Cert was")
+			level.Error(m.logger).Log("tls", "Client TLS", "err", err)
+			panic(err)
+		}
+		schema = "https"
+		httpClientConfig.TLSConfig = config_util.TLSConfig{
+			CAFile:             serverConfig.HTTPTLSConfig.ClientCAs,
+			CertFile:           serverConfig.ClientCert,
+			KeyFile:            serverConfig.ClientKey,
+			InsecureSkipVerify: false,
+		}
+	}
 	for _, isc := range i.ScrapeConfigs() {
 		sc := &config.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
 			MetricsPath:             path.Join("/integrations", cfg.Name(), isc.MetricsPath),
-			Scheme:                  "http",
+			Scheme:                  schema,
 			HonorLabels:             false,
 			HonorTimestamps:         true,
 			ScrapeInterval:          model.Duration(common.ScrapeInterval),
@@ -239,6 +260,7 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 			ServiceDiscoveryConfigs: m.scrapeServiceDiscovery(),
 			RelabelConfigs:          relabelConfigs,
 			MetricRelabelConfigs:    common.MetricRelabelConfigs,
+			HTTPClientConfig:        httpClientConfig,
 		}
 
 		scrapeConfigs = append(scrapeConfigs, sc)

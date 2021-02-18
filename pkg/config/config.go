@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"github.com/grafana/agent/pkg/serverconfig"
 	"io/ioutil"
 	"os"
 
@@ -13,13 +14,12 @@ import (
 	"github.com/grafana/agent/pkg/tempo"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
-	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config              `yaml:"server"`
+	Server       serverconfig.ServerConfig  `yaml:"server"`
 	Prometheus   prom.Config                `yaml:"prometheus,omitempty"`
 	Loki         loki.Config                `yaml:"loki,omitempty"`
 	Integrations integrations.ManagerConfig `yaml:"integrations"`

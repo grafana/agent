@@ -41,7 +41,7 @@ func main() {
 	}
 
 	// After this point we can use util.Logger and stop using the log package
-	util.InitLogger(&cfg.Server)
+	util.InitLogger(&cfg.Server.Config)
 
 	var (
 		promMetrics *prom.Agent
@@ -50,7 +50,7 @@ func main() {
 		manager     *integrations.Manager
 	)
 
-	srv, err := server.New(cfg.Server)
+	srv, err := server.New(cfg.Server.Config)
 	if err != nil {
 		level.Error(util.Logger).Log("msg", "failed to create server", "err", err)
 		os.Exit(1)
@@ -85,7 +85,7 @@ func main() {
 	}
 
 	if cfg.Integrations.Enabled {
-		manager, err = integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager())
+		manager, err = integrations.NewManager(cfg.Integrations, util.Logger, promMetrics.InstanceManager(), cfg.Server)
 		if err != nil {
 			level.Error(util.Logger).Log("msg", "failed to create integrations manager", "err", err)
 			os.Exit(1)
