@@ -105,7 +105,7 @@ func (i *Instance) stop() {
 		{
 			name: "exporters",
 			shutdown: func() error {
-				if i.receivers == nil {
+				if i.exporter == nil {
 					return nil
 				}
 				return i.exporter.ShutdownAll(shutdownCtx)
@@ -114,6 +114,7 @@ func (i *Instance) stop() {
 	}
 
 	for _, dep := range dependencies {
+		i.logger.Info(fmt.Sprintf("shutting down %s", dep.name))
 		if err := dep.shutdown(); err != nil {
 			i.logger.Error(fmt.Sprintf("failed to shutdown %s", dep.name), zap.Error(err))
 		}
@@ -121,6 +122,7 @@ func (i *Instance) stop() {
 
 	i.receivers = nil
 	i.pipelines = nil
+	i.exporter = nil
 }
 
 func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig) error {

@@ -80,6 +80,7 @@ func (t *Tempo) ApplyConfig(cfg Config) error {
 		}
 		i.Stop()
 	}
+	t.instances = newInstances
 
 	return nil
 }
