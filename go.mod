@@ -8,7 +8,6 @@ require (
 	github.com/cortexproject/cortex v1.6.1-0.20210204145131-7dac81171c66
 	github.com/drone/envsubst v1.0.2
 	github.com/go-kit/kit v0.10.0
-	github.com/go-playground/validator/v10 v10.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.4.3
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
@@ -16,12 +15,9 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20210205130758-59a34f9867ce
 	github.com/hashicorp/consul/api v1.8.1
-	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
-	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909 // indirect
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/miekg/dns v1.1.38
-	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
@@ -51,7 +47,6 @@ require (
 	google.golang.org/grpc v1.34.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
-	gotest.tools/v3 v3.0.3 // indirect
 )
 
 // Needed for Cortex's dependencies to work properly.
@@ -90,3 +85,6 @@ replace (
 
 // Required for redis_exporter, which is incompatible with v2.0.0+incompatible.
 replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
+
+// Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
+exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
