@@ -164,13 +164,13 @@ install:
 #######################
 
 lint:
-	GO111MODULE=on GOGC=10 golangci-lint run -v --timeout=10m $(GOLANGCI_ARG)
+	GO111MODULE=on golangci-lint run -v --timeout=10m $(GOLANGCI_ARG)
 
 # We have to run test twice: once for all packages with -race and then once more without -race
 # for packages that have known race detection issues
 test:
-	GOGC=10 go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
-	GOGC=10 go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
+	go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
+	go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
 
 clean:
 	rm -rf cmd/agent/agent
