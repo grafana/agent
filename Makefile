@@ -169,8 +169,8 @@ lint:
 # We have to run test twice: once for all packages with -race and then once more without -race
 # for packages that have known race detection issues
 test:
-	go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
-	go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
 
 clean:
 	rm -rf cmd/agent/agent
