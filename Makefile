@@ -169,8 +169,8 @@ lint:
 # We have to run test twice: once for all packages with -race and then once more without -race
 # for packages that have known race detection issues
 test:
-	go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
-	go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
 
 clean:
 	rm -rf cmd/agent/agent
@@ -261,24 +261,38 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 	docker pull $(IMAGE_PREFIX)/centos-systemd || docker build -t $(IMAGE_PREFIX)/centos-systemd $(@D)
 	touch $@
 
+#
+# Define dist packages. BUILD_IN_CONTAINER=true will send requests to a docker
+# container that has fpm installed.
+#
+.PHONY: dist-packages dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-packages-armv7
+dist-packages: dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-packages-armv7
+
 ifeq ($(BUILD_IN_CONTAINER), true)
-dist-packages: enforce-release-tag dist-agent dist-agentctl build-image/.uptodate
-	docker run --rm \
-		-v $(shell pwd):/src/agent:delegated \
-		-e RELEASE_TAG=$(RELEASE_TAG) \
-		-e SRC_PATH=/src/agent \
-		-i $(BUILD_IMAGE) $@;
-.PHONY: dist-packages
+
+container_make = docker run --rm \
+	-v $(shell pwd):/src/agent:delegated \
+	-e RELEASE_TAG=$(RELEASE_TAG) \
+	-e SRC_PATH=/src/agent \
+	-i $(BUILD_IMAGE)
+
+dist-packages-amd64: enforce-release-tag dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
+	$(container_make) $@;
+dist-packages-arm64: enforce-release-tag dist/agent-linux-arm64 dist/agentctl-linux-arm64 build-image/.uptodate
+	$(container_make) $@;
+dist-packages-armv6: enforce-release-tag dist/agent-linux-armv6 dist/agentctl-linux-armv6 build-image/.uptodate
+	$(container_make) $@;
+dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-linux-armv7 build-image/.uptodate
+	$(container_make) $@;
+
 else
-dist-packages:
-	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.rpm
-	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).amd64.deb
-	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.deb
-	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).arm64.rpm
-	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.deb
-	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv7.rpm
-	$(MAKE) dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).armv6.deb
-.PHONY: dist-packages
+
+package_base = dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
+
+dist-packages-amd64: $(package_base).amd64.deb $(package_base).amd64.rpm
+dist-packages-arm64: $(package_base).arm64.deb $(package_base).arm64.rpm
+dist-packages-armv6: $(package_base).armv6.deb
+dist-packages-armv7: $(package_base).armv7.deb $(package_base).armv7.rpm
 
 ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
 ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
@@ -337,7 +351,7 @@ endif
 enforce-release-tag:
 	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
-test-packages: enforce-release-tag seego dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
+test-packages: enforce-release-tag seego dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
 .PHONY: test-package
 
