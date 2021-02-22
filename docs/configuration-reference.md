@@ -192,7 +192,7 @@ conjunction with the `integrations client_cert_file` and `integrations client_ke
 [key_file: <string>]
 
 # Tells the server what is acceptable from the client. 
-# *NOTE* NoClientCert is not acceptable. If you want the server # to accept any connection use `RequestClientCert`
+# *NOTE* NoClientCert is not acceptable. If you want the server to accept any connection use `RequestClientCert`
 [client_auth_type: <string>]
 
 # File path to the signing CA certificate, needed if CA is not trusted
