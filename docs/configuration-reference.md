@@ -131,6 +131,9 @@ scraping service mode.
 
 # Base path to server all API routes from (e.g., /v1/). Unused.
 [http_path_prefix: <string>]
+
+# Configuration for HTTPS serving and scraping of metrics
+[http_tls_config: <http_tls_config>]
 ```
 
 ## prometheus_config
@@ -173,6 +176,28 @@ configs:
 # How to spawn instances based on instance configs. Supported values: shared,
 # distinct.
 [instance_mode: <string> | default = "shared"]
+```
+
+### http_tls_config
+
+The `http_tls_config` block configures server and reading metrics via TLS, with or without certificate pinning. In 
+conjunction with the `integrations client_cert_file` and `integrations client_key_file`.  Acceptable values for
+`client_auth_type` are found in [tls.config](https://golang.org/pkg/crypto/tls/#ClientAuthType). 
+
+```yaml
+# File path to the server certificate
+[cert_file: <string>]
+
+# File path to the server key file
+[key_file: <string>]
+
+# Tells the server what is acceptable from the client. 
+# *NOTE* NoClientCert is not acceptable. If you want the server # to accept any connection use `RequestClientCert`
+[client_auth_type: <string>]
+
+# File path to the signing CA certificate, needed if CA is not trusted
+[client_ca_file: <string>]
+
 ```
 
 ### scraping_service_config
@@ -2025,6 +2050,12 @@ agent:
 
   # How frequent to truncate the WAL for this integration.
   [wal_truncate_frequency: <duration> | default = "60m"]
+  
+  # Path to the client certificate, must be used if client_auth_type is RequireAndVerifyClientCert
+  [client_cert_file: <string>]
+    
+  # Path to client key, must be used if client_auth_type is RequireAndVerifyClientCert
+  [client_key_file: <string>]
 
   # Allows for relabeling labels on the target.
   relabel_configs:

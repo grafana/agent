@@ -41,7 +41,7 @@ func main() {
 	}
 
 	// After this point we can use util_log.Logger and stop using the log package
-	util_log.InitLogger(&cfg.Server.Config)
+	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
 	var (
@@ -51,7 +51,7 @@ func main() {
 		manager     *integrations.Manager
 	)
 
-	srv, err := server.New(cfg.Server.Config)
+	srv, err := server.New(cfg.Server)
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to create server", "err", err)
 		os.Exit(1)
@@ -86,7 +86,9 @@ func main() {
 	}
 
 	if cfg.Integrations.Enabled {
-		manager, err = integrations.NewManager(cfg.Integrations, logger, promMetrics.InstanceManager(), cfg.Server)
+		cfg.Integrations.ClientCA = cfg.Server.HTTPTLSConfig.ClientCAs
+		cfg.Integrations.ClientAuthType = cfg.Server.HTTPTLSConfig.ClientAuth
+		manager, err = integrations.NewManager(cfg.Integrations, logger, promMetrics.InstanceManager())
 		if err != nil {
 			level.Error(logger).Log("msg", "failed to create integrations manager", "err", err)
 			os.Exit(1)

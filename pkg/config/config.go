@@ -3,7 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
-	"github.com/grafana/agent/pkg/serverconfig"
+	"github.com/weaveworks/common/server"
 	"io/ioutil"
 	"os"
 
@@ -19,7 +19,7 @@ import (
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       serverconfig.ServerConfig  `yaml:"server"`
+	Server       server.Config              `yaml:"server"`
 	Prometheus   prom.Config                `yaml:"prometheus,omitempty"`
 	Loki         loki.Config                `yaml:"loki,omitempty"`
 	Integrations integrations.ManagerConfig `yaml:"integrations"`

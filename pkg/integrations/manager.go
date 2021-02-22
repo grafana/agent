@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/pkg/serverconfig"
 	config_util "github.com/prometheus/common/config"
 	"path"
 	"sync"
@@ -71,6 +70,18 @@ type ManagerConfig struct {
 	// ListenHost tells the integration Manager which port the Agent is
 	// listening on for generating Prometheus instance configs
 	ListenHost *string `yaml:"-"`
+
+	// Drives using HTTPS to read the integrations
+
+	ClientCert string `yaml:"client_cert_file"`
+	ClientKey  string `yaml:"client_key_file"`
+	ServerName string `yaml:"server_name"`
+
+	// If this is RequireAndVerifyClientCert then the ClientCert/Key/ServerName fields are required
+	// comes from the http_tls_config in the server settings
+	ClientAuthType string
+
+	ClientCA string
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -131,7 +142,7 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, config serverconfig.ServerConfig) (*Manager, error) {
+func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager) (*Manager, error) {
 	integrations := make(map[Config]Integration)
 
 	for _, integrationCfg := range c.Integrations {
@@ -145,10 +156,10 @@ func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, config 
 		}
 	}
 
-	return newManager(c, logger, im, integrations, config)
+	return newManager(c, logger, im, integrations)
 }
 
-func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integrations map[Config]Integration, config serverconfig.ServerConfig) (*Manager, error) {
+func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integrations map[Config]Integration) (*Manager, error) {
 	defaultRelabels, err := c.DefaultRelabelConfigs()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get default relabel configs: %w", err)
@@ -174,17 +185,17 @@ func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integra
 		}
 	}
 
-	go m.run(ctx, config)
+	go m.run(ctx)
 	return m, nil
 }
 
-func (m *Manager) run(ctx context.Context, config serverconfig.ServerConfig) {
+func (m *Manager) run(ctx context.Context) {
 	var wg sync.WaitGroup
 	wg.Add(len(m.integrations))
 
 	for cfg, i := range m.integrations {
 		go func(cfg Config, i Integration) {
-			m.runIntegration(ctx, cfg, config, i)
+			m.runIntegration(ctx, cfg, i)
 			wg.Done()
 		}(cfg, i)
 	}
@@ -193,7 +204,7 @@ func (m *Manager) run(ctx context.Context, config serverconfig.ServerConfig) {
 	close(m.done)
 }
 
-func (m *Manager) runIntegration(ctx context.Context, cfg Config, config serverconfig.ServerConfig, i Integration) {
+func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration) {
 	defer func() {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("%v", r)
@@ -207,7 +218,12 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, config serverc
 	}
 	if shouldCollect {
 		// Apply the config so an instance is launched to scrape our integration.
-		instanceConfig := m.instanceConfigForIntegration(cfg, config, i)
+		instanceConfig, err := m.instanceConfigForIntegration(cfg, i)
+		if err != nil {
+			level.Error(m.logger).Log("msg", "failed to create config integration. integration will not run", "err", err, "integration", cfg.Name())
+			return
+		}
+
 		if err := m.im.ApplyConfig(instanceConfig); err != nil {
 			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run", "err", err, "integration", cfg.Name())
 			return
@@ -227,7 +243,7 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, config serverc
 	}
 }
 
-func (m *Manager) instanceConfigForIntegration(cfg Config, serverConfig serverconfig.ServerConfig, i Integration) instance.Config {
+func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) (instance.Config, error) {
 	prometheusName := fmt.Sprintf("integration/%s", cfg.Name())
 
 	common := cfg.CommonConfig()
@@ -238,19 +254,21 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, serverConfig serverco
 
 	// If there is a TLS cert path then assume we need to use client certificates
 	httpClientConfig := config_util.HTTPClientConfig{}
-	if serverConfig.HTTPTLSConfig.TLSCertPath != "" {
-		if serverConfig.ClientKey == "" || serverConfig.ClientCert == "" {
-			err := errors.New("client key or client cert was not specific but TLS Cert was")
+	if m.c.ClientAuthType != "" {
+		// If the AuthType is to require a client cert/servername then one needs to be defined
+		certRequired := m.c.ClientAuthType == "RequireAndVerifyClientCert" || m.c.ClientAuthType == "RequireAnyClientCert"
+		certEmpty := m.c.ClientKey == "" || m.c.ClientCert == "" || m.c.ServerName == ""
+		if certRequired && certEmpty {
+			err := errors.New("client key or client cert or servername is not specific but a Client TLS Cert is required")
 			level.Error(m.logger).Log("tls", "Client TLS", "err", err)
-			panic(err)
+			return instance.Config{}, err
 		}
 		schema = "https"
 		httpClientConfig.TLSConfig = config_util.TLSConfig{
-			CAFile:             serverConfig.HTTPTLSConfig.ClientCAs,
-			CertFile:           serverConfig.ClientCert,
-			KeyFile:            serverConfig.ClientKey,
-			InsecureSkipVerify: false,
-			ServerName:         serverConfig.ServerName,
+			CAFile:     m.c.ClientCA,
+			CertFile:   m.c.ClientCert,
+			KeyFile:    m.c.ClientKey,
+			ServerName: m.c.ServerName,
 		}
 	}
 	for _, isc := range i.ScrapeConfigs() {
@@ -278,7 +296,7 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, serverConfig serverco
 	if common.WALTruncateFrequency > 0 {
 		instanceCfg.WALTruncateFrequency = common.WALTruncateFrequency
 	}
-	return instanceCfg
+	return instanceCfg, nil
 }
 
 func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
