@@ -156,7 +156,7 @@ service:
 		return nil, fmt.Errorf("failed to build receivers: %w", err)
 	}
 	if err := receivers.StartAll(context.Background(), nil); err != nil {
-		return nil, fmt.Errorf("failed to start recievers: %w", err)
+		return nil, fmt.Errorf("failed to start receivers: %w", err)
 	}
 
 	return &Server{
