@@ -253,26 +253,17 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) (insta
 
 	var scrapeConfigs []*config.ScrapeConfig
 	schema := "http"
-
-	// If there is a TLS cert path then assume we need to use client certificates
+	// Check for HTTPS support
 	httpClientConfig := config_util.HTTPClientConfig{}
 	if m.c.ClientAuthType != "" {
-		// If the AuthType is to require a client cert/servername then one needs to be defined
-		certRequired := m.c.ClientAuthType == "RequireAndVerifyClientCert" || m.c.ClientAuthType == "RequireAnyClientCert"
-		certEmpty := m.c.ClientKey == "" || m.c.ClientCert == "" || m.c.ServerName == ""
-		if certRequired && certEmpty {
-			err := errors.New("client key or client cert or servername is not specific but a Client TLS Cert is required")
-			level.Error(m.logger).Log("tls", "Client TLS", "err", err)
+		tls, err := m.generateTLSConfig()
+		if err != nil {
 			return instance.Config{}, err
 		}
 		schema = "https"
-		httpClientConfig.TLSConfig = config_util.TLSConfig{
-			CAFile:     m.c.ClientCA,
-			CertFile:   m.c.ClientCert,
-			KeyFile:    m.c.ClientKey,
-			ServerName: m.c.ServerName,
-		}
+		httpClientConfig.TLSConfig = tls
 	}
+
 	for _, isc := range i.ScrapeConfigs() {
 		sc := &config.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
@@ -332,6 +323,23 @@ func (m *Manager) WireAPI(r *mux.Router) error {
 	}
 
 	return nil
+}
+
+func (m *Manager) generateTLSConfig() (config_util.TLSConfig, error) {
+	// If the AuthType is to require a client cert/servername then one needs to be defined
+	certRequired := m.c.ClientAuthType == "RequireAndVerifyClientCert" || m.c.ClientAuthType == "RequireAnyClientCert"
+	certEmpty := m.c.ClientKey == "" || m.c.ClientCert == "" || m.c.ServerName == ""
+	if certRequired && certEmpty {
+		err := errors.New("client key or client cert or servername is not specific but a Client TLS Cert is required")
+		level.Error(m.logger).Log("tls", "Client TLS", "err", err)
+		return config_util.TLSConfig{}, err
+	}
+	return config_util.TLSConfig{
+		CAFile:     m.c.ClientCA,
+		CertFile:   m.c.ClientCert,
+		KeyFile:    m.c.ClientKey,
+		ServerName: m.c.ServerName,
+	}, nil
 }
 
 // Stop stops the manager and all of its integrations.
