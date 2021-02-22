@@ -79,10 +79,10 @@ type ManagerConfig struct {
 
 	// If this is RequireAndVerifyClientCert then the ClientCert/Key/ServerName fields are required
 	// comes from the http_tls_config in the server settings
-	ClientAuthType string
+	ClientAuthType string `yaml:"-"`
 
 	// Signing authority, needed if self signed or otherwise untrusted
-	ClientCA string
+	ClientCA string `yaml:"-"`
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.

@@ -25,11 +25,15 @@ import (
 func TestConfig_Remarshal(t *testing.T) {
 	RegisterIntegration(&testIntegrationA{})
 
+	// Client Auth Type and ClientCA don't actually exist in the yaml
 	cfgText := `
 scrape_integrations: true
 replace_instance_label: true
 integration_restart_backoff: 5s
 use_hostname_label: true
+client_cert_file: ""
+client_key_file: ""
+server_name: 127.0.0.1
 test:
   text: Hello, world!
   truth: true
@@ -114,9 +118,10 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 	require.NoError(t, err)
 	defer m.Stop()
 
-	cfg := m.instanceConfigForIntegration(icfg, mock)
+	cfg, err := m.instanceConfigForIntegration(icfg, mock)
 
 	// Validate that the generated MetricsPath is a valid URL path
+	require.True(t, err == nil, "Failed creating integration")
 	require.Len(t, cfg.ScrapeConfigs, 1)
 	require.Equal(t, "/integrations/mock/metrics", cfg.ScrapeConfigs[0].MetricsPath)
 }
