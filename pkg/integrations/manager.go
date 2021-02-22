@@ -81,6 +81,7 @@ type ManagerConfig struct {
 	// comes from the http_tls_config in the server settings
 	ClientAuthType string
 
+	// Signing authority, needed if self signed or otherwise untrusted
 	ClientCA string
 }
 
