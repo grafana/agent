@@ -73,6 +73,7 @@ func (i *Instance) Stop() {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
+	i.stop()
 	view.Unregister(i.metricViews...)
 }
 
