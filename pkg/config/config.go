@@ -3,9 +3,10 @@ package config
 import (
 	"flag"
 	"fmt"
-	"github.com/weaveworks/common/server"
 	"io/ioutil"
 	"os"
+
+	"github.com/weaveworks/common/server"
 
 	"github.com/drone/envsubst"
 	"github.com/grafana/agent/pkg/integrations"

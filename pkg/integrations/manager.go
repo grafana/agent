@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	config_util "github.com/prometheus/common/config"
 	"path"
 	"sync"
 	"time"
+
+	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
