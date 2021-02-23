@@ -24,8 +24,6 @@ import (
 // remarshaled back out to text.
 func TestConfig_Remarshal(t *testing.T) {
 	RegisterIntegration(&testIntegrationA{})
-
-	// Client Auth Type and ClientCA don't actually exist in the yaml
 	cfgText := `
 scrape_integrations: true
 replace_instance_label: true
