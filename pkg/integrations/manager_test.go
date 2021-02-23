@@ -31,9 +31,8 @@ scrape_integrations: true
 replace_instance_label: true
 integration_restart_backoff: 5s
 use_hostname_label: true
-client_cert_file: ""
-client_key_file: ""
-server_name: 127.0.0.1
+http_tls_config:
+  insecure_skip_verify: false
 test:
   text: Hello, world!
   truth: true
@@ -51,7 +50,7 @@ test:
 	cfg.ListenHost = &listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
-	require.NoError(t, err)
+	require.NoError(t, err, "Failed creating integration")
 	fmt.Println(string(outBytes))
 	require.YAMLEq(t, cfgText, string(outBytes))
 }

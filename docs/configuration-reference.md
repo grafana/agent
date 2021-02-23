@@ -188,7 +188,7 @@ conjunction with the `integrations client_tls_config`.  Acceptable values for
 # File path to the server certificate
 [cert_file: <string>]
 
-# File path to the server key file
+# File path to the server key
 [key_file: <string>]
 
 # Tells the server what is acceptable from the client, this drives the options in client_tls_config 
@@ -2138,13 +2138,13 @@ Values need to be defined if the server is requesting a certificate
 (Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert). 
 
 ```yaml
-# Client cert file path
+# File path for the client cert
 [cert_file: <string>]
   
-# Client key file path
+# File path for the client key
 [key_file: <string>]
   
-# Client CA signor path, specify if untrusted
+# File path to client CA certificate
 [ca_file: <string>]
 ```
 
