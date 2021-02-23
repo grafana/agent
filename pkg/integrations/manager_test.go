@@ -117,10 +117,9 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 	require.NoError(t, err)
 	defer m.Stop()
 
-	cfg, err := m.instanceConfigForIntegration(icfg, mock)
+	cfg := m.instanceConfigForIntegration(icfg, mock)
 
 	// Validate that the generated MetricsPath is a valid URL path
-	require.True(t, err == nil, "Failed creating integration")
 	require.Len(t, cfg.ScrapeConfigs, 1)
 	require.Equal(t, "/integrations/mock/metrics", cfg.ScrapeConfigs[0].MetricsPath)
 }

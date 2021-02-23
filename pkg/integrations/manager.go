@@ -210,11 +210,7 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration)
 	}
 	if shouldCollect {
 		// Apply the config so an instance is launched to scrape our integration.
-		instanceConfig, err := m.instanceConfigForIntegration(cfg, i)
-		if err != nil {
-			level.Error(m.logger).Log("msg", "failed to create config integration. integration will not run", "err", err, "integration", cfg.Name())
-			return
-		}
+		instanceConfig := m.instanceConfigForIntegration(cfg, i)
 
 		if err := m.im.ApplyConfig(instanceConfig); err != nil {
 			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run", "err", err, "integration", cfg.Name())
@@ -235,7 +231,7 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration)
 	}
 }
 
-func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) (instance.Config, error) {
+func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instance.Config {
 	prometheusName := fmt.Sprintf("integration/%s", cfg.Name())
 
 	common := cfg.CommonConfig()
@@ -275,7 +271,7 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) (insta
 	if common.WALTruncateFrequency > 0 {
 		instanceCfg.WALTruncateFrequency = common.WALTruncateFrequency
 	}
-	return instanceCfg, nil
+	return instanceCfg
 }
 
 func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
