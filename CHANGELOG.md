@@ -7,6 +7,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 The primary branch name has changed from `master` to `main`. You may have to
 update your local checkouts of the repository to point at the new branch name.
 
+- [FEATURE] postgres_exporter: Support query_path and disable_default_metrics. (@rfratto)
+
 - [ENHANCEMENT] Support other architectures in installation script. (@rfratto)
 
 - [ENHANCEMENT] Allow specifying custom wal_truncate_frequency per integration.
