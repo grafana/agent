@@ -2,7 +2,6 @@ package integrations
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path"
 	"sync"
@@ -72,18 +71,9 @@ type ManagerConfig struct {
 	// listening on for generating Prometheus instance configs
 	ListenHost *string `yaml:"-"`
 
-	// Drives using HTTPS to read the integrations
+	TLSConfig config_util.TLSConfig `yaml:"http_tls_config"`
 
-	ClientCert string `yaml:"client_cert_file"`
-	ClientKey  string `yaml:"client_key_file"`
-	ServerName string `yaml:"server_name"`
-
-	// If this is RequireAndVerifyClientCert then the ClientCert/Key/ServerName fields are required
-	// comes from the http_tls_config in the server settings
-	ClientAuthType string `yaml:"-"`
-
-	// Signing authority, needed if self signed or otherwise untrusted
-	ClientCA string `yaml:"-"`
+	SeverUsingTLS bool `yaml:"-"`
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -255,13 +245,9 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) (insta
 	schema := "http"
 	// Check for HTTPS support
 	httpClientConfig := config_util.HTTPClientConfig{}
-	if m.c.ClientAuthType != "" {
-		tls, err := m.generateTLSConfig()
-		if err != nil {
-			return instance.Config{}, err
-		}
+	if m.c.SeverUsingTLS {
 		schema = "https"
-		httpClientConfig.TLSConfig = tls
+		httpClientConfig.TLSConfig = m.c.TLSConfig
 	}
 
 	for _, isc := range i.ScrapeConfigs() {
@@ -294,7 +280,12 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) (insta
 
 func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 
-	localAddr := fmt.Sprintf("%s:%d", *m.c.ListenHost, *m.c.ListenPort)
+	newHost := *m.c.ListenHost
+	// A blank host somehow works, but it then requires a sever name to be set under tls.
+	if newHost == "" {
+		newHost = "127.0.0.1"
+	}
+	localAddr := fmt.Sprintf("%s:%d", newHost, *m.c.ListenPort)
 	labels := model.LabelSet{}
 	if m.c.UseHostnameLabel {
 		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
@@ -323,23 +314,6 @@ func (m *Manager) WireAPI(r *mux.Router) error {
 	}
 
 	return nil
-}
-
-func (m *Manager) generateTLSConfig() (config_util.TLSConfig, error) {
-	// If the AuthType is to require a client cert/servername then one needs to be defined
-	certRequired := m.c.ClientAuthType == "RequireAndVerifyClientCert" || m.c.ClientAuthType == "RequireAnyClientCert"
-	certEmpty := m.c.ClientKey == "" || m.c.ClientCert == "" || m.c.ServerName == ""
-	if certRequired && certEmpty {
-		err := errors.New("client key or client cert or servername is not specific but a Client TLS Cert is required")
-		level.Error(m.logger).Log("tls", "Client TLS", "err", err)
-		return config_util.TLSConfig{}, err
-	}
-	return config_util.TLSConfig{
-		CAFile:     m.c.ClientCA,
-		CertFile:   m.c.ClientCert,
-		KeyFile:    m.c.ClientKey,
-		ServerName: m.c.ServerName,
-	}, nil
 }
 
 // Stop stops the manager and all of its integrations.

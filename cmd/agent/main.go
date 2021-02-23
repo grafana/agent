@@ -86,8 +86,8 @@ func main() {
 	}
 
 	if cfg.Integrations.Enabled {
-		cfg.Integrations.ClientCA = cfg.Server.HTTPTLSConfig.ClientCAs
-		cfg.Integrations.ClientAuthType = cfg.Server.HTTPTLSConfig.ClientAuth
+		// If a client auth is defined in TLS assume HTTPS/TLS
+		cfg.Integrations.SeverUsingTLS = cfg.Server.HTTPTLSConfig.ClientAuth != ""
 		manager, err = integrations.NewManager(cfg.Integrations, logger, promMetrics.InstanceManager())
 		if err != nil {
 			level.Error(logger).Log("msg", "failed to create integrations manager", "err", err)

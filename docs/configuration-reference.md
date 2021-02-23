@@ -133,7 +133,7 @@ scraping service mode.
 [http_path_prefix: <string>]
 
 # Configuration for HTTPS serving and scraping of metrics
-[http_tls_config: <http_tls_config>]
+[http_tls_config: <server_tls_config>]
 ```
 
 ## prometheus_config
@@ -178,10 +178,10 @@ configs:
 [instance_mode: <string> | default = "shared"]
 ```
 
-### http_tls_config
+### server_tls_config
 
-The `http_tls_config` block configures server and reading metrics via TLS, with or without certificate pinning. In 
-conjunction with the `integrations client_cert_file` and `integrations client_key_file`.  Acceptable values for
+The `http_tls_config` block configures server metrics via TLS, with or without certificate pinning. In 
+conjunction with the `integrations client_tls_config`.  Acceptable values for 
 `client_auth_type` are found in [tls.config](https://golang.org/pkg/crypto/tls/#ClientAuthType). 
 
 ```yaml
@@ -191,8 +191,7 @@ conjunction with the `integrations client_cert_file` and `integrations client_ke
 # File path to the server key file
 [key_file: <string>]
 
-# Tells the server what is acceptable from the client. 
-# *NOTE* NoClientCert is not acceptable. If you want the server to accept any connection use `RequestClientCert`
+# Tells the server what is acceptable from the client, this drives the options in client_tls_config 
 [client_auth_type: <string>]
 
 # File path to the signing CA certificate, needed if CA is not trusted
@@ -2051,12 +2050,6 @@ agent:
   # How frequent to truncate the WAL for this integration.
   [wal_truncate_frequency: <duration> | default = "60m"]
   
-  # Path to the client certificate, must be used if client_auth_type is RequireAndVerifyClientCert
-  [client_cert_file: <string>]
-    
-  # Path to client key, must be used if client_auth_type is RequireAndVerifyClientCert
-  [client_key_file: <string>]
-
   # Allows for relabeling labels on the target.
   relabel_configs:
     [- <relabel_config> ... ]
@@ -2065,6 +2058,9 @@ agent:
   # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
+
+# Client TLS Configuration
+http_tls_config: <client_tls_config>
 
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
@@ -2133,6 +2129,23 @@ labels:
 # sent to all addresses specified here.
 prometheus_remote_write:
   - [<remote_write>]
+```
+
+### client_tls_config
+
+The `client_tls_config` block configures the client for tls in conjunction with the `server_tls_config`.
+Values need to be defined if the server is requesting a certificate 
+(Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert). 
+
+```yaml
+# Client cert file path
+[cert_file: <string>]
+  
+# Client key file path
+[key_file: <string>]
+  
+# Client CA signor path, specify if untrusted
+[ca_file: <string>]
 ```
 
 ### node_exporter_config
