@@ -3187,6 +3187,14 @@ Full reference of options:
   # is true.
   exclude_databases:
   [ - <string> ]
+
+  # Path to a YAML file containing custom queries to run. Check out
+  # postgres_exporter's queries.yaml for examples of the format:
+  # https://github.com/prometheus-community/postgres_exporter/blob/master/queries.yaml
+  [query_path: <string> | default = ""]
+
+  # When true, only exposes metrics supplied from query_path.
+  [disable_default_metrics: <boolean> | default = false]
 ```
 
 ### statsd_exporter_config
