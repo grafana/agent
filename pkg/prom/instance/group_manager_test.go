@@ -5,12 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-kit/kit/log"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGroupManager_ListInstances_Configs(t *testing.T) {
-	gm := NewGroupManager(newFakeManager(), log.NewNopLogger())
+	gm := NewGroupManager(newFakeManager())
 
 	// Create two configs in the same group and one in another
 	// group.
@@ -57,7 +56,7 @@ func testUnmarshalConfig(t *testing.T, cfg string) Config {
 func TestGroupManager_ApplyConfig(t *testing.T) {
 	t.Run("combining configs", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(inner, log.NewNopLogger())
+		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs: []
@@ -95,7 +94,7 @@ remote_write: []
 
 	t.Run("updating existing config within group", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(inner, log.NewNopLogger())
+		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs: []
@@ -132,7 +131,7 @@ remote_write: []
 
 	t.Run("updating existing config to new group", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(inner, log.NewNopLogger())
+		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs: []
@@ -175,7 +174,7 @@ remote_write: []
 
 func TestGroupManager_ApplyConfig_RemoteWriteName(t *testing.T) {
 	inner := newFakeManager()
-	gm := NewGroupManager(inner, log.NewNopLogger())
+	gm := NewGroupManager(inner)
 	err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs: []
@@ -200,7 +199,7 @@ remote_write:
 func TestGroupManager_DeleteConfig(t *testing.T) {
 	t.Run("partial delete", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(inner, log.NewNopLogger())
+		gm := NewGroupManager(inner)
 
 		// Apply two configs in the same group and then delete one. The group
 		// should still be active with the one config inside of it.
@@ -242,7 +241,7 @@ remote_write: []`, gm.groupLookup["configB"]))
 
 	t.Run("full delete", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(inner, log.NewNopLogger())
+		gm := NewGroupManager(inner)
 
 		// Apply a single config but delete the entire group.
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `

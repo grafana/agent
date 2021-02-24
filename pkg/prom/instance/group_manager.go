@@ -8,7 +8,6 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/go-kit/kit/log"
 	"github.com/prometheus/prometheus/config"
 )
 
@@ -29,7 +28,6 @@ import (
 // that group's hash of settings.
 type GroupManager struct {
 	inner Manager
-	log   log.Logger
 
 	mtx sync.Mutex
 
@@ -56,12 +54,11 @@ func (g groupedConfigs) Copy() groupedConfigs {
 
 // NewGroupManager creates a new GroupManager for combining instances of the
 // same "group."
-func NewGroupManager(inner Manager, l log.Logger) *GroupManager {
+func NewGroupManager(inner Manager) *GroupManager {
 	return &GroupManager{
 		inner:       inner,
 		groups:      make(map[string]groupedConfigs),
 		groupLookup: make(map[string]string),
-		log:         l,
 	}
 }
 
