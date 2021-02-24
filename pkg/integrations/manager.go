@@ -240,7 +240,7 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 
 	schema := "http"
 	// Check for HTTPS support
-	var httpClientConfig = config_util.HTTPClientConfig{}
+	var httpClientConfig config_util.HTTPClientConfig
 	if m.c.ServerUsingTLS {
 		schema = "https"
 		httpClientConfig.TLSConfig = m.c.TLSConfig
