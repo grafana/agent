@@ -24,7 +24,7 @@ func (a *Agent) WireAPI(r *mux.Router) {
 
 // ListInstances writes the set of currently running instances to the http.ResponseWriter.
 func (a *Agent) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
-	cfgs := a.cm.ListConfigs()
+	cfgs := a.mm.ListConfigs()
 	instanceNames := make([]string, 0, len(cfgs))
 	for k := range cfgs {
 		instanceNames = append(instanceNames, k)
@@ -40,7 +40,7 @@ func (a *Agent) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
 // ListTargetsHandler retrieves the full set of targets across all instances and shows
 // information on them.
 func (a *Agent) ListTargetsHandler(w http.ResponseWriter, _ *http.Request) {
-	instances := a.cm.ListInstances()
+	instances := a.mm.ListInstances()
 	resp := ListTargetsResponse{}
 
 	for instName, inst := range instances {

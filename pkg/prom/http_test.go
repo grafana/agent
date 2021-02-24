@@ -36,8 +36,8 @@ func TestAgent_ListInstancesHandler(t *testing.T) {
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		require.NoError(t, a.cm.ApplyConfig(makeInstanceConfig("foo")))
-		require.NoError(t, a.cm.ApplyConfig(makeInstanceConfig("bar")))
+		require.NoError(t, a.mm.ApplyConfig(makeInstanceConfig("foo")))
+		require.NoError(t, a.mm.ApplyConfig(makeInstanceConfig("bar")))
 
 		expect := `{"status":"success","data":["bar","foo"]}`
 		test.Poll(t, time.Second, true, func() interface{} {
@@ -62,7 +62,8 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 		DeleteConfigFunc:  func(name string) error { return nil },
 		StopFunc:          func() {},
 	}
-	a.cm = mockManager
+	a.mm, err = instance.NewModalManager(prometheus.NewRegistry(), a.logger, mockManager, instance.ModeDistinct)
+	require.NoError(t, err)
 
 	r := httptest.NewRequest("GET", "/agent/api/v1/targets", nil)
 

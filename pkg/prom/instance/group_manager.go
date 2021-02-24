@@ -8,6 +8,8 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/prometheus/config"
 )
 
@@ -28,6 +30,7 @@ import (
 // that group's hash of settings.
 type GroupManager struct {
 	inner Manager
+	log   log.Logger
 
 	mtx sync.Mutex
 
@@ -54,11 +57,12 @@ func (g groupedConfigs) Copy() groupedConfigs {
 
 // NewGroupManager creates a new GroupManager for combining instances of the
 // same "group."
-func NewGroupManager(inner Manager) *GroupManager {
+func NewGroupManager(inner Manager, l log.Logger) *GroupManager {
 	return &GroupManager{
 		inner:       inner,
 		groups:      make(map[string]groupedConfigs),
 		groupLookup: make(map[string]string),
+		log:         l,
 	}
 }
 
@@ -227,7 +231,19 @@ func (m *GroupManager) deleteConfig(name string) error {
 }
 
 // Stop stops the Manager and all of its managed instances.
-func (m *GroupManager) Stop() { m.inner.Stop() }
+func (m *GroupManager) Stop() {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
+	for group := range m.groups {
+		if err := m.inner.DeleteConfig(group); err != nil {
+			level.Error(m.log).Log("msg", "failed to delete group", "name", group, "err", err)
+		}
+	}
+
+	m.groupLookup = make(map[string]string)
+	m.groups = make(map[string]groupedConfigs)
+}
 
 // hashConfig determines the hash of a Config used for grouping. It ignores
 // the name and scrape_configs and also orders remote_writes by name prior to
