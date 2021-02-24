@@ -7,10 +7,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/agent/pkg/prom/ha"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/instance"
@@ -110,6 +112,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 // components of Prometheus. It is broken down into a series of Instances, each
 // of which perform metric collection.
 type Agent struct {
+	mut    sync.Mutex
 	cfg    Config
 	logger log.Logger
 	reg    prometheus.Registerer
@@ -133,7 +136,6 @@ func New(reg prometheus.Registerer, cfg Config, logger log.Logger) (*Agent, erro
 
 func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact instanceFactory) (*Agent, error) {
 	a := &Agent{
-		cfg:             cfg,
 		logger:          log.With(logger, "agent", "prometheus"),
 		instanceFactory: fact,
 		reg:             reg,
@@ -149,36 +151,126 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 		return nil, fmt.Errorf("failed to create modal instance manager: %w", err)
 	}
 
-	// Periodically attempt to clean up WALs from instances that aren't being run by
-	// this agent anymore.
-	a.cleaner = NewWALCleaner(
-		a.logger,
-		a.mm,
-		cfg.WALDir,
-		cfg.WALCleanupAge,
-		cfg.WALCleanupPeriod,
-	)
+	if err := a.ApplyConfig(cfg); err != nil {
+		return nil, fmt.Errorf("failed to apply config: %w", err)
+	}
+	return a, nil
+}
 
-	allConfigsValid := true
-	for _, c := range cfg.Configs {
+// ApplyConfig will mutate the state of the Agent to match the new Config.
+func (a *Agent) ApplyConfig(c Config) error {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+
+	if cmp.Equal(c, a.cfg) {
+		// No config change
+		return nil
+	}
+
+	// Update instance managers with new settings. If the InstanceMode changed,
+	// the apply will be slower - all instances need to be recreated.
+	a.bm.UpdateManagerConfig(instance.BasicManagerConfig{
+		InstanceRestartBackoff: c.InstanceRestartBackoff,
+	})
+	if err := a.mm.SetMode(c.InstanceMode); err != nil {
+		return fmt.Errorf("failed to update instance mode: %w", err)
+	}
+
+	//
+	// Apply new instances
+	//
+	var (
+		newConfigs      = make(map[string]struct{}, len(c.Configs))
+		allConfigsValid = true
+	)
+	for _, c := range c.Configs {
 		if err := a.mm.ApplyConfig(c); err != nil {
-			level.Error(logger).Log("msg", "failed to apply config", "name", c.Name, "err", err)
+			level.Error(a.logger).Log("msg", "failed to apply config", "name", c.Name, "err", err)
 			allConfigsValid = false
 		}
+		newConfigs[c.Name] = struct{}{}
 	}
 	if !allConfigsValid {
-		return nil, fmt.Errorf("one or more configs was found to be invalid")
+		return fmt.Errorf("one or more configs was found to be invalid")
 	}
 
-	if cfg.ServiceConfig.Enabled {
-		var err error
-		a.ha, err = ha.New(reg, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.mm)
-		if err != nil {
-			return nil, err
+	// Iterate over the old configs and delete them if they're not in the
+	// newConfigs map
+	for _, oldConfig := range a.cfg.Configs {
+		if _, found := newConfigs[oldConfig.Name]; found {
+			continue
+		}
+		if err := a.mm.DeleteConfig(oldConfig.Name); err != nil {
+			return fmt.Errorf("failed to remove deleted config %s: %w", oldConfig.Name, err)
 		}
 	}
 
-	return a, nil
+	//
+	// Update HA mode to match new state. If it's disabled and currently running,
+	// stop it.
+	//
+	if haNeedsUpdate(a.cfg, c) {
+		if a.ha != nil {
+			if err := a.ha.Stop(); err != nil {
+				return fmt.Errorf("failed to stop scraping service for config update: %w", err)
+			}
+		}
+
+		if c.ServiceConfig.Enabled {
+			var err error
+			a.ha, err = ha.New(a.reg, c.ServiceConfig, &c.Global, c.ServiceClientConfig, a.logger, a.mm)
+			if err != nil {
+				return fmt.Errorf("failed to start scraping service: %w", err)
+			}
+		}
+	}
+
+	//
+	// Update WAL cleaner
+	//
+	if cleanerNeedsUpdate(a.cfg, c) {
+		if a.cleaner != nil {
+			a.cleaner.Stop()
+		}
+		a.cleaner = NewWALCleaner(
+			a.logger,
+			a.mm,
+			c.WALDir,
+			c.WALCleanupAge,
+			c.WALCleanupPeriod,
+		)
+	}
+
+	a.cfg = c
+	return nil
+}
+
+func haNeedsUpdate(oldCfg, newCfg Config) bool {
+	compare := []struct{ prev, next interface{} }{
+		{prev: oldCfg.ServiceConfig, next: newCfg.ServiceConfig},
+		{prev: oldCfg.Global, next: newCfg.Global},
+		{prev: oldCfg.ServiceClientConfig, next: newCfg.ServiceClientConfig},
+	}
+	for _, c := range compare {
+		if !cmp.Equal(c.prev, c.next) {
+			return true
+		}
+	}
+	return false
+}
+
+func cleanerNeedsUpdate(oldCfg, newCfg Config) bool {
+	compare := []struct{ prev, next interface{} }{
+		{prev: oldCfg.WALDir, next: newCfg.WALDir},
+		{prev: oldCfg.WALCleanupAge, next: newCfg.WALCleanupAge},
+		{prev: oldCfg.WALCleanupPeriod, next: newCfg.WALCleanupPeriod},
+	}
+	for _, c := range compare {
+		if !cmp.Equal(c.prev, c.next) {
+			return true
+		}
+	}
+	return false
 }
 
 // newInstance creates a new Instance given a config.

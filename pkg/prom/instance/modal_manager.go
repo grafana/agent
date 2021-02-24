@@ -69,10 +69,6 @@ type ModalManager struct {
 
 // NewModalManager creates a new ModalManager.
 func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode Mode) (*ModalManager, error) {
-	if mode == "" {
-		mode = DefaultMode
-	}
-
 	currentActiveConfigs := promauto.With(reg).NewGauge(prometheus.GaugeOpts{
 		Name: "agent_prometheus_active_configs",
 		Help: "Current number of active configs being used by the agent.",
@@ -94,6 +90,10 @@ func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode
 // an expensive operation; all underlying configs must be stopped and then
 // reapplied.
 func (m *ModalManager) SetMode(newMode Mode) error {
+	if newMode == "" {
+		newMode = DefaultMode
+	}
+
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
@@ -115,7 +115,7 @@ func (m *ModalManager) SetMode(newMode Mode) error {
 	case ModeShared:
 		m.active = NewGroupManager(m.wrapped)
 	default:
-		panic("unknown mode " + m.mode)
+		panic("unknown mode " + newMode)
 	}
 	m.mode = newMode
 
