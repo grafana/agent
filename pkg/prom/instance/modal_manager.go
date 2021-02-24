@@ -102,7 +102,7 @@ func (m *ModalManager) SetMode(newMode Mode) error {
 
 	switch m.mode {
 	case ModeDistinct:
-		m.modeManager = NewDistinctManager(m.next, m.log)
+		m.modeManager = m.next
 	case ModeShared:
 		m.modeManager = NewGroupManager(m.next, m.log)
 	default:
@@ -178,79 +178,5 @@ func (m *ModalManager) Stop() {
 
 	m.modeManager.Stop()
 	m.currentActiveConfigs.Set(0)
-	m.configs = make(map[string]Config)
-}
-
-// DistinctManager is a manager for the Distinct mode.
-type DistinctManager struct {
-	mut     sync.RWMutex
-	configs map[string]Config
-	next    Manager
-	log     log.Logger
-}
-
-func NewDistinctManager(next Manager, l log.Logger) *DistinctManager {
-	return &DistinctManager{
-		configs: make(map[string]Config),
-		next:    next,
-		log:     l,
-	}
-}
-
-// ListInstances implements Manager.
-func (m *DistinctManager) ListInstances() map[string]ManagedInstance {
-	m.mut.RLock()
-	defer m.mut.RUnlock()
-
-	return m.next.ListInstances()
-}
-
-// ListConfigs implements Manager.
-func (m *DistinctManager) ListConfigs() map[string]Config {
-	m.mut.RLock()
-	defer m.mut.RUnlock()
-
-	// Make a copy of the map so we can release the lock.
-	ret := make(map[string]Config, len(m.configs))
-	for k, v := range m.configs {
-		ret[k] = v
-	}
-	return ret
-}
-
-// ApplyConfig implements Manager.
-func (m *DistinctManager) ApplyConfig(c Config) error {
-	m.mut.Lock()
-	defer m.mut.Unlock()
-
-	if err := m.next.ApplyConfig(c); err != nil {
-		return err
-	}
-	m.configs[c.Name] = c
-	return nil
-}
-
-// DeleteConfig implements Manager.
-func (m *DistinctManager) DeleteConfig(name string) error {
-	m.mut.Lock()
-	defer m.mut.Unlock()
-
-	if err := m.next.DeleteConfig(name); err != nil {
-		return err
-	}
-	delete(m.configs, name)
-	return nil
-}
-
-// Stop implements Manager.
-func (m *DistinctManager) Stop() {
-	m.mut.Lock()
-	defer m.mut.Unlock()
-
-	for cfg := range m.configs {
-		if err := m.next.DeleteConfig(cfg); err != nil {
-			level.Error(m.log).Log("msg", "failed to delete config", "name", cfg, "err", err)
-		}
-	}
 	m.configs = make(map[string]Config)
 }
