@@ -22,6 +22,8 @@ update your local checkouts of the repository to point at the new branch name.
 
 - [ENHANCEMENT] Update Prometheus dependency to v2.25.0. (@rfratto)
 
+- [ENHANCEMENT] Support compression for trace export. (@mdisibio)
+
 - [BUGFIX] Not providing an `-addr` flag for `agentctl config-sync` will no
   longer report an error and will instead use the pre-existing default value.
   (@rfratto)
