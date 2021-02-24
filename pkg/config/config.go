@@ -53,9 +53,8 @@ func (c *Config) ApplyDefaults() error {
 	if c.Integrations.Enabled {
 		c.Integrations.ListenPort = &c.Server.HTTPListenPort
 		c.Integrations.ListenHost = &c.Server.HTTPListenAddress
+		c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
 	}
-
-	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
 
 	return nil
 }
