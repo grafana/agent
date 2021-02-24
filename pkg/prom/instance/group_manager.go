@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/prometheus/config"
 )
 
@@ -235,12 +234,7 @@ func (m *GroupManager) Stop() {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	for group := range m.groups {
-		if err := m.inner.DeleteConfig(group); err != nil {
-			level.Error(m.log).Log("msg", "failed to delete group", "name", group, "err", err)
-		}
-	}
-
+	m.inner.Stop()
 	m.groupLookup = make(map[string]string)
 	m.groups = make(map[string]groupedConfigs)
 }
