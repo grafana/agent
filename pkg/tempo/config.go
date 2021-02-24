@@ -77,6 +77,7 @@ type InstanceConfig struct {
 // PushConfig controls the configuration of exporting to Grafana Cloud
 type PushConfig struct {
 	Endpoint           string                 `yaml:"endpoint"`
+	Compression        string                 `yaml:"compression"`
 	Insecure           bool                   `yaml:"insecure"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
@@ -117,6 +118,7 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 
 	otlpExporter := map[string]interface{}{
 		"endpoint":             c.PushConfig.Endpoint,
+		"compression":          c.PushConfig.Compression,
 		"headers":              headers,
 		"insecure":             c.PushConfig.Insecure,
 		"insecure_skip_verify": c.PushConfig.InsecureSkipVerify,
