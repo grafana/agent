@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	config_util "github.com/prometheus/common/config"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
@@ -68,6 +70,11 @@ type ManagerConfig struct {
 	// ListenHost tells the integration Manager which port the Agent is
 	// listening on for generating Prometheus instance configs
 	ListenHost *string `yaml:"-"`
+
+	TLSConfig config_util.TLSConfig `yaml:"http_tls_config"`
+
+	// This is set to true if the Server TLSConfig Cert and Key path are set
+	ServerUsingTLS bool `yaml:"-"`
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -205,6 +212,7 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration)
 	if shouldCollect {
 		// Apply the config so an instance is launched to scrape our integration.
 		instanceConfig := m.instanceConfigForIntegration(cfg, i)
+
 		if err := m.im.ApplyConfig(instanceConfig); err != nil {
 			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run", "err", err, "integration", cfg.Name())
 			return
@@ -230,12 +238,21 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 	common := cfg.CommonConfig()
 	relabelConfigs := append(m.defaultRelabelConfigs, common.RelabelConfigs...)
 
+	schema := "http"
+	// Check for HTTPS support
+	var httpClientConfig config_util.HTTPClientConfig
+	if m.c.ServerUsingTLS {
+		schema = "https"
+		httpClientConfig.TLSConfig = m.c.TLSConfig
+	}
+
 	var scrapeConfigs []*config.ScrapeConfig
+
 	for _, isc := range i.ScrapeConfigs() {
 		sc := &config.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
 			MetricsPath:             path.Join("/integrations", cfg.Name(), isc.MetricsPath),
-			Scheme:                  "http",
+			Scheme:                  schema,
 			HonorLabels:             false,
 			HonorTimestamps:         true,
 			ScrapeInterval:          model.Duration(common.ScrapeInterval),
@@ -243,6 +260,7 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 			ServiceDiscoveryConfigs: m.scrapeServiceDiscovery(),
 			RelabelConfigs:          relabelConfigs,
 			MetricRelabelConfigs:    common.MetricRelabelConfigs,
+			HTTPClientConfig:        httpClientConfig,
 		}
 
 		scrapeConfigs = append(scrapeConfigs, sc)
@@ -260,7 +278,12 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 
 func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 
-	localAddr := fmt.Sprintf("%s:%d", *m.c.ListenHost, *m.c.ListenPort)
+	// A blank host somehow works, but it then requires a sever name to be set under tls.
+	newHost := *m.c.ListenHost
+	if newHost == "" {
+		newHost = "127.0.0.1"
+	}
+	localAddr := fmt.Sprintf("%s:%d", newHost, *m.c.ListenPort)
 	labels := model.LabelSet{}
 	if m.c.UseHostnameLabel {
 		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
