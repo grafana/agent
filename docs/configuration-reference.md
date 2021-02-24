@@ -131,6 +131,9 @@ scraping service mode.
 
 # Base path to server all API routes from (e.g., /v1/). Unused.
 [http_path_prefix: <string>]
+
+# Configuration for HTTPS serving and scraping of metrics
+[http_tls_config: <server_tls_config>]
 ```
 
 ## prometheus_config
@@ -173,6 +176,27 @@ configs:
 # How to spawn instances based on instance configs. Supported values: shared,
 # distinct.
 [instance_mode: <string> | default = "shared"]
+```
+
+### server_tls_config
+
+The `http_tls_config` block configures the server to run with TLS. When set, `integrations.http_tls_config` must 
+also be provided. Acceptable values for  `client_auth_type` are found in 
+[Go's `tls` package]https://golang.org/pkg/crypto/tls/#ClientAuthType). 
+
+```yaml
+# File path to the server certificate
+[cert_file: <string>]
+
+# File path to the server key
+[key_file: <string>]
+
+# Tells the server what is acceptable from the client, this drives the options in client_tls_config 
+[client_auth_type: <string>]
+
+# File path to the signing CA certificate, needed if CA is not trusted
+[client_ca_file: <string>]
+
 ```
 
 ### scraping_service_config
@@ -2025,7 +2049,7 @@ agent:
 
   # How frequent to truncate the WAL for this integration.
   [wal_truncate_frequency: <duration> | default = "60m"]
-
+  
   # Allows for relabeling labels on the target.
   relabel_configs:
     [- <relabel_config> ... ]
@@ -2034,6 +2058,11 @@ agent:
   # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
+
+# Client TLS Configuration
+# Client Cert/Key Values need to be defined if the server is requesting a certificate 
+#  (Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert).
+http_tls_config: <tls_config>
 
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
