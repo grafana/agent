@@ -180,9 +180,9 @@ configs:
 
 ### server_tls_config
 
-The `http_tls_config` block configures server metrics via TLS, with or without certificate pinning. In 
-conjunction with the `integrations client_tls_config`.  Acceptable values for 
-`client_auth_type` are found in [tls.config](https://golang.org/pkg/crypto/tls/#ClientAuthType). 
+The `http_tls_config` block configures the server to run with TLS. When set, `integrations.http_tls_config` must 
+also be provided. Acceptable values for  `client_auth_type` are found in 
+[Go's `tls` package]https://golang.org/pkg/crypto/tls/#ClientAuthType). 
 
 ```yaml
 # File path to the server certificate
@@ -2060,7 +2060,9 @@ agent:
     [ - <relabel_config> ... ]
 
 # Client TLS Configuration
-http_tls_config: <client_tls_config>
+# Client Cert/Key Values need to be defined if the server is requesting a certificate 
+#  (Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert).
+http_tls_config: <tls_config>
 
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
@@ -2129,23 +2131,6 @@ labels:
 # sent to all addresses specified here.
 prometheus_remote_write:
   - [<remote_write>]
-```
-
-### client_tls_config
-
-The `client_tls_config` block configures the client for tls in conjunction with the `server_tls_config`.
-Values need to be defined if the server is requesting a certificate 
-(Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert). 
-
-```yaml
-# File path for the client cert
-[cert_file: <string>]
-  
-# File path for the client key
-[key_file: <string>]
-  
-# File path to client CA certificate
-[ca_file: <string>]
 ```
 
 ### node_exporter_config

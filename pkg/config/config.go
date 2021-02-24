@@ -55,6 +55,8 @@ func (c *Config) ApplyDefaults() error {
 		c.Integrations.ListenHost = &c.Server.HTTPListenAddress
 	}
 
+	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
+
 	return nil
 }
 

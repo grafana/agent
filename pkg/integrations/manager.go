@@ -73,7 +73,8 @@ type ManagerConfig struct {
 
 	TLSConfig config_util.TLSConfig `yaml:"http_tls_config"`
 
-	SeverUsingTLS bool `yaml:"-"`
+	// This is set to true if the Server TLSConfig Cert and Key path are set
+	ServerUsingTLS bool `yaml:"-"`
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -237,14 +238,15 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 	common := cfg.CommonConfig()
 	relabelConfigs := append(m.defaultRelabelConfigs, common.RelabelConfigs...)
 
-	var scrapeConfigs []*config.ScrapeConfig
 	schema := "http"
 	// Check for HTTPS support
-	httpClientConfig := config_util.HTTPClientConfig{}
-	if m.c.SeverUsingTLS {
+	var httpClientConfig = config_util.HTTPClientConfig{}
+	if m.c.ServerUsingTLS {
 		schema = "https"
 		httpClientConfig.TLSConfig = m.c.TLSConfig
 	}
+
+	var scrapeConfigs []*config.ScrapeConfig
 
 	for _, isc := range i.ScrapeConfigs() {
 		sc := &config.ScrapeConfig{
@@ -276,8 +278,8 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 
 func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 
-	newHost := *m.c.ListenHost
 	// A blank host somehow works, but it then requires a sever name to be set under tls.
+	newHost := *m.c.ListenHost
 	if newHost == "" {
 		newHost = "127.0.0.1"
 	}
