@@ -54,9 +54,17 @@ type ModalManager struct {
 
 	log log.Logger
 
-	// Next is the underlying manager this manager wraps.
-	next        Manager
-	modeManager Manager
+	// The ModalManager wraps around a "final" Manager that is intended to
+	// launch and manage instances based on Configs. This is specified here by the
+	// "wrapped" Manager.
+	//
+	// However, there may be another manager performing formations on the configs
+	// before they are passed through to wrapped. This is specified by the "active"
+	// Manager.
+	//
+	// If no transformations on Configs are needed, active will be identical to
+	// wrapped.
+	wrapped, active Manager
 }
 
 // NewModalManager creates a new ModalManager.
@@ -71,7 +79,7 @@ func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode
 	})
 
 	mm := ModalManager{
-		next:                 next,
+		wrapped:              next,
 		log:                  l,
 		currentActiveConfigs: currentActiveConfigs,
 		configs:              make(map[string]Config),
@@ -89,32 +97,39 @@ func (m *ModalManager) SetMode(newMode Mode) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	if m.mode == newMode {
+	var (
+		prevMode   = m.mode
+		prevActive = m.active
+	)
+
+	if prevMode == newMode {
 		return nil
 	}
-	m.mode = newMode
 
-	// Stop the old mode before changing it. It won't exist if this is the first
-	// time calling SetMode from NewModalManager.
-	if m.modeManager != nil {
-		m.modeManager.Stop()
-	}
-
-	switch m.mode {
+	// Set the active Manager based on the new mode. "distinct" means no transformations
+	// need to be applied and we can use the wrapped Manager directly. Otherwise, we need
+	// to create a new Manager to apply transformations.
+	switch newMode {
 	case ModeDistinct:
-		m.modeManager = m.next
+		m.active = m.wrapped
 	case ModeShared:
-		m.modeManager = NewGroupManager(m.next)
+		m.active = NewGroupManager(m.wrapped)
 	default:
 		panic("unknown mode " + m.mode)
 	}
+	m.mode = newMode
 
-	// Re-apply configs to the new mode.
+	// Remove all configs from the previous active Manager.
+	if prevActive != nil {
+		prevActive.Stop()
+	}
+
+	// Re-apply configs to the new active Manager.
 	var firstError error
 	for name, cfg := range m.configs {
-		err := m.modeManager.ApplyConfig(cfg)
+		err := m.active.ApplyConfig(cfg)
 		if err != nil {
-			level.Error(m.log).Log("msg", "failed to apply config when changing modes", "name", name, "err", err)
+			level.Error(m.log).Log("msg", "failed to apply config when changing modes", "name", name, "prev_mode", prevMode, "new_mode", newMode, "err", err)
 		}
 		if firstError == nil && err != nil {
 			firstError = err
@@ -128,14 +143,14 @@ func (m *ModalManager) SetMode(newMode Mode) error {
 func (m *ModalManager) ListInstances() map[string]ManagedInstance {
 	m.mut.RLock()
 	defer m.mut.RUnlock()
-	return m.modeManager.ListInstances()
+	return m.active.ListInstances()
 }
 
 // ListConfigs implements Manager.
 func (m *ModalManager) ListConfigs() map[string]Config {
 	m.mut.RLock()
 	defer m.mut.RUnlock()
-	return m.modeManager.ListConfigs()
+	return m.active.ListConfigs()
 }
 
 // ApplyConfig implements Manager.
@@ -143,7 +158,7 @@ func (m *ModalManager) ApplyConfig(c Config) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	if err := m.modeManager.ApplyConfig(c); err != nil {
+	if err := m.active.ApplyConfig(c); err != nil {
 		return err
 	}
 
@@ -160,7 +175,7 @@ func (m *ModalManager) DeleteConfig(name string) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	if err := m.modeManager.DeleteConfig(name); err != nil {
+	if err := m.active.DeleteConfig(name); err != nil {
 		return err
 	}
 
@@ -176,7 +191,7 @@ func (m *ModalManager) Stop() {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	m.modeManager.Stop()
+	m.active.Stop()
 	m.currentActiveConfigs.Set(0)
 	m.configs = make(map[string]Config)
 }
