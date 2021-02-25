@@ -160,7 +160,7 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig, prometheusWriteConfi
 	rwNames := map[string]struct{}{}
 
 	// If the instance remote write is not filled in, then apply the prometheus write config
-	if len(c.RemoteWrite) == 0 && prometheusWriteConfig != nil && len(prometheusWriteConfig) > 0 {
+	if len(c.RemoteWrite) == 0 && len(prometheusWriteConfig) > 0 {
 		c.RemoteWrite = prometheusWriteConfig
 	}
 	for _, cfg := range c.RemoteWrite {
