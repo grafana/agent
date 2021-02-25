@@ -4,8 +4,14 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Main (unreleased)
 
+- [ENHANCEMENT] Support compression for trace export. (@mdisibio)
+
+# v0.13.0 (2021-02-25)
+
 The primary branch name has changed from `master` to `main`. You may have to
 update your local checkouts of the repository to point at the new branch name.
+
+- [FEATURE] postgres_exporter: Support query_path and disable_default_metrics. (@rfratto)
 
 - [ENHANCEMENT] Support other architectures in installation script. (@rfratto)
 
@@ -31,6 +37,9 @@ update your local checkouts of the repository to point at the new branch name.
   This change increases the size of the WAL on average, and users may configure
   a lower wal_truncation_frequency to deliberately choose a smaller WAL over
   write guarantees. (@rfratto)
+
+- [BUGFIX] (#368) Add the ability to read and serve HTTPS integration metrics when
+  given a set certificates (@mattdurham)
 
 # v0.12.0 (2021-02-05)
 

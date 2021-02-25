@@ -24,6 +24,8 @@ type Config struct {
 	DisableSettingsMetrics bool     `yaml:"disable_settings_metrics"`
 	AutodiscoverDatabases  bool     `yaml:"autodiscover_databases"`
 	ExcludeDatabases       []string `yaml:"exclude_databases"`
+	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics"`
+	QueryPath              string   `yaml:"query_path"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -63,7 +65,8 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 
 	e := exporter.NewExporter(
 		dsn,
-		exporter.DisableDefaultMetrics(false),
+		exporter.DisableDefaultMetrics(c.DisableDefaultMetrics),
+		exporter.WithUserQueriesPath(c.QueryPath),
 		exporter.DisableSettingsMetrics(c.DisableSettingsMetrics),
 		exporter.AutoDiscoverDatabases(c.AutodiscoverDatabases),
 		exporter.ExcludeDatabases(strings.Join(c.ExcludeDatabases, ",")),
