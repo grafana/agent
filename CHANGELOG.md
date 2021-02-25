@@ -4,6 +4,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Main (unreleased)
 
+- [ENHANCEMENT] Support compression for trace export. (@mdisibio)
+
 # v0.13.0 (2021-02-25)
 
 The primary branch name has changed from `master` to `main`. You may have to
@@ -21,8 +23,6 @@ update your local checkouts of the repository to point at the new branch name.
   (@rfratto)
 
 - [ENHANCEMENT] Update Prometheus dependency to v2.25.0. (@rfratto)
-
-- [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [BUGFIX] Not providing an `-addr` flag for `agentctl config-sync` will no
   longer report an error and will instead use the pre-existing default value.
