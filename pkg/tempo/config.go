@@ -116,6 +116,13 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
+	switch c.PushConfig.Compression {
+	case "none":
+		c.PushConfig.Compression = ""
+	case "":
+		c.PushConfig.Compression = "gzip"
+	}
+
 	otlpExporter := map[string]interface{}{
 		"endpoint":             c.PushConfig.Endpoint,
 		"compression":          c.PushConfig.Compression,

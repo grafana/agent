@@ -1988,7 +1988,7 @@ push_config:
   endpoint: <string>
 
   # Controls whether compression is enabled.
-  [ compression: <string> | default = "" | supported = "", "gzip"]
+  [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
 
   # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
   [ insecure: <boolean> | default = false ]
