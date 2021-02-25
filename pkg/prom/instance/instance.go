@@ -114,7 +114,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 // ApplyDefaults applies default configurations to the configuration to all
 // values that have not been changed to their non-zero value. ApplyDefaults
 // also validates the config.
-func (c *Config) ApplyDefaults(global *config.GlobalConfig, prometheusWriteConfig []*RemoteWriteConfig) error {
+func (c *Config) ApplyDefaults(global *config.GlobalConfig, defaultPrometheusWrite []*RemoteWriteConfig) error {
 	switch {
 	case c.Name == "":
 		return errors.New("missing instance name")
@@ -160,8 +160,8 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig, prometheusWriteConfi
 	rwNames := map[string]struct{}{}
 
 	// If the instance remote write is not filled in, then apply the prometheus write config
-	if len(c.RemoteWrite) == 0 && len(prometheusWriteConfig) > 0 {
-		c.RemoteWrite = prometheusWriteConfig
+	if len(c.RemoteWrite) == 0 {
+		c.RemoteWrite = defaultPrometheusWrite
 	}
 	for _, cfg := range c.RemoteWrite {
 		if cfg == nil {
@@ -193,8 +193,6 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig, prometheusWriteConfi
 		}
 		rwNames[cfg.Base.Name] = struct{}{}
 	}
-
-
 
 	return nil
 }
