@@ -74,8 +74,15 @@ type InstanceConfig struct {
 	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
 }
 
-const compressionNone = "none"
-const compressionGzip = "gzip"
+const (
+	compressionNone = "none"
+	compressionGzip = "gzip"
+)
+
+// DefaultPushConfig holds the default settings for a PushConfig.
+var DefaultPushConfig = PushConfig{
+	Compression: compressionGzip,
+}
 
 // PushConfig controls the configuration of exporting to Grafana Cloud
 type PushConfig struct {
@@ -91,25 +98,16 @@ type PushConfig struct {
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// Default
-	c.Compression = compressionGzip
+	*c = DefaultPushConfig
 
 	type plain PushConfig
 	if err := unmarshal((*plain)(c)); err != nil {
 		return err
 	}
-	return c.Validate()
-}
 
-// Validate ensures that the Config is valid.
-func (c *PushConfig) Validate() error {
-	switch c.Compression {
-	case compressionGzip:
-	case compressionNone:
-	default:
-		return fmt.Errorf("unsupported compression '%s'", c.Compression)
+	if c.Compression != compressionGzip && c.Compression != compressionNone {
+		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
 	}
-
 	return nil
 }
 
