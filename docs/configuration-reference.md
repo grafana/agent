@@ -180,9 +180,9 @@ configs:
 
 ### server_tls_config
 
-The `http_tls_config` block configures the server to run with TLS. When set, `integrations.http_tls_config` must 
-also be provided. Acceptable values for  `client_auth_type` are found in 
-[Go's `tls` package]https://golang.org/pkg/crypto/tls/#ClientAuthType). 
+The `http_tls_config` block configures the server to run with TLS. When set, `integrations.http_tls_config` must
+also be provided. Acceptable values for  `client_auth_type` are found in
+[Go's `tls` package]https://golang.org/pkg/crypto/tls/#ClientAuthType).
 
 ```yaml
 # File path to the server certificate
@@ -191,7 +191,7 @@ also be provided. Acceptable values for  `client_auth_type` are found in
 # File path to the server key
 [key_file: <string>]
 
-# Tells the server what is acceptable from the client, this drives the options in client_tls_config 
+# Tells the server what is acceptable from the client, this drives the options in client_tls_config
 [client_auth_type: <string>]
 
 # File path to the signing CA certificate, needed if CA is not trusted
@@ -2049,7 +2049,7 @@ agent:
 
   # How frequent to truncate the WAL for this integration.
   [wal_truncate_frequency: <duration> | default = "60m"]
-  
+
   # Allows for relabeling labels on the target.
   relabel_configs:
     [- <relabel_config> ... ]
@@ -2060,7 +2060,7 @@ agent:
     [ - <relabel_config> ... ]
 
 # Client TLS Configuration
-# Client Cert/Key Values need to be defined if the server is requesting a certificate 
+# Client Cert/Key Values need to be defined if the server is requesting a certificate
 #  (Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert).
 http_tls_config: <tls_config>
 
@@ -2157,7 +2157,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.12.0 \
+  grafana/agent:v0.13.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2197,7 +2197,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.12.0
+  - image: grafana/agent:v0.13.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -2466,7 +2466,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.12.0 \
+  grafana/agent:v0.13.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2483,7 +2483,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.12.0
+  - image: grafana/agent:v0.13.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
