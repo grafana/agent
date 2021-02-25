@@ -54,6 +54,12 @@ func (c *Config) ApplyDefaults() error {
 		c.Integrations.ListenHost = &c.Server.HTTPListenAddress
 	}
 
+	// The prometheus block remote write should trickle down to the integrations block if it is NOT defined.
+	promAndIntegrationsEnabled := c.Integrations.Enabled && c.Prometheus.Enabled
+	promHasRemoteIntegrationDoesNot := len(c.Prometheus.RemoteWrite) > 0 && len(c.Integrations.PrometheusRemoteWrite) == 0
+	if promAndIntegrationsEnabled && promHasRemoteIntegrationDoesNot {
+		c.Integrations.PrometheusRemoteWrite = c.Prometheus.RemoteWrite
+	}
 	return nil
 }
 
