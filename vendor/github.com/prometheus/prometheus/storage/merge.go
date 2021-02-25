@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/tsdb/chunkenc"
 	"github.com/prometheus/prometheus/tsdb/chunks"
@@ -154,8 +155,10 @@ func (l labelGenericQueriers) SplitByHalf() (labelGenericQueriers, labelGenericQ
 }
 
 // LabelValues returns all potential values for a label name.
-func (q *mergeGenericQuerier) LabelValues(name string) ([]string, Warnings, error) {
-	res, ws, err := q.lvals(q.queriers, name)
+// If matchers are specified the returned result set is reduced
+// to label values of metrics matching the matchers.
+func (q *mergeGenericQuerier) LabelValues(name string, matchers ...*labels.Matcher) ([]string, Warnings, error) {
+	res, ws, err := q.lvals(q.queriers, name, matchers...)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "LabelValues() from merge generic querier for label %s", name)
 	}
@@ -163,22 +166,22 @@ func (q *mergeGenericQuerier) LabelValues(name string) ([]string, Warnings, erro
 }
 
 // lvals performs merge sort for LabelValues from multiple queriers.
-func (q *mergeGenericQuerier) lvals(lq labelGenericQueriers, n string) ([]string, Warnings, error) {
+func (q *mergeGenericQuerier) lvals(lq labelGenericQueriers, n string, matchers ...*labels.Matcher) ([]string, Warnings, error) {
 	if lq.Len() == 0 {
 		return nil, nil, nil
 	}
 	if lq.Len() == 1 {
-		return lq.Get(0).LabelValues(n)
+		return lq.Get(0).LabelValues(n, matchers...)
 	}
 	a, b := lq.SplitByHalf()
 
 	var ws Warnings
-	s1, w, err := q.lvals(a, n)
+	s1, w, err := q.lvals(a, n, matchers...)
 	ws = append(ws, w...)
 	if err != nil {
 		return nil, ws, err
 	}
-	s2, ws, err := q.lvals(b, n)
+	s2, ws, err := q.lvals(b, n, matchers...)
 	ws = append(ws, w...)
 	if err != nil {
 		return nil, ws, err
@@ -247,7 +250,7 @@ func (q *mergeGenericQuerier) LabelNames() ([]string, Warnings, error) {
 
 // Close releases the resources of the generic querier.
 func (q *mergeGenericQuerier) Close() error {
-	errs := tsdb_errors.MultiError{}
+	errs := tsdb_errors.NewMulti()
 	for _, querier := range q.queriers {
 		if err := querier.Close(); err != nil {
 			errs.Add(err)
@@ -533,11 +536,9 @@ func (c *chainSampleIterator) Next() bool {
 }
 
 func (c *chainSampleIterator) Err() error {
-	var errs tsdb_errors.MultiError
+	errs := tsdb_errors.NewMulti()
 	for _, iter := range c.iterators {
-		if err := iter.Err(); err != nil {
-			errs.Add(err)
-		}
+		errs.Add(iter.Err())
 	}
 	return errs.Err()
 }
@@ -680,11 +681,9 @@ func (c *compactChunkIterator) Next() bool {
 }
 
 func (c *compactChunkIterator) Err() error {
-	var errs tsdb_errors.MultiError
+	errs := tsdb_errors.NewMulti()
 	for _, iter := range c.iterators {
-		if err := iter.Err(); err != nil {
-			errs.Add(err)
-		}
+		errs.Add(iter.Err())
 	}
 	errs.Add(c.err)
 	return errs.Err()

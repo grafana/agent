@@ -27,6 +27,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
+	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -34,11 +35,10 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/common/version"
 
-	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/prometheus/prometheus/prompb"
 )
 
-const maxErrMsgLen = 256
+const maxErrMsgLen = 512
 
 var UserAgent = fmt.Sprintf("Prometheus/%s", version.Version)
 
@@ -83,6 +83,7 @@ type Client struct {
 	url        *config_util.URL
 	Client     *http.Client
 	timeout    time.Duration
+	headers    map[string]string
 
 	readQueries         prometheus.Gauge
 	readQueriesTotal    *prometheus.CounterVec
@@ -94,6 +95,7 @@ type ClientConfig struct {
 	URL              *config_util.URL
 	Timeout          model.Duration
 	HTTPClientConfig config_util.HTTPClientConfig
+	Headers          map[string]string
 }
 
 // ReadClient uses the SAMPLES method of remote read to read series samples from remote server.
@@ -102,8 +104,8 @@ type ReadClient interface {
 	Read(ctx context.Context, query *prompb.Query) (*prompb.QueryResult, error)
 }
 
-// newReadClient creates a new client for remote read.
-func newReadClient(name string, conf *ClientConfig) (ReadClient, error) {
+// NewReadClient creates a new client for remote read.
+func NewReadClient(name string, conf *ClientConfig) (ReadClient, error) {
 	httpClient, err := config_util.NewClientFromConfig(conf.HTTPClientConfig, "remote_storage_read_client", false, false)
 	if err != nil {
 		return nil, err
@@ -142,6 +144,7 @@ func NewWriteClient(name string, conf *ClientConfig) (WriteClient, error) {
 		url:        conf.URL,
 		Client:     httpClient,
 		timeout:    time.Duration(conf.Timeout),
+		headers:    conf.Headers,
 	}, nil
 }
 
@@ -157,6 +160,9 @@ func (c *Client) Store(ctx context.Context, req []byte) error {
 		// Errors from NewRequest are from unparsable URLs, so are not
 		// recoverable.
 		return err
+	}
+	for k, v := range c.headers {
+		httpReq.Header.Set(k, v)
 	}
 	httpReq.Header.Add("Content-Encoding", "snappy")
 	httpReq.Header.Set("Content-Type", "application/x-protobuf")

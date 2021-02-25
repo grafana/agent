@@ -26,6 +26,7 @@ main() {
   case "$TARGETPLATFORM" in
     linux/amd64)  native_build $target       ;;
     linux/arm64)  seego_build  $target arm64 ;;
+    linux/arm/v6) seego_build  $target arm 6 ;;
     linux/arm/v7) seego_build  $target arm 7 ;;
     *)
       echo ">>> ERROR: unsupported TARGETPLATFORM value $TARGETPLATFORM"

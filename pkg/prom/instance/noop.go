@@ -22,3 +22,7 @@ func (NoOpInstance) Update(_ Config) error {
 func (NoOpInstance) TargetsActive() map[string][]*scrape.Target {
 	return nil
 }
+
+func (NoOpInstance) StorageDirectory() string {
+	return ""
+}

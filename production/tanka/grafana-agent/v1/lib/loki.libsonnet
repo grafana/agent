@@ -7,7 +7,7 @@ local container = k.core.v1.container;
   // withLokiConfig adds a Loki config to collect logs.
   //
   // For the full list of options, refer to the configuration reference:
-  // https://github.com/grafana/agent/blob/master/docs/configuration-reference.md#loki_config
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#loki_config
   withLokiConfig(config):: {
     assert std.objectHasAll(self, '_mode') : |||
       withLokiConfig must be merged with the result of calling new.
@@ -67,8 +67,9 @@ local container = k.core.v1.container;
       container.mixin.securityContext.withRunAsUser(0),
 
     agent+:
-      // For reading docker containers
-      k.util.hostVolumeMount('varlog', '/var/log', '/var/log', readOnly=true) +
+      // For reading docker containers. /var/log is used for the positions file
+      // and shouldn't be set to readonly.
+      k.util.hostVolumeMount('varlog', '/var/log', '/var/log') +
       k.util.hostVolumeMount('varlibdockercontainers', '/var/lib/docker/containers', '/var/lib/docker/containers', readOnly=true) +
 
       // For reading journald

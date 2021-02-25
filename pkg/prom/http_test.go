@@ -84,11 +84,13 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 		tgt := scrape.NewTarget(labels.FromMap(map[string]string{
 			model.JobLabel:         "job",
 			model.InstanceLabel:    "instance",
+			"foo":                  "bar",
 			model.SchemeLabel:      "http",
 			model.AddressLabel:     "localhost:12345",
 			model.MetricsPathLabel: "/metrics",
-			"foo":                  "bar",
-		}), nil, nil)
+		}), labels.FromMap(map[string]string{
+			"__discovered__": "yes",
+		}), nil)
 
 		startTime := time.Date(1994, time.January, 12, 0, 0, 0, 0, time.UTC)
 		tgt.Report(startTime, time.Minute, fmt.Errorf("something went wrong"))
@@ -117,6 +119,9 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 					"instance": "instance",
 					"job": "job"
 				},
+				"discovered_labels": {
+					"__discovered__": "yes"
+				},
 				"last_scrape": "1994-01-12T00:00:00Z",
 				"scrape_duration_ms": 60000,
 				"scrape_error":"something went wrong"
@@ -142,4 +147,8 @@ func (i *mockInstanceScrape) Update(_ instance.Config) error {
 
 func (i *mockInstanceScrape) TargetsActive() map[string][]*scrape.Target {
 	return i.tgts
+}
+
+func (i *mockInstanceScrape) StorageDirectory() string {
+	return ""
 }

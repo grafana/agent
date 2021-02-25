@@ -57,13 +57,17 @@ type ManagerConfig struct {
 	Labels model.LabelSet `yaml:"labels,omitempty"`
 
 	// Prometheus RW configs to use for all integrations.
-	PrometheusRemoteWrite []*config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
+	PrometheusRemoteWrite []*instance.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
 
 	IntegrationRestartBackoff time.Duration `yaml:"integration_restart_backoff,omitempty"`
 
 	// ListenPort tells the integration Manager which port the Agent is
 	// listening on for generating Prometheus instance configs.
 	ListenPort *int `yaml:"-"`
+
+	// ListenHost tells the integration Manager which port the Agent is
+	// listening on for generating Prometheus instance configs
+	ListenHost *string `yaml:"-"`
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -202,7 +206,7 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration)
 		// Apply the config so an instance is launched to scrape our integration.
 		instanceConfig := m.instanceConfigForIntegration(cfg, i)
 		if err := m.im.ApplyConfig(instanceConfig); err != nil {
-			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run. THIS IS A BUG!", "err", err, "integration", cfg.Name())
+			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run", "err", err, "integration", cfg.Name())
 			return
 		}
 	}
@@ -248,12 +252,15 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 	instanceCfg.Name = prometheusName
 	instanceCfg.ScrapeConfigs = scrapeConfigs
 	instanceCfg.RemoteWrite = m.c.PrometheusRemoteWrite
+	if common.WALTruncateFrequency > 0 {
+		instanceCfg.WALTruncateFrequency = common.WALTruncateFrequency
+	}
 	return instanceCfg
 }
 
 func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
-	localAddr := fmt.Sprintf("127.0.0.1:%d", *m.c.ListenPort)
 
+	localAddr := fmt.Sprintf("%s:%d", *m.c.ListenHost, *m.c.ListenPort)
 	labels := model.LabelSet{}
 	if m.c.UseHostnameLabel {
 		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)

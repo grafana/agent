@@ -4,6 +4,9 @@
 # - integration scrape targets
 #
 # that enable local testing of all components of the Agent.
+#
+# The agent/config/agent-local.yaml file holds a config to 
+# scrape all of these services.
 version: "2"
 services:
 
@@ -95,3 +98,18 @@ services:
     image: consul
     ports:
       - "8500:8500"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=es-grafana-agent-cluster
+      - discovery.type=single-node
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+
+volumes:
+  elasticsearch_data:
+    driver: local

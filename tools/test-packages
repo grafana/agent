@@ -40,5 +40,5 @@ function test_with_systemd() {
     docker exec -i "${container}" /bin/bash -c "${remove_command}"
 }
 
-test_with_systemd "${IMAGE_PREFIX}"/centos-systemd "rpm -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.rpm" "rpm -e grafana-agent"
-test_with_systemd "${IMAGE_PREFIX}"/debian-systemd "dpkg -i /dist/grafana-agent-${VERSION}-${RELEASE}.x86_64.deb" "dpkg -r grafana-agent"
+test_with_systemd "${IMAGE_PREFIX}"/centos-systemd "rpm -i /dist/grafana-agent-${VERSION}-${RELEASE}.amd64.rpm" "rpm -e grafana-agent"
+test_with_systemd "${IMAGE_PREFIX}"/debian-systemd "dpkg -i /dist/grafana-agent-${VERSION}-${RELEASE}.amd64.deb" "dpkg -r grafana-agent"

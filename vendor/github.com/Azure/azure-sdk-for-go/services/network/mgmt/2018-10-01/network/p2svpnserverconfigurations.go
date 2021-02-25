@@ -35,9 +35,7 @@ func NewP2sVpnServerConfigurationsClient(subscriptionID string) P2sVpnServerConf
 	return NewP2sVpnServerConfigurationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewP2sVpnServerConfigurationsClientWithBaseURI creates an instance of the P2sVpnServerConfigurationsClient client
-// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
-// clouds, Azure stack).
+// NewP2sVpnServerConfigurationsClientWithBaseURI creates an instance of the P2sVpnServerConfigurationsClient client.
 func NewP2sVpnServerConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) P2sVpnServerConfigurationsClient {
 	return P2sVpnServerConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,8 +101,9 @@ func (client P2sVpnServerConfigurationsClient) CreateOrUpdatePreparer(ctx contex
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client P2sVpnServerConfigurationsClient) CreateOrUpdateSender(req *http.Request) (future P2sVpnServerConfigurationsCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -117,6 +116,7 @@ func (client P2sVpnServerConfigurationsClient) CreateOrUpdateSender(req *http.Re
 func (client P2sVpnServerConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result P2SVpnServerConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -180,8 +180,9 @@ func (client P2sVpnServerConfigurationsClient) DeletePreparer(ctx context.Contex
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client P2sVpnServerConfigurationsClient) DeleteSender(req *http.Request) (future P2sVpnServerConfigurationsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -194,6 +195,7 @@ func (client P2sVpnServerConfigurationsClient) DeleteSender(req *http.Request) (
 func (client P2sVpnServerConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -262,7 +264,8 @@ func (client P2sVpnServerConfigurationsClient) GetPreparer(ctx context.Context, 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client P2sVpnServerConfigurationsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -270,6 +273,7 @@ func (client P2sVpnServerConfigurationsClient) GetSender(req *http.Request) (*ht
 func (client P2sVpnServerConfigurationsClient) GetResponder(resp *http.Response) (result P2SVpnServerConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -310,9 +314,6 @@ func (client P2sVpnServerConfigurationsClient) ListByVirtualWan(ctx context.Cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.P2sVpnServerConfigurationsClient", "ListByVirtualWan", resp, "Failure responding to request")
 	}
-	if result.lpvscr.hasNextLink() && result.lpvscr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
 
 	return
 }
@@ -341,7 +342,8 @@ func (client P2sVpnServerConfigurationsClient) ListByVirtualWanPreparer(ctx cont
 // ListByVirtualWanSender sends the ListByVirtualWan request. The method will close the
 // http.Response Body if it receives an error.
 func (client P2sVpnServerConfigurationsClient) ListByVirtualWanSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByVirtualWanResponder handles the response to the ListByVirtualWan request. The method always
@@ -349,6 +351,7 @@ func (client P2sVpnServerConfigurationsClient) ListByVirtualWanSender(req *http.
 func (client P2sVpnServerConfigurationsClient) ListByVirtualWanResponder(resp *http.Response) (result ListP2SVpnServerConfigurationsResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

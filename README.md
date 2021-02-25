@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/assets/logo_and_name.png" alt="Grafana Cloud Agent logo"></p>
 
 Grafana Cloud Agent is an observability data collector optimized for sending
-metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud/).
+metrics, log and trace data to [Grafana Cloud](https://grafana.com/products/cloud/).
 
 Users of Prometheus operating at a massive scale (i.e., millions of active
 series) can struggle to run an unsharded singleton Prometheus instance: it becomes a
@@ -66,9 +66,9 @@ Simply copy and paste the following lines in your terminal (requires `envsubst`
 (GNU gettext)):
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
 
 Other installation methods can be found in our
@@ -93,9 +93,9 @@ quickly within the Agent. We aim to always base our vendor off of a recent offic
 Prometheus release and to keep the experimental changes not available in the upstream
 repository to a minimum.
 
-Please refer to the pinned 
-[Prometheus Vendor Update Tracking](https://github.com/grafana/agent/issues/112) issue 
-for our current vendored Prometheus release. 
+Please refer to the pinned
+[Prometheus Vendor Update Tracking](https://github.com/grafana/agent/issues/112) issue
+for our current vendored Prometheus release.
 
 For more context on our vendoring strategy, read our
 [repo maintenance guide](./docs/maintaining.md#grafanaprometheus-maintenance).
@@ -106,5 +106,7 @@ If you have any questions or feedback regarding the Grafana Cloud Agent:
 
 * Ask a question on the Agent Slack channel. To invite yourself to the Grafana
   Slack, visit https://slack.grafana.com/ and join the #agent channel.
+* Alternatively ask questions on the
+  [Discussions page](https://github.com/grafana/agent/discussions).
 * [File an issue](https://github.com/grafana/agent/issues/new) for bugs, issues
   and feature suggestions.

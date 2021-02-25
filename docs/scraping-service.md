@@ -57,16 +57,17 @@ The Distributed Hash Ring is also stored in a KV store. Since a KV store is
 also needed for storing configuration files, it is encouraged to re-use
 the same KV store for the ring.
 
-When sharding, the Agent currently uses the entire contents of a config file
-stored in the KV store for load distribution. The hash of the config file is
-used as the _key_ in the ring and determines which agent (based on token)
-should be responsible for that config.  "Price is Right" rules are used for the
-Agent lookup; the Agent owning the token with the closest value to the key
-without going over is responsible for the config.
+When sharding, the Agent currently uses the name of a config file
+stored in the KV store for load distribution. Config names are guaranteed to be
+unique keys. The hash of the name is used as the _lookup key_ in the ring and
+determines which agent (based on token) should be responsible for that config.
+"Price is Right" rules are used for the Agent lookup; the Agent owning the token
+with the closest value to the key without going over is responsible for the
+config.
 
 All Agents are simultaneously watching the KV store for changes to the set of
 configuration files. When a config file is added or updated in the configuration
-store, each Agent will run the config file hash through their copy of the Hash
+store, each Agent will run the config name hash through their copy of the Hash
 Ring to determine if they are responsible for that config.
 
 When an Agent receives a new config that it is responsible for, it launches a

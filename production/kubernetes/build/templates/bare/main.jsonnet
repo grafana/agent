@@ -6,7 +6,7 @@ agent {
   },
 
   _config+:: {
-    namespace: 'default',
+    namespace: '${NAMESPACE}',
 
     // Since the config map isn't managed by Tanka, we don't want to
     // add the configmap's hash as an annotation for the Kubernetes

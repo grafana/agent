@@ -116,8 +116,8 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 type ReadRing interface {
 	http.Handler
 
-	Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAll(op ring.Operation) (ring.ReplicationSet, error)
+	Get(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
+	GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error)
 }
 
 // ShardingInstanceManager wraps around an existing instance.Manager and uses a
@@ -194,18 +194,19 @@ func (m ShardingInstanceManager) ListConfigs() map[string]instance.Config {
 
 // ApplyConfig implements instance.Manager.ApplyConfig.
 func (m ShardingInstanceManager) ApplyConfig(c instance.Config) error {
-	hash, err := configHash(&c)
-	if err != nil {
-		return fmt.Errorf("failed to hash config: %w", err)
-	}
-
-	owned, err := m.owns(hash)
+	keyHash := configKeyHash(&c)
+	owned, err := m.owns(keyHash)
 	if err != nil {
 		level.Error(m.log).Log("msg", "failed to check if a config is owned, skipping config until next reshard", "err", err)
 		return nil
 	}
 
 	if owned {
+		hash, err := configHash(&c)
+		if err != nil {
+			return fmt.Errorf("failed to hash config: %w", err)
+		}
+
 		// If the config is unchanged, do nothing.
 		if m.keyToHash[c.Name] == hash {
 			return nil
@@ -236,13 +237,21 @@ func (m ShardingInstanceManager) DeleteConfig(name string) error {
 	return err
 }
 
-// Stop implements instance.Manager.Stop.
-func (m ShardingInstanceManager) Stop() { m.inner.Stop() }
+// Stop implements instance.Manager.Stop. It only stops the configs
+// passed through to this manager and not all instances.
+func (m ShardingInstanceManager) Stop() {
+	for k := range m.keyToHash {
+		err := m.DeleteConfig(k)
+		if err != nil {
+			level.Error(m.log).Log("msg", "failed to remove config", "name", k, "err", err)
+		}
+	}
+}
 
 // owns checks if the ShardingInstanceManager is responsible for
 // a given hash.
 func (m ShardingInstanceManager) owns(hash uint32) (bool, error) {
-	rs, err := m.ring.Get(hash, ring.Write, nil)
+	rs, err := m.ring.Get(hash, ring.Write, nil, nil, nil)
 	if err != nil {
 		return false, err
 	}
@@ -254,6 +263,7 @@ func (m ShardingInstanceManager) owns(hash uint32) (bool, error) {
 	return false, nil
 }
 
+// configHash returns the hash of the entirety of an instance config.
 func configHash(c *instance.Config) (uint32, error) {
 	val, err := instance.MarshalConfig(c, false)
 	if err != nil {
@@ -262,4 +272,13 @@ func configHash(c *instance.Config) (uint32, error) {
 	h := fnv.New32()
 	_, _ = h.Write(val)
 	return h.Sum32(), nil
+}
+
+// configKeyHash gets a hash for a config that is used to determine ownership.
+// It is based on primary keys of the instance config rather than the entire
+// config.
+func configKeyHash(c *instance.Config) uint32 {
+	h := fnv.New32()
+	_, _ = h.Write([]byte(c.Name))
+	return h.Sum32()
 }

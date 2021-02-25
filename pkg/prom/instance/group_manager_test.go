@@ -193,7 +193,7 @@ remote_write:
 	require.Equal(t, 1, len(innerConfigs))
 
 	cfg := innerConfigs[gm.groupLookup["configA"]]
-	require.NotEqual(t, "rw-cfg-a", cfg.RemoteWrite[0].Name)
+	require.NotEqual(t, "rw-cfg-a", cfg.RemoteWrite[0].Base.Name)
 }
 
 func TestGroupManager_DeleteConfig(t *testing.T) {
@@ -423,7 +423,7 @@ remote_write:
 	for _, rwConfig := range expect.RemoteWrite {
 		hash, err := getHash(rwConfig)
 		require.NoError(t, err)
-		rwConfig.Name = groupName[:6] + "-" + hash[:6]
+		rwConfig.Base.Name = groupName[:6] + "-" + hash[:6]
 	}
 
 	group := groupedConfigs{

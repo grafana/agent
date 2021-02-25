@@ -129,7 +129,7 @@ func (c *walStatsCalculator) Calculate() (WALStats, error) {
 		return stats, err
 	}
 
-	firstSegment, lastSegment, err := c.w.Segments()
+	firstSegment, lastSegment, err := wal.Segments(c.w.Dir())
 	if err != nil {
 		return stats, err
 	}
