@@ -37,7 +37,7 @@ update your local checkouts of the repository to point at the new branch name.
   write guarantees. (@rfratto)
 
 - [BUGFIX] (#368) Add the ability to read and serve HTTPS integration metrics when
-  given a set certificates (@mdurham)
+  given a set certificates (@mattdurham)
 
 # v0.12.0 (2021-02-05)
 
