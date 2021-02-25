@@ -74,6 +74,9 @@ type InstanceConfig struct {
 	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
 }
 
+const compressionNone = "none"
+const compressionGzip = "gzip"
+
 // PushConfig controls the configuration of exporting to Grafana Cloud
 type PushConfig struct {
 	Endpoint           string                 `yaml:"endpoint"`
@@ -84,6 +87,30 @@ type PushConfig struct {
 	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor/config.go#L24
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L30
 	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L54
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// Default
+	c.Compression = compressionGzip
+
+	type plain PushConfig
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
+	}
+	return c.Validate()
+}
+
+// Validate ensures that the Config is valid.
+func (c *PushConfig) Validate() error {
+	switch c.Compression {
+	case compressionGzip:
+	case compressionNone:
+	default:
+		return fmt.Errorf("unsupported compression '%s'", c.Compression)
+	}
+
+	return nil
 }
 
 func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
@@ -116,16 +143,14 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
-	switch c.PushConfig.Compression {
-	case "none":
-		c.PushConfig.Compression = ""
-	case "":
-		c.PushConfig.Compression = "gzip"
+	compression := c.PushConfig.Compression
+	if compression == compressionNone {
+		compression = ""
 	}
 
 	otlpExporter := map[string]interface{}{
 		"endpoint":             c.PushConfig.Endpoint,
-		"compression":          c.PushConfig.Compression,
+		"compression":          compression,
 		"headers":              headers,
 		"insecure":             c.PushConfig.Insecure,
 		"insecure_skip_verify": c.PushConfig.InsecureSkipVerify,
