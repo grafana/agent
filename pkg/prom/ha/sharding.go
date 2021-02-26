@@ -122,10 +122,7 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 
 // owns checks to see if a config name is owned by this Server.
 func (s *Server) owns(key string) (bool, error) {
-	h := fnv.New32()
-	_, _ = h.Write([]byte(key))
-
-	rs, err := s.ring.Get(h.Sum32(), ring.Write, nil, nil, nil)
+	rs, err := s.ring.Get(keyHash(key), ring.Write, nil, nil, nil)
 	if err != nil {
 		return false, err
 	}
@@ -135,6 +132,12 @@ func (s *Server) owns(key string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func keyHash(key string) uint32 {
+	h := fnv.New32()
+	_, _ = h.Write([]byte(key))
+	return h.Sum32()
 }
 
 // ReadRing is a subset of the Cortex ring.ReadRing interface with only the
