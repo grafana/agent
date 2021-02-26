@@ -333,8 +333,8 @@ func (s *Server) watchKV(ctx context.Context) {
 
 		switch {
 		// Two deletion scenarios:
-		// 1. A config we're running got deleted
-		// 2. A config we're running got moved to a new owner
+		// 1. A config we're running got moved to a new owner
+		// 2. A config we're running got deleted
 		case (isRunning && !owned) || (v == nil && isRunning):
 			if err := s.im.DeleteConfig(key); err != nil {
 				level.Error(s.logger).Log("msg", "failed to delete config", "name", key, "err", err)

@@ -50,6 +50,44 @@ func TestServer_Reshard_On_Start(t *testing.T) {
 	})
 }
 
+func TestServer_Config_Detection_Sharding(t *testing.T) {
+	r := &mockFuncReadRing{}
+	im := newFakeInstanceManager()
+
+	kv := newMockKV(true)
+	injectRingIngester(r)
+
+	r.GetFunc = func(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error) {
+		if key == keyHash("unowned") {
+			return ring.ReplicationSet{}, nil
+		}
+
+		return ring.ReplicationSet{
+			Ingesters: []ring.InstanceDesc{{Addr: "test"}},
+		}, nil
+	}
+
+	srv := newTestServer(r, kv, im, time.Minute*60)
+	defer func() { require.NoError(t, srv.Stop()) }()
+
+	// Wait for the server to finish joining before applying a new config.
+	test.Poll(t, time.Second*5, true, func() interface{} {
+		return srv.joined.Load()
+	})
+	err := kv.CAS(context.Background(), "unowned", func(_ interface{}) (interface{}, bool, error) {
+		return &instance.Config{Name: "unowned"}, false, nil
+	})
+	require.NoError(t, err)
+	err = kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
+		return &instance.Config{Name: "a"}, false, nil
+	})
+	require.NoError(t, err)
+
+	test.Poll(t, time.Second*5, []string{"a"}, func() interface{} {
+		return getRunningConfigs(im)
+	})
+}
+
 func TestServer_NewConfig_Detection(t *testing.T) {
 	r := &mockFuncReadRing{}
 	im := newFakeInstanceManager()
