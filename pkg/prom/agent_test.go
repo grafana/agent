@@ -25,7 +25,7 @@ func TestConfig_Validate(t *testing.T) {
 		Configs: []instance.Config{
 			makeInstanceConfig("instance"),
 		},
-		InstanceMode: DefaultInstanceMode,
+		InstanceMode: instance.DefaultMode,
 	}
 
 	tt := []struct {
@@ -121,6 +121,7 @@ func TestAgent(t *testing.T) {
 			makeInstanceConfig("instance_b"),
 		},
 		InstanceRestartBackoff: time.Duration(0),
+		InstanceMode:           instance.ModeDistinct,
 	}
 
 	fact := newFakeInstanceFactory()
@@ -132,7 +133,7 @@ func TestAgent(t *testing.T) {
 		if fact.created == nil {
 			return false
 		}
-		return fact.created.Load() == 2 && len(a.cm.ListInstances()) == 2
+		return fact.created.Load() == 2 && len(a.mm.ListInstances()) == 2
 	})
 
 	t.Run("instances should be running", func(t *testing.T) {
@@ -179,6 +180,7 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 			makeInstanceConfig("instance_b"),
 		},
 		InstanceRestartBackoff: time.Duration(0),
+		InstanceMode:           instance.ModeDistinct,
 	}
 
 	for _, tc := range tt {
@@ -192,7 +194,7 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 				if fact.created == nil {
 					return false
 				}
-				return fact.created.Load() == 2 && len(a.cm.ListInstances()) == 2
+				return fact.created.Load() == 2 && len(a.mm.ListInstances()) == 2
 			})
 
 			for _, mi := range fact.Mocks() {
@@ -224,6 +226,7 @@ func TestAgent_Stop(t *testing.T) {
 			makeInstanceConfig("instance_b"),
 		},
 		InstanceRestartBackoff: time.Duration(0),
+		InstanceMode:           instance.ModeDistinct,
 	}
 
 	fact := newFakeInstanceFactory()
@@ -235,7 +238,7 @@ func TestAgent_Stop(t *testing.T) {
 		if fact.created == nil {
 			return false
 		}
-		return fact.created.Load() == 2 && len(a.cm.ListInstances()) == 2
+		return fact.created.Load() == 2 && len(a.mm.ListInstances()) == 2
 	})
 
 	a.Stop()
