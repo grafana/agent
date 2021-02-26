@@ -6,6 +6,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
+- [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
+  to the WAL. (@rfratto)
+
 # v0.13.0 (2021-02-25)
 
 The primary branch name has changed from `master` to `main`. You may have to
