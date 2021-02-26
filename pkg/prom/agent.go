@@ -275,6 +275,9 @@ func cleanerNeedsUpdate(oldCfg, newCfg Config) bool {
 
 // newInstance creates a new Instance given a config.
 func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+
 	// Controls the label
 	instanceLabel := "instance_name"
 	if a.cfg.InstanceMode == instance.ModeShared {
@@ -289,17 +292,31 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 }
 
 func (a *Agent) validateInstance(c *instance.Config) error {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+
 	return c.ApplyDefaults(&a.cfg.Global)
 }
 
 func (a *Agent) WireGRPC(s *grpc.Server) {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+
 	if a.cfg.ServiceConfig.Enabled {
 		a.ha.WireGRPC(s)
 	}
 }
 
-func (a *Agent) Config() Config                    { return a.cfg }
-func (a *Agent) InstanceManager() instance.Manager { return a.mm }
+func (a *Agent) Config() Config {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+
+	return a.cfg
+}
+
+func (a *Agent) InstanceManager() instance.Manager {
+	return a.mm
+}
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
