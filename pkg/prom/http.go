@@ -14,9 +14,7 @@ import (
 
 // WireAPI adds API routes to the provided mux router.
 func (a *Agent) WireAPI(r *mux.Router) {
-	if a.cfg.ServiceConfig.Enabled {
-		a.ha.WireAPI(r)
-	}
+	a.haAPI.WireAPI(r)
 
 	r.HandleFunc("/agent/api/v1/instances", a.ListInstancesHandler).Methods("GET")
 	r.HandleFunc("/agent/api/v1/targets", a.ListTargetsHandler).Methods("GET")

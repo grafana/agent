@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"sync"
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
@@ -29,84 +28,6 @@ var (
 		Help: "Total number of deleted scraping service configs",
 	})
 )
-
-// APIHandler is a function that returns a configapi Response type
-// and optionally an error.
-type APIHandler func(r *http.Request) (interface{}, error)
-
-// WireAPI injects routes into the provided mux router for the config
-// management API.
-func (s *Server) WireAPI(r *mux.Router) {
-	// PutConfiguration is wrapped in a mutex below to prevent concurrent calls. Configs
-	// are validated by reading the state of the KV store. To ensure the validation is
-	// correct, the KV store must not receive any new keys until after we finsh
-	// our write.
-	listConfig := s.wrapHandler(s.ListConfigurations)
-	getConfig := s.wrapHandler(s.GetConfiguration)
-	putConfig := s.wrapHandler(nonConcurrentHandler(s.PutConfiguration))
-	deleteConfig := s.wrapHandler(s.DeleteConfiguration)
-
-	// Support URL-encoded config names. The handlers will need to decode the
-	// name when reading the path variable.
-	r = r.UseEncodedPath()
-
-	r.HandleFunc("/agent/api/v1/configs", listConfig).Methods("GET")
-	r.HandleFunc("/agent/api/v1/configs/{name}", getConfig).Methods("GET")
-	r.HandleFunc("/agent/api/v1/config/{name}", putConfig).Methods("PUT", "POST")
-	r.HandleFunc("/agent/api/v1/config/{name}", deleteConfig).Methods("DELETE")
-
-	// Debug ring page
-	r.Handle("/debug/ring", s.ring)
-}
-
-// nonConcurrentHandler wraps an APIHandler in a mutex to prevent it from being
-// called concurrently.
-func nonConcurrentHandler(next APIHandler) APIHandler {
-	var mut sync.Mutex
-	return func(r *http.Request) (interface{}, error) {
-		mut.Lock()
-		defer mut.Unlock()
-		return next(r)
-	}
-}
-
-// wrapHandler is responsible for turning an APIHandler into an HTTP
-// handler by wrapping responses and writing them as JSON.
-func (s *Server) wrapHandler(next APIHandler) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp, err := next(r)
-		if err != nil {
-			httpErr, ok := err.(*httpError)
-
-			if ok {
-				err = configapi.WriteError(w, httpErr.StatusCode, httpErr.Err)
-			} else {
-				err = configapi.WriteError(w, http.StatusInternalServerError, err)
-			}
-
-			if err != nil {
-				level.Error(s.logger).Log("msg", "failed writing error response to client", "err", err)
-			}
-			return
-		}
-
-		// Prepare data and status code to send back to the writer: if the handler
-		// returned an *httpResponse, use the status code defined there and send the
-		// internal data. Otherwise, assume HTTP 200 OK and marshal the raw response.
-		var (
-			data       = resp
-			statusCode = http.StatusOK
-		)
-		if httpResp, ok := data.(*httpResponse); ok {
-			data = httpResp.Data
-			statusCode = httpResp.StatusCode
-		}
-
-		if err := configapi.WriteResponse(w, statusCode, data); err != nil {
-			level.Error(s.logger).Log("msg", "failed to write valid response", "err", err)
-		}
-	})
-}
 
 // ListConfigurations returns a list of the named configurations or all
 // configurations associated with the Prometheus agent.
@@ -257,18 +178,6 @@ func (s *Server) DeleteConfiguration(r *http.Request) (interface{}, error) {
 
 	totalDeletedConfigs.Inc()
 	return nil, err
-}
-
-type httpError struct {
-	StatusCode int
-	Err        error
-}
-
-func (e httpError) Error() string { return e.Err.Error() }
-
-type httpResponse struct {
-	StatusCode int
-	Data       interface{}
 }
 
 // getConfigName uses gorilla/mux's route variables to extract the

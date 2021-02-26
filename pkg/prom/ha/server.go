@@ -27,7 +27,6 @@ import (
 	"github.com/prometheus/prometheus/config"
 	"github.com/weaveworks/common/user"
 	"go.uber.org/atomic"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -361,11 +360,6 @@ func (s *Server) localReshard(ctx context.Context) {
 	if err != nil {
 		level.Error(s.logger).Log("msg", "resharding failed", "err", err)
 	}
-}
-
-// WireGRPC injects gRPC server handlers into the provided gRPC server.
-func (s *Server) WireGRPC(srv *grpc.Server) {
-	agentproto.RegisterScrapingServiceServer(srv, s)
 }
 
 // Flush satisfies ring.FlushTransferer. It is a no-op for the Agent.

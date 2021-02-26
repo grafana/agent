@@ -375,7 +375,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 	require.NoError(t, err)
 
 	// Wire the API
-	ha.WireAPI(router)
+	NewAPI(logger, ha).WireAPI(router)
 
 	return apiTestEnvironment{
 		ha:     ha,

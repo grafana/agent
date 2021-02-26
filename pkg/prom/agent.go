@@ -126,7 +126,8 @@ type Agent struct {
 
 	instanceFactory instanceFactory
 
-	ha *ha.Server
+	ha    *ha.Server
+	haAPI *ha.API
 }
 
 // New creates and starts a new Agent.
@@ -140,6 +141,8 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 		instanceFactory: fact,
 		reg:             reg,
 	}
+
+	a.haAPI = ha.NewAPI(a.logger, nil)
 
 	a.bm = instance.NewBasicManager(instance.BasicManagerConfig{
 		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
@@ -214,6 +217,7 @@ func (a *Agent) ApplyConfig(c Config) error {
 			if err := a.ha.Stop(); err != nil {
 				return fmt.Errorf("failed to stop scraping service for config update: %w", err)
 			}
+			a.ha = nil
 		}
 
 		if c.ServiceConfig.Enabled {
@@ -223,6 +227,8 @@ func (a *Agent) ApplyConfig(c Config) error {
 				return fmt.Errorf("failed to start scraping service: %w", err)
 			}
 		}
+
+		a.haAPI.SetServer(a.ha)
 	}
 
 	//
@@ -275,9 +281,6 @@ func cleanerNeedsUpdate(oldCfg, newCfg Config) bool {
 
 // newInstance creates a new Instance given a config.
 func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
-	a.mut.Lock()
-	defer a.mut.Unlock()
-
 	// Controls the label
 	instanceLabel := "instance_name"
 	if a.cfg.InstanceMode == instance.ModeShared {
@@ -292,19 +295,11 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 }
 
 func (a *Agent) validateInstance(c *instance.Config) error {
-	a.mut.Lock()
-	defer a.mut.Unlock()
-
 	return c.ApplyDefaults(&a.cfg.Global)
 }
 
 func (a *Agent) WireGRPC(s *grpc.Server) {
-	a.mut.Lock()
-	defer a.mut.Unlock()
-
-	if a.cfg.ServiceConfig.Enabled {
-		a.ha.WireGRPC(s)
-	}
+	a.haAPI.WireGRPC(s)
 }
 
 func (a *Agent) Config() Config {
