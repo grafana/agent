@@ -93,6 +93,7 @@ type Server struct {
 	configManagerMut sync.Mutex
 	im               instance.Manager
 	joined           *atomic.Bool
+	configs          map[string]struct{}
 
 	kv   kv.Client
 	ring ReadRing
@@ -150,7 +151,7 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		clientConfig,
 		logger,
 
-		NewShardingInstanceManager(logger, im, r, lc.Addr),
+		im,
 
 		lc.Addr,
 		r,
@@ -192,8 +193,9 @@ func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Conf
 		logger:       log,
 		addr:         addr,
 
-		im:     im,
-		joined: atomic.NewBool(false),
+		im:      im,
+		joined:  atomic.NewBool(false),
+		configs: make(map[string]struct{}),
 
 		kv:   kv,
 		ring: r,
@@ -401,7 +403,16 @@ func (s *Server) Stop() error {
 	// Delete all the local configs that were running.
 	s.configManagerMut.Lock()
 	defer s.configManagerMut.Unlock()
-	s.im.Stop()
+
+	for cfg := range s.configs {
+		if err := s.im.DeleteConfig(cfg); err != nil {
+			level.Warn(s.logger).Log("msg", "failed to delete config on shutdown", "config", cfg, "err", err)
+		}
+
+		// Deletes only fail if the config doesn't exist, so either way we want to
+		// stop tracking it here.
+		delete(s.configs, cfg)
+	}
 
 	return err
 }

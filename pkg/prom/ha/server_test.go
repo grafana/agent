@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"net"
+	"net/http"
 	"sort"
 	"strings"
 	"sync"
@@ -421,4 +422,25 @@ func startScrapingServiceServer(t *testing.T, srv agentproto.ScrapingServiceServ
 		State:     ring.ACTIVE,
 		Timestamp: math.MaxInt64,
 	}
+}
+
+type mockFuncReadRing struct {
+	http.Handler
+
+	GetFunc           func(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
+	GetAllHealthyFunc func(ring.Operation) (ring.ReplicationSet, error)
+}
+
+func (r *mockFuncReadRing) Get(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error) {
+	if r.GetFunc != nil {
+		return r.GetFunc(key, op, bufDescs, bufHosts, bufZones)
+	}
+	return ring.ReplicationSet{}, errors.New("not implemented")
+}
+
+func (r *mockFuncReadRing) GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error) {
+	if r.GetAllHealthyFunc != nil {
+		return r.GetAllHealthyFunc(op)
+	}
+	return ring.ReplicationSet{}, errors.New("not implemented")
 }
