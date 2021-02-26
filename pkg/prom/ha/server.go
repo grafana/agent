@@ -323,17 +323,36 @@ func (s *Server) watchKV(ctx context.Context) {
 			return false
 		}
 
-		if v == nil {
-			if err := s.im.DeleteConfig(key); err != nil {
-				level.Error(s.logger).Log("msg", "failed to delete config", "name", key, "err", err)
-			}
+		_, isRunning := s.configs[key]
+
+		owned, err := s.owns(key)
+		if err != nil {
+			level.Error(s.logger).Log("msg", "failed to see if config is owned, will retry on next reshard", "name", key, "err", err)
 			return true
 		}
 
-		cfg := v.(*instance.Config)
-		if err := s.im.ApplyConfig(*cfg); err != nil {
-			level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
+		switch {
+		// Two deletion scenarios:
+		// 1. A config we're running got deleted
+		// 2. A config we're running got moved to a new owner
+		case (isRunning && !owned) || (v == nil && isRunning):
+			if err := s.im.DeleteConfig(key); err != nil {
+				level.Error(s.logger).Log("msg", "failed to delete config", "name", key, "err", err)
+			}
+			delete(s.configs, key)
+
+		// New config should be applied if we own it
+		case v != nil && owned:
+			cfg := v.(*instance.Config)
+			err := s.im.ApplyConfig(*cfg)
+			if err != nil {
+				level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
+				return true
+			}
+
+			s.configs[key] = struct{}{}
 		}
+
 		return true
 	})
 
