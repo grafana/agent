@@ -3,9 +3,9 @@ ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
 # Use custom Go version instead of one prepacked in seego
-ENV GOLANG_VERSION 1.15.8
+ENV GOLANG_VERSION 1.16
 ENV GOLANG_DOWNLOAD_URL https://golang.org/dl/go$GOLANG_VERSION.linux-amd64.tar.gz
-ENV GOLANG_DOWNLOAD_SHA256 d3379c32a90fdf9382166f8f48034c459a8cc433730bc9476d39d9082c94583b
+ENV GOLANG_DOWNLOAD_SHA256 013a489ebb3e24ef3d915abe5b94c3286c070dfe0818d5bca8108f1d6e8440d2
 RUN  rm -rf /usr/local/go                                           \
   && curl -fsSL "$GOLANG_DOWNLOAD_URL" -o golang.tar.gz             \
   && echo "$GOLANG_DOWNLOAD_SHA256  golang.tar.gz" | sha256sum -c - \
