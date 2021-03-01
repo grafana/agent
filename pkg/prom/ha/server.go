@@ -323,7 +323,10 @@ func (s *Server) watchKV(ctx context.Context) {
 			return false
 		}
 
-		_, isRunning := s.configs[key]
+		var (
+			_, isRunning = s.configs[key]
+			isDeleted    = v == nil
+		)
 
 		owned, err := s.owns(key)
 		if err != nil {
@@ -335,14 +338,15 @@ func (s *Server) watchKV(ctx context.Context) {
 		// Two deletion scenarios:
 		// 1. A config we're running got moved to a new owner
 		// 2. A config we're running got deleted
-		case (isRunning && !owned) || (v == nil && isRunning):
+		case (isRunning && !owned) || (isDeleted && isRunning):
 			if err := s.im.DeleteConfig(key); err != nil {
 				level.Error(s.logger).Log("msg", "failed to delete config", "name", key, "err", err)
 			}
 			delete(s.configs, key)
 
 		// New config should be applied if we own it
-		case v != nil && owned:
+		case !isDeleted && owned:
+			// Applying configs should only fail if the config is invalid
 			cfg := v.(*instance.Config)
 			err := s.im.ApplyConfig(*cfg)
 			if err != nil {

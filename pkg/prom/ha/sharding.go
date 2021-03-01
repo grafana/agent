@@ -44,6 +44,7 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 		return nil, err
 	}
 	for ch := range configCh {
+		// Applying configs should only fail if the config is invalid
 		err := s.im.ApplyConfig(ch)
 		if err != nil {
 			level.Error(s.logger).Log("msg", "failed to apply config when resharding", "err", err)
@@ -120,7 +121,9 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 	return ch, nil
 }
 
-// owns checks to see if a config name is owned by this Server.
+// owns checks to see if a config name is owned by this Server. owns will
+// return an error if the ring is empty or if there aren't enough
+// healthy nodes.
 func (s *Server) owns(key string) (bool, error) {
 	rs, err := s.ring.Get(keyHash(key), ring.Write, nil, nil, nil)
 	if err != nil {
