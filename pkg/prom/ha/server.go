@@ -9,6 +9,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -346,9 +347,13 @@ func (s *Server) watchKV(ctx context.Context) {
 
 		// New config should be applied if we own it
 		case !isDeleted && owned:
+			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
+			if err != nil {
+				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
+			}
+
 			// Applying configs should only fail if the config is invalid
-			cfg := v.(*instance.Config)
-			err := s.im.ApplyConfig(*cfg)
+			err = s.im.ApplyConfig(*cfg)
 			if err != nil {
 				level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
 				return true

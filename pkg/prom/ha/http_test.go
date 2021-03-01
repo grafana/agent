@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -24,6 +25,7 @@ import (
 	haClient "github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/ha/configapi"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
@@ -34,14 +36,10 @@ func TestServer_ListConfigurations(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
 	// Store some configs
-	cfgs := []*instance.Config{
-		{Name: "a"},
-		{Name: "b"},
-		{Name: "c"},
-	}
+	cfgs := []string{"a", "b", "c"}
 	for _, cfg := range cfgs {
-		err := env.ha.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
-			return cfg, false, nil
+		err := env.ha.kv.CAS(context.Background(), cfg, func(in interface{}) (out interface{}, retry bool, err error) {
+			return fmt.Sprintf("name: '%s'", cfg), false, nil
 		})
 		require.NoError(t, err)
 	}
@@ -93,12 +91,14 @@ func TestServer_GetConfiguration_Invalid(t *testing.T) {
 func TestServer_GetConfiguration(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
-	cfg := instance.DefaultConfig
-	cfg.Name = "a"
-	cfg.HostFilter = true
-	cfg.RemoteFlushDeadline = 10 * time.Minute
-	err := env.ha.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
-		return &cfg, false, nil
+	cfg := util.Untab(`
+	name: a
+	host_filter: true
+	remote_flush_deadline: 10m
+	`)
+
+	err := env.ha.kv.CAS(context.Background(), "a", func(in interface{}) (out interface{}, retry bool, err error) {
+		return cfg, false, nil
 	})
 	require.NoError(t, err)
 
@@ -109,17 +109,19 @@ func TestServer_GetConfiguration(t *testing.T) {
 	var apiResp configapi.GetConfigurationResponse
 	unmarshalTestResponse(t, resp.Body, &apiResp)
 
-	var actual instance.Config
-	err = yaml.Unmarshal([]byte(apiResp.Value), &actual)
-	require.NoError(t, err)
-
-	require.Equal(t, cfg, actual, "unmarshaled stored configuration did not match input")
+	require.Equal(t, cfg, apiResp.Value, "stored configuration did not match input")
 
 	t.Run("With Client", func(t *testing.T) {
 		cli := client.New(env.srv.URL)
 		actual, err := cli.GetConfiguration(context.Background(), "a")
 		require.NoError(t, err)
-		require.Equal(t, &cfg, actual)
+
+		expectConfig := instance.DefaultConfig
+		expectConfig.Name = "a"
+		expectConfig.HostFilter = true
+		expectConfig.RemoteFlushDeadline = 10 * time.Minute
+
+		require.Equal(t, &expectConfig, actual)
 	})
 }
 
@@ -279,21 +281,17 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
 	// Store some configs
-	cfgs := []*instance.Config{
-		{Name: "a"},
-		{Name: "b"},
-		{Name: "c"},
-	}
+	cfgs := []string{"a", "b", "c"}
 	for _, cfg := range cfgs {
-		err := env.ha.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
-			return cfg, false, nil
+		err := env.ha.kv.CAS(context.Background(), cfg, func(in interface{}) (out interface{}, retry bool, err error) {
+			return fmt.Sprintf("name: '%s'", cfg), false, nil
 		})
 		require.NoError(t, err)
 	}
 
 	// Delete the configs
 	for _, cfg := range cfgs {
-		req, err := http.NewRequest("DELETE", env.srv.URL+"/agent/api/v1/config/"+cfg.Name, nil)
+		req, err := http.NewRequest("DELETE", env.srv.URL+"/agent/api/v1/config/"+cfg, nil)
 		require.NoError(t, err)
 
 		resp, err := http.DefaultClient.Do(req)
@@ -309,7 +307,7 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 	var apiResp configapi.ListConfigurationsResponse
 	unmarshalTestResponse(t, resp.Body, &apiResp)
 	for _, cfg := range cfgs {
-		require.NotContains(t, apiResp.Configs, cfg.Name)
+		require.NotContains(t, apiResp.Configs, cfg)
 	}
 }
 
@@ -317,14 +315,10 @@ func TestServer_DeleteConfiguration_WithClient(t *testing.T) {
 	env := newAPITestEnvironment(t)
 
 	// Store some configs
-	cfgs := []*instance.Config{
-		{Name: "a"},
-		{Name: "b"},
-		{Name: "c"},
-	}
+	cfgs := []string{"a", "b", "c"}
 	for _, cfg := range cfgs {
-		err := env.ha.kv.CAS(context.Background(), cfg.Name, func(in interface{}) (out interface{}, retry bool, err error) {
-			return cfg, false, nil
+		err := env.ha.kv.CAS(context.Background(), cfg, func(in interface{}) (out interface{}, retry bool, err error) {
+			return fmt.Sprintf("name: '%s'", cfg), false, nil
 		})
 		require.NoError(t, err)
 	}
@@ -333,14 +327,14 @@ func TestServer_DeleteConfiguration_WithClient(t *testing.T) {
 
 	// Delete the configs
 	for _, cfg := range cfgs {
-		err := cli.DeleteConfiguration(context.Background(), cfg.Name)
+		err := cli.DeleteConfiguration(context.Background(), cfg)
 		require.NoError(t, err)
 	}
 
 	resp, err := cli.ListConfigs(context.Background())
 	require.NoError(t, err)
 	for _, cfg := range cfgs {
-		require.NotContains(t, resp.Configs, cfg.Name)
+		require.NotContains(t, resp.Configs, cfg)
 	}
 }
 
