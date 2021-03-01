@@ -17,6 +17,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 - [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
   to the WAL. (@rfratto)
 
+- [BUGFIX] Remote write endpoints that never function across the lifetime of the
+  Agent will no longer prevent the WAL from being truncated. (@rfratto)
+
 # v0.13.0 (2021-02-25)
 
 The primary branch name has changed from `master` to `main`. You may have to
