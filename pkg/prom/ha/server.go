@@ -106,7 +106,7 @@ type Server struct {
 }
 
 // New creates a new HA scraping service instance.
-func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager, prometheusWriteConfig []*instance.RemoteWriteConfig) (*Server, error) {
+func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager, defaultRemoteWrite []*instance.RemoteWriteConfig) (*Server, error) {
 	// Force ReplicationFactor to be 1, since replication isn't supported for the
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
@@ -160,7 +160,7 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		// ring still polling.
 		stopServices(lc, r),
 
-		prometheusWriteConfig,
+		defaultRemoteWrite,
 	)
 
 	lazy.inner = s
