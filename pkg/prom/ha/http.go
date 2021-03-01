@@ -3,8 +3,10 @@ package ha
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/go-kit/kit/log/level"
@@ -138,19 +140,19 @@ func (s *Server) GetConfiguration(r *http.Request) (interface{}, error) {
 		}
 	}
 
-	cfg, err := instance.MarshalConfig(v.(*instance.Config), true)
-	if err != nil {
-		level.Error(s.logger).Log("msg", "error marshaling configuration", "err", err)
-		return nil, err
-	}
-
-	return &configapi.GetConfigurationResponse{Value: string(cfg)}, nil
+	return &configapi.GetConfigurationResponse{Value: v.(string)}, nil
 }
 
 // PutConfiguration creates or updates a named configuration. Completely
 // overrides the previous configuration if it exists.
 func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
-	inst, err := instance.UnmarshalConfig(r.Body)
+	// Copy the config into a builder that we'll use multiple times.
+	var config strings.Builder
+	if _, err := io.Copy(&config, r.Body); err != nil {
+		return nil, err
+	}
+
+	inst, err := instance.UnmarshalConfig(strings.NewReader(config.String()))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +161,15 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	// Validate the incoming config
+	// Remarshal the instance with static defaults applied and the name of the
+	// instance forced based on the URL.
+	configBytes, err := instance.MarshalConfig(inst, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate the config by applying global defaults. This mutates the config,
+	// which is why we must marshal it for storage before this call.
 	if err := inst.ApplyDefaults(s.globalConfig, s.defaultRemoteWrite); err != nil {
 		return nil, err
 	}
@@ -173,7 +183,7 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 	err = s.kv.CAS(r.Context(), inst.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 		// The configuration is new if there's no previous value from the CAS
 		newConfig = (in == nil)
-		return inst, false, nil
+		return string(configBytes), false, nil
 	})
 
 	if err != nil {
