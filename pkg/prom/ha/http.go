@@ -152,10 +152,6 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	// We want to make sure the config is valid so we'll unmarshal it and
-	// apply defaults. However, since defaults can change at runtime, we
-	// just want to store the raw string, so inst is only used for validation
-	// here.
 	inst, err := instance.UnmarshalConfig(strings.NewReader(config.String()))
 	if err != nil {
 		return nil, err
@@ -166,7 +162,7 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 	}
 
 	// Remarshal the instance with static defaults applied and the name of the
-	// instance set.
+	// instance forced based on the URL.
 	configBytes, err := instance.MarshalConfig(inst, false)
 	if err != nil {
 		return nil, err
