@@ -37,7 +37,7 @@ func TestBasicManager_ApplyConfig(t *testing.T) {
 			return &newMock, nil
 		}
 
-		cm := NewBasicManager(DefaultBasicManagerConfig, logger, spawner, nil)
+		cm := NewBasicManager(DefaultBasicManagerConfig, logger, spawner)
 
 		for i := 0; i < 10; i++ {
 			err := cm.ApplyConfig(Config{Name: "test"})
@@ -61,7 +61,7 @@ func TestBasicManager_ApplyConfig(t *testing.T) {
 			return &newMock, nil
 		}
 
-		cm := NewBasicManager(DefaultBasicManagerConfig, logger, spawner, nil)
+		cm := NewBasicManager(DefaultBasicManagerConfig, logger, spawner)
 
 		for i := 0; i < 10; i++ {
 			err := cm.ApplyConfig(Config{Name: "test"})
@@ -83,7 +83,7 @@ func TestBasicManager_ApplyConfig(t *testing.T) {
 			return &newMock, nil
 		}
 
-		cm := NewBasicManager(DefaultBasicManagerConfig, logger, spawner, nil)
+		cm := NewBasicManager(DefaultBasicManagerConfig, logger, spawner)
 
 		// Creation should succeed
 		err := cm.ApplyConfig(Config{Name: "test"})
