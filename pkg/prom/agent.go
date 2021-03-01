@@ -37,15 +37,15 @@ type Config struct {
 	// Whether the Prometheus subsystem should be enabled.
 	Enabled bool `yaml:"-"`
 
-	Global                 config.GlobalConfig `yaml:"global"`
-	WALDir                 string              `yaml:"wal_directory"`
-	WALCleanupAge          time.Duration       `yaml:"wal_cleanup_age"`
-	WALCleanupPeriod       time.Duration       `yaml:"wal_cleanup_period"`
-	ServiceConfig          ha.Config           `yaml:"scraping_service"`
-	ServiceClientConfig    client.Config       `yaml:"scraping_service_client"`
-	Configs                []instance.Config   `yaml:"configs,omitempty"`
-	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
-	InstanceMode           instance.Mode       `yaml:"instance_mode"`
+	Global                 config.GlobalConfig           `yaml:"global"`
+	WALDir                 string                        `yaml:"wal_directory"`
+	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age"`
+	WALCleanupPeriod       time.Duration                 `yaml:"wal_cleanup_period"`
+	ServiceConfig          ha.Config                     `yaml:"scraping_service"`
+	ServiceClientConfig    client.Config                 `yaml:"scraping_service_client"`
+	Configs                []instance.Config             `yaml:"configs,omitempty"`
+	InstanceRestartBackoff time.Duration                 `yaml:"instance_restart_backoff,omitempty"`
+	InstanceMode           instance.Mode                 `yaml:"instance_mode"`
 	RemoteWrite            []*instance.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 }
 
