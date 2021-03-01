@@ -102,7 +102,7 @@ type Server struct {
 
 	closeDependencies func() error
 
-	prometheusWriteConfig []*instance.RemoteWriteConfig
+	defaultRemoteWrite []*instance.RemoteWriteConfig
 }
 
 // New creates a new HA scraping service instance.
@@ -182,7 +182,7 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*rin
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
-func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, kv kv.Client, stopFunc func() error, prometheusWriteConfig []*instance.RemoteWriteConfig) *Server {
+func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, kv kv.Client, stopFunc func() error, defaultRemoteWrite []*instance.RemoteWriteConfig) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &Server{
@@ -202,7 +202,7 @@ func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Conf
 		exited:            make(chan bool),
 		closeDependencies: stopFunc,
 
-		prometheusWriteConfig: prometheusWriteConfig,
+		defaultRemoteWrite: defaultRemoteWrite,
 	}
 
 	go s.run(ctx)
