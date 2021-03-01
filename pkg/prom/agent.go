@@ -37,15 +37,16 @@ type Config struct {
 	// Whether the Prometheus subsystem should be enabled.
 	Enabled bool `yaml:"-"`
 
-	Global                 config.GlobalConfig `yaml:"global"`
-	WALDir                 string              `yaml:"wal_directory"`
-	WALCleanupAge          time.Duration       `yaml:"wal_cleanup_age"`
-	WALCleanupPeriod       time.Duration       `yaml:"wal_cleanup_period"`
-	ServiceConfig          ha.Config           `yaml:"scraping_service"`
-	ServiceClientConfig    client.Config       `yaml:"scraping_service_client"`
-	Configs                []instance.Config   `yaml:"configs,omitempty"`
-	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
-	InstanceMode           instance.Mode       `yaml:"instance_mode"`
+	Global                 config.GlobalConfig           `yaml:"global"`
+	WALDir                 string                        `yaml:"wal_directory"`
+	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age"`
+	WALCleanupPeriod       time.Duration                 `yaml:"wal_cleanup_period"`
+	ServiceConfig          ha.Config                     `yaml:"scraping_service"`
+	ServiceClientConfig    client.Config                 `yaml:"scraping_service_client"`
+	Configs                []instance.Config             `yaml:"configs,omitempty"`
+	InstanceRestartBackoff time.Duration                 `yaml:"instance_restart_backoff,omitempty"`
+	InstanceMode           instance.Mode                 `yaml:"instance_mode"`
+	RemoteWrite            []*instance.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -74,7 +75,7 @@ func (c *Config) ApplyDefaults() error {
 
 	for i := range c.Configs {
 		name := c.Configs[i].Name
-		if err := c.Configs[i].ApplyDefaults(&c.Global); err != nil {
+		if err := c.Configs[i].ApplyDefaults(&c.Global, c.RemoteWrite); err != nil {
 			// Try to show a helpful name in the error
 			if name == "" {
 				name = fmt.Sprintf("at index %d", i)
@@ -172,7 +173,7 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 
 	if cfg.ServiceConfig.Enabled {
 		var err error
-		a.ha, err = ha.New(reg, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.mm)
+		a.ha, err = ha.New(reg, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.mm, cfg.RemoteWrite)
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +198,7 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 }
 
 func (a *Agent) validateInstance(c *instance.Config) error {
-	return c.ApplyDefaults(&a.cfg.Global)
+	return c.ApplyDefaults(&a.cfg.Global, c.RemoteWrite)
 }
 
 func (a *Agent) WireGRPC(s *grpc.Server) {

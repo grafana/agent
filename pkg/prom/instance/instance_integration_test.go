@@ -251,6 +251,6 @@ remote_write: []
 func loadConfig(t *testing.T, s string) Config {
 	cfg, err := UnmarshalConfig(strings.NewReader(s))
 	require.NoError(t, err)
-	require.NoError(t, cfg.ApplyDefaults(&config.DefaultGlobalConfig))
+	require.NoError(t, cfg.ApplyDefaults(&config.DefaultGlobalConfig, nil))
 	return *cfg
 }

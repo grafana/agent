@@ -54,8 +54,10 @@ func (c *Config) ApplyDefaults() error {
 		c.Integrations.ListenPort = &c.Server.HTTPListenPort
 		c.Integrations.ListenHost = &c.Server.HTTPListenAddress
 		c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
+		if len(c.Integrations.PrometheusRemoteWrite) == 0 {
+			c.Integrations.PrometheusRemoteWrite = c.Prometheus.RemoteWrite
+		}
 	}
-
 	return nil
 }
 
