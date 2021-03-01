@@ -4,9 +4,18 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Main (unreleased)
 
+- [FEATURE] Official M1 Mac release builds will now be generated! Look for
+  `agent-darwin-arm64` and `agentctl-darwin-arm64` in the release assets.
+  (@rfratto)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
+
+- [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
+
+- [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
+  to the WAL. (@rfratto)
 
 # v0.13.0 (2021-02-25)
 

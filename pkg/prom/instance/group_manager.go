@@ -227,7 +227,14 @@ func (m *GroupManager) deleteConfig(name string) error {
 }
 
 // Stop stops the Manager and all of its managed instances.
-func (m *GroupManager) Stop() { m.inner.Stop() }
+func (m *GroupManager) Stop() {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
+	m.inner.Stop()
+	m.groupLookup = make(map[string]string)
+	m.groups = make(map[string]groupedConfigs)
+}
 
 // hashConfig determines the hash of a Config used for grouping. It ignores
 // the name and scrape_configs and also orders remote_writes by name prior to

@@ -72,6 +72,7 @@ type BasicManagerConfig struct {
 //
 // Other implementations of Manager usually wrap a BasicManager.
 type BasicManager struct {
+	cfgMut sync.Mutex
 	cfg    BasicManagerConfig
 	logger log.Logger
 
@@ -124,6 +125,13 @@ func NewBasicManager(cfg BasicManagerConfig, logger log.Logger, launch Factory, 
 		launch:    launch,
 		validate:  validate,
 	}
+}
+
+// UpdateManagerConfig updates the BasicManagerConfig.
+func (m *BasicManager) UpdateManagerConfig(c BasicManagerConfig) {
+	m.cfgMut.Lock()
+	defer m.cfgMut.Unlock()
+	m.cfg = c
 }
 
 // ListInstances returns the current active instances managed by BasicManager.
@@ -249,14 +257,22 @@ func (m *BasicManager) runProcess(ctx context.Context, name string, inst Managed
 	for {
 		err := inst.Run(ctx)
 		if err != nil && err != context.Canceled {
+			backoff := m.instanceRestartBackoff()
+
 			instanceAbnormalExits.WithLabelValues(name).Inc()
-			level.Error(m.logger).Log("msg", "instance stopped abnormally, restarting after backoff period", "err", err, "backoff", m.cfg.InstanceRestartBackoff, "instance", name)
-			time.Sleep(m.cfg.InstanceRestartBackoff)
+			level.Error(m.logger).Log("msg", "instance stopped abnormally, restarting after backoff period", "err", err, "backoff", backoff, "instance", name)
+			time.Sleep(backoff)
 		} else {
 			level.Info(m.logger).Log("msg", "stopped instance", "instance", name)
 			break
 		}
 	}
+}
+
+func (m *BasicManager) instanceRestartBackoff() time.Duration {
+	m.cfgMut.Lock()
+	defer m.cfgMut.Unlock()
+	return m.cfg.InstanceRestartBackoff
 }
 
 // DeleteConfig removes a managed instance by its config name. Returns an error
@@ -280,6 +296,8 @@ func (m *BasicManager) DeleteConfig(name string) error {
 func (m *BasicManager) Stop() {
 	var wg sync.WaitGroup
 
+	// We don't need to change m.processes here; processes remove themselves
+	// from the map (in spawnProcess).
 	m.mut.Lock()
 	wg.Add(len(m.processes))
 	for _, proc := range m.processes {
