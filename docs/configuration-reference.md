@@ -176,6 +176,11 @@ configs:
 # How to spawn instances based on instance configs. Supported values: shared,
 # distinct.
 [instance_mode: <string> | default = "shared"]
+
+# A list of remote_write targets. This is the global remote write list, it will propagate to the other remote writes
+# if they are not defined. If they are defined then they will not be overwritten. 
+remote_write:
+  - [<remote_write>]
 ```
 
 ### server_tls_config
