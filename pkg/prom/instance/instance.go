@@ -649,12 +649,10 @@ func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config
 			//
 			// Subtracting a duration from ts will delay when it will be considered
 			// inactive and scheduled for deletion.
-			ts := i.getRemoteWriteTimestamp()
-			if ts == 0 {
-				level.Debug(i.logger).Log("msg", "can't truncate the WAL yet")
-				continue
+			ts := i.getRemoteWriteTimestamp() - i.cfg.MinWALTime.Milliseconds()
+			if ts < 0 {
+				ts = 0
 			}
-			ts -= i.cfg.MinWALTime.Milliseconds()
 
 			// Network issues can prevent the result of getRemoteWriteTimestamp from
 			// changing. We don't want data in the WAL to grow forever, so we set a cap
