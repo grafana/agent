@@ -347,13 +347,10 @@ func (s *Server) watchKV(ctx context.Context) {
 
 		// New config should be applied if we own it
 		case !isDeleted && owned:
-
-			// Unmarshal the raw string and force its name to be set to the key.
 			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
 			if err != nil {
 				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
 			}
-			cfg.Name = key
 
 			// Applying configs should only fail if the config is invalid
 			err = s.im.ApplyConfig(*cfg)

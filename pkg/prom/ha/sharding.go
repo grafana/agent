@@ -119,7 +119,6 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 			if err != nil {
 				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
 			}
-			cfg.Name = key
 
 			ch <- *cfg
 		}(key)

@@ -151,13 +151,12 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 	if _, err := io.Copy(&config, r.Body); err != nil {
 		return nil, err
 	}
-	configText := config.String()
 
 	// We want to make sure the config is valid so we'll unmarshal it and
 	// apply defaults. However, since defaults can change at runtime, we
 	// just want to store the raw string, so inst is only used for validation
 	// here.
-	inst, err := instance.UnmarshalConfig(strings.NewReader(configText))
+	inst, err := instance.UnmarshalConfig(strings.NewReader(config.String()))
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +165,15 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	// Validate the incoming config
+	// Remarshal the instance with static defaults applied and the name of the
+	// instance set.
+	configBytes, err := instance.MarshalConfig(inst, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate the config by applying global defaults. This mutates the config,
+	// which is why we must marshal it for storage before this call.
 	if err := inst.ApplyDefaults(s.globalConfig, s.defaultRemoteWrite); err != nil {
 		return nil, err
 	}
@@ -180,7 +187,7 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 	err = s.kv.CAS(r.Context(), inst.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 		// The configuration is new if there's no previous value from the CAS
 		newConfig = (in == nil)
-		return configText, false, nil
+		return string(configBytes), false, nil
 	})
 
 	if err != nil {

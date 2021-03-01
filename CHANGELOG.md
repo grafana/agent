@@ -20,6 +20,11 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 - [BUGFIX] Remote write endpoints that never function across the lifetime of the
   Agent will no longer prevent the WAL from being truncated. (@rfratto)
 
+- [CHANGE] Instance configs uploaded to the Config Store API will no longer be
+  stored along with the global Prometheus defaults. This is done to allow
+  globals to be updated and re-apply the new global defaults to the configs from
+  the Config Store. (@rfratto)
+
 # v0.13.0 (2021-02-25)
 
 The primary branch name has changed from `master` to `main`. You may have to
