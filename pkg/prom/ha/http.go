@@ -3,8 +3,10 @@ package ha
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/go-kit/kit/log/level"
@@ -138,19 +140,24 @@ func (s *Server) GetConfiguration(r *http.Request) (interface{}, error) {
 		}
 	}
 
-	cfg, err := instance.MarshalConfig(v.(*instance.Config), true)
-	if err != nil {
-		level.Error(s.logger).Log("msg", "error marshaling configuration", "err", err)
-		return nil, err
-	}
-
-	return &configapi.GetConfigurationResponse{Value: string(cfg)}, nil
+	return &configapi.GetConfigurationResponse{Value: v.(string)}, nil
 }
 
 // PutConfiguration creates or updates a named configuration. Completely
 // overrides the previous configuration if it exists.
 func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
-	inst, err := instance.UnmarshalConfig(r.Body)
+	// Copy the config into a builder that we'll use multiple times.
+	var config strings.Builder
+	if _, err := io.Copy(&config, r.Body); err != nil {
+		return nil, err
+	}
+	configText := config.String()
+
+	// We want to make sure the config is valid so we'll unmarshal it and
+	// apply defaults. However, since defaults can change at runtime, we
+	// just want to store the raw string, so inst is only used for validation
+	// here.
+	inst, err := instance.UnmarshalConfig(strings.NewReader(configText))
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +180,7 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 	err = s.kv.CAS(r.Context(), inst.Name, func(in interface{}) (out interface{}, retry bool, err error) {
 		// The configuration is new if there's no previous value from the CAS
 		newConfig = (in == nil)
-		return inst, false, nil
+		return configText, false, nil
 	})
 
 	if err != nil {

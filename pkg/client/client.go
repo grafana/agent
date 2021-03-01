@@ -99,6 +99,8 @@ func (c *prometheusClient) GetConfiguration(ctx context.Context, name string) (*
 
 	var config instance.Config
 	err = yaml.NewDecoder(strings.NewReader(data.Value)).Decode(&config)
+	config.Name = name
+
 	return &config, err
 }
 

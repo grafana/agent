@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"io"
+	"strings"
 
 	"github.com/cortexproject/cortex/pkg/ring/kv/codec"
-	"github.com/grafana/agent/pkg/prom/instance"
 )
 
 // GetCodec returns the codec for encoding and decoding instance.Configs
@@ -29,26 +30,28 @@ func (*yamlCodec) Decode(bb []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return instance.UnmarshalConfig(r)
+	var sb strings.Builder
+	if _, err := io.Copy(&sb, r); err != nil {
+		return nil, err
+	}
+	return sb.String(), nil
 }
 
 func (*yamlCodec) Encode(v interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 
-	var cfg *instance.Config
+	var cfg string
 
 	switch v := v.(type) {
-	case instance.Config:
-		cfg = &v
-	case *instance.Config:
+	case string:
 		cfg = v
 	default:
 		panic(fmt.Sprintf("unexpected type %T passed to yamlCodec.Encode", v))
 	}
 
 	w := gzip.NewWriter(&buf)
-	err := instance.MarshalConfigToWriter(cfg, w, false)
-	if err != nil {
+
+	if _, err := io.Copy(w, strings.NewReader(cfg)); err != nil {
 		return nil, err
 	}
 

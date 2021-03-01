@@ -9,7 +9,6 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring/kv/consul"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/agentproto"
-	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +21,7 @@ func TestServer_Reshard(t *testing.T) {
 	mockKv := consul.NewInMemoryClient(GetCodec())
 	for _, name := range []string{"keep_a", "keep_b", "new_a", "new_b"} {
 		err := mockKv.CAS(context.Background(), name, func(in interface{}) (out interface{}, retry bool, err error) {
-			return &instance.Config{Name: name}, true, nil
+			return testConfig(t, name), true, nil
 		})
 		require.NoError(t, err)
 	}
@@ -73,7 +72,7 @@ func TestServer_Ownership(t *testing.T) {
 	mockKv := consul.NewInMemoryClient(GetCodec())
 	for _, name := range []string{"owned", "unowned"} {
 		err := mockKv.CAS(context.Background(), name, func(in interface{}) (out interface{}, retry bool, err error) {
-			return &instance.Config{Name: name}, true, nil
+			return testConfig(t, name), true, nil
 		})
 		require.NoError(t, err)
 	}

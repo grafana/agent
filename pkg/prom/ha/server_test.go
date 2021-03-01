@@ -37,7 +37,7 @@ func TestServer_Reshard_On_Start(t *testing.T) {
 	// Preconfigure some configs for the server to reshard and use.
 	for _, name := range []string{"a", "b", "c"} {
 		err := kv.CAS(context.Background(), name, func(_ interface{}) (interface{}, bool, error) {
-			return &instance.Config{Name: name}, false, nil
+			return testConfig(t, name), false, nil
 		})
 		require.NoError(t, err)
 	}
@@ -75,11 +75,11 @@ func TestServer_Config_Detection_Sharding(t *testing.T) {
 		return srv.joined.Load()
 	})
 	err := kv.CAS(context.Background(), "unowned", func(_ interface{}) (interface{}, bool, error) {
-		return &instance.Config{Name: "unowned"}, false, nil
+		return testConfig(t, "unowned"), false, nil
 	})
 	require.NoError(t, err)
 	err = kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
-		return &instance.Config{Name: "a"}, false, nil
+		return testConfig(t, "a"), false, nil
 	})
 	require.NoError(t, err)
 
@@ -103,7 +103,7 @@ func TestServer_NewConfig_Detection(t *testing.T) {
 		return srv.joined.Load()
 	})
 	err := kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
-		return &instance.Config{Name: "a"}, false, nil
+		return testConfig(t, "a"), false, nil
 	})
 	require.NoError(t, err)
 
@@ -120,7 +120,7 @@ func TestServer_DeletedConfig_Detection(t *testing.T) {
 	injectRingIngester(r)
 
 	err := kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
-		return &instance.Config{Name: "a"}, false, nil
+		return testConfig(t, "a"), false, nil
 	})
 	require.NoError(t, err)
 
@@ -159,7 +159,7 @@ func TestServer_Reshard_On_Interval(t *testing.T) {
 		return srv.joined.Load()
 	})
 	err := kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
-		return &instance.Config{Name: "a"}, false, nil
+		return testConfig(t, "a"), false, nil
 	})
 	require.NoError(t, err)
 
@@ -481,4 +481,16 @@ func (r *mockFuncReadRing) GetAllHealthy(op ring.Operation) (ring.ReplicationSet
 		return r.GetAllHealthyFunc(op)
 	}
 	return ring.ReplicationSet{}, errors.New("not implemented")
+}
+
+func testConfig(t *testing.T, name string) string {
+	t.Helper()
+	cfg := instance.DefaultConfig
+	cfg.Name = name
+
+	bb, err := instance.MarshalConfig(&cfg, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(bb)
 }

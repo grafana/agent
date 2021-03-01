@@ -4,6 +4,7 @@ import (
 	"context"
 	"hash/fnv"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -114,7 +115,12 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 				return
 			}
 
-			cfg := v.(*instance.Config)
+			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
+			if err != nil {
+				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
+			}
+			cfg.Name = key
+
 			ch <- *cfg
 		}(key)
 	}
