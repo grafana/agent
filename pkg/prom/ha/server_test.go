@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"net"
+	"net/http"
 	"sort"
 	"strings"
 	"sync"
@@ -45,6 +46,44 @@ func TestServer_Reshard_On_Start(t *testing.T) {
 	defer func() { require.NoError(t, srv.Stop()) }()
 
 	test.Poll(t, time.Second*5, []string{"a", "b", "c"}, func() interface{} {
+		return getRunningConfigs(im)
+	})
+}
+
+func TestServer_Config_Detection_Sharding(t *testing.T) {
+	r := &mockFuncReadRing{}
+	im := newFakeInstanceManager()
+
+	kv := newMockKV(true)
+	injectRingIngester(r)
+
+	r.GetFunc = func(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error) {
+		if key == keyHash("unowned") {
+			return ring.ReplicationSet{}, nil
+		}
+
+		return ring.ReplicationSet{
+			Ingesters: []ring.InstanceDesc{{Addr: "test"}},
+		}, nil
+	}
+
+	srv := newTestServer(r, kv, im, time.Minute*60)
+	defer func() { require.NoError(t, srv.Stop()) }()
+
+	// Wait for the server to finish joining before applying a new config.
+	test.Poll(t, time.Second*5, true, func() interface{} {
+		return srv.joined.Load()
+	})
+	err := kv.CAS(context.Background(), "unowned", func(_ interface{}) (interface{}, bool, error) {
+		return &instance.Config{Name: "unowned"}, false, nil
+	})
+	require.NoError(t, err)
+	err = kv.CAS(context.Background(), "a", func(_ interface{}) (interface{}, bool, error) {
+		return &instance.Config{Name: "a"}, false, nil
+	})
+	require.NoError(t, err)
+
+	test.Poll(t, time.Second*5, []string{"a"}, func() interface{} {
 		return getRunningConfigs(im)
 	})
 }
@@ -421,4 +460,25 @@ func startScrapingServiceServer(t *testing.T, srv agentproto.ScrapingServiceServ
 		State:     ring.ACTIVE,
 		Timestamp: math.MaxInt64,
 	}
+}
+
+type mockFuncReadRing struct {
+	http.Handler
+
+	GetFunc           func(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
+	GetAllHealthyFunc func(ring.Operation) (ring.ReplicationSet, error)
+}
+
+func (r *mockFuncReadRing) Get(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error) {
+	if r.GetFunc != nil {
+		return r.GetFunc(key, op, bufDescs, bufHosts, bufZones)
+	}
+	return ring.ReplicationSet{}, errors.New("not implemented")
+}
+
+func (r *mockFuncReadRing) GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error) {
+	if r.GetAllHealthyFunc != nil {
+		return r.GetAllHealthyFunc(op)
+	}
+	return ring.ReplicationSet{}, errors.New("not implemented")
 }
