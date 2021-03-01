@@ -91,7 +91,7 @@ func TestManager_ValidInstanceConfigs(t *testing.T) {
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig)
+		return c.ApplyDefaults(&globalConfig, nil)
 	})
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig)
+		return c.ApplyDefaults(&globalConfig, nil)
 	})
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, nil)
 	require.NoError(t, err)
@@ -131,7 +131,7 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig)
+		return c.ApplyDefaults(&globalConfig, nil)
 	})
 
 	cfg := mockManagerConfig()
@@ -160,7 +160,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig)
+		return c.ApplyDefaults(&globalConfig, nil)
 	})
 
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)

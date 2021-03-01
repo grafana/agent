@@ -39,7 +39,7 @@ remote_write:
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
 
-	err = cfg.ApplyDefaults(&global)
+	err = cfg.ApplyDefaults(&global, nil)
 	require.NoError(t, err)
 
 	require.Equal(t, DefaultConfig.HostFilter, cfg.HostFilter)
@@ -162,7 +162,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 				tc.mutation(&input)
 			}
 
-			err := input.ApplyDefaults(&global)
+			err := input.ApplyDefaults(&global, nil)
 			if tc.err == nil {
 				require.NoError(t, err)
 			} else {
@@ -185,7 +185,7 @@ remote_write:
 
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
-	require.NoError(t, cfg.ApplyDefaults(&global))
+	require.NoError(t, cfg.ApplyDefaults(&global, nil))
 	require.NotEmpty(t, cfg.RemoteWrite[0].Base.Name)
 }
 

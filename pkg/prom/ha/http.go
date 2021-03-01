@@ -160,7 +160,7 @@ func (s *Server) PutConfiguration(r *http.Request) (interface{}, error) {
 	}
 
 	// Validate the incoming config
-	if err := inst.ApplyDefaults(s.globalConfig); err != nil {
+	if err := inst.ApplyDefaults(s.globalConfig, s.defaultRemoteWrite); err != nil {
 		return nil, err
 	}
 

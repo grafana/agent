@@ -101,10 +101,12 @@ type Server struct {
 	exited chan bool
 
 	closeDependencies func() error
+
+	defaultRemoteWrite []*instance.RemoteWriteConfig
 }
 
 // New creates a new HA scraping service instance.
-func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager) (*Server, error) {
+func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager, defaultRemoteWrite []*instance.RemoteWriteConfig) (*Server, error) {
 	// Force ReplicationFactor to be 1, since replication isn't supported for the
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
@@ -157,6 +159,8 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		// The lifecycler must stop first since the shutdown process depends on the
 		// ring still polling.
 		stopServices(lc, r),
+
+		defaultRemoteWrite,
 	)
 
 	lazy.inner = s
@@ -178,7 +182,7 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*rin
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
-func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, kv kv.Client, stopFunc func() error) *Server {
+func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, kv kv.Client, stopFunc func() error, defaultRemoteWrite []*instance.RemoteWriteConfig) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &Server{
@@ -197,6 +201,8 @@ func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Conf
 		cancel:            cancel,
 		exited:            make(chan bool),
 		closeDependencies: stopFunc,
+
+		defaultRemoteWrite: defaultRemoteWrite,
 	}
 
 	go s.run(ctx)

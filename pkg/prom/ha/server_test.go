@@ -215,7 +215,7 @@ func newTestServer(r ReadRing, kv kv.Client, im instance.Manager, reshard time.D
 	logger := log.NewNopLogger()
 	closer := func() error { return nil }
 
-	return newServer(cfg, &config.DefaultGlobalConfig, clientConfig, logger, im, "test", r, kv, closer)
+	return newServer(cfg, &config.DefaultGlobalConfig, clientConfig, logger, im, "test", r, kv, closer, nil)
 }
 
 func getRunningConfigs(im instance.Manager) []string {

@@ -135,7 +135,7 @@ func TestServer_PutConfiguration(t *testing.T) {
 		MetricsPath: "/metrics",
 		Scheme:      "http",
 	}}
-	_ = cfg.ApplyDefaults(&config.DefaultGlobalConfig)
+	_ = cfg.ApplyDefaults(&config.DefaultGlobalConfig, nil)
 
 	bb, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
@@ -174,7 +174,7 @@ func TestServer_PutConfiguration_URLEncoded(t *testing.T) {
 		MetricsPath: "/metrics",
 		Scheme:      "http",
 	}}
-	_ = cfg.ApplyDefaults(&config.DefaultGlobalConfig)
+	_ = cfg.ApplyDefaults(&config.DefaultGlobalConfig, nil)
 
 	bb, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
@@ -213,7 +213,7 @@ func TestServer_PutConfiguration_NonUnique(t *testing.T) {
 		MetricsPath: "/metrics",
 		Scheme:      "http",
 	}}
-	_ = conflictA.ApplyDefaults(&config.DefaultGlobalConfig)
+	_ = conflictA.ApplyDefaults(&config.DefaultGlobalConfig, nil)
 
 	//
 	// Put conflict A; it should succeed
@@ -371,7 +371,7 @@ func newAPITestEnvironment(t *testing.T) apiTestEnvironment {
 			Prefix: "configs/",
 		},
 		Lifecycler: testLifecyclerConfig(),
-	}, &config.DefaultGlobalConfig, haClient.Config{}, logger, newFakeInstanceManager())
+	}, &config.DefaultGlobalConfig, haClient.Config{}, logger, newFakeInstanceManager(), nil)
 	require.NoError(t, err)
 
 	// Wire the API
