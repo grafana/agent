@@ -1,4 +1,4 @@
-package ha
+package configstore
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 )
 
 // GetCodec returns the codec for encoding and decoding instance.Configs
+// in the Remote store.
 func GetCodec() codec.Codec {
 	return &yamlCodec{}
 }
