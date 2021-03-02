@@ -221,11 +221,18 @@ func (s *Server) checkUnique(ctx context.Context, cfg *instance.Config) error {
 
 	for otherConfig := range cfgCh {
 		// Skip over the config if it's the same one we're about to apply.
-		if otherConfig.Name == cfg.Name {
+		if otherConfig.Key == cfg.Name {
 			continue
 		}
 
-		for _, otherScrape := range otherConfig.ScrapeConfigs {
+		// Unmarshal the config. If the config is invalid, skip over it, since it wouldn't
+		// be able to run anyway.
+		cfg, err := instance.UnmarshalConfig(strings.NewReader(otherConfig.Value))
+		if err != nil {
+			continue
+		}
+
+		for _, otherScrape := range cfg.ScrapeConfigs {
 			if _, exist := newJobNames[otherScrape.JobName]; exist {
 				return &httpError{
 					StatusCode: http.StatusBadRequest,

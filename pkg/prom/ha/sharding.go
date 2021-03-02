@@ -4,7 +4,6 @@ import (
 	"context"
 	"hash/fnv"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
-	"github.com/grafana/agent/pkg/prom/instance"
 )
 
 // Reshard initiates an entire reshard of the current HA scraping service instance.
@@ -45,14 +43,9 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 		return nil, err
 	}
 	for ch := range configCh {
-		// Applying configs should only fail if the config is invalid
-		err := s.im.ApplyConfig(ch)
-		if err != nil {
-			level.Error(s.logger).Log("msg", "failed to apply config when resharding", "err", err)
-			continue
+		if s.applyConfig(ch.Key, ch.Value) {
+			discoveredConfigs[ch.Key] = struct{}{}
 		}
-
-		discoveredConfigs[ch.Name] = struct{}{}
 	}
 
 	// Find the set of configs that disappeared from AllConfigs from the last
@@ -77,13 +70,13 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 }
 
 // AllConfigs gets all configs known to the KV store.
-func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error) {
+func (s *Server) AllConfigs(ctx context.Context) (<-chan ConfigEntry, error) {
 	keys, err := s.kv.List(ctx, "")
 	if err != nil {
 		return nil, err
 	}
 
-	ch := make(chan instance.Config)
+	ch := make(chan ConfigEntry)
 
 	var wg sync.WaitGroup
 	wg.Add(len(keys))
@@ -115,15 +108,18 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 				return
 			}
 
-			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
-			if err != nil {
-				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
-			}
-
-			ch <- *cfg
+			ch <- ConfigEntry{Key: key, Value: v.(string)}
 		}(key)
 	}
 	return ch, nil
+}
+
+type ConfigEntry struct {
+	// Key of the config
+	Key string
+
+	// Contents of the config
+	Value string
 }
 
 // owns checks to see if a config name is owned by this Server. owns will
