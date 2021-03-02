@@ -142,7 +142,7 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 
 	a.bm = instance.NewBasicManager(instance.BasicManagerConfig{
 		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
-	}, a.logger, a.newInstance, a.validateInstance)
+	}, a.logger, a.newInstance)
 
 	var err error
 	a.mm, err = instance.NewModalManager(a.reg, a.logger, a.bm, cfg.InstanceMode)
@@ -195,10 +195,6 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 	}, a.reg)
 
 	return a.instanceFactory(reg, a.cfg.Global, c, a.cfg.WALDir, a.logger)
-}
-
-func (a *Agent) validateInstance(c *instance.Config) error {
-	return c.ApplyDefaults(&a.cfg.Global, c.RemoteWrite)
 }
 
 func (a *Agent) WireGRPC(s *grpc.Server) {

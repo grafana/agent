@@ -347,25 +347,43 @@ func (s *Server) watchKV(ctx context.Context) {
 
 		// New config should be applied if we own it
 		case !isDeleted && owned:
-			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
-			if err != nil {
-				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
+			if s.applyConfig(key, v.(string)) {
+				s.configs[key] = struct{}{}
 			}
-
-			// Applying configs should only fail if the config is invalid
-			err = s.im.ApplyConfig(*cfg)
-			if err != nil {
-				level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
-				return true
-			}
-
-			s.configs[key] = struct{}{}
 		}
 
 		return true
 	})
 
 	level.Info(s.logger).Log("msg", "stopped watching for changes to configs")
+}
+
+// applyConfig applies a config to the InstanceManager. Returns true if the
+// application succeed.
+func (s *Server) applyConfig(key string, cfgText string) bool {
+	cfg, err := instance.UnmarshalConfig(strings.NewReader(cfgText))
+	if err != nil {
+		level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
+		return false
+	}
+
+	// Configs from the store aren't immediately valid and must be given the
+	// global config before running. Configs are validated against the current
+	// global config at upload time, but if the global config has since changed,
+	// they can be invalid at read time.
+	if err := cfg.ApplyDefaults(s.globalConfig, s.defaultRemoteWrite); err != nil {
+		level.Error(s.logger).Log("msg", "failed to apply defaults to config. this config cannot run until the globals are adjusted or the config is updated with either explicit overrides to defaults or tweaked to operate within the globals", "name", key, "err", err)
+		return false
+	}
+
+	// Applying configs should only fail if the config is invalid
+	err = s.im.ApplyConfig(*cfg)
+	if err != nil {
+		level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
+		return false
+	}
+
+	return true
 }
 
 func (s *Server) reshardLoop(ctx context.Context) {
