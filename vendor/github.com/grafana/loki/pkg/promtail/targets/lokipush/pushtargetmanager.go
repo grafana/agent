@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/loki/pkg/promtail/targets/target"
 )
 
-// SyslogTargetManager manages a series of PushTargets.
+// PushTargetManager manages a series of PushTargets.
 type PushTargetManager struct {
 	logger  log.Logger
 	targets map[string]*PushTarget
@@ -23,6 +23,7 @@ type PushTargetManager struct {
 
 // NewPushTargetManager creates a new PushTargetManager.
 func NewPushTargetManager(
+	reg prometheus.Registerer,
 	logger log.Logger,
 	client api.EntryHandler,
 	scrapeConfigs []scrapeconfig.Config,
@@ -38,8 +39,7 @@ func NewPushTargetManager(
 	}
 
 	for _, cfg := range scrapeConfigs {
-		registerer := prometheus.DefaultRegisterer
-		pipeline, err := stages.NewPipeline(log.With(logger, "component", "push_pipeline_"+cfg.JobName), cfg.PipelineStages, &cfg.JobName, registerer)
+		pipeline, err := stages.NewPipeline(log.With(logger, "component", "push_pipeline_"+cfg.JobName), cfg.PipelineStages, &cfg.JobName, reg)
 		if err != nil {
 			return nil, err
 		}

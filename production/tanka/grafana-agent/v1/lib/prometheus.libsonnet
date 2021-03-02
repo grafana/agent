@@ -51,7 +51,7 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
   // values for scrape configs and remote_write. For detailed information on
   // instance config settings, consult the Agent documentation:
   //
-  // https://github.com/grafana/agent/blob/master/docs/configuration-reference.md#prometheus_instance_config
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#prometheus_instance_config
   //
   // host_filter does not need to be applied here; the library will apply it
   // automatically based on how the Agent is being deployed.
@@ -81,7 +81,7 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
         if !std.objectHas(inst, 'remote_write') || !std.isArray(inst.remote_write)
         then []
         else inst.remote_write,
-    }, list)
+    }, list),
   },
 
   // withRemoteWrite overwrites all the remote_write configs provided in
@@ -90,13 +90,13 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
   // to remote_write to the same place.
   //
   // Refer to the remote_write specification for all available fields:
-  //   https://github.com/grafana/agent/blob/master/docs/configuration-reference.md#remote_write
+  //   https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#remote_write
   withRemoteWrite(remote_writes):: {
     assert std.objectHasAll(self, '_mode') : |||
       withPrometheusInstances must be merged with the result of calling new,
       newDeployment, or newScrapingService.
     |||,
-    assert std.objectHasAll(self, '_prometheus_instances'): |||
+    assert std.objectHasAll(self, '_prometheus_instances') : |||
       withRemoteWrite must be merged with the result of calling
       withPrometheusInstances.
     |||,
@@ -105,7 +105,7 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
 
     _prometheus_instances:: std.map(function(inst) inst {
       remote_write: list,
-    }, super._prometheus_instances)
+    }, super._prometheus_instances),
   },
 
   // scrapeInstanceKubernetes defines an instance config Grafana Labs uses to

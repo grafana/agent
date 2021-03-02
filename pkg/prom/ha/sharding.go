@@ -2,14 +2,13 @@ package ha
 
 import (
 	"context"
-	"fmt"
 	"hash/fnv"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
-	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
@@ -35,9 +34,6 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 	}()
 
 	var (
-		// current configs the agent is tracking
-		currentConfigs = s.im.ListConfigs()
-
 		// configs found in the KV store. currentConfigs - discoveredConfigs is the
 		// list of configs that was removed from the KV store since the last reshard.
 		discoveredConfigs = map[string]struct{}{}
@@ -49,16 +45,19 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 		return nil, err
 	}
 	for ch := range configCh {
-		discoveredConfigs[ch.Name] = struct{}{}
-		if err := s.im.ApplyConfig(ch); err != nil {
+		// Applying configs should only fail if the config is invalid
+		err := s.im.ApplyConfig(ch)
+		if err != nil {
 			level.Error(s.logger).Log("msg", "failed to apply config when resharding", "err", err)
+			continue
 		}
+
+		discoveredConfigs[ch.Name] = struct{}{}
 	}
 
-	// Find the set of configs that weren't present in the KV store response but are
-	// being tracked locally. Any config that wasn't still in the KV store must be
-	// removed from our tracked list.
-	for runningConfig := range currentConfigs {
+	// Find the set of configs that disappeared from AllConfigs from the last
+	// time this ran and remove them.
+	for runningConfig := range s.configs {
 		_, keyInStore := discoveredConfigs[runningConfig]
 		if keyInStore {
 			continue
@@ -70,6 +69,9 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 			level.Error(s.logger).Log("msg", "failed to delete stale config", "err", err)
 		}
 	}
+
+	// Update the set of running configs to what we last got from the server.
+	s.configs = discoveredConfigs
 
 	return &empty.Empty{}, nil
 }
@@ -94,6 +96,15 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 		go func(key string) {
 			defer wg.Done()
 
+			owns, err := s.owns(key)
+			if err != nil {
+				level.Error(s.logger).Log("msg", "failed to detect if key was owned", "key", key, "err", err)
+				return
+			} else if !owns {
+				// Unowned key, ignore it.
+				return
+			}
+
 			// TODO(rfratto): retries might be useful here
 			v, err := s.kv.Get(ctx, key)
 			if err != nil {
@@ -104,11 +115,37 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 				return
 			}
 
-			cfg := v.(*instance.Config)
+			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
+			if err != nil {
+				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
+			}
+
 			ch <- *cfg
 		}(key)
 	}
 	return ch, nil
+}
+
+// owns checks to see if a config name is owned by this Server. owns will
+// return an error if the ring is empty or if there aren't enough
+// healthy nodes.
+func (s *Server) owns(key string) (bool, error) {
+	rs, err := s.ring.Get(keyHash(key), ring.Write, nil, nil, nil)
+	if err != nil {
+		return false, err
+	}
+	for _, r := range rs.Ingesters {
+		if r.Addr == s.addr {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func keyHash(key string) uint32 {
+	h := fnv.New32()
+	_, _ = h.Write([]byte(key))
+	return h.Sum32()
 }
 
 // ReadRing is a subset of the Cortex ring.ReadRing interface with only the
@@ -116,150 +153,6 @@ func (s *Server) AllConfigs(ctx context.Context) (<-chan instance.Config, error)
 type ReadRing interface {
 	http.Handler
 
-	Get(key uint32, op ring.Operation, buf []ring.IngesterDesc) (ring.ReplicationSet, error)
-	GetAll(op ring.Operation) (ring.ReplicationSet, error)
-}
-
-// ShardingInstanceManager wraps around an existing instance.Manager and uses a
-// hash ring to determine if a config should be applied. If an applied
-// config used to be owned by the local address but no longer does, it
-// will be deleted on the next apply.
-type ShardingInstanceManager struct {
-	log   log.Logger
-	inner instance.Manager
-	ring  ReadRing
-	addr  string
-
-	keyToHash map[string]uint32
-}
-
-// NewShardingInstanceManager creates a new ShardingInstanceManager that wraps
-// around an underlying instance.Manager. ring and addr are used together to do
-// hash ring lookups; for a given applied config, it is owned by the instance of
-// ShardingInstanceManager if looking up its hash in the ring results in the
-// address specified by addr.
-func NewShardingInstanceManager(logger log.Logger, wrap instance.Manager, ring ReadRing, addr string) ShardingInstanceManager {
-	return ShardingInstanceManager{
-		log:       logger,
-		inner:     wrap,
-		ring:      ring,
-		addr:      addr,
-		keyToHash: make(map[string]uint32),
-	}
-}
-
-// ListInstances returns the list of instances that have been applied through
-// the ShardingInstanceManager. It will return a subset of the overall
-// set of configs passed to the instance.Manager as a whole.
-//
-// Returning the subset of configs that only the ShardingInstanceManager
-// applied itself allows for the underlying instance.Manager to manage
-// its own set of configs that will not be affected by the scraping
-// service resharding and deleting configs that aren't found in the KV
-// store.
-func (m ShardingInstanceManager) ListInstances() map[string]instance.ManagedInstance {
-	inner := m.inner.ListInstances()
-	sharded := make(map[string]instance.ManagedInstance, len(inner))
-
-	for k, v := range inner {
-		if _, isSharded := m.keyToHash[k]; isSharded {
-			sharded[k] = v
-		}
-	}
-
-	return sharded
-}
-
-// ListConfigs returns the list of configs that have been applied through
-// the ShardingInstanceManager. It will return a subset of the overall
-// set of configs passed to the instance.Manager as a whole.
-//
-// Returning the subset of configs that only the ShardingInstanceManager
-// applied itself allows for the underlying instance.Manager to manage
-// its own set of configs that will not be affected by the scraping
-// service resharding and deleting configs that aren't found in the KV
-// store.
-func (m ShardingInstanceManager) ListConfigs() map[string]instance.Config {
-	inner := m.inner.ListConfigs()
-	sharded := make(map[string]instance.Config, len(inner))
-
-	for k, v := range inner {
-		if _, isSharded := m.keyToHash[k]; isSharded {
-			sharded[k] = v
-		}
-	}
-
-	return sharded
-}
-
-// ApplyConfig implements instance.Manager.ApplyConfig.
-func (m ShardingInstanceManager) ApplyConfig(c instance.Config) error {
-	hash, err := configHash(&c)
-	if err != nil {
-		return fmt.Errorf("failed to hash config: %w", err)
-	}
-
-	owned, err := m.owns(hash)
-	if err != nil {
-		level.Error(m.log).Log("msg", "failed to check if a config is owned, skipping config until next reshard", "err", err)
-		return nil
-	}
-
-	if owned {
-		// If the config is unchanged, do nothing.
-		if m.keyToHash[c.Name] == hash {
-			return nil
-		}
-
-		level.Info(m.log).Log("msg", "detected new or changed config", "name", c.Name)
-		m.keyToHash[c.Name] = hash
-		return m.inner.ApplyConfig(c)
-	}
-
-	// If we don't own the config, it's possible that we owned it before
-	// and need to delete it now.
-	return m.DeleteConfig(c.Name)
-}
-
-// DeleteConfig implements instance.Manager.DeleteConfig.
-func (m ShardingInstanceManager) DeleteConfig(name string) error {
-	// Doesn't exist, ignore.
-	if _, exist := m.keyToHash[name]; !exist {
-		return nil
-	}
-
-	level.Info(m.log).Log("msg", "removing config", "name", name)
-	err := m.inner.DeleteConfig(name)
-	if err == nil {
-		delete(m.keyToHash, name)
-	}
-	return err
-}
-
-// Stop implements instance.Manager.Stop.
-func (m ShardingInstanceManager) Stop() { m.inner.Stop() }
-
-// owns checks if the ShardingInstanceManager is responsible for
-// a given hash.
-func (m ShardingInstanceManager) owns(hash uint32) (bool, error) {
-	rs, err := m.ring.Get(hash, ring.Write, nil)
-	if err != nil {
-		return false, err
-	}
-	for _, r := range rs.Ingesters {
-		if r.Addr == m.addr {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-func configHash(c *instance.Config) (uint32, error) {
-	val, err := instance.MarshalConfig(c, false)
-	if err != nil {
-		return 0, err
-	}
-	h := fnv.New32()
-	_, _ = h.Write(val)
-	return h.Sum32(), nil
+	Get(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
+	GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error)
 }

@@ -46,7 +46,7 @@ Currently, there are five ways to install the agent:
 ### Docker Container
 
 ```
-docker pull grafana/agent:v0.9.1
+docker pull grafana/agent:v0.13.0
 ```
 
 ### Kubernetes Install Script
@@ -60,9 +60,16 @@ applied.
 > **Warning**: Always verify scripts from the internet before running them.
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
+**Note:** For the above script to scrape your pods, they must conform to the following rules:
+
+1. The pod must _not_ have an annotation matching `prometheus.io/scrape: "false"` (this wouldn't be there unless you explicitly add it or if you deploy a Helm chart that has it).
+2. The pod _must_ have a port with a name ending in `-metrics`. This is the port that will be scraped by the Agent. A lot of people using Helm struggle with this, since Helm charts don't usually follow this. You would need to add a new scrape config to scrape helm charts or find a way to tweak the Helm chart to follow this rules.
+3. The pod _must_ have a label named name with any non-empty value. Helm usually lets you add extra labels, so this is less of a problem for Helm users.
+4. The pod must currently be running. (i.e., Kubernetes must not report it having a phase of Succeeded or Failed).
 
 ### Kubernetes Manifest
 
@@ -196,7 +203,9 @@ prometheus:
   # AGENT PROMETHEUS SETTINGS
 
 loki:
-  # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
+  configs:
+  - name: default
+    # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
 
 tempo:
   # AGENT TEMPO SETTINGS
@@ -226,31 +235,35 @@ prometheus:
         - url: http://localhost:9009/api/prom/push
 
 loki:
-  positions:
-    filename: /tmp/positions.yaml
-  scrape_configs:
-    - job_name: varlogs
-      static_configs:
-        - targets: [localhost]
-          labels:
-            job: varlogs
-            __path__: /var/log/*log
-  clients:
-    - url: http://localhost:3100/loki/api/v1/push
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    scrape_configs:
+      - job_name: varlogs
+        static_configs:
+          - targets: [localhost]
+            labels:
+              job: varlogs
+              __path__: /var/log/*log
+    clients:
+      - url: http://localhost:3100/loki/api/v1/push
 
 tempo:
-  receivers:
-    jaeger:
-      protocols:
-        grpc: # listens on the default jaeger grpc port: 14250
-  push_config:
-    endpoint: localhost:55680
-    insecure: true  # only add this if TLS is not required
-    batch:
-      timeout: 5s
-      send_batch_size: 100
-    queue:
-      retry_on_failure: true
+  configs:
+  - name: default
+    receivers:
+      jaeger:
+        protocols:
+          grpc: # listens on the default jaeger grpc port: 14250
+    push_config:
+      endpoint: localhost:55680
+      insecure: true  # only add this if TLS is not required
+      batch:
+        timeout: 5s
+        send_batch_size: 100
+      queue:
+        retry_on_failure: true
 ```
 
 ## Running
@@ -269,7 +282,7 @@ path of your Agent's YAML configuration file.
 docker run \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.9.1
+  grafana/agent:v0.13.0
 ```
 
 ### Locally

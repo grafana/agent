@@ -36,9 +36,7 @@ func NewConnectionMonitorsClient(subscriptionID string) ConnectionMonitorsClient
 	return NewConnectionMonitorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewConnectionMonitorsClientWithBaseURI creates an instance of the ConnectionMonitorsClient client using a custom
-// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
-// stack).
+// NewConnectionMonitorsClientWithBaseURI creates an instance of the ConnectionMonitorsClient client.
 func NewConnectionMonitorsClientWithBaseURI(baseURI string, subscriptionID string) ConnectionMonitorsClient {
 	return ConnectionMonitorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -112,8 +110,9 @@ func (client ConnectionMonitorsClient) CreateOrUpdatePreparer(ctx context.Contex
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConnectionMonitorsClient) CreateOrUpdateSender(req *http.Request) (future ConnectionMonitorsCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -126,6 +125,7 @@ func (client ConnectionMonitorsClient) CreateOrUpdateSender(req *http.Request) (
 func (client ConnectionMonitorsClient) CreateOrUpdateResponder(resp *http.Response) (result ConnectionMonitorResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,8 +189,9 @@ func (client ConnectionMonitorsClient) DeletePreparer(ctx context.Context, resou
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConnectionMonitorsClient) DeleteSender(req *http.Request) (future ConnectionMonitorsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -203,6 +204,7 @@ func (client ConnectionMonitorsClient) DeleteSender(req *http.Request) (future C
 func (client ConnectionMonitorsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -271,7 +273,8 @@ func (client ConnectionMonitorsClient) GetPreparer(ctx context.Context, resource
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConnectionMonitorsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -279,6 +282,7 @@ func (client ConnectionMonitorsClient) GetSender(req *http.Request) (*http.Respo
 func (client ConnectionMonitorsClient) GetResponder(resp *http.Response) (result ConnectionMonitorResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -346,7 +350,8 @@ func (client ConnectionMonitorsClient) ListPreparer(ctx context.Context, resourc
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConnectionMonitorsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -354,6 +359,7 @@ func (client ConnectionMonitorsClient) ListSender(req *http.Request) (*http.Resp
 func (client ConnectionMonitorsClient) ListResponder(resp *http.Response) (result ConnectionMonitorListResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -417,8 +423,9 @@ func (client ConnectionMonitorsClient) QueryPreparer(ctx context.Context, resour
 // QuerySender sends the Query request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConnectionMonitorsClient) QuerySender(req *http.Request) (future ConnectionMonitorsQueryFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -431,6 +438,7 @@ func (client ConnectionMonitorsClient) QuerySender(req *http.Request) (future Co
 func (client ConnectionMonitorsClient) QueryResponder(resp *http.Response) (result ConnectionMonitorQueryResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -494,8 +502,9 @@ func (client ConnectionMonitorsClient) StartPreparer(ctx context.Context, resour
 // StartSender sends the Start request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConnectionMonitorsClient) StartSender(req *http.Request) (future ConnectionMonitorsStartFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -508,6 +517,7 @@ func (client ConnectionMonitorsClient) StartSender(req *http.Request) (future Co
 func (client ConnectionMonitorsClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -570,8 +580,9 @@ func (client ConnectionMonitorsClient) StopPreparer(ctx context.Context, resourc
 // StopSender sends the Stop request. The method will close the
 // http.Response Body if it receives an error.
 func (client ConnectionMonitorsClient) StopSender(req *http.Request) (future ConnectionMonitorsStopFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -584,6 +595,7 @@ func (client ConnectionMonitorsClient) StopSender(req *http.Request) (future Con
 func (client ConnectionMonitorsClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

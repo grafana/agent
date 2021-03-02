@@ -79,6 +79,7 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
 service:
@@ -111,6 +112,7 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    compression: gzip
     insecure: true
     headers:
       authorization: Basic dGVzdDpibGVyZw==
@@ -145,7 +147,7 @@ push_config:
   retry_on_failure:
     initial_interval: 10s
   sending_queue:
-    num_consumers: 15	
+    num_consumers: 15
 `,
 			expectedConfig: `
 receivers:
@@ -155,6 +157,7 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    compression: gzip
     retry_on_failure:
       initial_interval: 10s
       max_elapsed_time: 60s
@@ -198,6 +201,7 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    compression: gzip
     insecure: true
     headers:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
@@ -229,6 +233,37 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
+    compression: gzip
+    insecure_skip_verify: true
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "no compression",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+push_config:
+  insecure_skip_verify: true
+  endpoint: example.com:12345
+  compression: none`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp:
+    endpoint: example.com:12345
     insecure_skip_verify: true
     retry_on_failure:
       max_elapsed_time: 60s
@@ -244,8 +279,8 @@ service:
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &Config{}
-			err := yaml.Unmarshal([]byte(tc.cfg), cfg)
+			var cfg InstanceConfig
+			err := yaml.Unmarshal([]byte(tc.cfg), &cfg)
 			require.NoError(t, err)
 
 			// check error

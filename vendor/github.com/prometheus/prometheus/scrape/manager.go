@@ -26,8 +26,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
-
 	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -98,40 +98,6 @@ func (mc *MetadataMetricsCollector) Collect(ch chan<- prometheus.Metric) {
 			tset,
 		)
 	}
-}
-
-// ReadyManager is an interface to represent a ReadyScrapeManager.
-type ReadyManager interface {
-	Get() (*Manager, error)
-}
-
-// ErrNotReady is returned if the underlying scrape manager is not ready yet.
-var ErrNotReady = errors.New("Scrape manager not ready")
-
-// ReadyScrapeManager allows a scrape manager to be retrieved. Even if it's set at a later point in time.
-type ReadyScrapeManager struct {
-	mtx sync.RWMutex
-	m   *Manager
-}
-
-// Set the scrape manager.
-func (rm *ReadyScrapeManager) Set(m *Manager) {
-	rm.mtx.Lock()
-	defer rm.mtx.Unlock()
-
-	rm.m = m
-}
-
-// Get the scrape manager. If is not ready, return an error.
-func (rm *ReadyScrapeManager) Get() (*Manager, error) {
-	rm.mtx.RLock()
-	defer rm.mtx.RUnlock()
-
-	if rm.m != nil {
-		return rm.m, nil
-	}
-
-	return nil, ErrNotReady
 }
 
 // NewManager is the Manager constructor

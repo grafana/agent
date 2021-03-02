@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
-# grafanacloud-install.sh installs the Grafana Cloud Agent on supported x86_64
+# shellcheck shell=dash
+# This script should run in all POSIX environments and Dash is POSIX compliant.
+
+# grafanacloud-install.sh installs the Grafana Cloud Agent on supported
 # Linux systems for Grafana Cloud users. Those who aren't users of Grafana Cloud
 # or need to install the Agent on a different architecture or platform should
 # try another installation method.
@@ -33,6 +36,9 @@ GCLOUD_API_KEY=${GCLOUD_API_KEY:=}   # API key to communicate to the integration
 # OPTIONAL environment variables.
 #
 
+# Architecture to install.
+ARCH=${ARCH:=amd64}
+
 # Package system to install the Agent with. If not empty, MUST be either rpm or
 # deb. If empty, the script will try to detect the host OS and the appropriate
 # package system to use.
@@ -41,17 +47,17 @@ PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 #
 # Global constants.
 #
-RELEASE_VERSION="0.9.1"
+RELEASE_VERSION="0.13.0"
 
 RELEASE_URL="https://github.com/grafana/agent/releases/download/v${RELEASE_VERSION}"
-DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.x86_64.deb"
-RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.x86_64.rpm"
+DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.${ARCH}.deb"
+RPM_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.${ARCH}.rpm"
 
 main() {
   if [ -z "$PACKAGE_SYSTEM" ]; then
     PACKAGE_SYSTEM=$(detect_package_system)
   fi
-  log "--- Using package system $PACKAGE_SYSTEM. Downloading and installing package"
+  log "--- Using package system $PACKAGE_SYSTEM. Downloading and installing package for ${ARCH}"
 
   case "$PACKAGE_SYSTEM" in
     deb)
@@ -99,7 +105,7 @@ detect_package_system() {
 
 # install_deb downloads and installs the deb package of the Grafana Cloud Agent.
 install_deb() {
-  curl -sL "${DEB_URL}" -o /tmp/grafana-agent.deb
+  curl -fsL "${DEB_URL}" -o /tmp/grafana-agent.deb || fatal 'Failed to download package'
   sudo dpkg -i /tmp/grafana-agent.deb
   rm /tmp/grafana-agent.deb
 }

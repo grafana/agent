@@ -35,8 +35,7 @@ func NewResourceSkusClient(subscriptionID string) ResourceSkusClient {
 	return NewResourceSkusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceSkusClientWithBaseURI creates an instance of the ResourceSkusClient client using a custom endpoint.  Use
-// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+// NewResourceSkusClientWithBaseURI creates an instance of the ResourceSkusClient client.
 func NewResourceSkusClientWithBaseURI(baseURI string, subscriptionID string) ResourceSkusClient {
 	return ResourceSkusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -71,9 +70,6 @@ func (client ResourceSkusClient) List(ctx context.Context) (result ResourceSkusR
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.ResourceSkusClient", "List", resp, "Failure responding to request")
 	}
-	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
 
 	return
 }
@@ -100,7 +96,8 @@ func (client ResourceSkusClient) ListPreparer(ctx context.Context) (*http.Reques
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceSkusClient) ListSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -108,6 +105,7 @@ func (client ResourceSkusClient) ListSender(req *http.Request) (*http.Response, 
 func (client ResourceSkusClient) ListResponder(resp *http.Response) (result ResourceSkusResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

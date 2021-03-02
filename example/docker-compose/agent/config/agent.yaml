@@ -46,32 +46,36 @@ prometheus:
         - url: http://cortex:9009/api/prom/push
 
 loki:
-  positions:
-    filename: /tmp/positions.yaml
-  clients:
-    - url: http://loki:3100/loki/api/v1/push
-  scrape_configs:
-  - job_name: system
-    static_configs:
-      - targets:
-        - localhost
-        labels:
-          job: varlogs
-          __path__: /var/log/*log
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+    scrape_configs:
+    - job_name: system
+      static_configs:
+        - targets:
+          - localhost
+          labels:
+            job: varlogs
+            __path__: /var/log/*log
 
 tempo:
-  receivers:
-    jaeger:
-      protocols:
-        thrift_http: 
-  attributes:
-    actions:
-    - action: upsert
-      key: env
-      value: prod
-  push_config:
-    endpoint: otel-collector:55680
-    insecure: true
-    batch:
-      timeout: 5s
-      send_batch_size: 100
+  configs:
+  - name: default
+    receivers:
+      jaeger:
+        protocols:
+          thrift_http:
+    attributes:
+      actions:
+      - action: upsert
+        key: env
+        value: prod
+    push_config:
+      endpoint: otel-collector:55680
+      insecure: true
+      batch:
+        timeout: 5s
+        send_batch_size: 100

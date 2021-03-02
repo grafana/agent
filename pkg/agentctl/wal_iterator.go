@@ -13,7 +13,7 @@ func walIterate(w *wal.WAL, f func(r *wal.Reader) error) error {
 		return err
 	}
 
-	startIdx, last, err := w.Segments()
+	startIdx, last, err := wal.Segments(w.Dir())
 	if err != nil {
 		return err
 	}

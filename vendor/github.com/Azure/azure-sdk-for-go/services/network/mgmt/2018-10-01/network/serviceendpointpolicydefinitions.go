@@ -36,8 +36,7 @@ func NewServiceEndpointPolicyDefinitionsClient(subscriptionID string) ServiceEnd
 }
 
 // NewServiceEndpointPolicyDefinitionsClientWithBaseURI creates an instance of the
-// ServiceEndpointPolicyDefinitionsClient client using a custom endpoint.  Use this when interacting with an Azure
-// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+// ServiceEndpointPolicyDefinitionsClient client.
 func NewServiceEndpointPolicyDefinitionsClientWithBaseURI(baseURI string, subscriptionID string) ServiceEndpointPolicyDefinitionsClient {
 	return ServiceEndpointPolicyDefinitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -102,8 +101,9 @@ func (client ServiceEndpointPolicyDefinitionsClient) CreateOrUpdatePreparer(ctx 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceEndpointPolicyDefinitionsClient) CreateOrUpdateSender(req *http.Request) (future ServiceEndpointPolicyDefinitionsCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -116,6 +116,7 @@ func (client ServiceEndpointPolicyDefinitionsClient) CreateOrUpdateSender(req *h
 func (client ServiceEndpointPolicyDefinitionsClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceEndpointPolicyDefinition, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -179,8 +180,9 @@ func (client ServiceEndpointPolicyDefinitionsClient) DeletePreparer(ctx context.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceEndpointPolicyDefinitionsClient) DeleteSender(req *http.Request) (future ServiceEndpointPolicyDefinitionsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -193,6 +195,7 @@ func (client ServiceEndpointPolicyDefinitionsClient) DeleteSender(req *http.Requ
 func (client ServiceEndpointPolicyDefinitionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -261,7 +264,8 @@ func (client ServiceEndpointPolicyDefinitionsClient) GetPreparer(ctx context.Con
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceEndpointPolicyDefinitionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -269,6 +273,7 @@ func (client ServiceEndpointPolicyDefinitionsClient) GetSender(req *http.Request
 func (client ServiceEndpointPolicyDefinitionsClient) GetResponder(resp *http.Response) (result ServiceEndpointPolicyDefinition, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -309,9 +314,6 @@ func (client ServiceEndpointPolicyDefinitionsClient) ListByResourceGroup(ctx con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ServiceEndpointPolicyDefinitionsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
-	if result.sepdlr.hasNextLink() && result.sepdlr.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
 
 	return
 }
@@ -340,7 +342,8 @@ func (client ServiceEndpointPolicyDefinitionsClient) ListByResourceGroupPreparer
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceEndpointPolicyDefinitionsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -348,6 +351,7 @@ func (client ServiceEndpointPolicyDefinitionsClient) ListByResourceGroupSender(r
 func (client ServiceEndpointPolicyDefinitionsClient) ListByResourceGroupResponder(resp *http.Response) (result ServiceEndpointPolicyDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
+		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -11,10 +11,10 @@ jobs:
     - name: Get build dependencies
       run: sudo apt-get update && sudo apt-get install libsystemd-dev
 
-    - name: Set up Go 1.15
+    - name: Set up Go 1.16
       uses: actions/setup-go@v1
       with:
-        go-version: 1.15
+        go-version: 1.16
       id: go
 
     - name: Checkout code
@@ -78,10 +78,10 @@ jobs:
     - name: Get build dependencies
       run: sudo apt-get update && sudo apt-get install libsystemd-dev
 
-    - name: Set up Go 1.15
+    - name: Set up Go 1.16
       uses: actions/setup-go@v1
       with:
-        go-version: 1.15
+        go-version: 1.16
       id: go
 
     - name: Install gox and ghr
@@ -104,6 +104,4 @@ jobs:
 
         export RELEASE_TAG=${GITHUB_REF##*/}
 
-        # Warm up make publish by pulling rfratto/seego ahead of time
-        docker pull rfratto/seego:latest
         make -j4 RELEASE_BUILD=true publish

@@ -227,7 +227,14 @@ func (m *GroupManager) deleteConfig(name string) error {
 }
 
 // Stop stops the Manager and all of its managed instances.
-func (m *GroupManager) Stop() { m.inner.Stop() }
+func (m *GroupManager) Stop() {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
+	m.inner.Stop()
+	m.groupLookup = make(map[string]string)
+	m.groups = make(map[string]groupedConfigs)
+}
 
 // hashConfig determines the hash of a Config used for grouping. It ignores
 // the name and scrape_configs and also orders remote_writes by name prior to
@@ -247,7 +254,7 @@ func hashConfig(c Config) (string, error) {
 	// Assign names to remote_write configs if they're not present already.
 	// This is also done in AssignDefaults but is duplicated here for the sake
 	// of simplifying responsibility of GroupManager.
-	for _, cfg := range groupable.RemoteWrite {
+	for _, cfg := range groupable.BaseRemoteWrite() {
 		if cfg != nil {
 			// We don't care if the names are different, just that the other settings
 			// are the same. Blank out the name here before hashing the remote
@@ -270,7 +277,7 @@ func hashConfig(c Config) (string, error) {
 		case groupable.RemoteWrite[j] == nil:
 			return false
 		default:
-			return groupable.RemoteWrite[i].Name < groupable.RemoteWrite[j].Name
+			return groupable.RemoteWrite[i].Base.Name < groupable.RemoteWrite[j].Base.Name
 		}
 	})
 
@@ -301,7 +308,7 @@ func copyConfig(c Config) (Config, error) {
 		cfg.ScrapeConfigs = []*config.ScrapeConfig{}
 	}
 	if cfg.RemoteWrite == nil && c.RemoteWrite != nil {
-		cfg.RemoteWrite = []*config.RemoteWriteConfig{}
+		cfg.RemoteWrite = []*RemoteWriteConfig{}
 	}
 	return *cfg, nil
 }
@@ -334,14 +341,14 @@ func groupConfigs(groupName string, grouped groupedConfigs) (Config, error) {
 	for _, rwc := range combined.RemoteWrite {
 		// Blank out the existing name before getting the hash so it is doesn't take into
 		// account any existing name.
-		rwc.Name = ""
+		rwc.Base.Name = ""
 
 		hash, err := getHash(rwc)
 		if err != nil {
 			return Config{}, err
 		}
 
-		rwc.Name = groupName[:6] + "-" + hash[:6]
+		rwc.Base.Name = groupName[:6] + "-" + hash[:6]
 	}
 
 	// Combine all the scrape configs. It's possible that two different ungrouped

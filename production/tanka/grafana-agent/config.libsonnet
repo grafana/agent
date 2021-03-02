@@ -70,9 +70,9 @@
 
           scrape_configs:
             if $._config.agent_host_filter then
-              $._config.kubernetes_scrape_configs + $._config.deployment_scrape_configs
+              $._config.kubernetes_scrape_configs
             else
-              $._config.kubernetes_scrape_configs,
+              $._config.kubernetes_scrape_configs + $._config.deployment_scrape_configs,
           remote_write: $._config.agent_remote_write,
         }],
       },
@@ -112,6 +112,7 @@
         tls_config: {
           ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
           insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
+          server_name: 'kubernetes',
         },
         bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
         relabel_configs: [{
@@ -120,17 +121,12 @@
           action: 'keep',
         }],
 
-        // Drop some high cardinality metrics.
+        // Keep limited set of metrics to reduce default usage, drop all others
         metric_relabel_configs: [
           {
             source_labels: ['__name__'],
-            regex: 'apiserver_admission_controller_admission_latencies_seconds_.*',
-            action: 'drop',
-          },
-          {
-            source_labels: ['__name__'],
-            regex: 'apiserver_admission_step_admission_latencies_seconds_.*',
-            action: 'drop',
+            regex: 'workqueue_queue_duration_seconds_bucket|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_depth|rest_client_request_duration_seconds_bucket|workqueue_adds_total|up|rest_client_requests_total|apiserver_request_total|go_goroutines',
+            action: 'keep',
           },
         ],
 
@@ -142,12 +138,6 @@
         kubernetes_sd_configs: [{
           role: 'pod',
         }],
-
-        tls_config: {
-          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-          insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
-        },
-        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
 
         // You can specify the following annotations (on pods):
         //   prometheus.io/scrape: false - don't scrape this pod
@@ -273,12 +263,6 @@
           },
         }],
 
-        tls_config: {
-          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-          insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
-        },
-        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-
         relabel_configs: [
           // Drop anything whose service is not kube-state-metrics
           {
@@ -314,12 +298,6 @@
             names: [$._config.namespace],
           },
         }],
-
-        tls_config: {
-          ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-          insecure_skip_verify: $._config.prometheus_insecure_skip_verify,
-        },
-        bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
 
         relabel_configs: [
           // Drop anything whose name is not node-exporter.

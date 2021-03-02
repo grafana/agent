@@ -8,6 +8,8 @@ package ha
 import (
 	"context"
 	"flag"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -92,6 +94,7 @@ type Server struct {
 	configManagerMut sync.Mutex
 	im               instance.Manager
 	joined           *atomic.Bool
+	configs          map[string]struct{}
 
 	kv   kv.Client
 	ring ReadRing
@@ -100,10 +103,12 @@ type Server struct {
 	exited chan bool
 
 	closeDependencies func() error
+
+	defaultRemoteWrite []*instance.RemoteWriteConfig
 }
 
 // New creates a new HA scraping service instance.
-func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager) (*Server, error) {
+func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager, defaultRemoteWrite []*instance.RemoteWriteConfig) (*Server, error) {
 	// Force ReplicationFactor to be 1, since replication isn't supported for the
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
@@ -117,9 +122,12 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		return nil, err
 	}
 
-	r, err := ring.New(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
+	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
 	if err != nil {
 		return nil, err
+	}
+	if err := reg.Register(r); err != nil {
+		return nil, fmt.Errorf("failed to register Agent ring metrics: %w", err)
 	}
 	if err := services.StartAndAwaitRunning(context.Background(), r); err != nil {
 		return nil, err
@@ -144,7 +152,7 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		clientConfig,
 		logger,
 
-		NewShardingInstanceManager(logger, im, r, lc.Addr),
+		im,
 
 		lc.Addr,
 		r,
@@ -153,14 +161,30 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		// The lifecycler must stop first since the shutdown process depends on the
 		// ring still polling.
 		stopServices(lc, r),
+
+		defaultRemoteWrite,
 	)
 
 	lazy.inner = s
 	return s, nil
 }
 
+// newRing creates a new Cortex Ring that ignores unhealthy nodes.
+func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*ring.Ring, error) {
+	codec := ring.GetCodec()
+	store, err := kv.NewClient(
+		cfg.KVStore,
+		codec,
+		kv.RegistererWithKVName(reg, name+"-ring"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy())
+}
+
 // newServer creates a new Server. Abstracted from New for testing.
-func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, kv kv.Client, stopFunc func() error) *Server {
+func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, kv kv.Client, stopFunc func() error, defaultRemoteWrite []*instance.RemoteWriteConfig) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &Server{
@@ -170,8 +194,9 @@ func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Conf
 		logger:       log,
 		addr:         addr,
 
-		im:     im,
-		joined: atomic.NewBool(false),
+		im:      im,
+		joined:  atomic.NewBool(false),
+		configs: make(map[string]struct{}),
 
 		kv:   kv,
 		ring: r,
@@ -179,6 +204,8 @@ func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Conf
 		cancel:            cancel,
 		exited:            make(chan bool),
 		closeDependencies: stopFunc,
+
+		defaultRemoteWrite: defaultRemoteWrite,
 	}
 
 	go s.run(ctx)
@@ -240,7 +267,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 
 	backoff := util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
-		rs, err = s.ring.GetAll(ring.Read)
+		rs, err = s.ring.GetAllHealthy(ring.Read)
 		if err == nil {
 			break
 		}
@@ -252,7 +279,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 		return err
 	}
 
-	_, err = rs.Do(ctx, time.Millisecond*250, func(ctx context.Context, desc *ring.IngesterDesc) (interface{}, error) {
+	_, err = rs.Do(ctx, time.Millisecond*250, func(ctx context.Context, desc *ring.InstanceDesc) (interface{}, error) {
 		// Skip over ourselves; we'll reshard locally after this process finishes.
 		if desc.Addr == s.addr {
 			return nil, nil
@@ -264,7 +291,7 @@ func (s *Server) waitNotifyReshard(ctx context.Context) error {
 	return err
 }
 
-func (s *Server) notifyReshard(ctx context.Context, desc *ring.IngesterDesc) error {
+func (s *Server) notifyReshard(ctx context.Context, desc *ring.InstanceDesc) error {
 	cli, err := client.New(s.clientConfig, desc.Addr)
 	if err != nil {
 		return err
@@ -297,17 +324,44 @@ func (s *Server) watchKV(ctx context.Context) {
 			return false
 		}
 
-		if v == nil {
-			if err := s.im.DeleteConfig(key); err != nil {
-				level.Error(s.logger).Log("msg", "failed to delete config", "name", key, "err", err)
-			}
+		var (
+			_, isRunning = s.configs[key]
+			isDeleted    = v == nil
+		)
+
+		owned, err := s.owns(key)
+		if err != nil {
+			level.Error(s.logger).Log("msg", "failed to see if config is owned, will retry on next reshard", "name", key, "err", err)
 			return true
 		}
 
-		cfg := v.(*instance.Config)
-		if err := s.im.ApplyConfig(*cfg); err != nil {
-			level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
+		switch {
+		// Two deletion scenarios:
+		// 1. A config we're running got moved to a new owner
+		// 2. A config we're running got deleted
+		case (isRunning && !owned) || (isDeleted && isRunning):
+			if err := s.im.DeleteConfig(key); err != nil {
+				level.Error(s.logger).Log("msg", "failed to delete config", "name", key, "err", err)
+			}
+			delete(s.configs, key)
+
+		// New config should be applied if we own it
+		case !isDeleted && owned:
+			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
+			if err != nil {
+				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
+			}
+
+			// Applying configs should only fail if the config is invalid
+			err = s.im.ApplyConfig(*cfg)
+			if err != nil {
+				level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
+				return true
+			}
+
+			s.configs[key] = struct{}{}
 		}
+
 		return true
 	})
 
@@ -372,7 +426,23 @@ func (s *Server) Stop() error {
 	s.cancel()
 	<-s.exited
 
-	return s.closeDependencies()
+	err := s.closeDependencies()
+
+	// Delete all the local configs that were running.
+	s.configManagerMut.Lock()
+	defer s.configManagerMut.Unlock()
+
+	for cfg := range s.configs {
+		if err := s.im.DeleteConfig(cfg); err != nil {
+			level.Warn(s.logger).Log("msg", "failed to delete config on shutdown", "config", cfg, "err", err)
+		}
+
+		// Deletes only fail if the config doesn't exist, so either way we want to
+		// stop tracking it here.
+		delete(s.configs, cfg)
+	}
+
+	return err
 }
 
 // stopServices stops services in argument-call order. Blocks until all services

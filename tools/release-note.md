@@ -1,5 +1,10 @@
 This is release `${RELEASE_TAG}` of the Grafana Cloud Agent.
 
+### Upgrading
+Read the
+[migration guide](https://github.com/grafana/agent/blob/${RELEASE_TAG}/docs/migration-guide.md)
+for specific instructions on upgrading from older versions.
+
 ### Notable changes:
 :warning: **ADD RELEASE NOTES HERE** :warning:
 
@@ -17,9 +22,9 @@ final collects traces. You will be prompted for input for each manifest. The
 script requires curl and envsubst (GNU gettext).
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-loki.sh)" | kubectl -ndefault apply -f -
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-tempo.sh)" | kubectl -ndefault apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-loki.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
 
 #### Docker container:

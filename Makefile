@@ -89,13 +89,13 @@ PACKAGE_RELEASE := 1
 
 DOCKERFILE = Dockerfile
 
-seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
+seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" grafana/agent/seego
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
 
-docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
+docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
 endif
 
 ifeq ($(BUILD_IN_CONTAINER),false)
@@ -133,7 +133,7 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
-cmd/agent/agent: cmd/agent/main.go
+cmd/agent/agent: check-seego cmd/agent/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -141,9 +141,9 @@ else
 endif
 	$(NETGO_CHECK)
 
-cmd/agentctl/agentctl: cmd/agentctl/main.go
+cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
 ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=1 go build $(GO_FLAGS) -o $@ ./$(@D)
+	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
 	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
@@ -164,13 +164,13 @@ install:
 #######################
 
 lint:
-	GO111MODULE=on GOGC=10 golangci-lint run -v --timeout=10m $(GOLANGCI_ARG)
+	GO111MODULE=on golangci-lint run -v --timeout=10m $(GOLANGCI_ARG)
 
 # We have to run test twice: once for all packages with -race and then once more without -race
 # for packages that have known race detection issues
 test:
-	GOGC=10 go test $(MOD_FLAG) -race -cover -coverprofile=cover.out -p=4 ./...
-	GOGC=10 go test $(MOD_FLAG) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
 
 clean:
 	rm -rf cmd/agent/agent
@@ -192,37 +192,59 @@ example-dashboards:
 # use CGO_ENABLED for all of them. We define them all as separate targets
 # to allow for parallelization with make -jX.
 #
-# We use rfratto/seego for building these cross-platform images. seego provides
-# a docker image with gcc toolchains for all of these platforms.
-dist: dist-agent dist-agentctl
-	for i in dist/*; do zip -j -m $$i.zip $$i; done
-	make dist-packages
+# We use rfratto/seego as a base for building these cross-platform images.
+# seego provides a docker image with gcc toolchains for all of these platforms.
+#
+# A custom grafana/agent/seego image is built on top of the base image with
+# specific overrides. grafana/agent/seego is not pushed to Docker Hub and
+# can be built with "make seego".
+dist: dist-agent dist-agentctl dist-packages
+	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
-dist-agent: dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-windows-amd64.exe
-dist/agent-linux-amd64:
+dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe
+dist/agent-linux-amd64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-arm64:
+dist/agent-linux-arm64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv7:
+dist/agent-linux-armv6: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-darwin-amd64:
+dist/agent-darwin-amd64: seego
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-windows-amd64.exe:
+dist/agent-darwin-arm64: seego
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-windows-amd64.exe
-dist/agentctl-linux-amd64:
+dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe
+dist/agentctl-linux-amd64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-arm64:
+dist/agentctl-linux-arm64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv7:
+dist/agentctl-linux-armv6: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-darwin-amd64:
+dist/agentctl-darwin-amd64: seego
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-windows-amd64.exe:
+dist/agentctl-darwin-arm64: seego
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+seego: tools/seego/Dockerfile
+	docker build -t grafana/agent/seego tools/seego
+
+# Makes seego if CROSS_BUILD is true.
+check-seego:
+ifeq ($(CROSS_BUILD),true)
+ifeq ($(BUILD_IN_CONTAINER),true)
+	$(MAKE) seego
+endif
+endif
 
 build-image/.uptodate: build-image/Dockerfile
 	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
@@ -243,46 +265,97 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 	docker pull $(IMAGE_PREFIX)/centos-systemd || docker build -t $(IMAGE_PREFIX)/centos-systemd $(@D)
 	touch $@
 
+#
+# Define dist packages. BUILD_IN_CONTAINER=true will send requests to a docker
+# container that has fpm installed.
+#
+.PHONY: dist-packages dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-packages-armv7
+dist-packages: dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-packages-armv7
+
 ifeq ($(BUILD_IN_CONTAINER), true)
-dist-packages: dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
-	docker run --rm \
-		-v  $(shell pwd):/src/agent:delegated \
-		-e RELEASE_TAG=$(RELEASE_TAG) \
-		-e SRC_PATH=/src/agent \
-		-i $(BUILD_IMAGE) $@;
-.PHONY: dist-packages
+
+container_make = docker run --rm \
+	-v $(shell pwd):/src/agent:delegated \
+	-e RELEASE_TAG=$(RELEASE_TAG) \
+	-e SRC_PATH=/src/agent \
+	-i $(BUILD_IMAGE)
+
+dist-packages-amd64: enforce-release-tag dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
+	$(container_make) $@;
+dist-packages-arm64: enforce-release-tag dist/agent-linux-arm64 dist/agentctl-linux-arm64 build-image/.uptodate
+	$(container_make) $@;
+dist-packages-armv6: enforce-release-tag dist/agent-linux-armv6 dist/agentctl-linux-armv6 build-image/.uptodate
+	$(container_make) $@;
+dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-linux-armv7 build-image/.uptodate
+	$(container_make) $@;
+
 else
-dist-packages:
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm
-	make dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb
-.PHONY: dist-packages
 
-FPM_OPTS := fpm -s dir -v $(PACKAGE_VERSION) -a x86_64 -n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
-	--log error \
-	--license "Apache 2.0" \
-	--vendor "Grafana Labs" \
-	--url "https://github.com/grafana/agent"
+package_base = dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
 
-FPM_ARGS := dist/agent-linux-amd64=/usr/bin/grafana-agent dist/agentctl-linux-amd64=/usr/bin/grafana-agentctl packaging/grafana-agent.yaml=/etc/grafana-agent.yaml
+dist-packages-amd64: $(package_base).amd64.deb $(package_base).amd64.rpm
+dist-packages-arm64: $(package_base).arm64.deb $(package_base).arm64.rpm
+dist-packages-armv6: $(package_base).armv6.deb
+dist-packages-armv7: $(package_base).armv7.deb $(package_base).armv7.rpm
 
-dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.rpm: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
-	$(FPM_OPTS) -t rpm \
-		--after-install packaging/rpm/control/postinst \
-		--before-remove packaging/rpm/control/prerm \
-		--package $@ $(FPM_ARGS) \
-		packaging/environment-file=/etc/sysconfig/grafana-agent \
-		packaging/rpm/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
+ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
 
-dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE).x86_64.deb: dist/agent-linux-amd64 dist/agentctl-linux-amd64 $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
-	$(FPM_OPTS) -t deb \
-		--after-install packaging/deb/control/postinst \
-		--before-remove packaging/deb/control/prerm \
-		--package $@ $(FPM_ARGS) \
-		packaging/environment-file=/etc/default/grafana-agent \
-		packaging/deb/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+# generate_fpm(deb|rpm, package arch, agent arch, output file)
+define generate_fpm =
+	fpm -s dir -v $(PACKAGE_VERSION) -a $(2) \
+		-n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
+		--log error \
+		--license "Apache 2.0" \
+		--vendor "Grafana Labs" \
+		--url "https://github.com/grafana/agent" \
+		-t $(1) \
+		--after-install packaging/$(1)/control/postinst \
+		--before-remove packaging/$(1)/control/prerm \
+		--package $(4) \
+			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
+			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
+			packaging/grafana-agent.yaml=/etc/grafana-agent.yaml \
+			packaging/environment-file=$(ENVIRONMENT_FILE_$(1)) \
+			packaging/$(1)/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+endef
+
+PACKAGE_PREFIX := dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
+DEB_DEPS := $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
+RPM_DEPS := $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
+
+# Build architectures for packaging based on the agent build:
+#
+# agent amd64, deb amd64, rpm x86_64
+# agent arm64, deb arm64, rpm aarch64
+# agent armv7, deb armhf, rpm armhfp
+# agent armv6, deb armhf, (No RPM for armv6)
+#
+# These targets require the agent/agentctl binaries to have already been built
+# with seego. Since this usually runs inside of a Docker Container, we can't
+# build them here.
+$(PACKAGE_PREFIX).amd64.deb: $(DEB_DEPS)
+	$(call generate_fpm,deb,amd64,amd64,$@)
+$(PACKAGE_PREFIX).arm64.deb: $(DEB_DEPS)
+	$(call generate_fpm,deb,arm64,arm64,$@)
+$(PACKAGE_PREFIX).armv7.deb: $(DEB_DEPS)
+	$(call generate_fpm,deb,armhf,armv7,$@)
+$(PACKAGE_PREFIX).armv6.deb: $(DEB_DEPS)
+	$(call generate_fpm,deb,armhf,armv6,$@)
+
+$(PACKAGE_PREFIX).amd64.rpm: $(RPM_DEPS)
+	$(call generate_fpm,rpm,x86_64,amd64,$@)
+$(PACKAGE_PREFIX).arm64.rpm: $(RPM_DEPS)
+	$(call generate_fpm,rpm,aarch64,arm64,$@)
+$(PACKAGE_PREFIX).armv7.rpm: $(RPM_DEPS)
+	$(call generate_fpm,rpm,armhfp,armv7,$@)
+
 endif
 
-test-packages: dist-packages packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
+enforce-release-tag:
+	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
+
+test-packages: enforce-release-tag seego dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
 .PHONY: test-package
 

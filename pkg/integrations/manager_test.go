@@ -24,28 +24,31 @@ import (
 // remarshaled back out to text.
 func TestConfig_Remarshal(t *testing.T) {
 	RegisterIntegration(&testIntegrationA{})
-
 	cfgText := `
 scrape_integrations: true
 replace_instance_label: true
 integration_restart_backoff: 5s
 use_hostname_label: true
+http_tls_config:
+  insecure_skip_verify: false
 test:
   text: Hello, world!
   truth: true
 `
 	var (
 		cfg        ManagerConfig
-		listenPort int = 12345
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
 	cfg.ListenPort = &listenPort
+	cfg.ListenHost = &listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
-	require.NoError(t, err)
+	require.NoError(t, err, "Failed creating integration")
 	fmt.Println(string(outBytes))
 	require.YAMLEq(t, cfgText, string(outBytes))
 }
@@ -58,13 +61,15 @@ agent:
 
 	var (
 		cfg        ManagerConfig
-		listenPort int = 12345
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
 	cfg.ListenPort = &listenPort
+	cfg.ListenHost = &listenHost
 
 	relabels, err := cfg.DefaultRelabelConfigs()
 	require.NoError(t, err)
@@ -86,7 +91,7 @@ func TestManager_ValidInstanceConfigs(t *testing.T) {
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig)
+		return c.ApplyDefaults(&globalConfig, nil)
 	})
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
 	require.NoError(t, err)
@@ -104,7 +109,7 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig)
+		return c.ApplyDefaults(&globalConfig, nil)
 	})
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, nil)
 	require.NoError(t, err)
@@ -126,7 +131,7 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig)
+		return c.ApplyDefaults(&globalConfig, nil)
 	})
 
 	cfg := mockManagerConfig()
@@ -155,7 +160,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
 		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig)
+		return c.ApplyDefaults(&globalConfig, nil)
 	})
 
 	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
@@ -285,9 +290,11 @@ func mockInstanceFactory(_ instance.Config) (instance.ManagedInstance, error) {
 
 func mockManagerConfig() ManagerConfig {
 	listenPort := 0
+	listenHost := "127.0.0.1"
 	return ManagerConfig{
 		ScrapeIntegrations:        true,
 		IntegrationRestartBackoff: 0,
 		ListenPort:                &listenPort,
+		ListenHost:                &listenHost,
 	}
 }

@@ -1,18 +1,25 @@
-# List of go modules to check for outdated-ness.
+# List of go modules to check for outdated-ness. The current version is
+# obtained from the listing in go.mod.
 go_modules:
   - github.com/cortexproject/cortex
   - github.com/grafana/loki
+  - github.com/justwatchcom/elasticsearch_exporter
   - github.com/oliver006/redis_exporter
+  - github.com/prometheus/consul_exporter 
   - github.com/prometheus/memcached_exporter
   - github.com/prometheus/statsd_exporter
   - github.com/weaveworks/common
   - go.opentelemetry.io/collector
 
-# List of Github repos to check for newer tags.
+# List of Github repos to check for newer tags. Only repos that are not listed
+# explicitly in go.mod *OR* are in go.mod but replaced with a fork should be
+# added here.
+#
+# The "current" version being used in the Agent must be provided explicitly as
+# you can see below.
 github_repos:
   - github.com/google/dnsmasq_exporter v0.2.0
-  - github.com/ncabatoff/process-exporter v0.7.2
+  - github.com/ncabatoff/process-exporter v0.7.5
   - github.com/prometheus/mysqld_exporter v0.12.1
   - github.com/prometheus/prometheus v2.21.0
   - github.com/wrouesnel/postgres_exporter v0.8.0
-  - github.com/prometheus/consul_exporter v0.7.1

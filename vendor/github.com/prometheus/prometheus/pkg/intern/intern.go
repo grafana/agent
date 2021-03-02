@@ -21,10 +21,9 @@ package intern
 import (
 	"sync"
 
-	"go.uber.org/atomic"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/labels"
+	"go.uber.org/atomic"
 )
 
 // Shared interner
@@ -85,6 +84,10 @@ type entry struct {
 	s string
 }
 
+func newEntry(s string) *entry {
+	return &entry{s: s}
+}
+
 func (p *pool) Metrics() *Metrics { return p.m }
 
 func (p *pool) Intern(s string) string {
@@ -106,7 +109,7 @@ func (p *pool) Intern(s string) string {
 		return interned.s
 	}
 
-	p.pool[s] = &entry{s: s}
+	p.pool[s] = newEntry(s)
 	p.pool[s].refs.Store(1)
 	return s
 }

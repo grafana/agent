@@ -1,13 +1,12 @@
 package tempo
 
 import (
-	"context"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
-	"github.com/grafana/agent/pkg/build"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -16,136 +15,84 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/obsreport"
-	"go.opentelemetry.io/collector/service/builder"
 )
 
 // Tempo wraps the OpenTelemetry collector to enable tracing pipelines
 type Tempo struct {
-	logger      *zap.Logger
-	metricViews []*view.View
+	mut       sync.Mutex
+	instances map[string]*Instance
 
-	exporter  builder.Exporters
-	pipelines builder.BuiltPipelines
-	receivers builder.Receivers
+	logger *zap.Logger
+	reg    prom_client.Registerer
 }
 
 // New creates and starts Loki log collection.
-func New(cfg Config, level logging.Level) (*Tempo, error) {
-	var err error
-
-	tempo := &Tempo{}
-	tempo.logger = newLogger(level)
-	tempo.metricViews, err = newMetricViews()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create metric views: %w", err)
+func New(reg prom_client.Registerer, cfg Config, level logging.Level) (*Tempo, error) {
+	tempo := &Tempo{
+		instances: make(map[string]*Instance),
+		logger:    newLogger(level),
+		reg:       reg,
 	}
-
-	createCtx := context.Background()
-	err = tempo.buildAndStartPipeline(createCtx, cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create exporter: %w", err)
+	if err := tempo.ApplyConfig(cfg); err != nil {
+		return nil, err
 	}
-
 	return tempo, nil
+}
+
+// ApplyConfig updates Tempo with a new Config.
+func (t *Tempo) ApplyConfig(cfg Config) error {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+
+	newInstances := make(map[string]*Instance, len(cfg.Configs))
+
+	for _, c := range cfg.Configs {
+		// If an old instance exists, update it and move it to the new map.
+		if old, ok := t.instances[c.Name]; ok {
+			err := old.ApplyConfig(c)
+			if err != nil {
+				return err
+			}
+
+			newInstances[c.Name] = old
+			continue
+		}
+
+		var (
+			instLogger = t.logger.With(zap.String("tempo_config", c.Name))
+			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"tempo_config": c.Name}, t.reg)
+		)
+
+		inst, err := NewInstance(instReg, c, instLogger)
+		if err != nil {
+			return fmt.Errorf("failed to create tempo instance %s: %w", c.Name, err)
+		}
+		newInstances[c.Name] = inst
+	}
+
+	// Any instance in l.instances that isn't in newInstances has been removed
+	// from the config. Stop them before replacing the map.
+	for key, i := range t.instances {
+		if _, exist := newInstances[key]; exist {
+			continue
+		}
+		i.Stop()
+	}
+	t.instances = newInstances
+
+	return nil
 }
 
 // Stop stops the OpenTelemetry collector subsystem
 func (t *Tempo) Stop() {
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	t.mut.Lock()
+	defer t.mut.Unlock()
 
-	if err := t.receivers.ShutdownAll(shutdownCtx); err != nil {
-		t.logger.Error("failed to shutdown receiver", zap.Error(err))
+	for _, i := range t.instances {
+		i.Stop()
 	}
-
-	if err := t.pipelines.ShutdownProcessors(shutdownCtx); err != nil {
-		t.logger.Error("failed to shutdown processors", zap.Error(err))
-	}
-
-	if err := t.receivers.ShutdownAll(shutdownCtx); err != nil {
-		t.logger.Error("failed to shutdown receivers", zap.Error(err))
-	}
-
-	view.Unregister(t.metricViews...)
-}
-
-func (t *Tempo) buildAndStartPipeline(ctx context.Context, cfg Config) error {
-	// create component factories
-	otelConfig, err := cfg.otelConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load otelConfig from agent tempo config: %w", err)
-	}
-
-	factories, err := tracingFactories()
-	if err != nil {
-		return fmt.Errorf("failed to load tracing factories: %w", err)
-	}
-
-	appinfo := component.ApplicationStartInfo{
-		ExeName:  "agent",
-		GitHash:  build.Revision,
-		LongName: "agent",
-		Version:  build.Version,
-	}
-
-	// start exporter
-	t.exporter, err = builder.NewExportersBuilder(t.logger, appinfo, otelConfig, factories.Exporters).Build()
-	if err != nil {
-		return fmt.Errorf("failed to build exporters: %w", err)
-	}
-
-	err = t.exporter.StartAll(ctx, t)
-	if err != nil {
-		return fmt.Errorf("failed to start exporters: %w", err)
-	}
-
-	// start pipelines
-	t.pipelines, err = builder.NewPipelinesBuilder(t.logger, appinfo, otelConfig, t.exporter, factories.Processors).Build()
-	if err != nil {
-		return fmt.Errorf("failed to build exporters: %w", err)
-	}
-
-	err = t.pipelines.StartProcessors(ctx, t)
-	if err != nil {
-		return fmt.Errorf("failed to start processors: %w", err)
-	}
-
-	// start receivers
-	t.receivers, err = builder.NewReceiversBuilder(t.logger, appinfo, otelConfig, t.pipelines, factories.Receivers).Build()
-	if err != nil {
-		return fmt.Errorf("failed to start receivers: %w", err)
-	}
-
-	err = t.receivers.StartAll(ctx, t)
-	if err != nil {
-		return fmt.Errorf("failed to start receivers: %w", err)
-	}
-
-	return nil
-}
-
-// ReportFatalError implements component.Host
-func (t *Tempo) ReportFatalError(err error) {
-	t.logger.Error("fatal error reported", zap.Error(err))
-}
-
-// GetFactory implements component.Host
-func (t *Tempo) GetFactory(kind component.Kind, componentType configmodels.Type) component.Factory {
-	return nil
-}
-
-// GetExtensions implements component.Host
-func (t *Tempo) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
-	return nil
-}
-
-// GetExporters implements component.Host
-func (t *Tempo) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
-	return nil
 }
 
 func newLogger(level logging.Level) *zap.Logger {
@@ -182,7 +129,7 @@ func newLogger(level logging.Level) *zap.Logger {
 	return logger
 }
 
-func newMetricViews() ([]*view.View, error) {
+func newMetricViews(reg prom_client.Registerer) ([]*view.View, error) {
 	views := obsreport.Configure(configtelemetry.LevelBasic)
 	err := view.Register(views...)
 	if err != nil {
@@ -191,7 +138,7 @@ func newMetricViews() ([]*view.View, error) {
 
 	pe, err := prometheus.NewExporter(prometheus.Options{
 		Namespace:  "tempo",
-		Registerer: prom_client.DefaultRegisterer,
+		Registerer: reg,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create prometheus exporter: %w", err)

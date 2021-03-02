@@ -33,7 +33,22 @@ import (
 )
 
 var (
-	patRulePath = regexp.MustCompile(`^[^*]*(\*[^/]*)?$`)
+	patRulePath         = regexp.MustCompile(`^[^*]*(\*[^/]*)?$`)
+	unchangeableHeaders = map[string]struct{}{
+		// NOTE: authorization is checked specially,
+		// see RemoteWriteConfig.UnmarshalYAML.
+		// "authorization":                  {},
+		"host":                              {},
+		"content-encoding":                  {},
+		"content-type":                      {},
+		"x-prometheus-remote-write-version": {},
+		"user-agent":                        {},
+		"connection":                        {},
+		"keep-alive":                        {},
+		"proxy-authenticate":                {},
+		"proxy-authorization":               {},
+		"www-authenticate":                  {},
+	}
 )
 
 // Load parses the YAML input s into a Config.
@@ -105,16 +120,16 @@ var (
 
 	// DefaultQueueConfig is the default remote queue configuration.
 	DefaultQueueConfig = QueueConfig{
-		// With a maximum of 1000 shards, assuming an average of 100ms remote write
-		// time and 100 samples per batch, we will be able to push 1M samples/s.
-		MaxShards:         1000,
+		// With a maximum of 200 shards, assuming an average of 100ms remote write
+		// time and 500 samples per batch, we will be able to push 1M samples/s.
+		MaxShards:         200,
 		MinShards:         1,
-		MaxSamplesPerSend: 100,
+		MaxSamplesPerSend: 500,
 
-		// Each shard will have a max of 500 samples pending in it's channel, plus the pending
-		// samples that have been enqueued. Theoretically we should only ever have about 600 samples
-		// per shard pending. At 1000 shards that's 600k.
-		Capacity:          500,
+		// Each shard will have a max of 2500 samples pending in its channel, plus the pending
+		// samples that have been enqueued. Theoretically we should only ever have about 3000 samples
+		// per shard pending. At 200 shards that's 600k.
+		Capacity:          2500,
 		BatchSendDeadline: model.Duration(5 * time.Second),
 
 		// Backoff times for retrying a batch of samples on recoverable errors.
@@ -570,6 +585,7 @@ func CheckTargetAddress(address model.LabelValue) error {
 type RemoteWriteConfig struct {
 	URL                 *config.URL       `yaml:"url"`
 	RemoteTimeout       model.Duration    `yaml:"remote_timeout,omitempty"`
+	Headers             map[string]string `yaml:"headers,omitempty"`
 	WriteRelabelConfigs []*relabel.Config `yaml:"write_relabel_configs,omitempty"`
 	Name                string            `yaml:"name,omitempty"`
 
@@ -598,6 +614,14 @@ func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) err
 	for _, rlcfg := range c.WriteRelabelConfigs {
 		if rlcfg == nil {
 			return errors.New("empty or null relabeling rule in remote write config")
+		}
+	}
+	for header := range c.Headers {
+		if strings.ToLower(header) == "authorization" {
+			return errors.New("authorization header must be changed via the basic_auth, bearer_token, or bearer_token_file parameter")
+		}
+		if _, ok := unchangeableHeaders[strings.ToLower(header)]; ok {
+			return errors.Errorf("%s is an unchangeable header", header)
 		}
 	}
 
@@ -634,7 +658,7 @@ type QueueConfig struct {
 // MetadataConfig is the configuration for sending metadata to remote
 // storage.
 type MetadataConfig struct {
-	// Send controls whenever we send metric metadata to remote storage.
+	// Send controls whether we send metric metadata to remote storage.
 	Send bool `yaml:"send"`
 	// SendInterval controls how frequently we send metric metadata.
 	SendInterval model.Duration `yaml:"send_interval"`

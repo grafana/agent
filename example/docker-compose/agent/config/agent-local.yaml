@@ -1,0 +1,71 @@
+# agent-local is intended to be used with docker-compose.integrations.yaml.
+server:
+  log_level: info
+  http_listen_port: 12345
+
+prometheus:
+  wal_directory: /tmp/agent
+  global:
+    scrape_interval: 5s
+  configs:
+    - name: default
+      scrape_configs:
+      - job_name: cortex
+        static_configs:
+          - targets: ['localhost:9009']
+      - job_name: loki
+        static_configs:
+          - targets: ['localhost:3100']
+
+loki:
+  positions_directory: /tmp/loki-positions
+  configs:
+  - name: default
+    clients:
+      - url: http://localhost:3100/loki/api/v1/push
+    scrape_configs:
+    - job_name: system
+      static_configs:
+      - targets: ['localhost']
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
+
+integrations:
+  agent:
+    enabled: true
+  node_exporter:
+    enabled: true
+  process_exporter:
+    enabled: true
+    process_names:
+      - name: "{{.Comm}}"
+        cmdline:
+        - '.+'
+  mysqld_exporter:
+    enabled: true
+    data_source_name: root@(localhost:3306)/
+  postgres_exporter:
+    enabled: true
+    data_source_names:
+      - postgresql://postgres:password@localhost:5432/postgres?sslmode=disable
+  redis_exporter:
+    enabled: true
+    redis_addr: localhost:6379
+  dnsmasq_exporter:
+    enabled: true
+    dnsmasq_address: localhost:30053
+    leases_path: /tmp/dnsmasq-leases/dnsmasq.leases
+  memcached_exporter:
+    enabled: true
+    memcached_address: localhost:11211
+    timeout: 10s
+  statsd_exporter:
+    enabled: true
+  consul_exporter:
+    enabled: true
+  elasticsearch_exporter:
+    enabled: true
+    address: http://localhost:9200
+  prometheus_remote_write:
+    - url: http://localhost:9009/api/prom/push

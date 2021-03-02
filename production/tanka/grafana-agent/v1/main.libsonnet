@@ -4,6 +4,7 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 
 local container = k.core.v1.container;
 local configMap = k.core.v1.configMap;
+local service = k.core.v1.service;
 
 // Merge all of our libraries to create the final exposed library.
 (import './lib/deployment.libsonnet') +
@@ -14,8 +15,8 @@ local configMap = k.core.v1.configMap;
 (import './lib/tempo.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v0.9.1',
-    agentctl: 'grafana/agentctl:v0.9.1',
+    agent: 'grafana/agent:v0.13.0',
+    agentctl: 'grafana/agentctl:v0.13.0',
   },
 
   // new creates a new DaemonSet deployment of the grafana-agent. By default,
@@ -65,9 +66,23 @@ local configMap = k.core.v1.configMap;
       then { prometheus: this._prometheus_config { configs: host_filter_instances } }
       else {}
     ) + (
-      if has_loki_config then { loki: this._loki_config } else {}
+      if has_loki_config then {
+        loki: {
+          positions_directory: '/tmp/positions',
+          configs: [this._loki_config {
+            name: 'default',
+          }],
+        },
+      } else {}
     ) + (
-      if has_tempo_config then { tempo: this._tempo_config } else {}
+      if has_tempo_config then {
+        tempo: {
+          configs: [this._tempo_config {
+            name: 'default',
+          }],
+        },
+      }
+      else {}
     ) + (
       if has_integrations then { integrations: this._integrations } else {}
     ),
@@ -104,7 +119,9 @@ local configMap = k.core.v1.configMap;
         // If we're deploying for tracing, applications will want to write to
         // a service for load balancing span delivery.
         service:
-          if has_tempo_config then k.util.serviceFor(self.agent) else {},
+          if has_tempo_config
+          then k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
+          else {},
       } + (
         if has_loki_config then $.lokiPermissionsMixin else {}
       ),

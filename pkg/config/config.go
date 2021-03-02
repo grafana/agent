@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/weaveworks/common/server"
+
 	"github.com/drone/envsubst"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
@@ -13,7 +15,6 @@ import (
 	"github.com/grafana/agent/pkg/tempo"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
-	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
@@ -51,8 +52,12 @@ func (c *Config) ApplyDefaults() error {
 
 	if c.Integrations.Enabled {
 		c.Integrations.ListenPort = &c.Server.HTTPListenPort
+		c.Integrations.ListenHost = &c.Server.HTTPListenAddress
+		c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
+		if len(c.Integrations.PrometheusRemoteWrite) == 0 {
+			c.Integrations.PrometheusRemoteWrite = c.Prometheus.RemoteWrite
+		}
 	}
-
 	return nil
 }
 
@@ -62,7 +67,6 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.RegisterInstrumentation = true
 	c.Prometheus.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
-	c.Loki.RegisterFlags(f)
 }
 
 // LoadFile reads a file and passes the contents to Load

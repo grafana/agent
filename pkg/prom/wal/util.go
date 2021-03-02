@@ -1,6 +1,7 @@
 package wal
 
 import (
+	"path/filepath"
 	"sync"
 
 	"github.com/prometheus/prometheus/tsdb/record"
@@ -39,7 +40,7 @@ func (r walReplayer) Replay(dir string) error {
 		startFrom++
 	}
 
-	_, last, err := w.Segments()
+	_, last, err := wal.Segments(w.Dir())
 	if err != nil {
 		return err
 	}
@@ -109,3 +110,8 @@ func (c *walDataCollector) StoreSeries(series []record.RefSeries, _ int) {
 }
 
 func (c *walDataCollector) SeriesReset(_ int) {}
+
+// Get the subdirectory within a Storage directory used for the Prometheus WAL
+func SubDirectory(base string) string {
+	return filepath.Join(base, "wal")
+}

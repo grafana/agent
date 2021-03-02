@@ -12,6 +12,7 @@ import (
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/client/grafanacloud"
+	"github.com/grafana/agent/pkg/config"
 	"github.com/olekukonko/tablewriter"
 	"github.com/prometheus/common/version"
 
@@ -23,6 +24,9 @@ import (
 
 	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
+
+	// Register integrations
+	_ "github.com/grafana/agent/pkg/integrations/install"
 )
 
 func main() {
@@ -35,6 +39,7 @@ func main() {
 
 	cmd.AddCommand(
 		configSyncCmd(),
+		configCheckCmd(),
 		walStatsCmd(),
 		targetStatsCmd(),
 		samplesCmd(),
@@ -65,10 +70,15 @@ source-of-truth directory.`,
 		Args: cobra.ExactArgs(1),
 
 		Run: func(_ *cobra.Command, args []string) {
+			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
+
+			if agentAddr == "" {
+				level.Error(logger).Log("msg", "-addr must not be an empty string")
+				os.Exit(1)
+			}
+
 			directory := args[0]
 			cli := client.New(agentAddr)
-
-			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
 
 			err := agentctl.ConfigSync(logger, cli.PrometheusClient, directory, dryRun)
 			if err != nil {
@@ -80,7 +90,37 @@ source-of-truth directory.`,
 
 	cmd.Flags().StringVarP(&agentAddr, "addr", "a", "http://localhost:12345", "address of the agent to connect to")
 	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "use the dry run option to validate config files without attempting to upload")
-	must(cmd.MarkFlagRequired("addr"))
+	return cmd
+}
+
+func configCheckCmd() *cobra.Command {
+	var expandEnv bool
+
+	cmd := &cobra.Command{
+		Use:   "config-check [config file]",
+		Short: "Perform basic validation of the given Agent configuration file",
+		Long: `config-check performs basic syntactic validation of the given Agent configuration
+file. The file is checked to ensure the types match the expected configuration types. Optionally,
+${var} style substitutions can be expanded based on the values of the environmental variables.
+
+If the configuration file is valid the exit code will be 0. If the configuration file is invalid
+the exit code will be 1.`,
+		Args: cobra.ExactArgs(1),
+		Run: func(_ *cobra.Command, args []string) {
+			file := args[0]
+
+			cfg := config.Config{}
+			err := config.LoadFile(file, expandEnv, &cfg)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to validate config: %s\n", err)
+				os.Exit(1)
+			} else {
+				fmt.Fprintln(os.Stdout, "config valid")
+			}
+		},
+	}
+
+	cmd.Flags().BoolVarP(&expandEnv, "expand-env", "e", false, "expands ${var} in config according to the values of the environment variables")
 	return cmd
 }
 

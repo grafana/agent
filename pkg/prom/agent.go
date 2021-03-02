@@ -23,44 +23,13 @@ var (
 	DefaultConfig = Config{
 		Global:                 config.DefaultGlobalConfig,
 		InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
+		WALCleanupAge:          DefaultCleanupAge,
+		WALCleanupPeriod:       DefaultCleanupPeriod,
 		ServiceConfig:          ha.DefaultConfig,
 		ServiceClientConfig:    client.DefaultConfig,
-		InstanceMode:           DefaultInstanceMode,
+		InstanceMode:           instance.DefaultMode,
 	}
 )
-
-// InstanceMode controls how instances are created.
-type InstanceMode string
-
-// Types of instance modes
-var (
-	InstanceModeDistinct InstanceMode = "distinct"
-	InstanceModeShared   InstanceMode = "shared"
-
-	DefaultInstanceMode = InstanceModeShared
-)
-
-// UnmarshalYAML unmarshals a string to an InstanceMode. Fails if the string is
-// unrecognized.
-func (m *InstanceMode) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*m = DefaultInstanceMode
-
-	var plain string
-	if err := unmarshal(&plain); err != nil {
-		return err
-	}
-
-	switch plain {
-	case string(InstanceModeDistinct):
-		*m = InstanceModeDistinct
-		return nil
-	case string(InstanceModeShared):
-		*m = InstanceModeShared
-		return nil
-	default:
-		return fmt.Errorf("unsupported instance_mode '%s'. supported values 'shared', 'distinct'", plain)
-	}
-}
 
 // Config defines the configuration for the entire set of Prometheus client
 // instances, along with a global configuration.
@@ -68,13 +37,16 @@ type Config struct {
 	// Whether the Prometheus subsystem should be enabled.
 	Enabled bool `yaml:"-"`
 
-	Global                 config.GlobalConfig `yaml:"global"`
-	WALDir                 string              `yaml:"wal_directory"`
-	ServiceConfig          ha.Config           `yaml:"scraping_service"`
-	ServiceClientConfig    client.Config       `yaml:"scraping_service_client"`
-	Configs                []instance.Config   `yaml:"configs,omitempty"`
-	InstanceRestartBackoff time.Duration       `yaml:"instance_restart_backoff,omitempty"`
-	InstanceMode           InstanceMode        `yaml:"instance_mode"`
+	Global                 config.GlobalConfig           `yaml:"global"`
+	WALDir                 string                        `yaml:"wal_directory"`
+	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age"`
+	WALCleanupPeriod       time.Duration                 `yaml:"wal_cleanup_period"`
+	ServiceConfig          ha.Config                     `yaml:"scraping_service"`
+	ServiceClientConfig    client.Config                 `yaml:"scraping_service_client"`
+	Configs                []instance.Config             `yaml:"configs,omitempty"`
+	InstanceRestartBackoff time.Duration                 `yaml:"instance_restart_backoff,omitempty"`
+	InstanceMode           instance.Mode                 `yaml:"instance_mode"`
+	RemoteWrite            []*instance.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -103,7 +75,7 @@ func (c *Config) ApplyDefaults() error {
 
 	for i := range c.Configs {
 		name := c.Configs[i].Name
-		if err := c.Configs[i].ApplyDefaults(&c.Global); err != nil {
+		if err := c.Configs[i].ApplyDefaults(&c.Global, c.RemoteWrite); err != nil {
 			// Try to show a helpful name in the error
 			if name == "" {
 				name = fmt.Sprintf("at index %d", i)
@@ -126,6 +98,8 @@ func (c *Config) ApplyDefaults() error {
 // RegisterFlags defines flags corresponding to the Config.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.WALDir, "prometheus.wal-directory", "", "base directory to store the WAL in")
+	f.DurationVar(&c.WALCleanupAge, "prometheus.wal-cleanup-age", DefaultConfig.WALCleanupAge, "remove abandoned (unused) WALs older than this")
+	f.DurationVar(&c.WALCleanupPeriod, "prometheus.wal-cleanup-period", DefaultConfig.WALCleanupPeriod, "how often to check for abandoned WALs")
 	f.DurationVar(&c.InstanceRestartBackoff, "prometheus.instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
 
 	c.ServiceConfig.RegisterFlagsWithPrefix("prometheus.service.", f)
@@ -141,7 +115,12 @@ type Agent struct {
 	logger log.Logger
 	reg    prometheus.Registerer
 
-	cm instance.Manager
+	// Store both the basic manager and the modal manager so we can update their
+	// settings indepedently. Only the ModalManager should be used for mutating
+	// configs.
+	bm      *instance.BasicManager
+	mm      *instance.ModalManager
+	cleaner *WALCleaner
 
 	instanceFactory instanceFactory
 
@@ -161,21 +140,29 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 		reg:             reg,
 	}
 
-	a.cm = instance.NewBasicManager(instance.BasicManagerConfig{
+	a.bm = instance.NewBasicManager(instance.BasicManagerConfig{
 		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
 	}, a.logger, a.newInstance, a.validateInstance)
 
-	if cfg.InstanceMode == InstanceModeShared {
-		a.cm = instance.NewGroupManager(a.cm)
+	var err error
+	a.mm, err = instance.NewModalManager(a.reg, a.logger, a.bm, cfg.InstanceMode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create modal instance manager: %w", err)
 	}
 
-	// Regardless of the instance mode, wrap the manager in a CountingManager so we can
-	// collect metrics on the number of active configs.
-	a.cm = instance.NewCountingManager(reg, a.cm)
+	// Periodically attempt to clean up WALs from instances that aren't being run by
+	// this agent anymore.
+	a.cleaner = NewWALCleaner(
+		a.logger,
+		a.mm,
+		cfg.WALDir,
+		cfg.WALCleanupAge,
+		cfg.WALCleanupPeriod,
+	)
 
 	allConfigsValid := true
 	for _, c := range cfg.Configs {
-		if err := a.cm.ApplyConfig(c); err != nil {
+		if err := a.mm.ApplyConfig(c); err != nil {
 			level.Error(logger).Log("msg", "failed to apply config", "name", c.Name, "err", err)
 			allConfigsValid = false
 		}
@@ -186,7 +173,7 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 
 	if cfg.ServiceConfig.Enabled {
 		var err error
-		a.ha, err = ha.New(reg, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.cm)
+		a.ha, err = ha.New(reg, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.mm, cfg.RemoteWrite)
 		if err != nil {
 			return nil, err
 		}
@@ -199,7 +186,7 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
 	// Controls the label
 	instanceLabel := "instance_name"
-	if a.cfg.InstanceMode == InstanceModeShared {
+	if a.cfg.InstanceMode == instance.ModeShared {
 		instanceLabel = "instance_group_name"
 	}
 
@@ -211,7 +198,7 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 }
 
 func (a *Agent) validateInstance(c *instance.Config) error {
-	return c.ApplyDefaults(&a.cfg.Global)
+	return c.ApplyDefaults(&a.cfg.Global, c.RemoteWrite)
 }
 
 func (a *Agent) WireGRPC(s *grpc.Server) {
@@ -221,7 +208,7 @@ func (a *Agent) WireGRPC(s *grpc.Server) {
 }
 
 func (a *Agent) Config() Config                    { return a.cfg }
-func (a *Agent) InstanceManager() instance.Manager { return a.cm }
+func (a *Agent) InstanceManager() instance.Manager { return a.mm }
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
@@ -230,7 +217,11 @@ func (a *Agent) Stop() {
 			level.Error(a.logger).Log("msg", "failed to stop scraping service server", "err", err)
 		}
 	}
-	a.cm.Stop()
+	a.cleaner.Stop()
+
+	// Only need to stop the ModalManager, which will passthrough everything to the
+	// BasicManager.
+	a.mm.Stop()
 }
 
 type instanceFactory = func(reg prometheus.Registerer, global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)

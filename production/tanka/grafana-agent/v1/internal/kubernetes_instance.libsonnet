@@ -25,6 +25,9 @@ local k8s_tls_config(config) = {
           role: if config.scrape_api_server_endpoints then 'endpoints' else 'service',
         }],
         scheme: 'https',
+        tls_config+: {
+          server_name: 'kubernetes',
+        },
 
         relabel_configs: [{
           source_labels: ['__meta_kubernetes_service_label_component'],
@@ -32,22 +35,17 @@ local k8s_tls_config(config) = {
           action: 'keep',
         }],
 
-        // Drop some high cardinality metrics.
+        // Keep limited set of metrics to reduce default usage, drop all others
         metric_relabel_configs: [
           {
             source_labels: ['__name__'],
-            regex: 'apiserver_admission_controller_admission_latencies_seconds_.*',
-            action: 'drop',
-          },
-          {
-            source_labels: ['__name__'],
-            regex: 'apiserver_admission_step_admission_latencies_seconds_.*',
-            action: 'drop',
+            regex: 'workqueue_queue_duration_seconds_bucket|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_depth|rest_client_request_duration_seconds_bucket|workqueue_adds_total|up|rest_client_requests_total|apiserver_request_total|go_goroutines',
+            action: 'keep',
           },
         ],
       },
 
-      k8s_tls_config(config) {
+      {
         job_name: 'kubernetes-pods',
         kubernetes_sd_configs: [{
           role: 'pod',
@@ -168,7 +166,7 @@ local k8s_tls_config(config) = {
       // timeseries. This prevents the exported namespace label from being
       // renamed to exported_namesapce and allows us to route alerts based on
       // namespace.
-      k8s_tls_config(config) {
+      {
         job_name: '%s/kube-state-metrics' % namespace,
         kubernetes_sd_configs: [{
           role: 'pod',
@@ -204,7 +202,7 @@ local k8s_tls_config(config) = {
 
       // A separate scrape config for node-exporter which maps the node name
       // onto the instance label.
-      k8s_tls_config(config) {
+      {
         job_name: '%s/node-exporter' % namespace,
         kubernetes_sd_configs: [{
           role: 'pod',

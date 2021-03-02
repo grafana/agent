@@ -39,7 +39,7 @@ remote_write:
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
 
-	err = cfg.ApplyDefaults(&global)
+	err = cfg.ApplyDefaults(&global, nil)
 	require.NoError(t, err)
 
 	require.Equal(t, DefaultConfig.HostFilter, cfg.HostFilter)
@@ -68,8 +68,8 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			}},
 		},
 	}}
-	cfg.RemoteWrite = []*config.RemoteWriteConfig{{
-		Name: "write",
+	cfg.RemoteWrite = []*RemoteWriteConfig{{
+		Base: config.RemoteWriteConfig{Name: "write"},
 	}}
 
 	tt := []struct {
@@ -130,8 +130,8 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			"multiple remote writes with same name",
 			func(c *Config) {
 				c.RemoteWrite = append(c.RemoteWrite,
-					&config.RemoteWriteConfig{Name: "foo"},
-					&config.RemoteWriteConfig{Name: "foo"},
+					&RemoteWriteConfig{Base: config.RemoteWriteConfig{Name: "foo"}},
+					&RemoteWriteConfig{Base: config.RemoteWriteConfig{Name: "foo"}},
 				)
 			},
 			fmt.Errorf("found duplicate remote write configs with name \"foo\""),
@@ -151,7 +151,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			}
 			input.ScrapeConfigs = scrapeConfigs
 
-			var remoteWrites []*config.RemoteWriteConfig
+			var remoteWrites []*RemoteWriteConfig
 			for _, rw := range input.RemoteWrite {
 				rwCopy := *rw
 				remoteWrites = append(remoteWrites, &rwCopy)
@@ -162,7 +162,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 				tc.mutation(&input)
 			}
 
-			err := input.ApplyDefaults(&global)
+			err := input.ApplyDefaults(&global, nil)
 			if tc.err == nil {
 				require.NoError(t, err)
 			} else {
@@ -170,6 +170,23 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfig_ApplyDefaults_HashedName(t *testing.T) {
+	global := config.DefaultGlobalConfig
+
+	cfgText := `
+name: default
+host_filter: false
+remote_write:
+- url: http://localhost:9009/api/prom/push
+  sigv4:
+    enabled: true`
+
+	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
+	require.NoError(t, err)
+	require.NoError(t, cfg.ApplyDefaults(&global, nil))
+	require.NotEmpty(t, cfg.RemoteWrite[0].Base.Name)
 }
 
 func TestInstance_Path(t *testing.T) {

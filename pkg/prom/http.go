@@ -24,7 +24,7 @@ func (a *Agent) WireAPI(r *mux.Router) {
 
 // ListInstances writes the set of currently running instances to the http.ResponseWriter.
 func (a *Agent) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
-	cfgs := a.cm.ListConfigs()
+	cfgs := a.mm.ListConfigs()
 	instanceNames := make([]string, 0, len(cfgs))
 	for k := range cfgs {
 		instanceNames = append(instanceNames, k)
@@ -40,7 +40,7 @@ func (a *Agent) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
 // ListTargetsHandler retrieves the full set of targets across all instances and shows
 // information on them.
 func (a *Agent) ListTargetsHandler(w http.ResponseWriter, _ *http.Request) {
-	instances := a.cm.ListInstances()
+	instances := a.mm.ListInstances()
 	resp := ListTargetsResponse{}
 
 	for instName, inst := range instances {
@@ -57,12 +57,13 @@ func (a *Agent) ListTargetsHandler(w http.ResponseWriter, _ *http.Request) {
 					InstanceName: instName,
 					TargetGroup:  key,
 
-					Endpoint:       tgt.URL().String(),
-					State:          string(tgt.Health()),
-					Labels:         tgt.Labels(),
-					LastScrape:     tgt.LastScrape(),
-					ScrapeDuration: tgt.LastScrapeDuration().Milliseconds(),
-					ScrapeError:    lastError,
+					Endpoint:         tgt.URL().String(),
+					State:            string(tgt.Health()),
+					DiscoveredLabels: tgt.DiscoveredLabels(),
+					Labels:           tgt.Labels(),
+					LastScrape:       tgt.LastScrape(),
+					ScrapeDuration:   tgt.LastScrapeDuration().Milliseconds(),
+					ScrapeError:      lastError,
 				})
 			}
 		}
@@ -108,10 +109,11 @@ type TargetInfo struct {
 	InstanceName string `json:"instance"`
 	TargetGroup  string `json:"target_group"`
 
-	Endpoint       string        `json:"endpoint"`
-	State          string        `json:"state"`
-	Labels         labels.Labels `json:"labels"`
-	LastScrape     time.Time     `json:"last_scrape"`
-	ScrapeDuration int64         `json:"scrape_duration_ms"`
-	ScrapeError    string        `json:"scrape_error"`
+	Endpoint         string        `json:"endpoint"`
+	State            string        `json:"state"`
+	Labels           labels.Labels `json:"labels"`
+	DiscoveredLabels labels.Labels `json:"discovered_labels"`
+	LastScrape       time.Time     `json:"last_scrape"`
+	ScrapeDuration   int64         `json:"scrape_duration_ms"`
+	ScrapeError      string        `json:"scrape_error"`
 }

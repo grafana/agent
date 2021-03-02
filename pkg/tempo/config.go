@@ -22,10 +22,45 @@ import (
 	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
 )
 
-// Config controls the configuration of the Tempo trace pipeline.
+// Config controls the configuration of Tempo trace pipelines.
 type Config struct {
 	// Whether the Tempo subsystem should be enabled.
-	Enabled bool `yaml:"-"`
+	Enabled bool             `yaml:"-"`
+	Configs []InstanceConfig `yaml:"configs"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// If the Config is unmarshaled, it's present in the config and should be
+	// enabled.
+	c.Enabled = true
+
+	type plain Config
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
+	}
+	return c.Validate()
+}
+
+// Validate ensures that the Config is valid.
+func (c *Config) Validate() error {
+	names := make(map[string]struct{}, len(c.Configs))
+	for idx, c := range c.Configs {
+		if c.Name == "" {
+			return fmt.Errorf("tempo config at index %d is missing a name", idx)
+		}
+		if _, exist := names[c.Name]; exist {
+			return fmt.Errorf("found multiple tempo configs with name %s", c.Name)
+		}
+		names[c.Name] = struct{}{}
+	}
+
+	return nil
+}
+
+// InstanceConfig configures an individual Tempo trace pipeline.
+type InstanceConfig struct {
+	Name string `yaml:"name"`
 
 	PushConfig PushConfig `yaml:"push_config"`
 
@@ -39,9 +74,20 @@ type Config struct {
 	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
 }
 
+const (
+	compressionNone = "none"
+	compressionGzip = "gzip"
+)
+
+// DefaultPushConfig holds the default settings for a PushConfig.
+var DefaultPushConfig = PushConfig{
+	Compression: compressionGzip,
+}
+
 // PushConfig controls the configuration of exporting to Grafana Cloud
 type PushConfig struct {
 	Endpoint           string                 `yaml:"endpoint"`
+	Compression        string                 `yaml:"compression"`
 	Insecure           bool                   `yaml:"insecure"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
@@ -51,21 +97,22 @@ type PushConfig struct {
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// If the Config is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
+func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultPushConfig
 
-	type plain Config
-	return unmarshal((*plain)(c))
+	type plain PushConfig
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
+	}
+
+	if c.Compression != compressionGzip && c.Compression != compressionNone {
+		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
+	}
+	return nil
 }
 
-func (c *Config) otelConfig() (*configmodels.Config, error) {
+func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 	otelMapStructure := map[string]interface{}{}
-
-	if !c.Enabled {
-		return nil, errors.New("tempo config not enabled")
-	}
 
 	if len(c.Receivers) == 0 {
 		return nil, errors.New("must have at least one configured receiver")
@@ -94,8 +141,14 @@ func (c *Config) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
+	compression := c.PushConfig.Compression
+	if compression == compressionNone {
+		compression = ""
+	}
+
 	otlpExporter := map[string]interface{}{
 		"endpoint":             c.PushConfig.Endpoint,
+		"compression":          compression,
 		"headers":              headers,
 		"insecure":             c.PushConfig.Insecure,
 		"insecure_skip_verify": c.PushConfig.InsecureSkipVerify,

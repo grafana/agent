@@ -131,6 +131,9 @@ scraping service mode.
 
 # Base path to server all API routes from (e.g., /v1/). Unused.
 [http_path_prefix: <string>]
+
+# Configuration for HTTPS serving and scraping of metrics
+[http_tls_config: <server_tls_config>]
 ```
 
 ## prometheus_config
@@ -153,6 +156,14 @@ define one instance.
 # Configure the directory used by instances to store their WAL.
 [wal_directory: <string> | default = ""]
 
+# Configures how long ago an abandoned (not associated with an instance) WAL
+# may be written to before being eligible to be deleted
+[wal_cleanup_age: <duration> | default = "12h"]
+
+# Configures how often checks for abandoned WALs to be deleted are performed.
+# A value of 0 disables periodic cleanup of abandoned WALs
+[wal_cleanup_period: <duration> | default = "30m"]
+
 # The list of Prometheus instances to launch with the agent.
 configs:
   [- <prometheus_instance_config>]
@@ -165,6 +176,32 @@ configs:
 # How to spawn instances based on instance configs. Supported values: shared,
 # distinct.
 [instance_mode: <string> | default = "shared"]
+
+# A list of remote_write targets. This is the global remote write list, it will propagate to the other remote writes
+# if they are not defined. If they are defined then they will not be overwritten. 
+remote_write:
+  - [<remote_write>]
+```
+
+### server_tls_config
+
+The `http_tls_config` block configures the server to run with TLS. When set, `integrations.http_tls_config` must
+also be provided. Acceptable values for  `client_auth_type` are found in
+[Go's `tls` package]https://golang.org/pkg/crypto/tls/#ClientAuthType).
+
+```yaml
+# File path to the server certificate
+[cert_file: <string>]
+
+# File path to the server key
+[key_file: <string>]
+
+# Tells the server what is acceptable from the client, this drives the options in client_tls_config
+[client_auth_type: <string>]
+
+# File path to the signing CA certificate, needed if CA is not trusted
+[client_ca_file: <string>]
+
 ```
 
 ### scraping_service_config
@@ -364,13 +401,14 @@ host_filter_relabel_configs:
   [ - <relabel_config> ... ]
 
 # How frequently the WAL truncation process should run. Every iteration of
-# truncation will checkpoint old series, create a new segment for new samples,
-# and remove old samples that have been succesfully sent via remote_write.
-# If there are are multiple remote_write endpoints, the endpoint with the
-# earliest timestamp is used for the cutoff period, ensuring that no data
-# gets truncated until all remote_write configurations have been able to
-# send the data.
-[wal_truncate_frequency: <duration> | default = "1m"]
+# the truncation will checkpoint old series and remove old samples. If data
+# has not been sent within this window, some of it may be lost.
+#
+# The size of the WAL will increase with less frequent truncations. Making
+# truncations more frequent reduces the size of the WAL but increases the
+# chances of data loss when remote_write is failing for longer than the
+# specified frequency.
+[wal_truncate_frequency: <duration> | default = "60m"]
 
 # The minimum amount of time that series and samples should exist in the WAL
 # before being considered for deletion. The consumed disk space of the WAL will
@@ -576,6 +614,13 @@ metric_relabel_configs:
 # If more than this number of samples are present after metric relabelling
 # the entire scrape will be treated as failed. 0 means no limit.
 [ sample_limit: <int> | default = 0 ]
+
+# Per-scrape config limit on number of unique targets that will be accepted.
+# If more than this number of targets are present after target relabeling,
+# Prometheus will mark the targets as failed without scraping them. 0 means
+# no limit. This is an experimental feature of Prometheus and the behavior
+# may change in the future.
+[ target_limit: <int> | default = 0]
 ```
 
 ### azure_sd_config
@@ -1777,6 +1822,11 @@ url: <string>
 # Timeout for requests to the remote write endpoint.
 [ remote_timeout: <duration> | default = 30s ]
 
+# Custom HTTP headers to be sent along with each remote write request.
+# Be aware that headers that are set by Prometheus itself can't be overwritten.
+headers:
+  [ <string>: <string> ... ]
+
 # List of remote write relabel configurations.
 write_relabel_configs:
   [ - <relabel_config> ... ]
@@ -1796,6 +1846,27 @@ basic_auth:
 # Sets the `Authorization` header on every remote write request with the bearer token
 # read from the configured file. It is mutually exclusive with `bearer_token`.
 [ bearer_token_file: /path/to/bearer/token/file ]
+
+# Configures SigV4 request signing. The default credentials chain will be used,
+# documented here:
+#
+# https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-credentials
+#
+# Region must be supplied if it cannot be inferred from the shared config
+# ($HOME/.aws/config when AWS_SDK_LOAD_CONFIG is truthy) or the environment
+# (AWS_REGION).
+#
+# This feature is only currently available for remote_write of Prometheus
+# metrics.
+sigv4:
+  # Enable SigV4 request signing. May not be enabled at the same time as
+  # configuring basic auth or bearer_token/bearer_token_file.
+  [ enabled: <boolean> | default = false ]
+
+  # Region to use for signing the requests. Must be supplied if region cannot
+  # be inferred from environment. Region must match the region of the AMP
+  # workspace specified by the remote_write URL.
+  [region: <string>]
 
 # Configures the remote write request's TLS settings.
 tls_config:
@@ -1835,17 +1906,52 @@ metadata_config:
 
 ### loki_config
 
-The `loki_config` block configures how the Agent collects logs and sends them to a Loki push API endpoint. `loki_config` is identical to how Promtail is configured, except deprecated
-fields have been removed and the server_config is not supported.
+The `loki_config` block configures how the Agent collects logs and sends them to
+a Loki push API endpoint. `loki_config` is identical to how Promtail is
+configured, except deprecated fields have been removed and the server_config is
+not supported.
 
 Please refer to the
 [Promtail documentation](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#client_config)
 for the supported values for these fields.
 
 ```yaml
+# Directory to store Loki Promtail positions files in. Positions files are
+# required to read logs, and are used to store the last read offset of log
+# sources. The positions files will be stored in
+# <positions_directory>/<loki_instance_config.name>.yml.
+#
+# Optional only if every config has a positions.filename manually provided.
+[positions_directory: <string>]
+
+# Loki Promtail instances to run for log collection.
+configs:
+  - [<loki_instance_config>]
+```
+
+### loki_instance_config
+
+The `loki_instance_config` block is an individual instance of Promtail with its
+own set of scrape rules and where to forward logs. It is identical to how
+Promtail is configured, except deprecated fields have been removed and the
+`server_config` block is not supported.
+
+Please refer to the
+[Promtail documentation](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#client_config)
+for the supported values for these fields.
+
+```yaml
+# Name of this config. Required, and must be unique across all Loki configs.
+# The name of the config will be the value of a loki_config label for all
+# Loki Promtail metrics.
+name: <string>
+
 clients:
   - [<promtail.client_config>]
 
+# Optional configuration for where to store the positions files. If
+# positions.filename is left empty, the file will be stored in
+# <loki_config.positions_directory>/<loki_instance_config.name>.yml.
 [positions: <promtail.position_config>]
 
 scrape_configs:
@@ -1856,9 +1962,28 @@ scrape_configs:
 
 ### tempo_config
 
-The `tempo_config` block configures how the Agent receives traces and sends them to Tempo.
+The `tempo_config` block configures a set of Tempo instances, each of which
+configures its own tracing pipeline. Having multiple configs allows you to
+configure multiple distinct pipelines, each of which collects spans and sends
+them to a different location.
+
+Note that if using multiple configs, you must manually set port numbers for
+each receiver, otherwise they will all try to use the same port and fail to
+start.
 
 ```yaml
+configs:
+ - [<tempo_instance_config>]
+ ```
+
+### tempo_instance_config
+
+```yaml
+# Name configures the name of this Tempo instance. Names must be non-empty and
+# unique across all Tempo instances. The value of the name here will appear in
+# logs and as a label on metrics.
+name: <string>
+
 # Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor
 #  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
 attributes: [attributes.config]
@@ -1866,6 +1991,9 @@ attributes: [attributes.config]
 push_config:
   # host:port to send traces to
   endpoint: <string>
+
+  # Controls whether compression is enabled.
+  [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
 
   # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
   [ insecure: <boolean> | default = false ]
@@ -1927,6 +2055,9 @@ agent:
   # prometheus.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
   # Allows for relabeling labels on the target.
   relabel_configs:
     [- <relabel_config> ... ]
@@ -1935,6 +2066,11 @@ agent:
   # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
+
+# Client TLS Configuration
+# Client Cert/Key Values need to be defined if the server is requesting a certificate
+#  (Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert).
+http_tls_config: <tls_config>
 
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
@@ -1950,6 +2086,9 @@ redis_exporter: <redis_exporter_config>
 
 # Controls the dnsmasq_exporter integration
 dnsmasq_exporter: <dnsmasq_exporter_config>
+
+# Controls the elasticsearch_expoter integration
+elasticsearch_expoter: <elasticsearch_expoter_config>
 
 # Controls the memcached_exporter integration
 memcached_exporter: <memcached_exporter_config>
@@ -2026,7 +2165,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.9.1 \
+  grafana/agent:v0.13.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2066,7 +2205,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.9.1
+  - image: grafana/agent:v0.13.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -2193,6 +2332,9 @@ the Agent is running on is a no-op.
   # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <boolean> | default = false]
@@ -2332,7 +2474,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.9.1 \
+  grafana/agent:v0.13.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2349,7 +2491,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.9.1
+  - image: grafana/agent:v0.13.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -2407,6 +2549,9 @@ Full reference of options:
   # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # procfs mountpoint.
   [procfs_path: <string> | default = "/proc"]
@@ -2530,6 +2675,9 @@ Full reference of options:
   # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Data Source Name specifies the MySQL server to connect to. This is REQUIRED
   # but may also be specified by the MYSQLD_EXPORTER_DATA_SOURCE_NAME
@@ -2672,6 +2820,9 @@ Full reference of options:
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
 
@@ -2698,6 +2849,18 @@ Full reference of options:
 
   # Comma separated list of key-patterns to export value and length/size, searched for with SCAN.
   [check_keys: <string>]
+
+  # Comma separated list of LUA regex for grouping keys. When unset, no key
+  # groups will be made.
+  [check_key_groups: <string>]
+
+  # Check key groups batch size hint for the underlying SCAN.
+  [check_key_groups_batch_size: <int> | default = 10000]
+
+  # The maximum number of distinct key groups with the most memory utilization
+  # to present as distinct metrics per database. The leftover key groups will be
+  # aggregated in the 'overflow' bucket.
+  [max_distinct_key_groups: <int> | default = 100]
 
   # Comma separated list of single keys to export value and length/size.
   [check_single_keys: <string>]
@@ -2734,6 +2897,10 @@ Full reference of options:
 
   # Whether to scrape Client List specific metrics.
   [export_client_list: <bool>]
+
+  # Whether to include the client's port when exporting the client list. Note
+  # that including this will increase the cardinality of all redis metrics.
+  [export_client_port: <bool>]
 
   # Whether to also export go runtime metrics.
   [redis_metrics_only: <bool>]
@@ -2801,6 +2968,9 @@ Full reference of options:
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
 
@@ -2814,6 +2984,100 @@ Full reference of options:
   # Path to the dnsmasq leases file. If this file doesn't exist, scraping
   # dnsmasq # will fail with an warning log message.
   [leases_path: <string> | default = "/var/lib/misc/dnsmasq.leases"]
+```
+
+### elasticsearch_exporter_config
+
+The `elasticsearch_exporter_config` block configures the `elasticsearch_exporter` integration,
+which is an embedded version of
+[`elasticsearch_exporter`](https://github.com/justwatchcom/elasticsearch_exporter). This allows for
+the collection of metrics from ElasticSearch servers.
+
+Note that currently, an Agent can only collect metrics from a single ElasticSearch server.
+However, the exporter is able to collect the metrics from all nodes through that server configured.
+
+Full reference of options:
+
+```yaml
+  # Enables the elasticsearch_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the configured ElasticSearch server address
+  [enabled: <boolean> | default = false]
+
+  # Automatically collect metrics from this integration. If disabled,
+  # the elasticsearch_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/elasticsearch_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  #
+  # Exporter-specific configuration options
+  #
+
+  # HTTP API address of an Elasticsearch node.
+  [ address : <string> | default = "http://localhost:9200" ]
+
+  # Timeout for trying to get stats from Elasticsearch.
+  [ timeout: <duration> | default = "5s" ]
+
+  # Export stats for all nodes in the cluster. If used, this flag will override the flag `node`.
+  [ all: <boolean> ]
+
+  # Node's name of which metrics should be exposed.
+  [ node: <boolean> ]
+
+  # Export stats for indices in the cluster.
+  [ indices: <boolean> ]
+
+  # Export stats for settings of all indices of the cluster.
+  [ indices_settings: <boolean> ]
+
+  # Export stats for cluster settings.
+  [ cluster_settings: <boolean> ]
+
+  # Export stats for shards in the cluster (implies indices).
+  [ shards: <boolean> ]
+
+  # Export stats for the cluster snapshots.
+  [ snapshots: <boolean> ]
+
+  # Cluster info update interval for the cluster label.
+  [ clusterinfo_interval: <duration> | default = "5m" ]
+
+  # Path to PEM file that contains trusted Certificate Authorities for the Elasticsearch connection.
+  [ ca: <string> ]
+
+  # Path to PEM file that contains the private key for client auth when connecting to Elasticsearch.
+  [ client_private_key: <string> ]
+
+  # Path to PEM file that contains the corresponding cert for the private key to connect to Elasticsearch.
+  [ client_cert: <string> ]
+
+  # Skip SSL verification when connecting to Elasticsearch.
+  [ ssl_skip_verify: <boolean> ]
 ```
 
 ### memcached_exporter_config
@@ -2869,6 +3133,9 @@ Full reference of options:
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
 
@@ -2921,6 +3188,9 @@ Full reference of options:
   metric_relabel_configs:
     [ - <relabel_config> ... ]
 
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
 
@@ -2954,6 +3224,14 @@ Full reference of options:
   # is true.
   exclude_databases:
   [ - <string> ]
+
+  # Path to a YAML file containing custom queries to run. Check out
+  # postgres_exporter's queries.yaml for examples of the format:
+  # https://github.com/prometheus-community/postgres_exporter/blob/master/queries.yaml
+  [query_path: <string> | default = ""]
+
+  # When true, only exposes metrics supplied from query_path.
+  [disable_default_metrics: <boolean> | default = false]
 ```
 
 ### statsd_exporter_config
@@ -2993,6 +3271,9 @@ Full reference of options:
   # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
@@ -3096,6 +3377,9 @@ Full reference of options:
   # from the integration that you don't care about.
   metric_relabel_configs:
     [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
