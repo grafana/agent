@@ -22,6 +22,7 @@ import (
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/prom/instance/configstore"
 	flagutil "github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -115,7 +116,7 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 
 	kvClient, err := kv.NewClient(
 		cfg.KVStore,
-		GetCodec(),
+		configstore.GetCodec(),
 		kv.RegistererWithKVName(reg, "agent_configs"),
 	)
 	if err != nil {

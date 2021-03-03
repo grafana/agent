@@ -9,6 +9,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring/kv/consul"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/agentproto"
+	"github.com/grafana/agent/pkg/prom/instance/configstore"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +19,7 @@ func TestServer_Reshard(t *testing.T) {
 	//	- All configs not in the store but in the existing InstanceManager should be deleted
 	fakeIm := newFakeInstanceManager()
 
-	mockKv := consul.NewInMemoryClient(GetCodec())
+	mockKv := consul.NewInMemoryClient(configstore.GetCodec())
 	for _, name := range []string{"keep_a", "keep_b", "new_a", "new_b"} {
 		err := mockKv.CAS(context.Background(), name, func(in interface{}) (out interface{}, retry bool, err error) {
 			return testConfig(t, name), true, nil
@@ -69,7 +70,7 @@ func TestServer_Ownership(t *testing.T) {
 	//	- All configs not in the store but in the existing InstanceManager should be deleted
 	fakeIm := newFakeInstanceManager()
 
-	mockKv := consul.NewInMemoryClient(GetCodec())
+	mockKv := consul.NewInMemoryClient(configstore.GetCodec())
 	for _, name := range []string{"owned", "unowned"} {
 		err := mockKv.CAS(context.Background(), name, func(in interface{}) (out interface{}, retry bool, err error) {
 			return testConfig(t, name), true, nil

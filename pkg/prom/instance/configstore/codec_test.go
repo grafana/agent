@@ -1,4 +1,4 @@
-package ha
+package configstore
 
 import (
 	"testing"
