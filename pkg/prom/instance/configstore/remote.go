@@ -3,7 +3,6 @@ package configstore
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -18,7 +18,7 @@ import (
 // can be swapped out in real time.
 type Remote struct {
 	log log.Logger
-	reg prometheus.Registerer
+	reg *util.Unregisterer
 
 	kvMut    sync.RWMutex
 	kv       kv.Client
@@ -28,22 +28,22 @@ type Remote struct {
 	cancelFunc context.CancelFunc
 
 	configsMut sync.Mutex
-	configs    map[string]instance.Config
-	configsCh  chan []instance.Config
+	configsCh  chan WatchEvent
 }
 
 func NewRemote(l log.Logger, reg prometheus.Registerer, cfg kv.Config) (*Remote, error) {
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
 
 	r := &Remote{
-		log:       l,
-		reg:       reg,
-		configsCh: make(chan []instance.Config),
+		log: l,
+		reg: util.WrapWithUnregisterer(reg),
 
 		reloadKV: make(chan struct{}, 1),
 
 		cancelCtx:  cancelCtx,
 		cancelFunc: cancelFunc,
+
+		configsCh: make(chan WatchEvent),
 	}
 	if err := r.ApplyConfig(cfg); err != nil {
 		return nil, fmt.Errorf("failed to apply config for config store: %w", err)
@@ -61,6 +61,9 @@ func (r *Remote) ApplyConfig(cfg kv.Config) error {
 	if r.cancelCtx.Err() != nil {
 		return fmt.Errorf("remote store already stopped")
 	}
+
+	// Unregister all metrics that the previous kv may have registered.
+	r.reg.UnregisterAll()
 
 	cli, err := kv.NewClient(cfg, GetCodec(), r.reg)
 	if err != nil {
@@ -124,7 +127,7 @@ func (r *Remote) watchKV(ctx context.Context, client kv.Client) {
 
 		switch {
 		case v == nil:
-			delete(r.configs, key)
+			r.configsCh <- WatchEvent{Key: key, Config: nil}
 		default:
 			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
 			if err != nil {
@@ -132,23 +135,11 @@ func (r *Remote) watchKV(ctx context.Context, client kv.Client) {
 				break
 			}
 
-			r.configs[key] = *cfg
+			r.configsCh <- WatchEvent{Key: key, Config: cfg}
 		}
 
-		r.configsCh <- r.computeConfigs()
 		return true
 	})
-}
-
-func (r *Remote) computeConfigs() []instance.Config {
-	cfgs := make([]instance.Config, 0, len(r.configs))
-	for _, cfg := range r.configs {
-		cfgs = append(cfgs, cfg)
-	}
-	sort.Slice(cfgs, func(i, j int) bool {
-		return cfgs[i].Name < cfgs[j].Name
-	})
-	return cfgs
 }
 
 func (r *Remote) List(ctx context.Context) ([]string, error) {
@@ -201,7 +192,7 @@ func (r *Remote) Put(ctx context.Context, c instance.Config) (bool, error) {
 		return false, fmt.Errorf("failed to check validity of config: %w", err)
 	}
 	if err := checkUnique(cfgCh, &c); err != nil {
-		return false, fmt.Errorf("failed to check validity of config: %w", err)
+		return false, fmt.Errorf("failed to check uniqueness of config: %w", err)
 	}
 
 	var created bool
@@ -261,8 +252,18 @@ func (r *Remote) all(ctx context.Context, keep func(key string) bool) (<-chan in
 	}
 
 	ch := make(chan instance.Config)
+
+	var wg sync.WaitGroup
+	wg.Add(len(keys))
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
 	for _, key := range keys {
 		go func(key string) {
+			defer wg.Done()
+
 			if keep != nil && !keep(key) {
 				level.Debug(r.log).Log("msg", "skipping key that was filtered out", "key", key)
 				return
@@ -292,7 +293,7 @@ func (r *Remote) all(ctx context.Context, keep func(key string) bool) (<-chan in
 }
 
 // Watch watches the Store for changes.
-func (r *Remote) Watch() <-chan []instance.Config {
+func (r *Remote) Watch() <-chan WatchEvent {
 	return r.configsCh
 }
 
