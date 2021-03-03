@@ -110,6 +110,7 @@ Outer:
 func (r *Remote) watchKV(ctx context.Context, client kv.Client) {
 	// Edge case: client was unset, nothing to do here.
 	if client == nil {
+		level.Info(r.log).Log("msg", "not watching the KV, none set")
 		return
 	}
 
