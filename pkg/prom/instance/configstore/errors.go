@@ -23,5 +23,5 @@ type NotUniqueError struct {
 
 // Error implements error.
 func (e NotUniqueError) Error() string {
-	return fmt.Sprintf("found multiple scrape configs with job name %q", e.ScrapeJob)
+	return fmt.Sprintf("found multiple scrape configs in config store with job name %q", e.ScrapeJob)
 }
