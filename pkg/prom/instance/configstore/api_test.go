@@ -267,7 +267,7 @@ type mockStore struct {
 	PutFunc    func(ctx context.Context, c instance.Config) (created bool, err error)
 	DeleteFunc func(ctx context.Context, key string) error
 	AllFunc    func(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error)
-	WatchFunc  func() <-chan []instance.Config
+	WatchFunc  func() <-chan WatchEvent
 	CloseFunc  func() error
 }
 
@@ -306,7 +306,7 @@ func (s *mockStore) All(ctx context.Context, keep func(key string) bool) (<-chan
 	panic("All not implemented")
 }
 
-func (s *mockStore) Watch() <-chan []instance.Config {
+func (s *mockStore) Watch() <-chan WatchEvent {
 	if s.WatchFunc != nil {
 		return s.WatchFunc()
 	}
