@@ -29,12 +29,21 @@ type Store interface {
 	// configs, which can significantly speed up the operation in some cases.
 	All(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error)
 
-	// Watch watches for new instance Configs. The entire set of known
-	// instance configs is returned each time.
-	//
+	// Watch watches for changed instance Configs.
 	// All callers of Watch receive the same Channel.
-	Watch() <-chan []instance.Config
+	//
+	// It is not guaranteed that Watch will emit all store events, and Watch
+	// should only be used for best-effort quick convergence with the remote
+	// store. Watch should always be paired with polling All.
+	Watch() <-chan WatchEvent
 
 	// Close closes the store.
 	Close() error
+}
+
+// WatchEvent is returned by Watch. The Key is the name of the config that was
+// added, updated, or deleted. If the Config was deleted, Config will be nil.
+type WatchEvent struct {
+	Key    string
+	Config *instance.Config
 }
