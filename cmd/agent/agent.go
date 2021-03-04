@@ -35,7 +35,7 @@ type AgentServer struct {
 	srv         *server.Server
 }
 
-func NewAgent(logger log.Logger, cfg *config.Config) *AgentServer {
+func NewAgentServer(logger log.Logger, cfg *config.Config) *AgentServer {
 	var (
 		promMetrics *prom.Agent
 		lokiLogs    *loki.Loki

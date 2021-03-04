@@ -34,7 +34,7 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
-	srv := NewAgent(logger, cfg)
+	srv := NewAgentServer(logger, cfg)
 	// Kick off the server in the background so that we can respond to status queries
 	go srv.srv.Run()
 	// Pause is not accepted

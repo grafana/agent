@@ -26,8 +26,6 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   stored along with the global Prometheus defaults. This is done to allow
   globals to be updated and re-apply the new global defaults to the configs from
   the Config Store. (@rfratto)
-  
-
 
 # v0.13.0 (2021-02-25)
 
