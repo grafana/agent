@@ -7,5 +7,4 @@ func IsWindowService() bool {
 }
 
 func RunService() {
-	return
 }

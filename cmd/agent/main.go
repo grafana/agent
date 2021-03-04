@@ -2,17 +2,19 @@ package main
 
 import (
 	"flag"
+	"log"
+	"os"
+
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/config"
-	"log"
-	"os"
 
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
+
 	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
 

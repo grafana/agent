@@ -35,7 +35,7 @@ type AgentServer struct {
 	srv         *server.Server
 }
 
-func NewAgent(logger log.Logger, cfg *config.Config) (*AgentServer, error) {
+func NewAgent(logger log.Logger, cfg *config.Config) *AgentServer {
 	var (
 		promMetrics *prom.Agent
 		lokiLogs    *loki.Loki
@@ -105,7 +105,7 @@ func NewAgent(logger log.Logger, cfg *config.Config) (*AgentServer, error) {
 		tempoTraces: tempoTraces,
 		manager:     manager,
 		srv:         srv,
-	}, nil
+	}
 
 }
 
