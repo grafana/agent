@@ -2,7 +2,7 @@
 
 package main
 
-func IsWindowService() bool {
+func IsWindowsService() bool {
 	return false
 }
 

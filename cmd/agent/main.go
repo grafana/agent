@@ -28,7 +28,7 @@ func init() {
 
 func main() {
 	// If this is a windows service then run it until if finishes
-	if IsWindowService() {
+	if IsWindowsService() {
 		RunService()
 		return
 	}
@@ -44,7 +44,11 @@ func main() {
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
-	srv := NewAgentServer(logger, cfg)
+	srv, err := NewAgentServer(logger, cfg)
+	if err != nil {
+		level.Error(logger).Log("msg", "error creating the agent", "err", err)
+		os.Exit(1)
+	}
 	if err := srv.srv.Run(); err != nil {
 		level.Error(logger).Log("msg", "error running agent", "err", err)
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics

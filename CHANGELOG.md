@@ -8,13 +8,13 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   `agent-darwin-arm64` and `agentctl-darwin-arm64` in the release assets.
   (@rfratto)
 
+- [FEATURE] Add support for running as a Windows service (@mattdurham)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
 
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
-
-- [ENHANCEMENT] Add support for running as a windows service (@mattdurham)
 
 - [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
   to the WAL. (@rfratto)

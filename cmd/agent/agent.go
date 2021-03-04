@@ -3,10 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
-
 	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
 
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
@@ -17,12 +14,6 @@ import (
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/server"
-
-	// Register Prometheus SD components
-	_ "github.com/prometheus/prometheus/discovery/install"
-
-	// Register integrations
-	_ "github.com/grafana/agent/pkg/integrations/install"
 
 	"github.com/go-kit/kit/log"
 )
@@ -35,7 +26,7 @@ type AgentServer struct {
 	srv         *server.Server
 }
 
-func NewAgentServer(logger log.Logger, cfg *config.Config) *AgentServer {
+func NewAgentServer(logger log.Logger, cfg *config.Config) (*AgentServer, error) {
 	var (
 		promMetrics *prom.Agent
 		lokiLogs    *loki.Loki
@@ -46,14 +37,14 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) *AgentServer {
 	srv, err := server.New(cfg.Server)
 	if err != nil {
 		level.Error(logger).Log("msg", "failed to create server", "err", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	if cfg.Prometheus.Enabled {
 		promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
 		if err != nil {
 			level.Error(logger).Log("msg", "failed to create prometheus instance", "err", err)
-			os.Exit(1)
+			return nil, err
 		}
 
 		// Hook up API paths to the router
@@ -65,7 +56,7 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) *AgentServer {
 		lokiLogs, err = loki.New(prometheus.DefaultRegisterer, cfg.Loki, logger)
 		if err != nil {
 			level.Error(logger).Log("msg", "failed to create loki log collection instance", "err", err)
-			os.Exit(1)
+			return nil, err
 		}
 	}
 
@@ -73,7 +64,7 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) *AgentServer {
 		tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel)
 		if err != nil {
 			level.Error(logger).Log("msg", "failed to create tempo trace collection instance", "err", err)
-			os.Exit(1)
+			return nil, err
 		}
 	}
 
@@ -81,12 +72,12 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) *AgentServer {
 		manager, err = integrations.NewManager(cfg.Integrations, logger, promMetrics.InstanceManager())
 		if err != nil {
 			level.Error(logger).Log("msg", "failed to create integrations manager", "err", err)
-			os.Exit(1)
+			return nil, err
 		}
 
 		if err := manager.WireAPI(srv.HTTP); err != nil {
 			level.Error(logger).Log("msg", "failed wiring endpoints for integrations", "err", err)
-			os.Exit(1)
+			return nil, err
 		}
 	}
 
@@ -105,7 +96,7 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) *AgentServer {
 		tempoTraces: tempoTraces,
 		manager:     manager,
 		srv:         srv,
-	}
+	}, nil
 
 }
 

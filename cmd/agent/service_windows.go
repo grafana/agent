@@ -5,6 +5,7 @@ package main
 import (
 	"flag"
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/config"
 	"log"
 	"os"
@@ -24,7 +25,7 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	// Executable name and any command line parameters will be placed into os.args, this comes from
 	// registry key `Computer\HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\<servicename>\ImagePath`
 	// oddly enough args is blank
-	fs := flag.NewFlagSet(args[0], flag.ExitOnError)
+	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	cfg, err := config.Load(fs, os.Args[1:])
 	if err != nil {
 		log.Fatalln(err)
@@ -33,7 +34,11 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
-	srv := NewAgentServer(logger, cfg)
+	srv, err := NewAgentServer(logger, cfg)
+	if err != nil {
+		level.Error(logger).Log("msg", "error starting agent", "err", err)
+		os.Exit(1)
+	}
 	// Kick off the server in the background so that we can respond to status queries
 	go srv.srv.Run()
 	// Pause is not accepted
@@ -63,7 +68,7 @@ loop:
 	return
 }
 
-func IsWindowService() bool {
+func IsWindowsService() bool {
 	inService, err := svc.IsWindowsService()
 	if inService == false || err != nil {
 		return false
@@ -71,11 +76,6 @@ func IsWindowService() bool {
 	return true
 }
 
-func RunService() {
-	run := svc.Run
-	service := &AgentService{}
-	err := run(ServiceName, service)
-	if err != nil {
-		return
-	}
+func RunService() error {
+	return svc.Run(ServiceName, &AgentService{})
 }
