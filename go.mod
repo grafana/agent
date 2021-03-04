@@ -1,6 +1,6 @@
 module github.com/grafana/agent
 
-go 1.16
+go 1.15
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
