@@ -16,8 +16,7 @@ import (
 const ServiceName = "Grafana Cloud Agent"
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
-type AgentService struct {
-}
+type AgentService struct{}
 
 func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	changes <- svc.Status{State: svc.StartPending}
