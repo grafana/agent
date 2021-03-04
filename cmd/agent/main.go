@@ -43,7 +43,7 @@ func main() {
 	// After this point we can use util_log.Logger and stop using the log package
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
-	srv, _ := NewAgent(logger, cfg)
+	srv := NewAgent(logger, cfg)
 	if err := srv.srv.Run(); err != nil {
 		level.Error(logger).Log("msg", "error running agent", "err", err)
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
