@@ -12,7 +12,7 @@ will get easier once installer is finished.
 
 ### Logs
 
-Currently log messages are not recorded, there will be future work to write to the Windows Event Log.
+Currently, log messages are not recorded, there will be future work to write to the Windows Event Log.
 
 
 
