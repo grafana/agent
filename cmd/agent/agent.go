@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+
 	// Adds version information
 
 	"github.com/grafana/agent/pkg/integrations"
