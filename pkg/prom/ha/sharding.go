@@ -4,7 +4,6 @@ import (
 	"context"
 	"hash/fnv"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
@@ -37,14 +36,21 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 		discoveredConfigs = map[string]struct{}{}
 	)
 
-	configCh, err := s.AllConfigs(ctx)
+	configCh, err := s.store.All(ctx, func(key string) bool {
+		owns, err := s.owns(key)
+		if err != nil {
+			level.Error(s.logger).Log("msg", "failed to detect if key was owned", "key", key, "err", err)
+			return false
+		}
+		return owns
+	})
 	if err != nil {
 		level.Error(s.logger).Log("msg", "failed getting config list when resharding", "err", err)
 		return nil, err
 	}
 	for ch := range configCh {
-		if s.applyConfig(ch.Key, ch.Value) {
-			discoveredConfigs[ch.Key] = struct{}{}
+		if s.applyConfig(ch.Name, &ch) {
+			discoveredConfigs[ch.Name] = struct{}{}
 		}
 	}
 
@@ -67,59 +73,6 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 	s.configs = discoveredConfigs
 
 	return &empty.Empty{}, nil
-}
-
-// AllConfigs gets all configs known to the KV store.
-func (s *Server) AllConfigs(ctx context.Context) (<-chan ConfigEntry, error) {
-	keys, err := s.kv.List(ctx, "")
-	if err != nil {
-		return nil, err
-	}
-
-	ch := make(chan ConfigEntry)
-
-	var wg sync.WaitGroup
-	wg.Add(len(keys))
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	for _, key := range keys {
-		go func(key string) {
-			defer wg.Done()
-
-			owns, err := s.owns(key)
-			if err != nil {
-				level.Error(s.logger).Log("msg", "failed to detect if key was owned", "key", key, "err", err)
-				return
-			} else if !owns {
-				// Unowned key, ignore it.
-				return
-			}
-
-			// TODO(rfratto): retries might be useful here
-			v, err := s.kv.Get(ctx, key)
-			if err != nil {
-				level.Error(s.logger).Log("msg", "failed to get config with key", "key", key, "err", err)
-				return
-			} else if v == nil {
-				level.Warn(s.logger).Log("skipping key that was deleted after list was called", "key", key)
-				return
-			}
-
-			ch <- ConfigEntry{Key: key, Value: v.(string)}
-		}(key)
-	}
-	return ch, nil
-}
-
-type ConfigEntry struct {
-	// Key of the config
-	Key string
-
-	// Contents of the config
-	Value string
 }
 
 // owns checks to see if a config name is owned by this Server. owns will
