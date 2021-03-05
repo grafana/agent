@@ -47,22 +47,16 @@ func main() {
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
-	srv, err := NewEntryPoint(logger, cfg)
+	ep, err := NewEntryPoint(logger, cfg)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 		os.Exit(1)
 	}
-	exit := make(chan error)
-	go func() {
-		err := srv.Start()
-		exit <- err
-	}()
-	err = <-exit
-	if err != nil {
+	if err = ep.Start(); err != nil {
 		level.Error(logger).Log("msg", "error running agent", "err", err)
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}
 
-	srv.Stop()
+	ep.Stop()
 	level.Info(logger).Log("msg", "agent exiting")
 }

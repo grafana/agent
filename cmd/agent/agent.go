@@ -16,7 +16,7 @@ import (
 	"github.com/go-kit/kit/log"
 )
 
-type EntryPoint struct {
+type Entrypoint struct {
 	promMetrics *prom.Agent
 	lokiLogs    *loki.Loki
 	tempoTraces *tempo.Tempo
@@ -24,7 +24,7 @@ type EntryPoint struct {
 	srv         *server.Server
 }
 
-func NewEntryPoint(logger log.Logger, cfg *config.Config) (*EntryPoint, error) {
+func NewEntryPoint(logger log.Logger, cfg *config.Config) (*Entrypoint, error) {
 	var (
 		promMetrics *prom.Agent
 		lokiLogs    *loki.Loki
@@ -84,7 +84,7 @@ func NewEntryPoint(logger log.Logger, cfg *config.Config) (*EntryPoint, error) {
 		fmt.Fprintf(w, "Agent is Ready.\n")
 	})
 
-	return &EntryPoint{
+	return &Entrypoint{
 		promMetrics: promMetrics,
 		lokiLogs:    lokiLogs,
 		tempoTraces: tempoTraces,
@@ -94,7 +94,7 @@ func NewEntryPoint(logger log.Logger, cfg *config.Config) (*EntryPoint, error) {
 
 }
 
-func (srv *EntryPoint) Stop() {
+func (srv *Entrypoint) Stop() {
 	// Stop enabled subsystems
 	if srv.manager != nil {
 		srv.manager.Stop()
@@ -110,6 +110,6 @@ func (srv *EntryPoint) Stop() {
 	}
 }
 
-func (srv *EntryPoint) Start() error {
+func (srv *Entrypoint) Start() error {
 	return srv.srv.Run()
 }

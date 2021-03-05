@@ -34,16 +34,15 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
-	srv, err := NewEntryPoint(logger, cfg)
+	ep, err := NewEntryPoint(logger, cfg)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 		os.Exit(1)
 	}
-	exit := make(chan error)
+	entrypointExit := make(chan error)
 	// Kick off the server in the background so that we can respond to status queries
 	go func() {
-		err := srv.Start()
-		exit <- err
+		entrypointExit <- ep.Start()
 	}()
 	// Pause is not accepted
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
@@ -55,17 +54,17 @@ loop:
 			case svc.Interrogate:
 				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
-				srv.Stop()
+				ep.Stop()
 				break loop
 			case svc.Pause:
 			case svc.Continue:
 			default:
-				srv.Stop()
+				ep.Stop()
 				break loop
 			}
-		case err := <-exit:
+		case err := <-entrypointExit:
 			level.Error(logger).Log("msg", "error while running agent server entrypoint", "err", err)
-			srv.Stop()
+			ep.Stop()
 			break loop
 		}
 	}
@@ -74,11 +73,11 @@ loop:
 }
 
 func IsWindowsService() bool {
-	inService, err := svc.IsWindowsService()
-	if inService == false || err != nil {
+	isService, err := svc.IsWindowsService()
+	if err != nil {
 		return false
 	}
-	return true
+	return isService
 }
 
 func RunService() error {
