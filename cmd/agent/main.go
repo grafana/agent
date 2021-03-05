@@ -53,7 +53,10 @@ func main() {
 		os.Exit(1)
 	}
 	exit := make(chan error)
-	go srv.Start(exit)
+	go func() {
+		err := srv.Start()
+		exit <- err
+	}()
 	err = <-exit
 	if err != nil {
 		level.Error(logger).Log("msg", "error running agent", "err", err)
