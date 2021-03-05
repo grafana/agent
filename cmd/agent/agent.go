@@ -110,6 +110,6 @@ func (srv *EntryPoint) Stop() {
 	}
 }
 
-func (srv *EntryPoint) Start(exit chan error) {
-	exit <- srv.srv.Run()
+func (srv *EntryPoint) Start() error {
+	return srv.srv.Run()
 }

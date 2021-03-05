@@ -6,7 +6,6 @@ import (
 	"flag"
 	"log"
 	"os"
-	"time"
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log/level"
@@ -42,7 +41,10 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	}
 	exit := make(chan error)
 	// Kick off the server in the background so that we can respond to status queries
-	go srv.Start(exit)
+	go func() {
+		err := srv.Start()
+		exit <- err
+	}()
 	// Pause is not accepted
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 loop:
@@ -51,9 +53,6 @@ loop:
 		case c := <-serviceRequests:
 			switch c.Cmd {
 			case svc.Interrogate:
-				changes <- c.CurrentStatus
-				// Testing deadlock from https://code.google.com/p/winsvc/issues/detail?id=4
-				time.Sleep(100 * time.Millisecond)
 				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
 				srv.Stop()
