@@ -8,6 +8,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   `agent-darwin-arm64` and `agentctl-darwin-arm64` in the release assets.
   (@rfratto)
 
+- [FEATURE] Add support for running as a Windows service (@mattdurham)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
