@@ -89,6 +89,7 @@ type Server struct {
 	cfg          Config
 	clientConfig client.Config
 	globalConfig *config.GlobalConfig
+	reg          prometheus.Registerer
 	logger       log.Logger
 	addr         string
 
@@ -144,6 +145,7 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 
 	logger = log.With(logger, "component", "ha")
 	s := newServer(
+		reg,
 		cfg,
 		globalConfig,
 		clientConfig,
@@ -181,13 +183,14 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*rin
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
-func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, store configstore.Store, stopFunc func() error, defaultRemoteWrite []*instance.RemoteWriteConfig) *Server {
+func newServer(reg prometheus.Registerer, cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, store configstore.Store, stopFunc func() error, defaultRemoteWrite []*instance.RemoteWriteConfig) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &Server{
 		cfg:          cfg,
 		globalConfig: globalCfg,
 		clientConfig: clientCfg,
+		reg:          reg,
 		logger:       log,
 		addr:         addr,
 
@@ -424,6 +427,7 @@ func (s *Server) WireAPI(r *mux.Router) {
 	storeAPI := configstore.NewAPI(s.logger, s.store, func(c *instance.Config) error {
 		return c.ApplyDefaults(s.globalConfig, s.defaultRemoteWrite)
 	})
+	s.reg.MustRegister(storeAPI)
 	storeAPI.WireAPI(r)
 
 	// Debug ring page
