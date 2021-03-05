@@ -6,5 +6,6 @@ func IsWindowsService() bool {
 	return false
 }
 
-func RunService() {
+func RunService() error {
+	return nil
 }

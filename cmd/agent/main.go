@@ -29,7 +29,10 @@ func init() {
 func main() {
 	// If this is a windows service then run it until if finishes
 	if IsWindowsService() {
-		RunService()
+		err := RunService()
+		if err != nil {
+			log.Fatalln(err)
+		}
 		return
 	}
 
@@ -44,12 +47,15 @@ func main() {
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
-	srv, err := NewAgentServer(logger, cfg)
+	srv, err := NewEntryPoint(logger, cfg)
 	if err != nil {
-		level.Error(logger).Log("msg", "error creating the agent", "err", err)
+		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 		os.Exit(1)
 	}
-	if err := srv.srv.Run(); err != nil {
+	exit := make(chan error)
+	go srv.Start(exit)
+	err = <-exit
+	if err != nil {
 		level.Error(logger).Log("msg", "error running agent", "err", err)
 		// Don't os.Exit here; we want to do cleanup by stopping promMetrics
 	}

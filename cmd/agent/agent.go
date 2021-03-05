@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	// Adds version information
-
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/tempo"
 
-	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/prometheus/client_golang/prometheus"
@@ -19,7 +16,7 @@ import (
 	"github.com/go-kit/kit/log"
 )
 
-type AgentServer struct {
+type EntryPoint struct {
 	promMetrics *prom.Agent
 	lokiLogs    *loki.Loki
 	tempoTraces *tempo.Tempo
@@ -27,7 +24,7 @@ type AgentServer struct {
 	srv         *server.Server
 }
 
-func NewAgentServer(logger log.Logger, cfg *config.Config) (*AgentServer, error) {
+func NewEntryPoint(logger log.Logger, cfg *config.Config) (*EntryPoint, error) {
 	var (
 		promMetrics *prom.Agent
 		lokiLogs    *loki.Loki
@@ -37,14 +34,12 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) (*AgentServer, error)
 
 	srv, err := server.New(cfg.Server)
 	if err != nil {
-		level.Error(logger).Log("msg", "failed to create server", "err", err)
 		return nil, err
 	}
 
 	if cfg.Prometheus.Enabled {
 		promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
 		if err != nil {
-			level.Error(logger).Log("msg", "failed to create prometheus instance", "err", err)
 			return nil, err
 		}
 
@@ -56,7 +51,6 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) (*AgentServer, error)
 	if cfg.Loki.Enabled {
 		lokiLogs, err = loki.New(prometheus.DefaultRegisterer, cfg.Loki, logger)
 		if err != nil {
-			level.Error(logger).Log("msg", "failed to create loki log collection instance", "err", err)
 			return nil, err
 		}
 	}
@@ -64,7 +58,6 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) (*AgentServer, error)
 	if cfg.Tempo.Enabled {
 		tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel)
 		if err != nil {
-			level.Error(logger).Log("msg", "failed to create tempo trace collection instance", "err", err)
 			return nil, err
 		}
 	}
@@ -72,13 +65,13 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) (*AgentServer, error)
 	if cfg.Integrations.Enabled {
 		manager, err = integrations.NewManager(cfg.Integrations, logger, promMetrics.InstanceManager())
 		if err != nil {
-			level.Error(logger).Log("msg", "failed to create integrations manager", "err", err)
 			return nil, err
+
 		}
 
 		if err := manager.WireAPI(srv.HTTP); err != nil {
-			level.Error(logger).Log("msg", "failed wiring endpoints for integrations", "err", err)
 			return nil, err
+
 		}
 	}
 
@@ -91,7 +84,7 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) (*AgentServer, error)
 		fmt.Fprintf(w, "Agent is Ready.\n")
 	})
 
-	return &AgentServer{
+	return &EntryPoint{
 		promMetrics: promMetrics,
 		lokiLogs:    lokiLogs,
 		tempoTraces: tempoTraces,
@@ -101,7 +94,7 @@ func NewAgentServer(logger log.Logger, cfg *config.Config) (*AgentServer, error)
 
 }
 
-func (srv *AgentServer) Stop() {
+func (srv *EntryPoint) Stop() {
 	// Stop enabled subsystems
 	if srv.manager != nil {
 		srv.manager.Stop()
@@ -115,4 +108,8 @@ func (srv *AgentServer) Stop() {
 	if srv.tempoTraces != nil {
 		srv.tempoTraces.Stop()
 	}
+}
+
+func (srv *EntryPoint) Start(exit chan error) {
+	exit <- srv.srv.Run()
 }

@@ -4,12 +4,13 @@ package main
 
 import (
 	"flag"
-	util_log "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/config"
 	"log"
 	"os"
 	"time"
+
+	util_log "github.com/cortexproject/cortex/pkg/util/log"
+	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/config"
 
 	"golang.org/x/sys/windows/svc"
 )
@@ -34,13 +35,14 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
-	srv, err := NewAgentServer(logger, cfg)
+	srv, err := NewEntryPoint(logger, cfg)
 	if err != nil {
-		level.Error(logger).Log("msg", "error starting agent", "err", err)
+		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 		os.Exit(1)
 	}
+	exit := make(chan error)
 	// Kick off the server in the background so that we can respond to status queries
-	go srv.srv.Run()
+	go srv.Start(exit)
 	// Pause is not accepted
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 loop:
@@ -62,6 +64,10 @@ loop:
 				srv.Stop()
 				break loop
 			}
+		case err := <-exit:
+			level.Error(logger).Log("msg", "error while running agent server entrypoint", "err", err)
+			srv.Stop()
+			break loop
 		}
 	}
 	changes <- svc.Status{State: svc.StopPending}
