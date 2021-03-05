@@ -20,7 +20,7 @@ import (
 )
 
 func TestAPI_ListConfigurations(t *testing.T) {
-	s := &mockStore{
+	s := &Mock{
 		ListFunc: func(ctx context.Context) ([]string, error) {
 			return []string{"a", "b", "c"}, nil
 		},
@@ -54,7 +54,7 @@ func TestAPI_ListConfigurations(t *testing.T) {
 }
 
 func TestAPI_GetConfiguration_Invalid(t *testing.T) {
-	s := &mockStore{
+	s := &Mock{
 		GetFunc: func(ctx context.Context, key string) (instance.Config, error) {
 			return instance.Config{}, NotExistError{Key: key}
 		},
@@ -86,7 +86,7 @@ func TestAPI_GetConfiguration_Invalid(t *testing.T) {
 }
 
 func TestAPI_GetConfiguration(t *testing.T) {
-	s := &mockStore{
+	s := &Mock{
 		GetFunc: func(ctx context.Context, key string) (instance.Config, error) {
 			return instance.Config{
 				Name:                key,
@@ -129,7 +129,7 @@ func TestAPI_GetConfiguration(t *testing.T) {
 }
 
 func TestServer_PutConfiguration(t *testing.T) {
-	var s mockStore
+	var s Mock
 
 	api := NewAPI(log.NewNopLogger(), &s, nil)
 	env := newAPITestEnvironment(t, api)
@@ -162,7 +162,7 @@ func TestServer_PutConfiguration(t *testing.T) {
 }
 
 func TestServer_PutConfiguration_Invalid(t *testing.T) {
-	var s mockStore
+	var s Mock
 
 	api := NewAPI(log.NewNopLogger(), &s, func(c *instance.Config) error {
 		return fmt.Errorf("custom validation error")
@@ -189,7 +189,7 @@ func TestServer_PutConfiguration_Invalid(t *testing.T) {
 }
 
 func TestServer_PutConfiguration_WithClient(t *testing.T) {
-	var s mockStore
+	var s Mock
 	api := NewAPI(log.NewNopLogger(), &s, nil)
 	env := newAPITestEnvironment(t, api)
 
@@ -209,7 +209,7 @@ func TestServer_PutConfiguration_WithClient(t *testing.T) {
 }
 
 func TestServer_DeleteConfiguration(t *testing.T) {
-	s := &mockStore{
+	s := &Mock{
 		DeleteFunc: func(ctx context.Context, key string) error {
 			assert.Equal(t, "deleteme", key)
 			return nil
@@ -233,7 +233,7 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 }
 
 func TestServer_URLEncoded(t *testing.T) {
-	var s mockStore
+	var s Mock
 
 	api := NewAPI(log.NewNopLogger(), &s, nil)
 	env := newAPITestEnvironment(t, api)
@@ -259,65 +259,6 @@ func TestServer_URLEncoded(t *testing.T) {
 	resp, err = http.Get(env.srv.URL + "/agent/api/v1/configs/url%2Fencoded")
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-}
-
-type mockStore struct {
-	ListFunc   func(ctx context.Context) ([]string, error)
-	GetFunc    func(ctx context.Context, key string) (instance.Config, error)
-	PutFunc    func(ctx context.Context, c instance.Config) (created bool, err error)
-	DeleteFunc func(ctx context.Context, key string) error
-	AllFunc    func(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error)
-	WatchFunc  func() <-chan WatchEvent
-	CloseFunc  func() error
-}
-
-func (s *mockStore) List(ctx context.Context) ([]string, error) {
-	if s.ListFunc != nil {
-		return s.ListFunc(ctx)
-	}
-	panic("List not implemented")
-}
-
-func (s *mockStore) Get(ctx context.Context, key string) (instance.Config, error) {
-	if s.GetFunc != nil {
-		return s.GetFunc(ctx, key)
-	}
-	panic("Get not implemented")
-}
-
-func (s *mockStore) Put(ctx context.Context, c instance.Config) (created bool, err error) {
-	if s.PutFunc != nil {
-		return s.PutFunc(ctx, c)
-	}
-	panic("Put not implemented")
-}
-
-func (s *mockStore) Delete(ctx context.Context, key string) error {
-	if s.DeleteFunc != nil {
-		return s.DeleteFunc(ctx, key)
-	}
-	panic("Delete not implemented")
-}
-
-func (s *mockStore) All(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error) {
-	if s.AllFunc != nil {
-		return s.AllFunc(ctx, keep)
-	}
-	panic("All not implemented")
-}
-
-func (s *mockStore) Watch() <-chan WatchEvent {
-	if s.WatchFunc != nil {
-		return s.WatchFunc()
-	}
-	panic("Watch not implemented")
-}
-
-func (s *mockStore) Close() error {
-	if s.CloseFunc != nil {
-		return s.CloseFunc()
-	}
-	panic("Close not implemented")
 }
 
 type apiTestEnvironment struct {
