@@ -32,11 +32,12 @@ you specify a default value or custom error text.
 To specify a default value, use:
 
 ```
-${VAR:default_value}
+${VAR:-default_value}
 ```
 
 Where default_value is the value to use if the environment variable is
-undefined.
+undefined. The full list of supported syntax can be found at Drone's 
+[envsubst repository](https://github.com/drone/envsubst).
 
 ## File Format
 
