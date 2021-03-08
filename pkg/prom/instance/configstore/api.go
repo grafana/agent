@@ -12,8 +12,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prom/ha/configapi"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/prom/instance/configstore/configapi"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/grafana/agent/pkg/prom/ha/configapi"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/prom/instance/configstore/configapi"
 	"gopkg.in/yaml.v2"
 )
 
