@@ -6,7 +6,7 @@ The quickest way to try out the Agent with a full Cortex, Grafana, and Agent
 stack is to check out this repository's [Docker-Compose Example](../example/docker-compose/README.md):
 
 ```
-# Clone the Grafana Cloud Agent repository
+# Clone the Grafana Agent repository
 git clone https://github.com/grafana/agent.git
 cd agent/example/docker-compose
 docker-compose up -d
@@ -21,7 +21,7 @@ cluster and Tanka is provided to deploy the Agent "normally" alongside a
 [Scraping Service](./scraping-service.md) deployment:
 
 ```
-# Clone the Grafana Cloud Agent repository
+# Clone the Grafana Agent repository
 git clone https://github.com/grafana/agent.git
 cd agent/example/k3d
 ./scripts/create.bash
@@ -52,7 +52,7 @@ docker pull grafana/agent:v0.13.0
 ### Kubernetes Install Script
 
 Running this script will automatically download and apply our recommended
-Grafana Cloud Agent Kubernetes deployment manifests (requires `envsubst` (GNU gettext)).
+Grafana Agent Kubernetes deployment manifests (requires `envsubst` (GNU gettext)).
 Two manifests will be installed: one for collecting metrics, and the other for
 collecting logs. You will be prompted for input for each manifest that is
 applied.
@@ -87,7 +87,7 @@ We provide [Tanka](https://tanka.dev) configurations in our [`production/`](/pro
 
 ## Creating a Config File
 
-The Grafana Cloud Agent supports configuring **integrations**, a
+The Grafana Agent supports configuring **integrations**, a
 **Prometheus-like** config, and a **Loki** config. All may coexist together
 within the same configuration file for the Agent.
 
@@ -100,8 +100,8 @@ Prometheus-like config.
 
 **Integrations** are subsystems that collect metrics for you. For example, the
 `agent` integration collects metrics from that running instance of the Grafana
-Cloud Agent. The `node_exporter` integration will collect metrics from the Linux
-machine that the Grafana Cloud Agent is running on.
+Agent. The `node_exporter` integration will collect metrics from the Linux
+machine that the Grafana Agent is running on.
 
 ```yaml
 prometheus:
@@ -157,7 +157,7 @@ prometheus:
         # PASTE remote_write SECTION HERE
 ```
 
-For example, this configuration file configures the Grafana Cloud Agent to
+For example, this configuration file configures the Grafana Agent to
 scrape itself without using the integration:
 
 ```yaml

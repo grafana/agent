@@ -3,7 +3,7 @@
 **STATUS**: Work in progress, use of these configs is not recommended for production.
 
 This directory contains the Tanka configs that we use to deploy the Grafana
-Cloud Agent. It is marked as `v1` and is incompatible with the `v0` configs
+Agent. It is marked as `v1` and is incompatible with the `v0` configs
 found in the [parent directory](../).
 
 This library is currently a work in progress and backwards-incompatible changes

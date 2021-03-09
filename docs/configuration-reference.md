@@ -1,7 +1,7 @@
 # Configuration Reference
 
-The Grafana Cloud Agent is configured in a YAML file (usually called
-`agent.yaml`) which contains information on the Grafana Cloud Agent and its
+The Grafana Agent is configured in a YAML file (usually called
+`agent.yaml`) which contains information on the Grafana Agent and its
 Prometheus instances.
 
 * [server_config](#server_config)
@@ -36,7 +36,7 @@ ${VAR:-default_value}
 ```
 
 Where default_value is the value to use if the environment variable is
-undefined. The full list of supported syntax can be found at Drone's 
+undefined. The full list of supported syntax can be found at Drone's
 [envsubst repository](https://github.com/drone/envsubst).
 
 ## File Format
@@ -179,7 +179,7 @@ configs:
 [instance_mode: <string> | default = "shared"]
 
 # A list of remote_write targets. This is the global remote write list, it will propagate to the other remote writes
-# if they are not defined. If they are defined then they will not be overwritten. 
+# if they are not defined. If they are defined then they will not be overwritten.
 remote_write:
   - [<remote_write>]
 ```

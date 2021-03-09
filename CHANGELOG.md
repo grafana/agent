@@ -27,6 +27,9 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
   globals to be updated and re-apply the new global defaults to the configs from
   the Config Store. (@rfratto)
 
+- [CHANGE] The User-Agent header sent for logs will now be
+  `GrafanaAgent/<version>` (@rfratto)
+
 # v0.13.0 (2021-02-25)
 
 The primary branch name has changed from `master` to `main`. You may have to
@@ -305,7 +308,7 @@ files to the new format.
 
 # v0.6.0 (2020-09-04)
 
-- [FEATURE] The Grafana Cloud Agent can now collect logs and send to Loki. This
+- [FEATURE] The Grafana Agent can now collect logs and send to Loki. This
   is done by embedding Promtail, the official Loki log collection client.
   (@rfratto)
 

@@ -1,32 +1,34 @@
 # Overview
 
-The Grafana Cloud Agent is an observability data collector optimized for sending
-metrics and log data to [Grafana Cloud](https://grafana.com/products/cloud).
+Grafana Agent is an observability data collector optimized for sending
+metrics, log and trace data to the opinionated Grafana Observability Stack
+(Grafana Loki for logs, Cortex for Prometheus metrics, and Grafana Tempo for
+traces).
 
 The Agent supports collecting Prometheus metrics and Loki logs, both utilizing
 the same battle-tested code from the official platforms.
 
 ## Metrics
 
-Unlike Prometheus, the Grafana Cloud Agent is _just_ targeting `remote_write`,
+Unlike Prometheus, the Grafana Agent is _just_ targeting `remote_write`,
 so some Prometheus features, such as querying, local storage, recording rules,
 and alerts aren't present. `remote_write`, service discovery, and relabeling
 rules are included.
 
-The Grafana Cloud Agent has a concept of an "instance", each of which acts as
+The Grafana Agent has a concept of an "instance", each of which acts as
 its own mini Prometheus agent with their own `scrape_configs` section and
 `remote_write` rules. More than one instance is useful when you want to have
 completely separated configs that write to two different locations without
 needing to worry about advanced metric relabeling rules. Multiple instances also
 come into play for the [Scraping Service Mode](./scraping-service.md).
 
-The Grafana Cloud Agent can be deployed in three modes:
+The Grafana Agent can be deployed in three modes:
 
 - Prometheus `remote_write` drop-in
 - [Host Filtering mode](#host-filtering)
 - [Scraping Service Mode](./scraping-service.md)
 
-The default deployment mode of the Grafana Cloud Agent is the _drop-in_
+The default deployment mode of the Grafana Agent is the _drop-in_
 replacement for Prometheus `remote_write`. The Agent will act similarly to a
 single-process Prometheus, doing service discovery, scraping, and remote
 writing.
@@ -55,7 +57,7 @@ more information, please read the dedicated
 ### Host Filtering
 
 Host Filtering configures Agents to scrape targets that are running on the same
-machine as the Grafana Cloud Agent process. It does the following:
+machine as the Grafana Agent process. It does the following:
 
 1. Gets the hostname of the agent by the `HOSTNAME` environment variable or
    through the default.
@@ -70,7 +72,7 @@ guide](./operation-guide.md#host-filtering)
 
 ## Logs
 
-Grafana Cloud Agent supports collecting logs and sending them to Loki using its
+Grafana Agent supports collecting logs and sending them to Loki using its
 `loki` subsystem. This is done by utilizing the upstream
 [Promtail](https://grafana.com/docs/loki/latest/clients/promtail/) client, which
 is the official first-party log collection client created by the Loki
@@ -78,7 +80,7 @@ developer team.
 
 ## Traces
 
-Grafana Cloud Agent supports collecting traces and sending them to Tempo using its
+Grafana Agent supports collecting traces and sending them to Tempo using its
 `tempo` subsystem. This is done by utilizing the upstream [OpenTelmetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
 The agent is capable of ingesting OpenTelemetry, OpenCensus, Jaeger or Zipkin spans.
 See documentation on how to configure [receivers](./configuration-reference.md#tempo_config).
@@ -86,26 +88,26 @@ The agent is capable of exporting to any OpenTelemetry GRPC compatible system.
 
 ## Comparison to Alternatives
 
-Grafana Cloud Agent is custom built for [Grafana Cloud](https://grafana.com/products/cloud/),
+Grafana Agent is optimized for [Grafana Cloud](https://grafana.com/products/cloud/),
 but can be used while using an on-prem `remote_write`-compatible Prometheus API
-and an on-prem Loki. Unlike alternatives, Grafana Cloud Agent extends the
+and an on-prem Loki. Unlike alternatives, Grafana Agent extends the
 official code with extra functionality. This allows the Agent to give an
 experience closest to its official counterparts compared to alternatives which
 may try to reimplement everything from scratch.
 
 ### Why not just use Telegraf?
-Telegraf is a fantastic project and was actually considered as an alternative 
+Telegraf is a fantastic project and was actually considered as an alternative
 to building our own agent.
-It could work, but ultimately it was not chosen due to lacking service discovery 
+It could work, but ultimately it was not chosen due to lacking service discovery
 and metadata label propagation.
-While these features could theoretically be added to Telegraf as OSS contributions, 
+While these features could theoretically be added to Telegraf as OSS contributions,
 there would be a lot of forced hacks involved due to its current design.
 
 Additionally, Telegraf is a much larger project with its own goals for its community,
 so any changes need to fit the general use cases it was designed for.
 
-With the Grafana Cloud Agent as its own project, we can deliver a more curated agent 
-specifically designed to work seamlessly with Grafana Cloud and other 
+With the Grafana Agent as its own project, we can deliver a more curated agent
+specifically designed to work seamlessly with Grafana Cloud and other
 `remote_write` compatible Prometheus endpoints as well as Loki for logs
 and Tempo for traces, all-in-one.
 

@@ -33,7 +33,7 @@ import (
 )
 
 func init() {
-	remote.UserAgent = fmt.Sprintf("GrafanaCloudAgent/%s", build.Version)
+	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 }
 
 var (
