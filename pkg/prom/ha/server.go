@@ -15,9 +15,9 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/cortexproject/cortex/pkg/util"
-	"github.com/cortexproject/cortex/pkg/util/services"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/ha/client"
@@ -28,7 +28,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/config"
 	"github.com/weaveworks/common/user"
-	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 )
 
@@ -86,31 +85,31 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 
 // Server implements the HA scraping service.
 type Server struct {
-	cfg          Config
-	clientConfig client.Config
-	globalConfig *config.GlobalConfig
-	reg          prometheus.Registerer
-	logger       log.Logger
-	addr         string
+	logger log.Logger
+
+	cfgMut             sync.RWMutex
+	cfg                Config
+	clientConfig       client.Config
+	globalConfig       *config.GlobalConfig
+	defaultRemoteWrite []*instance.RemoteWriteConfig
 
 	configManagerMut sync.Mutex
 	im               instance.Manager
-	joined           *atomic.Bool
 	configs          map[string]struct{}
 
-	store configstore.Store
-	ring  ReadRing
+	node     *node
+	store    *configstore.Remote
+	storeAPI *configstore.API
 
-	cancel context.CancelFunc
-	exited chan bool
-
-	closeDependencies func() error
-
-	defaultRemoteWrite []*instance.RemoteWriteConfig
+	stateMut sync.Mutex
+	reload   chan struct{}
+	exited   chan bool
 }
 
 // New creates a new HA scraping service instance.
 func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, logger log.Logger, im instance.Manager, defaultRemoteWrite []*instance.RemoteWriteConfig) (*Server, error) {
+	logger = log.With(logger, "component", "ha")
+
 	// Force ReplicationFactor to be 1, since replication isn't supported for the
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
@@ -120,123 +119,120 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 		return nil, err
 	}
 
-	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", reg)
-	if err != nil {
-		return nil, err
-	}
-	if err := reg.Register(r); err != nil {
-		return nil, fmt.Errorf("failed to register Agent ring metrics: %w", err)
-	}
-	if err := services.StartAndAwaitRunning(context.Background(), r); err != nil {
-		return nil, err
-	}
-
-	lazy := &lazyTransferer{}
-
-	// TODO(rfratto): switching to a BasicLifecycler would be nice here, it'd allow
-	// the joining/leaving process to include waiting for resharding.
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, lazy, "agent", "agent", true, reg)
-	if err != nil {
-		return nil, err
-	}
-	if err := services.StartAndAwaitRunning(context.Background(), lc); err != nil {
-		return nil, err
-	}
-
-	logger = log.With(logger, "component", "ha")
-	s := newServer(
-		reg,
-		cfg,
-		globalConfig,
-		clientConfig,
-		logger,
-
-		im,
-
-		lc.Addr,
-		r,
-		store,
-
-		// The lifecycler must stop first since the shutdown process depends on the
-		// ring still polling.
-		stopServices(lc, r),
-
-		defaultRemoteWrite,
-	)
-
-	lazy.inner = s
-	return s, nil
-}
-
-// newRing creates a new Cortex Ring that ignores unhealthy nodes.
-func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*ring.Ring, error) {
-	codec := ring.GetCodec()
-	store, err := kv.NewClient(
-		cfg.KVStore,
-		codec,
-		kv.RegistererWithKVName(reg, name+"-ring"),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy())
-}
-
-// newServer creates a new Server. Abstracted from New for testing.
-func newServer(reg prometheus.Registerer, cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, store configstore.Store, stopFunc func() error, defaultRemoteWrite []*instance.RemoteWriteConfig) *Server {
-	ctx, cancel := context.WithCancel(context.Background())
+	storeAPI := configstore.NewAPI(logger, store, func(c *instance.Config) error {
+		return c.ApplyDefaults(globalConfig, defaultRemoteWrite)
+	})
+	reg.MustRegister(storeAPI)
 
 	s := &Server{
 		cfg:          cfg,
-		globalConfig: globalCfg,
-		clientConfig: clientCfg,
-		reg:          reg,
-		logger:       log,
-		addr:         addr,
+		globalConfig: globalConfig,
+		clientConfig: clientConfig,
+		logger:       logger,
 
 		im:      im,
-		joined:  atomic.NewBool(false),
 		configs: make(map[string]struct{}),
 
-		store: store,
-		ring:  r,
+		store:    store,
+		storeAPI: storeAPI,
 
-		cancel:            cancel,
-		exited:            make(chan bool),
-		closeDependencies: stopFunc,
+		reload: make(chan struct{}, 1),
+		exited: make(chan bool),
 
 		defaultRemoteWrite: defaultRemoteWrite,
 	}
 
-	go s.run(ctx)
-	return s
+	s.node, err = newNode(reg, logger, cfg, s)
+
+	if err := s.ApplyConfig(cfg, globalConfig, clientConfig, defaultRemoteWrite); err != nil {
+		return nil, fmt.Errorf("failed to apply config: %w", err)
+	}
+
+	go s.run()
+	return s, nil
 }
 
-func (s *Server) run(ctx context.Context) {
+func (s *Server) ApplyConfig(cfg Config, globalConfig *config.GlobalConfig, clientConfig client.Config, defaultRemoteWrite []*instance.RemoteWriteConfig) error {
+	s.stateMut.Lock()
+	defer s.stateMut.Unlock()
+
+	if s.hasExited() {
+		return fmt.Errorf("clustering server not running")
+	}
+
+	s.cfgMut.Lock()
+	defer s.cfgMut.RUnlock()
+
+	if cmp.Equal(cfg, s.cfg) && cmp.Equal(globalConfig, s.globalConfig) && cmp.Equal(clientConfig, s.clientConfig) && cmp.Equal(defaultRemoteWrite, s.defaultRemoteWrite) {
+		// Nothing changed, quit early.
+		return nil
+	}
+
+	s.cfg = cfg
+	s.globalConfig = globalConfig
+	s.clientConfig = clientConfig
+	s.defaultRemoteWrite = defaultRemoteWrite
+
+	if err := s.store.ApplyConfig(cfg.KVStore); err != nil {
+		return err
+	}
+
+	if err := s.node.ApplyConfig(cfg); err != nil {
+		return err
+	}
+
+	// Reloading will cause a local reshard to run, which will also re-apply the
+	// newest set of defaults to the loaded configs. As long as this is the only
+	// writer of s.reload, this will never block.
+	s.reload <- struct{}{}
+	return nil
+}
+
+func (s *Server) run() {
 	defer close(s.exited)
 
-	// Perform join operations. Joining can't fail; any failed operation
-	// performed will eventually correct itself due to how all Agents in the
-	// cluster reshard themselves every reshard_interval.
-	s.join(ctx)
-	s.joined.Store(true)
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
 
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+		wg sync.WaitGroup
+	)
 
-	go func() {
-		s.watchKV(ctx)
-		wg.Done()
-		level.Info(s.logger).Log("msg", "watch kv store process exited")
-	}()
+	for range s.reload {
+		// Create a new context. If there was a previous cancel set up, call it
+		// to free the previous resources.
+		if cancel != nil {
+			cancel()
+		}
+		ctx, cancel = context.WithCancel(context.Background())
 
-	go func() {
-		s.reshardLoop(ctx)
-		wg.Done()
-		level.Info(s.logger).Log("msg", "reshard loop process exited")
-	}()
+		// Wait for previous resources to release.
+		wg.Wait()
 
+		// Perform join operations. Joining can't fail; any failed operation
+		// performed will eventually correct itself due to how all Agents in the
+		// cluster reshard themselves every reshard_interval.
+		s.join(ctx)
+
+		wg.Add(2)
+		go func() {
+			s.watchKV(ctx)
+			wg.Done()
+		}()
+
+		go func() {
+			s.reshardLoop(ctx)
+			wg.Done()
+		}()
+	}
+
+	// Close the latest context and wait for the goroutines to stop.
+	if cancel != nil {
+		cancel()
+	}
 	wg.Wait()
+
+	level.Info(s.logger).Log("msg", "run loop exited")
 }
 
 func (s *Server) join(ctx context.Context) {
@@ -258,40 +254,19 @@ func (s *Server) join(ctx context.Context) {
 }
 
 func (s *Server) waitNotifyReshard(ctx context.Context) error {
-	level.Info(s.logger).Log("msg", "retrieving agents in cluster for cluster-wide reshard")
+	level.Info(s.logger).Log("msg", "performing cluster-wide reshard")
 
-	var (
-		rs  ring.ReplicationSet
-		err error
-	)
-
-	backoff := util.NewBackoff(ctx, backoffConfig)
-	for backoff.Ongoing() {
-		rs, err = s.ring.GetAllHealthy(ring.Read)
-		if err == nil {
-			break
-		}
-
-		level.Warn(s.logger).Log("msg", "could not get agents in cluster", "err", err)
-		backoff.Wait()
-	}
-	if err := backoff.Err(); err != nil {
-		return err
-	}
-
-	_, err = rs.Do(ctx, time.Millisecond*250, func(ctx context.Context, desc *ring.InstanceDesc) (interface{}, error) {
-		// Skip over ourselves; we'll reshard locally after this process finishes.
-		if desc.Addr == s.addr {
-			return nil, nil
-		}
-
+	// IteratePeers calls the callback in parallel with a 250ms jitter between them.
+	return s.node.IteratePeers(ctx, func(ctx context.Context, desc *ring.InstanceDesc) error {
 		ctx = user.InjectOrgID(ctx, "fake")
-		return nil, s.notifyReshard(ctx, desc)
+		return s.notifyReshard(ctx, desc)
 	})
-	return err
 }
 
 func (s *Server) notifyReshard(ctx context.Context, desc *ring.InstanceDesc) error {
+	s.cfgMut.RLock()
+	defer s.cfgMut.RUnlock()
+
 	cli, err := client.New(s.clientConfig, desc.Addr)
 	if err != nil {
 		return err
@@ -329,7 +304,7 @@ func (s *Server) watchKV(ctx context.Context) {
 			isDeleted    = ev.Config == nil
 		)
 
-		owned, err := s.owns(ev.Key)
+		owned, err := s.node.Owns(ev.Key)
 		if err != nil {
 			level.Error(s.logger).Log("msg", "failed to see if config is owned, will retry on next reshard", "name", ev.Key, "err", err)
 			return
@@ -371,6 +346,9 @@ Outer:
 // applyConfig applies a config to the InstanceManager. Returns true if the
 // application succeed.
 func (s *Server) applyConfig(key string, cfg *instance.Config) bool {
+	s.cfgMut.RLock()
+	defer s.cfgMut.RUnlock()
+
 	// Configs from the store aren't immediately valid and must be given the
 	// global config before running. Configs are validated against the current
 	// global config at upload time, but if the global config has since changed,
@@ -391,13 +369,13 @@ func (s *Server) applyConfig(key string, cfg *instance.Config) bool {
 }
 
 func (s *Server) reshardLoop(ctx context.Context) {
-	level.Info(s.logger).Log("msg", "resharding agent on interval", "interval", s.cfg.ReshardInterval)
-	t := time.NewTicker(s.cfg.ReshardInterval)
-	defer t.Stop()
-
 	for {
+		s.cfgMut.RLock()
+		tickTime := s.cfg.ReshardInterval
+		s.cfgMut.RUnlock()
+
 		select {
-		case <-t.C:
+		case <-time.After(tickTime):
 			s.localReshard(ctx)
 		case <-ctx.Done():
 			return
@@ -408,13 +386,17 @@ func (s *Server) reshardLoop(ctx context.Context) {
 }
 
 func (s *Server) localReshard(ctx context.Context) {
-	if s.cfg.ReshardTimeout > 0 {
+	s.cfgMut.RLock()
+	reshardTimeout := s.cfg.ReshardTimeout
+	s.cfgMut.RUnlock()
+
+	if reshardTimeout > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, s.cfg.ReshardTimeout)
+		ctx, cancel = context.WithTimeout(ctx, reshardTimeout)
 		defer cancel()
 	}
 
-	level.Info(s.logger).Log("msg", "resharding agent")
+	level.Info(s.logger).Log("msg", "resharding agent", "timeout", reshardTimeout)
 	_, err := s.Reshard(ctx, &agentproto.ReshardRequest{})
 	if err != nil {
 		level.Error(s.logger).Log("msg", "resharding failed", "err", err)
@@ -424,14 +406,8 @@ func (s *Server) localReshard(ctx context.Context) {
 // WireAPI injects routes into the provided mux router for the config
 // management API.
 func (s *Server) WireAPI(r *mux.Router) {
-	storeAPI := configstore.NewAPI(s.logger, s.store, func(c *instance.Config) error {
-		return c.ApplyDefaults(s.globalConfig, s.defaultRemoteWrite)
-	})
-	s.reg.MustRegister(storeAPI)
-	storeAPI.WireAPI(r)
-
-	// Debug ring page
-	r.Handle("/debug/ring", s.ring)
+	s.storeAPI.WireAPI(r)
+	s.node.WireAPI(r)
 }
 
 // WireGRPC injects gRPC server handlers into the provided gRPC server.
@@ -445,23 +421,36 @@ func (s *Server) Flush() {}
 // TransferOut satisfies ring.FlushTransferer. It connects to all other
 // healthy agents in the cluster and tells them to reshard.
 func (s *Server) TransferOut(ctx context.Context) error {
-	if s.cfg.ReshardTimeout > 0 {
+	s.cfgMut.RLock()
+	reshardTimeout := s.cfg.ReshardTimeout
+	s.cfgMut.RUnlock()
+
+	if reshardTimeout > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, s.cfg.ReshardTimeout)
+		ctx, cancel = context.WithTimeout(ctx, reshardTimeout)
 		defer cancel()
 	}
 
-	level.Info(s.logger).Log("msg", "leaving cluster, starting cluster-wide reshard process")
+	level.Info(s.logger).Log("msg", "leaving cluster, starting cluster-wide reshard process", "timeout", reshardTimeout)
 	return s.waitNotifyReshard(ctx)
 }
 
-// Stop stops the HA server and its dependencies.
+// Stop stops the HA server and its dependencies. Once stopped, the Server cannot run again.
 func (s *Server) Stop() error {
-	// Close the loop and wait for it to stop.
-	s.cancel()
+	s.stateMut.Lock()
+	defer s.stateMut.Unlock()
+
+	if s.hasExited() {
+		return fmt.Errorf("already exited")
+	}
+
+	// Close the reload loop and wait for it to stop.
+	close(s.reload)
 	<-s.exited
 
-	err := s.closeDependencies()
+	// Stop the dependencies now and wait to return the error until after we've
+	// stopped running any local scrape jobs.
+	err := s.node.Stop()
 
 	// Delete all the local configs that were running.
 	s.configManagerMut.Lock()
@@ -480,17 +469,11 @@ func (s *Server) Stop() error {
 	return err
 }
 
-// stopServices stops services in argument-call order. Blocks until all services
-// have stopped.
-func stopServices(svcs ...services.Service) func() error {
-	return func() error {
-		var firstErr error
-		for _, s := range svcs {
-			err := services.StopAndAwaitTerminated(context.Background(), s)
-			if err != nil && firstErr == nil {
-				firstErr = err
-			}
-		}
-		return firstErr
+func (s *Server) hasExited() bool {
+	select {
+	case <-s.exited:
+		return true
+	default:
+		return false
 	}
 }

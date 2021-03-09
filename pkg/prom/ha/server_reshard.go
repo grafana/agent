@@ -2,11 +2,8 @@ package ha
 
 import (
 	"context"
-	"hash/fnv"
-	"net/http"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/go-kit/kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
@@ -37,7 +34,7 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 	)
 
 	configCh, err := s.store.All(ctx, func(key string) bool {
-		owns, err := s.owns(key)
+		owns, err := s.node.Owns(key)
 		if err != nil {
 			level.Error(s.logger).Log("msg", "failed to detect if key was owned", "key", key, "err", err)
 			return false
@@ -73,35 +70,4 @@ func (s *Server) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (_ *
 	s.configs = discoveredConfigs
 
 	return &empty.Empty{}, nil
-}
-
-// owns checks to see if a config name is owned by this Server. owns will
-// return an error if the ring is empty or if there aren't enough
-// healthy nodes.
-func (s *Server) owns(key string) (bool, error) {
-	rs, err := s.ring.Get(keyHash(key), ring.Write, nil, nil, nil)
-	if err != nil {
-		return false, err
-	}
-	for _, r := range rs.Ingesters {
-		if r.Addr == s.addr {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-func keyHash(key string) uint32 {
-	h := fnv.New32()
-	_, _ = h.Write([]byte(key))
-	return h.Sum32()
-}
-
-// ReadRing is a subset of the Cortex ring.ReadRing interface with only the
-// functionality used by the HA server.
-type ReadRing interface {
-	http.Handler
-
-	Get(key uint32, op ring.Operation, bufDescs []ring.InstanceDesc, bufHosts, bufZones []string) (ring.ReplicationSet, error)
-	GetAllHealthy(op ring.Operation) (ring.ReplicationSet, error)
 }
