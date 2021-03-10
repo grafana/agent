@@ -1,9 +1,12 @@
 <p align="center"><img src="docs/assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 
-Grafana Agent is an observability data collector optimized for sending
-metrics, log and trace data to the opinionated Grafana Observability Stack
-(Grafana Loki for logs, Cortex for Prometheus metrics, and Grafana Tempo for
-traces).
+Grafana Agent is an observability data collector for collecting metrics, logs,
+and trace data to the opinionated Grafana observability stack. It works best
+with:
+
+* [Grafana Cloud](https://grafana.com/products/cloud/)
+* [Grafana Enterprise Stack](https://grafana.com/products/enterprise/)
+* OSS deployments of [Grafana Loki](https://grafana.com/oss/loki/), [Cortex](https://cortexmetrics.io/), and [Grafana Tempo](https://grafana.com/oss/tempo/)
 
 Users of Prometheus operating at a massive scale (i.e., millions of active
 series) can struggle to run an unsharded singleton Prometheus instance: it becomes a
