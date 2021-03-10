@@ -29,7 +29,7 @@ func New(addr string) *Client {
 }
 
 // PrometheusClient is the client interface to the API exposed by the
-// Prometheus subsystem of the Grafana Cloud Agent.
+// Prometheus subsystem of the Grafana Agent.
 type PrometheusClient interface {
 	// Instances runs the list of currently running instances.
 	Instances(ctx context.Context) ([]string, error)

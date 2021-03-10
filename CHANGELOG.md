@@ -22,10 +22,16 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 - [BUGFIX] Remote write endpoints that never function across the lifetime of the
   Agent will no longer prevent the WAL from being truncated. (@rfratto)
 
+- [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
+    (@rfratto)
+
 - [CHANGE] Instance configs uploaded to the Config Store API will no longer be
   stored along with the global Prometheus defaults. This is done to allow
   globals to be updated and re-apply the new global defaults to the configs from
   the Config Store. (@rfratto)
+
+- [CHANGE] The User-Agent header sent for logs will now be
+  `GrafanaAgent/<version>` (@rfratto)
 
 # v0.13.0 (2021-02-25)
 
@@ -305,7 +311,7 @@ files to the new format.
 
 # v0.6.0 (2020-09-04)
 
-- [FEATURE] The Grafana Cloud Agent can now collect logs and send to Loki. This
+- [FEATURE] The Grafana Agent can now collect logs and send to Loki. This
   is done by embedding Promtail, the official Loki log collection client.
   (@rfratto)
 
