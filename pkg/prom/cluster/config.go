@@ -45,4 +45,5 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.DurationVar(&c.ReshardTimeout, prefix+"reshard-timeout", time.Second*30, "timeout for cluster-wide reshards and local reshards. Timeout of 0s disables timeout.")
 	c.KVStore.RegisterFlagsWithPrefix(prefix+"config-store.", "configurations/", f)
 	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f)
+	c.Client.GRPCClientConfig.RegisterFlagsWithPrefix(prefix, f)
 }

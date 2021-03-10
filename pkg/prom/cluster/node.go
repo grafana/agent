@@ -39,7 +39,7 @@ type node struct {
 	ring *ring.Ring
 	lc   *ring.Lifecycler
 
-	exit   chan struct{}
+	exited bool
 	reload chan struct{}
 }
 
@@ -48,9 +48,9 @@ func newNode(reg prometheus.Registerer, log log.Logger, cfg Config, s pb.Scrapin
 	n := &node{
 		reg: util.WrapWithUnregisterer(reg),
 		srv: s,
+		log: log,
 
 		reload: make(chan struct{}, 1),
-		exit:   make(chan struct{}),
 	}
 	if err := n.ApplyConfig(cfg); err != nil {
 		return nil, err
@@ -71,15 +71,23 @@ func (n *node) ApplyConfig(cfg Config) error {
 		return nil
 	}
 
-	select {
-	case <-n.exit:
-		return fmt.Errorf("node stopped")
-	default:
-		// Node is running, can continue.
+	if n.exited {
+		return fmt.Errorf("node already exited")
 	}
+
+	level.Info(n.log).Log("msg", "applying config")
 
 	// Shut down old components before re-creating the updated ones.
 	n.reg.UnregisterAll()
+
+	if n.lc != nil {
+		level.Info(n.log).Log("msg", "leaving cluster to mutate node config")
+		err := services.StopAndAwaitTerminated(ctx, n.lc)
+		if err != nil {
+			return fmt.Errorf("failed to stop lifecycler: %w", err)
+		}
+		n.lc = nil
+	}
 
 	if n.ring != nil {
 		err := services.StopAndAwaitTerminated(ctx, n.ring)
@@ -89,17 +97,8 @@ func (n *node) ApplyConfig(cfg Config) error {
 		n.ring = nil
 	}
 
-	if n.lc != nil {
-		err := services.StopAndAwaitTerminated(ctx, n.lc)
-		if err != nil {
-			return fmt.Errorf("failed to stop lifecycler: %w", err)
-		}
-		n.lc = nil
-	}
-
 	if !cfg.Enabled {
 		n.cfg = cfg
-		<-n.reload
 		return nil
 	}
 
@@ -115,7 +114,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	}
 	n.ring = r
 
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", "agent", true, n.reg)
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", "agent", false, n.reg)
 	if err != nil {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
@@ -127,7 +126,8 @@ func (n *node) ApplyConfig(cfg Config) error {
 
 	n.cfg = cfg
 
-	<-n.reload
+	// Reload and reshard the cluster.
+	n.reload <- struct{}{}
 	return nil
 }
 
@@ -164,13 +164,16 @@ func (n *node) performClusterReshard(ctx context.Context, includeSelf bool) erro
 	n.mut.RLock()
 	defer n.mut.RUnlock()
 
+	if n.ring == nil || n.lc == nil {
+		level.Info(n.log).Log("msg", "node disabled, not resharding")
+		return nil
+	}
+
 	if n.cfg.ReshardTimeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, n.cfg.ReshardTimeout)
 		defer cancel()
 	}
-
-	level.Info(n.log).Log("msg", "informing all nodes to reshard")
 
 	var (
 		rs  ring.ReplicationSet
@@ -191,7 +194,11 @@ func (n *node) performClusterReshard(ctx context.Context, includeSelf bool) erro
 		firstError = err
 	}
 
-	_, err = rs.Do(ctx, 250*time.Millisecond, func(c context.Context, id *ring.InstanceDesc) (interface{}, error) {
+	if len(rs.Ingesters) > 0 {
+		level.Info(n.log).Log("msg", "informing remote nodes to reshard")
+	}
+
+	_, err = rs.Do(ctx, 500*time.Millisecond, func(c context.Context, id *ring.InstanceDesc) (interface{}, error) {
 		// Skip over ourselves.
 		if id.Addr == n.lc.Addr {
 			return nil, nil
@@ -241,37 +248,31 @@ func (n *node) notifyReshard(ctx context.Context, id *ring.InstanceDesc) error {
 // Stop stops the node and cancels it from running. The node cannot be used
 // again once Stop is called.
 func (n *node) Stop() error {
-	n.mut.Lock()
-	defer n.mut.Unlock()
+	n.mut.RLock()
+	defer n.mut.RUnlock()
 
-	select {
-	case <-n.exit:
-		return fmt.Errorf("node stopped")
-	default:
-		// Node is running, can continue.
+	if n.exited {
+		return fmt.Errorf("node already exited")
+	}
+	n.exited = true
+
+	level.Info(n.log).Log("msg", "shutting down node")
+
+	// Shut down dependencies. The lifecycler *MUST* be shut down first since n.ring is
+	// used during the shutdown process to inform other nodes to reshard.
+	var firstError error
+	for _, dep := range []services.Service{n.lc, n.ring} {
+		if dep == nil {
+			continue
+		}
+		err := services.StopAndAwaitTerminated(context.Background(), dep)
+		if err != nil && firstError == nil {
+			firstError = err
+		}
 	}
 
 	close(n.reload)
-	close(n.exit)
-
-	var firstError error
-
-	if n.ring != nil {
-		err := services.StopAndAwaitTerminated(context.Background(), n.ring)
-		if err != nil && firstError == nil {
-			firstError = fmt.Errorf("failed to stop ring: %w", err)
-		}
-		n.ring = nil
-	}
-
-	if n.lc != nil {
-		err := services.StopAndAwaitTerminated(context.Background(), n.lc)
-		if err != nil {
-			firstError = fmt.Errorf("failed to stop lifecycler: %w", err)
-		}
-		n.lc = nil
-	}
-
+	level.Info(n.log).Log("msg", "node shut down")
 	return firstError
 }
 
