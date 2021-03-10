@@ -1,6 +1,6 @@
-# Running Grafana Cloud Agent
+# Running Grafana Agent
 
-There are a few ways to run the Grafana Cloud Agent, in order from
+There are a few ways to run the Grafana Agent, in order from
 easiest to hardest:
 
 - [Use the Install Script for Kubernetes](#install-script-for-kubernetes)
@@ -12,7 +12,7 @@ easiest to hardest:
 
 ## Install Script for Kubernetes
 
-The Grafana Cloud Agent repository comes with installation scripts to
+The Grafana Agent repository comes with installation scripts to
 configure components and return a Kubernetes manifest that uses our preferred
 defaults. To run the script, copy and paste this in your terminal:
 

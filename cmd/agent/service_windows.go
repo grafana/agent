@@ -14,7 +14,7 @@ import (
 	"golang.org/x/sys/windows/svc"
 )
 
-const ServiceName = "Grafana Cloud Agent"
+const ServiceName = "Grafana Agent"
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
 type AgentService struct{}
