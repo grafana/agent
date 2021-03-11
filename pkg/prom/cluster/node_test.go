@@ -150,28 +150,20 @@ func Test_node_ApplyConfig(t *testing.T) {
 	waitAll(t, localReshard)
 }
 
-func testGRPCServer(t *testing.T) (*grpc.Server, net.Listener) {
+// startNode launches srv as a gRPC server and registers it to the ring.
+func startNode(t *testing.T, srv agentproto.ScrapingServiceServer) {
 	t.Helper()
 
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
 	grpcServer := grpc.NewServer()
+	agentproto.RegisterScrapingServiceServer(grpcServer, srv)
 
 	go func() {
 		_ = grpcServer.Serve(l)
 	}()
 	t.Cleanup(func() { grpcServer.Stop() })
-
-	return grpcServer, l
-}
-
-// startNode launches srv as a gRPC server and registers it to the ring.
-func startNode(t *testing.T, srv agentproto.ScrapingServiceServer) {
-	t.Helper()
-
-	grpcServer, l := testGRPCServer(t)
-	agentproto.RegisterScrapingServiceServer(grpcServer, srv)
 
 	lcConfig := testLifecyclerConfig(t)
 	lcConfig.Addr = l.Addr().(*net.TCPAddr).IP.String()
