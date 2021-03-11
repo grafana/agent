@@ -123,7 +123,9 @@ func (n *node) ApplyConfig(cfg Config) error {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
 	if err := services.StartAndAwaitRunning(context.Background(), lc); err != nil {
-		r.StopAsync()
+		if err := services.StopAndAwaitTerminated(ctx, r); err != nil {
+			level.Error(n.log).Log("msg", "failed to stop ring when returning error. next config reload will fail", "err", err)
+		}
 		return fmt.Errorf("failed to start lifecycler: %w", err)
 	}
 	n.lc = lc
@@ -196,10 +198,9 @@ func (n *node) run() {
 }
 
 // performClusterReshard informs the cluster to immediately trigger a reshard
-// of their workloads. if includeSelf is true, the server provided to newNode will
-// also be informed. includeSelf should be true when joining the cluster, and false
-// when leaving.
-func (n *node) performClusterReshard(ctx context.Context, includeSelf bool) error {
+// of their workloads. if joining is true, the server provided to newNode will
+// also be informed.
+func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 	if n.ring == nil || n.lc == nil {
 		level.Info(n.log).Log("msg", "node disabled, not resharding")
 		return nil
@@ -247,7 +248,7 @@ func (n *node) performClusterReshard(ctx context.Context, includeSelf bool) erro
 		firstError = err
 	}
 
-	if includeSelf {
+	if joining {
 		level.Info(n.log).Log("msg", "running local reshard")
 		if _, err := n.srv.Reshard(ctx, &pb.ReshardRequest{}); err != nil {
 			level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
@@ -322,6 +323,5 @@ func (n *node) Flush() {}
 // tells them to reshard. TransferOut should NOT be called manually unless the mutex is
 // held.
 func (n *node) TransferOut(ctx context.Context) error {
-	// Only inform other nodes in the cluster to reshard since we're leaving.
 	return n.performClusterReshard(ctx, false)
 }
