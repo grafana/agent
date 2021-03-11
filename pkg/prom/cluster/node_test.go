@@ -4,20 +4,20 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/cortexproject/cortex/pkg/util/services"
-	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 )
@@ -25,10 +25,10 @@ import (
 func Test_node_Join(t *testing.T) {
 	var (
 		reg    = prometheus.NewRegistry()
-		logger = log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
+		logger = util.TestLogger(t)
 
-		localReshard  = make(chan struct{}, 1)
-		remoteReshard = make(chan struct{}, 1)
+		localReshard  = make(chan struct{}, 2)
+		remoteReshard = make(chan struct{}, 2)
 	)
 
 	local := &agentproto.FuncScrapingServiceServer{
@@ -54,12 +54,14 @@ func Test_node_Join(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = n.Stop() })
 
-	waitAll(t, 5*time.Second, remoteReshard, localReshard)
+	require.NoError(t, n.WaitJoined(context.Background()))
+
+	waitAll(t, remoteReshard, localReshard)
 }
 
 // waitAll waits for a message on all channels.
-func waitAll(t *testing.T, timeout time.Duration, chs ...chan struct{}) {
-	timeoutCh := time.After(timeout)
+func waitAll(t *testing.T, chs ...chan struct{}) {
+	timeoutCh := time.After(5 * time.Second)
 	for _, ch := range chs {
 		select {
 		case <-timeoutCh:
@@ -72,8 +74,9 @@ func waitAll(t *testing.T, timeout time.Duration, chs ...chan struct{}) {
 func Test_node_Leave(t *testing.T) {
 	var (
 		reg    = prometheus.NewRegistry()
-		logger = log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
+		logger = util.TestLogger(t)
 
+		sendReshard   = atomic.NewBool(false)
 		remoteReshard = make(chan struct{}, 2)
 	)
 
@@ -85,6 +88,9 @@ func Test_node_Leave(t *testing.T) {
 
 	remote := &agentproto.FuncScrapingServiceServer{
 		ReshardFunc: func(c context.Context, rr *agentproto.ReshardRequest) (*empty.Empty, error) {
+			if sendReshard.Load() {
+				remoteReshard <- struct{}{}
+			}
 			return &empty.Empty{}, nil
 		},
 	}
@@ -96,26 +102,24 @@ func Test_node_Leave(t *testing.T) {
 
 	n, err := newNode(reg, logger, nodeConfig, local)
 	require.NoError(t, err)
+	require.NoError(t, n.WaitJoined(context.Background()))
 
 	// Update the reshard function to write to remoteReshard on shutdown.
-	remote.ReshardFunc = func(c context.Context, rr *agentproto.ReshardRequest) (*empty.Empty, error) {
-		remoteReshard <- struct{}{}
-		return &empty.Empty{}, nil
-	}
+	sendReshard.Store(true)
 
 	// Stop the node so it transfers data outward.
 	require.NoError(t, n.Stop(), "failed to stop the node")
 
 	level.Info(logger).Log("msg", "waiting for remote reshard to occur")
-	waitAll(t, 5*time.Second, remoteReshard)
+	waitAll(t, remoteReshard)
 }
 
 func Test_node_ApplyConfig(t *testing.T) {
 	var (
 		reg    = prometheus.NewRegistry()
-		logger = log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
+		logger = util.TestLogger(t)
 
-		localReshard = make(chan struct{}, 1)
+		localReshard = make(chan struct{}, 10)
 	)
 
 	local := &agentproto.FuncScrapingServiceServer{
@@ -132,16 +136,18 @@ func Test_node_ApplyConfig(t *testing.T) {
 	n, err := newNode(reg, logger, nodeConfig, local)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = n.Stop() })
+	require.NoError(t, n.WaitJoined(context.Background()))
 
 	// Wait for the initial join to trigger.
-	waitAll(t, 5*time.Second, localReshard)
+	waitAll(t, localReshard)
 
 	// An ApplyConfig working correctly should re-join the cluster, which can be
 	// detected by local resharding applying twice.
 	nodeConfig.Lifecycler.NumTokens = 1
 	require.NoError(t, n.ApplyConfig(nodeConfig), "failed to apply new config")
+	require.NoError(t, n.WaitJoined(context.Background()))
 
-	waitAll(t, 5*time.Second, localReshard)
+	waitAll(t, localReshard)
 }
 
 func testGRPCServer(t *testing.T) (*grpc.Server, net.Listener) {
@@ -177,6 +183,12 @@ func startNode(t *testing.T, srv agentproto.ScrapingServiceServer) {
 	err = services.StartAndAwaitRunning(context.Background(), lc)
 	require.NoError(t, err)
 
+	// Wait for the new node to be in the ring.
+	joinWaitCtx, joinWaitCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer joinWaitCancel()
+	err = waitJoined(joinWaitCtx, agentKey, lc.KVStore, lc.ID)
+	require.NoError(t, err)
+
 	t.Cleanup(func() {
 		_ = services.StopAndAwaitTerminated(context.Background(), lc)
 	})
@@ -200,6 +212,14 @@ min_ready_duration: 0s
 
 	err := yaml.Unmarshal([]byte(cfgText), &lc)
 	require.NoError(t, err)
+
+	// Assign a random default ID.
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	name := make([]rune, 10)
+	for i := range name {
+		name[i] = letters[rand.Intn(len(letters))]
+	}
+	lc.ID = string(name)
 
 	// Add an invalid default address/port. Tests can override if they expect
 	// incoming traffic.

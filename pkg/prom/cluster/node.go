@@ -20,6 +20,11 @@ import (
 	"github.com/weaveworks/common/user"
 )
 
+const (
+	// agentKey is the key used for storing the hash ring.
+	agentKey = "agent"
+)
+
 var backoffConfig = cortex_util.BackoffConfig{
 	MinBackoff: time.Second,
 	MaxBackoff: 2 * time.Minute,
@@ -81,12 +86,12 @@ func (n *node) ApplyConfig(cfg Config) error {
 	n.reg.UnregisterAll()
 
 	if n.lc != nil {
-		level.Info(n.log).Log("msg", "leaving cluster to mutate node config")
+		// Note that this will call performClusterReshard and will block until it
+		// completes.
 		err := services.StopAndAwaitTerminated(ctx, n.lc)
 		if err != nil {
 			return fmt.Errorf("failed to stop lifecycler: %w", err)
 		}
-		n.lc = nil
 	}
 
 	if n.ring != nil {
@@ -94,7 +99,6 @@ func (n *node) ApplyConfig(cfg Config) error {
 		if err != nil {
 			return fmt.Errorf("failed to stop ring: %w", err)
 		}
-		n.ring = nil
 	}
 
 	if !cfg.Enabled {
@@ -102,23 +106,23 @@ func (n *node) ApplyConfig(cfg Config) error {
 		return nil
 	}
 
-	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", "agent", n.reg)
+	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", agentKey, n.reg)
 	if err != nil {
 		return fmt.Errorf("failed to create ring: %w", err)
 	}
 	if err := n.reg.Register(r); err != nil {
 		return fmt.Errorf("failed to register ring metrics: %w", err)
 	}
-	if err := services.StartAndAwaitRunning(ctx, r); err != nil {
+	if err := services.StartAndAwaitRunning(context.Background(), r); err != nil {
 		return fmt.Errorf("failed to start ring: %w", err)
 	}
 	n.ring = r
 
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", "agent", false, n.reg)
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.reg)
 	if err != nil {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
-	if err := services.StartAndAwaitRunning(ctx, lc); err != nil {
+	if err := services.StartAndAwaitRunning(context.Background(), lc); err != nil {
 		r.StopAsync()
 		return fmt.Errorf("failed to start lifecycler: %w", err)
 	}
@@ -129,6 +133,37 @@ func (n *node) ApplyConfig(cfg Config) error {
 	// Reload and reshard the cluster.
 	n.reload <- struct{}{}
 	return nil
+}
+
+// WaitJoined waits for the node the join the cluster and enter the
+// ACTIVE state.
+func (n *node) WaitJoined(ctx context.Context) error {
+	n.mut.RLock()
+	defer n.mut.RUnlock()
+
+	level.Info(n.log).Log("msg", "waiting for the node to join the cluster")
+	defer level.Info(n.log).Log("msg", "node has joined the cluster")
+
+	return waitJoined(ctx, agentKey, n.ring.KVClient, n.lc.ID)
+}
+
+func waitJoined(ctx context.Context, key string, kvClient kv.Client, id string) error {
+	kvClient.WatchKey(ctx, key, func(value interface{}) bool {
+		if value == nil {
+			return true
+		}
+
+		desc := value.(*ring.Desc)
+		for ingID, ing := range desc.Ingesters {
+			if ingID == id && ing.State == ring.ACTIVE {
+				return false
+			}
+		}
+
+		return true
+	})
+
+	return ctx.Err()
 }
 
 // newRing creates a new Cortex Ring that ignores unhealthy nodes.
@@ -148,9 +183,13 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*rin
 // run waits for connection to the ring and kickstarts the join process.
 func (n *node) run() {
 	for range n.reload {
+		n.mut.RLock()
+
 		if err := n.performClusterReshard(context.Background(), true); err != nil {
 			level.Warn(n.log).Log("msg", "dynamic cluster reshard did not succeed", "err", err)
 		}
+
+		n.mut.RUnlock()
 	}
 
 	level.Info(n.log).Log("msg", "node run loop exiting")
@@ -161,9 +200,6 @@ func (n *node) run() {
 // also be informed. includeSelf should be true when joining the cluster, and false
 // when leaving.
 func (n *node) performClusterReshard(ctx context.Context, includeSelf bool) error {
-	n.mut.RLock()
-	defer n.mut.RUnlock()
-
 	if n.ring == nil || n.lc == nil {
 		level.Info(n.log).Log("msg", "node disabled, not resharding")
 		return nil
@@ -248,8 +284,8 @@ func (n *node) notifyReshard(ctx context.Context, id *ring.InstanceDesc) error {
 // Stop stops the node and cancels it from running. The node cannot be used
 // again once Stop is called.
 func (n *node) Stop() error {
-	n.mut.RLock()
-	defer n.mut.RUnlock()
+	n.mut.Lock()
+	defer n.mut.Unlock()
 
 	if n.exited {
 		return fmt.Errorf("node already exited")
@@ -260,6 +296,9 @@ func (n *node) Stop() error {
 
 	// Shut down dependencies. The lifecycler *MUST* be shut down first since n.ring is
 	// used during the shutdown process to inform other nodes to reshard.
+	//
+	// Note that stopping the lifecycler will call performClusterReshard and will block
+	// until it completes.
 	var firstError error
 	for _, dep := range []services.Service{n.lc, n.ring} {
 		if dep == nil {
@@ -280,7 +319,8 @@ func (n *node) Stop() error {
 func (n *node) Flush() {}
 
 // TransferOut implements ring.FlushTransferer. It connects to all other healthy agents and
-// tells them to reshard.
+// tells them to reshard. TransferOut should NOT be called manually unless the mutex is
+// held.
 func (n *node) TransferOut(ctx context.Context) error {
 	// Only inform other nodes in the cluster to reshard since we're leaving.
 	return n.performClusterReshard(ctx, false)
