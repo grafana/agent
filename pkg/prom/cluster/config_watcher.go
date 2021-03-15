@@ -11,6 +11,15 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/prom/instance/configstore"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
+var (
+	reshardDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "agent_prometheus_scraping_service_reshard_duration",
+		Help: "How long it took for resharding to run.",
+	}, []string{"success"})
 )
 
 // configWatcher connects to a configstore and will apply configs to an
@@ -33,10 +42,10 @@ type configWatcher struct {
 }
 
 // OwnershipFunc should determine if a given keep is owned by the caller.
-type OwnershipFunc func(key string) (bool, error)
+type OwnershipFunc = func(key string) (bool, error)
 
 // ValidationFunc should validate a config.
-type ValidationFunc func(*instance.Config) error
+type ValidationFunc = func(*instance.Config) error
 
 // newConfigWatcher watches store for changes and checks for each config against
 // owns. It will also poll the configstore at a configurable interval.
@@ -74,6 +83,7 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 		return fmt.Errorf("configWatcher already stopped")
 	}
 
+	w.cfg = cfg
 	return nil
 }
 
@@ -99,7 +109,16 @@ func (w *configWatcher) run(ctx context.Context) {
 
 // Refresh reloads all configs from the configstore. Deleted configs will be
 // removed.
-func (w *configWatcher) Refresh(ctx context.Context) error {
+func (w *configWatcher) Refresh(ctx context.Context) (err error) {
+	start := time.Now()
+	defer func() {
+		success := "1"
+		if err != nil {
+			success = "0"
+		}
+		reshardDuration.WithLabelValues(success).Observe(time.Since(start).Seconds())
+	}()
+
 	configs, err := w.store.All(ctx, func(key string) bool {
 		owns, err := w.owns(key)
 		if err != nil {
@@ -122,9 +141,9 @@ Outer:
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case cfg, done := <-configs:
+		case cfg, ok := <-configs:
 			// w.store.All will close configs when all of them have been read.
-			if done {
+			if !ok {
 				break Outer
 			}
 
@@ -183,7 +202,9 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 	case (isRunning && !owned) || (isDeleted && isRunning):
 		err := w.im.DeleteConfig(ev.Key)
 		delete(w.instances, ev.Key)
-		return fmt.Errorf("failed to delete: %w", err)
+		if err != nil {
+			return fmt.Errorf("failed to delete: %w", err)
+		}
 
 	case !isDeleted && owned:
 		if err := w.validate(ev.Config); err != nil {
@@ -195,9 +216,8 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 
 		if err := w.im.ApplyConfig(*ev.Config); err != nil {
 			return fmt.Errorf("failed to apply config: %w", err)
-		} else {
-			w.instances[ev.Key] = struct{}{}
 		}
+		w.instances[ev.Key] = struct{}{}
 	}
 
 	return nil
