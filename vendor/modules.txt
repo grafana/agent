@@ -574,7 +574,7 @@ github.com/prometheus/mysqld_exporter/collector
 ## explicit
 github.com/prometheus/node_exporter/collector
 github.com/prometheus/node_exporter/https
-# github.com/prometheus/procfs v0.2.0
+# github.com/prometheus/procfs v0.6.1-0.20210313121648-b565fefb1664
 ## explicit
 github.com/prometheus/procfs
 github.com/prometheus/procfs/bcache

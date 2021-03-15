@@ -11,12 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !windows
+// +build linux
 
 package sysfs
 
 import (
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strconv"
@@ -41,8 +41,7 @@ func GetRaplZones(fs FS) ([]RaplZone, error) {
 
 	files, err := ioutil.ReadDir(raplDir)
 	if err != nil {
-		return nil, errors.New(
-			"no sysfs powercap / RAPL power metrics files found")
+		return nil, fmt.Errorf("unable to read class/powercap: %w", err)
 	}
 
 	var zones []RaplZone
