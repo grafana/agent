@@ -1,6 +1,5 @@
 NOTE: FreeBSD builds have not been available since v0.6.0 due to a
-cross-compilation issue. The issue for tracking adding support back
-can be found at [#317](https://github.com/grafana/agent/issues/317).
+cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
@@ -21,6 +20,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 - [BUGFIX] Remote write endpoints that never function across the lifetime of the
   Agent will no longer prevent the WAL from being truncated. (@rfratto)
+
+- [BUGFIX] Bring back FreeBSD support. (@rfratto)
 
 - [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
     (@rfratto)
