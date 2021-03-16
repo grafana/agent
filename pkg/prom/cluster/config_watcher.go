@@ -37,6 +37,7 @@ type configWatcher struct {
 	owns     OwnershipFunc
 	validate ValidationFunc
 
+	refreshMut  sync.Mutex
 	instanceMut sync.Mutex
 	instances   map[string]struct{}
 }
@@ -110,6 +111,9 @@ func (w *configWatcher) run(ctx context.Context) {
 // Refresh reloads all configs from the configstore. Deleted configs will be
 // removed.
 func (w *configWatcher) Refresh(ctx context.Context) (err error) {
+	w.refreshMut.Lock()
+	defer w.refreshMut.Unlock()
+
 	start := time.Now()
 	defer func() {
 		success := "1"
