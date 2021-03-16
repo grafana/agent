@@ -27,7 +27,7 @@ var (
 type configWatcher struct {
 	log log.Logger
 
-	cfgMut  sync.Mutex
+	mut     sync.Mutex
 	cfg     Config
 	stopped bool
 	stop    context.CancelFunc
@@ -72,8 +72,8 @@ func newConfigWatcher(log log.Logger, cfg Config, store configstore.Store, im in
 }
 
 func (w *configWatcher) ApplyConfig(cfg Config) error {
-	w.cfgMut.Lock()
-	defer w.cfgMut.Unlock()
+	w.mut.Lock()
+	defer w.mut.Unlock()
 
 	if cmp.Equal(w.cfg, cfg) {
 		return nil
@@ -89,9 +89,9 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 
 func (w *configWatcher) run(ctx context.Context) {
 	for {
-		w.cfgMut.Lock()
+		w.mut.Lock()
 		nextPoll := w.cfg.ReshardInterval
-		w.cfgMut.Unlock()
+		w.mut.Unlock()
 
 		select {
 		case <-ctx.Done():
@@ -182,6 +182,13 @@ Outer:
 }
 
 func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
+	w.mut.Lock()
+	defer w.mut.Unlock()
+
+	if w.stopped {
+		return fmt.Errorf("configWatcher stopped")
+	}
+
 	w.instanceMut.Lock()
 	defer w.instanceMut.Unlock()
 
@@ -225,16 +232,18 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 
 // Stop stops the configWatcher. Cannot be called more than once.
 func (w *configWatcher) Stop() error {
-	w.cfgMut.Lock()
-	defer w.cfgMut.Unlock()
+	w.mut.Lock()
+	defer w.mut.Unlock()
 
 	if w.stopped {
 		return fmt.Errorf("already stopped")
 	}
+	w.stop()
 	w.stopped = true
 
-	w.stop()
-
+	// Shut down all the instances that this configWatcher managed. It *MUST*
+	// happen after w.stop() is called to prevent the run loop from applying any
+	// new configs.
 	w.instanceMut.Lock()
 	defer w.instanceMut.Unlock()
 
