@@ -3,6 +3,8 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
+	"net/http"
 	"sync"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/google/go-cmp/cmp"
+	"github.com/gorilla/mux"
 	pb "github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/util"
@@ -137,37 +140,6 @@ func (n *node) ApplyConfig(cfg Config) error {
 	return nil
 }
 
-// WaitJoined waits for the node the join the cluster and enter the
-// ACTIVE state.
-func (n *node) WaitJoined(ctx context.Context) error {
-	n.mut.RLock()
-	defer n.mut.RUnlock()
-
-	level.Info(n.log).Log("msg", "waiting for the node to join the cluster")
-	defer level.Info(n.log).Log("msg", "node has joined the cluster")
-
-	return waitJoined(ctx, agentKey, n.ring.KVClient, n.lc.ID)
-}
-
-func waitJoined(ctx context.Context, key string, kvClient kv.Client, id string) error {
-	kvClient.WatchKey(ctx, key, func(value interface{}) bool {
-		if value == nil {
-			return true
-		}
-
-		desc := value.(*ring.Desc)
-		for ingID, ing := range desc.Ingesters {
-			if ingID == id && ing.State == ring.ACTIVE {
-				return false
-			}
-		}
-
-		return true
-	})
-
-	return ctx.Err()
-}
-
 // newRing creates a new Cortex Ring that ignores unhealthy nodes.
 func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*ring.Ring, error) {
 	codec := ring.GetCodec()
@@ -282,6 +254,46 @@ func (n *node) notifyReshard(ctx context.Context, id *ring.InstanceDesc) error {
 	return backoff.Err()
 }
 
+// WaitJoined waits for the node the join the cluster and enter the
+// ACTIVE state.
+func (n *node) WaitJoined(ctx context.Context) error {
+	n.mut.RLock()
+	defer n.mut.RUnlock()
+
+	level.Info(n.log).Log("msg", "waiting for the node to join the cluster")
+	defer level.Info(n.log).Log("msg", "node has joined the cluster")
+
+	return waitJoined(ctx, agentKey, n.ring.KVClient, n.lc.ID)
+}
+
+func waitJoined(ctx context.Context, key string, kvClient kv.Client, id string) error {
+	kvClient.WatchKey(ctx, key, func(value interface{}) bool {
+		if value == nil {
+			return true
+		}
+
+		desc := value.(*ring.Desc)
+		for ingID, ing := range desc.Ingesters {
+			if ingID == id && ing.State == ring.ACTIVE {
+				return false
+			}
+		}
+
+		return true
+	})
+
+	return ctx.Err()
+}
+
+func (n *node) WireAPI(r *mux.Router) {
+	r.HandleFunc("/debug/ring", func(rw http.ResponseWriter, r *http.Request) {
+		n.mut.RLock()
+		defer n.mut.RUnlock()
+
+		n.ring.ServeHTTP(rw, r)
+	})
+}
+
 // Stop stops the node and cancels it from running. The node cannot be used
 // again once Stop is called.
 func (n *node) Stop() error {
@@ -324,4 +336,28 @@ func (n *node) Flush() {}
 // held.
 func (n *node) TransferOut(ctx context.Context) error {
 	return n.performClusterReshard(ctx, false)
+}
+
+// Owns checks to see if a key is owned by this node. owns will return
+// an error if the ring is empty or if there aren't enough healthy nodes.
+func (n *node) Owns(key string) (bool, error) {
+	n.mut.RLock()
+	defer n.mut.RUnlock()
+
+	rs, err := n.ring.Get(keyHash(key), ring.Write, nil, nil, nil)
+	if err != nil {
+		return false, err
+	}
+	for _, r := range rs.Ingesters {
+		if r.Addr == n.lc.Addr {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func keyHash(key string) uint32 {
+	h := fnv.New32()
+	_, _ = h.Write([]byte(key))
+	return h.Sum32()
 }

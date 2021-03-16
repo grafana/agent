@@ -31,7 +31,7 @@ type API struct {
 
 // Validator valides a config before putting it into the store.
 // Validator is allowed to mutate the config and will only be given a copy.
-type Validator func(c *instance.Config) error
+type Validator = func(c *instance.Config) error
 
 // NewAPI creates a new API. Store can be applied later with SetStore.
 func NewAPI(l log.Logger, store Store, v Validator) *API {
