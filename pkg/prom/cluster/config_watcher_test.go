@@ -28,6 +28,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 		validate = func(*instance.Config) error { return nil }
 		owned    = func(key string) (bool, error) { return true, nil }
 	)
+	cfg.Enabled = true
 	cfg.ReshardInterval = time.Hour
 
 	w, err := newConfigWatcher(log, cfg, &store, &im, owned, validate)
@@ -84,6 +85,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		owned   = func(key string) (bool, error) { return true, nil }
 		unowned = func(key string) (bool, error) { return false, nil }
 	)
+	cfg.Enabled = true
 
 	t.Run("new owned config", func(t *testing.T) {
 		var (
