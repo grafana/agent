@@ -63,7 +63,7 @@ func NewEntryPoint(logger log.Logger, cfg *config.Config) (*Entrypoint, error) {
 	}
 
 	if cfg.Integrations.Enabled {
-		manager, err = integrations.NewManager(cfg.Integrations, logger, promMetrics.InstanceManager())
+		manager, err = integrations.NewManager(cfg.Integrations, logger, promMetrics.InstanceManager(), promMetrics.Validate)
 		if err != nil {
 			return nil, err
 

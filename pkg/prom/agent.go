@@ -218,7 +218,8 @@ func (a *Agent) InstanceManager() instance.Manager { return a.mm }
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
-	// TODO(rfratto): a.cluster.Stop()
+	a.cluster.Stop()
+
 	a.cleaner.Stop()
 
 	// Only need to stop the ModalManager, which will passthrough everything to the

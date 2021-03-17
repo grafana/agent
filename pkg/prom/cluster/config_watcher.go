@@ -219,6 +219,12 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 	// 1. A config we're running got moved to a new owner.
 	// 2. A config we're running got deleted
 	case (isRunning && !owned) || (isDeleted && isRunning):
+		if isDeleted {
+			level.Info(w.log).Log("msg", "untracking deleted config", "key", ev.Key)
+		} else {
+			level.Info(w.log).Log("msg", "untracking config that changed owners", "key", ev.Key)
+		}
+
 		err := w.im.DeleteConfig(ev.Key)
 		delete(w.instances, ev.Key)
 		if err != nil {
@@ -231,6 +237,10 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 				"failed to validate config. %[1]s cannot run until the global settings are adjusted or the config is adjusted to operate within the global constraints. error: %[2]w",
 				ev.Key, err,
 			)
+		}
+
+		if _, exist := w.instances[ev.Key]; !exist {
+			level.Info(w.log).Log("msg", "tracking new config", "key", ev.Key)
 		}
 
 		if err := w.im.ApplyConfig(*ev.Config); err != nil {

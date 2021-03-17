@@ -70,7 +70,7 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 		return nil
 	}
 
-	cli, err := kv.NewClient(cfg, GetCodec(), r.reg)
+	cli, err := kv.NewClient(cfg, GetCodec(), kv.RegistererWithKVName(r.reg, "agent_configs"))
 	if err != nil {
 		return fmt.Errorf("failed to create kv client: %w", err)
 	}

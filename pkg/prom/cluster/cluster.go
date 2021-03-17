@@ -52,6 +52,7 @@ func New(
 	im instance.Manager,
 	validate ValidationFunc,
 ) (*Cluster, error) {
+	l = log.With(l, "component", "cluster")
 
 	var (
 		c   = &Cluster{log: l, cfg: cfg}
@@ -149,4 +150,25 @@ func (c *Cluster) WireAPI(r *mux.Router) {
 // WireGRPC injects gRPC server handlers into the provided gRPC server.
 func (c *Cluster) WireGRPC(srv *grpc.Server) {
 	agentproto.RegisterScrapingServiceServer(srv, c)
+}
+
+// Stop stops the cluster and all of its dependencies.
+func (c *Cluster) Stop() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	deps := []struct {
+		name   string
+		closer func() error
+	}{
+		{"node", c.node.Stop},
+		{"config store", c.store.Close},
+		{"config watcher", c.watcher.Stop},
+	}
+	for _, dep := range deps {
+		err := dep.closer()
+		if err != nil {
+			level.Error(c.log).Log("msg", "failed to stop dependency", "dependency", dep.name, "err", err)
+		}
+	}
 }

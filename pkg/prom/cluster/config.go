@@ -30,7 +30,12 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
 	type plain Config
-	return unmarshal((*plain)(c))
+	err := unmarshal((*plain)(c))
+	if err != nil {
+		return err
+	}
+	c.Lifecycler.RingConfig.ReplicationFactor = 1
+	return nil
 }
 
 // RegisterFlags adds the flags required to config the Server to the given
