@@ -111,6 +111,14 @@ func (w *configWatcher) run(ctx context.Context) {
 // Refresh reloads all configs from the configstore. Deleted configs will be
 // removed.
 func (w *configWatcher) Refresh(ctx context.Context) (err error) {
+	w.mut.Lock()
+	enabled := w.cfg.Enabled
+	w.mut.Unlock()
+	if !enabled {
+		level.Debug(w.log).Log("msg", "refresh skipped because clustering is disabled")
+		return nil
+	}
+
 	w.refreshMut.Lock()
 	defer w.refreshMut.Unlock()
 

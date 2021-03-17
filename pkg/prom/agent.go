@@ -11,8 +11,8 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/prom/ha"
-	"github.com/grafana/agent/pkg/prom/ha/client"
+	"github.com/grafana/agent/pkg/prom/cluster"
+	"github.com/grafana/agent/pkg/prom/cluster/client"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
@@ -25,7 +25,7 @@ var (
 		InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
 		WALCleanupAge:          DefaultCleanupAge,
 		WALCleanupPeriod:       DefaultCleanupPeriod,
-		ServiceConfig:          ha.DefaultConfig,
+		ServiceConfig:          cluster.DefaultConfig,
 		ServiceClientConfig:    client.DefaultConfig,
 		InstanceMode:           instance.DefaultMode,
 	}
@@ -41,7 +41,7 @@ type Config struct {
 	WALDir                 string                        `yaml:"wal_directory"`
 	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age"`
 	WALCleanupPeriod       time.Duration                 `yaml:"wal_cleanup_period"`
-	ServiceConfig          ha.Config                     `yaml:"scraping_service"`
+	ServiceConfig          cluster.Config                `yaml:"scraping_service"`
 	ServiceClientConfig    client.Config                 `yaml:"scraping_service_client"`
 	Configs                []instance.Config             `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration                 `yaml:"instance_restart_backoff,omitempty"`
@@ -58,7 +58,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Enabled = true
 
 	type plain Config
-	return unmarshal((*plain)(c))
+	err := unmarshal((*plain)(c))
+	if err != nil {
+		return err
+	}
+
+	c.ServiceConfig.Client = c.ServiceClientConfig
+	return nil
 }
 
 // ApplyDefaults applies default values to the Config and validates it.
@@ -124,7 +130,7 @@ type Agent struct {
 
 	instanceFactory instanceFactory
 
-	ha *ha.Server
+	cluster *cluster.Cluster
 }
 
 // New creates and starts a new Agent.
@@ -171,12 +177,9 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 		return nil, fmt.Errorf("one or more configs was found to be invalid")
 	}
 
-	if cfg.ServiceConfig.Enabled {
-		var err error
-		a.ha, err = ha.New(reg, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.mm, cfg.RemoteWrite)
-		if err != nil {
-			return nil, err
-		}
+	a.cluster, err = cluster.New(a.logger, reg, cfg.ServiceConfig, a.mm, a.Validate)
+	if err != nil {
+		return nil, err
 	}
 
 	return a, nil
@@ -197,10 +200,17 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 	return a.instanceFactory(reg, a.cfg.Global, c, a.cfg.WALDir, a.logger)
 }
 
-func (a *Agent) WireGRPC(s *grpc.Server) {
-	if a.cfg.ServiceConfig.Enabled {
-		a.ha.WireGRPC(s)
+// Validate will validate the incoming Config and mutate it to apply defaults.
+func (a *Agent) Validate(c *instance.Config) error {
+	if err := c.ApplyDefaults(&a.cfg.Global, a.cfg.RemoteWrite); err != nil {
+		return fmt.Errorf("failed to apply defaults to %q: %w", c.Name, err)
 	}
+
+	return nil
+}
+
+func (a *Agent) WireGRPC(s *grpc.Server) {
+	a.cluster.WireGRPC(s)
 }
 
 func (a *Agent) Config() Config                    { return a.cfg }
@@ -208,11 +218,7 @@ func (a *Agent) InstanceManager() instance.Manager { return a.mm }
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
-	if a.ha != nil {
-		if err := a.ha.Stop(); err != nil {
-			level.Error(a.logger).Log("msg", "failed to stop scraping service server", "err", err)
-		}
-	}
+	// TODO(rfratto): a.cluster.Stop()
 	a.cleaner.Stop()
 
 	// Only need to stop the ModalManager, which will passthrough everything to the

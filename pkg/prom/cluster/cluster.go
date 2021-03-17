@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/prom/instance/configstore"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/prometheus/config"
 	"google.golang.org/grpc"
 )
 
@@ -25,9 +24,7 @@ type Cluster struct {
 
 	log log.Logger
 
-	cfg                Config
-	global             *config.GlobalConfig
-	defaultRemoteWrite []*instance.RemoteWriteConfig
+	cfg Config
 
 	//
 	// Internally, Cluster glues together four separate pieces of logic.
@@ -52,19 +49,12 @@ func New(
 	l log.Logger,
 	reg prometheus.Registerer,
 	cfg Config,
-	global *config.GlobalConfig,
-	defaultRemoteWrite []*instance.RemoteWriteConfig,
 	im instance.Manager,
+	validate ValidationFunc,
 ) (*Cluster, error) {
 
 	var (
-		c = &Cluster{
-			log: l,
-
-			cfg:                cfg,
-			global:             global,
-			defaultRemoteWrite: defaultRemoteWrite,
-		}
+		c   = &Cluster{log: l, cfg: cfg}
 		err error
 	)
 
@@ -79,14 +69,14 @@ func New(
 		return nil, fmt.Errorf("failed to initialize node membership: %w", err)
 	}
 
-	c.store, err = configstore.NewRemote(l, reg, cfg.KVStore)
+	c.store, err = configstore.NewRemote(l, reg, cfg.KVStore, cfg.Enabled)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize configstore: %w", err)
 	}
-	c.storeAPI = configstore.NewAPI(l, c.store, c.Validate)
+	c.storeAPI = configstore.NewAPI(l, c.store, validate)
 	reg.MustRegister(c.storeAPI)
 
-	c.watcher, err = newConfigWatcher(l, cfg, c.store, im, c.node.Owns, c.Validate)
+	c.watcher, err = newConfigWatcher(l, cfg, c.store, im, c.node.Owns, validate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize configwatcher: %w", err)
 	}
@@ -106,30 +96,14 @@ func (c *Cluster) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (*e
 	return &empty.Empty{}, err
 }
 
-// Validate will validate the incoming Config and mutate it to apply defaults.
-func (c *Cluster) Validate(cfg *instance.Config) error {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-
-	if err := cfg.ApplyDefaults(c.global, c.defaultRemoteWrite); err != nil {
-		return fmt.Errorf("failed to apply defaults to %q: %w", cfg.Name, err)
-	}
-
-	return nil
-}
-
 // ApplyConfig applies configuration changes to Cluster.
 func (c *Cluster) ApplyConfig(
 	cfg Config,
-	global *config.GlobalConfig,
-	defaultRemoteWrite []*instance.RemoteWriteConfig,
 ) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	if cmp.Equal(c.cfg, cfg) &&
-		cmp.Equal(c.global, global) &&
-		cmp.Equal(c.defaultRemoteWrite, defaultRemoteWrite) {
+	if cmp.Equal(c.cfg, cfg) {
 		return nil
 	}
 
@@ -137,7 +111,7 @@ func (c *Cluster) ApplyConfig(
 		return fmt.Errorf("failed to apply config to node membership: %w", err)
 	}
 
-	if err := c.store.ApplyConfig(cfg.Lifecycler.RingConfig.KVStore); err != nil {
+	if err := c.store.ApplyConfig(cfg.Lifecycler.RingConfig.KVStore, cfg.Enabled); err != nil {
 		return fmt.Errorf("failed to apply config to config store: %w", err)
 	}
 
@@ -146,8 +120,6 @@ func (c *Cluster) ApplyConfig(
 	}
 
 	c.cfg = cfg
-	c.global = global
-	c.defaultRemoteWrite = defaultRemoteWrite
 
 	// Force a refresh so all the configs get updated with new defaults.
 	level.Info(c.log).Log("msg", "cluster config changed, refreshing from configstore in background")

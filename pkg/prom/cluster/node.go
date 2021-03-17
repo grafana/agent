@@ -17,7 +17,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	pb "github.com/grafana/agent/pkg/agentproto"
-	"github.com/grafana/agent/pkg/prom/ha/client"
+	"github.com/grafana/agent/pkg/prom/cluster/client"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/user"
@@ -95,6 +95,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 		if err != nil {
 			return fmt.Errorf("failed to stop lifecycler: %w", err)
 		}
+		n.lc = nil
 	}
 
 	if n.ring != nil {
@@ -102,6 +103,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 		if err != nil {
 			return fmt.Errorf("failed to stop ring: %w", err)
 		}
+		n.ring = nil
 	}
 
 	if !cfg.Enabled {
@@ -263,6 +265,10 @@ func (n *node) WaitJoined(ctx context.Context) error {
 	level.Info(n.log).Log("msg", "waiting for the node to join the cluster")
 	defer level.Info(n.log).Log("msg", "node has joined the cluster")
 
+	if n.ring == nil || n.lc == nil {
+		return fmt.Errorf("node disabled")
+	}
+
 	return waitJoined(ctx, agentKey, n.ring.KVClient, n.lc.ID)
 }
 
@@ -289,6 +295,11 @@ func (n *node) WireAPI(r *mux.Router) {
 	r.HandleFunc("/debug/ring", func(rw http.ResponseWriter, r *http.Request) {
 		n.mut.RLock()
 		defer n.mut.RUnlock()
+
+		if n.ring == nil {
+			http.NotFoundHandler().ServeHTTP(rw, r)
+			return
+		}
 
 		n.ring.ServeHTTP(rw, r)
 	})

@@ -6,7 +6,7 @@ import (
 
 	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/cortexproject/cortex/pkg/ring/kv"
-	"github.com/grafana/agent/pkg/prom/ha/client"
+	"github.com/grafana/agent/pkg/prom/cluster/client"
 	flagutil "github.com/grafana/agent/pkg/util"
 )
 
@@ -18,9 +18,11 @@ type Config struct {
 	Enabled         bool                  `yaml:"enabled"`
 	ReshardInterval time.Duration         `yaml:"reshard_interval"`
 	ReshardTimeout  time.Duration         `yaml:"reshard_timeout"`
-	Client          client.Config         `yaml:"client"`
 	KVStore         kv.Config             `yaml:"kvstore"`
 	Lifecycler      ring.LifecyclerConfig `yaml:"lifecycler"`
+
+	// TODO(rfratto): deprecate scraping_service_client in Agent and replace with this.
+	Client client.Config `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.

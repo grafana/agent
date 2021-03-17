@@ -31,7 +31,7 @@ type Remote struct {
 	configsCh  chan WatchEvent
 }
 
-func NewRemote(l log.Logger, reg prometheus.Registerer, cfg kv.Config) (*Remote, error) {
+func NewRemote(l log.Logger, reg prometheus.Registerer, cfg kv.Config, enable bool) (*Remote, error) {
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
 
 	r := &Remote{
@@ -45,7 +45,7 @@ func NewRemote(l log.Logger, reg prometheus.Registerer, cfg kv.Config) (*Remote,
 
 		configsCh: make(chan WatchEvent),
 	}
-	if err := r.ApplyConfig(cfg); err != nil {
+	if err := r.ApplyConfig(cfg, enable); err != nil {
 		return nil, fmt.Errorf("failed to apply config for config store: %w", err)
 	}
 
@@ -54,7 +54,7 @@ func NewRemote(l log.Logger, reg prometheus.Registerer, cfg kv.Config) (*Remote,
 }
 
 // ApplyConfig applies the config for a kv client.
-func (r *Remote) ApplyConfig(cfg kv.Config) error {
+func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 	r.kvMut.Lock()
 	defer r.kvMut.Unlock()
 
@@ -64,6 +64,11 @@ func (r *Remote) ApplyConfig(cfg kv.Config) error {
 
 	// Unregister all metrics that the previous kv may have registered.
 	r.reg.UnregisterAll()
+
+	if !enable {
+		r.setClient(nil)
+		return nil
+	}
 
 	cli, err := kv.NewClient(cfg, GetCodec(), r.reg)
 	if err != nil {

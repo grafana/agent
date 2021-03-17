@@ -20,7 +20,7 @@ func TestRemote_List(t *testing.T) {
 	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
-	})
+	}, true)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := remote.Close()
@@ -45,7 +45,7 @@ func TestRemote_Get(t *testing.T) {
 	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
-	})
+	}, true)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := remote.Close()
@@ -69,7 +69,7 @@ func TestRemote_Put(t *testing.T) {
 	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
-	})
+	}, true)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := remote.Close()
@@ -122,7 +122,7 @@ scrape_configs:
 	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
-	})
+	}, true)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := remote.Close()
@@ -141,7 +141,7 @@ func TestRemote_Delete(t *testing.T) {
 	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
-	})
+	}, true)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := remote.Close()
@@ -169,7 +169,7 @@ func TestRemote_All(t *testing.T) {
 	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "all-configs/",
-	})
+	}, true)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := remote.Close()
@@ -200,7 +200,7 @@ func TestRemote_Watch(t *testing.T) {
 	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "watch-configs/",
-	})
+	}, true)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := remote.Close()
@@ -237,7 +237,7 @@ func TestRemote_ApplyConfig(t *testing.T) {
 	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "test-applyconfig/",
-	})
+	}, true)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		err := remote.Close()
@@ -247,13 +247,13 @@ func TestRemote_ApplyConfig(t *testing.T) {
 	err = remote.ApplyConfig(kv.Config{
 		Store:  "inmemory",
 		Prefix: "test-applyconfig2/",
-	})
+	}, true)
 	require.NoError(t, err, "failed to apply a new config")
 
 	err = remote.ApplyConfig(kv.Config{
 		Store:  "inmemory",
 		Prefix: "test-applyconfig2/",
-	})
+	}, true)
 	require.NoError(t, err, "failed to re-apply the current config")
 
 	// Make sure watch still works
