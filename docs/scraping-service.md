@@ -1,6 +1,6 @@
 # Scraping Service Mode
 
-Scraping Service Mode is a third operational mode of the Grafana Cloud Agent
+Scraping Service Mode is a third operational mode of the Grafana Agent
 that allows for clustering a set of Agent processes and distributing scrape load
 across them.
 
@@ -9,7 +9,7 @@ Determining what to scrape is done by writing instance configuration files to an
 All agents in the cluster **must** use the same KV store so they see the same set
 of config files.
 
-Each process of the Grafana Cloud Agent can be running multiple independent
+Each process of the Grafana Agent can be running multiple independent
 "instances" at once, where an "instance" refers to the combination of:
 
 - Service discovery for all `scrape_configs` within that loaded config

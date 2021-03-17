@@ -1,7 +1,7 @@
 # Maintainer's Guide
 
 This document provides relevant instructions for maintainers of the Grafana
-Cloud Agent.
+Agent.
 
 ## Master Branch Rename
 
@@ -19,7 +19,7 @@ git branch -u origin/main main
 ### Prerequisites
 
 Each maintainer performing a release should perform the following steps once
-before releasing the Grafana Cloud Agent.
+before releasing the Grafana Agent.
 
 #### Prerelease testing
 
@@ -34,7 +34,7 @@ for release.
 
 First, Navigate to your user's [SSH and GPG keys settings
 page](https://github.com/settings/keys). If the GPG key for the email address
-used to commit with Grafana Cloud Agent is not present, follow these
+used to commit with Grafana Agent is not present, follow these
 instructions to add it:
 
 1. Run `gpg --armor --export <your email address>`

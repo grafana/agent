@@ -30,7 +30,7 @@ func NewClient(c *http.Client, apiKey string) *Client {
 	return &Client{c: c, apiKey: apiKey}
 }
 
-// AgentConfig generates a Grafana Cloud Agent config from the given stack.
+// AgentConfig generates a Grafana Agent config from the given stack.
 // The config is returned as a string in YAML form.
 func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error) {
 	req, err := http.NewRequestWithContext(

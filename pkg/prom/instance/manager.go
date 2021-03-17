@@ -81,8 +81,7 @@ type BasicManager struct {
 	mut       sync.Mutex
 	processes map[string]*managedProcess
 
-	launch   Factory
-	validate ConfigValidator
+	launch Factory
 }
 
 // managedProcess represents a goroutine running a ManagedInstance. cancel
@@ -103,10 +102,6 @@ func (p managedProcess) Stop() {
 // Factory should return an unstarted instance given some config.
 type Factory func(c Config) (ManagedInstance, error)
 
-// A ConfigValidator should validate a Config and return an error if there is
-// a problem. ConfigValidator may mutate the Config.
-type ConfigValidator func(c *Config) error
-
 // NewBasicManager creates a new BasicManager. The launch function will be
 // invoked any time a new Config is applied.
 //
@@ -114,16 +109,12 @@ type ConfigValidator func(c *Config) error
 // be handled by the BasicManager. Instances will be automatically restarted
 // if stopped, updated if the config changes, or removed when the Config is
 // deleted.
-//
-// The validate function will be called before creating an instance. If the
-// config is not valid, launch will not be called. validate is optional.
-func NewBasicManager(cfg BasicManagerConfig, logger log.Logger, launch Factory, validate ConfigValidator) *BasicManager {
+func NewBasicManager(cfg BasicManagerConfig, logger log.Logger, launch Factory) *BasicManager {
 	return &BasicManager{
 		cfg:       cfg,
 		logger:    logger,
 		processes: make(map[string]*managedProcess),
 		launch:    launch,
-		validate:  validate,
 	}
 }
 
@@ -163,13 +154,6 @@ func (m *BasicManager) ListConfigs() map[string]Config {
 // uniquely identify the Config and determine whether the Config has an
 // existing associated managed instance.
 func (m *BasicManager) ApplyConfig(c Config) error {
-	if m.validate != nil {
-		err := m.validate(&c)
-		if err != nil {
-			return fmt.Errorf("failed to validate instance %s: %w", c.Name, err)
-		}
-	}
-
 	m.mut.Lock()
 	defer m.mut.Unlock()
 

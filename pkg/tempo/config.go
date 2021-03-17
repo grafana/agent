@@ -15,7 +15,6 @@ import (
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
-	"go.opentelemetry.io/collector/processor/queuedprocessor"
 	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
 	"go.opentelemetry.io/collector/receiver/opencensusreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -64,10 +63,10 @@ type InstanceConfig struct {
 
 	PushConfig PushConfig `yaml:"push_config"`
 
-	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/receiver/README.md
+	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
 	Receivers map[string]interface{} `yaml:"receivers"`
 
-	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor/config.go#L30
+	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor/config.go#L30
 	Attributes map[string]interface{} `yaml:"attributes"`
 
 	// prom service discovery
@@ -91,9 +90,9 @@ type PushConfig struct {
 	Insecure           bool                   `yaml:"insecure"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
-	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor/config.go#L24
-	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L30
-	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L54
+	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
+	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
+	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -258,7 +257,6 @@ func tracingFactories() (component.Factories, error) {
 	}
 
 	processors, err := component.MakeProcessorFactoryMap(
-		queuedprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),

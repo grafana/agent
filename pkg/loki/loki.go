@@ -1,4 +1,4 @@
-// Package loki implements Loki logs support for the Grafana Cloud Agent.
+// Package loki implements Loki logs support for the Grafana Agent.
 package loki
 
 import (
@@ -19,7 +19,7 @@ import (
 )
 
 func init() {
-	client.UserAgent = fmt.Sprintf("GrafanaCloudAgent/%s", version.Version)
+	client.UserAgent = fmt.Sprintf("GrafanaAgent/%s", version.Version)
 }
 
 type Loki struct {

@@ -8,7 +8,7 @@ The API is divided into several parts:
 
 ## Config Management API
 
-Grafana Cloud Agent exposes a REST API for managing instance configurations when
+Grafana Agent exposes a REST API for managing instance configurations when
 it is running in [scraping service mode](./scraping-service.md). The following
 endpoints are exposed:
 

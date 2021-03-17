@@ -2,7 +2,7 @@
 # shellcheck shell=dash
 # This script should run in all POSIX environments and Dash is POSIX compliant.
 
-# grafanacloud-install.sh installs the Grafana Cloud Agent on supported
+# grafanacloud-install.sh installs the Grafana Agent on supported
 # Linux systems for Grafana Cloud users. Those who aren't users of Grafana Cloud
 # or need to install the Agent on a different architecture or platform should
 # try another installation method.
@@ -82,7 +82,7 @@ main() {
   # success message.
   log ''
   log ''
-  log 'Grafana Cloud Agent is now running! To check the status of your Agent, run:'
+  log 'Grafana Agent is now running! To check the status of your Agent, run:'
   log '   sudo systemctl status grafana-agent.service'
 }
 
@@ -103,14 +103,14 @@ detect_package_system() {
   esac
 }
 
-# install_deb downloads and installs the deb package of the Grafana Cloud Agent.
+# install_deb downloads and installs the deb package of the Grafana Agent.
 install_deb() {
   curl -fsL "${DEB_URL}" -o /tmp/grafana-agent.deb || fatal 'Failed to download package'
   sudo dpkg -i /tmp/grafana-agent.deb
   rm /tmp/grafana-agent.deb
 }
 
-# install_rpm downloads and installs the deb package of the Grafana Cloud Agent.
+# install_rpm downloads and installs the deb package of the Grafana Agent.
 install_rpm() {
   sudo rpm --reinstall "${RPM_URL}"
 }

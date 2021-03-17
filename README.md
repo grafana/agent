@@ -1,7 +1,12 @@
-<p align="center"><img src="docs/assets/logo_and_name.png" alt="Grafana Cloud Agent logo"></p>
+<p align="center"><img src="docs/assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 
-Grafana Cloud Agent is an observability data collector optimized for sending
-metrics, log and trace data to [Grafana Cloud](https://grafana.com/products/cloud/).
+Grafana Agent is an telemetry collector for sending metrics, logs,
+and trace data to the opinionated Grafana observability stack. It works best
+with:
+
+* [Grafana Cloud](https://grafana.com/products/cloud/)
+* [Grafana Enterprise Stack](https://grafana.com/products/enterprise/)
+* OSS deployments of [Grafana Loki](https://grafana.com/oss/loki/), [Prometheus](https://prometheus.io/), [Cortex](https://cortexmetrics.io/), and [Grafana Tempo](https://grafana.com/oss/tempo/)
 
 Users of Prometheus operating at a massive scale (i.e., millions of active
 series) can struggle to run an unsharded singleton Prometheus instance: it becomes a
@@ -10,7 +15,7 @@ allocated to it. Even with proper sharding across multiple Prometheus instances,
 using Prometheus to send data to a cloud vendor can seem redundant: why pay for
 cloud storage if data is already stored locally?
 
-The Grafana Cloud Agent uses the same code as Prometheus, but tackles these issues
+The Grafana Agent uses the same code as Prometheus, but tackles these issues
 by only using the most relevant parts of Prometheus for interaction with hosted
 metrics:
 
@@ -19,15 +24,15 @@ metrics:
 3. Write Ahead Log (WAL)
 4. Remote Write
 
-On top of these, the Grafana Cloud Agent enables easier sharding mechanisms that
+On top of these, the Grafana Agent enables easier sharding mechanisms that
 enable users to shard Agents across their cluster and lower the memory requirements
 per machine.
 
-A typical deployment of the Grafana Cloud Agent for Prometheus metrics can see
+A typical deployment of the Grafana Agent for Prometheus metrics can see
 up to a 40% reduction in memory usage with equal scrape loads.
 
-Despite called the "Grafana Cloud Agent," it can be utilized with any Prometheus
-`remote_write` API.
+The Grafana Agent it can be used to send Prometheus metrics to any system that
+supports the Prometheus `remote_write` API.
 
 ## Trade-offs
 
@@ -59,7 +64,7 @@ the remote system.
 
 ## Getting Started
 
-The easiest way to get started with the Grafana Cloud Agent is to use the
+The easiest way to get started with the Grafana Agent is to use the
 Kubernetes install scripts. The first script installs an Agent for collecting
 metrics, the second for collecting logs, and the third for collecting traces.
 Simply copy and paste the following lines in your terminal (requires `envsubst`
@@ -86,7 +91,7 @@ and the [k3d example README](./example/k3d/README.md) for more information.
 
 ## Prometheus Vendoring
 
-The Grafana Cloud Agent vendors a downstream Prometheus repository maintained by
+The Grafana Agent vendors a downstream Prometheus repository maintained by
 [Grafana Labs](https://github.com/grafana/prometheus). This is done so experimental
 features Grafana Labs wants to contribute upstream can first be tested and iterated on
 quickly within the Agent. We aim to always base our vendor off of a recent official
@@ -102,7 +107,7 @@ For more context on our vendoring strategy, read our
 
 ## Getting Help
 
-If you have any questions or feedback regarding the Grafana Cloud Agent:
+If you have any questions or feedback regarding the Grafana Agent:
 
 * Ask a question on the Agent Slack channel. To invite yourself to the Grafana
   Slack, visit https://slack.grafana.com/ and join the #agent channel.

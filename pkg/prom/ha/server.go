@@ -9,7 +9,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,9 +18,11 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/services"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/ha/client"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/prom/instance/configstore"
 	flagutil "github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -88,6 +89,7 @@ type Server struct {
 	cfg          Config
 	clientConfig client.Config
 	globalConfig *config.GlobalConfig
+	reg          prometheus.Registerer
 	logger       log.Logger
 	addr         string
 
@@ -96,8 +98,8 @@ type Server struct {
 	joined           *atomic.Bool
 	configs          map[string]struct{}
 
-	kv   kv.Client
-	ring ReadRing
+	store configstore.Store
+	ring  ReadRing
 
 	cancel context.CancelFunc
 	exited chan bool
@@ -113,11 +115,7 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 	// scraping service yet.
 	cfg.Lifecycler.RingConfig.ReplicationFactor = 1
 
-	kvClient, err := kv.NewClient(
-		cfg.KVStore,
-		GetCodec(),
-		kv.RegistererWithKVName(reg, "agent_configs"),
-	)
+	store, err := configstore.NewRemote(logger, reg, cfg.KVStore)
 	if err != nil {
 		return nil, err
 	}
@@ -147,6 +145,7 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 
 	logger = log.With(logger, "component", "ha")
 	s := newServer(
+		reg,
 		cfg,
 		globalConfig,
 		clientConfig,
@@ -156,7 +155,7 @@ func New(reg prometheus.Registerer, cfg Config, globalConfig *config.GlobalConfi
 
 		lc.Addr,
 		r,
-		kvClient,
+		store,
 
 		// The lifecycler must stop first since the shutdown process depends on the
 		// ring still polling.
@@ -184,13 +183,14 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*rin
 }
 
 // newServer creates a new Server. Abstracted from New for testing.
-func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, kv kv.Client, stopFunc func() error, defaultRemoteWrite []*instance.RemoteWriteConfig) *Server {
+func newServer(reg prometheus.Registerer, cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Config, log log.Logger, im instance.Manager, addr string, r ReadRing, store configstore.Store, stopFunc func() error, defaultRemoteWrite []*instance.RemoteWriteConfig) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &Server{
 		cfg:          cfg,
 		globalConfig: globalCfg,
 		clientConfig: clientCfg,
+		reg:          reg,
 		logger:       log,
 		addr:         addr,
 
@@ -198,8 +198,8 @@ func newServer(cfg Config, globalCfg *config.GlobalConfig, clientCfg client.Conf
 		joined:  atomic.NewBool(false),
 		configs: make(map[string]struct{}),
 
-		kv:   kv,
-		ring: r,
+		store: store,
+		ring:  r,
 
 		cancel:            cancel,
 		exited:            make(chan bool),
@@ -316,23 +316,23 @@ func (s *Server) notifyReshard(ctx context.Context, desc *ring.InstanceDesc) err
 func (s *Server) watchKV(ctx context.Context) {
 	level.Info(s.logger).Log("msg", "watching for changes to configs")
 
-	s.kv.WatchPrefix(ctx, "", func(key string, v interface{}) bool {
+	handleEvent := func(ev configstore.WatchEvent) {
 		s.configManagerMut.Lock()
 		defer s.configManagerMut.Unlock()
 
 		if ctx.Err() != nil {
-			return false
+			return
 		}
 
 		var (
-			_, isRunning = s.configs[key]
-			isDeleted    = v == nil
+			_, isRunning = s.configs[ev.Key]
+			isDeleted    = ev.Config == nil
 		)
 
-		owned, err := s.owns(key)
+		owned, err := s.owns(ev.Key)
 		if err != nil {
-			level.Error(s.logger).Log("msg", "failed to see if config is owned, will retry on next reshard", "name", key, "err", err)
-			return true
+			level.Error(s.logger).Log("msg", "failed to see if config is owned, will retry on next reshard", "name", ev.Key, "err", err)
+			return
 		}
 
 		switch {
@@ -340,32 +340,54 @@ func (s *Server) watchKV(ctx context.Context) {
 		// 1. A config we're running got moved to a new owner
 		// 2. A config we're running got deleted
 		case (isRunning && !owned) || (isDeleted && isRunning):
-			if err := s.im.DeleteConfig(key); err != nil {
-				level.Error(s.logger).Log("msg", "failed to delete config", "name", key, "err", err)
+			if err := s.im.DeleteConfig(ev.Key); err != nil {
+				level.Error(s.logger).Log("msg", "failed to delete config", "name", ev.Key, "err", err)
 			}
-			delete(s.configs, key)
+			delete(s.configs, ev.Key)
 
 		// New config should be applied if we own it
 		case !isDeleted && owned:
-			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
-			if err != nil {
-				level.Error(s.logger).Log("msg", "could not unmarshal stored config", "name", key, "err", err)
+			if s.applyConfig(ev.Key, ev.Config) {
+				s.configs[ev.Key] = struct{}{}
 			}
-
-			// Applying configs should only fail if the config is invalid
-			err = s.im.ApplyConfig(*cfg)
-			if err != nil {
-				level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
-				return true
-			}
-
-			s.configs[key] = struct{}{}
 		}
+	}
 
-		return true
-	})
+	storeEvents := s.store.Watch()
+
+Outer:
+	for {
+		select {
+		case <-ctx.Done():
+			break Outer
+		case ev := <-storeEvents:
+			handleEvent(ev)
+		}
+	}
 
 	level.Info(s.logger).Log("msg", "stopped watching for changes to configs")
+}
+
+// applyConfig applies a config to the InstanceManager. Returns true if the
+// application succeed.
+func (s *Server) applyConfig(key string, cfg *instance.Config) bool {
+	// Configs from the store aren't immediately valid and must be given the
+	// global config before running. Configs are validated against the current
+	// global config at upload time, but if the global config has since changed,
+	// they can be invalid at read time.
+	if err := cfg.ApplyDefaults(s.globalConfig, s.defaultRemoteWrite); err != nil {
+		level.Error(s.logger).Log("msg", "failed to apply defaults to config. this config cannot run until the globals are adjusted or the config is updated with either explicit overrides to defaults or tweaked to operate within the globals", "name", key, "err", err)
+		return false
+	}
+
+	// Applying configs should only fail if the config is invalid
+	err := s.im.ApplyConfig(*cfg)
+	if err != nil {
+		level.Error(s.logger).Log("msg", "failed to apply config, will retry on next reshard", "name", key, "err", err)
+		return false
+	}
+
+	return true
 }
 
 func (s *Server) reshardLoop(ctx context.Context) {
@@ -397,6 +419,19 @@ func (s *Server) localReshard(ctx context.Context) {
 	if err != nil {
 		level.Error(s.logger).Log("msg", "resharding failed", "err", err)
 	}
+}
+
+// WireAPI injects routes into the provided mux router for the config
+// management API.
+func (s *Server) WireAPI(r *mux.Router) {
+	storeAPI := configstore.NewAPI(s.logger, s.store, func(c *instance.Config) error {
+		return c.ApplyDefaults(s.globalConfig, s.defaultRemoteWrite)
+	})
+	s.reg.MustRegister(storeAPI)
+	storeAPI.WireAPI(r)
+
+	// Debug ring page
+	r.Handle("/debug/ring", s.ring)
 }
 
 // WireGRPC injects gRPC server handlers into the provided gRPC server.
