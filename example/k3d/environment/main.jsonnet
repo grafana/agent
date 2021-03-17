@@ -3,8 +3,8 @@ local etcd = import 'etcd/main.libsonnet';
 local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
-local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 local loki_config = import 'default/loki_config.libsonnet';
+local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 
 local service = k.core.v1.service;
 local images = {
@@ -46,8 +46,9 @@ local images = {
       // set by external_labels.
       scrape_configs: std.map(function(config) config {
         relabel_configs+: [{
-          target_label: 'cluster', replacement: cluster_label,
-        }]
+          target_label: 'cluster',
+          replacement: cluster_label,
+        }],
       }, super.scrape_configs),
     }) +
     grafana_agent.withRemoteWrite([{
@@ -92,13 +93,17 @@ local images = {
         },
       },
 
-      // We want our cluster and agent labels to remain static
-      // for this deployment, so if they are overwritten by a metric
-      // we will change them to the values set by external_labels.
-      kubernetes_scrape_configs: std.map(function(config) config {
-        relabel_configs+: [
-          { target_label: 'cluster', replacement: cluster_label },
-        ],
-      }, super.deployment_scrape_configs + super.kubernetes_scrape_configs),
+      kubernetes_scrape_configs:
+        (grafana_agent.scrapeInstanceKubernetes {
+           // We want our cluster and label to remain static for this deployment, so
+           // if they are overwritten by a metric we will change them to the values
+           // set by external_labels.
+           scrape_configs: std.map(function(config) config {
+             relabel_configs+: [{
+               target_label: 'cluster',
+               replacement: cluster_label,
+             }],
+           }, super.scrape_configs),
+         }).scrape_configs,
     }),
 }

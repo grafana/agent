@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prom/ha/configapi"
+	"github.com/grafana/agent/pkg/prom/cluster/configapi"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -92,7 +92,10 @@ func (api *API) ListConfigurations(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	keys, err := api.store.List(r.Context())
-	if err != nil {
+	if errors.Is(err, ErrNotConnected) {
+		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no config store running"))
+		return
+	} else if err != nil {
 		api.writeError(rw, http.StatusInternalServerError, fmt.Errorf("failed to write config: %w", err))
 		return
 	}
@@ -116,6 +119,8 @@ func (api *API) GetConfiguration(rw http.ResponseWriter, r *http.Request) {
 
 	cfg, err := api.store.Get(r.Context(), configKey)
 	switch {
+	case errors.Is(err, ErrNotConnected):
+		api.writeError(rw, http.StatusNotFound, err)
 	case errors.As(err, &NotExistError{}):
 		api.writeError(rw, http.StatusBadRequest, err)
 	case err != nil:
@@ -176,6 +181,8 @@ func (api *API) PutConfiguration(rw http.ResponseWriter, r *http.Request) {
 
 	created, err := api.store.Put(r.Context(), *cfg)
 	switch {
+	case errors.Is(err, ErrNotConnected):
+		api.writeError(rw, http.StatusNotFound, err)
 	case errors.As(err, &NotUniqueError{}):
 		api.writeError(rw, http.StatusBadRequest, err)
 	case err != nil:
@@ -208,6 +215,8 @@ func (api *API) DeleteConfiguration(rw http.ResponseWriter, r *http.Request) {
 
 	err = api.store.Delete(r.Context(), configKey)
 	switch {
+	case errors.Is(err, ErrNotConnected):
+		api.writeError(rw, http.StatusNotFound, err)
 	case errors.As(err, &NotExistError{}):
 		api.writeError(rw, http.StatusBadRequest, err)
 	case err != nil:

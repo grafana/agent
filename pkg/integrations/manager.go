@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/prom/instance/configstore"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/model"
@@ -127,15 +128,16 @@ type Manager struct {
 	hostname              string
 	defaultRelabelConfigs []*relabel.Config
 
-	im     instance.Manager
-	cancel context.CancelFunc
-	done   chan bool
+	im        instance.Manager
+	cancel    context.CancelFunc
+	done      chan bool
+	validator configstore.Validator
 }
 
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager) (*Manager, error) {
+func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
 	integrations := make(map[Config]Integration)
 
 	for _, integrationCfg := range c.Integrations {
@@ -149,10 +151,10 @@ func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager) (*Manag
 		}
 	}
 
-	return newManager(c, logger, im, integrations)
+	return newManager(c, logger, im, integrations, validate)
 }
 
-func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integrations map[Config]Integration) (*Manager, error) {
+func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integrations map[Config]Integration, validate configstore.Validator) (*Manager, error) {
 	defaultRelabels, err := c.DefaultRelabelConfigs()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get default relabel configs: %w", err)
@@ -168,6 +170,7 @@ func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integra
 		im:                    im,
 		cancel:                cancel,
 		done:                  make(chan bool),
+		validator:             validate,
 	}
 
 	if c.UseHostnameLabel {
@@ -212,6 +215,11 @@ func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration)
 	if shouldCollect {
 		// Apply the config so an instance is launched to scrape our integration.
 		instanceConfig := m.instanceConfigForIntegration(cfg, i)
+
+		if err := m.validator(&instanceConfig); err != nil {
+			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run", "err", err, "integration", cfg.Name())
+			return
+		}
 
 		if err := m.im.ApplyConfig(instanceConfig); err != nil {
 			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run", "err", err, "integration", cfg.Name())
