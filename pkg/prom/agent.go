@@ -269,14 +269,14 @@ func (a *Agent) syncInstances(oldConfig, newConfig Config) {
 	a.mut.RLock()
 	defer a.mut.RUnlock()
 
-	// Apply new configs from cfg
+	// Apply the new configs
 	for _, c := range newConfig.Configs {
 		if err := a.mm.ApplyConfig(c); err != nil {
 			level.Error(a.logger).Log("msg", "failed to apply config", "name", c.Name, "err", err)
 		}
 	}
 
-	// Remove configs from a.cfg that are no longer in cfg
+	// Remove any configs from oldConfig that aren't in newConfig.
 	for _, oc := range oldConfig.Configs {
 		foundConfig := false
 		for _, nc := range newConfig.Configs {
@@ -289,8 +289,6 @@ func (a *Agent) syncInstances(oldConfig, newConfig Config) {
 			continue
 		}
 
-		// Deleting a config can only fail if the config doesn't exist anymore, so
-		// we'll log the error but otherwise ignore it.
 		if err := a.mm.DeleteConfig(oc.Name); err != nil {
 			level.Error(a.logger).Log("msg", "failed to delete old config", "name", oc.Name, "err", err)
 		}
