@@ -323,11 +323,18 @@ func (n *node) Stop() error {
 	//
 	// Note that stopping the lifecycler will call performClusterReshard and will block
 	// until it completes.
-	var firstError error
-	for _, dep := range []services.Service{n.lc, n.ring} {
-		if dep == nil {
-			continue
-		}
+	var (
+		firstError error
+		deps       []services.Service
+	)
+
+	if n.lc != nil {
+		deps = append(deps, n.lc)
+	}
+	if n.ring != nil {
+		deps = append(deps, n.ring)
+	}
+	for _, dep := range deps {
 		err := services.StopAndAwaitTerminated(context.Background(), dep)
 		if err != nil && firstError == nil {
 			firstError = err
