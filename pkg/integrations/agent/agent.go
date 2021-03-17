@@ -5,9 +5,9 @@ package agent
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/go-kit/kit/log"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -48,14 +48,9 @@ func New(c *Config) *Integration {
 	return &Integration{c: c}
 }
 
-// RegisterRoutes satisfies Integration.RegisterRoutes.
-func (i *Integration) RegisterRoutes(r *mux.Router) error {
-	// Note that if the weaveworks common server is set to not register
-	// instrumentation endpoints, this lets the agent integration still be able
-	// to scrape itself, just at /integrations/agent/metrics.
-	r.Handle("/metrics", promhttp.Handler())
-
-	return nil
+// MetricsHandler satisfies Integration.RegisterRoutes.
+func (i *Integration) MetricsHandler() (http.Handler, error) {
+	return promhttp.Handler(), nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

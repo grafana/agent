@@ -5,13 +5,13 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
@@ -149,16 +149,11 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	}, nil
 }
 
-// RegisterRoutes satisfies integrations.Integration. The mux.Router provided
-// here is expected to be a subrouter, where all registered paths will be
-// registered within that subroute.
-func (e *Exporter) RegisterRoutes(r *mux.Router) error {
-	handler := promhttp.HandlerFor(e.reg, promhttp.HandlerOpts{
+// MetricsHandler returns the HTTP handler for the integration.
+func (e *Exporter) MetricsHandler() (http.Handler, error) {
+	return promhttp.HandlerFor(e.reg, promhttp.HandlerOpts{
 		ErrorHandling: promhttp.ContinueOnError,
-	})
-
-	r.Handle("/metrics", handler)
-	return nil
+	}), nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

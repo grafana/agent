@@ -3,6 +3,7 @@ package integrations
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"path"
 	"sync"
 	"time"
@@ -307,17 +308,25 @@ func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 	}
 }
 
-// WireAPI routes integrations to the given router.
+// WireAPI hooks up /metrics routes per-integration.
 func (m *Manager) WireAPI(r *mux.Router) error {
+	handlers := make(map[string]http.Handler, len(m.integrations))
 	for c, i := range m.integrations {
-		integrationsRoot := fmt.Sprintf("/integrations/%s", c.Name())
-		subRouter := r.PathPrefix(integrationsRoot).Subrouter()
-
-		err := i.RegisterRoutes(subRouter)
+		handler, err := i.MetricsHandler()
 		if err != nil {
-			return err
+			return fmt.Errorf("error generating handler for integration %q: %w", c.Name(), err)
 		}
+		handlers[c.Name()] = handler
 	}
+
+	r.HandleFunc("/integrations/{name}/metrics", func(rw http.ResponseWriter, r *http.Request) {
+		handler, ok := handlers[mux.Vars(r)["name"]]
+		if !ok {
+			http.NotFoundHandler().ServeHTTP(rw, r)
+			return
+		}
+		handler.ServeHTTP(rw, r)
+	})
 
 	return nil
 }

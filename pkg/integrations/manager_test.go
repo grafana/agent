@@ -3,12 +3,12 @@ package integrations
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -230,9 +230,8 @@ func newMockIntegration() *mockIntegration {
 	}
 }
 
-func (i *mockIntegration) RegisterRoutes(r *mux.Router) error {
-	r.Handle("/metrics", promhttp.Handler())
-	return nil
+func (i *mockIntegration) MetricsHandler() (http.Handler, error) {
+	return promhttp.Handler(), nil
 }
 
 func (i *mockIntegration) ScrapeConfigs() []config.ScrapeConfig {
