@@ -1985,7 +1985,7 @@ configs:
 # logs and as a label on metrics.
 name: <string>
 
-# Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor
+# Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor
 #  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
 attributes: [attributes.config]
 
@@ -2011,16 +2011,16 @@ push_config:
     [ password: <secret> ]
     [ password_file: <string> ]
 
-  # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor
+  # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor
   [ batch: <batch.config> ]
 
-  # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/otlpexporter
+  # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter
   [ sending_queue: <otlpexporter.sending_queue> ]
   [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
 # Receiver configurations are mapped directly into the OpenTelmetry receivers block.
 #   At least one receiver is required.
-#   https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/receiver/README.md
+#   https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
 receivers:
 
 # A list of prometheus scrape configs.  Targets discovered through these scrape configs have their __address__ matched against the ip on incoming spans.
