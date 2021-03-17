@@ -26,6 +26,7 @@ require (
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.9.0
 	github.com/prometheus/common v0.15.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
@@ -91,3 +92,5 @@ replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
+
+replace github.com/prometheus-community/windows_exporter => C:\Users\matt\Source\windows_exporter
