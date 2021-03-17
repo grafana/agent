@@ -33,6 +33,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [CHANGE] The User-Agent header sent for logs will now be
   `GrafanaAgent/<version>` (@rfratto)
+  
+- [ENHANCEMENT] Upgrade `go.opentelemetry.io/collector` to v0.21.0 (@mapno)
 
 # v0.13.0 (2021-02-25)
 
