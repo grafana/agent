@@ -275,6 +275,157 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "push_config and remote_write",
+			cfg: `
+receivers:
+  jaeger:
+push_config:
+  endpoint: example:12345
+remote_write:
+  - endpoint: anotherexample.com:12345
+`,
+			expectedError: true,
+		},
+		{
+			name: "push_config.batch and batch",
+			cfg: `
+receivers:
+  jaeger:
+push_config:
+  endpoint: example:12345
+  batch:
+    timeout: 5s
+    send_batch_size: 100
+batch:
+  timeout: 5s
+  send_batch_size: 100
+remote_write:
+  - endpoint: anotherexample.com:12345
+`,
+			expectedError: true,
+		},
+		{
+			name: "one backend with remote_write",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "two backends in a remote_write block",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password: blerg
+  - endpoint: anotherexample.com:12345
+    compression: none
+    insecure: false
+    insecure_skip_verify: true
+    basic_auth:
+      username: test
+      password_file: ` + tmpfile.Name() + `
+    retry_on_failure:
+      initial_interval: 10s
+    sending_queue:
+      num_consumers: 15
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    headers:
+      authorization: Basic dGVzdDpibGVyZw==
+    retry_on_failure:
+      max_elapsed_time: 60s
+  otlp/1:
+    endpoint: anotherexample.com:12345
+    insecure: false
+    insecure_skip_verify: true
+    headers:
+      authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
+    retry_on_failure:
+      initial_interval: 10s
+      max_elapsed_time: 60s
+    sending_queue:
+      num_consumers: 15
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0", "otlp/1"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "batch block",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+batch:
+  timeout: 5s
+  send_batch_size: 100
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 100
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["batch"]
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
