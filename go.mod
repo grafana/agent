@@ -94,4 +94,4 @@ replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 
-replace github.com/prometheus-community/windows_exporter => C:\Users\matt\Source\windows_exporter
+replace github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20210318175846-f7531024d7fc

@@ -1,3 +1,5 @@
+// +build windows
+
 package windows_exporter //nolint:golint
 
 import (
@@ -5,24 +7,21 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/prometheus/node_exporter/collector"
+	"gopkg.in/yaml.v2"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
-	windows_collector "github.com/prometheus-community/windows_exporter/collector"
 	"github.com/prometheus-community/windows_exporter/exporter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// Integration is the node_exporter integration. The integration scrapes metrics
-// from the host Linux-based system.
 type Integration struct {
 	c      *Config
 	logger log.Logger
-	nc     *collector.NodeCollector
+	wc     *exporter.WindowsCollector
 
 	exporterMetricsRegistry *prometheus.Registry
 }
@@ -30,15 +29,16 @@ type Integration struct {
 // New creates a new node_exporter integration.
 func New(log log.Logger, c *Config) (*Integration, error) {
 
-	mappedConfig := make(map[string]*windows_collector.ConfigInstance)
-	wc := exporter.NewWindowsCollector(mappedConfig)
+	bytes, _ := yaml.Marshal(c.WindowsConfig)
+	cb := string(bytes)
+	wc, _ := exporter.NewWindowsCollector(c.Name(), c.EnabledCollectors, cb)
 
 	level.Info(log).Log("msg", "Enabled windows_exporter collectors")
 
 	return &Integration{
 		c:      c,
 		logger: log,
-		nc:     wc,
+		wc:     wc,
 
 		exporterMetricsRegistry: prometheus.NewRegistry(),
 	}, nil
@@ -59,7 +59,7 @@ func (i *Integration) RegisterRoutes(r *mux.Router) error {
 
 func (i *Integration) handler() (http.Handler, error) {
 	r := prometheus.NewRegistry()
-	if err := r.Register(i.nc); err != nil {
+	if err := r.Register(i.wc); err != nil {
 		return nil, fmt.Errorf("couldn't register windows_exporter collector: %w", err)
 	}
 	handler := promhttp.HandlerFor(

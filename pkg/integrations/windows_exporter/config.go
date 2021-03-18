@@ -1,3 +1,5 @@
+// +build windows
+
 package windows_exporter //nolint:golint
 
 import (
@@ -11,6 +13,8 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	WindowsConfig interface{} `yaml:"config"`
+
+	EnabledCollectors string `yaml:"enabledCollectors"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
