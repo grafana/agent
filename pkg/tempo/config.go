@@ -97,10 +97,10 @@ type PushConfig struct {
 	Insecure           bool                   `yaml:"insecure"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
+	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
 	// Deprecated. Configure the batch processor with InstanceConfig.Batch instead.
-	Batch          map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
-	SendingQueue   map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
-	RetryOnFailure map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
+	Batch map[string]interface{} `yaml:"batch,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -119,9 +119,9 @@ func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // exporter builds an OTel exporter from PushConfig
-func (c *InstanceConfig) exporter(remoteWriteConfig PushConfig) (map[string]interface{}, error) {
+func exporter(remoteWriteConfig PushConfig) (map[string]interface{}, error) {
 	if len(remoteWriteConfig.Endpoint) == 0 {
-		return nil, errors.New("must have a configured remote_write.endpoint")
+		return nil, errors.New("must have a configured a backend endpoint")
 	}
 
 	headers := map[string]string{}
@@ -176,7 +176,7 @@ func (c *InstanceConfig) exporter(remoteWriteConfig PushConfig) (map[string]inte
 // It also supports building an exporter from push_config.
 func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 	if len(c.RemoteWrite) == 0 {
-		otlpExporter, err := c.exporter(c.PushConfig)
+		otlpExporter, err := exporter(c.PushConfig)
 		return map[string]interface{}{
 			"otlp": otlpExporter,
 		}, err
@@ -184,7 +184,7 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 
 	exporters := map[string]interface{}{}
 	for i, remoteWriteConfig := range c.RemoteWrite {
-		exporter, err := c.exporter(remoteWriteConfig)
+		exporter, err := exporter(remoteWriteConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -199,10 +199,6 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 
 	if len(c.Receivers) == 0 {
 		return nil, errors.New("must have at least one configured receiver")
-	}
-
-	if len(c.RemoteWrite) == 0 && len(c.PushConfig.Endpoint) == 0 {
-		return nil, errors.New("must have a configured at least one remote_write or push_config.endpoint")
 	}
 
 	if len(c.RemoteWrite) != 0 && len(c.PushConfig.Endpoint) != 0 {
