@@ -52,6 +52,8 @@ func (c *Config) ConvertToMap() map[string]string {
 	return configMap
 }
 
+// This is to create a map from the config using the exporter struct tag as the key. This is to be ONLY used on pointer configs
+// and pointer strings. This is because we need to know if a value was set so that we don't overwrite defaults.
 func mapToConfig(config interface{}, cm map[string]string) {
 	if config == nil || (reflect.ValueOf(config).Kind() == reflect.Ptr && reflect.ValueOf(config).IsNil()) {
 		return
@@ -64,16 +66,15 @@ func mapToConfig(config interface{}, cm map[string]string) {
 	fieldCount := t.Elem().NumField()
 	for i := 0; i < fieldCount; i++ {
 		iv := v.Elem().Field(i)
-		mapToConfig(iv.Interface(), cm)
 		f := t.Elem().Field(i)
 		en := f.Tag.Get("exporter")
-		if en == "" {
+		if en != "" && iv.Kind() == reflect.Ptr && iv.Elem().Kind() == reflect.String {
+			cm[en] = iv.Elem().String()
 			continue
 		}
-		if iv.Kind() == reflect.String {
-			cm[en] = iv.String()
+		if iv.Kind() == reflect.Ptr {
+			mapToConfig(iv.Interface(), cm)
 		}
-
 	}
 }
 
