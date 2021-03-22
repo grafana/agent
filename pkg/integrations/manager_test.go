@@ -19,6 +19,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func noOpValidator(*instance.Config) error { return nil }
+
 // Test that embedded integration fields in the struct can be unmarshaled and
 // remarshaled back out to text.
 func TestConfig_Remarshal(t *testing.T) {
@@ -86,7 +88,7 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 	icfg := mockConfig{integration: mock}
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, nil)
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, nil, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -109,7 +111,7 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 	cfg := mockManagerConfig()
 	cfg.ScrapeIntegrations = false
 
-	m, err := newManager(cfg, log.NewNopLogger(), im, integrations)
+	m, err := newManager(cfg, log.NewNopLogger(), im, integrations, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -132,7 +134,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -149,7 +151,7 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	integrations := map[Config]Integration{icfg: mock}
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -169,7 +171,7 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -186,7 +188,7 @@ func TestManager_GracefulStop(t *testing.T) {
 
 	integrations := map[Config]Integration{icfg: mock}
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations, noOpValidator)
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second, 1, func() interface{} {

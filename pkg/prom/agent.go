@@ -7,12 +7,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/prom/ha"
-	"github.com/grafana/agent/pkg/prom/ha/client"
+	"github.com/google/go-cmp/cmp"
+	"github.com/grafana/agent/pkg/prom/cluster"
+	"github.com/grafana/agent/pkg/prom/cluster/client"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
@@ -25,7 +27,7 @@ var (
 		InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
 		WALCleanupAge:          DefaultCleanupAge,
 		WALCleanupPeriod:       DefaultCleanupPeriod,
-		ServiceConfig:          ha.DefaultConfig,
+		ServiceConfig:          cluster.DefaultConfig,
 		ServiceClientConfig:    client.DefaultConfig,
 		InstanceMode:           instance.DefaultMode,
 	}
@@ -41,7 +43,7 @@ type Config struct {
 	WALDir                 string                        `yaml:"wal_directory"`
 	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age"`
 	WALCleanupPeriod       time.Duration                 `yaml:"wal_cleanup_period"`
-	ServiceConfig          ha.Config                     `yaml:"scraping_service"`
+	ServiceConfig          cluster.Config                `yaml:"scraping_service"`
 	ServiceClientConfig    client.Config                 `yaml:"scraping_service_client"`
 	Configs                []instance.Config             `yaml:"configs,omitempty"`
 	InstanceRestartBackoff time.Duration                 `yaml:"instance_restart_backoff,omitempty"`
@@ -58,7 +60,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Enabled = true
 
 	type plain Config
-	return unmarshal((*plain)(c))
+	err := unmarshal((*plain)(c))
+	if err != nil {
+		return err
+	}
+
+	c.ServiceConfig.Client = c.ServiceClientConfig
+	return nil
 }
 
 // ApplyDefaults applies default values to the Config and validates it.
@@ -111,6 +119,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 // components of Prometheus. It is broken down into a series of Instances, each
 // of which perform metric collection.
 type Agent struct {
+	mut    sync.RWMutex
 	cfg    Config
 	logger log.Logger
 	reg    prometheus.Registerer
@@ -124,7 +133,11 @@ type Agent struct {
 
 	instanceFactory instanceFactory
 
-	ha *ha.Server
+	cluster *cluster.Cluster
+
+	stopped  bool
+	stopOnce sync.Once
+	actor    chan func()
 }
 
 // New creates and starts a new Agent.
@@ -134,10 +147,10 @@ func New(reg prometheus.Registerer, cfg Config, logger log.Logger) (*Agent, erro
 
 func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact instanceFactory) (*Agent, error) {
 	a := &Agent{
-		cfg:             cfg,
 		logger:          log.With(logger, "agent", "prometheus"),
 		instanceFactory: fact,
 		reg:             reg,
+		actor:           make(chan func(), 1),
 	}
 
 	a.bm = instance.NewBasicManager(instance.BasicManagerConfig{
@@ -150,40 +163,23 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 		return nil, fmt.Errorf("failed to create modal instance manager: %w", err)
 	}
 
-	// Periodically attempt to clean up WALs from instances that aren't being run by
-	// this agent anymore.
-	a.cleaner = NewWALCleaner(
-		a.logger,
-		a.mm,
-		cfg.WALDir,
-		cfg.WALCleanupAge,
-		cfg.WALCleanupPeriod,
-	)
-
-	allConfigsValid := true
-	for _, c := range cfg.Configs {
-		if err := a.mm.ApplyConfig(c); err != nil {
-			level.Error(logger).Log("msg", "failed to apply config", "name", c.Name, "err", err)
-			allConfigsValid = false
-		}
-	}
-	if !allConfigsValid {
-		return nil, fmt.Errorf("one or more configs was found to be invalid")
+	a.cluster, err = cluster.New(a.logger, reg, cfg.ServiceConfig, a.mm, a.Validate)
+	if err != nil {
+		return nil, err
 	}
 
-	if cfg.ServiceConfig.Enabled {
-		var err error
-		a.ha, err = ha.New(reg, cfg.ServiceConfig, &cfg.Global, cfg.ServiceClientConfig, a.logger, a.mm, cfg.RemoteWrite)
-		if err != nil {
-			return nil, err
-		}
+	if err := a.ApplyConfig(cfg); err != nil {
+		return nil, err
 	}
-
+	go a.run()
 	return a, nil
 }
 
 // newInstance creates a new Instance given a config.
 func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
+	a.mut.RLock()
+	defer a.mut.RUnlock()
+
 	// Controls the label
 	instanceLabel := "instance_name"
 	if a.cfg.InstanceMode == instance.ModeShared {
@@ -197,10 +193,117 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 	return a.instanceFactory(reg, a.cfg.Global, c, a.cfg.WALDir, a.logger)
 }
 
-func (a *Agent) WireGRPC(s *grpc.Server) {
-	if a.cfg.ServiceConfig.Enabled {
-		a.ha.WireGRPC(s)
+// Validate will validate the incoming Config and mutate it to apply defaults.
+func (a *Agent) Validate(c *instance.Config) error {
+	a.mut.RLock()
+	defer a.mut.RUnlock()
+
+	if err := c.ApplyDefaults(&a.cfg.Global, a.cfg.RemoteWrite); err != nil {
+		return fmt.Errorf("failed to apply defaults to %q: %w", c.Name, err)
 	}
+
+	return nil
+}
+
+// ApplyConfig applies config changes to the Agent.
+func (a *Agent) ApplyConfig(cfg Config) error {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+
+	if cmp.Equal(a.cfg, cfg) {
+		return nil
+	}
+
+	if a.stopped {
+		return fmt.Errorf("agent stopped")
+	}
+
+	// The ordering here is done to minimze the number of instances that need to
+	// be restarted. We update components from lowest to highest level:
+	//
+	// 1. WAL Cleaner
+	// 2. Basic manager
+	// 3. Modal Manager
+	// 4. Cluster
+	// 5. Local configs
+
+	if a.cleaner != nil {
+		a.cleaner.Stop()
+	}
+	a.cleaner = NewWALCleaner(
+		a.logger,
+		a.mm,
+		cfg.WALDir,
+		cfg.WALCleanupAge,
+		cfg.WALCleanupPeriod,
+	)
+
+	a.bm.UpdateManagerConfig(instance.BasicManagerConfig{
+		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
+	})
+
+	if err := a.mm.SetMode(cfg.InstanceMode); err != nil {
+		return err
+	}
+
+	if err := a.cluster.ApplyConfig(cfg.ServiceConfig); err != nil {
+		return fmt.Errorf("failed to apply cluster config: %w", err)
+	}
+
+	// Queue an actor in the background to sync the instances. This is required
+	// because creating both this function and newInstance grab the mutex.
+	oldConfig := a.cfg
+
+	a.actor <- func() {
+		a.syncInstances(oldConfig, cfg)
+	}
+
+	a.cfg = cfg
+	return nil
+}
+
+// syncInstances syncs the state of the instance manager to newConfig by
+// applying all configs from newConfig and deleting any configs from oldConfig
+// that are not in newConfig.
+func (a *Agent) syncInstances(oldConfig, newConfig Config) {
+	a.mut.RLock()
+	defer a.mut.RUnlock()
+
+	// Apply the new configs
+	for _, c := range newConfig.Configs {
+		if err := a.mm.ApplyConfig(c); err != nil {
+			level.Error(a.logger).Log("msg", "failed to apply config", "name", c.Name, "err", err)
+		}
+	}
+
+	// Remove any configs from oldConfig that aren't in newConfig.
+	for _, oc := range oldConfig.Configs {
+		foundConfig := false
+		for _, nc := range newConfig.Configs {
+			if nc.Name == oc.Name {
+				foundConfig = true
+				break
+			}
+		}
+		if foundConfig {
+			continue
+		}
+
+		if err := a.mm.DeleteConfig(oc.Name); err != nil {
+			level.Error(a.logger).Log("msg", "failed to delete old config", "name", oc.Name, "err", err)
+		}
+	}
+}
+
+// run calls received actor functions in the background.
+func (a *Agent) run() {
+	for f := range a.actor {
+		f()
+	}
+}
+
+func (a *Agent) WireGRPC(s *grpc.Server) {
+	a.cluster.WireGRPC(s)
 }
 
 func (a *Agent) Config() Config                    { return a.cfg }
@@ -208,16 +311,23 @@ func (a *Agent) InstanceManager() instance.Manager { return a.mm }
 
 // Stop stops the agent and all its instances.
 func (a *Agent) Stop() {
-	if a.ha != nil {
-		if err := a.ha.Stop(); err != nil {
-			level.Error(a.logger).Log("msg", "failed to stop scraping service server", "err", err)
-		}
-	}
+	a.mut.Lock()
+	defer a.mut.Unlock()
+
+	// Close the actor channel to stop run.
+	a.stopOnce.Do(func() {
+		close(a.actor)
+	})
+
+	a.cluster.Stop()
+
 	a.cleaner.Stop()
 
 	// Only need to stop the ModalManager, which will passthrough everything to the
 	// BasicManager.
 	a.mm.Stop()
+
+	a.stopped = true
 }
 
 type instanceFactory = func(reg prometheus.Registerer, global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
