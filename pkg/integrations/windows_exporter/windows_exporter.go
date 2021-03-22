@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
@@ -29,9 +27,8 @@ type Integration struct {
 // New creates a new node_exporter integration.
 func New(log log.Logger, c *Config) (*Integration, error) {
 
-	bytes, _ := yaml.Marshal(c.WindowsConfig)
-	cb := string(bytes)
-	wc, _ := exporter.NewWindowsCollector(c.Name(), c.EnabledCollectors, cb)
+	cm := c.ConvertToMap()
+	wc, _ := exporter.NewWindowsCollector(c.Name(), c.EnabledCollectors, cm)
 
 	level.Info(log).Log("msg", "Enabled windows_exporter collectors")
 

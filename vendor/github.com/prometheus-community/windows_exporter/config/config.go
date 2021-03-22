@@ -76,6 +76,11 @@ func NewResolverFromString(config string) (*Resolver, error) {
 	return &Resolver{flags: flags}, nil
 }
 
+// NewResolver returns a Resolver structure.
+func NewResolverFromMap(config map[string]string) (*Resolver, error) {
+	return &Resolver{flags: config}, nil
+}
+
 func (c *Resolver) setDefault(v getFlagger) {
 	for name, value := range c.flags {
 		f := v.GetFlag(name)
