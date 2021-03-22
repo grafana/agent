@@ -1,82 +1,36 @@
-// +build windows
+// +build !windows
 
-package windows_exporter //nolint:golint
+package windows_exporter
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
-	"github.com/prometheus-community/windows_exporter/exporter"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// Integration is the windows_exporter integration. On non-Windows platforms,
+// this integration does nothing and will print a warning if enabled.
 type Integration struct {
-	c      *Config
-	logger log.Logger
-	wc     *exporter.WindowsCollector
-
-	exporterMetricsRegistry *prometheus.Registry
+	c *Config
 }
 
-// New creates a new node_exporter integration.
-func New(log log.Logger, c *Config) (*Integration, error) {
-
-	cm := c.ConvertToMap()
-	wc, _ := exporter.NewWindowsCollector(c.Name(), c.EnabledCollectors, cm)
-
-	level.Info(log).Log("msg", "Enabled windows_exporter collectors")
-
-	return &Integration{
-		c:      c,
-		logger: log,
-		wc:     wc,
-
-		exporterMetricsRegistry: prometheus.NewRegistry(),
-	}, nil
+func New(logger log.Logger, c *Config) (*Integration, error) {
+	level.Warn(logger).Log("msg", "the windows_exporter only works on Windows; enabling it otherwise will do nothing")
+	return &Integration{c: c}, nil
 }
 
-// RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
-// here is expected to be a subrouter, where all registered paths will be
-// registered within that subroute.
+// RegisterRoutes satisfies Integration.RegisterRoutes.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {
-	handler, err := i.handler()
-	if err != nil {
-		return err
-	}
-
-	r.Handle("/metrics", handler)
 	return nil
-}
-
-func (i *Integration) handler() (http.Handler, error) {
-	r := prometheus.NewRegistry()
-	if err := r.Register(i.wc); err != nil {
-		return nil, fmt.Errorf("couldn't register windows_exporter collector: %w", err)
-	}
-	handler := promhttp.HandlerFor(
-		prometheus.Gatherers{i.exporterMetricsRegistry, r},
-		promhttp.HandlerOpts{
-			ErrorHandling:       promhttp.ContinueOnError,
-			MaxRequestsInFlight: 0,
-			Registry:            i.exporterMetricsRegistry,
-		},
-	)
-
-	return handler, nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
 func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{
-		JobName:     i.c.Name(),
-		MetricsPath: "/metrics",
-	}}
+	// No-op: nothing to scrape.
+	return []config.ScrapeConfig{}
 }
 
 // Run satisfies Integration.Run.

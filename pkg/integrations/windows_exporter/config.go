@@ -1,5 +1,3 @@
-// +build windows
-
 package windows_exporter //nolint:golint
 
 import (
@@ -14,7 +12,7 @@ import (
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	EnabledCollectors string `yaml:"enabledCollectors"`
+	EnabledCollectors string `yaml:"enabled_collectors"`
 
 	Exchange    *ExchangeConfig    `yaml:"exchange"`
 	IIS         *IISConfig         `yaml:"iis"`
