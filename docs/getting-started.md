@@ -256,14 +256,14 @@ tempo:
       jaeger:
         protocols:
           grpc: # listens on the default jaeger grpc port: 14250
-    push_config:
-      endpoint: localhost:55680
-      insecure: true  # only add this if TLS is not required
-      batch:
-        timeout: 5s
-        send_batch_size: 100
-      queue:
-        retry_on_failure: true
+    remote_write:
+      - endpoint: localhost:55680
+        insecure: true  # only add this if TLS is not required
+        queue:
+          retry_on_failure: true
+    batch:
+      timeout: 5s
+      send_batch_size: 100
 ```
 
 ## Running
