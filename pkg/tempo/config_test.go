@@ -3,12 +3,14 @@ package tempo
 import (
 	"io/ioutil"
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configmodels"
 	"gopkg.in/yaml.v2"
 )
 
@@ -385,7 +387,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp/0", "otlp/1"]
+      exporters: ["otlp/1", "otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -457,7 +459,18 @@ service:
 			expectedConfig, err := config.Load(v, factories)
 			require.NoError(t, err)
 
+			// Exporters in the config's pipelines need to be in the same order for them to be asserted as equal
+			sortPipelinesExporters(actualConfig)
+			sortPipelinesExporters(expectedConfig)
+
 			assert.Equal(t, expectedConfig, actualConfig)
 		})
+	}
+}
+
+// sortPipelinesExporters is a helper function to lexicographically sort a pipeline's exporters
+func sortPipelinesExporters(cfg *configmodels.Config) {
+	for _, p := range cfg.Pipelines {
+		sort.Strings(p.Exporters)
 	}
 }
