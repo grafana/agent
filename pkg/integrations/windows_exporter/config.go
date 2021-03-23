@@ -115,7 +115,7 @@ type NetworkConfig struct {
 }
 
 type MSSQLConfig struct {
-	EnabledCollectors *string `yaml:"enabled_collectors" exporter:"collectors.mssql.classes-enabled"`
+	EnabledClasses *string `yaml:"enabled_classes" exporter:"collectors.mssql.classes-enabled"`
 }
 
 type MSMQConfig struct {
