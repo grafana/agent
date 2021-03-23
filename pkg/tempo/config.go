@@ -97,10 +97,9 @@ type PushConfig struct {
 	Insecure           bool                   `yaml:"insecure"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
 	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
-	// Deprecated. Configure the batch processor with InstanceConfig.Batch instead.
-	Batch map[string]interface{} `yaml:"batch,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
