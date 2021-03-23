@@ -3,6 +3,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+- [FEATURE] Integration of windows exporter into agent (@mattdurham)
+
 - [FEATURE] Official M1 Mac release builds will now be generated! Look for
   `agent-darwin-arm64` and `agentctl-darwin-arm64` in the release assets.
   (@rfratto)
