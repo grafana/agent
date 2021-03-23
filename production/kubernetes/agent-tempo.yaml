@@ -11,17 +11,10 @@ data:
         log_level: info
     tempo:
         configs:
-          - name: default
-            push_config:
-                basic_auth:
-                    password: ${TEMPO_PASSWORD}
-                    username: ${TEMPO_USERNAME}
-                batch:
-                    send_batch_size: 1000
-                    timeout: 5s
-                endpoint: ${TEMPO_ENDPOINT}
-                retry_on_failure:
-                    enabled: false
+          - batch:
+                send_batch_size: 1000
+                timeout: 5s
+            name: default
             receivers:
                 jaeger:
                     protocols:
@@ -38,6 +31,13 @@ data:
                         grpc: null
                         http: null
                 zipkin: null
+            remote_write:
+              - basic_auth:
+                    password: ${TEMPO_PASSWORD}
+                    username: ${TEMPO_USERNAME}
+                endpoint: ${TEMPO_ENDPOINT}
+                retry_on_failure:
+                    enabled: false
             scrape_configs:
               - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
                 job_name: kubernetes-pods

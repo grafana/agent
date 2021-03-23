@@ -73,9 +73,9 @@ tempo:
       - action: upsert
         key: env
         value: prod
-    push_config:
-      endpoint: otel-collector:55680
-      insecure: true
-      batch:
-        timeout: 5s
-        send_batch_size: 100
+    remote_write:
+      - endpoint: otel-collector:55680
+        insecure: true
+    batch:
+      timeout: 5s
+      send_batch_size: 100
