@@ -16,6 +16,7 @@ import (
 	"github.com/go-kit/kit/log"
 )
 
+// Entrypoint is the entrypoint of the application that starts all subsystems.
 type Entrypoint struct {
 	promMetrics *prom.Agent
 	lokiLogs    *loki.Loki
@@ -24,6 +25,7 @@ type Entrypoint struct {
 	srv         *server.Server
 }
 
+// NewEntryPoint creates a new Entrypoint.
 func NewEntryPoint(logger log.Logger, cfg *config.Config) (*Entrypoint, error) {
 	var (
 		promMetrics *prom.Agent
@@ -91,9 +93,9 @@ func NewEntryPoint(logger log.Logger, cfg *config.Config) (*Entrypoint, error) {
 		manager:     manager,
 		srv:         srv,
 	}, nil
-
 }
 
+// Stop stops the Entrypoint and all subsystems.
 func (srv *Entrypoint) Stop() {
 	// Stop enabled subsystems
 	if srv.manager != nil {
@@ -110,6 +112,8 @@ func (srv *Entrypoint) Stop() {
 	}
 }
 
+// Start starts the server used by the Entrypoint, and will block until a
+// termination signal is sent to the process.
 func (srv *Entrypoint) Start() error {
 	return srv.srv.Run()
 }

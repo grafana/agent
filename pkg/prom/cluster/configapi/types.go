@@ -14,6 +14,8 @@ type APIResponse struct {
 	Data   interface{} `json:"data,omitempty"`
 }
 
+// WriteTo writes the response to the given ResponseWriter with the provided
+// statusCode.
 func (r *APIResponse) WriteTo(w http.ResponseWriter, statusCode int) error {
 	bb, err := json.Marshal(r)
 	if err != nil {
@@ -55,6 +57,8 @@ type GetConfigurationResponse struct {
 	Value string `json:"value"`
 }
 
+// WriteResponse writes a response object to the provided ResponseWriter w and with a
+// status code of statusCode. resp is marshaled to JSON.
 func WriteResponse(w http.ResponseWriter, statusCode int, resp interface{}) error {
 	apiResp := &APIResponse{Status: "success", Data: resp}
 	return apiResp.WriteTo(w, statusCode)

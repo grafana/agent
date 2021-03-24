@@ -39,7 +39,7 @@ func NewCollectorIntegration(name string, configs ...CollectorIntegrationConfig)
 // CollectorIntegrationConfig defines constructor configuration for NewCollectorIntegration
 type CollectorIntegrationConfig func(integration *CollectorIntegration)
 
-// WithCollector adds more collectors to the CollectorIntegration being created.
+// WithCollectors adds more collectors to the CollectorIntegration being created.
 func WithCollectors(cs ...prometheus.Collector) CollectorIntegrationConfig {
 	return func(i *CollectorIntegration) {
 		i.cs = append(i.cs, cs...)

@@ -11,6 +11,10 @@ import (
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
 
+// SampleStats are statistics for samples for a series within the WAL. Each
+// instance represents a unique series based on its labels, and holds the range
+// of timestamps found for all samples including the total number of samples
+// for that series.
 type SampleStats struct {
 	Labels  labels.Labels
 	From    time.Time

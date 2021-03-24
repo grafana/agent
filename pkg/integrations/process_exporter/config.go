@@ -9,15 +9,14 @@ import (
 	exporter_config "github.com/ncabatoff/process-exporter/config"
 )
 
-var (
-	DefaultConfig Config = Config{
-		ProcFSPath: "/proc",
-		Children:   true,
-		Threads:    true,
-		SMaps:      true,
-		Recheck:    false,
-	}
-)
+// DefaultConfig holds the default settings for the process_exporter integration.
+var DefaultConfig = Config{
+	ProcFSPath: "/proc",
+	Children:   true,
+	Threads:    true,
+	SMaps:      true,
+	Recheck:    false,
+}
 
 // Config controls the process_exporter integration.
 type Config struct {
@@ -31,6 +30,7 @@ type Config struct {
 	Recheck    bool   `yaml:"recheck_on_scrape"`
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 	*c = DefaultConfig
 
@@ -38,14 +38,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "process_exporter"
 }
 
+// CommonConfig returns the set of common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }

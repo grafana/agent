@@ -12,8 +12,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// TypeStr is the unique identifier for the Prometheus SD processor.
 const TypeStr = "prom_sd_processor"
 
+// Config holds the configuration for the Prometheus SD processor.
 type Config struct {
 	configmodels.ProcessorSettings `mapstructure:",squash"`
 	ScrapeConfigs                  []interface{} `mapstructure:"scrape_configs"`

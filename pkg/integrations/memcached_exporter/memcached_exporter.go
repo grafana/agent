@@ -35,14 +35,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "memcached_exporter"
 }
 
+// CommonConfig returns the common settings shared across all integratons.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }

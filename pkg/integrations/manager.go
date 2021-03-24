@@ -29,14 +29,13 @@ var (
 	}, []string{"integration_name"})
 )
 
-var (
-	DefaultManagerConfig = ManagerConfig{
-		ScrapeIntegrations:        true,
-		IntegrationRestartBackoff: 5 * time.Second,
-		UseHostnameLabel:          true,
-		ReplaceInstanceLabel:      true,
-	}
-)
+// DefaultManagerConfig holds the default settings for integrations.
+var DefaultManagerConfig = ManagerConfig{
+	ScrapeIntegrations:        true,
+	IntegrationRestartBackoff: 5 * time.Second,
+	UseHostnameLabel:          true,
+	ReplaceInstanceLabel:      true,
+}
 
 // ManagerConfig holds the configuration for all integrations.
 type ManagerConfig struct {
@@ -308,6 +307,7 @@ func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 	}
 }
 
+// WireAPI routes integrations to the given router.
 func (m *Manager) WireAPI(r *mux.Router) error {
 	for c, i := range m.integrations {
 		integrationsRoot := fmt.Sprintf("/integrations/%s", c.Name())

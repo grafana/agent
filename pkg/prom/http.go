@@ -20,7 +20,7 @@ func (a *Agent) WireAPI(r *mux.Router) {
 	r.HandleFunc("/agent/api/v1/targets", a.ListTargetsHandler).Methods("GET")
 }
 
-// ListInstances writes the set of currently running instances to the http.ResponseWriter.
+// ListInstancesHandler writes the set of currently running instances to the http.ResponseWriter.
 func (a *Agent) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
 	cfgs := a.mm.ListConfigs()
 	instanceNames := make([]string, 0, len(cfgs))

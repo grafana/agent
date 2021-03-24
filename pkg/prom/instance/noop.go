@@ -10,19 +10,23 @@ import (
 // but does not do anything. Useful for tests.
 type NoOpInstance struct{}
 
+// Run implements Instance.
 func (NoOpInstance) Run(ctx context.Context) error {
 	<-ctx.Done()
 	return nil
 }
 
+// Update implements Instance.
 func (NoOpInstance) Update(_ Config) error {
 	return nil
 }
 
+// TargetsActive implements Instance.
 func (NoOpInstance) TargetsActive() map[string][]*scrape.Target {
 	return nil
 }
 
+// StorageDirectory implements Instance.
 func (NoOpInstance) StorageDirectory() string {
 	return ""
 }

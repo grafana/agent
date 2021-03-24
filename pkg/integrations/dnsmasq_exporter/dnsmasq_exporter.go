@@ -26,14 +26,17 @@ type Config struct {
 	LeasesPath string `yaml:"leases_path"`
 }
 
+// Name returns the name of the integration that this config is for.
 func (c *Config) Name() string {
 	return "dnsmasq_exporter"
 }
 
+// CommonConfig returns the set of common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
