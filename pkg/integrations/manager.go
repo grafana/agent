@@ -190,7 +190,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	for _, ic := range cfg.Integrations {
 		// Key is used to identify the instance of this integration within the
 		// instance manager and within our set of running integrations.
-		key := instanceConfigKey(ic)
+		key := integrationKey(ic.Name())
 
 		// Look for an existing integration with the same key. If it exists and
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
@@ -231,7 +231,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	for key, process := range m.integrations {
 		foundConfig := false
 		for _, ic := range cfg.Integrations {
-			if instanceConfigKey(ic) == key {
+			if integrationKey(ic.Name()) == key {
 				foundConfig = true
 				break
 			}
@@ -354,7 +354,7 @@ func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg M
 	}
 
 	instanceCfg := instance.DefaultConfig
-	instanceCfg.Name = instanceConfigKey(icfg)
+	instanceCfg.Name = integrationKey(icfg.Name())
 	instanceCfg.ScrapeConfigs = scrapeConfigs
 	instanceCfg.RemoteWrite = cfg.PrometheusRemoteWrite
 	if common.WALTruncateFrequency > 0 {
@@ -363,9 +363,10 @@ func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg M
 	return instanceCfg
 }
 
-// instanceConfigKey returns the instanceConfigKey for an integration Config.
-func instanceConfigKey(cfg Config) string {
-	return fmt.Sprintf("integration/%s", cfg.Name())
+// integrationKey returns the key for an integration Config, used for its
+// instance name and name in the process cache.
+func integrationKey(name string) string {
+	return fmt.Sprintf("integration/%s", name)
 }
 
 func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
@@ -405,16 +406,14 @@ func (m *Manager) WireAPI(r *mux.Router) error {
 	// loadHandler will perform a dynamic lookup of an HTTP handler for an
 	// integration. loadHandler should be called with a read lock on the
 	// integrations mutex.
-	loadHandler := func(name string) http.Handler {
+	loadHandler := func(key string) http.Handler {
 		handlerMut.Lock()
 		defer handlerMut.Unlock()
-
-		key := fmt.Sprintf("integrations/%s", name)
 
 		// Search the integration by name to see if it's still running.
 		p, ok := m.integrations[key]
 		if !ok {
-			delete(handlerCache, name)
+			delete(handlerCache, key)
 			return http.NotFoundHandler()
 		}
 
@@ -428,7 +427,7 @@ func (m *Manager) WireAPI(r *mux.Router) error {
 		// a handler for it and cache it.
 		handler, err := p.i.MetricsHandler()
 		if err != nil {
-			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", name, "err", err)
+			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Name(), "err", err)
 			return http.HandlerFunc(internalServiceError)
 		}
 
@@ -441,7 +440,8 @@ func (m *Manager) WireAPI(r *mux.Router) error {
 		m.integrationsMut.RLock()
 		defer m.integrationsMut.RUnlock()
 
-		handler := loadHandler(mux.Vars(r)["name"])
+		key := integrationKey(mux.Vars(r)["name"])
+		handler := loadHandler(key)
 		handler.ServeHTTP(rw, r)
 	})
 
