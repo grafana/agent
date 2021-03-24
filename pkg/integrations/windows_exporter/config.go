@@ -82,12 +82,16 @@ func (c *Config) ApplyConfig(exporterConfigs map[string]collector.Config) {
 		c.TextFile,
 	}
 	// Brute force the syncing
-	for _, v := range agentConfigs {
-		if v == nil || reflect.ValueOf(v).IsNil() {
+	for _, ac := range agentConfigs {
+		if ac == nil || reflect.ValueOf(ac).IsNil() {
 			continue
 		}
-		for _, cv := range exporterConfigs {
-			v.Sync(cv)
+		for _, ec := range exporterConfigs {
+			// Sync will return true if it can handle the exporter config
+			// which means we can break early
+			if ac.Sync(ec) {
+				break
+			}
 		}
 	}
 }
@@ -100,10 +104,12 @@ func (c *ExchangeConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collectors.exchange.enabled", c.EnabledList)
 }
 
-func (c *ExchangeConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.ExchangeConfig); ok {
+func (c *ExchangeConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.ExchangeConfig)
+	if ok {
 		setStringIfNotNil(c.EnabledList, &other.Enabled)
 	}
+	return ok
 }
 
 type IISConfig struct {
@@ -120,13 +126,15 @@ func (c *IISConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.iis.app-blacklist", c.AppBlackList)
 }
 
-func (c *IISConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.IISConfig); ok {
+func (c *IISConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.IISConfig)
+	if ok {
 		setStringIfNotNil(c.SiteWhiteList, &other.SiteWhiteList)
 		setStringIfNotNil(c.SiteBlackList, &other.SiteBlackList)
 		setStringIfNotNil(c.AppWhiteList, &other.AppWhiteList)
 		setStringIfNotNil(c.AppBlackList, &other.AppBlackList)
 	}
+	return ok
 }
 
 type TextFileConfig struct {
@@ -137,10 +145,12 @@ func (c *TextFileConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.textfile.directory", c.TextFileDirectory)
 }
 
-func (c *TextFileConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.TextFileConfig); ok {
+func (c *TextFileConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.TextFileConfig)
+	if ok {
 		setStringIfNotNil(c.TextFileDirectory, &other.TextFileDirectory)
 	}
+	return ok
 }
 
 type SMTPConfig struct {
@@ -153,11 +163,13 @@ func (c *SMTPConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.smtp.server-blacklist", c.BlackList)
 }
 
-func (c *SMTPConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.SMTPConfig); ok {
+func (c *SMTPConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.SMTPConfig)
+	if ok {
 		setStringIfNotNil(c.WhiteList, &other.ServerWhiteList)
 		setStringIfNotNil(c.BlackList, &other.ServerBlackList)
 	}
+	return ok
 }
 
 type ServiceConfig struct {
@@ -168,10 +180,12 @@ func (c *ServiceConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.service.services-where", c.Where)
 }
 
-func (c *ServiceConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.ServiceConfig); ok {
+func (c *ServiceConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.ServiceConfig)
+	if ok {
 		setStringIfNotNil(c.Where, &other.ServiceWhereClause)
 	}
+	return ok
 }
 
 type ProcessConfig struct {
@@ -184,11 +198,13 @@ func (c *ProcessConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.process.blacklist", c.BlackList)
 }
 
-func (c *ProcessConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.ProcessConfig); ok {
+func (c *ProcessConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.ProcessConfig)
+	if ok {
 		setStringIfNotNil(c.WhiteList, &other.ProcessWhiteList)
 		setStringIfNotNil(c.BlackList, &other.ProcessBlackList)
 	}
+	return ok
 }
 
 type NetworkConfig struct {
@@ -201,11 +217,13 @@ func (c *NetworkConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.net.nic-blacklist", c.BlackList)
 }
 
-func (c *NetworkConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.NetworkConfig); ok {
+func (c *NetworkConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.NetworkConfig)
+	if ok {
 		setStringIfNotNil(c.WhiteList, &other.NICWhiteList)
 		setStringIfNotNil(c.BlackList, &other.NICBlackList)
 	}
+	return ok
 }
 
 type MSSQLConfig struct {
@@ -216,10 +234,12 @@ func (c *MSSQLConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collectors.mssql.classes-enabled", c.EnabledClasses)
 }
 
-func (c *MSSQLConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.MSSQLConfig); ok {
+func (c *MSSQLConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.MSSQLConfig)
+	if ok {
 		setStringIfNotNil(c.EnabledClasses, &other.MSSQLEnabledCollectors)
 	}
+	return ok
 }
 
 type MSMQConfig struct {
@@ -230,10 +250,12 @@ func (c *MSMQConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.msmq.msmq-where", c.Where)
 }
 
-func (c *MSMQConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.MSMQConfig); ok {
+func (c *MSMQConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.MSMQConfig)
+	if ok {
 		setStringIfNotNil(c.Where, &other.MSMQWhereClause)
 	}
+	return ok
 }
 
 type LogicalDiskConfig struct {
@@ -246,17 +268,18 @@ func (c *LogicalDiskConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.logical_disk.volume-blacklist", c.BlackList)
 }
 
-func (c *LogicalDiskConfig) Sync(v interface{}) {
-	if other, ok := v.(*collector.LogicalDiskConfig); ok {
+func (c *LogicalDiskConfig) Sync(v interface{}) bool {
+	other, ok := v.(*collector.LogicalDiskConfig)
+	if ok {
 		setStringIfNotNil(c.WhiteList, &other.VolumeWhiteList)
 		setStringIfNotNil(c.BlackList, &other.VolumeBlackList)
-
 	}
+	return ok
 }
 
 type translatableConfig interface {
 	translate(cm map[string]string)
-	Sync(v interface{})
+	Sync(v interface{}) bool
 }
 
 func translateConfig(c translatableConfig, cm map[string]string) {
