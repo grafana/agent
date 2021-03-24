@@ -66,17 +66,6 @@ func (c *Config) ConvertToMap() map[string]string {
 	return configMap
 }
 
-type translatableConfig interface {
-	translate(cm map[string]string)
-}
-
-func translateConfig(c translatableConfig, cm map[string]string) {
-	if c == nil || reflect.ValueOf(c).IsNil() {
-		return
-	}
-	c.translate(cm)
-}
-
 type ExchangeConfig struct {
 	EnabledList *string `yaml:"enabled_list"`
 }
@@ -170,6 +159,17 @@ func (c *LogicalDiskConfig) translate(cm map[string]string) {
 	setIfNotNil(cm, "collector.logical_disk.volume-whitelist", c.WhiteList)
 	setIfNotNil(cm, "collector.logical_disk.volume-blacklist", c.BlackList)
 
+}
+
+type translatableConfig interface {
+	translate(cm map[string]string)
+}
+
+func translateConfig(c translatableConfig, cm map[string]string) {
+	if c == nil || reflect.ValueOf(c).IsNil() {
+		return
+	}
+	c.translate(cm)
 }
 
 func setIfNotNil(cm map[string]string, key string, value *string) {
