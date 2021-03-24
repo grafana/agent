@@ -49,6 +49,8 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	return New(l, c)
 }
 
+// The Windows Collector takes a map of configuration to set, so we need to convert from agent config to a key value
+// using the windows_exporter key name 'collector.iis.site-whitelist' for example.
 func (c *Config) ConvertToMap() map[string]string {
 	configMap := make(map[string]string)
 	mapToConfig(c, configMap)
@@ -115,15 +117,16 @@ func mapToConfig(config interface{}, cm map[string]string) {
 	}
 	fieldCount := t.Elem().NumField()
 	for i := 0; i < fieldCount; i++ {
-		iv := v.Elem().Field(i)
-		f := t.Elem().Field(i)
-		en := f.Tag.Get("exporter")
-		if en != "" && iv.Kind() == reflect.Ptr && iv.Elem().Kind() == reflect.String {
-			cm[en] = iv.Elem().String()
+		valueField := v.Elem().Field(i)
+		typeField := t.Elem().Field(i)
+		en := typeField.Tag.Get("exporter")
+		// Currently agent only support translating string pointer vars
+		if en != "" && valueField.Kind() == reflect.Ptr && valueField.Elem().Kind() == reflect.String {
+			cm[en] = valueField.Elem().String()
 			continue
 		}
-		if iv.Kind() == reflect.Ptr {
-			mapToConfig(iv.Interface(), cm)
+		if valueField.Kind() == reflect.Ptr {
+			mapToConfig(valueField.Interface(), cm)
 		}
 	}
 }
