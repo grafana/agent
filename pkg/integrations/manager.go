@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/kit/log"
@@ -124,37 +125,25 @@ func (c *ManagerConfig) DefaultRelabelConfigs() ([]*relabel.Config, error) {
 type Manager struct {
 	c                     ManagerConfig
 	logger                log.Logger
-	integrations          map[Config]Integration
 	hostname              string
 	defaultRelabelConfigs []*relabel.Config
 
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+
 	im        instance.Manager
-	cancel    context.CancelFunc
 	done      chan bool
 	validator configstore.Validator
+
+	integrationsMut sync.RWMutex
+	integrations    map[string]*integrationProcess
 }
 
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
 func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
-	integrations := make(map[Config]Integration)
-
-	for _, integrationCfg := range c.Integrations {
-		if integrationCfg.CommonConfig().Enabled {
-			l := log.With(logger, "integration", integrationCfg.Name())
-			i, err := integrationCfg.NewIntegration(l)
-			if err != nil {
-				return nil, err
-			}
-			integrations[integrationCfg] = i
-		}
-	}
-
-	return newManager(c, logger, im, integrations, validate)
-}
-
-func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integrations map[Config]Integration, validate configstore.Validator) (*Manager, error) {
 	defaultRelabels, err := c.DefaultRelabelConfigs()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get default relabel configs: %w", err)
@@ -165,12 +154,13 @@ func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integra
 	m := &Manager{
 		c:                     c,
 		logger:                logger,
-		integrations:          integrations,
 		defaultRelabelConfigs: defaultRelabels,
 		im:                    im,
-		cancel:                cancel,
 		done:                  make(chan bool),
 		validator:             validate,
+
+		ctx:    ctx,
+		cancel: cancel,
 	}
 
 	if c.UseHostnameLabel {
@@ -181,68 +171,140 @@ func newManager(c ManagerConfig, logger log.Logger, im instance.Manager, integra
 		}
 	}
 
-	go m.run(ctx)
+	if err := m.ApplyConfig(c); err != nil {
+		return nil, fmt.Errorf("failed applying config: %w", err)
+	}
 	return m, nil
 }
 
-func (m *Manager) run(ctx context.Context) {
-	var wg sync.WaitGroup
-	wg.Add(len(m.integrations))
+// ApplyConfig updates the configuration of the integrations subsystem.
+func (m *Manager) ApplyConfig(c ManagerConfig) error {
+	m.integrationsMut.Lock()
+	defer m.integrationsMut.Unlock()
 
-	for cfg, i := range m.integrations {
-		go func(cfg Config, i Integration) {
-			m.runIntegration(ctx, cfg, i)
-			wg.Done()
-		}(cfg, i)
+	if cmp.Equal(m.c, c) {
+		return nil
 	}
 
-	wg.Wait()
-	close(m.done)
+	// Iterate over our integrations. New or changed integrations will be
+	// started, with their existing counterparts being shut down.
+	for _, ic := range c.Integrations {
+		// Key is used to identify the instance of this integration within the
+		// instance manager and within our set of running integrations.
+		key := instanceConfigKey(ic)
+
+		if p, exist := m.integrations[key]; exist {
+			// If the existing config hasn't changed, we don't want to re-start it.
+			if cmp.Equal(p.cfg, ic) {
+				continue
+			}
+
+			// ...Otherwise, we're going to replace the instance, so stop it before
+			// creating a new one.
+			p.stop()
+		}
+
+		l := log.With(m.logger, "integration", ic.Name())
+		i, err := ic.NewIntegration(l)
+		if err != nil {
+			return fmt.Errorf("error initializing integration %q: %w", ic.Name(), err)
+		}
+
+		// Create, start, and register the new integration.
+		ctx, cancel := context.WithCancel(m.ctx)
+		p := &integrationProcess{
+			log:  l,
+			ctx:  ctx,
+			stop: cancel,
+			cfg:  ic,
+			i:    i,
+			m:    m,
+		}
+		go p.Run()
+		m.integrations[key] = p
+
+		// Configure the instance manager for the integration. This may include
+		// deleting an existing config, which can happen when the previous config
+		// was set to scrape but that config went away.
+		shouldCollect := m.c.ScrapeIntegrations
+		if common := ic.CommonConfig(); common.ScrapeIntegration != nil {
+			shouldCollect = *common.ScrapeIntegration
+		}
+		if shouldCollect {
+			instanceConfig := m.instanceConfigForIntegration(ic, i)
+			if err := m.validator(&instanceConfig); err != nil {
+				level.Error(p.log).Log("msg", "failed to apply integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
+				continue
+			}
+
+			if err := m.im.ApplyConfig(instanceConfig); err != nil {
+				level.Error(p.log).Log("msg", "failed to apply integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
+				continue
+			}
+		} else {
+			_ = m.im.DeleteConfig(key)
+		}
+	}
+
+	// Remove configurations that have been removed and stop scraping them.
+	for key, process := range m.integrations {
+		foundConfig := false
+		for _, ic := range c.Integrations {
+			if instanceConfigKey(ic) == key {
+				foundConfig = true
+				break
+			}
+		}
+		if foundConfig {
+			continue
+		}
+
+		process.stop()
+		_ = m.im.DeleteConfig(key)
+		delete(m.integrations, key)
+	}
+
+	return nil
 }
 
-func (m *Manager) runIntegration(ctx context.Context, cfg Config, i Integration) {
+// integrationProcess is a running integration.
+type integrationProcess struct {
+	log  log.Logger
+	ctx  context.Context
+	stop context.CancelFunc
+	cfg  Config
+	i    Integration
+	m    *Manager
+
+	wg *sync.WaitGroup
+}
+
+// Run runs the integration until the process is canceled.
+func (p *integrationProcess) Run() {
 	defer func() {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("%v", r)
-			level.Error(m.logger).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", cfg.Name())
+			level.Error(p.log).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", p.cfg.Name())
 		}
 	}()
 
-	shouldCollect := m.c.ScrapeIntegrations
-	if common := cfg.CommonConfig(); common.ScrapeIntegration != nil {
-		shouldCollect = *common.ScrapeIntegration
-	}
-	if shouldCollect {
-		// Apply the config so an instance is launched to scrape our integration.
-		instanceConfig := m.instanceConfigForIntegration(cfg, i)
-
-		if err := m.validator(&instanceConfig); err != nil {
-			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run", "err", err, "integration", cfg.Name())
-			return
-		}
-
-		if err := m.im.ApplyConfig(instanceConfig); err != nil {
-			level.Error(m.logger).Log("msg", "failed to apply integration. integration will not run", "err", err, "integration", cfg.Name())
-			return
-		}
-	}
+	p.wg.Add(1)
+	defer p.wg.Done()
 
 	for {
-		err := i.Run(ctx)
+		err := p.i.Run(p.ctx)
 		if err != nil && err != context.Canceled {
-			integrationAbnormalExits.WithLabelValues(cfg.Name()).Inc()
-			level.Error(m.logger).Log("msg", "integration stopped abnormally, restarting after backoff", "err", err, "integration", cfg.Name(), "backoff", m.c.IntegrationRestartBackoff)
-			time.Sleep(m.c.IntegrationRestartBackoff)
+			integrationAbnormalExits.WithLabelValues(p.cfg.Name()).Inc()
+			level.Error(p.log).Log("msg", "integration stopped abnormally, restarting after backoff", "err", err, "integration", p.cfg.Name(), "backoff", p.m.c.IntegrationRestartBackoff)
+			time.Sleep(p.m.c.IntegrationRestartBackoff)
 		} else {
-			level.Info(m.logger).Log("msg", "stopped integration", "integration", cfg.Name())
+			level.Info(p.log).Log("msg", "stopped integration", "integration", p.cfg.Name())
 			break
 		}
 	}
 }
 
 func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instance.Config {
-	prometheusName := fmt.Sprintf("integration/%s", cfg.Name())
-
 	common := cfg.CommonConfig()
 	relabelConfigs := append(m.defaultRelabelConfigs, common.RelabelConfigs...)
 
@@ -275,7 +337,7 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 	}
 
 	instanceCfg := instance.DefaultConfig
-	instanceCfg.Name = prometheusName
+	instanceCfg.Name = instanceConfigKey(cfg)
 	instanceCfg.ScrapeConfigs = scrapeConfigs
 	instanceCfg.RemoteWrite = m.c.PrometheusRemoteWrite
 	if common.WALTruncateFrequency > 0 {
@@ -284,8 +346,12 @@ func (m *Manager) instanceConfigForIntegration(cfg Config, i Integration) instan
 	return instanceCfg
 }
 
-func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
+// instanceConfigKey returns the instanceConfigKey for an integration Config.
+func instanceConfigKey(cfg Config) string {
+	return fmt.Sprintf("integration/%s", cfg.Name())
+}
 
+func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 	// A blank host somehow works, but it then requires a sever name to be set under tls.
 	newHost := *m.c.ListenHost
 	if newHost == "" {
@@ -310,29 +376,67 @@ func (m *Manager) scrapeServiceDiscovery() discovery.Configs {
 
 // WireAPI hooks up /metrics routes per-integration.
 func (m *Manager) WireAPI(r *mux.Router) error {
-	handlers := make(map[string]http.Handler, len(m.integrations))
-	for c, i := range m.integrations {
-		handler, err := i.MetricsHandler()
-		if err != nil {
-			return fmt.Errorf("error generating handler for integration %q: %w", c.Name(), err)
+	type handlerCacheEntry struct {
+		handler http.Handler
+		process *integrationProcess
+	}
+	var (
+		handlerMut   sync.Mutex
+		handlerCache = make(map[string]handlerCacheEntry)
+	)
+
+	// loadHandler will perform a dynamic lookup of an HTTP handler for an
+	// integration. loadHandler should be called with a read lock on the
+	// integrations mutex.
+	loadHandler := func(name string) http.Handler {
+		handlerMut.Lock()
+		defer handlerMut.Unlock()
+
+		key := fmt.Sprintf("integrations/%s", name)
+
+		// Search the integration by name to see if it's still running.
+		p, ok := m.integrations[key]
+		if !ok {
+			delete(handlerCache, name)
+			return http.NotFoundHandler()
 		}
-		handlers[c.Name()] = handler
+
+		// Now look in the cache for a handler for the running process.
+		cacheEntry, ok := handlerCache[key]
+		if ok && cacheEntry.process == p {
+			return cacheEntry.handler
+		}
+
+		// New integration process that hasn't been scraped before. Generate
+		// a handler for it and cache it.
+		handler, err := p.i.MetricsHandler()
+		if err != nil {
+			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", name, "err", err)
+			return http.HandlerFunc(internalServiceError)
+		}
+
+		cacheEntry = handlerCacheEntry{handler: handler, process: p}
+		handlerCache[key] = cacheEntry
+		return cacheEntry.handler
 	}
 
 	r.HandleFunc("/integrations/{name}/metrics", func(rw http.ResponseWriter, r *http.Request) {
-		handler, ok := handlers[mux.Vars(r)["name"]]
-		if !ok {
-			http.NotFoundHandler().ServeHTTP(rw, r)
-			return
-		}
+		m.integrationsMut.RLock()
+		defer m.integrationsMut.RUnlock()
+
+		handler := loadHandler(mux.Vars(r)["name"])
 		handler.ServeHTTP(rw, r)
 	})
 
 	return nil
 }
 
+func internalServiceError(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+}
+
 // Stop stops the manager and all of its integrations.
 func (m *Manager) Stop() {
 	m.cancel()
-	<-m.done
+	m.wg.Done()
 }

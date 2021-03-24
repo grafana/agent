@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/go-kit/kit/log"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -48,7 +47,7 @@ func New(logger log.Logger, c *Config) (*Integration, error) {
 }
 
 // MetricsHandler satisfies Integration.RegisterRoutes.
-func (i *Integration) MetricsHandler(r *mux.Router) (http.Handler, error) {
+func (i *Integration) MetricsHandler() (http.Handler, error) {
 	r := prometheus.NewRegistry()
 	if err := r.Register(i.collector); err != nil {
 		return nil, fmt.Errorf("couldn't register process_exporter collector: %w", err)
