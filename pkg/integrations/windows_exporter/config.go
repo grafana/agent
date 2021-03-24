@@ -8,7 +8,12 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
-// Config controls the node_exporter integration.
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
+// Config controls the windows_exporter integration.
+// All of these and their child fields are pointers so we can determine if the value was set or not.
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
@@ -48,36 +53,6 @@ func (c *Config) ConvertToMap() map[string]string {
 	configMap := make(map[string]string)
 	mapToConfig(c, configMap)
 	return configMap
-}
-
-// This is to create a map from the config using the exporter struct tag as the key. This is to be ONLY used on pointer configs
-// and pointer strings. This is because we need to know if a value was set so that we don't overwrite defaults.
-func mapToConfig(config interface{}, cm map[string]string) {
-	if config == nil || (reflect.ValueOf(config).Kind() == reflect.Ptr && reflect.ValueOf(config).IsNil()) {
-		return
-	}
-	t := reflect.TypeOf(config)
-	v := reflect.ValueOf(config)
-	if t.Kind() != reflect.Ptr {
-		return
-	}
-	fieldCount := t.Elem().NumField()
-	for i := 0; i < fieldCount; i++ {
-		iv := v.Elem().Field(i)
-		f := t.Elem().Field(i)
-		en := f.Tag.Get("exporter")
-		if en != "" && iv.Kind() == reflect.Ptr && iv.Elem().Kind() == reflect.String {
-			cm[en] = iv.Elem().String()
-			continue
-		}
-		if iv.Kind() == reflect.Ptr {
-			mapToConfig(iv.Interface(), cm)
-		}
-	}
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
 }
 
 type ExchangeConfig struct {
@@ -125,4 +100,30 @@ type MSMQConfig struct {
 type LogicalDiskConfig struct {
 	WhiteList *string `yaml:"whitelist" exporter:"collector.logical_disk.volume-whitelist"`
 	BlackList *string `yaml:"blacklist" exporter:"collector.logical_disk.volume-blacklist"`
+}
+
+// This is to create a map from the config using the exporter struct tag as the key. This is to be ONLY used on pointer configs
+// and pointer strings. This is because we need to know if a value was set so that we don't overwrite defaults.
+func mapToConfig(config interface{}, cm map[string]string) {
+	if config == nil || (reflect.ValueOf(config).Kind() == reflect.Ptr && reflect.ValueOf(config).IsNil()) {
+		return
+	}
+	t := reflect.TypeOf(config)
+	v := reflect.ValueOf(config)
+	if t.Kind() != reflect.Ptr {
+		return
+	}
+	fieldCount := t.Elem().NumField()
+	for i := 0; i < fieldCount; i++ {
+		iv := v.Elem().Field(i)
+		f := t.Elem().Field(i)
+		en := f.Tag.Get("exporter")
+		if en != "" && iv.Kind() == reflect.Ptr && iv.Elem().Kind() == reflect.String {
+			cm[en] = iv.Elem().String()
+			continue
+		}
+		if iv.Kind() == reflect.Ptr {
+			mapToConfig(iv.Interface(), cm)
+		}
+	}
 }
