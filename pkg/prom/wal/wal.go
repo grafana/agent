@@ -19,9 +19,9 @@ import (
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
 
-var (
-	ErrWALClosed = fmt.Errorf("WAL storage closed")
-)
+// ErrWALClosed is an error returned when a WAL operation can't run because the
+// storage has already been closed.
+var ErrWALClosed = fmt.Errorf("WAL storage closed")
 
 type storageMetrics struct {
 	r prometheus.Registerer

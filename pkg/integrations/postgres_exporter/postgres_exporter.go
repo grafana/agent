@@ -12,8 +12,6 @@ import (
 	"github.com/wrouesnel/postgres_exporter/exporter"
 )
 
-var DefaultConfig = Config{}
-
 // Config controls the postgres_exporter integration.
 type Config struct {
 	Common config.Common `yaml:",inline"`
@@ -28,22 +26,18 @@ type Config struct {
 	QueryPath              string   `yaml:"query_path"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
+// Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "postgres_exporter"
 }
 
+// CommonConfig returns the common set of options shared across all configs for
+// integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of a configuration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }

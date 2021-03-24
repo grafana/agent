@@ -86,6 +86,7 @@ func (c *Config) BaseRemoteWrite() []*config.RemoteWriteConfig {
 	return res
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
@@ -93,6 +94,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// MarshalYAML implements yaml.Marshaler.
 func (c Config) MarshalYAML() (interface{}, error) {
 	// We want users to be able to marshal instance.Configs directly without
 	// *needing* to call instance.MarshalConfig, so we call it internally
@@ -546,6 +548,8 @@ func (i *Instance) TargetsActive() map[string][]*scrape.Target {
 	return mgr.TargetsActive()
 }
 
+// StorageDirectory returns the directory where this Instance is writing series
+// and samples to for the WAL.
 func (i *Instance) StorageDirectory() string {
 	return i.wal.Directory()
 }
@@ -871,6 +875,8 @@ func (rg *runGroupContext) Add(execute func() error, interrupt func(error)) {
 func (rg *runGroupContext) Run() error   { return rg.g.Run() }
 func (rg *runGroupContext) Stop(_ error) { rg.cancel() }
 
+// ErrNotReady is returned when the scrape manager is used but has not been
+// initialized yet.
 var ErrNotReady = errors.New("Scrape manager not ready")
 
 // readyScrapeManager allows a scrape manager to be retrieved. Even if it's set at a later point in time.

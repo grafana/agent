@@ -51,7 +51,7 @@ type HostFilter struct {
 	relabels []*relabel.Config
 }
 
-// NewHostFilter creates a new HostFilter
+// NewHostFilter creates a new HostFilter.
 func NewHostFilter(host string, relabels []*relabel.Config) *HostFilter {
 	ctx, cancel := context.WithCancel(context.Background())
 	f := &HostFilter{
@@ -65,6 +65,10 @@ func NewHostFilter(host string, relabels []*relabel.Config) *HostFilter {
 	return f
 }
 
+// Run starts the HostFilter. It only exits when the HostFilter is stopped.
+// Run will continually read from syncCh and filter groups discovered down to
+// targets that are colocated on the same node as the one the HostFilter is
+// running in.
 func (f *HostFilter) Run(syncCh GroupChannel) {
 	f.inputCh = syncCh
 

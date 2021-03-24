@@ -18,6 +18,7 @@ type Config struct {
 	Configs            []*InstanceConfig `yaml:"configs"`
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// If the Config is unmarshaled, it's present in the config and should be
 	// enabled.
@@ -86,6 +87,7 @@ type InstanceConfig struct {
 	TargetConfig    file.Config           `yaml:"target_config,omitempty"`
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *InstanceConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Defaults for Promtail are hidden behind flags. Register flags to a fake flagset
 	// just to set the defaults in the configs.

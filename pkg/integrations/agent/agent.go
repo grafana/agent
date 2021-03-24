@@ -18,14 +18,17 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "agent"
 }
 
+// CommonConfig returns the common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) {
 	return New(c), nil
 }
@@ -40,6 +43,7 @@ type Integration struct {
 	c *Config
 }
 
+// New creates a new Agent integration.
 func New(c *Config) *Integration {
 	return &Integration{c: c}
 }

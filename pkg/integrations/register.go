@@ -33,6 +33,7 @@ func RegisterIntegration(cfg Config) {
 // Configs is a list of integrations.
 type Configs []Config
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Configs) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return c.unmarshalWithIntegrations(registeredIntegrations, unmarshal)
 }

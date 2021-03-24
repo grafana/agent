@@ -21,17 +21,16 @@ import (
 	"google.golang.org/grpc"
 )
 
-var (
-	DefaultConfig = Config{
-		Global:                 config.DefaultGlobalConfig,
-		InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
-		WALCleanupAge:          DefaultCleanupAge,
-		WALCleanupPeriod:       DefaultCleanupPeriod,
-		ServiceConfig:          cluster.DefaultConfig,
-		ServiceClientConfig:    client.DefaultConfig,
-		InstanceMode:           instance.DefaultMode,
-	}
-)
+// DefaultConfig is the default settings for the Prometheus-lite client.
+var DefaultConfig = Config{
+	Global:                 config.DefaultGlobalConfig,
+	InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
+	WALCleanupAge:          DefaultCleanupAge,
+	WALCleanupPeriod:       DefaultCleanupPeriod,
+	ServiceConfig:          cluster.DefaultConfig,
+	ServiceClientConfig:    client.DefaultConfig,
+	InstanceMode:           instance.DefaultMode,
+}
 
 // Config defines the configuration for the entire set of Prometheus client
 // instances, along with a global configuration.
@@ -302,11 +301,15 @@ func (a *Agent) run() {
 	}
 }
 
+// WireGRPC wires gRPC services into the provided server.
 func (a *Agent) WireGRPC(s *grpc.Server) {
 	a.cluster.WireGRPC(s)
 }
 
-func (a *Agent) Config() Config                    { return a.cfg }
+// Config returns the configuration of this Agent.
+func (a *Agent) Config() Config { return a.cfg }
+
+// InstanceManager returns the instance manager used by this Agent.
 func (a *Agent) InstanceManager() instance.Manager { return a.mm }
 
 // Stop stops the agent and all its instances.

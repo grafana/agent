@@ -46,7 +46,7 @@ type WALStats struct {
 	Targets []WALTargetStats
 }
 
-// Samples returns the number of Series across all targets.
+// Series returns the number of series across all targets.
 func (s WALStats) Series() int {
 	var series int
 	for _, t := range s.Targets {
