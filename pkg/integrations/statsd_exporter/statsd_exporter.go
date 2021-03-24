@@ -26,6 +26,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DefaultConfig holds the default settings for the statsd_exporter integration.
 var DefaultConfig = Config{
 	ListenUDP:      ":9125",
 	ListenTCP:      ":9125",
@@ -74,14 +75,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "statsd_exporter"
 }
 
+// CommonConfig returns the common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
@@ -90,7 +94,7 @@ func init() {
 	integrations.RegisterIntegration(&Config{})
 }
 
-// Exporters defines the statsd_exporter integration.
+// Exporter defines the statsd_exporter integration.
 type Exporter struct {
 	cfg      *Config
 	reg      *prometheus.Registry

@@ -19,6 +19,8 @@ import (
 	"github.com/justwatchcom/elasticsearch_exporter/pkg/clusterinfo"
 )
 
+// DefaultConfig holds the default settings for the elasticsearch_exporter
+// integration.
 var DefaultConfig = Config{
 	Address:                   "http://localhost:9200",
 	Timeout:                   5 * time.Second,
@@ -70,10 +72,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "elasticsearch_exporter"
 }
 
+// CommonConfig returns the common settings shared across all configs for
+// integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }

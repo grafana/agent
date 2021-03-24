@@ -46,6 +46,7 @@ func NewInstance(reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logg
 	return instance, nil
 }
 
+// ApplyConfig updates the configuration of the Instance.
 func (i *Instance) ApplyConfig(cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()

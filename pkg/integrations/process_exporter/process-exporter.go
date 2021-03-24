@@ -18,6 +18,8 @@ type Integration struct {
 	c *Config
 }
 
+// New creates a process_exporter integration for non-Linux platforms, which is always a
+// no-op.
 func New(logger log.Logger, c *Config) (*Integration, error) {
 	level.Warn(logger).Log("msg", "the process_exporter only works on Linux; enabling it otherwise will do nothing")
 	return &Integration{c: c}, nil

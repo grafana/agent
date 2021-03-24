@@ -23,6 +23,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Server is a Tempo testing server that invokes a function every time a span
+// is received.
 type Server struct {
 	receivers builder.Receivers
 	pipelines builder.BuiltPipelines
@@ -47,7 +49,7 @@ func NewTestServer(t *testing.T, callback func(pdata.Traces)) string {
 	return listenAddr
 }
 
-// NewServerWithRandomAddress calls NewServer with a random port >49152 and
+// NewServerWithRandomPort calls NewServer with a random port >49152 and
 // <65535. It will try up to five times before failing.
 func NewServerWithRandomPort(callback func(pdata.Traces)) (srv *Server, addr string, err error) {
 	var lastError error
@@ -166,6 +168,7 @@ service:
 	}, nil
 }
 
+// Stop stops the testing server.
 func (s *Server) Stop() error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

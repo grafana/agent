@@ -1,4 +1,4 @@
-// package redis_exporter embeds https://github.com/oliver006/redis_exporter
+// Package redis_exporter embeds https://github.com/oliver006/redis_exporter
 package redis_exporter //nolint:golint
 
 import (
@@ -104,14 +104,18 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "redis_exporter"
 }
 
+// CommonConfig returns the common set of settings shared across all configs
+// for integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts the config into an integration instance.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }

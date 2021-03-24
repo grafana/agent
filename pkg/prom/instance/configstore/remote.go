@@ -31,6 +31,10 @@ type Remote struct {
 	configsCh  chan WatchEvent
 }
 
+// NewRemote creates a new Remote store that uses a Key-Value client to store
+// and retrieve configs. If enable is true, the store will be immediately
+// connected to. Otherwise, it can be lazily loaded by enabling later through
+// a call to Remote.ApplyConfig.
 func NewRemote(l log.Logger, reg prometheus.Registerer, cfg kv.Config, enable bool) (*Remote, error) {
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
 
@@ -147,6 +151,7 @@ func (r *Remote) watchKV(ctx context.Context, client kv.Client) {
 	})
 }
 
+// List returns the list of all configs in the KV store.
 func (r *Remote) List(ctx context.Context) ([]string, error) {
 	r.kvMut.RLock()
 	defer r.kvMut.RUnlock()
@@ -157,6 +162,7 @@ func (r *Remote) List(ctx context.Context) ([]string, error) {
 	return r.kv.List(ctx, "")
 }
 
+// Get retrieves an individual config from the KV store.
 func (r *Remote) Get(ctx context.Context, key string) (instance.Config, error) {
 	r.kvMut.RLock()
 	defer r.kvMut.RUnlock()
@@ -178,6 +184,7 @@ func (r *Remote) Get(ctx context.Context, key string) (instance.Config, error) {
 	return *cfg, nil
 }
 
+// Put adds or updates a config in the KV store.
 func (r *Remote) Put(ctx context.Context, c instance.Config) (bool, error) {
 	// We need to use a write lock here since two Applies can't run concurrently
 	// (given the current need to perform a store-wide validation.)
@@ -212,6 +219,8 @@ func (r *Remote) Put(ctx context.Context, c instance.Config) (bool, error) {
 	return created, nil
 }
 
+// Delete deletes a config from the KV store. It returns NotExistError if
+// the config doesn't exist.
 func (r *Remote) Delete(ctx context.Context, key string) error {
 	r.kvMut.RLock()
 	defer r.kvMut.RUnlock()

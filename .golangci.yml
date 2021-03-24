@@ -62,5 +62,13 @@ linters:
     - typecheck
 
 issues:
+  # golangci-lint excludes some stuff we want by default (i.e., proper go-style comments).
+  # We exclude the defaults and then manually exclude the subset of defaults we truly don't
+  # care about.
+  exclude-use-default: false
+
   exclude:
-    - Error return value of .*.Log\x60 is not checked
+    # EXC0001 errcheck: Almost all programs ignore errors on these functions
+    # and in most cases it's ok. This is copied from the golangci-lint defaults
+    # mut modified to include go-kit logging.
+    - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*print(f|ln)?|os\.(Un)?Setenv|.*\.Log). is not checked
