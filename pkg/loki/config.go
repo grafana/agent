@@ -13,17 +13,12 @@ import (
 
 // Config controls the configuration of the Loki log scraper.
 type Config struct {
-	Enabled            bool              `yaml:"-"`
 	PositionsDirectory string            `yaml:"positions_directory"`
 	Configs            []*InstanceConfig `yaml:"configs"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// If the Config is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
-
 	type config Config
 	err := unmarshal((*config)(c))
 	if err != nil {

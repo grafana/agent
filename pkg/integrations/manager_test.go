@@ -45,8 +45,8 @@ test:
 
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
-	cfg.ListenPort = &listenPort
-	cfg.ListenHost = &listenHost
+	cfg.ListenPort = listenPort
+	cfg.ListenHost = listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
 	require.NoError(t, err, "Failed creating integration")
@@ -69,8 +69,8 @@ agent:
 
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
-	cfg.ListenPort = &listenPort
-	cfg.ListenHost = &listenHost
+	cfg.ListenPort = listenPort
+	cfg.ListenHost = listenHost
 
 	expectHostname, _ := instance.Hostname()
 	relabels := cfg.DefaultRelabelConfigs(expectHostname)
@@ -273,7 +273,7 @@ func mockManagerConfig() ManagerConfig {
 	return ManagerConfig{
 		ScrapeIntegrations:        true,
 		IntegrationRestartBackoff: 0,
-		ListenPort:                &listenPort,
-		ListenHost:                &listenHost,
+		ListenPort:                listenPort,
+		ListenHost:                listenHost,
 	}
 }

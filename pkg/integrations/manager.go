@@ -14,6 +14,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/prom"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/prom/instance/configstore"
 	"github.com/prometheus/client_golang/prometheus"
@@ -41,9 +42,6 @@ var DefaultManagerConfig = ManagerConfig{
 
 // ManagerConfig holds the configuration for all integrations.
 type ManagerConfig struct {
-	// Whether the Integration subsystem should be enabled.
-	Enabled bool `yaml:"-"`
-
 	// When true, scrapes metrics from integrations.
 	ScrapeIntegrations bool `yaml:"scrape_integrations,omitempty"`
 	// When true, replaces the instance label with the agent hostname.
@@ -67,11 +65,11 @@ type ManagerConfig struct {
 
 	// ListenPort tells the integration Manager which port the Agent is
 	// listening on for generating Prometheus instance configs.
-	ListenPort *int `yaml:"-"`
+	ListenPort int `yaml:"-"`
 
 	// ListenHost tells the integration Manager which port the Agent is
 	// listening on for generating Prometheus instance configs
-	ListenHost *string `yaml:"-"`
+	ListenHost string `yaml:"-"`
 
 	TLSConfig config_util.TLSConfig `yaml:"http_tls_config"`
 
@@ -87,11 +85,6 @@ func (c ManagerConfig) MarshalYAML() (interface{}, error) {
 // UnmarshalYAML implements yaml.Unmarshaler for ManagerConfig.
 func (c *ManagerConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultManagerConfig
-
-	// If the ManagerConfig is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
-
 	return UnmarshalYAML(c, unmarshal)
 }
 
@@ -101,7 +94,7 @@ func (c *ManagerConfig) DefaultRelabelConfigs(hostname string) []*relabel.Config
 	var cfgs []*relabel.Config
 
 	if c.ReplaceInstanceLabel {
-		replacement := fmt.Sprintf("%s:%d", hostname, *c.ListenPort)
+		replacement := fmt.Sprintf("%s:%d", hostname, c.ListenPort)
 
 		cfgs = append(cfgs, &relabel.Config{
 			SourceLabels: model.LabelNames{model.AddressLabel},
@@ -114,6 +107,31 @@ func (c *ManagerConfig) DefaultRelabelConfigs(hostname string) []*relabel.Config
 	}
 
 	return cfgs
+}
+
+// ApplyDefaults applies default settings to the ManagerConfig and validates
+// that it can be used.
+//
+// If any integrations are enabled and are configured to be scraped, the
+// Prometheus configuration must have a WAL directory configured.
+func (c *ManagerConfig) ApplyDefaults(cfg *prom.Config) error {
+	for _, ic := range c.Integrations {
+		if !ic.CommonConfig().Enabled {
+			continue
+		}
+
+		scrapeIntegration := c.ScrapeIntegrations
+		if common := ic.CommonConfig(); common.ScrapeIntegration != nil {
+			scrapeIntegration = *common.ScrapeIntegration
+		}
+
+		// WAL must be configured if an integration is going to be scraped.
+		if scrapeIntegration && cfg.WALDir == "" {
+			return fmt.Errorf("no wal_directory configured")
+		}
+	}
+
+	return nil
 }
 
 // Manager manages a set of integrations and runs them.
@@ -385,11 +403,11 @@ func integrationKey(name string) string {
 
 func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
 	// A blank host somehow works, but it then requires a sever name to be set under tls.
-	newHost := *cfg.ListenHost
+	newHost := cfg.ListenHost
 	if newHost == "" {
 		newHost = "127.0.0.1"
 	}
-	localAddr := fmt.Sprintf("%s:%d", newHost, *cfg.ListenPort)
+	localAddr := fmt.Sprintf("%s:%d", newHost, cfg.ListenPort)
 	labels := model.LabelSet{}
 	if cfg.UseHostnameLabel {
 		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
@@ -407,7 +425,7 @@ func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
 }
 
 // WireAPI hooks up /metrics routes per-integration.
-func (m *Manager) WireAPI(r *mux.Router) error {
+func (m *Manager) WireAPI(r *mux.Router) {
 	type handlerCacheEntry struct {
 		handler http.Handler
 		process *integrationProcess
@@ -458,8 +476,6 @@ func (m *Manager) WireAPI(r *mux.Router) error {
 		handler := loadHandler(key)
 		handler.ServeHTTP(rw, r)
 	})
-
-	return nil
 }
 
 func internalServiceError(w http.ResponseWriter, r *http.Request) {
