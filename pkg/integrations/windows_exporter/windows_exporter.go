@@ -14,13 +14,12 @@ import (
 // Integration is the windows_exporter integration. On non-Windows platforms,
 // this integration does nothing and will print a warning if enabled.
 type Integration struct {
-	c *Config
 }
 
 // New creates a fake windows_exporter integration.
-func New(logger log.Logger, c *Config) (*Integration, error) {
+func New(logger log.Logger, _ *Config) (*Integration, error) {
 	level.Warn(logger).Log("msg", "the windows_exporter only works on Windows; enabling it otherwise will do nothing")
-	return &Integration{c: c}, nil
+	return &Integration{}, nil
 }
 
 // RegisterRoutes satisfies Integration.RegisterRoutes.
