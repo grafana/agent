@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/tempo"
+	"github.com/grafana/agent/pkg/util"
 
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/prom"
@@ -17,7 +18,6 @@ import (
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 
-	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 )
 
@@ -25,7 +25,7 @@ import (
 type Entrypoint struct {
 	mut sync.Mutex
 
-	log log.Logger
+	log *util.Logger
 	cfg config.Config
 
 	srv         *server.Server
@@ -36,7 +36,7 @@ type Entrypoint struct {
 }
 
 // NewEntrypoint creates a new Entrypoint.
-func NewEntrypoint(logger log.Logger, cfg *config.Config) (*Entrypoint, error) {
+func NewEntrypoint(logger *util.Logger, cfg *config.Config) (*Entrypoint, error) {
 	var (
 		ep  = Entrypoint{log: logger}
 		err error
@@ -52,7 +52,7 @@ func NewEntrypoint(logger log.Logger, cfg *config.Config) (*Entrypoint, error) {
 		return nil, err
 	}
 
-	ep.tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel)
+	ep.tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel.Logrus)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +93,11 @@ func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
 		err    error
 	)
 
+	if err := srv.log.ApplyConfig(&cfg.Server); err != nil {
+		level.Error(srv.log).Log("msg", "failed to update logger", "err", err)
+		failed = true
+	}
+
 	// Server doesn't have an ApplyConfig method so we need to do a full
 	// restart of it here.
 	if !cmp.Equal(srv.cfg.Server, cfg.Server, ignoreUnexported) {
@@ -121,7 +126,7 @@ func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := srv.tempoTraces.ApplyConfig(cfg.Tempo); err != nil {
+	if err := srv.tempoTraces.ApplyConfig(cfg.Tempo, cfg.Server.LogLevel.Logrus); err != nil {
 		level.Error(srv.log).Log("msg", "failed to update tempo", "err", err)
 		failed = true
 	}

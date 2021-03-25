@@ -10,6 +10,7 @@ import (
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/pkg/util"
 
 	"golang.org/x/sys/windows/svc"
 )
@@ -32,9 +33,10 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	if err != nil {
 		log.Fatalln(err)
 	}
-	// After this point we can use util_log.Logger and stop using the log package
-	util_log.InitLogger(&cfg.Server)
-	logger := util_log.Logger
+
+	// After this point we can start using go-kit logging.
+	logger := util.NewLogger(&cfg.Server)
+	util_log.Logger = logger
 
 	ep, err := NewEntrypoint(logger, cfg)
 	if err != nil {
