@@ -16,6 +16,7 @@ import (
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
+	"go.opentelemetry.io/collector/receiver/kafkareceiver"
 	"go.opentelemetry.io/collector/receiver/opencensusreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
@@ -238,6 +239,7 @@ func tracingFactories() (component.Factories, error) {
 		zipkinreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
 		opencensusreceiver.NewFactory(),
+		kafkareceiver.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
