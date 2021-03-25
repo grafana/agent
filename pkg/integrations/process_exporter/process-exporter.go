@@ -5,10 +5,10 @@ package process_exporter //nolint:golint
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
@@ -25,9 +25,9 @@ func New(logger log.Logger, c *Config) (*Integration, error) {
 	return &Integration{c: c}, nil
 }
 
-// RegisterRoutes satisfies Integration.RegisterRoutes.
-func (i *Integration) RegisterRoutes(r *mux.Router) error {
-	return nil
+// MetricsHandler satisfies Integration.RegisterRoutes.
+func (i *Integration) MetricsHandler() (http.Handler, error) {
+	return http.NotFoundHandler(), nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
