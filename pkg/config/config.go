@@ -29,35 +29,24 @@ type Config struct {
 
 // ApplyDefaults sets default values in the config
 func (c *Config) ApplyDefaults() error {
-	// The integration subsystem depends on Prometheus; so if it's enabled, force Prometheus
-	// to be enabled.
-	//
-	// TODO(rfratto): when Loki integrations are added, this line will no longer work; each
-	// integration will then have to be associated with a subsystem.
-	if c.Integrations.Enabled && !c.Prometheus.Enabled {
-		fmt.Println("NOTE: enabling Prometheus subsystem as Integrations are enabled")
-		c.Prometheus.Enabled = true
+	if err := c.Prometheus.ApplyDefaults(); err != nil {
+		return err
 	}
 
-	if c.Prometheus.Enabled {
-		if err := c.Prometheus.ApplyDefaults(); err != nil {
-			return err
-		}
-
-		// The default port exposed to the lifecycler should be the gRPC listen
-		// port since the agents will use gRPC for notifying other agents of
-		// resharding.
-		c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	if err := c.Integrations.ApplyDefaults(&c.Prometheus); err != nil {
+		return err
 	}
 
-	if c.Integrations.Enabled {
-		c.Integrations.ListenPort = &c.Server.HTTPListenPort
-		c.Integrations.ListenHost = &c.Server.HTTPListenAddress
-		c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
-		if len(c.Integrations.PrometheusRemoteWrite) == 0 {
-			c.Integrations.PrometheusRemoteWrite = c.Prometheus.RemoteWrite
-		}
+	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	c.Integrations.ListenPort = c.Server.HTTPListenPort
+	c.Integrations.ListenHost = c.Server.HTTPListenAddress
+
+	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
+
+	if len(c.Integrations.PrometheusRemoteWrite) == 0 {
+		c.Integrations.PrometheusRemoteWrite = c.Prometheus.RemoteWrite
 	}
+
 	return nil
 }
 

@@ -36,7 +36,7 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	util_log.InitLogger(&cfg.Server)
 	logger := util_log.Logger
 
-	ep, err := NewEntryPoint(logger, cfg)
+	ep, err := NewEntrypoint(logger, cfg)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 		os.Exit(1)
