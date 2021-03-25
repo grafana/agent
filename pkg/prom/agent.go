@@ -63,7 +63,8 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // ApplyDefaults applies default values to the Config and validates it.
 func (c *Config) ApplyDefaults() error {
-	if len(c.Configs) > 0 && c.WALDir == "" {
+	needWAL := len(c.Configs) > 0 || c.ServiceConfig.Enabled
+	if needWAL && c.WALDir == "" {
 		return errors.New("no wal_directory configured")
 	}
 
