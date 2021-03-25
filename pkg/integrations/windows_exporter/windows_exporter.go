@@ -17,7 +17,7 @@ type Integration struct {
 	c *Config
 }
 
-// Create a fake windows exporter for use on non windows platforms
+// New creates a fake windows_exporter integration.
 func New(logger log.Logger, c *Config) (*Integration, error) {
 	level.Warn(logger).Log("msg", "the windows_exporter only works on Windows; enabling it otherwise will do nothing")
 	return &Integration{c: c}, nil
