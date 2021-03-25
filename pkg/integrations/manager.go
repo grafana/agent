@@ -115,8 +115,6 @@ func (c *ManagerConfig) DefaultRelabelConfigs(hostname string) []*relabel.Config
 // If any integrations are enabled and are configured to be scraped, the
 // Prometheus configuration must have a WAL directory configured.
 func (c *ManagerConfig) ApplyDefaults(cfg *prom.Config) error {
-	var willCreateInstance bool
-
 	for _, ic := range c.Integrations {
 		if !ic.CommonConfig().Enabled {
 			continue
@@ -126,15 +124,13 @@ func (c *ManagerConfig) ApplyDefaults(cfg *prom.Config) error {
 		if common := ic.CommonConfig(); common.ScrapeIntegration != nil {
 			scrapeIntegration = *common.ScrapeIntegration
 		}
-		if scrapeIntegration {
-			willCreateInstance = true
-			break
+
+		// WAL must be configured if an integration is going to be scraped.
+		if scrapeIntegration && cfg.WALDir == "" {
+			return fmt.Errorf("no wal_directory configured")
 		}
 	}
 
-	if willCreateInstance && cfg.WALDir == "" {
-		return fmt.Errorf("no wal_directory configured")
-	}
 	return nil
 }
 
