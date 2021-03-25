@@ -23,17 +23,11 @@ import (
 
 // Config controls the configuration of Tempo trace pipelines.
 type Config struct {
-	// Whether the Tempo subsystem should be enabled.
-	Enabled bool             `yaml:"-"`
 	Configs []InstanceConfig `yaml:"configs"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// If the Config is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
-
 	type plain Config
 	if err := unmarshal((*plain)(c)); err != nil {
 		return err

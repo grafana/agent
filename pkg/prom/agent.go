@@ -35,9 +35,6 @@ var DefaultConfig = Config{
 // Config defines the configuration for the entire set of Prometheus client
 // instances, along with a global configuration.
 type Config struct {
-	// Whether the Prometheus subsystem should be enabled.
-	Enabled bool `yaml:"-"`
-
 	Global                 config.GlobalConfig           `yaml:"global"`
 	WALDir                 string                        `yaml:"wal_directory"`
 	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age"`
@@ -54,10 +51,6 @@ type Config struct {
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
-	// If the Config is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
-
 	type plain Config
 	err := unmarshal((*plain)(c))
 	if err != nil {
@@ -70,7 +63,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // ApplyDefaults applies default values to the Config and validates it.
 func (c *Config) ApplyDefaults() error {
-	if c.WALDir == "" {
+	if len(c.Configs) > 0 && c.WALDir == "" {
 		return errors.New("no wal_directory configured")
 	}
 
@@ -99,6 +92,7 @@ func (c *Config) ApplyDefaults() error {
 		}
 		usedNames[name] = struct{}{}
 	}
+
 	return nil
 }
 
