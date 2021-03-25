@@ -5,6 +5,10 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
+func init() {
+	integrations.RegisterIntegration(&Config{})
+}
+
 // Config controls the windows_exporter integration.
 // All of these and their child fields are pointers so we can determine if the value was set or not.
 type Config struct {
@@ -22,10 +26,6 @@ type Config struct {
 	MSSQL       MSSQLConfig       `yaml:"mssql"`
 	MSMQ        MSMQConfig        `yaml:"msmq"`
 	LogicalDisk LogicalDiskConfig `yaml:"logical_disk"`
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
 }
 
 // Name returns the name used, "windows_explorer"
