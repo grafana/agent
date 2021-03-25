@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus-community/windows_exporter/exporter"
 )
 
-// New creates a new node_exporter integration.
+// New creates a new windows_exporter integration.
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	configMap := exporter.GenerateConfigs()
 	c.ApplyConfig(configMap)
