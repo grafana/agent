@@ -29,7 +29,7 @@ type Instance struct {
 	receivers builder.Receivers
 }
 
-// New creates and starts Loki log collection.
+// NewInstance creates and starts an instance of tracing pipelines.
 func NewInstance(reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger) (*Instance, error) {
 	var err error
 
@@ -46,6 +46,7 @@ func NewInstance(reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logg
 	return instance, nil
 }
 
+// ApplyConfig updates the configuration of the Instance.
 func (i *Instance) ApplyConfig(cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
@@ -148,7 +149,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	// start exporter
 	i.exporter, err = builder.NewExportersBuilder(i.logger, appinfo, otelConfig, factories.Exporters).Build()
 	if err != nil {
-		return fmt.Errorf("failed to build exporters: %w", err)
+		return fmt.Errorf("failed to create exporters builder: %w", err)
 	}
 
 	err = i.exporter.StartAll(ctx, i)
@@ -159,7 +160,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	// start pipelines
 	i.pipelines, err = builder.NewPipelinesBuilder(i.logger, appinfo, otelConfig, i.exporter, factories.Processors).Build()
 	if err != nil {
-		return fmt.Errorf("failed to build exporters: %w", err)
+		return fmt.Errorf("failed to create pipelines builder: %w", err)
 	}
 
 	err = i.pipelines.StartProcessors(ctx, i)
@@ -170,7 +171,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	// start receivers
 	i.receivers, err = builder.NewReceiversBuilder(i.logger, appinfo, otelConfig, i.pipelines, factories.Receivers).Build()
 	if err != nil {
-		return fmt.Errorf("failed to start receivers: %w", err)
+		return fmt.Errorf("failed to create receivers builder: %w", err)
 	}
 
 	err = i.receivers.StartAll(ctx, i)

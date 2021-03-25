@@ -43,8 +43,9 @@ func TestNodeExporter(t *testing.T) {
 	require.NoError(t, err, "failed to setup node_exporter")
 
 	r := mux.NewRouter()
-	err = integration.RegisterRoutes(r)
+	handler, err := integration.MetricsHandler()
 	require.NoError(t, err)
+	r.Handle("/metrics", handler)
 
 	// Invoke /metrics and parse the response
 	srv := httptest.NewServer(r)

@@ -13,6 +13,7 @@ type RemoteWriteConfig struct {
 	SigV4 SigV4Config `yaml:"sigv4,omitempty"`
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Base = config.DefaultRemoteWriteConfig
 

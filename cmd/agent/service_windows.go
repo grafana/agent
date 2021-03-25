@@ -17,8 +17,10 @@ import (
 const ServiceName = "Grafana Agent"
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
+// AgentService runs the Grafana Agent as a service.
 type AgentService struct{}
 
+// Execute starts the AgentService.
 func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	changes <- svc.Status{State: svc.StartPending}
 
@@ -72,6 +74,8 @@ loop:
 	return
 }
 
+// IsWindowsService returns whether the current process is running as a Windows
+// Service. On non-Windows platforms, this always returns false.
 func IsWindowsService() bool {
 	isService, err := svc.IsWindowsService()
 	if err != nil {
@@ -80,6 +84,8 @@ func IsWindowsService() bool {
 	return isService
 }
 
+// RunService runs the current process as a Windows servce. On non-Windows platforms,
+// this is always a no-op.
 func RunService() error {
 	return svc.Run(ServiceName, &AgentService{})
 }

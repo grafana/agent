@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/consul_exporter/pkg/exporter"
 )
 
+// DefaultConfig holds the default settings for the consul_exporter integration.
 var DefaultConfig = Config{
 	Server:        "http://localhost:8500",
 	Timeout:       500 * time.Millisecond,
@@ -47,14 +48,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration.
 func (c *Config) Name() string {
 	return "consul_exporter"
 }
 
+// CommonConfig returns the common set of settings for this integration.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts the config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }

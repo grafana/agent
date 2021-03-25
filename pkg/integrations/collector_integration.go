@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -39,7 +38,7 @@ func NewCollectorIntegration(name string, configs ...CollectorIntegrationConfig)
 // CollectorIntegrationConfig defines constructor configuration for NewCollectorIntegration
 type CollectorIntegrationConfig func(integration *CollectorIntegration)
 
-// WithCollector adds more collectors to the CollectorIntegration being created.
+// WithCollectors adds more collectors to the CollectorIntegration being created.
 func WithCollectors(cs ...prometheus.Collector) CollectorIntegrationConfig {
 	return func(i *CollectorIntegration) {
 		i.cs = append(i.cs, cs...)
@@ -61,20 +60,8 @@ func WithExporterMetricsIncluded(included bool) CollectorIntegrationConfig {
 	}
 }
 
-// RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
-// here is expected to be a subrouter, where all registered paths will be
-// registered within that subroute.
-func (i *CollectorIntegration) RegisterRoutes(r *mux.Router) error {
-	handler, err := i.handler()
-	if err != nil {
-		return err
-	}
-
-	r.Handle("/metrics", handler)
-	return nil
-}
-
-func (i *CollectorIntegration) handler() (http.Handler, error) {
+// MetricsHandler returns the HTTP handler for the integration.
+func (i *CollectorIntegration) MetricsHandler() (http.Handler, error) {
 	r := prometheus.NewRegistry()
 	for _, c := range i.cs {
 		if err := r.Register(c); err != nil {

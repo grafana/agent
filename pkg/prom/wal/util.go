@@ -111,7 +111,8 @@ func (c *walDataCollector) StoreSeries(series []record.RefSeries, _ int) {
 
 func (c *walDataCollector) SeriesReset(_ int) {}
 
-// Get the subdirectory within a Storage directory used for the Prometheus WAL
+// SubDirectory returns the subdirectory within a Storage directory used for
+// the Prometheus WAL.
 func SubDirectory(base string) string {
 	return filepath.Join(base, "wal")
 }

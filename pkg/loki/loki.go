@@ -22,6 +22,8 @@ func init() {
 	client.UserAgent = fmt.Sprintf("GrafanaAgent/%s", version.Version)
 }
 
+// Loki is a Loki log collection. It uses multiple distinct sets of Loki
+// Promtail agents to collect logs and send them to a Loki server.
 type Loki struct {
 	mut sync.Mutex
 
@@ -91,6 +93,7 @@ func (l *Loki) ApplyConfig(c Config) error {
 	return nil
 }
 
+// Stop stops the log collector.
 func (l *Loki) Stop() {
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -171,6 +174,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	return nil
 }
 
+// Stop stops the Promtail instance.
 func (i *Instance) Stop() {
 	i.mut.Lock()
 	defer i.mut.Unlock()
