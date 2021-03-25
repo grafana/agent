@@ -168,6 +168,8 @@ func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validat
 
 // ApplyConfig updates the configuration of the integrations subsystem.
 func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
+	var failed bool
+
 	m.cfgMut.Lock()
 	defer m.cfgMut.Unlock()
 
@@ -206,7 +208,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		l := log.With(m.logger, "integration", ic.Name())
 		i, err := ic.NewIntegration(l)
 		if err != nil {
-			return fmt.Errorf("error initializing integration %q: %w", ic.Name(), err)
+			level.Error(m.logger).Log("msg", "failed to initialize integration. it will not run or be scraped", "integration", ic.Name(), "err", err)
+			failed = true
+
+			// If this integration was running before, its instance won't be cleaned
+			// up since it's now removed from the map. We need to clean it up here.
+			_ = m.im.DeleteConfig(key)
+			continue
 		}
 
 		// Create, start, and register the new integration.
@@ -259,11 +267,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 			instanceConfig := m.instanceConfigForIntegration(p.cfg, p.i, cfg)
 			if err := m.validator(&instanceConfig); err != nil {
 				level.Error(p.log).Log("msg", "failed to validate generated scrape config for integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
+				failed = true
 				break
 			}
 
 			if err := m.im.ApplyConfig(instanceConfig); err != nil {
 				level.Error(p.log).Log("msg", "failed to apply integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
+				failed = true
 			}
 		case false:
 			// If a previous instance of the config was being scraped, we need to
@@ -274,6 +284,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	}
 
 	m.cfg = cfg
+
+	if failed {
+		return fmt.Errorf("not all integrations were correctly updated")
+	}
 	return nil
 }
 
