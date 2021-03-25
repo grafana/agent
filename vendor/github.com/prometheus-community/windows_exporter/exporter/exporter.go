@@ -14,7 +14,6 @@ import (
 	"github.com/StackExchange/wmi"
 	"github.com/prometheus-community/windows_exporter/collector"
 	"github.com/prometheus-community/windows_exporter/config"
-	config_resolver "github.com/prometheus-community/windows_exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
@@ -24,7 +23,7 @@ import (
 )
 
 type WindowsCollector struct {
-	maxScrapeDuration time.Duration
+	MaxScrapeDuration time.Duration
 	Collectors        map[string]collector.Collector
 }
 
@@ -149,7 +148,7 @@ func (coll WindowsCollector) Collect(ch chan<- prometheus.Metric) {
 	// Wait until either all collectors finish, or timeout expires
 	select {
 	case <-allDone:
-	case <-time.After(coll.maxScrapeDuration):
+	case <-time.After(coll.MaxScrapeDuration):
 	}
 
 	l.Lock()
@@ -257,8 +256,15 @@ func initWbem() {
 	wmi.DefaultClient.SWbemServicesClient = s
 }
 
+func GenerateConfigs() map[string]collector.Config {
+	kingpinApp := kingpin.New("windows_exporter", "")
+	cm := collector.GenerateConfigs(kingpinApp)
+	kingpinApp.Parse([]string{})
+	return cm
+}
+
 // Used to instantiate a new collector for use in a library
-func NewWindowsCollector(name string, enabledCollectors string, config map[string]string) (*WindowsCollector, error) {
+func NewWindowsCollector(name string, enabledCollectors string, configMap map[string]collector.Config) (*WindowsCollector, error) {
 	if enabledCollectors == "" {
 		enabledCollectors = defaultCollectors
 	}
@@ -266,18 +272,6 @@ func NewWindowsCollector(name string, enabledCollectors string, config map[strin
 	if name == "" {
 		name = "windows_exporter"
 	}
-	kingpinApp := kingpin.New(name, "")
-	configMap := collector.GenerateConfigs(kingpinApp)
-	resolver, err := config_resolver.NewResolverFromMap(config)
-	if err != nil {
-		return nil, err
-	}
-	var placeholder []string
-	if err := resolver.Bind(kingpinApp, placeholder); err != nil {
-		return nil, err
-	}
-	// We can treat loading from config as the same as kingpin
-	kingpinApp.Parse(placeholder)
 	collectors, err := loadCollectors(enabledCollectors, configMap)
 	if err != nil {
 		log.Fatalf("Couldn't load collectors: %s", err)
@@ -286,7 +280,7 @@ func NewWindowsCollector(name string, enabledCollectors string, config map[strin
 	log.Infof("Enabled collectors: %v", strings.Join(keys(collectors), ", "))
 	return &WindowsCollector{
 		Collectors:        collectors,
-		maxScrapeDuration: time.Duration(10 * float64(time.Second)),
+		MaxScrapeDuration: time.Duration(10 * float64(time.Second)),
 	}, nil
 }
 
@@ -400,7 +394,7 @@ func StartExecutable() {
 			}
 			return nil, &WindowsCollector{
 				Collectors:        filteredCollectors,
-				maxScrapeDuration: timeout,
+				MaxScrapeDuration: timeout,
 			}
 		},
 	}
