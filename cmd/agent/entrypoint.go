@@ -52,7 +52,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config) (*Entrypoint, error)
 		return nil, err
 	}
 
-	ep.tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel)
+	ep.tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel.Logrus)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := srv.tempoTraces.ApplyConfig(cfg.Tempo); err != nil {
+	if err := srv.tempoTraces.ApplyConfig(cfg.Tempo, cfg.Server.LogLevel.Logrus); err != nil {
 		level.Error(srv.log).Log("msg", "failed to update tempo", "err", err)
 		failed = true
 	}
