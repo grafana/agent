@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	"github.com/weaveworks/common/logging"
@@ -47,7 +48,7 @@ configs:
 	var loggingLevel logging.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
-	tempo, err := New(prometheus.NewRegistry(), cfg, loggingLevel)
+	tempo, err := New(prometheus.NewRegistry(), cfg, logrus.InfoLevel)
 	require.NoError(t, err)
 	t.Cleanup(tempo.Stop)
 
@@ -91,10 +92,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	var loggingLevel logging.Level
-	require.NoError(t, loggingLevel.Set("debug"))
-
-	tempo, err := New(prometheus.NewRegistry(), cfg, loggingLevel)
+	tempo, err := New(prometheus.NewRegistry(), cfg, logrus.DebugLevel)
 	require.NoError(t, err)
 	t.Cleanup(tempo.Stop)
 
@@ -120,7 +118,7 @@ configs:
 	err = dec.Decode(&fixedConfig)
 	require.NoError(t, err)
 
-	err = tempo.ApplyConfig(fixedConfig)
+	err = tempo.ApplyConfig(fixedConfig, logrus.DebugLevel)
 	require.NoError(t, err)
 
 	tr := testJaegerTracer(t)
