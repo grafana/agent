@@ -16,7 +16,6 @@ func WrapWithUnregisterer(reg prometheus.Registerer) *Unregisterer {
 		wrap: reg,
 		cs:   make(map[prometheus.Collector]struct{}),
 	}
-
 }
 
 // Register implements prometheus.Registerer.

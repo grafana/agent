@@ -286,7 +286,6 @@ github.com/google/dnsmasq_exporter/collector
 # github.com/google/go-cmp v0.5.4
 ## explicit
 github.com/google/go-cmp/cmp
-github.com/google/go-cmp/cmp/cmpopts
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
@@ -764,7 +763,7 @@ github.com/uber/jaeger-client-go/transport
 github.com/uber/jaeger-client-go/utils
 # github.com/uber/jaeger-lib v2.4.0+incompatible
 github.com/uber/jaeger-lib/metrics
-# github.com/weaveworks/common v0.0.0-20210112142934-23c8d7fa6120
+# github.com/weaveworks/common v0.0.0-20210112142934-23c8d7fa6120 => github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7
 ## explicit
 github.com/weaveworks/common/errors
 github.com/weaveworks/common/grpc
@@ -1374,3 +1373,4 @@ sigs.k8s.io/yaml
 # github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 # github.com/wrouesnel/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20201106170118-5eedee00c1db
 # github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
+# github.com/weaveworks/common => github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7

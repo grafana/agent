@@ -28,8 +28,12 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	// Executable name and any command line parameters will be placed into os.args, this comes from
 	// registry key `Computer\HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\<servicename>\ImagePath`
 	// oddly enough args is blank
-	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	cfg, err := config.Load(fs, os.Args[1:])
+
+	reloader := func() (*config.Config, error) {
+		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+		return config.Load(fs, os.Args[1:])
+	}
+	cfg, err := reloader()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -38,7 +42,7 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	logger := util.NewLogger(&cfg.Server)
 	util_log.Logger = logger
 
-	ep, err := NewEntrypoint(logger, cfg)
+	ep, err := NewEntrypoint(logger, cfg, reloader)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
 		os.Exit(1)

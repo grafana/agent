@@ -260,9 +260,6 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 // applying all configs from newConfig and deleting any configs from oldConfig
 // that are not in newConfig.
 func (a *Agent) syncInstances(oldConfig, newConfig Config) {
-	a.mut.RLock()
-	defer a.mut.RUnlock()
-
 	// Apply the new configs
 	for _, c := range newConfig.Configs {
 		if err := a.mm.ApplyConfig(c); err != nil {

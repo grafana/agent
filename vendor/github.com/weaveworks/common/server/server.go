@@ -90,6 +90,10 @@ type Config struct {
 	// If not set, default signal handler is used.
 	SignalHandler SignalHandler `yaml:"-"`
 
+	// If not set, default Prometheus registry is used.
+	Registerer prometheus.Registerer `yaml:"-"`
+	Gatherer   prometheus.Gatherer   `yaml:"-"`
+
 	PathPrefix string `yaml:"http_path_prefix"`
 }
 
@@ -147,6 +151,8 @@ type Server struct {
 	HTTPServer *http.Server
 	GRPC       *grpc.Server
 	Log        logging.Interface
+	Registerer prometheus.Registerer
+	Gatherer   prometheus.Gatherer
 }
 
 // New makes a new Server
@@ -176,6 +182,16 @@ func New(cfg Config) (*Server, error) {
 		log = logging.NewLogrus(cfg.LogLevel)
 	}
 
+	// If user doesn't supply a registerer/gatherer, use Prometheus' by default.
+	reg := cfg.Registerer
+	if reg == nil {
+		reg = prometheus.DefaultRegisterer
+	}
+	gatherer := cfg.Gatherer
+	if gatherer == nil {
+		gatherer = prometheus.DefaultGatherer
+	}
+
 	// Setup TLS
 	var httpTLSConfig *tls.Config
 	if len(cfg.HTTPTLSConfig.TLSCertPath) > 0 && len(cfg.HTTPTLSConfig.TLSKeyPath) > 0 {
@@ -201,7 +217,7 @@ func New(cfg Config) (*Server, error) {
 		Help:      "Time (in seconds) spent serving HTTP requests.",
 		Buckets:   instrument.DefBuckets,
 	}, []string{"method", "route", "status_code", "ws"})
-	prometheus.MustRegister(requestDuration)
+	reg.MustRegister(requestDuration)
 
 	receivedMessageSize := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: cfg.MetricsNamespace,
@@ -209,7 +225,7 @@ func New(cfg Config) (*Server, error) {
 		Help:      "Size (in bytes) of messages received in the request.",
 		Buckets:   middleware.BodySizeBuckets,
 	}, []string{"method", "route"})
-	prometheus.MustRegister(receivedMessageSize)
+	reg.MustRegister(receivedMessageSize)
 
 	sentMessageSize := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: cfg.MetricsNamespace,
@@ -217,14 +233,14 @@ func New(cfg Config) (*Server, error) {
 		Help:      "Size (in bytes) of messages sent in response.",
 		Buckets:   middleware.BodySizeBuckets,
 	}, []string{"method", "route"})
-	prometheus.MustRegister(sentMessageSize)
+	reg.MustRegister(sentMessageSize)
 
 	inflightRequests := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: cfg.MetricsNamespace,
 		Name:      "inflight_requests",
 		Help:      "Current number of inflight requests.",
 	}, []string{"method", "route"})
-	prometheus.MustRegister(inflightRequests)
+	reg.MustRegister(inflightRequests)
 
 	log.WithField("http", httpListener.Addr()).WithField("grpc", grpcListener.Addr()).Infof("server listening on addresses")
 
@@ -294,7 +310,7 @@ func New(cfg Config) (*Server, error) {
 		router = router.PathPrefix(cfg.PathPrefix).Subrouter()
 	}
 	if cfg.RegisterInstrumentation {
-		RegisterInstrumentation(router)
+		RegisterInstrumentationWithGatherer(router, gatherer)
 	}
 
 	var sourceIPs *middleware.SourceIPExtractor
@@ -354,12 +370,19 @@ func New(cfg Config) (*Server, error) {
 		HTTPServer: httpServer,
 		GRPC:       grpcServer,
 		Log:        log,
+		Registerer: reg,
+		Gatherer:   gatherer,
 	}, nil
 }
 
 // RegisterInstrumentation on the given router.
 func RegisterInstrumentation(router *mux.Router) {
-	router.Handle("/metrics", promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{
+	RegisterInstrumentationWithGatherer(router, prometheus.DefaultGatherer)
+}
+
+// RegisterInstrumentationWithGatherer on the given router.
+func RegisterInstrumentationWithGatherer(router *mux.Router, gatherer prometheus.Gatherer) {
+	router.Handle("/metrics", promhttp.HandlerFor(gatherer, promhttp.HandlerOpts{
 		EnableOpenMetrics: true,
 	}))
 	router.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
