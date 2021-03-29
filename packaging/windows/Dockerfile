@@ -6,5 +6,4 @@ WORKDIR /home
 COPY logo.ico logo.ico
 COPY install_script.nsis install_script.nsis
 COPY agent-windows-amd64.exe agent-windows-amd64.exe
-ENTRYPOINT ["makensis", "-V4", "/home/install_script.nsis"]
-
+ENTRYPOINT makensis -V4 -DVERSION=$VERSION /home/install_script.nsis
