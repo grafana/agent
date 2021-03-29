@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -13,14 +11,14 @@ import (
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/tempo"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/pkg/util/server"
 	"github.com/oklog/run"
-	"go.uber.org/atomic"
+	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/weaveworks/common/server"
 	"github.com/weaveworks/common/signals"
 
 	"github.com/go-kit/kit/log/level"
@@ -35,12 +33,7 @@ type Entrypoint struct {
 	log *util.Logger
 	cfg config.Config
 
-	srv   *server.Server
-	srvCh chan *server.Server
-
-	doneCh    chan bool
-	closeOnce sync.Once
-
+	srv         *server.Server
 	promMetrics *prom.Agent
 	lokiLogs    *loki.Loki
 	tempoTraces *tempo.Tempo
@@ -48,7 +41,6 @@ type Entrypoint struct {
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
-	reloading      *atomic.Bool
 
 	unreg *util.Unregisterer
 }
@@ -60,12 +52,9 @@ type Reloader = func() (*config.Config, error)
 func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (*Entrypoint, error) {
 	var (
 		ep = &Entrypoint{
-			log:       logger,
-			srvCh:     make(chan *server.Server, 1),
-			doneCh:    make(chan bool),
-			reloading: atomic.NewBool(false),
-			reloader:  reloader,
-			unreg:     util.WrapWithUnregisterer(prometheus.DefaultRegisterer),
+			log:      logger,
+			reloader: reloader,
+			unreg:    util.WrapWithUnregisterer(prometheus.DefaultRegisterer),
 		}
 		err error
 	)
@@ -80,6 +69,8 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		reloadMux.HandleFunc("/-/reload", ep.reloadHandler)
 		ep.reloadServer = &http.Server{Handler: reloadMux}
 	}
+
+	ep.srv = server.New(logger)
 
 	ep.promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
 	if err != nil {
@@ -117,47 +108,21 @@ func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
 	// Unregister any metrics that the server registered in the last apply.
 	srv.unreg.UnregisterAll()
 
-	// Override the server's signal handler to be a no-op. We will
-	// create our own SIGINT signal handler when running the server.
-	cfg.Server.SignalHandler = newNoopSignalHandler()
-
 	cfg.Server.Registerer = srv.unreg
 	if cfg.Server.Log == nil {
 		cfg.Server.Log = srv.cfg.Server.Log
 	}
 
-	var (
-		// wireServer indicates a new server and that all API endpoints
-		// (HTTP and gRPC) need to be re-created.
-		wireServer bool
-
-		failed bool
-		err    error
-	)
+	var failed bool
 
 	if err := srv.log.ApplyConfig(&cfg.Server); err != nil {
 		level.Error(srv.log).Log("msg", "failed to update logger", "err", err)
 		failed = true
 	}
 
-	// Server doesn't have an ApplyConfig method so we need to do a full
-	// restart of it here.
-	if !compareServer(&srv.cfg.Server, &cfg.Server) {
-		level.Info(srv.log).Log("msg", "server configurations changed, restarting server")
-
-		if srv.srv != nil {
-			srv.reloading.Store(true)
-			srv.srv.Shutdown()
-		}
-
-		srv.srv, err = server.New(cfg.Server)
-		if err != nil {
-			level.Error(srv.log).Log("msg", "failed to reload server", "err", err)
-			failed = true
-		}
-
-		// New server, so everything needs re-wiring.
-		wireServer = true
+	if err := srv.srv.ApplyConfig(cfg.Server, srv.wire); err != nil {
+		level.Error(srv.log).Log("msg", "failed to update server", "err", err)
+		failed = true
 	}
 
 	// Go through each component and update it.
@@ -181,44 +146,45 @@ func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if wireServer {
-		srv.promMetrics.WireAPI(srv.srv.HTTP)
-		srv.promMetrics.WireGRPC(srv.srv.GRPC)
-
-		srv.manager.WireAPI(srv.srv.HTTP)
-
-		srv.srv.HTTP.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "Agent is Healthy.\n")
-		})
-		srv.srv.HTTP.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, "Agent is Ready.\n")
-		})
-		srv.srv.HTTP.HandleFunc("/agent/api/v1/config", func(rw http.ResponseWriter, r *http.Request) {
-			srv.mut.Lock()
-			bb, err := yaml.Marshal(srv.cfg)
-			srv.mut.Unlock()
-
-			if err != nil {
-				http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
-			} else {
-				_, _ = rw.Write(bb)
-			}
-		})
-
-		srv.srv.HTTP.HandleFunc("/-/reload", srv.reloadHandler)
-
-		// The server is finished being wired up, we can run it now.
-		srv.srvCh <- srv.srv
-	}
-
 	srv.cfg = cfg
 	if failed {
 		return fmt.Errorf("changes did not apply successfully")
 	}
 
 	return nil
+}
+
+// wire is used to hook up API endpoints to components, and is called every
+// time a new Weaveworks server is creatd.
+func (srv *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
+	srv.promMetrics.WireAPI(mux)
+	srv.promMetrics.WireGRPC(grpc)
+
+	srv.manager.WireAPI(mux)
+
+	mux.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Agent is Healthy.\n")
+	})
+
+	mux.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Agent is Ready.\n")
+	})
+
+	mux.HandleFunc("/agent/api/v1/config", func(rw http.ResponseWriter, r *http.Request) {
+		srv.mut.Lock()
+		bb, err := yaml.Marshal(srv.cfg)
+		srv.mut.Unlock()
+
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
+		} else {
+			_, _ = rw.Write(bb)
+		}
+	})
+
+	mux.HandleFunc("/-/reload", srv.reloadHandler)
 }
 
 func (srv *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
@@ -255,15 +221,11 @@ func (srv *Entrypoint) Stop() {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()
 
-	srv.closeOnce.Do(func() {
-		close(srv.doneCh)
-	})
-
 	srv.manager.Stop()
 	srv.lokiLogs.Stop()
 	srv.promMetrics.Stop()
 	srv.tempoTraces.Stop()
-	srv.srv.Shutdown()
+	srv.srv.Close()
 
 	if srv.reloadServer != nil {
 		srv.reloadServer.Close()
@@ -294,109 +256,11 @@ func (srv *Entrypoint) Start() error {
 		})
 	}
 
-	var (
-		serverMut     sync.Mutex
-		currentServer *server.Server
-	)
-
-	// Our server actor is responsible for reading the last created server
-	// and running it.
-	//
-	// During a reload, the current server will be shut down to create the
-	// new one. This scenario must be detected by the actor, and the actor
-	// must wait for the new server to be available for running.
-	//
-	// If the server shuts down independently of a reload, we treat this as
-	// a fatal issue and stop the actor.
 	g.Add(func() error {
-	NextServer:
-		for {
-			select {
-			case <-srv.doneCh:
-				return fmt.Errorf("agent exiting")
-			case s := <-srv.srvCh:
-				serverMut.Lock()
-				currentServer = s
-				serverMut.Unlock()
-
-				// If the reload failed, s will be nil. Skip this loop and wait for the
-				// next recv.
-				if s == nil {
-					continue NextServer
-				}
-
-				err := s.Run()
-
-				// If we're reloading, wait for the next server. There's an edge case
-				// where the server shuts down from a problem in the middle of a
-				// reload, but given a new server will replace it anyway, it's safe to
-				// ignore.
-				if srv.reloading.CAS(true, false) {
-					continue NextServer
-				}
-
-				return err
-			}
-		}
+		return srv.srv.Run()
 	}, func(e error) {
-		serverMut.Lock()
-		defer serverMut.Unlock()
-
-		// Notify the loop of a shutdown. This SHOULD be called before shutting
-		// down the server in case a reload is ongoing while we terminating.
-		srv.notifyShutdown()
-
-		// Shut down any currently running server.
-		if currentServer != nil {
-			currentServer.Shutdown()
-		}
+		srv.srv.Close()
 	})
 
 	return g.Run()
-}
-
-// notifyShutdown informs any running actor that the server is shutting down.
-func (srv *Entrypoint) notifyShutdown() {
-	srv.closeOnce.Do(func() {
-		close(srv.doneCh)
-	})
-}
-
-// noopSignalHandler implements the SignalHandler interface used by
-// weaveworks/common/server.
-type noopSignalHandler struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-}
-
-func newNoopSignalHandler() *noopSignalHandler {
-	var sh noopSignalHandler
-	sh.ctx, sh.cancel = context.WithCancel(context.Background())
-	return &sh
-}
-
-// Equal implements the equality checking interface used by cmp.
-func (sh *noopSignalHandler) Equal(*noopSignalHandler) bool {
-	return true
-}
-
-func (sh *noopSignalHandler) Loop() {
-	<-sh.ctx.Done()
-}
-
-func (sh *noopSignalHandler) Stop() {
-	sh.cancel()
-}
-
-// compareServer returns whether two server configs are equal through their YAML configuration.
-func compareServer(a *server.Config, b *server.Config) bool {
-	aBytes, err := yaml.Marshal(a)
-	if err != nil {
-		return false
-	}
-	bBytes, err := yaml.Marshal(b)
-	if err != nil {
-		return false
-	}
-	return bytes.Equal(aBytes, bBytes)
 }
