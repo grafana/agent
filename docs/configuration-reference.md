@@ -39,6 +39,22 @@ Where default_value is the value to use if the environment variable is
 undefined. The full list of supported syntax can be found at Drone's
 [envsubst repository](https://github.com/drone/envsubst).
 
+## Reloading (beta)
+
+The configuration file can be reloaded at runtime. Read the [API
+documentation](./api.md#reload-configuration-file-beta) for more information.
+
+This functionality is in beta, and may have issues. Please open GitHub issues
+for any problems you encounter.
+
+A reload-only HTTP server can be started to safely reload the system. To start
+this, provide `--reload-addr` and `--reload-port` as command line flags.
+`reload-port` must be set to a non-zero port to launch the reload server.
+
+While `/-/reload` is enabled on the primary HTTP server, it is not recommended
+to use it, since changing the HTTP server configuration will cause it to
+restart.
+
 ## File Format
 
 To specify which configuration file to load, pass the `-config.file` flag at
