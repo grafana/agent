@@ -5,6 +5,7 @@ local container = k.core.v1.container;
 local daemonSet = k.apps.v1.daemonSet;
 local deployment = k.apps.v1.deployment;
 local policyRule = k.rbac.v1.policyRule;
+local serviceAccount = k.core.v1.serviceAccount;
 
 {
   newAgent(name='grafana-agent', namespace='default', image, config, use_daemonset=true):: {
@@ -13,6 +14,8 @@ local policyRule = k.rbac.v1.policyRule;
 
     _controller:: controller,
     _config_hash:: true,
+
+    listen_port:: 8080,
 
     rbac:
       k.util.rbac(name, [
@@ -24,7 +27,10 @@ local policyRule = k.rbac.v1.policyRule;
         // Needed for Prometheus subsystem to scrape k8s API
         policyRule.withNonResourceUrls('/metrics') +
         policyRule.withVerbs(['get']),
-      ]),
+      ]) {
+        service_account+:
+          serviceAccount.mixin.metadata.withNamespace(namespace),
+      },
 
     config_map:
       configMap.new(name) +
@@ -35,7 +41,7 @@ local policyRule = k.rbac.v1.policyRule;
 
     container::
       container.new('agent', image) +
-      container.withPorts(k.core.v1.containerPort.new('http-metrics', 8080)) +
+      container.withPorts(k.core.v1.containerPort.new('http-metrics', self.listen_port)) +
       container.withCommand('/bin/agent') +
       container.withArgsMixin(k.util.mapToFlags({
         'config.file': '/etc/agent/agent.yaml',
