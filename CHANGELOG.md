@@ -11,6 +11,12 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [FEATURE] Add support for running as a Windows service (@mattdurham)
 
+- [FEATURE] (beta) Add /-/reload support. It is not recommended to invoke
+  `/-/reload` against the main HTTP server. Instead, two new command-line flags
+  have been added: `--reload-addr` and `--reload-port`. These will launch a
+  `/-/reload`-only HTTP server that can be used to safely reload the Agent's
+  state.  (@rfratto)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
@@ -35,7 +41,7 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [CHANGE] The User-Agent header sent for logs will now be
   `GrafanaAgent/<version>` (@rfratto)
-  
+
 - [ENHANCEMENT] Upgrade `go.opentelemetry.io/collector` to v0.21.0 (@mapno)
 
 # v0.13.0 (2021-02-25)
