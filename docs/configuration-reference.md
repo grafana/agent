@@ -2019,8 +2019,8 @@ push_config:
   [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
 # Receiver configurations are mapped directly into the OpenTelmetry receivers block.
-#   At least one receiver is required.
-#   https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
+#   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
+#   Documentation for each receiver can be found at https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
 receivers:
 
 # A list of prometheus scrape configs.  Targets discovered through these scrape configs have their __address__ matched against the ip on incoming spans.
