@@ -2,6 +2,7 @@ Unicode true
 # This installs two files, agent-windows-amd64.exe and logo.ico, creates a start menu shortcut, builds an uninstaller, and
 # adds uninstall information to the registry for Add/Remove Programs
 
+!define VERSION "DEBUG"
 !define APPNAME "Grafana Agent"
 !define DESCRIPTION "The Grafana Agent collects observability data and sends it to a compatible remote write endpoint"
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
@@ -15,7 +16,7 @@ RequestExecutionLevel admin #Require admin rights on NT6+ (When UAC is turned on
 InstallDir "$PROGRAMFILES\${APPNAME}"
 
 # This will be in the installer/uninstaller's title bar
-Name "${APPNAME}"
+Name "${APPNAME} ${VERSION}"
 Icon "logo.ico"
 outFile "/app/grafana-agent-installer.exe"
 
