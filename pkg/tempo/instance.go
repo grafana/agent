@@ -133,6 +133,9 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	if err != nil {
 		return fmt.Errorf("failed to load otelConfig from agent tempo config: %w", err)
 	}
+	if cfg.PushConfig.Endpoint != "" {
+		i.logger.Warn("Configuring exporter with deprecated push_config. Use remote_write and batch instead")
+	}
 
 	factories, err := tracingFactories()
 	if err != nil {
