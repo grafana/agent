@@ -40,6 +40,11 @@ cross-compilation issue, but will return in v0.13.0.
   
 - [ENHANCEMENT] Add kafka trace receiver (@mapno)
 
+- [ENHANCEMENT] Support mirroring a trace pipeline to multiple backends (@mapno)
+
+- [DEPRECATION] `push_config` is now supplanted by `remote_block` and `batch`.
+  `push_config` will be removed in a future version (@mapno)
+
 # v0.13.0 (2021-02-25)
 
 The primary branch name has changed from `master` to `main`. You may have to
