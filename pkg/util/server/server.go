@@ -92,6 +92,8 @@ func (s *Server) ApplyConfig(cfg Config, wire func(mux *mux.Router, grpc *grpc.S
 	wire(s.srv.HTTP, s.srv.GRPC)
 
 	s.srvCh <- s.srv
+
+	s.cfg = cfg
 	return nil
 }
 
