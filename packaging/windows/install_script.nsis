@@ -218,7 +218,7 @@ Section "uninstall"
     # Remove Start Menu launcher
     delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
     # Try to remove the Start Menu folder - this will only happen if it is empty
-    rmDir "$SMPROGRAMS\${APPNAME}"
+    RMDir "$SMPROGRAMS\${APPNAME}"
     # This is cleanup on the service and removing the exporter.
     nsExec::ExecToLog `sc stop "Grafana Agent"`
     Pop $0
@@ -234,7 +234,9 @@ Section "uninstall"
     delete $INSTDIR\uninstall.exe
 
     # Try to remove the install directory - this will only happen if it is empty
-    rmDir $INSTDIR
+    RMDir $INSTDIR
+
+    RMDir /r $APPDATA\grafana-agent-wal
 
     # Remove uninstaller information from the registry
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
