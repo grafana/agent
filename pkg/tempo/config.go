@@ -152,13 +152,14 @@ func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) err
 	return nil
 }
 
-// RemoteWriteConfig controls the configuration of an exporter
+// SpanMetricsConfig controls the configuration of spanmetricsprocessor and the related metrics exporter.
 type SpanMetricsConfig struct {
 	LatencyHistogramBuckets []time.Duration                  `yaml:"latency_histogram_buckets"`
 	Dimensions              []spanmetricsprocessor.Dimension `yaml:"dimensions"`
 	MetricsExporter         MetricsExporterConfig            `yaml:"metrics_exporter"`
 }
 
+// MetricsExporterConfig controls the configuration of the exporter for generated metrics.
 type MetricsExporterConfig struct {
 	Name string `yaml:"name"`
 

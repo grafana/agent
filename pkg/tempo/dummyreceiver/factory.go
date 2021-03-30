@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	// The value of "type" key in configuration.
+	// TypeStr for dummy receiver.
 	TypeStr = "dummy"
 )
 
