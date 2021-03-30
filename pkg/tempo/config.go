@@ -160,7 +160,7 @@ type SpanMetricsConfig struct {
 }
 
 type MetricsExporterConfig struct {
-	Name   string                 `yaml:"name"`
+	Name string `yaml:"name"`
 
 	// Configuration for metrics exporters.
 	// Now only otlp and prometheus exporter are supported.
