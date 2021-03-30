@@ -220,6 +220,7 @@ dist/agent-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	cp dist/agent-windows-amd64.exe ./packaging/windows
+	cp LICENSE ./packaging/windows
 	docker build ./packaging/windows -t windows_nsis 
 	docker run -e VERSION=${RELEASE_TAG} --rm -t -v $(CURDIR)/dist:/app windows_nsis
 dist/agent-freebsd-amd64: seego

@@ -8,7 +8,6 @@ Unicode true
 !define HELPURL "https://github.com/grafana/agent/discussions" # "Support Information" link
 !define UPDATEURL "https://github.com/grafana/agent/releases" # "Product Updates" link
 !define ABOUTURL "https://github.com/grafana/agent" # "Publisher" link
-!include LogicLib.nsh
 
 RequestExecutionLevel admin #Require admin rights on NT6+ (When UAC is turned on)
 
@@ -19,9 +18,10 @@ Name "${APPNAME} ${VERSION}"
 Icon "logo.ico"
 outFile "/app/grafana-agent-installer.exe"
 
-!include LogicLib.nsh
 !include nsDialogs.nsh
 !include FileFunc.nsh
+
+LicenseData LICENSE
 
 # Everything must be global Vars
 Var EnableExporterCheck
@@ -29,6 +29,7 @@ Var EnableExporterValue
 Var EnableExporterDialog
 Var PassedInParameters
 
+Page license
 Page directory
 Page custom enableWindowsExporter enableWindowsExporterLeave
 Page instfiles

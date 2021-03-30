@@ -14,7 +14,7 @@ After installation adjust agent-config.yaml to meet specific needs and restart t
 
 ## Silent Installation
 
-Silent installation can be achieved via  `grafana-agent-installer.exe /S  /EnableExporter "true"`, EnableExporter enables or disables Windows Exporter.
+Silent installation can be achieved via  `grafana-agent-installer.exe /S  /EnableExporter "true"`. EnableExporter enables or disables Windows Exporter, default is `false`.
 
 ## Security
 
