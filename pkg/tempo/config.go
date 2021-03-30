@@ -154,8 +154,8 @@ func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) err
 
 // SpanMetricsConfig controls the configuration of spanmetricsprocessor and the related metrics exporter.
 type SpanMetricsConfig struct {
-	LatencyHistogramBuckets []time.Duration                  `yaml:"latency_histogram_buckets"`
-	Dimensions              []spanmetricsprocessor.Dimension `yaml:"dimensions"`
+	LatencyHistogramBuckets []time.Duration                  `yaml:"latency_histogram_buckets,omitempty"`
+	Dimensions              []spanmetricsprocessor.Dimension `yaml:"dimensions,omitempty"`
 	MetricsExporter         MetricsExporterConfig            `yaml:"metrics_exporter"`
 }
 
