@@ -172,6 +172,9 @@ Function un.onInit
 FunctionEnd
 
 Function Install
+    # Premptively stop Grafana Agent if it is running
+    nsExec::ExecToLog 'sc stop "Grafana Agent"'
+    Pop $0
     # Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
     setOutPath $INSTDIR
     # Files added here should be removed by the uninstaller (see section "uninstall")
@@ -197,9 +200,7 @@ Function Install
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoRepair" 1
     Call WriteConfig
 
-    # Premptively stop Grafana Agent if it is running
-    nsExec::ExecToLog 'sc stop "Grafana Agent"'
-    Pop $0
+   
     # Create our batch file, since services cant run with parameters, nsexec is used to surpress console output, instead goes
     # to NSIS log window
     nsExec::ExecToLog 'sc create "Grafana Agent" binpath= "$INSTDIR\agent-windows-amd64.exe"'
@@ -213,6 +214,7 @@ FunctionEnd
 
 
 Section "uninstall"
+    DetailPrint "Starting Uninstaller"
     # Remove Start Menu launcher
     delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
     # Try to remove the Start Menu folder - this will only happen if it is empty
@@ -255,12 +257,15 @@ Function WriteConfig
         FileWrite $9 `    scrape_interval: 15s$\n`
         FileWrite $9 `  configs:$\n`
         FileWrite $9 `    - name: integrations$\n`
-        FileWrite $9 `      scrape_configs:$\n`
+
+        ${If} $RemoteUrl != ""
         FileWrite $9 `  remote_write:$\n`
         FileWrite $9 `    - url: $RemoteUrl$\n`
         FileWrite $9 `      basic_auth:$\n`
         FileWrite $9 `        username: "$RemoteUser"$\n`
         FileWrite $9 `        password: $RemotePassword$\n`
+        ${EndIf}
+
         ${If} $EnableExporterValue == "true"
         FileWrite $9 `integrations:$\n`
         FileWrite $9 `  windows_exporter:$\n`
