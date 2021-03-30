@@ -102,14 +102,6 @@ func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()
 
-	// Hack: initializing the logger causes cfg.Server.Log to be set,
-	// but logging is only initialized once. If ApplyConfig is called
-	// with a new config, it won't have the logger set, so we'll copy it
-	// from the previous one.
-	if cfg.Server.Log == nil {
-		cfg.Server.Log = srv.cfg.Server.Log
-	}
-
 	var failed bool
 
 	if err := srv.log.ApplyConfig(&cfg.Server); err != nil {
