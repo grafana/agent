@@ -11,7 +11,7 @@ The installer will install Grafana Agent into the default directory `C:\Program 
 **Remote Write** is used to specify any compatible Prometheus Endpoint. **User** and **Password** are used for basic auth. This will generate a configuration snippet like the below.
 
 ```
-  prometheus_remote_write:
+  remote_write:
     - url: https://example.com
       basic_auth:
         username: "legit_username"
@@ -26,7 +26,7 @@ Selecting the checkbox will enable the Windows Exporter, serving metrics from `h
 
 After installation ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/targets`. 
 
-If Grafana Agent is re-installed and an agent-config.yaml already exists it will not overwrite the existing one. 
+If Grafana Agent is re-installed and an agent-config.yaml already exists it will not overwrite the existing one.
 
 ## Silent Installation
 
