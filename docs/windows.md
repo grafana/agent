@@ -45,4 +45,4 @@ Via Remove Programs or uninstaller.exe in the directory the Agent is installed i
 
 ## Logs
 
-Logs are currently not stored anywhere for the services bersion of Agent, in the future logs will be available via Event Viewer.
+Logs are currently not stored anywhere for the services version of Agent, in the future logs will be available via Event Viewer.
