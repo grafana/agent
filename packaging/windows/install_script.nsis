@@ -50,20 +50,12 @@ Function .onInit
     !insertmacro VerifyUserIsAdmin
 FunctionEnd
 
-Section SilentInstaller
+Section "install"
     IfSilent ThisIsSilent RunInstaller
     ThisIsSilent:
         ${GetParameters} $PassedInParameters
         ${GetOptions} $PassedInParameters "/EnableExporter" $EnableExporterValue
         Call Install
-        Return
-    RunInstaller:
-        Return
-SectionEnd
-
-Section "install"
-    IfSilent ThisIsSilent RunInstaller
-    ThisIsSilent:
         Return
     RunInstaller:
         Call Install
