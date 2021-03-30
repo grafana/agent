@@ -26,6 +26,8 @@ Selecting the checkbox will enable the Windows Exporter, serving metrics from `h
 
 After installation ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/targets`. 
 
+If Grafana Agent is re-installed and an agent-config.yaml already exists it will not overwrite the existing one. 
+
 ## Silent Installation
 
 Silent installation can be achieved via 

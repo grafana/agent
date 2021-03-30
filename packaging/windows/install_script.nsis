@@ -237,27 +237,32 @@ SectionEnd
 
 
 Function WriteConfig
-     # Write the config file, its easier to do this way than replacing an values in a templated file
-    FileOpen $9 "$INSTDIR\agent-config.yaml" w #Opens a Empty File and fills it
-    FileWrite $9 `server:$\n`
-    FileWrite $9 `  http_listen_port: 12345$\n`
-    FileWrite $9 `prometheus:$\n`
-    FileWrite $9 `  wal_directory: $INSTDIR\grafana-agent-wal$\n`
-    FileWrite $9 `  global:$\n`
-    FileWrite $9 `    scrape_interval: 15s$\n`
-    FileWrite $9 `  configs:$\n`
-    FileWrite $9 `    - name: integrations$\n`
-    FileWrite $9 `      scrape_configs:$\n`
-    FileWrite $9 `  remote_write:$\n`
-    FileWrite $9 `    - url: $RemoteUrl$\n`
-    FileWrite $9 `      basic_auth:$\n`
-    FileWrite $9 `        username: "$RemoteUser"$\n`
-    FileWrite $9 `        password: $RemotePassword$\n`
-    ${If} $EnableExporterValue == "true"
-    FileWrite $9 `integrations:$\n`
-    FileWrite $9 `  windows_exporter:$\n`
-    FileWrite $9 `    enabled: true`
-    ${EndIf}
-    FileClose $9 # and close the file
-    Return
+    # If the file exists we dont want to overwrite it since they may have custom code there
+    IfFileExists "$INSTDIR\agent-config.yaml" ReturnEarly WriteFile
+    ReturnEarly:
+        Return
+    WriteFile: 
+        # Write the config file, its easier to do this way than replacing an values in a templated file
+        FileOpen $9 "$INSTDIR\agent-config.yaml" w #Opens a Empty File and fills it
+        FileWrite $9 `server:$\n`
+        FileWrite $9 `  http_listen_port: 12345$\n`
+        FileWrite $9 `prometheus:$\n`
+        FileWrite $9 `  wal_directory: $INSTDIR\grafana-agent-wal$\n`
+        FileWrite $9 `  global:$\n`
+        FileWrite $9 `    scrape_interval: 15s$\n`
+        FileWrite $9 `  configs:$\n`
+        FileWrite $9 `    - name: integrations$\n`
+        FileWrite $9 `      scrape_configs:$\n`
+        FileWrite $9 `  remote_write:$\n`
+        FileWrite $9 `    - url: $RemoteUrl$\n`
+        FileWrite $9 `      basic_auth:$\n`
+        FileWrite $9 `        username: "$RemoteUser"$\n`
+        FileWrite $9 `        password: $RemotePassword$\n`
+        ${If} $EnableExporterValue == "true"
+        FileWrite $9 `integrations:$\n`
+        FileWrite $9 `  windows_exporter:$\n`
+        FileWrite $9 `    enabled: true`
+        ${EndIf}
+        FileClose $9 # and close the file
+        Return
 FunctionEnd
