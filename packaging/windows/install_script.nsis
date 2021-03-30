@@ -247,7 +247,7 @@ Function WriteConfig
         FileWrite $9 `server:$\n`
         FileWrite $9 `  http_listen_port: 12345$\n`
         FileWrite $9 `prometheus:$\n`
-        FileWrite $9 `  wal_directory: $INSTDIR\grafana-agent-wal$\n`
+        FileWrite $9 `  wal_directory: $APPDATA\grafana-agent-wal$\n`
         FileWrite $9 `  global:$\n`
         FileWrite $9 `    scrape_interval: 15s$\n`
         FileWrite $9 `  configs:$\n`
