@@ -197,6 +197,9 @@ Function Install
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoRepair" 1
     Call WriteConfig
 
+    # Premptively stop Grafana Agent if it is running
+    nsExec::ExecToLog 'sc stop "Grafana Agent"'
+    Pop $0
     # Create our batch file, since services cant run with parameters, nsexec is used to surpress console output, instead goes
     # to NSIS log window
     nsExec::ExecToLog 'sc create "Grafana Agent" binpath= "$INSTDIR\agent-windows-amd64.exe"'
