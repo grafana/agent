@@ -9,6 +9,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/server"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
@@ -20,6 +22,7 @@ type Config = server.Config
 
 // Server is a Weaveworks server with support for reloading.
 type Server struct {
+	reg *util.Unregisterer
 	log log.Logger
 
 	// Last received config, used for seeing if any changes need to be made.
@@ -45,8 +48,9 @@ type Server struct {
 }
 
 // New creates a new Server. ApplyConfig must be called after creating a server.
-func New(l log.Logger) *Server {
+func New(r prometheus.Registerer, l log.Logger) *Server {
 	return &Server{
+		reg: util.WrapWithUnregisterer(r),
 		log: l,
 
 		srvCh:     make(chan *server.Server, 1),
@@ -61,6 +65,9 @@ func New(l log.Logger) *Server {
 // If the SignalHandler is not set, it will default to not watching for
 // signals. This contrasts the upstream default of watching for termination
 // signals.
+//
+// ApplyConfig will override the registerer of the Config to the registerer
+// passed to New.
 func (s *Server) ApplyConfig(cfg Config, wire func(mux *mux.Router, grpc *grpc.Server)) error {
 	s.srvMut.Lock()
 	defer s.srvMut.Unlock()
@@ -73,6 +80,11 @@ func (s *Server) ApplyConfig(cfg Config, wire func(mux *mux.Router, grpc *grpc.S
 	}
 
 	level.Info(s.log).Log("msg", "server configuration changed, restarting server")
+
+	// We're going to create a new server, so we need to unregister existing
+	// metrics.
+	s.reg.UnregisterAll()
+	cfg.Registerer = s.reg
 
 	if cfg.SignalHandler == nil {
 		cfg.SignalHandler = newNoopSignalHandler()

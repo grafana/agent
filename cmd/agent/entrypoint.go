@@ -41,8 +41,6 @@ type Entrypoint struct {
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
-
-	unreg *util.Unregisterer
 }
 
 // Reloader is any function that returns a new config.
@@ -54,7 +52,6 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		ep = &Entrypoint{
 			log:      logger,
 			reloader: reloader,
-			unreg:    util.WrapWithUnregisterer(prometheus.DefaultRegisterer),
 		}
 		err error
 	)
@@ -70,7 +67,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		ep.reloadServer = &http.Server{Handler: reloadMux}
 	}
 
-	ep.srv = server.New(logger)
+	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 
 	ep.promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
 	if err != nil {
@@ -105,10 +102,6 @@ func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
 	srv.mut.Lock()
 	defer srv.mut.Unlock()
 
-	// Unregister any metrics that the server registered in the last apply.
-	srv.unreg.UnregisterAll()
-
-	cfg.Server.Registerer = srv.unreg
 	if cfg.Server.Log == nil {
 		cfg.Server.Log = srv.cfg.Server.Log
 	}
