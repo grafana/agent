@@ -598,6 +598,9 @@ github.com/olekukonko/tablewriter
 # github.com/oliver006/redis_exporter v1.15.0
 ## explicit
 github.com/oliver006/redis_exporter/exporter
+# github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.21.0
+## explicit
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor
 # github.com/opencontainers/go-digest v1.0.0
 github.com/opencontainers/go-digest
 # github.com/opencontainers/image-spec v1.0.1
@@ -616,6 +619,8 @@ github.com/opentracing/opentracing-go/log
 # github.com/openzipkin/zipkin-go v0.2.5
 github.com/openzipkin/zipkin-go/model
 github.com/openzipkin/zipkin-go/proto/zipkin_proto3
+# github.com/orijtech/prometheus-go-metrics-exporter v0.0.6
+github.com/orijtech/prometheus-go-metrics-exporter
 # github.com/pelletier/go-toml v1.8.0
 github.com/pelletier/go-toml
 # github.com/pierrec/lz4 v2.6.0+incompatible
@@ -971,6 +976,7 @@ go.opentelemetry.io/collector/consumer/pdata
 go.opentelemetry.io/collector/exporter/exporterhelper
 go.opentelemetry.io/collector/exporter/kafkaexporter
 go.opentelemetry.io/collector/exporter/otlpexporter
+go.opentelemetry.io/collector/exporter/prometheusexporter
 go.opentelemetry.io/collector/internal
 go.opentelemetry.io/collector/internal/data
 go.opentelemetry.io/collector/internal/data/protogen/collector/logs/v1

@@ -5,14 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"time"
 
+	"github.com/grafana/agent/pkg/tempo/dummyreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	prom_config "github.com/prometheus/common/config"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+	"go.opentelemetry.io/collector/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
@@ -21,6 +25,8 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
 )
+
+const spanMetricsPipelineName = "metrics/spanmetrics"
 
 // Config controls the configuration of Tempo trace pipelines.
 type Config struct {
@@ -73,6 +79,9 @@ type InstanceConfig struct {
 
 	// prom service discovery
 	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
+
+	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
+	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
 }
 
 const (
@@ -141,6 +150,21 @@ func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) err
 		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
 	}
 	return nil
+}
+
+// RemoteWriteConfig controls the configuration of an exporter
+type SpanMetricsConfig struct {
+	LatencyHistogramBuckets []time.Duration                  `yaml:"latency_histogram_buckets"`
+	Dimensions              []spanmetricsprocessor.Dimension `yaml:"dimensions"`
+	MetricsExporter         MetricsExporterConfig            `yaml:"metrics_exporter"`
+}
+
+type MetricsExporterConfig struct {
+	Name   string                 `yaml:"name"`
+
+	// Configuration for metrics exporters.
+	// Now only otlp and prometheus exporter are supported.
+	Config map[string]interface{} `yaml:"config"`
 }
 
 // exporter builds an OTel exporter from PushConfig
@@ -251,8 +275,6 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		exportersNames = append(exportersNames, name)
 	}
 
-	otelMapStructure["exporters"] = exporters
-
 	// processors
 	processors := map[string]interface{}{}
 	processorNames := []string{}
@@ -276,24 +298,50 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		processorNames = append(processorNames, "batch")
 	}
 
-	otelMapStructure["processors"] = processors
+	if c.SpanMetrics != nil {
+		// Configure the metrics exporter.
+		exporters[c.SpanMetrics.MetricsExporter.Name] = c.SpanMetrics.MetricsExporter.Config
+
+		processorNames = append(processorNames, "spanmetrics")
+		processors["spanmetrics"] = map[string]interface{}{
+			"metrics_exporter":          c.SpanMetrics.MetricsExporter.Name,
+			"latency_histogram_buckets": c.SpanMetrics.LatencyHistogramBuckets,
+			"dimensions":                c.SpanMetrics.Dimensions,
+		}
+	}
 
 	// receivers
-	otelMapStructure["receivers"] = c.Receivers
 	receiverNames := []string{}
 	for name := range c.Receivers {
 		receiverNames = append(receiverNames, name)
 	}
 
+	pipelines := map[string]interface{}{
+		"traces": map[string]interface{}{
+			"exporters":  exportersNames,
+			"processors": processorNames,
+			"receivers":  receiverNames,
+		},
+	}
+
+	if c.SpanMetrics != nil {
+		// Insert a dummy receiver in the metrics pipeline.
+		// Added to pass validation requiring at least one receiver in a pipeline.
+		c.Receivers[dummyreceiver.TypeStr] = nil
+
+		pipelines[spanMetricsPipelineName] = map[string]interface{}{
+			"receivers": []string{dummyreceiver.TypeStr},
+			"exporters": []string{c.SpanMetrics.MetricsExporter.Name},
+		}
+	}
+
+	otelMapStructure["exporters"] = exporters
+	otelMapStructure["processors"] = processors
+	otelMapStructure["receivers"] = c.Receivers
+
 	// pipelines
 	otelMapStructure["service"] = map[string]interface{}{
-		"pipelines": map[string]interface{}{
-			"traces": map[string]interface{}{
-				"exporters":  exportersNames,
-				"processors": processorNames,
-				"receivers":  receiverNames,
-			},
-		},
+		"pipelines": pipelines,
 	}
 
 	// now build the otel configmodel from the mapstructure
@@ -330,6 +378,7 @@ func tracingFactories() (component.Factories, error) {
 		otlpreceiver.NewFactory(),
 		opencensusreceiver.NewFactory(),
 		kafkareceiver.NewFactory(),
+		dummyreceiver.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
@@ -337,6 +386,8 @@ func tracingFactories() (component.Factories, error) {
 
 	exporters, err := component.MakeExporterFactoryMap(
 		otlpexporter.NewFactory(),
+		prometheusexporter.NewFactory(),
+		// TODO(yeya24): add prometheus remote write exporter.
 	)
 	if err != nil {
 		return component.Factories{}, err
@@ -346,6 +397,7 @@ func tracingFactories() (component.Factories, error) {
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),
+		spanmetricsprocessor.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
