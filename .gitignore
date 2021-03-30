@@ -10,4 +10,4 @@ cmd/agent/agent
 cmd/agentctl/agentctl
 dist/
 
-**/.DS_Store
+.DS_Store

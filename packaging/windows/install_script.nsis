@@ -23,41 +23,17 @@ outFile "/app/grafana-agent-installer.exe"
 !include nsDialogs.nsh
 !include FileFunc.nsh
 
-
 # Everything must be global Vars
-
-# These are handles to dialogs
-Var Dialog
-Var RemoteWriteLabel
-Var RemoteWriteText
-
-Var RemoteWriteUserLabel
-Var RemoteWriteUserText
-
-Var RemoteWritePasswordLabel
-Var RemoteWritePasswordText
-
-Var EnableExporterLabel
 Var EnableExporterCheck
-
-# These are strings that hold the values
-
-Var RemoteUrl
-Var RemoteUser
-Var RemotePassword
 Var EnableExporterValue
-
-# Silent install params
-
+Var EnableExporterDialog
 Var PassedInParameters
 
 Page directory
-Page custom remoteWriteInfo remoteWriteInfoLeave
 Page custom enableWindowsExporter enableWindowsExporterLeave
 Page instfiles
 
-
-
+# Annoyingly macros need to be defined before use
 !macro VerifyUserIsAdmin
 UserInfo::GetAccountType
 pop $0
@@ -68,22 +44,21 @@ ${If} $0 != "admin" #Require admin rights on NT4+
 ${EndIf}
 !macroend
 
+Function .onInit
+    setShellVarContext all
+    !insertmacro VerifyUserIsAdmin
+FunctionEnd
 
 Section SilentInstaller
     IfSilent ThisIsSilent RunInstaller
     ThisIsSilent:
         ${GetParameters} $PassedInParameters
-        ${GetOptions} $PassedInParameters "/RemoteURL" $RemoteUrl
-        ${GetOptions} $PassedInParameters "/RemoteUser" $RemoteUser
-        ${GetOptions} $PassedInParameters "/RemotePassword" $RemotePassword
         ${GetOptions} $PassedInParameters "/EnableExporter" $EnableExporterValue
         Call Install
-        # TODO add error conditions
         Return
     RunInstaller:
         Return
 SectionEnd
-
 
 Section "install"
     IfSilent ThisIsSilent RunInstaller
@@ -93,51 +68,16 @@ Section "install"
         Call Install
 SectionEnd
 
-Function remoteWriteInfo
-    nsDialogs::Create 1018
-    Pop $Dialog
-
-    ${If} $Dialog == error
-        Abort
-    ${EndIf}
-    ${NSD_CreateLabel} 0 0 100% 12u "Enter URL for remote write"
-    Pop $RemoteWriteLabel
-
-    ${NSD_CreateText} 0 13u 100% 12u ""
-    Pop $RemoteWriteText
-
-    ${NSD_CreateLabel} 0 26u 100% 12u "Enter User for remote write"
-    Pop $RemoteWriteUserLabel
-
-    ${NSD_CreateText} 0 39u 100% 12u ""
-    Pop $RemoteWriteUserText
-
-    ${NSD_CreateLabel} 0 52u 100% 12u "Enter Password for remote write"
-    Pop $RemoteWritePasswordLabel
-
-    ${NSD_CreateText} 0 65u 100% 12u ""
-    Pop $RemoteWritePasswordText
-
-    nsDialogs::Show
-FunctionEnd
-
-
-Function remoteWriteInfoLeave
-    ${NSD_GetText}  $RemoteWriteText  $RemoteUrl
-    ${NSD_GetText}  $RemoteWriteUserText  $RemoteUser
-    ${NSD_GetText}  $RemoteWritePasswordText  $RemotePassword
-FunctionEnd
-
 Function enableWindowsExporter
     nsDialogs::Create 1018
-    Pop $Dialog
+    Pop $EnableExporterDialog
 
-    ${If} $Dialog == error
+    ${If} $EnableExporterDialog == error
         Abort
     ${EndIf}
 
     ${NSD_CreateLabel} 0 0 100% 12u "Enable Windows Exporter"
-    Pop $EnableExporterLabel
+    Pop $0
 
     ${NSD_CreateCheckBox} 0 13u 100% 12u ""
     Pop $EnableExporterCheck
@@ -152,23 +92,6 @@ Function enableWindowsExporterLeave
     ${Else}
         StrCpy $EnableExporterValue "false"
     ${EndIf}
-FunctionEnd
-
-
-Function .onInit
-    setShellVarContext all
-    !insertmacro VerifyUserIsAdmin
-FunctionEnd
-
-# Uninstaller
-Function un.onInit
-    SetShellVarContext all
-
-    #Verify the uninstaller - last chance to back out
-    MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}?" IDOK next
-        Abort
-    next:
-    !insertmacro VerifyUserIsAdmin
 FunctionEnd
 
 Function Install
@@ -212,6 +135,41 @@ Function Install
     Pop $0
 FunctionEnd
 
+Function WriteConfig
+    # If the file exists we dont want to overwrite it since they may have custom code there
+    IfFileExists "$INSTDIR\agent-config.yaml" ReturnEarly WriteFile
+    ReturnEarly:
+        Return
+    WriteFile: 
+        # Write the config file, its easier to do this way than replacing an values in a templated file
+        FileOpen $9 "$INSTDIR\agent-config.yaml" w #Opens a Empty File and fills it
+        FileWrite $9 `server:$\n`
+        FileWrite $9 `  http_listen_port: 12345$\n`
+        FileWrite $9 `prometheus:$\n`
+        FileWrite $9 `  wal_directory: $APPDATA\grafana-agent-wal$\n`
+        FileWrite $9 `  global:$\n`
+        FileWrite $9 `    scrape_interval: 15s$\n`
+        FileWrite $9 `  configs:$\n`
+        FileWrite $9 `    - name: integrations$\n`
+        ${If} $EnableExporterValue == "true"
+        FileWrite $9 `integrations:$\n`
+        FileWrite $9 `  windows_exporter:$\n`
+        FileWrite $9 `    enabled: true`
+        ${EndIf}
+        FileClose $9 # and close the file
+        Return
+FunctionEnd
+
+# Uninstaller
+Function un.onInit
+    SetShellVarContext all
+
+    #Verify the uninstaller - last chance to back out
+    MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}? This will remove the WAL and the agent config." IDOK next
+        Abort
+    next:
+    !insertmacro VerifyUserIsAdmin
+FunctionEnd
 
 Section "uninstall"
     DetailPrint "Starting Uninstaller"
@@ -241,38 +199,3 @@ Section "uninstall"
     # Remove uninstaller information from the registry
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 SectionEnd
-
-
-Function WriteConfig
-    # If the file exists we dont want to overwrite it since they may have custom code there
-    IfFileExists "$INSTDIR\agent-config.yaml" ReturnEarly WriteFile
-    ReturnEarly:
-        Return
-    WriteFile: 
-        # Write the config file, its easier to do this way than replacing an values in a templated file
-        FileOpen $9 "$INSTDIR\agent-config.yaml" w #Opens a Empty File and fills it
-        FileWrite $9 `server:$\n`
-        FileWrite $9 `  http_listen_port: 12345$\n`
-        FileWrite $9 `prometheus:$\n`
-        FileWrite $9 `  wal_directory: $APPDATA\grafana-agent-wal$\n`
-        FileWrite $9 `  global:$\n`
-        FileWrite $9 `    scrape_interval: 15s$\n`
-        FileWrite $9 `  configs:$\n`
-        FileWrite $9 `    - name: integrations$\n`
-
-        ${If} $RemoteUrl != ""
-        FileWrite $9 `  remote_write:$\n`
-        FileWrite $9 `    - url: $RemoteUrl$\n`
-        FileWrite $9 `      basic_auth:$\n`
-        FileWrite $9 `        username: "$RemoteUser"$\n`
-        FileWrite $9 `        password: $RemotePassword$\n`
-        ${EndIf}
-
-        ${If} $EnableExporterValue == "true"
-        FileWrite $9 `integrations:$\n`
-        FileWrite $9 `  windows_exporter:$\n`
-        FileWrite $9 `    enabled: true`
-        ${EndIf}
-        FileClose $9 # and close the file
-        Return
-FunctionEnd
