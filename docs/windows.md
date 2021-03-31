@@ -18,7 +18,13 @@ Silent installation can be achieved via  `grafana-agent-installer.exe /S  /Enabl
 
 ## Security
 
-The Agent configuration is installed alongside the Agent itself, by default. Depending on your configuration, you may not want that for security reasons and may instead want to make it protected. The configuration is by default stored in `C:\Program Files (x86)\Grafana Agent`. You can change the configuration location by running `sc config "Grafana Agent" binpath= "<installed_directory>\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""` in cmd as an admin.
+A configuration file for the Agent is provided by default at `C:\Program Files (x86)\Grafana Agent`. Depending on your configuration, you may wish to modify the default permissions of the file or move it to another directory. 
+
+When changing the location of the configuration file, you must update the Grafana Agent service to load the new path. Run the following in an elevated prompt, replacing `<new_path>` with the full path holding `agent-config.yaml`:
+
+```
+sc config "Grafana Agent" binpath= "<installed_directory>\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
+```
 
 ## Uninstall
 
