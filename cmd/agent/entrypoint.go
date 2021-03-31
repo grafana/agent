@@ -98,44 +98,44 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 }
 
 // ApplyConfig applies changes to the subsystems of the Agent.
-func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
-	srv.mut.Lock()
-	defer srv.mut.Unlock()
+func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
+	ep.mut.Lock()
+	defer ep.mut.Unlock()
 
 	var failed bool
 
-	if err := srv.log.ApplyConfig(&cfg.Server); err != nil {
-		level.Error(srv.log).Log("msg", "failed to update logger", "err", err)
+	if err := ep.log.ApplyConfig(&cfg.Server); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update logger", "err", err)
 		failed = true
 	}
 
-	if err := srv.srv.ApplyConfig(cfg.Server, srv.wire); err != nil {
-		level.Error(srv.log).Log("msg", "failed to update server", "err", err)
+	if err := ep.srv.ApplyConfig(cfg.Server, ep.wire); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update server", "err", err)
 		failed = true
 	}
 
 	// Go through each component and update it.
-	if err := srv.promMetrics.ApplyConfig(cfg.Prometheus); err != nil {
-		level.Error(srv.log).Log("msg", "failed to update prometheus", "err", err)
+	if err := ep.promMetrics.ApplyConfig(cfg.Prometheus); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update prometheus", "err", err)
 		failed = true
 	}
 
-	if err := srv.lokiLogs.ApplyConfig(cfg.Loki); err != nil {
-		level.Error(srv.log).Log("msg", "failed to update loki", "err", err)
+	if err := ep.lokiLogs.ApplyConfig(cfg.Loki); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update loki", "err", err)
 		failed = true
 	}
 
-	if err := srv.tempoTraces.ApplyConfig(cfg.Tempo, cfg.Server.LogLevel.Logrus); err != nil {
-		level.Error(srv.log).Log("msg", "failed to update tempo", "err", err)
+	if err := ep.tempoTraces.ApplyConfig(cfg.Tempo, cfg.Server.LogLevel.Logrus); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update tempo", "err", err)
 		failed = true
 	}
 
-	if err := srv.manager.ApplyConfig(cfg.Integrations); err != nil {
-		level.Error(srv.log).Log("msg", "failed to update integrations", "err", err)
+	if err := ep.manager.ApplyConfig(cfg.Integrations); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
 		failed = true
 	}
 
-	srv.cfg = cfg
+	ep.cfg = cfg
 	if failed {
 		return fmt.Errorf("changes did not apply successfully")
 	}
@@ -145,11 +145,11 @@ func (srv *Entrypoint) ApplyConfig(cfg config.Config) error {
 
 // wire is used to hook up API endpoints to components, and is called every
 // time a new Weaveworks server is creatd.
-func (srv *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
-	srv.promMetrics.WireAPI(mux)
-	srv.promMetrics.WireGRPC(grpc)
+func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
+	ep.promMetrics.WireAPI(mux)
+	ep.promMetrics.WireGRPC(grpc)
 
-	srv.manager.WireAPI(mux)
+	ep.manager.WireAPI(mux)
 
 	mux.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -161,10 +161,10 @@ func (srv *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 		fmt.Fprintf(w, "Agent is Ready.\n")
 	})
 
-	mux.HandleFunc("/agent/api/v1/config", func(rw http.ResponseWriter, r *http.Request) {
-		srv.mut.Lock()
-		bb, err := yaml.Marshal(srv.cfg)
-		srv.mut.Unlock()
+	mux.HandleFunc("/-/config", func(rw http.ResponseWriter, r *http.Request) {
+		ep.mut.Lock()
+		bb, err := yaml.Marshal(ep.cfg)
+		ep.mut.Unlock()
 
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
@@ -173,11 +173,11 @@ func (srv *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 		}
 	})
 
-	mux.HandleFunc("/-/reload", srv.reloadHandler)
+	mux.HandleFunc("/-/reload", ep.reloadHandler)
 }
 
-func (srv *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
-	success := srv.TriggerReload()
+func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
+	success := ep.TriggerReload()
 	if success {
 		rw.WriteHeader(http.StatusOK)
 	} else {
@@ -188,47 +188,47 @@ func (srv *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
 // TriggerReload will cause the Entrypoint to re-request the config file and
 // apply the latest config. TriggerReload returns true if the reload was
 // successful.
-func (srv *Entrypoint) TriggerReload() bool {
-	level.Info(srv.log).Log("msg", "reload of config file requested")
+func (ep *Entrypoint) TriggerReload() bool {
+	level.Info(ep.log).Log("msg", "reload of config file requested")
 
-	cfg, err := srv.reloader()
+	cfg, err := ep.reloader()
 	if err != nil {
-		level.Error(srv.log).Log("msg", "failed to reload config file", "err", err)
+		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
 
-	err = srv.ApplyConfig(*cfg)
+	err = ep.ApplyConfig(*cfg)
 	if err != nil {
-		level.Error(srv.log).Log("msg", "failed to reload config file", "err", err)
+		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
 	return true
 }
 
 // Stop stops the Entrypoint and all subsystems.
-func (srv *Entrypoint) Stop() {
-	srv.mut.Lock()
-	defer srv.mut.Unlock()
+func (ep *Entrypoint) Stop() {
+	ep.mut.Lock()
+	defer ep.mut.Unlock()
 
-	srv.manager.Stop()
-	srv.lokiLogs.Stop()
-	srv.promMetrics.Stop()
-	srv.tempoTraces.Stop()
-	srv.srv.Close()
+	ep.manager.Stop()
+	ep.lokiLogs.Stop()
+	ep.promMetrics.Stop()
+	ep.tempoTraces.Stop()
+	ep.srv.Close()
 
-	if srv.reloadServer != nil {
-		srv.reloadServer.Close()
+	if ep.reloadServer != nil {
+		ep.reloadServer.Close()
 	}
 }
 
 // Start starts the server used by the Entrypoint, and will block until a
 // termination signal is sent to the process.
-func (srv *Entrypoint) Start() error {
+func (ep *Entrypoint) Start() error {
 	var g run.Group
 
 	// Create a signal handler that will stop the Entrypoint once a termination
 	// signal is received.
-	signalHandler := signals.NewHandler(srv.cfg.Server.Log)
+	signalHandler := signals.NewHandler(ep.cfg.Server.Log)
 
 	g.Add(func() error {
 		signalHandler.Loop()
@@ -237,18 +237,18 @@ func (srv *Entrypoint) Start() error {
 		signalHandler.Stop()
 	})
 
-	if srv.reloadServer != nil && srv.reloadListener != nil {
+	if ep.reloadServer != nil && ep.reloadListener != nil {
 		g.Add(func() error {
-			return srv.reloadServer.Serve(srv.reloadListener)
+			return ep.reloadServer.Serve(ep.reloadListener)
 		}, func(e error) {
-			srv.reloadServer.Close()
+			ep.reloadServer.Close()
 		})
 	}
 
 	g.Add(func() error {
-		return srv.srv.Run()
+		return ep.srv.Run()
 	}, func(e error) {
-		srv.srv.Close()
+		ep.srv.Close()
 	})
 
 	return g.Run()

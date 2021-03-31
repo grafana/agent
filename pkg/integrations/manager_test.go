@@ -21,6 +21,35 @@ import (
 
 func noOpValidator(*instance.Config) error { return nil }
 
+// TestConfig_MarshalEmptyIntegrations ensures that an empty set of integrations
+// can be marshaled correctly.
+func TestConfig_MarshalEmptyIntegrations(t *testing.T) {
+	cfgText := `
+scrape_integrations: true
+replace_instance_label: true
+integration_restart_backoff: 5s
+use_hostname_label: true
+http_tls_config:
+  insecure_skip_verify: false
+`
+	var (
+		cfg        ManagerConfig
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
+	)
+	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
+
+	// Listen port must be set before applying defaults. Normally applied by the
+	// config package.
+	cfg.ListenPort = listenPort
+	cfg.ListenHost = listenHost
+
+	outBytes, err := yaml.Marshal(cfg)
+	require.NoError(t, err, "Failed creating integration")
+	fmt.Println(string(outBytes))
+	require.YAMLEq(t, cfgText, string(outBytes))
+}
+
 // Test that embedded integration fields in the struct can be unmarshaled and
 // remarshaled back out to text.
 func TestConfig_Remarshal(t *testing.T) {

@@ -21,10 +21,10 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// MemcachedAddress is the address of the memcached server (host:port).
-	MemcachedAddress string `yaml:"memcached_address"`
+	MemcachedAddress string `yaml:"memcached_address,omitempty"`
 
 	// Timeout is the connection timeout for memcached.
-	Timeout time.Duration `yaml:"timeout"`
+	Timeout time.Duration `yaml:"timeout,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.

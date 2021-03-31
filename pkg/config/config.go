@@ -20,10 +20,10 @@ import (
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config              `yaml:"server"`
+	Server       server.Config              `yaml:"server,omitempty"`
 	Prometheus   prom.Config                `yaml:"prometheus,omitempty"`
 	Loki         loki.Config                `yaml:"loki,omitempty"`
-	Integrations integrations.ManagerConfig `yaml:"integrations"`
+	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
 	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since

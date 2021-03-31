@@ -13,8 +13,8 @@ import (
 
 // Config controls the configuration of the Loki log scraper.
 type Config struct {
-	PositionsDirectory string            `yaml:"positions_directory"`
-	Configs            []*InstanceConfig `yaml:"configs"`
+	PositionsDirectory string            `yaml:"positions_directory,omitempty"`
+	Configs            []*InstanceConfig `yaml:"configs,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
