@@ -2047,6 +2047,13 @@ receivers:
 scrape_configs:
   - [<scrape_config>]
   
+# spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics from span data.
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.23.0/processor/spanmetricsprocessor/README.md.
+# spanmetrics generates two metrics from spans and exposes them to an HTTP endpoint (prometheus exporter).
+# The first one is `calls` which is a counter to compute requests.
+# The second one is `latency` which is a histogram to compute the operations' duration.
+# If you want to rename them, you can configure the `namespace` option of prometheus exporter.
+# This is an experimental feature of Opentelemetry collector and the behavior may change in the future.
 spanmetrics:
   # latency_histogram_buckets and dimensions are the same as the configs in spanmetricsprocessor. 
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/config.go#L38-L47
