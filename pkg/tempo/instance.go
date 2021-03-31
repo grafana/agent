@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
@@ -51,7 +51,7 @@ func (i *Instance) ApplyConfig(cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
-	if cmp.Equal(cfg, i.cfg) {
+	if util.CompareYAML(cfg, i.cfg) {
 		// No config change
 		return nil
 	}

@@ -203,6 +203,46 @@ Response on success:
 }
 ```
 
+### Reload Configuration file (beta)
+
+This endpoint is currently in beta and may have issues. Please open any issues
+you encounter.
+
+```
+GET /-/reload
+```
+
+This endpoint will re-read the configuration file from disk and refresh the
+entire state of the Agent to reflect the new file on disk:
+
+- HTTP Server
+- Prometheus metrics subsystem
+- Loki logs subsystem
+- Tempo traces subsystem
+- Integrations
+
+Valid configurations will be applied to each of the subsystems listed above, and
+`/-/reload` will return with a status code of 200 once all subsystems have been
+updated. Malformed configuration files (invalid YAML, failed validation checks)
+will be immediately rejected with a status code of 400.
+
+If the configuration for the HTTP server is changed, it will be restarted.
+Because of this, it is not recommended to call `/-/reload` against the main HTTP
+server, as restarting it will prevent an HTTP client from reading the response
+of the reload. Instead, use the `--reload-addr` and `--reload-port` flags
+supported by the Agent. That will launch a secondary HTTP server that only
+responds to `/-/reload` and can be used to safely reload the system. This HTTP
+server does not respect any options in the `config` struct, and is currently
+TTP-only (no TLS support).
+
+Well-formed configuration files can still be invalid for various reasons, such
+as not having permissions to read the WAL directory. Issues such as these will
+cause per-subsystem problems while reloading the configuration, and will leave
+that subsystem in an undefined state. Specific errors encountered during reload
+will be logged, and should be fixed before calling `/-/reload` again.
+
+Status code: 200 on success, 400 otherwise.
+
 ## Ready / Health API
 
 ### Readiness Check

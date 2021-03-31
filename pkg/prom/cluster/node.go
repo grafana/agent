@@ -14,7 +14,6 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/services"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	pb "github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/cluster/client"
@@ -75,7 +74,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	defer cancel()
 
 	// Detect if the config changed.
-	if cmp.Equal(n.cfg, cfg) {
+	if util.CompareYAML(n.cfg, cfg) {
 		return nil
 	}
 
