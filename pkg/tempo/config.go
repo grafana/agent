@@ -161,7 +161,7 @@ type SpanMetricsConfig struct {
 	Dimensions              []spanmetricsprocessor.Dimension `yaml:"dimensions,omitempty"`
 
 	// Configuration for Prometheus exporter: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34/exporter/prometheusexporter/README.md.
-	MetricsExporter map[string]interface{} `yaml:"metrics_exporter"`
+	MetricsExporter map[string]interface{} `yaml:"metrics_exporter,omitempty"`
 }
 
 // exporter builds an OTel exporter from RemoteWriteConfig
