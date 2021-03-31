@@ -4,6 +4,7 @@ There are a few ways to run the Grafana Agent, in order from
 easiest to hardest:
 
 - [Use the Install Script for Kubernetes](#install-script-for-kubernetes)
+- [Windows Installation](#windows=installation)
 - [Run the Agent with Docker](#running-the-agent-with-docker)
 - [Run the Agent locally](#running-the-agent-locally)
 - [Use the example Kubernetes configs](#use-the-example-kubernetes-configs)
@@ -23,6 +24,10 @@ NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com
 ```
 
 See the [Kubernetes README](./kubernetes/README.md) for more information.
+
+## Windows Installation
+
+To run the Windows Installation, download the Windows Installer executable from the [release page](https://github.com/grafana/agent/releases). Then run the installer, this will setup the Agent and run the Agent as a Windows Service. More details can be found in the [Windows Guide](../docs/windows.md)
 
 ## Running the Agent with Docker
 
