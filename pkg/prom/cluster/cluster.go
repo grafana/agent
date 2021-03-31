@@ -8,11 +8,11 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/prom/instance/configstore"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 )
@@ -104,7 +104,7 @@ func (c *Cluster) ApplyConfig(
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	if cmp.Equal(c.cfg, cfg) {
+	if util.CompareYAML(c.cfg, cfg) {
 		return nil
 	}
 

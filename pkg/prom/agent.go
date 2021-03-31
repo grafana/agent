@@ -12,10 +12,10 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/agent/pkg/prom/cluster"
 	"github.com/grafana/agent/pkg/prom/cluster/client"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 	"google.golang.org/grpc"
@@ -204,7 +204,7 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 	a.mut.Lock()
 	defer a.mut.Unlock()
 
-	if cmp.Equal(a.cfg, cfg) {
+	if util.CompareYAML(a.cfg, cfg) {
 		return nil
 	}
 

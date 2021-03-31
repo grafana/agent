@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/kit/log"
@@ -17,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/prom/instance/configstore"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/model"
@@ -194,7 +194,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	m.integrationsMut.Lock()
 	defer m.integrationsMut.Unlock()
 
-	if cmp.Equal(m.cfg, cfg) {
+	if util.CompareYAML(m.cfg, cfg) {
 		return nil
 	}
 
@@ -216,7 +216,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
 		// it with the new settings, so we'll need to stop it.
 		if p, exist := m.integrations[key]; exist {
-			if cmp.Equal(p.cfg, ic) {
+			if util.CompareYAML(p.cfg, ic) {
 				continue
 			}
 			p.stop()

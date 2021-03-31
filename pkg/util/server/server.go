@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"sync"
@@ -14,7 +13,6 @@ import (
 	"github.com/weaveworks/common/server"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
-	"gopkg.in/yaml.v2"
 )
 
 // Config is a server config.
@@ -72,10 +70,7 @@ func (s *Server) ApplyConfig(cfg Config, wire func(mux *mux.Router, grpc *grpc.S
 	s.srvMut.Lock()
 	defer s.srvMut.Unlock()
 
-	// Most other code uses go-cmp for comparing, but the server block
-	// has a ton of exported fields that can't be compared easily. Instead,
-	// we directly compare the YAML to detect a change.
-	if compareServer(&s.cfg, &cfg) {
+	if util.CompareYAML(&s.cfg, &cfg) {
 		return nil
 	}
 
@@ -188,17 +183,4 @@ func (sh *noopSignalHandler) Loop() {
 
 func (sh *noopSignalHandler) Stop() {
 	sh.cancel()
-}
-
-// compareServer returns whether two server configs are equal through their YAML configuration.
-func compareServer(a *server.Config, b *server.Config) bool {
-	aBytes, err := yaml.Marshal(a)
-	if err != nil {
-		return false
-	}
-	bBytes, err := yaml.Marshal(b)
-	if err != nil {
-		return false
-	}
-	return bytes.Equal(aBytes, bBytes)
 }
