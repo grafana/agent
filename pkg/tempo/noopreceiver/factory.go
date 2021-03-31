@@ -1,4 +1,4 @@
-package dummyreceiver
+package noopreceiver
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	// TypeStr for dummy receiver.
-	TypeStr = "dummy"
+	// TypeStr for noop receiver.
+	TypeStr = "noop"
 )
 
-// NewFactory creates dummy receiver factory.
+// NewFactory creates noop receiver factory.
 func NewFactory() component.ReceiverFactory {
 	return receiverhelper.NewFactory(
 		TypeStr,
@@ -23,7 +23,7 @@ func NewFactory() component.ReceiverFactory {
 	)
 }
 
-// Config defines configuration for dummy receiver.
+// Config defines configuration for noop receiver.
 type Config struct {
 	configmodels.Receiver `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct.
 }
@@ -35,7 +35,7 @@ func createDefaultConfig() configmodels.Receiver {
 	}
 }
 
-// Dummy receiver is used in the metrics pipeline so we need to
+// noop receiver is used in the metrics pipeline so we need to
 // implement a metrics receiver.
 func createMetricsReceiver(
 	_ context.Context,
@@ -43,5 +43,5 @@ func createMetricsReceiver(
 	_ configmodels.Receiver,
 	_ consumer.MetricsConsumer,
 ) (component.MetricsReceiver, error) {
-	return newDummyReceiver(nil, nil, nil), nil
+	return newNoopReceiver(nil, nil, nil), nil
 }

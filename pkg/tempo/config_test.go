@@ -444,14 +444,12 @@ spanmetrics:
       default: GET
     - name: http.status_code
   metrics_exporter:
-    name: prometheus
-    config:
-      endpoint: "0.0.0.0:8889"
-      namespace: promexample
+    endpoint: "0.0.0.0:8889"
+    namespace: promexample
 `,
 			expectedConfig: `
 receivers:
-  dummy:
+  noop:
   jaeger:
     protocols:
       grpc:
@@ -480,7 +478,7 @@ service:
       receivers: ["jaeger"]
     metrics/spanmetrics:
       exporters: ["prometheus"]
-      receivers: ["dummy"]
+      receivers: ["noop"]
 `,
 		},
 	}

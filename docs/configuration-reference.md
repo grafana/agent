@@ -2037,7 +2037,7 @@ remote_write:
     [ sending_queue: <otlpexporter.sending_queue> ]
     [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
-# Receiver configurations are mapped directly into the OpenTelmetry receivers block.
+# Receiver configurations are mapped directly into the OpenTelemetry receivers block.
 #   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 #   Documentation for each receiver can be found at https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
 receivers:
@@ -2046,6 +2046,21 @@ receivers:
 # If a match is found then relabeling rules are applied.
 scrape_configs:
   - [<scrape_config>]
+  
+spanmetrics:
+  # latency_histogram_buckets and dimensions are the same as the configs in spanmetricsprocessor. 
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/config.go#L38-L47
+  [ latency_histogram_buckets: <spanmetricsprocessor.latency_histogram_buckets> ]
+  [ dimensions: <spanmetricsprocessor.dimensions> ]
+
+  # metrics_exporter config embeds the configuration for opentelemetry prometheus exporter.
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/v0.23.0/exporter/prometheusexporter/README.md
+  metrics_exporter:
+    [ endpoint: <prometehusexporter.endpoint> ]
+    [ const_labels: <prometehusexporter.const_labels> ]
+    [ namespace: <prometehusexporter.namespace> ]
+    [ send_timestamps: <prometehusexporter.send_timestamps> ]
+    [ metric_expiration: <prometehusexporter.metric_expiration> ]
 ```
 
 ### integrations_config
