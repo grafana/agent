@@ -29,8 +29,6 @@ scrape_integrations: true
 replace_instance_label: true
 integration_restart_backoff: 5s
 use_hostname_label: true
-http_tls_config:
-  insecure_skip_verify: false
 `
 	var (
 		cfg        ManagerConfig
@@ -59,8 +57,6 @@ scrape_integrations: true
 replace_instance_label: true
 integration_restart_backoff: 5s
 use_hostname_label: true
-http_tls_config:
-  insecure_skip_verify: false
 test:
   text: Hello, world!
   truth: true
