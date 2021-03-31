@@ -12,7 +12,7 @@ If Grafana Agent is re-installed and an agent-config.yaml already exists it will
 
 After installation, you can adjust `C:\Program Files (x86)\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, the Grafana Agent service must be restarted to load changes to the configuration.
 
-## Silent Installation
+### Silent Installation
 
 Silent installation can be achieved via  `grafana-agent-installer.exe /S  /EnableExporter "true"`. EnableExporter enables or disables Windows Exporter, default is `false`.
 
