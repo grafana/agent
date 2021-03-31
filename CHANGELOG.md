@@ -5,7 +5,7 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [FEATURE] (beta) New integration: windows_exporter (@mattdurham)
 
-- [FEATURE] (beta) Agent Windows Installer is now built has a release artifact (@mattdurham)
+- [FEATURE] (beta) Grafana Agent Windows Installer is now included as a release artifact. (@mattdurham)
 
 - [FEATURE] Official M1 Mac release builds will now be generated! Look for
   `agent-darwin-arm64` and `agentctl-darwin-arm64` in the release assets.
