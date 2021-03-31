@@ -48,23 +48,23 @@ var DefaultConfig = Config{
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	ListenUDP      string               `yaml:"listen_udp"`
-	ListenTCP      string               `yaml:"listen_tcp"`
-	ListenUnixgram string               `yaml:"listen_unixgram"`
-	UnixSocketMode string               `yaml:"unix_socket_mode"`
-	MappingConfig  *mapper.MetricMapper `yaml:"mapping_config"`
+	ListenUDP      string               `yaml:"listen_udp,omitempty"`
+	ListenTCP      string               `yaml:"listen_tcp,omitempty"`
+	ListenUnixgram string               `yaml:"listen_unixgram,omitempty"`
+	UnixSocketMode string               `yaml:"unix_socket_mode,omitempty"`
+	MappingConfig  *mapper.MetricMapper `yaml:"mapping_config,omitempty"`
 
-	ReadBuffer          int           `yaml:"read_buffer"`
-	CacheSize           int           `yaml:"cache_size"`
-	CacheType           string        `yaml:"cache_type"`
-	EventQueueSize      int           `yaml:"event_queue_size"`
-	EventFlushThreshold int           `yaml:"event_flush_threshold"`
-	EventFlushInterval  time.Duration `yaml:"event_flush_interval"`
+	ReadBuffer          int           `yaml:"read_buffer,omitempty"`
+	CacheSize           int           `yaml:"cache_size,omitempty"`
+	CacheType           string        `yaml:"cache_type,omitempty"`
+	EventQueueSize      int           `yaml:"event_queue_size,omitempty"`
+	EventFlushThreshold int           `yaml:"event_flush_threshold,omitempty"`
+	EventFlushInterval  time.Duration `yaml:"event_flush_interval,omitempty"`
 
-	ParseDogStatsd bool `yaml:"parse_dogstatsd_tags"`
-	ParseInfluxDB  bool `yaml:"parse_influxdb_tags"`
-	ParseLibrato   bool `yaml:"parse_librato_tags"`
-	ParseSignalFX  bool `yaml:"parse_signalfx_tags"`
+	ParseDogStatsd bool `yaml:"parse_dogstatsd_tags,omitempty"`
+	ParseInfluxDB  bool `yaml:"parse_influxdb_tags,omitempty"`
+	ParseLibrato   bool `yaml:"parse_librato_tags,omitempty"`
+	ParseSignalFX  bool `yaml:"parse_signalfx_tags,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.

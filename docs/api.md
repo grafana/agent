@@ -243,6 +243,19 @@ will be logged, and should be fixed before calling `/-/reload` again.
 
 Status code: 200 on success, 400 otherwise.
 
+### Show Configuration file
+
+```
+GET /-/config
+```
+
+This endpoint prints out the currently loaded configuration the Agent is using.
+The returned YAML has defaults applied, and only shows changes to the state that
+validated successfuly, so the results will not identically match the
+configuration file on disk.
+
+Status code: 200 on success.
+
 ## Ready / Health API
 
 ### Readiness Check

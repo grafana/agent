@@ -20,10 +20,10 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DnsmasqAddress is the address of the dnsmasq server (host:port).
-	DnsmasqAddress string `yaml:"dnsmasq_address"`
+	DnsmasqAddress string `yaml:"dnsmasq_address,omitempty"`
 
 	// Path to the dnsmasq leases file.
-	LeasesPath string `yaml:"leases_path"`
+	LeasesPath string `yaml:"leases_path,omitempty"`
 }
 
 // Name returns the name of the integration that this config is for.

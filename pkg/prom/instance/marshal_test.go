@@ -29,7 +29,6 @@ func TestUnmarshalConfig_Invalid(t *testing.T) {
 // instance config does the same thing and retains secrets.
 func TestMarshal_UnmarshalConfig(t *testing.T) {
 	cfg := `name: test
-host_filter: false
 scrape_configs:
 - job_name: local_scrape
   honor_timestamps: true
@@ -101,7 +100,6 @@ remote_flush_deadline: 1m0s
 // instance config does the same thing and retains secrets.
 func TestMarshal_UnmarshalConfig_Sigv4(t *testing.T) {
 	cfg := `name: test
-host_filter: false
 scrape_configs:
 - job_name: local_scrape
   honor_timestamps: true
