@@ -28,7 +28,7 @@ sc config "Grafana Agent" binpath= "<installed_directory>\agent-windows-amd64.ex
 
 ## Uninstall
 
-Via Remove Programs or uninstaller.exe in the directory the Agent is installed in. This will turn off and remove the Agent then delete any installed files in the applications directory.
+If the Grafana Agent is installed using the installer, it can be uninstalled via Windows' Remove Programs or `C:\Program Files (x86)\Grafana Agent\uninstaller.exe`. Uninstalling the Agent will stop the service and remove it from disk. This will include any configuration files in the installation directory. 
 
 ## Logs
 
