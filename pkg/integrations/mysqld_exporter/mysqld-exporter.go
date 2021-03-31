@@ -36,34 +36,34 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DataSourceName to use to connect to MySQL.
-	DataSourceName string `yaml:"data_source_name"`
+	DataSourceName string `yaml:"data_source_name,omitempty"`
 
 	// Collectors to mark as enabled in addition to the default.
-	EnableCollectors []string `yaml:"enable_collectors"`
+	EnableCollectors []string `yaml:"enable_collectors,omitempty"`
 	// Collectors to explicitly mark as disabled.
-	DisableCollectors []string `yaml:"disable_collectors"`
+	DisableCollectors []string `yaml:"disable_collectors,omitempty"`
 
 	// Overrides the default set of enabled collectors with the given list.
-	SetCollectors []string `yaml:"set_collectors"`
+	SetCollectors []string `yaml:"set_collectors,omitempty"`
 
 	// Collector-wide options
-	LockWaitTimeout int  `yaml:"lock_wait_timeout"`
-	LogSlowFilter   bool `yaml:"log_slow_filter"`
+	LockWaitTimeout int  `yaml:"lock_wait_timeout,omitempty"`
+	LogSlowFilter   bool `yaml:"log_slow_filter,omitempty"`
 
 	// Collector-specific config options
-	InfoSchemaProcessListMinTime         int    `yaml:"info_schema_processlist_min_time"`
-	InfoSchemaProcessListProcessesByUser bool   `yaml:"info_schema_processlist_processes_by_user"`
-	InfoSchemaProcessListProcessesByHost bool   `yaml:"info_schema_processlist_processes_by_host"`
-	InfoSchemaTablesDatabases            string `yaml:"info_schema_tables_databases"`
-	PerfSchemaEventsStatementsLimit      int    `yaml:"perf_schema_eventsstatements_limit"`
-	PerfSchemaEventsStatementsTimeLimit  int    `yaml:"perf_schema_eventsstatements_time_limit"`
-	PerfSchemaEventsStatementsTextLimit  int    `yaml:"perf_schema_eventsstatements_digtext_text_limit"`
-	PerfSchemaFileInstancesFilter        string `yaml:"perf_schema_file_instances_filter"`
-	PerfSchemaFileInstancesRemovePrefix  string `yaml:"perf_schema_file_instances_remove_prefix"`
-	HeartbeatDatabase                    string `yaml:"heartbeat_database"`
-	HeartbeatTable                       string `yaml:"heartbeat_table"`
-	HeartbeatUTC                         bool   `yaml:"heartbeat_utc"`
-	MySQLUserPrivileges                  bool   `yaml:"mysql_user_privileges"`
+	InfoSchemaProcessListMinTime         int    `yaml:"info_schema_processlist_min_time,omitempty"`
+	InfoSchemaProcessListProcessesByUser bool   `yaml:"info_schema_processlist_processes_by_user,omitempty"`
+	InfoSchemaProcessListProcessesByHost bool   `yaml:"info_schema_processlist_processes_by_host,omitempty"`
+	InfoSchemaTablesDatabases            string `yaml:"info_schema_tables_databases,omitempty"`
+	PerfSchemaEventsStatementsLimit      int    `yaml:"perf_schema_eventsstatements_limit,omitempty"`
+	PerfSchemaEventsStatementsTimeLimit  int    `yaml:"perf_schema_eventsstatements_time_limit,omitempty"`
+	PerfSchemaEventsStatementsTextLimit  int    `yaml:"perf_schema_eventsstatements_digtext_text_limit,omitempty"`
+	PerfSchemaFileInstancesFilter        string `yaml:"perf_schema_file_instances_filter,omitempty"`
+	PerfSchemaFileInstancesRemovePrefix  string `yaml:"perf_schema_file_instances_remove_prefix,omitempty"`
+	HeartbeatDatabase                    string `yaml:"heartbeat_database,omitempty"`
+	HeartbeatTable                       string `yaml:"heartbeat_table,omitempty"`
+	HeartbeatUTC                         bool   `yaml:"heartbeat_utc,omitempty"`
+	MySQLUserPrivileges                  bool   `yaml:"mysql_user_privileges,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.

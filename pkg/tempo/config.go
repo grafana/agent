@@ -24,7 +24,7 @@ import (
 
 // Config controls the configuration of Tempo trace pipelines.
 type Config struct {
-	Configs []InstanceConfig `yaml:"configs"`
+	Configs []InstanceConfig `yaml:"configs,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -57,22 +57,22 @@ type InstanceConfig struct {
 	Name string `yaml:"name"`
 
 	// Deprecated in favor of RemoteWrite and Batch.
-	PushConfig PushConfig `yaml:"push_config"`
+	PushConfig PushConfig `yaml:"push_config,omitempty"`
 
 	// RemoteWrite defines one or multiple backends that can receive the pipeline's traffic.
-	RemoteWrite []RemoteWriteConfig `yaml:"remote_write"`
+	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
-	Receivers map[string]interface{} `yaml:"receivers"`
+	Receivers map[string]interface{} `yaml:"receivers,omitempty"`
 
 	// Batch: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 	Batch map[string]interface{} `yaml:"batch,omitempty"`
 
 	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor/config.go#L30
-	Attributes map[string]interface{} `yaml:"attributes"`
+	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
 	// prom service discovery
-	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
+	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
 }
 
 const (
@@ -87,11 +87,11 @@ var DefaultPushConfig = PushConfig{
 
 // PushConfig controls the configuration of exporting to Grafana Cloud
 type PushConfig struct {
-	Endpoint           string                 `yaml:"endpoint"`
-	Compression        string                 `yaml:"compression"`
-	Insecure           bool                   `yaml:"insecure"`
-	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
-	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Endpoint           string                 `yaml:"endpoint,omitempty"`
+	Compression        string                 `yaml:"compression,omitempty"`
+	Insecure           bool                   `yaml:"insecure,omitempty"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
+	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty,omitempty"`
 	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
 	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
@@ -119,10 +119,10 @@ var DefaultRemoteWriteConfig = RemoteWriteConfig{
 
 // RemoteWriteConfig controls the configuration of an exporter
 type RemoteWriteConfig struct {
-	Endpoint           string                 `yaml:"endpoint"`
-	Compression        string                 `yaml:"compression"`
-	Insecure           bool                   `yaml:"insecure"`
-	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
+	Endpoint           string                 `yaml:"endpoint,omitempty"`
+	Compression        string                 `yaml:"compression,omitempty"`
+	Insecure           bool                   `yaml:"insecure,omitempty"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
 	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54

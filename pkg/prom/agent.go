@@ -35,15 +35,15 @@ var DefaultConfig = Config{
 // Config defines the configuration for the entire set of Prometheus client
 // instances, along with a global configuration.
 type Config struct {
-	Global                 config.GlobalConfig           `yaml:"global"`
-	WALDir                 string                        `yaml:"wal_directory"`
-	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age"`
-	WALCleanupPeriod       time.Duration                 `yaml:"wal_cleanup_period"`
-	ServiceConfig          cluster.Config                `yaml:"scraping_service"`
-	ServiceClientConfig    client.Config                 `yaml:"scraping_service_client"`
-	Configs                []instance.Config             `yaml:"configs,omitempty"`
+	Global                 config.GlobalConfig           `yaml:"global,omitempty"`
+	WALDir                 string                        `yaml:"wal_directory,omitempty"`
+	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age,omitempty"`
+	WALCleanupPeriod       time.Duration                 `yaml:"wal_cleanup_period,omitempty"`
+	ServiceConfig          cluster.Config                `yaml:"scraping_service,omitempty"`
+	ServiceClientConfig    client.Config                 `yaml:"scraping_service_client,omitempty"`
+	Configs                []instance.Config             `yaml:"configs,omitempty,omitempty"`
 	InstanceRestartBackoff time.Duration                 `yaml:"instance_restart_backoff,omitempty"`
-	InstanceMode           instance.Mode                 `yaml:"instance_mode"`
+	InstanceMode           instance.Mode                 `yaml:"instance_mode,omitempty"`
 	RemoteWrite            []*instance.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 }
 

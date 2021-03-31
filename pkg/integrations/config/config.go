@@ -15,13 +15,13 @@ import (
 //     Common config.Common `yaml:",inline"`
 //   }
 type Common struct {
-	Enabled              bool              `yaml:"enabled"`
-	ScrapeIntegration    *bool             `yaml:"scrape_integration"`
-	ScrapeInterval       time.Duration     `yaml:"scrape_interval"`
-	ScrapeTimeout        time.Duration     `yaml:"scrape_timeout"`
+	Enabled              bool              `yaml:"enabled,omitempty"`
+	ScrapeIntegration    *bool             `yaml:"scrape_integration,omitempty"`
+	ScrapeInterval       time.Duration     `yaml:"scrape_interval,omitempty"`
+	ScrapeTimeout        time.Duration     `yaml:"scrape_timeout,omitempty"`
 	RelabelConfigs       []*relabel.Config `yaml:"relabel_configs,omitempty"`
 	MetricRelabelConfigs []*relabel.Config `yaml:"metric_relabel_configs,omitempty"`
-	WALTruncateFrequency time.Duration     `yaml:"wal_truncate_frequency"`
+	WALTruncateFrequency time.Duration     `yaml:"wal_truncate_frequency,omitempty"`
 }
 
 // ScrapeConfig is a subset of options used by integrations to inform how samples

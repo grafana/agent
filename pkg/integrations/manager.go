@@ -71,7 +71,7 @@ type ManagerConfig struct {
 	// listening on for generating Prometheus instance configs
 	ListenHost string `yaml:"-"`
 
-	TLSConfig config_util.TLSConfig `yaml:"http_tls_config"`
+	TLSConfig config_util.TLSConfig `yaml:"http_tls_config,omitempty"`
 
 	// This is set to true if the Server TLSConfig Cert and Key path are set
 	ServerUsingTLS bool `yaml:"-"`

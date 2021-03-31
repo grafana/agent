@@ -17,13 +17,13 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DataSourceNames to use to connect to Postgres.
-	DataSourceNames []string `yaml:"data_source_names"`
+	DataSourceNames []string `yaml:"data_source_names,omitempty"`
 
-	DisableSettingsMetrics bool     `yaml:"disable_settings_metrics"`
-	AutodiscoverDatabases  bool     `yaml:"autodiscover_databases"`
-	ExcludeDatabases       []string `yaml:"exclude_databases"`
-	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics"`
-	QueryPath              string   `yaml:"query_path"`
+	DisableSettingsMetrics bool     `yaml:"disable_settings_metrics,omitempty"`
+	AutodiscoverDatabases  bool     `yaml:"autodiscover_databases,omitempty"`
+	ExcludeDatabases       []string `yaml:"exclude_databases,omitempty"`
+	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics,omitempty"`
+	QueryPath              string   `yaml:"query_path,omitempty"`
 }
 
 // Name returns the name of the integration this config is for.

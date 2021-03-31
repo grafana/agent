@@ -24,20 +24,20 @@ var DefaultConfig = Config{
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	Server             string        `yaml:"server"`
-	CAFile             string        `yaml:"ca_file"`
-	CertFile           string        `yaml:"cert_file"`
-	KeyFile            string        `yaml:"key_file"`
-	ServerName         string        `yaml:"server_name"`
-	Timeout            time.Duration `yaml:"timeout"`
-	InsecureSkipVerify bool          `yaml:"insecure_skip_verify"`
-	RequestLimit       int           `yaml:"concurrent_request_limit"`
-	AllowStale         bool          `yaml:"allow_stale"`
-	RequireConsistent  bool          `yaml:"require_consistent"`
+	Server             string        `yaml:"server,omitempty"`
+	CAFile             string        `yaml:"ca_file,omitempty"`
+	CertFile           string        `yaml:"cert_file,omitempty"`
+	KeyFile            string        `yaml:"key_file,omitempty"`
+	ServerName         string        `yaml:"server_name,omitempty"`
+	Timeout            time.Duration `yaml:"timeout,omitempty"`
+	InsecureSkipVerify bool          `yaml:"insecure_skip_verify,omitempty"`
+	RequestLimit       int           `yaml:"concurrent_request_limit,omitempty"`
+	AllowStale         bool          `yaml:"allow_stale,omitempty"`
+	RequireConsistent  bool          `yaml:"require_consistent,omitempty"`
 
-	KVPrefix      string `yaml:"kv_prefix"`
-	KVFilter      string `yaml:"kv_filter"`
-	HealthSummary bool   `yaml:"generate_health_summary"`
+	KVPrefix      string `yaml:"kv_prefix,omitempty"`
+	KVFilter      string `yaml:"kv_filter,omitempty"`
+	HealthSummary bool   `yaml:"generate_health_summary,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.

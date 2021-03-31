@@ -17,6 +17,10 @@ cross-compilation issue, but will return in v0.13.0.
   `/-/reload`-only HTTP server that can be used to safely reload the Agent's
   state.  (@rfratto)
 
+- [FEATURE] Add a /-/config endpoint. This endpoint will return the current
+  configuration file with defaults applied that the Agent has loaded from disk.
+  (@rfratto)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
@@ -43,7 +47,7 @@ cross-compilation issue, but will return in v0.13.0.
   `GrafanaAgent/<version>` (@rfratto)
 
 - [ENHANCEMENT] Upgrade `go.opentelemetry.io/collector` to v0.21.0 (@mapno)
-  
+
 - [ENHANCEMENT] Add kafka trace receiver (@mapno)
 
 - [ENHANCEMENT] Support mirroring a trace pipeline to multiple backends (@mapno)
