@@ -10,7 +10,7 @@ After installation ensure that you can reach `http://localhost:12345/-/healthy` 
 
 If Grafana Agent is re-installed and an agent-config.yaml already exists it will not overwrite the existing one.
 
-After installation adjust agent-config.yaml to meet specific needs and restart the agent to see changes.
+After installation, you can adjust `C:\Program Files (x86)\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, the Grafana Agent service must be restarted to load changes to the configuration.
 
 ## Silent Installation
 
