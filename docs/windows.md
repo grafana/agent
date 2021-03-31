@@ -32,4 +32,4 @@ Via Remove Programs or uninstaller.exe in the directory the Agent is installed i
 
 ## Logs
 
-Logs are currently not stored anywhere for the services version of Agent, in the future logs will be available via Event Viewer.
+Logs from the Grafana Agent service are currently not stored anywhere. In the future version, logs will be written to Event Viewer.
