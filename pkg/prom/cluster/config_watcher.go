@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/prom/instance/configstore"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -76,7 +76,7 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 	w.mut.Lock()
 	defer w.mut.Unlock()
 
-	if cmp.Equal(w.cfg, cfg) {
+	if util.CompareYAML(w.cfg, cfg) {
 		return nil
 	}
 
