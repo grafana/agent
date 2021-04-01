@@ -5,7 +5,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [FEATURE] (beta) New integration: windows_exporter (@mattdurham)
 
-- [FEATURE] (beta) Grafana Agent Windows Installer is now included as a release artifact. (@mattdurham)
+- [FEATURE] (beta) Grafana Agent Windows Installer is now included as a release
+  artifact. (@mattdurham)
 
 - [FEATURE] Official M1 Mac release builds will now be generated! Look for
   `agent-darwin-arm64` and `agentctl-darwin-arm64` in the release assets.
@@ -25,7 +26,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
-- [ENHANCEMENT] Add global remote_write configuration that is shared between all instances and integrations. (@mattdurham)
+- [ENHANCEMENT] Add global remote_write configuration that is shared between all
+  instances and integrations. (@mattdurham)
 
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
 
@@ -38,7 +40,7 @@ cross-compilation issue, but will return in v0.13.0.
 - [BUGFIX] Bring back FreeBSD support. (@rfratto)
 
 - [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
-    (@rfratto)
+  (@rfratto)
 
 - [CHANGE] Instance configs uploaded to the Config Store API will no longer be
   stored along with the global Prometheus defaults. This is done to allow
