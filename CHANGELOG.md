@@ -25,7 +25,7 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
-- [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
+- [ENHANCEMENT] Add global remote_write configuration that is shared between all instances and integrations. (@mattdurham)
 
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
 
