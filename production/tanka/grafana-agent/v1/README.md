@@ -46,7 +46,7 @@ example, you may not deploy a scraping service with Loki logs collection.
 - `withPrometheusInstances(instances)`: Creates a Prometheus instance config to
   tell the Agent what to scrape.
 - `withRemoteWrite(remote_writes)`: Configures locations to remote write metrics
-   to. Controlls remote writes for all instances.
+   to. Controlls remote writes globally.
 - `scrapeInstanceKubernetes`: Default Prometheus instance config to scrape from
   Kubernetes.
 

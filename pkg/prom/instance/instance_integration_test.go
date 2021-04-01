@@ -16,7 +16,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 )
@@ -66,7 +65,7 @@ name: integration_test
 scrape_configs: []
 remote_write: []
 `)
-	inst, err := New(prometheus.NewRegistry(), config.DefaultGlobalConfig, initialConfig, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), DefaultGlobalConfig, initialConfig, walDir, logger)
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
@@ -79,7 +78,7 @@ remote_write: []
 	// Update the config with a single scrape_config and remote_write.
 	newConfig := loadConfig(t, fmt.Sprintf(`
 name: integration_test
-scrape_configs: 
+scrape_configs:
   - job_name: test_scrape
     scrape_interval: 5s
     static_configs:
@@ -132,7 +131,7 @@ name: integration_test
 scrape_configs: []
 remote_write: []
 `)
-	inst, err := New(prometheus.NewRegistry(), config.DefaultGlobalConfig, initialConfig, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), DefaultGlobalConfig, initialConfig, walDir, logger)
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
@@ -145,7 +144,7 @@ remote_write: []
 	// Create a new config to use for updating
 	newConfig := loadConfig(t, fmt.Sprintf(`
 name: integration_test
-scrape_configs: 
+scrape_configs:
   - job_name: test_scrape
     scrape_interval: 5s
     static_configs:
@@ -185,7 +184,7 @@ name: integration_test
 scrape_configs: []
 remote_write: []
 `)
-	inst, err := New(prometheus.NewRegistry(), config.DefaultGlobalConfig, initialConfig, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), DefaultGlobalConfig, initialConfig, walDir, logger)
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
@@ -251,6 +250,6 @@ remote_write: []
 func loadConfig(t *testing.T, s string) Config {
 	cfg, err := UnmarshalConfig(strings.NewReader(s))
 	require.NoError(t, err)
-	require.NoError(t, cfg.ApplyDefaults(&config.DefaultGlobalConfig, nil))
+	require.NoError(t, cfg.ApplyDefaults(&DefaultGlobalConfig))
 	return *cfg
 }

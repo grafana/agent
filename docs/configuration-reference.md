@@ -196,10 +196,6 @@ configs:
 # distinct.
 [instance_mode: <string> | default = "shared"]
 
-# A list of remote_write targets. This is the global remote write list, it will propagate to the other remote writes
-# if they are not defined. If they are defined then they will not be overwritten.
-remote_write:
-  - [<remote_write>]
 ```
 
 ### server_tls_config
@@ -398,6 +394,11 @@ instances.
 # A list of static labels to add for all metrics.
 external_labels:
   { <string>: <string> }
+
+# Default set of remote_write endpoints. If an instance doesn't define any
+# remote_writes, it will use this list.
+remote_write:
+  - [<remote_write>]
 ```
 
 ### prometheus_instance_config
@@ -2155,8 +2156,8 @@ labels:
 # error.
 [integration_restart_backoff: <duration> | default = "5s"]
 
-# A list of remote_write targets. Samples coming from integrations will be
-# sent to all addresses specified here.
+# A list of remote_write targets. Defaults to global_config.remote_write.
+# If provided, overrides the global defaults.
 prometheus_remote_write:
   - [<remote_write>]
 ```
@@ -2190,7 +2191,7 @@ docker run \
 ```
 
 Use this configuration file for testing out `node_exporter` support, replacing
-the `prometheus_remote_write` settings with settings appropriate for you:
+the `remote_write` settings with settings appropriate for you:
 
 ```yaml
 server:
@@ -2201,6 +2202,11 @@ prometheus:
   wal_directory: /tmp/agent
   global:
     scrape_interval: 15s
+    remote_write:
+    - url: https://prometheus-us-central1.grafana.net/api/prom/push
+      basic_auth:
+        username: user-id
+        password: api-token
 
 integrations:
   node_exporter:
@@ -2208,11 +2214,6 @@ integrations:
     rootfs_path: /host/root
     sysfs_path: /host/sys
     procfs_path: /host/proc
-  prometheus_remote_write:
-    - url: https://prometheus-us-central1.grafana.net/api/prom/push
-      basic_auth:
-        username: user-id
-        password: api-token
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities
