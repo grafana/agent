@@ -2,9 +2,9 @@
 
 ## Stability
 
-The core of Grafana Agent is considered stable. Features and other functionality
-that are tagged as "beta" or "experimental" are subject to change and may not be
-as stable as non-beta functionality.
+The core of Grafana Agent is considered stable and suitable for production use.
+Features and other functionality tagged as "beta" or "experimental" are subject
+to change and are not recommended for production use.
 
 ## Host Filtering
 

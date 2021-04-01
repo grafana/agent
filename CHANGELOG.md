@@ -4,7 +4,7 @@ cross-compilation issue, but will return in v0.13.0.
 # Main (unreleased)
 
 As of this release, functionality will start being tagged as "experimental" or
-"beta" when it is expected to change or is not consiered fully stable.
+"beta" when it is expected to change and is not recommended for production use.
 
 - [FEATURE] (beta) New integration: windows_exporter (@mattdurham)
 
