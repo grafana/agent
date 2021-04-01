@@ -37,6 +37,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [BUGFIX] Bring back FreeBSD support. (@rfratto)
 
+- [BUGFIX] agentctl will no longer leak WAL resources when retrieving WAL stats. (@rfratto)
+
 - [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
     (@rfratto)
 
