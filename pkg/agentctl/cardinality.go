@@ -20,6 +20,7 @@ func FindCardinality(walDir string, job string, instance string) ([]Cardinality,
 	if err != nil {
 		return nil, err
 	}
+	defer w.Close()
 
 	cardinality := map[string]int{}
 

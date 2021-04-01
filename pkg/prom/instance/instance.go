@@ -345,6 +345,8 @@ func (i *Instance) Run(ctx context.Context) error {
 					}
 				}
 
+				// Closing the storage closes both the WAL storage and remote wrte
+				// storage.
 				level.Info(i.logger).Log("msg", "closing storage...")
 				if err := i.storage.Close(); err != nil {
 					level.Error(i.logger).Log("msg", "error stopping storage", "err", err)
