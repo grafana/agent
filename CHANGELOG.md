@@ -3,6 +3,10 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+As of this release, functionality that is not recommended for production use
+and is expected to change will be tagged interchangably as "experimental" or
+"beta."
+
 - [FEATURE] (beta) New integration: windows_exporter (@mattdurham)
 
 - [FEATURE] (beta) Grafana Agent Windows Installer is now included as a release artifact. (@mattdurham)
