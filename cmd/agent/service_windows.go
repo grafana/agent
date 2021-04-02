@@ -35,7 +35,7 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	}
 
 	// After this point we can start using go-kit logging.
-	logger := util.NewLogger(&cfg.Server)
+	logger := util.NewWinFmtLogger(&cfg.Server)
 	util_log.Logger = logger
 
 	ep, err := NewEntrypoint(logger, cfg)
