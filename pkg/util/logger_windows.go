@@ -3,6 +3,7 @@ package util
 import (
 	"errors"
 	"fmt"
+	"runtime"
 	"strings"
 
 	"github.com/go-kit/kit/log/level"
@@ -85,13 +86,20 @@ func newWinLoggerFmt(cfg *server.Config) (log.Logger, error) {
 	notAllowedError := errors.New("not_allowed")
 	err := el.InstallAsEventCreate("Grafana Agent", el.Error|el.Info|el.Warning)
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
-		fmt.Println(err)
+		return nil, err
 	}
 	il, err := el.Open("Grafana Agent")
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
+	// Cleanup the handle when we can
+	runtime.SetFinalizer(il, func(l *el.Log) {
+		l.Close()
+	})
+
+	//  These are setup to be writers for each Windows log level
+	//  Setup this way so we can utilize all the goodies of logformatter
 	infoWriter := &WinLogWriter{Writer: func(p []byte) {
 		il.Info(1, string(p))
 	}}
