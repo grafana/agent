@@ -17,13 +17,12 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/prometheus/config"
 	"google.golang.org/grpc"
 )
 
 // DefaultConfig is the default settings for the Prometheus-lite client.
 var DefaultConfig = Config{
-	Global:                 config.DefaultGlobalConfig,
+	Global:                 instance.DefaultGlobalConfig,
 	InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
 	WALCleanupAge:          DefaultCleanupAge,
 	WALCleanupPeriod:       DefaultCleanupPeriod,
@@ -35,16 +34,15 @@ var DefaultConfig = Config{
 // Config defines the configuration for the entire set of Prometheus client
 // instances, along with a global configuration.
 type Config struct {
-	Global                 config.GlobalConfig           `yaml:"global,omitempty"`
-	WALDir                 string                        `yaml:"wal_directory,omitempty"`
-	WALCleanupAge          time.Duration                 `yaml:"wal_cleanup_age,omitempty"`
-	WALCleanupPeriod       time.Duration                 `yaml:"wal_cleanup_period,omitempty"`
-	ServiceConfig          cluster.Config                `yaml:"scraping_service,omitempty"`
-	ServiceClientConfig    client.Config                 `yaml:"scraping_service_client,omitempty"`
-	Configs                []instance.Config             `yaml:"configs,omitempty,omitempty"`
-	InstanceRestartBackoff time.Duration                 `yaml:"instance_restart_backoff,omitempty"`
-	InstanceMode           instance.Mode                 `yaml:"instance_mode,omitempty"`
-	RemoteWrite            []*instance.RemoteWriteConfig `yaml:"remote_write,omitempty"`
+	Global                 instance.GlobalConfig `yaml:"global,omitempty"`
+	WALDir                 string                `yaml:"wal_directory,omitempty"`
+	WALCleanupAge          time.Duration         `yaml:"wal_cleanup_age,omitempty"`
+	WALCleanupPeriod       time.Duration         `yaml:"wal_cleanup_period,omitempty"`
+	ServiceConfig          cluster.Config        `yaml:"scraping_service,omitempty"`
+	ServiceClientConfig    client.Config         `yaml:"scraping_service_client,omitempty"`
+	Configs                []instance.Config     `yaml:"configs,omitempty,omitempty"`
+	InstanceRestartBackoff time.Duration         `yaml:"instance_restart_backoff,omitempty"`
+	InstanceMode           instance.Mode         `yaml:"instance_mode,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -76,7 +74,7 @@ func (c *Config) ApplyDefaults() error {
 
 	for i := range c.Configs {
 		name := c.Configs[i].Name
-		if err := c.Configs[i].ApplyDefaults(&c.Global, c.RemoteWrite); err != nil {
+		if err := c.Configs[i].ApplyDefaults(&c.Global); err != nil {
 			// Try to show a helpful name in the error
 			if name == "" {
 				name = fmt.Sprintf("at index %d", i)
@@ -192,7 +190,7 @@ func (a *Agent) Validate(c *instance.Config) error {
 	a.mut.RLock()
 	defer a.mut.RUnlock()
 
-	if err := c.ApplyDefaults(&a.cfg.Global, a.cfg.RemoteWrite); err != nil {
+	if err := c.ApplyDefaults(&a.cfg.Global); err != nil {
 		return fmt.Errorf("failed to apply defaults to %q: %w", c.Name, err)
 	}
 
@@ -325,8 +323,8 @@ func (a *Agent) Stop() {
 	a.stopped = true
 }
 
-type instanceFactory = func(reg prometheus.Registerer, global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
+type instanceFactory = func(reg prometheus.Registerer, global instance.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
 
-func defaultInstanceFactory(reg prometheus.Registerer, global config.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {
+func defaultInstanceFactory(reg prometheus.Registerer, global instance.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {
 	return instance.New(reg, global, cfg, walDir, logger)
 }
