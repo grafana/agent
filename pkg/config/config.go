@@ -50,7 +50,7 @@ func (c *Config) ApplyDefaults() error {
 	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
 
 	if len(c.Integrations.PrometheusRemoteWrite) == 0 {
-		c.Integrations.PrometheusRemoteWrite = c.Prometheus.RemoteWrite
+		c.Integrations.PrometheusRemoteWrite = c.Prometheus.Global.RemoteWrite
 	}
 
 	return nil
