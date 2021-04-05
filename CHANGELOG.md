@@ -28,6 +28,9 @@ and is expected to change will be tagged interchangably as "experimental" or
   configuration file with defaults applied that the Agent has loaded from disk.
   (@rfratto)
 
+- [FEATURE] (beta) Support generating metrics and exposing them via a Prometheus exporter
+  from span data. (@yeya24)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Add global remote_write configuration that is shared between all

@@ -202,5 +202,6 @@ func (i *Instance) GetExtensions() map[configmodels.Extension]component.ServiceE
 
 // GetExporters implements component.Host
 func (i *Instance) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
-	return nil
+	// SpanMetricsProcessor needs to get the configured exporters.
+	return i.exporter.ToMapByDataType()
 }
