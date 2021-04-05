@@ -94,16 +94,16 @@ func (w *winLoggerFmt) Log(keyvals ...interface{}) error {
 	// If the messages level matches one of these we try to write to the logger
 	// the loggers are configured to reject the message if it isn't allowed.
 	if lvl == level.DebugValue() {
-		err = w.infoLogger.Log(keyvals...)
+		return w.infoLogger.Log(keyvals...)
 	} else if lvl == level.InfoValue() {
-		err = w.infoLogger.Log(keyvals...)
+		return w.infoLogger.Log(keyvals...)
 	} else if lvl == level.ErrorValue() {
-		err = w.errorLogger.Log(keyvals...)
+		return w.errorLogger.Log(keyvals...)
 	} else if lvl == level.WarnValue() {
-		err = w.warningLogger.Log(keyvals...)
+		return w.warningLogger.Log(keyvals...)
 	}
 
-	return err
+	return nil
 }
 
 // Looks through the key value pairs in the log for level and extract the value

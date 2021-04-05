@@ -14,7 +14,7 @@ import (
 func TestWindowsLogger(t *testing.T) {
 	//wl, _ := NewWindowsLogger(nil)
 	//level.Info(wl).Log("msg", "failed to update logger", "err")
-	wl := NewWinFmtLogger(&server.Config{
+	wl := NewWindowsEventLogger(&server.Config{
 		LogLevel: logging.Level{
 			Logrus: logrus.InfoLevel,
 			Gokit:  level.AllowAll(),
