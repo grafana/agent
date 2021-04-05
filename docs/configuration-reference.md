@@ -2049,7 +2049,8 @@ scrape_configs:
   
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics from span data.
 # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/README.md.
-# spanmetrics generates two metrics from spans and exposes them to an HTTP endpoint (prometheus exporter).
+# spanmetrics generates two metrics from spans and uses opentelemetry prometheus exporter to serve the metrics locally.
+# In order to send these metrics to a remote storage, you have to scrape that endpoint.
 # The first one is `calls` which is a counter to compute requests.
 # The second one is `latency` which is a histogram to compute the operations' duration.
 # If you want to rename them, you can configure the `namespace` option of prometheus exporter.
@@ -2063,10 +2064,10 @@ spanmetrics:
   # metrics_exporter config embeds the configuration for opentelemetry prometheus exporter.
   # https://github.com/open-telemetry/opentelemetry-collector/blob/v0.21.0/exporter/prometheusexporter/README.md
   metrics_exporter:
-    [ endpoint: <prometehusexporter.endpoint> ]
-    [ const_labels: <prometehusexporter.const_labels> ]
-    [ namespace: <prometehusexporter.namespace> ]
-    [ send_timestamps: <prometehusexporter.send_timestamps> ]
+    [ endpoint: <prometheusexporter.endpoint> ]
+    [ const_labels: <prometheusexporter.const_labels> ]
+    [ namespace: <prometheusexporter.namespace> ]
+    [ send_timestamps: <prometheusexporter.send_timestamps> ]
 ```
 
 ### integrations_config
