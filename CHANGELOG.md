@@ -3,7 +3,14 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+As of this release, functionality that is not recommended for production use
+and is expected to change will be tagged interchangably as "experimental" or
+"beta."
+
 - [FEATURE] (beta) New integration: windows_exporter (@mattdurham)
+
+- [FEATURE] (beta) Grafana Agent Windows Installer is now included as a release
+  artifact. (@mattdurham)
 
 - [FEATURE] Official M1 Mac release builds will now be generated! Look for
   `agent-darwin-arm64` and `agentctl-darwin-arm64` in the release assets.
@@ -11,9 +18,20 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [FEATURE] Add support for running as a Windows service (@mattdurham)
 
+- [FEATURE] (beta) Add /-/reload support. It is not recommended to invoke
+  `/-/reload` against the main HTTP server. Instead, two new command-line flags
+  have been added: `--reload-addr` and `--reload-port`. These will launch a
+  `/-/reload`-only HTTP server that can be used to safely reload the Agent's
+  state.  (@rfratto)
+
+- [FEATURE] Add a /-/config endpoint. This endpoint will return the current
+  configuration file with defaults applied that the Agent has loaded from disk.
+  (@rfratto)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
-- [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
+- [ENHANCEMENT] Add global remote_write configuration that is shared between all
+  instances and integrations. (@mattdurham)
 
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
 
@@ -25,8 +43,10 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [BUGFIX] Bring back FreeBSD support. (@rfratto)
 
+- [BUGFIX] agentctl will no longer leak WAL resources when retrieving WAL stats. (@rfratto)
+
 - [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
-    (@rfratto)
+  (@rfratto)
 
 - [CHANGE] Instance configs uploaded to the Config Store API will no longer be
   stored along with the global Prometheus defaults. This is done to allow
@@ -35,10 +55,15 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [CHANGE] The User-Agent header sent for logs will now be
   `GrafanaAgent/<version>` (@rfratto)
-  
+
 - [ENHANCEMENT] Upgrade `go.opentelemetry.io/collector` to v0.21.0 (@mapno)
-  
+
 - [ENHANCEMENT] Add kafka trace receiver (@mapno)
+
+- [ENHANCEMENT] Support mirroring a trace pipeline to multiple backends (@mapno)
+
+- [DEPRECATION] `push_config` is now supplanted by `remote_block` and `batch`.
+  `push_config` will be removed in a future version (@mapno)
 
 # v0.13.0 (2021-02-25)
 

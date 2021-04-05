@@ -34,11 +34,6 @@ func newLogger(cfg *server.Config, ctor func(*server.Config) (log.Logger, error)
 	if err := l.ApplyConfig(cfg); err != nil {
 		panic(err)
 	}
-
-	// cfg.Log wraps the log function, so we need to skip one extra stack from
-	// than the default caller to get the caller information.
-	cfg.Log = logging.GoKit(log.With(&l, "caller", log.Caller(4)))
-
 	return &l
 }
 
@@ -72,4 +67,12 @@ func (l *Logger) Log(kvps ...interface{}) error {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.l.Log(kvps...)
+}
+
+// GoKitLogger creates a logging.Interface from a log.Logger. A "caller" label will
+// be added.
+func GoKitLogger(l log.Logger) logging.Interface {
+	// logging.GoKit wraps the log function, so we need to skip one extra stack
+	// from than the default caller to get the caller information.
+	return logging.GoKit(log.With(l, "caller", log.Caller(4)))
 }

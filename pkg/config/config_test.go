@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
@@ -36,10 +37,12 @@ prometheus:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: 33s`
-	expect := promCfg.GlobalConfig{
-		ScrapeInterval:     model.Duration(1 * time.Minute),
-		ScrapeTimeout:      model.Duration(33 * time.Second),
-		EvaluationInterval: model.Duration(1 * time.Minute),
+	expect := instance.GlobalConfig{
+		Prometheus: promCfg.GlobalConfig{
+			ScrapeInterval:     model.Duration(1 * time.Minute),
+			ScrapeTimeout:      model.Duration(33 * time.Second),
+			EvaluationInterval: model.Duration(1 * time.Minute),
+		},
 	}
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
@@ -56,10 +59,12 @@ prometheus:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: ${SCRAPE_TIMEOUT}`
-	expect := promCfg.GlobalConfig{
-		ScrapeInterval:     model.Duration(1 * time.Minute),
-		ScrapeTimeout:      model.Duration(33 * time.Second),
-		EvaluationInterval: model.Duration(1 * time.Minute),
+	expect := instance.GlobalConfig{
+		Prometheus: promCfg.GlobalConfig{
+			ScrapeInterval:     model.Duration(1 * time.Minute),
+			ScrapeTimeout:      model.Duration(33 * time.Second),
+			EvaluationInterval: model.Duration(1 * time.Minute),
+		},
 	}
 	_ = os.Setenv("SCRAPE_TIMEOUT", "33s")
 

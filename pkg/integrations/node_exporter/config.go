@@ -65,49 +65,49 @@ func init() {
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
+	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty"`
 
-	ProcFSPath string `yaml:"procfs_path"`
-	SysFSPath  string `yaml:"sysfs_path"`
-	RootFSPath string `yaml:"rootfs_path"`
+	ProcFSPath string `yaml:"procfs_path,omitempty"`
+	SysFSPath  string `yaml:"sysfs_path,omitempty"`
+	RootFSPath string `yaml:"rootfs_path,omitempty"`
 
 	// Collectors to mark as enabled
-	EnableCollectors flagext.StringSlice `yaml:"enable_collectors"`
+	EnableCollectors flagext.StringSlice `yaml:"enable_collectors,omitempty"`
 
 	// Collectors to mark as disabled
-	DisableCollectors flagext.StringSlice `yaml:"disable_collectors"`
+	DisableCollectors flagext.StringSlice `yaml:"disable_collectors,omitempty"`
 
 	// Overrides the default set of enabled collectors with the collectors
 	// listed.
-	SetCollectors flagext.StringSlice `yaml:"set_collectors"`
+	SetCollectors flagext.StringSlice `yaml:"set_collectors,omitempty"`
 
 	// Collector-specific config options
-	CPUEnableCPUInfo              bool                `yaml:"enable_cpu_info_metric"`
-	DiskStatsIgnoredDevices       string              `yaml:"diskstats_ignored_devices"`
-	FilesystemIgnoredMountPoints  string              `yaml:"filesystem_ignored_mount_points"`
-	FilesystemIgnoredFSTypes      string              `yaml:"filesystem_ignored_fs_types"`
-	NetclassIgnoredDevices        string              `yaml:"netclass_ignored_devices"`
-	NetdevDeviceBlacklist         string              `yaml:"netdev_device_blacklist"`
-	NetdevDeviceWhitelist         string              `yaml:"netdev_device_whitelist"`
-	NetstatFields                 string              `yaml:"netstat_fields"`
-	NTPServer                     string              `yaml:"ntp_server"`
-	NTPProtocolVersion            int                 `yaml:"ntp_protocol_version"`
-	NTPServerIsLocal              bool                `yaml:"ntp_server_is_local"`
-	NTPIPTTL                      int                 `yaml:"ntp_ip_ttl"`
-	NTPMaxDistance                time.Duration       `yaml:"ntp_max_distance"`
-	NTPLocalOffsetTolerance       time.Duration       `yaml:"ntp_local_offset_tolerance"`
-	PerfCPUS                      string              `yaml:"perf_cpus"`
-	PerfTracepoint                flagext.StringSlice `yaml:"perf_tracepoint"`
-	PowersupplyIgnoredSupplies    string              `yaml:"powersupply_ignored_supplies"`
-	RunitServiceDir               string              `yaml:"runit_service_dir"`
-	SupervisordURL                string              `yaml:"supervisord_url"`
-	SystemdUnitWhitelist          string              `yaml:"systemd_unit_whitelist"`
-	SystemdUnitBlacklist          string              `yaml:"systemd_unit_blacklist"`
-	SystemdEnableTaskMetrics      bool                `yaml:"systemd_enable_task_metrics"`
-	SystemdEnableRestartsMetrics  bool                `yaml:"systemd_enable_restarts_metrics"`
-	SystemdEnableStartTimeMetrics bool                `yaml:"systemd_enable_start_time_metrics"`
-	VMStatFields                  string              `yaml:"vmstat_fields"`
-	TextfileDirectory             string              `yaml:"textfile_directory"`
+	CPUEnableCPUInfo              bool                `yaml:"enable_cpu_info_metric,omitempty"`
+	DiskStatsIgnoredDevices       string              `yaml:"diskstats_ignored_devices,omitempty"`
+	FilesystemIgnoredMountPoints  string              `yaml:"filesystem_ignored_mount_points,omitempty"`
+	FilesystemIgnoredFSTypes      string              `yaml:"filesystem_ignored_fs_types,omitempty"`
+	NetclassIgnoredDevices        string              `yaml:"netclass_ignored_devices,omitempty"`
+	NetdevDeviceBlacklist         string              `yaml:"netdev_device_blacklist,omitempty"`
+	NetdevDeviceWhitelist         string              `yaml:"netdev_device_whitelist,omitempty"`
+	NetstatFields                 string              `yaml:"netstat_fields,omitempty"`
+	NTPServer                     string              `yaml:"ntp_server,omitempty"`
+	NTPProtocolVersion            int                 `yaml:"ntp_protocol_version,omitempty"`
+	NTPServerIsLocal              bool                `yaml:"ntp_server_is_local,omitempty"`
+	NTPIPTTL                      int                 `yaml:"ntp_ip_ttl,omitempty"`
+	NTPMaxDistance                time.Duration       `yaml:"ntp_max_distance,omitempty"`
+	NTPLocalOffsetTolerance       time.Duration       `yaml:"ntp_local_offset_tolerance,omitempty"`
+	PerfCPUS                      string              `yaml:"perf_cpus,omitempty"`
+	PerfTracepoint                flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
+	PowersupplyIgnoredSupplies    string              `yaml:"powersupply_ignored_supplies,omitempty"`
+	RunitServiceDir               string              `yaml:"runit_service_dir,omitempty"`
+	SupervisordURL                string              `yaml:"supervisord_url,omitempty"`
+	SystemdUnitWhitelist          string              `yaml:"systemd_unit_whitelist,omitempty"`
+	SystemdUnitBlacklist          string              `yaml:"systemd_unit_blacklist,omitempty"`
+	SystemdEnableTaskMetrics      bool                `yaml:"systemd_enable_task_metrics,omitempty"`
+	SystemdEnableRestartsMetrics  bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
+	SystemdEnableStartTimeMetrics bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
+	VMStatFields                  string              `yaml:"vmstat_fields,omitempty"`
+	TextfileDirectory             string              `yaml:"textfile_directory,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.

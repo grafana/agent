@@ -12,7 +12,6 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
-	github.com/google/go-cmp v0.5.4
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20210205130758-59a34f9867ce
 	github.com/hashicorp/consul/api v1.8.1
@@ -95,3 +94,6 @@ replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
+
+// Used for /-/reload
+replace github.com/weaveworks/common => github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7

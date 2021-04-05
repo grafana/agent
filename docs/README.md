@@ -38,3 +38,4 @@ with:
 6. [Scraping Service Mode](./scraping-service.md)
 7. [Operation Guide](./operation-guide.md)
 8. [Maintainers Guide](./maintaining.md)
+9. [Windows Guide](./windows.md)

@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/promtail"
 	"github.com/grafana/loki/pkg/promtail/client"
@@ -136,7 +135,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	defer i.mut.Unlock()
 
 	// No-op if the configs haven't changed.
-	if cmp.Equal(c, i.cfg) {
+	if util.CompareYAML(c, i.cfg) {
 		level.Debug(i.log).Log("msg", "instance config hasn't changed, not recreating Promtail")
 		return nil
 	}

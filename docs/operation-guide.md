@@ -1,5 +1,12 @@
 # Operation Guide
 
+## Stability
+
+The core of Grafana Agent is considered stable and suitable for production use.
+Features and other functionality that are subject to change and are not
+recommended for production use will be tagged interchangably as either "beta" or
+"experimental."
+
 ## Host Filtering
 
 Host Filtering implements a form of "dumb sharding," where operators may deploy

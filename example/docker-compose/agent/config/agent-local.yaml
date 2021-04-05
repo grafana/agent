@@ -7,6 +7,8 @@ prometheus:
   wal_directory: /tmp/agent
   global:
     scrape_interval: 5s
+    remote_write:
+      - url: http://localhost:9009/api/prom/push
   configs:
     - name: default
       scrape_configs:
@@ -67,5 +69,4 @@ integrations:
   elasticsearch_exporter:
     enabled: true
     address: http://localhost:9200
-  prometheus_remote_write:
-    - url: http://localhost:9009/api/prom/push
+
