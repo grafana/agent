@@ -1,21 +1,28 @@
 module github.com/grafana/agent
 
-go 1.15
+go 1.16
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
+	github.com/blang/semver/v4 v4.0.0
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
 	github.com/drone/envsubst v1.0.2
+	github.com/fatih/structs v0.0.0-20180123065059-ebf56d35bba7
 	github.com/go-kit/kit v0.10.0
 	github.com/go-logfmt/logfmt v0.5.0
+	github.com/go-logr/logr v0.4.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
+	github.com/google/go-jsonnet v0.17.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
 	github.com/hashicorp/consul/api v1.8.1
+	github.com/hashicorp/go-getter v1.5.3
+	github.com/hashicorp/go-version v1.3.0
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
+	github.com/kylelemons/godebug v1.1.0
 	github.com/miekg/dns v1.1.41
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
@@ -28,6 +35,8 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
+	github.com/prometheus-operator/prometheus-operator v0.47.0
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
 	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/common v0.23.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
@@ -53,6 +62,11 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	k8s.io/api v0.21.0
+	k8s.io/apimachinery v0.21.0
+	k8s.io/client-go v12.0.0+incompatible
+	sigs.k8s.io/controller-runtime v0.8.3
+	sigs.k8s.io/yaml v1.2.0
 )
 
 // Replace directives from Prometheus
