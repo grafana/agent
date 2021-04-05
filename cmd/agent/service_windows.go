@@ -15,7 +15,7 @@ import (
 	"golang.org/x/sys/windows/svc"
 )
 
-const ServiceName = "Grafana Agent"
+const serviceName = "Grafana Agent"
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
 // AgentService runs the Grafana Agent as a service.
@@ -89,5 +89,5 @@ func IsWindowsService() bool {
 // RunService runs the current process as a Windows servce. On non-Windows platforms,
 // this is always a no-op.
 func RunService() error {
-	return svc.Run(ServiceName, &AgentService{})
+	return svc.Run(serviceName, &AgentService{})
 }
