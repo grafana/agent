@@ -16,7 +16,6 @@ import (
 	"golang.org/x/sys/windows/svc"
 )
 
-const serviceName = "Grafana Agent"
 const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 
 // AgentService runs the Grafana Agent as a service.
@@ -46,7 +45,7 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	}
 
 	// After this point we can start using go-kit logging.
-	logger := util.NewWinFmtLogger(&cfg.Server)
+	logger := util.NewWindowsEventLogger(&cfg.Server)
 	util_log.Logger = logger
 
 	// We need to manually set the logger for the first call to reload.
@@ -105,5 +104,5 @@ func IsWindowsService() bool {
 // RunService runs the current process as a Windows servce. On non-Windows platforms,
 // this is always a no-op.
 func RunService() error {
-	return svc.Run(serviceName, &AgentService{})
+	return svc.Run(util.ServiceName, &AgentService{})
 }

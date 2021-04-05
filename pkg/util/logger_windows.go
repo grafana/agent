@@ -13,26 +13,30 @@ import (
 	el "golang.org/x/sys/windows/svc/eventlog"
 )
 
-func NewWinFmtLogger(cfg *server.Config) *Logger {
-	l := Logger{makeLogger: makeWinLogger}
+// Default name for the Grafana Agent under Windows
+const ServiceName = "Grafana Agent"
+
+//NewWindowsEventLogger creates a new logger that writes to the event log
+func NewWindowsEventLogger(cfg *server.Config) *Logger {
+	l := Logger{makeLogger: makeWindowsEventLogger}
 	if err := l.ApplyConfig(cfg); err != nil {
 		panic(err)
 	}
 	return &l
 }
 
-func makeWinLogger(cfg *server.Config) (log.Logger, error) {
+func makeWindowsEventLogger(cfg *server.Config) (log.Logger, error) {
 	// error is necessary for the Log function to return an error
 	notAllowedError := errors.New("not_allowed")
 
 	// Setup the log in windows events
-	err := el.InstallAsEventCreate("Grafana Agent", el.Error|el.Info|el.Warning)
+	err := el.InstallAsEventCreate(ServiceName, el.Error|el.Info|el.Warning)
 
 	// We expect an error of 'already exists' for subsequent runs,
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		return nil, err
 	}
-	il, err := el.Open("Grafana Agent")
+	il, err := el.Open(ServiceName)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +67,7 @@ func makeWinLogger(cfg *server.Config) (log.Logger, error) {
 	errorLogger := log.NewLogfmtLogger(errorWriter)
 	errorLogger = level.NewFilter(errorLogger, cfg.LogLevel.Gokit, level.ErrNotAllowed(notAllowedError))
 
-	wl := &WinLoggerFmt{
+	wl := &winLoggerFmt{
 		internalLog:   il,
 		errorLogger:   errorLogger,
 		infoLogger:    infoLogger,
@@ -73,15 +77,14 @@ func makeWinLogger(cfg *server.Config) (log.Logger, error) {
 
 }
 
-type WinLoggerFmt struct {
-	internalLog *el.Log
-
+type winLoggerFmt struct {
+	internalLog   *el.Log
 	errorLogger   log.Logger
 	infoLogger    log.Logger
 	warningLogger log.Logger
 }
 
-func (w *WinLoggerFmt) Log(keyvals ...interface{}) error {
+func (w *winLoggerFmt) Log(keyvals ...interface{}) error {
 	lvl, err := getLevel(keyvals...)
 	// If we don't know what happened move on
 	if err != nil {
