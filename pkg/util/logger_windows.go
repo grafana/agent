@@ -69,7 +69,7 @@ func makeWinLogger(cfg *server.Config) (log.Logger, error) {
 		infoLogger:    infoLogger,
 		warningLogger: warningLogger,
 	}
-	return log.With(wl, "caller", log.Caller(5)), nil
+	return wl, nil
 
 }
 
