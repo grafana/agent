@@ -51,7 +51,6 @@ func (l *Logger) ApplyConfig(cfg *server.Config) error {
 	if err != nil {
 		return err
 	}
-	newLogger = log.With(newLogger, "caller", log.DefaultCaller)
 
 	l.l = newLogger
 	return nil
