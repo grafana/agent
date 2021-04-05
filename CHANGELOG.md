@@ -21,6 +21,9 @@ cross-compilation issue, but will return in v0.13.0.
   configuration file with defaults applied that the Agent has loaded from disk.
   (@rfratto)
 
+- [FEATURE] Support generating metrics and exposing them via a Prometheus exporter
+  from span data. (@yeya24)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
