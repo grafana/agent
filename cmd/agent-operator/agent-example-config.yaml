@@ -1,0 +1,9 @@
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: GrafanaAgent
+metadata:
+  name: grafana-agent-example
+  labels:
+    cluster: prod
+spec: {}
+
+

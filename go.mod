@@ -8,6 +8,7 @@ require (
 	github.com/cortexproject/cortex v1.6.1-0.20210204145131-7dac81171c66
 	github.com/drone/envsubst v1.0.2
 	github.com/go-kit/kit v0.10.0
+	github.com/go-logr/logr v0.4.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.3 // indirect
@@ -27,6 +28,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.46.0
 	github.com/prometheus/client_golang v1.9.0
 	github.com/prometheus/common v0.17.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
@@ -52,6 +54,8 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	k8s.io/apimachinery v0.20.2
+	sigs.k8s.io/controller-runtime v0.8.3
 )
 
 // Needed for Cortex's dependencies to work properly.
