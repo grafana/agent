@@ -35,6 +35,8 @@ and is expected to change will be tagged interchangably as "experimental" or
 
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
 
+- [ENHANCEMENT] Agent running as Windows Service will write logs to the Windows Event log (@mattdurham)
+
 - [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
   to the WAL. (@rfratto)
 
