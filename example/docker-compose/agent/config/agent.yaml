@@ -41,7 +41,6 @@ prometheus:
               labels:
                 cluster: 'docker_compose'
                 container: 'avalanche-3'
-
       remote_write:
         - url: http://cortex:9009/api/prom/push
 
@@ -73,9 +72,9 @@ tempo:
       - action: upsert
         key: env
         value: prod
-    push_config:
-      endpoint: otel-collector:55680
-      insecure: true
-      batch:
-        timeout: 5s
-        send_batch_size: 100
+    remote_write:
+      - endpoint: otel-collector:55680
+        insecure: true
+    batch:
+      timeout: 5s
+      send_batch_size: 100

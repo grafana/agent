@@ -6,7 +6,11 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 local loki_config = import 'default/loki_config.libsonnet';
 local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 
+local ingress = k.networking.v1beta1.ingress;
+local path = k.networking.v1beta1.httpIngressPath;
+local rule = k.networking.v1beta1.ingressRule;
 local service = k.core.v1.service;
+
 local images = {
   agent: 'grafana/agent:latest',
   agentctl: 'grafana/agentctl:latest',
@@ -15,14 +19,16 @@ local images = {
 {
   default: default.new(namespace='default') {
     grafana+: {
-      // Expose Grafana on 30080 on the k3d agent, which is exposed to the host
-      // machine.
-      service+:
-        local bindNodePort(port) = port { nodePort: port.port + 30000 };
-        service.mixin.spec.withPorts([
-          { name: 'grafana', nodePort: 30080, port: 30080, targetPort: 80 },
-        ]) +
-        service.mixin.spec.withType('NodePort'),
+      ingress+:
+        ingress.new('grafana-ingress') +
+        ingress.mixin.spec.withRules([
+          rule.withHost('grafana.k3d.localhost') +
+          rule.http.withPaths([
+            path.withPath('/')
+            + path.backend.withServiceName('grafana')
+            + path.backend.withServicePort(80),
+          ]),
+        ]),
     },
   },
 

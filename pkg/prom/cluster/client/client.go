@@ -27,7 +27,7 @@ var (
 
 // Config controls how scraping service clients are created.
 type Config struct {
-	GRPCClientConfig grpcclient.Config `yaml:"grpc_client_config"`
+	GRPCClientConfig grpcclient.Config `yaml:"grpc_client_config,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.

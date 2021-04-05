@@ -35,6 +35,10 @@ local newPort(name, portNumber, protocol='TCP') =
         },
         opencensus: null,
       },
+      batch: {
+        timeout: '5s',
+        send_batch_size: 1000,
+      }
     }) +
     agent.withPortsMixin([
       // Jaeger receiver
@@ -52,20 +56,18 @@ local newPort(name, portNumber, protocol='TCP') =
       // Opencensus
       newPort('opencensus', 55678, 'TCP'),
     ]) +
-    agent.withTempoPushConfig({
-      endpoint: '${TEMPO_ENDPOINT}',
-      basic_auth: {
-        username: '${TEMPO_USERNAME}',
-        password: '${TEMPO_PASSWORD}',
+    agent.withTempoRemoteWrite([
+      {
+        endpoint: '${TEMPO_ENDPOINT}',
+        basic_auth: {
+          username: '${TEMPO_USERNAME}',
+          password: '${TEMPO_PASSWORD}',
+        },
+        retry_on_failure: {
+          enabled: false,
+        },
       },
-      batch: {
-        timeout: '5s',
-        send_batch_size: 1000,
-      },
-      retry_on_failure: {
-        enabled: false,
-      },
-    }) +
+    ]) +
     agent.withTempoSamplingStrategies({
       default_strategy: {
         type: 'probabilistic',

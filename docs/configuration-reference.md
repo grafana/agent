@@ -39,6 +39,24 @@ Where default_value is the value to use if the environment variable is
 undefined. The full list of supported syntax can be found at Drone's
 [envsubst repository](https://github.com/drone/envsubst).
 
+## Reloading (beta)
+
+The configuration file can be reloaded at runtime. Read the [API
+documentation](./api.md#reload-configuration-file-beta) for more information.
+
+This functionality is in beta, and may have issues. Please open GitHub issues
+for any problems you encounter.
+
+A reload-only HTTP server can be started to safely reload the system. To start
+this, provide `--reload-addr` and `--reload-port` as command line flags.
+`reload-port` must be set to a non-zero port to launch the reload server. The
+reload server is currently HTTP-only and supports no other options; it does not
+read any values from the `server` block in the config file.
+
+While `/-/reload` is enabled on the primary HTTP server, it is not recommended
+to use it, since changing the HTTP server configuration will cause it to
+restart.
+
 ## File Format
 
 To specify which configuration file to load, pass the `-config.file` flag at
@@ -178,10 +196,6 @@ configs:
 # distinct.
 [instance_mode: <string> | default = "shared"]
 
-# A list of remote_write targets. This is the global remote write list, it will propagate to the other remote writes
-# if they are not defined. If they are defined then they will not be overwritten.
-remote_write:
-  - [<remote_write>]
 ```
 
 ### server_tls_config
@@ -380,6 +394,11 @@ instances.
 # A list of static labels to add for all metrics.
 external_labels:
   { <string>: <string> }
+
+# Default set of remote_write endpoints. If an instance doesn't define any
+# remote_writes, it will use this list.
+remote_write:
+  - [<remote_write>]
 ```
 
 ### prometheus_instance_config
@@ -1989,34 +2008,35 @@ name: <string>
 #  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
 attributes: [attributes.config]
 
-push_config:
+# Batch options: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor
+#  This field allows to configure grouping spans into batches.  Batching helps better compress the data and reduce the number of outgoing connections required to transmit the data.
+batch: [batch.config]
+
+remote_write:
   # host:port to send traces to
-  endpoint: <string>
+  - endpoint: <string>
 
-  # Controls whether compression is enabled.
-  [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
+    # Controls whether compression is enabled.
+    [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
 
-  # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
-  [ insecure: <boolean> | default = false ]
+    # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
+    [ insecure: <boolean> | default = false ]
 
-  # Disable validation of the server certificate. Only used when insecure is set
-  # to false.
-  [ insecure_skip_verify: <bool> | default = false ]
+    # Disable validation of the server certificate. Only used when insecure is set
+    # to false.
+    [ insecure_skip_verify: <bool> | default = false ]
 
-  # Sets the `Authorization` header on every trace push with the
-  # configured username and password.
-  # password and password_file are mutually exclusive.
-  basic_auth:
-    [ username: <string> ]
-    [ password: <secret> ]
-    [ password_file: <string> ]
+    # Sets the `Authorization` header on every trace push with the
+    # configured username and password.
+    # password and password_file are mutually exclusive.
+    basic_auth:
+      [ username: <string> ]
+      [ password: <secret> ]
+      [ password_file: <string> ]
 
-  # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor
-  [ batch: <batch.config> ]
-
-  # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter
-  [ sending_queue: <otlpexporter.sending_queue> ]
-  [ retry_on_failure: <otlpexporter.retry_on_failure> ]
+    # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter
+    [ sending_queue: <otlpexporter.sending_queue> ]
+    [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
 # Receiver configurations are mapped directly into the OpenTelmetry receivers block.
 #   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
@@ -2136,8 +2156,8 @@ labels:
 # error.
 [integration_restart_backoff: <duration> | default = "5s"]
 
-# A list of remote_write targets. Samples coming from integrations will be
-# sent to all addresses specified here.
+# A list of remote_write targets. Defaults to global_config.remote_write.
+# If provided, overrides the global defaults.
 prometheus_remote_write:
   - [<remote_write>]
 ```
@@ -2171,7 +2191,7 @@ docker run \
 ```
 
 Use this configuration file for testing out `node_exporter` support, replacing
-the `prometheus_remote_write` settings with settings appropriate for you:
+the `remote_write` settings with settings appropriate for you:
 
 ```yaml
 server:
@@ -2182,6 +2202,11 @@ prometheus:
   wal_directory: /tmp/agent
   global:
     scrape_interval: 15s
+    remote_write:
+    - url: https://prometheus-us-central1.grafana.net/api/prom/push
+      basic_auth:
+        username: user-id
+        password: api-token
 
 integrations:
   node_exporter:
@@ -2189,11 +2214,6 @@ integrations:
     rootfs_path: /host/root
     sysfs_path: /host/sys
     procfs_path: /host/proc
-  prometheus_remote_write:
-    - url: https://prometheus-us-central1.grafana.net/api/prom/push
-      basic_auth:
-        username: user-id
-        password: api-token
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities

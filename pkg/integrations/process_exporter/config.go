@@ -21,13 +21,13 @@ var DefaultConfig = Config{
 // Config controls the process_exporter integration.
 type Config struct {
 	Common          config.Common                `yaml:",inline"`
-	ProcessExporter exporter_config.MatcherRules `yaml:"process_names"`
+	ProcessExporter exporter_config.MatcherRules `yaml:"process_names,omitempty"`
 
-	ProcFSPath string `yaml:"procfs_path"`
-	Children   bool   `yaml:"track_children"`
-	Threads    bool   `yaml:"track_threads"`
-	SMaps      bool   `yaml:"gather_smaps"`
-	Recheck    bool   `yaml:"recheck_on_scrape"`
+	ProcFSPath string `yaml:"procfs_path,omitempty"`
+	Children   bool   `yaml:"track_children,omitempty"`
+	Threads    bool   `yaml:"track_threads,omitempty"`
+	SMaps      bool   `yaml:"gather_smaps,omitempty"`
+	Recheck    bool   `yaml:"recheck_on_scrape,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.

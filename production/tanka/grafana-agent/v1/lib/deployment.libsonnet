@@ -44,7 +44,7 @@ local agent = import '../internal/agent.libsonnet';
     },
 
     agent:
-      agent.newAgent(name, namespace, self._images.agent, self.config, use_daemonset=true) +
+      agent.newAgent(name, namespace, self._images.agent, self.config, use_daemonset=false) +
       agent.withConfigHash(self._config_hash),
   },
 }

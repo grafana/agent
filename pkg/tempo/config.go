@@ -24,7 +24,7 @@ import (
 
 // Config controls the configuration of Tempo trace pipelines.
 type Config struct {
-	Configs []InstanceConfig `yaml:"configs"`
+	Configs []InstanceConfig `yaml:"configs,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -56,16 +56,23 @@ func (c *Config) Validate() error {
 type InstanceConfig struct {
 	Name string `yaml:"name"`
 
-	PushConfig PushConfig `yaml:"push_config"`
+	// Deprecated in favor of RemoteWrite and Batch.
+	PushConfig PushConfig `yaml:"push_config,omitempty"`
+
+	// RemoteWrite defines one or multiple backends that can receive the pipeline's traffic.
+	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
-	Receivers map[string]interface{} `yaml:"receivers"`
+	Receivers map[string]interface{} `yaml:"receivers,omitempty"`
+
+	// Batch: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
+	Batch map[string]interface{} `yaml:"batch,omitempty"`
 
 	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor/config.go#L30
-	Attributes map[string]interface{} `yaml:"attributes"`
+	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
 	// prom service discovery
-	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
+	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
 }
 
 const (
@@ -80,11 +87,11 @@ var DefaultPushConfig = PushConfig{
 
 // PushConfig controls the configuration of exporting to Grafana Cloud
 type PushConfig struct {
-	Endpoint           string                 `yaml:"endpoint"`
-	Compression        string                 `yaml:"compression"`
-	Insecure           bool                   `yaml:"insecure"`
-	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
-	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Endpoint           string                 `yaml:"endpoint,omitempty"`
+	Compression        string                 `yaml:"compression,omitempty"`
+	Insecure           bool                   `yaml:"insecure,omitempty"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
+	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty,omitempty"`
 	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
 	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
@@ -105,49 +112,74 @@ func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
-	otelMapStructure := map[string]interface{}{}
+// DefaultRemoteWriteConfig holds the default settings for a PushConfig.
+var DefaultRemoteWriteConfig = RemoteWriteConfig{
+	Compression: compressionGzip,
+}
 
-	if len(c.Receivers) == 0 {
-		return nil, errors.New("must have at least one configured receiver")
+// RemoteWriteConfig controls the configuration of an exporter
+type RemoteWriteConfig struct {
+	Endpoint           string                 `yaml:"endpoint,omitempty"`
+	Compression        string                 `yaml:"compression,omitempty"`
+	Insecure           bool                   `yaml:"insecure,omitempty"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
+	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
+	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultRemoteWriteConfig
+
+	type plain RemoteWriteConfig
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
 	}
 
-	if len(c.PushConfig.Endpoint) == 0 {
-		return nil, errors.New("must have a configured remote_write.endpoint")
+	if c.Compression != compressionGzip && c.Compression != compressionNone {
+		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
+	}
+	return nil
+}
+
+// exporter builds an OTel exporter from PushConfig
+func exporter(remoteWriteConfig RemoteWriteConfig) (map[string]interface{}, error) {
+	if len(remoteWriteConfig.Endpoint) == 0 {
+		return nil, errors.New("must have a configured a backend endpoint")
 	}
 
-	// exporter
 	headers := map[string]string{}
-	if c.PushConfig.BasicAuth != nil {
-		password := string(c.PushConfig.BasicAuth.Password)
+	if remoteWriteConfig.BasicAuth != nil {
+		password := string(remoteWriteConfig.BasicAuth.Password)
 
-		if len(c.PushConfig.BasicAuth.PasswordFile) > 0 {
-			buff, err := ioutil.ReadFile(c.PushConfig.BasicAuth.PasswordFile)
+		if len(remoteWriteConfig.BasicAuth.PasswordFile) > 0 {
+			buff, err := ioutil.ReadFile(remoteWriteConfig.BasicAuth.PasswordFile)
 			if err != nil {
-				return nil, fmt.Errorf("unable to load password file %s: %w", c.PushConfig.BasicAuth.PasswordFile, err)
+				return nil, fmt.Errorf("unable to load password file %s: %w", remoteWriteConfig.BasicAuth.PasswordFile, err)
 			}
 			password = string(buff)
 		}
 
-		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.PushConfig.BasicAuth.Username + ":" + password))
+		encodedAuth := base64.StdEncoding.EncodeToString([]byte(remoteWriteConfig.BasicAuth.Username + ":" + password))
 		headers = map[string]string{
 			"authorization": "Basic " + encodedAuth,
 		}
 	}
 
-	compression := c.PushConfig.Compression
+	compression := remoteWriteConfig.Compression
 	if compression == compressionNone {
 		compression = ""
 	}
 
 	otlpExporter := map[string]interface{}{
-		"endpoint":             c.PushConfig.Endpoint,
+		"endpoint":             remoteWriteConfig.Endpoint,
 		"compression":          compression,
 		"headers":              headers,
-		"insecure":             c.PushConfig.Insecure,
-		"insecure_skip_verify": c.PushConfig.InsecureSkipVerify,
-		"sending_queue":        c.PushConfig.SendingQueue,
-		"retry_on_failure":     c.PushConfig.RetryOnFailure,
+		"insecure":             remoteWriteConfig.Insecure,
+		"insecure_skip_verify": remoteWriteConfig.InsecureSkipVerify,
+		"sending_queue":        remoteWriteConfig.SendingQueue,
+		"retry_on_failure":     remoteWriteConfig.RetryOnFailure,
 	}
 
 	// Apply some sane defaults to the exporter. The
@@ -162,9 +194,64 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		retryConfig["max_elapsed_time"] = "60s"
 	}
 
-	otelMapStructure["exporters"] = map[string]interface{}{
-		"otlp": otlpExporter,
+	return otlpExporter, nil
+}
+
+// exporters builds one or multiple exporters from a remote_write block.
+// It also supports building an exporter from push_config.
+func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
+	if len(c.RemoteWrite) == 0 {
+		otlpExporter, err := exporter(RemoteWriteConfig{
+			Endpoint:           c.PushConfig.Endpoint,
+			Compression:        c.PushConfig.Compression,
+			Insecure:           c.PushConfig.Insecure,
+			InsecureSkipVerify: c.PushConfig.InsecureSkipVerify,
+			BasicAuth:          c.PushConfig.BasicAuth,
+			SendingQueue:       c.PushConfig.SendingQueue,
+			RetryOnFailure:     c.PushConfig.RetryOnFailure,
+		})
+		return map[string]interface{}{
+			"otlp": otlpExporter,
+		}, err
 	}
+
+	exporters := map[string]interface{}{}
+	for i, remoteWriteConfig := range c.RemoteWrite {
+		exporter, err := exporter(remoteWriteConfig)
+		if err != nil {
+			return nil, err
+		}
+		exporterName := fmt.Sprintf("otlp/%d", i)
+		exporters[exporterName] = exporter
+	}
+	return exporters, nil
+}
+
+func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
+	otelMapStructure := map[string]interface{}{}
+
+	if len(c.Receivers) == 0 {
+		return nil, errors.New("must have at least one configured receiver")
+	}
+
+	if len(c.RemoteWrite) != 0 && len(c.PushConfig.Endpoint) != 0 {
+		return nil, errors.New("must not configure push_config and remote_write. push_config is deprecated in favor of remote_write")
+	}
+
+	if c.Batch != nil && c.PushConfig.Batch != nil {
+		return nil, errors.New("must not configure push_config.batch and batch. push_config.batch is deprecated in favor of batch")
+	}
+
+	exporters, err := c.exporters()
+	if err != nil {
+		return nil, err
+	}
+	exportersNames := make([]string, 0, len(exporters))
+	for name := range exporters {
+		exportersNames = append(exportersNames, name)
+	}
+
+	otelMapStructure["exporters"] = exporters
 
 	// processors
 	processors := map[string]interface{}{}
@@ -181,7 +268,10 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		processorNames = append(processorNames, "attributes")
 	}
 
-	if c.PushConfig.Batch != nil {
+	if c.Batch != nil {
+		processors["batch"] = c.Batch
+		processorNames = append(processorNames, "batch")
+	} else if c.PushConfig.Batch != nil {
 		processors["batch"] = c.PushConfig.Batch
 		processorNames = append(processorNames, "batch")
 	}
@@ -199,7 +289,7 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 	otelMapStructure["service"] = map[string]interface{}{
 		"pipelines": map[string]interface{}{
 			"traces": map[string]interface{}{
-				"exporters":  []string{"otlp"},
+				"exporters":  exportersNames,
 				"processors": processorNames,
 				"receivers":  receiverNames,
 			},
@@ -208,7 +298,7 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 
 	// now build the otel configmodel from the mapstructure
 	v := viper.New()
-	err := v.MergeConfigMap(otelMapStructure)
+	err = v.MergeConfigMap(otelMapStructure)
 	if err != nil {
 		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
 	}

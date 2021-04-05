@@ -25,7 +25,7 @@ import (
 )
 
 func TestConfig_Unmarshal_Defaults(t *testing.T) {
-	global := config.DefaultGlobalConfig
+	global := DefaultGlobalConfig
 	cfgText := `name: test
 scrape_configs:
   - job_name: local_scrape
@@ -39,7 +39,7 @@ remote_write:
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
 
-	err = cfg.ApplyDefaults(&global, nil)
+	err = cfg.ApplyDefaults(&global)
 	require.NoError(t, err)
 
 	require.Equal(t, DefaultConfig.HostFilter, cfg.HostFilter)
@@ -48,13 +48,13 @@ remote_write:
 	require.Equal(t, DefaultConfig.WriteStaleOnShutdown, cfg.WriteStaleOnShutdown)
 
 	for _, sc := range cfg.ScrapeConfigs {
-		require.Equal(t, sc.ScrapeInterval, global.ScrapeInterval)
-		require.Equal(t, sc.ScrapeTimeout, global.ScrapeTimeout)
+		require.Equal(t, sc.ScrapeInterval, global.Prometheus.ScrapeInterval)
+		require.Equal(t, sc.ScrapeTimeout, global.Prometheus.ScrapeTimeout)
 	}
 }
 
 func TestConfig_ApplyDefaults_Validations(t *testing.T) {
-	global := config.DefaultGlobalConfig
+	global := DefaultGlobalConfig
 	cfg := DefaultConfig
 	cfg.Name = "instance"
 	cfg.ScrapeConfigs = []*config.ScrapeConfig{{
@@ -104,7 +104,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 		},
 		{
 			"scrape timeout too high",
-			func(c *Config) { c.ScrapeConfigs[0].ScrapeTimeout = global.ScrapeInterval + 1 },
+			func(c *Config) { c.ScrapeConfigs[0].ScrapeTimeout = global.Prometheus.ScrapeInterval + 1 },
 			fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name \"scrape\""),
 		},
 		{
@@ -162,7 +162,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 				tc.mutation(&input)
 			}
 
-			err := input.ApplyDefaults(&global, nil)
+			err := input.ApplyDefaults(&global)
 			if tc.err == nil {
 				require.NoError(t, err)
 			} else {
@@ -173,7 +173,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 }
 
 func TestConfig_ApplyDefaults_HashedName(t *testing.T) {
-	global := config.DefaultGlobalConfig
+	global := DefaultGlobalConfig
 
 	cfgText := `
 name: default
@@ -185,7 +185,7 @@ remote_write:
 
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
-	require.NoError(t, cfg.ApplyDefaults(&global, nil))
+	require.NoError(t, cfg.ApplyDefaults(&global))
 	require.NotEmpty(t, cfg.RemoteWrite[0].Base.Name)
 }
 
@@ -371,23 +371,25 @@ func getTestServer(t *testing.T) (addr string, closeFunc func()) {
 	return httpSrv.Listener.Addr().String(), httpSrv.Close
 }
 
-func getTestGlobalConfig(t *testing.T) config.GlobalConfig {
+func getTestGlobalConfig(t *testing.T) GlobalConfig {
 	t.Helper()
 
-	return config.GlobalConfig{
-		ScrapeInterval:     model.Duration(time.Millisecond * 50),
-		ScrapeTimeout:      model.Duration(time.Millisecond * 100),
-		EvaluationInterval: model.Duration(time.Hour),
+	return GlobalConfig{
+		Prometheus: config.GlobalConfig{
+			ScrapeInterval:     model.Duration(time.Millisecond * 50),
+			ScrapeTimeout:      model.Duration(time.Millisecond * 100),
+			EvaluationInterval: model.Duration(time.Hour),
+		},
 	}
 }
 
-func getTestConfig(t *testing.T, global *config.GlobalConfig, scrapeAddr string) Config {
+func getTestConfig(t *testing.T, global *GlobalConfig, scrapeAddr string) Config {
 	t.Helper()
 
 	scrapeCfg := config.DefaultScrapeConfig
 	scrapeCfg.JobName = "test"
-	scrapeCfg.ScrapeInterval = global.ScrapeInterval
-	scrapeCfg.ScrapeTimeout = global.ScrapeTimeout
+	scrapeCfg.ScrapeInterval = global.Prometheus.ScrapeInterval
+	scrapeCfg.ScrapeTimeout = global.Prometheus.ScrapeTimeout
 	scrapeCfg.ServiceDiscoveryConfigs = discovery.Configs{
 		discovery.StaticConfig{{
 			Targets: []model.LabelSet{{

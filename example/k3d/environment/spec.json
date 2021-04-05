@@ -5,7 +5,7 @@
     "name": "default"
   },
   "spec": {
-    "apiServer": "https://localhost:50443",
+    "apiServer": "https://0.0.0.0:50443",
     "namespace": "default"
   }
 }
