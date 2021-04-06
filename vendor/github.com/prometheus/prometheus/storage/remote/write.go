@@ -24,6 +24,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
 	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/intern"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/storage"
@@ -57,14 +58,7 @@ type WriteStorage struct {
 
 	// For timestampTracker.
 	highestTimestamp *maxTimestamp
-
-	// NewClient defaults to NewWriteClient when creating WriteStorage.
-	NewClient WriteClientFunc
 }
-
-// WriteClientFunc returns a WriteClient given the name of a remote write
-// config. NewWriteClient implements the signature of this function.
-type WriteClientFunc func(name string, conf *ClientConfig) (WriteClient, error)
 
 // NewWriteStorage creates and runs a WriteStorage.
 func NewWriteStorage(logger log.Logger, reg prometheus.Registerer, walDir string, flushDeadline time.Duration, sm ReadyScrapeManager) *WriteStorage {
@@ -90,7 +84,6 @@ func NewWriteStorage(logger log.Logger, reg prometheus.Registerer, walDir string
 				Help:      "Highest timestamp that has come into the remote storage via the Appender interface, in seconds since epoch.",
 			}),
 		},
-		NewClient: NewWriteClient,
 	}
 	if reg != nil {
 		reg.MustRegister(rws.highestTimestamp)
@@ -139,11 +132,13 @@ func (rws *WriteStorage) ApplyConfig(conf *config.Config) error {
 			name = rwConf.Name
 		}
 
-		c, err := rws.NewClient(name, &ClientConfig{
+		c, err := NewWriteClient(name, &ClientConfig{
 			URL:              rwConf.URL,
 			Timeout:          rwConf.RemoteTimeout,
 			HTTPClientConfig: rwConf.HTTPClientConfig,
+			SigV4Config:      rwConf.SigV4Config,
 			Headers:          rwConf.Headers,
+			RetryOnRateLimit: rwConf.QueueConfig.RetryOnRateLimit,
 		})
 		if err != nil {
 			return err
@@ -220,8 +215,8 @@ type timestampTracker struct {
 	highestRecvTimestamp *maxTimestamp
 }
 
-// Add implements storage.Appender.
-func (t *timestampTracker) Add(_ labels.Labels, ts int64, _ float64) (uint64, error) {
+// Append implements storage.Appender.
+func (t *timestampTracker) Append(_ uint64, _ labels.Labels, ts int64, _ float64) (uint64, error) {
 	t.samples++
 	if ts > t.highestTimestamp {
 		t.highestTimestamp = ts
@@ -229,10 +224,8 @@ func (t *timestampTracker) Add(_ labels.Labels, ts int64, _ float64) (uint64, er
 	return 0, nil
 }
 
-// AddFast implements storage.Appender.
-func (t *timestampTracker) AddFast(_ uint64, ts int64, v float64) error {
-	_, err := t.Add(nil, ts, v)
-	return err
+func (t *timestampTracker) AppendExemplar(_ uint64, _ labels.Labels, _ exemplar.Exemplar) (uint64, error) {
+	return 0, nil
 }
 
 // Commit implements storage.Appender.

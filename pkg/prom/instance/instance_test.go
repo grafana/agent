@@ -19,6 +19,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
+	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
@@ -68,9 +69,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			}},
 		},
 	}}
-	cfg.RemoteWrite = []*RemoteWriteConfig{{
-		Base: config.RemoteWriteConfig{Name: "write"},
-	}}
+	cfg.RemoteWrite = []*config.RemoteWriteConfig{{Name: "write"}}
 
 	tt := []struct {
 		name     string
@@ -129,10 +128,10 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 		{
 			"multiple remote writes with same name",
 			func(c *Config) {
-				c.RemoteWrite = append(c.RemoteWrite,
-					&RemoteWriteConfig{Base: config.RemoteWriteConfig{Name: "foo"}},
-					&RemoteWriteConfig{Base: config.RemoteWriteConfig{Name: "foo"}},
-				)
+				c.RemoteWrite = []*config.RemoteWriteConfig{
+					{Name: "foo"},
+					{Name: "foo"},
+				}
 			},
 			fmt.Errorf("found duplicate remote write configs with name \"foo\""),
 		},
@@ -151,7 +150,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			}
 			input.ScrapeConfigs = scrapeConfigs
 
-			var remoteWrites []*RemoteWriteConfig
+			var remoteWrites []*config.RemoteWriteConfig
 			for _, rw := range input.RemoteWrite {
 				rwCopy := *rw
 				remoteWrites = append(remoteWrites, &rwCopy)
@@ -180,13 +179,12 @@ name: default
 host_filter: false
 remote_write:
 - url: http://localhost:9009/api/prom/push
-  sigv4:
-    enabled: true`
+  sigv4: {}`
 
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
 	require.NoError(t, cfg.ApplyDefaults(&global))
-	require.NotEmpty(t, cfg.RemoteWrite[0].Base.Name)
+	require.NotEmpty(t, cfg.RemoteWrite[0].Name)
 }
 
 func TestInstance_Path(t *testing.T) {
@@ -429,6 +427,13 @@ type mockAppender struct {
 	s *mockWalStorage
 }
 
+func (a *mockAppender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
+	if ref == 0 {
+		return a.Add(l, t, v)
+	}
+	return ref, a.AddFast(ref, t, v)
+}
+
 // Add adds a new series and sets its written count to 1.
 func (a *mockAppender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	a.s.mut.Lock()
@@ -450,6 +455,10 @@ func (a *mockAppender) AddFast(ref uint64, t int64, v float64) error {
 
 	a.s.series[ref]++
 	return nil
+}
+
+func (a *mockAppender) AppendExemplar(ref uint64, l labels.Labels, e exemplar.Exemplar) (uint64, error) {
+	return 0, nil
 }
 
 func (a *mockAppender) Commit() error {

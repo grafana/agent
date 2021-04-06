@@ -176,7 +176,7 @@ func (c *ImageClient) All(ctx context.Context) ([]*Image, error) {
 func (c *ImageClient) AllWithOpts(ctx context.Context, opts ImageListOpts) ([]*Image, error) {
 	allImages := []*Image{}
 
-	_, err := c.client.all(func(page int) (*Response, error) {
+	err := c.client.all(func(page int) (*Response, error) {
 		opts.Page = page
 		images, resp, err := c.List(ctx, opts)
 		if err != nil {
