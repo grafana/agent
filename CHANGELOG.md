@@ -3,6 +3,11 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+BREAKING CHANGES: This release has a breaking change for SigV4 support. Please
+read the release notes carefully and our [migration
+guide](./docs/migration-guide.md) to help migrate your configuration files to
+the new format.
+
 As of this release, functionality that is not recommended for production use
 and is expected to change will be tagged interchangably as "experimental" or
 "beta."
