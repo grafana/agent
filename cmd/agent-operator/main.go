@@ -46,8 +46,16 @@ func main() {
 
 	// Register all types that we will be dealing with to schemeBuilder.
 	cfg.Controller.Scheme = runtime.NewScheme()
-	grafana_v1alpha1.AddToScheme(cfg.Controller.Scheme)
-	promop_v1.AddToScheme(cfg.Controller.Scheme)
+
+	for _, add := range []func(*runtime.Scheme) error{
+		grafana_v1alpha1.AddToScheme,
+		promop_v1.AddToScheme,
+	} {
+		if err := add(cfg.Controller.Scheme); err != nil {
+			level.Error(logger).Log("msg", "unable to register to scheme", "err", err)
+			os.Exit(1)
+		}
+	}
 
 	// Initialize the operator by bringing up a new manager and all controllers.
 	m, err := controller.NewManager(controller.GetConfigOrDie(), cfg.Controller)
