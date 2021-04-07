@@ -16,7 +16,7 @@ import (
 // Default name for the Grafana Agent under Windows
 const ServiceName = "Grafana Agent"
 
-//NewWindowsEventLogger creates a new logger that writes to the event log
+// NewWindowsEventLogger creates a new logger that writes to the event log
 func NewWindowsEventLogger(cfg *server.Config) *Logger {
 	return newLogger(cfg, makeWindowsEventLogger)
 }
@@ -25,7 +25,7 @@ func makeWindowsEventLogger(cfg *server.Config) (log.Logger, error) {
 	// Setup the log in windows events
 	err := el.InstallAsEventCreate(ServiceName, el.Error|el.Info|el.Warning)
 
-	// We expect an error of 'already exists' for subsequent runs,
+	// Agent should expect an error of 'already exists' if the Event Log sink has already previously been installed
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		return nil, err
 	}
@@ -34,14 +34,13 @@ func makeWindowsEventLogger(cfg *server.Config) (log.Logger, error) {
 		return nil, err
 	}
 
-	// Cleanup the handle when exits scope, this could be handled via explicit close but would need to change
-	// more upstream, and its not a huge issue if it hangs around slightly longer than it should
+	// Ensure the logger gets closed when the GC runs. It's valid to have more than one win logger open concurrently.
 	runtime.SetFinalizer(il, func(l *el.Log) {
 		l.Close()
 	})
 
-	//  These are setup to be writers for each Windows log level
-	//  Setup this way so we can utilize all the benefits of logformatter
+	// These are setup to be writers for each Windows log level
+	// Setup this way so we can utilize all the benefits of logformatter
 	infoLogger := newWinLogWrapper(cfg.LogFormat, func(p []byte) error {
 		return il.Info(1, string(p))
 	})
@@ -54,7 +53,6 @@ func makeWindowsEventLogger(cfg *server.Config) (log.Logger, error) {
 	})
 
 	wl := &winLogger{
-		internalLog:   il,
 		errorLogger:   errorLogger,
 		infoLogger:    infoLogger,
 		warningLogger: warningLogger,
@@ -82,8 +80,6 @@ func newWinLogWrapper(format logging.Format, write func(p []byte) error) log.Log
 }
 
 type winLogger struct {
-	internalLog *el.Log
-
 	errorLogger   log.Logger
 	infoLogger    log.Logger
 	warningLogger log.Logger

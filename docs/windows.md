@@ -32,4 +32,4 @@ If the Grafana Agent is installed using the installer, it can be uninstalled via
 
 ## Logs
 
-When Grafana Agent is running as a Windows Service the Grafana Agent will write logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. 
+When Grafana Agent is running as a Windows Service the Grafana Agent will write logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the source of `Grafana Agent`.
