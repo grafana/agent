@@ -45,6 +45,8 @@ and is expected to change will be tagged interchangably as "experimental" or
 
 - [ENHANCEMENT] Update Prometheus dependency to v2.26.0. (@rfratto)
 
+- [ENHANCEMENT] Agent running as Windows Service will write logs to the Windows Event log (@mattdurham)
+
 - [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
   to the WAL. (@rfratto)
 
