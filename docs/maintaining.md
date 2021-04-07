@@ -66,6 +66,9 @@ export GPG_TTY=$(tty)
 
 ## Performing the Release
 
+If you are performing a release for a release candidate, skip straight to step
+8.
+
 1. Create a new branch to update `CHANGELOG.md` and references to version
    numbers across the entire repository (e.g. README.md in the project root).
 2. Modify `CHANGELOG.md` with the new version number and its release date.
