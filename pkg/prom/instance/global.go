@@ -9,8 +9,8 @@ var DefaultGlobalConfig = GlobalConfig{
 
 // GlobalConfig holds global settings that apply to all instances by default.
 type GlobalConfig struct {
-	Prometheus  config.GlobalConfig  `yaml:",inline"`
-	RemoteWrite []*RemoteWriteConfig `yaml:"remote_write,omitempty"`
+	Prometheus  config.GlobalConfig         `yaml:",inline"`
+	RemoteWrite []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.

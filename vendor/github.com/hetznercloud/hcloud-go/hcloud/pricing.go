@@ -14,6 +14,7 @@ type Pricing struct {
 	ServerBackup      ServerBackupPricing
 	ServerTypes       []ServerTypePricing
 	LoadBalancerTypes []LoadBalancerTypePricing
+	Volume            VolumePricing
 }
 
 // Price represents a price. Net amount, gross amount, as well as VAT rate are
@@ -39,6 +40,11 @@ type FloatingIPPricing struct {
 // TrafficPricing provides pricing information for traffic.
 type TrafficPricing struct {
 	PerTB Price
+}
+
+// VolumePricing provides pricing information for a Volume.
+type VolumePricing struct {
+	PerGBMonthly Price
 }
 
 // ServerBackupPricing provides pricing information for server backups.

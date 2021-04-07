@@ -15,7 +15,6 @@ data:
             name: agent
             remote_write:
               - sigv4:
-                    enabled: true
                     region: ${REGION}
                 url: ${REMOTE_WRITE_URL}
             scrape_configs:
@@ -186,7 +185,6 @@ data:
             name: agent
             remote_write:
               - sigv4:
-                    enabled: true
                     region: ${REGION}
                 url: ${REMOTE_WRITE_URL}
             scrape_configs:
