@@ -43,7 +43,6 @@ log_format: json`
 	level.Debug(l).Log("msg", "this should appear")
 	require.JSONEq(t, `{
 		"level":"debug",
-		"msg":"this should appear",
-		"caller": "logger.go:70"
+		"msg":"this should appear"
 	}`, buf.String())
 }
