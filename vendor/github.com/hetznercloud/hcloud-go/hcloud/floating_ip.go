@@ -141,7 +141,7 @@ func (c *FloatingIPClient) All(ctx context.Context) ([]*FloatingIP, error) {
 func (c *FloatingIPClient) AllWithOpts(ctx context.Context, opts FloatingIPListOpts) ([]*FloatingIP, error) {
 	allFloatingIPs := []*FloatingIP{}
 
-	_, err := c.client.all(func(page int) (*Response, error) {
+	err := c.client.all(func(page int) (*Response, error) {
 		opts.Page = page
 		floatingIPs, resp, err := c.List(ctx, opts)
 		if err != nil {

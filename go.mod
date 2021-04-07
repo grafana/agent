@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/aws/aws-sdk-go v1.37.8
 	github.com/cortexproject/cortex v1.6.1-0.20210204145131-7dac81171c66
 	github.com/drone/envsubst v1.0.2
 	github.com/go-kit/kit v0.10.0
@@ -17,17 +16,18 @@ require (
 	github.com/hashicorp/consul/api v1.8.1
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
-	github.com/miekg/dns v1.1.38
+	github.com/miekg/dns v1.1.41
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
 	github.com/oliver006/redis_exporter v1.15.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.21.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
-	github.com/prometheus/client_golang v1.9.0
-	github.com/prometheus/common v0.17.0
+	github.com/prometheus/client_golang v1.10.0
+	github.com/prometheus/common v0.20.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.8.0
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
@@ -42,12 +42,12 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/weaveworks/common v0.0.0-20210112142934-23c8d7fa6120
 	github.com/wrouesnel/postgres_exporter v0.0.0-00010101000000-000000000000
-	go.opencensus.io v0.22.6
+	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.21.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
-	google.golang.org/grpc v1.35.0
+	golang.org/x/sys v0.0.0-20210324051608-47abb6519492
+	google.golang.org/grpc v1.36.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
@@ -75,7 +75,7 @@ replace (
 	k8s.io/client-go => k8s.io/client-go v0.19.4
 )
 
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20210218144103-50bc1c15f0c7
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20210406130955-88f57478bf6c
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
 

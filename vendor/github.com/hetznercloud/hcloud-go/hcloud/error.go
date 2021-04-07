@@ -51,6 +51,13 @@ const (
 	ErrorCodeNoSpaceLeftInLocation ErrorCode = "no_space_left_in_location" // There is no volume space left in the given location
 	ErrorCodeVolumeAlreadyAttached ErrorCode = "volume_already_attached"   // Volume is already attached to a server, detach first
 
+	// Firewall related error codes
+	ErrorCodeFirewallAlreadyApplied  ErrorCode = "firewall_already_applied"  // Firewall was already applied on resource
+	ErrorCodeFirewallAlreadyRemoved  ErrorCode = "firewall_already_removed"  // Firewall was already removed from the resource
+	ErrorCodeIncompatibleNetworkType ErrorCode = "incompatible_network_type" // The Network type is incompatible for the given resource
+	ErrorCodeResourceInUse           ErrorCode = "resource_in_use"           // Firewall must not be in use to be deleted
+	ErrorCodeServerAlreadyAdded      ErrorCode = "server_already_added"      // Server added more than one time to resource
+
 	// Deprecated error codes
 	// The actual value of this error code is limit_reached. The new error code
 	// rate_limit_exceeded for ratelimiting was introduced before Hetzner Cloud

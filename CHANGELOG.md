@@ -3,6 +3,11 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+BREAKING CHANGES: This release has a breaking change for SigV4 support. Please
+read the release notes carefully and our [migration
+guide](./docs/migration-guide.md) to help migrate your configuration files to
+the new format.
+
 As of this release, functionality that is not recommended for production use
 and is expected to change will be tagged interchangably as "experimental" or
 "beta."
@@ -28,12 +33,17 @@ and is expected to change will be tagged interchangably as "experimental" or
   configuration file with defaults applied that the Agent has loaded from disk.
   (@rfratto)
 
+- [FEATURE] (beta) Support generating metrics and exposing them via a Prometheus exporter
+  from span data. (@yeya24)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Add global remote_write configuration that is shared between all
   instances and integrations. (@mattdurham)
 
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
+
+- [ENHANCEMENT] Update Prometheus dependency to v2.26.0. (@rfratto)
 
 - [ENHANCEMENT] Agent running as Windows Service will write logs to the Windows Event log (@mattdurham)
 

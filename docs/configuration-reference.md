@@ -1867,26 +1867,24 @@ basic_auth:
 # read from the configured file. It is mutually exclusive with `bearer_token`.
 [ bearer_token_file: /path/to/bearer/token/file ]
 
-# Configures SigV4 request signing. The default credentials chain will be used,
-# documented here:
-#
-# https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-credentials
-#
-# Region must be supplied if it cannot be inferred from the shared config
-# ($HOME/.aws/config when AWS_SDK_LOAD_CONFIG is truthy) or the environment
-# (AWS_REGION).
-#
-# This feature is only currently available for remote_write of Prometheus
-# metrics.
+# Optionally configures AWS's Signature Verification 4 signing process to
+# sign requests. Cannot be set at the same time as basic_auth or authorization.
+# To use the default credentials from the AWS SDK, use `sigv4: {}`.
 sigv4:
-  # Enable SigV4 request signing. May not be enabled at the same time as
-  # configuring basic auth or bearer_token/bearer_token_file.
-  [ enabled: <boolean> | default = false ]
+  # The AWS region. If blank, the region from the default credentials chain
+  # is used.
+  [ region: <string> ]
 
-  # Region to use for signing the requests. Must be supplied if region cannot
-  # be inferred from environment. Region must match the region of the AMP
-  # workspace specified by the remote_write URL.
-  [region: <string>]
+  # The AWS API keys. If blank, the environment variables `AWS_ACCESS_KEY_ID`
+  # and `AWS_SECRET_ACCESS_KEY` are used.
+  [ access_key: <string> ]
+  [ secret_key: <secret> ]
+
+  # Named AWS profile used to authenticate.
+  [ profile: <string> ]
+
+  # AWS Role ARN, an alternative to using AWS API keys.
+  [ role_arn: <string> ]
 
 # Configures the remote write request's TLS settings.
 tls_config:
@@ -2038,7 +2036,7 @@ remote_write:
     [ sending_queue: <otlpexporter.sending_queue> ]
     [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
-# Receiver configurations are mapped directly into the OpenTelmetry receivers block.
+# Receiver configurations are mapped directly into the OpenTelemetry receivers block.
 #   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 #   Documentation for each receiver can be found at https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
 receivers:
@@ -2047,6 +2045,28 @@ receivers:
 # If a match is found then relabeling rules are applied.
 scrape_configs:
   - [<scrape_config>]
+
+# spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics from span data.
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/README.md.
+# spanmetrics generates two metrics from spans and uses opentelemetry prometheus exporter to serve the metrics locally.
+# In order to send these metrics to a remote storage, you have to scrape that endpoint.
+# The first one is `calls` which is a counter to compute requests.
+# The second one is `latency` which is a histogram to compute the operations' duration.
+# If you want to rename them, you can configure the `namespace` option of prometheus exporter.
+# This is an experimental feature of Opentelemetry collector and the behavior may change in the future.
+spanmetrics:
+  # latency_histogram_buckets and dimensions are the same as the configs in spanmetricsprocessor.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47
+  [ latency_histogram_buckets: <spanmetricsprocessor.latency_histogram_buckets> ]
+  [ dimensions: <spanmetricsprocessor.dimensions> ]
+
+  # metrics_exporter config embeds the configuration for opentelemetry prometheus exporter.
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/v0.21.0/exporter/prometheusexporter/README.md
+  metrics_exporter:
+    [ endpoint: <prometheusexporter.endpoint> ]
+    [ const_labels: <prometheusexporter.const_labels> ]
+    [ namespace: <prometheusexporter.namespace> ]
+    [ send_timestamps: <prometheusexporter.send_timestamps> ]
 ```
 
 ### integrations_config

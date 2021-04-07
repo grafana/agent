@@ -114,7 +114,7 @@ func (c *CertificateClient) All(ctx context.Context) ([]*Certificate, error) {
 	opts := CertificateListOpts{}
 	opts.PerPage = 50
 
-	_, err := c.client.all(func(page int) (*Response, error) {
+	err := c.client.all(func(page int) (*Response, error) {
 		opts.Page = page
 		Certificate, resp, err := c.List(ctx, opts)
 		if err != nil {
@@ -134,7 +134,7 @@ func (c *CertificateClient) All(ctx context.Context) ([]*Certificate, error) {
 func (c *CertificateClient) AllWithOpts(ctx context.Context, opts CertificateListOpts) ([]*Certificate, error) {
 	var allCertificates []*Certificate
 
-	_, err := c.client.all(func(page int) (*Response, error) {
+	err := c.client.all(func(page int) (*Response, error) {
 		opts.Page = page
 		Certificates, resp, err := c.List(ctx, opts)
 		if err != nil {

@@ -40,9 +40,9 @@ func ActionFromSchema(s schema.Action) *Action {
 
 // ActionsFromSchema converts a slice of schema.Action to a slice of Action.
 func ActionsFromSchema(s []schema.Action) []*Action {
-	var actions []*Action
-	for _, a := range s {
-		actions = append(actions, ActionFromSchema(a))
+	actions := make([]*Action, len(s))
+	for i, a := range s {
+		actions[i] = ActionFromSchema(a)
 	}
 	return actions
 }
@@ -183,6 +183,13 @@ func ServerPublicNetFromSchema(s schema.ServerPublicNet) ServerPublicNet {
 	}
 	for _, id := range s.FloatingIPs {
 		publicNet.FloatingIPs = append(publicNet.FloatingIPs, &FloatingIP{ID: id})
+	}
+	for _, fw := range s.Firewalls {
+		publicNet.Firewalls = append(publicNet.Firewalls,
+			&ServerFirewallStatus{
+				Firewall: Firewall{ID: fw.ID},
+				Status:   FirewallStatus(fw.Status)},
+		)
 	}
 	return publicNet
 }
@@ -583,8 +590,7 @@ func ErrorFromSchema(s schema.Error) Error {
 		Message: s.Message,
 	}
 
-	switch d := s.Details.(type) {
-	case schema.ErrorDetailsInvalidInput:
+	if d, ok := s.Details.(schema.ErrorDetailsInvalidInput); ok {
 		details := ErrorDetailsInvalidInput{
 			Fields: []ErrorDetailsInvalidInputField{},
 		}
@@ -628,6 +634,14 @@ func PricingFromSchema(s schema.Pricing) Pricing {
 		},
 		ServerBackup: ServerBackupPricing{
 			Percentage: s.ServerBackup.Percentage,
+		},
+		Volume: VolumePricing{
+			PerGBMonthly: Price{
+				Currency: s.Currency,
+				VATRate:  s.VATRate,
+				Net:      s.Volume.PricePerGBPerMonth.Net,
+				Gross:    s.Volume.PricePerGBPerMonth.Gross,
+			},
 		},
 	}
 	for _, serverType := range s.ServerTypes {
@@ -685,6 +699,50 @@ func PricingFromSchema(s schema.Pricing) Pricing {
 		})
 	}
 	return p
+}
+
+// FirewallFromSchema converts a schema.Firewall to a Firewall.
+func FirewallFromSchema(s schema.Firewall) *Firewall {
+	f := &Firewall{
+		ID:      s.ID,
+		Name:    s.Name,
+		Labels:  map[string]string{},
+		Created: s.Created,
+	}
+	for key, value := range s.Labels {
+		f.Labels[key] = value
+	}
+	for _, res := range s.AppliedTo {
+		r := FirewallResource{Type: FirewallResourceType(res.Type)}
+		if r.Type == FirewallResourceTypeServer {
+			r.Server = &FirewallResourceServer{ID: res.Server.ID}
+		}
+		f.AppliedTo = append(f.AppliedTo, r)
+	}
+	for _, rule := range s.Rules {
+		sourceIPs := []net.IPNet{}
+		for _, sourceIP := range rule.SourceIPs {
+			_, mask, err := net.ParseCIDR(sourceIP)
+			if err == nil && mask != nil {
+				sourceIPs = append(sourceIPs, *mask)
+			}
+		}
+		destinationIPs := []net.IPNet{}
+		for _, destinationIP := range rule.DestinationIPs {
+			_, mask, err := net.ParseCIDR(destinationIP)
+			if err == nil && mask != nil {
+				destinationIPs = append(destinationIPs, *mask)
+			}
+		}
+		f.Rules = append(f.Rules, FirewallRule{
+			Direction:      FirewallRuleDirection(rule.Direction),
+			SourceIPs:      sourceIPs,
+			DestinationIPs: destinationIPs,
+			Protocol:       FirewallRuleProtocol(rule.Protocol),
+			Port:           rule.Port,
+		})
+	}
+	return f
 }
 
 func loadBalancerCreateOptsToSchema(opts LoadBalancerCreateOpts) schema.LoadBalancerCreateRequest {
@@ -891,6 +949,83 @@ func loadBalancerUpdateServiceOptsToSchema(opts LoadBalancerUpdateServiceOpts) s
 		}
 	}
 	return req
+}
+
+func firewallCreateOptsToSchema(opts FirewallCreateOpts) schema.FirewallCreateRequest {
+	req := schema.FirewallCreateRequest{
+		Name: opts.Name,
+	}
+	if opts.Labels != nil {
+		req.Labels = &opts.Labels
+	}
+	for _, rule := range opts.Rules {
+		schemaRule := schema.FirewallRule{
+			Direction: string(rule.Direction),
+			Protocol:  string(rule.Protocol),
+			Port:      rule.Port,
+		}
+		switch rule.Direction {
+		case FirewallRuleDirectionOut:
+			schemaRule.DestinationIPs = make([]string, len(rule.DestinationIPs))
+			for i, destinationIP := range rule.DestinationIPs {
+				schemaRule.DestinationIPs[i] = destinationIP.String()
+			}
+		case FirewallRuleDirectionIn:
+			schemaRule.SourceIPs = make([]string, len(rule.SourceIPs))
+			for i, sourceIP := range rule.SourceIPs {
+				schemaRule.SourceIPs[i] = sourceIP.String()
+			}
+		}
+		req.Rules = append(req.Rules, schemaRule)
+	}
+	for _, res := range opts.ApplyTo {
+		schemaFirewallResource := schema.FirewallResource{
+			Type: string(res.Type),
+		}
+		if res.Type == FirewallResourceTypeServer {
+			schemaFirewallResource.Server = &schema.FirewallResourceServer{
+				ID: res.Server.ID,
+			}
+		}
+
+		req.ApplyTo = append(req.ApplyTo, schemaFirewallResource)
+	}
+	return req
+}
+
+func firewallSetRulesOptsToSchema(opts FirewallSetRulesOpts) schema.FirewallActionSetRulesRequest {
+	req := schema.FirewallActionSetRulesRequest{Rules: []schema.FirewallRule{}}
+	for _, rule := range opts.Rules {
+		schemaRule := schema.FirewallRule{
+			Direction: string(rule.Direction),
+			Protocol:  string(rule.Protocol),
+			Port:      rule.Port,
+		}
+		switch rule.Direction {
+		case FirewallRuleDirectionOut:
+			schemaRule.DestinationIPs = make([]string, len(rule.DestinationIPs))
+			for i, destinationIP := range rule.DestinationIPs {
+				schemaRule.DestinationIPs[i] = destinationIP.String()
+			}
+		case FirewallRuleDirectionIn:
+			schemaRule.SourceIPs = make([]string, len(rule.SourceIPs))
+			for i, sourceIP := range rule.SourceIPs {
+				schemaRule.SourceIPs[i] = sourceIP.String()
+			}
+		}
+		req.Rules = append(req.Rules, schemaRule)
+	}
+	return req
+}
+
+func firewallResourceToSchema(resource FirewallResource) schema.FirewallResource {
+	s := schema.FirewallResource{
+		Type: string(resource.Type),
+	}
+	if resource.Type == FirewallResourceTypeServer {
+		s.Server = &schema.FirewallResourceServer{ID: resource.Server.ID}
+	}
+	return s
 }
 
 func serverMetricsFromSchema(s *schema.ServerGetMetricsResponse) (*ServerMetrics, error) {
