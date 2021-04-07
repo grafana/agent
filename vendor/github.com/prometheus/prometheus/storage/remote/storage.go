@@ -54,7 +54,7 @@ type Storage struct {
 	logger log.Logger
 	mtx    sync.Mutex
 
-	Write *WriteStorage
+	rws *WriteStorage
 
 	// For reads.
 	queryables             []storage.SampleAndChunkQueryable
@@ -71,7 +71,7 @@ func NewStorage(l log.Logger, reg prometheus.Registerer, stCallback startTimeCal
 		logger:                 logging.Dedupe(l, 1*time.Minute),
 		localStartTimeCallback: stCallback,
 	}
-	s.Write = NewWriteStorage(s.logger, reg, walDir, flushDeadline, sm)
+	s.rws = NewWriteStorage(s.logger, reg, walDir, flushDeadline, sm)
 	return s
 }
 
@@ -80,7 +80,7 @@ func (s *Storage) ApplyConfig(conf *config.Config) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	if err := s.Write.ApplyConfig(conf); err != nil {
+	if err := s.rws.ApplyConfig(conf); err != nil {
 		return err
 	}
 
@@ -111,6 +111,7 @@ func (s *Storage) ApplyConfig(conf *config.Config) error {
 			URL:              rrConf.URL,
 			Timeout:          rrConf.RemoteTimeout,
 			HTTPClientConfig: rrConf.HTTPClientConfig,
+			Headers:          rrConf.Headers,
 		})
 		if err != nil {
 			return err
@@ -175,14 +176,14 @@ func (s *Storage) ChunkQuerier(ctx context.Context, mint, maxt int64) (storage.C
 
 // Appender implements storage.Storage.
 func (s *Storage) Appender(ctx context.Context) storage.Appender {
-	return s.Write.Appender(ctx)
+	return s.rws.Appender(ctx)
 }
 
 // Close the background processing of the storage queues.
 func (s *Storage) Close() error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	return s.Write.Close()
+	return s.rws.Close()
 }
 
 func labelsToEqualityMatchers(ls model.LabelSet) []*labels.Matcher {

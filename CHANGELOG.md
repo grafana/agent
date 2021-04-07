@@ -3,6 +3,11 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+BREAKING CHANGES: This release has a breaking change for SigV4 support. Please
+read the release notes carefully and our [migration
+guide](./docs/migration-guide.md) to help migrate your configuration files to
+the new format.
+
 As of this release, functionality that is not recommended for production use
 and is expected to change will be tagged interchangably as "experimental" or
 "beta."
@@ -37,6 +42,8 @@ and is expected to change will be tagged interchangably as "experimental" or
   instances and integrations. (@mattdurham)
 
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
+
+- [ENHANCEMENT] Update Prometheus dependency to v2.26.0. (@rfratto)
 
 - [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
   to the WAL. (@rfratto)

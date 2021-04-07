@@ -283,7 +283,7 @@ func (c *LoadBalancerClient) All(ctx context.Context) ([]*LoadBalancer, error) {
 	opts := LoadBalancerListOpts{}
 	opts.PerPage = 50
 
-	_, err := c.client.all(func(page int) (*Response, error) {
+	err := c.client.all(func(page int) (*Response, error) {
 		opts.Page = page
 		LoadBalancer, resp, err := c.List(ctx, opts)
 		if err != nil {
@@ -303,7 +303,7 @@ func (c *LoadBalancerClient) All(ctx context.Context) ([]*LoadBalancer, error) {
 func (c *LoadBalancerClient) AllWithOpts(ctx context.Context, opts LoadBalancerListOpts) ([]*LoadBalancer, error) {
 	var allLoadBalancers []*LoadBalancer
 
-	_, err := c.client.all(func(page int) (*Response, error) {
+	err := c.client.all(func(page int) (*Response, error) {
 		opts.Page = page
 		LoadBalancers, resp, err := c.List(ctx, opts)
 		if err != nil {

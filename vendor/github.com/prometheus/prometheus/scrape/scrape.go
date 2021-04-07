@@ -38,6 +38,7 @@ import (
 
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/intern"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/pool"
@@ -143,25 +144,31 @@ var (
 	targetScrapeSampleDuplicate = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "prometheus_target_scrapes_sample_duplicate_timestamp_total",
-			Help: "Total number of samples rejected due to duplicate timestamps but different values",
+			Help: "Total number of samples rejected due to duplicate timestamps but different values.",
 		},
 	)
 	targetScrapeSampleOutOfOrder = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "prometheus_target_scrapes_sample_out_of_order_total",
-			Help: "Total number of samples rejected due to not being out of the expected order",
+			Help: "Total number of samples rejected due to not being out of the expected order.",
 		},
 	)
 	targetScrapeSampleOutOfBounds = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "prometheus_target_scrapes_sample_out_of_bounds_total",
-			Help: "Total number of samples rejected due to timestamp falling outside of the time bounds",
+			Help: "Total number of samples rejected due to timestamp falling outside of the time bounds.",
 		},
 	)
 	targetScrapeCacheFlushForced = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "prometheus_target_scrapes_cache_flush_forced_total",
 			Help: "How many times a scrape cache was flushed due to getting big while scrapes are failing.",
+		},
+	)
+	targetScrapeExemplarOutOfOrder = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "prometheus_target_scrapes_exemplar_out_of_order_total",
+			Help: "Total number of exemplar rejected due to not being out of the expected order.",
 		},
 	)
 )
@@ -185,6 +192,7 @@ func init() {
 		targetScrapePoolTargetsAdded,
 		targetScrapeCacheFlushForced,
 		targetMetadataCache,
+		targetScrapeExemplarOutOfOrder,
 	)
 }
 
@@ -1007,7 +1015,7 @@ func (sl *scrapeLoop) run(interval, timeout time.Duration, errc chan<- error) {
 
 	var last time.Time
 
-	alignedScrapeTime := time.Now()
+	alignedScrapeTime := time.Now().Round(0)
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -1025,7 +1033,9 @@ mainLoop:
 		// Temporary workaround for a jitter in go timers that causes disk space
 		// increase in TSDB.
 		// See https://github.com/prometheus/prometheus/issues/7846
-		scrapeTime := time.Now()
+		// Calling Round ensures the time used is the wall clock, as otherwise .Sub
+		// and .Add on time.Time behave differently (see time package docs).
+		scrapeTime := time.Now().Round(0)
 		if AlignScrapeTimestamps && interval > 100*scrapeTimestampTolerance {
 			// For some reason, a tick might have been skipped, in which case we
 			// would call alignedScrapeTime.Add(interval) multiple times.
@@ -1245,9 +1255,10 @@ func (sl *scrapeLoop) getCache() *scrapeCache {
 }
 
 type appendErrors struct {
-	numOutOfOrder  int
-	numDuplicates  int
-	numOutOfBounds int
+	numOutOfOrder         int
+	numDuplicates         int
+	numOutOfBounds        int
+	numExemplarOutOfOrder int
 }
 
 func (sl *scrapeLoop) append(app storage.Appender, b []byte, contentType string, ts time.Time) (total, added, seriesAdded int, err error) {
@@ -1272,6 +1283,7 @@ loop:
 		var (
 			et          textparse.Entry
 			sampleAdded bool
+			e           exemplar.Exemplar
 		)
 		if et, err = p.Next(); err != nil {
 			if err == io.EOF {
@@ -1308,20 +1320,19 @@ loop:
 			continue
 		}
 		ce, ok := sl.cache.get(yoloString(met))
+		var (
+			ref  uint64
+			lset labels.Labels
+			mets string
+			hash uint64
+		)
 
 		if ok {
-			err = app.AddFast(ce.ref, t, v)
-			_, err = sl.checkAddError(ce, met, tp, err, &sampleLimitErr, &appErrs)
-			// In theory this should never happen.
-			if err == storage.ErrNotFound {
-				ok = false
-			}
-		}
-		if !ok {
-			var lset labels.Labels
-
-			mets := p.Metric(&lset)
-			hash := lset.Hash()
+			ref = ce.ref
+			lset = ce.lset
+		} else {
+			mets = p.Metric(&lset)
+			hash = lset.Hash()
 
 			// Hash label set as it is seen local to the target. Then add target labels
 			// and relabeling and store the final label set.
@@ -1337,19 +1348,19 @@ loop:
 				err = errNameLabelMandatory
 				break loop
 			}
+		}
 
-			intern.InternLabels(intern.Global, lset)
-
-			var ref uint64
-			ref, err = app.Add(lset, t, v)
-			sampleAdded, err = sl.checkAddError(nil, met, tp, err, &sampleLimitErr, &appErrs)
-			if err != nil {
-				if err != storage.ErrNotFound {
-					level.Debug(sl.l).Log("msg", "Unexpected error", "series", string(met), "err", err)
-				}
-				break loop
+		intern.InternLabels(intern.Global, lset)
+		ref, err = app.Append(ref, lset, t, v)
+		sampleAdded, err = sl.checkAddError(ce, met, tp, err, &sampleLimitErr, &appErrs)
+		if err != nil {
+			if err != storage.ErrNotFound {
+				level.Debug(sl.l).Log("msg", "Unexpected error", "series", string(met), "err", err)
 			}
+			break loop
+		}
 
+		if !ok {
 			if tp == nil {
 				// Bypass staleness logic if there is an explicit timestamp.
 				sl.cache.trackStaleness(hash, lset)
@@ -1363,6 +1374,18 @@ loop:
 		// Increment added even if there's an error so we correctly report the
 		// number of samples remaining after relabeling.
 		added++
+
+		if hasExemplar := p.Exemplar(&e); hasExemplar {
+			if !e.HasTs {
+				e.Ts = t
+			}
+			_, exemplarErr := app.AppendExemplar(ref, lset, e)
+			exemplarErr = sl.checkAddExemplarError(exemplarErr, e, &appErrs)
+			if exemplarErr != nil {
+				// Since exemplar storage is still experimental, we don't fail the scrape on ingestion errors.
+				level.Debug(sl.l).Log("msg", "Error while adding exemplar in AddExemplar", "exemplar", fmt.Sprintf("%+v", e), "err", exemplarErr)
+			}
+		}
 
 	}
 	if sampleLimitErr != nil {
@@ -1381,10 +1404,13 @@ loop:
 	if appErrs.numOutOfBounds > 0 {
 		level.Warn(sl.l).Log("msg", "Error on ingesting samples that are too old or are too far into the future", "num_dropped", appErrs.numOutOfBounds)
 	}
+	if appErrs.numExemplarOutOfOrder > 0 {
+		level.Warn(sl.l).Log("msg", "Error on ingesting out-of-order exemplars", "num_dropped", appErrs.numExemplarOutOfOrder)
+	}
 	if err == nil {
 		sl.cache.forEachStale(func(lset labels.Labels) bool {
 			// Series no longer exposed, mark it stale.
-			_, err = app.Add(lset, defTime, math.Float64frombits(value.StaleNaN))
+			_, err = app.Append(0, lset, defTime, math.Float64frombits(value.StaleNaN))
 			switch errors.Cause(err) {
 			case storage.ErrOutOfOrderSample, storage.ErrDuplicateSampleForTimestamp:
 				// Do not count these in logging, as this is expected if a target
@@ -1435,6 +1461,20 @@ func (sl *scrapeLoop) checkAddError(ce *cacheEntry, met []byte, tp *int64, err e
 		return false, nil
 	default:
 		return false, err
+	}
+}
+
+func (sl *scrapeLoop) checkAddExemplarError(err error, e exemplar.Exemplar, appErrs *appendErrors) error {
+	switch errors.Cause(err) {
+	case storage.ErrNotFound:
+		return storage.ErrNotFound
+	case storage.ErrOutOfOrderExemplar:
+		appErrs.numExemplarOutOfOrder++
+		level.Debug(sl.l).Log("msg", "Out of order exemplar", "exemplar", fmt.Sprintf("%+v", e))
+		targetScrapeExemplarOutOfOrder.Inc()
+		return nil
+	default:
+		return err
 	}
 }
 
@@ -1501,38 +1541,32 @@ func (sl *scrapeLoop) reportStale(app storage.Appender, start time.Time) (err er
 
 func (sl *scrapeLoop) addReportSample(app storage.Appender, s string, t int64, v float64) error {
 	ce, ok := sl.cache.get(s)
+	var ref uint64
+	var lset labels.Labels
 	if ok {
-		err := app.AddFast(ce.ref, t, v)
-		switch errors.Cause(err) {
-		case nil:
-			return nil
-		case storage.ErrNotFound:
-			// Try an Add.
-		case storage.ErrOutOfOrderSample, storage.ErrDuplicateSampleForTimestamp:
-			// Do not log here, as this is expected if a target goes away and comes back
-			// again with a new scrape loop.
-			return nil
-		default:
-			return err
+		ref = ce.ref
+		lset = ce.lset
+	} else {
+		lset = labels.Labels{
+			// The constants are suffixed with the invalid \xff unicode rune to avoid collisions
+			// with scraped metrics in the cache.
+			// We have to drop it when building the actual metric.
+			labels.Label{Name: labels.MetricName, Value: s[:len(s)-1]},
 		}
-	}
-	lset := labels.Labels{
-		// The constants are suffixed with the invalid \xff unicode rune to avoid collisions
-		// with scraped metrics in the cache.
-		// We have to drop it when building the actual metric.
-		labels.Label{Name: labels.MetricName, Value: s[:len(s)-1]},
+		lset = sl.reportSampleMutator(lset)
 	}
 
-	hash := lset.Hash()
-	lset = sl.reportSampleMutator(lset)
-
-	ref, err := app.Add(lset, t, v)
+	ref, err := app.Append(ref, lset, t, v)
 	switch errors.Cause(err) {
 	case nil:
-		intern.InternLabels(intern.Global, lset)
-		sl.cache.addRef(s, ref, lset, hash)
+		if !ok {
+			intern.InternLabels(intern.Global, lset)
+			sl.cache.addRef(s, ref, lset, lset.Hash())
+		}
 		return nil
 	case storage.ErrOutOfOrderSample, storage.ErrDuplicateSampleForTimestamp:
+		// Do not log here, as this is expected if a target goes away and comes back
+		// again with a new scrape loop.
 		return nil
 	default:
 		return err

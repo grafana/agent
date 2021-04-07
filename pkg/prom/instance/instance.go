@@ -56,11 +56,11 @@ var (
 // Config is a specific agent that runs within the overall Prometheus
 // agent. It has its own set of scrape_configs and remote_write rules.
 type Config struct {
-	Name                     string                 `yaml:"name,omitempty"`
-	HostFilter               bool                   `yaml:"host_filter,omitempty"`
-	HostFilterRelabelConfigs []*relabel.Config      `yaml:"host_filter_relabel_configs,omitempty"`
-	ScrapeConfigs            []*config.ScrapeConfig `yaml:"scrape_configs,omitempty"`
-	RemoteWrite              []*RemoteWriteConfig   `yaml:"remote_write,omitempty"`
+	Name                     string                      `yaml:"name,omitempty"`
+	HostFilter               bool                        `yaml:"host_filter,omitempty"`
+	HostFilterRelabelConfigs []*relabel.Config           `yaml:"host_filter_relabel_configs,omitempty"`
+	ScrapeConfigs            []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty"`
+	RemoteWrite              []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// How frequently the WAL should be truncated.
 	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty"`
@@ -71,19 +71,6 @@ type Config struct {
 
 	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty"`
 	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty"`
-}
-
-// BaseRemoteWrite returns the base remote write configs without the added
-// fields.
-func (c *Config) BaseRemoteWrite() []*config.RemoteWriteConfig {
-	res := make([]*config.RemoteWriteConfig, len(c.RemoteWrite))
-	for i, cfg := range c.RemoteWrite {
-		if cfg == nil {
-			continue
-		}
-		res[i] = &cfg.Base
-	}
-	return res
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -174,7 +161,7 @@ func (c *Config) ApplyDefaults(global *GlobalConfig) error {
 		// unique name to the config so we can pull metrics from it when running
 		// an instance.
 		var generatedName bool
-		if cfg.Base.Name == "" {
+		if cfg.Name == "" {
 			hash, err := getHash(cfg)
 			if err != nil {
 				return err
@@ -183,17 +170,17 @@ func (c *Config) ApplyDefaults(global *GlobalConfig) error {
 			// We have to add the name of the instance to ensure that generated metrics
 			// are unique across multiple agent instances. The remote write queues currently
 			// globally register their metrics so we can't inject labels here.
-			cfg.Base.Name = c.Name + "-" + hash[:6]
+			cfg.Name = c.Name + "-" + hash[:6]
 			generatedName = true
 		}
 
-		if _, exists := rwNames[cfg.Base.Name]; exists {
+		if _, exists := rwNames[cfg.Name]; exists {
 			if generatedName {
 				return fmt.Errorf("found two identical remote_write configs")
 			}
-			return fmt.Errorf("found duplicate remote write configs with name %q", cfg.Base.Name)
+			return fmt.Errorf("found duplicate remote write configs with name %q", cfg.Name)
 		}
-		rwNames[cfg.Base.Name] = struct{}{}
+		rwNames[cfg.Name] = struct{}{}
 	}
 
 	return nil
@@ -388,10 +375,9 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	// Setup the remote storage
 	remoteLogger := log.With(i.logger, "component", "remote")
 	i.remoteStore = remote.NewStorage(remoteLogger, reg, i.wal.StartTime, i.wal.Directory(), cfg.RemoteFlushDeadline, i.readyScrapeManager)
-	i.remoteStore.Write.NewClient = i.newWriteClient
 	err = i.remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg.Prometheus,
-		RemoteWriteConfigs: cfg.BaseRemoteWrite(),
+		RemoteWriteConfigs: cfg.RemoteWrite,
 	})
 	if err != nil {
 		return fmt.Errorf("failed applying config to remote storage: %w", err)
@@ -411,39 +397,6 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	i.readyScrapeManager.Set(scrapeManager)
 
 	return nil
-}
-
-func (i *Instance) newWriteClient(name string, conf *remote.ClientConfig) (remote.WriteClient, error) {
-	var cfg *RemoteWriteConfig
-	for _, c := range i.cfg.RemoteWrite {
-		if c.Base.Name == name {
-			cfg = c
-			break
-		}
-	}
-	if cfg == nil {
-		level.Warn(i.logger).Log("msg", "could not properly generate HTTP client for remote_write", "err", "could not find remote write config", "name", name)
-	}
-
-	writeClient, err := remote.NewWriteClient(name, conf)
-	if err != nil {
-		return nil, err
-	}
-	// Based on NewWriteClient, this will always be a remote.Client.
-	cli := writeClient.(*remote.Client)
-
-	if cfg != nil && cfg.SigV4.Enabled {
-		level.Debug(i.logger).Log("msg", "enabling sigv4", "name", name)
-
-		rt, err := NewSigV4RoundTripper(cfg.SigV4, cli.Client.Transport)
-		if err != nil {
-			level.Error(i.logger).Log("msg", "failed to create sigv4 transport", "err", err)
-			return nil, fmt.Errorf("could not create sigv4 transport: %w", err)
-		}
-		cli.Client.Transport = rt
-	}
-
-	return cli, nil
 }
 
 // Update accepts a new Config for the Instance and will dynamically update any
@@ -500,7 +453,7 @@ func (i *Instance) Update(c Config) (err error) {
 
 	err = i.remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       i.globalCfg.Prometheus,
-		RemoteWriteConfigs: c.BaseRemoteWrite(),
+		RemoteWriteConfigs: c.RemoteWrite,
 	})
 	if err != nil {
 		return fmt.Errorf("error applying new remote_write configs: %w", err)
@@ -698,7 +651,7 @@ func (i *Instance) getRemoteWriteTimestamp() int64 {
 
 	lbls := make([]string, len(i.cfg.RemoteWrite))
 	for idx := 0; idx < len(lbls); idx++ {
-		lbls[idx] = i.cfg.RemoteWrite[idx].Base.Name
+		lbls[idx] = i.cfg.RemoteWrite[idx].Name
 	}
 
 	vals, err := i.vc.GetValues("remote_name", lbls...)

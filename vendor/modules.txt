@@ -1,4 +1,4 @@
-# cloud.google.com/go v0.74.0
+# cloud.google.com/go v0.79.0
 cloud.google.com/go
 cloud.google.com/go/compute/metadata
 cloud.google.com/go/iam
@@ -11,7 +11,7 @@ cloud.google.com/go/pubsub/internal/distribution
 # contrib.go.opencensus.io/exporter/prometheus v0.2.0
 ## explicit
 contrib.go.opencensus.io/exporter/prometheus
-# github.com/Azure/azure-sdk-for-go v51.1.0+incompatible => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
+# github.com/Azure/azure-sdk-for-go v52.5.0+incompatible => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network
 github.com/Azure/azure-sdk-for-go/version
@@ -65,8 +65,7 @@ github.com/apache/thrift/lib/go/thrift
 # github.com/armon/go-metrics v0.3.6
 github.com/armon/go-metrics
 github.com/armon/go-metrics/prometheus
-# github.com/aws/aws-sdk-go v1.37.8
-## explicit
+# github.com/aws/aws-sdk-go v1.38.3
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -178,7 +177,7 @@ github.com/cortexproject/cortex/pkg/util/validation
 github.com/davecgh/go-spew/spew
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
-# github.com/digitalocean/godo v1.57.0
+# github.com/digitalocean/godo v1.58.0
 github.com/digitalocean/godo
 # github.com/dimchansky/utfbom v1.1.0
 github.com/dimchansky/utfbom
@@ -186,7 +185,7 @@ github.com/dimchansky/utfbom
 github.com/docker/distribution/digestset
 github.com/docker/distribution/reference
 github.com/docker/distribution/registry/api/errcode
-# github.com/docker/docker v20.10.3+incompatible
+# github.com/docker/docker v20.10.5+incompatible
 github.com/docker/docker/api
 github.com/docker/docker/api/types
 github.com/docker/docker/api/types/blkiodev
@@ -249,6 +248,8 @@ github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
 # github.com/go-sql-driver/mysql v1.5.0
 github.com/go-sql-driver/mysql
+# github.com/go-zookeeper/zk v1.0.2
+github.com/go-zookeeper/zk
 # github.com/godbus/dbus v0.0.0-20190402143921-271e53dc4968
 github.com/godbus/dbus
 # github.com/gogo/googleapis v1.3.0
@@ -291,7 +292,7 @@ github.com/google/btree
 # github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000 => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23
 ## explicit
 github.com/google/dnsmasq_exporter/collector
-# github.com/google/go-cmp v0.5.4
+# github.com/google/go-cmp v0.5.5
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
@@ -309,7 +310,7 @@ github.com/googleapis/gax-go/v2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
 github.com/googleapis/gnostic/openapiv2
-# github.com/gophercloud/gophercloud v0.15.0
+# github.com/gophercloud/gophercloud v0.16.0
 github.com/gophercloud/gophercloud
 github.com/gophercloud/gophercloud/openstack
 github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/floatingips
@@ -418,7 +419,7 @@ github.com/hashicorp/hcl/json/token
 github.com/hashicorp/memberlist
 # github.com/hashicorp/serf v0.9.5
 github.com/hashicorp/serf/coordinate
-# github.com/hetznercloud/hcloud-go v1.23.1
+# github.com/hetznercloud/hcloud-go v1.24.0
 github.com/hetznercloud/hcloud-go/hcloud
 github.com/hetznercloud/hcloud-go/hcloud/schema
 # github.com/hodgesds/perf-utils v0.0.8
@@ -566,7 +567,7 @@ github.com/mdlayher/netlink/nlenc
 # github.com/mdlayher/wifi v0.0.0-20190303161829-b1436901ddee
 github.com/mdlayher/wifi
 github.com/mdlayher/wifi/internal/nl80211
-# github.com/miekg/dns v1.1.38
+# github.com/miekg/dns v1.1.41
 ## explicit
 github.com/miekg/dns
 # github.com/mitchellh/go-homedir v1.1.0
@@ -639,7 +640,7 @@ github.com/pquerna/cachecontrol/cacheobject
 github.com/prometheus-community/windows_exporter/collector
 github.com/prometheus-community/windows_exporter/config
 github.com/prometheus-community/windows_exporter/exporter
-# github.com/prometheus/client_golang v1.9.0
+# github.com/prometheus/client_golang v1.10.0
 ## explicit
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
@@ -648,7 +649,7 @@ github.com/prometheus/client_golang/prometheus/promhttp
 github.com/prometheus/client_golang/prometheus/push
 # github.com/prometheus/client_model v0.2.0
 github.com/prometheus/client_model/go
-# github.com/prometheus/common v0.17.0
+# github.com/prometheus/common v0.20.0
 ## explicit
 github.com/prometheus/common/config
 github.com/prometheus/common/expfmt
@@ -679,7 +680,7 @@ github.com/prometheus/procfs/internal/util
 github.com/prometheus/procfs/nfs
 github.com/prometheus/procfs/sysfs
 github.com/prometheus/procfs/xfs
-# github.com/prometheus/prometheus v1.8.2-0.20210124145330-b5dfa2414b9e => github.com/grafana/prometheus v1.8.2-0.20210218144103-50bc1c15f0c7
+# github.com/prometheus/prometheus v1.8.2-0.20210124145330-b5dfa2414b9e => github.com/grafana/prometheus v1.8.2-0.20210406130955-88f57478bf6c
 ## explicit
 github.com/prometheus/prometheus/config
 github.com/prometheus/prometheus/discovery
@@ -698,10 +699,12 @@ github.com/prometheus/prometheus/discovery/kubernetes
 github.com/prometheus/prometheus/discovery/marathon
 github.com/prometheus/prometheus/discovery/openstack
 github.com/prometheus/prometheus/discovery/refresh
+github.com/prometheus/prometheus/discovery/scaleway
 github.com/prometheus/prometheus/discovery/targetgroup
 github.com/prometheus/prometheus/discovery/triton
 github.com/prometheus/prometheus/discovery/zookeeper
 github.com/prometheus/prometheus/pkg/exemplar
+github.com/prometheus/prometheus/pkg/gate
 github.com/prometheus/prometheus/pkg/intern
 github.com/prometheus/prometheus/pkg/labels
 github.com/prometheus/prometheus/pkg/logging
@@ -751,10 +754,21 @@ github.com/prometheus/statsd_exporter/pkg/registry
 github.com/rcrowley/go-metrics
 # github.com/rs/cors v1.7.0
 github.com/rs/cors
-# github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414
-github.com/samuel/go-zookeeper/zk
 # github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b => github.com/satori/go.uuid v1.2.0
 github.com/satori/go.uuid
+# github.com/scaleway/scaleway-sdk-go v1.0.0-beta.7.0.20210223165440-c65ae3540d44
+github.com/scaleway/scaleway-sdk-go/api/baremetal/v1
+github.com/scaleway/scaleway-sdk-go/api/instance/v1
+github.com/scaleway/scaleway-sdk-go/api/marketplace/v1
+github.com/scaleway/scaleway-sdk-go/internal/async
+github.com/scaleway/scaleway-sdk-go/internal/auth
+github.com/scaleway/scaleway-sdk-go/internal/errors
+github.com/scaleway/scaleway-sdk-go/internal/marshaler
+github.com/scaleway/scaleway-sdk-go/internal/parameter
+github.com/scaleway/scaleway-sdk-go/logger
+github.com/scaleway/scaleway-sdk-go/namegenerator
+github.com/scaleway/scaleway-sdk-go/scw
+github.com/scaleway/scaleway-sdk-go/validation
 # github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529
 github.com/sean-/seed
 # github.com/sercand/kuberesolver v2.4.0+incompatible
@@ -933,7 +947,7 @@ go.etcd.io/etcd/raft/tracker
 go.etcd.io/etcd/version
 go.etcd.io/etcd/wal
 go.etcd.io/etcd/wal/walpb
-# go.opencensus.io v0.22.6
+# go.opencensus.io v0.23.0
 ## explicit
 go.opencensus.io
 go.opencensus.io/internal
@@ -1048,10 +1062,10 @@ golang.org/x/crypto/ssh/terminal
 # golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5
 golang.org/x/lint
 golang.org/x/lint/golint
-# golang.org/x/mod v0.4.0
+# golang.org/x/mod v0.4.1
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+# golang.org/x/net v0.0.0-20210324051636-2c4c8ecb7826
 golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -1068,17 +1082,17 @@ golang.org/x/net/ipv6
 golang.org/x/net/netutil
 golang.org/x/net/proxy
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.0.0-20210210192628-66670185b0cd
+# golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
 golang.org/x/oauth2
 golang.org/x/oauth2/google
 golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
+# golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
+# golang.org/x/sys v0.0.0-20210324051608-47abb6519492
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
@@ -1096,7 +1110,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
+# golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 golang.org/x/time/rate
 # golang.org/x/tools v0.1.0
 golang.org/x/tools/cmd/goimports
@@ -1114,7 +1128,7 @@ golang.org/x/tools/internal/imports
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.39.0
+# google.golang.org/api v0.42.0
 google.golang.org/api/compute/v1
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -1144,7 +1158,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20201214200347-8c77b98c765d
+# google.golang.org/genproto v0.0.0-20210312152112-fc591d9ea70f
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/api/httpbody
 google.golang.org/genproto/googleapis/iam/v1
@@ -1153,7 +1167,7 @@ google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/protobuf/field_mask
-# google.golang.org/grpc v1.35.0 => google.golang.org/grpc v1.29.1
+# google.golang.org/grpc v1.36.0 => google.golang.org/grpc v1.29.1
 ## explicit
 google.golang.org/grpc
 google.golang.org/grpc/attributes
@@ -1274,7 +1288,7 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
-# k8s.io/api v0.20.2 => k8s.io/api v0.19.4
+# k8s.io/api v0.20.5 => k8s.io/api v0.19.4
 k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
 k8s.io/api/apps/v1
@@ -1316,7 +1330,7 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apimachinery v0.20.2
+# k8s.io/apimachinery v0.20.5
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/api/resource
@@ -1419,7 +1433,7 @@ k8s.io/client-go/util/connrotation
 k8s.io/client-go/util/flowcontrol
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/workqueue
-# k8s.io/klog/v2 v2.5.0
+# k8s.io/klog/v2 v2.8.0
 k8s.io/klog/v2
 # k8s.io/utils v0.0.0-20200729134348-d5654de09c73
 k8s.io/utils/buffer
@@ -1439,7 +1453,7 @@ sigs.k8s.io/yaml
 # github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03
 # k8s.io/api => k8s.io/api v0.19.4
 # k8s.io/client-go => k8s.io/client-go v0.19.4
-# github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20210218144103-50bc1c15f0c7
+# github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20210406130955-88f57478bf6c
 # gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
 # github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23
 # github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a
