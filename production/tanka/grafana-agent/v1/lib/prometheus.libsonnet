@@ -98,7 +98,7 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
     |||,
 
     local list = if std.isArray(remote_writes) then remote_writes else [remote_writes],
-    _prometheus_config+:: { remote_write: list },
+    _prometheus_config+:: { global+: { remote_write: list } },
   },
 
   // scrapeInstanceKubernetes defines an instance config Grafana Labs uses to
