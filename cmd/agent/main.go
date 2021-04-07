@@ -55,7 +55,7 @@ func main() {
 	}
 
 	// After this point we can start using go-kit logging.
-	logger := util.NewWindowsEventLogger(&cfg.Server)
+	logger := util.NewLogger(&cfg.Server)
 	util_log.Logger = logger
 
 	// We need to manually set the logger for the first call to reload.
