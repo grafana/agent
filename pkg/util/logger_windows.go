@@ -1,10 +1,10 @@
 package util
 
 import (
-	"errors"
-	"fmt"
 	"runtime"
 	"strings"
+
+	"github.com/weaveworks/common/logging"
 
 	"github.com/go-kit/kit/log/level"
 
@@ -18,17 +18,10 @@ const ServiceName = "Grafana Agent"
 
 //NewWindowsEventLogger creates a new logger that writes to the event log
 func NewWindowsEventLogger(cfg *server.Config) *Logger {
-	l := Logger{makeLogger: makeWindowsEventLogger}
-	if err := l.ApplyConfig(cfg); err != nil {
-		panic(err)
-	}
-	return &l
+	return newLogger(cfg, makeWindowsEventLogger)
 }
 
 func makeWindowsEventLogger(cfg *server.Config) (log.Logger, error) {
-	// error is necessary for the Log function to return an error
-	notAllowedError := errors.New("not_allowed")
-
 	// Setup the log in windows events
 	err := el.InstallAsEventCreate(ServiceName, el.Error|el.Info|el.Warning)
 
@@ -49,86 +42,76 @@ func makeWindowsEventLogger(cfg *server.Config) (log.Logger, error) {
 
 	//  These are setup to be writers for each Windows log level
 	//  Setup this way so we can utilize all the benefits of logformatter
-	infoWriter := &winLogWriter{writer: func(p []byte) {
-		il.Info(1, string(p))
-	}}
-	infoLogger := log.NewLogfmtLogger(infoWriter)
-	infoLogger = level.NewFilter(infoLogger, cfg.LogLevel.Gokit, level.ErrNotAllowed(notAllowedError))
+	infoLogger := newWinLogWrapper(cfg.LogFormat, func(p []byte) error {
+		return il.Info(1, string(p))
+	})
+	warningLogger := newWinLogWrapper(cfg.LogFormat, func(p []byte) error {
+		return il.Warning(1, string(p))
+	})
 
-	warningWriter := &winLogWriter{writer: func(p []byte) {
-		il.Warning(1, string(p))
-	}}
-	warningLogger := log.NewLogfmtLogger(warningWriter)
-	warningLogger = level.NewFilter(warningLogger, cfg.LogLevel.Gokit, level.ErrNotAllowed(notAllowedError))
+	errorLogger := newWinLogWrapper(cfg.LogFormat, func(p []byte) error {
+		return il.Error(1, string(p))
+	})
 
-	errorWriter := &winLogWriter{writer: func(p []byte) {
-		il.Error(1, string(p))
-	}}
-	errorLogger := log.NewLogfmtLogger(errorWriter)
-	errorLogger = level.NewFilter(errorLogger, cfg.LogLevel.Gokit, level.ErrNotAllowed(notAllowedError))
-
-	wl := &winLoggerFmt{
+	wl := &winLogger{
 		internalLog:   il,
 		errorLogger:   errorLogger,
 		infoLogger:    infoLogger,
 		warningLogger: warningLogger,
 	}
-	return wl, nil
-
+	return level.NewFilter(wl, cfg.LogLevel.Gokit), nil
 }
 
-type winLoggerFmt struct {
-	internalLog   *el.Log
+// Looks through the key value pairs in the log for level and extract the value
+func getLevel(keyvals ...interface{}) level.Value {
+	for i := 0; i < len(keyvals); i++ {
+		if vo, ok := keyvals[i].(level.Value); ok {
+			return vo
+		}
+	}
+	return nil
+}
+
+func newWinLogWrapper(format logging.Format, write func(p []byte) error) log.Logger {
+	infoWriter := &winLogWriter{writer: write}
+	infoLogger := log.NewLogfmtLogger(infoWriter)
+	if format.String() == "json" {
+		infoLogger = log.NewJSONLogger(infoWriter)
+	}
+	return infoLogger
+}
+
+type winLogger struct {
+	internalLog *el.Log
+
 	errorLogger   log.Logger
 	infoLogger    log.Logger
 	warningLogger log.Logger
 }
 
-func (w *winLoggerFmt) Log(keyvals ...interface{}) error {
-	lvl, err := getLevel(keyvals...)
-	// If we don't know what happened move on
-	if err != nil {
-		w.infoLogger.Log(keyvals...)
-		return err
-	}
-	// If the messages level matches one of these we try to write to the logger
-	// the loggers are configured to reject the message if it isn't allowed.
-	if lvl == level.DebugValue() {
+func (w *winLogger) Log(keyvals ...interface{}) error {
+	lvl := getLevel(keyvals...)
+	// 3 different loggers are used so that agent can utilize the formatting features of go-kit logging
+	// if agent did not use this then the windows logger uses different function calls for different levels
+	// this is paired with the fact that the io.Writer interface only gives a byte array.
+	switch lvl {
+	case level.DebugValue():
 		return w.infoLogger.Log(keyvals...)
-	} else if lvl == level.InfoValue() {
-		return w.infoLogger.Log(keyvals...)
-	} else if lvl == level.ErrorValue() {
-		return w.errorLogger.Log(keyvals...)
-	} else if lvl == level.WarnValue() {
+	case level.InfoValue():
+		return w.infoLogger.Log(keyvals)
+	case level.WarnValue():
 		return w.warningLogger.Log(keyvals...)
+	case level.ErrorValue():
+		return w.errorLogger.Log(keyvals...)
+	default:
+		return w.infoLogger.Log(keyvals...)
 	}
-
-	return nil
-}
-
-// Looks through the key value pairs in the log for level and extract the value
-func getLevel(keyvals ...interface{}) (level.Value, error) {
-	if len(keyvals)%2 == 1 {
-		keyvals = append(keyvals, nil)
-	}
-	for i := 0; i < len(keyvals); i += 2 {
-		k, v := keyvals[i], keyvals[i+1]
-		if k == "level" {
-			if vo, ok := v.(level.Value); ok {
-				return vo, nil
-			}
-			return nil, fmt.Errorf("unknown level")
-
-		}
-	}
-	return nil, fmt.Errorf("no level found")
 }
 
 type winLogWriter struct {
-	writer func(p []byte)
+	writer func(p []byte) error
 }
 
 func (i *winLogWriter) Write(p []byte) (n int, err error) {
-	i.writer(p)
-	return len(p), nil
+	return len(p), i.writer(p)
 }
