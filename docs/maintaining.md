@@ -66,6 +66,9 @@ export GPG_TTY=$(tty)
 
 ## Performing the Release
 
+If you are performing a release for a release candidate, skip straight to step
+8.
+
 1. Create a new branch to update `CHANGELOG.md` and references to version
    numbers across the entire repository (e.g. README.md in the project root).
 2. Modify `CHANGELOG.md` with the new version number and its release date.
@@ -109,9 +112,11 @@ The release isn't done yet! Keep reading for the final step.
 
 ## Updating Release Branch
 
-The `release` branch should always point at the SHA of the commit of the latest
+If the release you are performing is a _stable release_ (i.e., not a release
+candidate), the `release` branch must be updated to the SHA of the latest stable
 release tag. This is used so that installation instructions can be generic and
-made to always install the latest released version.
+made to always install the latest released version. Otherwise, if the release is
+non-stable, the `release` branch should be left unmodified.
 
 Update the release branch by fast-forwarding it to the appropriate SHA (matching
 the latest tag) and pushing it back upstream.
