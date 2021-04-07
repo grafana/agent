@@ -485,6 +485,70 @@ service:
       receivers: ["noop"]
 `,
 		},
+		{
+			name: "tail sampling config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+tail_sampling:
+  policies:
+    - name: test-policy-1
+      type: always_sample
+    - name: test-policy-2
+      type: string_attribute
+      string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
+spanmetrics:
+  metrics_exporter:
+    endpoint: "0.0.0.0:8889"
+`,
+			expectedConfig: `
+receivers:
+  noop:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+processors:
+  tail_sampling:
+    decision_wait: 2s
+    policies:
+      - name: test-policy-1
+        type: always_sample
+      - name: test-policy-2
+        type: string_attribute
+        string_attribute:
+          key: key
+          values:
+            - value1
+            - value2
+  spanmetrics:
+    metrics_exporter: prometheus
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling", "spanmetrics"]
+      receivers: ["jaeger"]
+    metrics/spanmetrics:
+      exporters: ["prometheus"]
+      receivers: ["noop"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
@@ -516,18 +580,19 @@ service:
 			expectedConfig, err := config.Load(v, factories)
 			require.NoError(t, err)
 
-			// Exporters in the config's pipelines need to be in the same order for them to be asserted as equal
-			sortPipelinesExporters(actualConfig)
-			sortPipelinesExporters(expectedConfig)
+			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
+			sortPipelines(actualConfig)
+			sortPipelines(expectedConfig)
 
 			assert.Equal(t, expectedConfig, actualConfig)
 		})
 	}
 }
 
-// sortPipelinesExporters is a helper function to lexicographically sort a pipeline's exporters
-func sortPipelinesExporters(cfg *configmodels.Config) {
+// sortPipelines is a helper function to lexicographically sort a pipeline's exporters
+func sortPipelines(cfg *configmodels.Config) {
 	for _, p := range cfg.Pipelines {
 		sort.Strings(p.Exporters)
+		sort.Strings(p.Receivers)
 	}
 }

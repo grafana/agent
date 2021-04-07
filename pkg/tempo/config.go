@@ -9,7 +9,9 @@ import (
 
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	prom_config "github.com/prometheus/common/config"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
@@ -85,6 +87,9 @@ type InstanceConfig struct {
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
+
+	// TailSampling defines a sampling strategy for the pipeline
+	TailSampling *TailSamplingConfig `yaml:"tail_sampling"`
 }
 
 const (
@@ -175,6 +180,12 @@ type metricsExporterConfig struct {
 	ConstLabels map[string]interface{} `yaml:"const_labels"`
 	// SendTimestamps will send the underlying scrape timestamp with the export
 	SendTimestamps bool `yaml:"send_timestamps"`
+}
+
+// Configuration for tail-based sampling processor: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
+type TailSamplingConfig struct {
+	Policies []map[string]interface{} `yaml:"policies"`
+	Wait     time.Duration            `yaml:"wait"`
 }
 
 // exporter builds an OTel exporter from RemoteWriteConfig
@@ -332,6 +343,17 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
+	if c.TailSampling != nil {
+		processors["tail_sampling"] = map[string]interface{}{
+			"policies":      c.TailSampling.Policies,
+			"decision_wait": c.TailSampling.Wait,
+		}
+		// tail_sampling should be processed before any other processors
+		processorNames = append([]string{"tail_sampling"}, processorNames...)
+	}
+
+	otelMapStructure["processors"] = processors
+
 	// receivers
 	receiverNames := []string{}
 	for name := range c.Receivers {
@@ -409,6 +431,7 @@ func tracingFactories() (component.Factories, error) {
 	exporters, err := component.MakeExporterFactoryMap(
 		otlpexporter.NewFactory(),
 		prometheusexporter.NewFactory(),
+		loadbalancingexporter.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
@@ -419,6 +442,7 @@ func tracingFactories() (component.Factories, error) {
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),
 		spanmetricsprocessor.NewFactory(),
+		tailsamplingprocessor.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
