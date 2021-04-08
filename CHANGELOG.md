@@ -55,6 +55,8 @@ and is expected to change will be tagged interchangably as "experimental" or
 
 - [BUGFIX] agentctl will no longer leak WAL resources when retrieving WAL stats. (@rfratto)
 
+- [BUGFIX] Include Windows Installer when building for release (@mattdurham)
+
 - [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
   (@rfratto)
 
