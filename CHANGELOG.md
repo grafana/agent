@@ -3,6 +3,10 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+- [BUGFIX] Include Windows Installer when building for release (@mattdurham)
+
+# 0.14.0-rc.0 (2021-04-07)
+
 BREAKING CHANGES: This release has a breaking change for SigV4 support. Please
 read the release notes carefully and our [migration
 guide](./docs/migration-guide.md) to help migrate your configuration files to
