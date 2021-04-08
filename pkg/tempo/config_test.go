@@ -496,57 +496,67 @@ remote_write:
   - endpoint: example.com:12345
 tail_sampling:
   policies:
-    - name: test-policy-1
-      type: always_sample
-    - name: test-policy-2
-      type: string_attribute
-      string_attribute:
+    - always_sample:
+    - string_attribute:
         key: key
         values:
           - value1
           - value2
-spanmetrics:
-  metrics_exporter:
-    endpoint: "0.0.0.0:8889"
+  load_balancing:
+    insecure: true
+    resolver:
+      dns:
+        hostname: agent
+        port: 9999
 `,
 			expectedConfig: `
 receivers:
-  noop:
   jaeger:
     protocols:
       grpc:
+  otlp/lb:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:9999"
 exporters:
   otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
-  prometheus:
-    endpoint: "0.0.0.0:8889"
+  loadbalancing:
+    protocol:
+      otlp:
+        insecure: true
+        endpoint: noop
+        retry_on_failure:
+          max_elapsed_time: 60s
+    resolver:
+      dns:
+        hostname: agent
+        port: 9999
 processors:
   tail_sampling:
-    decision_wait: 2s
+    decision_wait: 5s
     policies:
-      - name: test-policy-1
+      - name: always_sample/0
         type: always_sample
-      - name: test-policy-2
+      - name: string_attribute/1
         type: string_attribute
         string_attribute:
           key: key
           values:
             - value1
             - value2
-  spanmetrics:
-    metrics_exporter: prometheus
 service:
   pipelines:
-    traces:
-      exporters: ["otlp/0"]
-      processors: ["tail_sampling", "spanmetrics"]
+    traces/0:
+      exporters: ["loadbalancing"]
       receivers: ["jaeger"]
-    metrics/spanmetrics:
-      exporters: ["prometheus"]
-      receivers: ["noop"]
+    traces/1:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling"]
+      receivers: ["otlp/lb"]
 `,
 		},
 	}
@@ -594,5 +604,6 @@ func sortPipelines(cfg *configmodels.Config) {
 	for _, p := range cfg.Pipelines {
 		sort.Strings(p.Exporters)
 		sort.Strings(p.Receivers)
+		sort.Strings(p.Processors)
 	}
 }

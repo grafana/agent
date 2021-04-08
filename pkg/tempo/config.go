@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"time"
 
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
@@ -31,6 +32,21 @@ import (
 const (
 	spanMetricsPipelineName    = "metrics/spanmetrics"
 	defaultSpanMetricsExporter = "prometheus"
+
+	// defaultDecisionWait is the default time to wait for a trace before making a sampling decision
+	defaultDecisionWait = time.Second * 5
+
+	// defaultLoadBalancingPort is the default port the agent uses for internal load balancing
+	defaultLoadBalancingPort = "9999"
+	// agent's load balancing options
+	dnsTagName    = "dns"
+	staticTagName = "static"
+
+	// sampling policies
+	alwaysSamplePolicy     = "always_sample"
+	stringAttributePolicy  = "string_attribute"
+	numericAttributePolicy = "numeric_attribute"
+	rateLimitingPolicy     = "rate_limiting"
 )
 
 // Config controls the configuration of Tempo trace pipelines.
@@ -182,10 +198,25 @@ type metricsExporterConfig struct {
 	SendTimestamps bool `yaml:"send_timestamps"`
 }
 
-// Configuration for tail-based sampling processor: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
+// Configuration for tail-based sampling
 type TailSamplingConfig struct {
+	// Policies are the strategies used for sampling. Multiple policies can be used in the same pipeline.
+	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
 	Policies []map[string]interface{} `yaml:"policies"`
-	Wait     time.Duration            `yaml:"wait"`
+	// DecisionWait defines the time to wait for a complete trace before making a decision
+	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
+	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
+	LoadBalancing loadBalancingConfig `yaml:"load_balancing"`
+}
+
+// loadBalancingConfig defines the configuration for load balancing spans between agent instances
+// loadBalancingConfig is an OTel exporter's config with extra resolver config
+type loadBalancingConfig struct {
+	Compression        string                 `yaml:"compression,omitempty"`
+	Insecure           bool                   `yaml:"insecure,omitempty"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
+	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Resolver           map[string]interface{} `yaml:"resolver"`
 }
 
 // exporter builds an OTel exporter from RemoteWriteConfig
@@ -274,6 +305,75 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 	return exporters, nil
 }
 
+func resolver(config map[string]interface{}) (map[string]interface{}, error) {
+	if len(config) == 0 {
+		return nil, fmt.Errorf("must configure one resolver config (dns or static)")
+	}
+	resolverCfg := make(map[string]interface{})
+	for typ, cfg := range config {
+		switch typ {
+		case dnsTagName, staticTagName:
+			resolverCfg[typ] = cfg
+		default:
+			return nil, fmt.Errorf("unsupported resolver config type: %s", typ)
+		}
+	}
+	return resolverCfg, nil
+}
+
+func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error) {
+	exporter, err := exporter(RemoteWriteConfig{
+		// Endpoint is omitted in OTel load balancing exporter
+		Endpoint:           "noop",
+		Compression:        c.TailSampling.LoadBalancing.Compression,
+		Insecure:           c.TailSampling.LoadBalancing.Insecure,
+		InsecureSkipVerify: c.TailSampling.LoadBalancing.InsecureSkipVerify,
+		BasicAuth:          c.TailSampling.LoadBalancing.BasicAuth,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resolverCfg, err := resolver(c.TailSampling.LoadBalancing.Resolver)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"protocol": map[string]interface{}{
+			"otlp": exporter,
+		},
+		"resolver": resolverCfg,
+	}, nil
+}
+
+// formatPolicies creates sampling policies (i.e. rules) compatible with OTel's tail sampling processor
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.21.0/processor/tailsamplingprocessor
+func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, error) {
+	policies := make([]map[string]interface{}, 0, len(cfg))
+	for i, policy := range cfg {
+		if len(policy) != 1 {
+			return nil, errors.New("malformed sampling policy")
+		}
+		for typ, rules := range policy {
+			switch typ {
+			case alwaysSamplePolicy:
+				policies = append(policies, map[string]interface{}{
+					"name": fmt.Sprintf("%s/%d", typ, i),
+					"type": typ,
+				})
+			case stringAttributePolicy, rateLimitingPolicy, numericAttributePolicy:
+				policies = append(policies, map[string]interface{}{
+					"name": fmt.Sprintf("%s/%d", typ, i),
+					"type": typ,
+					typ:    rules,
+				})
+			default:
+				return nil, fmt.Errorf("unsupported policy type %s", typ)
+			}
+		}
+	}
+	return policies, nil
+}
+
 func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
@@ -343,29 +443,65 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
-	if c.TailSampling != nil {
-		processors["tail_sampling"] = map[string]interface{}{
-			"policies":      c.TailSampling.Policies,
-			"decision_wait": c.TailSampling.Wait,
-		}
-		// tail_sampling should be processed before any other processors
-		processorNames = append([]string{"tail_sampling"}, processorNames...)
-	}
-
-	otelMapStructure["processors"] = processors
-
 	// receivers
 	receiverNames := []string{}
 	for name := range c.Receivers {
 		receiverNames = append(receiverNames, name)
 	}
 
-	pipelines := map[string]interface{}{
-		"traces": map[string]interface{}{
+	if c.TailSampling != nil {
+		wait := defaultDecisionWait
+		if c.TailSampling.DecisionWait != 0 {
+			wait = c.TailSampling.DecisionWait
+		}
+
+		policies, err := formatPolicies(c.TailSampling.Policies)
+		if err != nil {
+			return nil, err
+		}
+
+		// tail_sampling should be executed before the batch processor
+		// TODO(mario.rodriguez): put attributes processor before tail_sampling. Maybe we want to sample on mutated spans
+		processorNames = append([]string{"tail_sampling"}, processorNames...)
+		processors["tail_sampling"] = map[string]interface{}{
+			"policies":      policies,
+			"decision_wait": wait,
+		}
+
+		internalExporter, err := c.loadBalancingExporter()
+		if err != nil {
+			return nil, err
+		}
+		exporters["loadbalancing"] = internalExporter
+
+		c.Receivers["otlp/lb"] = map[string]interface{}{
+			"protocols": map[string]interface{}{
+				"grpc": map[string]interface{}{
+					"endpoint": net.JoinHostPort("0.0.0.0", defaultLoadBalancingPort),
+				},
+			},
+		}
+	}
+
+	pipelines := make(map[string]interface{})
+	if c.TailSampling != nil {
+		// load balancing pipeline
+		pipelines["traces/0"] = map[string]interface{}{
+			"receivers": receiverNames,
+			"exporters": []string{"loadbalancing"},
+		}
+		// processing pipeline
+		pipelines["traces/1"] = map[string]interface{}{
+			"exporters":  exportersNames,
+			"processors": processorNames,
+			"receivers":  []string{"otlp/lb"},
+		}
+	} else {
+		pipelines["traces"] = map[string]interface{}{
 			"exporters":  exportersNames,
 			"processors": processorNames,
 			"receivers":  receiverNames,
-		},
+		}
 	}
 
 	if c.SpanMetrics != nil {
