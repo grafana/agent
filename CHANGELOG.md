@@ -3,11 +3,19 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
-- [BUGFIX] Include Windows Installer when building for release (@mattdurham)
+# v0.13.1 (2021-04-09)
 
 - [BUGFIX] Validate that incoming scraped metrics do not have an empty label
   set or a label set with duplicate labels, mirroring the behavior of
   Prometheus. (@rfratto)
+
+# 0.14.0-rc.2 (2021-04-08)
+
+- [BUGFIX] Include Windows Installer when building for release (@mattdurham)
+
+# 0.14.0-rc.1 (2021-04-08)
+
+(No changes from 0.14.0-rc.0)
 
 # 0.14.0-rc.0 (2021-04-07)
 
