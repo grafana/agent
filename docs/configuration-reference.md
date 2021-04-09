@@ -2144,7 +2144,7 @@ statsd_exporter: <statsd_exporter_config>
 consul_exporter: <consul_exporter_config>
 
 #Controls the windows_exporter integration
-windows_exporter: <windows_export_config>
+windows_exporter: <windows_exporter_config>
 
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
@@ -3532,24 +3532,34 @@ Full reference of options:
 
   # The following settings are only used if they are enabled by specifying them in enabled_collectors
   
+  # Configuration for Exchange Mail Server
   [exchange: <exchange_config>]
   
+  # Configuration for the IIS web server
   [iis: <iis_config>]
   
+  # Configuration for reading metrics from a text file
   [text_file: <text_file_config>]
   
+  # Configuration for SMTP metrics
   [smtp: <smtp_config>]
   
+  # Configuration for Windows Services
   [service: <service_config>]
   
+  # Configuration for Windows Processes
   [process: <process_config>]
   
+  # Configuration for NICs
   [network: <network_config>]
   
+  # Configuration for Microsoft SQL Server
   [mssql: <mssql_config>]
   
+  # Configuration for Microsoft Queue
   [msqm: <msmq_config>]
   
+  # Configuration for disk information
   [logical_disk: <logical_disk_config>]
 ```
 
