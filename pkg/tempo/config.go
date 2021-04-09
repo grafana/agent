@@ -198,7 +198,7 @@ type metricsExporterConfig struct {
 	SendTimestamps bool `yaml:"send_timestamps"`
 }
 
-// Configuration for tail-based sampling
+// TailSamplingConfig is the configuration for tail-based sampling
 type TailSamplingConfig struct {
 	// Policies are the strategies used for sampling. Multiple policies can be used in the same pipeline.
 	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
@@ -307,7 +307,7 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 
 func resolver(config map[string]interface{}) (map[string]interface{}, error) {
 	if len(config) == 0 {
-		return nil, fmt.Errorf("must configure one resolver config (dns or static)")
+		return nil, fmt.Errorf("must configure one resolver (dns or static)")
 	}
 	resolverCfg := make(map[string]interface{})
 	for typ, cfg := range config {
