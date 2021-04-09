@@ -5,6 +5,10 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [BUGFIX] Include Windows Installer when building for release (@mattdurham)
 
+- [BUGFIX] Validate that incoming scraped metrics do not have an empty label
+  set or a label set with duplicate labels, mirroring the behavior of
+  Prometheus. (@rfratto)
+
 # 0.14.0-rc.0 (2021-04-07)
 
 BREAKING CHANGES: This release has a breaking change for SigV4 support. Please
