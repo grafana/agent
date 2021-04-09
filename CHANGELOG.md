@@ -4,6 +4,8 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 
 # Main (unreleased)
 
+# v0.13.1 (2021-04-09)
+
 - [BUGFIX] Validate that incoming scraped metrics do not have an empty label
   set or a label set with duplicate labels, mirroring the behavior of
   Prometheus. (@rfratto)
