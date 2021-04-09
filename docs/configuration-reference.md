@@ -2143,7 +2143,7 @@ statsd_exporter: <statsd_exporter_config>
 # Controls the consul_exporter integration
 consul_exporter: <consul_exporter_config>
 
-#Controls the windows_exporter integration
+# Controls the windows_exporter integration
 windows_exporter: <windows_exporter_config>
 
 # Automatically collect metrics from enabled integrations. If disabled,
