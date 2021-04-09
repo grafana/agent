@@ -3538,7 +3538,7 @@ Full reference of options:
   # Configuration for the IIS web server
   [iis: <iis_config>]
   
-  # Configuration for reading metrics from a text file
+  # Configuration for reading metrics from a text files in a directory
   [text_file: <text_file_config>]
   
   # Configuration for SMTP metrics
@@ -3672,6 +3672,6 @@ Full reference of options:
   [whitelist: <string> | default=".+"]
 
   # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.logical_disk.volume-blaclist in windows_exporter
+  # Maps to collector.logical_disk.volume-blacklist in windows_exporter
   [blacklist: <string> | default=".+"]
 ```
