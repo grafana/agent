@@ -2143,6 +2143,9 @@ statsd_exporter: <statsd_exporter_config>
 # Controls the consul_exporter integration
 consul_exporter: <consul_exporter_config>
 
+#Controls the windows_exporter integration
+windows_exporter: <windows_export_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
@@ -3473,4 +3476,192 @@ Full reference of options:
 
   # Forces the read to be fully consistent.
   [require_consistent: <bool> | default = false]
+```
+
+
+### windows_exporter_config
+
+The `windows_exporter_config` block configures the `windows_exporter`
+integration, which is an embedded version of
+[`windows_exporter`](https://github.com/grafana/windows_exporter). This allows
+for the collection of windows metrics and exposing them as Prometheus metrics.
+
+Full reference of options:
+
+```yaml
+  # Enables the windows_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the local windows instance 
+  [enabled: <boolean> | default = false]
+
+  # Automatically collect metrics from this integration. If disabled,
+  # the consul_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/windows_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  #
+  # Exporter-specific configuration options
+  #
+
+  # List of collectors to enable
+  [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system,textfile"]
+
+  # The following settings are only used if they are enabled by specifying them in enabled_collectors
+  
+  [exchange: <exchange_config>]
+  
+  [iis: <iis_config>]
+  
+  [text_file: <text_file_config>]
+  
+  [smtp: <smtp_config>]
+  
+  [service: <service_config>]
+  
+  [process: <process_config>]
+  
+  [network: <network_config>]
+  
+  [mssql: <mssql_config>]
+  
+  [msqm: <msmq_config>]
+  
+  [logical_disk: <logical_disk_config>]
+```
+
+#### exchange_config
+
+```yaml
+  # Comma-separated List of collectors to use. Defaults to all, if not specified.
+  # Maps to collectors.exchange.enabled in windows_exporter
+  [enabled_list: <string>]
+```
+
+
+#### iis_config
+
+```yaml
+  # Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.iis.site-whitelist in windows_exporter
+  [site_whitelist: <string> | default = ".+"]
+ 
+  # Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.iis.site-blacklist in windows_exporter
+  [site_blacklist: <string> | default = ""]
+
+  # Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.iis.app-whitelist in windows_exporter
+  [app_whitelist: <string> | default=".+"]
+
+  # Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.iis.app-blacklist in windows_exporter
+  [app_blacklist: <string> | default=".+"]
+```
+
+
+#### text_file_config
+
+```yaml
+  # Directory to read text files with metrics from.
+  # Maps to collector.textfile.directory in windows_exporter
+  [text_file_directory: <string> | default="C:\Program Files\windows_exporter\textfile_inputs"]
+```
+
+#### smtp_config
+
+```yaml
+  # Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.smtp.server-whitelist in windows_exporter
+  [whitelist: <string> | default=".+"]
+  
+  # Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.smtp.server-blacklist in windows_exporter
+  [blacklist: <string> | default=""]
+```
+
+
+#### service_config
+
+```yaml
+  # "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.
+  # Maps to collector.service.services-where in windows_exporter
+  [where_clause: <string> | default=""]
+```
+
+#### process_config
+
+```yaml
+  # Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.process.whitelist in windows_exporter
+  [whitelist: <string> | default=".+"]
+
+  # Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.process.blacklist in windows_exporter
+  [blacklist: <string> | default=""]
+```
+
+
+#### network_config
+
+```yaml
+  # Regexp of NIC's to whitelist. NIC name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.net.nic-whitelist in windows_exporter
+  [whitelist: <string> | default=".+"]
+
+  # Regexp of NIC's to blacklist. NIC name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.net.nic-blacklist in windows_exporter
+  [blacklist: <string> | default=""]
+```
+
+
+#### mssql_config
+
+```yaml
+  # Comma-separated list of mssql WMI classes to use.
+  # Maps to collectors.mssql.classes-enabled in windows_exporter
+  [enabled_classes: <string> | default="accessmethods,availreplica,bufman,databases,dbreplica,genstats,locks,memmgr,sqlstats,sqlerrors,transactions"]
+```
+
+
+#### msmq_config
+
+```yaml
+  # WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.
+  # Maps to collector.msmq.msmq-where in windows_exporter
+  [where_clause: <string> | default=""]
+```
+#### logical_disk_config
+
+```yaml
+  # Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.logical_disk.volume-whitelist in windows_exporter
+  [whitelist: <string> | default=".+"]
+
+  # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
+  # Maps to collector.logical_disk.volume-blaclist in windows_exporter
+  [blacklist: <string> | default=".+"]
 ```
