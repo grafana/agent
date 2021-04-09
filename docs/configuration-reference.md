@@ -3484,7 +3484,7 @@ Full reference of options:
 The `windows_exporter_config` block configures the `windows_exporter`
 integration, which is an embedded version of
 [`windows_exporter`](https://github.com/grafana/windows_exporter). This allows
-for the collection of windows metrics and exposing them as Prometheus metrics.
+for the collection of Windows metrics and exposing them as Prometheus metrics.
 
 Full reference of options:
 
@@ -3533,145 +3533,90 @@ Full reference of options:
   # The following settings are only used if they are enabled by specifying them in enabled_collectors
   
   # Configuration for Exchange Mail Server
-  [exchange: <exchange_config>]
+  exchange:
+    # Comma-separated List of collectors to use. Defaults to all, if not specified.
+    # Maps to collectors.exchange.enabled in windows_exporter
+    [enabled_list: <string>]
   
   # Configuration for the IIS web server
-  [iis: <iis_config>]
+  iis:
+    # Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.iis.site-whitelist in windows_exporter
+    [site_whitelist: <string> | default = ".+"]
+  
+    # Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.iis.site-blacklist in windows_exporter
+    [site_blacklist: <string> | default = ""]
+  
+    # Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.iis.app-whitelist in windows_exporter
+    [app_whitelist: <string> | default=".+"]
+  
+    # Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.iis.app-blacklist in windows_exporter
+    [app_blacklist: <string> | default=".+"]
   
   # Configuration for reading metrics from a text files in a directory
-  [text_file: <text_file_config>]
+  text_file:
+    # Directory to read text files with metrics from.
+    # Maps to collector.textfile.directory in windows_exporter
+    [text_file_directory: <string> | default="C:\Program Files\windows_exporter\textfile_inputs"]
   
   # Configuration for SMTP metrics
-  [smtp: <smtp_config>]
+  smtp:
+    # Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.smtp.server-whitelist in windows_exporter
+    [whitelist: <string> | default=".+"]
+  
+    # Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.smtp.server-blacklist in windows_exporter
+    [blacklist: <string> | default=""]
   
   # Configuration for Windows Services
-  [service: <service_config>]
+  service:
+    # "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.
+    # Maps to collector.service.services-where in windows_exporter
+    [where_clause: <string> | default=""]
   
   # Configuration for Windows Processes
-  [process: <process_config>]
+  process:
+    # Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.process.whitelist in windows_exporter
+    [whitelist: <string> | default=".+"]
+  
+    # Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.process.blacklist in windows_exporter
+    [blacklist: <string> | default=""]
   
   # Configuration for NICs
-  [network: <network_config>]
+  network:
+    # Regexp of NIC's to whitelist. NIC name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.net.nic-whitelist in windows_exporter
+    [whitelist: <string> | default=".+"]
+  
+    # Regexp of NIC's to blacklist. NIC name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.net.nic-blacklist in windows_exporter
+    [blacklist: <string> | default=""]
   
   # Configuration for Microsoft SQL Server
-  [mssql: <mssql_config>]
+  mssql:
+    # Comma-separated list of mssql WMI classes to use.
+    # Maps to collectors.mssql.classes-enabled in windows_exporter
+    [enabled_classes: <string> | default="accessmethods,availreplica,bufman,databases,dbreplica,genstats,locks,memmgr,sqlstats,sqlerrors,transactions"]
   
   # Configuration for Microsoft Queue
-  [msqm: <msmq_config>]
+  msqm:
+    # WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.
+    # Maps to collector.msmq.msmq-where in windows_exporter
+    [where_clause: <string> | default=""]
   
   # Configuration for disk information
-  [logical_disk: <logical_disk_config>]
-```
-
-#### exchange_config
-
-```yaml
-  # Comma-separated List of collectors to use. Defaults to all, if not specified.
-  # Maps to collectors.exchange.enabled in windows_exporter
-  [enabled_list: <string>]
-```
-
-
-#### iis_config
-
-```yaml
-  # Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.iis.site-whitelist in windows_exporter
-  [site_whitelist: <string> | default = ".+"]
- 
-  # Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.iis.site-blacklist in windows_exporter
-  [site_blacklist: <string> | default = ""]
-
-  # Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.iis.app-whitelist in windows_exporter
-  [app_whitelist: <string> | default=".+"]
-
-  # Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.iis.app-blacklist in windows_exporter
-  [app_blacklist: <string> | default=".+"]
-```
-
-
-#### text_file_config
-
-```yaml
-  # Directory to read text files with metrics from.
-  # Maps to collector.textfile.directory in windows_exporter
-  [text_file_directory: <string> | default="C:\Program Files\windows_exporter\textfile_inputs"]
-```
-
-#### smtp_config
-
-```yaml
-  # Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.smtp.server-whitelist in windows_exporter
-  [whitelist: <string> | default=".+"]
+  logical_disk:
+    # Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.logical_disk.volume-whitelist in windows_exporter
+    [whitelist: <string> | default=".+"]
   
-  # Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.smtp.server-blacklist in windows_exporter
-  [blacklist: <string> | default=""]
-```
-
-
-#### service_config
-
-```yaml
-  # "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.
-  # Maps to collector.service.services-where in windows_exporter
-  [where_clause: <string> | default=""]
-```
-
-#### process_config
-
-```yaml
-  # Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.process.whitelist in windows_exporter
-  [whitelist: <string> | default=".+"]
-
-  # Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.process.blacklist in windows_exporter
-  [blacklist: <string> | default=""]
-```
-
-
-#### network_config
-
-```yaml
-  # Regexp of NIC's to whitelist. NIC name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.net.nic-whitelist in windows_exporter
-  [whitelist: <string> | default=".+"]
-
-  # Regexp of NIC's to blacklist. NIC name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.net.nic-blacklist in windows_exporter
-  [blacklist: <string> | default=""]
-```
-
-
-#### mssql_config
-
-```yaml
-  # Comma-separated list of mssql WMI classes to use.
-  # Maps to collectors.mssql.classes-enabled in windows_exporter
-  [enabled_classes: <string> | default="accessmethods,availreplica,bufman,databases,dbreplica,genstats,locks,memmgr,sqlstats,sqlerrors,transactions"]
-```
-
-
-#### msmq_config
-
-```yaml
-  # WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.
-  # Maps to collector.msmq.msmq-where in windows_exporter
-  [where_clause: <string> | default=""]
-```
-#### logical_disk_config
-
-```yaml
-  # Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.logical_disk.volume-whitelist in windows_exporter
-  [whitelist: <string> | default=".+"]
-
-  # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
-  # Maps to collector.logical_disk.volume-blacklist in windows_exporter
-  [blacklist: <string> | default=".+"]
+    # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.logical_disk.volume-blacklist in windows_exporter
+    [blacklist: <string> | default=".+"]
 ```
