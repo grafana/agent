@@ -3,6 +3,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+# v0.13.1 (2021-04-09)
+
 - [BUGFIX] Validate that incoming scraped metrics do not have an empty label
   set or a label set with duplicate labels, mirroring the behavior of
   Prometheus. (@rfratto)
@@ -88,12 +90,6 @@ and is expected to change will be tagged interchangably as "experimental" or
 
 - [DEPRECATION] `push_config` is now supplanted by `remote_block` and `batch`.
   `push_config` will be removed in a future version (@mapno)
-
-# v0.13.1 (2021-04-09)
-
-- [BUGFIX] Validate that incoming scraped metrics do not have an empty label
-  set or a label set with duplicate labels, mirroring the behavior of
-  Prometheus. (@rfratto)
 
 # v0.13.0 (2021-02-25)
 
