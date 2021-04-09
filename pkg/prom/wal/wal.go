@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/pkg/value"
 	"github.com/prometheus/prometheus/storage"
+	"github.com/prometheus/prometheus/tsdb"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
@@ -564,6 +565,17 @@ func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	series := a.w.series.getByHash(hash, l)
 	if series != nil {
 		return series.ref, a.AddFast(series.ref, t, v)
+	}
+
+	// Ensure no empty or duplicate labels have gotten through. This mirrors the
+	// equivalent validation code in the TSDB's headAppender.
+	l = l.WithoutEmpty()
+	if len(l) == 0 {
+		return 0, errors.Wrap(tsdb.ErrInvalidSample, "empty labelset")
+	}
+
+	if lbl, dup := l.HasDuplicateLabelNames(); dup {
+		return 0, errors.Wrap(tsdb.ErrInvalidSample, fmt.Sprintf(`label name "%s" is not unique`, lbl))
 	}
 
 	a.w.mtx.Lock()

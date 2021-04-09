@@ -17,6 +17,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestStorage_InvalidSeries(t *testing.T) {
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, s.Close())
+	}()
+
+	app := s.Appender(context.Background())
+
+	_, err = app.Append(0, labels.Labels{}, 0, 0)
+	require.Error(t, err, "should reject empty labels")
+
+	_, err = app.Append(0, labels.Labels{{Name: "a", Value: "1"}, {Name: "a", Value: "2"}}, 0, 0)
+	require.Error(t, err, "should reject duplicate labels")
+
+	// Sanity check: valid series
+	_, err = app.Append(0, labels.Labels{{Name: "a", Value: "1"}}, 0, 0)
+	require.NoError(t, err, "should not reject valid series")
+}
+
 func TestStorage(t *testing.T) {
 	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
 	require.NoError(t, err)
