@@ -33,12 +33,8 @@ sigv4:
 
 ## Tempo: `push_config` deprecation
 
-NOTE: `push_config` is still being supported as it was before v0.14.0.
-Make this change if you want support of multiple tracing backends for the same pipeline
-or if you want to make the upgrade before support is dropped.
-
-v0.14.0 introduced support to mirror tracing pipeline to multiple backends,
-which uses a slightly different configuration structure.
+`push_config` is now deprecated in favor of a `remote_write` array which allows for sending spans to multiple endpoints.
+`push_config` will be removed in a future release, and it is recommended to migrate to `remote_write` as soon as possible.
 
 To migrate, move the batch options outside the `push_config` block.
 Then, add a `remote_write` array and move the remaining of your `push_config` block inside it.
