@@ -470,27 +470,29 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 			"decision_wait": wait,
 		}
 
-		internalExporter, err := c.loadBalancingExporter()
-		if err != nil {
-			return nil, err
-		}
-		exporters["loadbalancing"] = internalExporter
+		if c.TailSampling.LoadBalancing.Resolver != nil {
+			internalExporter, err := c.loadBalancingExporter()
+			if err != nil {
+				return nil, err
+			}
+			exporters["loadbalancing"] = internalExporter
 
-		receiverPort := defaultLoadBalancingPort
-		if c.TailSampling.Port != "" {
-			receiverPort = c.TailSampling.Port
-		}
-		c.Receivers["otlp/lb"] = map[string]interface{}{
-			"protocols": map[string]interface{}{
-				"grpc": map[string]interface{}{
-					"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
+			receiverPort := defaultLoadBalancingPort
+			if c.TailSampling.Port != "" {
+				receiverPort = c.TailSampling.Port
+			}
+			c.Receivers["otlp/lb"] = map[string]interface{}{
+				"protocols": map[string]interface{}{
+					"grpc": map[string]interface{}{
+						"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
+					},
 				},
-			},
+			}
 		}
 	}
 
 	pipelines := make(map[string]interface{})
-	if c.TailSampling != nil {
+	if c.TailSampling.LoadBalancing.Resolver != nil {
 		// load balancing pipeline
 		pipelines["traces/0"] = map[string]interface{}{
 			"receivers": receiverNames,

@@ -502,6 +502,56 @@ tail_sampling:
         values:
           - value1
           - value2
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  tail_sampling:
+    decision_wait: 5s
+    policies:
+      - name: always_sample/0
+        type: always_sample
+      - name: string_attribute/1
+        type: string_attribute
+        string_attribute:
+          key: key
+          values:
+            - value1
+            - value2
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling"]
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "tail sampling config with load balancing",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+tail_sampling:
+  policies:
+    - always_sample:
+    - string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
   load_balancing:
     insecure: true
     resolver:
