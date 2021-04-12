@@ -2078,6 +2078,59 @@ spanmetrics:
     # They can be further namespaced, i.e. `{namespace}_tempo_spanmetrics`
     [ namespace: <prometheusexporter.namespace> ]
     [ send_timestamps: <prometheusexporter.send_timestamps> ]
+
+# tail_sampling supports tail-based sampling of traces in the agent.
+# Policies can be defined that determine what traces are sampled and sent to the backends and what traces are dropped.
+# In order to make a correct sampling decision it's important that the agent has a complete trace.
+# This is achieved by waiting a given time for all the spans before evaluating the trace.
+# Tail sampling also supports multiple agent deployments, allowing to group all spans of a trace
+# in the same agent by load balancing the spans by trace ID between the instances.
+tail_sampling:
+  # policies define the rules by which traces will be sampled. Multiple policies can be added to the same pipeline
+  # They are the same as the policies in Open-Telemetry's tailsamplingprocessor.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
+  policies:
+    - [<tailsamplingprocessor.policies>]
+  # decision_wait is the time that will be waited before making a decision for a trace.
+  # Longer times reduce the probability of sampling an incomplete trace at the cost of higher memory usage.
+  decision_wait: [ <string> | default="5s" ]
+  # load_balancing configures load balancing of spans across multiple agents.
+  # It ensures that all spans of a trace are sampled in the same instance.
+  # It's not necessary when only one agent is receiving traces (e.g. single instance deployments). 
+  load_balancing:
+    # resolver configures the resolution strategy for the involved backends
+    # It can be static, with a fixed list of hostnames, or DNS, with a hostname (and port) that will resolve to all IP addresses.
+    # It's the same as the config in loadbalancingexporter.
+    # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter
+    resolver:
+      static:
+        hostnames:
+          [ - <string> ... ]
+      dns:
+        hostname: <string>
+        [ port: <int> ]
+
+    # Load balancing is done via an otlp exporter.
+    # The remaining configuration is common with the remote_write block.
+
+    # Controls whether compression is enabled.
+    [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
+
+    # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
+    [ insecure: <boolean> | default = false ]
+
+    # Disable validation of the server certificate. Only used when insecure is set
+    # to false.
+    [ insecure_skip_verify: <bool> | default = false ]
+
+    # Sets the `Authorization` header on every trace push with the
+    # configured username and password.
+    # password and password_file are mutually exclusive.
+    basic_auth:
+      [ username: <string> ]
+      [ password: <secret> ]
+      [ password_file: <string> ]
+    
 ```
 
 ### integrations_config
