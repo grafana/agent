@@ -80,3 +80,14 @@ services:
     image: quay.io/freshtracks.io/avalanche:latest
   avalanche-5:
     image: quay.io/freshtracks.io/avalanche:latest
+
+  # tracing load generator
+  synthetic-load-generator:
+    image: omnition/synthetic-load-generator:1.0.25
+    volumes:
+      - ./load-generator:/etc/load-generator
+    environment:
+      - TOPOLOGY_FILE=/etc/load-generator/load-generator.json
+      - JAEGER_COLLECTOR_URL=http://agent-1:14268
+    depends_on:
+      - agent-1
