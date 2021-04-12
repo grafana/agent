@@ -492,7 +492,7 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 	}
 
 	pipelines := make(map[string]interface{})
-	if c.TailSampling.LoadBalancing.Resolver != nil {
+	if c.TailSampling != nil && c.TailSampling.LoadBalancing.Resolver != nil {
 		// load balancing pipeline
 		pipelines["traces/0"] = map[string]interface{}{
 			"receivers": receiverNames,
