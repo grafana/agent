@@ -5,7 +5,7 @@ releases and how to migrate to newer versions.
 
 # v0.14.0
 
-v0.14.0 introduces a breaking change to the SigV4 configuration.
+v0.14.0 introduces a breaking change to the SigV4 configuration and the deprecation of `push_config` in favor of `remote_write` for Tempo configs.
 
 ## SigV4 config change
 
@@ -30,6 +30,55 @@ Example new config:
 sigv4:
   region: us-east-1
 ```
+
+## Tempo: `push_config` deprecation
+
+NOTE: `push_config` is still being supported as it was before v0.14.0.
+Make this change if you want support of multiple tracing backends for the same pipeline
+or if you want to make the upgrade before support is dropped.
+
+v0.14.0 introduced support to mirror tracing pipeline to multiple backends,
+which uses a slightly different configuration structure.
+
+To migrate, move the batch options outside the `push_config` block.
+Then, add a `remote_write` array and move the remaining of your `push_config` block inside it.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+    - name: default
+      receivers:
+        otlp:
+          protocols:
+            gpc:
+      push_config:
+        endpoint: otel-collector:55680
+        insecure: true
+        batch:
+          timeout: 5s
+          send_batch_size: 100
+```
+
+Example migrated config:
+
+```yaml
+tempo:
+  configs:
+    - name: default
+      receivers:
+        otlp:
+          protocols:
+            gpc:
+      remote_write:
+        - endpoint: otel-collector:55680
+          insecure: true
+      batch:
+        timeout: 5s
+        send_batch_size: 100
+```
+
 
 # v0.12.0
 
