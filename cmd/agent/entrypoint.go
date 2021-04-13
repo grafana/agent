@@ -79,7 +79,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.tempoTraces, err = tempo.New(prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel.Logrus)
+	ep.tempoTraces, err = tempo.New(ep.lokiLogs, prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel.Logrus)
 	if err != nil {
 		return nil, err
 	}

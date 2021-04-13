@@ -102,6 +102,13 @@ func (l *Loki) Stop() {
 	}
 }
 
+func (l *Loki) Instance(name string) *Instance {
+	l.mut.Lock()
+	defer l.mut.Unlock()
+
+	return l.instances[name]
+}
+
 // Instance is an individual Loki instance.
 type Instance struct {
 	mut sync.Mutex
@@ -182,4 +189,11 @@ func (i *Instance) Stop() {
 		i.promtail.Shutdown()
 		i.promtail = nil
 	}
+}
+
+func (i *Instance) Promtail() *promtail.Promtail {
+	i.mut.Lock()
+	defer i.mut.Unlock()
+
+	return i.promtail
 }

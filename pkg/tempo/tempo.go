@@ -7,8 +7,12 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/promtail/api"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
@@ -26,10 +30,12 @@ type Tempo struct {
 	leveller *logLeveller
 	logger   *zap.Logger
 	reg      prom_client.Registerer
+
+	loki *loki.Loki
 }
 
 // New creates and starts Loki log collection.
-func New(reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
+func New(loki *loki.Loki, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
 	var leveller logLeveller
 
 	tempo := &Tempo{
@@ -37,6 +43,7 @@ func New(reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, er
 		leveller:  &leveller,
 		logger:    newLogger(&leveller),
 		reg:       reg,
+		loki:      loki,
 	}
 	if err := tempo.ApplyConfig(cfg, level); err != nil {
 		return nil, err
@@ -48,6 +55,17 @@ func New(reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, er
 func (t *Tempo) ApplyConfig(cfg Config, level logrus.Level) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
+
+	channel := t.loki.Instance("default").Promtail().Client().Chan() // default is from example/docker-compose/agent/config/agent.yaml
+	channel <- api.Entry{
+		Labels: model.LabelSet{
+			"test": "test",
+		},
+		Entry: logproto.Entry{
+			Timestamp: time.Now(),
+			Line:      "ooga booga",
+		},
+	}
 
 	// Update the log level, if it has changed.
 	t.leveller.SetLevel(level)
