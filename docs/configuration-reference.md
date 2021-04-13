@@ -2017,6 +2017,12 @@ remote_write:
   # host:port to send traces to
   - endpoint: <string>
 
+    # Custom HTTP headers to be sent along with each remote write request.
+    # Be aware that 'authorization' header will be overwritten in presence
+    # of basic_auth.
+    headers:
+      [ <string>: <string> ... ]
+
     # Controls whether compression is enabled.
     [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
 
