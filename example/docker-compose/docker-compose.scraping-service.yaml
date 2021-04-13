@@ -91,3 +91,11 @@ services:
       - JAEGER_COLLECTOR_URL=http://agent-1:14268
     depends_on:
       - agent-1
+
+  # tracing backend
+  otel-collector:
+    image: otel/opentelemetry-collector:0.9.0
+    volumes:
+      - ./otel-collector:/etc/otel-collector
+    command:
+      - --config=/etc/otel-collector/config.yaml

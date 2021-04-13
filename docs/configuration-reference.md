@@ -2112,24 +2112,24 @@ tail_sampling:
 
     # Load balancing is done via an otlp exporter.
     # The remaining configuration is common with the remote_write block.
-
-    # Controls whether compression is enabled.
-    [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
-
-    # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
-    [ insecure: <boolean> | default = false ]
-
-    # Disable validation of the server certificate. Only used when insecure is set
-    # to false.
-    [ insecure_skip_verify: <bool> | default = false ]
-
-    # Sets the `Authorization` header on every trace push with the
-    # configured username and password.
-    # password and password_file are mutually exclusive.
-    basic_auth:
-      [ username: <string> ]
-      [ password: <secret> ]
-      [ password_file: <string> ]
+    exporter:
+      # Controls whether compression is enabled.
+      [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
+  
+      # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
+      [ insecure: <boolean> | default = false ]
+  
+      # Disable validation of the server certificate. Only used when insecure is set
+      # to false.
+      [ insecure_skip_verify: <bool> | default = false ]
+  
+      # Sets the `Authorization` header on every trace push with the
+      # configured username and password.
+      # password and password_file are mutually exclusive.
+      basic_auth:
+        [ username: <string> ]
+        [ password: <secret> ]
+        [ password_file: <string> ]
     
 ```
 

@@ -34,8 +34,6 @@ tempo:
             key: env
             value: prod
       remote_write:
-        - endpoint: tempo:4317
-          insecure: true
         - endpoint: otel-collector:55680
           insecure: true
       batch:
@@ -43,8 +41,7 @@ tempo:
         send_batch_size: 100
       tail_sampling:
         policies:
-          - name: policy-1
-            type: always_sample
+          - always_sample:
 #            Enter more policies to sample traces (ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)
 #            Example of rate limiting policy. Uncomment to start rate limiting!
 #          - name: policy-2
@@ -52,13 +49,14 @@ tempo:
 #            rate_limiting:
 #              - spans_per_second: 35
         load_balancing:
-          insecure: true
+          exporter:
+            insecure: true
           resolver:
             static:
               hostnames:
-                - agent-1:9999
-                - agent-2:9999
-                - agent-3:9999
+                - agent-1:4318
+                - agent-2:4318
+                - agent-3:4318
       spanmetrics:
         dimensions:
           - name: http.url

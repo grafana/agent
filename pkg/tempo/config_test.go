@@ -553,11 +553,12 @@ tail_sampling:
           - value1
           - value2
   load_balancing:
-    insecure: true
+    exporter:
+      insecure: true
     resolver:
       dns:
         hostname: agent
-        port: 9999
+        port: 4318
 `,
 			expectedConfig: `
 receivers:
@@ -567,7 +568,7 @@ receivers:
   otlp/lb:
     protocols:
       grpc:
-        endpoint: "0.0.0.0:9999"
+        endpoint: "0.0.0.0:4318"
 exporters:
   otlp/0:
     endpoint: example.com:12345
@@ -584,7 +585,7 @@ exporters:
     resolver:
       dns:
         hostname: agent
-        port: 9999
+        port: 4318
 processors:
   tail_sampling:
     decision_wait: 5s

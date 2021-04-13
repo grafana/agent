@@ -37,7 +37,7 @@ const (
 	defaultDecisionWait = time.Second * 5
 
 	// defaultLoadBalancingPort is the default port the agent uses for internal load balancing
-	defaultLoadBalancingPort = "9999"
+	defaultLoadBalancingPort = "4318"
 	// agent's load balancing options
 	dnsTagName    = "dns"
 	staticTagName = "static"
@@ -105,7 +105,7 @@ type InstanceConfig struct {
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
 
 	// TailSampling defines a sampling strategy for the pipeline
-	TailSampling *TailSamplingConfig `yaml:"tail_sampling"`
+	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
 }
 
 const (
@@ -198,8 +198,8 @@ type metricsExporterConfig struct {
 	SendTimestamps bool `yaml:"send_timestamps"`
 }
 
-// TailSamplingConfig is the configuration for tail-based sampling
-type TailSamplingConfig struct {
+// tailSamplingConfig is the configuration for tail-based sampling
+type tailSamplingConfig struct {
 	// Policies are the strategies used for sampling. Multiple policies can be used in the same pipeline.
 	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
 	Policies []map[string]interface{} `yaml:"policies"`
@@ -208,17 +208,22 @@ type TailSamplingConfig struct {
 	// Port is the port the instance will use to receive load balanced traces
 	Port string `yaml:"port"`
 	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
-	LoadBalancing loadBalancingConfig `yaml:"load_balancing"`
+	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
 // loadBalancingConfig is an OTel exporter's config with extra resolver config
 type loadBalancingConfig struct {
+	Exporter exporterConfig         `yaml:"exporter"`
+	Resolver map[string]interface{} `yaml:"resolver"`
+}
+
+// exporterConfig defined the config for a otlp exporter for load balancing
+type exporterConfig struct {
 	Compression        string                 `yaml:"compression,omitempty"`
 	Insecure           bool                   `yaml:"insecure,omitempty"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
-	Resolver           map[string]interface{} `yaml:"resolver"`
 }
 
 // exporter builds an OTel exporter from RemoteWriteConfig
@@ -327,10 +332,10 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 	exporter, err := exporter(RemoteWriteConfig{
 		// Endpoint is omitted in OTel load balancing exporter
 		Endpoint:           "noop",
-		Compression:        c.TailSampling.LoadBalancing.Compression,
-		Insecure:           c.TailSampling.LoadBalancing.Insecure,
-		InsecureSkipVerify: c.TailSampling.LoadBalancing.InsecureSkipVerify,
-		BasicAuth:          c.TailSampling.LoadBalancing.BasicAuth,
+		Compression:        c.TailSampling.LoadBalancing.Exporter.Compression,
+		Insecure:           c.TailSampling.LoadBalancing.Exporter.Insecure,
+		InsecureSkipVerify: c.TailSampling.LoadBalancing.Exporter.InsecureSkipVerify,
+		BasicAuth:          c.TailSampling.LoadBalancing.Exporter.BasicAuth,
 	})
 	if err != nil {
 		return nil, err
@@ -470,7 +475,7 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 			"decision_wait": wait,
 		}
 
-		if c.TailSampling.LoadBalancing.Resolver != nil {
+		if c.TailSampling.LoadBalancing != nil {
 			internalExporter, err := c.loadBalancingExporter()
 			if err != nil {
 				return nil, err
@@ -492,7 +497,7 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 	}
 
 	pipelines := make(map[string]interface{})
-	if c.TailSampling != nil && c.TailSampling.LoadBalancing.Resolver != nil {
+	if c.TailSampling != nil && c.TailSampling.LoadBalancing != nil {
 		// load balancing pipeline
 		pipelines["traces/0"] = map[string]interface{}{
 			"receivers": receiverNames,
