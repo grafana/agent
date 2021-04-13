@@ -316,6 +316,8 @@ receivers:
       grpc:
 remote_write:
   - endpoint: example.com:12345
+    headers:
+      x-some-header: Some value!
 `,
 			expectedConfig: `
 receivers:
@@ -326,6 +328,8 @@ exporters:
   otlp/0:
     endpoint: example.com:12345
     compression: gzip
+    headers:
+      x-some-header: Some value!
     retry_on_failure:
       max_elapsed_time: 60s
 service:
@@ -461,7 +465,7 @@ exporters:
       max_elapsed_time: 60s
   prometheus:
     endpoint: "0.0.0.0:8889"
-    namespace: promexample    
+    namespace: promexample
 processors:
   spanmetrics:
     metrics_exporter: prometheus
