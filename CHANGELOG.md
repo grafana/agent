@@ -3,6 +3,9 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+- [ENHANCEMENT] Add  `headers` field in `remote_write` config for Tempo. `headers`
+  specifies HTTP headers to forward to the remote endpoint. (@alexbiehl)
+
 # v0.13.1 (2021-04-09)
 
 - [BUGFIX] Validate that incoming scraped metrics do not have an empty label
