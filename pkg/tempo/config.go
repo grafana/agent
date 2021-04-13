@@ -136,6 +136,7 @@ type RemoteWriteConfig struct {
 	Insecure           bool                   `yaml:"insecure,omitempty"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Headers            map[string]string      `yaml:"headers,omitempty"`
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
 	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
 }
@@ -171,6 +172,10 @@ func exporter(remoteWriteConfig RemoteWriteConfig) (map[string]interface{}, erro
 	}
 
 	headers := map[string]string{}
+	if remoteWriteConfig.Headers != nil {
+		headers = remoteWriteConfig.Headers
+	}
+
 	if remoteWriteConfig.BasicAuth != nil {
 		password := string(remoteWriteConfig.BasicAuth.Password)
 
@@ -183,9 +188,7 @@ func exporter(remoteWriteConfig RemoteWriteConfig) (map[string]interface{}, erro
 		}
 
 		encodedAuth := base64.StdEncoding.EncodeToString([]byte(remoteWriteConfig.BasicAuth.Username + ":" + password))
-		headers = map[string]string{
-			"authorization": "Basic " + encodedAuth,
-		}
+		headers["authorization"] = "Basic " + encodedAuth
 	}
 
 	compression := remoteWriteConfig.Compression
