@@ -3,6 +3,7 @@ package automaticloggingprocessor
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
@@ -45,33 +46,33 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	rsLen := td.ResourceSpans().Len()
 	for i := 0; i < rsLen; i++ {
-		var traceID string
 		rs := td.ResourceSpans().At(i)
 		ilsLen := rs.InstrumentationLibrarySpans().Len()
+
+		atts := rs.Resource().Attributes()
+		serviceName, _ := atts.Get(conventions.AttributeServiceName) // jpe include configurable tags
 
 		for j := 0; j < ilsLen; j++ {
 			ils := rs.InstrumentationLibrarySpans().At(j)
 			spanLen := ils.Spans().Len()
 
+			lastTraceID := ""
 			for k := 0; k < spanLen; k++ {
 				span := ils.Spans().At(k)
-				traceID = span.TraceID().HexString()
+				traceID := span.TraceID().HexString()
 
 				if p.cfg.EnableSpans {
-					p.exportToLoki("span", traceID, "name", span.Name(), "dur", uint64(span.EndTime()-span.StartTime())) // name and duration not working
+					p.exportToLoki("span", traceID, "name", span.Name(), "dur", spanDuration(span), "svc", serviceName.StringVal())
 				}
 
 				if p.cfg.EnableRoots && span.ParentSpanID().IsEmpty() {
-					p.exportToLoki("root", traceID, "name", span.Name(), "dur", uint64(span.EndTime()-span.StartTime()))
+					p.exportToLoki("root", traceID, "name", span.Name(), "dur", spanDuration(span), "svc", serviceName.StringVal())
 				}
-			}
-		}
 
-		if p.cfg.EnableProcesses { // jpe multiple trace ids in the same batch :(
-			atts := rs.Resource().Attributes()
-			serviceName, ok := atts.Get(conventions.AttributeServiceName) // jpe include configurable tags
-			if ok {
-				p.exportToLoki("process", traceID, "name", serviceName.StringVal())
+				if p.cfg.EnableProcesses && lastTraceID != traceID {
+					lastTraceID = traceID
+					p.exportToLoki("process", traceID, "svc", serviceName.StringVal())
+				}
 			}
 		}
 	}
@@ -122,4 +123,9 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 			Line:      string(line),
 		},
 	}
+}
+
+func spanDuration(span pdata.Span) string {
+	dur := int64(span.EndTime() - span.StartTime())
+	return strconv.FormatInt(dur, 10) + "ns"
 }
