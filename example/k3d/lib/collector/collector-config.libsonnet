@@ -9,7 +9,7 @@
 
   exporters: {
     logging: {
-      loglevel: "debug",
+      loglevel: "info",
     },
   },
 
