@@ -88,7 +88,7 @@ type InstanceConfig struct {
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
 
 	// AutomaticLogging
-	AutomaticLogging *AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
+	AutomaticLogging *automaticloggingprocessor.AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 }
 
 const (
@@ -291,7 +291,7 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 
 	if c.AutomaticLogging != nil {
 		processorNames = append(processorNames, automaticloggingprocessor.TypeStr)
-		processors[promsdprocessor.TypeStr] = map[string]interface{}{
+		processors[automaticloggingprocessor.TypeStr] = map[string]interface{}{
 			"automatic_logging": c.AutomaticLogging,
 		}
 	}
@@ -420,9 +420,4 @@ func tracingFactories() (component.Factories, error) {
 		Processors: processors,
 		Exporters:  exporters,
 	}, nil
-}
-
-// AutomaticLoggingConfig controls how/if automatic logging through the Loki instance works
-type AutomaticLoggingConfig struct {
-	LokiName string `yaml:"loki_name,omitempty"`
 }

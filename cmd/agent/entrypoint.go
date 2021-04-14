@@ -125,7 +125,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.tempoTraces.ApplyConfig(cfg.Tempo, cfg.Server.LogLevel.Logrus); err != nil {
+	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, cfg.Tempo, cfg.Server.LogLevel.Logrus); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update tempo", "err", err)
 		failed = true
 	}

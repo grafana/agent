@@ -78,3 +78,5 @@ tempo:
     batch:
       timeout: 5s
       send_batch_size: 100
+    automatic_logging: # jpe expand
+      loki_name: default

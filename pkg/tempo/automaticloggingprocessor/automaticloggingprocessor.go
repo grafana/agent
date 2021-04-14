@@ -2,10 +2,13 @@ package automaticloggingprocessor
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/promtail/api"
 	"github.com/prometheus/common/model"
@@ -17,13 +20,13 @@ import (
 
 type promServiceDiscoProcessor struct {
 	nextConsumer consumer.TracesConsumer
-	cfg          *Config
+	cfg          *AutomaticLoggingConfig
 	lokiChan     chan<- api.Entry
 
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *Config, lokiChan chan<- api.Entry) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggingConfig) (component.TracesProcessor, error) {
 	logger := log.With(util.Logger, "component", "tempo automatic logging")
 
 	if nextConsumer == nil {
@@ -31,7 +34,6 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *Config, lokiCh
 	}
 	return &promServiceDiscoProcessor{
 		nextConsumer: nextConsumer,
-		lokiChan:     lokiChan,
 		cfg:          cfg,
 		logger:       logger,
 	}, nil
@@ -56,7 +58,19 @@ func (p *promServiceDiscoProcessor) GetCapabilities() component.ProcessorCapabil
 }
 
 // Start is invoked during service startup.
-func (p *promServiceDiscoProcessor) Start(_ context.Context, _ component.Host) error {
+func (p *promServiceDiscoProcessor) Start(ctx context.Context, _ component.Host) error {
+	loki := ctx.Value(contextkeys.Loki).(*loki.Loki)
+	if loki == nil {
+		return fmt.Errorf("key %s does not contain a Loki instance", contextkeys.Loki)
+	}
+	lokiInstance := loki.Instance(p.cfg.LokiName)
+	if lokiInstance == nil {
+		return fmt.Errorf("loki instance %s not found", p.cfg.LokiName)
+	}
+	p.lokiChan = lokiInstance.Promtail().Client().Chan()
+	if p.lokiChan == nil {
+		return fmt.Errorf("loki chan is unexpectedly nil")
+	}
 	return nil
 }
 
