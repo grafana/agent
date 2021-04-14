@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestOTelConfig(t *testing.T) {
+func TestOTelConfig(t *testing.T) { // jpe add tests for new thing
 	// create a password file to test the password file logic
 	password := "password_in_file"
 	tmpfile, err := ioutil.TempFile("", "")

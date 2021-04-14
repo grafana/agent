@@ -2,9 +2,13 @@ package automaticloggingprocessor
 
 import (
 	"context"
+	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/loki/pkg/promtail/api"
+	"github.com/prometheus/common/model"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
@@ -13,11 +17,13 @@ import (
 
 type promServiceDiscoProcessor struct {
 	nextConsumer consumer.TracesConsumer
+	cfg          *Config
+	lokiChan     chan<- api.Entry
 
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.TracesConsumer) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *Config, lokiChan chan<- api.Entry) (component.TracesProcessor, error) {
 	logger := log.With(util.Logger, "component", "tempo automatic logging")
 
 	if nextConsumer == nil {
@@ -25,11 +31,23 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer) (component.TracesPr
 	}
 	return &promServiceDiscoProcessor{
 		nextConsumer: nextConsumer,
+		lokiChan:     lokiChan,
+		cfg:          cfg,
 		logger:       logger,
 	}, nil
 }
 
 func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
+	p.lokiChan <- api.Entry{ // do something real
+		Labels: model.LabelSet{
+			"test": "test",
+		},
+		Entry: logproto.Entry{
+			Timestamp: time.Now(),
+			Line:      "ooga booga",
+		},
+	}
+
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 

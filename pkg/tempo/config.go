@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
@@ -288,6 +289,13 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
+	if c.AutomaticLogging != nil {
+		processorNames = append(processorNames, automaticloggingprocessor.TypeStr)
+		processors[promsdprocessor.TypeStr] = map[string]interface{}{
+			"automatic_logging": c.AutomaticLogging,
+		}
+	}
+
 	if c.Attributes != nil {
 		processors["attributes"] = c.Attributes
 		processorNames = append(processorNames, "attributes")
@@ -400,6 +408,7 @@ func tracingFactories() (component.Factories, error) {
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),
 		spanmetricsprocessor.NewFactory(),
+		automaticloggingprocessor.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
