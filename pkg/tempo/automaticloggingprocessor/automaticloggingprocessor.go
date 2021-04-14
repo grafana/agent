@@ -58,11 +58,11 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 				traceID = span.TraceID().HexString()
 
 				if p.cfg.EnableSpans {
-					p.exportToLoki("span", traceID, "name", span.Name(), "dur", span.EndTime()-span.StartTime()) // name and duration not working
+					p.exportToLoki("span", traceID, "name", span.Name(), "dur", uint64(span.EndTime()-span.StartTime())) // name and duration not working
 				}
 
 				if p.cfg.EnableRoots && span.ParentSpanID().IsEmpty() {
-					p.exportToLoki("root", traceID, "name", span.Name(), "dur", span.EndTime()-span.StartTime())
+					p.exportToLoki("root", traceID, "name", span.Name(), "dur", uint64(span.EndTime()-span.StartTime()))
 				}
 			}
 		}
