@@ -15,7 +15,7 @@ local rule = k.networking.v1beta1.ingressRule;
 local service = k.core.v1.service;
 
 local images = {
-  agent: 'grafana/agent:tail-sampling-6ca6e3e-WIP',
+  agent: 'grafana/agent:latest',
   agentctl: 'grafana/agentctl:latest',
 };
 
