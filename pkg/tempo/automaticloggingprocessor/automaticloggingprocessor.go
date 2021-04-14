@@ -21,7 +21,7 @@ import (
 	"go.opentelemetry.io/collector/translator/conventions"
 )
 
-type promServiceDiscoProcessor struct {
+type automaticLoggingProcessor struct {
 	nextConsumer consumer.TracesConsumer
 	cfg          *AutomaticLoggingConfig
 	lokiChan     chan<- api.Entry
@@ -35,14 +35,14 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 	if nextConsumer == nil {
 		return nil, componenterror.ErrNilNextConsumer
 	}
-	return &promServiceDiscoProcessor{
+	return &automaticLoggingProcessor{
 		nextConsumer: nextConsumer,
 		cfg:          cfg,
 		logger:       logger,
 	}, nil
 }
 
-func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
+func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	rsLen := td.ResourceSpans().Len()
 	for i := 0; i < rsLen; i++ {
 		var traceID string
@@ -55,19 +55,19 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 
 			for k := 0; k < spanLen; k++ {
 				span := ils.Spans().At(k)
-				traceID := span.TraceID().HexString()
+				traceID = span.TraceID().HexString()
 
 				if p.cfg.EnableSpans {
 					p.exportToLoki("span", traceID, "name", span.Name(), "dur", span.EndTime()-span.StartTime()) // name and duration not working
 				}
 
-				if p.cfg.EnableRoots && len(span.ParentSpanID().Bytes()) == 0 { // jpe root doesn't work
+				if p.cfg.EnableRoots && span.ParentSpanID().IsEmpty() {
 					p.exportToLoki("root", traceID, "name", span.Name(), "dur", span.EndTime()-span.StartTime())
 				}
 			}
 		}
 
-		if p.cfg.EnableProcesses {
+		if p.cfg.EnableProcesses { // jpe multiple trace ids in the same batch :(
 			atts := rs.Resource().Attributes()
 			serviceName, ok := atts.Get(conventions.AttributeServiceName) // jpe include configurable tags
 			if ok {
@@ -79,12 +79,12 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func (p *promServiceDiscoProcessor) GetCapabilities() component.ProcessorCapabilities {
+func (p *automaticLoggingProcessor) GetCapabilities() component.ProcessorCapabilities {
 	return component.ProcessorCapabilities{}
 }
 
 // Start is invoked during service startup.
-func (p *promServiceDiscoProcessor) Start(ctx context.Context, _ component.Host) error {
+func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host) error {
 	loki := ctx.Value(contextkeys.Loki).(*loki.Loki)
 	if loki == nil {
 		return fmt.Errorf("key %s does not contain a Loki instance", contextkeys.Loki)
@@ -101,18 +101,19 @@ func (p *promServiceDiscoProcessor) Start(ctx context.Context, _ component.Host)
 }
 
 // Shutdown is invoked during service shutdown.
-func (p *promServiceDiscoProcessor) Shutdown(context.Context) error {
+func (p *automaticLoggingProcessor) Shutdown(context.Context) error {
 	return nil
 }
 
-func (p *promServiceDiscoProcessor) exportToLoki(kind string, traceID string, keyvals ...interface{}) {
-	line, err := logfmt.MarshalKeyvals("tid", traceID, keyvals)
+func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, keyvals ...interface{}) {
+	keyvals = append(keyvals, []interface{}{"tid", traceID}...)
+	line, err := logfmt.MarshalKeyvals(keyvals...)
 	if err != nil {
 		level.Warn(p.logger).Log("msg", "unable to marshal keyvals", "err", err)
 		return
 	}
 
-	p.lokiChan <- api.Entry{ // do something real
+	p.lokiChan <- api.Entry{ // jpe do something real
 		Labels: model.LabelSet{
 			"tempolog": model.LabelValue(kind), // jpe - const string kind - tempo-logger? better name?
 		},
@@ -121,10 +122,4 @@ func (p *promServiceDiscoProcessor) exportToLoki(kind string, traceID string, ke
 			Line:      string(line),
 		},
 	}
-
-}
-
-func traceID(td pdata.Traces) []byte { // jpe horribly inefficient, make better
-
-	return nil
 }
