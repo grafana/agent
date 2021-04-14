@@ -161,8 +161,20 @@ type SpanMetricsConfig struct {
 	LatencyHistogramBuckets []time.Duration                  `yaml:"latency_histogram_buckets,omitempty"`
 	Dimensions              []spanmetricsprocessor.Dimension `yaml:"dimensions,omitempty"`
 
-	// Configuration for Prometheus exporter: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34/exporter/prometheusexporter/README.md.
-	MetricsExporter map[string]interface{} `yaml:"metrics_exporter,omitempty"`
+	// MetricsExporter is a Prometheus metrics exporter
+	MetricsExporter metricsExporterConfig `yaml:"metrics_exporter,omitempty"`
+}
+
+// Configuration for Prometheus exporter: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34/exporter/prometheusexporter/README.md.
+type metricsExporterConfig struct {
+	// The address on which the Prometheus scrape handler will be run on.
+	Endpoint string `yaml:"endpoint"`
+	// Namespace if set, exports metrics under the provided value.
+	Namespace string `yaml:"namespace"`
+	// ConstLabels are values that are applied for every exported metric.
+	ConstLabels map[string]interface{} `yaml:"const_labels"`
+	// SendTimestamps will send the underlying scrape timestamp with the export
+	SendTimestamps bool `yaml:"send_timestamps"`
 }
 
 // exporter builds an OTel exporter from RemoteWriteConfig
@@ -300,7 +312,17 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 
 	if c.SpanMetrics != nil {
 		// Configure the metrics exporter.
-		exporters[defaultSpanMetricsExporter] = c.SpanMetrics.MetricsExporter
+		namespace := "tempo_spanmetrics"
+		if len(c.SpanMetrics.MetricsExporter.Namespace) != 0 {
+			namespace = fmt.Sprintf("%s_%s", c.SpanMetrics.MetricsExporter.Namespace, namespace)
+		}
+
+		exporters[defaultSpanMetricsExporter] = map[string]interface{}{
+			"endpoint":        c.SpanMetrics.MetricsExporter.Endpoint,
+			"namespace":       namespace,
+			"const_labels":    c.SpanMetrics.MetricsExporter.ConstLabels,
+			"send_timestamps": c.SpanMetrics.MetricsExporter.SendTimestamps,
+		}
 
 		processorNames = append(processorNames, "spanmetrics")
 		processors["spanmetrics"] = map[string]interface{}{

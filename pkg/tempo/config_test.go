@@ -465,7 +465,7 @@ exporters:
       max_elapsed_time: 60s
   prometheus:
     endpoint: "0.0.0.0:8889"
-    namespace: promexample
+    namespace: promexample_tempo_spanmetrics
 processors:
   spanmetrics:
     metrics_exporter: prometheus
