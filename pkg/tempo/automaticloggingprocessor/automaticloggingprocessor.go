@@ -7,6 +7,8 @@ import (
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/loki/pkg/logproto"
@@ -16,6 +18,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/translator/conventions"
 )
 
 type promServiceDiscoProcessor struct {
@@ -40,14 +43,37 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 }
 
 func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
-	p.lokiChan <- api.Entry{ // do something real
-		Labels: model.LabelSet{
-			"test": "test",
-		},
-		Entry: logproto.Entry{
-			Timestamp: time.Now(),
-			Line:      "ooga booga",
-		},
+	rsLen := td.ResourceSpans().Len()
+	for i := 0; i < rsLen; i++ {
+		var traceID string
+		rs := td.ResourceSpans().At(i)
+		ilsLen := rs.InstrumentationLibrarySpans().Len()
+
+		for j := 0; j < ilsLen; j++ {
+			ils := rs.InstrumentationLibrarySpans().At(j)
+			spanLen := ils.Spans().Len()
+
+			for k := 0; k < spanLen; k++ {
+				span := ils.Spans().At(k)
+				traceID := span.TraceID().HexString()
+
+				if p.cfg.EnableSpans {
+					p.exportToLoki("span", traceID, "name", span.Name(), "dur", span.EndTime()-span.StartTime()) // name and duration not working
+				}
+
+				if p.cfg.EnableRoots && len(span.ParentSpanID().Bytes()) == 0 { // jpe root doesn't work
+					p.exportToLoki("root", traceID, "name", span.Name(), "dur", span.EndTime()-span.StartTime())
+				}
+			}
+		}
+
+		if p.cfg.EnableProcesses {
+			atts := rs.Resource().Attributes()
+			serviceName, ok := atts.Get(conventions.AttributeServiceName) // jpe include configurable tags
+			if ok {
+				p.exportToLoki("process", traceID, "name", serviceName.StringVal())
+			}
+		}
 	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)
@@ -76,5 +102,29 @@ func (p *promServiceDiscoProcessor) Start(ctx context.Context, _ component.Host)
 
 // Shutdown is invoked during service shutdown.
 func (p *promServiceDiscoProcessor) Shutdown(context.Context) error {
+	return nil
+}
+
+func (p *promServiceDiscoProcessor) exportToLoki(kind string, traceID string, keyvals ...interface{}) {
+	line, err := logfmt.MarshalKeyvals("tid", traceID, keyvals)
+	if err != nil {
+		level.Warn(p.logger).Log("msg", "unable to marshal keyvals", "err", err)
+		return
+	}
+
+	p.lokiChan <- api.Entry{ // do something real
+		Labels: model.LabelSet{
+			"tempolog": model.LabelValue(kind), // jpe - const string kind - tempo-logger? better name?
+		},
+		Entry: logproto.Entry{
+			Timestamp: time.Now(),
+			Line:      string(line),
+		},
+	}
+
+}
+
+func traceID(td pdata.Traces) []byte { // jpe horribly inefficient, make better
+
 	return nil
 }

@@ -20,8 +20,11 @@ type Config struct {
 }
 
 // AutomaticLoggingConfig holds config information for automatic logging
-type AutomaticLoggingConfig struct {
-	LokiName string `mapstructure:"loki_name" yaml:"loki_name"`
+type AutomaticLoggingConfig struct { // jpe moar options
+	LokiName        string `mapstructure:"loki_name" yaml:"loki_name"`
+	EnableSpans     bool   `mapstructure:"enable_spans" yaml:"enable_spans"`
+	EnableRoots     bool   `mapstructure:"enable_roots" yaml:"enable_roots"`
+	EnableProcesses bool   `mapstructure:"enable_processes" yaml:"enable_processes"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
