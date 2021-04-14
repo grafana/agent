@@ -8,11 +8,8 @@ import (
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/grafana/agent/pkg/loki"
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/grafana/loki/pkg/promtail/api"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/model"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
@@ -30,8 +27,6 @@ type Tempo struct {
 	leveller *logLeveller
 	logger   *zap.Logger
 	reg      prom_client.Registerer
-
-	loki *loki.Loki
 }
 
 // New creates and starts Loki log collection.
@@ -43,29 +38,17 @@ func New(loki *loki.Loki, reg prom_client.Registerer, cfg Config, level logrus.L
 		leveller:  &leveller,
 		logger:    newLogger(&leveller),
 		reg:       reg,
-		loki:      loki,
 	}
-	if err := tempo.ApplyConfig(cfg, level); err != nil {
+	if err := tempo.ApplyConfig(loki, cfg, level); err != nil {
 		return nil, err
 	}
 	return tempo, nil
 }
 
 // ApplyConfig updates Tempo with a new Config.
-func (t *Tempo) ApplyConfig(cfg Config, level logrus.Level) error {
+func (t *Tempo) ApplyConfig(loki *loki.Loki, cfg Config, level logrus.Level) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
-
-	channel := t.loki.Instance("default").Promtail().Client().Chan() // default is from example/docker-compose/agent/config/agent.yaml
-	channel <- api.Entry{
-		Labels: model.LabelSet{
-			"test": "test",
-		},
-		Entry: logproto.Entry{
-			Timestamp: time.Now(),
-			Line:      "ooga booga",
-		},
-	}
 
 	// Update the log level, if it has changed.
 	t.leveller.SetLevel(level)
@@ -75,7 +58,7 @@ func (t *Tempo) ApplyConfig(cfg Config, level logrus.Level) error {
 	for _, c := range cfg.Configs {
 		// If an old instance exists, update it and move it to the new map.
 		if old, ok := t.instances[c.Name]; ok {
-			err := old.ApplyConfig(c)
+			err := old.ApplyConfig(loki, c)
 			if err != nil {
 				return err
 			}
@@ -89,7 +72,7 @@ func (t *Tempo) ApplyConfig(cfg Config, level logrus.Level) error {
 			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"tempo_config": c.Name}, t.reg)
 		)
 
-		inst, err := NewInstance(instReg, c, instLogger)
+		inst, err := NewInstance(loki, instReg, c, instLogger)
 		if err != nil {
 			return fmt.Errorf("failed to create tempo instance %s: %w", c.Name, err)
 		}

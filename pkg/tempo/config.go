@@ -85,6 +85,9 @@ type InstanceConfig struct {
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
+
+	// AutomaticLogging
+	AutomaticLogging *AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 }
 
 const (
@@ -408,4 +411,9 @@ func tracingFactories() (component.Factories, error) {
 		Processors: processors,
 		Exporters:  exporters,
 	}, nil
+}
+
+// AutomaticLoggingConfig controls how/if automatic logging through the Loki instance works
+type AutomaticLoggingConfig struct {
+	LokiName string `yaml:"loki_name,omitempty"`
 }
