@@ -5,6 +5,7 @@ cross-compilation issue, but will return in v0.13.0.
 
 - [ENHANCEMENT] Add  `headers` field in `remote_write` config for Tempo. `headers`
   specifies HTTP headers to forward to the remote endpoint. (@alexbiehl)
+- [CHANGE] Add `tempo_spanmetrics` namespace in spanmetrics (@mapno)
 
 # v0.13.1 (2021-04-09)
 
