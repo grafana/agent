@@ -73,7 +73,7 @@ tempo:
         key: env
         value: prod
     remote_write:
-      - endpoint: otel-collector:55680
+      - endpoint: tempo:55680
         insecure: true
     batch:
       timeout: 5s
