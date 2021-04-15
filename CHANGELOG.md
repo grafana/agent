@@ -11,6 +11,10 @@ cross-compilation issue, but will return in v0.13.0.
 - [BUGFIX] Grafana Agent running as a Windows service should start automatically on startup
   (@mattdurham) 
 
+- [BUGFIX] Validate that incoming scraped metrics do not have an empty label
+  set or a label set with duplicate labels, mirroring the behavior of
+  Prometheus. (@rfratto)
+
 # v0.13.1 (2021-04-09)
 
 - [BUGFIX] Validate that incoming scraped metrics do not have an empty label
