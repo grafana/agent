@@ -46,9 +46,11 @@ In case a member leaves, the [offboarding](#offboarding) procedure is applied.
 
 The current team members are:
 
-- Robert Fratto - [rfratto](https://github.com/rfratto) ([Grafana Labs](https://grafana.com))
 - Matt Durham - [mattdurham](https://github.com/mattdurham) ([Grafana Labs](https://grafana.com))
+- Joe Elliott - [joe-elliott](https://github.com/joe-elliott) ([Grafana Labs](https://grafana.com))
+- Robert Fratto - [rfratto](https://github.com/rfratto) ([Grafana Labs](https://grafana.com))
 - Richard Hartmann - [RichiH](https://github.com/RichiH) ([Grafana Labs](https://grafana.com))
+- Mario Rodriguez - [mapno](https://github.com/mapno) ([Grafana Labs](https://grafana.com))
 
 ### Maintainers
 
