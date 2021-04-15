@@ -48,7 +48,7 @@ The current team members are:
 
 - Robert Fratto - [rfratto](https://github.com/rfratto) ([Grafana Labs](https://grafana.com))
 - Matt Durham - [mattdurham](https://github.com/mattdurham) ([Grafana Labs](https://grafana.com))
-- Nick Pillitteri - [56quarters](https://github.com/56quarters) ([Grafana Labs](https://grafana.com))
+- Richard Hartmann - [RichiH](https://github.com/RichiH) ([Grafana Labs](https://grafana.com))
 
 ### Maintainers
 
