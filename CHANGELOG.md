@@ -3,8 +3,13 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+# 0.14.0-rc.2 (2021-04-15)
+
 - [ENHANCEMENT] Add  `headers` field in `remote_write` config for Tempo. `headers`
   specifies HTTP headers to forward to the remote endpoint. (@alexbiehl)
+
+- [BUGFIX] Grafana Agent running as a Windows service should start automatically on startup
+  (@mattdurham) 
 
 # v0.13.1 (2021-04-09)
 
