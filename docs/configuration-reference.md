@@ -205,7 +205,7 @@ configs:
 
 The `http_tls_config` block configures the server to run with TLS. When set, `integrations.http_tls_config` must
 also be provided. Acceptable values for  `client_auth_type` are found in
-[Go's `tls` package]https://golang.org/pkg/crypto/tls/#ClientAuthType).
+[Go's `tls` package](https://golang.org/pkg/crypto/tls/#ClientAuthType).
 
 ```yaml
 # File path to the server certificate
