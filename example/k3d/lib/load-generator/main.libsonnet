@@ -30,9 +30,6 @@ local volume = k.core.v1.volume;
       container.withPorts([
         containerPort.newNamed(name='grpc', containerPort=55680),
       ]) +
-      container.withVolumeMountsMixin(
-        volumeMount.new('load-generator-data', '/tmp/load-generator'),
-      ) +
       container.withEnvMixin([
         {
           name: 'TOPOLOGY_FILE',
@@ -44,20 +41,9 @@ local volume = k.core.v1.volume;
         },
       ]),
 
-    pvc:
-      { apiVersion: 'v1', kind: 'PersistentVolumeClaim' } +
-      pvc.new() +
-      pvc.mixin.metadata.withName('load-generator-data') +
-      pvc.mixin.metadata.withNamespace(namespace) +
-      pvc.mixin.spec.withAccessModes('ReadWriteOnce') +
-      pvc.mixin.spec.resources.withRequests({ storage: '10Gi' }),
-
     deployment:
       deployment.new('load-generator', 1, [self.container]) +
       deployment.mixin.metadata.withNamespace(namespace) +
-      deployment.mixin.spec.template.spec.withVolumesMixin([
-        volume.fromPersistentVolumeClaim('load-generator-data', 'load-generator-data'),
-      ]) +
       k.util.configMapVolumeMount(this.configMap, '/etc/load-generator'),
 
 

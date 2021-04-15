@@ -30,27 +30,13 @@ local volume = k.core.v1.volume;
       container.withPorts([
         containerPort.newNamed(name='grpc', containerPort=55680),
       ]) +
-      container.withVolumeMountsMixin(
-        volumeMount.new('collector-data', '/tmp/collector'),
-      ) +
       container.withArgsMixin(
           '--config=/etc/collector/config.yaml',
       ),
 
-    pvc:
-      { apiVersion: 'v1', kind: 'PersistentVolumeClaim' } +
-      pvc.new() +
-      pvc.mixin.metadata.withName('collector-data') +
-      pvc.mixin.metadata.withNamespace(namespace) +
-      pvc.mixin.spec.withAccessModes('ReadWriteOnce') +
-      pvc.mixin.spec.resources.withRequests({ storage: '10Gi' }),
-
     deployment:
       deployment.new('collector', 1, [self.container]) +
       deployment.mixin.metadata.withNamespace(namespace) +
-      deployment.mixin.spec.template.spec.withVolumesMixin([
-        volume.fromPersistentVolumeClaim('collector-data', 'collector-data'),
-      ]) +
       k.util.configMapVolumeMount(this.configMap, '/etc/collector'),
 
 
