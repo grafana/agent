@@ -2074,6 +2074,8 @@ spanmetrics:
   metrics_exporter:
     [ endpoint: <prometheusexporter.endpoint> ]
     [ const_labels: <prometheusexporter.const_labels> ]
+    # Metrics are namespaced to `tempo_spanmetrics` by default.
+    # They can be further namespaced, i.e. `{namespace}_tempo_spanmetrics`
     [ namespace: <prometheusexporter.namespace> ]
     [ send_timestamps: <prometheusexporter.send_timestamps> ]
 ```
