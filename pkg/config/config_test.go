@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/prom"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
@@ -119,4 +121,13 @@ prometheus:
 		err := LoadBytes([]byte(cfg), false, &c)
 		require.Error(t, err)
 	})
+}
+
+func TestConfig_Defaults(t *testing.T) {
+	var c Config
+	err := LoadBytes([]byte(`{}`), false, &c)
+	require.NoError(t, err)
+
+	require.Equal(t, prom.DefaultConfig, c.Prometheus)
+	require.Equal(t, integrations.DefaultManagerConfig, c.Integrations)
 }
