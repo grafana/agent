@@ -15,6 +15,8 @@ cross-compilation issue, but will return in v0.13.0.
 - [BUGFIX] Validate that incoming scraped metrics do not have an empty label
   set or a label set with duplicate labels, mirroring the behavior of
   Prometheus. (@rfratto)
+  
+- [FEATURE] Tail-based sampling for tracing pipelines (@mapno)
 
 # v0.13.1 (2021-04-09)
 

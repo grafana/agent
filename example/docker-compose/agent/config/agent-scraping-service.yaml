@@ -21,3 +21,45 @@ prometheus:
             endpoints:
               - etcd:2379
 
+tempo:
+  configs:
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            thrift_http:
+      attributes:
+        actions:
+          - action: upsert
+            key: env
+            value: prod
+      remote_write:
+        - endpoint: otel-collector:55680
+          insecure: true
+      batch:
+        timeout: 5s
+        send_batch_size: 100
+      tail_sampling:
+        policies:
+          - always_sample:
+#            Enter more policies to sample traces (ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)
+#            Example of rate limiting policy. Uncomment to start rate limiting!
+#          - name: policy-2
+#            type: rate_limiting
+#            rate_limiting:
+#              - spans_per_second: 35
+        load_balancing:
+          exporter:
+            insecure: true
+          resolver:
+            static:
+              hostnames:
+                - agent-1:4318
+                - agent-2:4318
+                - agent-3:4318
+      spanmetrics:
+        dimensions:
+          - name: http.url
+        metrics_exporter:
+          endpoint: 0.0.0.0:8889
+
