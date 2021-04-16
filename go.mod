@@ -21,7 +21,9 @@ require (
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
 	github.com/oliver006/redis_exporter v1.15.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.21.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.21.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.21.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -97,3 +99,6 @@ exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 
 // Used for /-/reload
 replace github.com/weaveworks/common => github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7
+
+// loadbalancingexporter uses non-fixed version of batchpertrace which fetches latest and causes problems
+replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpertrace => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpertrace v0.21.0

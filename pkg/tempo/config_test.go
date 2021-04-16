@@ -485,6 +485,131 @@ service:
       receivers: ["noop"]
 `,
 		},
+		{
+			name: "tail sampling config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+tail_sampling:
+  policies:
+    - always_sample:
+    - string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  tail_sampling:
+    decision_wait: 5s
+    policies:
+      - name: always_sample/0
+        type: always_sample
+      - name: string_attribute/1
+        type: string_attribute
+        string_attribute:
+          key: key
+          values:
+            - value1
+            - value2
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling"]
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "tail sampling config with load balancing",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+tail_sampling:
+  policies:
+    - always_sample:
+    - string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
+  load_balancing:
+    exporter:
+      insecure: true
+    resolver:
+      dns:
+        hostname: agent
+        port: 4318
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+  otlp/lb:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4318"
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  loadbalancing:
+    protocol:
+      otlp:
+        insecure: true
+        endpoint: noop
+        retry_on_failure:
+          max_elapsed_time: 60s
+    resolver:
+      dns:
+        hostname: agent
+        port: 4318
+processors:
+  tail_sampling:
+    decision_wait: 5s
+    policies:
+      - name: always_sample/0
+        type: always_sample
+      - name: string_attribute/1
+        type: string_attribute
+        string_attribute:
+          key: key
+          values:
+            - value1
+            - value2
+service:
+  pipelines:
+    traces/0:
+      exporters: ["loadbalancing"]
+      receivers: ["jaeger"]
+    traces/1:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling"]
+      receivers: ["otlp/lb"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
@@ -516,18 +641,20 @@ service:
 			expectedConfig, err := config.Load(v, factories)
 			require.NoError(t, err)
 
-			// Exporters in the config's pipelines need to be in the same order for them to be asserted as equal
-			sortPipelinesExporters(actualConfig)
-			sortPipelinesExporters(expectedConfig)
+			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
+			sortPipelines(actualConfig)
+			sortPipelines(expectedConfig)
 
 			assert.Equal(t, expectedConfig, actualConfig)
 		})
 	}
 }
 
-// sortPipelinesExporters is a helper function to lexicographically sort a pipeline's exporters
-func sortPipelinesExporters(cfg *configmodels.Config) {
+// sortPipelines is a helper function to lexicographically sort a pipeline's exporters
+func sortPipelines(cfg *configmodels.Config) {
 	for _, p := range cfg.Pipelines {
 		sort.Strings(p.Exporters)
+		sort.Strings(p.Receivers)
+		sort.Strings(p.Processors)
 	}
 }
