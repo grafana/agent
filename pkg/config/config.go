@@ -18,6 +18,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DefaultConfig holds default settings for all the subsystems.
+var DefaultConfig = Config{
+	// All subsystems with a DefaultConfig should be listed here.
+	Prometheus:   prom.DefaultConfig,
+	Integrations: integrations.DefaultManagerConfig,
+}
+
 // Config contains underlying configurations for the agent
 type Config struct {
 	Server       server.Config              `yaml:"server,omitempty"`
@@ -31,6 +38,13 @@ type Config struct {
 	// to restart.
 	ReloadAddress string `yaml:"-"`
 	ReloadPort    int    `yaml:"-"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+	type config Config
+	return unmarshal((*config)(c))
 }
 
 // ApplyDefaults sets default values in the config
@@ -103,8 +117,9 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 // doesn't require having a literal file on disk.
 func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) error) (*Config, error) {
 	var (
+		cfg = DefaultConfig
+
 		printVersion    bool
-		cfg             Config
 		file            string
 		configExpandEnv bool
 	)
