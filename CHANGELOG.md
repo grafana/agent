@@ -1,18 +1,84 @@
 NOTE: FreeBSD builds have not been available since v0.6.0 due to a
-cross-compilation issue. The issue for tracking adding support back
-can be found at [#317](https://github.com/grafana/agent/issues/317).
+cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
+
+- [BUGFIX] Ensure defaults are applied to undefined sections in config file.
+  This fixes a problem where integrations didn't work if `prometheus:` wasn't
+  configured. (@rfratto)
+
+# 0.14.0-rc.3 (2021-04-15)
+
+- [ENHANCEMENT] Add  `headers` field in `remote_write` config for Tempo. `headers`
+  specifies HTTP headers to forward to the remote endpoint. (@alexbiehl)
+- [CHANGE] Add `tempo_spanmetrics` namespace in spanmetrics (@mapno)
+
+- [BUGFIX] Grafana Agent running as a Windows service should start automatically on startup
+  (@mattdurham)
+
+- [BUGFIX] Validate that incoming scraped metrics do not have an empty label
+  set or a label set with duplicate labels, mirroring the behavior of
+  Prometheus. (@rfratto)
+  
+- [FEATURE] Tail-based sampling for tracing pipelines (@mapno)
+
+# v0.13.1 (2021-04-09)
+
+- [BUGFIX] Validate that incoming scraped metrics do not have an empty label
+  set or a label set with duplicate labels, mirroring the behavior of
+  Prometheus. (@rfratto)
+
+# 0.14.0-rc.2 (2021-04-08)
+
+- [BUGFIX] Include Windows Installer when building for release (@mattdurham)
+
+# 0.14.0-rc.1 (2021-04-08)
+
+(No changes from 0.14.0-rc.0)
+
+# 0.14.0-rc.0 (2021-04-07)
+
+BREAKING CHANGES: This release has a breaking change for SigV4 support. Please
+read the release notes carefully and our [migration
+guide](./docs/migration-guide.md) to help migrate your configuration files to
+the new format.
+
+As of this release, functionality that is not recommended for production use
+and is expected to change will be tagged interchangably as "experimental" or
+"beta."
+
+- [FEATURE] (beta) New integration: windows_exporter (@mattdurham)
+
+- [FEATURE] (beta) Grafana Agent Windows Installer is now included as a release
+  artifact. (@mattdurham)
 
 - [FEATURE] Official M1 Mac release builds will now be generated! Look for
   `agent-darwin-arm64` and `agentctl-darwin-arm64` in the release assets.
   (@rfratto)
 
+- [FEATURE] Add support for running as a Windows service (@mattdurham)
+
+- [FEATURE] (beta) Add /-/reload support. It is not recommended to invoke
+  `/-/reload` against the main HTTP server. Instead, two new command-line flags
+  have been added: `--reload-addr` and `--reload-port`. These will launch a
+  `/-/reload`-only HTTP server that can be used to safely reload the Agent's
+  state.  (@rfratto)
+
+- [FEATURE] Add a /-/config endpoint. This endpoint will return the current
+  configuration file with defaults applied that the Agent has loaded from disk.
+  (@rfratto)
+
+- [FEATURE] (beta) Support generating metrics and exposing them via a Prometheus exporter
+  from span data. (@yeya24)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
-- [ENHANCEMENT] Allow Prometheus URL configuration to propagate to instances and integrations, if not given. (@mattdurham)
+- [ENHANCEMENT] Add global remote_write configuration that is shared between all
+  instances and integrations. (@mattdurham)
 
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
+
+- [ENHANCEMENT] Update Prometheus dependency to v2.26.0. (@rfratto)
 
 - [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
   to the WAL. (@rfratto)
@@ -20,10 +86,29 @@ can be found at [#317](https://github.com/grafana/agent/issues/317).
 - [BUGFIX] Remote write endpoints that never function across the lifetime of the
   Agent will no longer prevent the WAL from being truncated. (@rfratto)
 
+- [BUGFIX] Bring back FreeBSD support. (@rfratto)
+
+- [BUGFIX] agentctl will no longer leak WAL resources when retrieving WAL stats. (@rfratto)
+
+- [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
+  (@rfratto)
+
 - [CHANGE] Instance configs uploaded to the Config Store API will no longer be
   stored along with the global Prometheus defaults. This is done to allow
   globals to be updated and re-apply the new global defaults to the configs from
   the Config Store. (@rfratto)
+
+- [CHANGE] The User-Agent header sent for logs will now be
+  `GrafanaAgent/<version>` (@rfratto)
+
+- [ENHANCEMENT] Upgrade `go.opentelemetry.io/collector` to v0.21.0 (@mapno)
+
+- [ENHANCEMENT] Add kafka trace receiver (@mapno)
+
+- [ENHANCEMENT] Support mirroring a trace pipeline to multiple backends (@mapno)
+
+- [DEPRECATION] `push_config` is now supplanted by `remote_block` and `batch`.
+  `push_config` will be removed in a future version (@mapno)
 
 # v0.13.0 (2021-02-25)
 
@@ -303,7 +388,7 @@ files to the new format.
 
 # v0.6.0 (2020-09-04)
 
-- [FEATURE] The Grafana Cloud Agent can now collect logs and send to Loki. This
+- [FEATURE] The Grafana Agent can now collect logs and send to Loki. This
   is done by embedding Promtail, the official Loki log collection client.
   (@rfratto)
 

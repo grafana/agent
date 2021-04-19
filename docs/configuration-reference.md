@@ -1,7 +1,7 @@
 # Configuration Reference
 
-The Grafana Cloud Agent is configured in a YAML file (usually called
-`agent.yaml`) which contains information on the Grafana Cloud Agent and its
+The Grafana Agent is configured in a YAML file (usually called
+`agent.yaml`) which contains information on the Grafana Agent and its
 Prometheus instances.
 
 * [server_config](#server_config)
@@ -32,11 +32,30 @@ you specify a default value or custom error text.
 To specify a default value, use:
 
 ```
-${VAR:default_value}
+${VAR:-default_value}
 ```
 
 Where default_value is the value to use if the environment variable is
-undefined.
+undefined. The full list of supported syntax can be found at Drone's
+[envsubst repository](https://github.com/drone/envsubst).
+
+## Reloading (beta)
+
+The configuration file can be reloaded at runtime. Read the [API
+documentation](./api.md#reload-configuration-file-beta) for more information.
+
+This functionality is in beta, and may have issues. Please open GitHub issues
+for any problems you encounter.
+
+A reload-only HTTP server can be started to safely reload the system. To start
+this, provide `--reload-addr` and `--reload-port` as command line flags.
+`reload-port` must be set to a non-zero port to launch the reload server. The
+reload server is currently HTTP-only and supports no other options; it does not
+read any values from the `server` block in the config file.
+
+While `/-/reload` is enabled on the primary HTTP server, it is not recommended
+to use it, since changing the HTTP server configuration will cause it to
+restart.
 
 ## File Format
 
@@ -87,16 +106,19 @@ The Agent exposes an HTTP server for scraping its own metrics and gRPC for the
 scraping service mode.
 
 ```yaml
-# HTTP server listen host
-[http_listen_address: <string>]
+# HTTP server listen host. Used for Agent metrics, integrations, and the Agent
+# API.
+[http_listen_address: <string> | default = "0.0.0.0"]
 
 # HTTP server listen port
 [http_listen_port: <int> | default = 80]
 
-# gRPC server listen host. Unused.
-[grpc_listen_address: <string>]
+# gRPC server listen host. Used for clustering, but runs even when
+# clustering is disabled.
+[grpc_listen_address: <string> | default = "0.0.0.0"]
 
-# gRPC server listen port. Unused.
+# gRPC server listen port. Used for clustering, but runs even when
+# clustering is disabled.
 [grpc_listen_port: <int> | default = 9095]
 
 # Register instrumentation handlers (/metrics, etc.)
@@ -177,17 +199,13 @@ configs:
 # distinct.
 [instance_mode: <string> | default = "shared"]
 
-# A list of remote_write targets. This is the global remote write list, it will propagate to the other remote writes
-# if they are not defined. If they are defined then they will not be overwritten. 
-remote_write:
-  - [<remote_write>]
 ```
 
 ### server_tls_config
 
 The `http_tls_config` block configures the server to run with TLS. When set, `integrations.http_tls_config` must
 also be provided. Acceptable values for  `client_auth_type` are found in
-[Go's `tls` package]https://golang.org/pkg/crypto/tls/#ClientAuthType).
+[Go's `tls` package](https://golang.org/pkg/crypto/tls/#ClientAuthType).
 
 ```yaml
 # File path to the server certificate
@@ -379,6 +397,11 @@ instances.
 # A list of static labels to add for all metrics.
 external_labels:
   { <string>: <string> }
+
+# Default set of remote_write endpoints. If an instance doesn't define any
+# remote_writes, it will use this list.
+remote_write:
+  - [<remote_write>]
 ```
 
 ### prometheus_instance_config
@@ -1847,26 +1870,24 @@ basic_auth:
 # read from the configured file. It is mutually exclusive with `bearer_token`.
 [ bearer_token_file: /path/to/bearer/token/file ]
 
-# Configures SigV4 request signing. The default credentials chain will be used,
-# documented here:
-#
-# https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-credentials
-#
-# Region must be supplied if it cannot be inferred from the shared config
-# ($HOME/.aws/config when AWS_SDK_LOAD_CONFIG is truthy) or the environment
-# (AWS_REGION).
-#
-# This feature is only currently available for remote_write of Prometheus
-# metrics.
+# Optionally configures AWS's Signature Verification 4 signing process to
+# sign requests. Cannot be set at the same time as basic_auth or authorization.
+# To use the default credentials from the AWS SDK, use `sigv4: {}`.
 sigv4:
-  # Enable SigV4 request signing. May not be enabled at the same time as
-  # configuring basic auth or bearer_token/bearer_token_file.
-  [ enabled: <boolean> | default = false ]
+  # The AWS region. If blank, the region from the default credentials chain
+  # is used.
+  [ region: <string> ]
 
-  # Region to use for signing the requests. Must be supplied if region cannot
-  # be inferred from environment. Region must match the region of the AMP
-  # workspace specified by the remote_write URL.
-  [region: <string>]
+  # The AWS API keys. If blank, the environment variables `AWS_ACCESS_KEY_ID`
+  # and `AWS_SECRET_ACCESS_KEY` are used.
+  [ access_key: <string> ]
+  [ secret_key: <secret> ]
+
+  # Named AWS profile used to authenticate.
+  [ profile: <string> ]
+
+  # AWS Role ARN, an alternative to using AWS API keys.
+  [ role_arn: <string> ]
 
 # Configures the remote write request's TLS settings.
 tls_config:
@@ -1984,48 +2005,132 @@ configs:
 # logs and as a label on metrics.
 name: <string>
 
-# Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor
+# Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor
 #  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
 attributes: [attributes.config]
 
-push_config:
+# Batch options: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor
+#  This field allows to configure grouping spans into batches.  Batching helps better compress the data and reduce the number of outgoing connections required to transmit the data.
+batch: [batch.config]
+
+remote_write:
   # host:port to send traces to
-  endpoint: <string>
+  - endpoint: <string>
 
-  # Controls whether compression is enabled.
-  [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
+    # Custom HTTP headers to be sent along with each remote write request.
+    # Be aware that 'authorization' header will be overwritten in presence
+    # of basic_auth.
+    headers:
+      [ <string>: <string> ... ]
 
-  # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
-  [ insecure: <boolean> | default = false ]
+    # Controls whether compression is enabled.
+    [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
 
-  # Disable validation of the server certificate. Only used when insecure is set
-  # to false.
-  [ insecure_skip_verify: <bool> | default = false ]
+    # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
+    [ insecure: <boolean> | default = false ]
 
-  # Sets the `Authorization` header on every trace push with the
-  # configured username and password.
-  # password and password_file are mutually exclusive.
-  basic_auth:
-    [ username: <string> ]
-    [ password: <secret> ]
-    [ password_file: <string> ]
+    # Disable validation of the server certificate. Only used when insecure is set
+    # to false.
+    [ insecure_skip_verify: <bool> | default = false ]
 
-  # Batch options are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor
-  [ batch: <batch.config> ]
+    # Sets the `Authorization` header on every trace push with the
+    # configured username and password.
+    # password and password_file are mutually exclusive.
+    basic_auth:
+      [ username: <string> ]
+      [ password: <secret> ]
+      [ password_file: <string> ]
 
-  # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/otlpexporter
-  [ sending_queue: <otlpexporter.sending_queue> ]
-  [ retry_on_failure: <otlpexporter.retry_on_failure> ]
+    # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter
+    [ sending_queue: <otlpexporter.sending_queue> ]
+    [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
-# Receiver configurations are mapped directly into the OpenTelmetry receivers block.
-#   At least one receiver is required.
-#   https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/receiver/README.md
+# Receiver configurations are mapped directly into the OpenTelemetry receivers block.
+#   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
+#   Documentation for each receiver can be found at https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
 receivers:
 
 # A list of prometheus scrape configs.  Targets discovered through these scrape configs have their __address__ matched against the ip on incoming spans.
 # If a match is found then relabeling rules are applied.
 scrape_configs:
   - [<scrape_config>]
+
+# spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics from span data.
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/README.md.
+# spanmetrics generates two metrics from spans and uses opentelemetry prometheus exporter to serve the metrics locally.
+# In order to send these metrics to a remote storage, you have to scrape that endpoint.
+# The first one is `calls` which is a counter to compute requests.
+# The second one is `latency` which is a histogram to compute the operations' duration.
+# If you want to rename them, you can configure the `namespace` option of prometheus exporter.
+# This is an experimental feature of Opentelemetry collector and the behavior may change in the future.
+spanmetrics:
+  # latency_histogram_buckets and dimensions are the same as the configs in spanmetricsprocessor.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47
+  [ latency_histogram_buckets: <spanmetricsprocessor.latency_histogram_buckets> ]
+  [ dimensions: <spanmetricsprocessor.dimensions> ]
+
+  # metrics_exporter config embeds the configuration for opentelemetry prometheus exporter.
+  # https://github.com/open-telemetry/opentelemetry-collector/blob/v0.21.0/exporter/prometheusexporter/README.md
+  metrics_exporter:
+    [ endpoint: <prometheusexporter.endpoint> ]
+    [ const_labels: <prometheusexporter.const_labels> ]
+    # Metrics are namespaced to `tempo_spanmetrics` by default.
+    # They can be further namespaced, i.e. `{namespace}_tempo_spanmetrics`
+    [ namespace: <prometheusexporter.namespace> ]
+    [ send_timestamps: <prometheusexporter.send_timestamps> ]
+
+# tail_sampling supports tail-based sampling of traces in the agent.
+# Policies can be defined that determine what traces are sampled and sent to the backends and what traces are dropped.
+# In order to make a correct sampling decision it's important that the agent has a complete trace.
+# This is achieved by waiting a given time for all the spans before evaluating the trace.
+# Tail sampling also supports multiple agent deployments, allowing to group all spans of a trace
+# in the same agent by load balancing the spans by trace ID between the instances.
+tail_sampling:
+  # policies define the rules by which traces will be sampled. Multiple policies can be added to the same pipeline
+  # They are the same as the policies in Open-Telemetry's tailsamplingprocessor.
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
+  policies:
+    - [<tailsamplingprocessor.policies>]
+  # decision_wait is the time that will be waited before making a decision for a trace.
+  # Longer times reduce the probability of sampling an incomplete trace at the cost of higher memory usage.
+  decision_wait: [ <string> | default="5s" ]
+  # load_balancing configures load balancing of spans across multiple agents.
+  # It ensures that all spans of a trace are sampled in the same instance.
+  # It's not necessary when only one agent is receiving traces (e.g. single instance deployments). 
+  load_balancing:
+    # resolver configures the resolution strategy for the involved backends
+    # It can be static, with a fixed list of hostnames, or DNS, with a hostname (and port) that will resolve to all IP addresses.
+    # It's the same as the config in loadbalancingexporter.
+    # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter
+    resolver:
+      static:
+        hostnames:
+          [ - <string> ... ]
+      dns:
+        hostname: <string>
+        [ port: <int> ]
+
+    # Load balancing is done via an otlp exporter.
+    # The remaining configuration is common with the remote_write block.
+    exporter:
+      # Controls whether compression is enabled.
+      [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
+  
+      # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
+      [ insecure: <boolean> | default = false ]
+  
+      # Disable validation of the server certificate. Only used when insecure is set
+      # to false.
+      [ insecure_skip_verify: <bool> | default = false ]
+  
+      # Sets the `Authorization` header on every trace push with the
+      # configured username and password.
+      # password and password_file are mutually exclusive.
+      basic_auth:
+        [ username: <string> ]
+        [ password: <secret> ]
+        [ password_file: <string> ]
+    
 ```
 
 ### integrations_config
@@ -2102,6 +2207,9 @@ statsd_exporter: <statsd_exporter_config>
 # Controls the consul_exporter integration
 consul_exporter: <consul_exporter_config>
 
+# Controls the windows_exporter integration
+windows_exporter: <windows_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
@@ -2135,8 +2243,8 @@ labels:
 # error.
 [integration_restart_backoff: <duration> | default = "5s"]
 
-# A list of remote_write targets. Samples coming from integrations will be
-# sent to all addresses specified here.
+# A list of remote_write targets. Defaults to global_config.remote_write.
+# If provided, overrides the global defaults.
 prometheus_remote_write:
   - [<remote_write>]
 ```
@@ -2165,12 +2273,12 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.13.0 \
+  grafana/agent:v0.13.1 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
 Use this configuration file for testing out `node_exporter` support, replacing
-the `prometheus_remote_write` settings with settings appropriate for you:
+the `remote_write` settings with settings appropriate for you:
 
 ```yaml
 server:
@@ -2181,6 +2289,11 @@ prometheus:
   wal_directory: /tmp/agent
   global:
     scrape_interval: 15s
+    remote_write:
+    - url: https://prometheus-us-central1.grafana.net/api/prom/push
+      basic_auth:
+        username: user-id
+        password: api-token
 
 integrations:
   node_exporter:
@@ -2188,11 +2301,6 @@ integrations:
     rootfs_path: /host/root
     sysfs_path: /host/sys
     procfs_path: /host/proc
-  prometheus_remote_write:
-    - url: https://prometheus-us-central1.grafana.net/api/prom/push
-      basic_auth:
-        username: user-id
-        password: api-token
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities
@@ -2205,7 +2313,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.13.0
+  - image: grafana/agent:v0.13.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -2474,7 +2582,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.13.0 \
+  grafana/agent:v0.13.1 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2491,7 +2599,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.13.0
+  - image: grafana/agent:v0.13.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -3432,4 +3540,147 @@ Full reference of options:
 
   # Forces the read to be fully consistent.
   [require_consistent: <bool> | default = false]
+```
+
+
+### windows_exporter_config
+
+The `windows_exporter_config` block configures the `windows_exporter`
+integration, which is an embedded version of
+[`windows_exporter`](https://github.com/grafana/windows_exporter). This allows
+for the collection of Windows metrics and exposing them as Prometheus metrics.
+
+Full reference of options:
+
+```yaml
+  # Enables the windows_exporter integration, allowing the Agent to automatically
+  # collect system metrics from the local windows instance
+  [enabled: <boolean> | default = false]
+
+  # Automatically collect metrics from this integration. If disabled,
+  # the consul_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/windows_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  #
+  # Exporter-specific configuration options
+  #
+
+  # List of collectors to enable
+  [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system,textfile"]
+
+  # The following settings are only used if they are enabled by specifying them in enabled_collectors
+
+  # Configuration for Exchange Mail Server
+  exchange:
+    # Comma-separated List of collectors to use. Defaults to all, if not specified.
+    # Maps to collectors.exchange.enabled in windows_exporter
+    [enabled_list: <string>]
+
+  # Configuration for the IIS web server
+  iis:
+    # Regexp of sites to whitelist. Site name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.iis.site-whitelist in windows_exporter
+    [site_whitelist: <string> | default = ".+"]
+
+    # Regexp of sites to blacklist. Site name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.iis.site-blacklist in windows_exporter
+    [site_blacklist: <string> | default = ""]
+
+    # Regexp of apps to whitelist. App name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.iis.app-whitelist in windows_exporter
+    [app_whitelist: <string> | default=".+"]
+
+    # Regexp of apps to blacklist. App name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.iis.app-blacklist in windows_exporter
+    [app_blacklist: <string> | default=".+"]
+
+  # Configuration for reading metrics from a text files in a directory
+  text_file:
+    # Directory to read text files with metrics from.
+    # Maps to collector.textfile.directory in windows_exporter
+    [text_file_directory: <string> | default="C:\Program Files\windows_exporter\textfile_inputs"]
+
+  # Configuration for SMTP metrics
+  smtp:
+    # Regexp of virtual servers to whitelist. Server name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.smtp.server-whitelist in windows_exporter
+    [whitelist: <string> | default=".+"]
+
+    # Regexp of virtual servers to blacklist. Server name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.smtp.server-blacklist in windows_exporter
+    [blacklist: <string> | default=""]
+
+  # Configuration for Windows Services
+  service:
+    # "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.
+    # Maps to collector.service.services-where in windows_exporter
+    [where_clause: <string> | default=""]
+
+  # Configuration for Windows Processes
+  process:
+    # Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.process.whitelist in windows_exporter
+    [whitelist: <string> | default=".+"]
+
+    # Regexp of processes to exclude. Process name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.process.blacklist in windows_exporter
+    [blacklist: <string> | default=""]
+
+  # Configuration for NICs
+  network:
+    # Regexp of NIC's to whitelist. NIC name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.net.nic-whitelist in windows_exporter
+    [whitelist: <string> | default=".+"]
+
+    # Regexp of NIC's to blacklist. NIC name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.net.nic-blacklist in windows_exporter
+    [blacklist: <string> | default=""]
+
+  # Configuration for Microsoft SQL Server
+  mssql:
+    # Comma-separated list of mssql WMI classes to use.
+    # Maps to collectors.mssql.classes-enabled in windows_exporter
+    [enabled_classes: <string> | default="accessmethods,availreplica,bufman,databases,dbreplica,genstats,locks,memmgr,sqlstats,sqlerrors,transactions"]
+
+  # Configuration for Microsoft Queue
+  msqm:
+    # WQL 'where' clause to use in WMI metrics query. Limits the response to the msmqs you specify and reduces the size of the response.
+    # Maps to collector.msmq.msmq-where in windows_exporter
+    [where_clause: <string> | default=""]
+
+  # Configuration for disk information
+  logical_disk:
+    # Regexp of volumes to whitelist. Volume name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.logical_disk.volume-whitelist in windows_exporter
+    [whitelist: <string> | default=".+"]
+
+    # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
+    # Maps to collector.logical_disk.volume-blacklist in windows_exporter
+    [blacklist: <string> | default=".+"]
 ```

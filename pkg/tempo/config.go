@@ -5,36 +5,57 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
+	"time"
 
+	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	prom_config "github.com/prometheus/common/config"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+	"go.opentelemetry.io/collector/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
-	"go.opentelemetry.io/collector/processor/queuedprocessor"
 	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
+	"go.opentelemetry.io/collector/receiver/kafkareceiver"
 	"go.opentelemetry.io/collector/receiver/opencensusreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
 )
 
+const (
+	spanMetricsPipelineName    = "metrics/spanmetrics"
+	defaultSpanMetricsExporter = "prometheus"
+
+	// defaultDecisionWait is the default time to wait for a trace before making a sampling decision
+	defaultDecisionWait = time.Second * 5
+
+	// defaultLoadBalancingPort is the default port the agent uses for internal load balancing
+	defaultLoadBalancingPort = "4318"
+	// agent's load balancing options
+	dnsTagName    = "dns"
+	staticTagName = "static"
+
+	// sampling policies
+	alwaysSamplePolicy     = "always_sample"
+	stringAttributePolicy  = "string_attribute"
+	numericAttributePolicy = "numeric_attribute"
+	rateLimitingPolicy     = "rate_limiting"
+)
+
 // Config controls the configuration of Tempo trace pipelines.
 type Config struct {
-	// Whether the Tempo subsystem should be enabled.
-	Enabled bool             `yaml:"-"`
-	Configs []InstanceConfig `yaml:"configs"`
+	Configs []InstanceConfig `yaml:"configs,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// If the Config is unmarshaled, it's present in the config and should be
-	// enabled.
-	c.Enabled = true
-
 	type plain Config
 	if err := unmarshal((*plain)(c)); err != nil {
 		return err
@@ -62,16 +83,29 @@ func (c *Config) Validate() error {
 type InstanceConfig struct {
 	Name string `yaml:"name"`
 
-	PushConfig PushConfig `yaml:"push_config"`
+	// Deprecated in favor of RemoteWrite and Batch.
+	PushConfig PushConfig `yaml:"push_config,omitempty"`
 
-	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/receiver/README.md
-	Receivers map[string]interface{} `yaml:"receivers"`
+	// RemoteWrite defines one or multiple backends that can receive the pipeline's traffic.
+	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
-	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/attributesprocessor/config.go#L30
-	Attributes map[string]interface{} `yaml:"attributes"`
+	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
+	Receivers map[string]interface{} `yaml:"receivers,omitempty"`
+
+	// Batch: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
+	Batch map[string]interface{} `yaml:"batch,omitempty"`
+
+	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor/config.go#L30
+	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
 	// prom service discovery
-	ScrapeConfigs []interface{} `yaml:"scrape_configs"`
+	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
+
+	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
+	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
+
+	// TailSampling defines a sampling strategy for the pipeline
+	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
 }
 
 const (
@@ -86,14 +120,14 @@ var DefaultPushConfig = PushConfig{
 
 // PushConfig controls the configuration of exporting to Grafana Cloud
 type PushConfig struct {
-	Endpoint           string                 `yaml:"endpoint"`
-	Compression        string                 `yaml:"compression"`
-	Insecure           bool                   `yaml:"insecure"`
-	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify"`
-	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
-	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/processor/batchprocessor/config.go#L24
-	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L30
-	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/1962d7cd2b371129394b0242b120835e44840192/exporter/exporterhelper/queued_retry.go#L54
+	Endpoint           string                 `yaml:"endpoint,omitempty"`
+	Compression        string                 `yaml:"compression,omitempty"`
+	Insecure           bool                   `yaml:"insecure,omitempty"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
+	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty,omitempty"`
+	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
+	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
+	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -111,49 +145,126 @@ func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
-	otelMapStructure := map[string]interface{}{}
+// DefaultRemoteWriteConfig holds the default settings for a PushConfig.
+var DefaultRemoteWriteConfig = RemoteWriteConfig{
+	Compression: compressionGzip,
+}
 
-	if len(c.Receivers) == 0 {
-		return nil, errors.New("must have at least one configured receiver")
+// RemoteWriteConfig controls the configuration of an exporter
+type RemoteWriteConfig struct {
+	Endpoint           string                 `yaml:"endpoint,omitempty"`
+	Compression        string                 `yaml:"compression,omitempty"`
+	Insecure           bool                   `yaml:"insecure,omitempty"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
+	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Headers            map[string]string      `yaml:"headers,omitempty"`
+	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
+	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultRemoteWriteConfig
+
+	type plain RemoteWriteConfig
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
 	}
 
-	if len(c.PushConfig.Endpoint) == 0 {
-		return nil, errors.New("must have a configured remote_write.endpoint")
+	if c.Compression != compressionGzip && c.Compression != compressionNone {
+		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
+	}
+	return nil
+}
+
+// SpanMetricsConfig controls the configuration of spanmetricsprocessor and the related metrics exporter.
+type SpanMetricsConfig struct {
+	LatencyHistogramBuckets []time.Duration                  `yaml:"latency_histogram_buckets,omitempty"`
+	Dimensions              []spanmetricsprocessor.Dimension `yaml:"dimensions,omitempty"`
+
+	// MetricsExporter is a Prometheus metrics exporter
+	MetricsExporter metricsExporterConfig `yaml:"metrics_exporter,omitempty"`
+}
+
+// Configuration for Prometheus exporter: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34/exporter/prometheusexporter/README.md.
+type metricsExporterConfig struct {
+	// The address on which the Prometheus scrape handler will be run on.
+	Endpoint string `yaml:"endpoint"`
+	// Namespace if set, exports metrics under the provided value.
+	Namespace string `yaml:"namespace"`
+	// ConstLabels are values that are applied for every exported metric.
+	ConstLabels map[string]interface{} `yaml:"const_labels"`
+	// SendTimestamps will send the underlying scrape timestamp with the export
+	SendTimestamps bool `yaml:"send_timestamps"`
+}
+
+// tailSamplingConfig is the configuration for tail-based sampling
+type tailSamplingConfig struct {
+	// Policies are the strategies used for sampling. Multiple policies can be used in the same pipeline.
+	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
+	Policies []map[string]interface{} `yaml:"policies"`
+	// DecisionWait defines the time to wait for a complete trace before making a decision
+	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
+	// Port is the port the instance will use to receive load balanced traces
+	Port string `yaml:"port"`
+	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
+	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
+}
+
+// loadBalancingConfig defines the configuration for load balancing spans between agent instances
+// loadBalancingConfig is an OTel exporter's config with extra resolver config
+type loadBalancingConfig struct {
+	Exporter exporterConfig         `yaml:"exporter"`
+	Resolver map[string]interface{} `yaml:"resolver"`
+}
+
+// exporterConfig defined the config for a otlp exporter for load balancing
+type exporterConfig struct {
+	Compression        string                 `yaml:"compression,omitempty"`
+	Insecure           bool                   `yaml:"insecure,omitempty"`
+	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
+	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+}
+
+// exporter builds an OTel exporter from RemoteWriteConfig
+func exporter(remoteWriteConfig RemoteWriteConfig) (map[string]interface{}, error) {
+	if len(remoteWriteConfig.Endpoint) == 0 {
+		return nil, errors.New("must have a configured a backend endpoint")
 	}
 
-	// exporter
 	headers := map[string]string{}
-	if c.PushConfig.BasicAuth != nil {
-		password := string(c.PushConfig.BasicAuth.Password)
+	if remoteWriteConfig.Headers != nil {
+		headers = remoteWriteConfig.Headers
+	}
 
-		if len(c.PushConfig.BasicAuth.PasswordFile) > 0 {
-			buff, err := ioutil.ReadFile(c.PushConfig.BasicAuth.PasswordFile)
+	if remoteWriteConfig.BasicAuth != nil {
+		password := string(remoteWriteConfig.BasicAuth.Password)
+
+		if len(remoteWriteConfig.BasicAuth.PasswordFile) > 0 {
+			buff, err := ioutil.ReadFile(remoteWriteConfig.BasicAuth.PasswordFile)
 			if err != nil {
-				return nil, fmt.Errorf("unable to load password file %s: %w", c.PushConfig.BasicAuth.PasswordFile, err)
+				return nil, fmt.Errorf("unable to load password file %s: %w", remoteWriteConfig.BasicAuth.PasswordFile, err)
 			}
 			password = string(buff)
 		}
 
-		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.PushConfig.BasicAuth.Username + ":" + password))
-		headers = map[string]string{
-			"authorization": "Basic " + encodedAuth,
-		}
+		encodedAuth := base64.StdEncoding.EncodeToString([]byte(remoteWriteConfig.BasicAuth.Username + ":" + password))
+		headers["authorization"] = "Basic " + encodedAuth
 	}
 
-	compression := c.PushConfig.Compression
+	compression := remoteWriteConfig.Compression
 	if compression == compressionNone {
 		compression = ""
 	}
 
 	otlpExporter := map[string]interface{}{
-		"endpoint":             c.PushConfig.Endpoint,
+		"endpoint":             remoteWriteConfig.Endpoint,
 		"compression":          compression,
 		"headers":              headers,
-		"insecure":             c.PushConfig.Insecure,
-		"insecure_skip_verify": c.PushConfig.InsecureSkipVerify,
-		"sending_queue":        c.PushConfig.SendingQueue,
-		"retry_on_failure":     c.PushConfig.RetryOnFailure,
+		"insecure":             remoteWriteConfig.Insecure,
+		"insecure_skip_verify": remoteWriteConfig.InsecureSkipVerify,
+		"sending_queue":        remoteWriteConfig.SendingQueue,
+		"retry_on_failure":     remoteWriteConfig.RetryOnFailure,
 	}
 
 	// Apply some sane defaults to the exporter. The
@@ -168,8 +279,130 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		retryConfig["max_elapsed_time"] = "60s"
 	}
 
-	otelMapStructure["exporters"] = map[string]interface{}{
-		"otlp": otlpExporter,
+	return otlpExporter, nil
+}
+
+// exporters builds one or multiple exporters from a remote_write block.
+// It also supports building an exporter from push_config.
+func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
+	if len(c.RemoteWrite) == 0 {
+		otlpExporter, err := exporter(RemoteWriteConfig{
+			Endpoint:           c.PushConfig.Endpoint,
+			Compression:        c.PushConfig.Compression,
+			Insecure:           c.PushConfig.Insecure,
+			InsecureSkipVerify: c.PushConfig.InsecureSkipVerify,
+			BasicAuth:          c.PushConfig.BasicAuth,
+			SendingQueue:       c.PushConfig.SendingQueue,
+			RetryOnFailure:     c.PushConfig.RetryOnFailure,
+		})
+		return map[string]interface{}{
+			"otlp": otlpExporter,
+		}, err
+	}
+
+	exporters := map[string]interface{}{}
+	for i, remoteWriteConfig := range c.RemoteWrite {
+		exporter, err := exporter(remoteWriteConfig)
+		if err != nil {
+			return nil, err
+		}
+		exporterName := fmt.Sprintf("otlp/%d", i)
+		exporters[exporterName] = exporter
+	}
+	return exporters, nil
+}
+
+func resolver(config map[string]interface{}) (map[string]interface{}, error) {
+	if len(config) == 0 {
+		return nil, fmt.Errorf("must configure one resolver (dns or static)")
+	}
+	resolverCfg := make(map[string]interface{})
+	for typ, cfg := range config {
+		switch typ {
+		case dnsTagName, staticTagName:
+			resolverCfg[typ] = cfg
+		default:
+			return nil, fmt.Errorf("unsupported resolver config type: %s", typ)
+		}
+	}
+	return resolverCfg, nil
+}
+
+func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error) {
+	exporter, err := exporter(RemoteWriteConfig{
+		// Endpoint is omitted in OTel load balancing exporter
+		Endpoint:           "noop",
+		Compression:        c.TailSampling.LoadBalancing.Exporter.Compression,
+		Insecure:           c.TailSampling.LoadBalancing.Exporter.Insecure,
+		InsecureSkipVerify: c.TailSampling.LoadBalancing.Exporter.InsecureSkipVerify,
+		BasicAuth:          c.TailSampling.LoadBalancing.Exporter.BasicAuth,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resolverCfg, err := resolver(c.TailSampling.LoadBalancing.Resolver)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"protocol": map[string]interface{}{
+			"otlp": exporter,
+		},
+		"resolver": resolverCfg,
+	}, nil
+}
+
+// formatPolicies creates sampling policies (i.e. rules) compatible with OTel's tail sampling processor
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.21.0/processor/tailsamplingprocessor
+func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, error) {
+	policies := make([]map[string]interface{}, 0, len(cfg))
+	for i, policy := range cfg {
+		if len(policy) != 1 {
+			return nil, errors.New("malformed sampling policy")
+		}
+		for typ, rules := range policy {
+			switch typ {
+			case alwaysSamplePolicy:
+				policies = append(policies, map[string]interface{}{
+					"name": fmt.Sprintf("%s/%d", typ, i),
+					"type": typ,
+				})
+			case stringAttributePolicy, rateLimitingPolicy, numericAttributePolicy:
+				policies = append(policies, map[string]interface{}{
+					"name": fmt.Sprintf("%s/%d", typ, i),
+					"type": typ,
+					typ:    rules,
+				})
+			default:
+				return nil, fmt.Errorf("unsupported policy type %s", typ)
+			}
+		}
+	}
+	return policies, nil
+}
+
+func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
+	otelMapStructure := map[string]interface{}{}
+
+	if len(c.Receivers) == 0 {
+		return nil, errors.New("must have at least one configured receiver")
+	}
+
+	if len(c.RemoteWrite) != 0 && len(c.PushConfig.Endpoint) != 0 {
+		return nil, errors.New("must not configure push_config and remote_write. push_config is deprecated in favor of remote_write")
+	}
+
+	if c.Batch != nil && c.PushConfig.Batch != nil {
+		return nil, errors.New("must not configure push_config.batch and batch. push_config.batch is deprecated in favor of batch")
+	}
+
+	exporters, err := c.exporters()
+	if err != nil {
+		return nil, err
+	}
+	exportersNames := make([]string, 0, len(exporters))
+	for name := range exporters {
+		exportersNames = append(exportersNames, name)
 	}
 
 	// processors
@@ -187,34 +420,126 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		processorNames = append(processorNames, "attributes")
 	}
 
-	if c.PushConfig.Batch != nil {
+	if c.Batch != nil {
+		processors["batch"] = c.Batch
+		processorNames = append(processorNames, "batch")
+	} else if c.PushConfig.Batch != nil {
 		processors["batch"] = c.PushConfig.Batch
 		processorNames = append(processorNames, "batch")
 	}
 
-	otelMapStructure["processors"] = processors
+	if c.SpanMetrics != nil {
+		// Configure the metrics exporter.
+		namespace := "tempo_spanmetrics"
+		if len(c.SpanMetrics.MetricsExporter.Namespace) != 0 {
+			namespace = fmt.Sprintf("%s_%s", c.SpanMetrics.MetricsExporter.Namespace, namespace)
+		}
+
+		exporters[defaultSpanMetricsExporter] = map[string]interface{}{
+			"endpoint":        c.SpanMetrics.MetricsExporter.Endpoint,
+			"namespace":       namespace,
+			"const_labels":    c.SpanMetrics.MetricsExporter.ConstLabels,
+			"send_timestamps": c.SpanMetrics.MetricsExporter.SendTimestamps,
+		}
+
+		processorNames = append(processorNames, "spanmetrics")
+		processors["spanmetrics"] = map[string]interface{}{
+			"metrics_exporter":          defaultSpanMetricsExporter,
+			"latency_histogram_buckets": c.SpanMetrics.LatencyHistogramBuckets,
+			"dimensions":                c.SpanMetrics.Dimensions,
+		}
+	}
 
 	// receivers
-	otelMapStructure["receivers"] = c.Receivers
 	receiverNames := []string{}
 	for name := range c.Receivers {
 		receiverNames = append(receiverNames, name)
 	}
 
+	if c.TailSampling != nil {
+		wait := defaultDecisionWait
+		if c.TailSampling.DecisionWait != 0 {
+			wait = c.TailSampling.DecisionWait
+		}
+
+		policies, err := formatPolicies(c.TailSampling.Policies)
+		if err != nil {
+			return nil, err
+		}
+
+		// tail_sampling should be executed before the batch processor
+		// TODO(mario.rodriguez): put attributes processor before tail_sampling. Maybe we want to sample on mutated spans
+		processorNames = append([]string{"tail_sampling"}, processorNames...)
+		processors["tail_sampling"] = map[string]interface{}{
+			"policies":      policies,
+			"decision_wait": wait,
+		}
+
+		if c.TailSampling.LoadBalancing != nil {
+			internalExporter, err := c.loadBalancingExporter()
+			if err != nil {
+				return nil, err
+			}
+			exporters["loadbalancing"] = internalExporter
+
+			receiverPort := defaultLoadBalancingPort
+			if c.TailSampling.Port != "" {
+				receiverPort = c.TailSampling.Port
+			}
+			c.Receivers["otlp/lb"] = map[string]interface{}{
+				"protocols": map[string]interface{}{
+					"grpc": map[string]interface{}{
+						"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
+					},
+				},
+			}
+		}
+	}
+
+	pipelines := make(map[string]interface{})
+	if c.TailSampling != nil && c.TailSampling.LoadBalancing != nil {
+		// load balancing pipeline
+		pipelines["traces/0"] = map[string]interface{}{
+			"receivers": receiverNames,
+			"exporters": []string{"loadbalancing"},
+		}
+		// processing pipeline
+		pipelines["traces/1"] = map[string]interface{}{
+			"exporters":  exportersNames,
+			"processors": processorNames,
+			"receivers":  []string{"otlp/lb"},
+		}
+	} else {
+		pipelines["traces"] = map[string]interface{}{
+			"exporters":  exportersNames,
+			"processors": processorNames,
+			"receivers":  receiverNames,
+		}
+	}
+
+	if c.SpanMetrics != nil {
+		// Insert a noop receiver in the metrics pipeline.
+		// Added to pass validation requiring at least one receiver in a pipeline.
+		c.Receivers[noopreceiver.TypeStr] = nil
+
+		pipelines[spanMetricsPipelineName] = map[string]interface{}{
+			"receivers": []string{noopreceiver.TypeStr},
+			"exporters": []string{defaultSpanMetricsExporter},
+		}
+	}
+
+	otelMapStructure["exporters"] = exporters
+	otelMapStructure["processors"] = processors
+	otelMapStructure["receivers"] = c.Receivers
+
 	// pipelines
 	otelMapStructure["service"] = map[string]interface{}{
-		"pipelines": map[string]interface{}{
-			"traces": map[string]interface{}{
-				"exporters":  []string{"otlp"},
-				"processors": processorNames,
-				"receivers":  receiverNames,
-			},
-		},
+		"pipelines": pipelines,
 	}
 
 	// now build the otel configmodel from the mapstructure
 	v := viper.New()
-	err := v.MergeConfigMap(otelMapStructure)
+	err = v.MergeConfigMap(otelMapStructure)
 	if err != nil {
 		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
 	}
@@ -245,6 +570,8 @@ func tracingFactories() (component.Factories, error) {
 		zipkinreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
 		opencensusreceiver.NewFactory(),
+		kafkareceiver.NewFactory(),
+		noopreceiver.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
@@ -252,16 +579,19 @@ func tracingFactories() (component.Factories, error) {
 
 	exporters, err := component.MakeExporterFactoryMap(
 		otlpexporter.NewFactory(),
+		prometheusexporter.NewFactory(),
+		loadbalancingexporter.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
 	}
 
 	processors, err := component.MakeProcessorFactoryMap(
-		queuedprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),
+		spanmetricsprocessor.NewFactory(),
+		tailsamplingprocessor.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err

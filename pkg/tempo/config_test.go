@@ -3,12 +3,14 @@ package tempo
 import (
 	"io/ioutil"
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configmodels"
 	"gopkg.in/yaml.v2"
 )
 
@@ -275,6 +277,339 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "push_config and remote_write",
+			cfg: `
+receivers:
+  jaeger:
+push_config:
+  endpoint: example:12345
+remote_write:
+  - endpoint: anotherexample.com:12345
+`,
+			expectedError: true,
+		},
+		{
+			name: "push_config.batch and batch",
+			cfg: `
+receivers:
+  jaeger:
+push_config:
+  endpoint: example:12345
+  batch:
+    timeout: 5s
+    send_batch_size: 100
+batch:
+  timeout: 5s
+  send_batch_size: 100
+remote_write:
+  - endpoint: anotherexample.com:12345
+`,
+			expectedError: true,
+		},
+		{
+			name: "one backend with remote_write",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    headers:
+      x-some-header: Some value!
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    headers:
+      x-some-header: Some value!
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "two backends in a remote_write block",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password: blerg
+  - endpoint: anotherexample.com:12345
+    compression: none
+    insecure: false
+    insecure_skip_verify: true
+    basic_auth:
+      username: test
+      password_file: ` + tmpfile.Name() + `
+    retry_on_failure:
+      initial_interval: 10s
+    sending_queue:
+      num_consumers: 15
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    headers:
+      authorization: Basic dGVzdDpibGVyZw==
+    retry_on_failure:
+      max_elapsed_time: 60s
+  otlp/1:
+    endpoint: anotherexample.com:12345
+    insecure: false
+    insecure_skip_verify: true
+    headers:
+      authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
+    retry_on_failure:
+      initial_interval: 10s
+      max_elapsed_time: 60s
+    sending_queue:
+      num_consumers: 15
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/1", "otlp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "batch block",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+batch:
+  timeout: 5s
+  send_batch_size: 100
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 100
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["batch"]
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "span metrics prometheus exporter",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+spanmetrics:
+  latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
+  dimensions:
+    - name: http.method
+      default: GET
+    - name: http.status_code
+  metrics_exporter:
+    endpoint: "0.0.0.0:8889"
+    namespace: promexample
+`,
+			expectedConfig: `
+receivers:
+  noop:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: promexample_tempo_spanmetrics
+processors:
+  spanmetrics:
+    metrics_exporter: prometheus
+    latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
+    dimensions:
+      - name: http.method
+        default: GET
+      - name: http.status_code
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["spanmetrics"]
+      receivers: ["jaeger"]
+    metrics/spanmetrics:
+      exporters: ["prometheus"]
+      receivers: ["noop"]
+`,
+		},
+		{
+			name: "tail sampling config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+tail_sampling:
+  policies:
+    - always_sample:
+    - string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  tail_sampling:
+    decision_wait: 5s
+    policies:
+      - name: always_sample/0
+        type: always_sample
+      - name: string_attribute/1
+        type: string_attribute
+        string_attribute:
+          key: key
+          values:
+            - value1
+            - value2
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling"]
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "tail sampling config with load balancing",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+tail_sampling:
+  policies:
+    - always_sample:
+    - string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
+  load_balancing:
+    exporter:
+      insecure: true
+    resolver:
+      dns:
+        hostname: agent
+        port: 4318
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+  otlp/lb:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4318"
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  loadbalancing:
+    protocol:
+      otlp:
+        insecure: true
+        endpoint: noop
+        retry_on_failure:
+          max_elapsed_time: 60s
+    resolver:
+      dns:
+        hostname: agent
+        port: 4318
+processors:
+  tail_sampling:
+    decision_wait: 5s
+    policies:
+      - name: always_sample/0
+        type: always_sample
+      - name: string_attribute/1
+        type: string_attribute
+        string_attribute:
+          key: key
+          values:
+            - value1
+            - value2
+service:
+  pipelines:
+    traces/0:
+      exporters: ["loadbalancing"]
+      receivers: ["jaeger"]
+    traces/1:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling"]
+      receivers: ["otlp/lb"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
@@ -306,7 +641,20 @@ service:
 			expectedConfig, err := config.Load(v, factories)
 			require.NoError(t, err)
 
+			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
+			sortPipelines(actualConfig)
+			sortPipelines(expectedConfig)
+
 			assert.Equal(t, expectedConfig, actualConfig)
 		})
+	}
+}
+
+// sortPipelines is a helper function to lexicographically sort a pipeline's exporters
+func sortPipelines(cfg *configmodels.Config) {
+	for _, p := range cfg.Pipelines {
+		sort.Strings(p.Exporters)
+		sort.Strings(p.Receivers)
+		sort.Strings(p.Processors)
 	}
 }

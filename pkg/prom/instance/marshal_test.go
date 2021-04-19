@@ -29,9 +29,9 @@ func TestUnmarshalConfig_Invalid(t *testing.T) {
 // instance config does the same thing and retains secrets.
 func TestMarshal_UnmarshalConfig(t *testing.T) {
 	cfg := `name: test
-host_filter: false
 scrape_configs:
 - job_name: local_scrape
+  follow_redirects: true
   honor_timestamps: true
   metrics_path: /metrics
   scheme: http
@@ -58,6 +58,7 @@ remote_write:
     batch_send_deadline: 5s
     min_backoff: 30ms
     max_backoff: 100ms
+  follow_redirects: true
   metadata_config:
     send: true
     send_interval: 1m
@@ -101,9 +102,9 @@ remote_flush_deadline: 1m0s
 // instance config does the same thing and retains secrets.
 func TestMarshal_UnmarshalConfig_Sigv4(t *testing.T) {
 	cfg := `name: test
-host_filter: false
 scrape_configs:
 - job_name: local_scrape
+  follow_redirects: true
   honor_timestamps: true
   metrics_path: /metrics
   scheme: http
@@ -119,8 +120,7 @@ remote_write:
 - url: http://localhost:9009/api/prom/push
   remote_timeout: 30s
   name: test-d0f32c
-  sigv4:
-    enabled: true
+  sigv4: {}
   queue_config:
     capacity: 500
     max_shards: 1000
@@ -129,6 +129,7 @@ remote_write:
     batch_send_deadline: 5s
     min_backoff: 30ms
     max_backoff: 100ms
+  follow_redirects: true
   metadata_config:
     send: true
     send_interval: 1m

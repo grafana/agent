@@ -8,6 +8,7 @@ daysUntilClose: 7
 exemptLabels:
   - keepalive
   - proposal
+  - outdated-dependency
 
 # Label to use to identify a stale issue
 staleLabel: stale

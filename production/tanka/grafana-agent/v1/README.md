@@ -3,7 +3,7 @@
 **STATUS**: Work in progress, use of these configs is not recommended for production.
 
 This directory contains the Tanka configs that we use to deploy the Grafana
-Cloud Agent. It is marked as `v1` and is incompatible with the `v0` configs
+Agent. It is marked as `v1` and is incompatible with the `v0` configs
 found in the [parent directory](../).
 
 This library is currently a work in progress and backwards-incompatible changes
@@ -46,7 +46,7 @@ example, you may not deploy a scraping service with Loki logs collection.
 - `withPrometheusInstances(instances)`: Creates a Prometheus instance config to
   tell the Agent what to scrape.
 - `withRemoteWrite(remote_writes)`: Configures locations to remote write metrics
-   to. Controlls remote writes for all instances.
+   to. Controls remote writes globally.
 - `scrapeInstanceKubernetes`: Default Prometheus instance config to scrape from
   Kubernetes.
 
@@ -62,7 +62,8 @@ example, you may not deploy a scraping service with Loki logs collection.
 ## Configure Tempo
 
 - `withTempoConfig(config)`: Creates a Tempo config block to pass to the Agent.
-- `withTempoPushConfig(push_config)`: Configures a location to push spans to.
+- (Deprecated) `withTempoPushConfig(push_config)`: Configures a location to push spans to.
+- `withTempoRemoteWrite(remote_write)`: Configures one or multiple locations to push spans to.
 - `withTempoSamplingStrategies(strategies)`: Configures strategies for trace collection.
 - `withTempoScrapeConfigs(scrape_configs)`: Configures scrape configs to attach
    labels to incoming spans.

@@ -31,9 +31,9 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/internal"
-	otlplogs "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/logs/v1"
-	otlpmetrics "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/metrics/v1"
-	otlptrace "go.opentelemetry.io/collector/internal/data/opentelemetry-proto-gen/collector/trace/v1"
+	otlplogs "go.opentelemetry.io/collector/internal/data/protogen/collector/logs/v1"
+	otlpmetrics "go.opentelemetry.io/collector/internal/data/protogen/collector/metrics/v1"
+	otlptrace "go.opentelemetry.io/collector/internal/data/protogen/collector/trace/v1"
 )
 
 type exporterImp struct {
@@ -41,10 +41,6 @@ type exporterImp struct {
 	config *Config
 	w      *grpcSender
 }
-
-var (
-	errPermanentError = consumererror.Permanent(errors.New("fatal error sending to server"))
-)
 
 // Crete new exporter and start it. The exporter will begin connecting but
 // this function may return before the connection is established.
@@ -184,7 +180,7 @@ func processError(err error) error {
 
 	if !shouldRetry(st.Code()) {
 		// It is not a retryable error, we should not retry.
-		return errPermanentError
+		return consumererror.Permanent(err)
 	}
 
 	// Need to retry.

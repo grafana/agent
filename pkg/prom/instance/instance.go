@@ -33,7 +33,7 @@ import (
 )
 
 func init() {
-	remote.UserAgent = fmt.Sprintf("GrafanaCloudAgent/%s", build.Version)
+	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 }
 
 var (
@@ -56,36 +56,24 @@ var (
 // Config is a specific agent that runs within the overall Prometheus
 // agent. It has its own set of scrape_configs and remote_write rules.
 type Config struct {
-	Name                     string                 `yaml:"name" json:"name"`
-	HostFilter               bool                   `yaml:"host_filter" json:"host_filter"`
-	HostFilterRelabelConfigs []*relabel.Config      `yaml:"host_filter_relabel_configs,omitempty"`
-	ScrapeConfigs            []*config.ScrapeConfig `yaml:"scrape_configs,omitempty" json:"scrape_configs,omitempty"`
-	RemoteWrite              []*RemoteWriteConfig   `yaml:"remote_write,omitempty" json:"remote_write,omitempty"`
+	Name                     string                      `yaml:"name,omitempty"`
+	HostFilter               bool                        `yaml:"host_filter,omitempty"`
+	HostFilterRelabelConfigs []*relabel.Config           `yaml:"host_filter_relabel_configs,omitempty"`
+	ScrapeConfigs            []*config.ScrapeConfig      `yaml:"scrape_configs,omitempty"`
+	RemoteWrite              []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// How frequently the WAL should be truncated.
-	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty" json:"wal_truncate_frequency,omitempty"`
+	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty"`
 
 	// Minimum and maximum time series should exist in the WAL for.
-	MinWALTime time.Duration `yaml:"min_wal_time,omitempty" json:"min_wal_time,omitempty"`
-	MaxWALTime time.Duration `yaml:"max_wal_time,omitempty" json:"max_wal_time,omitempty"`
+	MinWALTime time.Duration `yaml:"min_wal_time,omitempty"`
+	MaxWALTime time.Duration `yaml:"max_wal_time,omitempty"`
 
-	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty" json:"remote_flush_deadline,omitempty"`
-	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty" json:"write_stale_on_shutdown,omitempty"`
+	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty"`
+	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty"`
 }
 
-// BaseRemoteWrite returns the base remote write configs without the added
-// fields.
-func (c *Config) BaseRemoteWrite() []*config.RemoteWriteConfig {
-	res := make([]*config.RemoteWriteConfig, len(c.RemoteWrite))
-	for i, cfg := range c.RemoteWrite {
-		if cfg == nil {
-			continue
-		}
-		res[i] = &cfg.Base
-	}
-	return res
-}
-
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
@@ -93,6 +81,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// MarshalYAML implements yaml.Marshaler.
 func (c Config) MarshalYAML() (interface{}, error) {
 	// We want users to be able to marshal instance.Configs directly without
 	// *needing* to call instance.MarshalConfig, so we call it internally
@@ -114,7 +103,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 // ApplyDefaults applies default configurations to the configuration to all
 // values that have not been changed to their non-zero value. ApplyDefaults
 // also validates the config.
-func (c *Config) ApplyDefaults(global *config.GlobalConfig, defaultRemoteWrite []*RemoteWriteConfig) error {
+func (c *Config) ApplyDefaults(global *GlobalConfig) error {
 	switch {
 	case c.Name == "":
 		return errors.New("missing instance name")
@@ -135,7 +124,7 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig, defaultRemoteWrite [
 		// First set the correct scrape interval, then check that the timeout
 		// (inferred or explicit) is not greater than that.
 		if sc.ScrapeInterval == 0 {
-			sc.ScrapeInterval = global.ScrapeInterval
+			sc.ScrapeInterval = global.Prometheus.ScrapeInterval
 		}
 		if sc.ScrapeTimeout > sc.ScrapeInterval {
 			return fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name %q", sc.JobName)
@@ -144,10 +133,10 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig, defaultRemoteWrite [
 			return fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape config with job name %q", sc.JobName)
 		}
 		if sc.ScrapeTimeout == 0 {
-			if global.ScrapeTimeout > sc.ScrapeInterval {
+			if global.Prometheus.ScrapeTimeout > sc.ScrapeInterval {
 				sc.ScrapeTimeout = sc.ScrapeInterval
 			} else {
-				sc.ScrapeTimeout = global.ScrapeTimeout
+				sc.ScrapeTimeout = global.Prometheus.ScrapeTimeout
 			}
 		}
 
@@ -161,7 +150,7 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig, defaultRemoteWrite [
 
 	// If the instance remote write is not filled in, then apply the prometheus write config
 	if len(c.RemoteWrite) == 0 {
-		c.RemoteWrite = defaultRemoteWrite
+		c.RemoteWrite = global.RemoteWrite
 	}
 	for _, cfg := range c.RemoteWrite {
 		if cfg == nil {
@@ -172,7 +161,7 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig, defaultRemoteWrite [
 		// unique name to the config so we can pull metrics from it when running
 		// an instance.
 		var generatedName bool
-		if cfg.Base.Name == "" {
+		if cfg.Name == "" {
 			hash, err := getHash(cfg)
 			if err != nil {
 				return err
@@ -181,17 +170,17 @@ func (c *Config) ApplyDefaults(global *config.GlobalConfig, defaultRemoteWrite [
 			// We have to add the name of the instance to ensure that generated metrics
 			// are unique across multiple agent instances. The remote write queues currently
 			// globally register their metrics so we can't inject labels here.
-			cfg.Base.Name = c.Name + "-" + hash[:6]
+			cfg.Name = c.Name + "-" + hash[:6]
 			generatedName = true
 		}
 
-		if _, exists := rwNames[cfg.Base.Name]; exists {
+		if _, exists := rwNames[cfg.Name]; exists {
 			if generatedName {
 				return fmt.Errorf("found two identical remote_write configs")
 			}
-			return fmt.Errorf("found duplicate remote write configs with name %q", cfg.Base.Name)
+			return fmt.Errorf("found duplicate remote write configs with name %q", cfg.Name)
 		}
-		rwNames[cfg.Base.Name] = struct{}{}
+		rwNames[cfg.Name] = struct{}{}
 	}
 
 	return nil
@@ -214,7 +203,7 @@ type Instance struct {
 	remoteStore        *remote.Storage
 	storage            storage.Storage
 
-	globalCfg config.GlobalConfig
+	globalCfg GlobalConfig
 	logger    log.Logger
 
 	reg    prometheus.Registerer
@@ -225,7 +214,7 @@ type Instance struct {
 
 // New creates a new Instance with a directory for storing the WAL. The instance
 // will not start until Run is called on the instance.
-func New(reg prometheus.Registerer, globalCfg config.GlobalConfig, cfg Config, walDir string, logger log.Logger) (*Instance, error) {
+func New(reg prometheus.Registerer, globalCfg GlobalConfig, cfg Config, walDir string, logger log.Logger) (*Instance, error) {
 	logger = log.With(logger, "instance", cfg.Name)
 
 	instWALDir := filepath.Join(walDir, cfg.Name)
@@ -237,7 +226,7 @@ func New(reg prometheus.Registerer, globalCfg config.GlobalConfig, cfg Config, w
 	return newInstance(globalCfg, cfg, reg, logger, newWal)
 }
 
-func newInstance(globalCfg config.GlobalConfig, cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
+func newInstance(globalCfg GlobalConfig, cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
 	vc := NewMetricValueCollector(prometheus.DefaultGatherer, remoteWriteMetricName)
 
 	i := &Instance{
@@ -343,6 +332,8 @@ func (i *Instance) Run(ctx context.Context) error {
 					}
 				}
 
+				// Closing the storage closes both the WAL storage and remote wrte
+				// storage.
 				level.Info(i.logger).Log("msg", "closing storage...")
 				if err := i.storage.Close(); err != nil {
 					level.Error(i.logger).Log("msg", "error stopping storage", "err", err)
@@ -384,10 +375,9 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	// Setup the remote storage
 	remoteLogger := log.With(i.logger, "component", "remote")
 	i.remoteStore = remote.NewStorage(remoteLogger, reg, i.wal.StartTime, i.wal.Directory(), cfg.RemoteFlushDeadline, i.readyScrapeManager)
-	i.remoteStore.Write.NewClient = i.newWriteClient
 	err = i.remoteStore.ApplyConfig(&config.Config{
-		GlobalConfig:       i.globalCfg,
-		RemoteWriteConfigs: cfg.BaseRemoteWrite(),
+		GlobalConfig:       i.globalCfg.Prometheus,
+		RemoteWriteConfigs: cfg.RemoteWrite,
 	})
 	if err != nil {
 		return fmt.Errorf("failed applying config to remote storage: %w", err)
@@ -397,7 +387,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 
 	scrapeManager := newScrapeManager(log.With(i.logger, "component", "scrape manager"), i.storage)
 	err = scrapeManager.ApplyConfig(&config.Config{
-		GlobalConfig:  i.globalCfg,
+		GlobalConfig:  i.globalCfg.Prometheus,
 		ScrapeConfigs: cfg.ScrapeConfigs,
 	})
 	if err != nil {
@@ -407,39 +397,6 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	i.readyScrapeManager.Set(scrapeManager)
 
 	return nil
-}
-
-func (i *Instance) newWriteClient(name string, conf *remote.ClientConfig) (remote.WriteClient, error) {
-	var cfg *RemoteWriteConfig
-	for _, c := range i.cfg.RemoteWrite {
-		if c.Base.Name == name {
-			cfg = c
-			break
-		}
-	}
-	if cfg == nil {
-		level.Warn(i.logger).Log("msg", "could not properly generate HTTP client for remote_write", "err", "could not find remote write config", "name", name)
-	}
-
-	writeClient, err := remote.NewWriteClient(name, conf)
-	if err != nil {
-		return nil, err
-	}
-	// Based on NewWriteClient, this will always be a remote.Client.
-	cli := writeClient.(*remote.Client)
-
-	if cfg != nil && cfg.SigV4.Enabled {
-		level.Debug(i.logger).Log("msg", "enabling sigv4", "name", name)
-
-		rt, err := NewSigV4RoundTripper(cfg.SigV4, cli.Client.Transport)
-		if err != nil {
-			level.Error(i.logger).Log("msg", "failed to create sigv4 transport", "err", err)
-			return nil, fmt.Errorf("could not create sigv4 transport: %w", err)
-		}
-		cli.Client.Transport = rt
-	}
-
-	return cli, nil
 }
 
 // Update accepts a new Config for the Instance and will dynamically update any
@@ -495,8 +452,8 @@ func (i *Instance) Update(c Config) (err error) {
 	i.cfg = c
 
 	err = i.remoteStore.ApplyConfig(&config.Config{
-		GlobalConfig:       i.globalCfg,
-		RemoteWriteConfigs: c.BaseRemoteWrite(),
+		GlobalConfig:       i.globalCfg.Prometheus,
+		RemoteWriteConfigs: c.RemoteWrite,
 	})
 	if err != nil {
 		return fmt.Errorf("error applying new remote_write configs: %w", err)
@@ -507,7 +464,7 @@ func (i *Instance) Update(c Config) (err error) {
 		return fmt.Errorf("couldn't get scrape manager to apply new scrape configs: %w", err)
 	}
 	err = sm.ApplyConfig(&config.Config{
-		GlobalConfig:  i.globalCfg,
+		GlobalConfig:  i.globalCfg.Prometheus,
 		ScrapeConfigs: c.ScrapeConfigs,
 	})
 	if err != nil {
@@ -546,6 +503,8 @@ func (i *Instance) TargetsActive() map[string][]*scrape.Target {
 	return mgr.TargetsActive()
 }
 
+// StorageDirectory returns the directory where this Instance is writing series
+// and samples to for the WAL.
 func (i *Instance) StorageDirectory() string {
 	return i.wal.Directory()
 }
@@ -692,7 +651,7 @@ func (i *Instance) getRemoteWriteTimestamp() int64 {
 
 	lbls := make([]string, len(i.cfg.RemoteWrite))
 	for idx := 0; idx < len(lbls); idx++ {
-		lbls[idx] = i.cfg.RemoteWrite[idx].Base.Name
+		lbls[idx] = i.cfg.RemoteWrite[idx].Name
 	}
 
 	vals, err := i.vc.GetValues("remote_name", lbls...)
@@ -871,6 +830,8 @@ func (rg *runGroupContext) Add(execute func() error, interrupt func(error)) {
 func (rg *runGroupContext) Run() error   { return rg.g.Run() }
 func (rg *runGroupContext) Stop(_ error) { rg.cancel() }
 
+// ErrNotReady is returned when the scrape manager is used but has not been
+// initialized yet.
 var ErrNotReady = errors.New("Scrape manager not ready")
 
 // readyScrapeManager allows a scrape manager to be retrieved. Even if it's set at a later point in time.

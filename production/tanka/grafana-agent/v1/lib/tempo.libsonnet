@@ -5,11 +5,12 @@
   //
   withTempoConfig(config):: {
     assert std.objectHasAll(self, '_mode') : |||
-      withLokiConfig must be merged with the result of calling new.
+      withTempoConfig must be merged with the result of calling new.
     |||,
     _tempo_config:: config,
   },
 
+  // Deprecated in favor of withTempoRemoteWrite.
   // withTempoPushConfig configures a location to write traces to.
   //
   // Availabile options can be found in the configuration reference:
@@ -20,6 +21,18 @@
       withTempoConfig.
     |||,
     _tempo_config+:: { push_config: push_config },
+  },
+
+  // withTempoRemoteWrite configures one or multiple backends to write traces to.
+  //
+  // Availabile options can be found in the configuration reference:
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#tempo_config
+  withTempoRemoteWrite(remote_write):: {
+    assert std.objectHasAll(self, '_tempo_config') : |||
+      withTempoRemoteWrite must be merged with the result of calling
+      withTempoConfig.
+    |||,
+    _tempo_config+:: { remote_write: remote_write },
   },
 
   // withTempoSamplingStrategies accepts an object for trace sampling strategies.
@@ -98,4 +111,16 @@
       },
     },
   ],
+
+  // withTempoTailSamplingConfig tail-based sampling for traces.
+  //
+  // Availabile options can be found in the configuration reference:
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#tempo_config
+  withTempoTailSamplingConfig(tail_sampling):: {
+    assert std.objectHasAll(self, '_tempo_config') : |||
+      withTempoTailSamplingConfig must be merged with the result of calling
+      withTempoConfig.
+    |||,
+    _tempo_config+:: { tail_sampling: tail_sampling },
+  }
 }

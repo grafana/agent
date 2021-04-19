@@ -5,7 +5,7 @@ go_modules:
   - github.com/grafana/loki
   - github.com/justwatchcom/elasticsearch_exporter
   - github.com/oliver006/redis_exporter
-  - github.com/prometheus/consul_exporter 
+  - github.com/prometheus/consul_exporter
   - github.com/prometheus/memcached_exporter
   - github.com/prometheus/statsd_exporter
   - github.com/weaveworks/common
@@ -21,5 +21,5 @@ github_repos:
   - github.com/google/dnsmasq_exporter v0.2.0
   - github.com/ncabatoff/process-exporter v0.7.5
   - github.com/prometheus/mysqld_exporter v0.12.1
-  - github.com/prometheus/prometheus v2.21.0
+  - github.com/prometheus/prometheus v2.26.0
   - github.com/wrouesnel/postgres_exporter v0.8.0

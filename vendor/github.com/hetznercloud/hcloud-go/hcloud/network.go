@@ -155,7 +155,7 @@ func (c *NetworkClient) All(ctx context.Context) ([]*Network, error) {
 func (c *NetworkClient) AllWithOpts(ctx context.Context, opts NetworkListOpts) ([]*Network, error) {
 	var allNetworks []*Network
 
-	_, err := c.client.all(func(page int) (*Response, error) {
+	err := c.client.all(func(page int) (*Response, error) {
 		opts.Page = page
 		Networks, resp, err := c.List(ctx, opts)
 		if err != nil {

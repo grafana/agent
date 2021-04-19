@@ -5,13 +5,13 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,6 +26,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DefaultConfig holds the default settings for the statsd_exporter integration.
 var DefaultConfig = Config{
 	ListenUDP:      ":9125",
 	ListenTCP:      ":9125",
@@ -47,23 +48,23 @@ var DefaultConfig = Config{
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	ListenUDP      string               `yaml:"listen_udp"`
-	ListenTCP      string               `yaml:"listen_tcp"`
-	ListenUnixgram string               `yaml:"listen_unixgram"`
-	UnixSocketMode string               `yaml:"unix_socket_mode"`
-	MappingConfig  *mapper.MetricMapper `yaml:"mapping_config"`
+	ListenUDP      string               `yaml:"listen_udp,omitempty"`
+	ListenTCP      string               `yaml:"listen_tcp,omitempty"`
+	ListenUnixgram string               `yaml:"listen_unixgram,omitempty"`
+	UnixSocketMode string               `yaml:"unix_socket_mode,omitempty"`
+	MappingConfig  *mapper.MetricMapper `yaml:"mapping_config,omitempty"`
 
-	ReadBuffer          int           `yaml:"read_buffer"`
-	CacheSize           int           `yaml:"cache_size"`
-	CacheType           string        `yaml:"cache_type"`
-	EventQueueSize      int           `yaml:"event_queue_size"`
-	EventFlushThreshold int           `yaml:"event_flush_threshold"`
-	EventFlushInterval  time.Duration `yaml:"event_flush_interval"`
+	ReadBuffer          int           `yaml:"read_buffer,omitempty"`
+	CacheSize           int           `yaml:"cache_size,omitempty"`
+	CacheType           string        `yaml:"cache_type,omitempty"`
+	EventQueueSize      int           `yaml:"event_queue_size,omitempty"`
+	EventFlushThreshold int           `yaml:"event_flush_threshold,omitempty"`
+	EventFlushInterval  time.Duration `yaml:"event_flush_interval,omitempty"`
 
-	ParseDogStatsd bool `yaml:"parse_dogstatsd_tags"`
-	ParseInfluxDB  bool `yaml:"parse_influxdb_tags"`
-	ParseLibrato   bool `yaml:"parse_librato_tags"`
-	ParseSignalFX  bool `yaml:"parse_signalfx_tags"`
+	ParseDogStatsd bool `yaml:"parse_dogstatsd_tags,omitempty"`
+	ParseInfluxDB  bool `yaml:"parse_influxdb_tags,omitempty"`
+	ParseLibrato   bool `yaml:"parse_librato_tags,omitempty"`
+	ParseSignalFX  bool `yaml:"parse_signalfx_tags,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -74,14 +75,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "statsd_exporter"
 }
 
+// CommonConfig returns the common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
@@ -90,7 +94,7 @@ func init() {
 	integrations.RegisterIntegration(&Config{})
 }
 
-// Exporters defines the statsd_exporter integration.
+// Exporter defines the statsd_exporter integration.
 type Exporter struct {
 	cfg      *Config
 	reg      *prometheus.Registry
@@ -145,16 +149,11 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	}, nil
 }
 
-// RegisterRoutes satisfies integrations.Integration. The mux.Router provided
-// here is expected to be a subrouter, where all registered paths will be
-// registered within that subroute.
-func (e *Exporter) RegisterRoutes(r *mux.Router) error {
-	handler := promhttp.HandlerFor(e.reg, promhttp.HandlerOpts{
+// MetricsHandler returns the HTTP handler for the integration.
+func (e *Exporter) MetricsHandler() (http.Handler, error) {
+	return promhttp.HandlerFor(e.reg, promhttp.HandlerOpts{
 		ErrorHandling: promhttp.ContinueOnError,
-	})
-
-	r.Handle("/metrics", handler)
-	return nil
+	}), nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

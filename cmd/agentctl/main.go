@@ -1,4 +1,4 @@
-// Command agentctl provides utilities for interacting with Grafana Cloud Agent
+// Command agentctl provides utilities for interacting with Grafana Agent
 package main
 
 import (
@@ -32,7 +32,7 @@ import (
 func main() {
 	var cmd = &cobra.Command{
 		Use:     "agentctl",
-		Short:   "Tools for interacting with the Grafana Cloud Agent",
+		Short:   "Tools for interacting with the Grafana Agent",
 		Version: version.Print("agentctl"),
 	}
 	cmd.SetVersionTemplate("{{ .Version }}\n")
@@ -314,7 +314,7 @@ func cloudConfigCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "cloud-config",
-		Short: "Retrieves the cloud config for the Grafana Cloud Agent",
+		Short: "Retrieves the cloud config for the Grafana Agent",
 		Long: `cloud-config connects to Grafana Cloud and retrieves the generated
 config that may be used with this agent.`,
 		Args: cobra.ExactArgs(0),

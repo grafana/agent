@@ -19,6 +19,8 @@ import (
 	"github.com/justwatchcom/elasticsearch_exporter/pkg/clusterinfo"
 )
 
+// DefaultConfig holds the default settings for the elasticsearch_exporter
+// integration.
 var DefaultConfig = Config{
 	Address:                   "http://localhost:9200",
 	Timeout:                   5 * time.Second,
@@ -33,33 +35,33 @@ type Config struct {
 	// Exporter configuration
 
 	// HTTP API address of an Elasticsearch node.
-	Address string `yaml:"address"`
+	Address string `yaml:"address,omitempty"`
 	// Timeout for trying to get stats from Elasticsearch.
-	Timeout time.Duration `yaml:"timeout"`
+	Timeout time.Duration `yaml:"timeout,omitempty"`
 	// Export stats for all nodes in the cluster. If used, this flag will override the flag es.node.
-	AllNodes bool `yaml:"all"`
+	AllNodes bool `yaml:"all,omitempty"`
 	// Node's name of which metrics should be exposed.
-	Node string `yaml:"node"`
+	Node string `yaml:"node,omitempty"`
 	// Export stats for indices in the cluster.
-	ExportIndices bool `yaml:"indices"`
+	ExportIndices bool `yaml:"indices,omitempty"`
 	// Export stats for settings of all indices of the cluster.
-	ExportIndicesSettings bool `yaml:"indices_settings"`
+	ExportIndicesSettings bool `yaml:"indices_settings,omitempty"`
 	// Export stats for cluster settings.
-	ExportClusterSettings bool `yaml:"cluster_settings"`
+	ExportClusterSettings bool `yaml:"cluster_settings,omitempty"`
 	// Export stats for shards in the cluster (implies indices).
-	ExportShards bool `yaml:"shards"`
+	ExportShards bool `yaml:"shards,omitempty"`
 	// Export stats for the cluster snapshots.
-	ExportSnapshots bool `yaml:"snapshots"`
+	ExportSnapshots bool `yaml:"snapshots,omitempty"`
 	// Cluster info update interval for the cluster label.
-	ExportClusterInfoInterval time.Duration `yaml:"clusterinfo_interval"`
+	ExportClusterInfoInterval time.Duration `yaml:"clusterinfo_interval,omitempty"`
 	// Path to PEM file that contains trusted Certificate Authorities for the Elasticsearch connection.
-	CA string `yaml:"ca"`
+	CA string `yaml:"ca,omitempty"`
 	// Path to PEM file that contains the private key for client auth when connecting to Elasticsearch.
-	ClientPrivateKey string `yaml:"client_private_key"`
+	ClientPrivateKey string `yaml:"client_private_key,omitempty"`
 	// Path to PEM file that contains the corresponding cert for the private key to connect to Elasticsearch.
-	ClientCert string `yaml:"client_cert"`
+	ClientCert string `yaml:"client_cert,omitempty"`
 	// Skip SSL verification when connecting to Elasticsearch.
-	InsecureSkipVerify bool `yaml:"ssl_skip_verify"`
+	InsecureSkipVerify bool `yaml:"ssl_skip_verify,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -70,10 +72,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "elasticsearch_exporter"
 }
 
+// CommonConfig returns the common settings shared across all configs for
+// integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }

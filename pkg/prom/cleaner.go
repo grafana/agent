@@ -15,6 +15,7 @@ import (
 	promwal "github.com/prometheus/prometheus/tsdb/wal"
 )
 
+// Default settings for the WAL cleaner.
 const (
 	DefaultCleanupAge    = 12 * time.Hour
 	DefaultCleanupPeriod = 30 * time.Minute

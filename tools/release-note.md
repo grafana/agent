@@ -1,4 +1,4 @@
-This is release `${RELEASE_TAG}` of the Grafana Cloud Agent.
+This is release `${RELEASE_TAG}` of the Grafana Agent.
 
 ### Upgrading
 Read the
@@ -10,7 +10,7 @@ for specific instructions on upgrading from older versions.
 
 
 ### Installation:
-Grafana Cloud Agent is currently distributed in plain binary form, Docker
+Grafana Agent is currently distributed in plain binary form, Docker
 container images, and a Kubernetes install script. Choose whichever fits your
 use-case best.
 

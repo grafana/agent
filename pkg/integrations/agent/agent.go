@@ -5,9 +5,9 @@ package agent
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/go-kit/kit/log"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -18,14 +18,17 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "agent"
 }
 
+// CommonConfig returns the common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) {
 	return New(c), nil
 }
@@ -40,18 +43,14 @@ type Integration struct {
 	c *Config
 }
 
+// New creates a new Agent integration.
 func New(c *Config) *Integration {
 	return &Integration{c: c}
 }
 
-// RegisterRoutes satisfies Integration.RegisterRoutes.
-func (i *Integration) RegisterRoutes(r *mux.Router) error {
-	// Note that if the weaveworks common server is set to not register
-	// instrumentation endpoints, this lets the agent integration still be able
-	// to scrape itself, just at /integrations/agent/metrics.
-	r.Handle("/metrics", promhttp.Handler())
-
-	return nil
+// MetricsHandler satisfies Integration.RegisterRoutes.
+func (i *Integration) MetricsHandler() (http.Handler, error) {
+	return promhttp.Handler(), nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

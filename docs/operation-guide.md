@@ -1,19 +1,26 @@
 # Operation Guide
 
+## Stability
+
+The core of Grafana Agent is considered stable and suitable for production use.
+Features and other functionality that are subject to change and are not
+recommended for production use will be tagged interchangably as either "beta" or
+"experimental."
+
 ## Host Filtering
 
 Host Filtering implements a form of "dumb sharding," where operators may deploy
-one Grafana Cloud Agent instance per machine in a cluster, all using the same
-configuration, and the Grafana Cloud Agents will only scrape targets that are
+one Grafana Agent instance per machine in a cluster, all using the same
+configuration, and the Grafana Agents will only scrape targets that are
 running on the same node as the Agent.
 
 Running with `host_filter: true` means that if you have a target whose host
-machine is not also running a Grafana Cloud Agent process, _that target will not
+machine is not also running a Grafana Agent process, _that target will not
 be scraped!_
 
 Host Filtering is usually paired with a dedicated Agent process that is used for
 scraping targets that are running outside of a given cluster. For example, when
-running the Grafana Cloud Agent on GKE, you would have a DaemonSet with
+running the Grafana Agent on GKE, you would have a DaemonSet with
 `host_filter` for scraping in-cluster targets, and a single dedicated Deployment
 for scraping other targets that are not running on a cluster node, such as the
 Kubernetes control plane API.
@@ -55,7 +62,7 @@ API](https://github.com/grafana/agent/blob/main/docs/api.md#list-current-scrape-
 
 ## Prometheus "Instances"
 
-The Grafana Cloud Agent defines a concept of a Prometheus _Instance_, which is
+The Grafana Agent defines a concept of a Prometheus _Instance_, which is
 its own mini Prometheus-lite server. The Instance runs a combination of
 Prometheus service discovery, scraping, a WAL for storage, and `remote_write`.
 

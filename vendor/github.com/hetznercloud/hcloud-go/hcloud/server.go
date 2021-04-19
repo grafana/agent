@@ -76,11 +76,23 @@ const (
 	ServerStatusUnknown ServerStatus = "unknown"
 )
 
+// FirewallStatus specifies a Firewall's status.
+type FirewallStatus string
+
+const (
+	// FirewallStatusPending is the status when a Firewall is pending.
+	FirewallStatusPending FirewallStatus = "pending"
+
+	// FirewallStatusApplied is the status when a Firewall is applied.
+	FirewallStatusApplied FirewallStatus = "applied"
+)
+
 // ServerPublicNet represents a server's public network.
 type ServerPublicNet struct {
 	IPv4        ServerPublicNetIPv4
 	IPv6        ServerPublicNetIPv6
 	FloatingIPs []*FloatingIP
+	Firewalls   []*ServerFirewallStatus
 }
 
 // ServerPublicNetIPv4 represents a server's public IPv4 address.
@@ -90,7 +102,7 @@ type ServerPublicNetIPv4 struct {
 	DNSPtr  string
 }
 
-// ServerPublicNetIPv6 represents a server's public IPv6 network and address.
+// ServerPublicNetIPv6 represents a Server's public IPv6 network and address.
 type ServerPublicNetIPv6 struct {
 	IP      net.IP
 	Network *net.IPNet
@@ -98,7 +110,7 @@ type ServerPublicNetIPv6 struct {
 	DNSPtr  map[string]string
 }
 
-// ServerPrivateNet defines the schema of a server's private network information.
+// ServerPrivateNet defines the schema of a Server's private network information.
 type ServerPrivateNet struct {
 	Network    *Network
 	IP         net.IP
@@ -109,6 +121,13 @@ type ServerPrivateNet struct {
 // DNSPtrForIP returns the reverse dns pointer of the ip address.
 func (s *ServerPublicNetIPv6) DNSPtrForIP(ip net.IP) string {
 	return s.DNSPtr[ip.String()]
+}
+
+// ServerFirewallStatus represents a Firewall and its status on a Server's
+// network interface.
+type ServerFirewallStatus struct {
+	Firewall Firewall
+	Status   FirewallStatus
 }
 
 // ServerRescueType represents rescue types.
@@ -215,7 +234,7 @@ func (c *ServerClient) All(ctx context.Context) ([]*Server, error) {
 func (c *ServerClient) AllWithOpts(ctx context.Context, opts ServerListOpts) ([]*Server, error) {
 	allServers := []*Server{}
 
-	_, err := c.client.all(func(page int) (*Response, error) {
+	err := c.client.all(func(page int) (*Response, error) {
 		opts.Page = page
 		servers, resp, err := c.List(ctx, opts)
 		if err != nil {
@@ -245,6 +264,12 @@ type ServerCreateOpts struct {
 	Automount        *bool
 	Volumes          []*Volume
 	Networks         []*Network
+	Firewalls        []*ServerCreateFirewall
+}
+
+// ServerCreateFirewall defines which Firewalls to apply when creating a Server.
+type ServerCreateFirewall struct {
+	Firewall Firewall
 }
 
 // Validate checks if options are valid.
@@ -305,7 +330,11 @@ func (c *ServerClient) Create(ctx context.Context, opts ServerCreateOpts) (Serve
 	for _, network := range opts.Networks {
 		reqBody.Networks = append(reqBody.Networks, network.ID)
 	}
-
+	for _, firewall := range opts.Firewalls {
+		reqBody.Firewalls = append(reqBody.Firewalls, schema.ServerCreateFirewalls{
+			Firewall: firewall.Firewall.ID,
+		})
+	}
 	if opts.Location != nil {
 		if opts.Location.ID != 0 {
 			reqBody.Location = strconv.Itoa(opts.Location.ID)
@@ -1001,7 +1030,7 @@ func (o *ServerGetMetricsOpts) addQueryParams(req *http.Request) error {
 	return nil
 }
 
-// ServerMetrics contains the metrics requested for a server.
+// ServerMetrics contains the metrics requested for a Server.
 type ServerMetrics struct {
 	Start      time.Time
 	End        time.Time
@@ -1015,7 +1044,7 @@ type ServerMetricsValue struct {
 	Value     string
 }
 
-// GetMetrics obtains metrics for server.
+// GetMetrics obtains metrics for Server.
 func (c *ServerClient) GetMetrics(ctx context.Context, server *Server, opts ServerGetMetricsOpts) (*ServerMetrics, *Response, error) {
 	var respBody schema.ServerGetMetricsResponse
 

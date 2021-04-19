@@ -11,17 +11,19 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/pkg/value"
 	"github.com/prometheus/prometheus/storage"
+	"github.com/prometheus/prometheus/tsdb"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
 
-var (
-	ErrWALClosed = fmt.Errorf("WAL storage closed")
-)
+// ErrWALClosed is an error returned when a WAL operation can't run because the
+// storage has already been closed.
+var ErrWALClosed = fmt.Errorf("WAL storage closed")
 
 type storageMetrics struct {
 	r prometheus.Registerer
@@ -478,11 +480,12 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 	it := w.series.iterator()
 	for series := range it.Channel() {
 		var (
-			ref = series.ref
+			ref  = series.ref
+			lset = series.lset
 		)
 
 		ts := timestamp.FromTime(time.Now())
-		err := app.AddFast(ref, ts, math.Float64frombits(value.StaleNaN))
+		_, err := app.Append(ref, lset, ts, math.Float64frombits(value.StaleNaN))
 		if err != nil {
 			lastErr = err
 		}
@@ -550,11 +553,29 @@ type appender struct {
 	samples []record.RefSample
 }
 
+func (a *appender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
+	if ref == 0 {
+		return a.Add(l, t, v)
+	}
+	return ref, a.AddFast(ref, t, v)
+}
+
 func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
 	hash := l.Hash()
 	series := a.w.series.getByHash(hash, l)
 	if series != nil {
 		return series.ref, a.AddFast(series.ref, t, v)
+	}
+
+	// Ensure no empty or duplicate labels have gotten through. This mirrors the
+	// equivalent validation code in the TSDB's headAppender.
+	l = l.WithoutEmpty()
+	if len(l) == 0 {
+		return 0, errors.Wrap(tsdb.ErrInvalidSample, "empty labelset")
+	}
+
+	if lbl, dup := l.HasDuplicateLabelNames(); dup {
+		return 0, errors.Wrap(tsdb.ErrInvalidSample, fmt.Sprintf(`label name "%s" is not unique`, lbl))
 	}
 
 	a.w.mtx.Lock()
@@ -599,6 +620,11 @@ func (a *appender) AddFast(ref uint64, t int64, v float64) error {
 
 	a.w.metrics.totalAppendedSamples.Inc()
 	return nil
+}
+
+func (a *appender) AppendExemplar(ref uint64, l labels.Labels, e exemplar.Exemplar) (uint64, error) {
+	// remote_write doesn't support exemplars yet, so do nothing here.
+	return 0, nil
 }
 
 // Commit submits the collected samples and purges the batch.

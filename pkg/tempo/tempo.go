@@ -10,7 +10,6 @@ import (
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"github.com/weaveworks/common/logging"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -24,27 +23,34 @@ type Tempo struct {
 	mut       sync.Mutex
 	instances map[string]*Instance
 
-	logger *zap.Logger
-	reg    prom_client.Registerer
+	leveller *logLeveller
+	logger   *zap.Logger
+	reg      prom_client.Registerer
 }
 
 // New creates and starts Loki log collection.
-func New(reg prom_client.Registerer, cfg Config, level logging.Level) (*Tempo, error) {
+func New(reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
+	var leveller logLeveller
+
 	tempo := &Tempo{
 		instances: make(map[string]*Instance),
-		logger:    newLogger(level),
+		leveller:  &leveller,
+		logger:    newLogger(&leveller),
 		reg:       reg,
 	}
-	if err := tempo.ApplyConfig(cfg); err != nil {
+	if err := tempo.ApplyConfig(cfg, level); err != nil {
 		return nil, err
 	}
 	return tempo, nil
 }
 
 // ApplyConfig updates Tempo with a new Config.
-func (t *Tempo) ApplyConfig(cfg Config) error {
+func (t *Tempo) ApplyConfig(cfg Config, level logrus.Level) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
+
+	// Update the log level, if it has changed.
+	t.leveller.SetLevel(level)
 
 	newInstances := make(map[string]*Instance, len(cfg.Configs))
 
@@ -95,10 +101,36 @@ func (t *Tempo) Stop() {
 	}
 }
 
-func newLogger(level logging.Level) *zap.Logger {
+func newLogger(zapLevel zapcore.LevelEnabler) *zap.Logger {
+	config := zap.NewProductionEncoderConfig()
+	config.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+		encoder.AppendString(ts.UTC().Format(time.RFC3339))
+	}
+	logger := zap.New(zapcore.NewCore(
+		zaplogfmt.NewEncoder(config),
+		os.Stdout,
+		zapLevel,
+	))
+	logger = logger.With(zap.String("component", "tempo"))
+	logger.Info("Tempo Logger Initialized")
+
+	return logger
+}
+
+// logLeveller implements the zapcore.LevelEnabler interface and allows for
+// switching out log levels at runtime.
+type logLeveller struct {
+	mut   sync.RWMutex
+	inner zapcore.Level
+}
+
+func (l *logLeveller) SetLevel(level logrus.Level) {
+	l.mut.Lock()
+	defer l.mut.Unlock()
+
 	zapLevel := zapcore.InfoLevel
 
-	switch level.Logrus {
+	switch level {
 	case logrus.PanicLevel:
 		zapLevel = zapcore.PanicLevel
 	case logrus.FatalLevel:
@@ -114,19 +146,13 @@ func newLogger(level logging.Level) *zap.Logger {
 		zapLevel = zapcore.DebugLevel
 	}
 
-	config := zap.NewProductionEncoderConfig()
-	config.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
-		encoder.AppendString(ts.UTC().Format(time.RFC3339))
-	}
-	logger := zap.New(zapcore.NewCore(
-		zaplogfmt.NewEncoder(config),
-		os.Stdout,
-		zapLevel,
-	))
-	logger = logger.With(zap.String("component", "tempo"))
-	logger.Info("Tempo Logger Initialized")
+	l.inner = zapLevel
+}
 
-	return logger
+func (l *logLeveller) Enabled(target zapcore.Level) bool {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+	return l.inner.Enabled(target)
 }
 
 func newMetricViews(reg prom_client.Registerer) ([]*view.View, error) {

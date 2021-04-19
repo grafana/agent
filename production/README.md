@@ -1,9 +1,10 @@
-# Running Grafana Cloud Agent
+# Running Grafana Agent
 
-There are a few ways to run the Grafana Cloud Agent, in order from
+There are a few ways to run the Grafana Agent, in order from
 easiest to hardest:
 
 - [Use the Install Script for Kubernetes](#install-script-for-kubernetes)
+- [Windows Installation](#windows-installation)
 - [Run the Agent with Docker](#running-the-agent-with-docker)
 - [Run the Agent locally](#running-the-agent-locally)
 - [Use the example Kubernetes configs](#use-the-example-kubernetes-configs)
@@ -12,7 +13,7 @@ easiest to hardest:
 
 ## Install Script for Kubernetes
 
-The Grafana Cloud Agent repository comes with installation scripts to
+The Grafana Agent repository comes with installation scripts to
 configure components and return a Kubernetes manifest that uses our preferred
 defaults. To run the script, copy and paste this in your terminal:
 
@@ -23,6 +24,10 @@ NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com
 ```
 
 See the [Kubernetes README](./kubernetes/README.md) for more information.
+
+## Windows Installation
+
+To run the Windows Installation, download the Windows Installer executable from the [release page](https://github.com/grafana/agent/releases). Then run the installer, this will setup the Agent and run the Agent as a Windows Service. More details can be found in the [Windows Guide](../docs/windows.md)
 
 ## Running the Agent with Docker
 
@@ -37,7 +42,7 @@ docker run \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
   --entrypoint "/bin/agent -config.file=/etc/agent-config/agent.yaml -prometheus.wal-directory=/etc/agent/data"
-  grafana/agent:v0.13.0
+  grafana/agent:v0.13.1
 ```
 
 ## Running the Agent locally

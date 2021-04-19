@@ -1,4 +1,4 @@
-// Package loki implements Loki logs support for the Grafana Cloud Agent.
+// Package loki implements Loki logs support for the Grafana Agent.
 package loki
 
 import (
@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/promtail"
 	"github.com/grafana/loki/pkg/promtail/client"
@@ -19,9 +18,11 @@ import (
 )
 
 func init() {
-	client.UserAgent = fmt.Sprintf("GrafanaCloudAgent/%s", version.Version)
+	client.UserAgent = fmt.Sprintf("GrafanaAgent/%s", version.Version)
 }
 
+// Loki is a Loki log collection. It uses multiple distinct sets of Loki
+// Promtail agents to collect logs and send them to a Loki server.
 type Loki struct {
 	mut sync.Mutex
 
@@ -91,6 +92,7 @@ func (l *Loki) ApplyConfig(c Config) error {
 	return nil
 }
 
+// Stop stops the log collector.
 func (l *Loki) Stop() {
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -133,7 +135,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	defer i.mut.Unlock()
 
 	// No-op if the configs haven't changed.
-	if cmp.Equal(c, i.cfg) {
+	if util.CompareYAML(c, i.cfg) {
 		level.Debug(i.log).Log("msg", "instance config hasn't changed, not recreating Promtail")
 		return nil
 	}
@@ -171,6 +173,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	return nil
 }
 
+// Stop stops the Promtail instance.
 func (i *Instance) Stop() {
 	i.mut.Lock()
 	defer i.mut.Unlock()

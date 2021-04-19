@@ -3,6 +3,79 @@
 This is a guide detailing all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
+# v0.14.0
+
+v0.14.0 introduces a breaking change to the SigV4 configuration and the deprecation of `push_config` in favor of `remote_write` for Tempo configs.
+
+## SigV4 config change
+
+v0.14.0 updates the internal Prometheus dependency to 2.26.0, which includes
+native support for SigV4, but uses a slightly different configuration structure
+than the Grafana Agent did.
+
+To migrate, remove the `enabled` key from your `sigv4` configs. If `enabled` was
+the only key, define sigv4 as an empty object: `sigv4: {}`.
+
+Example old config:
+
+```yaml
+sigv4:
+  enabled: true
+  region: us-east-1
+```
+
+Example new config:
+
+```yaml
+sigv4:
+  region: us-east-1
+```
+
+## Tempo: `push_config` deprecation
+
+`push_config` is now deprecated in favor of a `remote_write` array which allows for sending spans to multiple endpoints.
+`push_config` will be removed in a future release, and it is recommended to migrate to `remote_write` as soon as possible.
+
+To migrate, move the batch options outside the `push_config` block.
+Then, add a `remote_write` array and move the remaining of your `push_config` block inside it.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+    - name: default
+      receivers:
+        otlp:
+          protocols:
+            gpc:
+      push_config:
+        endpoint: otel-collector:55680
+        insecure: true
+        batch:
+          timeout: 5s
+          send_batch_size: 100
+```
+
+Example migrated config:
+
+```yaml
+tempo:
+  configs:
+    - name: default
+      receivers:
+        otlp:
+          protocols:
+            gpc:
+      remote_write:
+        - endpoint: otel-collector:55680
+          insecure: true
+      batch:
+        timeout: 5s
+        send_batch_size: 100
+```
+
+
 # v0.12.0
 
 v0.12.0 had two breaking changes: the `tempo` and `loki` sections have been changed to require a list of `tempo`/`loki` configs rather than just one.

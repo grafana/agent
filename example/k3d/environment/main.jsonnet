@@ -1,12 +1,19 @@
+local collector = import 'collector/main.libsonnet';
 local default = import 'default/main.libsonnet';
 local etcd = import 'etcd/main.libsonnet';
 local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
+local load_generator = import 'load-generator/main.libsonnet';
 
-local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 local loki_config = import 'default/loki_config.libsonnet';
+local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 
+local containerPort = k.core.v1.containerPort;
+local ingress = k.networking.v1beta1.ingress;
+local path = k.networking.v1beta1.httpIngressPath;
+local rule = k.networking.v1beta1.ingressRule;
 local service = k.core.v1.service;
+
 local images = {
   agent: 'grafana/agent:latest',
   agentctl: 'grafana/agentctl:latest',
@@ -15,14 +22,16 @@ local images = {
 {
   default: default.new(namespace='default') {
     grafana+: {
-      // Expose Grafana on 30080 on the k3d agent, which is exposed to the host
-      // machine.
-      service+:
-        local bindNodePort(port) = port { nodePort: port.port + 30000 };
-        service.mixin.spec.withPorts([
-          { name: 'grafana', nodePort: 30080, port: 30080, targetPort: 80 },
-        ]) +
-        service.mixin.spec.withType('NodePort'),
+      ingress+:
+        ingress.new('grafana-ingress') +
+        ingress.mixin.spec.withRules([
+          rule.withHost('grafana.k3d.localhost') +
+          rule.http.withPaths([
+            path.withPath('/')
+            + path.backend.withServiceName('grafana')
+            + path.backend.withServicePort(80),
+          ]),
+        ]),
     },
   },
 
@@ -46,8 +55,9 @@ local images = {
       // set by external_labels.
       scrape_configs: std.map(function(config) config {
         relabel_configs+: [{
-          target_label: 'cluster', replacement: cluster_label,
-        }]
+          target_label: 'cluster',
+          replacement: cluster_label,
+        }],
       }, super.scrape_configs),
     }) +
     grafana_agent.withRemoteWrite([{
@@ -58,10 +68,53 @@ local images = {
       scheme: 'http',
       hostname: 'loki.default.svc.cluster.local',
       external_labels: { cluster: cluster_label },
-    })),
+    })) +
+    grafana_agent.withTempoConfig({
+      receivers: {
+        jaeger: {
+          protocols: {
+            thrift_http: null,
+          },
+        },
+      },
+      batch: {
+        timeout: '5s',
+        send_batch_size: 1000,
+      },
+    }) +
+    grafana_agent.withPortsMixin([
+      containerPort.new('thrift-http', 14268) + containerPort.withProtocol('TCP'),
+      containerPort.new('otlp-lb', 4318) + containerPort.withProtocol('TCP'),
+    ]) +
+    grafana_agent.withTempoRemoteWrite([
+      {
+        endpoint: 'collector.default.svc.cluster.local:55680',
+        insecure: true,
+      },
+    ]) +
+    grafana_agent.withTempoTailSamplingConfig({
+      policies: [{
+        always_sample: null,
+      }],
+      load_balancing: {
+        exporter: {
+          insecure: true,
+        },
+        resolver: {
+          dns: {
+            hostname: 'grafana-agent.default.svc.cluster.local',
+            port: 4318,
+          },
+        },
+      },
+    }),
 
   // Need to run ETCD for agent_cluster
   etcd: etcd.new('default'),
+
+  collector: collector.new('default'),
+
+  load_generator: load_generator.new('default'),
 
   agent_cluster:
     agent_cluster.new('default', 'kube-system') +
@@ -92,13 +145,17 @@ local images = {
         },
       },
 
-      // We want our cluster and agent labels to remain static
-      // for this deployment, so if they are overwritten by a metric
-      // we will change them to the values set by external_labels.
-      kubernetes_scrape_configs: std.map(function(config) config {
-        relabel_configs+: [
-          { target_label: 'cluster', replacement: cluster_label },
-        ],
-      }, super.deployment_scrape_configs + super.kubernetes_scrape_configs),
+      kubernetes_scrape_configs:
+        (grafana_agent.scrapeInstanceKubernetes {
+           // We want our cluster and label to remain static for this deployment, so
+           // if they are overwritten by a metric we will change them to the values
+           // set by external_labels.
+           scrape_configs: std.map(function(config) config {
+             relabel_configs+: [{
+               target_label: 'cluster',
+               replacement: cluster_label,
+             }],
+           }, super.scrape_configs),
+         }).scrape_configs,
     }),
 }

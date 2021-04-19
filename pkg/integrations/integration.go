@@ -2,9 +2,9 @@ package integrations
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/go-kit/kit/log"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
@@ -25,11 +25,8 @@ type Config interface {
 // An Integration is a process that integrates with some external system and
 // pulls telemetry data.
 type Integration interface {
-	// RegisterRoutes should register any HTTP handlers needed for the
-	// integrations. The mux router provided will be a subrouter for the path
-	// /integrations/<integration name>, where the integration name is retrieved
-	// by the config that created this integration.
-	RegisterRoutes(r *mux.Router) error
+	// MetricsHandler returns an http.Handler that will return metrics.
+	MetricsHandler() (http.Handler, error)
 
 	// ScrapeConfigs returns a set of scrape configs that determine where metrics
 	// can be scraped.

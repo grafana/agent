@@ -33,6 +33,7 @@ func RegisterIntegration(cfg Config) {
 // Configs is a list of integrations.
 type Configs []Config
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Configs) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return c.unmarshalWithIntegrations(registeredIntegrations, unmarshal)
 }
@@ -97,6 +98,9 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 	for i, n := 0, inType.NumField(); i < n; i++ {
 		if inType.Field(i).Type == configsType {
 			configs = inVal.Field(i).Interface().(Configs)
+			if configs == nil {
+				configs = Configs{}
+			}
 		}
 		if cfgType.Field(i).PkgPath != "" {
 			continue // Field is unexported: ignore.
@@ -104,13 +108,13 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 		cfgVal.Field(i).Set(inVal.Field(i))
 	}
 	if configs == nil {
-		return nil, fmt.Errorf("discovery: Configs field not found in type: %T", v)
+		return nil, fmt.Errorf("integrations: Configs field not found in type: %T", v)
 	}
 
 	for _, c := range configs {
 		fieldName, ok := configFieldNames[reflect.TypeOf(c)]
 		if !ok {
-			return nil, fmt.Errorf("discovery: cannot marshal unregistered Config type: %T", c)
+			return nil, fmt.Errorf("integrations: cannot marshal unregistered Config type: %T", c)
 		}
 		field := cfgVal.FieldByName("XXX_Config_" + fieldName)
 		field.Set(reflect.ValueOf(c))
@@ -221,7 +225,7 @@ func getConfigTypeForIntegrations(integrations []Config, out reflect.Type) refle
 		fieldName := "XXX_Config_" + cfg.Name()
 		fields = append(fields, reflect.StructField{
 			Name: fieldName,
-			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s"`, cfg.Name())),
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
 			Type: reflect.TypeOf(cfg),
 		})
 	}

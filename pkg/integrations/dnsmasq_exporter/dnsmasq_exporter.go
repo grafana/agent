@@ -20,20 +20,23 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DnsmasqAddress is the address of the dnsmasq server (host:port).
-	DnsmasqAddress string `yaml:"dnsmasq_address"`
+	DnsmasqAddress string `yaml:"dnsmasq_address,omitempty"`
 
 	// Path to the dnsmasq leases file.
-	LeasesPath string `yaml:"leases_path"`
+	LeasesPath string `yaml:"leases_path,omitempty"`
 }
 
+// Name returns the name of the integration that this config is for.
 func (c *Config) Name() string {
 	return "dnsmasq_exporter"
 }
 
+// CommonConfig returns the set of common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }

@@ -3,22 +3,50 @@ package integrations
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
 )
+
+func noOpValidator(*instance.Config) error { return nil }
+
+// TestConfig_MarshalEmptyIntegrations ensures that an empty set of integrations
+// can be marshaled correctly.
+func TestConfig_MarshalEmptyIntegrations(t *testing.T) {
+	cfgText := `
+scrape_integrations: true
+replace_instance_label: true
+integration_restart_backoff: 5s
+use_hostname_label: true
+`
+	var (
+		cfg        ManagerConfig
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
+	)
+	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
+
+	// Listen port must be set before applying defaults. Normally applied by the
+	// config package.
+	cfg.ListenPort = listenPort
+	cfg.ListenHost = listenHost
+
+	outBytes, err := yaml.Marshal(cfg)
+	require.NoError(t, err, "Failed creating integration")
+	fmt.Println(string(outBytes))
+	require.YAMLEq(t, cfgText, string(outBytes))
+}
 
 // Test that embedded integration fields in the struct can be unmarshaled and
 // remarshaled back out to text.
@@ -29,8 +57,6 @@ scrape_integrations: true
 replace_instance_label: true
 integration_restart_backoff: 5s
 use_hostname_label: true
-http_tls_config:
-  insecure_skip_verify: false
 test:
   text: Hello, world!
   truth: true
@@ -44,8 +70,8 @@ test:
 
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
-	cfg.ListenPort = &listenPort
-	cfg.ListenHost = &listenHost
+	cfg.ListenPort = listenPort
+	cfg.ListenHost = listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
 	require.NoError(t, err, "Failed creating integration")
@@ -55,7 +81,7 @@ test:
 
 func TestConfig_AddressRelabels(t *testing.T) {
 	cfgText := `
-agent: 
+agent:
   enabled: true
 `
 
@@ -68,54 +94,29 @@ agent:
 
 	// Listen port must be set before applying defaults. Normally applied by the
 	// config package.
-	cfg.ListenPort = &listenPort
-	cfg.ListenHost = &listenHost
+	cfg.ListenPort = listenPort
+	cfg.ListenHost = listenHost
 
-	relabels, err := cfg.DefaultRelabelConfigs()
-	require.NoError(t, err)
+	expectHostname, _ := instance.Hostname()
+	relabels := cfg.DefaultRelabelConfigs(expectHostname)
 
 	// Ensure that the relabel configs are functional
 	require.Len(t, relabels, 1)
 	result := relabel.Process(labels.FromStrings("__address__", "127.0.0.1"), relabels...)
 
-	expectHostname, _ := instance.Hostname()
 	require.Equal(t, result.Get("instance"), expectHostname+":12345")
-}
-
-// TestManager_ValidInstanceConfigs ensures that the instance configs
-// applied to the instance manager are valid.
-func TestManager_ValidInstanceConfigs(t *testing.T) {
-	mock := newMockIntegration()
-	icfg := mockConfig{integration: mock}
-
-	integrations := map[Config]Integration{icfg: mock}
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
-		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig, nil)
-	})
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
-	require.NoError(t, err)
-	defer m.Stop()
-
-	// If the config doesn't show up in ListConfigs, it wasn't valid.
-	test.Poll(t, time.Second, 1, func() interface{} {
-		return len(im.ListConfigs())
-	})
 }
 
 func TestManager_instanceConfigForIntegration(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{integration: mock}
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
-		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig, nil)
-	})
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, nil)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	m, err := NewManager(mockManagerConfig(), log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
-	cfg := m.instanceConfigForIntegration(icfg, mock)
+	cfg := m.instanceConfigForIntegration(icfg, mock, mockManagerConfig())
 
 	// Validate that the generated MetricsPath is a valid URL path
 	require.Len(t, cfg.ScrapeConfigs, 1)
@@ -128,16 +129,13 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{integration: mock}
 
-	integrations := map[Config]Integration{icfg: mock}
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
-		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig, nil)
-	})
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 
 	cfg := mockManagerConfig()
 	cfg.ScrapeIntegrations = false
+	cfg.Integrations = append(cfg.Integrations, &icfg)
 
-	m, err := newManager(cfg, log.NewNopLogger(), im, integrations)
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -157,13 +155,12 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	noScrape := false
 	mock.commonCfg.ScrapeIntegration = &noScrape
 
-	integrations := map[Config]Integration{icfg: mock}
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, func(c *instance.Config) error {
-		globalConfig := prom_config.DefaultConfig.GlobalConfig
-		return c.ApplyDefaults(&globalConfig, nil)
-	})
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	cfg := mockManagerConfig()
+	cfg.Integrations = append(cfg.Integrations, icfg)
+
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -177,10 +174,11 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{integration: mock}
 
-	integrations := map[Config]Integration{icfg: mock}
+	cfg := mockManagerConfig()
+	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -198,9 +196,11 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{integration: mock}
 
-	integrations := map[Config]Integration{icfg: mock}
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	cfg := mockManagerConfig()
+	cfg.Integrations = append(cfg.Integrations, icfg)
+
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -215,9 +215,11 @@ func TestManager_GracefulStop(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{integration: mock}
 
-	integrations := map[Config]Integration{icfg: mock}
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory, nil)
-	m, err := newManager(mockManagerConfig(), log.NewNopLogger(), im, integrations)
+	cfg := mockManagerConfig()
+	cfg.Integrations = append(cfg.Integrations, icfg)
+
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second, 1, func() interface{} {
@@ -237,6 +239,9 @@ func TestManager_GracefulStop(t *testing.T) {
 type mockConfig struct {
 	integration *mockIntegration
 }
+
+// Equal is used for cmp.Equal, since otherwise mockConfig can't be compared to itself.
+func (c mockConfig) Equal(other mockConfig) bool { return c.integration == other.integration }
 
 func (c mockConfig) Name() string                { return "mock" }
 func (c mockConfig) CommonConfig() config.Common { return c.integration.commonCfg }
@@ -259,9 +264,8 @@ func newMockIntegration() *mockIntegration {
 	}
 }
 
-func (i *mockIntegration) RegisterRoutes(r *mux.Router) error {
-	r.Handle("/metrics", promhttp.Handler())
-	return nil
+func (i *mockIntegration) MetricsHandler() (http.Handler, error) {
+	return promhttp.Handler(), nil
 }
 
 func (i *mockIntegration) ScrapeConfigs() []config.ScrapeConfig {
@@ -294,7 +298,7 @@ func mockManagerConfig() ManagerConfig {
 	return ManagerConfig{
 		ScrapeIntegrations:        true,
 		IntegrationRestartBackoff: 0,
-		ListenPort:                &listenPort,
-		ListenHost:                &listenHost,
+		ListenPort:                listenPort,
+		ListenHost:                listenHost,
 	}
 }

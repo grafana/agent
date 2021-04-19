@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -66,20 +65,8 @@ func New(log log.Logger, c *Config) (*Integration, error) {
 	}, nil
 }
 
-// RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
-// here is expected to be a subrouter, where all registered paths will be
-// registered within that subroute.
-func (i *Integration) RegisterRoutes(r *mux.Router) error {
-	handler, err := i.handler()
-	if err != nil {
-		return err
-	}
-
-	r.Handle("/metrics", handler)
-	return nil
-}
-
-func (i *Integration) handler() (http.Handler, error) {
+// MetricsHandler implements Integration.
+func (i *Integration) MetricsHandler() (http.Handler, error) {
 	r := prometheus.NewRegistry()
 	if err := r.Register(i.nc); err != nil {
 		return nil, fmt.Errorf("couldn't register node_exporter node collector: %w", err)

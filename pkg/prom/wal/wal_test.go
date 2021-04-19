@@ -17,6 +17,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestStorage_InvalidSeries(t *testing.T) {
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, s.Close())
+	}()
+
+	app := s.Appender(context.Background())
+
+	_, err = app.Append(0, labels.Labels{}, 0, 0)
+	require.Error(t, err, "should reject empty labels")
+
+	_, err = app.Append(0, labels.Labels{{Name: "a", Value: "1"}, {Name: "a", Value: "2"}}, 0, 0)
+	require.Error(t, err, "should reject duplicate labels")
+
+	// Sanity check: valid series
+	_, err = app.Append(0, labels.Labels{{Name: "a", Value: "1"}}, 0, 0)
+	require.NoError(t, err, "should not reject valid series")
+}
+
 func TestStorage(t *testing.T) {
 	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
 	require.NoError(t, err)
@@ -267,12 +291,12 @@ type series struct {
 func (s *series) Write(t *testing.T, app storage.Appender) {
 	t.Helper()
 
-	labels := labels.FromMap(map[string]string{"__name__": s.name})
+	lbls := labels.FromMap(map[string]string{"__name__": s.name})
 
 	offset := 0
 	if s.ref == nil {
 		// Write first sample to get ref ID
-		ref, err := app.Add(labels, s.samples[0].ts, s.samples[0].val)
+		ref, err := app.Append(0, lbls, s.samples[0].ts, s.samples[0].val)
 		require.NoError(t, err)
 
 		s.ref = &ref
@@ -281,7 +305,7 @@ func (s *series) Write(t *testing.T, app storage.Appender) {
 
 	// Write other data points with AddFast
 	for _, sample := range s.samples[offset:] {
-		err := app.AddFast(*s.ref, sample.ts, sample.val)
+		_, err := app.Append(*s.ref, lbls, sample.ts, sample.val)
 		require.NoError(t, err)
 	}
 }

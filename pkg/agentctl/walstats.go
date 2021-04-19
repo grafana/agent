@@ -37,7 +37,7 @@ type WALStats struct {
 	// collision. A hash collision is any instance in which a hash of labels
 	// is defined by two ref IDs.
 	//
-	// For the Grafana Cloud Agent, a hash collision has no negative side effects
+	// For the Grafana Agent, a hash collision has no negative side effects
 	// on data sent to the remote_write endpoint but may have a noticeable inpact
 	// on memory while the collision exists.
 	HashCollisions int
@@ -46,7 +46,7 @@ type WALStats struct {
 	Targets []WALTargetStats
 }
 
-// Samples returns the number of Series across all targets.
+// Series returns the number of series across all targets.
 func (s WALStats) Series() int {
 	var series int
 	for _, t := range s.Targets {

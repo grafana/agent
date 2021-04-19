@@ -7,22 +7,20 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prom/ha/configapi"
+	"github.com/grafana/agent/pkg/prom/cluster/configapi"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 )
 
 // WireAPI adds API routes to the provided mux router.
 func (a *Agent) WireAPI(r *mux.Router) {
-	if a.cfg.ServiceConfig.Enabled {
-		a.ha.WireAPI(r)
-	}
+	a.cluster.WireAPI(r)
 
 	r.HandleFunc("/agent/api/v1/instances", a.ListInstancesHandler).Methods("GET")
 	r.HandleFunc("/agent/api/v1/targets", a.ListTargetsHandler).Methods("GET")
 }
 
-// ListInstances writes the set of currently running instances to the http.ResponseWriter.
+// ListInstancesHandler writes the set of currently running instances to the http.ResponseWriter.
 func (a *Agent) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
 	cfgs := a.mm.ListConfigs()
 	instanceNames := make([]string, 0, len(cfgs))

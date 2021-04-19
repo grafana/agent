@@ -18,46 +18,55 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DefaultConfig holds default settings for all the subsystems.
+var DefaultConfig = Config{
+	// All subsystems with a DefaultConfig should be listed here.
+	Prometheus:   prom.DefaultConfig,
+	Integrations: integrations.DefaultManagerConfig,
+}
+
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config              `yaml:"server"`
+	Server       server.Config              `yaml:"server,omitempty"`
 	Prometheus   prom.Config                `yaml:"prometheus,omitempty"`
 	Loki         loki.Config                `yaml:"loki,omitempty"`
-	Integrations integrations.ManagerConfig `yaml:"integrations"`
+	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
 	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
+
+	// We support a secondary server just for the /-/reload endpoint, since
+	// invoking /-/reload against the primary server can cause the server
+	// to restart.
+	ReloadAddress string `yaml:"-"`
+	ReloadPort    int    `yaml:"-"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+	type config Config
+	return unmarshal((*config)(c))
 }
 
 // ApplyDefaults sets default values in the config
 func (c *Config) ApplyDefaults() error {
-	// The integration subsystem depends on Prometheus; so if it's enabled, force Prometheus
-	// to be enabled.
-	//
-	// TODO(rfratto): when Loki integrations are added, this line will no longer work; each
-	// integration will then have to be associated with a subsystem.
-	if c.Integrations.Enabled && !c.Prometheus.Enabled {
-		fmt.Println("NOTE: enabling Prometheus subsystem as Integrations are enabled")
-		c.Prometheus.Enabled = true
+	if err := c.Prometheus.ApplyDefaults(); err != nil {
+		return err
 	}
 
-	if c.Prometheus.Enabled {
-		if err := c.Prometheus.ApplyDefaults(); err != nil {
-			return err
-		}
-
-		// The default port exposed to the lifecycler should be the gRPC listen
-		// port since the agents will use gRPC for notifying other agents of
-		// resharding.
-		c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	if err := c.Integrations.ApplyDefaults(&c.Prometheus); err != nil {
+		return err
 	}
 
-	if c.Integrations.Enabled {
-		c.Integrations.ListenPort = &c.Server.HTTPListenPort
-		c.Integrations.ListenHost = &c.Server.HTTPListenAddress
-		c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
-		if len(c.Integrations.PrometheusRemoteWrite) == 0 {
-			c.Integrations.PrometheusRemoteWrite = c.Prometheus.RemoteWrite
-		}
+	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	c.Integrations.ListenPort = c.Server.HTTPListenPort
+	c.Integrations.ListenHost = c.Server.HTTPListenAddress
+
+	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
+
+	if len(c.Integrations.PrometheusRemoteWrite) == 0 {
+		c.Integrations.PrometheusRemoteWrite = c.Prometheus.Global.RemoteWrite
 	}
+
 	return nil
 }
 
@@ -67,6 +76,9 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.RegisterInstrumentation = true
 	c.Prometheus.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
+
+	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
+	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -105,8 +117,9 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 // doesn't require having a literal file on disk.
 func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) error) (*Config, error) {
 	var (
+		cfg = DefaultConfig
+
 		printVersion    bool
-		cfg             Config
 		file            string
 		configExpandEnv bool
 	)

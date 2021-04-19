@@ -9,28 +9,28 @@ import (
 	exporter_config "github.com/ncabatoff/process-exporter/config"
 )
 
-var (
-	DefaultConfig Config = Config{
-		ProcFSPath: "/proc",
-		Children:   true,
-		Threads:    true,
-		SMaps:      true,
-		Recheck:    false,
-	}
-)
+// DefaultConfig holds the default settings for the process_exporter integration.
+var DefaultConfig = Config{
+	ProcFSPath: "/proc",
+	Children:   true,
+	Threads:    true,
+	SMaps:      true,
+	Recheck:    false,
+}
 
 // Config controls the process_exporter integration.
 type Config struct {
 	Common          config.Common                `yaml:",inline"`
-	ProcessExporter exporter_config.MatcherRules `yaml:"process_names"`
+	ProcessExporter exporter_config.MatcherRules `yaml:"process_names,omitempty"`
 
-	ProcFSPath string `yaml:"procfs_path"`
-	Children   bool   `yaml:"track_children"`
-	Threads    bool   `yaml:"track_threads"`
-	SMaps      bool   `yaml:"gather_smaps"`
-	Recheck    bool   `yaml:"recheck_on_scrape"`
+	ProcFSPath string `yaml:"procfs_path,omitempty"`
+	Children   bool   `yaml:"track_children,omitempty"`
+	Threads    bool   `yaml:"track_threads,omitempty"`
+	SMaps      bool   `yaml:"gather_smaps,omitempty"`
+	Recheck    bool   `yaml:"recheck_on_scrape,omitempty"`
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 	*c = DefaultConfig
 
@@ -38,14 +38,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "process_exporter"
 }
 
+// CommonConfig returns the set of common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }

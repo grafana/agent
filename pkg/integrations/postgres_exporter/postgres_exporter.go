@@ -12,38 +12,32 @@ import (
 	"github.com/wrouesnel/postgres_exporter/exporter"
 )
 
-var DefaultConfig = Config{}
-
 // Config controls the postgres_exporter integration.
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DataSourceNames to use to connect to Postgres.
-	DataSourceNames []string `yaml:"data_source_names"`
+	DataSourceNames []string `yaml:"data_source_names,omitempty"`
 
-	DisableSettingsMetrics bool     `yaml:"disable_settings_metrics"`
-	AutodiscoverDatabases  bool     `yaml:"autodiscover_databases"`
-	ExcludeDatabases       []string `yaml:"exclude_databases"`
-	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics"`
-	QueryPath              string   `yaml:"query_path"`
+	DisableSettingsMetrics bool     `yaml:"disable_settings_metrics,omitempty"`
+	AutodiscoverDatabases  bool     `yaml:"autodiscover_databases,omitempty"`
+	ExcludeDatabases       []string `yaml:"exclude_databases,omitempty"`
+	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics,omitempty"`
+	QueryPath              string   `yaml:"query_path,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
+// Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "postgres_exporter"
 }
 
+// CommonConfig returns the common set of options shared across all configs for
+// integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// NewIntegration converts this config into an instance of a configuration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }

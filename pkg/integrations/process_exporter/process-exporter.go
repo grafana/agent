@@ -5,10 +5,10 @@ package process_exporter //nolint:golint
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
@@ -18,14 +18,16 @@ type Integration struct {
 	c *Config
 }
 
+// New creates a process_exporter integration for non-Linux platforms, which is always a
+// no-op.
 func New(logger log.Logger, c *Config) (*Integration, error) {
 	level.Warn(logger).Log("msg", "the process_exporter only works on Linux; enabling it otherwise will do nothing")
 	return &Integration{c: c}, nil
 }
 
-// RegisterRoutes satisfies Integration.RegisterRoutes.
-func (i *Integration) RegisterRoutes(r *mux.Router) error {
-	return nil
+// MetricsHandler satisfies Integration.RegisterRoutes.
+func (i *Integration) MetricsHandler() (http.Handler, error) {
+	return http.NotFoundHandler(), nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

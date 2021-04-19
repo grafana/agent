@@ -1,10 +1,10 @@
 # Example
 
-This directory contains an example deployment of the Grafana Cloud Agent with
+This directory contains an example deployment of the Grafana Agent with
 the following components:
 
 1. Cortex to store metrics
-2. Grafana Cloud Agent to collect metrics
+2. Grafana Agent to collect metrics
 3. Grafana to visualize metrics
 4. Avalanche to load test the Agent.
 
@@ -69,6 +69,6 @@ configurations. A set of instance configuration files is provided in
 [`agent/instance-configs`](./agent/instance-configs) that will work with the
 Docker Compose example.
 
-The `agentctl` tool provided by this repository can automatically deploy 
+The `agentctl` tool provided by this repository can automatically deploy
 those configs for you; run `agentctl config-sync -a http://localhost:12345 ./agent/instance-configs`
 from this directory to do so.
