@@ -20,7 +20,7 @@ func TestSpanKeyVals(t *testing.T) {
 	}{
 		{
 			expected: []interface{}{
-				"name", "",
+				"span", "",
 				"dur", "0ns",
 				"svc", "",
 				"status", pdata.StatusCode(0),
@@ -29,7 +29,7 @@ func TestSpanKeyVals(t *testing.T) {
 		{
 			spanName: "test",
 			expected: []interface{}{
-				"name", "test",
+				"span", "test",
 				"dur", "0ns",
 				"svc", "",
 				"status", pdata.StatusCode(0),
@@ -38,7 +38,7 @@ func TestSpanKeyVals(t *testing.T) {
 		{
 			svc: "test",
 			expected: []interface{}{
-				"name", "",
+				"span", "",
 				"dur", "0ns",
 				"svc", "test",
 				"status", pdata.StatusCode(0),
@@ -47,7 +47,7 @@ func TestSpanKeyVals(t *testing.T) {
 		{
 			spanEnd: 10,
 			expected: []interface{}{
-				"name", "",
+				"span", "",
 				"dur", "10ns",
 				"svc", "",
 				"status", pdata.StatusCode(0),
@@ -57,7 +57,7 @@ func TestSpanKeyVals(t *testing.T) {
 			spanStart: 10,
 			spanEnd:   100,
 			expected: []interface{}{
-				"name", "",
+				"span", "",
 				"dur", "90ns",
 				"svc", "",
 				"status", pdata.StatusCode(0),
@@ -68,7 +68,7 @@ func TestSpanKeyVals(t *testing.T) {
 				"xstr": pdata.NewAttributeValueString("test"),
 			},
 			expected: []interface{}{
-				"name", "",
+				"span", "",
 				"dur", "0ns",
 				"svc", "",
 				"status", pdata.StatusCode(0),
@@ -82,11 +82,27 @@ func TestSpanKeyVals(t *testing.T) {
 				SpanAttributes: []string{"xstr"},
 			},
 			expected: []interface{}{
-				"name", "",
+				"span", "",
 				"dur", "0ns",
 				"svc", "",
 				"status", pdata.StatusCode(0),
 				"xstr", "test",
+			},
+		},
+		{
+			cfg: AutomaticLoggingConfig{
+				Overrides: OverrideConfig{
+					SpanNameKey: "a",
+					ServiceKey:  "b",
+					DurationKey: "c",
+					StatusKey:   "d",
+				},
+			},
+			expected: []interface{}{
+				"a", "",
+				"c", "0ns",
+				"b", "",
+				"d", pdata.StatusCode(0),
 			},
 		},
 	}

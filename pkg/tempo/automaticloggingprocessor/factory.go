@@ -21,12 +21,21 @@ type Config struct {
 
 // AutomaticLoggingConfig holds config information for automatic logging
 type AutomaticLoggingConfig struct { // jpe moar options
-	LokiName          string   `mapstructure:"loki_name" yaml:"loki_name"`
-	EnableSpans       bool     `mapstructure:"enable_spans" yaml:"enable_spans"`
-	EnableRoots       bool     `mapstructure:"enable_roots" yaml:"enable_roots"`
-	EnableProcesses   bool     `mapstructure:"enable_processes" yaml:"enable_processes"`
-	SpanAttributes    []string `mapstructure:"span_attributes" yaml:"span_attributes"`
-	ProcessAttributes []string `mapstructure:"process_attributes" yaml:"process_attributes"`
+	LokiName          string         `mapstructure:"loki_name" yaml:"loki_name"`
+	EnableSpans       bool           `mapstructure:"enable_spans" yaml:"enable_spans"`
+	EnableRoots       bool           `mapstructure:"enable_roots" yaml:"enable_roots"`
+	EnableProcesses   bool           `mapstructure:"enable_processes" yaml:"enable_processes"`
+	SpanAttributes    []string       `mapstructure:"span_attributes" yaml:"span_attributes"`
+	ProcessAttributes []string       `mapstructure:"process_attributes" yaml:"process_attributes"`
+	Overrides         OverrideConfig `mapstructure:"overrides" yaml:"overrides"`
+}
+
+type OverrideConfig struct {
+	LokiTag     string `mapstructure:"loki_tag" yaml:"loki_tag"`
+	ServiceKey  string `mapstructure:"service_key" yaml:"service_key"`
+	SpanNameKey string `mapstructure:"span_name_key" yaml:"span_name_key"`
+	StatusKey   string `mapstructure:"status_key" yaml:"status_key"`
+	DurationKey string `mapstructure:"duration_key" yaml:"duration_key"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.

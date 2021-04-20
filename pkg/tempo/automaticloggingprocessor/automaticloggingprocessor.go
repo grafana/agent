@@ -23,6 +23,18 @@ import (
 	"go.uber.org/atomic"
 )
 
+const (
+	defaultLokiTag     = "tempologging"
+	defaultServiceKey  = "svc"
+	defaultSpanNameKey = "span"
+	defaultStatusKey   = "status"
+	defaultDurationkey = "dur"
+
+	typeSpan    = "span"
+	typeRoot    = "root"
+	typeProcess = "process"
+)
+
 type automaticLoggingProcessor struct {
 	nextConsumer consumer.TracesConsumer
 	cfg          *AutomaticLoggingConfig
@@ -38,6 +50,13 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 	if nextConsumer == nil {
 		return nil, componenterror.ErrNilNextConsumer
 	}
+
+	cfg.Overrides.LokiTag = override(cfg.Overrides.LokiTag, defaultLokiTag)
+	cfg.Overrides.ServiceKey = override(cfg.Overrides.ServiceKey, defaultServiceKey)
+	cfg.Overrides.SpanNameKey = override(cfg.Overrides.SpanNameKey, defaultSpanNameKey)
+	cfg.Overrides.StatusKey = override(cfg.Overrides.StatusKey, defaultStatusKey)
+	cfg.Overrides.DurationKey = override(cfg.Overrides.DurationKey, defaultDurationkey)
+
 	return &automaticLoggingProcessor{
 		nextConsumer: nextConsumer,
 		cfg:          cfg,
@@ -68,16 +87,16 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 				traceID := span.TraceID().HexString()
 
 				if p.cfg.EnableSpans {
-					p.exportToLoki("span", traceID, p.spanKeyVals(span, svc)...)
+					p.exportToLoki(typeSpan, traceID, p.spanKeyVals(span, svc)...)
 				}
 
 				if p.cfg.EnableRoots && span.ParentSpanID().IsEmpty() {
-					p.exportToLoki("root", traceID, p.spanKeyVals(span, svc)...)
+					p.exportToLoki(typeRoot, traceID, p.spanKeyVals(span, svc)...)
 				}
 
 				if p.cfg.EnableProcesses && lastTraceID != traceID {
 					lastTraceID = traceID
-					p.exportToLoki("process", traceID, p.processKeyVals(rs.Resource(), svc)...)
+					p.exportToLoki(typeProcess, traceID, p.processKeyVals(rs.Resource(), svc)...)
 				}
 			}
 		}
@@ -119,7 +138,7 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc 
 	rsAtts := resource.Attributes()
 
 	// name
-	atts = append(atts, "svc")
+	atts = append(atts, p.cfg.Overrides.ServiceKey)
 	atts = append(atts, svc)
 
 	for _, name := range p.cfg.ProcessAttributes {
@@ -137,16 +156,16 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc 
 func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []interface{} {
 	atts := make([]interface{}, 0, 8) // 8 for name, duration and service name
 
-	atts = append(atts, "name")
+	atts = append(atts, p.cfg.Overrides.SpanNameKey)
 	atts = append(atts, span.Name())
 
-	atts = append(atts, "dur")
+	atts = append(atts, p.cfg.Overrides.DurationKey)
 	atts = append(atts, spanDuration(span))
 
-	atts = append(atts, "svc")
+	atts = append(atts, p.cfg.Overrides.ServiceKey)
 	atts = append(atts, svc)
 
-	atts = append(atts, "status")
+	atts = append(atts, p.cfg.Overrides.StatusKey)
 	atts = append(atts, span.Status().Code())
 
 	span.Status().Code()
@@ -176,7 +195,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 
 	p.lokiChan <- api.Entry{
 		Labels: model.LabelSet{
-			"tempolog": model.LabelValue(kind), // jpe - const string kind - tempo-logger? better name?
+			model.LabelName(p.cfg.LokiName): model.LabelValue(kind),
 		},
 		Entry: logproto.Entry{
 			Timestamp: time.Now(),
@@ -200,10 +219,17 @@ func attributeValue(att pdata.AttributeValue) interface{} {
 		return att.DoubleVal()
 	case pdata.AttributeValueBOOL:
 		return att.BoolVal()
-	case pdata.AttributeValueMAP: // jpe test this and below?
+	case pdata.AttributeValueMAP:
 		return att.MapVal()
 	case pdata.AttributeValueARRAY:
 		return att.ArrayVal()
 	}
 	return nil
+}
+
+func override(cfgValue string, defaultValue string) string {
+	if cfgValue == "" {
+		return defaultValue
+	}
+	return cfgValue
 }
