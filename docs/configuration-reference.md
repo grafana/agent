@@ -2029,8 +2029,6 @@ remote_write:
     # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
     [ insecure: <boolean> | default = false ]
 
-    # jpe -> add config
-
     # Disable validation of the server certificate. Only used when insecure is set
     # to false.
     [ insecure_skip_verify: <bool> | default = false ]
@@ -2046,6 +2044,20 @@ remote_write:
     # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter
     [ sending_queue: <otlpexporter.sending_queue> ]
     [ retry_on_failure: <otlpexporter.retry_on_failure> ]
+
+    # automatically log lines to Loki for discovery/metrics
+    automatic_logging:
+      [ spans: <boolean> | default = false ]               # log one line per span. Warning! possibly very high volume
+      [ roots: <boolean> | default = false ]               # log one line for every root span of a trace.
+      [ processes: <boolean> | default = false ]           # log one line for every process
+      [ span_attributes: <string array> | default = []]    # additional span attributes to log
+      [ process_attributes: <string array> | default = []] # additional process attributes to log
+      overrides:      
+        [ loki_tag: <string> | default = "tempologging" ]
+        [ service_key: <string> | default = "svc" ]
+        [ span_name_key: <string> | default = "span" ]
+        [ status_key: <string> | default = "status" ]
+        [ duration_key: <string> | default = "dur" ]
 
 # Receiver configurations are mapped directly into the OpenTelemetry receivers block.
 #   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.

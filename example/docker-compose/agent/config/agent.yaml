@@ -78,8 +78,8 @@ tempo:
     batch:
       timeout: 5s
       send_batch_size: 100
-    automatic_logging: # jpe expand
+    automatic_logging:
       loki_name: default
-      enable_spans: true # jpe fail if nothing enabled
-      enable_processes: true
-      enable_roots: true
+      spans: true
+      processes: true
+      roots: true

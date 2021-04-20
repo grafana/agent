@@ -20,16 +20,17 @@ type Config struct {
 }
 
 // AutomaticLoggingConfig holds config information for automatic logging
-type AutomaticLoggingConfig struct { // jpe moar options
+type AutomaticLoggingConfig struct {
 	LokiName          string         `mapstructure:"loki_name" yaml:"loki_name"`
-	EnableSpans       bool           `mapstructure:"enable_spans" yaml:"enable_spans"`
-	EnableRoots       bool           `mapstructure:"enable_roots" yaml:"enable_roots"`
-	EnableProcesses   bool           `mapstructure:"enable_processes" yaml:"enable_processes"`
+	Spans             bool           `mapstructure:"spans" yaml:"spans"`
+	Roots             bool           `mapstructure:"roots" yaml:"roots"`
+	Processes         bool           `mapstructure:"processes" yaml:"processes"`
 	SpanAttributes    []string       `mapstructure:"span_attributes" yaml:"span_attributes"`
 	ProcessAttributes []string       `mapstructure:"process_attributes" yaml:"process_attributes"`
 	Overrides         OverrideConfig `mapstructure:"overrides" yaml:"overrides"`
 }
 
+// OverrideConfig contains overrides for various strings
 type OverrideConfig struct {
 	LokiTag     string `mapstructure:"loki_tag" yaml:"loki_tag"`
 	ServiceKey  string `mapstructure:"service_key" yaml:"service_key"`

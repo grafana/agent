@@ -2,6 +2,7 @@ package automaticloggingprocessor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -49,6 +50,10 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 
 	if nextConsumer == nil {
 		return nil, componenterror.ErrNilNextConsumer
+	}
+
+	if !cfg.Roots && !cfg.Processes && !cfg.Spans {
+		return nil, errors.New("automaticLoggingProcessor requires one of roots, processes, or spans to be enabled")
 	}
 
 	cfg.Overrides.LokiTag = override(cfg.Overrides.LokiTag, defaultLokiTag)
