@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestOTelConfig(t *testing.T) { // jpe add tests for new thing
+func TestOTelConfig(t *testing.T) {
 	// create a password file to test the password file logic
 	password := "password_in_file"
 	tmpfile, err := ioutil.TempFile("", "")
@@ -484,6 +484,41 @@ service:
       exporters: ["prometheus"]
       receivers: ["noop"]
 `,
+		},
+		{
+			name: "automatic logging",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+push_config:
+  endpoint: example.com:12345
+automatic_logging:
+  spans: true
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+processors:
+  automatic_logging_processor:
+    automatic_logging:
+      spans: true
+exporters:
+  otlp:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp"]
+      processors: ["automatic_logging_processor"]
+      receivers: ["jaeger"]
+      `,
 		},
 	}
 

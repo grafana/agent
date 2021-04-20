@@ -91,15 +91,15 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 				span := ils.Spans().At(k)
 				traceID := span.TraceID().HexString()
 
-				if p.cfg.EnableSpans {
+				if p.cfg.Spans {
 					p.exportToLoki(typeSpan, traceID, p.spanKeyVals(span, svc)...)
 				}
 
-				if p.cfg.EnableRoots && span.ParentSpanID().IsEmpty() {
+				if p.cfg.Roots && span.ParentSpanID().IsEmpty() {
 					p.exportToLoki(typeRoot, traceID, p.spanKeyVals(span, svc)...)
 				}
 
-				if p.cfg.EnableProcesses && lastTraceID != traceID {
+				if p.cfg.Processes && lastTraceID != traceID {
 					lastTraceID = traceID
 					p.exportToLoki(typeProcess, traceID, p.processKeyVals(rs.Resource(), svc)...)
 				}
