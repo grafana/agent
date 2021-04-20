@@ -126,7 +126,7 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc 
 		att, ok := rsAtts.Get(name)
 		if ok {
 			// name/key val pairs
-			atts = append(atts, att)
+			atts = append(atts, name)
 			atts = append(atts, attributeValue(att))
 		}
 	}
@@ -154,6 +154,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []i
 	for _, name := range p.cfg.SpanAttributes {
 		att, ok := span.Attributes().Get(name)
 		if ok {
+			atts = append(atts, name)
 			atts = append(atts, attributeValue(att))
 		}
 	}
