@@ -2058,6 +2058,7 @@ remote_write:
         [ span_name_key: <string> | default = "span" ]
         [ status_key: <string> | default = "status" ]
         [ duration_key: <string> | default = "dur" ]
+        [ trace_id_key: <string> | default = "tid" ]
 
 # Receiver configurations are mapped directly into the OpenTelemetry receivers block.
 #   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.

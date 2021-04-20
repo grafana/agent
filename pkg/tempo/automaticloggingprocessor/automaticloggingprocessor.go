@@ -29,7 +29,8 @@ const (
 	defaultServiceKey  = "svc"
 	defaultSpanNameKey = "span"
 	defaultStatusKey   = "status"
-	defaultDurationkey = "dur"
+	defaultDurationKey = "dur"
+	defaultTraceIDKey  = "tid"
 
 	typeSpan    = "span"
 	typeRoot    = "root"
@@ -60,7 +61,8 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 	cfg.Overrides.ServiceKey = override(cfg.Overrides.ServiceKey, defaultServiceKey)
 	cfg.Overrides.SpanNameKey = override(cfg.Overrides.SpanNameKey, defaultSpanNameKey)
 	cfg.Overrides.StatusKey = override(cfg.Overrides.StatusKey, defaultStatusKey)
-	cfg.Overrides.DurationKey = override(cfg.Overrides.DurationKey, defaultDurationkey)
+	cfg.Overrides.DurationKey = override(cfg.Overrides.DurationKey, defaultDurationKey)
+	cfg.Overrides.TraceIDKey = override(cfg.Overrides.TraceIDKey, defaultTraceIDKey)
 
 	return &automaticLoggingProcessor{
 		nextConsumer: nextConsumer,
@@ -191,7 +193,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 		return
 	}
 
-	keyvals = append(keyvals, []interface{}{"tid", traceID}...)
+	keyvals = append(keyvals, []interface{}{p.cfg.Overrides.TraceIDKey, traceID}...)
 	line, err := logfmt.MarshalKeyvals(keyvals...)
 	if err != nil {
 		level.Warn(p.logger).Log("msg", "unable to marshal keyvals", "err", err)
@@ -200,7 +202,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 
 	p.lokiChan <- api.Entry{
 		Labels: model.LabelSet{
-			model.LabelName(p.cfg.LokiName): model.LabelValue(kind),
+			model.LabelName(p.cfg.Overrides.LokiTag): model.LabelValue(kind),
 		},
 		Entry: logproto.Entry{
 			Timestamp: time.Now(),

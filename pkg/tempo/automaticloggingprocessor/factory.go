@@ -37,6 +37,7 @@ type OverrideConfig struct {
 	SpanNameKey string `mapstructure:"span_name_key" yaml:"span_name_key"`
 	StatusKey   string `mapstructure:"status_key" yaml:"status_key"`
 	DurationKey string `mapstructure:"duration_key" yaml:"duration_key"`
+	TraceIDKey  string `mapstructure:"trace_id_key" yaml:"trace_id_key"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
