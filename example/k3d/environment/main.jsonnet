@@ -1,11 +1,14 @@
+local collector = import 'collector/main.libsonnet';
 local default = import 'default/main.libsonnet';
 local etcd = import 'etcd/main.libsonnet';
 local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
+local load_generator = import 'load-generator/main.libsonnet';
 
 local loki_config = import 'default/loki_config.libsonnet';
 local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 
+local containerPort = k.core.v1.containerPort;
 local ingress = k.networking.v1beta1.ingress;
 local path = k.networking.v1beta1.httpIngressPath;
 local rule = k.networking.v1beta1.ingressRule;
@@ -65,10 +68,53 @@ local images = {
       scheme: 'http',
       hostname: 'loki.default.svc.cluster.local',
       external_labels: { cluster: cluster_label },
-    })),
+    })) +
+    grafana_agent.withTempoConfig({
+      receivers: {
+        jaeger: {
+          protocols: {
+            thrift_http: null,
+          },
+        },
+      },
+      batch: {
+        timeout: '5s',
+        send_batch_size: 1000,
+      },
+    }) +
+    grafana_agent.withPortsMixin([
+      containerPort.new('thrift-http', 14268) + containerPort.withProtocol('TCP'),
+      containerPort.new('otlp-lb', 4318) + containerPort.withProtocol('TCP'),
+    ]) +
+    grafana_agent.withTempoRemoteWrite([
+      {
+        endpoint: 'collector.default.svc.cluster.local:55680',
+        insecure: true,
+      },
+    ]) +
+    grafana_agent.withTempoTailSamplingConfig({
+      policies: [{
+        always_sample: null,
+      }],
+      load_balancing: {
+        exporter: {
+          insecure: true,
+        },
+        resolver: {
+          dns: {
+            hostname: 'grafana-agent.default.svc.cluster.local',
+            port: 4318,
+          },
+        },
+      },
+    }),
 
   // Need to run ETCD for agent_cluster
   etcd: etcd.new('default'),
+
+  collector: collector.new('default'),
+
+  load_generator: load_generator.new('default'),
 
   agent_cluster:
     agent_cluster.new('default', 'kube-system') +

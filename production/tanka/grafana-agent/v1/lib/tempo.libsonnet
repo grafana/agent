@@ -5,7 +5,7 @@
   //
   withTempoConfig(config):: {
     assert std.objectHasAll(self, '_mode') : |||
-      withLokiConfig must be merged with the result of calling new.
+      withTempoConfig must be merged with the result of calling new.
     |||,
     _tempo_config:: config,
   },
@@ -111,4 +111,16 @@
       },
     },
   ],
+
+  // withTempoTailSamplingConfig tail-based sampling for traces.
+  //
+  // Availabile options can be found in the configuration reference:
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#tempo_config
+  withTempoTailSamplingConfig(tail_sampling):: {
+    assert std.objectHasAll(self, '_tempo_config') : |||
+      withTempoTailSamplingConfig must be merged with the result of calling
+      withTempoConfig.
+    |||,
+    _tempo_config+:: { tail_sampling: tail_sampling },
+  }
 }

@@ -63,7 +63,7 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, scrapeConfigs []*co
 		discoveryMgrCtx:  ctx,
 		relabelConfigs:   relabelConfigs,
 		hostLabels:       make(map[string]model.LabelSet),
-		logger:           util.Logger,
+		logger:           logger,
 	}, nil
 }
 
