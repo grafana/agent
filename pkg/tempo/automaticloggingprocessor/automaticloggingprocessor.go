@@ -20,12 +20,14 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
+	"go.uber.org/atomic"
 )
 
 type automaticLoggingProcessor struct {
 	nextConsumer consumer.TracesConsumer
 	cfg          *AutomaticLoggingConfig
 	lokiChan     chan<- api.Entry
+	done         atomic.Bool
 
 	logger log.Logger
 }
@@ -40,6 +42,7 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 		nextConsumer: nextConsumer,
 		cfg:          cfg,
 		logger:       logger,
+		done:         atomic.Bool{},
 	}, nil
 }
 
@@ -106,7 +109,7 @@ func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host)
 
 // Shutdown is invoked during service shutdown.
 func (p *automaticLoggingProcessor) Shutdown(context.Context) error {
-	// jpe set flag and stop sending things to loki
+	p.done.Store(true)
 
 	return nil
 }
@@ -132,7 +135,7 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc 
 }
 
 func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []interface{} {
-	atts := make([]interface{}, 0, 6) // 6 for name, duration and service name
+	atts := make([]interface{}, 0, 8) // 8 for name, duration and service name
 
 	atts = append(atts, "name")
 	atts = append(atts, span.Name())
@@ -142,6 +145,11 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []i
 
 	atts = append(atts, "svc")
 	atts = append(atts, svc)
+
+	atts = append(atts, "status")
+	atts = append(atts, span.Status().Code())
+
+	span.Status().Code()
 
 	for _, name := range p.cfg.SpanAttributes {
 		att, ok := span.Attributes().Get(name)
@@ -154,6 +162,10 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []i
 }
 
 func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, keyvals ...interface{}) {
+	if p.done.Load() {
+		return
+	}
+
 	keyvals = append(keyvals, []interface{}{"tid", traceID}...)
 	line, err := logfmt.MarshalKeyvals(keyvals...)
 	if err != nil {
