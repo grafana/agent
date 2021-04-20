@@ -49,8 +49,11 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 		rs := td.ResourceSpans().At(i)
 		ilsLen := rs.InstrumentationLibrarySpans().Len()
 
-		atts := rs.Resource().Attributes()
-		serviceName, _ := atts.Get(conventions.AttributeServiceName) // jpe include configurable tags
+		var svc string
+		svcAtt, ok := rs.Resource().Attributes().Get(conventions.AttributeServiceName)
+		if ok {
+			svc = svcAtt.StringVal()
+		}
 
 		for j := 0; j < ilsLen; j++ {
 			ils := rs.InstrumentationLibrarySpans().At(j)
@@ -62,16 +65,16 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 				traceID := span.TraceID().HexString()
 
 				if p.cfg.EnableSpans {
-					p.exportToLoki("span", traceID, "name", span.Name(), "dur", spanDuration(span), "svc", serviceName.StringVal())
+					p.exportToLoki("span", traceID, p.spanKeyVals(span, svc)...)
 				}
 
 				if p.cfg.EnableRoots && span.ParentSpanID().IsEmpty() {
-					p.exportToLoki("root", traceID, "name", span.Name(), "dur", spanDuration(span), "svc", serviceName.StringVal())
+					p.exportToLoki("root", traceID, p.spanKeyVals(span, svc)...)
 				}
 
 				if p.cfg.EnableProcesses && lastTraceID != traceID {
 					lastTraceID = traceID
-					p.exportToLoki("process", traceID, "svc", serviceName.StringVal())
+					p.exportToLoki("process", traceID, p.processKeyVals(rs.Resource(), svc)...)
 				}
 			}
 		}
@@ -103,7 +106,51 @@ func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host)
 
 // Shutdown is invoked during service shutdown.
 func (p *automaticLoggingProcessor) Shutdown(context.Context) error {
+	// jpe set flag and stop sending things to loki
+
 	return nil
+}
+
+func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc string) []interface{} {
+	atts := make([]interface{}, 0, 2) // 2 for service name
+	rsAtts := resource.Attributes()
+
+	// name
+	atts = append(atts, "svc")
+	atts = append(atts, svc)
+
+	for _, name := range p.cfg.ProcessAttributes {
+		att, ok := rsAtts.Get(name)
+		if ok {
+			// name/key val pairs
+			atts = append(atts, att)
+			atts = append(atts, attributeValue(att))
+		}
+	}
+
+	return atts
+}
+
+func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []interface{} {
+	atts := make([]interface{}, 0, 6) // 6 for name, duration and service name
+
+	atts = append(atts, "name")
+	atts = append(atts, span.Name())
+
+	atts = append(atts, "dur")
+	atts = append(atts, spanDuration(span))
+
+	atts = append(atts, "svc")
+	atts = append(atts, svc)
+
+	for _, name := range p.cfg.SpanAttributes {
+		att, ok := span.Attributes().Get(name)
+		if ok {
+			atts = append(atts, attributeValue(att))
+		}
+	}
+
+	return atts
 }
 
 func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, keyvals ...interface{}) {
@@ -114,7 +161,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 		return
 	}
 
-	p.lokiChan <- api.Entry{ // jpe do something real
+	p.lokiChan <- api.Entry{
 		Labels: model.LabelSet{
 			"tempolog": model.LabelValue(kind), // jpe - const string kind - tempo-logger? better name?
 		},
@@ -128,4 +175,22 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 func spanDuration(span pdata.Span) string {
 	dur := int64(span.EndTime() - span.StartTime())
 	return strconv.FormatInt(dur, 10) + "ns"
+}
+
+func attributeValue(att pdata.AttributeValue) interface{} {
+	switch att.Type() {
+	case pdata.AttributeValueSTRING:
+		return att.StringVal()
+	case pdata.AttributeValueINT:
+		return att.IntVal()
+	case pdata.AttributeValueDOUBLE:
+		return att.DoubleVal()
+	case pdata.AttributeValueBOOL:
+		return att.BoolVal()
+	case pdata.AttributeValueMAP: // jpe test this and below?
+		return att.MapVal()
+	case pdata.AttributeValueARRAY:
+		return att.ArrayVal()
+	}
+	return nil
 }
