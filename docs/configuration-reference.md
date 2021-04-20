@@ -2029,6 +2029,8 @@ remote_write:
     # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
     [ insecure: <boolean> | default = false ]
 
+    # jpe -> add config
+
     # Disable validation of the server certificate. Only used when insecure is set
     # to false.
     [ insecure_skip_verify: <bool> | default = false ]
