@@ -103,6 +103,7 @@ func (l *Loki) Stop() {
 	}
 }
 
+// Instance is used to retrieve a named Loki instance
 func (l *Loki) Instance(name string) *Instance {
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -206,11 +207,4 @@ func (i *Instance) Stop() {
 		i.promtail.Shutdown()
 		i.promtail = nil
 	}
-}
-
-func (i *Instance) Promtail() *promtail.Promtail {
-	i.mut.Lock()
-	defer i.mut.Unlock()
-
-	return i.promtail
 }

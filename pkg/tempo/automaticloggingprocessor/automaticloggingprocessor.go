@@ -120,7 +120,7 @@ func (p *automaticLoggingProcessor) GetCapabilities() component.ProcessorCapabil
 func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host) error {
 	loki := ctx.Value(contextkeys.Loki).(*loki.Loki)
 	if loki == nil {
-		return fmt.Errorf("key %s does not contain a Loki instance", contextkeys.Loki)
+		return fmt.Errorf("key does not contain a Loki instance")
 	}
 	p.lokiInstance = loki.Instance(p.cfg.LokiName)
 	if p.lokiInstance == nil {
