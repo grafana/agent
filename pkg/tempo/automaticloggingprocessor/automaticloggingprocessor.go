@@ -212,7 +212,9 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 		},
 	}, p.cfg.Timeout)
 
-	level.Warn(p.logger).Log("msg", "failed to autolog to loki", "kind", kind, "traceid", traceID)
+	if !sent {
+		level.Warn(p.logger).Log("msg", "failed to autolog to loki", "kind", kind, "traceid", traceID)
+	}
 }
 
 func spanDuration(span pdata.Span) string {
