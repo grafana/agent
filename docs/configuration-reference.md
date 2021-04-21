@@ -2047,11 +2047,12 @@ remote_write:
 
     # automatically log lines to Loki for discovery/metrics
     automatic_logging:
-      [ spans: <boolean> ]                   # log one line per span. Warning! possibly very high volume
-      [ roots: <boolean> ]                   # log one line for every root span of a trace.
-      [ processes: <boolean> ]               # log one line for every process
-      [ span_attributes: <string array> ]    # additional span attributes to log
-      [ process_attributes: <string array> ] # additional process attributes to log
+      [ spans: <boolean> ]                      # log one line per span. Warning! possibly very high volume
+      [ roots: <boolean> ]                      # log one line for every root span of a trace.
+      [ processes: <boolean> ]                  # log one line for every process
+      [ span_attributes: <string array> ]       # additional span attributes to log
+      [ process_attributes: <string array> ]    # additional process attributes to log
+      [ timeout: <duration> | default = 100ms ] # timeout on sending logs to Loki
       overrides:      
         [ loki_tag: <string> | default = "tempologging" ]
         [ service_key: <string> | default = "svc" ]

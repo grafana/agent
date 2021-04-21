@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -182,9 +183,9 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	return nil
 }
 
-// SendEntry passes an entry to the internal promtail client. It is
+// SendEntry passes an entry to the internal promtail client and returns true if successfully sent. It is
 // best effort and not guaranteed to succeed.
-func (i *Instance) SendEntry(entry api.Entry) {
+func (i *Instance) SendEntry(entry api.Entry, dur time.Duration) bool {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -193,9 +194,12 @@ func (i *Instance) SendEntry(entry api.Entry) {
 		// send non blocking so we don't block the mutex. this is best effort
 		select {
 		case i.promtail.Client().Chan() <- entry:
-		default:
+			return true
+		case <-time.After(dur):
 		}
 	}
+
+	return false
 }
 
 // Stop stops the Promtail instance.

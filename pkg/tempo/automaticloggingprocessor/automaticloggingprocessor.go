@@ -32,6 +32,8 @@ const (
 	defaultDurationKey = "dur"
 	defaultTraceIDKey  = "tid"
 
+	defaultTimeout = 100 * time.Millisecond
+
 	typeSpan    = "span"
 	typeRoot    = "root"
 	typeProcess = "process"
@@ -55,6 +57,10 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 
 	if !cfg.Roots && !cfg.Processes && !cfg.Spans {
 		return nil, errors.New("automaticLoggingProcessor requires one of roots, processes, or spans to be enabled")
+	}
+
+	if cfg.Timeout == 0 {
+		cfg.Timeout = defaultTimeout
 	}
 
 	cfg.Overrides.LokiTag = override(cfg.Overrides.LokiTag, defaultLokiTag)
@@ -204,7 +210,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 			Timestamp: time.Now(),
 			Line:      string(line),
 		},
-	})
+	}, p.cfg.Timeout)
 }
 
 func spanDuration(span pdata.Span) string {

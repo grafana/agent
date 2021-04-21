@@ -2,6 +2,7 @@ package automaticloggingprocessor
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
@@ -28,6 +29,7 @@ type AutomaticLoggingConfig struct {
 	SpanAttributes    []string       `mapstructure:"span_attributes" yaml:"span_attributes"`
 	ProcessAttributes []string       `mapstructure:"process_attributes" yaml:"process_attributes"`
 	Overrides         OverrideConfig `mapstructure:"overrides" yaml:"overrides"`
+	Timeout           time.Duration  `mapstructure:"timeout" yaml:"timeout"`
 }
 
 // OverrideConfig contains overrides for various strings
