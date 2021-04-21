@@ -10,7 +10,7 @@ import (
 )
 
 // TypeStr is the unique identifier for the Automatic Logging processor.
-const TypeStr = "automatic_logging_processor"
+const TypeStr = "automatic_logging"
 
 // Config holds the configuration for the Automatic Logging processor.
 type Config struct {

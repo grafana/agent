@@ -628,7 +628,7 @@ receivers:
     protocols:
       grpc:
 processors:
-  automatic_logging_processor:
+  automatic_logging:
     automatic_logging:
       spans: true
 exporters:
@@ -641,7 +641,7 @@ service:
   pipelines:
     traces:
       exporters: ["otlp"]
-      processors: ["automatic_logging_processor"]
+      processors: ["automatic_logging"]
       receivers: ["jaeger"]
       `,
 		},
