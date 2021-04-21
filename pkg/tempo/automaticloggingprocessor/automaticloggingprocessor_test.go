@@ -108,6 +108,7 @@ func TestSpanKeyVals(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc.cfg.Spans = true // have to set one true or newTraceProcessor fails
 		p, err := newTraceProcessor(&automaticLoggingProcessor{}, &tc.cfg)
 		require.NoError(t, err)
 
@@ -157,6 +158,7 @@ func TestProcessKeyVals(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc.cfg.Spans = true // have to set one true or newTraceProcessor fails
 		p, err := newTraceProcessor(&automaticLoggingProcessor{}, &tc.cfg)
 		require.NoError(t, err)
 
