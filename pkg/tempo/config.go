@@ -8,6 +8,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
@@ -61,11 +62,11 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal((*plain)(c)); err != nil {
 		return err
 	}
-	return c.Validate()
+	return nil
 }
 
 // Validate ensures that the Config is valid.
-func (c *Config) Validate() error {
+func (c *Config) Validate(lokiConfig loki.Config) error {
 	names := make(map[string]struct{}, len(c.Configs))
 	for idx, c := range c.Configs {
 		if c.Name == "" {
@@ -75,6 +76,25 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("found multiple tempo configs with name %s", c.Name)
 		}
 		names[c.Name] = struct{}{}
+	}
+
+	// check to make sure that any referenced Loki configs exist
+	for _, inst := range c.Configs {
+		if inst.AutomaticLogging != nil {
+			found := false
+			lokiName := inst.AutomaticLogging.LokiName
+
+			for _, lokiInst := range lokiConfig.Configs {
+				if lokiInst.Name == lokiName {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("specified loki config %s not found", lokiName)
+			}
+		}
 	}
 
 	return nil
