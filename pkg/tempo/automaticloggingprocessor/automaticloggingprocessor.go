@@ -202,7 +202,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 		return
 	}
 
-	p.lokiInstance.SendEntry(api.Entry{
+	sent := p.lokiInstance.SendEntry(api.Entry{
 		Labels: model.LabelSet{
 			model.LabelName(p.cfg.Overrides.LokiTag): model.LabelValue(kind),
 		},
@@ -211,6 +211,8 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 			Line:      string(line),
 		},
 	}, p.cfg.Timeout)
+
+	level.Warn(p.logger).Log("msg", "failed to autolog to loki", "kind", kind, "traceid", traceID)
 }
 
 func spanDuration(span pdata.Span) string {
