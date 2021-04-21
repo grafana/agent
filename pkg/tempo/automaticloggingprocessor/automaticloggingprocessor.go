@@ -40,7 +40,7 @@ const (
 type automaticLoggingProcessor struct {
 	nextConsumer consumer.TracesConsumer
 	cfg          *AutomaticLoggingConfig
-	lokiChan     chan<- api.Entry
+	lokiInstance *loki.Instance
 	done         atomic.Bool
 
 	logger log.Logger
@@ -122,13 +122,9 @@ func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host)
 	if loki == nil {
 		return fmt.Errorf("key %s does not contain a Loki instance", contextkeys.Loki)
 	}
-	lokiInstance := loki.Instance(p.cfg.LokiName)
-	if lokiInstance == nil {
+	p.lokiInstance = loki.Instance(p.cfg.LokiName)
+	if p.lokiInstance == nil {
 		return fmt.Errorf("loki instance %s not found", p.cfg.LokiName)
-	}
-	p.lokiChan = lokiInstance.Promtail().Client().Chan()
-	if p.lokiChan == nil {
-		return fmt.Errorf("loki chan is unexpectedly nil")
 	}
 	return nil
 }
@@ -200,7 +196,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 		return
 	}
 
-	p.lokiChan <- api.Entry{
+	p.lokiInstance.SendEntry(api.Entry{
 		Labels: model.LabelSet{
 			model.LabelName(p.cfg.Overrides.LokiTag): model.LabelValue(kind),
 		},
@@ -208,7 +204,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 			Timestamp: time.Now(),
 			Line:      string(line),
 		},
-	}
+	})
 }
 
 func spanDuration(span pdata.Span) string {

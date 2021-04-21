@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/promtail"
+	"github.com/grafana/loki/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/promtail/config"
 	"github.com/grafana/loki/pkg/promtail/server"
@@ -178,6 +179,22 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 
 	i.promtail = p
 	return nil
+}
+
+// SendEntry passes an entry to the internal promtail client. It is
+// best effort and not guaranteed to succeed.
+func (i *Instance) SendEntry(entry api.Entry) {
+	i.mut.Lock()
+	defer i.mut.Unlock()
+
+	// promtail is nil it has been stopped
+	if i.promtail != nil {
+		// send non blocking so we don't block the mutex. this is best effort
+		select {
+		case i.promtail.Client().Chan() <- entry:
+		default:
+		}
+	}
 }
 
 // Stop stops the Promtail instance.
