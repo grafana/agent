@@ -69,7 +69,7 @@ func (c *Config) ApplyDefaults() error {
 
 	// since the Tempo config might rely on an existing Loki config
 	// this check is made here to look for cross config issues before we attempt to load
-	if err := c.Tempo.Validate(c.Loki); err != nil {
+	if err := c.Tempo.Validate(&c.Loki); err != nil {
 		return err
 	}
 

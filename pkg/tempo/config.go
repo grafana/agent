@@ -59,14 +59,11 @@ type Config struct {
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type plain Config
-	if err := unmarshal((*plain)(c)); err != nil {
-		return err
-	}
-	return nil
+	return unmarshal((*plain)(c))
 }
 
 // Validate ensures that the Config is valid.
-func (c *Config) Validate(lokiConfig loki.Config) error {
+func (c *Config) Validate(lokiConfig *loki.Config) error {
 	names := make(map[string]struct{}, len(c.Configs))
 	for idx, c := range c.Configs {
 		if c.Name == "" {
