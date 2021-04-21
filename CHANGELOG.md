@@ -3,6 +3,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+- [FEATURE] Added Automatic Logging feature for Tempo (@joe-elliott)
+
 - [BUGFIX] Ensure defaults are applied to undefined sections in config file.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
   configured. (@rfratto)
@@ -21,8 +23,6 @@ cross-compilation issue, but will return in v0.13.0.
   Prometheus. (@rfratto)
   
 - [FEATURE] Tail-based sampling for tracing pipelines (@mapno)
-
-- [FEATURE] Added Automatic Logging feature for Tempo (@joe-elliott)
 
 # v0.13.1 (2021-04-09)
 
