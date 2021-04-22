@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/grafana/agent/pkg/tempo"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
 	"gopkg.in/yaml.v2"
@@ -42,7 +43,11 @@ type Config struct {
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// Apply defaults to the config from our struct and any defaults inherited
+	// from flags.
 	*c = DefaultConfig
+	util.DefaultConfigFromFlags(c)
+
 	type config Config
 	return unmarshal((*config)(c))
 }
