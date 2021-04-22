@@ -31,6 +31,7 @@ prometheus:
 	require.NotEmpty(t, c.Prometheus.ServiceConfig.Lifecycler.InfNames)
 	require.NotZero(t, c.Prometheus.ServiceConfig.Lifecycler.NumTokens)
 	require.NotZero(t, c.Prometheus.ServiceConfig.Lifecycler.HeartbeatPeriod)
+	require.True(t, c.Server.RegisterInstrumentation)
 }
 
 func TestConfig_OverrideDefaultsOnLoad(t *testing.T) {
