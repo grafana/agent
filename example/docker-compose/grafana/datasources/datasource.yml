@@ -13,6 +13,17 @@ datasources:
   isDefault: false
   version: 1
   editable: false
+- name: Tempo
+  type: tempo
+  access: proxy
+  orgId: 1
+  url: http://tempo:3200
+  basicAuth: false
+  isDefault: false
+  version: 1
+  editable: false
+  apiVersion: 1
+  uid: tempo
 - name: Loki
   type: loki
   access: proxy 
@@ -22,4 +33,10 @@ datasources:
   isDefault: false
   version: 1
   editable: false
+  jsonData:
+    derivedFields:
+      - datasourceUid: tempo
+        matcherRegex: tid=(\w+)
+        name: TraceID
+        url: $${__value.raw}
 

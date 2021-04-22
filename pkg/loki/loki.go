@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/promtail"
+	"github.com/grafana/loki/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/promtail/config"
 	"github.com/grafana/loki/pkg/promtail/server"
@@ -102,6 +104,14 @@ func (l *Loki) Stop() {
 	}
 }
 
+// Instance is used to retrieve a named Loki instance
+func (l *Loki) Instance(name string) *Instance {
+	l.mut.Lock()
+	defer l.mut.Unlock()
+
+	return l.instances[name]
+}
+
 // Instance is an individual Loki instance.
 type Instance struct {
 	mut sync.Mutex
@@ -171,6 +181,25 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 
 	i.promtail = p
 	return nil
+}
+
+// SendEntry passes an entry to the internal promtail client and returns true if successfully sent. It is
+// best effort and not guaranteed to succeed.
+func (i *Instance) SendEntry(entry api.Entry, dur time.Duration) bool {
+	i.mut.Lock()
+	defer i.mut.Unlock()
+
+	// promtail is nil it has been stopped
+	if i.promtail != nil {
+		// send non blocking so we don't block the mutex. this is best effort
+		select {
+		case i.promtail.Client().Chan() <- entry:
+			return true
+		case <-time.After(dur):
+		}
+	}
+
+	return false
 }
 
 // Stop stops the Promtail instance.

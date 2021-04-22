@@ -610,6 +610,41 @@ service:
       receivers: ["otlp/lb"]
 `,
 		},
+		{
+			name: "automatic logging",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+push_config:
+  endpoint: example.com:12345
+automatic_logging:
+  spans: true
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+processors:
+  automatic_logging:
+    automatic_logging:
+      spans: true
+exporters:
+  otlp:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp"]
+      processors: ["automatic_logging"]
+      receivers: ["jaeger"]
+      `,
+		},
 	}
 
 	for _, tc := range tt {
