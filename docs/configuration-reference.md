@@ -2045,16 +2045,26 @@ remote_write:
     [ sending_queue: <otlpexporter.sending_queue> ]
     [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
-    # automatically log lines to Loki for discovery/metrics
+    # This processor writes a well formatted log line to a Loki instance for each span, root, or process 
+    # that passes through the Agent. This allows for automatically building a mechanism for trace
+    # discovery and building metrics from traces using Loki.
     automatic_logging:
-      [ spans: <boolean> ]                      # log one line per span. Warning! possibly very high volume
-      [ roots: <boolean> ]                      # log one line for every root span of a trace.
-      [ processes: <boolean> ]                  # log one line for every process
-      [ span_attributes: <string array> ]       # additional span attributes to log
-      [ process_attributes: <string array> ]    # additional process attributes to log
-      [ timeout: <duration> | default = 100ms ] # timeout on sending logs to Loki
+      # indicates the Loki instance to write logs to.
+      loki_name: <string>
+      # log one line per span. Warning! possibly very high volume
+      [ spans: <boolean> ]
+      # log one line for every root span of a trace.
+      [ roots: <boolean> ]
+      # log one line for every process
+      [ processes: <boolean> ]
+      # additional span attributes to log
+      [ span_attributes: <string array> ]
+      # additional process attributes to log
+      [ process_attributes: <string array> ]
+      # timeout on sending logs to Loki
+      [ timeout: <duration> | default = 100ms ]
       overrides:      
-        [ loki_tag: <string> | default = "tempologging" ]
+        [ loki_tag: <string> | default = "tempo" ]
         [ service_key: <string> | default = "svc" ]
         [ span_name_key: <string> | default = "span" ]
         [ status_key: <string> | default = "status" ]

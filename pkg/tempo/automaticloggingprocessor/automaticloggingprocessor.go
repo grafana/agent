@@ -25,14 +25,14 @@ import (
 )
 
 const (
-	defaultLokiTag     = "tempologging"
+	defaultLokiTag     = "tempo"
 	defaultServiceKey  = "svc"
 	defaultSpanNameKey = "span"
 	defaultStatusKey   = "status"
 	defaultDurationKey = "dur"
 	defaultTraceIDKey  = "tid"
 
-	defaultTimeout = 100 * time.Millisecond
+	defaultTimeout = time.Millisecond
 
 	typeSpan    = "span"
 	typeRoot    = "root"
