@@ -8,6 +8,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
@@ -57,14 +59,11 @@ type Config struct {
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type plain Config
-	if err := unmarshal((*plain)(c)); err != nil {
-		return err
-	}
-	return c.Validate()
+	return unmarshal((*plain)(c))
 }
 
 // Validate ensures that the Config is valid.
-func (c *Config) Validate() error {
+func (c *Config) Validate(lokiConfig *loki.Config) error {
 	names := make(map[string]struct{}, len(c.Configs))
 	for idx, c := range c.Configs {
 		if c.Name == "" {
@@ -74,6 +73,25 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("found multiple tempo configs with name %s", c.Name)
 		}
 		names[c.Name] = struct{}{}
+	}
+
+	// check to make sure that any referenced Loki configs exist
+	for _, inst := range c.Configs {
+		if inst.AutomaticLogging != nil {
+			found := false
+			lokiName := inst.AutomaticLogging.LokiName
+
+			for _, lokiInst := range lokiConfig.Configs {
+				if lokiInst.Name == lokiName {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("specified loki config %s not found", lokiName)
+			}
+		}
 	}
 
 	return nil
@@ -103,6 +121,9 @@ type InstanceConfig struct {
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
+
+	// AutomaticLogging
+	AutomaticLogging *automaticloggingprocessor.AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 
 	// TailSampling defines a sampling strategy for the pipeline
 	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
@@ -415,6 +436,13 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
+	if c.AutomaticLogging != nil {
+		processorNames = append(processorNames, automaticloggingprocessor.TypeStr)
+		processors[automaticloggingprocessor.TypeStr] = map[string]interface{}{
+			"automatic_logging": c.AutomaticLogging,
+		}
+	}
+
 	if c.Attributes != nil {
 		processors["attributes"] = c.Attributes
 		processorNames = append(processorNames, "attributes")
@@ -591,6 +619,7 @@ func tracingFactories() (component.Factories, error) {
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),
 		spanmetricsprocessor.NewFactory(),
+		automaticloggingprocessor.NewFactory(),
 		tailsamplingprocessor.NewFactory(),
 	)
 	if err != nil {

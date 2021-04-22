@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/grafana/agent/pkg/loki"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,7 @@ type Tempo struct {
 }
 
 // New creates and starts Loki log collection.
-func New(reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
+func New(loki *loki.Loki, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
 	var leveller logLeveller
 
 	tempo := &Tempo{
@@ -38,14 +39,14 @@ func New(reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, er
 		logger:    newLogger(&leveller),
 		reg:       reg,
 	}
-	if err := tempo.ApplyConfig(cfg, level); err != nil {
+	if err := tempo.ApplyConfig(loki, cfg, level); err != nil {
 		return nil, err
 	}
 	return tempo, nil
 }
 
 // ApplyConfig updates Tempo with a new Config.
-func (t *Tempo) ApplyConfig(cfg Config, level logrus.Level) error {
+func (t *Tempo) ApplyConfig(loki *loki.Loki, cfg Config, level logrus.Level) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
 
@@ -57,7 +58,7 @@ func (t *Tempo) ApplyConfig(cfg Config, level logrus.Level) error {
 	for _, c := range cfg.Configs {
 		// If an old instance exists, update it and move it to the new map.
 		if old, ok := t.instances[c.Name]; ok {
-			err := old.ApplyConfig(c)
+			err := old.ApplyConfig(loki, c)
 			if err != nil {
 				return err
 			}
@@ -71,7 +72,7 @@ func (t *Tempo) ApplyConfig(cfg Config, level logrus.Level) error {
 			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"tempo_config": c.Name}, t.reg)
 		)
 
-		inst, err := NewInstance(instReg, c, instLogger)
+		inst, err := NewInstance(loki, instReg, c, instLogger)
 		if err != nil {
 			return fmt.Errorf("failed to create tempo instance %s: %w", c.Name, err)
 		}
