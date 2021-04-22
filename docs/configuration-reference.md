@@ -2062,7 +2062,7 @@ remote_write:
       # additional process attributes to log
       [ process_attributes: <string array> ]
       # timeout on sending logs to Loki
-      [ timeout: <duration> | default = 100ms ]
+      [ timeout: <duration> | default = 1ms ]
       overrides:      
         [ loki_tag: <string> | default = "tempo" ]
         [ service_key: <string> | default = "svc" ]
