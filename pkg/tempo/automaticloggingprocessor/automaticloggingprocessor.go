@@ -163,7 +163,7 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc 
 }
 
 func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []interface{} {
-	atts := make([]interface{}, 0, 8) // 8 for name, duration and service name
+	atts := make([]interface{}, 0, 8) // 8 for name, duration, service name and status
 
 	atts = append(atts, p.cfg.Overrides.SpanNameKey)
 	atts = append(atts, span.Name())
@@ -176,8 +176,6 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []i
 
 	atts = append(atts, p.cfg.Overrides.StatusKey)
 	atts = append(atts, span.Status().Code())
-
-	span.Status().Code()
 
 	for _, name := range p.cfg.SpanAttributes {
 		att, ok := span.Attributes().Get(name)
