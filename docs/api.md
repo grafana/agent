@@ -108,13 +108,11 @@ defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.
 
-**WARNING**: Be careful about who is allowed to access this API.
-`prometheus_instance_config` files support `password_file`, which is read when
-sending metrics and sent to the configured remote_write endpoint. A malicious
-user can craft a config to read any password_file from the machine the Agent is
-running on and send its contents to an artbirary URL. Instead of exposing this
-API to untrusted users, you may wish to implement your own layer in between that
-allowlists specific fields.
+**WARNING**: By default, all instance configuration files that read
+credentials from a file on disk will be rejected. This prevents malicious users
+from reading the contents of arbitrary files as passwords and sending their
+contents to fake remote_write endpoints. To change the behavior, set
+`dangerous_allow_reading_files` to true in the `scraping_service` block.
 
 Status code: 201 with a new config, 200 on updated config.
 Response on success:
