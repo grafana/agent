@@ -8,9 +8,9 @@ The installer will install Grafana Agent into the default directory `C:\Program 
 
 After installation, ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/targets`. 
 
-If Grafana Agent is re-installed and an agent-config.yaml already exists; the installation will not overwrite the existing one.
-
 After installation, you can adjust `C:\Program Files (x86)\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, the Grafana Agent service must be restarted to load changes to the configuration.
+
+Existing configuration files will be kept when re-installing or upgrading the Grafana Agent.
 
 ### Silent Installation
 
@@ -32,8 +32,33 @@ If the Grafana Agent is installed using the installer, it can be uninstalled via
 
 ## Logs
 
-When Grafana Agent runs as a Windows Service, the Grafana Agent will write logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the source of `Grafana Agent`.
+When Grafana Agent runs as a Windows Service, the Grafana Agent will write logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the event source name of `Grafana Agent`.
 
 ## Pushing Windows logs to Loki
 
-Grafana Agent can use [promtail](https://grafana.com/docs/loki/latest/clients/promtail/) to push Windows Event Logs to [Loki](https://github.com/grafana/loki). An example configuration is located at [here](../example/windows/agent_config_promtail.yaml).
+Grafana Agent can use [promtail](https://grafana.com/docs/loki/latest/clients/promtail/) to push Windows Event Logs to [Loki](https://github.com/grafana/loki). Example configuration below:
+
+```yaml
+server:
+  log_level: debug
+  http_listen_port: 12345
+loki:
+  # This directory needs to already exist
+  positions_directory: "C:\\path\\to\\directory"
+  configs:
+    - name: windows 
+      # Loki endpoint to push logs to
+      clients:
+        - url: https://example.com
+      scrape_configs: 
+      - job_name: windows
+        windows_events:
+          # Note the directory structure must already exist but the file will be created on demand
+          bookmark_path: "C:\\path\\to\\bookmark\\directory\\bookmark.xml"
+          use_incoming_timestamp: false
+          eventlog_name: "Application"
+          # Filter for logs
+          xpath_query: '*'
+          labels:
+            job: windows
+```
