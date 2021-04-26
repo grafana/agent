@@ -34,9 +34,9 @@ If the Grafana Agent is installed using the installer, it can be uninstalled via
 
 When Grafana Agent runs as a Windows Service, the Grafana Agent will write logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the event source name of `Grafana Agent`.
 
-## Pushing Windows logs to Loki
+## Pushing Windows logs to Grafana Loki
 
-Grafana Agent can use [promtail](https://grafana.com/docs/loki/latest/clients/promtail/) to push Windows Event Logs to [Loki](https://github.com/grafana/loki). Example configuration below:
+Grafana Agent can use the embedded [promtail](https://grafana.com/docs/loki/latest/clients/promtail/) to push Windows Event Logs to [Grafana Loki](https://github.com/grafana/loki). Example configuration below:
 
 ```yaml
 server:
@@ -62,3 +62,5 @@ loki:
           labels:
             job: windows
 ```
+
+Additional windows_events configuration details can be found [here](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#windows_events)
