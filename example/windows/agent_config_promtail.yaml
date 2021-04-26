@@ -1,0 +1,22 @@
+server:
+  log_level: debug
+  http_listen_port: 12345
+loki:
+  # This directory needs to already exist
+  positions_directory: "C:\\path\\to\\directory"
+  configs:
+    - name: windows 
+      # Loki endpoint to push logs to
+      clients:
+        - url: https://example.com
+      scrape_configs: 
+      - job_name: windows
+        windows_events:
+          # Note the directory structure must already exist but file will be created on demand
+          bookmark_path: "C:\\pathtobookmarkpath\\bookmark.xml"
+          use_incoming_timestamp: false
+          eventlog_name: "Application"
+          # Filter fo logs
+          xpath_query: '*'
+          labels:
+            job: windows

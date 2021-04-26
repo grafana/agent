@@ -2,13 +2,13 @@
 
 ## Overview
 
-The installer will install Grafana Agent into the default directory `C:\Program Files (x86)\Grafana Agent`. [Windows Exporter](https://github.com/grafana/windows_exporter) can be enabled with all default options. 
+The installer will install Grafana Agent into the default directory `C:\Program Files (x86)\Grafana Agent`. The [windows_exporter](https://github.com/grafana/windows_exporter) can be enabled with all default windows_exporter options. 
 
 ## Installation
 
-After installation ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/targets`. 
+After installation, ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/targets`. 
 
-If Grafana Agent is re-installed and an agent-config.yaml already exists it will not overwrite the existing one.
+If Grafana Agent is re-installed and an agent-config.yaml already exists; the installation will not overwrite the existing one.
 
 After installation, you can adjust `C:\Program Files (x86)\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, the Grafana Agent service must be restarted to load changes to the configuration.
 
@@ -32,4 +32,8 @@ If the Grafana Agent is installed using the installer, it can be uninstalled via
 
 ## Logs
 
-When Grafana Agent is running as a Windows Service the Grafana Agent will write logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the source of `Grafana Agent`.
+When Grafana Agent runs as a Windows Service, the Grafana Agent will write logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the source of `Grafana Agent`.
+
+## Pushing Windows Logs to Loki
+
+Grafana Agent can use [promtail](https://grafana.com/docs/loki/latest/clients/promtail/) to push Windows Event Logs to [Loki](https://github.com/grafana/loki). An example configuration is located at [here](../example/windows/agent_config_promtail.yaml).
