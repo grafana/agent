@@ -12,11 +12,11 @@ loki:
       scrape_configs: 
       - job_name: windows
         windows_events:
-          # Note the directory structure must already exist but file will be created on demand
-          bookmark_path: "C:\\pathtobookmarkpath\\bookmark.xml"
+          # Note the directory structure must already exist but the file will be created on demand
+          bookmark_path: "C:\\path\\to\\bookmark\\directory\\bookmark.xml"
           use_incoming_timestamp: false
           eventlog_name: "Application"
-          # Filter fo logs
+          # Filter for logs
           xpath_query: '*'
           labels:
             job: windows
