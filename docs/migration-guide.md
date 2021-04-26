@@ -5,7 +5,32 @@ releases and how to migrate to newer versions.
 
 # v0.14.0
 
-v0.14.0 introduces a breaking change to the SigV4 configuration and the deprecation of `push_config` in favor of `remote_write` for Tempo configs.
+## Scraping Service security change
+
+v0.14.0 changes the default behavior of the scraping service config management
+API to reject all configuration files that read credentials from a file on disk.
+This prevents malicious users from crafting an instance config file that read
+arbitrary files on disk and send their contents to remote endpoints.
+
+To revert to the old behavior, add `dangerous_allow_reading_files: true` in your
+`scraping_service` config.
+
+Example old config:
+
+```yaml
+prometheus:
+  scraping_service:
+    # ...
+```
+
+Example new config:
+
+```yaml
+prometheus:
+  scraping_service:
+    dangerous_allow_reading_files: true
+    # ...
+```
 
 ## SigV4 config change
 
