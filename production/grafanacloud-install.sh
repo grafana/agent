@@ -71,8 +71,30 @@ main() {
       ;;
   esac
 
-  log '--- Retrieving config and placing in /etc/grafana-agent.yaml'
-  retrieve_config | sudo tee /etc/grafana-agent.yaml
+  if [ -f /etc/grafana-agent.yaml ]; then
+    while true; do
+      read -p "Do you wish to overwrite your configuration with the latest template? A backup will be made. y/N (default N) " yn
+      case $yn in
+        [Yy]*)
+          log '--- Creating numbered backup of /etc/grafana-agent.yaml in same directory'
+          sudo cp -p --force --backup=numbered /etc/grafana-agent.yaml /etc/grafana-agent.yaml
+
+          log '--- Retrieving new config and placing in /etc/grafana-agent.yaml'
+          retrieve_config | sudo tee /etc/grafana-agent.yaml
+
+          break
+          ;;
+        ""|[Nn]*)
+          break
+          ;;
+        *)
+          echo "Please answer Y or N"
+      esac
+    done
+  else
+    log '--- Retrieving config and placing in /etc/grafana-agent.yaml'
+    retrieve_config | sudo tee /etc/grafana-agent.yaml
+  fi
 
   log '--- Enabling and starting grafana-agent.service'
   sudo systemctl enable grafana-agent.service

@@ -14,14 +14,21 @@ service config.
 - [FEATURE] Disallow reading files from within scraping service configs by
   default. (@rfratto)
 
+- [ENHANCEMENT] The Grafana Cloud install script will now prompt for overwriting
+  the config file if one already exists. Backups will be made when
+  overwriting. (@rfratto)
+
 - [BUGFIX] Ensure defaults are applied to undefined sections in config file.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
   configured. (@rfratto)
 
 # 0.14.0-rc.3 (2021-04-15)
 
+- [FEATURE] Tail-based sampling for tracing pipelines (@mapno)
+
 - [ENHANCEMENT] Add  `headers` field in `remote_write` config for Tempo. `headers`
   specifies HTTP headers to forward to the remote endpoint. (@alexbiehl)
+
 - [CHANGE] Add `tempo_spanmetrics` namespace in spanmetrics (@mapno)
 
 - [BUGFIX] Grafana Agent running as a Windows service should start automatically on startup
@@ -30,8 +37,6 @@ service config.
 - [BUGFIX] Validate that incoming scraped metrics do not have an empty label
   set or a label set with duplicate labels, mirroring the behavior of
   Prometheus. (@rfratto)
-
-- [FEATURE] Tail-based sampling for tracing pipelines (@mapno)
 
 # v0.13.1 (2021-04-09)
 
