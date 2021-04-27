@@ -73,7 +73,7 @@ main() {
 
   if [ -f /etc/grafana-agent.yaml ]; then
     while true; do
-      read -p "Do you wish to overwrite your configuration with the latest template? A backup will be made. y/N (default N) " yn
+      read -r -p "Do you wish to overwrite your configuration with the latest template? A backup will be made. y/N (default N) " yn
       case $yn in
         [Yy]*)
           log '--- Creating numbered backup of /etc/grafana-agent.yaml in same directory'
