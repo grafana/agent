@@ -62,6 +62,23 @@ func NewGroupManager(inner Manager) *GroupManager {
 	}
 }
 
+// GetInstance gets the underlying grouped instance for a given name.
+func (m *GroupManager) GetInstance(name string) (ManagedInstance, error) {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
+	group, ok := m.groupLookup[name]
+	if !ok {
+		return nil, fmt.Errorf("instance %s does not exist", name)
+	}
+
+	inst, err := m.inner.GetInstance(group)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get instance for %s: %w", name, err)
+	}
+	return inst, nil
+}
+
 // ListInstances returns all currently grouped managed instances. The key
 // will be the group's hash of shared settings.
 func (m *GroupManager) ListInstances() map[string]ManagedInstance {

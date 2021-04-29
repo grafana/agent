@@ -34,6 +34,9 @@ var (
 // Manager represents a set of methods for manipulating running instances at
 // runtime.
 type Manager interface {
+	// GetInstance retrieved a ManagedInstance by name.
+	GetInstance(name string) (ManagedInstance, error)
+
 	// ListInstances returns all currently managed instances running
 	// within the Manager. The key will be the instance name from their config.
 	ListInstances() map[string]ManagedInstance
@@ -123,6 +126,18 @@ func (m *BasicManager) UpdateManagerConfig(c BasicManagerConfig) {
 	m.cfgMut.Lock()
 	defer m.cfgMut.Unlock()
 	m.cfg = c
+}
+
+// GetInstance returns the given instance by name.
+func (m *BasicManager) GetInstance(name string) (ManagedInstance, error) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+
+	process, ok := m.processes[name]
+	if !ok {
+		return nil, fmt.Errorf("instance %s does not exist", name)
+	}
+	return process.inst, nil
 }
 
 // ListInstances returns the current active instances managed by BasicManager.
@@ -298,11 +313,20 @@ func (m *BasicManager) Stop() {
 // MockManager exposes methods of the Manager interface as struct fields.
 // Useful for tests.
 type MockManager struct {
+	GetInstanceFunc   func(name string) (ManagedInstance, error)
 	ListInstancesFunc func() map[string]ManagedInstance
 	ListConfigsFunc   func() map[string]Config
 	ApplyConfigFunc   func(Config) error
 	DeleteConfigFunc  func(name string) error
 	StopFunc          func()
+}
+
+// GetInstance implements Manager.
+func (m MockManager) GetInstance(name string) (ManagedInstance, error) {
+	if m.GetInstanceFunc != nil {
+		return m.GetInstanceFunc(name)
+	}
+	panic("GetInstanceFunc not implemented")
 }
 
 // ListInstances implements Manager.
