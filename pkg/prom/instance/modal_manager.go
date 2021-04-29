@@ -139,6 +139,13 @@ func (m *ModalManager) SetMode(newMode Mode) error {
 	return firstError
 }
 
+// GetInstance implements Manager.
+func (m *ModalManager) GetInstance(name string) (ManagedInstance, error) {
+	m.mut.RLock()
+	defer m.mut.RUnlock()
+	return m.active.GetInstance(name)
+}
+
 // ListInstances implements Manager.
 func (m *ModalManager) ListInstances() map[string]ManagedInstance {
 	m.mut.RLock()
