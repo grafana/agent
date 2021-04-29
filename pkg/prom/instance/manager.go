@@ -34,7 +34,7 @@ var (
 // Manager represents a set of methods for manipulating running instances at
 // runtime.
 type Manager interface {
-	// GetInstance retrieved a ManagedInstance by name.
+	// GetInstance retrieves a ManagedInstance by name.
 	GetInstance(name string) (ManagedInstance, error)
 
 	// ListInstances returns all currently managed instances running
