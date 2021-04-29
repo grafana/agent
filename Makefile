@@ -1,23 +1,9 @@
-.DEFAULT_GOAL := all
-.PHONY: all agent agentctl check-mod int test clean cmd/agent/agent cmd/agentctl/agentctl protos
 
 SHELL = /usr/bin/env bash
 
 #############
 # Variables #
 #############
-
-# When the value of empty, no -mod parameter will be passed to go.
-# For Go 1.13, "readonly" and "vendor" can be used here.
-# In Go >=1.14, "vendor" and "mod" can be used instead.
-GOMOD?=vendor
-ifeq ($(strip $(GOMOD)),) # Is empty?
-	MOD_FLAG=
-	GOLANGCI_ARG=
-else
-	MOD_FLAG=-mod=$(GOMOD)
-	GOLANGCI_ARG=--modules-download-mode=$(GOMOD)
-endif
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
@@ -51,14 +37,14 @@ DONT_FIND := -name tools -prune -o -name vendor -prune -o -name .git -prune -o -
 # Build flags
 VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
-DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build" $(MOD_FLAG)
+GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build"
+DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build"
 DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAGE_TAG=$(IMAGE_TAG)
 
 # We need a separate set of flags for CGO, where building with -static can
 # cause problems with some C libraries.
-CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(MOD_FLAG)
-DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(MOD_FLAG)
+CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
+DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
 
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
@@ -123,7 +109,7 @@ ifeq ($(BUILD_IN_CONTAINER),true)
 		-e SRC_PATH=/src/agent \
 		$(BUILD_IMAGE) $@;
 else
-	protoc -I .:./vendor:./$(@D) --gogoslick_out=Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,plugins=grpc,paths=source_relative:./ ./$(patsubst %.pb.go,%.proto,$@);
+	protoc -I .:./$(@D) --gogoslick_out=Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,plugins=grpc,paths=source_relative:./ ./$(patsubst %.pb.go,%.proto,$@);
 endif
 
 ###################
@@ -174,7 +160,7 @@ test:
 
 clean:
 	rm -rf cmd/agent/agent
-	go clean $(MOD_FLAG) ./...
+	go clean ./...
 
 example-kubernetes:
 	cd production/kubernetes/build && bash build.sh
@@ -221,7 +207,7 @@ dist/agent-windows-amd64.exe: seego
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	cp dist/agent-windows-amd64.exe ./packaging/windows
 	cp LICENSE ./packaging/windows
-	docker build ./packaging/windows -t windows_nsis 
+	docker build ./packaging/windows -t windows_nsis
 	docker run -e VERSION=${RELEASE_TAG} --rm -t -v $(CURDIR)/dist:/app windows_nsis
 dist/agent-freebsd-amd64: seego
 	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
