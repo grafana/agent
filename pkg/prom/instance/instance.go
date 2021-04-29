@@ -509,6 +509,10 @@ func (i *Instance) StorageDirectory() string {
 	return i.wal.Directory()
 }
 
+func (i *Instance) Appender(ctx context.Context) storage.Appender {
+	return i.wal.Appender(ctx)
+}
+
 type discoveryService struct {
 	Manager *discovery.Manager
 

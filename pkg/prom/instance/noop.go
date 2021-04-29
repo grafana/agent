@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/prometheus/prometheus/storage"
 )
 
 // NoOpInstance implements the Instance interface in pkg/prom
@@ -29,4 +30,8 @@ func (NoOpInstance) TargetsActive() map[string][]*scrape.Target {
 // StorageDirectory implements Instance.
 func (NoOpInstance) StorageDirectory() string {
 	return ""
+}
+
+func (NoOpInstance) Appender(_ context.Context) storage.Appender {
+	return nil
 }
