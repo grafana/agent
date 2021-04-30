@@ -317,6 +317,7 @@ func copyConfig(c Config) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	cfg.Global = c.Global
 
 	// Some tests will trip up on this; the marshal/unmarshal cycle might set
 	// an empty slice to nil. Set it back to an empty slice if we detect this
@@ -327,6 +328,7 @@ func copyConfig(c Config) (Config, error) {
 	if cfg.RemoteWrite == nil && c.RemoteWrite != nil {
 		cfg.RemoteWrite = []*config.RemoteWriteConfig{}
 	}
+
 	return *cfg, nil
 }
 

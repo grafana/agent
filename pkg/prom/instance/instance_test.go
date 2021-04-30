@@ -40,7 +40,7 @@ remote_write:
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
 
-	err = cfg.ApplyDefaults(&global)
+	err = cfg.ApplyDefaults()
 	require.NoError(t, err)
 
 	require.Equal(t, DefaultConfig.HostFilter, cfg.HostFilter)
@@ -161,7 +161,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 				tc.mutation(&input)
 			}
 
-			err := input.ApplyDefaults(&global)
+			err := input.ApplyDefaults()
 			if tc.err == nil {
 				require.NoError(t, err)
 			} else {
@@ -172,8 +172,6 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 }
 
 func TestConfig_ApplyDefaults_HashedName(t *testing.T) {
-	global := DefaultGlobalConfig
-
 	cfgText := `
 name: default
 host_filter: false
@@ -183,7 +181,7 @@ remote_write:
 
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
-	require.NoError(t, cfg.ApplyDefaults(&global))
+	require.NoError(t, cfg.ApplyDefaults())
 	require.NotEmpty(t, cfg.RemoteWrite[0].Name)
 }
 
@@ -202,7 +200,7 @@ func TestInstance_Path(t *testing.T) {
 	cfg.RemoteFlushDeadline = time.Hour
 
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	inst, err := New(prometheus.NewRegistry(), globalConfig, cfg, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), cfg, walDir, logger)
 	require.NoError(t, err)
 	runInstance(t, inst)
 
@@ -225,7 +223,6 @@ func TestInstance(t *testing.T) {
 	defer os.RemoveAll(walDir)
 
 	globalConfig := getTestGlobalConfig(t)
-
 	cfg := getTestConfig(t, &globalConfig, scrapeAddr)
 	cfg.WALTruncateFrequency = time.Hour
 	cfg.RemoteFlushDeadline = time.Hour
@@ -237,7 +234,7 @@ func TestInstance(t *testing.T) {
 	newWal := func(_ prometheus.Registerer) (walStorage, error) { return &mockStorage, nil }
 
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	inst, err := newInstance(globalConfig, cfg, nil, logger, newWal)
+	inst, err := newInstance(cfg, nil, logger, newWal)
 	require.NoError(t, err)
 	runInstance(t, inst)
 
@@ -267,7 +264,7 @@ func TestInstance_Recreate(t *testing.T) {
 	cfg.RemoteFlushDeadline = time.Hour
 
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	inst, err := New(prometheus.NewRegistry(), globalConfig, cfg, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), cfg, walDir, logger)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -287,7 +284,7 @@ func TestInstance_Recreate(t *testing.T) {
 
 	// Recreate the instance, no panic should happen.
 	require.NotPanics(t, func() {
-		inst, err := New(prometheus.NewRegistry(), globalConfig, cfg, walDir, logger)
+		inst, err := New(prometheus.NewRegistry(), cfg, walDir, logger)
 		require.NoError(t, err)
 		runInstance(t, inst)
 
@@ -400,6 +397,7 @@ func getTestConfig(t *testing.T, global *GlobalConfig, scrapeAddr string) Config
 	cfg := DefaultConfig
 	cfg.Name = "test"
 	cfg.ScrapeConfigs = []*config.ScrapeConfig{&scrapeCfg}
+	cfg.Global = *global
 
 	return cfg
 }

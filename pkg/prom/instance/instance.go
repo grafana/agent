@@ -50,6 +50,7 @@ var (
 		MaxWALTime:           4 * time.Hour,
 		RemoteFlushDeadline:  1 * time.Minute,
 		WriteStaleOnShutdown: false,
+		Global:               DefaultGlobalConfig,
 	}
 )
 
@@ -71,6 +72,8 @@ type Config struct {
 
 	RemoteFlushDeadline  time.Duration `yaml:"remote_flush_deadline,omitempty"`
 	WriteStaleOnShutdown bool          `yaml:"write_stale_on_shutdown,omitempty"`
+
+	Global GlobalConfig `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -103,7 +106,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 // ApplyDefaults applies default configurations to the configuration to all
 // values that have not been changed to their non-zero value. ApplyDefaults
 // also validates the config.
-func (c *Config) ApplyDefaults(global *GlobalConfig) error {
+func (c *Config) ApplyDefaults() error {
 	switch {
 	case c.Name == "":
 		return errors.New("missing instance name")
@@ -124,7 +127,7 @@ func (c *Config) ApplyDefaults(global *GlobalConfig) error {
 		// First set the correct scrape interval, then check that the timeout
 		// (inferred or explicit) is not greater than that.
 		if sc.ScrapeInterval == 0 {
-			sc.ScrapeInterval = global.Prometheus.ScrapeInterval
+			sc.ScrapeInterval = c.Global.Prometheus.ScrapeInterval
 		}
 		if sc.ScrapeTimeout > sc.ScrapeInterval {
 			return fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name %q", sc.JobName)
@@ -133,10 +136,10 @@ func (c *Config) ApplyDefaults(global *GlobalConfig) error {
 			return fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape config with job name %q", sc.JobName)
 		}
 		if sc.ScrapeTimeout == 0 {
-			if global.Prometheus.ScrapeTimeout > sc.ScrapeInterval {
+			if c.Global.Prometheus.ScrapeTimeout > sc.ScrapeInterval {
 				sc.ScrapeTimeout = sc.ScrapeInterval
 			} else {
-				sc.ScrapeTimeout = global.Prometheus.ScrapeTimeout
+				sc.ScrapeTimeout = c.Global.Prometheus.ScrapeTimeout
 			}
 		}
 
@@ -150,7 +153,7 @@ func (c *Config) ApplyDefaults(global *GlobalConfig) error {
 
 	// If the instance remote write is not filled in, then apply the prometheus write config
 	if len(c.RemoteWrite) == 0 {
-		c.RemoteWrite = global.RemoteWrite
+		c.RemoteWrite = c.Global.RemoteWrite
 	}
 	for _, cfg := range c.RemoteWrite {
 		if cfg == nil {
@@ -203,8 +206,7 @@ type Instance struct {
 	remoteStore        *remote.Storage
 	storage            storage.Storage
 
-	globalCfg GlobalConfig
-	logger    log.Logger
+	logger log.Logger
 
 	reg    prometheus.Registerer
 	newWal walStorageFactory
@@ -214,7 +216,7 @@ type Instance struct {
 
 // New creates a new Instance with a directory for storing the WAL. The instance
 // will not start until Run is called on the instance.
-func New(reg prometheus.Registerer, globalCfg GlobalConfig, cfg Config, walDir string, logger log.Logger) (*Instance, error) {
+func New(reg prometheus.Registerer, cfg Config, walDir string, logger log.Logger) (*Instance, error) {
 	logger = log.With(logger, "instance", cfg.Name)
 
 	instWALDir := filepath.Join(walDir, cfg.Name)
@@ -223,17 +225,16 @@ func New(reg prometheus.Registerer, globalCfg GlobalConfig, cfg Config, walDir s
 		return wal.NewStorage(logger, reg, instWALDir)
 	}
 
-	return newInstance(globalCfg, cfg, reg, logger, newWal)
+	return newInstance(cfg, reg, logger, newWal)
 }
 
-func newInstance(globalCfg GlobalConfig, cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
+func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
 	vc := NewMetricValueCollector(prometheus.DefaultGatherer, remoteWriteMetricName)
 
 	i := &Instance{
-		cfg:       cfg,
-		globalCfg: globalCfg,
-		logger:    logger,
-		vc:        vc,
+		cfg:    cfg,
+		logger: logger,
+		vc:     vc,
 
 		reg:    reg,
 		newWal: newWal,
@@ -376,7 +377,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	remoteLogger := log.With(i.logger, "component", "remote")
 	i.remoteStore = remote.NewStorage(remoteLogger, reg, i.wal.StartTime, i.wal.Directory(), cfg.RemoteFlushDeadline, i.readyScrapeManager)
 	err = i.remoteStore.ApplyConfig(&config.Config{
-		GlobalConfig:       i.globalCfg.Prometheus,
+		GlobalConfig:       cfg.Global.Prometheus,
 		RemoteWriteConfigs: cfg.RemoteWrite,
 	})
 	if err != nil {
@@ -387,7 +388,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 
 	scrapeManager := newScrapeManager(log.With(i.logger, "component", "scrape manager"), i.storage)
 	err = scrapeManager.ApplyConfig(&config.Config{
-		GlobalConfig:  i.globalCfg.Prometheus,
+		GlobalConfig:  cfg.Global.Prometheus,
 		ScrapeConfigs: cfg.ScrapeConfigs,
 	})
 	if err != nil {
@@ -452,7 +453,7 @@ func (i *Instance) Update(c Config) (err error) {
 	i.cfg = c
 
 	err = i.remoteStore.ApplyConfig(&config.Config{
-		GlobalConfig:       i.globalCfg.Prometheus,
+		GlobalConfig:       c.Global.Prometheus,
 		RemoteWriteConfigs: c.RemoteWrite,
 	})
 	if err != nil {
@@ -464,7 +465,7 @@ func (i *Instance) Update(c Config) (err error) {
 		return fmt.Errorf("couldn't get scrape manager to apply new scrape configs: %w", err)
 	}
 	err = sm.ApplyConfig(&config.Config{
-		GlobalConfig:  i.globalCfg.Prometheus,
+		GlobalConfig:  c.Global.Prometheus,
 		ScrapeConfigs: c.ScrapeConfigs,
 	})
 	if err != nil {
