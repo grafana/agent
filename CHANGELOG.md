@@ -18,6 +18,9 @@ service config.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
   configured. (@rfratto)
 
+- [BUGFIX] Re-read `prometheus.global` settings when calling /-/reload.
+  (@rfratto)
+
 # 0.14.0-rc.3 (2021-04-15)
 
 - [ENHANCEMENT] Add  `headers` field in `remote_write` config for Tempo. `headers`
