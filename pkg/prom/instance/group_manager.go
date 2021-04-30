@@ -1,7 +1,6 @@
 package instance
 
 import (
-	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -259,7 +258,7 @@ func (m *GroupManager) Stop() {
 func hashConfig(c Config) (string, error) {
 	// We need a deep copy since we're going to mutate the remote_write
 	// pointers.
-	groupable, err := copyConfig(c)
+	groupable, err := c.Clone()
 	if err != nil {
 		return "", err
 	}
@@ -308,29 +307,6 @@ func hashConfig(c Config) (string, error) {
 
 // copyConfig provides a deep copy of a Config that can be mutated
 // independently of c.
-func copyConfig(c Config) (Config, error) {
-	bb, err := MarshalConfig(&c, false)
-	if err != nil {
-		return Config{}, err
-	}
-	cfg, err := UnmarshalConfig(bytes.NewReader(bb))
-	if err != nil {
-		return Config{}, err
-	}
-	cfg.Global = c.Global
-
-	// Some tests will trip up on this; the marshal/unmarshal cycle might set
-	// an empty slice to nil. Set it back to an empty slice if we detect this
-	// happening.
-	if cfg.ScrapeConfigs == nil && c.ScrapeConfigs != nil {
-		cfg.ScrapeConfigs = []*config.ScrapeConfig{}
-	}
-	if cfg.RemoteWrite == nil && c.RemoteWrite != nil {
-		cfg.RemoteWrite = []*config.RemoteWriteConfig{}
-	}
-
-	return *cfg, nil
-}
 
 // groupConfig creates a grouped Config where all fields are copied from
 // the first config except for scrape_configs, which are appended together.
@@ -347,7 +323,7 @@ func groupConfigs(groupName string, grouped groupedConfigs) (Config, error) {
 	}
 	sort.Slice(cfgs, func(i, j int) bool { return cfgs[i].Name < cfgs[j].Name })
 
-	combined, err := copyConfig(cfgs[0])
+	combined, err := cfgs[0].Clone()
 	if err != nil {
 		return Config{}, err
 	}

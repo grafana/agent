@@ -40,7 +40,7 @@ remote_write:
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
 
-	err = cfg.ApplyDefaults()
+	err = cfg.ApplyDefaults(global)
 	require.NoError(t, err)
 
 	require.Equal(t, DefaultConfig.HostFilter, cfg.HostFilter)
@@ -161,7 +161,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 				tc.mutation(&input)
 			}
 
-			err := input.ApplyDefaults()
+			err := input.ApplyDefaults(global)
 			if tc.err == nil {
 				require.NoError(t, err)
 			} else {
@@ -181,7 +181,7 @@ remote_write:
 
 	cfg, err := UnmarshalConfig(strings.NewReader(cfgText))
 	require.NoError(t, err)
-	require.NoError(t, cfg.ApplyDefaults())
+	require.NoError(t, cfg.ApplyDefaults(DefaultGlobalConfig))
 	require.NotEmpty(t, cfg.RemoteWrite[0].Name)
 }
 
@@ -397,7 +397,7 @@ func getTestConfig(t *testing.T, global *GlobalConfig, scrapeAddr string) Config
 	cfg := DefaultConfig
 	cfg.Name = "test"
 	cfg.ScrapeConfigs = []*config.ScrapeConfig{&scrapeCfg}
-	cfg.Global = *global
+	cfg.global = *global
 
 	return cfg
 }

@@ -73,11 +73,8 @@ func (c *Config) ApplyDefaults() error {
 	usedNames := map[string]struct{}{}
 
 	for i := range c.Configs {
-		// Initialize the global settings.
-		c.Configs[i].Global = c.Global
-
 		name := c.Configs[i].Name
-		if err := c.Configs[i].ApplyDefaults(); err != nil {
+		if err := c.Configs[i].ApplyDefaults(c.Global); err != nil {
 			// Try to show a helpful name in the error
 			if name == "" {
 				name = fmt.Sprintf("at index %d", i)
@@ -193,9 +190,7 @@ func (a *Agent) Validate(c *instance.Config) error {
 	a.mut.RLock()
 	defer a.mut.RUnlock()
 
-	c.Global = a.cfg.Global
-
-	if err := c.ApplyDefaults(); err != nil {
+	if err := c.ApplyDefaults(a.cfg.Global); err != nil {
 		return fmt.Errorf("failed to apply defaults to %q: %w", c.Name, err)
 	}
 	return nil
