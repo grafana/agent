@@ -447,9 +447,8 @@ spanmetrics:
     - name: http.method
       default: GET
     - name: http.status_code
-  metrics_exporter:
-    endpoint: "0.0.0.0:8889"
-    namespace: promexample
+  exporter:
+    prom_instance: tempo
 `,
 			expectedConfig: `
 receivers:
@@ -463,12 +462,11 @@ exporters:
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-    namespace: promexample_tempo_spanmetrics
+  remote_write:
+    namespace: tempo_spanmetrics
 processors:
   spanmetrics:
-    metrics_exporter: prometheus
+    metrics_exporter: remote_write
     latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
     dimensions:
       - name: http.method
@@ -481,7 +479,7 @@ service:
       processors: ["spanmetrics"]
       receivers: ["jaeger"]
     metrics/spanmetrics:
-      exporters: ["prometheus"]
+      exporters: ["remote_write"]
       receivers: ["noop"]
 `,
 		},

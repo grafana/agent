@@ -43,6 +43,10 @@ prometheus:
                 container: 'avalanche-3'
       remote_write:
         - url: http://cortex:9009/api/prom/push
+    - name: tempo
+      host_filter: false
+      remote_write:
+        - url: http://cortex:9009/api/prom/push
 
 loki:
   configs:
@@ -83,3 +87,6 @@ tempo:
       spans: true
       processes: true
       roots: true
+    spanmetrics:
+      exporter:
+        prom_instance: tempo

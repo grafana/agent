@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
@@ -282,6 +283,10 @@ func (i *fakeInstance) TargetsActive() map[string][]*scrape.Target {
 
 func (i *fakeInstance) StorageDirectory() string {
 	return ""
+}
+
+func (i *fakeInstance) Appender(ctx context.Context) storage.Appender {
+	return nil
 }
 
 type fakeInstanceFactory struct {

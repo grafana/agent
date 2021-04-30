@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -101,6 +102,7 @@ type mockInstance struct {
 	UpdateFunc           func(c Config) error
 	TargetsActiveFunc    func() map[string][]*scrape.Target
 	StorageDirectoryFunc func() string
+	AppenderFunc         func() storage.Appender
 }
 
 func (m mockInstance) Run(ctx context.Context) error {
@@ -129,4 +131,11 @@ func (m mockInstance) StorageDirectory() string {
 		return m.StorageDirectoryFunc()
 	}
 	panic("StorageDirectoryFunc not provided")
+}
+
+func (m mockInstance) Appender(_ context.Context) storage.Appender {
+	if m.AppenderFunc != nil {
+		return m.AppenderFunc()
+	}
+	panic("AppenderFunc not provided")
 }
