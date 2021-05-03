@@ -14,9 +14,13 @@ service config.
 - [FEATURE] Disallow reading files from within scraping service configs by
   default. (@rfratto)
 
+- [ENHANCEMENT] Add silent uninstall to Windows Uninstaller. (@mattdurham)
+
 - [BUGFIX] Ensure defaults are applied to undefined sections in config file.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
   configured. (@rfratto)
+  
+- [BUGFIX]  Use 64 bit Program Files when installing on Windows. (@mattdurham)
 
 - [BUGFIX] Re-read `prometheus.global` settings when calling /-/reload.
   (@rfratto)

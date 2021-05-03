@@ -11,7 +11,7 @@ Unicode true
 
 RequestExecutionLevel admin #Require admin rights on NT6+ (When UAC is turned on)
 
-InstallDir "$PROGRAMFILES\${APPNAME}"
+InstallDir "$PROGRAMFILES64\${APPNAME}"
 
 # This will be in the installer/uninstaller's title bar
 Name "${APPNAME} ${VERSION}"
@@ -156,12 +156,15 @@ FunctionEnd
 # Uninstaller
 Function un.onInit
     SetShellVarContext all
-
-    #Verify the uninstaller - last chance to back out
-    MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}? This will remove the WAL and the agent config." IDOK next
-        Abort
-    next:
-    !insertmacro VerifyUserIsAdmin
+    IfSilent ThisIsSilent WarnUser
+    ThisIsSilent:
+        Return
+    WarnUser:
+         #Verify the uninstaller - last chance to back out
+        MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}? This will remove the WAL and the agent config." IDOK next
+            Abort
+        next:
+        !insertmacro VerifyUserIsAdmin
 FunctionEnd
 
 Section "uninstall"
