@@ -65,7 +65,7 @@ name: integration_test
 scrape_configs: []
 remote_write: []
 `)
-	inst, err := New(prometheus.NewRegistry(), DefaultGlobalConfig, initialConfig, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), initialConfig, walDir, logger)
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
@@ -131,7 +131,7 @@ name: integration_test
 scrape_configs: []
 remote_write: []
 `)
-	inst, err := New(prometheus.NewRegistry(), DefaultGlobalConfig, initialConfig, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), initialConfig, walDir, logger)
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
@@ -184,7 +184,7 @@ name: integration_test
 scrape_configs: []
 remote_write: []
 `)
-	inst, err := New(prometheus.NewRegistry(), DefaultGlobalConfig, initialConfig, walDir, logger)
+	inst, err := New(prometheus.NewRegistry(), initialConfig, walDir, logger)
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
@@ -250,6 +250,6 @@ remote_write: []
 func loadConfig(t *testing.T, s string) Config {
 	cfg, err := UnmarshalConfig(strings.NewReader(s))
 	require.NoError(t, err)
-	require.NoError(t, cfg.ApplyDefaults(&DefaultGlobalConfig))
+	require.NoError(t, cfg.ApplyDefaults(DefaultGlobalConfig))
 	return *cfg
 }

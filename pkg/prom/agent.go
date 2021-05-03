@@ -74,7 +74,7 @@ func (c *Config) ApplyDefaults() error {
 
 	for i := range c.Configs {
 		name := c.Configs[i].Name
-		if err := c.Configs[i].ApplyDefaults(&c.Global); err != nil {
+		if err := c.Configs[i].ApplyDefaults(c.Global); err != nil {
 			// Try to show a helpful name in the error
 			if name == "" {
 				name = fmt.Sprintf("at index %d", i)
@@ -182,7 +182,7 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 		instanceLabel: c.Name,
 	}, a.reg)
 
-	return a.instanceFactory(reg, a.cfg.Global, c, a.cfg.WALDir, a.logger)
+	return a.instanceFactory(reg, c, a.cfg.WALDir, a.logger)
 }
 
 // Validate will validate the incoming Config and mutate it to apply defaults.
@@ -190,10 +190,9 @@ func (a *Agent) Validate(c *instance.Config) error {
 	a.mut.RLock()
 	defer a.mut.RUnlock()
 
-	if err := c.ApplyDefaults(&a.cfg.Global); err != nil {
+	if err := c.ApplyDefaults(a.cfg.Global); err != nil {
 		return fmt.Errorf("failed to apply defaults to %q: %w", c.Name, err)
 	}
-
 	return nil
 }
 
@@ -323,8 +322,8 @@ func (a *Agent) Stop() {
 	a.stopped = true
 }
 
-type instanceFactory = func(reg prometheus.Registerer, global instance.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
+type instanceFactory = func(reg prometheus.Registerer, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
 
-func defaultInstanceFactory(reg prometheus.Registerer, global instance.GlobalConfig, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {
-	return instance.New(reg, global, cfg, walDir, logger)
+func defaultInstanceFactory(reg prometheus.Registerer, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {
+	return instance.New(reg, cfg, walDir, logger)
 }
