@@ -3,6 +3,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+# 0.14.0-rc.4 (2021-05-03)
+
 BREAKING CHANGES: For security, the scraping service config API will reject
 configs that read credentials from disk to prevent malicious users from reading
 artbirary files and sending their contents over the network. The old behavior
@@ -19,11 +21,12 @@ service config.
 - [BUGFIX] Ensure defaults are applied to undefined sections in config file.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
   configured. (@rfratto)
-  
+
 - [BUGFIX]  Use 64 bit Program Files when installing on Windows. (@mattdurham)
 
 - [BUGFIX] Re-read `prometheus.global` settings when calling /-/reload.
   (@rfratto)
+
 
 # 0.14.0-rc.3 (2021-04-15)
 
