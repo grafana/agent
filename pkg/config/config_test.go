@@ -31,6 +31,7 @@ prometheus:
 	require.NotEmpty(t, c.Prometheus.ServiceConfig.Lifecycler.InfNames)
 	require.NotZero(t, c.Prometheus.ServiceConfig.Lifecycler.NumTokens)
 	require.NotZero(t, c.Prometheus.ServiceConfig.Lifecycler.HeartbeatPeriod)
+	require.True(t, c.Server.RegisterInstrumentation)
 }
 
 func TestConfig_OverrideDefaultsOnLoad(t *testing.T) {
@@ -130,4 +131,51 @@ func TestConfig_Defaults(t *testing.T) {
 
 	require.Equal(t, prom.DefaultConfig, c.Prometheus)
 	require.Equal(t, integrations.DefaultManagerConfig, c.Integrations)
+}
+
+func TestConfig_TempoLokiValidation(t *testing.T) {
+	// test failure
+	cfg := `
+loki:
+  configs:
+  - name: foo
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      loki_name: default
+      spans: true
+  `
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(cfg), false, c)
+	})
+	require.EqualError(t, err, "error in config file: specified loki config default not found")
+
+	// test success
+	cfg = `
+loki:
+  configs:
+    - name: foo
+      positions:
+        filename: /tmp/positions.yaml
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      loki_name: foo
+      spans: true`
+
+	fs = flag.NewFlagSet("test", flag.ExitOnError)
+	_, err = load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(cfg), false, c)
+	})
+	require.NoError(t, err)
 }

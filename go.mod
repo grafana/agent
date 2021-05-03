@@ -7,9 +7,9 @@ require (
 	github.com/cortexproject/cortex v1.6.1-0.20210204145131-7dac81171c66
 	github.com/drone/envsubst v1.0.2
 	github.com/go-kit/kit v0.10.0
+	github.com/go-logfmt/logfmt v0.5.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.4.3
-	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20210205130758-59a34f9867ce

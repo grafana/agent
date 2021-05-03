@@ -108,6 +108,12 @@ defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.
 
+**WARNING**: By default, all instance configuration files that read
+credentials from a file on disk will be rejected. This prevents malicious users
+from reading the contents of arbitrary files as passwords and sending their
+contents to fake remote_write endpoints. To change the behavior, set
+`dangerous_allow_reading_files` to true in the `scraping_service` block.
+
 Status code: 201 with a new config, 200 on updated config.
 Response on success:
 
