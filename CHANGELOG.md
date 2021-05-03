@@ -17,6 +17,10 @@ service config.
 - [BUGFIX] Ensure defaults are applied to undefined sections in config file.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
   configured. (@rfratto)
+  
+- [BUGFIX]  Use 64 bit Program Files when installing on Windows. (@mattdurham)
+
+- [ENHANCEMENT] Add silent uninstall to Windows Uninstaller. (@mattdurham)
 
 # 0.14.0-rc.3 (2021-04-15)
 
