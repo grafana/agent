@@ -305,9 +305,6 @@ func hashConfig(c Config) (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-// copyConfig provides a deep copy of a Config that can be mutated
-// independently of c.
-
 // groupConfig creates a grouped Config where all fields are copied from
 // the first config except for scrape_configs, which are appended together.
 func groupConfigs(groupName string, grouped groupedConfigs) (Config, error) {
