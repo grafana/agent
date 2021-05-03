@@ -22,9 +22,9 @@ import (
 type Cluster struct {
 	mut sync.RWMutex
 
-	log log.Logger
-
-	cfg Config
+	log            log.Logger
+	cfg            Config
+	baseValidation ValidationFunc
 
 	//
 	// Internally, Cluster glues together four separate pieces of logic.
@@ -55,7 +55,7 @@ func New(
 	l = log.With(l, "component", "cluster")
 
 	var (
-		c   = &Cluster{log: l, cfg: cfg}
+		c   = &Cluster{log: l, cfg: cfg, baseValidation: validate}
 		err error
 	)
 
@@ -74,7 +74,7 @@ func New(
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize configstore: %w", err)
 	}
-	c.storeAPI = configstore.NewAPI(l, c.store, validate)
+	c.storeAPI = configstore.NewAPI(l, c.store, c.storeValidate)
 	reg.MustRegister(c.storeAPI)
 
 	c.watcher, err = newConfigWatcher(l, cfg, c.store, im, c.node.Owns, validate)
@@ -85,6 +85,23 @@ func New(
 	// NOTE(rfratto): ApplyConfig isn't necessary for the initialization but must
 	// be called for any changes to the configuration.
 	return c, nil
+}
+
+func (c *Cluster) storeValidate(cfg *instance.Config) error {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if err := c.baseValidation(cfg); err != nil {
+		return err
+	}
+
+	if c.cfg.DangerousAllowReadingFiles {
+		return nil
+	}
+
+	// If configs aren't allowed to read from the store, we need to make sure no
+	// configs coming in from the API set files for passwords.
+	return validateNofiles(cfg)
 }
 
 // Reshard implements agentproto.ScrapingServiceServer, and syncs the state of

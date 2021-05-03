@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
@@ -30,7 +32,7 @@ type Instance struct {
 }
 
 // NewInstance creates and starts an instance of tracing pipelines.
-func NewInstance(reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger) (*Instance, error) {
+func NewInstance(loki *loki.Loki, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger) (*Instance, error) {
 	var err error
 
 	instance := &Instance{}
@@ -40,14 +42,14 @@ func NewInstance(reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logg
 		return nil, fmt.Errorf("failed to create metric views: %w", err)
 	}
 
-	if err := instance.ApplyConfig(cfg); err != nil {
+	if err := instance.ApplyConfig(loki, cfg); err != nil {
 		return nil, err
 	}
 	return instance, nil
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(loki *loki.Loki, cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -60,7 +62,7 @@ func (i *Instance) ApplyConfig(cfg InstanceConfig) error {
 	// Shut down any existing pipeline
 	i.stop()
 
-	createCtx := context.Background()
+	createCtx := context.WithValue(context.Background(), contextkeys.Loki, loki)
 	err := i.buildAndStartPipeline(createCtx, cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create pipeline: %w", err)

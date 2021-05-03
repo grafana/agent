@@ -21,6 +21,8 @@ type Config struct {
 	KVStore         kv.Config             `yaml:"kvstore"`
 	Lifecycler      ring.LifecyclerConfig `yaml:"lifecycler"`
 
+	DangerousAllowReadingFiles bool `yaml:"dangerous_allow_reading_files"`
+
 	// TODO(rfratto): deprecate scraping_service_client in Agent and replace with this.
 	Client client.Config `yaml:"-"`
 }

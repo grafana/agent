@@ -48,7 +48,7 @@ configs:
 	var loggingLevel logging.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
-	tempo, err := New(prometheus.NewRegistry(), cfg, logrus.InfoLevel)
+	tempo, err := New(nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel)
 	require.NoError(t, err)
 	t.Cleanup(tempo.Stop)
 
@@ -92,7 +92,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	tempo, err := New(prometheus.NewRegistry(), cfg, logrus.DebugLevel)
+	tempo, err := New(nil, prometheus.NewRegistry(), cfg, logrus.DebugLevel)
 	require.NoError(t, err)
 	t.Cleanup(tempo.Stop)
 
@@ -118,7 +118,7 @@ configs:
 	err = dec.Decode(&fixedConfig)
 	require.NoError(t, err)
 
-	err = tempo.ApplyConfig(fixedConfig, logrus.DebugLevel)
+	err = tempo.ApplyConfig(nil, fixedConfig, logrus.DebugLevel)
 	require.NoError(t, err)
 
 	tr := testJaegerTracer(t)

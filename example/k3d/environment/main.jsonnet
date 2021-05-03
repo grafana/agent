@@ -142,6 +142,10 @@ local images = {
               cluster: cluster_label,
             },
           },
+
+          scraping_service+: {
+            dangerous_allow_reading_files: true,
+          },
         },
       },
 

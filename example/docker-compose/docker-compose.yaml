@@ -13,10 +13,10 @@ services:
     ports:
       - "12345:12345"
     depends_on:
-      - otel-collector
+      - tempo
 
   loki:
-    image: grafana/loki:1.5.0
+    image: grafana/loki:2.2.1
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
@@ -44,15 +44,19 @@ services:
       - agent
 
   # tracing backend
-  otel-collector:
-    image: otel/opentelemetry-collector:0.9.0
-    volumes:
-      - ./otel-collector:/etc/otel-collector
-    command:
-      - --config=/etc/otel-collector/config.yaml
+  tempo:
+    image: grafana/tempo:df7225ae
+    command: 
+      - "-storage.trace.backend=local"                  # tell tempo where to permanently put traces
+      - "-storage.trace.local.path=/tmp/tempo/traces"   
+      - "-storage.trace.wal.path=/tmp/tempo/wal"        # tell tempo where to store the wal
+      - "-auth.enabled=false"                           # disables the requirement for the X-Scope-OrgID header
+      - "-server.http-listen-port=3200"
+    ports:
+      - "3200:3200"
 
   grafana:
-    image: grafana/grafana:6.6.1
+    image: grafana/grafana:7.5.4
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana

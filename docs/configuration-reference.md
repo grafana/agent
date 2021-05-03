@@ -243,8 +243,18 @@ agents distribute discovery and scrape load between nodes.
 # reshard_interval). A timeout of 0 indicates no timeout.
 [reshard_timeout: <duration> | default = "30s"]
 
-# Configuration for the KV store to store metrics
+# Configuration for the KV store to store configurations.
 kvstore: <kvstore_config>
+
+# When set, allows configs pushed to the KV store to specify configuration
+# fields that can read secrets from files.
+#
+# This is disabled by default. When enabled, a malicious user can craft an
+# instance config that reads arbitrary files on the machine the Agent runs
+# on and sends its contents to a specically crafted remote_write endpoint.
+#
+# If enabled, ensure that no untrusted users have access to the Agent API.
+[dangerous_allow_reading_files: <boolean>]
 
 # Configuration for how agents will cluster together.
 lifecycler: <lifecycler_config>
@@ -2045,6 +2055,32 @@ remote_write:
     [ sending_queue: <otlpexporter.sending_queue> ]
     [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
+    # This processor writes a well formatted log line to a Loki instance for each span, root, or process
+    # that passes through the Agent. This allows for automatically building a mechanism for trace
+    # discovery and building metrics from traces using Loki.
+    automatic_logging:
+      # indicates the Loki instance to write logs to.
+      loki_name: <string>
+      # log one line per span. Warning! possibly very high volume
+      [ spans: <boolean> ]
+      # log one line for every root span of a trace.
+      [ roots: <boolean> ]
+      # log one line for every process
+      [ processes: <boolean> ]
+      # additional span attributes to log
+      [ span_attributes: <string array> ]
+      # additional process attributes to log
+      [ process_attributes: <string array> ]
+      # timeout on sending logs to Loki
+      [ timeout: <duration> | default = 1ms ]
+      overrides:
+        [ loki_tag: <string> | default = "tempo" ]
+        [ service_key: <string> | default = "svc" ]
+        [ span_name_key: <string> | default = "span" ]
+        [ status_key: <string> | default = "status" ]
+        [ duration_key: <string> | default = "dur" ]
+        [ trace_id_key: <string> | default = "tid" ]
+
 # Receiver configurations are mapped directly into the OpenTelemetry receivers block.
 #   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 #   Documentation for each receiver can be found at https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
@@ -2096,7 +2132,7 @@ tail_sampling:
   decision_wait: [ <string> | default="5s" ]
   # load_balancing configures load balancing of spans across multiple agents.
   # It ensures that all spans of a trace are sampled in the same instance.
-  # It's not necessary when only one agent is receiving traces (e.g. single instance deployments). 
+  # It's not necessary when only one agent is receiving traces (e.g. single instance deployments).
   load_balancing:
     # resolver configures the resolution strategy for the involved backends
     # It can be static, with a fixed list of hostnames, or DNS, with a hostname (and port) that will resolve to all IP addresses.
@@ -2115,14 +2151,14 @@ tail_sampling:
     exporter:
       # Controls whether compression is enabled.
       [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
-  
+
       # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
       [ insecure: <boolean> | default = false ]
-  
+
       # Disable validation of the server certificate. Only used when insecure is set
       # to false.
       [ insecure_skip_verify: <bool> | default = false ]
-  
+
       # Sets the `Authorization` header on every trace push with the
       # configured username and password.
       # password and password_file are mutually exclusive.
@@ -2130,7 +2166,7 @@ tail_sampling:
         [ username: <string> ]
         [ password: <secret> ]
         [ password_file: <string> ]
-    
+
 ```
 
 ### integrations_config

@@ -301,7 +301,7 @@ func (f *fakeInstanceFactory) Mocks() []*fakeInstance {
 	return f.mocks
 }
 
-func (f *fakeInstanceFactory) factory(_ prometheus.Registerer, _ instance.GlobalConfig, cfg instance.Config, _ string, _ log.Logger) (instance.ManagedInstance, error) {
+func (f *fakeInstanceFactory) factory(_ prometheus.Registerer, cfg instance.Config, _ string, _ log.Logger) (instance.ManagedInstance, error) {
 	f.created.Add(1)
 
 	f.mut.Lock()

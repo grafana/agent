@@ -3,9 +3,27 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+BREAKING CHANGES: For security, the scraping service config API will reject
+configs that read credentials from disk to prevent malicious users from reading
+artbirary files and sending their contents over the network. The old behavior
+can be achieved by enabling `dangerous_allow_reading_files` in the scraping
+service config.
+
+- [FEATURE] Added Automatic Logging feature for Tempo (@joe-elliott)
+
+- [FEATURE] Disallow reading files from within scraping service configs by
+  default. (@rfratto)
+
+- [ENHANCEMENT] Add silent uninstall to Windows Uninstaller. (@mattdurham)
+
 - [BUGFIX] Ensure defaults are applied to undefined sections in config file.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
   configured. (@rfratto)
+  
+- [BUGFIX]  Use 64 bit Program Files when installing on Windows. (@mattdurham)
+
+- [BUGFIX] Re-read `prometheus.global` settings when calling /-/reload.
+  (@rfratto)
 
 # 0.14.0-rc.3 (2021-04-15)
 
@@ -19,7 +37,7 @@ cross-compilation issue, but will return in v0.13.0.
 - [BUGFIX] Validate that incoming scraped metrics do not have an empty label
   set or a label set with duplicate labels, mirroring the behavior of
   Prometheus. (@rfratto)
-  
+
 - [FEATURE] Tail-based sampling for tracing pipelines (@mapno)
 
 # v0.13.1 (2021-04-09)

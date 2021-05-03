@@ -210,6 +210,11 @@ type mockConfigManager struct {
 	mock.Mock
 }
 
+func (m *mockConfigManager) GetInstance(name string) (instance.ManagedInstance, error) {
+	args := m.Mock.Called()
+	return args.Get(0).(instance.ManagedInstance), args.Error(1)
+}
+
 func (m *mockConfigManager) ListInstances() map[string]instance.ManagedInstance {
 	args := m.Mock.Called()
 	return args.Get(0).(map[string]instance.ManagedInstance)
