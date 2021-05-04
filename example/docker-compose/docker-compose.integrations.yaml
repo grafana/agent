@@ -5,7 +5,7 @@
 #
 # that enable local testing of all components of the Agent.
 #
-# The agent/config/agent-local.yaml file holds a config to 
+# The agent/config/agent-local.yaml file holds a config to
 # scrape all of these services.
 version: "2"
 services:
@@ -15,7 +15,7 @@ services:
   #
 
   grafana:
-    image: grafana/grafana:6.6.1
+    image: grafana/grafana:7.5.4
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana
@@ -33,7 +33,7 @@ services:
   #
 
   cortex:
-    image: cortexproject/cortex:v0.6.1
+    image: cortexproject/cortex:v1.8.1
     volumes:
       - /tmp/cortex:/tmp/cortex
       - ./cortex/config:/etc/cortex-config

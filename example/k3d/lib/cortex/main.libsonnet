@@ -14,7 +14,7 @@ local volume = k.core.v1.volume;
     local this = self,
 
     _images:: {
-      cortex: 'cortexproject/cortex:v0.6.1',
+      cortex: 'cortexproject/cortex:v1.8.1',
     },
     _config:: (import './cortex-config.libsonnet'),
 
