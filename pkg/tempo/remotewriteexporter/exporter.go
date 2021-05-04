@@ -10,7 +10,6 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -195,7 +194,9 @@ func (e *remoteWriteExporter) appendDataPoint(app storage.Appender, name, suffix
 
 func (e *remoteWriteExporter) appendDataPointWithLabels(app storage.Appender, name, suffix string, dp dataPoint, v float64, customLabels labels.Labels) error {
 	ls := e.createLabelSet(name, suffix, dp.LabelsMap(), customLabels)
-	ts := timestamp.FromTime(time.Unix(0, int64(dp.Timestamp())))
+	// TODO(mario.rodriguez): Use timestamp from metric
+	// time.Now() is used to avoid out-of-order metrics
+	ts := time.Now().Unix()
 	if _, err := app.Append(0, ls, ts, v); err != nil {
 		return err
 	}
