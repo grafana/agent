@@ -22,7 +22,7 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
 
   cortex:
-    image: cortexproject/cortex:v0.6.1
+    image: cortexproject/cortex:v1.8.1
     volumes:
       - /tmp/cortex:/tmp/cortex
       - ./cortex/config:/etc/cortex-config
@@ -46,9 +46,9 @@ services:
   # tracing backend
   tempo:
     image: grafana/tempo:df7225ae
-    command: 
+    command:
       - "-storage.trace.backend=local"                  # tell tempo where to permanently put traces
-      - "-storage.trace.local.path=/tmp/tempo/traces"   
+      - "-storage.trace.local.path=/tmp/tempo/traces"
       - "-storage.trace.wal.path=/tmp/tempo/wal"        # tell tempo where to store the wal
       - "-auth.enabled=false"                           # disables the requirement for the X-Scope-OrgID header
       - "-server.http-listen-port=3200"

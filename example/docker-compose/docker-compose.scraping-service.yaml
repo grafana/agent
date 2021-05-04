@@ -46,7 +46,7 @@ services:
       - --log-level=info
 
   cortex:
-    image: cortexproject/cortex:v0.6.1
+    image: cortexproject/cortex:v1.8.1
     volumes:
       - /tmp/cortex:/tmp/cortex
       - ./cortex/config:/etc/cortex-config
@@ -57,7 +57,7 @@ services:
       - "9009:9009"
 
   grafana:
-    image: grafana/grafana:6.6.1
+    image: grafana/grafana:7.5.4
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana

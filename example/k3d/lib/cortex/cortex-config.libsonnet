@@ -22,14 +22,14 @@
     grpc_client_config: {
       max_recv_msg_size: 104857600,
       max_send_msg_size: 104857600,
-      use_gzip_compression: true,
+      grpc_compression: 'gzip',
     },
   },
 
   ingester: {
     lifecycler: {
       join_after: 0,
-      claim_on_rollout: false,
+      min_ready_duration: '0s',
       final_sleep: '0s',
       num_tokens: 512,
 
@@ -42,25 +42,45 @@
     },
   },
 
-  schema: {
-    configs: [{
-      from: '2020-02-07',
-      store: 'boltdb',
-      object_store: 'filesystem',
-      schema: 'v10',
-      index: {
-        prefix: 'index_',
-        period: '168h',
-      },
-    }],
+  storage: {
+    engine: 'blocks',
   },
 
-  storage: {
-    boltdb: {
-      directory: '/tmp/cortex/index',
+  blocks_storage: {
+    tsdb: {
+      dir: '/tmp/cortex/tsdb',
     },
+    bucket_store: {
+      sync_dir: '/tmp/cortex/tsdb-sync',
+    },
+
+    backend: 'filesystem',
     filesystem: {
-      directory: '/tmp/cortex/chunks',
+      dir: '/tmp/cortex/blocks',
+    },
+  },
+
+  compactor: {
+    data_dir: '/tmp/cortex/compactor',
+    sharding_ring: {
+      kvstore: {
+        store: 'inmemory',
+      },
+    },
+  },
+
+  frontend_worker: {
+    match_max_concurrent: true,
+  },
+
+  ruler: {
+    enable_api: true,
+    enable_sharding: false,
+    storage: {
+      type: 'local',
+      'local': {
+        directory: '/tmp/cortex/rules',
+      },
     },
   },
 
