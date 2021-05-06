@@ -29,12 +29,11 @@ const (
 
 type dataPoint interface {
 	LabelsMap() pdata.StringMap
-	Timestamp() pdata.TimestampUnixNano
 }
 
 type remoteWriteExporter struct {
 	done atomic.Bool
-	prom *instance.Instance
+	prom storage.Appendable
 
 	constLabels labels.Labels
 	namespace   string
@@ -127,14 +126,14 @@ func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender,
 			cumulativeCount += dataPoint.BucketCounts()[ix]
 			boundStr := strconv.FormatFloat(eb, 'f', -1, 64)
 			ls := labels.Labels{{Name: leStr, Value: boundStr}}
-			if err := e.appendDataPointWithLabels(app, name, bucketSuffix, dataPoint, float64(dataPoint.Count()), ls); err != nil {
+			if err := e.appendDataPointWithLabels(app, name, bucketSuffix, dataPoint, float64(cumulativeCount), ls); err != nil {
 				return err
 			}
 		}
 		// add le=+Inf bucket
 		cumulativeCount += dataPoint.BucketCounts()[len(dataPoint.BucketCounts())-1]
 		ls := labels.Labels{{Name: leStr, Value: infBucket}}
-		if err := e.appendDataPointWithLabels(app, name, bucketSuffix, dataPoint, float64(dataPoint.Count()), ls); err != nil {
+		if err := e.appendDataPointWithLabels(app, name, bucketSuffix, dataPoint, float64(cumulativeCount), ls); err != nil {
 			return err
 		}
 
