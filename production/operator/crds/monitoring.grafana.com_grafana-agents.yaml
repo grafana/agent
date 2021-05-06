@@ -2128,7 +2128,7 @@ spec:
                     description: OverrideHonorTimestamps allows to globally enforce honoring timestamps in all scrape configs.
                     type: boolean
                   prometheusExternalLabelName:
-                    description: PrometheusExternalLabelName is the name of the external label used to denote Grafana Agent cluster. Defaults to "agent." External label will _not_ be added when value is set to the empty string.
+                    description: PrometheusExternalLabelName is the name of the external label used to denote Grafana Agent cluster. Defaults to "cluster." External label will _not_ be added when value is set to the empty string.
                     type: string
                   remoteWrite:
                     description: RemoteWrite controls default remote_write settings for all instances. If an instance does not provide its own remoteWrite settings, these will be used instead.

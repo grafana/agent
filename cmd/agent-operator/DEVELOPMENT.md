@@ -109,6 +109,17 @@ CR:
 When `default/agent` gets deleted, all `EnqueueRequestForSelector` event
 handlers get notified to stop sending events for `default/agent`.
 
+## Generating CRDs
+
+The `make crds` command at the root of this repository will generate CRDs and
+other code used by the operator. This calls the [generate-crds
+script](../../tools/generate-crds.bash) in a container. If you wish to call this
+script manually, you must also install `controller-gen`:
+
+```
+go install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
+```
+
 ## Local testing environment
 
 Create a k3d cluster (depending on k3d v4.x):
@@ -162,29 +173,4 @@ kubectl apply -f ./cmd/agent-operator/agent-example-config.yaml
 If you are running the operator, you should see it pick up the change and start
 mutating the cluster.
 
-## Generating CRDs
 
-The Grafana Agent Operator is a WIP and some extra steps must be performed
-manually until code is cleaned up.
-
-### Intalling extra dependencies:
-
-```
-go install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
-```
-
-### Generating definitions
-
-Run these from the root of the repository.
-Note that CRDs from Prometheus Operator are used since we support (some) of the
-same CRDs from that project.
-
-```
-pushd ./pkg/operator/apis/monitoring/v1alpha1
-controller-gen object paths=.
-controller-gen crd:crdVersions=v1 paths=. output:crd:dir=../../../../../production/operator/crds
-popd
-pushd ./vendor/github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1
-controller-gen crd:crdVersions=v1 paths=. output:crd:dir=../../../../../../../../production/operator/crds
-popd
-```
