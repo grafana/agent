@@ -13,6 +13,8 @@ service config.
 
 - [FEATURE] Disallow reading files from within scraping service configs by
   default. (@rfratto)
+  
+- [FEATURE] Add remote write for span metrics (@mapno)
 
 - [BUGFIX] Ensure defaults are applied to undefined sections in config file.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
