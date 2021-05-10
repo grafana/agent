@@ -88,5 +88,4 @@ tempo:
       processes: true
       roots: true
     spanmetrics:
-      exporter:
-        prom_instance: tempo
+      prom_instance: tempo

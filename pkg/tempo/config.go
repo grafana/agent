@@ -22,7 +22,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
-	"go.opentelemetry.io/collector/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
@@ -206,12 +205,7 @@ type SpanMetricsConfig struct {
 	Namespace string `yaml:"namespace,omitempty"`
 	// ConstLabels are values that are applied for every exported metric.
 	ConstLabels map[string]interface{} `yaml:"const_labels,omitempty"`
-	// Exporter is the configuration to export the metrics
-	Exporter metricsExporterConfig `yaml:"exporter"`
-}
-
-// Configuration for remote_write custom exporter
-type metricsExporterConfig struct {
+	// PromInstance is the Agent's prometheus instance that will be used to push metrics
 	PromInstance string `yaml:"prom_instance"`
 }
 
@@ -453,7 +447,7 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 	}
 
 	if c.SpanMetrics != nil {
-		if len(c.SpanMetrics.Exporter.PromInstance) == 0 {
+		if len(c.SpanMetrics.PromInstance) == 0 {
 			return nil, fmt.Errorf("must specify a prometheus instance to export the metrics")
 		}
 
@@ -605,7 +599,6 @@ func tracingFactories() (component.Factories, error) {
 
 	exporters, err := component.MakeExporterFactoryMap(
 		otlpexporter.NewFactory(),
-		prometheusexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		remotewriteexporter.NewFactory(),
 	)

@@ -141,9 +141,9 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.SpanMetrics != nil {
-		prom, err := promManager.GetInstance(cfg.SpanMetrics.Exporter.PromInstance)
+		prom, err := promManager.GetInstance(cfg.SpanMetrics.PromInstance)
 		if err != nil {
-			return fmt.Errorf("failed to get prometheus instance %s", cfg.SpanMetrics.Exporter.PromInstance)
+			return fmt.Errorf("failed to get prometheus instance %s", cfg.SpanMetrics.PromInstance)
 		}
 		ctx = context.WithValue(ctx, contextkeys.Prometheus, prom)
 	}

@@ -447,8 +447,7 @@ spanmetrics:
     - name: http.method
       default: GET
     - name: http.status_code
-  exporter:
-    prom_instance: tempo
+  prom_instance: tempo
 `,
 			expectedConfig: `
 receivers:

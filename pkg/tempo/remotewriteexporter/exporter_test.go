@@ -52,13 +52,13 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	sum := instance.GetAppended(sumMetric)
 	require.Equal(t, len(sum), 1)
 	require.Equal(t, sum[0].v, float64(sumValue))
-	require.Equal(t, sum[0].l, labels.Labels{{nameLabelKey, "tempo_spanmetrics_latency_" + sumSuffix}})
+	require.Equal(t, sum[0].l, labels.Labels{{Name: nameLabelKey, Value: "tempo_spanmetrics_latency_" + sumSuffix}})
 
 	// Check _count
 	count := instance.GetAppended(countMetric)
 	require.Equal(t, len(count), 1)
 	require.Equal(t, count[0].v, float64(countValue))
-	require.Equal(t, count[0].l, labels.Labels{{nameLabelKey, "tempo_spanmetrics_latency_" + countSuffix}})
+	require.Equal(t, count[0].l, labels.Labels{{Name: nameLabelKey, Value: "tempo_spanmetrics_latency_" + countSuffix}})
 
 	// Check _bucket
 	buckets := instance.GetAppended(bucketMetric)
@@ -72,8 +72,8 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 			eb = fmt.Sprint(explicitBounds[i])
 		}
 		require.Equal(t, b.l, labels.Labels{
-			{nameLabelKey, "tempo_spanmetrics_latency_" + bucketSuffix},
-			{leStr, eb},
+			{Name: nameLabelKey, Value: "tempo_spanmetrics_latency_" + bucketSuffix},
+			{Name: leStr, Value: eb},
 		})
 	}
 }
