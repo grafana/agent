@@ -433,7 +433,7 @@ service:
 `,
 		},
 		{
-			name: "span metrics prometheus exporter",
+			name: "span metrics remote write exporter",
 			cfg: `
 receivers:
   jaeger:
@@ -481,6 +481,62 @@ service:
       exporters: ["remote_write"]
       receivers: ["noop"]
 `,
+		},
+		{
+			name: "span metrics prometheus exporter",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+spanmetrics:
+  handler_endpoint: "0.0.0.0:8889"
+`,
+			expectedConfig: `
+receivers:
+  noop:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: tempo_spanmetrics
+processors:
+  spanmetrics:
+    metrics_exporter: prometheus
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["spanmetrics"]
+      receivers: ["jaeger"]
+    metrics/spanmetrics:
+      exporters: ["prometheus"]
+      receivers: ["noop"]
+`,
+		},
+		{
+			name: "span metrics prometheus and remote write exporters fail",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+spanmetrics:
+  handler_endpoint: "0.0.0.0:8889"
+  prom_instance: tempo
+`,
+			expectedError: true,
 		},
 		{
 			name: "tail sampling config",

@@ -140,7 +140,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		i.logger.Warn("Configuring exporter with deprecated push_config. Use remote_write and batch instead")
 	}
 
-	if cfg.SpanMetrics != nil {
+	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
 		prom, err := promManager.GetInstance(cfg.SpanMetrics.PromInstance)
 		if err != nil {
 			return fmt.Errorf("failed to get prometheus instance %s", cfg.SpanMetrics.PromInstance)
