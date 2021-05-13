@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
+	"github.com/grafana/agent/pkg/tempo/remotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
@@ -32,8 +33,7 @@ import (
 )
 
 const (
-	spanMetricsPipelineName    = "metrics/spanmetrics"
-	defaultSpanMetricsExporter = "prometheus"
+	spanMetricsPipelineName = "metrics/spanmetrics"
 
 	// defaultDecisionWait is the default time to wait for a trace before making a sampling decision
 	defaultDecisionWait = time.Second * 5
@@ -202,21 +202,14 @@ func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) err
 type SpanMetricsConfig struct {
 	LatencyHistogramBuckets []time.Duration                  `yaml:"latency_histogram_buckets,omitempty"`
 	Dimensions              []spanmetricsprocessor.Dimension `yaml:"dimensions,omitempty"`
-
-	// MetricsExporter is a Prometheus metrics exporter
-	MetricsExporter metricsExporterConfig `yaml:"metrics_exporter,omitempty"`
-}
-
-// Configuration for Prometheus exporter: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34/exporter/prometheusexporter/README.md.
-type metricsExporterConfig struct {
-	// The address on which the Prometheus scrape handler will be run on.
-	Endpoint string `yaml:"endpoint"`
 	// Namespace if set, exports metrics under the provided value.
-	Namespace string `yaml:"namespace"`
+	Namespace string `yaml:"namespace,omitempty"`
 	// ConstLabels are values that are applied for every exported metric.
-	ConstLabels map[string]interface{} `yaml:"const_labels"`
-	// SendTimestamps will send the underlying scrape timestamp with the export
-	SendTimestamps bool `yaml:"send_timestamps"`
+	ConstLabels map[string]interface{} `yaml:"const_labels,omitempty"`
+	// PromInstance is the Agent's prometheus instance that will be used to push metrics
+	PromInstance string `yaml:"prom_instance"`
+	// HandlerEndpoint is the address where a prometheus exporter will be exposed
+	HandlerEndpoint string `yaml:"handler_endpoint"`
 }
 
 // tailSamplingConfig is the configuration for tail-based sampling
@@ -456,25 +449,42 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		processorNames = append(processorNames, "batch")
 	}
 
+	pipelines := make(map[string]interface{})
 	if c.SpanMetrics != nil {
 		// Configure the metrics exporter.
 		namespace := "tempo_spanmetrics"
-		if len(c.SpanMetrics.MetricsExporter.Namespace) != 0 {
-			namespace = fmt.Sprintf("%s_%s", c.SpanMetrics.MetricsExporter.Namespace, namespace)
+		if len(c.SpanMetrics.Namespace) != 0 {
+			namespace = fmt.Sprintf("%s_%s", c.SpanMetrics.Namespace, namespace)
 		}
 
-		exporters[defaultSpanMetricsExporter] = map[string]interface{}{
-			"endpoint":        c.SpanMetrics.MetricsExporter.Endpoint,
-			"namespace":       namespace,
-			"const_labels":    c.SpanMetrics.MetricsExporter.ConstLabels,
-			"send_timestamps": c.SpanMetrics.MetricsExporter.SendTimestamps,
+		var exporterName string
+		if len(c.SpanMetrics.PromInstance) != 0 && len(c.SpanMetrics.HandlerEndpoint) == 0 {
+			exporterName = remotewriteexporter.TypeStr
+			exporters[remotewriteexporter.TypeStr] = map[string]interface{}{
+				"namespace":    namespace,
+				"const_labels": c.SpanMetrics.ConstLabels,
+			}
+		} else if len(c.SpanMetrics.PromInstance) == 0 && len(c.SpanMetrics.HandlerEndpoint) != 0 {
+			exporterName = "prometheus"
+			exporters[exporterName] = map[string]interface{}{
+				"endpoint":     c.SpanMetrics.HandlerEndpoint,
+				"namespace":    namespace,
+				"const_labels": c.SpanMetrics.ConstLabels,
+			}
+		} else {
+			return nil, fmt.Errorf("must specify a prometheus instance or a metrics handler endpoint to export the metrics")
 		}
 
 		processorNames = append(processorNames, "spanmetrics")
 		processors["spanmetrics"] = map[string]interface{}{
-			"metrics_exporter":          defaultSpanMetricsExporter,
+			"metrics_exporter":          exporterName,
 			"latency_histogram_buckets": c.SpanMetrics.LatencyHistogramBuckets,
 			"dimensions":                c.SpanMetrics.Dimensions,
+		}
+
+		pipelines[spanMetricsPipelineName] = map[string]interface{}{
+			"receivers": []string{noopreceiver.TypeStr},
+			"exporters": []string{exporterName},
 		}
 	}
 
@@ -524,7 +534,6 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
-	pipelines := make(map[string]interface{})
 	if c.TailSampling != nil && c.TailSampling.LoadBalancing != nil {
 		// load balancing pipeline
 		pipelines["traces/0"] = map[string]interface{}{
@@ -549,11 +558,6 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		// Insert a noop receiver in the metrics pipeline.
 		// Added to pass validation requiring at least one receiver in a pipeline.
 		c.Receivers[noopreceiver.TypeStr] = nil
-
-		pipelines[spanMetricsPipelineName] = map[string]interface{}{
-			"receivers": []string{noopreceiver.TypeStr},
-			"exporters": []string{defaultSpanMetricsExporter},
-		}
 	}
 
 	otelMapStructure["exporters"] = exporters
@@ -607,8 +611,9 @@ func tracingFactories() (component.Factories, error) {
 
 	exporters, err := component.MakeExporterFactoryMap(
 		otlpexporter.NewFactory(),
-		prometheusexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
+		prometheusexporter.NewFactory(),
+		remotewriteexporter.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err

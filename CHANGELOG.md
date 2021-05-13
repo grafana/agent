@@ -15,6 +15,8 @@ service config.
 
 - [FEATURE] Disallow reading files from within scraping service configs by
   default. (@rfratto)
+  
+- [FEATURE] Add remote write for span metrics (@mapno)
 
 - [ENHANCEMENT] Add silent uninstall to Windows Uninstaller. (@mattdurham)
 

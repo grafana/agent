@@ -540,6 +540,11 @@ func (i *Instance) StorageDirectory() string {
 	return i.wal.Directory()
 }
 
+// Appender returns a storage.Appender from the instance's WAL
+func (i *Instance) Appender(ctx context.Context) storage.Appender {
+	return i.wal.Appender(ctx)
+}
+
 type discoveryService struct {
 	Manager *discovery.Manager
 
