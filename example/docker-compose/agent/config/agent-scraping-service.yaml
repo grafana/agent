@@ -60,6 +60,5 @@ tempo:
       spanmetrics:
         dimensions:
           - name: http.url
-        metrics_exporter:
-          endpoint: 0.0.0.0:8889
+        handler_endpoint: 0.0.0.0:8889
 

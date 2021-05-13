@@ -15,6 +15,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -152,4 +153,8 @@ func (i *mockInstanceScrape) TargetsActive() map[string][]*scrape.Target {
 
 func (i *mockInstanceScrape) StorageDirectory() string {
 	return ""
+}
+
+func (i *mockInstanceScrape) Appender(ctx context.Context) storage.Appender {
+	return nil
 }

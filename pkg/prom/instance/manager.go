@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/prometheus/prometheus/storage"
 )
 
 var (
@@ -63,6 +64,7 @@ type ManagedInstance interface {
 	Update(c Config) error
 	TargetsActive() map[string][]*scrape.Target
 	StorageDirectory() string
+	Appender(ctx context.Context) storage.Appender
 }
 
 // BasicManagerConfig controls the operations of a BasicManager.

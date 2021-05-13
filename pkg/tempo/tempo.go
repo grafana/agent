@@ -8,6 +8,7 @@ import (
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/prom/instance"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -27,26 +28,29 @@ type Tempo struct {
 	leveller *logLeveller
 	logger   *zap.Logger
 	reg      prom_client.Registerer
+
+	promInstanceManager instance.Manager
 }
 
 // New creates and starts Loki log collection.
-func New(loki *loki.Loki, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
+func New(loki *loki.Loki, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
 	var leveller logLeveller
 
 	tempo := &Tempo{
-		instances: make(map[string]*Instance),
-		leveller:  &leveller,
-		logger:    newLogger(&leveller),
-		reg:       reg,
+		instances:           make(map[string]*Instance),
+		leveller:            &leveller,
+		logger:              newLogger(&leveller),
+		reg:                 reg,
+		promInstanceManager: promInstanceManager,
 	}
-	if err := tempo.ApplyConfig(loki, cfg, level); err != nil {
+	if err := tempo.ApplyConfig(loki, promInstanceManager, cfg, level); err != nil {
 		return nil, err
 	}
 	return tempo, nil
 }
 
 // ApplyConfig updates Tempo with a new Config.
-func (t *Tempo) ApplyConfig(loki *loki.Loki, cfg Config, level logrus.Level) error {
+func (t *Tempo) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Manager, cfg Config, level logrus.Level) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
 
@@ -58,7 +62,7 @@ func (t *Tempo) ApplyConfig(loki *loki.Loki, cfg Config, level logrus.Level) err
 	for _, c := range cfg.Configs {
 		// If an old instance exists, update it and move it to the new map.
 		if old, ok := t.instances[c.Name]; ok {
-			err := old.ApplyConfig(loki, c)
+			err := old.ApplyConfig(loki, promInstanceManager, c)
 			if err != nil {
 				return err
 			}
@@ -72,7 +76,7 @@ func (t *Tempo) ApplyConfig(loki *loki.Loki, cfg Config, level logrus.Level) err
 			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"tempo_config": c.Name}, t.reg)
 		)
 
-		inst, err := NewInstance(loki, instReg, c, instLogger)
+		inst, err := NewInstance(loki, instReg, c, instLogger, t.promInstanceManager)
 		if err != nil {
 			return fmt.Errorf("failed to create tempo instance %s: %w", c.Name, err)
 		}

@@ -433,7 +433,7 @@ service:
 `,
 		},
 		{
-			name: "span metrics prometheus exporter",
+			name: "span metrics remote write exporter",
 			cfg: `
 receivers:
   jaeger:
@@ -447,9 +447,52 @@ spanmetrics:
     - name: http.method
       default: GET
     - name: http.status_code
-  metrics_exporter:
-    endpoint: "0.0.0.0:8889"
-    namespace: promexample
+  prom_instance: tempo
+`,
+			expectedConfig: `
+receivers:
+  noop:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  remote_write:
+    namespace: tempo_spanmetrics
+processors:
+  spanmetrics:
+    metrics_exporter: remote_write
+    latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
+    dimensions:
+      - name: http.method
+        default: GET
+      - name: http.status_code
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["spanmetrics"]
+      receivers: ["jaeger"]
+    metrics/spanmetrics:
+      exporters: ["remote_write"]
+      receivers: ["noop"]
+`,
+		},
+		{
+			name: "span metrics prometheus exporter",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+spanmetrics:
+  handler_endpoint: "0.0.0.0:8889"
 `,
 			expectedConfig: `
 receivers:
@@ -465,15 +508,10 @@ exporters:
       max_elapsed_time: 60s
   prometheus:
     endpoint: "0.0.0.0:8889"
-    namespace: promexample_tempo_spanmetrics
+    namespace: tempo_spanmetrics
 processors:
   spanmetrics:
     metrics_exporter: prometheus
-    latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
-    dimensions:
-      - name: http.method
-        default: GET
-      - name: http.status_code
 service:
   pipelines:
     traces:
@@ -484,6 +522,21 @@ service:
       exporters: ["prometheus"]
       receivers: ["noop"]
 `,
+		},
+		{
+			name: "span metrics prometheus and remote write exporters fail",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+spanmetrics:
+  handler_endpoint: "0.0.0.0:8889"
+  prom_instance: tempo
+`,
+			expectedError: true,
 		},
 		{
 			name: "tail sampling config",

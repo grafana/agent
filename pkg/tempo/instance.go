@@ -8,6 +8,7 @@ import (
 
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -32,7 +33,7 @@ type Instance struct {
 }
 
 // NewInstance creates and starts an instance of tracing pipelines.
-func NewInstance(loki *loki.Loki, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger) (*Instance, error) {
+func NewInstance(loki *loki.Loki, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
 	var err error
 
 	instance := &Instance{}
@@ -42,14 +43,14 @@ func NewInstance(loki *loki.Loki, reg prometheus.Registerer, cfg InstanceConfig,
 		return nil, fmt.Errorf("failed to create metric views: %w", err)
 	}
 
-	if err := instance.ApplyConfig(loki, cfg); err != nil {
+	if err := instance.ApplyConfig(loki, promInstanceManager, cfg); err != nil {
 		return nil, err
 	}
 	return instance, nil
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(loki *loki.Loki, cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Manager, cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -63,7 +64,7 @@ func (i *Instance) ApplyConfig(loki *loki.Loki, cfg InstanceConfig) error {
 	i.stop()
 
 	createCtx := context.WithValue(context.Background(), contextkeys.Loki, loki)
-	err := i.buildAndStartPipeline(createCtx, cfg)
+	err := i.buildAndStartPipeline(createCtx, cfg, promInstanceManager)
 	if err != nil {
 		return fmt.Errorf("failed to create pipeline: %w", err)
 	}
@@ -129,7 +130,7 @@ func (i *Instance) stop() {
 	i.exporter = nil
 }
 
-func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig) error {
+func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, promManager instance.Manager) error {
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
@@ -137,6 +138,14 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 	if cfg.PushConfig.Endpoint != "" {
 		i.logger.Warn("Configuring exporter with deprecated push_config. Use remote_write and batch instead")
+	}
+
+	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
+		prom, err := promManager.GetInstance(cfg.SpanMetrics.PromInstance)
+		if err != nil {
+			return fmt.Errorf("failed to get prometheus instance %s", cfg.SpanMetrics.PromInstance)
+		}
+		ctx = context.WithValue(ctx, contextkeys.Prometheus, prom)
 	}
 
 	factories, err := tracingFactories()
