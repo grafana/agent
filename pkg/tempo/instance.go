@@ -19,8 +19,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultRetryInterval = time.Second * 5
-
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
 type Instance struct {
 	mut         sync.Mutex
@@ -142,19 +140,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
-		for {
-			select {
-			case <-ctx.Done():
-				return fmt.Errorf("failed to get prometheus instance %s", cfg.SpanMetrics.PromInstance)
-			default:
-				prom, err := promManager.GetInstance(cfg.SpanMetrics.PromInstance)
-				if err == nil {
-					ctx = context.WithValue(ctx, contextkeys.Prometheus, prom)
-					break
-				}
-				<-time.After(defaultRetryInterval)
-			}
-		}
+		ctx = context.WithValue(ctx, contextkeys.Prometheus, promManager)
 	}
 
 	factories, err := tracingFactories()
