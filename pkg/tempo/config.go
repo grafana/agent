@@ -461,8 +461,9 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		if len(c.SpanMetrics.PromInstance) != 0 && len(c.SpanMetrics.HandlerEndpoint) == 0 {
 			exporterName = remotewriteexporter.TypeStr
 			exporters[remotewriteexporter.TypeStr] = map[string]interface{}{
-				"namespace":    namespace,
-				"const_labels": c.SpanMetrics.ConstLabels,
+				"namespace":     namespace,
+				"const_labels":  c.SpanMetrics.ConstLabels,
+				"prom_instance": c.SpanMetrics.PromInstance,
 			}
 		} else if len(c.SpanMetrics.PromInstance) == 0 && len(c.SpanMetrics.HandlerEndpoint) != 0 {
 			exporterName = "prometheus"

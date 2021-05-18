@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	util "github.com/cortexproject/cortex/pkg/util/log"
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -32,27 +35,34 @@ type dataPoint interface {
 }
 
 type remoteWriteExporter struct {
-	done atomic.Bool
-	prom storage.Appendable
+	done         atomic.Bool
+	manager      instance.Manager
+	promInstance string
 
 	constLabels labels.Labels
 	namespace   string
+
+	logger log.Logger
 }
 
 func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
+	logger := log.With(util.Logger, "component", "tempo remote write exporter")
+
 	return &remoteWriteExporter{
-		done:        atomic.Bool{},
-		constLabels: cfg.ConstLabels,
-		namespace:   cfg.Namespace,
+		done:         atomic.Bool{},
+		constLabels:  cfg.ConstLabels,
+		namespace:    cfg.Namespace,
+		promInstance: cfg.PromInstance,
+		logger:       logger,
 	}, nil
 }
 
 func (e *remoteWriteExporter) Start(ctx context.Context, _ component.Host) error {
-	prom := ctx.Value(contextkeys.Prometheus).(*instance.Instance)
-	if prom == nil {
+	manager := ctx.Value(contextkeys.Prometheus).(instance.Manager)
+	if manager == nil {
 		return fmt.Errorf("key does not contain a Prometheus instance")
 	}
-	e.prom = prom
+	e.manager = manager
 	return nil
 }
 
@@ -66,7 +76,12 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 		return nil
 	}
 
-	app := e.prom.Appender(ctx)
+	prom, err := e.manager.GetInstance(e.promInstance)
+	if err != nil {
+		level.Warn(e.logger).Log("msg", "failed to get prom instance", "err", err)
+		return nil
+	}
+	app := prom.Appender(ctx)
 
 	rm := md.ResourceMetrics()
 	for i := 0; i < rm.Len(); i++ {

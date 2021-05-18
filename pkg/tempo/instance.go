@@ -13,11 +13,10 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
-	"go.uber.org/zap"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/service/builder"
+	"go.uber.org/zap"
 )
 
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
@@ -141,11 +140,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
-		prom, err := promManager.GetInstance(cfg.SpanMetrics.PromInstance)
-		if err != nil {
-			return fmt.Errorf("failed to get prometheus instance %s", cfg.SpanMetrics.PromInstance)
-		}
-		ctx = context.WithValue(ctx, contextkeys.Prometheus, prom)
+		ctx = context.WithValue(ctx, contextkeys.Prometheus, promManager)
 	}
 
 	factories, err := tracingFactories()
