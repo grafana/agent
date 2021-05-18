@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -28,11 +30,13 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 		ts                    = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
 	)
 
-	instance := &mockInstance{}
+	manager := &mockManager{}
 	exp := remoteWriteExporter{
-		prom:      instance,
-		namespace: "tempo_spanmetrics",
+		manager:      manager,
+		namespace:    "tempo_spanmetrics",
+		promInstance: "tempo",
 	}
+	instance, _ := manager.GetInstance("tempo")
 	app := instance.Appender(context.TODO())
 
 	// Build data point
@@ -49,19 +53,19 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify _sum
-	sum := instance.GetAppended(sumMetric)
+	sum := manager.instance.GetAppended(sumMetric)
 	require.Equal(t, len(sum), 1)
 	require.Equal(t, sum[0].v, float64(sumValue))
 	require.Equal(t, sum[0].l, labels.Labels{{Name: nameLabelKey, Value: "tempo_spanmetrics_latency_" + sumSuffix}})
 
 	// Check _count
-	count := instance.GetAppended(countMetric)
+	count := manager.instance.GetAppended(countMetric)
 	require.Equal(t, len(count), 1)
 	require.Equal(t, count[0].v, float64(countValue))
 	require.Equal(t, count[0].l, labels.Labels{{Name: nameLabelKey, Value: "tempo_spanmetrics_latency_" + countSuffix}})
 
 	// Check _bucket
-	buckets := instance.GetAppended(bucketMetric)
+	buckets := manager.instance.GetAppended(bucketMetric)
 	require.Equal(t, len(buckets), len(bucketCounts))
 	var bCount uint64
 	for i, b := range buckets {
@@ -78,9 +82,38 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	}
 }
 
+type mockManager struct {
+	instance *mockInstance
+}
+
+func (m *mockManager) GetInstance(name string) (instance.ManagedInstance, error) {
+	if m.instance == nil {
+		m.instance = &mockInstance{}
+	}
+	return m.instance, nil
+}
+
+func (m *mockManager) ListInstances() map[string]instance.ManagedInstance { return nil }
+
+func (m *mockManager) ListConfigs() map[string]instance.Config { return nil }
+
+func (m *mockManager) ApplyConfig(_ instance.Config) error { return nil }
+
+func (m *mockManager) DeleteConfig(_ string) error { return nil }
+
+func (m *mockManager) Stop() {}
+
 type mockInstance struct {
 	appender *mockAppender
 }
+
+func (m *mockInstance) Run(_ context.Context) error { return nil }
+
+func (m *mockInstance) Update(_ instance.Config) error { return nil }
+
+func (m *mockInstance) TargetsActive() map[string][]*scrape.Target { return nil }
+
+func (m *mockInstance) StorageDirectory() string { return "" }
 
 func (m *mockInstance) Appender(_ context.Context) storage.Appender {
 	if m.appender == nil {

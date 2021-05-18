@@ -463,6 +463,7 @@ exporters:
       max_elapsed_time: 60s
   remote_write:
     namespace: tempo_spanmetrics
+    prom_instance: tempo
 processors:
   spanmetrics:
     metrics_exporter: remote_write

@@ -18,8 +18,9 @@ const (
 type Config struct {
 	configmodels.ProcessorSettings `mapstructure:",squash"`
 
-	ConstLabels labels.Labels `mapstructure:"const_labels"`
-	Namespace   string        `mapstructure:"namespace"`
+	ConstLabels  labels.Labels `mapstructure:"const_labels"`
+	Namespace    string        `mapstructure:"namespace"`
+	PromInstance string        `mapstructure:"prom_instance"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
