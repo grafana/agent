@@ -3,6 +3,8 @@ cross-compilation issue, but will return in v0.13.0.
 
 # Main (unreleased)
 
+- [BUGFIX] Fixed issue where automatic logging double logged "svc". (@joe-elliott)
+
 # 0.14.0-rc.4 (2021-05-03)
 
 BREAKING CHANGES: For security, the scraping service config API will reject
