@@ -6,15 +6,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// TODO(rfratto): this file needs a second look over after a working prototype
-// is made. Open questions:
-//
-// 1. We're likely going to have one StatefulSet per subsystem. Do we want to
-//    move control of pod resources/limits/metadata/etc to the subsystem spec?
-//    Or leave it global?
-// 2. Which fields should be marked as +optional?
-// 3. Can we provide field default values here?
-
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path="grafana-agents"
 // +kubebuilder:resource:singular="grafana-agent"
@@ -145,21 +136,18 @@ type EmbeddedObjectMetadata struct {
 	// idempotence and configuration definition.
 	// Cannot be updated.
 	// More info: https://kubernetes.io/docs/user-guide/identifiers#names
-	// +optional
 	Name string `json:"name,omitempty"`
 
 	// Labels holds a map of string keys and values that can be used to organize
 	// and categorize (scope and select) objects. May match selectors of
 	// replication controllers and services.
 	// More info: https://kubernetes.io/docs/user-guide/labels
-	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 
 	// Annotations is an unstructured key value map stored with a resource that
 	// may be set by external tools to store and retrieve arbitrary metadata.
 	// They are not queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/user-guide/annotations
-	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
@@ -184,12 +172,10 @@ type EmbeddedPersistentVolumeClaim struct {
 	EmbeddedObjectMetadata `json:"metadata,omitempty"`
 	// Spec defines the desired characteristics of a volume requested by a pod author.
 	// More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
-	// +optional
 	Spec v1.PersistentVolumeClaimSpec `json:"spec,omitempty"`
 	// Status represents the current information/status of a persistent volume claim.
 	// Read only.
 	// More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
-	// +optional
 	Status v1.PersistentVolumeClaimStatus `json:"status,omitempty"`
 }
 
