@@ -134,48 +134,74 @@ func TestConfig_Defaults(t *testing.T) {
 }
 
 func TestConfig_TempoLokiValidation(t *testing.T) {
-	// test failure
-	cfg := `
+	tests := []struct {
+		cfg           string
+		expectedError string
+	}{
+		{
+			cfg: `
 loki:
   configs:
   - name: foo
     positions:
       filename: /tmp/positions.yaml
     clients:
-      - url: http://loki:3100/loki/api/v1/push
+    - url: http://loki:3100/loki/api/v1/push
 tempo:
   configs:
   - name: default
     automatic_logging:
       loki_name: default
-      spans: true
-  `
-
-	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
-		return LoadBytes([]byte(cfg), false, c)
-	})
-	require.EqualError(t, err, "error in config file: specified loki config default not found")
-
-	// test success
-	cfg = `
+      spans: true`,
+			expectedError: "error in config file: specified loki config default not found",
+		},
+		{
+			cfg: `
 loki:
   configs:
-    - name: foo
-      positions:
-        filename: /tmp/positions.yaml
-      clients:
-        - url: http://loki:3100/loki/api/v1/push
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+    - url: http://loki:3100/loki/api/v1/push
 tempo:
   configs:
   - name: default
     automatic_logging:
-      loki_name: foo
-      spans: true`
+      loki_name: default
+      spans: true`,
+			expectedError: "",
+		},
+		{
+			cfg: `
+loki:
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+    - url: http://loki:3100/loki/api/v1/push
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      loki_name: doesnt_exist
+      log_to_stdout: true
+      spans: true`,
+			expectedError: "",
+		},
+	}
 
-	fs = flag.NewFlagSet("test", flag.ExitOnError)
-	_, err = load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
-		return LoadBytes([]byte(cfg), false, c)
-	})
-	require.NoError(t, err)
+	for _, tc := range tests {
+		fs := flag.NewFlagSet("test", flag.ExitOnError)
+		_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+			return LoadBytes([]byte(tc.cfg), false, c)
+		})
+
+		if len(tc.expectedError) != 0 {
+			require.EqualError(t, err, tc.expectedError)
+		} else {
+			require.NoError(t, err)
+		}
+	}
 }
