@@ -23,6 +23,7 @@ type Config struct {
 // AutomaticLoggingConfig holds config information for automatic logging
 type AutomaticLoggingConfig struct {
 	LokiName          string         `mapstructure:"loki_name" yaml:"loki_name"`
+	LogToStdout       bool           `mapstructure:"log_to_stdout" yaml:"log_to_stdout"`
 	Spans             bool           `mapstructure:"spans" yaml:"spans"`
 	Roots             bool           `mapstructure:"roots" yaml:"roots"`
 	Processes         bool           `mapstructure:"processes" yaml:"processes"`

@@ -75,9 +75,13 @@ func (c *Config) Validate(lokiConfig *loki.Config) error {
 		names[c.Name] = struct{}{}
 	}
 
-	// check to make sure that any referenced Loki configs exist
+	// check to make sure that any referenced Loki configs exist.
 	for _, inst := range c.Configs {
 		if inst.AutomaticLogging != nil {
+			if inst.AutomaticLogging.LogToStdout { // we can ignore if we're logging to stdout
+				continue
+			}
+
 			found := false
 			lokiName := inst.AutomaticLogging.LokiName
 

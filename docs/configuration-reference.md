@@ -2061,6 +2061,8 @@ remote_write:
     automatic_logging:
       # indicates the Loki instance to write logs to.
       loki_name: <string>
+      # send all automatic logging to the default logger. This overrides loki_name.
+      log_to_stdout: <boolean>
       # log one line per span. Warning! possibly very high volume
       [ spans: <boolean> ]
       # log one line for every root span of a trace.

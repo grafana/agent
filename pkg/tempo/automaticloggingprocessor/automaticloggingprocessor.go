@@ -128,9 +128,12 @@ func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host)
 	if loki == nil {
 		return fmt.Errorf("key does not contain a Loki instance")
 	}
-	p.lokiInstance = loki.Instance(p.cfg.LokiName)
-	if p.lokiInstance == nil {
-		return fmt.Errorf("loki instance %s not found", p.cfg.LokiName)
+
+	if !p.cfg.LogToStdout {
+		p.lokiInstance = loki.Instance(p.cfg.LokiName)
+		if p.lokiInstance == nil {
+			return fmt.Errorf("loki instance %s not found", p.cfg.LokiName)
+		}
 	}
 	return nil
 }
@@ -194,6 +197,12 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 	line, err := logfmt.MarshalKeyvals(keyvals...)
 	if err != nil {
 		level.Warn(p.logger).Log("msg", "unable to marshal keyvals", "err", err)
+		return
+	}
+
+	// if we're logging to stdout, log and bail
+	if p.cfg.LogToStdout {
+		level.Info(p.logger).Log(keyvals...)
 		return
 	}
 
