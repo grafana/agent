@@ -133,7 +133,56 @@ func TestConfig_Defaults(t *testing.T) {
 	require.Equal(t, integrations.DefaultManagerConfig, c.Integrations)
 }
 
-func TestConfig_TempoLokiValidation(t *testing.T) {
+func TestConfig_TempoLokiValidates(t *testing.T) {
+	tests := []struct {
+		cfg string
+	}{
+		{
+			cfg: `
+loki:
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+    - url: http://loki:3100/loki/api/v1/push
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      loki_name: default
+      spans: true`,
+		},
+		{
+			cfg: `
+loki:
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+    - url: http://loki:3100/loki/api/v1/push
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      loki_name: doesnt_exist
+      log_to_stdout: true
+      spans: true`,
+		},
+	}
+
+	for _, tc := range tests {
+		fs := flag.NewFlagSet("test", flag.ExitOnError)
+		_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+			return LoadBytes([]byte(tc.cfg), false, c)
+		})
+
+		require.NoError(t, err)
+	}
+}
+
+func TestConfig_TempoLokiFailsValidation(t *testing.T) {
 	tests := []struct {
 		cfg           string
 		expectedError string
@@ -155,41 +204,6 @@ tempo:
       spans: true`,
 			expectedError: "error in config file: specified loki config default not found",
 		},
-		{
-			cfg: `
-loki:
-  configs:
-  - name: default
-    positions:
-      filename: /tmp/positions.yaml
-    clients:
-    - url: http://loki:3100/loki/api/v1/push
-tempo:
-  configs:
-  - name: default
-    automatic_logging:
-      loki_name: default
-      spans: true`,
-			expectedError: "",
-		},
-		{
-			cfg: `
-loki:
-  configs:
-  - name: default
-    positions:
-      filename: /tmp/positions.yaml
-    clients:
-    - url: http://loki:3100/loki/api/v1/push
-tempo:
-  configs:
-  - name: default
-    automatic_logging:
-      loki_name: doesnt_exist
-      log_to_stdout: true
-      spans: true`,
-			expectedError: "",
-		},
 	}
 
 	for _, tc := range tests {
@@ -198,10 +212,6 @@ tempo:
 			return LoadBytes([]byte(tc.cfg), false, c)
 		})
 
-		if len(tc.expectedError) != 0 {
-			require.EqualError(t, err, tc.expectedError)
-		} else {
-			require.NoError(t, err)
-		}
+		require.EqualError(t, err, tc.expectedError)
 	}
 }
