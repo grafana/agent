@@ -14,7 +14,6 @@ func TestSpanKeyVals(t *testing.T) {
 		spanAttrs map[string]pdata.AttributeValue
 		spanStart uint64
 		spanEnd   uint64
-		svc       string
 		cfg       AutomaticLoggingConfig
 		expected  []interface{}
 	}{
@@ -22,7 +21,6 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"svc", "",
 				"status", pdata.StatusCode(0),
 			},
 		},
@@ -31,16 +29,13 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "test",
 				"dur", "0ns",
-				"svc", "",
 				"status", pdata.StatusCode(0),
 			},
 		},
 		{
-			svc: "test",
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"svc", "test",
 				"status", pdata.StatusCode(0),
 			},
 		},
@@ -49,7 +44,6 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
-				"svc", "",
 				"status", pdata.StatusCode(0),
 			},
 		},
@@ -59,7 +53,6 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
-				"svc", "",
 				"status", pdata.StatusCode(0),
 			},
 		},
@@ -70,7 +63,6 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"svc", "",
 				"status", pdata.StatusCode(0),
 			},
 		},
@@ -84,7 +76,6 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"svc", "",
 				"status", pdata.StatusCode(0),
 				"xstr", "test",
 			},
@@ -93,7 +84,6 @@ func TestSpanKeyVals(t *testing.T) {
 			cfg: AutomaticLoggingConfig{
 				Overrides: OverrideConfig{
 					SpanNameKey: "a",
-					ServiceKey:  "b",
 					DurationKey: "c",
 					StatusKey:   "d",
 				},
@@ -101,7 +91,6 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"a", "",
 				"c", "0ns",
-				"b", "",
 				"d", pdata.StatusCode(0),
 			},
 		},
@@ -118,7 +107,7 @@ func TestSpanKeyVals(t *testing.T) {
 		span.SetStartTime(pdata.TimestampUnixNano(tc.spanStart))
 		span.SetEndTime(pdata.TimestampUnixNano(tc.spanEnd))
 
-		actual := p.(*automaticLoggingProcessor).spanKeyVals(span, tc.svc)
+		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
 		assert.Equal(t, tc.expected, actual)
 	}
 }
