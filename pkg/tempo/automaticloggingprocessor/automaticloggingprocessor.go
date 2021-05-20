@@ -100,11 +100,11 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 				traceID := span.TraceID().HexString()
 
 				if p.cfg.Spans {
-					p.exportToLoki(typeSpan, traceID, append(p.spanKeyVals(span, svc), p.processKeyVals(rs.Resource(), svc)...)...)
+					p.exportToLoki(typeSpan, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
 				}
 
 				if p.cfg.Roots && span.ParentSpanID().IsEmpty() {
-					p.exportToLoki(typeRoot, traceID, append(p.spanKeyVals(span, svc), p.processKeyVals(rs.Resource(), svc)...)...)
+					p.exportToLoki(typeRoot, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
 				}
 
 				if p.cfg.Processes && lastTraceID != traceID {
@@ -162,7 +162,7 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pdata.Resource, svc 
 	return atts
 }
 
-func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []interface{} {
+func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	atts := make([]interface{}, 0, 8) // 8 for name, duration, service name and status
 
 	atts = append(atts, p.cfg.Overrides.SpanNameKey)
@@ -170,9 +170,6 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span, svc string) []i
 
 	atts = append(atts, p.cfg.Overrides.DurationKey)
 	atts = append(atts, spanDuration(span))
-
-	atts = append(atts, p.cfg.Overrides.ServiceKey)
-	atts = append(atts, svc)
 
 	atts = append(atts, p.cfg.Overrides.StatusKey)
 	atts = append(atts, span.Status().Code())
