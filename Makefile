@@ -75,7 +75,7 @@ PACKAGE_RELEASE := 1
 
 DOCKERFILE = Dockerfile
 
-seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" grafana/agent/seego
+seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS" grafana/agent/seego
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 
 ifeq ($(CROSS_BUILD),true)
@@ -211,6 +211,8 @@ dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	docker run -e VERSION=${RELEASE_TAG} --rm -t -v $(CURDIR)/dist:/app windows_nsis
 dist/agent-freebsd-amd64: seego
 	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-linux-mipsle: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
 dist/agentctl-linux-amd64: seego
@@ -229,6 +231,8 @@ dist/agentctl-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-freebsd-amd64: seego
 	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-linux-mipsle: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
 	docker build -t grafana/agent/seego tools/seego
