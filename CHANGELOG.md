@@ -1,73 +1,19 @@
-NOTE: FreeBSD builds have not been available since v0.6.0 due to a
-cross-compilation issue, but will return in v0.13.0.
-
 # Main (unreleased)
-
-- [BUGFIX] Fixed issue where automatic logging double logged "svc". (@joe-elliott)
 
 - [ENHANCEMENT] Add the option to log to stdout instead of a Loki instance. (@joe-elliott)
 
-# 0.14.0-rc.4 (2021-05-03)
+# v0.14.0 (2021-05-19)
 
-BREAKING CHANGES: For security, the scraping service config API will reject
+BREAKING CHANGE: This release has a breaking change for SigV4 support. Please
+read the release notes carefully and our [migration
+guide](./docs/migration-guide.md) to help migrate your configuration files to
+the new format.
+
+BREAKING CHANGE: For security, the scraping service config API will reject
 configs that read credentials from disk to prevent malicious users from reading
 artbirary files and sending their contents over the network. The old behavior
 can be achieved by enabling `dangerous_allow_reading_files` in the scraping
 service config.
-
-- [FEATURE] Added Automatic Logging feature for Tempo (@joe-elliott)
-
-- [FEATURE] Disallow reading files from within scraping service configs by
-  default. (@rfratto)
-  
-- [FEATURE] Add remote write for span metrics (@mapno)
-
-- [ENHANCEMENT] Add silent uninstall to Windows Uninstaller. (@mattdurham)
-
-- [BUGFIX] Ensure defaults are applied to undefined sections in config file.
-  This fixes a problem where integrations didn't work if `prometheus:` wasn't
-  configured. (@rfratto)
-
-- [BUGFIX]  Use 64 bit Program Files when installing on Windows. (@mattdurham)
-
-- [BUGFIX] Re-read `prometheus.global` settings when calling /-/reload.
-  (@rfratto)
-  
-# 0.14.0-rc.3 (2021-04-15)
-
-- [ENHANCEMENT] Add  `headers` field in `remote_write` config for Tempo. `headers`
-  specifies HTTP headers to forward to the remote endpoint. (@alexbiehl)
-- [CHANGE] Add `tempo_spanmetrics` namespace in spanmetrics (@mapno)
-
-- [BUGFIX] Grafana Agent running as a Windows service should start automatically on startup
-  (@mattdurham)
-
-- [BUGFIX] Validate that incoming scraped metrics do not have an empty label
-  set or a label set with duplicate labels, mirroring the behavior of
-  Prometheus. (@rfratto)
-
-- [FEATURE] Tail-based sampling for tracing pipelines (@mapno)
-
-# v0.13.1 (2021-04-09)
-
-- [BUGFIX] Validate that incoming scraped metrics do not have an empty label
-  set or a label set with duplicate labels, mirroring the behavior of
-  Prometheus. (@rfratto)
-
-# 0.14.0-rc.2 (2021-04-08)
-
-- [BUGFIX] Include Windows Installer when building for release (@mattdurham)
-
-# 0.14.0-rc.1 (2021-04-08)
-
-(No changes from 0.14.0-rc.0)
-
-# 0.14.0-rc.0 (2021-04-07)
-
-BREAKING CHANGES: This release has a breaking change for SigV4 support. Please
-read the release notes carefully and our [migration
-guide](./docs/migration-guide.md) to help migrate your configuration files to
-the new format.
 
 As of this release, functionality that is not recommended for production use
 and is expected to change will be tagged interchangably as "experimental" or
@@ -97,6 +43,15 @@ and is expected to change will be tagged interchangably as "experimental" or
 - [FEATURE] (beta) Support generating metrics and exposing them via a Prometheus exporter
   from span data. (@yeya24)
 
+- [FEATURE] Tail-based sampling for tracing pipelines (@mapno)
+
+- [FEATURE] Added Automatic Logging feature for Tempo (@joe-elliott)
+
+- [FEATURE] Disallow reading files from within scraping service configs by
+  default. (@rfratto)
+
+- [FEATURE] Add remote write for span metrics (@mapno)
+
 - [ENHANCEMENT] Support compression for trace export. (@mdisibio)
 
 - [ENHANCEMENT] Add global remote_write configuration that is shared between all
@@ -105,6 +60,17 @@ and is expected to change will be tagged interchangably as "experimental" or
 - [ENHANCEMENT] Go 1.16 is now used for all builds of the Agent. (@rfratto)
 
 - [ENHANCEMENT] Update Prometheus dependency to v2.26.0. (@rfratto)
+
+- [ENHANCEMENT] Upgrade `go.opentelemetry.io/collector` to v0.21.0 (@mapno)
+
+- [ENHANCEMENT] Add kafka trace receiver (@mapno)
+
+- [ENHANCEMENT] Support mirroring a trace pipeline to multiple backends (@mapno)
+
+- [ENHANCEMENT] Add  `headers` field in `remote_write` config for Tempo. `headers`
+  specifies HTTP headers to forward to the remote endpoint. (@alexbiehl)
+
+- [ENHANCEMENT] Add silent uninstall to Windows Uninstaller. (@mattdurham)
 
 - [BUGFIX] Native Darwin arm64 builds will no longer crash when writing metrics
   to the WAL. (@rfratto)
@@ -115,6 +81,12 @@ and is expected to change will be tagged interchangably as "experimental" or
 - [BUGFIX] Bring back FreeBSD support. (@rfratto)
 
 - [BUGFIX] agentctl will no longer leak WAL resources when retrieving WAL stats. (@rfratto)
+
+- [BUGFIX] Ensure defaults are applied to undefined sections in config file.
+  This fixes a problem where integrations didn't work if `prometheus:` wasn't
+  configured. (@rfratto)
+
+- [BUGFIX] Fixed issue where automatic logging double logged "svc". (@joe-elliott)
 
 - [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
   (@rfratto)
@@ -127,14 +99,16 @@ and is expected to change will be tagged interchangably as "experimental" or
 - [CHANGE] The User-Agent header sent for logs will now be
   `GrafanaAgent/<version>` (@rfratto)
 
-- [ENHANCEMENT] Upgrade `go.opentelemetry.io/collector` to v0.21.0 (@mapno)
-
-- [ENHANCEMENT] Add kafka trace receiver (@mapno)
-
-- [ENHANCEMENT] Support mirroring a trace pipeline to multiple backends (@mapno)
+- [CHANGE] Add `tempo_spanmetrics` namespace in spanmetrics (@mapno)
 
 - [DEPRECATION] `push_config` is now supplanted by `remote_block` and `batch`.
   `push_config` will be removed in a future version (@mapno)
+
+# v0.13.1 (2021-04-09)
+
+- [BUGFIX] Validate that incoming scraped metrics do not have an empty label
+  set or a label set with duplicate labels, mirroring the behavior of
+  Prometheus. (@rfratto)
 
 # v0.13.0 (2021-02-25)
 

@@ -2115,7 +2115,7 @@ spanmetrics:
   [ namespace: <string> ]
   # prom_instance is the prometheus used to remote write metrics.
   [ prom_instance: <string> ]
-  # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed. 
+  # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
 
 # tail_sampling supports tail-based sampling of traces in the agent.
@@ -2312,7 +2312,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.13.1 \
+  grafana/agent:v0.14.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2352,7 +2352,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.13.1
+  - image: grafana/agent:v0.14.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -2621,7 +2621,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.13.1 \
+  grafana/agent:v0.14.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2638,7 +2638,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.13.1
+  - image: grafana/agent:v0.14.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
