@@ -2,6 +2,7 @@
 # obtained from the listing in go.mod.
 go_modules:
   - github.com/cortexproject/cortex
+  - github.com/fstab/grok_exporter
   - github.com/grafana/loki
   - github.com/justwatchcom/elasticsearch_exporter
   - github.com/oliver006/redis_exporter
