@@ -3,6 +3,33 @@
 This is a guide detailing all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
+## Tempo: `automatic_logging` changes
+
+Tempo automatic logging previously assumed that the operator wanted to log
+to a Loki instance. With the addition of an option to log to stdout a new
+field is required to maintain the old behavior:
+
+Example old config:
+
+```
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      loki_name: <some loki instance>
+```
+
+Example new config:
+
+```
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: loki
+      loki_name: <some loki instance>
+```
+
 # v0.14.0
 
 ## Scraping Service security change
