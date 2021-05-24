@@ -739,11 +739,140 @@ service:
 	}
 }
 
+func TestProcessorOrder(t *testing.T) {
+	// tests!
+	tt := []struct {
+		name               string
+		cfg                string
+		expectedProcessors map[string][]string
+	}{
+		{
+			name: "no processors",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    headers:
+      x-some-header: Some value!
+`,
+			expectedProcessors: map[string][]string{
+				"traces": {},
+			},
+		},
+		{
+			name: "all but tail based",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    headers:
+      x-some-header: Some value!
+attributes:
+  actions:
+  - key: montgomery
+    value: forever
+    action: update
+spanmetrics:
+  latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
+  dimensions:
+    - name: http.method
+      default: GET
+    - name: http.status_code
+  prom_instance: tempo
+automatic_logging:
+  spans: true
+batch:
+  timeout: 5s
+  send_batch_size: 100
+`,
+			expectedProcessors: map[string][]string{
+				"traces": {
+					"attributes",
+					"spanmetrics",
+					"automatic_logging",
+					"batch",
+				},
+				"metrics/spanmetrics": nil,
+			},
+		},
+		{
+			name: "all including tail based",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    headers:
+      x-some-header: Some value!
+attributes:
+  actions:
+  - key: montgomery
+    value: forever
+    action: update
+spanmetrics:
+  latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
+  dimensions:
+    - name: http.method
+      default: GET
+    - name: http.status_code
+  prom_instance: tempo
+automatic_logging:
+  spans: true
+batch:
+  timeout: 5s
+  send_batch_size: 100
+tail_sampling:
+  policies:
+    - always_sample:
+    - string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
+`,
+			expectedProcessors: map[string][]string{
+				"traces": {
+					"attributes",
+					"spanmetrics",
+					"tail_sampling",
+					"automatic_logging",
+					"batch",
+				},
+				"metrics/spanmetrics": nil,
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			var cfg InstanceConfig
+			err := yaml.Unmarshal([]byte(tc.cfg), &cfg)
+			require.NoError(t, err)
+
+			// check error
+			actualConfig, err := cfg.otelConfig()
+			require.NoError(t, err)
+
+			assert.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
+			for k := range tc.expectedProcessors {
+				assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[k].Processors)
+			}
+		})
+	}
+}
+
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters
 func sortPipelines(cfg *configmodels.Config) {
-	for _, p := range cfg.Pipelines {
+	for _, p := range cfg.Pipelines { // purposefully not sorting processors. their order is meaningful
 		sort.Strings(p.Exporters)
 		sort.Strings(p.Receivers)
-		sort.Strings(p.Processors)
 	}
 }
