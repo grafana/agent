@@ -1,6 +1,3 @@
-NOTE: FreeBSD builds have not been available since v0.6.0 due to a
-cross-compilation issue, but will return in v0.13.0.
-
 # Main (unreleased)
 
 - [BUGFIX] Fixed issue where automatic logging double logged "svc". (@joe-elliott)
