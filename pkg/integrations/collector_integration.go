@@ -103,3 +103,7 @@ func (i *CollectorIntegration) ScrapeConfigs() []config.ScrapeConfig {
 func (i *CollectorIntegration) Run(ctx context.Context) error {
 	return i.runner(ctx)
 }
+
+func (i *CollectorIntegration) CustomHandlers() map[string]http.Handler {
+	return nil
+}

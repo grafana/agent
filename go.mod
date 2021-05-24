@@ -4,14 +4,13 @@ go 1.15
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/Shopify/sarama v1.29.0 // indirect
 	github.com/cortexproject/cortex v1.6.1-0.20210204145131-7dac81171c66
 	github.com/drone/envsubst v1.0.2
-	github.com/fstab/grok_exporter v0.2.9-0.20200921195934-c2f8f34a8f6b // indirect
+	github.com/fstab/grok_exporter v0.2.9-0.20200921195934-c2f8f34a8f6b
 	github.com/go-kit/kit v0.10.0
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.4.3
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20210205130758-59a34f9867ce
@@ -31,7 +30,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.10.0
-	github.com/prometheus/common v0.25.0
+	github.com/prometheus/common v0.20.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.8.0
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
@@ -39,7 +38,7 @@ require (
 	github.com/prometheus/procfs v0.6.1-0.20210313121648-b565fefb1664
 	github.com/prometheus/prometheus v1.8.2-0.20210124145330-b5dfa2414b9e
 	github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
@@ -50,10 +49,7 @@ require (
 	go.opentelemetry.io/collector v0.21.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	golang.org/x/exp v0.0.0-20210514180818-737f94c0881e // indirect
-	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023 // indirect
-	golang.org/x/sys v0.0.0-20210521090106-6ca3eb03dfc2
+	golang.org/x/sys v0.0.0-20210324051608-47abb6519492
 	google.golang.org/grpc v1.36.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0

@@ -69,4 +69,21 @@ integrations:
   elasticsearch_exporter:
     enabled: true
     address: http://localhost:9200
+  grok_exporter:
+    enabled: true
+    global:
+      config_version: 3
+    input:
+      type: file
+      path: /tmp/file.log
+    imports:
+      - type: grok_patterns
+        dir: /tmp/patterns
+    metrics:
+      - type: counter
+        name: http_requests_total
+        help: Counter metrics for total http requests
+        match: '%{HAPROXYHTTP}'
+        labels:
+          code: '{{.http_status_code}}'
 

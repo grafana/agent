@@ -37,4 +37,6 @@ type Integration interface {
 	// database would establish that connection here. If the integration doesn't
 	// need to do anything, it should wait for the ctx to be canceled.
 	Run(ctx context.Context) error
+
+	CustomHandlers() map[string]http.Handler
 }

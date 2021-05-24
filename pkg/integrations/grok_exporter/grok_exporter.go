@@ -10,11 +10,13 @@ import (
 	"github.com/fstab/grok_exporter/tailer"
 	"github.com/fstab/grok_exporter/tailer/fswatcher"
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 	"net/http"
 	"os"
 	"time"
@@ -40,7 +42,7 @@ const (
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	GrokConfig *v3.Config `yaml:",inline"`
+	GrokConfig v3.Config `yaml:",inline"`
 
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 }
@@ -89,14 +91,25 @@ type selfMetrics struct {
 }
 
 func New(logger log.Logger, config *Config) (integrations.Integration, error) {
+	configBytes, err := yaml.Marshal(config.GrokConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling config - %v", err)
+	}
+
+	v3Config, err := v3.Unmarshal(configBytes)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling config - %v", err)
+	}
+	config.GrokConfig = *v3Config
+
 	registry := prometheus.NewRegistry()
 
-	patterns, err := initPatterns(config.GrokConfig)
+	patterns, err := initPatterns(&config.GrokConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	metrics, err := createMetrics(config.GrokConfig, patterns)
+	metrics, err := createMetrics(&config.GrokConfig, patterns)
 	if err != nil {
 		return nil, err
 	}
@@ -105,14 +118,14 @@ func New(logger log.Logger, config *Config) (integrations.Integration, error) {
 		registry.MustRegister(m.Collector())
 	}
 
-	var nLinesTotal, nMatchesByMetric, procTimeMicrosecondsByMetric, nErrorsByMetric *prometheus.CounterVec
+	nLinesTotal, nMatchesByMetric, procTimeMicrosecondsByMetric, nErrorsByMetric := initSelfMonitoring(metrics, registry)
+
 	if config.IncludeExporterMetrics {
 		registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
 		registry.MustRegister(prometheus.NewGoCollector())
-		nLinesTotal, nMatchesByMetric, procTimeMicrosecondsByMetric, nErrorsByMetric = initSelfMonitoring(metrics, registry)
 	}
 
-	logTailer, err := startTailer(config.GrokConfig, registry)
+	logTailer, err := startTailer(&config.GrokConfig, registry)
 	if err != nil {
 		return nil, err
 	}
@@ -141,12 +154,7 @@ func (e *Exporter) MetricsHandler() (http.Handler, error) {
 	if e.config.IncludeExporterMetrics {
 		metricsHandler = promhttp.InstrumentMetricHandler(e.registry, metricsHandler)
 	}
-	mux := http.NewServeMux()
-	mux.Handle(e.config.GrokConfig.Server.Path, metricsHandler)
-	if e.config.GrokConfig.Input.Type == inputTypeWebhook {
-		mux.Handle(e.config.GrokConfig.Input.WebhookPath, tailer.WebhookHandler())
-	}
-	return mux, nil
+	return metricsHandler, nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
@@ -159,52 +167,61 @@ func (e *Exporter) ScrapeConfigs() []config.ScrapeConfig {
 
 // Run satisfies Run.
 func (e *Exporter) Run(ctx context.Context) error {
-	select {
-	case err := <-e.logTailer.Errors():
-		if err.Type() == fswatcher.FileNotFound || os.IsNotExist(err.Cause()) {
-			return fmt.Errorf("error reading log lines: %v: use 'fail_on_missing_logfile: false' in the input configuration if you want grok_exporter to start even though the logfile is missing", err)
-		} else {
-			return fmt.Errorf("error reading log lines: %v", err.Error())
-		}
-	case line := <-e.logTailer.Lines():
-		matched := false
-		for _, metric := range e.metrics {
-			start := time.Now()
-			if !metric.PathMatches(line.File) {
-				continue
+	for {
+		select {
+		case err := <-e.logTailer.Errors():
+			if err.Type() == fswatcher.FileNotFound || os.IsNotExist(err.Cause()) {
+				return fmt.Errorf("error reading log lines: %v: use 'fail_on_missing_logfile: false' in the input configuration if you want grok_exporter to start even though the logfile is missing", err)
+			} else {
+				return fmt.Errorf("error reading log lines: %v", err.Error())
 			}
-			match, err := metric.ProcessMatch(line.Line, makeAdditionalFields(line))
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "WARNING: skipping log line: %v\n", err.Error())
-				fmt.Fprintf(os.Stderr, "%v\n", line.Line)
-				e.selfMetrics.nErrorsByMetric.WithLabelValues(metric.Name()).Inc()
-			} else if match != nil {
-				e.selfMetrics.nMatchesByMetric.WithLabelValues(metric.Name()).Inc()
-				e.selfMetrics.procTimeMicrosecondsByMetric.WithLabelValues(metric.Name()).Add(float64(time.Since(start).Nanoseconds() / int64(1000)))
-				matched = true
+		case line := <-e.logTailer.Lines():
+			matched := false
+			for _, metric := range e.metrics {
+				start := time.Now()
+				if !metric.PathMatches(line.File) {
+					continue
+				}
+				match, err := metric.ProcessMatch(line.Line, makeAdditionalFields(line))
+				if err != nil {
+					level.Warn(e.logger).Log("WARNING: skipping log line - ", line.Line, "err - ", err.Error())
+					e.selfMetrics.nErrorsByMetric.WithLabelValues(metric.Name()).Inc()
+				} else if match != nil {
+					e.selfMetrics.nMatchesByMetric.WithLabelValues(metric.Name()).Inc()
+					e.selfMetrics.procTimeMicrosecondsByMetric.WithLabelValues(metric.Name()).Add(float64(time.Since(start).Nanoseconds() / int64(1000)))
+					matched = true
+				}
+				_, err = metric.ProcessDeleteMatch(line.Line, makeAdditionalFields(line))
+				if err != nil {
+					level.Warn(e.logger).Log("WARNING: skipping log line - ", line.Line, "err - ", err.Error())
+					e.selfMetrics.nErrorsByMetric.WithLabelValues(metric.Name()).Inc()
+				}
 			}
-			_, err = metric.ProcessDeleteMatch(line.Line, makeAdditionalFields(line))
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "WARNING: skipping log line: %v\n", err.Error())
-				fmt.Fprintf(os.Stderr, "%v\n", line.Line)
-				e.selfMetrics.nErrorsByMetric.WithLabelValues(metric.Name()).Inc()
+			if matched {
+				e.selfMetrics.nLinesTotal.WithLabelValues(numberOfLinesMatchedLabel).Inc()
+			} else {
+				e.selfMetrics.nLinesTotal.WithLabelValues(numberOfLinesIgnoredLabel).Inc()
 			}
-		}
-		if matched {
-			e.selfMetrics.nLinesTotal.WithLabelValues(numberOfLinesMatchedLabel).Inc()
-		} else {
-			e.selfMetrics.nLinesTotal.WithLabelValues(numberOfLinesIgnoredLabel).Inc()
-		}
-	case <-e.retentionTicker.C:
-		for _, metric := range e.metrics {
-			err := metric.ProcessRetention()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "WARNING: error while processing retention on metric %v: %v", metric.Name(), err)
-				e.selfMetrics.nErrorsByMetric.WithLabelValues(metric.Name()).Inc()
+		case <-e.retentionTicker.C:
+			for _, metric := range e.metrics {
+				err := metric.ProcessRetention()
+				if err != nil {
+					level.Warn(e.logger).Log("WARNING: error while processing retention on metric - ", metric.Name(), "err - ", err.Error())
+					e.selfMetrics.nErrorsByMetric.WithLabelValues(metric.Name()).Inc()
+				}
 			}
 		}
 	}
 	return nil
+}
+
+func (e *Exporter) CustomHandlers() map[string]http.Handler {
+	handlers := make(map[string]http.Handler)
+	if e.config.GrokConfig.Input.Type == inputTypeWebhook {
+		handlers[fmt.Sprintf("/integrations/grok_exporter%s", e.config.GrokConfig.Input.WebhookPath)] = tailer.WebhookHandler()
+	}
+
+	return handlers
 }
 
 func initPatterns(cfg *v3.Config) (*exporter.Patterns, error) {

@@ -321,3 +321,7 @@ func (e *Exporter) Run(ctx context.Context) error {
 	<-ctx.Done()
 	return nil
 }
+
+func (e *Exporter) CustomHandlers() map[string]http.Handler {
+	return nil
+}

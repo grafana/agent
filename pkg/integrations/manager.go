@@ -476,6 +476,12 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		handler := loadHandler(key)
 		handler.ServeHTTP(rw, r)
 	})
+
+	for _, process := range m.integrations {
+		for route, handler := range process.i.CustomHandlers() {
+			r.Handle(route, handler)
+		}
+	}
 }
 
 func internalServiceError(w http.ResponseWriter, r *http.Request) {

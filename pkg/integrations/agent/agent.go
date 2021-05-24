@@ -68,3 +68,7 @@ func (i *Integration) Run(ctx context.Context) error {
 	<-ctx.Done()
 	return ctx.Err()
 }
+
+func (i *Integration) CustomHandlers() map[string]http.Handler {
+	return nil
+}
