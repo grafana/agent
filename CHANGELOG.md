@@ -1,7 +1,5 @@
 # Main (unreleased)
 
-- [BUGFIX] Fixed issue where automatic logging double logged "svc". (@joe-elliott)
-
 # v0.14.0 (2021-05-19)
 
 BREAKING CHANGE: This release has a breaking change for SigV4 support. Please
@@ -85,6 +83,8 @@ and is expected to change will be tagged interchangably as "experimental" or
 - [BUGFIX] Ensure defaults are applied to undefined sections in config file.
   This fixes a problem where integrations didn't work if `prometheus:` wasn't
   configured. (@rfratto)
+
+- [BUGFIX] Fixed issue where automatic logging double logged "svc". (@joe-elliott)
 
 - [CHANGE] The Grafana Cloud Agent has been renamed to the Grafana Agent.
   (@rfratto)
