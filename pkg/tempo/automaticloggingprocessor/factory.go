@@ -44,9 +44,9 @@ type OverrideConfig struct {
 }
 
 const (
-	// backend config value for sending logs to a Loki pipeline
+	// BackendLoki is the backend config value for sending logs to a Loki pipeline
 	BackendLoki = "loki"
-	// backend config value for sending logs to stdout
+	// BackendStdout is the backend config value for sending logs to stdout
 	BackendStdout = "stdout"
 )
 
