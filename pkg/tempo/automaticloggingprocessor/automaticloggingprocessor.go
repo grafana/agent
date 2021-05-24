@@ -41,7 +41,9 @@ const (
 
 type automaticLoggingProcessor struct {
 	nextConsumer consumer.TracesConsumer
+
 	cfg          *AutomaticLoggingConfig
+	logToStdout  bool
 	lokiInstance *loki.Instance
 	done         atomic.Bool
 
@@ -63,6 +65,19 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 		cfg.Timeout = defaultTimeout
 	}
 
+	if cfg.Backend == "" {
+		cfg.Backend = BackendStdout
+	}
+
+	if cfg.Backend != BackendLoki && cfg.Backend != BackendStdout {
+		return nil, errors.New("automaticLoggingProcessor requires a backend of type 'loki' or 'stdout'")
+	}
+
+	logToStdout := false
+	if cfg.Backend == BackendStdout {
+		logToStdout = true
+	}
+
 	cfg.Overrides.LokiTag = override(cfg.Overrides.LokiTag, defaultLokiTag)
 	cfg.Overrides.ServiceKey = override(cfg.Overrides.ServiceKey, defaultServiceKey)
 	cfg.Overrides.SpanNameKey = override(cfg.Overrides.SpanNameKey, defaultSpanNameKey)
@@ -73,6 +88,7 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 	return &automaticLoggingProcessor{
 		nextConsumer: nextConsumer,
 		cfg:          cfg,
+		logToStdout:  logToStdout,
 		logger:       logger,
 		done:         atomic.Bool{},
 	}, nil
@@ -129,7 +145,7 @@ func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host)
 		return fmt.Errorf("key does not contain a Loki instance")
 	}
 
-	if !p.cfg.LogToStdout {
+	if !p.logToStdout {
 		p.lokiInstance = loki.Instance(p.cfg.LokiName)
 		if p.lokiInstance == nil {
 			return fmt.Errorf("loki instance %s not found", p.cfg.LokiName)
@@ -201,7 +217,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 	}
 
 	// if we're logging to stdout, log and bail
-	if p.cfg.LogToStdout {
+	if p.logToStdout {
 		level.Info(p.logger).Log(keyvals...)
 		return
 	}

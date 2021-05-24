@@ -150,6 +150,7 @@ tempo:
   configs:
   - name: default
     automatic_logging:
+      backend: loki
       loki_name: default
       spans: true`,
 		},
@@ -166,8 +167,8 @@ tempo:
   configs:
   - name: default
     automatic_logging:
+      backend: stdout
       loki_name: doesnt_exist
-      log_to_stdout: true
       spans: true`,
 		},
 	}
@@ -200,6 +201,7 @@ tempo:
   configs:
   - name: default
     automatic_logging:
+      backend: loki
       loki_name: default
       spans: true`,
 			expectedError: "error in config file: specified loki config default not found",
