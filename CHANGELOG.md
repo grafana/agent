@@ -6,6 +6,8 @@ guide](./docs/migration-guide.md) for details.
 
 - [ENHANCEMENT] Add the option to log to stdout instead of a Loki instance. (@joe-elliott)
 
+- [CHANGE] Intentionally order tracing processors. (@joe-elliott)
+
 # v0.14.0 (2021-05-19)
 
 BREAKING CHANGE: This release has a breaking change for SigV4 support. Please
