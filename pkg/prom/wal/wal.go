@@ -250,11 +250,6 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				return []record.RefSample{}
 			},
 		}
-		exemplarsPool = sync.Pool{
-			New: func() interface{} {
-				return []record.RefExemplar{}
-			},
-		}
 	)
 
 	go func() {
@@ -285,19 +280,8 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 					}
 				}
 				decoded <- samples
-			case record.Exemplars:
-				exemplars := exemplarsPool.Get().([]record.RefExemplar)[:0]
-				exemplars, err = dec.Exemplars(rec, exemplars)
-				if err != nil {
-					errCh <- &wal.CorruptionErr{
-						Err:     errors.Wrap(err, "decode exemplars"),
-						Segment: r.Segment(),
-						Offset:  r.Offset(),
-					}
-				}
-				decoded <- exemplars
-			case record.Tombstones:
-				// We don't care about tombstones
+			case record.Tombstones, record.Exemplars:
+				// We don't care about decoding tombstones or exemplars
 				continue
 			default:
 				errCh <- &wal.CorruptionErr{
@@ -353,9 +337,6 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 
 			//nolint:staticcheck
 			samplesPool.Put(v)
-		case []record.RefExemplar:
-			//nolint:staticcheck
-			exemplarsPool.Put(v)
 		default:
 			panic(fmt.Errorf("unexpected decoded type: %T", d))
 		}
