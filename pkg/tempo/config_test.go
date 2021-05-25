@@ -657,6 +657,7 @@ service:
   pipelines:
     traces/0:
       exporters: ["loadbalancing"]
+      processors: []
       receivers: ["jaeger"]
     traces/1:
       exporters: ["otlp/0"]
