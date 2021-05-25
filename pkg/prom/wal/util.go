@@ -94,6 +94,8 @@ type walDataCollector struct {
 	series  []record.RefSeries
 }
 
+func (c *walDataCollector) AppendExemplars(_ []record.RefExemplar) bool { return true }
+
 func (c *walDataCollector) Append(samples []record.RefSample) bool {
 	c.mut.Lock()
 	defer c.mut.Unlock()
