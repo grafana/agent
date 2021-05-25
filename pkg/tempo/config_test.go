@@ -763,46 +763,7 @@ remote_write:
 			},
 		},
 		{
-			name: "all but tail based",
-			cfg: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-remote_write:
-  - endpoint: example.com:12345
-    headers:
-      x-some-header: Some value!
-attributes:
-  actions:
-  - key: montgomery
-    value: forever
-    action: update
-spanmetrics:
-  latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
-  dimensions:
-    - name: http.method
-      default: GET
-    - name: http.status_code
-  prom_instance: tempo
-automatic_logging:
-  spans: true
-batch:
-  timeout: 5s
-  send_batch_size: 100
-`,
-			expectedProcessors: map[string][]string{
-				"traces": {
-					"attributes",
-					"spanmetrics",
-					"automatic_logging",
-					"batch",
-				},
-				"metrics/spanmetrics": nil,
-			},
-		},
-		{
-			name: "all including tail based",
+			name: "all processors w/o load balancing",
 			cfg: `
 receivers:
   jaeger:
@@ -849,6 +810,63 @@ tail_sampling:
 				"metrics/spanmetrics": nil,
 			},
 		},
+		{
+			name: "all processors with load balancing",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    headers:
+      x-some-header: Some value!
+attributes:
+  actions:
+  - key: montgomery
+    value: forever
+    action: update
+spanmetrics:
+  latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
+  dimensions:
+    - name: http.method
+      default: GET
+    - name: http.status_code
+  prom_instance: tempo
+automatic_logging:
+  spans: true
+batch:
+  timeout: 5s
+  send_batch_size: 100
+tail_sampling:
+  policies:
+    - always_sample:
+    - string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
+  load_balancing:
+    exporter:
+      insecure: true
+    resolver:
+      dns:
+        hostname: agent
+        port: 4318
+`,
+			expectedProcessors: map[string][]string{
+				"traces/0": {
+					"attributes",
+					"spanmetrics",
+				},
+				"traces/1": {
+					"tail_sampling",
+					"automatic_logging",
+					"batch",
+				},
+				"metrics/spanmetrics": nil,
+			},
+		},
 	}
 
 	for _, tc := range tt {
@@ -861,11 +879,128 @@ tail_sampling:
 			actualConfig, err := cfg.otelConfig()
 			require.NoError(t, err)
 
-			assert.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
+			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
 			for k := range tc.expectedProcessors {
 				assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[k].Processors)
 			}
 		})
+	}
+}
+
+func TestOrderProcessors(t *testing.T) {
+	tests := []struct {
+		processors     []string
+		splitPipelines bool
+		expected       [][]string
+	}{
+		{
+			expected: [][]string{
+				nil,
+			},
+		},
+		{
+			processors: []string{
+				"tail_sampling",
+			},
+			expected: [][]string{
+				{"tail_sampling"},
+			},
+		},
+		{
+			processors: []string{
+				"batch",
+				"tail_sampling",
+				"automatic_logging",
+			},
+			expected: [][]string{
+				{
+					"tail_sampling",
+					"automatic_logging",
+					"batch",
+				},
+			},
+		},
+		{
+			processors: []string{
+				"spanmetrics",
+				"batch",
+				"tail_sampling",
+				"attributes",
+				"automatic_logging",
+			},
+			expected: [][]string{
+				{
+					"attributes",
+					"spanmetrics",
+					"tail_sampling",
+					"automatic_logging",
+					"batch",
+				},
+			},
+		},
+		{
+			splitPipelines: true,
+			expected: [][]string{
+				nil,
+				nil,
+			},
+		},
+		{
+			processors: []string{
+				"spanmetrics",
+				"batch",
+				"tail_sampling",
+				"attributes",
+				"automatic_logging",
+			},
+			splitPipelines: true,
+			expected: [][]string{
+				{
+					"attributes",
+					"spanmetrics",
+				},
+				{
+					"tail_sampling",
+					"automatic_logging",
+					"batch",
+				},
+			},
+		},
+		{
+			processors: []string{
+				"batch",
+				"tail_sampling",
+				"automatic_logging",
+			},
+			splitPipelines: true,
+			expected: [][]string{
+				{},
+				{
+					"tail_sampling",
+					"automatic_logging",
+					"batch",
+				},
+			},
+		},
+		{
+			processors: []string{
+				"spanmetrics",
+				"attributes",
+			},
+			splitPipelines: true,
+			expected: [][]string{
+				{
+					"attributes",
+					"spanmetrics",
+				},
+				{},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		actual := orderProcessors(tc.processors, tc.splitPipelines)
+		assert.Equal(t, tc.expected, actual)
 	}
 }
 
