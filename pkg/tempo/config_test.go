@@ -665,7 +665,7 @@ service:
 `,
 		},
 		{
-			name: "automatic logging",
+			name: "automatic logging : default",
 			cfg: `
 receivers:
   jaeger:

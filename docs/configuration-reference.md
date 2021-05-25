@@ -2057,10 +2057,12 @@ remote_write:
 
     # This processor writes a well formatted log line to a Loki instance for each span, root, or process
     # that passes through the Agent. This allows for automatically building a mechanism for trace
-    # discovery and building metrics from traces using Loki.
+    # discovery and building metrics from traces using Loki. It should be considered experimental.
     automatic_logging:
-      # indicates the Loki instance to write logs to.
-      loki_name: <string>
+      # indicates where the stream of log lines should go. Either supports writing to a loki instance defined in this same config or to stdout.
+      [ backend: <string> | default = "stdout" | supported "stdout", "loki" ]
+      # indicates the Loki instance to write logs to. Required if backend is set to loki.
+      [ loki_name: <string> ]
       # log one line per span. Warning! possibly very high volume
       [ spans: <boolean> ]
       # log one line for every root span of a trace.

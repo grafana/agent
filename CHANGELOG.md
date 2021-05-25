@@ -1,5 +1,11 @@
 # Main (unreleased)
 
+BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.
+Please review the [migration
+guide](./docs/migration-guide.md) for details.
+
+- [ENHANCEMENT] Add the option to log to stdout instead of a Loki instance. (@joe-elliott)
+
 # v0.14.0 (2021-05-19)
 
 BREAKING CHANGE: This release has a breaking change for SigV4 support. Please

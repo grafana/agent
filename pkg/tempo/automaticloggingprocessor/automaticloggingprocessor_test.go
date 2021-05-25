@@ -97,7 +97,8 @@ func TestSpanKeyVals(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc.cfg.Spans = true // have to set one true or newTraceProcessor fails
+		tc.cfg.Backend = BackendStdout
+		tc.cfg.Spans = true
 		p, err := newTraceProcessor(&automaticLoggingProcessor{}, &tc.cfg)
 		require.NoError(t, err)
 
@@ -147,7 +148,8 @@ func TestProcessKeyVals(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc.cfg.Spans = true // have to set one true or newTraceProcessor fails
+		tc.cfg.Backend = BackendStdout
+		tc.cfg.Spans = true
 		p, err := newTraceProcessor(&automaticLoggingProcessor{}, &tc.cfg)
 		require.NoError(t, err)
 
@@ -157,4 +159,75 @@ func TestProcessKeyVals(t *testing.T) {
 		actual := p.(*automaticLoggingProcessor).processKeyVals(process, tc.svc)
 		assert.Equal(t, tc.expected, actual)
 	}
+}
+
+func TestBadConfigs(t *testing.T) {
+	tests := []struct {
+		cfg *AutomaticLoggingConfig
+	}{
+		{
+			cfg: &AutomaticLoggingConfig{},
+		},
+		{
+			cfg: &AutomaticLoggingConfig{
+				Backend: "blarg",
+				Spans:   true,
+			},
+		},
+		{
+			cfg: &AutomaticLoggingConfig{
+				Backend: "loki",
+			},
+		},
+		{
+			cfg: &AutomaticLoggingConfig{
+				Backend: "stdout",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		p, err := newTraceProcessor(&automaticLoggingProcessor{}, tc.cfg)
+		require.Error(t, err)
+		require.Nil(t, p)
+	}
+}
+
+func TestLogToStdoutSet(t *testing.T) {
+	cfg := &AutomaticLoggingConfig{
+		Backend: BackendStdout,
+		Spans:   true,
+	}
+
+	p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
+	require.NoError(t, err)
+	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
+
+	cfg = &AutomaticLoggingConfig{
+		Backend: BackendLoki,
+		Spans:   true,
+	}
+
+	p, err = newTraceProcessor(&automaticLoggingProcessor{}, cfg)
+	require.NoError(t, err)
+	require.False(t, p.(*automaticLoggingProcessor).logToStdout)
+}
+
+func TestDefaults(t *testing.T) {
+	cfg := &AutomaticLoggingConfig{
+		Spans: true,
+	}
+
+	p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
+	require.NoError(t, err)
+	require.Equal(t, BackendStdout, p.(*automaticLoggingProcessor).cfg.Backend)
+	require.Equal(t, defaultTimeout, p.(*automaticLoggingProcessor).cfg.Timeout)
+	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
+
+	require.Equal(t, defaultLokiTag, p.(*automaticLoggingProcessor).cfg.Overrides.LokiTag)
+	require.Equal(t, defaultServiceKey, p.(*automaticLoggingProcessor).cfg.Overrides.ServiceKey)
+	require.Equal(t, defaultSpanNameKey, p.(*automaticLoggingProcessor).cfg.Overrides.SpanNameKey)
+	require.Equal(t, defaultStatusKey, p.(*automaticLoggingProcessor).cfg.Overrides.StatusKey)
+	require.Equal(t, defaultDurationKey, p.(*automaticLoggingProcessor).cfg.Overrides.DurationKey)
+	require.Equal(t, defaultTraceIDKey, p.(*automaticLoggingProcessor).cfg.Overrides.TraceIDKey)
 }

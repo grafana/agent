@@ -22,6 +22,7 @@ type Config struct {
 
 // AutomaticLoggingConfig holds config information for automatic logging
 type AutomaticLoggingConfig struct {
+	Backend           string         `mapstructure:"backend" yaml:"backend"`
 	LokiName          string         `mapstructure:"loki_name" yaml:"loki_name"`
 	Spans             bool           `mapstructure:"spans" yaml:"spans"`
 	Roots             bool           `mapstructure:"roots" yaml:"roots"`
@@ -41,6 +42,13 @@ type OverrideConfig struct {
 	DurationKey string `mapstructure:"duration_key" yaml:"duration_key"`
 	TraceIDKey  string `mapstructure:"trace_id_key" yaml:"trace_id_key"`
 }
+
+const (
+	// BackendLoki is the backend config value for sending logs to a Loki pipeline
+	BackendLoki = "loki"
+	// BackendStdout is the backend config value for sending logs to stdout
+	BackendStdout = "stdout"
+)
 
 // NewFactory returns a new factory for the Attributes processor.
 func NewFactory() component.ProcessorFactory {

@@ -133,49 +133,87 @@ func TestConfig_Defaults(t *testing.T) {
 	require.Equal(t, integrations.DefaultManagerConfig, c.Integrations)
 }
 
-func TestConfig_TempoLokiValidation(t *testing.T) {
-	// test failure
-	cfg := `
+func TestConfig_TempoLokiValidates(t *testing.T) {
+	tests := []struct {
+		cfg string
+	}{
+		{
+			cfg: `
+loki:
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+    - url: http://loki:3100/loki/api/v1/push
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: loki
+      loki_name: default
+      spans: true`,
+		},
+		{
+			cfg: `
+loki:
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+    - url: http://loki:3100/loki/api/v1/push
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: stdout
+      loki_name: doesnt_exist
+      spans: true`,
+		},
+	}
+
+	for _, tc := range tests {
+		fs := flag.NewFlagSet("test", flag.ExitOnError)
+		_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+			return LoadBytes([]byte(tc.cfg), false, c)
+		})
+
+		require.NoError(t, err)
+	}
+}
+
+func TestConfig_TempoLokiFailsValidation(t *testing.T) {
+	tests := []struct {
+		cfg           string
+		expectedError string
+	}{
+		{
+			cfg: `
 loki:
   configs:
   - name: foo
     positions:
       filename: /tmp/positions.yaml
     clients:
-      - url: http://loki:3100/loki/api/v1/push
+    - url: http://loki:3100/loki/api/v1/push
 tempo:
   configs:
   - name: default
     automatic_logging:
+      backend: loki
       loki_name: default
-      spans: true
-  `
+      spans: true`,
+			expectedError: "error in config file: specified loki config default not found",
+		},
+	}
 
-	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
-		return LoadBytes([]byte(cfg), false, c)
-	})
-	require.EqualError(t, err, "error in config file: specified loki config default not found")
+	for _, tc := range tests {
+		fs := flag.NewFlagSet("test", flag.ExitOnError)
+		_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+			return LoadBytes([]byte(tc.cfg), false, c)
+		})
 
-	// test success
-	cfg = `
-loki:
-  configs:
-    - name: foo
-      positions:
-        filename: /tmp/positions.yaml
-      clients:
-        - url: http://loki:3100/loki/api/v1/push
-tempo:
-  configs:
-  - name: default
-    automatic_logging:
-      loki_name: foo
-      spans: true`
-
-	fs = flag.NewFlagSet("test", flag.ExitOnError)
-	_, err = load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
-		return LoadBytes([]byte(cfg), false, c)
-	})
-	require.NoError(t, err)
+		require.EqualError(t, err, tc.expectedError)
+	}
 }
