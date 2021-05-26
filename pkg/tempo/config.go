@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"sort"
 	"time"
 
 	"github.com/grafana/agent/pkg/loki"
@@ -539,22 +540,26 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		}
 	}
 
-	if c.TailSampling != nil && c.TailSampling.LoadBalancing != nil {
+	// Build Pipelines
+	splitPipeline := c.TailSampling != nil && c.TailSampling.LoadBalancing != nil
+	orderedSplitProcessors := orderProcessors(processorNames, splitPipeline)
+	if splitPipeline {
 		// load balancing pipeline
 		pipelines["traces/0"] = map[string]interface{}{
-			"receivers": receiverNames,
-			"exporters": []string{"loadbalancing"},
+			"receivers":  receiverNames,
+			"processors": orderedSplitProcessors[0],
+			"exporters":  []string{"loadbalancing"},
 		}
 		// processing pipeline
 		pipelines["traces/1"] = map[string]interface{}{
 			"exporters":  exportersNames,
-			"processors": processorNames,
+			"processors": orderedSplitProcessors[1],
 			"receivers":  []string{"otlp/lb"},
 		}
 	} else {
 		pipelines["traces"] = map[string]interface{}{
 			"exporters":  exportersNames,
-			"processors": processorNames,
+			"processors": orderedSplitProcessors[0],
 			"receivers":  receiverNames,
 		}
 	}
@@ -642,4 +647,46 @@ func tracingFactories() (component.Factories, error) {
 		Processors: processors,
 		Exporters:  exporters,
 	}, nil
+}
+
+// orders the passed processors into their preferred order in a tracing pipeline. pass
+// true to splitPipelines if this function should split the input pipelines into two
+// sets: before and after load balancing
+func orderProcessors(processors []string, splitPipelines bool) [][]string {
+	order := map[string]int{
+		"attributes":        0,
+		"spanmetrics":       1,
+		"tail_sampling":     2,
+		"automatic_logging": 3,
+		"batch":             4,
+	}
+
+	sort.Slice(processors, func(i, j int) bool {
+		iVal := order[processors[i]]
+		jVal := order[processors[j]]
+
+		return iVal < jVal
+	})
+
+	if !splitPipelines {
+		return [][]string{
+			processors,
+		}
+	}
+
+	// if we're splitting pipelines we have to look for the first processor that belongs in the second
+	// stage and split on that. if nothing belongs in the second stage just leave them all in the first
+	foundAt := len(processors)
+	for i, processor := range processors {
+		if processor == "batch" ||
+			processor == "tail_sampling" {
+			foundAt = i
+			break
+		}
+	}
+
+	return [][]string{
+		processors[:foundAt],
+		processors[foundAt:],
+	}
 }
