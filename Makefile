@@ -184,6 +184,10 @@ example-dashboards:
 # A custom grafana/agent/seego image is built on top of the base image with
 # specific overrides. grafana/agent/seego is not pushed to Docker Hub and
 # can be built with "make seego".
+#
+# Note that dist/agent(ctl)-linux-mipsle targets are not included in dist target
+# and are included as separate targets to make it easier for users to build them
+# manually.
 dist: dist-agent dist-agentctl dist-packages
 	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
@@ -198,6 +202,8 @@ dist/agent-linux-armv6: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/agent-linux-mipsle: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-darwin-amd64: seego
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-darwin-arm64: seego
@@ -211,8 +217,6 @@ dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	docker run -e VERSION=${RELEASE_TAG} --rm -t -v $(CURDIR)/dist:/app windows_nsis
 dist/agent-freebsd-amd64: seego
 	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-mipsle: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
 dist/agentctl-linux-amd64: seego
@@ -223,6 +227,8 @@ dist/agentctl-linux-armv6: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/agentctl-linux-mipsle: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-darwin-amd64: seego
 	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-darwin-arm64: seego
@@ -231,8 +237,6 @@ dist/agentctl-windows-amd64.exe: seego
 	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 dist/agentctl-freebsd-amd64: seego
 	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-mipsle: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
 	docker build -t grafana/agent/seego tools/seego
