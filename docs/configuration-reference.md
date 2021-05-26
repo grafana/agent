@@ -2249,6 +2249,9 @@ consul_exporter: <consul_exporter_config>
 # Controls the windows_exporter integration
 windows_exporter: <windows_exporter_config>
 
+# Controls the grok_exporter integration
+grok_exporter: <grok_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
@@ -3722,4 +3725,229 @@ Full reference of options:
     # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
     # Maps to collector.logical_disk.volume-blacklist in windows_exporter
     [blacklist: <string> | default=".+"]
+```
+
+### grok_exporter_config
+
+The `grok_exporter_config` block configures the `grok_exporter` integration, which is an embedded version of [`grok_exporter`](https://github.com/fstab/grok_exporter). This allows to export Prometheus metrics from arbitrary unstructured log data.
+
+Full reference of options:
+```yaml
+  # Enables the grok_exporter integration, allowing the Agent to automatically
+  # collect metrics from the inputs configured
+  [enabled: <boolean> | default = false]
+
+  # Automatically collect metrics from this integration. If disabled,
+  # the grok_exporter integration will be run but not scraped and thus not
+  # remote-written. Metrics for the integration will be exposed at
+  # /integrations/grok_exporter/metrics and can be scraped by an external
+  # process.
+  [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
+
+  # How often should the metrics be collected? Defaults to
+  # prometheus.global.scrape_interval.
+  [scrape_interval: <duration> | default = <global_config.scrape_interval>]
+
+  # The timeout before considering the scrape a failure. Defaults to
+  # prometheus.global.scrape_timeout.
+  [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
+
+  # Allows for relabeling labels on the target.
+  relabel_configs:
+    [- <relabel_config> ... ]
+
+  # Relabel metrics coming from the integration, allowing to drop series
+  # from the integration that you don't care about.
+  metric_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # How frequent to truncate the WAL for this integration.
+  [wal_truncate_frequency: <duration> | default = "60m"]
+
+  # Monitor the exporter itself and include those metrics in the results.
+  [include_exporter_metrics: <bool> | default = false]
+
+  # exporter-specific configuration options
+
+  # Global Config
+  global:
+
+    # Version of config for grok_exporter.
+    [config_version: <string> | default = 2]
+
+    # Optional interval at which grok_exporter checks for expired metrics. By default, metrics don't expire so this is relevant only if retention is configured explicitly with a metric.
+    [retention_check_interval: <duration> | default = 53s]
+
+  # Input Config
+  input:
+
+    # grok_exporter supports three input types: "file", "stdin", and "webhook". Refer to input section for input specific configs.
+
+  # Optional imports section used to load grok_patterns and metrics from external configuration files.
+  imports:
+
+    # Type can either be "grok_patterns" or "metrics".
+    # "grok_patterns" can be pre-defined grok patterns that come along with the grok_exporter release or it can be any custom defined grok pattern.
+    # The external "metrics" configuration files are YAML files containing a list of metrics definitions.
+  - [type: <string>]
+
+    # File is either a path to a config file, or a [Glob] pattern matching multiple config files.
+    [file: <string>]
+
+    # Dir is a directory, all files in that directory will be imported.
+    [dir: <string>]
+
+    # When importing metrics from external files, you can specify some default values. If an imported metric configuration does not contain that value, the default from the "imports" is used.
+    defaults:
+
+      # Path of the metric file.
+      [path: <string>]
+
+      # Optional retention for the metric.
+      [retention: <duration>]
+
+      # Histogram bucket values that can be used for any histogram metric.
+      [buckets: <array>]
+
+      # List of quantiles to be observed.
+      [quantiles: <hash>]
+
+      # Labels that need to be added to the metric.
+      [labels: <hash>]
+
+  # Metrics config. Refer https://github.com/fstab/grok_exporter/blob/master/CONFIG.md#metrics-section.
+  metrics:
+
+    # Type can be counter, gauge, histogram, summary.
+  - [type: <string>]
+
+    # Name of the metric.
+    [name: <string>]
+
+    # Description of the metric.
+    [help: <string>]
+
+    # Pattern that needs to be matched with the input data.
+    [match: <string>]
+
+    # Name of the label, the value of which will be published as the metric value
+    [value: <string>]
+
+    # Histogram bucket values that can be used for any histogram metric.
+    [buckets: <array>]
+
+    # List of quantiles to be observed.
+    [quantiles: <hash>]
+
+    # Labels that need to be added to the metric.
+    [labels: <hash>]
+
+    # Path of the metric file.
+    [path: <string>]
+
+    # Optional retention for the metric.
+    [retention: <duration>]
+```
+
+#### Input Section
+1. File Input Type
+```yaml
+input:
+
+  # Type of input that will be the source of truth for the metric
+  [type: file]
+
+  # The path is the path to the log file. path is used if you want to monitor a single path.
+  [path: <string>]
+
+  # This is an array of files that need to be monitored
+  [paths: <array>]
+
+  # Defines if grok_exporter starts reading from the beginning or the end of the file
+  [readall: <bool> | default = false]
+
+  # If set to true, grok_exporter will not start if the path is not found
+  [fail_on_missing_logfile: <bool> | default = false]
+
+  # Need NOT be set in most cases, refer https://github.com/fstab/grok_exporter/blob/master/CONFIG.md
+  [poll_interval: <duration>]
+```
+
+2. Stdin Input Type
+```yaml
+input:
+    [type: stdin]
+```
+This is useful if you want to pipe log data to `grafana_agent`.
+
+3. Webhook Input Type
+
+The grok_exporter is capable of receive log entries from webhook sources.  It supports webhook reception in various formats... plain-text or JSON, single entries or bulk entries.
+
+The following input configuration example which demonstrates how to configure grok_exporter to receive HTTP webhooks from the [Logstash HTTP Output Plugin](https://www.elastic.co/guide/en/logstash/current/plugins-outputs-http.html) configured in `json_batch` mode, which allows the transmission of multiple json log entries in a single webhook.
+
+```yaml
+input:
+
+    [type: webhook]
+
+    # HTTP Path to POST the webhook. The path will be prefixed with /integrations/grok_exporter.
+    [webhook_path: <string> | default = /webhook] # With the prefix the entire default path will be /integrations/grok_exporter/webhook
+
+    # HTTP Body POST Format
+    # text_single: Webhook POST body is a single plain text log entry
+    # text_bulk: Webhook POST body contains multiple plain text log entries
+    #   separated by webhook_text_bulk_separator (default: \n\n)
+    # json_single: Webhook POST body is a single json log entry.  Log entry
+    #   text is selected from the value of a json key determined by
+    #   webhook_json_selector.
+    # json_bulk: Webhook POST body contains multiple json log entries.  The
+    #   POST body envelope must be a json array "[ <entry>, <entry> ]".  Log
+    #   entry text is selected from the value of a json key determined by
+    #   webhook_json_selector.
+    # json_lines: Webhook POST body contains multiple json log entries, with
+    #   newline-separated log lines holding an individual json object. JSON
+    #   object itself may not contain newlines. For example:
+    #   example:
+    #       { app="foo", stage="prod", log="example log message" }
+    #       { app="bar", stage="dev", log="another line" }
+    #   Log entry text is selected from the value of a json key determined
+    #   by webhook_json_selector.
+    [webhook_format: <string> | default = text_single]
+
+    # JSON Path Selector
+    # Within an json log entry, text is selected from the value of this json selector
+    # Example ".path.to.element"
+    [webhook_json_selector: <string> | default = .message]
+
+    # Bulk Text Separator
+    # Separator for text_bulk log entries
+    [webhook_text_bulk_separator: <string> | default =  "\n\n"]
+```
+
+4. Kafka Input Type
+
+The `grok_exporter` is capable of consuming log entries from Kafka.  Currently, only plain-text encoded messages are supported.
+
+```yaml
+input:
+  [type: kafka]
+
+  # Version corresponding to the kafka cluster
+  [kafka_version: <string> | default = 2.1.0]
+
+  # The list of the Kafka brokers part of the Kafka cluster.
+  [kafka_brokers: <array>]
+
+  # The list of Kafka topics to consume from.
+  [kafka_topics: <array]
+
+  # The assignor to use, which can be either range, roundrobin, sticky.
+  [kafka_partition_assignor: <string> | default = range]
+
+  # The name of the consumer group to register as on the broker.
+  [kafka_consumer_group_name: <string> | default = grok_exporter]
+
+  # Indicates if the exporter should start consuming as of the most recent messages in the topic (true), or consume from the earliest messages in the topic (false).
+  [kafka_consume_from_oldest: <bool> | default = false]
 ```

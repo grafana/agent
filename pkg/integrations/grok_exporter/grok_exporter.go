@@ -90,6 +90,7 @@ type selfMetrics struct {
 	nErrorsByMetric              *prometheus.CounterVec
 }
 
+// New creates a new grok_exporter integration
 func New(logger log.Logger, config *Config) (integrations.Integration, error) {
 	configBytes, err := yaml.Marshal(config.GrokConfig)
 	if err != nil {
@@ -215,6 +216,7 @@ func (e *Exporter) Run(ctx context.Context) error {
 	return nil
 }
 
+// CustomHandlers returns extra handlers for the integration.
 func (e *Exporter) CustomHandlers() map[string]http.Handler {
 	handlers := make(map[string]http.Handler)
 	if e.config.GrokConfig.Input.Type == inputTypeWebhook {

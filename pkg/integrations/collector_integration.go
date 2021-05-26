@@ -104,6 +104,7 @@ func (i *CollectorIntegration) Run(ctx context.Context) error {
 	return i.runner(ctx)
 }
 
+// CustomHandlers returns extra handlers for the integration.
 func (i *CollectorIntegration) CustomHandlers() map[string]http.Handler {
 	return nil
 }

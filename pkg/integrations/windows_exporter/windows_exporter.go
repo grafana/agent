@@ -41,6 +41,7 @@ func (i *Integration) Run(ctx context.Context) error {
 	return ctx.Err()
 }
 
+// CustomHandlers returns extra handlers for the integration.
 func (i *Integration) CustomHandlers() map[string]http.Handler {
 	return nil
 }
