@@ -319,7 +319,7 @@ func (b *deploymentBuilder) Build(l log.Logger, ctx context.Context) (config.Dep
 	promInstances := make([]config.PrometheusInstance, 0, len(instances))
 
 	for _, inst := range instances {
-		sMons, err := b.getServiceMonitors(ctx, inst)
+		sMons, err := b.getServiceMonitors(l, ctx, inst)
 		if err != nil {
 			return config.Deployment{}, fmt.Errorf("unable to fetch ServiceMonitors: %w", err)
 		}
@@ -451,6 +451,7 @@ func (b *deploymentBuilder) matchNamespace(
 }
 
 func (b *deploymentBuilder) getServiceMonitors(
+	l log.Logger,
 	ctx context.Context,
 	inst *grafana_v1alpha1.PrometheusInstance,
 ) ([]*prom.ServiceMonitor, error) {
@@ -474,14 +475,53 @@ func (b *deploymentBuilder) getServiceMonitors(
 	}
 
 	items := make([]*prom.ServiceMonitor, 0, len(list.Items))
+
+Item:
 	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
+		match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel)
+		if err != nil {
 			return nil, fmt.Errorf("failed getting namespace: %w", err)
+		} else if !match {
+			continue
 		}
+
+		if b.Agent.Spec.Prometheus.ArbitraryFSAccessThroughSMs.Deny {
+			for _, ep := range item.Spec.Endpoints {
+				err := testForArbitraryFSAccess(ep)
+				if err == nil {
+					continue
+				}
+
+				level.Warn(l).Log(
+					"msg", "skipping service monitor",
+					"agent", client.ObjectKeyFromObject(b.Agent),
+					"servicemonitor", client.ObjectKeyFromObject(item),
+					"err", err,
+				)
+
+				continue Item
+			}
+		}
+
+		items = append(items, item)
 	}
 	return items, nil
+}
+
+func testForArbitraryFSAccess(e prom.Endpoint) error {
+	if e.BearerTokenFile != "" {
+		return fmt.Errorf("it accesses file system via bearer token file which is disallowed via GrafanaAgent specification")
+	}
+
+	if e.TLSConfig == nil {
+		return nil
+	}
+
+	if e.TLSConfig.CAFile != "" || e.TLSConfig.CertFile != "" || e.TLSConfig.KeyFile != "" {
+		return fmt.Errorf("it accesses file system via TLS config which is disallowed via GrafanaAgent specification")
+	}
+
+	return nil
 }
 
 func (b *deploymentBuilder) getPodMonitors(

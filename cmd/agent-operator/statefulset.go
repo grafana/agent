@@ -17,10 +17,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// TODO(rfratto): Still missing:
-// 1. ArbitraryFSAccessThroughSMs should pre-filter discovered ServiceMontiors
-//    and remove any that do arbitrary access.
-
 const (
 	governingServiceName            = "grafana-agent-operated"
 	defaultReplicaExternalLabelName = "__replica__"
