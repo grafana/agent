@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/operator"
 	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/assets"
+	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	apps_v1 "k8s.io/api/apps/v1"
@@ -155,6 +156,17 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		if err != nil {
 			level.Error(l).Log("msg", "failed to create Secret for storing config", "err", err)
 			return controller.Result{Requeue: true}, nil
+		}
+	}
+
+	// Generate governing service.
+	{
+		svc := generateStatefulSetService(deployment)
+		level.Info(l).Log("msg", "creating or updating statefulset service", "service", svc.Name)
+		err := clientutil.CreateOrUpdateService(ctx, r.Client, svc)
+		if err != nil {
+			level.Error(l).Log("msg", "failed to create statefulset service", "err", err)
+			return controller.Result{}, nil
 		}
 	}
 

@@ -20,7 +20,6 @@ import (
 // TODO(rfratto): Still missing:
 // 1. ArbitraryFSAccessThroughSMs should pre-filter discovered ServiceMontiors
 //    and remove any that do arbitrary access.
-// 2. Generated service (governingServiceName) for the statefulset.
 
 const (
 	governingServiceName            = "grafana-agent-operated"
@@ -40,6 +39,46 @@ var (
 	agentNameLabelName        = "operator.agent.grafana.com/name"
 	probeTimeoutSeconds int32 = 3
 )
+
+func generateStatefulSetService(d config.Deployment) *v1.Service {
+	d = *d.DeepCopy()
+
+	if d.Agent.Spec.PortName == "" {
+		d.Agent.Spec.PortName = defaultPortName
+	}
+
+	boolTrue := true
+
+	return &v1.Service{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name:      governingServiceName,
+			Namespace: d.Agent.ObjectMeta.Namespace,
+			OwnerReferences: []meta_v1.OwnerReference{{
+				APIVersion:         d.Agent.APIVersion,
+				Kind:               d.Agent.Kind,
+				Name:               d.Agent.Name,
+				BlockOwnerDeletion: &boolTrue,
+				Controller:         &boolTrue,
+				UID:                d.Agent.UID,
+			}},
+			// TODO(rfratto): merge with labels from operator config
+			Labels: map[string]string{
+				"operated-agent": "true",
+			},
+		},
+		Spec: v1.ServiceSpec{
+			ClusterIP: "None",
+			Ports: []v1.ServicePort{{
+				Name:       d.Agent.Spec.PortName,
+				Port:       9090,
+				TargetPort: intstr.FromString(d.Agent.Spec.PortName),
+			}},
+			Selector: map[string]string{
+				"app.kubernetes.io/name": "grafana-agent",
+			},
+		},
+	}
+}
 
 func generateStatefulSet(
 	name string,
