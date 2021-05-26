@@ -1912,13 +1912,13 @@ queue_config:
   # samples from the WAL. It is recommended to have enough capacity in each
   # shard to buffer several requests to keep throughput up while processing
   # occasional slow remote requests.
-  [ capacity: <int> | default = 500 ]
+  [ capacity: <int> | default = 2500 ]
   # Maximum number of shards, i.e. amount of concurrency.
-  [ max_shards: <int> | default = 1000 ]
+  [ max_shards: <int> | default = 200 ]
   # Minimum number of shards, i.e. amount of concurrency.
   [ min_shards: <int> | default = 1 ]
   # Maximum number of samples per send.
-  [ max_samples_per_send: <int> | default = 100]
+  [ max_samples_per_send: <int> | default = 500 ]
   # Maximum time a sample will wait in buffer.
   [ batch_send_deadline: <duration> | default = 5s ]
   # Initial retry delay. Gets doubled for every retry.
@@ -2057,10 +2057,12 @@ remote_write:
 
     # This processor writes a well formatted log line to a Loki instance for each span, root, or process
     # that passes through the Agent. This allows for automatically building a mechanism for trace
-    # discovery and building metrics from traces using Loki.
+    # discovery and building metrics from traces using Loki. It should be considered experimental.
     automatic_logging:
-      # indicates the Loki instance to write logs to.
-      loki_name: <string>
+      # indicates where the stream of log lines should go. Either supports writing to a loki instance defined in this same config or to stdout.
+      [ backend: <string> | default = "stdout" | supported "stdout", "loki" ]
+      # indicates the Loki instance to write logs to. Required if backend is set to loki.
+      [ loki_name: <string> ]
       # log one line per span. Warning! possibly very high volume
       [ spans: <boolean> ]
       # log one line for every root span of a trace.
@@ -2113,7 +2115,7 @@ spanmetrics:
   [ namespace: <string> ]
   # prom_instance is the prometheus used to remote write metrics.
   [ prom_instance: <string> ]
-  # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed. 
+  # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
 
 # tail_sampling supports tail-based sampling of traces in the agent.
@@ -2310,7 +2312,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.13.1 \
+  grafana/agent:v0.14.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2350,7 +2352,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.13.1
+  - image: grafana/agent:v0.14.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -2619,7 +2621,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.13.1 \
+  grafana/agent:v0.14.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -2636,7 +2638,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.13.1
+  - image: grafana/agent:v0.14.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml

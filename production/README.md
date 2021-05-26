@@ -39,10 +39,9 @@ directory on your host that you want the agent to store its WAL.
 
 ```
 docker run \
-  -v /tmp/agent:/etc/agent \
-  -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  --entrypoint "/bin/agent -config.file=/etc/agent-config/agent.yaml -prometheus.wal-directory=/etc/agent/data"
-  grafana/agent:v0.13.1
+  -v /tmp/agent:/etc/agent/data \
+  -v /path/to/config.yaml:/etc/agent/agent.yaml \
+  grafana/agent:v0.14.0
 ```
 
 ## Running the Agent locally

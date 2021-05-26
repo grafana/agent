@@ -3,43 +3,31 @@
 This is a guide detailing all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-# Unreleased
+## Tempo: `automatic_logging` changes
 
-## Span metrics exporter changes
-
-Remote write exporting support has been added to span metrics in the tracing
-pipeline. To make configuration more clear and reduce boilerplate between
-both exporter configurations (i.e. remote write and prometheus), the config has
-been slightly modified.
-
-The `metrics_exporter` block indentation has been removed and `endpoint` has been
-changed to `handler_endpoint`. Also, `send_timestamps` has been removed.
+Tempo automatic logging previously assumed that the operator wanted to log
+to a Loki instance. With the addition of an option to log to stdout a new
+field is required to maintain the old behavior:
 
 Example old config:
 
-```yaml
+```
 tempo:
   configs:
-    - name: default
-      spanmetrics:
-        metrics_exporter:
-          endpoint: 0.0.0.0:8889
-          namespace: example
-          const_labels:
-            key: value
+  - name: default
+    automatic_logging:
+      loki_name: <some loki instance>
 ```
 
 Example new config:
 
-```yaml
+```
 tempo:
   configs:
-    - name: default
-      spanmetrics:
-        handler_endpoint: 0.0.0.0:8889
-        namespace: example
-        const_labels:
-          key: value
+  - name: default
+    automatic_logging:
+      backend: loki
+      loki_name: <some loki instance>
 ```
 
 # v0.14.0

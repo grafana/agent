@@ -83,6 +83,7 @@ tempo:
       timeout: 5s
       send_batch_size: 100
     automatic_logging:
+      backend: loki
       loki_name: default
       spans: true
       processes: true
