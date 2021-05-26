@@ -11,15 +11,19 @@ import (
 	"github.com/weaveworks/common/logging"
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	promop "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	// Needed for clients.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -27,9 +31,17 @@ import (
 
 // Config controls the configuration of the operator.
 type Config struct {
-	LogLevel   logging.Level
-	LogFormat  logging.Format
-	Controller controller.Options
+	LogLevel      logging.Level
+	LogFormat     logging.Format
+	Labels        promop.Labels
+	Controller    controller.Options
+	AgentSelector string
+
+	// TODO(rfratto): extra settings from Prometheus Operator:
+	//
+	// 1. Reloader container image/requests/limits
+	// 2. Namespaces allow/denylist.
+	// 3. Namespaces for Prometheus resources.
 }
 
 // RegisterFlags registers command-line flags for controlling the Config to the
@@ -37,6 +49,17 @@ type Config struct {
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.LogLevel.RegisterFlags(f)
 	c.LogFormat.RegisterFlags(f)
+	f.Var(&c.Labels, "labels", "Labels to add to all created operator resources")
+	f.StringVar(&c.AgentSelector, "agent-selector", "", "Label selector to discover GrafanaAgent CRs. Defaults to all GrafanaAgent CRs.")
+
+	f.StringVar(&c.Controller.Namespace, "namespace", "", "Namespace to restrict the Operator to.")
+	f.StringVar(&c.Controller.Host, "listen-host", "", "Host to listen on. Empty string means all interfaces.")
+	f.IntVar(&c.Controller.Port, "listen-port", 9443, "Port to listen on.")
+	f.StringVar(&c.Controller.MetricsBindAddress, "metrics-listen-address", ":8080", "Address to expose Operator metrics on")
+	f.StringVar(&c.Controller.HealthProbeBindAddress, "health-listen-address", "", "Address to expose Operator health probes on")
+
+	c.Controller.ReadinessEndpointName = "/-/ready"
+	c.Controller.LivenessEndpointName = "/-/healthy"
 }
 
 func main() {
@@ -76,8 +99,25 @@ func main() {
 	applyGVK := func(obj client.Object) client.Object { return applyGVK(obj, m) }
 	watchType := func(obj client.Object) source.Source { return watchType(obj, m) }
 
+	var agentPredicates []predicate.Predicate
+
+	// Build a predicate for GrafanaAgent labels if configured.
+	if cfg.AgentSelector != "" {
+		sel, err := meta_v1.ParseToLabelSelector(cfg.AgentSelector)
+		if err != nil {
+			level.Error(logger).Log("msg", "unable to create predictable for selecting GrafanaAgent CRs", "err", err)
+			os.Exit(1)
+		}
+		selPredicate, err := predicate.LabelSelectorPredicate(*sel)
+		if err != nil {
+			level.Error(logger).Log("msg", "unable to create predictable for selecting GrafanaAgent CRs", "err", err)
+			os.Exit(1)
+		}
+		agentPredicates = append(agentPredicates, selPredicate)
+	}
+
 	err = controller.NewControllerManagedBy(m).
-		For(applyGVK(&grafana_v1alpha1.GrafanaAgent{})).
+		For(applyGVK(&grafana_v1alpha1.GrafanaAgent{}), builder.WithPredicates(agentPredicates...)).
 		Owns(applyGVK(&core_v1.Service{})).
 		Owns(applyGVK(&core_v1.Secret{})).
 		Owns(applyGVK(&apps_v1.StatefulSet{})).
@@ -90,6 +130,7 @@ func main() {
 			Client:        m.GetClient(),
 			scheme:        m.GetScheme(),
 			eventHandlers: events,
+			config:        cfg,
 		})
 	if err != nil {
 		level.Error(logger).Log("msg", "unable to create controller", "err", err)

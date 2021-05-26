@@ -36,7 +36,7 @@ var (
 	probeTimeoutSeconds int32 = 3
 )
 
-func generateStatefulSetService(d config.Deployment) *v1.Service {
+func generateStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
 	d = *d.DeepCopy()
 
 	if d.Agent.Spec.PortName == "" {
@@ -57,10 +57,9 @@ func generateStatefulSetService(d config.Deployment) *v1.Service {
 				Controller:         &boolTrue,
 				UID:                d.Agent.UID,
 			}},
-			// TODO(rfratto): merge with labels from operator config
-			Labels: map[string]string{
+			Labels: cfg.Labels.Merge(map[string]string{
 				"operated-agent": "true",
-			},
+			}),
 		},
 		Spec: v1.ServiceSpec{
 			ClusterIP: "None",
@@ -77,6 +76,7 @@ func generateStatefulSetService(d config.Deployment) *v1.Service {
 }
 
 func generateStatefulSet(
+	cfg *Config,
 	name string,
 	d config.Deployment,
 	shard int32,
@@ -110,7 +110,7 @@ func generateStatefulSet(
 		d.Agent.Spec.Resources.Requests = v1.ResourceList{}
 	}
 
-	spec, err := generateStatefulSetSpec(name, d, shard, parsedVersion, secrets)
+	spec, err := generateStatefulSetSpec(cfg, name, d, shard, parsedVersion, secrets)
 	if err != nil {
 		return nil, err
 	}
@@ -197,6 +197,7 @@ func generateStatefulSet(
 }
 
 func generateStatefulSetSpec(
+	cfg *Config,
 	name string,
 	d config.Deployment,
 	shard int32,
@@ -340,11 +341,9 @@ func generateStatefulSetSpec(
 
 	podAnnotations["kubectl.kubernetes.io/default-container"] = "grafana-agent"
 
-	// TODO(rfratto): When we add support for labels on the operator itself,
-	// they need to be merged into the podLabels and podSelectorLabels here.
 	var (
-		finalSelectorLabels = podSelectorLabels
-		finalLabels         = podLabels
+		finalSelectorLabels = cfg.Labels.Merge(podSelectorLabels)
+		finalLabels         = cfg.Labels.Merge(podLabels)
 	)
 
 	envVars := []v1.EnvVar{

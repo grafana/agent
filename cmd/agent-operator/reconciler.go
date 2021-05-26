@@ -31,6 +31,7 @@ import (
 type reconciler struct {
 	client.Client
 	scheme *runtime.Scheme
+	config *Config
 
 	eventHandlers eventHandlers
 }
@@ -56,6 +57,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 
 	secrets := make(assets.SecretStore)
 	builder := deploymentBuilder{
+		Config:            r.config,
 		Client:            r.Client,
 		Agent:             &agent,
 		Secrets:           secrets,
@@ -161,7 +163,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 
 	// Generate governing service.
 	{
-		svc := generateStatefulSetService(deployment)
+		svc := generateStatefulSetService(r.config, deployment)
 		level.Info(l).Log("msg", "creating or updating statefulset service", "service", svc.Name)
 		err := clientutil.CreateOrUpdateService(ctx, r.Client, svc)
 		if err != nil {
@@ -190,7 +192,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 				name = fmt.Sprintf("%s-shard-%d", name, shard)
 			}
 
-			ss, err := generateStatefulSet(name, deployment, shard, secrets)
+			ss, err := generateStatefulSet(r.config, name, deployment, shard, secrets)
 			if err != nil {
 				level.Error(l).Log("msg", "failed to generate statefulset", "err", err)
 				return controller.Result{Requeue: false}, nil
@@ -303,6 +305,7 @@ func (r *reconciler) fillStore(ctx context.Context, refs []config.AssetReference
 type deploymentBuilder struct {
 	client.Client
 
+	Config  *Config
 	Agent   *grafana_v1alpha1.GrafanaAgent
 	Secrets assets.SecretStore
 
