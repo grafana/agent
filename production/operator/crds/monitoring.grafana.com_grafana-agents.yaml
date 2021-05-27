@@ -35,7 +35,7 @@ spec:
             description: Spec holds the specification of the desired behavior for the Grafana Agent cluster.
             properties:
               affinity:
-                description: Affinity, if specified, controls pod scheudling constraints.
+                description: Affinity, if specified, controls pod scheduling constraints.
                 properties:
                   nodeAffinity:
                     description: Describes node affinity scheduling rules for the pod.
@@ -2005,7 +2005,7 @@ spec:
               nodeSelector:
                 additionalProperties:
                   type: string
-                description: NodeSelector defines which nodes pods should be scheduled on.
+                description: NodeSelector defines which nodes pods should be scheduling on.
                 type: object
               paused:
                 description: Paused prevents actions except for deletion to be performed on the underlying managed objects.
