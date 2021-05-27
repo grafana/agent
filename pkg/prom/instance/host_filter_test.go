@@ -190,5 +190,6 @@ func TestHostFilter_PatchSD(t *testing.T) {
 	NewHostFilter("myhost", nil).PatchSD(input)
 
 	output, err := yaml.Marshal(input)
+	require.NoError(t, err)
 	require.YAMLEq(t, expect, string(output))
 }
