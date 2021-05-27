@@ -288,6 +288,11 @@ func (i *mockIntegration) Run(ctx context.Context) error {
 	}
 }
 
+func (i *mockIntegration) CustomHandlers() map[string]http.Handler {
+	return nil
+}
+
+
 func mockInstanceFactory(_ instance.Config) (instance.ManagedInstance, error) {
 	return instance.NoOpInstance{}, nil
 }

@@ -1,12 +1,21 @@
 package grok_exporter //nolint:golint
 
 import (
+	"context"
 	v3 "github.com/fstab/grok_exporter/config/v3"
 	"github.com/fstab/grok_exporter/tailer"
 	"github.com/go-kit/kit/log"
+	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestCustomHandlersForWebhookInputType(t *testing.T) {
@@ -162,3 +171,70 @@ func TestInitializingGrokExporterTailerError(t *testing.T) {
 	assert.Nil(t, exporter)
 }
 
+func TestGrokExporterE2E(t *testing.T) {
+	logger := log.NewNopLogger()
+	fileName := "/tmp/test.log"
+	config := &Config{
+		GrokConfig: v3.Config{
+			Global: v3.GlobalConfig{
+				ConfigVersion: 3,
+			},
+			Input: v3.InputConfig{
+				Type: "file",
+				PathsAndGlobs: v3.PathsAndGlobs{
+					Path: fileName,
+				},
+				Readall: true,
+			},
+			GrokPatterns: []string{"HOUR (?:2[0123]|[01]?[0-9])"},
+			OrigMetrics: v3.MetricsConfig{{
+				Type:  "counter",
+				Name:  "test_counter",
+				Help:  "test_counter",
+				Match: "%{HOUR}",
+			}},
+		},
+	}
+
+	logData := []byte("01:30\n02:30\n03:30\n")
+	err := ioutil.WriteFile(fileName, logData, 0644)
+	assert.NoError(t, err)
+	defer func() {
+		err = os.Remove(fileName)
+		assert.NoError(t, err)
+	}()
+
+	v3ConfigBytes, err := yaml.Marshal(config.GrokConfig)
+	assert.NoError(t, err)
+	v3Config, err := v3.Unmarshal(v3ConfigBytes)
+	assert.NoError(t, err)
+	config.GrokConfig = *v3Config
+
+	exporter, err := New(logger, config)
+	assert.NoError(t, err)
+
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 3*time.Second)
+	err = exporter.Run(ctx)
+	defer cancelFunc()
+
+	r := mux.NewRouter()
+	handler, err := exporter.MetricsHandler()
+	assert.NoError(t, err)
+	r.Handle("/metrics", handler)
+
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+	res, err := http.Get(srv.URL + "/metrics")
+	assert.NoError(t, err)
+	body, err := ioutil.ReadAll(res.Body)
+	assert.NoError(t, err)
+
+	responseStr := string(body)
+	assert.True(t, strings.Contains(responseStr, "grok_exporter_line_buffer_load{interval=\"1m\",value=\"max\"} 0"))
+	assert.True(t, strings.Contains(responseStr, "grok_exporter_line_buffer_load{interval=\"1m\",value=\"min\"} 0"))
+	assert.True(t, strings.Contains(responseStr, "grok_exporter_line_processing_errors_total{metric=\"test_counter\"} 0"))
+	assert.True(t, strings.Contains(responseStr, "grok_exporter_lines_matching_total{metric=\"test_counter\"} 3"))
+	assert.True(t, strings.Contains(responseStr, "grok_exporter_lines_total{status=\"ignored\"} 0"))
+	assert.True(t, strings.Contains(responseStr, "grok_exporter_lines_total{status=\"matched\"} 3"))
+	assert.True(t, strings.Contains(responseStr, "test_counter 3"))
+}
