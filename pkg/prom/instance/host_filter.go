@@ -91,6 +91,7 @@ func (f *HostFilter) PatchSD(scrapes []*config.ScrapeConfig) {
 
 }
 
+// SetRelabels updates the relabeling rules used by the HostFilter.
 func (f *HostFilter) SetRelabels(relabels []*relabel.Config) {
 	f.relabelMut.Lock()
 	defer f.relabelMut.Unlock()
