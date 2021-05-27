@@ -1,5 +1,5 @@
 // Package grok_exporter embeds https://github.com/fstab/grok_exporter
-package grok_exporter
+package grok_exporter //nolint:golint
 
 import (
 	"context"
@@ -165,9 +165,10 @@ func (e *Exporter) Run(ctx context.Context) error {
 					e.selfMetrics.nErrorsByMetric.WithLabelValues(metric.Name()).Inc()
 				}
 			}
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
-	return nil
 }
 
 // CustomHandlers returns extra handlers for the integration.

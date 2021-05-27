@@ -1,4 +1,4 @@
-package grok_exporter
+package grok_exporter //nolint:golint
 
 import (
 	"fmt"
