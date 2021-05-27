@@ -3,13 +3,31 @@ package clientutil
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	v1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var invalidDNS1123Characters = regexp.MustCompile("[^-a-z0-9]+")
+
+// SanitizeVolumeName ensures that the given volume name is a valid DNS-1123 label
+// accepted by Kubernetes.
+//
+// Copied from github.com/prometheus-operator/prometheus-operator/pkg/k8sutil.
+func SanitizeVolumeName(name string) string {
+	name = strings.ToLower(name)
+	name = invalidDNS1123Characters.ReplaceAllString(name, "-")
+	if len(name) > validation.DNS1123LabelMaxLength {
+		name = name[0:validation.DNS1123LabelMaxLength]
+	}
+	return strings.Trim(name, "-")
+}
 
 // CreateOrUpdateService applies the given svc against the client.
 func CreateOrUpdateService(ctx context.Context, c client.Client, svc *v1.Service) error {

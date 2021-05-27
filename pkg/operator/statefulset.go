@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
-	"github.com/grafana/agent/pkg/operator/k8sutil"
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -275,13 +275,13 @@ func generateStatefulSetSpec(
 
 	for _, s := range d.Agent.Spec.Secrets {
 		volumes = append(volumes, v1.Volume{
-			Name: k8sutil.SanitizeVolumeName("secret-" + s),
+			Name: clientutil.SanitizeVolumeName("secret-" + s),
 			VolumeSource: v1.VolumeSource{
 				Secret: &v1.SecretVolumeSource{SecretName: s},
 			},
 		})
 		volumeMounts = append(volumeMounts, v1.VolumeMount{
-			Name:      k8sutil.SanitizeVolumeName("secret-" + s),
+			Name:      clientutil.SanitizeVolumeName("secret-" + s),
 			ReadOnly:  true,
 			MountPath: "/var/lib/grafana-agent/secrets",
 		})
@@ -289,7 +289,7 @@ func generateStatefulSetSpec(
 
 	for _, c := range d.Agent.Spec.ConfigMaps {
 		volumes = append(volumes, v1.Volume{
-			Name: k8sutil.SanitizeVolumeName("configmap-" + c),
+			Name: clientutil.SanitizeVolumeName("configmap-" + c),
 			VolumeSource: v1.VolumeSource{
 				ConfigMap: &v1.ConfigMapVolumeSource{
 					LocalObjectReference: v1.LocalObjectReference{Name: c},
@@ -297,7 +297,7 @@ func generateStatefulSetSpec(
 			},
 		})
 		volumeMounts = append(volumeMounts, v1.VolumeMount{
-			Name:      k8sutil.SanitizeVolumeName("configmap-" + c),
+			Name:      clientutil.SanitizeVolumeName("configmap-" + c),
 			ReadOnly:  true,
 			MountPath: "/var/lib/grafana-agent/configmaps",
 		})
@@ -387,7 +387,7 @@ func generateStatefulSetSpec(
 		},
 	}
 
-	containers, err := k8sutil.MergePatchContainers(operatorContainers, d.Agent.Spec.Containers)
+	containers, err := clientutil.MergePatchContainers(operatorContainers, d.Agent.Spec.Containers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to merge containers spec: %w", err)
 	}
