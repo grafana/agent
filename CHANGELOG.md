@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [FEATURE] New integration: grok_exporter (@roobalimsab)
+
 BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.
 Please review the [migration
 guide](./docs/migration-guide.md) for details.
