@@ -3,10 +3,13 @@ package instance
 import (
 	"testing"
 
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 func makeGroup(labels []model.LabelSet) *targetgroup.Group {
@@ -155,4 +158,37 @@ func TestFilterGroups_Relabel(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestHostFilter_PatchSD(t *testing.T) {
+	rawInput := util.Untab(`
+- job_name: default
+  kubernetes_sd_configs:
+	  - role: service
+	  - role: pod`)
+
+	expect := util.Untab(`
+- job_name: default
+	honor_timestamps: true
+	metrics_path: /metrics
+	scheme: http
+	follow_redirects: true
+	kubernetes_sd_configs:
+		- role: service
+		  follow_redirects: true
+		- role: pod
+			follow_redirects: true
+			selectors:
+			- role: pod
+			  field: spec.nodeName=myhost
+	`)
+
+	var input []*config.ScrapeConfig
+	err := yaml.Unmarshal([]byte(rawInput), &input)
+	require.NoError(t, err)
+
+	NewHostFilter("myhost", nil).PatchSD(input)
+
+	output, err := yaml.Marshal(input)
+	require.YAMLEq(t, expect, string(output))
 }

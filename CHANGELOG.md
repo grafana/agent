@@ -6,6 +6,12 @@ guide](./docs/migration-guide.md) for details.
 
 - [ENHANCEMENT] Add the option to log to stdout instead of a Loki instance. (@joe-elliott)
 
+- [ENHANCEMENT] Running the Agent as a DaemonSet with host_filter and role: pod
+  should no longer cause unnecessary load against the Kubernetes SD API.
+  (@rfratto)
+
+- [BUGFIX] Host filter relabeling rules should now work. (@rfratto)
+
 - [CHANGE] Intentionally order tracing processors. (@joe-elliott)
 
 # v0.14.0 (2021-05-19)
