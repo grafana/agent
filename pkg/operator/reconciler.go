@@ -1,4 +1,4 @@
-package main
+package operator
 
 import (
 	"context"
@@ -10,12 +10,11 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/google/go-jsonnet"
-	"github.com/grafana/agent/cmd/agent-operator/internal/logutil"
-	"github.com/grafana/agent/pkg/operator"
 	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
+	"github.com/grafana/agent/pkg/operator/logutil"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
@@ -61,7 +60,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		Client:            r.Client,
 		Agent:             &agent,
 		Secrets:           secrets,
-		ResourceSelectors: make(map[secondaryResource][]operator.ResourceSelector),
+		ResourceSelectors: make(map[secondaryResource][]ResourceSelector),
 	}
 
 	deployment, err := builder.Build(l, ctx)
@@ -311,7 +310,7 @@ type deploymentBuilder struct {
 
 	// ResourceSelectors is filled as objects are found and can be used to
 	// trigger future reconciles.
-	ResourceSelectors map[secondaryResource][]operator.ResourceSelector
+	ResourceSelectors map[secondaryResource][]ResourceSelector
 }
 
 func (b *deploymentBuilder) Build(l log.Logger, ctx context.Context) (config.Deployment, error) {
@@ -384,7 +383,7 @@ func (b *deploymentBuilder) getResourceSelector(
 	currentNamespace string,
 	namespaceSelector *v1.LabelSelector,
 	objectSelector *v1.LabelSelector,
-) (sel operator.ResourceSelector, err error) {
+) (sel ResourceSelector, err error) {
 
 	// Set up our namespace label and object label selectors. By default, we'll
 	// match everything (the inverse of the k8s default). If we specify anything,
@@ -406,7 +405,7 @@ func (b *deploymentBuilder) getResourceSelector(
 		}
 	}
 
-	sel = operator.ResourceSelector{
+	sel = ResourceSelector{
 		NamespaceName: prom.NamespaceSelector{
 			MatchNames: []string{currentNamespace},
 		},
@@ -427,7 +426,7 @@ func (b *deploymentBuilder) getResourceSelector(
 // querying lists of objects. If the ResourceSelector is looking at more than
 // one namespace, an empty string will be returned. Otherwise, it will return
 // the first namespace.
-func namespaceFromSelector(sel operator.ResourceSelector) string {
+func namespaceFromSelector(sel ResourceSelector) string {
 	if !sel.NamespaceName.Any && len(sel.NamespaceName.MatchNames) == 1 {
 		return sel.NamespaceName.MatchNames[0]
 	}
@@ -437,7 +436,7 @@ func namespaceFromSelector(sel operator.ResourceSelector) string {
 func (b *deploymentBuilder) matchNamespace(
 	ctx context.Context,
 	obj *v1.ObjectMeta,
-	sel operator.ResourceSelector,
+	sel ResourceSelector,
 ) (bool, error) {
 	// If we were matching on a specific namespace, there's no
 	// further work to do here.

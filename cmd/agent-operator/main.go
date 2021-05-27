@@ -5,62 +5,17 @@ import (
 	"fmt"
 	"os"
 
+	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/operator"
+	"github.com/grafana/agent/pkg/operator/logutil"
 	"github.com/prometheus/common/version"
-	"github.com/weaveworks/common/logging"
-	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	promop "github.com/prometheus-operator/prometheus-operator/pkg/operator"
-	apps_v1 "k8s.io/api/apps/v1"
-	core_v1 "k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	// Needed for clients.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
-
-// Config controls the configuration of the operator.
-type Config struct {
-	LogLevel      logging.Level
-	LogFormat     logging.Format
-	Labels        promop.Labels
-	Controller    controller.Options
-	AgentSelector string
-
-	// TODO(rfratto): extra settings from Prometheus Operator:
-	//
-	// 1. Reloader container image/requests/limits
-	// 2. Namespaces allow/denylist.
-	// 3. Namespaces for Prometheus resources.
-}
-
-// RegisterFlags registers command-line flags for controlling the Config to the
-// given FlagSet.
-func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	c.LogLevel.RegisterFlags(f)
-	c.LogFormat.RegisterFlags(f)
-	f.Var(&c.Labels, "labels", "Labels to add to all created operator resources")
-	f.StringVar(&c.AgentSelector, "agent-selector", "", "Label selector to discover GrafanaAgent CRs. Defaults to all GrafanaAgent CRs.")
-
-	f.StringVar(&c.Controller.Namespace, "namespace", "", "Namespace to restrict the Operator to.")
-	f.StringVar(&c.Controller.Host, "listen-host", "", "Host to listen on. Empty string means all interfaces.")
-	f.IntVar(&c.Controller.Port, "listen-port", 9443, "Port to listen on.")
-	f.StringVar(&c.Controller.MetricsBindAddress, "metrics-listen-address", ":8080", "Address to expose Operator metrics on")
-	f.StringVar(&c.Controller.HealthProbeBindAddress, "health-listen-address", "", "Address to expose Operator health probes on")
-
-	c.Controller.ReadinessEndpointName = "/-/ready"
-	c.Controller.LivenessEndpointName = "/-/healthy"
-}
 
 func main() {
 	var (
@@ -72,68 +27,14 @@ func main() {
 
 	logger = setupLogger(logger, cfg)
 
-	// Register all types that we will be dealing with to schemeBuilder.
-	cfg.Controller.Scheme = runtime.NewScheme()
-
-	for _, add := range []func(*runtime.Scheme) error{
-		core_v1.AddToScheme,
-		apps_v1.AddToScheme,
-		grafana_v1alpha1.AddToScheme,
-		promop_v1.AddToScheme,
-	} {
-		if err := add(cfg.Controller.Scheme); err != nil {
-			level.Error(logger).Log("msg", "unable to register to scheme", "err", err)
-			os.Exit(1)
-		}
-	}
-
-	// Initialize the operator by bringing up a new manager and all controllers.
-	m, err := controller.NewManager(controller.GetConfigOrDie(), cfg.Controller)
+	m, err := cfg.Manager()
 	if err != nil {
-		level.Error(logger).Log("msg", "unable to start manager", "err", err)
+		level.Error(logger).Log("msg", "unable to create manager", "err", err)
 		os.Exit(1)
 	}
 
-	events := newResourceEventHandlers(m.GetClient(), logger)
-
-	applyGVK := func(obj client.Object) client.Object { return applyGVK(obj, m) }
-	watchType := func(obj client.Object) source.Source { return watchType(obj, m) }
-
-	var agentPredicates []predicate.Predicate
-
-	// Build a predicate for GrafanaAgent labels if configured.
-	if cfg.AgentSelector != "" {
-		sel, err := meta_v1.ParseToLabelSelector(cfg.AgentSelector)
-		if err != nil {
-			level.Error(logger).Log("msg", "unable to create predictable for selecting GrafanaAgent CRs", "err", err)
-			os.Exit(1)
-		}
-		selPredicate, err := predicate.LabelSelectorPredicate(*sel)
-		if err != nil {
-			level.Error(logger).Log("msg", "unable to create predictable for selecting GrafanaAgent CRs", "err", err)
-			os.Exit(1)
-		}
-		agentPredicates = append(agentPredicates, selPredicate)
-	}
-
-	err = controller.NewControllerManagedBy(m).
-		For(applyGVK(&grafana_v1alpha1.GrafanaAgent{}), builder.WithPredicates(agentPredicates...)).
-		Owns(applyGVK(&core_v1.Service{})).
-		Owns(applyGVK(&core_v1.Secret{})).
-		Owns(applyGVK(&apps_v1.StatefulSet{})).
-		Watches(watchType(&grafana_v1alpha1.PrometheusInstance{}), events[resourcePromInstance]).
-		Watches(watchType(&promop_v1.ServiceMonitor{}), events[resourceServiceMonitor]).
-		Watches(watchType(&promop_v1.PodMonitor{}), events[resourcePodMonitor]).
-		Watches(watchType(&promop_v1.Probe{}), events[resourceProbe]).
-		Watches(watchType(&core_v1.Secret{}), events[resourceSecret]).
-		Complete(&reconciler{
-			Client:        m.GetClient(),
-			scheme:        m.GetScheme(),
-			eventHandlers: events,
-			config:        cfg,
-		})
-	if err != nil {
-		level.Error(logger).Log("msg", "unable to create controller", "err", err)
+	if err := operator.New(logger, cfg, m); err != nil {
+		level.Error(logger).Log("msg", "unable to create operator", "err", err)
 		os.Exit(1)
 	}
 
@@ -147,43 +48,52 @@ func main() {
 
 // loadConfig will read command line flags and populate a Config. loadConfig
 // will exit the program on failure.
-func loadConfig(l log.Logger) *Config {
+func loadConfig(l log.Logger) *operator.Config {
+	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+
 	var (
 		printVersion bool
-		cfg          Config
 	)
 
-	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	cfg, err := operator.NewConfig(fs)
+	if err != nil {
+		level.Error(l).Log("msg", "failed to parse flags", "err", err)
+		os.Exit(1)
+	}
+
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
-	cfg.RegisterFlags(fs)
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		level.Error(l).Log("msg", "failed to parse flags", "err", err)
 		os.Exit(1)
 	}
+
 	if printVersion {
 		fmt.Println(version.Print("agent-operator"))
 		os.Exit(0)
 	}
 
-	return &cfg
+	return cfg
 }
 
-// watchType applies the GVK to an object and returns a source to watch it.
-// watchType is a convenience function; without it, the GVK won't show up in
-// logs.
-func watchType(obj client.Object, m manager.Manager) source.Source {
-	applyGVK(obj, m)
-	return &source.Kind{Type: obj}
-}
-
-// applyGVK applies a GVK to an object based on the scheme. applyGVK is a
-// convenience function; without it, the GVK won't show up in logs.
-func applyGVK(obj client.Object, m manager.Manager) client.Object {
-	gvk, err := apiutil.GVKForObject(obj, m.GetScheme())
+// setupLogger sets up our logger. If this function fails, the program will
+// exit.
+func setupLogger(l log.Logger, cfg *operator.Config) log.Logger {
+	newLogger, err := cortex_log.NewPrometheusLogger(cfg.LogLevel, cfg.LogFormat)
 	if err != nil {
-		panic(err)
+		level.Error(l).Log("msg", "failed to create logger", "err", err)
+		os.Exit(1)
 	}
-	obj.GetObjectKind().SetGroupVersionKind(gvk)
-	return obj
+	l = newLogger
+
+	adapterLogger := logutil.Wrap(l)
+
+	// NOTE: we don't set up a caller field here, unlike the normal agent.
+	// There's too many multiple nestings of the logger that prevent getting the
+	// caller from working properly.
+
+	// Set up the global logger and the controller-local logger.
+	controller.SetLogger(adapterLogger)
+	cfg.Controller.Logger = adapterLogger
+	return l
 }

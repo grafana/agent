@@ -1,4 +1,4 @@
-package main
+package operator
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/operator"
 	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/operator/k8sutil"
@@ -84,7 +83,7 @@ func generateStatefulSet(
 ) (*apps_v1.StatefulSet, error) {
 	d = *d.DeepCopy()
 
-	agentVersion := prom_operator.StringValOrDefault(d.Agent.Spec.Version, operator.DefaultAgentVersion)
+	agentVersion := prom_operator.StringValOrDefault(d.Agent.Spec.Version, DefaultAgentVersion)
 	parsedVersion, err := semver.ParseTolerant(agentVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse Grafana Agent version: %w", err)
@@ -206,7 +205,7 @@ func generateStatefulSetSpec(
 ) (*apps_v1.StatefulSetSpec, error) {
 	terminationGracePeriodSeconds := int64(4800)
 
-	imagePath := fmt.Sprintf("%s:%s", operator.DefaultAgentBaseImage, d.Agent.Spec.Version)
+	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, d.Agent.Spec.Version)
 	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
 		imagePath = *d.Agent.Spec.Image
 	}

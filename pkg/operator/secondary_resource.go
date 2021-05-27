@@ -1,8 +1,7 @@
-package main
+package operator
 
 import (
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/operator"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -33,14 +32,14 @@ var secondaryResources = []secondaryResource{
 
 // eventHandlers is a set of EnqueueRequestForSelector event handlers, one per
 // secondary resource.
-type eventHandlers map[secondaryResource]*operator.EnqueueRequestForSelector
+type eventHandlers map[secondaryResource]*EnqueueRequestForSelector
 
 // newResourceEventHandlers creates a new eventHandlers for all secondary
 // resources using the given client and logger.
 func newResourceEventHandlers(c client.Reader, l log.Logger) eventHandlers {
 	m := make(eventHandlers)
 	for _, r := range secondaryResources {
-		m[r] = &operator.EnqueueRequestForSelector{Client: c, Log: l}
+		m[r] = &EnqueueRequestForSelector{Client: c, Log: l}
 	}
 	return m
 }
