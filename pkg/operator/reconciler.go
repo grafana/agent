@@ -63,7 +63,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		ResourceSelectors: make(map[secondaryResource][]ResourceSelector),
 	}
 
-	deployment, err := builder.Build(l, ctx)
+	deployment, err := builder.Build(ctx, l)
 	if err != nil {
 		level.Error(l).Log("msg", "unable to collect resources", "err", err)
 		return controller.Result{}, nil
@@ -83,7 +83,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		if errors.As(err, &jsonnetError) {
 			// Jump Jsonnet errors to the console to retain newlines and make them
 			// easier to digest.
-			fmt.Fprintf(os.Stderr, jsonnetError.Error())
+			fmt.Fprintf(os.Stderr, "%s", jsonnetError.Error())
 		}
 		if err != nil {
 			level.Error(l).Log("msg", "unable to build config", "err", err)
@@ -96,6 +96,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 			ObjectMeta: v1.ObjectMeta{
 				Namespace: agent.Namespace,
 				Name:      fmt.Sprintf("%s-config", agent.Name),
+				Labels:    r.config.Labels.Merge(managedByOperatorLabels),
 				OwnerReferences: []v1.OwnerReference{{
 					APIVersion:         agent.APIVersion,
 					BlockOwnerDeletion: &blockOwnerDeletion,
@@ -191,7 +192,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 				name = fmt.Sprintf("%s-shard-%d", name, shard)
 			}
 
-			ss, err := generateStatefulSet(r.config, name, deployment, shard, secrets)
+			ss, err := generateStatefulSet(r.config, name, deployment, shard)
 			if err != nil {
 				level.Error(l).Log("msg", "failed to generate statefulset", "err", err)
 				return controller.Result{Requeue: false}, nil
@@ -313,7 +314,7 @@ type deploymentBuilder struct {
 	ResourceSelectors map[secondaryResource][]ResourceSelector
 }
 
-func (b *deploymentBuilder) Build(l log.Logger, ctx context.Context) (config.Deployment, error) {
+func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Deployment, error) {
 	instances, err := b.getPrometheusInstances(ctx)
 	if err != nil {
 		return config.Deployment{}, err
@@ -321,7 +322,7 @@ func (b *deploymentBuilder) Build(l log.Logger, ctx context.Context) (config.Dep
 	promInstances := make([]config.PrometheusInstance, 0, len(instances))
 
 	for _, inst := range instances {
-		sMons, err := b.getServiceMonitors(l, ctx, inst)
+		sMons, err := b.getServiceMonitors(ctx, l, inst)
 		if err != nil {
 			return config.Deployment{}, fmt.Errorf("unable to fetch ServiceMonitors: %w", err)
 		}
@@ -453,8 +454,8 @@ func (b *deploymentBuilder) matchNamespace(
 }
 
 func (b *deploymentBuilder) getServiceMonitors(
-	l log.Logger,
 	ctx context.Context,
+	l log.Logger,
 	inst *grafana_v1alpha1.PrometheusInstance,
 ) ([]*prom.ServiceMonitor, error) {
 	sel, err := b.getResourceSelector(

@@ -53,6 +53,7 @@ func TestBuildConfig(t *testing.T) {
 						external_labels:
 							cluster: prod
 							foo: bar
+							__replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
 						remote_write:
 						- name: rw-1
 							url: http://localhost:9090/api/v1/write
@@ -106,6 +107,7 @@ func TestBuildConfig(t *testing.T) {
 							external_labels:
 								cluster: prod
 								foo: bar
+								__replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
 							remote_write:
 							- url: http://localhost:9090/api/v1/write
 								basic_auth:

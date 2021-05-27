@@ -75,7 +75,7 @@ type GrafanaAgentSpec struct {
 	VolumeMounts []v1.VolumeMount `json:"volumeMounts,omitempty"`
 	// Resources holds requests and limits for individual pods.
 	Resources v1.ResourceRequirements `json:"resources,omitempty"`
-	// NodeSelector defines which nodes pods should be scheduled on.
+	// NodeSelector defines which nodes pods should be scheduling on.
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
 	// ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
@@ -88,7 +88,7 @@ type GrafanaAgentSpec struct {
 	// pod.
 	// The secrets are mounted into /etc/grafana-agent/configmaps/<configmap-name>.
 	ConfigMaps []string `json:"configMaps,omitempty"`
-	// Affinity, if specified, controls pod scheudling constraints.
+	// Affinity, if specified, controls pod scheduling constraints.
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
 	// Tolerations, if specified, controls the pod's tolerations.
 	Tolerations []v1.Toleration `json:"tolerations,omitempty"`

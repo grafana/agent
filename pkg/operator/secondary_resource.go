@@ -13,8 +13,7 @@ type secondaryResource int
 
 // List of secondary resources that the reconciler will watch.
 const (
-	resourceInvalid secondaryResource = iota
-	resourcePromInstance
+	resourcePromInstance secondaryResource = iota
 	resourceServiceMonitor
 	resourcePodMonitor
 	resourceProbe

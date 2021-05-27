@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blang/semver/v4"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/operator/k8sutil"
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
@@ -17,9 +15,8 @@ import (
 )
 
 const (
-	governingServiceName            = "grafana-agent-operated"
-	defaultReplicaExternalLabelName = "__replica__"
-	defaultPortName                 = "http-metrics"
+	governingServiceName = "grafana-agent-operated"
+	defaultPortName      = "http-metrics"
 )
 
 var (
@@ -79,15 +76,8 @@ func generateStatefulSet(
 	name string,
 	d config.Deployment,
 	shard int32,
-	secrets assets.SecretStore,
 ) (*apps_v1.StatefulSet, error) {
 	d = *d.DeepCopy()
-
-	agentVersion := prom_operator.StringValOrDefault(d.Agent.Spec.Version, DefaultAgentVersion)
-	parsedVersion, err := semver.ParseTolerant(agentVersion)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse Grafana Agent version: %w", err)
-	}
 
 	//
 	// Apply defaults to all the fields.
@@ -109,7 +99,7 @@ func generateStatefulSet(
 		d.Agent.Spec.Resources.Requests = v1.ResourceList{}
 	}
 
-	spec, err := generateStatefulSetSpec(cfg, name, d, shard, parsedVersion, secrets)
+	spec, err := generateStatefulSetSpec(cfg, name, d, shard)
 	if err != nil {
 		return nil, err
 	}
@@ -200,8 +190,6 @@ func generateStatefulSetSpec(
 	name string,
 	d config.Deployment,
 	shard int32,
-	version semver.Version,
-	secrets assets.SecretStore,
 ) (*apps_v1.StatefulSetSpec, error) {
 	terminationGracePeriodSeconds := int64(4800)
 
@@ -318,13 +306,13 @@ func generateStatefulSetSpec(
 	podAnnotations := map[string]string{}
 	podLabels := map[string]string{}
 	podSelectorLabels := map[string]string{
-		"app.kubernetes.io/name":           "grafana-agent",
-		"app.kubernetes.io/version":        build.Version,
-		"app.kubernetes.io/managed-by":     "grafana-agent-operator",
-		"app.kubernetes.io/instance":       d.Agent.Name,
-		"grafana-agent":                    d.Agent.Name,
-		"operator.agent.grafana.com/shard": fmt.Sprintf("%d", shard),
-		"operator.agent.grafana.com/name":  d.Agent.Name,
+		"app.kubernetes.io/name":       "grafana-agent",
+		"app.kubernetes.io/version":    build.Version,
+		"app.kubernetes.io/managed-by": "grafana-agent-operator",
+		"app.kubernetes.io/instance":   d.Agent.Name,
+		"grafana-agent":                d.Agent.Name,
+		shardLabelName:                 fmt.Sprintf("%d", shard),
+		agentNameLabelName:             d.Agent.Name,
 	}
 	if d.Agent.Spec.PodMetadata != nil {
 		for k, v := range d.Agent.Spec.PodMetadata.Labels {
@@ -358,7 +346,7 @@ func generateStatefulSetSpec(
 		},
 	}
 
-	operatorContainers := append([]v1.Container{
+	operatorContainers := []v1.Container{
 		{
 			Name:         "config-reloader",
 			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.47.0",
@@ -390,11 +378,14 @@ func generateStatefulSetSpec(
 						Port: intstr.FromString(d.Agent.Spec.PortName),
 					},
 				},
+				TimeoutSeconds:   probeTimeoutSeconds,
+				PeriodSeconds:    5,
+				FailureThreshold: 120, // Allow up to 10m on startup for data recovery
 			},
 			Resources:                d.Agent.Spec.Resources,
 			TerminationMessagePolicy: v1.TerminationMessageFallbackToLogsOnError,
 		},
-	})
+	}
 
 	containers, err := k8sutil.MergePatchContainers(operatorContainers, d.Agent.Spec.Containers)
 	if err != nil {

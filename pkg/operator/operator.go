@@ -42,7 +42,7 @@ type Config struct {
 }
 
 // NewConfig creates a new Config and initializes default values.
-// Flags will be regsitered aganist f if it is non-nil.
+// Flags will be regsitered against f if it is non-nil.
 func NewConfig(f *flag.FlagSet) (*Config, error) {
 	if f == nil {
 		f = flag.NewFlagSet("temp", flag.PanicOnError)
@@ -68,7 +68,7 @@ func (c *Config) registerFlags(f *flag.FlagSet) error {
 	f.StringVar(&c.Controller.MetricsBindAddress, "metrics-listen-address", ":8080", "Address to expose Operator metrics on")
 	f.StringVar(&c.Controller.HealthProbeBindAddress, "health-listen-address", "", "Address to expose Operator health probes on")
 
-	// Custom inital values for the endpoint names.
+	// Custom initial values for the endpoint names.
 	c.Controller.ReadinessEndpointName = "/-/ready"
 	c.Controller.LivenessEndpointName = "/-/healthy"
 
@@ -150,6 +150,7 @@ func watchType(obj client.Object, m manager.Manager) source.Source {
 
 // applyGVK applies a GVK to an object based on the scheme. applyGVK is a
 // convenience function; without it, the GVK won't show up in logs.
+// nolint: interfacer
 func applyGVK(obj client.Object, m manager.Manager) client.Object {
 	gvk, err := apiutil.GVKForObject(obj, m.GetScheme())
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// CreateOrUpdateService applies the given svc against the client.
 func CreateOrUpdateService(ctx context.Context, c client.Client, svc *v1.Service) error {
 	var exist v1.Service
 	err := c.Get(ctx, client.ObjectKeyFromObject(svc), &exist)

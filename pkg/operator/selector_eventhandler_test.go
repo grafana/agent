@@ -28,7 +28,7 @@ import (
 var (
 	envTestK8sVersion = "1.19.2"
 
-	envtestToolsUrl = fmt.Sprintf(
+	envtestToolsURL = fmt.Sprintf(
 		"https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-%s-%s-%s.tar.gz",
 		envTestK8sVersion,
 		runtime.GOOS,
@@ -166,7 +166,7 @@ func setupEnvtest(t *testing.T, env *envtest.Environment) {
 	t.Helper()
 	storagePath := t.TempDir()
 
-	err := getter.Get(storagePath, envtestToolsUrl)
+	err := getter.Get(storagePath, envtestToolsURL)
 	require.NoError(t, err, "failed to download dependencies for envtest")
 
 	env.BinaryAssetsDirectory = filepath.Join(storagePath, "kubebuilder", "bin")
