@@ -2371,6 +2371,9 @@ spec:
     - name: procfs
       mountPath: /host/proc
       readOnly: true
+  hostPID: true
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
   volumes:
   - name: rootfs
     hostPath:
