@@ -6,7 +6,6 @@ import (
 	"fmt"
 	v3 "github.com/fstab/grok_exporter/config/v3"
 	"github.com/fstab/grok_exporter/exporter"
-	"github.com/fstab/grok_exporter/oniguruma"
 	"github.com/fstab/grok_exporter/tailer"
 	"github.com/fstab/grok_exporter/tailer/fswatcher"
 	"github.com/go-kit/kit/log"
@@ -16,7 +15,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"net/http"
 	"os"
 	"time"
@@ -36,41 +34,14 @@ const (
 	numberOfLinesMatchedLabel = "matched"
 	numberOfLinesIgnoredLabel = "ignored"
 	inputTypeWebhook          = "webhook"
+	inputTypeStdin            = "stdin"
+	inputTypeKafka            = "kafka"
+	inputTypeFile             = "file"
+	metricTypeCounter         = "counter"
+	metricTypeGauge           = "gauge"
+	metricTypeHistogram       = "histogram"
+	metricTypeSummary         = "summary"
 )
-
-// Config controls the grok_exporter integration.
-type Config struct {
-	Common config.Common `yaml:",inline"`
-
-	GrokConfig v3.Config `yaml:",inline"`
-
-	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-// Name returns the name of the integration that this config represents.
-func (c *Config) Name() string {
-	return "grok_exporter"
-}
-
-// CommonConfig returns the common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
-}
-
-// NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	return New(l, c)
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-}
 
 // Exporter defines the grok_exporter integration.
 type Exporter struct {
@@ -92,29 +63,12 @@ type selfMetrics struct {
 
 // New creates a new grok_exporter integration
 func New(logger log.Logger, config *Config) (integrations.Integration, error) {
-	configBytes, err := yaml.Marshal(config.GrokConfig)
+	metrics, err := config.CreateMetrics()
 	if err != nil {
-		return nil, fmt.Errorf("error marshalling config - %v", err)
+		return nil, err
 	}
-
-	v3Config, err := v3.Unmarshal(configBytes)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling config - %v", err)
-	}
-	config.GrokConfig = *v3Config
 
 	registry := prometheus.NewRegistry()
-
-	patterns, err := initPatterns(&config.GrokConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	metrics, err := createMetrics(&config.GrokConfig, patterns)
-	if err != nil {
-		return nil, err
-	}
-
 	for _, m := range metrics {
 		registry.MustRegister(m.Collector())
 	}
@@ -226,69 +180,6 @@ func (e *Exporter) CustomHandlers() map[string]http.Handler {
 	return handlers
 }
 
-func initPatterns(cfg *v3.Config) (*exporter.Patterns, error) {
-	patterns := exporter.InitPatterns()
-	for _, importedPatterns := range cfg.Imports {
-		if importedPatterns.Type == "grok_patterns" {
-			if len(importedPatterns.Dir) > 0 {
-				err := patterns.AddDir(importedPatterns.Dir)
-				if err != nil {
-					return nil, fmt.Errorf("failed to initialize patterns: %w", err)
-				}
-			} else if len(importedPatterns.File) > 0 {
-				err := patterns.AddGlob(importedPatterns.File)
-				if err != nil {
-					return nil, fmt.Errorf("failed to initialize patterns: %w", err)
-				}
-			}
-		}
-	}
-	for _, pattern := range cfg.GrokPatterns {
-		err := patterns.AddPattern(pattern)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return patterns, nil
-}
-
-func createMetrics(cfg *v3.Config, patterns *exporter.Patterns) ([]exporter.Metric, error) {
-	result := make([]exporter.Metric, 0, len(cfg.AllMetrics))
-	for _, m := range cfg.AllMetrics {
-		var (
-			regex, deleteRegex *oniguruma.Regex
-			err                error
-		)
-		regex, err = exporter.Compile(m.Match, patterns)
-		if err != nil {
-			return nil, fmt.Errorf("failed to initialize metric %v: %v", m.Name, err.Error())
-		}
-		if len(m.DeleteMatch) > 0 {
-			deleteRegex, err = exporter.Compile(m.DeleteMatch, patterns)
-			if err != nil {
-				return nil, fmt.Errorf("failed to initialize metric %v: %v", m.Name, err.Error())
-			}
-		}
-		err = exporter.VerifyFieldNames(&m, regex, deleteRegex, additionalFieldDefinitions)
-		if err != nil {
-			return nil, fmt.Errorf("failed to initialize metric %v: %v", m.Name, err.Error())
-		}
-		switch m.Type {
-		case "counter":
-			result = append(result, exporter.NewCounterMetric(&m, regex, deleteRegex))
-		case "gauge":
-			result = append(result, exporter.NewGaugeMetric(&m, regex, deleteRegex))
-		case "histogram":
-			result = append(result, exporter.NewHistogramMetric(&m, regex, deleteRegex))
-		case "summary":
-			result = append(result, exporter.NewSummaryMetric(&m, regex, deleteRegex))
-		default:
-			return nil, fmt.Errorf("failed to initialize metrics: Metric type %v is not supported", m.Type)
-		}
-	}
-	return result, nil
-}
-
 func initSelfMonitoring(metrics []exporter.Metric, registry prometheus.Registerer) (*prometheus.CounterVec, *prometheus.CounterVec, *prometheus.CounterVec, *prometheus.CounterVec) {
 	buildInfo := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "grok_exporter_build_info",
@@ -337,7 +228,7 @@ func startTailer(cfg *v3.Config, registry prometheus.Registerer) (fswatcher.File
 	logger := logrus.New()
 	logger.SetLevel(logrus.WarnLevel)
 	switch {
-	case cfg.Input.Type == "file":
+	case cfg.Input.Type == inputTypeFile:
 		if cfg.Input.PollInterval == 0 {
 			tail, err = fswatcher.RunFileTailer(cfg.Input.Globs, cfg.Input.Readall, cfg.Input.FailOnMissingLogfile, logger)
 			if err != nil {
@@ -349,11 +240,11 @@ func startTailer(cfg *v3.Config, registry prometheus.Registerer) (fswatcher.File
 				return nil, fmt.Errorf("failed to run polling file tailer: %v", err)
 			}
 		}
-	case cfg.Input.Type == "stdin":
+	case cfg.Input.Type == inputTypeStdin:
 		tail = tailer.RunStdinTailer()
-	case cfg.Input.Type == "webhook":
+	case cfg.Input.Type == inputTypeWebhook:
 		tail = tailer.InitWebhookTailer(&cfg.Input)
-	case cfg.Input.Type == "kafka":
+	case cfg.Input.Type == inputTypeKafka:
 		tail = tailer.RunKafkaTailer(&cfg.Input)
 	default:
 		return nil, fmt.Errorf("config error: Input type '%v' unknown", cfg.Input.Type)
