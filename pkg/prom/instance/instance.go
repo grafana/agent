@@ -236,6 +236,8 @@ type Instance struct {
 	remoteStore        *remote.Storage
 	storage            storage.Storage
 
+	hostFilter *HostFilter
+
 	logger log.Logger
 
 	reg    prometheus.Registerer
@@ -261,10 +263,16 @@ func New(reg prometheus.Registerer, cfg Config, walDir string, logger log.Logger
 func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
 	vc := NewMetricValueCollector(prometheus.DefaultGatherer, remoteWriteMetricName)
 
+	hostname, err := Hostname()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hostname: %w", err)
+	}
+
 	i := &Instance{
-		cfg:    cfg,
-		logger: logger,
-		vc:     vc,
+		cfg:        cfg,
+		logger:     logger,
+		vc:         vc,
+		hostFilter: NewHostFilter(hostname, cfg.HostFilterRelabelConfigs),
 
 		reg:    reg,
 		newWal: newWal,
@@ -389,6 +397,10 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
+	if cfg.HostFilter {
+		i.hostFilter.PatchSD(cfg.ScrapeConfigs)
+	}
+
 	var err error
 
 	i.wal, err = i.newWal(reg)
@@ -481,6 +493,13 @@ func (i *Instance) Update(c Config) (err error) {
 		}
 	}()
 	i.cfg = c
+
+	i.hostFilter.SetRelabels(c.HostFilterRelabelConfigs)
+	if c.HostFilter {
+		// N.B.: only call PatchSD if HostFilter is enabled since it
+		// mutates what targets will be discovered.
+		i.hostFilter.PatchSD(c.ScrapeConfigs)
+	}
 
 	err = i.remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       c.global.Prometheus,
@@ -597,25 +616,16 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 	// If host filtering is enabled, run it and use its channel for discovered
 	// targets.
 	if cfg.HostFilter {
-		hostname, err := Hostname()
-		if err != nil {
-			cancel()
-			return nil, fmt.Errorf("failed to create host filterer: %w", err)
-		}
-		level.Debug(i.logger).Log("msg", "creating host filterer", "for_host", hostname)
-
-		filterer := NewHostFilter(hostname, cfg.HostFilterRelabelConfigs)
-
 		rg.Add(func() error {
-			filterer.Run(manager.SyncCh())
+			i.hostFilter.Run(manager.SyncCh())
 			level.Info(i.logger).Log("msg", "host filterer stopped")
 			return nil
 		}, func(_ error) {
 			level.Info(i.logger).Log("msg", "stopping host filterer...")
-			filterer.Stop()
+			i.hostFilter.Stop()
 		})
 
-		syncChFunc = filterer.SyncCh
+		syncChFunc = i.hostFilter.SyncCh
 	}
 
 	return &discoveryService{

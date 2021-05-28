@@ -2,9 +2,13 @@ package instance
 
 import (
 	"context"
+	"fmt"
 	"net"
+	"sync"
 
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/relabel"
@@ -48,7 +52,8 @@ type HostFilter struct {
 	inputCh  GroupChannel
 	outputCh chan map[string][]*targetgroup.Group
 
-	relabels []*relabel.Config
+	relabelMut sync.Mutex
+	relabels   []*relabel.Config
 }
 
 // NewHostFilter creates a new HostFilter.
@@ -58,11 +63,39 @@ func NewHostFilter(host string, relabels []*relabel.Config) *HostFilter {
 		ctx:    ctx,
 		cancel: cancel,
 
-		host: host,
+		host:     host,
+		relabels: relabels,
 
 		outputCh: make(chan map[string][]*targetgroup.Group),
 	}
 	return f
+}
+
+// PatchSD patches services discoveries to optimize performance for host
+// filtering. The discovered targets will be pruned to as close to the set
+// that HostFilter will output as possible.
+func (f *HostFilter) PatchSD(scrapes []*config.ScrapeConfig) {
+	for _, sc := range scrapes {
+		for _, d := range sc.ServiceDiscoveryConfigs {
+			switch d := d.(type) {
+			case *kubernetes.SDConfig:
+				if d.Role == kubernetes.RolePod {
+					d.Selectors = []kubernetes.SelectorConfig{{
+						Role:  kubernetes.RolePod,
+						Field: fmt.Sprintf("spec.nodeName=%s", f.host),
+					}}
+				}
+			}
+		}
+	}
+
+}
+
+// SetRelabels updates the relabeling rules used by the HostFilter.
+func (f *HostFilter) SetRelabels(relabels []*relabel.Config) {
+	f.relabelMut.Lock()
+	defer f.relabelMut.Unlock()
+	f.relabels = relabels
 }
 
 // Run starts the HostFilter. It only exits when the HostFilter is stopped.
@@ -77,7 +110,11 @@ func (f *HostFilter) Run(syncCh GroupChannel) {
 		case <-f.ctx.Done():
 			return
 		case data := <-f.inputCh:
-			f.outputCh <- FilterGroups(data, f.host, f.relabels)
+			f.relabelMut.Lock()
+			relabels := f.relabels
+			f.relabelMut.Unlock()
+
+			f.outputCh <- FilterGroups(data, f.host, relabels)
 		}
 	}
 }
