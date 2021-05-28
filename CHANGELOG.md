@@ -10,6 +10,8 @@ guide](./docs/migration-guide.md) for details.
   should no longer cause unnecessary load against the Kubernetes SD API.
   (@rfratto)
 
+- [ENHANCEMENT] Update Prometheus dependency to v2.27.0 and add exemplars support (@mapno)
+
 - [BUGFIX] Host filter relabeling rules should now work. (@rfratto)
 
 - [CHANGE] Intentionally order tracing processors. (@joe-elliott)
