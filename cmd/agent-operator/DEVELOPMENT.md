@@ -133,13 +133,7 @@ k3d cluster create agent-operator \
   --wait
 ```
 
-Now run the operator:
-
-```
-go run ./cmd/agent-operator
-```
-
-### Run Prometheus
+### Deploy Prometheus
 
 An example Prometheus server is provided in `./example-prometheus.yaml`. Deploy
 it with the following:
@@ -159,6 +153,14 @@ repository with:
 
 ```
 kubectl apply -f production/operator/crds
+```
+
+### Run the Operator
+
+Now that the CRDs are applied, you can run the operator:
+
+```
+go run ./cmd/agent-operator
 ```
 
 ### Apply a GrafanaAgent custom resource
