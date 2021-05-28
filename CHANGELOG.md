@@ -8,6 +8,8 @@ guide](./docs/migration-guide.md) for details.
 
 - [CHANGE] Intentionally order tracing processors. (@joe-elliott)
 
+- [BUGFIX] Fixed issue where span metrics where being reported with wrong time unit (@mapno)
+
 # v0.14.0 (2021-05-19)
 
 BREAKING CHANGE: This release has a breaking change for SigV4 support. Please
