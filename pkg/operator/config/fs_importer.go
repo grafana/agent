@@ -27,7 +27,6 @@ func NewFSImporter(f fs.FS) *FSImporter {
 
 // Import implements jsonnet.Importer.
 func (i *FSImporter) Import(importedFrom, importedPath string) (contents jsonnet.Contents, foundAt string, err error) {
-
 	cleanedPath := path.Clean(
 		path.Join(path.Dir(importedFrom), importedPath),
 	)
