@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"path/filepath"
+	"path"
 
 	"github.com/fatih/structs"
 	jsonnet "github.com/google/go-jsonnet"
@@ -129,7 +129,7 @@ func (d *Deployment) BuildConfig(secrets assets.SecretStore) (string, error) {
 			}
 
 			key := SanitizeLabelName(i[0].(string))
-			return filepath.Join("/var/lib/grafana-agent/secrets", key), nil
+			return path.Join("/var/lib/grafana-agent/secrets", key), nil
 		},
 	})
 
