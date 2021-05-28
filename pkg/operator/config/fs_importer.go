@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 	"io/fs"
-	"path/filepath"
+	"path"
 	"strings"
 
 	jsonnet "github.com/google/go-jsonnet"
@@ -28,8 +28,8 @@ func NewFSImporter(f fs.FS) *FSImporter {
 // Import implements jsonnet.Importer.
 func (i *FSImporter) Import(importedFrom, importedPath string) (contents jsonnet.Contents, foundAt string, err error) {
 
-	cleanedPath := filepath.Clean(
-		filepath.Join(filepath.Dir(importedFrom), importedPath),
+	cleanedPath := path.Clean(
+		path.Join(path.Dir(importedFrom), importedPath),
 	)
 	cleanedPath = strings.TrimPrefix(cleanedPath, "./")
 
