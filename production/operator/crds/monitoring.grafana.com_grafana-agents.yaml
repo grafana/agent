@@ -2016,15 +2016,15 @@ spec:
                   annotations:
                     additionalProperties:
                       type: string
-                    description: 'Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations'
+                    description: 'Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: http://kubernetes.io/docs/user-guide/annotations'
                     type: object
                   labels:
                     additionalProperties:
                       type: string
-                    description: 'Labels holds a map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/user-guide/labels'
+                    description: 'Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: http://kubernetes.io/docs/user-guide/labels'
                     type: object
                   name:
-                    description: 'Name must be unique within a namespace. Required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/user-guide/identifiers#names'
+                    description: 'Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/identifiers#names'
                     type: string
                 type: object
               portName:
@@ -2139,7 +2139,7 @@ spec:
                           description: BasicAuth for the URL.
                           properties:
                             password:
-                              description: Password is the secret in the ServiceMonitor namespace that contains the password for authentication.
+                              description: The secret in the service monitor namespace that contains the password for authentication.
                               properties:
                                 key:
                                   description: The key of the secret to select from.  Must be a valid secret key.
@@ -2154,7 +2154,7 @@ spec:
                               - key
                               type: object
                             username:
-                              description: Username is the secret in the ServiceMonitor namespace that contains the username for authentication.
+                              description: The secret in the service monitor namespace that contains the username for authentication.
                               properties:
                                 key:
                                   description: The key of the secret to select from.  Must be a valid secret key.

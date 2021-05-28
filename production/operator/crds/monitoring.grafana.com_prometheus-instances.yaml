@@ -187,7 +187,7 @@ spec:
                       description: BasicAuth for the URL.
                       properties:
                         password:
-                          description: Password is the secret in the ServiceMonitor namespace that contains the password for authentication.
+                          description: The secret in the service monitor namespace that contains the password for authentication.
                           properties:
                             key:
                               description: The key of the secret to select from.  Must be a valid secret key.
@@ -202,7 +202,7 @@ spec:
                           - key
                           type: object
                         username:
-                          description: Username is the secret in the ServiceMonitor namespace that contains the username for authentication.
+                          description: The secret in the service monitor namespace that contains the username for authentication.
                           properties:
                             key:
                               description: The key of the secret to select from.  Must be a valid secret key.

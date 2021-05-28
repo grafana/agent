@@ -46,7 +46,7 @@ type GrafanaAgentSpec struct {
 	APIServerConfig *prom_v1.APIServerConfig `json:"apiServer,omitempty"`
 	// PodMetadata configures Labels and Annotations which are propagated to
 	// created Grafana Agent pods.
-	PodMetadata *EmbeddedObjectMetadata `json:"podMetadata,omitempty"`
+	PodMetadata *prom_v1.EmbeddedObjectMetadata `json:"podMetadata,omitempty"`
 	// Version of Grafana Agent to be deployed.
 	Version string `json:"version,omitempty"`
 	// Paused prevents actions except for deletion to be performed on the
@@ -126,59 +126,6 @@ type GrafanaAgentSpec struct {
 	Prometheus PrometheusSubsystemSpec `json:"prometheus,omitempty"`
 }
 
-// EmbeddedObjectMetadata contains a subset of fields included in
-// k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta. Only fields which are
-// relevant to embedded resources are included.
-type EmbeddedObjectMetadata struct {
-	// Name must be unique within a namespace. Required when creating resources,
-	// although some resources may allow a client to request the generation of an
-	// appropriate name automatically. Name is primarily intended for creation
-	// idempotence and configuration definition.
-	// Cannot be updated.
-	// More info: https://kubernetes.io/docs/user-guide/identifiers#names
-	Name string `json:"name,omitempty"`
-
-	// Labels holds a map of string keys and values that can be used to organize
-	// and categorize (scope and select) objects. May match selectors of
-	// replication controllers and services.
-	// More info: https://kubernetes.io/docs/user-guide/labels
-	Labels map[string]string `json:"labels,omitempty"`
-
-	// Annotations is an unstructured key value map stored with a resource that
-	// may be set by external tools to store and retrieve arbitrary metadata.
-	// They are not queryable and should be preserved when modifying objects.
-	// More info: https://kubernetes.io/docs/user-guide/annotations
-	Annotations map[string]string `json:"annotations,omitempty"`
-}
-
-// StorageSpec defines the configured storage for a group of Grfana Agents.
-// If neither `emptyDir` nor `volumeClaimTemplate` is specified, then by
-// default an
-// [EmptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
-// will be used.
-type StorageSpec struct {
-	// EmptyDir to be used by the Grafana Agent StatefulSets. If specified, used in place of any volumeClaimTemplate.
-	// More info: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
-	EmptyDir *v1.EmptyDirVolumeSource `json:"emptyDir,omitempty"`
-	// VolumeClaimTemplate is a PVC spec to be used by the GrafanaAgent StatefulSets.
-	VolumeClaimTemplate EmbeddedPersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
-}
-
-// EmbeddedPersistentVolumeClaim is an embedded version of k8s.io/api/core/v1.PersistentVolumeClaim.
-// It contains TypeMeta and a reduced ObjectMeta.
-type EmbeddedPersistentVolumeClaim struct {
-	metav1.TypeMeta `json:",inline"`
-	// EmbeddedObjectMetadata contains metadata relevant to an embedded resource.
-	EmbeddedObjectMetadata `json:"metadata,omitempty"`
-	// Spec defines the desired characteristics of a volume requested by a pod author.
-	// More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
-	Spec v1.PersistentVolumeClaimSpec `json:"spec,omitempty"`
-	// Status represents the current information/status of a persistent volume claim.
-	// Read only.
-	// More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
-	Status v1.PersistentVolumeClaimStatus `json:"status,omitempty"`
-}
-
 // RemoteWriteSpec defines the remote_write configuration for Prometheus.
 type RemoteWriteSpec struct {
 	// Name of the remote_write queue. Must be unique if specified. The name is
@@ -196,7 +143,7 @@ type RemoteWriteSpec struct {
 	// sent to the remote_write endpoint.
 	WriteRelabelConfigs []prom_v1.RelabelConfig `json:"writeRelabelConfigs,omitempty"`
 	// BasicAuth for the URL.
-	BasicAuth *BasicAuth `json:"basicAuth,omitempty"`
+	BasicAuth *prom_v1.BasicAuth `json:"basicAuth,omitempty"`
 	// BearerToken used for remote_write.
 	BearerToken string `json:"bearerToken,omitempty"`
 	// BearerTokenFile used to read bearer token.
@@ -212,17 +159,6 @@ type RemoteWriteSpec struct {
 	QueueConfig *QueueConfig `json:"queueConfig,omitempty"`
 	// MetadataConfig configures the sending of series metadata to remote storage.
 	MetadataConfig *MetadataConfig `json:"metadataConfig,omitempty"`
-}
-
-// BasicAuth allows an endpoint to authenticate over basic authentication.
-// More info: https://prometheus.io/docs/operating/configuration/#endpoints.
-type BasicAuth struct {
-	// Username is the secret in the ServiceMonitor namespace that contains the
-	// username for authentication.
-	Username v1.SecretKeySelector `json:"username,omitempty"`
-	// Password is the secret in the ServiceMonitor namespace that contains the
-	// password for authentication.
-	Password v1.SecretKeySelector `json:"password,omitempty"`
 }
 
 // SigV4Config specifies configuration to perform SigV4 authentication.
@@ -273,19 +209,6 @@ type MetadataConfig struct {
 	SendInterval string `json:"sendInterval,omitempty"`
 }
 
-// ArbitraryFSAccessThroughSMsConfig enables users to configure whether a
-// ServiceMonitor selected by the Grafana Agent instance is allowed to use
-// arbitrary files on the file system of the Grafana Agent container. For
-// example, this is the case when a service monitor specifies a BearerTokenFile
-// in an endpoint. A malicious user could create a ServiceMonitor selecting
-// arbitrary secret files in the Grafana Agent container. Those secrets would
-// then be sent with a scrape request by Grafana Agent to the malicious target.
-// Denying the above would prevent the attack. As an alternative, users can use
-// the BearerTokenSecret field.
-type ArbitraryFSAccessThroughSMsConfig struct {
-	Deny bool `json:"deny,omitempty"`
-}
-
 // PrometheusSubsystemSpec defines global settings to apply across the
 // Prometheus subsystem.
 type PrometheusSubsystemSpec struct {
@@ -322,7 +245,7 @@ type PrometheusSubsystemSpec struct {
 	// ArbitraryFSAccessThroughSMs configures whether configuration based on a
 	// ServiceMonitor can access arbitrary files on the file system of the
 	// Grafana Agent container e.g. bearer token files.
-	ArbitraryFSAccessThroughSMs ArbitraryFSAccessThroughSMsConfig `json:"arbitraryFSAccessThroughSMs,omitempty"`
+	ArbitraryFSAccessThroughSMs prom_v1.ArbitraryFSAccessThroughSMsConfig `json:"arbitraryFSAccessThroughSMs,omitempty"`
 	// OverrideHonorLabels, if true, overrides all configured honor_labels read
 	// from ServiceMonitor or PodMonitor to false.
 	OverrideHonorLabels bool `json:"overrideHonorLabels,omitempty"`
