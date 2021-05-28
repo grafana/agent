@@ -9,22 +9,17 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-// Key is an identifier representing a secret or configmap value. Keys
-// are used for both in-memory lookups for secrets for config generation or
-// relative paths for mounted values.
+// Key is a path-like identifier representing a Secret or ConfigMap value. It is
+// used for looking up values during config generation that cannot be loaded
+// directly from a file (e.g., BasicAuth Username).
 //
-// Keys should be used in-memory when the underlying secret can't be loaded in
-// by file by the configured subsystem. For example, Prometheus BasicAuth
-// usernames are configured by secret in the CRD but statically in Prometheus
-// itself.
-//
-// The naming convention is file-like, and is either:
+// The naming convention is either:
 //   /secrets/<namespace>/<name>/<key>
 // or:
 //   /configMaps/<namespace>/<name>/<key>
 //
-// If a controller is generating static keys, it should watch the underlying
-// secret for changes and trigger a reconcile for the root resource.
+// Resources associated with a key should be watched for changes and trigger a
+// reconcile when modified.
 type Key string
 
 // SecretStore is an in-memory cache for secrets, intended to be used for
