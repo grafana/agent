@@ -31,14 +31,14 @@ var secondaryResources = []secondaryResource{
 
 // eventHandlers is a set of EnqueueRequestForSelector event handlers, one per
 // secondary resource.
-type eventHandlers map[secondaryResource]*EnqueueRequestForSelector
+type eventHandlers map[secondaryResource]*enqueueRequestForSelector
 
 // newResourceEventHandlers creates a new eventHandlers for all secondary
 // resources using the given client and logger.
 func newResourceEventHandlers(c client.Reader, l log.Logger) eventHandlers {
 	m := make(eventHandlers)
 	for _, r := range secondaryResources {
-		m[r] = &EnqueueRequestForSelector{Client: c, Log: l}
+		m[r] = &enqueueRequestForSelector{Client: c, Log: l}
 	}
 	return m
 }

@@ -19,12 +19,12 @@ import (
 	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
-// EnqueueRequestForSelector allows for requesting that specific
+// enqueueRequestForSelector allows for requesting that specific
 // reconciliations occur whenever an object that matches a selector
 // comes in.
 //
 // Implements handler.EventHandler.
-type EnqueueRequestForSelector struct {
+type enqueueRequestForSelector struct {
 	Client client.Reader
 	Log    log.Logger
 
@@ -33,31 +33,31 @@ type EnqueueRequestForSelector struct {
 }
 
 // Create implements handler.EventHandler.
-func (e *EnqueueRequestForSelector) Create(ev event.CreateEvent, q workqueue.RateLimitingInterface) {
+func (e *enqueueRequestForSelector) Create(ev event.CreateEvent, q workqueue.RateLimitingInterface) {
 	level.Debug(e.logger(ev.Object)).Log("msg", "got create for object")
 	e.handleEvent(ev.Object, q)
 }
 
 // Update implements handler.EventHandler.
-func (e *EnqueueRequestForSelector) Update(ev event.UpdateEvent, q workqueue.RateLimitingInterface) {
+func (e *enqueueRequestForSelector) Update(ev event.UpdateEvent, q workqueue.RateLimitingInterface) {
 	level.Debug(e.logger(ev.ObjectNew)).Log("msg", "got update for object")
 	e.handleEvent(ev.ObjectOld, q)
 	e.handleEvent(ev.ObjectNew, q)
 }
 
 // Delete implements handler.EventHandler.
-func (e *EnqueueRequestForSelector) Delete(ev event.DeleteEvent, q workqueue.RateLimitingInterface) {
+func (e *enqueueRequestForSelector) Delete(ev event.DeleteEvent, q workqueue.RateLimitingInterface) {
 	level.Debug(e.logger(ev.Object)).Log("msg", "got delete for object")
 	e.handleEvent(ev.Object, q)
 }
 
 // Generic implements handler.EventHandler.
-func (e *EnqueueRequestForSelector) Generic(ev event.GenericEvent, q workqueue.RateLimitingInterface) {
+func (e *enqueueRequestForSelector) Generic(ev event.GenericEvent, q workqueue.RateLimitingInterface) {
 	level.Debug(e.logger(ev.Object)).Log("msg", "got generic event for object")
 	e.handleEvent(ev.Object, q)
 }
 
-func (e *EnqueueRequestForSelector) logger(obj client.Object) log.Logger {
+func (e *enqueueRequestForSelector) logger(obj client.Object) log.Logger {
 	gvk := obj.GetObjectKind().GroupVersionKind()
 	return log.With(
 		e.Log,
@@ -66,7 +66,7 @@ func (e *EnqueueRequestForSelector) logger(obj client.Object) log.Logger {
 	)
 }
 
-func (e *EnqueueRequestForSelector) handleEvent(obj client.Object, q workqueue.RateLimitingInterface) {
+func (e *enqueueRequestForSelector) handleEvent(obj client.Object, q workqueue.RateLimitingInterface) {
 	e.mut.RLock()
 	defer e.mut.RUnlock()
 
@@ -98,7 +98,7 @@ func (e *EnqueueRequestForSelector) handleEvent(obj client.Object, q workqueue.R
 
 // namespaceNameMatches checks to see if the namespace "in" matches the name
 // selector provided.
-func (e *EnqueueRequestForSelector) namespaceNameMatches(in string, selector promop_v1.NamespaceSelector) bool {
+func (e *enqueueRequestForSelector) namespaceNameMatches(in string, selector promop_v1.NamespaceSelector) bool {
 	if selector.Any {
 		return true
 	}
@@ -114,7 +114,7 @@ func (e *EnqueueRequestForSelector) namespaceNameMatches(in string, selector pro
 
 // namespaceMatches checks to see if the namespace "in" matches the labels
 // selector provided.
-func (e *EnqueueRequestForSelector) namespaceMatches(in string, selector labels.Selector) bool {
+func (e *enqueueRequestForSelector) namespaceMatches(in string, selector labels.Selector) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 
@@ -131,7 +131,7 @@ func (e *EnqueueRequestForSelector) namespaceMatches(in string, selector labels.
 // any selector in ss.
 //
 // To stop being notified for changes, call Notify again with nil for ss.
-func (e *EnqueueRequestForSelector) Notify(obj types.NamespacedName, ss []ResourceSelector) {
+func (e *enqueueRequestForSelector) Notify(obj types.NamespacedName, ss []ResourceSelector) {
 	e.mut.Lock()
 	defer e.mut.Unlock()
 

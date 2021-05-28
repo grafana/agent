@@ -79,7 +79,7 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		limiter := workqueue.DefaultControllerRateLimiter()
 		q := workqueue.NewRateLimitingQueue(limiter)
 
-		e := EnqueueRequestForSelector{Client: cli, Log: l}
+		e := enqueueRequestForSelector{Client: cli, Log: l}
 		e.Create(event.CreateEvent{Object: testPod}, q)
 
 		require.Equal(t, 0, q.Len(), "no changes should have been enqueued")
@@ -89,7 +89,7 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		limiter := workqueue.DefaultControllerRateLimiter()
 		q := workqueue.NewRateLimitingQueue(limiter)
 
-		e := EnqueueRequestForSelector{Client: cli, Log: l}
+		e := enqueueRequestForSelector{Client: cli, Log: l}
 		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
 			NamespaceName:   NamespaceSelector{Any: true},
 			NamespaceLabels: parseSelector(t, "foo in (bar)"),
@@ -104,7 +104,7 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		limiter := workqueue.DefaultControllerRateLimiter()
 		q := workqueue.NewRateLimitingQueue(limiter)
 
-		e := EnqueueRequestForSelector{Client: cli, Log: l}
+		e := enqueueRequestForSelector{Client: cli, Log: l}
 		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
 			NamespaceName:   NamespaceSelector{MatchNames: []string{"enqueue-test"}},
 			NamespaceLabels: labels.Everything(),
@@ -119,7 +119,7 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		limiter := workqueue.DefaultControllerRateLimiter()
 		q := workqueue.NewRateLimitingQueue(limiter)
 
-		e := EnqueueRequestForSelector{Client: cli, Log: l}
+		e := enqueueRequestForSelector{Client: cli, Log: l}
 		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
 			NamespaceName:   NamespaceSelector{MatchNames: []string{"default"}},
 			NamespaceLabels: labels.Everything(),
@@ -134,7 +134,7 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		limiter := workqueue.DefaultControllerRateLimiter()
 		q := workqueue.NewRateLimitingQueue(limiter)
 
-		e := EnqueueRequestForSelector{Client: cli, Log: l}
+		e := enqueueRequestForSelector{Client: cli, Log: l}
 		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
 			NamespaceName:   NamespaceSelector{Any: true},
 			NamespaceLabels: parseSelector(t, "foo notin (bar)"),
@@ -149,7 +149,7 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		limiter := workqueue.DefaultControllerRateLimiter()
 		q := workqueue.NewRateLimitingQueue(limiter)
 
-		e := EnqueueRequestForSelector{Client: cli, Log: l}
+		e := enqueueRequestForSelector{Client: cli, Log: l}
 		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
 			NamespaceName:   NamespaceSelector{Any: true},
 			NamespaceLabels: parseSelector(t, "foo in (bar)"),
