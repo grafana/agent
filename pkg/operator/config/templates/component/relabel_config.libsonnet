@@ -1,6 +1,6 @@
 local optionals = import '../ext/optionals.libsonnet';
 
-// cfg is expected to be a RelabelConfig.
+// @param {RelabelConfig} cfg
 function(cfg) {
   source_labels: optionals.array(cfg.SourceLabels),
   separator: optionals.string(cfg.Separator),

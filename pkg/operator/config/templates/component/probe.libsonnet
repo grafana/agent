@@ -8,22 +8,16 @@ local new_tls_config = import '../component/tls_config.libsonnet';
 
 // Genrates a scrape_config from a Probe.
 //
-// Params:
-//    agentNamespace: the namespace the root GrafanaAgent CR is in.
-//    probe: the Probe object.
-//    apiServer: the APIServerConfig used to connect to Kubernetes
-//    overrideHonorLabels: equal to the value of OverrideHonorLabels from the
-//      PrometheusSubsystemSpec.
-//    overrideHonorTimestamps: equal to the value of OverrideHonorTimestamps
-//      from the PrometheusSubsystemSpec.
-//    ignoreNamespaceSelectors: if namespace selectors should be ignored.
-//    enforcedNamespaceLabel: equal to the value of EnforcedNamepsaceLabel from
-//      the PrometheusSubsystemSpec.
-//    enforcedSampleLimit: equal to the value of EnforcedSampleLimit from the
-//      PrometheusSubsystemSpec.
-//    enforcedTargetLimit: equal to the value of EnforcedTargetLimit from the
-//      PrometheusSubsystemSpec.
-//    shards: the number of shards that will run.
+// @param {string} agentNamespace - Namespace the GrafanaAgent CR is in.
+// @param {Probe} probe
+// @param {APIServerConfig} apiServer
+// @param {boolean} overrideHonorLabels
+// @param {boolean} overrideHonorTimestamps
+// @param {boolean} ignoreNamespaceSelectors
+// @param {boolean} enforcedNamespaceLabel
+// @param {boolean} enforcedSampleLimit
+// @param {boolean} enforcedTargetLimit
+// @param {number} shards
 function(
   agentNamespace,
   probe,

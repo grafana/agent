@@ -10,22 +10,16 @@ local new_service_monitor = import './component/service_monitor.libsonnet';
 
 // Generates a prometheus_instance.
 //
-// Params:
-//    agentNamespace: the namespace the parent GrafanaAgent resource is in
-//    instance: the PrometheusInstance CR to generate an instance from
-//    apiServer: the APIServerConfig CR
-//    overrideHonorLabels: equal to the value of OverrideHonorLabels from the
-//      PrometheusSubsystemSpec.
-//    overrideHonorTimestamps: equal to the value of OverrideHonorTimestamps
-//      from the PrometheusSubsystemSpec.
-//    ignoreNamespaceSelectors: if namespace selectors should be ignored.
-//    enforcedNamespaceLabel: equal to the value of EnforcedNamepsaceLabel from
-//      the PrometheusSubsystemSpec.
-//    enforcedSampleLimit: equal to the value of EnforcedSampleLimit from the
-//      PrometheusSubsystemSpec.
-//    enforcedTargetLimit: equal to the value of EnforcedTargetLimit from the
-//      PrometheusSubsystemSpec.
-//    shards: the number of shards that will run.
+// @param {string} agentNamespace - namespace of the GrafanaAgent
+// @param {PrometheusInstance} instance
+// @param {APIServerConfig} apiServer
+// @param {boolean} overrideHonorLabels
+// @param {boolean} overrideHonorTimestamps
+// @param {boolean} ignoreNamespaceSelectors
+// @param {boolean} enforcedNamespaceLabel
+// @param {boolean} enforcedSampleLimit
+// @param {boolean} enforcedTargetLimit
+// @param {number} shards
 function(
   agentNamespace,
   instance,

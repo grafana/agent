@@ -5,11 +5,10 @@ local new_tls_config = import './tls_config.libsonnet';
 
 // kubernetes_sd_config returns a kubernetes_sd_config entry.
 //
-// Params:
-//    namespace: namespace of the GrafanaAgent resource.
-//    namespaces: list of namespaces to discover resources in.
-//    apiServer: APIServerConfig to use for discovery.
-//    role: role of resources to discover.
+// @param {string} namespace - Namespace of GrafanaAgent resource
+// @param {string[]} namespaces - Namespaces to discover resources in
+// @param {APIServerConfig} apiServer - config to use for k8s discovery.
+// @param {string} role - role of k8s resources to discover.
 function(
   namespace,
   namespaces,

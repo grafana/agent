@@ -1,7 +1,8 @@
 local optionals = import '../ext/optionals.libsonnet';
 local secrets = import '../ext/secrets.libsonnet';
 
-// config is expected to be a SafeTLSConfig.
+// @param {string} namespace
+// @param {SafeTLSConfig} config
 function(namespace, config) {
   ca_file: secrets.pathForSelector(namespace, config.CA),
   cert_file: secrets.pathForSelector(namespace, config.Cert),

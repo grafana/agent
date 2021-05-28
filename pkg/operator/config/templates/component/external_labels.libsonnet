@@ -2,7 +2,7 @@
 // user-provided labels as well as the injected cluster and
 // replica labels.
 //
-// ctx is expected to be a config.Deployment.
+// @param {config.Deployment} ctx
 function(ctx) (
   local meta = ctx.Agent.ObjectMeta;
   local prometheus = ctx.Agent.Spec.Prometheus;

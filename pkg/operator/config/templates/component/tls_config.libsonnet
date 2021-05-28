@@ -3,7 +3,8 @@ local secrets = import '../ext/secrets.libsonnet';
 
 local new_safe_tls_config = import './safe_tls_config.libsonnet';
 
-// config is expected to be a TLSConfig.
+// @param {string} namespace
+// @param {TLSConfig} config
 function(namespace, config) new_safe_tls_config(namespace, config.SafeTLSConfig) + {
   // Local configurations for ca_file, cert_file, and key_file take precedence
   // over the SafeTLSConfig. Check local settings first and then fall back
