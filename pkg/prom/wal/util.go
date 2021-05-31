@@ -82,6 +82,12 @@ func (r walReplayer) replayWAL(reader *wal.Reader) error {
 				return err
 			}
 			r.w.Append(samples)
+		case record.Exemplars:
+			exemplars, err := dec.Exemplars(rec, nil)
+			if err != nil {
+				return err
+			}
+			r.w.AppendExemplars(exemplars)
 		}
 	}
 
@@ -89,12 +95,19 @@ func (r walReplayer) replayWAL(reader *wal.Reader) error {
 }
 
 type walDataCollector struct {
-	mut     sync.Mutex
-	samples []record.RefSample
-	series  []record.RefSeries
+	mut       sync.Mutex
+	samples   []record.RefSample
+	series    []record.RefSeries
+	exemplars []record.RefExemplar
 }
 
-func (c *walDataCollector) AppendExemplars(_ []record.RefExemplar) bool { return true }
+func (c *walDataCollector) AppendExemplars(exemplars []record.RefExemplar) bool {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	c.exemplars = append(c.exemplars, exemplars...)
+	return true
+}
 
 func (c *walDataCollector) Append(samples []record.RefSample) bool {
 	c.mut.Lock()

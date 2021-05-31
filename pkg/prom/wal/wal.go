@@ -6,6 +6,7 @@ import (
 	"math"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -641,6 +642,22 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 
 	// Ensure no empty labels have gotten through.
 	e.Labels = e.Labels.WithoutEmpty()
+
+	if lbl, dup := e.Labels.HasDuplicateLabelNames(); dup {
+		return 0, errors.Wrap(tsdb.ErrInvalidExemplar, fmt.Sprintf(`label name "%s" is not unique`, lbl))
+	}
+
+	// Exemplar label length does not include chars involved in text rendering such as quotes
+	// equals sign, or commas. See definition of const ExemplarMaxLabelLength.
+	labelSetLen := 0
+	for _, l := range e.Labels {
+		labelSetLen += utf8.RuneCountInString(l.Name)
+		labelSetLen += utf8.RuneCountInString(l.Value)
+
+		if labelSetLen > exemplar.ExemplarMaxLabelSetLength {
+			return 0, storage.ErrExemplarLabelLength
+		}
+	}
 
 	a.exemplars = append(a.exemplars, record.RefExemplar{
 		Ref:    ref,
