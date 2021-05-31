@@ -91,6 +91,8 @@ func (m *storageMetrics) Unregister() {
 		m.numDeletedSeries,
 		m.totalCreatedSeries,
 		m.totalRemovedSeries,
+		m.totalAppendedSamples,
+		m.totalAppendedExemplars,
 	}
 	for _, c := range cs {
 		m.r.Unregister(c)
