@@ -6,6 +6,7 @@ import (
 	"math"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -28,11 +29,12 @@ var ErrWALClosed = fmt.Errorf("WAL storage closed")
 type storageMetrics struct {
 	r prometheus.Registerer
 
-	numActiveSeries      prometheus.Gauge
-	numDeletedSeries     prometheus.Gauge
-	totalCreatedSeries   prometheus.Counter
-	totalRemovedSeries   prometheus.Counter
-	totalAppendedSamples prometheus.Counter
+	numActiveSeries        prometheus.Gauge
+	numDeletedSeries       prometheus.Gauge
+	totalCreatedSeries     prometheus.Counter
+	totalRemovedSeries     prometheus.Counter
+	totalAppendedSamples   prometheus.Counter
+	totalAppendedExemplars prometheus.Counter
 }
 
 func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
@@ -62,6 +64,11 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 		Help: "Total number of samples appended to the WAL",
 	})
 
+	m.totalAppendedExemplars = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_wal_exemplars_appended_total",
+		Help: "Total number of exemplars appended to the WAL",
+	})
+
 	if r != nil {
 		r.MustRegister(
 			m.numActiveSeries,
@@ -69,6 +76,7 @@ func newStorageMetrics(r prometheus.Registerer) *storageMetrics {
 			m.totalCreatedSeries,
 			m.totalRemovedSeries,
 			m.totalAppendedSamples,
+			m.totalAppendedExemplars,
 		)
 	}
 
@@ -84,6 +92,8 @@ func (m *storageMetrics) Unregister() {
 		m.numDeletedSeries,
 		m.totalCreatedSeries,
 		m.totalRemovedSeries,
+		m.totalAppendedSamples,
+		m.totalAppendedExemplars,
 	}
 	for _, c := range cs {
 		m.r.Unregister(c)
@@ -147,9 +157,10 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 
 	storage.appenderPool.New = func() interface{} {
 		return &appender{
-			w:       storage,
-			series:  make([]record.RefSeries, 0, 100),
-			samples: make([]record.RefSample, 0, 100),
+			w:         storage,
+			series:    make([]record.RefSeries, 0, 100),
+			samples:   make([]record.RefSample, 0, 100),
+			exemplars: make([]record.RefExemplar, 0, 10),
 		}
 	}
 
@@ -272,8 +283,8 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 					}
 				}
 				decoded <- samples
-			case record.Tombstones:
-				// We don't care about tombstones
+			case record.Tombstones, record.Exemplars:
+				// We don't care about decoding tombstones or exemplars
 				continue
 			default:
 				errCh <- &wal.CorruptionErr{
@@ -548,9 +559,10 @@ func (w *Storage) Close() error {
 }
 
 type appender struct {
-	w       *Storage
-	series  []record.RefSeries
-	samples []record.RefSample
+	w         *Storage
+	series    []record.RefSeries
+	samples   []record.RefSample
+	exemplars []record.RefExemplar
 }
 
 func (a *appender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
@@ -622,9 +634,39 @@ func (a *appender) AddFast(ref uint64, t int64, v float64) error {
 	return nil
 }
 
-func (a *appender) AppendExemplar(ref uint64, l labels.Labels, e exemplar.Exemplar) (uint64, error) {
-	// remote_write doesn't support exemplars yet, so do nothing here.
-	return 0, nil
+func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exemplar) (uint64, error) {
+	s := a.w.series.getByID(ref)
+	if s == nil {
+		return 0, fmt.Errorf("unknown series ref. when trying to add exemplar: %d", ref)
+	}
+
+	// Ensure no empty labels have gotten through.
+	e.Labels = e.Labels.WithoutEmpty()
+
+	if lbl, dup := e.Labels.HasDuplicateLabelNames(); dup {
+		return 0, errors.Wrap(tsdb.ErrInvalidExemplar, fmt.Sprintf(`label name "%s" is not unique`, lbl))
+	}
+
+	// Exemplar label length does not include chars involved in text rendering such as quotes
+	// equals sign, or commas. See definition of const ExemplarMaxLabelLength.
+	labelSetLen := 0
+	for _, l := range e.Labels {
+		labelSetLen += utf8.RuneCountInString(l.Name)
+		labelSetLen += utf8.RuneCountInString(l.Value)
+
+		if labelSetLen > exemplar.ExemplarMaxLabelSetLength {
+			return 0, storage.ErrExemplarLabelLength
+		}
+	}
+
+	a.exemplars = append(a.exemplars, record.RefExemplar{
+		Ref:    ref,
+		T:      e.Ts,
+		V:      e.Value,
+		Labels: e.Labels,
+	})
+
+	return s.ref, nil
 }
 
 // Commit submits the collected samples and purges the batch.
@@ -655,6 +697,14 @@ func (a *appender) Commit() error {
 		buf = buf[:0]
 	}
 
+	if len(a.exemplars) > 0 {
+		buf = encoder.Exemplars(a.exemplars, buf)
+		if err := a.w.wal.Log(buf); err != nil {
+			return err
+		}
+		buf = buf[:0]
+	}
+
 	//nolint:staticcheck
 	a.w.bufPool.Put(buf)
 
@@ -673,6 +723,7 @@ func (a *appender) Commit() error {
 func (a *appender) Rollback() error {
 	a.series = a.series[:0]
 	a.samples = a.samples[:0]
+	a.exemplars = a.exemplars[:0]
 	a.w.appenderPool.Put(a)
 	return nil
 }

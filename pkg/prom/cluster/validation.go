@@ -6,18 +6,18 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/discovery"
+	"github.com/prometheus/prometheus/discovery/aws"
 	"github.com/prometheus/prometheus/discovery/azure"
 	"github.com/prometheus/prometheus/discovery/consul"
 	"github.com/prometheus/prometheus/discovery/digitalocean"
 	"github.com/prometheus/prometheus/discovery/dns"
-	"github.com/prometheus/prometheus/discovery/dockerswarm"
-	"github.com/prometheus/prometheus/discovery/ec2"
 	"github.com/prometheus/prometheus/discovery/eureka"
 	"github.com/prometheus/prometheus/discovery/file"
 	"github.com/prometheus/prometheus/discovery/gce"
 	"github.com/prometheus/prometheus/discovery/hetzner"
 	"github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/discovery/marathon"
+	"github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/discovery/openstack"
 	"github.com/prometheus/prometheus/discovery/scaleway"
 	"github.com/prometheus/prometheus/discovery/triton"
@@ -82,11 +82,11 @@ func validateDiscoveryNoFiles(disc discovery.Config) error {
 		}
 	case *dns.SDConfig:
 		// no-op
-	case *dockerswarm.SDConfig:
+	case *moby.DockerSwarmSDConfig:
 		if err := validateHTTPNoFiles(&d.HTTPClientConfig); err != nil {
 			return err
 		}
-	case *ec2.SDConfig:
+	case *aws.EC2SDConfig:
 		// no-op
 	case *eureka.SDConfig:
 		if err := validateHTTPNoFiles(&d.HTTPClientConfig); err != nil {
