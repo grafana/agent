@@ -49,7 +49,7 @@ func TestStorage_InvalidSeries(t *testing.T) {
 
 	e := exemplar.Exemplar{Labels: labels.Labels{{Name: "a", Value: "1"}, {Name: "a", Value: "2"}}}
 	_, err = app.AppendExemplar(sRef, nil, e)
-	require.ErrorIs(t, err, tsdb.ErrInvalidExemplar,"should reject duplicate labels")
+	require.ErrorIs(t, err, tsdb.ErrInvalidExemplar, "should reject duplicate labels")
 
 	e = exemplar.Exemplar{Labels: labels.Labels{{Name: "a_somewhat_long_trace_id", Value: "nYJSNtFrFTY37VR7mHzEE/LIDt7cdAQcuOzFajgmLDAdBSRHYPDzrxhMA4zz7el8naI/AoXFv9/e/G0vcETcIoNUi3OieeLfaIRQci2oa"}}}
 	_, err = app.AppendExemplar(sRef, nil, e)
