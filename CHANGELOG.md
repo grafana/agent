@@ -4,19 +4,22 @@ BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.
 Please review the [migration
 guide](./docs/migration-guide.md) for details.
 
+- [FEATURE] Add support for exemplars (@mapno)
+
 - [ENHANCEMENT] Add the option to log to stdout instead of a Loki instance. (@joe-elliott)
 
 - [ENHANCEMENT] Running the Agent as a DaemonSet with host_filter and role: pod
   should no longer cause unnecessary load against the Kubernetes SD API.
   (@rfratto)
 
-- [ENHANCEMENT] Update Prometheus dependency to v2.27.0 and add exemplars support (@mapno)
+- [ENHANCEMENT] Update Prometheus to v2.27.0, Loki to d88f3996eaa2 and Cortex to d382e1d80eaf.
+  Loki and Cortex are non-release builds, and were needed to support exemplars. (@mapno)
 
 - [BUGFIX] Host filter relabeling rules should now work. (@rfratto)
 
-- [CHANGE] Intentionally order tracing processors. (@joe-elliott)
-
 - [BUGFIX] Fixed issue where span metrics where being reported with wrong time unit (@mapno)
+
+- [CHANGE] Intentionally order tracing processors. (@joe-elliott)
 
 # v0.14.0 (2021-05-19)
 
