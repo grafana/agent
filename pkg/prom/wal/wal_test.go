@@ -10,9 +10,11 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/value"
 	"github.com/prometheus/prometheus/storage"
+	"github.com/prometheus/prometheus/tsdb"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/stretchr/testify/require"
 )
@@ -30,6 +32,7 @@ func TestStorage_InvalidSeries(t *testing.T) {
 
 	app := s.Appender(context.Background())
 
+	// Samples
 	_, err = app.Append(0, labels.Labels{}, 0, 0)
 	require.Error(t, err, "should reject empty labels")
 
@@ -37,8 +40,25 @@ func TestStorage_InvalidSeries(t *testing.T) {
 	require.Error(t, err, "should reject duplicate labels")
 
 	// Sanity check: valid series
-	_, err = app.Append(0, labels.Labels{{Name: "a", Value: "1"}}, 0, 0)
+	sRef, err := app.Append(0, labels.Labels{{Name: "a", Value: "1"}}, 0, 0)
 	require.NoError(t, err, "should not reject valid series")
+
+	// Exemplars
+	_, err = app.AppendExemplar(0, nil, exemplar.Exemplar{})
+	require.Error(t, err, "should reject unknown series ref")
+
+	e := exemplar.Exemplar{Labels: labels.Labels{{Name: "a", Value: "1"}, {Name: "a", Value: "2"}}}
+	_, err = app.AppendExemplar(sRef, nil, e)
+	require.ErrorIs(t, err, tsdb.ErrInvalidExemplar, "should reject duplicate labels")
+
+	e = exemplar.Exemplar{Labels: labels.Labels{{Name: "a_somewhat_long_trace_id", Value: "nYJSNtFrFTY37VR7mHzEE/LIDt7cdAQcuOzFajgmLDAdBSRHYPDzrxhMA4zz7el8naI/AoXFv9/e/G0vcETcIoNUi3OieeLfaIRQci2oa"}}}
+	_, err = app.AppendExemplar(sRef, nil, e)
+	require.ErrorIs(t, err, storage.ErrExemplarLabelLength, "should reject too long label length")
+
+	// Sanity check: valid exemplars
+	e = exemplar.Exemplar{Labels: labels.Labels{{Name: "a", Value: "1"}}, Value: 20, Ts: 10, HasTs: true}
+	_, err = app.AppendExemplar(sRef, nil, e)
+	require.NoError(t, err, "should not reject valid exemplars")
 }
 
 func TestStorage(t *testing.T) {
@@ -55,11 +75,7 @@ func TestStorage(t *testing.T) {
 	app := s.Appender(context.Background())
 
 	// Write some samples
-	payload := seriesList{
-		{name: "foo", samples: []sample{{1, 10.0}, {10, 100.0}}},
-		{name: "bar", samples: []sample{{2, 20.0}, {20, 200.0}}},
-		{name: "baz", samples: []sample{{3, 30.0}, {30, 300.0}}},
-	}
+	payload := buildSeries([]string{"foo", "bar", "baz"})
 	for _, metric := range payload {
 		metric.Write(t, app)
 	}
@@ -77,9 +93,14 @@ func TestStorage(t *testing.T) {
 	require.Equal(t, payload.SeriesNames(), names)
 
 	expectedSamples := payload.ExpectedSamples()
-	actual := collector.samples
-	sort.Sort(byRefSample(actual))
-	require.Equal(t, expectedSamples, actual)
+	actualSamples := collector.samples
+	sort.Sort(byRefSample(actualSamples))
+	require.Equal(t, expectedSamples, actualSamples)
+
+	expectedExemplars := payload.ExpectedExemplars()
+	actualExemplars := collector.exemplars
+	sort.Sort(byRefExemplar(actualExemplars))
+	require.Equal(t, expectedExemplars, actualExemplars)
 }
 
 func TestStorage_ExistingWAL(t *testing.T) {
@@ -91,12 +112,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	require.NoError(t, err)
 
 	app := s.Appender(context.Background())
-	payload := seriesList{
-		{name: "foo", samples: []sample{{1, 10.0}, {10, 100.0}}},
-		{name: "bar", samples: []sample{{2, 20.0}, {20, 200.0}}},
-		{name: "baz", samples: []sample{{3, 30.0}, {30, 300.0}}},
-		{name: "blerg", samples: []sample{{4, 40.0}, {40, 400.0}}},
-	}
+	payload := buildSeries([]string{"foo", "bar", "baz", "blerg"})
 
 	// Write half of the samples.
 	for _, metric := range payload[0 : len(payload)/2] {
@@ -142,9 +158,14 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	require.Equal(t, payload.SeriesNames(), names)
 
 	expectedSamples := payload.ExpectedSamples()
-	actual := collector.samples
-	sort.Sort(byRefSample(actual))
-	require.Equal(t, expectedSamples, actual)
+	actualSamples := collector.samples
+	sort.Sort(byRefSample(actualSamples))
+	require.Equal(t, expectedSamples, actualSamples)
+
+	expectedExemplars := payload.ExpectedExemplars()
+	actualExemplars := collector.exemplars
+	sort.Sort(byRefExemplar(actualExemplars))
+	require.Equal(t, expectedExemplars, actualExemplars)
 }
 
 func TestStorage_Truncate(t *testing.T) {
@@ -164,12 +185,7 @@ func TestStorage_Truncate(t *testing.T) {
 
 	app := s.Appender(context.Background())
 
-	payload := seriesList{
-		{name: "foo", samples: []sample{{1, 10.0}, {10, 100.0}}},
-		{name: "bar", samples: []sample{{2, 20.0}, {20, 200.0}}},
-		{name: "baz", samples: []sample{{3, 30.0}, {30, 300.0}}},
-		{name: "blerg", samples: []sample{{4, 40.0}, {40, 400.0}}},
-	}
+	payload := buildSeries([]string{"foo", "bar", "baz", "blerg"})
 
 	for _, metric := range payload {
 		metric.Write(t, app)
@@ -191,8 +207,11 @@ func TestStorage_Truncate(t *testing.T) {
 
 	payload = payload.Filter(func(s sample) bool {
 		return s.ts >= keepTs
+	}, func(e exemplar.Exemplar) bool {
+		return e.HasTs && e.Ts >= keepTs
 	})
 	expectedSamples := payload.ExpectedSamples()
+	expectedExemplars := payload.ExpectedExemplars()
 
 	// Read back the WAL, collect series and samples.
 	collector := walDataCollector{}
@@ -205,9 +224,13 @@ func TestStorage_Truncate(t *testing.T) {
 	}
 	require.Equal(t, payload.SeriesNames(), names)
 
-	actual := collector.samples
-	sort.Sort(byRefSample(actual))
-	require.Equal(t, expectedSamples, actual)
+	actualSamples := collector.samples
+	sort.Sort(byRefSample(actualSamples))
+	require.Equal(t, expectedSamples, actualSamples)
+
+	actualExemplars := collector.exemplars
+	sort.Sort(byRefExemplar(actualExemplars))
+	require.Equal(t, expectedExemplars, actualExemplars)
 }
 
 func TestStorage_WriteStalenessMarkers(t *testing.T) {
@@ -264,7 +287,7 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 	}
 }
 
-func TestStoraeg_TruncateAfterClose(t *testing.T) {
+func TestStorage_TruncateAfterClose(t *testing.T) {
 	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
@@ -282,8 +305,9 @@ type sample struct {
 }
 
 type series struct {
-	name    string
-	samples []sample
+	name      string
+	samples   []sample
+	exemplars []exemplar.Exemplar
 
 	ref *uint64
 }
@@ -308,17 +332,27 @@ func (s *series) Write(t *testing.T, app storage.Appender) {
 		_, err := app.Append(*s.ref, lbls, sample.ts, sample.val)
 		require.NoError(t, err)
 	}
+
+	sRef := *s.ref
+	for _, exemplar := range s.exemplars {
+		var err error
+		sRef, err = app.AppendExemplar(sRef, nil, exemplar)
+		require.NoError(t, err)
+	}
 }
 
 type seriesList []*series
 
 // Filter creates a new seriesList with series filtered by a sample
 // keep predicate function.
-func (s seriesList) Filter(fn func(s sample) bool) seriesList {
+func (s seriesList) Filter(fn func(s sample) bool, fnExemplar func(e exemplar.Exemplar) bool) seriesList {
 	var ret seriesList
 
 	for _, entry := range s {
-		var samples []sample
+		var (
+			samples   []sample
+			exemplars []exemplar.Exemplar
+		)
 
 		for _, sample := range entry.samples {
 			if fn(sample) {
@@ -326,11 +360,18 @@ func (s seriesList) Filter(fn func(s sample) bool) seriesList {
 			}
 		}
 
-		if len(samples) > 0 {
+		for _, e := range entry.exemplars {
+			if fnExemplar(e) {
+				exemplars = append(exemplars, e)
+			}
+		}
+
+		if len(samples) > 0 && len(exemplars) > 0 {
 			ret = append(ret, &series{
-				name:    entry.name,
-				ref:     entry.ref,
-				samples: samples,
+				name:      entry.name,
+				ref:       entry.ref,
+				samples:   samples,
+				exemplars: exemplars,
 			})
 		}
 	}
@@ -362,11 +403,55 @@ func (s seriesList) ExpectedSamples() []record.RefSample {
 	return expect
 }
 
+// ExpectedExemplars returns the list of expected exemplars, sorted by ref ID and timestamp
+func (s seriesList) ExpectedExemplars() []record.RefExemplar {
+	expect := []record.RefExemplar{}
+	for _, series := range s {
+		for _, exemplar := range series.exemplars {
+			expect = append(expect, record.RefExemplar{
+				Ref:    *series.ref,
+				T:      exemplar.Ts,
+				V:      exemplar.Value,
+				Labels: exemplar.Labels,
+			})
+		}
+	}
+	sort.Sort(byRefExemplar(expect))
+	return expect
+}
+
+func buildSeries(nameSlice []string) seriesList {
+	s := make(seriesList, 0, len(nameSlice))
+	for i, n := range nameSlice {
+		i++
+		s = append(s, &series{
+			name:    n,
+			samples: []sample{{int64(i), float64(i * 10.0)}, {int64(i * 10), float64(i * 100.0)}},
+			exemplars: []exemplar.Exemplar{
+				{Labels: labels.Labels{{Name: "foobar", Value: "barfoo"}}, Value: float64(i * 10.0), Ts: int64(i), HasTs: true},
+				{Labels: labels.Labels{{Name: "lorem", Value: "ipsum"}}, Value: float64(i * 100.0), Ts: int64(i * 10), HasTs: true},
+			},
+		})
+	}
+	return s
+}
+
 type byRefSample []record.RefSample
 
 func (b byRefSample) Len() int      { return len(b) }
 func (b byRefSample) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 func (b byRefSample) Less(i, j int) bool {
+	if b[i].Ref == b[j].Ref {
+		return b[i].T < b[j].T
+	}
+	return b[i].Ref < b[j].Ref
+}
+
+type byRefExemplar []record.RefExemplar
+
+func (b byRefExemplar) Len() int      { return len(b) }
+func (b byRefExemplar) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
+func (b byRefExemplar) Less(i, j int) bool {
 	if b[i].Ref == b[j].Ref {
 		return b[i].T < b[j].T
 	}

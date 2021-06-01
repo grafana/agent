@@ -14,8 +14,8 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/loki/pkg/distributor"
 	"github.com/grafana/loki/pkg/logproto"
+	loki_util "github.com/grafana/loki/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -49,7 +49,7 @@ func TestLoki(t *testing.T) {
 	})
 	go func() {
 		_ = http.Serve(lis, http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			req, err := distributor.ParseRequest(r)
+			req, err := loki_util.ParseRequest(log.NewNopLogger(), "user_id", r)
 			require.NoError(t, err)
 
 			pushes <- req

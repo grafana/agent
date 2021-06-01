@@ -204,7 +204,7 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		firstError = err
 	}
 
-	if len(rs.Ingesters) > 0 {
+	if len(rs.Instances) > 0 {
 		level.Info(n.log).Log("msg", "informing remote nodes to reshard")
 	}
 
@@ -365,7 +365,7 @@ func (n *node) Owns(key string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	for _, r := range rs.Ingesters {
+	for _, r := range rs.Instances {
 		if r.Addr == n.lc.Addr {
 			return true, nil
 		}
