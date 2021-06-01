@@ -33,7 +33,7 @@ project has its own documentation, but for a high level overview of how it
 relates to this project:
 
 1. The Grafana Agent Operator is composed of a single _controller_. A
-   _controller_ is resonsible for responding to changes to Kubernetes resources.
+   _controller_ is responsible for responding to changes to Kubernetes resources.
 
 2. Controllers can be notified about changes to:
 
