@@ -118,6 +118,8 @@ function(
     // First targets based on correct port for the endpoint. If ep.Port,
     // ep.TargetPort.StrVal, or ep.TargetPort.IntVal aren't set, then
     // we'll have a null relabel_configs, which will be filtered out.
+    //
+    // We do this to avoid having an array with a null element inside of it.
     std.filter(function(element) element != null, [
       if endpoint.Port != '' then {
         source_labels: ['__meta_kubernetes_endpoint_port_name'],
