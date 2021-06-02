@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/blang/semver/v4 v4.0.0
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
 	github.com/drone/envsubst v1.0.2
 	github.com/fatih/structs v0.0.0-20180123065059-ebf56d35bba7
@@ -19,10 +18,8 @@ require (
 	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
 	github.com/hashicorp/consul/api v1.8.1
 	github.com/hashicorp/go-getter v1.5.3
-	github.com/hashicorp/go-version v1.3.0
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
-	github.com/kylelemons/godebug v1.1.0
 	github.com/miekg/dns v1.1.41
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
@@ -65,7 +62,7 @@ require (
 	k8s.io/api v0.21.0
 	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v12.0.0+incompatible
-	sigs.k8s.io/controller-runtime v0.8.3
+	sigs.k8s.io/controller-runtime v0.9.0-beta.5
 	sigs.k8s.io/yaml v1.2.0
 )
 

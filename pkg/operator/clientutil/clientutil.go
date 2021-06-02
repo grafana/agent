@@ -73,7 +73,7 @@ func CreateOrUpdateService(ctx context.Context, c client.Client, svc *v1.Service
 		}
 	} else {
 		svc.ResourceVersion = exist.ResourceVersion
-		svc.Spec.IPFamily = exist.Spec.IPFamily
+		svc.Spec.IPFamilies = exist.Spec.IPFamilies
 		svc.SetOwnerReferences(mergeOwnerReferences(svc.GetOwnerReferences(), exist.GetOwnerReferences()))
 		svc.SetLabels(mergeMaps(svc.Labels, exist.Labels))
 		svc.SetAnnotations(mergeMaps(svc.Annotations, exist.Annotations))
