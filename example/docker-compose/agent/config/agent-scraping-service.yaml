@@ -44,10 +44,8 @@ tempo:
           - always_sample:
 #            Enter more policies to sample traces (ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)
 #            Example of rate limiting policy. Uncomment to start rate limiting!
-#          - name: policy-2
-#            type: rate_limiting
-#            rate_limiting:
-#              - spans_per_second: 35
+#          - rate_limiting:
+#              spans_per_second: 35
         load_balancing:
           exporter:
             insecure: true
