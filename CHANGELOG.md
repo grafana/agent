@@ -14,7 +14,7 @@ guide](./docs/migration-guide.md) for details.
   should no longer cause unnecessary load against the Kubernetes SD API.
   (@rfratto)
 
-- [ENHANCEMENT] Update Prometheus to v2.27.0.(@mapno)
+- [ENHANCEMENT] Update Prometheus to v2.27.0. (@mapno)
 
 - [ENHANCEMENT] Update Loki dependency to d88f3996eaa2. This is a non-release
   build, and was needed to support exemplars. (@mapno)
