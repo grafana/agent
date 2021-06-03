@@ -15,8 +15,8 @@ local service = k.core.v1.service;
 (import './lib/tempo.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v0.14.0',
-    agentctl: 'grafana/agentctl:v0.14.0',
+    agent: 'grafana/agent:v0.15.0',
+    agentctl: 'grafana/agentctl:v0.15.0',
   },
 
   // new creates a new DaemonSet deployment of the grafana-agent. By default,
