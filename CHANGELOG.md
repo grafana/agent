@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
+
 # v0.15.0 (2021-06-03)
 
 BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.
@@ -9,6 +11,8 @@ guide](./docs/migration-guide.md) for details.
 - [FEATURE] Add support for exemplars. (@mapno)
 
 - [ENHANCEMENT] Add the option to log to stdout instead of a Loki instance. (@joe-elliott)
+
+- [ENHANCEMENT] Update Cortex dependency to v1.8.0.
 
 - [ENHANCEMENT] Running the Agent as a DaemonSet with host_filter and role: pod
   should no longer cause unnecessary load against the Kubernetes SD API.

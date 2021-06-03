@@ -19,7 +19,7 @@ CROSS_BUILD ?= false
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.10.0
+BUILD_IMAGE_VERSION := 0.11.0
 BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
@@ -86,6 +86,24 @@ endif
 
 ifeq ($(BUILD_IN_CONTAINER),false)
 seego = "/seego.sh"
+endif
+
+########
+# CRDs #
+########
+
+crds:
+ifeq ($(BUILD_IN_CONTAINER),true)
+	@mkdir -p $(shell pwd)/.pkg
+	@mkdir -p $(shell pwd)/.cache
+	docker run -i \
+		-v $(shell pwd)/.cache:/go/cache \
+		-v $(shell pwd)/.pkg:/go/pkg \
+		-v $(shell pwd):/src/agent \
+		-e SRC_PATH=/src/agent \
+		$(BUILD_IMAGE) $@;
+else
+	bash ./tools/generate-crds.bash
 endif
 
 #############
