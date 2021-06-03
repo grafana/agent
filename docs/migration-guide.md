@@ -3,6 +3,8 @@
 This is a guide detailing all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
+# v0.15.0
+
 ## Tempo: `automatic_logging` changes
 
 Tempo automatic logging previously assumed that the operator wanted to log

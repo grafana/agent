@@ -1,10 +1,12 @@
 # Main (unreleased)
 
+# v0.15.0 (2021-06-03)
+
 BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.
 Please review the [migration
 guide](./docs/migration-guide.md) for details.
 
-- [FEATURE] Add support for exemplars (@mapno)
+- [FEATURE] Add support for exemplars. (@mapno)
 
 - [ENHANCEMENT] Add the option to log to stdout instead of a Loki instance. (@joe-elliott)
 
@@ -12,16 +14,21 @@ guide](./docs/migration-guide.md) for details.
   should no longer cause unnecessary load against the Kubernetes SD API.
   (@rfratto)
 
-- [ENHANCEMENT] Update Prometheus to v2.27.0, Loki to d88f3996eaa2 and Cortex to d382e1d80eaf.
-  Loki and Cortex are non-release builds, and were needed to support exemplars. (@mapno)
+- [ENHANCEMENT] Update Prometheus to v2.27.0.(@mapno)
+
+- [ENHANCEMENT] Update Loki dependency to d88f3996eaa2. This is a non-release
+  build, and was needed to support exemplars. (@mapno)
+
+- [ENHANCEMENT] Update Cortex dependency to to d382e1d80eaf. This is a
+  non-release build, and was needed to support exemplars. (@mapno)
 
 - [BUGFIX] Host filter relabeling rules should now work. (@rfratto)
 
-- [BUGFIX] Fixed issue where span metrics where being reported with wrong time unit (@mapno)
+- [BUGFIX] Fixed issue where span metrics where being reported with wrong time unit. (@mapno)
 
 - [CHANGE] Intentionally order tracing processors. (@joe-elliott)
 
-# v0.14.0 (2021-05-19)
+# v0.14.0 (2021-05-24)
 
 BREAKING CHANGE: This release has a breaking change for SigV4 support. Please
 read the release notes carefully and our [migration
