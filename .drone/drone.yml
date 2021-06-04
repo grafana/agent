@@ -42,8 +42,6 @@ steps:
   - chmod a+x ~/.docker/cli-plugins/docker-buildx
   - docker buildx create --use
   - CROSS_BUILD=true RELEASE_BUILD=true make agent-image
-
-steps:
 - name: Build Agentctl Container
   image: docker
   volumes:
@@ -57,7 +55,7 @@ steps:
   - chmod a+x ~/.docker/cli-plugins/docker-buildx
   - docker buildx create --use
   - CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
-  
+
 volumes:
 - name: docker
   host: 
