@@ -1,0 +1,64 @@
+---
+kind: pipeline
+name: Test
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: lint
+  image: golangci/golangci-lint:v1.37.1
+  # libsystemd-dev is required for cgo
+  commands:
+  - apt-get update -y && apt-get install -y libsystemd-dev
+  - make lint
+
+- name: test-ubuntu
+  image: golang:1.16
+  commands:
+  - apt-get update -y && apt-get install -y libsystemd-dev
+  - make cmd/agent/agent cmd/agentctl/agentctl
+  - make test
+  - RELEASE_TAG=v0.0.0 make test-packages
+---
+kind: pipeline
+type: docker
+name: Containerize
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: Build Agent Container
+  image: docker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  commands:
+  - apk update && apk add make bash wget git qemu
+  - wget https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
+  - mkdir -p ~/.docker/cli-plugins 
+  - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
+  - chmod a+x ~/.docker/cli-plugins/docker-buildx
+  - docker buildx create --use
+  - CROSS_BUILD=true RELEASE_BUILD=true make agent-image
+
+steps:
+- name: Build Agentctl Container
+  image: docker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  commands:
+  - apk update && apk add make bash wget git qemu
+  - wget https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
+  - mkdir -p ~/.docker/cli-plugins 
+  - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
+  - chmod a+x ~/.docker/cli-plugins/docker-buildx
+  - docker buildx create --use
+  - CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
+  
+volumes:
+- name: docker
+  host: 
+    path: /var/run/docker.sock
