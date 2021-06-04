@@ -2,6 +2,9 @@
 
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
+- [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
+  Cloud will now be shown. (@rfratto)
+
 # v0.15.0 (2021-06-03)
 
 BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.

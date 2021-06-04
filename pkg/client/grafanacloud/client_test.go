@@ -69,6 +69,7 @@ func TestClient_AgentConfig_Error(t *testing.T) {
 
 func TestClient_AgentConfig_ErrorMessage(t *testing.T) {
 	httpClient := testClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
 		_, err := w.Write([]byte(`{
 			"status": "error",
 			"error": "Something went wrong"
