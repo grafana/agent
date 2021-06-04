@@ -426,19 +426,20 @@ func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
 
 // WireAPI hooks up /metrics routes per-integration.
 func (m *Manager) WireAPI(r *mux.Router) {
-	type handlerCacheEntry struct {
-		handler http.Handler
-		process *integrationProcess
+	type integrationHandler struct {
+		metricsHandler http.Handler
+		process        *integrationProcess
+		customHandlers map[string]http.Handler
 	}
 	var (
 		handlerMut   sync.Mutex
-		handlerCache = make(map[string]handlerCacheEntry)
+		handlerCache = make(map[string]integrationHandler)
 	)
 
 	// loadHandler will perform a dynamic lookup of an HTTP handler for an
 	// integration. loadHandler should be called with a read lock on the
 	// integrations mutex.
-	loadHandler := func(key string) http.Handler {
+	loadHandler := func(key string) integrationHandler {
 		handlerMut.Lock()
 		defer handlerMut.Unlock()
 
@@ -446,26 +447,27 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		p, ok := m.integrations[key]
 		if !ok {
 			delete(handlerCache, key)
-			return http.NotFoundHandler()
+			return integrationHandler{metricsHandler: http.NotFoundHandler()}
 		}
 
 		// Now look in the cache for a handler for the running process.
 		cacheEntry, ok := handlerCache[key]
 		if ok && cacheEntry.process == p {
-			return cacheEntry.handler
+			return cacheEntry
 		}
 
 		// New integration process that hasn't been scraped before. Generate
 		// a handler for it and cache it.
 		handler, err := p.i.MetricsHandler()
 		if err != nil {
-			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Name(), "err", err)
-			return http.HandlerFunc(internalServiceError)
+			level.Error(m.logger).Log("msg", "could not create http metrics handler for integration", "integration", p.cfg.Name(), "err", err)
+			return integrationHandler{metricsHandler: http.HandlerFunc(internalServiceError)}
 		}
+		customHandlers := p.i.CustomHandlers()
 
-		cacheEntry = handlerCacheEntry{handler: handler, process: p}
+		cacheEntry = integrationHandler{metricsHandler: handler, process: p, customHandlers: customHandlers}
 		handlerCache[key] = cacheEntry
-		return cacheEntry.handler
+		return cacheEntry
 	}
 
 	r.HandleFunc("/integrations/{name}/metrics", func(rw http.ResponseWriter, r *http.Request) {
@@ -473,15 +475,23 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		defer m.integrationsMut.RUnlock()
 
 		key := integrationKey(mux.Vars(r)["name"])
-		handler := loadHandler(key)
-		handler.ServeHTTP(rw, r)
+		integrationHandler := loadHandler(key)
+		integrationHandler.metricsHandler.ServeHTTP(rw, r)
 	})
 
-	for _, process := range m.integrations {
-		for route, handler := range process.i.CustomHandlers() {
-			r.Handle(route, handler)
+	r.HandleFunc("/integrations/{name}/custom", func(rw http.ResponseWriter, r *http.Request) {
+		m.integrationsMut.RLock()
+		defer m.integrationsMut.RUnlock()
+
+		key := integrationKey(mux.Vars(r)["name"])
+		integrationHandler := loadHandler(key)
+		customPath := r.URL.Query().Get("path")
+		customHandler := integrationHandler.customHandlers[customPath]
+		if customHandler == nil {
+			customHandler = http.NotFoundHandler()
 		}
-	}
+		customHandler.ServeHTTP(rw, r)
+	})
 }
 
 func internalServiceError(w http.ResponseWriter, r *http.Request) {

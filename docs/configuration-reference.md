@@ -3891,8 +3891,8 @@ input:
 
     [type: webhook]
 
-    # HTTP Path to POST the webhook. The path will be prefixed with /integrations/grok_exporter.
-    [webhook_path: <string> | default = /webhook] # With the prefix the entire default path will be /integrations/grok_exporter/webhook
+    # HTTP Path to POST the webhook. The path will be added as a query param with key "path" to "/integrations/grok_exporter/custom" endpoint.
+    [webhook_path: <string> | default = /webhook] # The full default webhook URL will be "http://<host>:<port>/integrations/grok_exporter/custom?path=/webhook"
 
     # HTTP Body POST Format
     # text_single: Webhook POST body is a single plain text log entry

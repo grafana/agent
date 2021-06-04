@@ -75,11 +75,6 @@ func New(logger log.Logger, config *Config) (integrations.Integration, error) {
 
 	nLinesTotal, nMatchesByMetric, procTimeMicrosecondsByMetric, nErrorsByMetric := initSelfMonitoring(metrics, registry)
 
-	if config.IncludeExporterMetrics {
-		registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
-		registry.MustRegister(prometheus.NewGoCollector())
-	}
-
 	logTailer, err := startTailer(&config.GrokConfig, registry)
 	if err != nil {
 		return nil, err
@@ -175,7 +170,7 @@ func (e *Exporter) Run(ctx context.Context) error {
 func (e *Exporter) CustomHandlers() map[string]http.Handler {
 	handlers := make(map[string]http.Handler)
 	if e.config.GrokConfig.Input.Type == inputTypeWebhook {
-		handlers[fmt.Sprintf("/integrations/grok_exporter%s", e.config.GrokConfig.Input.WebhookPath)] = tailer.WebhookHandler()
+		handlers[e.config.GrokConfig.Input.WebhookPath] = tailer.WebhookHandler()
 	}
 
 	return handlers

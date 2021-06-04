@@ -14,9 +14,7 @@ import (
 // Config controls the grok_exporter integration.
 type Config struct {
 	Common config.Common `yaml:",inline"`
-
 	GrokConfig v3.Config `yaml:",inline"`
-
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 }
 
