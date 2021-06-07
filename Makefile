@@ -278,8 +278,7 @@ dist-packages: dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-
 
 ifeq ($(BUILD_IN_CONTAINER), true)
 
-@echo $(shell pwd)
-ls
+@echo $(shell pwd) $(shell ls)
 
 container_make = docker run --rm \
 	-v $(shell pwd):/src/agent:delegated \
