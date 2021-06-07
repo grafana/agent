@@ -277,7 +277,8 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 dist-packages: dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-packages-armv7
 
 ifeq ($(BUILD_IN_CONTAINER), true)
-@echo $(shell pwd) $(shell ls)
+	@echo $(shell pwd) $(shell ls)
+
 container_make = docker run --rm \
 	-v $(shell pwd):/src/agent:delegated \
 	-e RELEASE_TAG=$(RELEASE_TAG) \
