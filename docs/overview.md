@@ -86,7 +86,7 @@ developer team.
 ## Traces
 
 Grafana Agent supports collecting traces and sending them to Tempo using its
-`tempo` subsystem. This is done by utilizing the upstream [OpenTelmetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
+`tempo` subsystem. This is done by utilizing the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
 The agent is capable of ingesting OpenTelemetry, OpenCensus, Jaeger, Zipkin or Kafka spans.
 See documentation on how to configure [receivers](./configuration-reference.md#tempo_config).
 The agent is capable of exporting to any OpenTelemetry GRPC compatible system.
