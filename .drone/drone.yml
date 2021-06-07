@@ -31,6 +31,9 @@ steps:
 
 - name: test-ubuntu
   image: ubuntu
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
   commands:
   - export DEBIAN_FRONTEND=noninteractive 
   - apt-get update -y && apt-get install -y libsystemd-dev  apt-transport-https ca-certificates curl gnupg lsb-release wget make build-essential
