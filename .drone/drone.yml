@@ -13,13 +13,43 @@ steps:
   - apt-get update -y && apt-get install -y libsystemd-dev
   - make lint
 
+# - name: test
+#   image: ubuntu
+#   volumes:
+#   - name: docker
+#     path: /var/run/docker.sock
+#   commands:
+#   - apt-get update  && apt-get install -y libsystemd-dev
+#   - mkdir -p /usr/local/go/bin
+#   - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+#   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+#   - export PATH=$PATH:/usr/local/go/bin
+#   - make cmd/agent/agent cmd/agentctl/agentctl
+#   - make test
+#   - RELEASE_TAG=v0.0.0 make test-packages
+
+
 - name: test-ubuntu
-  image: golang:1.16
+  image: ubuntu
   commands:
-  - apt-get update -y && apt-get install -y libsystemd-dev
+  - export DEBIAN_FRONTEND=noninteractive 
+  - apt-get update -y && apt-get install -y libsystemd-dev  apt-transport-https ca-certificates curl gnupg lsb-release wget make build-essential
+  - mkdir -p /usr/local/go/bin
+  - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+  - export PATH=$PATH:/usr/local/go/bin
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt-get update  && apt-get install -y docker-ce docker-ce-cli containerd.io
   - make cmd/agent/agent cmd/agentctl/agentctl
   - make test
   - RELEASE_TAG=v0.0.0 make test-packages
+
+volumes:
+- name: docker
+  host: 
+    path: /var/run/docker.sock
+
 ---
 kind: pipeline
 type: docker
