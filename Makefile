@@ -197,7 +197,7 @@ dist: dist-agent dist-agentctl dist-packages
 dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
 dist/agent-linux-amd64: seego
 	@echo !!! ${seego}
-	@echo !!! $(shell ls /drone/src)
+	@echo !!! $(shell ls /drone/src/cmd/agent)
 	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-linux-arm64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
