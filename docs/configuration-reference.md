@@ -1864,6 +1864,9 @@ headers:
 write_relabel_configs:
   [ - <relabel_config> ... ]
 
+# Enables sending of exemplars over remote write.
+  [ send_exemplars: <boolean> | default = false ]
+
 # Sets the `Authorization` header on every remote write request with the
 # configured username and password.
 # password and password_file are mutually exclusive.
