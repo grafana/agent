@@ -5,6 +5,10 @@
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
   Cloud will now be shown. (@rfratto)
 
+- [BUGFIX] Fix a leak in the shared string interner introduced in v0.14.0.
+  This fix was made to a [dependency](https://github.com/grafana/prometheus/pull/21).
+  (@rfratto)
+
 # v0.15.0 (2021-06-03)
 
 BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.
