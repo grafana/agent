@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -216,17 +215,15 @@ func (s *Server) Stop() error {
 func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFactory {
 	return processorhelper.NewFactory(
 		"func_processor",
-		func() configmodels.Processor {
-			return &configmodels.ProcessorSettings{
-				TypeVal: "func_processor",
-				NameVal: "func_processor",
-			}
+		func() config.Processor {
+			processorSettings := config.NewProcessorSettings(config.NewIDWithName("func_processor", "func_processor"))
+			return &processorSettings
 		},
 		processorhelper.WithTraces(func(
 			_ context.Context,
 			_ component.ProcessorCreateParams,
-			_ configmodels.Processor,
-			next consumer.TracesConsumer,
+			_ config.Processor,
+			next consumer.Traces,
 		) (component.TracesProcessor, error) {
 			return &funcProcessor{
 				Callback: callback,
@@ -238,7 +235,7 @@ func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFac
 
 type funcProcessor struct {
 	Callback func(pdata.Traces)
-	Next     consumer.TracesConsumer
+	Next     consumer.Traces
 }
 
 func (p *funcProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
@@ -248,8 +245,8 @@ func (p *funcProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) erro
 	return p.Next.ConsumeTraces(ctx, td)
 }
 
-func (p *funcProcessor) GetCapabilities() component.ProcessorCapabilities {
-	return component.ProcessorCapabilities{MutatesConsumedData: true}
+func (p *funcProcessor) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{MutatesData: true}
 }
 
 func (p *funcProcessor) Start(context.Context, component.Host) error { return nil }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	otel_config "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	"gopkg.in/yaml.v2"
@@ -17,8 +17,8 @@ const TypeStr = "prom_sd_processor"
 
 // Config holds the configuration for the Prometheus SD processor.
 type Config struct {
-	configmodels.ProcessorSettings `mapstructure:",squash"`
-	ScrapeConfigs                  []interface{} `mapstructure:"scrape_configs"`
+	otel_config.ProcessorSettings `mapstructure:",squash"`
+	ScrapeConfigs                 []interface{} `mapstructure:"scrape_configs"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
@@ -30,20 +30,16 @@ func NewFactory() component.ProcessorFactory {
 	)
 }
 
-func createDefaultConfig() configmodels.Processor {
-	return &Config{
-		ProcessorSettings: configmodels.ProcessorSettings{
-			TypeVal: TypeStr,
-			NameVal: TypeStr,
-		},
-	}
+func createDefaultConfig() otel_config.Processor {
+	processorSettings := otel_config.NewProcessorSettings(otel_config.NewIDWithName(TypeStr, TypeStr))
+	return &processorSettings
 }
 
 func createTraceProcessor(
 	_ context.Context,
 	cp component.ProcessorCreateParams,
-	cfg configmodels.Processor,
-	nextConsumer consumer.TracesConsumer,
+	cfg otel_config.Processor,
+	nextConsumer consumer.Traces,
 ) (component.TracesProcessor, error) {
 	oCfg := cfg.(*Config)
 

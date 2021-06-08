@@ -22,7 +22,6 @@ import (
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
@@ -403,7 +402,7 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 
 // configFactory satisfies service.ConfigFactory
 // configFactory is called from service.Application and builds the OTel collector's config.
-func (c *InstanceConfig) configFactory(v *viper.Viper, _ *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
+func (c *InstanceConfig) configFactory(v *viper.Viper, _ *cobra.Command, factories component.Factories) (*config.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
 	if len(c.Receivers) == 0 {

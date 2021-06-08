@@ -22,7 +22,7 @@ import (
 )
 
 type promServiceDiscoProcessor struct {
-	nextConsumer     consumer.TracesConsumer
+	nextConsumer     consumer.Traces
 	discoveryMgr     *discovery.Manager
 	discoveryMgrStop context.CancelFunc
 	discoveryMgrCtx  context.Context
@@ -34,7 +34,7 @@ type promServiceDiscoProcessor struct {
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.TracesConsumer, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.Traces, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	logger := log.With(util.Logger, "component", "tempo service disco")
 	mgr := discovery.NewManager(ctx, logger, discovery.Name("tempo service disco"))
@@ -115,8 +115,8 @@ func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) 
 	}
 }
 
-func (p *promServiceDiscoProcessor) GetCapabilities() component.ProcessorCapabilities {
-	return component.ProcessorCapabilities{MutatesConsumedData: true}
+func (p *promServiceDiscoProcessor) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{MutatesData: true}
 }
 
 // Start is invoked during service startup.
