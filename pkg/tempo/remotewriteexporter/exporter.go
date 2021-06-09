@@ -51,7 +51,7 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 
 	return &remoteWriteExporter{
 		done:         atomic.Bool{},
-		constLabels:  cfg.ConstLabels,
+		constLabels:  cfg.ConstLabels.AsLabels(),
 		namespace:    cfg.Namespace,
 		promInstance: cfg.PromInstance,
 		logger:       logger,
@@ -59,8 +59,8 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 }
 
 func (e *remoteWriteExporter) Start(ctx context.Context, _ component.Host) error {
-	manager := ctx.Value(contextkeys.Prometheus).(instance.Manager)
-	if manager == nil {
+	manager, ok := ctx.Value(contextkeys.Prometheus).(instance.Manager)
+	if !ok || manager == nil {
 		return fmt.Errorf("key does not contain a Prometheus instance")
 	}
 	e.manager = manager

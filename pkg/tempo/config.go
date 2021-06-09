@@ -18,6 +18,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	prom_config "github.com/prometheus/common/config"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -400,7 +401,7 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 	return policies, nil
 }
 
-func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
+func (c *InstanceConfig) configFactory(v *viper.Viper, cmd *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
 	if len(c.Receivers) == 0 {
@@ -580,16 +581,14 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 	}
 
 	// now build the otel configmodel from the mapstructure
-	v := viper.New()
 	err = v.MergeConfigMap(otelMapStructure)
 	if err != nil {
 		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
 	}
 
-	factories, err := tracingFactories()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create factories: %w", err)
-	}
+	// if err := cmd.Flags().Set("metrics-level", "none"); err != nil {
+	// 	return nil, fmt.Errorf("failed disabling tracing application telemetry: %w", err)
+	// }
 
 	otelCfg, err := config.Load(v, factories)
 	if err != nil {

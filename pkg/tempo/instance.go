@@ -15,7 +15,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configmodels"
-	"go.opentelemetry.io/collector/service/builder"
+	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
 )
 
@@ -26,9 +26,7 @@ type Instance struct {
 	logger      *zap.Logger
 	metricViews []*view.View
 
-	exporter  builder.Exporters
-	pipelines builder.BuiltPipelines
-	receivers builder.Receivers
+	app *service.Application
 }
 
 // NewInstance creates and starts an instance of tracing pipelines.
@@ -81,60 +79,28 @@ func (i *Instance) Stop() {
 }
 
 func (i *Instance) stop() {
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	if i.app == nil {
+		return
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	dependencies := []struct {
-		name     string
-		shutdown func() error
-	}{
-		{
-			name: "receiver",
-			shutdown: func() error {
-				if i.receivers == nil {
-					return nil
-				}
-				return i.receivers.ShutdownAll(shutdownCtx)
-			},
-		},
-		{
-			name: "processors",
-			shutdown: func() error {
-				if i.pipelines == nil {
-					return nil
-				}
-				return i.pipelines.ShutdownProcessors(shutdownCtx)
-			},
-		},
-		{
-			name: "exporters",
-			shutdown: func() error {
-				if i.exporter == nil {
-					return nil
-				}
-				return i.exporter.ShutdownAll(shutdownCtx)
-			},
-		},
-	}
-
-	for _, dep := range dependencies {
-		i.logger.Info(fmt.Sprintf("shutting down %s", dep.name))
-		if err := dep.shutdown(); err != nil {
-			i.logger.Error(fmt.Sprintf("failed to shutdown %s", dep.name), zap.Error(err))
+	i.app.Shutdown()
+	for {
+		select {
+		case state := <-i.app.GetStateChannel():
+			if state == service.Closed {
+				i.app = nil
+				return
+			}
+		case <-shutdownCtx.Done():
+			return
 		}
 	}
-
-	i.receivers = nil
-	i.pipelines = nil
-	i.exporter = nil
 }
 
 func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, promManager instance.Manager) error {
-	// create component factories
-	otelConfig, err := cfg.otelConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load otelConfig from agent tempo config: %w", err)
-	}
 	if cfg.PushConfig.Endpoint != "" {
 		i.logger.Warn("Configuring exporter with deprecated push_config. Use remote_write and batch instead")
 	}
@@ -148,47 +114,54 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
 
-	appinfo := component.ApplicationStartInfo{
+	startInfo := component.ApplicationStartInfo{
 		ExeName:  "agent",
 		GitHash:  build.Revision,
 		LongName: "agent",
 		Version:  build.Version,
 	}
 
-	// start exporter
-	i.exporter, err = builder.NewExportersBuilder(i.logger, appinfo, otelConfig, factories.Exporters).Build()
-	if err != nil {
-		return fmt.Errorf("failed to create exporters builder: %w", err)
+	params := service.Parameters{
+		Factories:            factories,
+		ApplicationStartInfo: startInfo,
+		ConfigFactory:        cfg.configFactory,
+		LoggingOptions:       []zap.Option{zap.Development()},
 	}
 
-	err = i.exporter.StartAll(ctx, i)
+	app, err := service.New(params)
 	if err != nil {
-		return fmt.Errorf("failed to start exporters: %w", err)
+		return fmt.Errorf("failed creating tracing application: %s", err)
 	}
+	i.app = app
 
-	// start pipelines
-	i.pipelines, err = builder.NewPipelinesBuilder(i.logger, appinfo, otelConfig, i.exporter, factories.Processors).Build()
-	if err != nil {
-		return fmt.Errorf("failed to create pipelines builder: %w", err)
+	return i.start(ctx)
+}
+
+func (i *Instance) start(ctx context.Context) error {
+	errChan := make(chan error)
+	go func() {
+		cmd := i.app.Command()
+		cmd.SetArgs([]string{"--metrics-level=none"})
+		cmd.SilenceUsage = true
+
+		err := cmd.ExecuteContext(ctx)
+		if err != nil {
+			errChan <- err
+		}
+	}()
+
+	for {
+		select {
+		case s := <-i.app.GetStateChannel():
+			if s == service.Running {
+				return nil
+			}
+		case err := <-errChan:
+			return fmt.Errorf("failed to start tracing application: %s", err)
+		case <-ctx.Done():
+			return fmt.Errorf("failed to start tracing application: timeout")
+		}
 	}
-
-	err = i.pipelines.StartProcessors(ctx, i)
-	if err != nil {
-		return fmt.Errorf("failed to start processors: %w", err)
-	}
-
-	// start receivers
-	i.receivers, err = builder.NewReceiversBuilder(i.logger, appinfo, otelConfig, i.pipelines, factories.Receivers).Build()
-	if err != nil {
-		return fmt.Errorf("failed to create receivers builder: %w", err)
-	}
-
-	err = i.receivers.StartAll(ctx, i)
-	if err != nil {
-		return fmt.Errorf("failed to start receivers: %w", err)
-	}
-
-	return nil
 }
 
 // ReportFatalError implements component.Host
@@ -197,17 +170,17 @@ func (i *Instance) ReportFatalError(err error) {
 }
 
 // GetFactory implements component.Host
-func (i *Instance) GetFactory(kind component.Kind, componentType configmodels.Type) component.Factory {
+func (i *Instance) GetFactory(_ component.Kind, _ configmodels.Type) component.Factory {
 	return nil
 }
 
 // GetExtensions implements component.Host
-func (i *Instance) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
+func (i *Instance) GetExtensions() map[configmodels.Extension]component.Extension {
 	return nil
 }
 
 // GetExporters implements component.Host
-func (i *Instance) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+func (i *Instance) GetExporters() map[configmodels.DataType]map[configmodels.NamedEntity]component.Exporter {
 	// SpanMetricsProcessor needs to get the configured exporters.
-	return i.exporter.ToMapByDataType()
+	return i.app.GetExporters()
 }

@@ -14,13 +14,31 @@ const (
 	TypeStr = "remote_write"
 )
 
+type label struct {
+	Name  string `mapstructure:"name"`
+	Value string `mapstructure:"value"`
+}
+
+type labelsHelper []label
+
+func (lh labelsHelper) AsLabels() labels.Labels {
+	ls := make(labels.Labels, 0, len(lh))
+	for _, l := range lh {
+		ls = append(ls, labels.Label{
+			Name:  l.Name,
+			Value: l.Value,
+		})
+	}
+	return ls
+}
+
 // Config holds the configuration for the Prometheus SD processor.
 type Config struct {
 	configmodels.ProcessorSettings `mapstructure:",squash"`
 
-	ConstLabels  labels.Labels `mapstructure:"const_labels"`
-	Namespace    string        `mapstructure:"namespace"`
-	PromInstance string        `mapstructure:"prom_instance"`
+	ConstLabels  labelsHelper `mapstructure:"const_labels,omitempty"`
+	Namespace    string       `mapstructure:"namespace"`
+	PromInstance string       `mapstructure:"prom_instance"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.

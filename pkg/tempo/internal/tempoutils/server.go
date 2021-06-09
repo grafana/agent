@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/util"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
@@ -16,9 +17,10 @@ import (
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/service/builder"
+	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -26,9 +28,7 @@ import (
 // Server is a Tempo testing server that invokes a function every time a span
 // is received.
 type Server struct {
-	receivers builder.Receivers
-	pipelines builder.BuiltPipelines
-	exporters builder.Exporters
+	app *service.Application
 }
 
 // NewTestServer creates a new Server for testing, where received traces will
@@ -73,7 +73,70 @@ func NewServerWithRandomPort(callback func(pdata.Traces)) (srv *Server, addr str
 // NewServer creates an OTLP-accepting server that calls a function when a
 // trace is received. This is primarily useful for testing.
 func NewServer(addr string, callback func(pdata.Traces)) (*Server, error) {
-	conf := util.Untab(fmt.Sprintf(`
+	factories, err := tracingFactories(callback)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating tracing factories: %s", err)
+	}
+
+	var (
+		startInfo component.ApplicationStartInfo
+	)
+
+	params := service.Parameters{
+		Factories:            factories,
+		ApplicationStartInfo: startInfo,
+		ConfigFactory:        configFactory(addr),
+		LoggingOptions:       []zap.Option{zap.Development()},
+	}
+	app, err := service.New(params)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating tracing application: %s", err)
+	}
+
+	srv := &Server{
+		app: app,
+	}
+	if err := srv.initTracingApp(20 * time.Second); err != nil {
+		return nil, err
+	}
+
+	return srv, nil
+}
+
+func tracingFactories(callback func(traces pdata.Traces)) (component.Factories, error) {
+	extensionsFactory, err := component.MakeExtensionFactoryMap()
+	if err != nil {
+		return component.Factories{}, fmt.Errorf("failed to make extension factory map: %w", err)
+	}
+
+	receiversFactory, err := component.MakeReceiverFactoryMap(otlpreceiver.NewFactory())
+	if err != nil {
+		return component.Factories{}, fmt.Errorf("failed to make receiver factory map: %w", err)
+	}
+
+	exportersFactory, err := component.MakeExporterFactoryMap(otlpexporter.NewFactory())
+	if err != nil {
+		return component.Factories{}, fmt.Errorf("failed to make exporter factory map: %w", err)
+	}
+
+	processorsFactory, err := component.MakeProcessorFactoryMap(
+		newFuncProcessorFactory(callback),
+	)
+	if err != nil {
+		return component.Factories{}, fmt.Errorf("failed to make processor factory map: %w", err)
+	}
+
+	return component.Factories{
+		Extensions: extensionsFactory,
+		Receivers:  receiversFactory,
+		Processors: processorsFactory,
+		Exporters:  exportersFactory,
+	}, nil
+}
+
+func configFactory(addr string) func(v *viper.Viper, cmd *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
+	return func(v *viper.Viper, cmd *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
+		conf := util.Untab(fmt.Sprintf(`
 processors:
 	func_processor:
 receivers:
@@ -81,113 +144,73 @@ receivers:
 		protocols:
 			grpc:
 				endpoint: %s
+exporters:
+  otlp:
+    endpoint: example.com:12345
 service:
 	pipelines:
 		traces:
 			receivers: [otlp]
 			processors: [func_processor]
-			exporters: []
+			exporters: [otlp]
 	`, addr))
 
-	var cfg map[string]interface{}
-	if err := yaml.NewDecoder(strings.NewReader(conf)).Decode(&cfg); err != nil {
-		panic("could not decode config: " + err.Error())
-	}
+		var cfg map[string]interface{}
+		if err := yaml.NewDecoder(strings.NewReader(conf)).Decode(&cfg); err != nil {
+			panic("could not decode config: " + err.Error())
+		}
 
-	v := viper.New()
-	if err := v.MergeConfigMap(cfg); err != nil {
-		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
-	}
+		if err := v.MergeConfigMap(cfg); err != nil {
+			return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
+		}
 
-	extensionsFactory, err := component.MakeExtensionFactoryMap()
-	if err != nil {
-		return nil, fmt.Errorf("failed to make extension factory map: %w", err)
+		otelCfg, err := config.Load(v, factories)
+		if err != nil {
+			return nil, fmt.Errorf("failed to make otel config: %w", err)
+		}
+		return otelCfg, nil
 	}
+}
 
-	receiversFactory, err := component.MakeReceiverFactoryMap(otlpreceiver.NewFactory())
-	if err != nil {
-		return nil, fmt.Errorf("failed to make receiver factory map: %w", err)
-	}
+func (s *Server) initTracingApp(timeout time.Duration) error {
+	initCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	go func() {
+		s.app.Command().SetArgs([]string{"--metrics-level=none"})
+		err := s.app.Run()
+		if err != nil {
+			cancel()
+		}
+	}()
 
-	exportersFactory, err := component.MakeExporterFactoryMap()
-	if err != nil {
-		return nil, fmt.Errorf("failed to make exporter factory map: %w", err)
+	for {
+		select {
+		case s := <-s.app.GetStateChannel():
+			if s == service.Running {
+				return nil
+			}
+		case err := <-initCtx.Done():
+			return fmt.Errorf("failed to start tracing application: %s", err)
+		}
 	}
-
-	processorsFactory, err := component.MakeProcessorFactoryMap(
-		newFuncProcessorFactory(callback),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make processor factory map: %w", err)
-	}
-
-	factories := component.Factories{
-		Extensions: extensionsFactory,
-		Receivers:  receiversFactory,
-		Processors: processorsFactory,
-		Exporters:  exportersFactory,
-	}
-	otelCfg, err := config.Load(v, factories)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make otel config: %w", err)
-	}
-
-	var (
-		logger    = zap.NewNop()
-		startInfo component.ApplicationStartInfo
-	)
-
-	exporters, err := builder.NewExportersBuilder(logger, startInfo, otelCfg, factories.Exporters).Build()
-	if err != nil {
-		return nil, fmt.Errorf("failed to build exporters: %w", err)
-	}
-	if err := exporters.StartAll(context.Background(), nil); err != nil {
-		return nil, fmt.Errorf("failed to start exporters: %w", err)
-	}
-
-	pipelines, err := builder.NewPipelinesBuilder(logger, startInfo, otelCfg, exporters, factories.Processors).Build()
-	if err != nil {
-		return nil, fmt.Errorf("failed to build pipelines: %w", err)
-	}
-	if err := pipelines.StartProcessors(context.Background(), nil); err != nil {
-		return nil, fmt.Errorf("failed to start pipelines: %w", err)
-	}
-
-	receivers, err := builder.NewReceiversBuilder(logger, startInfo, otelCfg, pipelines, factories.Receivers).Build()
-	if err != nil {
-		return nil, fmt.Errorf("failed to build receivers: %w", err)
-	}
-	if err := receivers.StartAll(context.Background(), nil); err != nil {
-		return nil, fmt.Errorf("failed to start receivers: %w", err)
-	}
-
-	return &Server{
-		receivers: receivers,
-		pipelines: pipelines,
-		exporters: exporters,
-	}, nil
 }
 
 // Stop stops the testing server.
 func (s *Server) Stop() error {
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-
-	var firstErr error
-
-	deps := []func(context.Context) error{
-		s.receivers.ShutdownAll,
-		s.pipelines.ShutdownProcessors,
-		s.exporters.ShutdownAll,
-	}
-	for _, dep := range deps {
-		err := dep(shutdownCtx)
-		if err != nil && firstErr == nil {
-			firstErr = err
+	s.app.Shutdown()
+	for {
+		select {
+		case state := <-s.app.GetStateChannel():
+			switch state {
+			case service.Closed:
+				return nil
+			}
+		case err := <-shutdownCtx.Done():
+			return fmt.Errorf("failed to stop tracing application: %s", err)
 		}
 	}
-
-	return firstErr
 }
 
 func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFactory {

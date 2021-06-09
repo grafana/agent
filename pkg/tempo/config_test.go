@@ -1,16 +1,19 @@
 package tempo
 
 import (
+	"flag"
 	"io/ioutil"
 	"os"
 	"sort"
 	"testing"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configtelemetry"
 	"gopkg.in/yaml.v2"
 )
 
@@ -708,8 +711,16 @@ service:
 			err := yaml.Unmarshal([]byte(tc.cfg), &cfg)
 			require.NoError(t, err)
 
+			factories, err := tracingFactories()
+			require.NoError(t, err)
+
+			v := viper.New()
+			cmd := &cobra.Command{}
+			flagSet := new(flag.FlagSet)
+			configtelemetry.Flags(flagSet)
+			cmd.Flags().AddGoFlagSet(flagSet)
 			// check error
-			actualConfig, err := cfg.otelConfig()
+			actualConfig, err := cfg.configFactory(v, cmd, factories)
 			if tc.expectedError {
 				assert.Error(t, err)
 				return
@@ -721,11 +732,7 @@ service:
 			err = yaml.Unmarshal([]byte(tc.expectedConfig), otelMapStructure)
 			require.NoError(t, err)
 
-			v := viper.New()
 			err = v.MergeConfigMap(otelMapStructure)
-			require.NoError(t, err)
-
-			factories, err := tracingFactories()
 			require.NoError(t, err)
 
 			expectedConfig, err := config.Load(v, factories)
@@ -876,8 +883,16 @@ tail_sampling:
 			err := yaml.Unmarshal([]byte(tc.cfg), &cfg)
 			require.NoError(t, err)
 
+			factories, err := tracingFactories()
+			require.NoError(t, err)
+
+			v := viper.New()
+			cmd := &cobra.Command{}
+			flagSet := new(flag.FlagSet)
+			configtelemetry.Flags(flagSet)
+			cmd.Flags().AddGoFlagSet(flagSet)
 			// check error
-			actualConfig, err := cfg.otelConfig()
+			actualConfig, err := cfg.configFactory(v, cmd, factories)
 			require.NoError(t, err)
 
 			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
@@ -1012,3 +1027,5 @@ func sortPipelines(cfg *configmodels.Config) {
 		sort.Strings(p.Receivers)
 	}
 }
+
+type mockedCmd struct{}
