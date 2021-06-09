@@ -78,6 +78,32 @@ jobs:
       run: |
         export RELEASE_TAG=${{ github.event.inputs.tag }}
         CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
+  agent-operator-container:
+    name: Build agent-operator Container
+    runs-on: Linux
+    needs: test
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: '${{ github.event.inputs.tag }}'
+
+    - name: Login to Docker Hub
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+
+    - name: Prepare buildx
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker buildx create --name builder --node builder --driver docker-container --use
+        docker buildx inspect --bootstrap
+
+    - name: Build container
+      run: |
+        export RELEASE_TAG=${{ github.event.inputs.tag }}
+        CROSS_BUILD=true RELEASE_BUILD=true make agent-operator-image
   release:
     name: Release
     needs: test

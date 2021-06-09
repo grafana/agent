@@ -136,6 +136,7 @@ endif
 all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
+agent-operator: cmd/agent-operator/agent-operator
 
 cmd/agent/agent: check-seego cmd/agent/main.go
 ifeq ($(CROSS_BUILD),false)
@@ -153,11 +154,22 @@ else
 endif
 	$(NETGO_CHECK)
 
+cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
+ifeq ($(CROSS_BUILD),false)
+	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+else
+	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+endif
+	$(NETGO_CHECK)
+
 agent-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 
 agentctl-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
+
+agent-operator-image:
+	$(docker-build) -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
