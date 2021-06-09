@@ -8,7 +8,7 @@ Read the [migration guide](https://github.com/grafana/agent/blob/${RELEASE_TAG}/
 
 
 ### Installation:
-Grafana Agent is currently distributed in plain binary form, Docker container images, and a Kubernetes install script. Choose whichever fits your use-case best.
+Grafana Agent is currently distributed in plain binary form, Docker container images, a Windows installer, and a Kubernetes install script. Choose whichever fits your use-case best.
 
 #### Kubernetes Install Script
 
@@ -27,6 +27,10 @@ NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com
 ```bash
 docker pull "grafana/agent:${RELEASE_TAG}"
 ```
+
+#### Windows installer
+
+The Windows installer is provided as a [release asset](https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/grafana-agent-installer.exe) for x64 machines.
 
 #### Binary
 
