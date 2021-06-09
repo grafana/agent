@@ -146,7 +146,7 @@ else
 endif
 	$(NETGO_CHECK)
 
-cmd/grafana-agentctl/agentctl: check-seego cmd/grafana-agentctl/main.go
+cmd/grafana-agentctl/grafana-agentctl: check-seego cmd/grafana-agentctl/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
