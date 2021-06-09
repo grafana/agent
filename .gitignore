@@ -8,6 +8,7 @@ cover*.out
 
 cmd/agent/agent
 cmd/agentctl/agentctl
+cmd/agent-operator/agent-operator
 dist/
 
 .DS_Store
