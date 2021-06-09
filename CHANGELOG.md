@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+As of this release, the default binary names have changed from `agent`
+and `agentctl` to `grafana-agent` and `grafana-agentctl` respectively.
+
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana

@@ -275,14 +275,14 @@ extra steps.
 
 ### Docker Container
 
-Copy the following block below, replacing `/tmp/agent` with the host directory
+Copy the following block below, replacing `/tmp/grafana-agent` with the host directory
 where you want to store the agent WAL and `/path/to/config.yaml` with the full
 path of your Agent's YAML configuration file.
 
 ```
 docker run \
-  -v /tmp/agent:/etc/agent \
-  -v /path/to/config.yaml:/etc/agent/agent.yaml \
+  -v /tmp/grafana-agent:/etc/grafana-agent/data \
+  -v /path/to/config.yaml:/etc/grafana-agent/agent.yaml \
   grafana/agent:v0.15.0
 ```
 
@@ -298,7 +298,7 @@ to the end of the `docker run` command:
 - `--config.file=path/to/agent.yaml`, replacing the argument with the full path
   to your Agent's YAML configuration file.
 
-- `--prometheus.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
+- `--prometheus.wal-directory=/tmp/grafana-agent/data`, replacing `/tmp/grafana-agent/data` with
   the directory you wish to use for storing data. Note that `/tmp` may get
   deleted by most operating systems after a reboot.
 

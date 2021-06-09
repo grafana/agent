@@ -133,12 +133,12 @@ endif
 ###################
 # Primary Targets #
 ###################
-all: protos agent agentctl
-agent: cmd/agent/agent
-agentctl: cmd/agentctl/agentctl
-agent-operator: cmd/agent-operator/agent-operator
+all: protos grafana-agent grafana-agentctl
+grafana-agent: cmd/grafana-agent/grafana-agent
+grafana-agentctl: cmd/grafana-agentctl/grafana-agentctl
+grafana-agent-operator: cmd/grafana-agent-operator/grafana-agent-operator
 
-cmd/agent/agent: check-seego cmd/agent/main.go
+cmd/grafana-agent/grafana-agent: check-seego cmd/grafana-agent/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -146,7 +146,7 @@ else
 endif
 	$(NETGO_CHECK)
 
-cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
+cmd/grafana-agentctl/agentctl: check-seego cmd/grafana-agentctl/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -154,7 +154,7 @@ else
 endif
 	$(NETGO_CHECK)
 
-cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
+cmd/grafana-agent-operator/grafana-agent-operator: cmd/grafana-agent-operator/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
 else
@@ -162,18 +162,19 @@ else
 endif
 	$(NETGO_CHECK)
 
-agent-image:
+grafana-agent-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 
-agentctl-image:
+grafana-agentctl-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 
-agent-operator-image:
+grafana-agent-operator-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 
 install:
-	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
-	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
+	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/grafana-agent
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/grafana-agentctl
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/grafana-agent-operator
 
 #######################
 # Development targets #
@@ -189,7 +190,9 @@ test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
 
 clean:
-	rm -rf cmd/agent/agent
+	rm -rf cmd/grafana-agent/grafana-agent
+	rm -rf cmd/grafana-agentctl/grafana-agentctl
+	rm -rf cmd/grafana-agent-operator/grafana-agent-operator
 	go clean ./...
 
 example-kubernetes:
@@ -215,58 +218,58 @@ example-dashboards:
 # specific overrides. grafana/agent/seego is not pushed to Docker Hub and
 # can be built with "make seego".
 #
-# Note that dist/agent(ctl)-linux-mipsle targets are not included in dist target
+# Note that dist/grafana-agent(ctl)-linux-mipsle targets are not included in dist target
 # and are included as separate targets to make it easier for users to build them
 # manually.
-dist: dist-agent dist-agentctl dist-packages
-	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
+dist: dist-grafana-agent dist-grafana-agentctl dist-packages
+	for i in dist/grafana-agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
-dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
-dist/agent-linux-amd64: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-arm64: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv6: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv7: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-mipsle: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-darwin-amd64: seego
-	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-darwin-arm64: seego
-	@CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-windows-amd64.exe: seego
-	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
-	cp dist/agent-windows-amd64.exe ./packaging/windows
+dist-grafana-agent: seego dist/grafana-agent-linux-amd64 dist/grafana-agent-linux-arm64 dist/grafana-agent-linux-armv6 dist/grafana-agent-linux-armv7 dist/grafana-agent-darwin-amd64 dist/grafana-agent-darwin-arm64 dist/grafana-agent-windows-amd64.exe dist/grafana-agent-freebsd-amd64 dist/grafana-agent-windows-installer.exe
+dist/grafana-agent-linux-amd64: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
+dist/grafana-agent-linux-arm64: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
+dist/grafana-agent-linux-armv6: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
+dist/grafana-agent-linux-armv7: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
+dist/grafana-agent-linux-mipsle: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
+dist/grafana-agent-darwin-amd64: seego
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
+dist/grafana-agent-darwin-arm64: seego
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
+dist/grafana-agent-windows-amd64.exe: seego
+	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
+dist/grafana-agent-windows-installer.exe: dist/grafana-agent-windows-amd64.exe
+	cp dist/grafana-agent-windows-amd64.exe ./packaging/windows
 	cp LICENSE ./packaging/windows
 	docker build ./packaging/windows -t windows_nsis
 	docker run -e VERSION=${RELEASE_TAG} --rm -t -v $(CURDIR)/dist:/app windows_nsis
-dist/agent-freebsd-amd64: seego
-	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/grafana-agent-freebsd-amd64: seego
+	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agent
 
-dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
-dist/agentctl-linux-amd64: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-arm64: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv6: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv7: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-mipsle: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-darwin-amd64: seego
-	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-darwin-arm64: seego
-	@CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-windows-amd64.exe: seego
-	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-freebsd-amd64: seego
-	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist-grafana-agentctl: seego dist/grafana-agentctl-linux-amd64 dist/grafana-agentctl-linux-arm64 dist/grafana-agentctl-linux-armv6 dist/grafana-agentctl-linux-armv7 dist/grafana-agentctl-darwin-amd64 dist/grafana-agentctl-darwin-arm64 dist/grafana-agentctl-windows-amd64.exe dist/grafana-agentctl-freebsd-amd64
+dist/grafana-agentctl-linux-amd64: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
+dist/grafana-agentctl-linux-arm64: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
+dist/grafana-agentctl-linux-armv6: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
+dist/grafana-agentctl-linux-armv7: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
+dist/grafana-agentctl-linux-mipsle: seego
+	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
+dist/grafana-agentctl-darwin-amd64: seego
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
+dist/grafana-agentctl-darwin-arm64: seego
+	@CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
+dist/grafana-agentctl-windows-amd64.exe: seego
+	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
+dist/grafana-agentctl-freebsd-amd64: seego
+	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/grafana-agentctl
 
 seego: tools/seego/Dockerfile
 	docker build -t grafana/agent/seego tools/seego
@@ -313,13 +316,13 @@ container_make = docker run --rm \
 	-e SRC_PATH=/src/agent \
 	-i $(BUILD_IMAGE)
 
-dist-packages-amd64: enforce-release-tag dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
+dist-packages-amd64: enforce-release-tag dist/grafana-agent-linux-amd64 dist/grafana-agentctl-linux-amd64 build-image/.uptodate
 	$(container_make) $@;
-dist-packages-arm64: enforce-release-tag dist/agent-linux-arm64 dist/agentctl-linux-arm64 build-image/.uptodate
+dist-packages-arm64: enforce-release-tag dist/grafana-agent-linux-arm64 dist/grafana-agentctl-linux-arm64 build-image/.uptodate
 	$(container_make) $@;
-dist-packages-armv6: enforce-release-tag dist/agent-linux-armv6 dist/agentctl-linux-armv6 build-image/.uptodate
+dist-packages-armv6: enforce-release-tag dist/grafana-agent-linux-armv6 dist/grafana-agentctl-linux-armv6 build-image/.uptodate
 	$(container_make) $@;
-dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-linux-armv7 build-image/.uptodate
+dist-packages-armv7: enforce-release-tag dist/grafana-agent-linux-armv7 dist/grafana-agentctl-linux-armv7 build-image/.uptodate
 	$(container_make) $@;
 
 else
@@ -346,8 +349,8 @@ define generate_fpm =
 		--after-install packaging/$(1)/control/postinst \
 		--before-remove packaging/$(1)/control/prerm \
 		--package $(4) \
-			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
-			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
+			dist/grafana-agent-linux-$(3)=/usr/bin/grafana-agent \
+			dist/grafana-agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
 			packaging/grafana-agent.yaml=/etc/grafana-agent.yaml \
 			packaging/environment-file=$(ENVIRONMENT_FILE_$(1)) \
 			packaging/$(1)/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service

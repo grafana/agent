@@ -8,7 +8,7 @@ ARG IMAGE_TAG
 RUN echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
 RUN apt-get update && apt-get install -t buster-backports -qy libsystemd-dev
 
-RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false agentctl
+RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false grafana-agentctl
 
 FROM debian:buster-slim
 
@@ -18,6 +18,6 @@ RUN apt-get update && apt-get install -t buster-backports -qy libsystemd-dev && 
   apt-get install -qy tzdata ca-certificates && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY --from=build /src/agent/cmd/agentctl/agentctl /bin/agentctl
+COPY --from=build /src/agent/cmd/grafana-agentctl/grafana-agentctl /bin/grafana-agentctl
 
-ENTRYPOINT ["/bin/agentctl"]
+ENTRYPOINT ["/bin/grafana-agentctl"]
