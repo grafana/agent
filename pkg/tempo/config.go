@@ -29,6 +29,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/opencensusreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
+	"go.opentelemetry.io/collector/service/parserprovider"
 )
 
 const (
@@ -398,7 +399,9 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 	return policies, nil
 }
 
-// Get satisfies the service.ParserProvider interface
+var _ parserprovider.ParserProvider = (*InstanceConfig)(nil)
+
+// Get satisfies the parserprovider.ParserProvider interface
 func (c *InstanceConfig) Get() (*config.Parser, error) {
 	otelConfig, err := c.otelConfig()
 	if err != nil {
@@ -408,8 +411,6 @@ func (c *InstanceConfig) Get() (*config.Parser, error) {
 	return config.NewParserFromStringMap(otelConfig), nil
 }
 
-// configFactory satisfies service.ConfigFactory
-// configFactory is called from service.Application and builds the OTel collector's config.
 func (c *InstanceConfig) otelConfig() (map[string]interface{}, error) {
 	otelMapStructure := map[string]interface{}{}
 

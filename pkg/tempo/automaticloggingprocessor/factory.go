@@ -62,7 +62,6 @@ func NewFactory() component.ProcessorFactory {
 func createDefaultConfig() config.Processor {
 	return &Config{
 		ProcessorSettings: config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr)),
-		LoggingConfig:     &AutomaticLoggingConfig{},
 	}
 }
 

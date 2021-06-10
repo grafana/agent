@@ -58,7 +58,7 @@ func (i *Instance) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Man
 	i.cfg = cfg
 
 	// Shut down any existing pipeline
-	i.stop()
+	i.shutdownTracingApp()
 
 	createCtx := context.WithValue(context.Background(), contextkeys.Loki, loki)
 	err := i.buildAndStartPipeline(createCtx, cfg, promInstanceManager)
@@ -74,11 +74,11 @@ func (i *Instance) Stop() {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
-	i.stop()
+	i.shutdownTracingApp()
 	view.Unregister(i.metricViews...)
 }
 
-func (i *Instance) stop() {
+func (i *Instance) shutdownTracingApp() {
 	if i.app == nil {
 		return
 	}
