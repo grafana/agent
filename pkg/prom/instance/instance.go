@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -757,7 +756,7 @@ func Hostname() (string, error) {
 }
 
 func getHash(data interface{}) (string, error) {
-	bytes, err := json.Marshal(data)
+	bytes, err := yaml.Marshal(data)
 	if err != nil {
 		return "", err
 	}
