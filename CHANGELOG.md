@@ -4,6 +4,8 @@
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
   Cloud will now be shown. (@rfratto)
+  
+- [ENHANCEMENT] Upgrade OTel collector to v0.22.0
 
 - [BUGFIX] Fix a leak in the shared string interner introduced in v0.14.0.
   This fix was made to a [dependency](https://github.com/grafana/prometheus/pull/21).
