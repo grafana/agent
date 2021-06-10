@@ -1,7 +1,6 @@
 package tempo
 
 import (
-	"flag"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -13,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
-	"go.opentelemetry.io/collector/config/configtelemetry"
 	"gopkg.in/yaml.v2"
 )
 
@@ -715,12 +713,8 @@ service:
 			require.NoError(t, err)
 
 			v := viper.New()
-			cmd := &cobra.Command{}
-			flagSet := new(flag.FlagSet)
-			configtelemetry.Flags(flagSet)
-			cmd.Flags().AddGoFlagSet(flagSet)
 			// check error
-			actualConfig, err := cfg.configFactory(v, cmd, factories)
+			actualConfig, err := cfg.configFactory(v, &cobra.Command{}, factories)
 			if tc.expectedError {
 				assert.Error(t, err)
 				return
@@ -887,12 +881,8 @@ tail_sampling:
 			require.NoError(t, err)
 
 			v := viper.New()
-			cmd := &cobra.Command{}
-			flagSet := new(flag.FlagSet)
-			configtelemetry.Flags(flagSet)
-			cmd.Flags().AddGoFlagSet(flagSet)
 			// check error
-			actualConfig, err := cfg.configFactory(v, cmd, factories)
+			actualConfig, err := cfg.configFactory(v, &cobra.Command{}, factories)
 			require.NoError(t, err)
 
 			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
@@ -1027,5 +1017,3 @@ func sortPipelines(cfg *configmodels.Config) {
 		sort.Strings(p.Receivers)
 	}
 }
-
-type mockedCmd struct{}
