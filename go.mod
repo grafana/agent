@@ -110,3 +110,5 @@ replace github.com/weaveworks/common => github.com/rfratto/weaveworks-common v0.
 
 // loadbalancingexporter uses non-fixed version of batchpertrace which fetches latest and causes problems
 replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpertrace => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpertrace v0.22.0
+
+replace go.opentelemetry.io/collector => github.com/mapno/opentelemetry-collector v0.22.1-0.20210610082910-687bf6956894
