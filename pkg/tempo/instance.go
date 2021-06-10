@@ -83,11 +83,13 @@ func (i *Instance) stop() {
 		return
 	}
 
+	// TODO(mario.rodriguez): Use configurable timeout.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	i.app.Shutdown()
 	for {
+		// Wait to gracefully shutdown or timeout
 		select {
 		case state := <-i.app.GetStateChannel():
 			if state == service.Closed {
@@ -141,16 +143,26 @@ func (i *Instance) start(ctx context.Context) error {
 	errChan := make(chan error)
 	go func() {
 		cmd := i.app.Command()
+		// '--metrics-level=none' disables the app's own telemetry.
+		// Otherwise it'll fail to start more than one application since it will register
+		// the same telemetry more than once.
+		//
+		// It's also important that `SetArgs` is used to _only_ use those args.
+		// It will inherit the command line's arguments and fail to start.
 		cmd.SetArgs([]string{"--metrics-level=none"})
 		cmd.SilenceUsage = true
 
+		// Execute with context to get it propagated to the pipeline's components.
+		// This is a blocking call, it will only return in case of an error or if the execution finishes.
 		err := cmd.ExecuteContext(ctx)
 		if err != nil {
 			errChan <- err
+			close(errChan)
 		}
 	}()
 
 	for {
+		// Wait to receive a service.Running state or fail to start.
 		select {
 		case s := <-i.app.GetStateChannel():
 			if s == service.Running {

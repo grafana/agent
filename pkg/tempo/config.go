@@ -401,7 +401,9 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 	return policies, nil
 }
 
-func (c *InstanceConfig) configFactory(v *viper.Viper, cmd *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
+// configFactory satisfies service.ConfigFactory
+// configFactory is called from service.Application and builds the OTel collector's config.
+func (c *InstanceConfig) configFactory(v *viper.Viper, _ *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
 	if len(c.Receivers) == 0 {
@@ -512,8 +514,6 @@ func (c *InstanceConfig) configFactory(v *viper.Viper, cmd *cobra.Command, facto
 			return nil, err
 		}
 
-		// tail_sampling should be executed before the batch processor
-		// TODO(mario.rodriguez): put attributes processor before tail_sampling. Maybe we want to sample on mutated spans
 		processorNames = append([]string{"tail_sampling"}, processorNames...)
 		processors["tail_sampling"] = map[string]interface{}{
 			"policies":      policies,
@@ -585,10 +585,6 @@ func (c *InstanceConfig) configFactory(v *viper.Viper, cmd *cobra.Command, facto
 	if err != nil {
 		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
 	}
-
-	// if err := cmd.Flags().Set("metrics-level", "none"); err != nil {
-	// 	return nil, fmt.Errorf("failed disabling tracing application telemetry: %w", err)
-	// }
 
 	otelCfg, err := config.Load(v, factories)
 	if err != nil {
