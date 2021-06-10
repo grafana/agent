@@ -192,6 +192,5 @@ func (i *Instance) GetExtensions() map[config.Extension]component.Extension {
 
 // GetExporters implements component.Host
 func (i *Instance) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
-	// SpanMetricsProcessor needs to get the configured exporters.
 	return nil
 }
