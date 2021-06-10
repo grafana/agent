@@ -3,7 +3,7 @@ module github.com/grafana/agent
 go 1.16
 
 require (
-	contrib.go.opencensus.io/exporter/prometheus v0.2.0
+	contrib.go.opencensus.io/exporter/prometheus v0.3.0
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
 	github.com/drone/envsubst v1.0.2
 	github.com/fatih/structs v0.0.0-20180123065059-ebf56d35bba7
@@ -35,14 +35,14 @@ require (
 	github.com/prometheus-operator/prometheus-operator v0.47.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
 	github.com/prometheus/client_golang v1.10.0
-	github.com/prometheus/common v0.23.0
+	github.com/prometheus/common v0.24.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.8.0
 	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.6.1-0.20210313121648-b565fefb1664
-	github.com/prometheus/prometheus v1.8.2-0.20210421143221-52df5ef7a3be
-	github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
+	github.com/prometheus/prometheus v1.8.2-0.20210430082741-2a4b8e12bbf2
+	github.com/prometheus/statsd_exporter v0.20.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
@@ -55,7 +55,7 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6
-	google.golang.org/grpc v1.37.0
+	google.golang.org/grpc v1.37.1
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b

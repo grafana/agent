@@ -51,8 +51,9 @@ func NewFactory() component.ExporterFactory {
 }
 
 func createDefaultConfig() config.Exporter {
-	processorSettings := config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr))
-	return &processorSettings
+	return &Config{
+		ProcessorSettings: config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr)),
+	}
 }
 
 func createMetricsExporter(

@@ -14,6 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
 )
@@ -115,18 +116,17 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
 
-	startInfo := component.ApplicationStartInfo{
-		ExeName:  "agent",
-		GitHash:  build.Revision,
-		LongName: "agent",
-		Version:  build.Version,
+	buildInfo := component.BuildInfo{
+		Command:     "agent",
+		Description: "agent",
+		Version:     build.Version,
 	}
 
 	params := service.Parameters{
-		Factories:            factories,
-		ApplicationStartInfo: startInfo,
-		ConfigFactory:        cfg.configFactory,
-		LoggingOptions:       []zap.Option{zap.Development()},
+		Factories:      factories,
+		BuildInfo:      buildInfo,
+		ParserProvider: &cfg,
+		LoggingOptions: []zap.Option{zap.Development()},
 	}
 
 	app, err := service.New(params)
@@ -191,6 +191,7 @@ func (i *Instance) GetExtensions() map[config.Extension]component.Extension {
 }
 
 // GetExporters implements component.Host
-func (i *Instance) GetExporters() map[config.DataType]map[config.NamedEntity]component.Exporter {
-	return i.app.GetExporters()
+func (i *Instance) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
+	// SpanMetricsProcessor needs to get the configured exporters.
+	return nil
 }

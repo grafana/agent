@@ -18,8 +18,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	prom_config "github.com/prometheus/common/config"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -400,9 +398,19 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 	return policies, nil
 }
 
+// Get satisfies the service.ParserProvider interface
+func (c *InstanceConfig) Get() (*config.Parser, error) {
+	otelConfig, err := c.otelConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return config.NewParserFromStringMap(otelConfig), nil
+}
+
 // configFactory satisfies service.ConfigFactory
 // configFactory is called from service.Application and builds the OTel collector's config.
-func (c *InstanceConfig) configFactory(v *viper.Viper, _ *cobra.Command, factories component.Factories) (*config.Config, error) {
+func (c *InstanceConfig) otelConfig() (map[string]interface{}, error) {
 	otelMapStructure := map[string]interface{}{}
 
 	if len(c.Receivers) == 0 {
@@ -579,18 +587,7 @@ func (c *InstanceConfig) configFactory(v *viper.Viper, _ *cobra.Command, factori
 		"pipelines": pipelines,
 	}
 
-	// now build the otel configmodel from the mapstructure
-	err = v.MergeConfigMap(otelMapStructure)
-	if err != nil {
-		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
-	}
-
-	otelCfg, err := config.Load(v, factories)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load OTel config: %w", err)
-	}
-
-	return otelCfg, nil
+	return otelMapStructure, nil
 }
 
 // tracingFactories() only creates the needed factories.  if we decide to add support for a new

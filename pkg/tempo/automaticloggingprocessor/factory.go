@@ -60,13 +60,15 @@ func NewFactory() component.ProcessorFactory {
 }
 
 func createDefaultConfig() config.Processor {
-	processorSettings := config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr))
-	return &processorSettings
+	return &Config{
+		ProcessorSettings: config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr)),
+		LoggingConfig:     &AutomaticLoggingConfig{},
+	}
 }
 
 func createTraceProcessor(
 	_ context.Context,
-	cp component.ProcessorCreateParams,
+	_ component.ProcessorCreateParams,
 	cfg config.Processor,
 	nextConsumer consumer.Traces,
 ) (component.TracesProcessor, error) {

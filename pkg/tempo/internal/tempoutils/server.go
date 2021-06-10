@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/util"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -78,14 +76,16 @@ func NewServer(addr string, callback func(pdata.Traces)) (*Server, error) {
 	}
 
 	var (
-		startInfo component.ApplicationStartInfo
+		buildInfo component.BuildInfo
 	)
 
+	cp := newParserProvider(addr)
+
 	params := service.Parameters{
-		Factories:            factories,
-		ApplicationStartInfo: startInfo,
-		ConfigFactory:        configFactory(addr),
-		LoggingOptions:       []zap.Option{zap.Development()},
+		Factories:      factories,
+		BuildInfo:      buildInfo,
+		ParserProvider: cp,
+		LoggingOptions: []zap.Option{zap.Development()},
 	}
 	app, err := service.New(params)
 	if err != nil {
@@ -102,40 +102,8 @@ func NewServer(addr string, callback func(pdata.Traces)) (*Server, error) {
 	return srv, nil
 }
 
-func tracingFactories(callback func(traces pdata.Traces)) (component.Factories, error) {
-	extensionsFactory, err := component.MakeExtensionFactoryMap()
-	if err != nil {
-		return component.Factories{}, fmt.Errorf("failed to make extension factory map: %w", err)
-	}
-
-	receiversFactory, err := component.MakeReceiverFactoryMap(otlpreceiver.NewFactory())
-	if err != nil {
-		return component.Factories{}, fmt.Errorf("failed to make receiver factory map: %w", err)
-	}
-
-	exportersFactory, err := component.MakeExporterFactoryMap(otlpexporter.NewFactory())
-	if err != nil {
-		return component.Factories{}, fmt.Errorf("failed to make exporter factory map: %w", err)
-	}
-
-	processorsFactory, err := component.MakeProcessorFactoryMap(
-		newFuncProcessorFactory(callback),
-	)
-	if err != nil {
-		return component.Factories{}, fmt.Errorf("failed to make processor factory map: %w", err)
-	}
-
-	return component.Factories{
-		Extensions: extensionsFactory,
-		Receivers:  receiversFactory,
-		Processors: processorsFactory,
-		Exporters:  exportersFactory,
-	}, nil
-}
-
-func configFactory(addr string) func(v *viper.Viper, cmd *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
-	return func(v *viper.Viper, cmd *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
-		conf := util.Untab(fmt.Sprintf(`
+func otelConfig(addr string) map[string]interface{} {
+	conf := util.Untab(fmt.Sprintf(`
 processors:
 	func_processor:
 receivers:
@@ -154,21 +122,12 @@ service:
 			exporters: [otlp]
 	`, addr))
 
-		var cfg map[string]interface{}
-		if err := yaml.NewDecoder(strings.NewReader(conf)).Decode(&cfg); err != nil {
-			panic("could not decode config: " + err.Error())
-		}
-
-		if err := v.MergeConfigMap(cfg); err != nil {
-			return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
-		}
-
-		otelCfg, err := config.Load(v, factories)
-		if err != nil {
-			return nil, fmt.Errorf("failed to make otel config: %w", err)
-		}
-		return otelCfg, nil
+	var cfg map[string]interface{}
+	if err := yaml.NewDecoder(strings.NewReader(conf)).Decode(&cfg); err != nil {
+		panic("could not decode config: " + err.Error())
 	}
+
+	return cfg
 }
 
 func (s *Server) initTracingApp(timeout time.Duration) error {
@@ -212,6 +171,37 @@ func (s *Server) Stop() error {
 	}
 }
 
+func tracingFactories(callback func(traces pdata.Traces)) (component.Factories, error) {
+	extensionsFactory, err := component.MakeExtensionFactoryMap()
+	if err != nil {
+		return component.Factories{}, fmt.Errorf("failed to make extension factory map: %w", err)
+	}
+
+	receiversFactory, err := component.MakeReceiverFactoryMap(otlpreceiver.NewFactory())
+	if err != nil {
+		return component.Factories{}, fmt.Errorf("failed to make receiver factory map: %w", err)
+	}
+
+	exportersFactory, err := component.MakeExporterFactoryMap(otlpexporter.NewFactory())
+	if err != nil {
+		return component.Factories{}, fmt.Errorf("failed to make exporter factory map: %w", err)
+	}
+
+	processorsFactory, err := component.MakeProcessorFactoryMap(
+		newFuncProcessorFactory(callback),
+	)
+	if err != nil {
+		return component.Factories{}, fmt.Errorf("failed to make processor factory map: %w", err)
+	}
+
+	return component.Factories{
+		Extensions: extensionsFactory,
+		Receivers:  receiversFactory,
+		Processors: processorsFactory,
+		Exporters:  exportersFactory,
+	}, nil
+}
+
 func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFactory {
 	return processorhelper.NewFactory(
 		"func_processor",
@@ -251,3 +241,18 @@ func (p *funcProcessor) Capabilities() consumer.Capabilities {
 
 func (p *funcProcessor) Start(context.Context, component.Host) error { return nil }
 func (p *funcProcessor) Shutdown(context.Context) error              { return nil }
+
+func newParserProvider(addr string) *parserProvider {
+	return &parserProvider{
+		addr: addr,
+	}
+}
+
+type parserProvider struct {
+	addr string
+}
+
+func (p *parserProvider) Get() (*config.Parser, error) {
+	otelConfig := otelConfig(p.addr)
+	return config.NewParserFromStringMap(otelConfig), nil
+}

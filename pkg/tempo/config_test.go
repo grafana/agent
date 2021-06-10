@@ -6,12 +6,11 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configloader"
 	"gopkg.in/yaml.v2"
 )
 
@@ -712,24 +711,29 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			v := viper.New()
-			// check error
-			actualConfig, err := cfg.configFactory(v, &cobra.Command{}, factories)
+			p, err := cfg.Get()
 			if tc.expectedError {
+				if err == nil {
+					_, err = configloader.Load(p, factories)
+				}
 				assert.Error(t, err)
 				return
 			}
 			assert.NoError(t, err)
+
+			actualConfig, err := configloader.Load(p, factories)
+			require.NoError(t, err)
 
 			// convert actual config to otel config
 			otelMapStructure := map[string]interface{}{}
 			err = yaml.Unmarshal([]byte(tc.expectedConfig), otelMapStructure)
 			require.NoError(t, err)
 
+			v := viper.New()
 			err = v.MergeConfigMap(otelMapStructure)
 			require.NoError(t, err)
 
-			expectedConfig, err := config.Load(v, factories)
+			expectedConfig, err := configloader.Load(p, factories)
 			require.NoError(t, err)
 
 			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
@@ -746,7 +750,7 @@ func TestProcessorOrder(t *testing.T) {
 	tt := []struct {
 		name               string
 		cfg                string
-		expectedProcessors map[string][]string
+		expectedProcessors map[string][]config.ComponentID
 	}{
 		{
 			name: "no processors",
@@ -760,8 +764,8 @@ remote_write:
     headers:
       x-some-header: Some value!
 `,
-			expectedProcessors: map[string][]string{
-				"traces": {},
+			expectedProcessors: map[string][]config.ComponentID{
+				"traces": nil,
 			},
 		},
 		{
@@ -801,13 +805,13 @@ tail_sampling:
           - value1
           - value2
 `,
-			expectedProcessors: map[string][]string{
+			expectedProcessors: map[string][]config.ComponentID{
 				"traces": {
-					"attributes",
-					"spanmetrics",
-					"tail_sampling",
-					"automatic_logging",
-					"batch",
+					config.NewID("attributes"),
+					config.NewID("spanmetrics"),
+					config.NewID("tail_sampling"),
+					config.NewID("automatic_logging"),
+					config.NewID("batch"),
 				},
 				"metrics/spanmetrics": nil,
 			},
@@ -856,15 +860,15 @@ tail_sampling:
         hostname: agent
         port: 4318
 `,
-			expectedProcessors: map[string][]string{
+			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
-					"attributes",
-					"spanmetrics",
+					config.NewID("attributes"),
+					config.NewID("spanmetrics"),
 				},
 				"traces/1": {
-					"tail_sampling",
-					"automatic_logging",
-					"batch",
+					config.NewID("tail_sampling"),
+					config.NewID("automatic_logging"),
+					config.NewID("batch"),
 				},
 				"metrics/spanmetrics": nil,
 			},
@@ -877,12 +881,13 @@ tail_sampling:
 			err := yaml.Unmarshal([]byte(tc.cfg), &cfg)
 			require.NoError(t, err)
 
+			p, err := cfg.Get()
+			require.NoError(t, err)
+
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			v := viper.New()
-			// check error
-			actualConfig, err := cfg.configFactory(v, &cobra.Command{}, factories)
+			actualConfig, err := configloader.Load(p, factories)
 			require.NoError(t, err)
 
 			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
@@ -1011,9 +1016,16 @@ func TestOrderProcessors(t *testing.T) {
 }
 
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters
-func sortPipelines(cfg *configmodels.Config) {
-	for _, p := range cfg.Pipelines { // purposefully not sorting processors. their order is meaningful
-		sort.Strings(p.Exporters)
-		sort.Strings(p.Receivers)
+// purposefully not sorting processors. their order is meaningful
+func sortPipelines(cfg *config.Config) {
+	tracePipeline := cfg.Pipelines[string(config.TracesDataType)]
+	if tracePipeline == nil {
+		return
 	}
+	var (
+		exp  = tracePipeline.Exporters
+		recv = tracePipeline.Receivers
+	)
+	sort.Slice(exp, func(i, j int) bool { return exp[i].String() > exp[j].String() })
+	sort.Slice(recv, func(i, j int) bool { return recv[i].String() > recv[j].String() })
 }
