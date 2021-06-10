@@ -75,15 +75,11 @@ func NewServer(addr string, callback func(pdata.Traces)) (*Server, error) {
 		return nil, fmt.Errorf("failed creating tracing factories: %s", err)
 	}
 
-	var (
-		buildInfo component.BuildInfo
-	)
-
 	cp := newParserProvider(addr)
 
 	params := service.Parameters{
 		Factories:      factories,
-		BuildInfo:      buildInfo,
+		BuildInfo:      component.BuildInfo{},
 		ParserProvider: cp,
 		LoggingOptions: []zap.Option{zap.Development()},
 	}
