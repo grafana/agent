@@ -40,7 +40,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Build
-      run: make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
+      run: make cmd/grafana-agent/grafana-agent cmd/grafana-agentctl/grafana-agentctl cmd/grafana-agent-operator/grafana-agent-operator
     - name: Test
       run: make test
 

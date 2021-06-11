@@ -20,7 +20,7 @@ ARG IMAGE_TAG
 # Rename seego's /go_wrapper.sh to /seego.sh for readability in the
 # Makefile.
 RUN cp /go_wrapper.sh /seego.sh
-RUN make clean && IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false bash ./tools/cross_build.bash agentctl
+RUN make clean && IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false bash ./tools/cross_build.bash grafana-agentctl
 
 FROM debian:buster-slim
 
@@ -30,6 +30,6 @@ RUN apt-get update && apt-get install -t buster-backports -qy libsystemd-dev && 
   apt-get install -qy tzdata ca-certificates libsystemd-dev && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY --from=build /src/agent/cmd/agentctl/agentctl /bin/agentctl
+COPY --from=build /src/agent/cmd/grafana-agentctl/grafana-agentctl /bin/grafana-agentctl
 
-ENTRYPOINT ["/bin/agentctl"]
+ENTRYPOINT ["/bin/grafana-agentctl"]

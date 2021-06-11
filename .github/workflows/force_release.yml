@@ -26,8 +26,8 @@ jobs:
 
     - name: Test
       run: make test
-  agent-container:
-    name: Build agent Container
+  grafana-agent-container:
+    name: Build grafana-agent Container
     runs-on: Linux
     needs: test
     steps:
@@ -51,9 +51,9 @@ jobs:
     - name: Build container
       run: |
         export RELEASE_TAG=${{ github.event.inputs.tag }}
-        CROSS_BUILD=true RELEASE_BUILD=true make agent-image
-  agentctl-container:
-    name: Build agentctl Container
+        CROSS_BUILD=true RELEASE_BUILD=true make grafana-agent-image
+  grafana-agentctl-container:
+    name: Build grafana-agentctl Container
     runs-on: Linux
     needs: test
     steps:
@@ -77,9 +77,9 @@ jobs:
     - name: Build container
       run: |
         export RELEASE_TAG=${{ github.event.inputs.tag }}
-        CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
-  agent-operator-container:
-    name: Build agent-operator Container
+        CROSS_BUILD=true RELEASE_BUILD=true make grafana-agentctl-image
+  grafana-agent-operator-container:
+    name: Build grafana-agent-operator Container
     runs-on: Linux
     needs: test
     steps:
@@ -103,7 +103,7 @@ jobs:
     - name: Build container
       run: |
         export RELEASE_TAG=${{ github.event.inputs.tag }}
-        CROSS_BUILD=true RELEASE_BUILD=true make agent-operator-image
+        CROSS_BUILD=true RELEASE_BUILD=true make grafana-agent-operator-image
   release:
     name: Release
     needs: test

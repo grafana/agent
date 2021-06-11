@@ -38,18 +38,18 @@ We provide precompiled binary executables for the most common operating systems.
 
 ```bash
 # download the binary
-curl -O -L "https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/agent-linux-amd64.zip"
+curl -O -L "https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/grafana-agent-linux-amd64.zip"
 
 # extract the binary
-unzip "agent-linux-amd64.zip"
+unzip "grafana-agent-linux-amd64.zip"
 
 # make sure it is executable
-chmod a+x "agent-linux-amd64"
+chmod a+x "grafana-agent-linux-amd64"
 ```
 
-#### `agentctl`
+#### `grafana-agentctl`
 
-`agentctl`, a tool for helping you interact with the Agent, is available as a Docker image:
+`grafana-agentctl`, a tool for helping you interact with the Agent, is available as a Docker image:
 
 ```bash
 docker pull "grafana/agentctl:${RELEASE_TAG}"
@@ -59,19 +59,19 @@ Or as a binary. Like before, choose the assets below that matches your operating
 
 ```bash
 # download the binary
-curl -O -L "https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/agentctl-linux-amd64.zip"
+curl -O -L "https://github.com/grafana/agent/releases/download/${RELEASE_TAG}/grafana-agentctl-linux-amd64.zip"
 
 # extract the binary
-unzip "agentctl-linux-amd64.zip"
+unzip "grafana-agentctl-linux-amd64.zip"
 
 # make sure it is executable
-chmod a+x "agentctl-linux-amd64"
+chmod a+x "grafana-agentctl-linux-amd64"
 ```
 
-#### `agent-operator`
+#### Grafana Agent Operator
 
-`agent-operator`, a Kubernetes Operator for the Grafana Agent, is available only as a Docker image:
+Grafana Agent Operator, a Kubernetes Operator for the Grafana Agent, is available only as a Docker image:
 
 ```bash
-docker pull "grafana/agent-operator:${RELEASE_TAG}"
+docker pull "grafana/grafana-agent-operator:${RELEASE_TAG}"
 ```

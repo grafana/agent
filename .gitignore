@@ -6,9 +6,9 @@
 .cache
 cover*.out
 
-cmd/agent/agent
-cmd/agentctl/agentctl
-cmd/agent-operator/agent-operator
+cmd/grafana-agent/grafana-agent
+cmd/grafana-agentctl/grafana-agentctl
+cmd/grafana-agent-operator/grafana-agent-operator
 dist/
 
 .DS_Store

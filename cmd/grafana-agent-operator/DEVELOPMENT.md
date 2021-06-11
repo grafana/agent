@@ -1,4 +1,4 @@
-# Developing the Agent Operator
+# Developing the Grafana Agent Operator
 
 Table of Contents:
 
@@ -160,7 +160,7 @@ kubectl apply -f production/operator/crds
 Now that the CRDs are applied, you can run the operator:
 
 ```
-go run ./cmd/agent-operator
+go run ./cmd/grafana-agent-operator
 ```
 
 ### Apply a GrafanaAgent custom resource
@@ -169,7 +169,7 @@ Finally, you can apply an example GrafanaAgent custom resource. One is [provided
 for you](./agent-example-config.yaml). From the root of the repository, run:
 
 ```
-kubectl apply -f ./cmd/agent-operator/agent-example-config.yaml
+kubectl apply -f ./cmd/grafana-agent-operator/agent-example-config.yaml
 ```
 
 If you are running the operator, you should see it pick up the change and start

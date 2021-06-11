@@ -34,13 +34,13 @@ To run the Windows Installation, download the Windows Installer executable from 
 To run the Agent with Docker, you should have a configuration file on
 your local machine ready to bind mount into the container. Then modify
 the following command for your environment. Replace `/path/to/config.yaml` with
-the full path to your YAML configuration, and replace `/tmp/agent` with the
+the full path to your YAML configuration, and replace `/tmp/grafana-agent` with the
 directory on your host that you want the agent to store its WAL.
 
 ```
 docker run \
-  -v /tmp/agent:/etc/agent/data \
-  -v /path/to/config.yaml:/etc/agent/agent.yaml \
+  -v /tmp/grafana-agent:/etc/agent/data \
+  -v /path/to/config.yaml:/etc/grafana-agent/agent.yaml \
   grafana/agent:v0.15.0
 ```
 
