@@ -18,10 +18,10 @@ discovers many other sub-resources.
 The full hierarchy of custom resources is as follows:
 
 1. `GrafanaAgent`
-  1. `PrometheusInstance`
-    1. `PodMonitor`
-    2. `Probe`
-    3. `ServiceMonitor`
+    1. `PrometheusInstance`
+        1. `PodMonitor`
+        2. `Probe`
+        3. `ServiceMonitor`
 
 Most of the resources above have the ability to reference a ConfigMap or a
 Secret. All referenced ConfigMaps or Secrets are added into the resource

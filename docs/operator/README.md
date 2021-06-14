@@ -11,10 +11,10 @@ project.
 ## Table of Contents
 
 1. [Getting Started](./getting-started.md)
-  1. [Deploying CustomResourceDefinitions](./getting-started.md#deploying-customresourcedefinitions)
-  2. [Installing on Kubernetes](./getting-started.md#installing-on-kubernetes)
-  3. [Running locally](./getting-started.md#running-locally)
-  4. [Deploying GrafanaAgent](./getting-started.md#deploying-grafanagent)
+    1. [Deploying CustomResourceDefinitions](./getting-started.md#deploying-customresourcedefinitions)
+    2. [Installing on Kubernetes](./getting-started.md#installing-on-kubernetes)
+    3. [Running locally](./getting-started.md#running-locally)
+    4. [Deploying GrafanaAgent](./getting-started.md#deploying-grafanagent)
 2. [FAQ](./faq.md)
 3. [Architecture](./architecture.md)
 4. [Maintainers Guide](./maintainers-guide.md)
