@@ -8,6 +8,8 @@ local load_generator = import 'load-generator/main.libsonnet';
 local loki_config = import 'default/loki_config.libsonnet';
 local grafana_agent = import 'grafana-agent/v1/main.libsonnet';
 
+local operator = import './operator.jsonnet';
+
 local containerPort = k.core.v1.containerPort;
 local ingress = k.networking.v1beta1.ingress;
 local path = k.networking.v1beta1.httpIngressPath;
@@ -19,7 +21,7 @@ local images = {
   agentctl: 'grafana/agentctl:latest',
 };
 
-{
+operator {
   default: default.new(namespace='default') {
     grafana+: {
       ingress+:
