@@ -1,5 +1,9 @@
 # Getting Started
 
+This guide helps users get started with the Grafana Agent. For getting started
+with the Grafana Agent Operator, please refer to the Operator-specific
+[documentation](./operator).
+
 ## Docker-Compose Example
 
 The quickest way to try out the Agent with a full Cortex, Grafana, and Agent
