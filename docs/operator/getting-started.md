@@ -5,6 +5,14 @@ Operator on Kubernetes. For now, things must be done a little manually.
 
 ## Deploying CustomResourceDefinitions
 
+Before you can write custom resources to describe a Grafana Agent deployment,
+you _must_ deploy the
+[CustomResourceDefinitions](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
+to the cluster first. These definitions describe the schema that the custom
+resources will conform to. This is also required for the operator to run; it
+will fail if it can't find the custom resource definitions of objects it is
+looking to use.
+
 The current set of CustomResourceDefinitions can be found in
 [production/operator/crds](../../production/operator/crds). Apply them from the
 root of this repository using:
