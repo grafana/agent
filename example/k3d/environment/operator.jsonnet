@@ -1,3 +1,4 @@
+local operator = import 'grafana-agent-operator/unstable/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
 local images = {
@@ -5,14 +6,17 @@ local images = {
   agent: 'grafana/agent:latest',
 };
 
-local configMap = k.core.v1.configMap;
 local container = k.core.v1.container;
-local daemonSet = k.apps.v1.daemonSet;
 local deployment = k.apps.v1.deployment;
-local policyRule = k.rbac.v1.policyRule;
-local serviceAccount = k.core.v1.serviceAccount;
 local namespace = k.core.v1.namespace;
+local policyRule = k.rbac.v1.policyRule;
 local secret = k.core.v1.secret;
+local serviceAccount = k.core.v1.serviceAccount;
+
+local grafanaAgent = operator.monitoring.v1alpha1.grafanaAgent;
+local podMonitor = operator.monitoring.v1.podMonitor;
+local prometheusInstance = operator.monitoring.v1alpha1.prometheusInstance;
+local serviceMonitor = operator.monitoring.v1.serviceMonitor;
 
 {
   local operator_namespace = 'operator',
@@ -87,134 +91,98 @@ local secret = k.core.v1.secret;
         serviceAccount.mixin.metadata.withNamespace(operator_namespace),
     },
 
-    agent: {
-      apiVersion: 'monitoring.grafana.com/v1alpha1',
-      kind: 'GrafanaAgent',
-      metadata: {
-        name: 'agent',
-        namespace: operator_namespace,
-        labels: { name: 'grafana-agent' },
-      },
-      spec: {
-        image: images.agent,
-        serviceAccountName: 'agent',
-        podMetadata: {
-          labels: {
-            name: 'grafana-agent',
-          },
-        },
-        prometheus: {
-          instanceSelector: {
-            matchLabels: { agent: 'agent' },
-          },
-        },
-      },
-    },
+    agent:
+      grafanaAgent.new('agent') +
+      grafanaAgent.mixin.metadata.withNamespace(operator_namespace) +
+      grafanaAgent.mixin.metadata.withLabels({ name: 'grafana-agent' }) +
+      grafanaAgent.mixin.spec.withImage(images.agent) +
+      grafanaAgent.mixin.spec.withServiceAccountName('agent') +
+      grafanaAgent.mixin.spec.podMetadata.withLabels({ name: 'grafana-agent' }) +
+      grafanaAgent.mixin.spec.prometheus.instanceSelector.withMatchLabels({ agent: 'agent' }),
 
-    writer: {
-      apiVersion: 'monitoring.grafana.com/v1alpha1',
-      kind: 'PrometheusInstance',
-      metadata: {
-        name: 'primary',
-        namespace: operator_namespace,
-        labels: { agent: 'agent', name: 'grafana-agent' },
-      },
-      spec: {
-        remoteWrite: [{
-          url: 'http://cortex.default.svc.cluster.local/api/prom/push',
-        }],
+    writer:
+      local instLabels = { matchLabels: { instance: 'primary' } };
 
-        local instanceSelector = { matchLabels: { instance: 'primary' } },
-        serviceMonitorSelector: instanceSelector,
-        podMonitorSelector: instanceSelector,
-        probeSelector: instanceSelector,
-
-        // Load in role: node jobs from a secret
-        additionalScrapeConfigs: {
-          name: 'system-jobs',
-          key: 'jobs.yaml',
-        },
-      },
-    },
+      prometheusInstance.new('primary') +
+      prometheusInstance.mixin.metadata.withNamespace(operator_namespace) +
+      prometheusInstance.mixin.metadata.withLabels({
+        name: 'grafana-agent',
+        agent: 'agent',
+      }) +
+      prometheusInstance.mixin.spec.withRemoteWrite({
+        url: 'http://cortex.default.svc.cluster.local/api/prom/push',
+      }) +
+      prometheusInstance.mixin.spec.serviceMonitorSelector.withMatchLabels(instLabels) +
+      prometheusInstance.mixin.spec.podMonitorSelector.withMatchLabels(instLabels) +
+      prometheusInstance.mixin.spec.probeSelector.withMatchLabels(instLabels) +
+      prometheusInstance.mixin.spec.additionalScrapeConfigs.withName('system-jobs') +
+      prometheusInstance.mixin.spec.additionalScrapeConfigs.withKey('jobs.yaml'),
 
     jobs: [
       // Collect from Kubernetes
-      {
-        apiVersion: 'monitoring.coreos.com/v1',
-        kind: 'ServiceMonitor',
-        metadata: {
-          name: 'kubernetes',
-          namespace: operator_namespace,
-          labels: { instance: 'primary', name: 'grafana-agent' },
+      serviceMonitor.new('kubernetes') +
+      serviceMonitor.mixin.metadata.withNamespace(operator_namespace) +
+      serviceMonitor.mixin.metadata.withLabels({
+        instance: 'primary',
+        name: 'grafana-agent',
+      }) +
+      serviceMonitor.mixin.spec.namespaceSelector.withMatchNames('default') +
+      serviceMonitor.mixin.spec.selector.withMatchLabels({ component: 'apiserver' }) +
+      serviceMonitor.mixin.spec.withEndpoints({
+        port: 'https',
+        scheme: 'https',
+        tlsConfig: {
+          caFile: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+          serverName: 'kubernetes',
         },
-        spec: {
-          namespaceSelector: { matchNames: ['default'] },
-          selector: {
-            matchLabels: { component: 'apiserver' },
-          },
-          endpoints: [{
-            port: 'https',
-            scheme: 'https',
-            tlsConfig: {
-              caFile: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-              serverName: 'kubernetes',
-            },
-            bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-            metricRelabelings: [{
-              sourceLabels: ['__name__'],
-              regex: 'workqueue_queue_duration_seconds_bucket|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_depth|rest_client_request_duration_seconds_bucket|workqueue_adds_total|up|rest_client_requests_total|apiserver_request_total|go_goroutines',
-              action: 'keep',
-            }],
-            relabelings: [{
-              targetLabel: 'job',
-              replacement: 'default/kubernetes',
-            }],
-          }],
-        },
-      },
+        bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+        metricRelabelings: [{
+          sourceLabels: ['__name__'],
+          regex: 'workqueue_queue_duration_seconds_bucket|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_depth|rest_client_request_duration_seconds_bucket|workqueue_adds_total|up|rest_client_requests_total|apiserver_request_total|go_goroutines',
+          action: 'keep',
+        }],
+        relabelings: [{
+          targetLabel: 'job',
+          replacement: 'default/kubernetes',
+        }],
+      }),
+
       // Collect from all pods
-      {
-        apiVersion: 'monitoring.coreos.com/v1',
-        kind: 'PodMonitor',
-        metadata: {
-          name: 'kubernetes-pods',
-          namespace: operator_namespace,
-          labels: { instance: 'primary', name: 'grafana-agent' },
-        },
-        spec: {
-          selector: {
-            matchExpressions: [{
-              key: 'name',
-              operator: 'Exists',
-            }],
+      podMonitor.new('kubernetes-pods') +
+      podMonitor.mixin.metadata.withNamespace(operator_namespace) +
+      podMonitor.mixin.metadata.withLabels({
+        instance: 'primary',
+        name: 'grafana-agent',
+      }) +
+      podMonitor.mixin.spec.selector.withMatchExpressions({
+        key: 'name',
+        operator: 'Exists',
+      }) +
+      podMonitor.mixin.spec.namespaceSelector.withAny(true) +
+      podMonitor.mixin.spec.withPodMetricsEndpoints({
+        port: '.*-metrics',
+        relabelings: [
+          {
+            sourceLabels: ['__meta_kubernetes_namespace', '__meta_kubernetes_pod_label_name'],
+            action: 'replace',
+            separator: '/',
+            targetLabel: 'job',
+            replacement: '$1',
           },
-          namespaceSelector: { any: true },
-          podMetricsEndpoints: [{
-            port: '.*-metrics',
-            relabelings: [
-              {
-                sourceLabels: ['__meta_kubernetes_namespace', '__meta_kubernetes_pod_label_name'],
-                action: 'replace',
-                separator: '/',
-                targetLabel: 'job',
-                replacement: '$1',
-              },
-              {
-                // Rename instances to the concatenation of pod:container:port.
-                // All three components are needed to guarantee a unique instance label.
-                sourceLabels: [
-                  '__meta_kubernetes_pod_name',
-                  '__meta_kubernetes_pod_container_name',
-                  '__meta_kubernetes_pod_container_port_name',
-                ],
-                action: 'replace',
-                separator: ':',
-                targetLabel: 'instance',
-              },
+          {
+            // Rename instances to the concatenation of pod:container:port.
+            // All three components are needed to guarantee a unique instance label.
+            sourceLabels: [
+              '__meta_kubernetes_pod_name',
+              '__meta_kubernetes_pod_container_name',
+              '__meta_kubernetes_pod_container_port_name',
             ],
-          }],
-        },
-      },
+            action: 'replace',
+            separator: ':',
+            targetLabel: 'instance',
+          },
+        ],
+      }),
     ],
 
     system_jobs: secret.new('system-jobs', {

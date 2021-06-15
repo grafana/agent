@@ -39,6 +39,14 @@
     {
       "source": {
         "local": {
+          "directory": "../../production/tanka/grafana-agent-operator"
+        }
+      },
+      "version": ""
+    },
+    {
+      "source": {
+        "local": {
           "directory": "../../production/grafana-agent-mixin"
         }
       },
