@@ -130,7 +130,11 @@ function(
             action: 'keep',
           },
           // Keep the output consistent by sorting the keys first.
-          std.sort(std.objectFields(probe.Spec.Targets.Ingress.Selector.MatchLabels)),
+          std.sort(std.objectFields(
+            if monitor.Spec.Targets.Ingress.Selector.MatchLabels != null
+            then monitor.Spec.Targets.Ingress.Selector.MatchLabels
+            else {}
+          )),
         ) +
 
         // Set-based label matching. we have to map the valid relations

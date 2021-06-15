@@ -87,7 +87,11 @@ function(
         action: 'keep',
       },
       // Keep the output consistent by sorting the keys first.
-      std.sort(std.objectFields(monitor.Spec.Selector.MatchLabels)),
+      std.sort(std.objectFields(
+        if monitor.Spec.Selector.MatchLabels != null
+        then monitor.Spec.Selector.MatchLabels
+        else {}
+      )),
     ) +
 
     // Set-based label matching. we have to map the valid relations

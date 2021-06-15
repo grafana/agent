@@ -68,7 +68,6 @@ function(
   // SafeTLSConfig.
   tls_config:
     if endpoint.TLSConfig != null then new_safe_tls_config(meta.Namespace, endpoint.TLSConfig.SafeTLSConfig),
-  bearer_token_file: optionals.string(endpoint.BearerTokenFile),
   bearer_token:
     if endpoint.BearerTokenSecret.LocalObjectReference.Name != ''
     then secrets.valueForSecret(meta.Namespace, endpoint.BearerTokenSecret),
@@ -89,7 +88,11 @@ function(
         action: 'keep',
       },
       // Keep the output consistent by sorting the keys first.
-      std.sort(std.objectFields(monitor.Spec.Selector.MatchLabels)),
+      std.sort(std.objectFields(
+        if monitor.Spec.Selector.MatchLabels != null
+        then monitor.Spec.Selector.MatchLabels
+        else {}
+      )),
     ) +
 
     // Set-based label matching. we have to map the valid relations
@@ -114,7 +117,7 @@ function(
           action: 'drop',
         }
       ),
-      monitor.Spec.Selector.MatchExpressions,
+      k8s.array(monitor.Spec.Selector.MatchExpressions),
     ) +
 
     // First targets based on correct port for the endpoint. If ep.Port,
@@ -161,7 +164,7 @@ function(
         regex: '(.+)',
         replacement: '$1',
       },
-      k8s.array(monitor.Spec.TargetLabels)
+      k8s.array(monitor.Spec.PodTargetLabels)
     ) +
 
     // By default, generate a safe job name from the service name. We also keep
