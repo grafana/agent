@@ -5,7 +5,7 @@ deploy the Grafana Agent and easier to collect telemetry data from your pods.
 
 Metric collection is based on the [Prometheus
 Operator](https://github.com/prometheus-operator/prometheus-operator) and
-supports the official v1 ServiceMonitor, PodMonitr, and Probe CRDs from the
+supports the official v1 ServiceMonitor, PodMonitor, and Probe CRDs from the
 project.
 
 ## Table of Contents
