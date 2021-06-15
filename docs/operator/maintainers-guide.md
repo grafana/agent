@@ -1,10 +1,13 @@
-# Developing the Agent Operator
+# Maintainer's Guide
+
+This document contains maintainer-specific information.
 
 Table of Contents:
 
 1. [Introduction](#introduction)
-2. [Architecture](#architecture)
-3. [Local testing environment](#local-testing-environment)
+2. [Updating CRDs](#updating-crds)
+3. [Testing Locally](#testing-locally)
+4. [Development Architecture](#development-architecture)
 
 ## Introduction
 
@@ -25,7 +28,74 @@ The public [Grafana Agent Operator design
 doc](https://docs.google.com/document/d/1nlwhJLspTkkm8vLgrExJgf02b9GCAWv_Ci_a9DliI_s)
 goes into more detail about the context and design decisions being made.
 
-## Architecture
+## Updating CRDs
+
+The `make crds` command at the root of this repository will generate CRDs and
+other code used by the operator. This calls the [generate-crds
+script](../../tools/generate-crds.bash) in a container. If you wish to call this
+script manually, you must also install `controller-gen`:
+
+```
+go install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
+```
+
+## Testing Locally
+
+Create a k3d cluster (depending on k3d v4.x):
+
+```
+k3d cluster create agent-operator \
+  --port 30080:80@loadbalancer \
+  --api-port 50043 \
+  --kubeconfig-update-default=true \
+  --kubeconfig-switch-context=true \
+  --wait
+```
+
+### Deploy Prometheus
+
+An example Prometheus server is provided in `./example-prometheus.yaml`. Deploy
+it with the following, from the root of the repository:
+
+```
+kubectl apply -f ./cmd/agent-operator/example-prometheus.yaml
+```
+
+You can view it at http://prometheus.k3d.localhost:30080 once the k3d cluster is
+running.
+
+### Apply the CRDs
+
+Generated CRDs used by the operator can be found in [the Production
+folder](../../production/operator/crds). Deploy them from the root of the
+repository with:
+
+```
+kubectl apply -f production/operator/crds
+```
+
+### Run the Operator
+
+Now that the CRDs are applied, you can run the operator from the root of the
+repository:
+
+```
+go run ./cmd/agent-operator
+```
+
+### Apply a GrafanaAgent custom resource
+
+Finally, you can apply an example GrafanaAgent custom resource. One is [provided
+for you](./agent-example-config.yaml). From the root of the repository, run:
+
+```
+kubectl apply -f ./cmd/agent-operator/agent-example-config.yaml
+```
+
+If you are running the operator, you should see it pick up the change and start
+mutating the cluster.
+
+## Development Architecture
 
 This project makes heavy use of the [Kubernetes SIG Controller
 Runtime](https://pkg.go.dev/sigs.k8s.io/controller-runtime) project. That
@@ -108,71 +178,5 @@ CR:
 
 When `default/agent` gets deleted, all `EnqueueRequestForSelector` event
 handlers get notified to stop sending events for `default/agent`.
-
-## Generating CRDs
-
-The `make crds` command at the root of this repository will generate CRDs and
-other code used by the operator. This calls the [generate-crds
-script](../../tools/generate-crds.bash) in a container. If you wish to call this
-script manually, you must also install `controller-gen`:
-
-```
-go install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
-```
-
-## Local testing environment
-
-Create a k3d cluster (depending on k3d v4.x):
-
-```
-k3d cluster create agent-operator \
-  --port 30080:80@loadbalancer \
-  --api-port 50043 \
-  --kubeconfig-update-default=true \
-  --kubeconfig-switch-context=true \
-  --wait
-```
-
-### Deploy Prometheus
-
-An example Prometheus server is provided in `./example-prometheus.yaml`. Deploy
-it with the following:
-
-```
-kubectl apply -f ./cmd/agent-operator/example-prometheus.yaml
-```
-
-You can view it at http://prometheus.k3d.localhost:30080 once the k3d cluster is
-running.
-
-### Apply the CRDs
-
-Generated CRDs used by the operator can be found in [the Production
-folder](../../production/operator/crds). Deploy them from the root of the
-repository with:
-
-```
-kubectl apply -f production/operator/crds
-```
-
-### Run the Operator
-
-Now that the CRDs are applied, you can run the operator:
-
-```
-go run ./cmd/agent-operator
-```
-
-### Apply a GrafanaAgent custom resource
-
-Finally, you can apply an example GrafanaAgent custom resource. One is [provided
-for you](./agent-example-config.yaml). From the root of the repository, run:
-
-```
-kubectl apply -f ./cmd/agent-operator/agent-example-config.yaml
-```
-
-If you are running the operator, you should see it pick up the change and start
-mutating the cluster.
 
 

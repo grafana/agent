@@ -18,20 +18,13 @@ pods, and ingresses. They are especially useful for Helm users, where manually
 writing a generic SD to match all your charts can be difficult (or impossible!)
 or where manually writing a specific SD for each chart can be tedious.
 
-## Roadmap
+## Table of Contents
 
-- [ ] Helm chart
-- [ ] Logs support
-- [ ] Traces support
-- [ ] Integrations support
-
-## Documentation
-
-Refer to the project's [documentation](../../docs/operator) for how to install
-and get started with the Grafana Agent Operator.
-
-## Developer Reference
-
-The [Maintainer's Guide](../../docs/operator/maintainers-guide.md) includes
-basic information to help you understand how the code works. This can be very
-useful if you are planning on working on the operator.
+1. [Getting Started](./getting-started.md)
+    1. [Deploying CustomResourceDefinitions](./getting-started.md#deploying-customresourcedefinitions)
+    2. [Installing on Kubernetes](./getting-started.md#installing-on-kubernetes)
+    3. [Running locally](./getting-started.md#running-locally)
+    4. [Deploying GrafanaAgent](./getting-started.md#deploying-grafanagent)
+2. [FAQ](./faq.md)
+3. [Architecture](./architecture.md)
+4. [Maintainers Guide](./maintainers-guide.md)
