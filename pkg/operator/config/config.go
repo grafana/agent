@@ -68,12 +68,27 @@ func (d *Deployment) DeepCopy() *Deployment {
 
 // BuildConfig builds an Agent configuration file.
 func (d *Deployment) BuildConfig(secrets assets.SecretStore) (string, error) {
+	vm, err := createVM(secrets)
+	if err != nil {
+		return "", err
+	}
+
+	bb, err := jsonnetMarshal(d)
+	if err != nil {
+		return "", err
+	}
+
+	vm.TLACode("ctx", string(bb))
+	return vm.EvaluateFile("./agent.libsonnet")
+}
+
+func createVM(secrets assets.SecretStore) (*jsonnet.VM, error) {
 	vm := jsonnet.MakeVM()
 	vm.StringOutput = true
 
 	templatesContents, err := fs.Sub(templates, "templates")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	vm.Importer(NewFSImporter(templatesContents))
@@ -148,15 +163,18 @@ func (d *Deployment) BuildConfig(secrets assets.SecretStore) (string, error) {
 		},
 	})
 
-	// Hack: we want to allow the Jsonnet code to reference the deployment's
-	// fields using the Go names and NOT the JSON names.
-	bb, err := json.Marshal(structs.Map(d))
-	if err != nil {
-		return "", err
-	}
+	return vm, nil
+}
 
-	vm.TLACode("ctx", string(bb))
-	return vm.EvaluateFile("./agent.libsonnet")
+// jsonnetMarshal marshals a value for passing to Jsonnet. This marshals to a
+// JSON representation of the Go value, ignoring all json struct tags. Fields
+// must be access as they would from Go, with the exception of embedded fields,
+// which must be accessed through the embedded type name (a.Embedded.Field).
+func jsonnetMarshal(v interface{}) ([]byte, error) {
+	if structs.IsStruct(v) {
+		return json.Marshal(structs.Map(v))
+	}
+	return json.Marshal(v)
 }
 
 // PrometheusInstance is an instance with a set of associated service monitors,
