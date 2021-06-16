@@ -624,7 +624,7 @@ func (a *appender) getOrCreate(l labels.Labels) (series *memSeries, created bool
 func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exemplar) (uint64, error) {
 	s := a.w.series.getByID(ref)
 	if s == nil {
-		return 0, errors.Wrapf(storage.ErrNotFound, "unknown series ref %d when trying to add exemplar", ref)
+		return 0, fmt.Errorf("unknown series ref. when trying to add exemplar: %d", ref)
 	}
 
 	// Ensure no empty labels have gotten through.
