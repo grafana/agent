@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [FEATURE] windows/amd64 added into the Docker manifest. (@jtyr)
+
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
