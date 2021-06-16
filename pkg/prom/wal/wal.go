@@ -121,8 +121,9 @@ type Storage struct {
 	appenderPool sync.Pool
 	bufPool      sync.Pool
 
-	ref    *atomic.Uint64
-	series *stripeSeries
+	mtx     sync.RWMutex
+	nextRef uint64
+	series  *stripeSeries
 
 	deletedMtx sync.Mutex
 	deleted    map[uint64]int // Deleted series, and what WAL segment they must be kept until.
@@ -144,7 +145,10 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		deleted: map[uint64]int{},
 		series:  newStripeSeries(),
 		metrics: newStorageMetrics(registerer),
-		ref:     atomic.NewUint64(0),
+
+		// The first ref ID must be non-zero, as the scraping code treats 0 as a
+		// non-existent ID and won't cache it.
+		nextRef: 1,
 	}
 
 	storage.bufPool.New = func() interface{} {
@@ -294,8 +298,6 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 		}
 	}()
 
-	var biggestRef uint64 = w.ref.Load()
-
 	for d := range decoded {
 		switch v := d.(type) {
 		case []record.RefSeries:
@@ -311,9 +313,11 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 					w.metrics.numActiveSeries.Inc()
 					w.metrics.totalCreatedSeries.Inc()
 
-					if biggestRef <= s.Ref {
-						biggestRef = s.Ref
+					w.mtx.Lock()
+					if w.nextRef <= s.Ref {
+						w.nextRef = s.Ref + 1
 					}
+					w.mtx.Unlock()
 				}
 			}
 
@@ -341,8 +345,6 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 			panic(fmt.Errorf("unexpected decoded type: %T", d))
 		}
 	}
-
-	w.ref.Store(biggestRef)
 
 	select {
 	case err := <-errCh:
@@ -565,60 +567,72 @@ type appender struct {
 }
 
 func (a *appender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
-	series := a.w.series.getByID(ref)
-	if series == nil {
-		// Ensure no empty or duplicate labels have gotten through. This mirrors the
-		// equivalent validation code in the TSDB's headAppender.
-		l = l.WithoutEmpty()
-		if len(l) == 0 {
-			return 0, errors.Wrap(tsdb.ErrInvalidSample, "empty labelset")
-		}
+	if ref == 0 {
+		return a.Add(l, t, v)
+	}
+	return ref, a.AddFast(ref, t, v)
+}
 
-		if lbl, dup := l.HasDuplicateLabelNames(); dup {
-			return 0, errors.Wrap(tsdb.ErrInvalidSample, fmt.Sprintf(`label name "%s" is not unique`, lbl))
-		}
-
-		var created bool
-		series, created = a.getOrCreate(l)
-		if created {
-			a.series = append(a.series, record.RefSeries{
-				Ref:    series.ref,
-				Labels: l,
-			})
-
-			a.w.metrics.numActiveSeries.Inc()
-			a.w.metrics.totalCreatedSeries.Inc()
-		}
+func (a *appender) Add(l labels.Labels, t int64, v float64) (uint64, error) {
+	hash := l.Hash()
+	series := a.w.series.getByHash(hash, l)
+	if series != nil {
+		return series.ref, a.AddFast(series.ref, t, v)
 	}
 
+	// Ensure no empty or duplicate labels have gotten through. This mirrors the
+	// equivalent validation code in the TSDB's headAppender.
+	l = l.WithoutEmpty()
+	if len(l) == 0 {
+		return 0, errors.Wrap(tsdb.ErrInvalidSample, "empty labelset")
+	}
+
+	if lbl, dup := l.HasDuplicateLabelNames(); dup {
+		return 0, errors.Wrap(tsdb.ErrInvalidSample, fmt.Sprintf(`label name "%s" is not unique`, lbl))
+	}
+
+	a.w.mtx.Lock()
+	ref := a.w.nextRef
+	a.w.nextRef++
+	a.w.mtx.Unlock()
+
+	series = &memSeries{ref: ref, lset: l}
+	series.updateTs(t)
+
+	a.series = append(a.series, record.RefSeries{
+		Ref:    ref,
+		Labels: l,
+	})
+
+	a.w.series.set(hash, series)
+
+	a.w.metrics.numActiveSeries.Inc()
+	a.w.metrics.totalCreatedSeries.Inc()
+	a.w.metrics.totalAppendedSamples.Inc()
+
+	return series.ref, a.AddFast(series.ref, t, v)
+}
+
+func (a *appender) AddFast(ref uint64, t int64, v float64) error {
+	series := a.w.series.getByID(ref)
+	if series == nil {
+		return storage.ErrNotFound
+	}
 	series.Lock()
 	defer series.Unlock()
 
 	// Update last recorded timestamp. Used by Storage.gc to determine if a
-	// series is stale.
+	// series is dead.
 	series.updateTs(t)
 
 	a.samples = append(a.samples, record.RefSample{
-		Ref: series.ref,
+		Ref: ref,
 		T:   t,
 		V:   v,
 	})
 
 	a.w.metrics.totalAppendedSamples.Inc()
-	return series.ref, nil
-}
-
-func (a *appender) getOrCreate(l labels.Labels) (series *memSeries, created bool) {
-	hash := l.Hash()
-
-	series = a.w.series.getByHash(hash, l)
-	if series != nil {
-		return series, false
-	}
-
-	series = &memSeries{ref: a.w.ref.Inc(), lset: l}
-	a.w.series.set(l.Hash(), series)
-	return series, true
+	return nil
 }
 
 func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exemplar) (uint64, error) {
