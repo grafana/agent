@@ -578,18 +578,17 @@ func (a *appender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint
 			return 0, errors.Wrap(tsdb.ErrInvalidSample, fmt.Sprintf(`label name "%s" is not unique`, lbl))
 		}
 
-		ref = a.w.ref.Inc()
-		series = &memSeries{ref: ref, lset: l}
+		var created bool
+		series, created = a.getOrCreate(l)
+		if created {
+			a.series = append(a.series, record.RefSeries{
+				Ref:    series.ref,
+				Labels: l,
+			})
 
-		a.series = append(a.series, record.RefSeries{
-			Ref:    ref,
-			Labels: l,
-		})
-
-		a.w.series.set(l.Hash(), series)
-
-		a.w.metrics.numActiveSeries.Inc()
-		a.w.metrics.totalCreatedSeries.Inc()
+			a.w.metrics.numActiveSeries.Inc()
+			a.w.metrics.totalCreatedSeries.Inc()
+		}
 	}
 
 	series.Lock()
@@ -607,6 +606,19 @@ func (a *appender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint
 
 	a.w.metrics.totalAppendedSamples.Inc()
 	return series.ref, nil
+}
+
+func (a *appender) getOrCreate(l labels.Labels) (series *memSeries, created bool) {
+	hash := l.Hash()
+
+	series = a.w.series.getByHash(hash, l)
+	if series != nil {
+		return series, false
+	}
+
+	series = &memSeries{ref: a.w.ref.Inc(), lset: l}
+	a.w.series.set(l.Hash(), series)
+	return series, true
 }
 
 func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exemplar) (uint64, error) {
