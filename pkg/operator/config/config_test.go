@@ -6,10 +6,10 @@ import (
 
 	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/util"
-	prom_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s_yaml "sigs.k8s.io/yaml"
 
 	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
@@ -140,26 +140,25 @@ func TestBuildConfig(t *testing.T) {
 	}
 }
 
-// TestFullConfig tests end-to-end generation of a config.
-func TestFullConfig(t *testing.T) {
+func TestAdditionalScrapeConfigs(t *testing.T) {
 	var store = make(assets.SecretStore)
+
+	additionalSelector := &v1.SecretKeySelector{
+		LocalObjectReference: v1.LocalObjectReference{Name: "configs"},
+		Key:                  "configs",
+	}
 
 	input := Deployment{
 		Agent: &grafana.GrafanaAgent{
-			TypeMeta: v1.TypeMeta{
-				APIVersion: "monitoring.grafana.com/v1alpha1",
-				Kind:       "GrafanaAgent",
-			},
-			ObjectMeta: v1.ObjectMeta{
-				Name:      "agent",
+			ObjectMeta: meta_v1.ObjectMeta{
 				Namespace: "operator",
-				Labels:    map[string]string{"app": "grafana-agent"},
+				Name:      "agent",
 			},
 			Spec: grafana.GrafanaAgentSpec{
 				Image:              strPointer("grafana/agent:latest"),
 				ServiceAccountName: "agent",
 				Prometheus: grafana.PrometheusSubsystemSpec{
-					InstanceSelector: &v1.LabelSelector{
+					InstanceSelector: &meta_v1.LabelSelector{
 						MatchLabels: map[string]string{"agent": "agent"},
 					},
 				},
@@ -167,60 +166,25 @@ func TestFullConfig(t *testing.T) {
 		},
 		Prometheis: []PrometheusInstance{{
 			Instance: &grafana.PrometheusInstance{
-				TypeMeta: v1.TypeMeta{
-					APIVersion: "monitoring.grafana.com/v1alpha1",
-					Kind:       "PrometheusInstance",
-				},
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "primary",
+				ObjectMeta: meta_v1.ObjectMeta{
 					Namespace: "operator",
-					Labels: map[string]string{
-						"agent": "agent",
-						"app":   "grafana-agent",
-					},
+					Name:      "primary",
 				},
 				Spec: grafana.PrometheusInstanceSpec{
 					RemoteWrite: []grafana.RemoteWriteSpec{{
 						URL: "http://cortex:80/api/prom/push",
 					}},
-					ServiceMonitorSelector: &v1.LabelSelector{
-						MatchLabels: map[string]string{"instance": "primary"},
-					},
-					PodMonitorSelector: &v1.LabelSelector{
-						MatchLabels: map[string]string{"instance": "primary"},
-					},
-					ProbeSelector: &v1.LabelSelector{
-						MatchLabels: map[string]string{"instance": "primary"},
-					},
+					AdditionalScrapeConfigs: additionalSelector,
 				},
 			},
-
-			PodMonitors: []*prom_v1.PodMonitor{{
-				TypeMeta: v1.TypeMeta{
-					APIVersion: "monitoring.coreos.com/v1",
-					Kind:       "PodMonitor",
-				},
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "kubernetes-pods",
-					Namespace: "operator",
-					Labels: map[string]string{
-						"instance": "primary",
-						"app":      "grafana-agent",
-					},
-				},
-				Spec: prom_v1.PodMonitorSpec{
-					NamespaceSelector: prom_v1.NamespaceSelector{Any: true},
-					Selector: v1.LabelSelector{
-						MatchExpressions: []v1.LabelSelectorRequirement{{
-							Key:      "name",
-							Operator: v1.LabelSelectorOpExists,
-						}},
-					},
-					PodMetricsEndpoints: []prom_v1.PodMetricsEndpoint{{Port: ".*-metrics"}},
-				},
-			}},
 		}},
 	}
+
+	store[assets.KeyForSecret("operator", additionalSelector)] = util.Untab(`
+	- job_name: job
+		kubernetes_sd_configs:
+		- role: node
+	`)
 
 	expect := util.Untab(`
 server:
@@ -237,47 +201,9 @@ prometheus:
     remote_write:
     - url: http://cortex:80/api/prom/push
     scrape_configs:
-    - honor_labels: false
-      job_name: podMonitor/operator/kubernetes-pods/0
+    - job_name: job
       kubernetes_sd_configs:
-      - role: pod
-      relabel_configs:
-      - source_labels:
-        - job
-        target_label: __tmp_prometheus_job_name
-      - action: keep
-        regex: "true"
-        source_labels:
-        - __meta_kubernetes_pod_labelpresent_name
-      - action: keep
-        regex: .*-metrics
-        source_labels:
-        - __meta_kubernetes_pod_container_port_name
-      - source_labels:
-        - __meta_kubernetes_namespace
-        target_label: namespace
-      - source_labels:
-        - __meta_kubernetes_service_name
-        target_label: service
-      - source_labels:
-        - __meta_kubernetes_pod_name
-        target_label: pod
-      - source_labels:
-        - __meta_kubernetes_pod_container_name
-        target_label: container
-      - replacement: operator/kubernetes-pods
-        target_label: job
-      - replacement: .*-metrics
-        target_label: endpoint
-      - action: hashmod
-        modulus: 1
-        source_labels:
-        - __address__
-        target_label: __tmp_hash
-      - action: keep
-        regex: $(SHARD)
-        source_labels:
-        - __tmp_hash
+      - role: node
 	`)
 
 	result, err := input.BuildConfig(store)
