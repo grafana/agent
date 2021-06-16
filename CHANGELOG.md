@@ -9,6 +9,10 @@
   This fix was made to a [dependency](https://github.com/grafana/prometheus/pull/21).
   (@rfratto)
 
+- [BUGFIX] Fix issue where a target will fail to be scraped for the process lifetime
+  if that target had gone down for long enough that its series were removed from
+  the in-memory cache (2 GC cycles). (@rfratto)
+
 # v0.15.0 (2021-06-03)
 
 BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.
