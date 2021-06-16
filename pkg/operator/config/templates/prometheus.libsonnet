@@ -110,7 +110,6 @@ function(
         agentNamespace=agentNamespace,
         probe=probe,
         apiServer=apiServer,
-        overrideHonorLabels=overrideHonorLabels,
         overrideHonorTimestamps=overrideHonorTimestamps,
         ignoreNamespaceSelectors=ignoreNamespaceSelectors,
         enforcedNamespaceLabel=enforcedNamespaceLabel,

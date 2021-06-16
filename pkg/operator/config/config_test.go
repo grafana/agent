@@ -140,8 +140,7 @@ func TestBuildConfig(t *testing.T) {
 	}
 }
 
-// TestFullConfig tests generation of a config that may be used to collect
-// metrics from Kubernetes.
+// TestFullConfig tests end-to-end generation of a config.
 func TestFullConfig(t *testing.T) {
 	var store = make(assets.SecretStore)
 
@@ -196,40 +195,6 @@ func TestFullConfig(t *testing.T) {
 				},
 			},
 
-			ServiceMonitors: []*prom_v1.ServiceMonitor{{
-				TypeMeta: v1.TypeMeta{
-					APIVersion: "monitoring.coreos.com/v1",
-					Kind:       "ServiceMonitor",
-				},
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "kubernetes",
-					Namespace: "default",
-					Labels: map[string]string{
-						"instance": "primary",
-						"app":      "grafana-agent",
-					},
-				},
-				Spec: prom_v1.ServiceMonitorSpec{
-					Selector: v1.LabelSelector{
-						MatchLabels: map[string]string{"component": "apiserver"},
-					},
-					Endpoints: []prom_v1.Endpoint{{
-						Port:   "https",
-						Scheme: "https",
-						TLSConfig: &prom_v1.TLSConfig{
-							SafeTLSConfig: prom_v1.SafeTLSConfig{
-								ServerName: "kubernetes",
-							},
-						},
-						MetricRelabelConfigs: []*prom_v1.RelabelConfig{{
-							SourceLabels: []string{"__name__"},
-							Regex:        "workqueue_queue_duration_seconds_bucket|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_depth|rest_client_request_duration_seconds_bucket|workqueue_adds_total|up|rest_client_requests_total|apiserver_request_total|go_goroutines",
-							Action:       "keep",
-						}},
-					}},
-				},
-			}},
-
 			PodMonitors: []*prom_v1.PodMonitor{{
 				TypeMeta: v1.TypeMeta{
 					APIVersion: "monitoring.coreos.com/v1",
@@ -251,31 +216,7 @@ func TestFullConfig(t *testing.T) {
 							Operator: v1.LabelSelectorOpExists,
 						}},
 					},
-					PodMetricsEndpoints: []prom_v1.PodMetricsEndpoint{{
-						Port: ".*-metrics",
-						RelabelConfigs: []*prom_v1.RelabelConfig{
-							{
-								SourceLabels: []string{
-									"__meta_kubernetes_namespace",
-									"__meta_kubernetes_pod_label_name",
-								},
-								Action:      "replace",
-								Separator:   "/",
-								TargetLabel: "job",
-								Replacement: "$1",
-							},
-							{
-								SourceLabels: []string{
-									"__meta_kubernetes_pod_name",
-									"__meta_kubernetes_pod_container_name",
-									"__meta_kubernetes_pod_container_port_name",
-								},
-								Action:      "replace",
-								Separator:   ":",
-								TargetLabel: "instance",
-							},
-						},
-					}},
+					PodMetricsEndpoints: []prom_v1.PodMetricsEndpoint{{Port: ".*-metrics"}},
 				},
 			}},
 		}},
@@ -296,74 +237,6 @@ prometheus:
     remote_write:
     - url: http://cortex:80/api/prom/push
     scrape_configs:
-    - honor_labels: false
-      job_name: serviceMonitor/default/kubernetes/0
-      kubernetes_sd_configs:
-      - namespaces:
-          names:
-          - default
-        role: endpoints
-      metric_relabel_configs:
-      - action: keep
-        regex: workqueue_queue_duration_seconds_bucket|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_depth|rest_client_request_duration_seconds_bucket|workqueue_adds_total|up|rest_client_requests_total|apiserver_request_total|go_goroutines
-        source_labels:
-        - __name__
-      relabel_configs:
-      - source_labels:
-        - job
-        target_label: __tmp_prometheus_job_name
-      - action: keep
-        regex: apiserver
-        source_labels:
-        - __meta_kubernetes_service_label_component
-      - action: keep
-        regex: https
-        source_labels:
-        - __meta_kubernetes_endpoint_port_name
-      - regex: Node;(.*)
-        replacement: $1
-        separator: ;
-        source_labels:
-        - __meta_kubernetes_endpoint_address_target_kind
-        - __meta_kubernetes_endpoint_address_target_name
-        target_label: node
-      - regex: Pod;(.*)
-        replacement: $1
-        separator: ;
-        source_labels:
-        - __meta_kubernetes_endpoint_address_target_kind
-        - __meta_kubernetes_endpoint_address_target_name
-        target_label: pod
-      - source_labels:
-        - __meta_kubernetes_namespace
-        target_label: namespace
-      - source_labels:
-        - __meta_kubernetes_service_name
-        target_label: service
-      - source_labels:
-        - __meta_kubernetes_pod_name
-        target_label: pod
-      - source_labels:
-        - __meta_kubernetes_pod_container_name
-        target_label: container
-      - replacement: $1
-        source_labels:
-        - __meta_kubernetes_service_name
-        target_label: job
-      - replacement: https
-        target_label: endpoint
-      - action: hashmod
-        modulus: 1
-        source_labels:
-        - __address__
-        target_label: __tmp_hash
-      - action: keep
-        regex: $(SHARD)
-        source_labels:
-        - __tmp_hash
-      scheme: https
-      tls_config:
-        server_name: kubernetes
     - honor_labels: false
       job_name: podMonitor/operator/kubernetes-pods/0
       kubernetes_sd_configs:
@@ -396,20 +269,6 @@ prometheus:
         target_label: job
       - replacement: .*-metrics
         target_label: endpoint
-      - action: replace
-        replacement: $1
-        separator: /
-        source_labels:
-        - __meta_kubernetes_namespace
-        - __meta_kubernetes_pod_label_name
-        target_label: job
-      - action: replace
-        separator: ':'
-        source_labels:
-        - __meta_kubernetes_pod_name
-        - __meta_kubernetes_pod_container_name
-        - __meta_kubernetes_pod_container_port_name
-        target_label: instance
       - action: hashmod
         modulus: 1
         source_labels:

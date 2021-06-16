@@ -17,8 +17,8 @@ local new_safe_tls_config = import '../component/safe_tls_config.libsonnet';
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
 // @param {boolean} enforcedNamespaceLabel
-// @param {boolean} enforcedSampleLimit
-// @param {boolean} enforcedTargetLimit
+// @param {*number} enforcedSampleLimit
+// @param {*number} enforcedTargetLimit
 // @param {number} shards
 function(
   agentNamespace,
