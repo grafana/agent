@@ -176,23 +176,14 @@ var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Compression: compressionGzip,
 }
 
-// TLSConfig controls the TLS config for the exporter's client.
-type TLSConfig struct {
-	CAFile             string `yaml:"ca_file,omitempty"`
-	CertFile           string `yaml:"cert_file,omitempty"`
-	KeyFile            string `yaml:"key_file,omitempty"`
-	InsecureSkipVerify bool   `yaml:"insecure_skip_verify,omitempty"`
-}
-
 // RemoteWriteConfig controls the configuration of an exporter
 type RemoteWriteConfig struct {
-	Endpoint           string                 `yaml:"endpoint,omitempty"`
-	Compression        string                 `yaml:"compression,omitempty"`
-	Insecure           bool                   `yaml:"insecure,omitempty"`
-	// TODO(@mapno): Remove InsecureSkipVerify in favor of TLSConfig
+	Endpoint    string `yaml:"endpoint,omitempty"`
+	Compression string `yaml:"compression,omitempty"`
+	Insecure    bool   `yaml:"insecure,omitempty"`
 	// Deprecated
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
-	TLSConfig          *TLSConfig             `yaml:"tls_config,omitempty"`
+	TLSConfig          *prom_config.TLSConfig `yaml:"tls_config,omitempty"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
 	Headers            map[string]string      `yaml:"headers,omitempty"`
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
@@ -308,7 +299,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 			otlpExporter["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
 		}
 	}
-g
+
 	// Apply some sane defaults to the exporter. The
 	// sending_queue.retry_on_failure default is 300s which prevents any
 	// sending-related errors to not be logged for 5 minutes. We'll lower that
@@ -332,7 +323,7 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 			Endpoint:    c.PushConfig.Endpoint,
 			Compression: c.PushConfig.Compression,
 			Insecure:    c.PushConfig.Insecure,
-			TLSConfig: &TLSConfig{
+			TLSConfig: &prom_config.TLSConfig{
 				InsecureSkipVerify: c.PushConfig.InsecureSkipVerify,
 			},
 			BasicAuth:      c.PushConfig.BasicAuth,
@@ -378,7 +369,7 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 		Endpoint:    "noop",
 		Compression: c.TailSampling.LoadBalancing.Exporter.Compression,
 		Insecure:    c.TailSampling.LoadBalancing.Exporter.Insecure,
-		TLSConfig:   &TLSConfig{InsecureSkipVerify: c.TailSampling.LoadBalancing.Exporter.InsecureSkipVerify},
+		TLSConfig:   &prom_config.TLSConfig{InsecureSkipVerify: c.TailSampling.LoadBalancing.Exporter.InsecureSkipVerify},
 		BasicAuth:   c.TailSampling.LoadBalancing.Exporter.BasicAuth,
 	})
 	if err != nil {
