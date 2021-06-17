@@ -4,6 +4,8 @@
 
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
+- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
   Cloud will now be shown. (@rfratto)
 

@@ -176,12 +176,23 @@ var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Compression: compressionGzip,
 }
 
+// TLSConfig controls the TLS config for the exporter's client.
+type TLSConfig struct {
+	CAFile             string `yaml:"ca_file,omitempty"`
+	CertFile           string `yaml:"cert_file,omitempty"`
+	KeyFile            string `yaml:"key_file,omitempty"`
+	InsecureSkipVerify bool   `yaml:"insecure_skip_verify,omitempty"`
+}
+
 // RemoteWriteConfig controls the configuration of an exporter
 type RemoteWriteConfig struct {
 	Endpoint           string                 `yaml:"endpoint,omitempty"`
 	Compression        string                 `yaml:"compression,omitempty"`
 	Insecure           bool                   `yaml:"insecure,omitempty"`
+	// TODO(@mapno): Remove InsecureSkipVerify in favor of TLSConfig
+	// Deprecated
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
+	TLSConfig          *TLSConfig             `yaml:"tls_config,omitempty"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
 	Headers            map[string]string      `yaml:"headers,omitempty"`
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
@@ -246,44 +257,59 @@ type exporterConfig struct {
 }
 
 // exporter builds an OTel exporter from RemoteWriteConfig
-func exporter(remoteWriteConfig RemoteWriteConfig) (map[string]interface{}, error) {
-	if len(remoteWriteConfig.Endpoint) == 0 {
+func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
+	if len(rwCfg.Endpoint) == 0 {
 		return nil, errors.New("must have a configured a backend endpoint")
 	}
 
 	headers := map[string]string{}
-	if remoteWriteConfig.Headers != nil {
-		headers = remoteWriteConfig.Headers
+	if rwCfg.Headers != nil {
+		headers = rwCfg.Headers
 	}
 
-	if remoteWriteConfig.BasicAuth != nil {
-		password := string(remoteWriteConfig.BasicAuth.Password)
+	if rwCfg.BasicAuth != nil {
+		password := string(rwCfg.BasicAuth.Password)
 
-		if len(remoteWriteConfig.BasicAuth.PasswordFile) > 0 {
-			buff, err := ioutil.ReadFile(remoteWriteConfig.BasicAuth.PasswordFile)
+		if len(rwCfg.BasicAuth.PasswordFile) > 0 {
+			buff, err := ioutil.ReadFile(rwCfg.BasicAuth.PasswordFile)
 			if err != nil {
-				return nil, fmt.Errorf("unable to load password file %s: %w", remoteWriteConfig.BasicAuth.PasswordFile, err)
+				return nil, fmt.Errorf("unable to load password file %s: %w", rwCfg.BasicAuth.PasswordFile, err)
 			}
 			password = string(buff)
 		}
 
-		encodedAuth := base64.StdEncoding.EncodeToString([]byte(remoteWriteConfig.BasicAuth.Username + ":" + password))
+		encodedAuth := base64.StdEncoding.EncodeToString([]byte(rwCfg.BasicAuth.Username + ":" + password))
 		headers["authorization"] = "Basic " + encodedAuth
 	}
 
-	compression := remoteWriteConfig.Compression
+	compression := rwCfg.Compression
 	if compression == compressionNone {
 		compression = ""
 	}
 
 	otlpExporter := map[string]interface{}{
-		"endpoint":             remoteWriteConfig.Endpoint,
-		"compression":          compression,
-		"headers":              headers,
-		"insecure":             remoteWriteConfig.Insecure,
-		"insecure_skip_verify": remoteWriteConfig.InsecureSkipVerify,
-		"sending_queue":        remoteWriteConfig.SendingQueue,
-		"retry_on_failure":     remoteWriteConfig.RetryOnFailure,
+		"endpoint":         rwCfg.Endpoint,
+		"compression":      compression,
+		"headers":          headers,
+		"insecure":         rwCfg.Insecure,
+		"sending_queue":    rwCfg.SendingQueue,
+		"retry_on_failure": rwCfg.RetryOnFailure,
+	}
+
+	if !rwCfg.Insecure {
+		// If there is a TLSConfig use it
+		if rwCfg.TLSConfig != nil {
+			otlpExporter["ca_file"] = rwCfg.TLSConfig.CAFile
+			otlpExporter["cert_file"] = rwCfg.TLSConfig.CertFile
+			otlpExporter["key_file"] = rwCfg.TLSConfig.KeyFile
+			otlpExporter["insecure_skip_verify"] = rwCfg.TLSConfig.InsecureSkipVerify
+		} else {
+			// If not, set whatever value is specified in the old config.
+			otlpExporter["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
+		}
+	}
+
+	if !rwCfg.Insecure && rwCfg.TLSConfig != nil {
 	}
 
 	// Apply some sane defaults to the exporter. The
@@ -306,13 +332,15 @@ func exporter(remoteWriteConfig RemoteWriteConfig) (map[string]interface{}, erro
 func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 	if len(c.RemoteWrite) == 0 {
 		otlpExporter, err := exporter(RemoteWriteConfig{
-			Endpoint:           c.PushConfig.Endpoint,
-			Compression:        c.PushConfig.Compression,
-			Insecure:           c.PushConfig.Insecure,
-			InsecureSkipVerify: c.PushConfig.InsecureSkipVerify,
-			BasicAuth:          c.PushConfig.BasicAuth,
-			SendingQueue:       c.PushConfig.SendingQueue,
-			RetryOnFailure:     c.PushConfig.RetryOnFailure,
+			Endpoint:    c.PushConfig.Endpoint,
+			Compression: c.PushConfig.Compression,
+			Insecure:    c.PushConfig.Insecure,
+			TLSConfig: &TLSConfig{
+				InsecureSkipVerify: c.PushConfig.InsecureSkipVerify,
+			},
+			BasicAuth:      c.PushConfig.BasicAuth,
+			SendingQueue:   c.PushConfig.SendingQueue,
+			RetryOnFailure: c.PushConfig.RetryOnFailure,
 		})
 		return map[string]interface{}{
 			"otlp": otlpExporter,
@@ -350,11 +378,11 @@ func resolver(config map[string]interface{}) (map[string]interface{}, error) {
 func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error) {
 	exporter, err := exporter(RemoteWriteConfig{
 		// Endpoint is omitted in OTel load balancing exporter
-		Endpoint:           "noop",
-		Compression:        c.TailSampling.LoadBalancing.Exporter.Compression,
-		Insecure:           c.TailSampling.LoadBalancing.Exporter.Insecure,
-		InsecureSkipVerify: c.TailSampling.LoadBalancing.Exporter.InsecureSkipVerify,
-		BasicAuth:          c.TailSampling.LoadBalancing.Exporter.BasicAuth,
+		Endpoint:    "noop",
+		Compression: c.TailSampling.LoadBalancing.Exporter.Compression,
+		Insecure:    c.TailSampling.LoadBalancing.Exporter.Insecure,
+		TLSConfig:   &TLSConfig{InsecureSkipVerify: c.TailSampling.LoadBalancing.Exporter.InsecureSkipVerify},
+		BasicAuth:   c.TailSampling.LoadBalancing.Exporter.BasicAuth,
 	})
 	if err != nil {
 		return nil, err
