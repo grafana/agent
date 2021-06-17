@@ -2,6 +2,7 @@
 
 The Grafana Agent Operator is a Kubernetes operator that makes it easier to
 deploy the Grafana Agent and easier to collect telemetry data from your pods.
+It is currently in **beta**, and is subject to change at any time.
 
 It works by watching for [Kubernetes custom resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)
 that specify how you would like to collect telemetry data from your Kubernetes

@@ -49,7 +49,7 @@ spec:
       serviceAccountName: grafana-agent-operator
       containers:
       - name: operator
-        image: grafana/agent-operator:v0.15.0
+        image: grafana/agent-operator:v0.16.0
 ---
 
 apiVersion: v1
