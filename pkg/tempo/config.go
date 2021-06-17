@@ -308,10 +308,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 			otlpExporter["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
 		}
 	}
-
-	if !rwCfg.Insecure && rwCfg.TLSConfig != nil {
-	}
-
+g
 	// Apply some sane defaults to the exporter. The
 	// sending_queue.retry_on_failure default is 300s which prevents any
 	// sending-related errors to not be logged for 5 minutes. We'll lower that
