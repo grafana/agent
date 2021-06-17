@@ -46,10 +46,10 @@ function(namespace, rw) {
 
   queue_config: (
     if rw.QueueConfig != null then {
-      capacity: optionals.string(rw.QueueConfig.Capacity),
-      max_shards: optionals.string(rw.QueueConfig.MaxShards),
-      min_shards: optionals.string(rw.QueueConfig.MinShards),
-      max_samples_per_send: optionals.string(rw.QueueConfig.MaxSamplesPerSend),
+      capacity: optionals.number(rw.QueueConfig.Capacity),
+      max_shards: optionals.number(rw.QueueConfig.MaxShards),
+      min_shards: optionals.number(rw.QueueConfig.MinShards),
+      max_samples_per_send: optionals.number(rw.QueueConfig.MaxSamplesPerSend),
       batch_send_deadline: optionals.string(rw.QueueConfig.BatchSendDeadline),
       min_backoff: optionals.string(rw.QueueConfig.MinBackoff),
       max_backoff: optionals.string(rw.QueueConfig.MaxBackoff),
