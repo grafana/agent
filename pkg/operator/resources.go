@@ -191,6 +191,12 @@ func generateStatefulSetSpec(
 	d config.Deployment,
 	shard int32,
 ) (*apps_v1.StatefulSetSpec, error) {
+
+	shards := minShards
+	if reqShards := d.Agent.Spec.Prometheus.Shards; reqShards != nil && *reqShards > 1 {
+		shards = *reqShards
+	}
+
 	terminationGracePeriodSeconds := int64(4800)
 
 	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, d.Agent.Spec.Version)
@@ -343,6 +349,10 @@ func generateStatefulSetSpec(
 		{
 			Name:  "SHARD",
 			Value: fmt.Sprintf("%d", shard),
+		},
+		{
+			Name:  "SHARDS",
+			Value: fmt.Sprintf("%d", shards),
 		},
 	}
 

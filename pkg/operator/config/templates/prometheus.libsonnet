@@ -3,7 +3,7 @@ local optionals = import './ext/optionals.libsonnet';
 local secrets = import './ext/secrets.libsonnet';
 local k8s = import './utils/k8s.libsonnet';
 
-local new_pod_monitor = import './component/pod_monitor.libsonnet.libsonnet';
+local new_pod_monitor = import './component/pod_monitor.libsonnet';
 local new_probe = import './component/probe.libsonnet';
 local new_remote_write = import './component/remote_write.libsonnet';
 local new_service_monitor = import './component/service_monitor.libsonnet';
@@ -110,7 +110,6 @@ function(
         agentNamespace=agentNamespace,
         probe=probe,
         apiServer=apiServer,
-        overrideHonorLabels=overrideHonorLabels,
         overrideHonorTimestamps=overrideHonorTimestamps,
         ignoreNamespaceSelectors=ignoreNamespaceSelectors,
         enforcedNamespaceLabel=enforcedNamespaceLabel,

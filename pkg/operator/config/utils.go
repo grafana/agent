@@ -4,7 +4,7 @@ import (
 	"regexp"
 
 	jsonnet "github.com/google/go-jsonnet"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func unmarshalYAML(i []interface{}) (interface{}, error) {

@@ -11,18 +11,16 @@ local new_tls_config = import '../component/tls_config.libsonnet';
 // @param {string} agentNamespace - Namespace the GrafanaAgent CR is in.
 // @param {Probe} probe
 // @param {APIServerConfig} apiServer
-// @param {boolean} overrideHonorLabels
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
 // @param {boolean} enforcedNamespaceLabel
-// @param {boolean} enforcedSampleLimit
-// @param {boolean} enforcedTargetLimit
+// @param {*number} enforcedSampleLimit
+// @param {*number} enforcedTargetLimit
 // @param {number} shards
 function(
   agentNamespace,
   probe,
   apiServer,
-  overrideHonorLabels,
   overrideHonorTimestamps,
   ignoreNamespaceSelectors,
   enforcedNamespaceLabel,
@@ -52,14 +50,14 @@ function(
   },
 
   tls_config:
-    if endpoint.TLSConfig != null then new_tls_config(meta.Namespace, endpoint.TLSConfig),
+    if probe.Spec.TLSConfig != null then new_tls_config(meta.Namespace, probe.Spec.TLSConfig),
   bearer_token:
     if probe.Spec.BearerTokenSecret.LocalObjectReference.Name != ''
     then secrets.valueForSecret(meta.Namespace, probe.Spec.BearerTokenSecret),
 
-  basic_auth: if endpoint.BasicAuth != null then {
-    username: secrets.valueForSecret(meta.Namespace, endpoint.BasicAuth.Username),
-    password: secrets.valueForSecret(meta.Namespace, endpoint.BasicAuth.Password),
+  basic_auth: if probe.Spec.BasicAuth != null then {
+    username: secrets.valueForSecret(meta.Namespace, probe.Spec.BasicAuth.Username),
+    password: secrets.valueForSecret(meta.Namespace, probe.Spec.BasicAuth.Password),
   },
 
   // Generate static_configs section if StaticConfig is provided.
@@ -126,11 +124,15 @@ function(
         std.map(
           function(k) {
             source_labels: ['__meta_kubernetes_ingress_label_' + k8s.sanitize(k)],
-            regex: monitor.Spec.Selector.MatchLabels[k],
+            regex: probe.Spec.Targets.Ingress.Selector.MatchLabels[k],
             action: 'keep',
           },
           // Keep the output consistent by sorting the keys first.
-          std.sort(std.objectFields(probe.Spec.Targets.Ingress.Selector.MatchLabels)),
+          std.sort(std.objectFields(
+            if probe.Spec.Targets.Ingress.Selector.MatchLabels != null
+            then probe.Spec.Targets.Ingress.Selector.MatchLabels
+            else {}
+          )),
         ) +
 
         // Set-based label matching. we have to map the valid relations
@@ -207,23 +209,8 @@ function(
     std.filter(function(e) e != null, [
       if enforcedNamespaceLabel != '' then {
         target_label: enforcedNamespaceLabel,
-        replacement: monitor.ObjectMeta.Namespace,
+        replacement: probe.ObjectMeta.Namespace,
       },
     ])
   ),
-
-  metric_relabel_configs: if endpoint.MetricRelabelConfigs != null then optionals.array(
-    std.filterMap(
-      function(c) !(c.TargetLabel != '' && enforcedNamespaceLabel != '' && c.TargetLabel == enforcedNamespaceLabel),
-      function(c) new_relabel_config(c),
-      k8s.array(endpoint.MetricRelabelConfigs),
-    )
-  ),
-
-  sample_limit:
-    if monitor.Spec.SampleLimit > 0 || enforcedSampleLimit != null
-    then k8s.limit(monitor.Spec.SampleLimit, enforcedSampleLimit),
-  target_limit:
-    if monitor.Spec.TargetLimit > 0 || enforcedTargetLimit != null
-    then k8s.limit(monitor.Spec.TargetLimit, enforcedTargetLimit),
 }

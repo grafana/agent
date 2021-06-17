@@ -17,8 +17,8 @@ local new_tls_config = import '../component/tls_config.libsonnet';
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
 // @param {boolean} enforcedNamespaceLabel
-// @param {boolean} enforcedSampleLimit
-// @param {boolean} enforcedTargetLimit
+// @param {*number} enforcedSampleLimit
+// @param {*number} enforcedTargetLimit
 // @param {number} shards
 function(
   agentNamespace,
@@ -87,7 +87,11 @@ function(
         action: 'keep',
       },
       // Keep the output consistent by sorting the keys first.
-      std.sort(std.objectFields(monitor.Spec.Selector.MatchLabels)),
+      std.sort(std.objectFields(
+        if monitor.Spec.Selector.MatchLabels != null
+        then monitor.Spec.Selector.MatchLabels
+        else {}
+      )),
     ) +
 
     // Set-based label matching. we have to map the valid relations
