@@ -2042,9 +2042,22 @@ remote_write:
     # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
     [ insecure: <boolean> | default = false ]
 
-    # Disable validation of the server certificate. Only used when insecure is set
-    # to false.
+    # Deprecated in favor of tls_config
+    # If both `insecure_skip_verify` and `tls_config.insecure_skip_verify` are used,
+    # the latter take precedence.
     [ insecure_skip_verify: <bool> | default = false ]
+    
+    # Controls TLS settings of the exporter's client. See https://github.com/open-telemetry/opentelemetry-collector/blob/v0.21.0/config/configtls/README.md
+    # This should be used only if `insecure` is set to false
+    tls_config:
+      # Path to the CA cert. For a client this verifies the server certificate. If empty uses system root CA.
+      [ca_file: <string>]
+      # Path to the TLS cert to use for TLS required connections
+      [cert_file: <string>]
+      # Path to the TLS key to use for TLS required connections
+      [key_file: <string>]
+      # Disable validation of the server certificate.
+      [ insecure_skip_verify: <bool> | default = false ]
 
     # Sets the `Authorization` header on every trace push with the
     # configured username and password.

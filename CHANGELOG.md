@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+
 # v0.17.0 (2021-07-15)
 
 - [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
