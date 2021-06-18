@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+
 # v0.16.0 (2021-06-17)
 
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
