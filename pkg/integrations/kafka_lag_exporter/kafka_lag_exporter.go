@@ -14,19 +14,18 @@ import (
 // DefaultConfig holds the default settings for the elasticsearch_exporter
 // integration.
 var DefaultConfig = Config{
-	KafkaUri:                 []string{"192.168.99.101:11091", "192.168.99.101:11092"},
-	UseSASL:                  false,
-	UseTLS:                   true,
-	TlsCertFile:              "C:/grafana/GitHub/kafkaLagExporter.certificate.pem",
-	TlsKeyFile:               "C:/grafana/GitHub/kafkaLagExporter.key",
-	TlsInsecureSkipTLSVerify: true,
-	KafkaVersion:             sarama.V2_0_0_0.String(),
-	UseZooKeeperLag:          false,
-	Labels:                   "dev-cluster",
-	MetadataRefreshInterval:  "1m",
-	AllowConcurrent:          true,
-	MaxOffsets:               1000,
-	PruneIntervalSeconds:     30,
+	KafkaUri:                []string{"localhost:11091"},
+	UseSASL:                 true,
+	UseTLS:                  false,
+	SaslUsername:            "test",
+	SaslPassword:            "test",
+	KafkaVersion:            sarama.V2_0_0_0.String(),
+	UseZooKeeperLag:         false,
+	Labels:                  "dev-cluster",
+	MetadataRefreshInterval: "1m",
+	AllowConcurrent:         true,
+	MaxOffsets:              1000,
+	PruneIntervalSeconds:    30,
 }
 
 type Config struct {
