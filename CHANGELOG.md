@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
+  integration. (@gaantunes)
+
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
