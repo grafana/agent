@@ -195,11 +195,9 @@ func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	// Create a new storage and see what the ref ID is initialized to.
 	s, err = NewStorage(l, nil, walDir)
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, s.Close())
-	}()
+	defer require.NoError(t, s.Close())
 
-	require.Equal(t, uint64(len(payload)), s.ref.Load())
+	require.Equal(t, uint64(len(payload)), s.ref.Load(), "cached ref ID should be equal to the number of series written")
 }
 
 func TestStorage_Truncate(t *testing.T) {
