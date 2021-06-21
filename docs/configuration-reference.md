@@ -2265,6 +2265,8 @@ consul_exporter: <consul_exporter_config>
 # Controls the windows_exporter integration
 windows_exporter: <windows_exporter_config>
 
+kafka_lag_exporter: <kafka_lag_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
@@ -3741,4 +3743,90 @@ Full reference of options:
     # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
     # Maps to collector.logical_disk.volume-blacklist in windows_exporter
     [blacklist: <string> | default=".+"]
+```
+
+### kafka_lag_exporter_config
+
+The `kafka_lag_exporter_config` block configures the `kafka_lag_exporter`
+integration, which is an embedded version of
+[`kafka_exporter`](https://github.com/davidmparrott/kafka_exporter). This allows
+for the collection of Kafka Lag metrics and exposing them as Prometheus metrics.
+
+Full reference of options:
+
+```yaml
+
+  #Address array (host:port) of Kafka server
+
+  [kafka_uris: [- string] | default="localhost:11091"]
+
+	#Connect using SASL/PLAIN
+  
+	[use_sasl: <bool> | default=false]
+
+  #Only set this to false if using a non-Kafka SASL proxy
+
+	[use_sasl_handshake: <bool> | default=true]
+  
+	#SASL user name
+
+	[sasl_username: <string> | default=""]
+
+	#SASL user password
+
+	[sasl_password: <string> | default=""]
+
+	#The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
+
+	[sasl_mechanism: <string> | default=""]
+
+	#Connect using TLS
+
+	[use_tls: <bool> | default=false]
+
+	#The optional certificate authority file for TLS client authentication
+
+	[tls_cafile: <string> | default=""]
+
+	#The optional certificate file for TLS client authentication
+	
+  [tls_certfile: <string> | default=""]
+	
+	#The optional key file for TLS client authentication
+	[tls_keyfile:  <string> | default=""]
+
+	#If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
+	[tls_insecure_skip_tlsverify: <bool> | default=false]
+
+	#Kafka broker version
+	[kafka_version: <string> | default="2.0.0"]
+
+	#if you need to use a group from zookeeper
+	[use_zookeeper_lag: <bool> | default=false]
+
+	#Address array (hosts) of zookeeper server.
+	[zookeeper_uris:  [- string] | default=""]
+
+	#Kafka cluster name
+	[kafka_cluster_name: [- string] | default="my-cluster"]
+
+	#Metadata refresh interval
+	[metadata_refresh_interval: [- string] | default="1m"]
+
+	#If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
+	[allow_concurrency: <bool> | default=true]
+
+	#Maximum number of offsets to store in the interpolation table for a partition
+	[max_offsets: <int> | default = 1000]
+
+	#How frequently should the interpolation table be pruned, in seconds
+	[prune_interval_seconds: <int> | default = 30]
+
+	#Regex filter for topics to be monitored
+	[topics_filter_regex: <string> | default=".*"]
+
+	#Regex filter for consumer groups to be monitored
+	
+  [groups_filter_regex: <string> | default=".*"]
+
 ```
