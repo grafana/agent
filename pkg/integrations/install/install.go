@@ -14,4 +14,5 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/redis_exporter"         // register redis_exporter
 	_ "github.com/grafana/agent/pkg/integrations/statsd_exporter"        // register statsd_exporter
 	_ "github.com/grafana/agent/pkg/integrations/windows_exporter"       // register windows_exporter
+	_ "github.com/grafana/agent/pkg/integrations/kafka_lag_exporter"     // register kafka_lag_exporter
 )
