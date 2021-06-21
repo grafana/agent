@@ -3788,9 +3788,9 @@ Full reference of options:
   [tls_cafile: <string> | default=""]
 
   #The optional certificate file for TLS client authentication
-	
+
   [tls_certfile: <string> | default=""]
-	
+
   #The optional key file for TLS client authentication
 
   [tls_keyfile:  <string> | default=""]
@@ -3836,7 +3836,7 @@ Full reference of options:
   [topics_filter_regex: <string> | default=".*"]
 
   #Regex filter for consumer groups to be monitored
-	
+
   [groups_filter_regex: <string> | default=".*"]
 
 ```
