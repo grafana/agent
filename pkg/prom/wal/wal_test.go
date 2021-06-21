@@ -199,7 +199,7 @@ func TestStorage_ExistingWAL_RefID(t *testing.T) {
 		require.NoError(t, s.Close())
 	}()
 
-	require.Equal(t, uint64(4), s.ref.Load())
+	require.Equal(t, uint64(len(payload)), s.ref.Load())
 }
 
 func TestStorage_Truncate(t *testing.T) {
