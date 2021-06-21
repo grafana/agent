@@ -294,7 +294,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 		}
 	}()
 
-	var biggestRef uint64 = 0
+	var biggestRef uint64 = w.ref.Load()
 
 	for d := range decoded {
 		switch v := d.(type) {
