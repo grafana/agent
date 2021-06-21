@@ -3748,9 +3748,8 @@ Full reference of options:
 ### kafka_lag_exporter_config
 
 The `kafka_lag_exporter_config` block configures the `kafka_lag_exporter`
-integration, which is an embedded version of
-[`kafka_exporter`](https://github.com/davidmparrott/kafka_exporter). This allows
-for the collection of Kafka Lag metrics and exposing them as Prometheus metrics.
+integration, which is an embedded version of [`kafka_exporter`](https://github.com/davidmparrott/kafka_exporter).
+This allows for the collection of Kafka Lag metrics and exposing them as Prometheus metrics.
 
 Full reference of options:
 
@@ -3760,72 +3759,83 @@ Full reference of options:
 
   [kafka_uris: [- string] | default="localhost:11091"]
 
-	#Connect using SASL/PLAIN
+  #Connect using SASL/PLAIN
   
-	[use_sasl: <bool> | default=false]
+  [use_sasl: <bool> | default=false]
 
   #Only set this to false if using a non-Kafka SASL proxy
 
-	[use_sasl_handshake: <bool> | default=true]
+  [use_sasl_handshake: <bool> | default=true]
   
-	#SASL user name
+  #SASL user name
 
-	[sasl_username: <string> | default=""]
+  [sasl_username: <string> | default=""]
 
-	#SASL user password
+  #SASL user password
 
-	[sasl_password: <string> | default=""]
+  [sasl_password: <string> | default=""]
 
-	#The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
+  #The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
 
-	[sasl_mechanism: <string> | default=""]
+  [sasl_mechanism: <string> | default=""]
 
-	#Connect using TLS
+  #Connect using TLS
 
-	[use_tls: <bool> | default=false]
+  [use_tls: <bool> | default=false]
 
-	#The optional certificate authority file for TLS client authentication
+  #The optional certificate authority file for TLS client authentication
 
-	[tls_cafile: <string> | default=""]
+  [tls_cafile: <string> | default=""]
 
-	#The optional certificate file for TLS client authentication
+  #The optional certificate file for TLS client authentication
 	
   [tls_certfile: <string> | default=""]
 	
-	#The optional key file for TLS client authentication
-	[tls_keyfile:  <string> | default=""]
+  #The optional key file for TLS client authentication
 
-	#If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
-	[tls_insecure_skip_tlsverify: <bool> | default=false]
+  [tls_keyfile:  <string> | default=""]
 
-	#Kafka broker version
-	[kafka_version: <string> | default="2.0.0"]
+  #If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
 
-	#if you need to use a group from zookeeper
-	[use_zookeeper_lag: <bool> | default=false]
+  [tls_insecure_skip_tlsverify: <bool> | default=false]
 
-	#Address array (hosts) of zookeeper server.
-	[zookeeper_uris:  [- string] | default=""]
+  #Kafka broker version
 
-	#Kafka cluster name
-	[kafka_cluster_name: [- string] | default="my-cluster"]
+  [kafka_version: <string> | default="2.0.0"]
 
-	#Metadata refresh interval
-	[metadata_refresh_interval: [- string] | default="1m"]
+  #if you need to use a group from zookeeper
 
-	#If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
-	[allow_concurrency: <bool> | default=true]
+  [use_zookeeper_lag: <bool> | default=false]
 
-	#Maximum number of offsets to store in the interpolation table for a partition
-	[max_offsets: <int> | default = 1000]
+  #Address array (hosts) of zookeeper server.
 
-	#How frequently should the interpolation table be pruned, in seconds
-	[prune_interval_seconds: <int> | default = 30]
+  [zookeeper_uris:  [- string] | default=""]
 
-	#Regex filter for topics to be monitored
-	[topics_filter_regex: <string> | default=".*"]
+  #Kafka cluster name
 
-	#Regex filter for consumer groups to be monitored
+  [kafka_cluster_name: [- string] | default="my-cluster"]
+
+  #Metadata refresh interval
+  
+  [metadata_refresh_interval: [- string] | default="1m"]
+
+  #If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
+
+  [allow_concurrency: <bool> | default=true]
+
+  #Maximum number of offsets to store in the interpolation table for a partition
+
+  [max_offsets: <int> | default = 1000]
+
+  #How frequently should the interpolation table be pruned, in seconds
+
+  [prune_interval_seconds: <int> | default = 30]
+
+  #Regex filter for topics to be monitored
+
+  [topics_filter_regex: <string> | default=".*"]
+
+  #Regex filter for consumer groups to be monitored
 	
   [groups_filter_regex: <string> | default=".*"]
 
