@@ -4,6 +4,8 @@
 .published
 .pkg
 .cache
+.vscode
+vendor
 cover*.out
 
 cmd/agent/agent

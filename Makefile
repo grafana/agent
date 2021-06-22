@@ -12,7 +12,7 @@ IMAGE_TAG ?= $(shell ./tools/image-tag)
 # Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
 # different architectures. When true, docker buildx is used instead of docker,
 # and seego is used for building binaries instead of go.
-CROSS_BUILD ?= false
+CROSS_BUILD ?= true
 
 # Certain aspects of the build are done in containers for consistency.
 # If you have the correct tools installed and want to speed up development,
@@ -43,9 +43,8 @@ DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAG
 
 # We need a separate set of flags for CGO, where building with -static can
 # cause problems with some C libraries.
-CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
+CGO_FLAGS := -ldflags="-s -w $(GO_LDFLAGS)" -tags 'netgo'
 DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
-
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
 GO_FLAGS = $(DEBUG_GO_FLAGS)
@@ -85,7 +84,7 @@ docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,lin
 endif
 
 ifeq ($(BUILD_IN_CONTAINER),false)
-seego = "/seego.sh"
+seego = ./go_wrapper.sh && go
 endif
 
 #############
@@ -123,7 +122,6 @@ cmd/agent/agent: check-seego cmd/agent/main.go
 ifeq ($(CROSS_BUILD),false)
 	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
-	@echo About to run cgo $(seego)
 	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 	$(NETGO_CHECK)
@@ -196,12 +194,11 @@ dist: dist-agent dist-agentctl dist-packages
 
 dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
 dist/agent-linux-amd64: seego
-	@echo !!! ${seego}
-	@echo !!! $(shell ls /drone/src/cmd/agent)
-	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto; $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agent
 dist/agent-linux-arm64: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-linux-armv6: seego
+	@echo $(CGO_FLAGS)
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-linux-armv7: seego
 	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
@@ -216,8 +213,12 @@ dist/agent-windows-amd64.exe: seego
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	cp dist/agent-windows-amd64.exe ./packaging/windows
 	cp LICENSE ./packaging/windows
+ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build ./packaging/windows -t windows_nsis
-	docker run -e VERSION=${RELEASE_TAG} --rm -t -v $(CURDIR)/dist:/app windows_nsis
+	docker run -e VERSION=${RELEASE_TAG} -DOUT="/app/grafana-agent-installer.exe" --rm -t -v $(CURDIR)/dist:/app windows_nsis
+else
+	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
+endif
 dist/agent-freebsd-amd64: seego
 	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
@@ -242,7 +243,9 @@ dist/agentctl-freebsd-amd64: seego
 	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
+ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t grafana/agent/seego tools/seego
+endif
 
 # Makes seego if CROSS_BUILD is true.
 check-seego:

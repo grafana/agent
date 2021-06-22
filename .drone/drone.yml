@@ -31,27 +31,32 @@ steps:
 
 - name: test-ubuntu
   image: ubuntu
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
+  #volumes:
+  #- name: docker
+  #  path: /var/run/docker.sock
   commands:
-  - export DEBIAN_FRONTEND=noninteractive 
-  - apt-get update -y && apt-get install -y libsystemd-dev  apt-transport-https ca-certificates curl gnupg lsb-release wget make build-essential
+  - export DEBIAN_FRONTEND=noninteractive  
+  - dpkg --add-architecture i386 
+  - apt-get update -y && apt-get install -y $(grep -vE "^\s*#" ./.drone/packages.list  | tr "\n" " ") -y 
+  - gem install --no-document fpm
   - mkdir -p /usr/local/go/bin
   - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+  - rm go1.16.5.linux-amd64.tar.gz
   - export PATH=$PATH:/usr/local/go/bin
-  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-  - apt-get update  && apt-get install -y docker-ce docker-ce-cli containerd.io
-#  - make -d cmd/agent/agent cmd/agentctl/agentctl
-#  - make -d test
-  - RELEASE_TAG=v0.0.0 make -d test-packages
+  - apt-get clean && rm -rf /var/lib/apt/lists/*
+  # - make BUILD_IN_CONTAINER=false cmd/agent/agent
+  - make BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl
+  - make BUILD_IN_CONTAINER=false dist
+  - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 BUILD_IN_CONTAINER=false test-packages
+  # - make cmd/agentctl/agentctl
+  # - make test
+  # - RELEASE_TAG=v0.0.0 make test-packages
 
-volumes:
-- name: docker
-  host: 
-    path: /var/run/docker.sock
+#volumes:
+#- name: docker
+#  host: 
+#    path: /var/run/docker.sock
 
 ---
 kind: pipeline

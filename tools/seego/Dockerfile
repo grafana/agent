@@ -9,3 +9,6 @@ RUN  rm -rf /usr/local/go                                           \
   && echo "$GOLANG_DOWNLOAD_SHA256  golang.tar.gz" | sha256sum -c - \
   && tar -C /usr/local -xzf golang.tar.gz                           \
   && rm golang.tar.gz
+COPY go_wrapper.sh /
+RUN chmod +x /go_wrapper.sh
+ENTRYPOINT ["/go_wrapper.sh"]

@@ -1,0 +1,27 @@
+apt-transport-https 
+build-essential 
+bzr  
+ca-certificates 
+clang
+cmake
+curl 
+g++
+gcc 
+gcc-multilib  
+git 
+gnupg 
+libc6-dev 
+libc6-dev-i386 
+libsnmp-dev 
+libsystemd-dev  
+libxml2-dev  
+linux-libc-dev:i386 mingw-w64  
+lsb-release 
+make 
+nsis 
+patch 
+ruby 
+ruby-dev 
+rubygems      
+wget 
+xz-utils 

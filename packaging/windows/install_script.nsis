@@ -16,7 +16,8 @@ InstallDir "$PROGRAMFILES64\${APPNAME}"
 # This will be in the installer/uninstaller's title bar
 Name "${APPNAME} ${VERSION}"
 Icon "logo.ico"
-outFile "/app/grafana-agent-installer.exe"
+outFile "${OUT}"
+
 
 !include nsDialogs.nsh
 !include FileFunc.nsh
