@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+# v0.16.1 (2021-06-22)
+
 - [BUGFIX] Fix issue where replaying a WAL caused incorrect metrics to be sent
   over remote write. (@rfratto)
 
