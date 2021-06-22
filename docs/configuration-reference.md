@@ -3759,7 +3759,7 @@ Full reference of options:
   [kafka_uris: [- string]
 
   # Connect using SASL/PLAIN
-  [use_sasl: <bool> | default = true]
+  [use_sasl: <bool>]
 
   # Only set this to false if using a non-Kafka SASL proxy
   [use_sasl_handshake: <bool> | default = true]
@@ -3777,16 +3777,16 @@ Full reference of options:
   [use_tls: <bool>]
 
   # The optional certificate authority file for TLS client authentication
-  [tls_cafile: <string>]
+  [cafile: <string>]
 
   # The optional certificate file for TLS client authentication
-  [tls_certfile: <string>]
+  [certfile: <string>]
 
   # The optional key file for TLS client authentication
-  [tls_keyfile:  <string>]
+  [keyfile: <string>]
 
   # If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
-  [tls_insecure_skip_tlsverify: <bool>]
+  [insecure_skip_tls_verify: <bool>]
 
   # Kafka broker version
   [kafka_version: <string> | default = "2.0.0"]
@@ -3795,13 +3795,13 @@ Full reference of options:
   [use_zookeeper_lag: <bool>]
 
   # Address array (hosts) of zookeeper server.
-  [zookeeper_uris:  - <[]string>]
+  [zookeeper_uris: <[]string>]
 
   # Kafka cluster name
-  [kafka_cluster_name: [- string]
+  [kafka_cluster_name: <string>]
 
   # Metadata refresh interval  
-  [metadata_refresh_interval: [- string] | default = "1m"]
+  [metadata_refresh_interval: <duration> | default = "1m"]
 
   # If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
   [allow_concurrency: <bool> | default = true]

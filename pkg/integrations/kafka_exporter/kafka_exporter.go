@@ -28,7 +28,7 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// Address array (host:port) of Kafka server
-	KafkaUri []string `yaml:"kafka_uris,omitempty"`
+	KafkaURIs []string `yaml:"kafka_uris,omitempty"`
 
 	// Connect using SASL/PLAIN
 	UseSASL bool `yaml:"use_sasl,omitempty"`
@@ -49,16 +49,16 @@ type Config struct {
 	UseTLS bool `yaml:"use_tls,omitempty"`
 
 	// The optional certificate authority file for TLS client authentication
-	TLSCAFile string `yaml:"tls_cafile,omitempty"`
+	CAFile string `yaml:"cafile,omitempty"`
 
 	// The optional certificate file for TLS client authentication
-	TLSCertFile string `yam:"tls_certfile,omitempty"`
+	CertFile string `yam:"certfile,omitempty"`
 
 	// The optional key file for TLS client authentication
-	TLSKeyFile string `yaml:"tls_keyfile,omitempty"`
+	KeyFile string `yaml:"keyfile,omitempty"`
 
 	// If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
-	TLSInsecureSkipTLSVerify bool `yaml:"tls_insecure_skip_tlsverify,omitempty"`
+	InsecureSkipTLSVerify bool `yaml:"insecure_skip_tls_verify,omitempty"`
 
 	// Kafka broker version
 	KafkaVersion string `yaml:"kafka_version,omitempty"`
@@ -67,10 +67,10 @@ type Config struct {
 	UseZooKeeperLag bool `yaml:"use_zookeeper_lag,omitempty"`
 
 	// Address array (hosts) of zookeeper server.
-	UriZookeeper []string `yaml:"zookeeper_uris,omitempty"`
+	ZookeeperURIs []string `yaml:"zookeeper_uris,omitempty"`
 
 	// Kafka cluster name
-	Labels string `yaml:"kafka_cluster_name,omitempty"`
+	ClusterName string `yaml:"kafka_cluster_name,omitempty"`
 
 	// Metadata refresh interval
 	MetadataRefreshInterval string `yaml:"metadata_refresh_interval,omitempty"`
@@ -121,35 +121,35 @@ func init() {
 
 // New creates a new kafka_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	if len(c.KafkaUri) == 0 || c.KafkaUri[0] == "" {
+	if len(c.KafkaURIs) == 0 || c.KafkaURIs[0] == "" {
 		return nil, fmt.Errorf("empty kafka_uris provided")
 	}
-	if c.UseTLS && (c.TLSCertFile == "" || c.TLSKeyFile == "") {
+	if c.UseTLS && (c.CertFile == "" || c.KeyFile == "") {
 		return nil, fmt.Errorf("tls is enabled but key pair was not provided")
 	}
 	if c.UseSASL && (c.SASLPassword == "" || c.SASLUsername == "") {
 		return nil, fmt.Errorf("SASL is enabled but username or password was not provided")
 	}
-	if c.UseZooKeeperLag && (len(c.UriZookeeper) == 0 || c.UriZookeeper[0] == "") {
+	if c.UseZooKeeperLag && (len(c.ZookeeperURIs) == 0 || c.ZookeeperURIs[0] == "") {
 		return nil, fmt.Errorf("zookeeper lag is enabled but no zookeeper uri was provided")
 	}
 
 	var options kafka_exporter.Options
-	options.Uri = c.KafkaUri
+	options.Uri = c.KafkaURIs
 	options.UseSASL = c.UseSASL
 	options.UseSASLHandshake = c.UseSASLHandshake
 	options.SaslUsername = c.SASLUsername
 	options.SaslPassword = c.SASLPassword
 	options.SaslMechanism = c.SASLMechanism
 	options.UseTLS = c.UseTLS
-	options.TlsCAFile = c.TLSCAFile
-	options.TlsCertFile = c.TLSCertFile
-	options.TlsKeyFile = c.TLSKeyFile
-	options.TlsInsecureSkipTLSVerify = c.TLSInsecureSkipTLSVerify
+	options.TlsCAFile = c.CAFile
+	options.TlsCertFile = c.CertFile
+	options.TlsKeyFile = c.KeyFile
+	options.TlsInsecureSkipTLSVerify = c.InsecureSkipTLSVerify
 	options.KafkaVersion = c.KafkaVersion
 	options.UseZooKeeperLag = c.UseZooKeeperLag
-	options.UriZookeeper = c.UriZookeeper
-	options.Labels = c.Labels
+	options.UriZookeeper = c.ZookeeperURIs
+	options.Labels = c.ClusterName
 	options.MetadataRefreshInterval = c.MetadataRefreshInterval
 	options.AllowConcurrent = c.AllowConcurrent
 	options.MaxOffsets = c.MaxOffsets
@@ -162,9 +162,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	return integrations.NewCollectorIntegration(
 		c.Name(),
-		integrations.WithCollectors(
-			newExporter,
-		),
+		integrations.WithCollectors(newExporter),
 	), nil
 
 }
