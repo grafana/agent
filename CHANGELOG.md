@@ -2,6 +2,9 @@
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
+- [ENHANCEMENT] The Grafana Agent Operator will now deploy the latest release of
+  the Grafana Agent instead of v0.14.0. (@rfratto)
+
 # v0.16.1 (2021-06-22)
 
 - [BUGFIX] Fix issue where replaying a WAL caused incorrect metrics to be sent
