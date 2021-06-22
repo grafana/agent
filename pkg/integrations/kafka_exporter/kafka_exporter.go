@@ -157,7 +157,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	newExporter, err := kafka_exporter.New(logger, options, c.TopicsFilter, c.GroupFilter)
 	if err != nil {
-		return nil, fmt.Errorf("could not instanciate kafka lag exporter: %w", err)
+		return nil, fmt.Errorf("could not instantiate kafka lag exporter: %w", err)
 	}
 
 	return integrations.NewCollectorIntegration(
