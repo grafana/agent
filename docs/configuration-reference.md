@@ -2046,7 +2046,7 @@ remote_write:
     # If both `insecure_skip_verify` and `tls_config.insecure_skip_verify` are used,
     # the latter take precedence.
     [ insecure_skip_verify: <bool> | default = false ]
-    
+
     # Controls TLS settings of the exporter's client. See https://github.com/open-telemetry/opentelemetry-collector/blob/v0.21.0/config/configtls/README.md
     # This should be used only if `insecure` is set to false
     tls_config:
@@ -2657,7 +2657,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.16.0
+  - image: grafana/agent:v0.16.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
