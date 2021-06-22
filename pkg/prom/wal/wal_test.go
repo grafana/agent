@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/value"
@@ -166,6 +167,37 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	actualExemplars := collector.exemplars
 	sort.Sort(byRefExemplar(actualExemplars))
 	require.Equal(t, expectedExemplars, actualExemplars)
+}
+
+func TestStorage_ExistingWAL_RefID(t *testing.T) {
+	l := util.TestLogger(t)
+
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	s, err := NewStorage(l, nil, walDir)
+	require.NoError(t, err)
+
+	app := s.Appender(context.Background())
+	payload := buildSeries([]string{"foo", "bar", "baz", "blerg"})
+
+	// Write all the samples
+	for _, metric := range payload {
+		metric.Write(t, app)
+	}
+	require.NoError(t, app.Commit())
+
+	// Truncate the WAL to force creation of a new segment.
+	require.NoError(t, s.Truncate(0))
+	require.NoError(t, s.Close())
+
+	// Create a new storage and see what the ref ID is initialized to.
+	s, err = NewStorage(l, nil, walDir)
+	require.NoError(t, err)
+	defer require.NoError(t, s.Close())
+
+	require.Equal(t, uint64(len(payload)), s.ref.Load(), "cached ref ID should be equal to the number of series written")
 }
 
 func TestStorage_Truncate(t *testing.T) {
