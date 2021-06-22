@@ -2,6 +2,10 @@
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
+- [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
+  the matching release version of the Grafana Agent instead of v0.14.0.
+  (@rfratto)
+
 # v0.17.0 (2021-07-15)
 
 - [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
