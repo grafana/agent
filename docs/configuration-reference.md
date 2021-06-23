@@ -2038,6 +2038,10 @@ remote_write:
 
     # Controls whether compression is enabled.
     [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
+    
+    # Controls what protocol to use when exporting traces.
+    # Only "grpc" is supported in Grafana Cloud.
+    [ protocol: <string> | default = "grpc" | supported = "grpc", "http" ]
 
     # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
     [ insecure: <boolean> | default = false ]
