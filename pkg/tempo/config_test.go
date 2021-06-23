@@ -738,6 +738,43 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "otlp http & grpc exporters",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http 
+  - endpoint: example.com:12345
+    protocol: grpc
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  otlp/1:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0", "otlp/1"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
