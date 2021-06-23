@@ -171,7 +171,7 @@ local smoke = {
   // Spawn a syncer so our cluster gets the same scrape jobs as our
   // normal agent.
   sycner: gragent.newSyncer(
-    name='grafana-agent-sycner',
+    name='grafana-agent-syncer',
     namespace='smoke',
     config={
       image: images.agentctl,

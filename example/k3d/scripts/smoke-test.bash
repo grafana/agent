@@ -86,6 +86,12 @@ run() {
   chaos_loop &
   CHAOS_PID=$!
 
+  # Immediately create a job to sync configs so our two Agent deployments
+  # are synced up as closely as possible.
+  kubectl --context=k3d-$K3D_CLUSTER_NAME --namespace=smoke \
+    create job --from=cronjob/grafana-agent-syncer \
+    grafana-agent-syncer-startup
+
   echo "Your environment is now running for the next $TEST_DURATION."
   echo "Grafana URL: http://grafana.k3d.localhost:50080"
   echo "Prometheus URL: http://prometheus.k3d.localhost:50080"
