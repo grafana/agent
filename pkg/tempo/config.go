@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
@@ -137,6 +138,8 @@ type InstanceConfig struct {
 const (
 	compressionNone = "none"
 	compressionGzip = "gzip"
+	protocolGRPC    = "grpc"
+	protocolHTTP    = "http"
 )
 
 // DefaultPushConfig holds the default settings for a PushConfig.
@@ -174,12 +177,14 @@ func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // DefaultRemoteWriteConfig holds the default settings for a PushConfig.
 var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Compression: compressionGzip,
+	Protocol:    protocolGRPC,
 }
 
 // RemoteWriteConfig controls the configuration of an exporter
 type RemoteWriteConfig struct {
 	Endpoint    string `yaml:"endpoint,omitempty"`
 	Compression string `yaml:"compression,omitempty"`
+	Protocol    string `yaml:"protocol,omitempty"`
 	Insecure    bool   `yaml:"insecure,omitempty"`
 	// Deprecated
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
@@ -341,7 +346,13 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		exporterName := fmt.Sprintf("otlp/%d", i)
+		var exporterName string
+		switch remoteWriteConfig.Protocol {
+		case protocolGRPC:
+			exporterName = fmt.Sprintf("otlp/%d", i)
+		case protocolHTTP:
+			exporterName = fmt.Sprintf("otlphttp/%d", i)
+		}
 		exporters[exporterName] = exporter
 	}
 	return exporters, nil
@@ -637,6 +648,7 @@ func tracingFactories() (component.Factories, error) {
 
 	exporters, err := component.MakeExporterFactoryMap(
 		otlpexporter.NewFactory(),
+		otlphttpexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		prometheusexporter.NewFactory(),
 		remotewriteexporter.NewFactory(),

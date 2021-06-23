@@ -2,6 +2,8 @@
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
+- [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
