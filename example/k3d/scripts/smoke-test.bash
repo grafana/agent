@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Usage:
-#   smoke-test.bash [-d] [-t <duration>]
+#   smoke-test.bash [-i] [-d] [-t <duration>]
 #
 # Dependencies:
 #   k3d >=3.0
@@ -41,13 +41,15 @@ CHAOS_FREQUENCY="30m"
 # Which function will be called
 ENTRYPOINT="run"
 TEST_DURATION="3h"
+IMPORT_IMAGES=""
 
 while getopts "dt:" opt; do
   case $opt in
     d) ENTRYPOINT="cleanup" ;;
     t) TEST_DURATION=$OPTARG ;;
+    i) IMPORT_IMAGES="yes" ;;
     *)
-      echo "Usage: $0 [-d] [-t <minutes>]"
+      echo "Usage: $0 [-i] [-d] [-t <duration>]"
       exit 1
       ;;
   esac
@@ -67,6 +69,14 @@ run() {
   # applying the environment
   echo "--- Waiting for cluster to warm up"
   sleep 10
+
+  if [[ ! -z "$IMPORT_IMAGES" ]]; then
+    echo "--- Importing local images"
+
+    k3d image import -c $K3D_CLUSTER_NAME \
+      grafana/agent:latest \
+      grafana/agentctl:latest
+  fi
 
   tk apply $ROOT/example/k3d/smoke --dangerous-auto-approve
 

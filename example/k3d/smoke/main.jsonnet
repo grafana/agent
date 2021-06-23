@@ -33,7 +33,7 @@ local smoke = {
   // Needed to run agent cluster
   etcd: etcd.new('smoke'),
 
-  avalanche: avalanche.new(replicas=3, config={
+  avalanche: avalanche.new(replicas=3, namespace='smoke', config={
     // We're going to be running a lot of these and we're not trying to test
     // for load, so reduce the cardinality and churn rate.
     metric_count: 50,
@@ -109,6 +109,8 @@ local smoke = {
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
     gragent.withAgentConfig({
+      server: { log_level: 'debug' },
+
       prometheus: {
         global: {
           scrape_interval: '15s',
@@ -136,6 +138,8 @@ local smoke = {
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-cluster-wal', '/var/lib/agent')]) +
     gragent.withAgentConfig({
+      server: { log_level: 'debug' },
+
       prometheus: {
         global: {
           scrape_interval: '15s',
@@ -169,9 +173,11 @@ local smoke = {
   sycner: gragent.newSyncer(
     name='grafana-agent-sycner',
     namespace='smoke',
-    image=images.agentctl,
-    api='http://grafana-agent-cluster.smoke.svc.cluster.local',
-    configs=metric_instances('test-exporter-cluster'),
+    config={
+      image: images.agentctl,
+      api: 'http://grafana-agent-cluster.smoke.svc.cluster.local',
+      configs: metric_instances('test-exporter-cluster'),
+    }
   ),
 };
 

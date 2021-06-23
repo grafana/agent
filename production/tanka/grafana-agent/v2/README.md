@@ -52,7 +52,7 @@ Deployment for Traces, and a DaemonSet for logs.
 The Scraping Service Syncer is used to sync metrics instance configs against the
 scraping service config management API.
 
-- `newSyncer(name='grafana-agent-sycner', namespace='', image='', api='', configs=[])`
+- `newSyncer(name='grafana-agent-sycner', namespace='', config={})`
 
 ## General
 

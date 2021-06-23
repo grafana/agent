@@ -10,10 +10,15 @@ local volume = k.core.v1.volume;
 function(
   name='grafana-agent-syncer',
   namespace='',
-  image='grafana/agentctl:v0.16.1',
-  api=error 'api must be set',
-  configs=[],
+  config={},
 ) {
+  local _config = {
+    api: error 'api must be set',
+    image: 'grafana/agentctl:v0.16.1',
+    schedule: '*/5 * * * *',
+    configs: [],
+  } + config,
+
   local this = self,
   local _configs = std.foldl(
     function(agg, cfg)
@@ -22,7 +27,7 @@ function(
       local name = std.strReplace(cfg.name, '/', '_');
 
       agg { ['%s.yml' % name]: k.util.manifestYaml(cfg) },
-    configs,
+    _config.configs,
     {},
   ),
 
@@ -32,16 +37,16 @@ function(
     configMap.withData(_configs),
 
   container::
-    container.new(name, image) +
+    container.new(name, _config.image) +
     container.withArgsMixin([
       'config-sync',
-      '--addr=%s' % api,
+      '--addr=%s' % _config.api,
       '/etc/configs',
     ]) +
     container.withVolumeMounts(volumeMount.new(name, '/etc/configs')),
 
   job:
-    cronJob.new(name, '*/5 * * * *', this.container) +
+    cronJob.new(name, _config.schedule, this.container) +
     cronJob.mixin.metadata.withNamespace(namespace) +
     cronJob.mixin.spec.withSuccessfulJobsHistoryLimit(1) +
     cronJob.mixin.spec.withFailedJobsHistoryLimit(3) +

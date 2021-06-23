@@ -14,14 +14,8 @@ local container = k.core.v1.container;
     (import './internal/controllers/statefulset.libsonnet')(replicas, volumeClaims),
 
   // Syncer
-  newSyncer(
-    name='grafana-agent-syncer',
-    namespace='',
-    image='grafana/agentctl:v0.16.1',
-    api=error 'api must be set',
-    configs=[],
-  )::
-    (import './internal/syncer.libsonnet')(name, namespace, image, api, configs),
+  newSyncer(name='grafana-agent-syncer', namespace='', config={})::
+    (import './internal/syncer.libsonnet')(name, namespace, config),
 
   // General
   withAgentConfig(config):: { _config+: { agent_config: config } },
