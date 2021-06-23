@@ -129,7 +129,6 @@
             action: 'keep',
           },
         ],
-
       },
     ],
     kubernetes_scrape_configs: [

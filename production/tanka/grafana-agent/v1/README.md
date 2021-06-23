@@ -1,6 +1,6 @@
 # Tanka Configs
 
-**STATUS**: Work in progress, use of these configs is not recommended for production.
+**STATUS**: Abandoned. Use v0 (parent directory) or v2 instead.
 
 This directory contains the Tanka configs that we use to deploy the Grafana
 Agent. It is marked as `v1` and is incompatible with the `v0` configs

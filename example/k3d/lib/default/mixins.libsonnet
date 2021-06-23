@@ -13,4 +13,18 @@ local fix = {
 fix +
 cortex_mixin +
 agent_debugging_mixin +
-agent_mixin
+agent_mixin {
+  _config+: {
+    // We run a single-node cortex so replace the job names to all
+    // be the monolith.
+    job_names+: {
+      ingester: 'cortex',
+      distributor: 'cortex',
+      querier: 'cortex',
+      query_frontend: 'cortex',
+      table_manager: 'cortex',
+      store_gateway: 'cortex',
+      gateway: 'cortex',
+    },
+  },
+}

@@ -1,3 +1,4 @@
+local grafana_mixins = import 'default/mixins.libsonnet';
 local datasource = import 'grafana/datasource.libsonnet';
 local grafana = import 'grafana/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
@@ -17,9 +18,10 @@ local prometheus_monitoring = import './prometheus_monitoring.libsonnet';
 
   grafana:
     grafana.new(namespace='monitoring') +
-    grafana.withDashboards({}) +
+    grafana.withDashboards(grafana_mixins.grafanaDashboards) +
     grafana.withDataSources([
       datasource.new('Prometheus', 'http://prometheus.monitoring.svc.cluster.local:9090', default='true'),
+      datasource.new('Cortex', 'http://cortex.smoke.svc.cluster.local/api/prom'),
     ]),
 
   prometheus:
