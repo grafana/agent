@@ -49,16 +49,16 @@ type Config struct {
 	UseTLS bool `yaml:"use_tls,omitempty"`
 
 	// The optional certificate authority file for TLS client authentication
-	CAFile string `yaml:"cafile,omitempty"`
+	CAFile string `yaml:"ca_file,omitempty"`
 
 	// The optional certificate file for TLS client authentication
-	CertFile string `yam:"certfile,omitempty"`
+	CertFile string `yam:"cert_file,omitempty"`
 
 	// The optional key file for TLS client authentication
-	KeyFile string `yaml:"keyfile,omitempty"`
+	KeyFile string `yaml:"key_file,omitempty"`
 
 	// If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
-	InsecureSkipTLSVerify bool `yaml:"insecure_skip_tls_verify,omitempty"`
+	InsecureSkipVerify bool `yaml:"insecure_skip_verify,omitempty"`
 
 	// Kafka broker version
 	KafkaVersion string `yaml:"kafka_version,omitempty"`
@@ -134,26 +134,27 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, fmt.Errorf("zookeeper lag is enabled but no zookeeper uri was provided")
 	}
 
-	var options kafka_exporter.Options
-	options.Uri = c.KafkaURIs
-	options.UseSASL = c.UseSASL
-	options.UseSASLHandshake = c.UseSASLHandshake
-	options.SaslUsername = c.SASLUsername
-	options.SaslPassword = c.SASLPassword
-	options.SaslMechanism = c.SASLMechanism
-	options.UseTLS = c.UseTLS
-	options.TlsCAFile = c.CAFile
-	options.TlsCertFile = c.CertFile
-	options.TlsKeyFile = c.KeyFile
-	options.TlsInsecureSkipTLSVerify = c.InsecureSkipTLSVerify
-	options.KafkaVersion = c.KafkaVersion
-	options.UseZooKeeperLag = c.UseZooKeeperLag
-	options.UriZookeeper = c.ZookeeperURIs
-	options.Labels = c.ClusterName
-	options.MetadataRefreshInterval = c.MetadataRefreshInterval
-	options.AllowConcurrent = c.AllowConcurrent
-	options.MaxOffsets = c.MaxOffsets
-	options.PruneIntervalSeconds = c.PruneIntervalSeconds
+	options := kafka_exporter.Options{
+		Uri:                      c.KafkaURIs,
+		UseSASL:                  c.UseSASL,
+		UseSASLHandshake:         c.UseSASLHandshake,
+		SaslUsername:             c.SASLUsername,
+		SaslPassword:             c.SASLPassword,
+		SaslMechanism:            c.SASLMechanism,
+		UseTLS:                   c.UseTLS,
+		TlsCAFile:                c.CAFile,
+		TlsCertFile:              c.CertFile,
+		TlsKeyFile:               c.KeyFile,
+		TlsInsecureSkipTLSVerify: c.InsecureSkipVerify,
+		KafkaVersion:             c.KafkaVersion,
+		UseZooKeeperLag:          c.UseZooKeeperLag,
+		UriZookeeper:             c.ZookeeperURIs,
+		Labels:                   c.ClusterName,
+		MetadataRefreshInterval:  c.MetadataRefreshInterval,
+		AllowConcurrent:          c.AllowConcurrent,
+		MaxOffsets:               c.MaxOffsets,
+		PruneIntervalSeconds:     c.PruneIntervalSeconds,
+	}
 
 	newExporter, err := kafka_exporter.New(logger, options, c.TopicsFilter, c.GroupFilter)
 	if err != nil {

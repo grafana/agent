@@ -3756,7 +3756,7 @@ Full reference of options:
 ```yaml
 
   # Address array (host:port) of Kafka server
-  [kafka_uris: [- string]
+  kafka_uris: <[]string>
 
   # Connect using SASL/PLAIN
   [use_sasl: <bool>]
@@ -3777,16 +3777,16 @@ Full reference of options:
   [use_tls: <bool>]
 
   # The optional certificate authority file for TLS client authentication
-  [cafile: <string>]
+  [ca_file: <string>]
 
   # The optional certificate file for TLS client authentication
-  [certfile: <string>]
+  [cert_file: <string>]
 
   # The optional key file for TLS client authentication
-  [keyfile: <string>]
+  [key_file: <string>]
 
   # If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
-  [insecure_skip_tls_verify: <bool>]
+  [insecure_skip_verify: <bool>]
 
   # Kafka broker version
   [kafka_version: <string> | default = "2.0.0"]
