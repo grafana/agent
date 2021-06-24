@@ -54,6 +54,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
+	github.com/testcontainers/testcontainers-go v0.11.1
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/weaveworks/common v0.0.0-20210419092856-009d1eebd624
 	go.opencensus.io v0.23.0
