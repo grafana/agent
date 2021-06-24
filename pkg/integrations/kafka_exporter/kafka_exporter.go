@@ -165,5 +165,4 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		c.Name(),
 		integrations.WithCollectors(newExporter),
 	), nil
-
 }
