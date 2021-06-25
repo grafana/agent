@@ -280,11 +280,6 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 			shouldCollect = *common.ScrapeIntegration
 		}
 
-		// If Enabled is false then we should override the should collect
-		if !p.cfg.CommonConfig().Enabled {
-			shouldCollect = false
-		}
-
 		switch shouldCollect {
 		case true:
 			instanceConfig := m.instanceConfigForIntegration(p.cfg, p.i, cfg)

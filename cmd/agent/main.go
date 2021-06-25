@@ -47,6 +47,17 @@ func main() {
 		if cfg != nil {
 			cfg.Server.Log = cfgLogger
 		}
+		// Iterate over the configurations and remove any that Enabled = false, this works by setting i to the last element
+		//   and then returning the array minus the last element. This loses order but is performant.
+		for i := 0; i < len(cfg.Integrations.Integrations);{
+			if !cfg.Integrations.Integrations[i].CommonConfig().Enabled {
+				cfg.Integrations.Integrations[i] = cfg.Integrations.Integrations[len(cfg.Integrations.Integrations)-1]
+				cfg.Integrations.Integrations = cfg.Integrations.Integrations[:len(cfg.Integrations.Integrations)-1]
+			} else {
+				i++
+			}
+		}
+
 		return cfg, err
 	}
 	cfg, err := reloader()
