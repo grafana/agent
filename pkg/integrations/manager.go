@@ -205,6 +205,8 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// No-op
 	}
 
+	// Before applying any configurations, remove them from the array if enabled = false
+
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
 	for _, ic := range cfg.Integrations {
@@ -220,7 +222,12 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 				continue
 			}
 			p.stop()
+			m.im.DeleteConfig(key)
 			delete(m.integrations, key)
+		}
+
+		if !ic.CommonConfig().Enabled {
+			continue
 		}
 
 		l := log.With(m.logger, "integration", ic.Name())
@@ -258,6 +265,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		foundConfig := false
 		for _, ic := range cfg.Integrations {
 			if integrationKey(ic.Name()) == key {
+				// If this is disabled then we should delete from integrations
+				if !ic.CommonConfig().Enabled {
+					break
+				}
 				foundConfig = true
 				break
 			}
@@ -268,6 +279,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 		_ = m.im.DeleteConfig(key)
 		process.stop()
+		m.im.DeleteConfig(key)
 		delete(m.integrations, key)
 	}
 
