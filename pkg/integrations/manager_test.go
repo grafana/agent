@@ -261,7 +261,7 @@ func newMockIntegration() *mockIntegration {
 		running:      atomic.NewBool(true),
 		startedCount: atomic.NewUint32(0),
 		err:          make(chan error),
-		commonCfg: config.Common{Enabled: true},
+		commonCfg:    config.Common{Enabled: true},
 	}
 }
 

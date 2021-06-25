@@ -220,7 +220,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 				continue
 			}
 			p.stop()
-			m.im.DeleteConfig(key)
+			_ = m.im.DeleteConfig(key)
 			delete(m.integrations, key)
 		}
 
@@ -277,7 +277,6 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 		_ = m.im.DeleteConfig(key)
 		process.stop()
-		m.im.DeleteConfig(key)
 		delete(m.integrations, key)
 	}
 
