@@ -205,8 +205,6 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// No-op
 	}
 
-	// Before applying any configurations, remove them from the array if enabled = false
-
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
 	for _, ic := range cfg.Integrations {
