@@ -4,6 +4,8 @@
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
   Cloud will now be shown. (@rfratto)
+  
+- [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
 
 # v0.15.0 (2021-06-03)
 
