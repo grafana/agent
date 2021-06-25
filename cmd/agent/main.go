@@ -47,7 +47,6 @@ func main() {
 		if cfg != nil {
 			cfg.Server.Log = cfgLogger
 		}
-
 		return cfg, err
 	}
 	cfg, err := reloader()
