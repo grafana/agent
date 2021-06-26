@@ -9,7 +9,7 @@ local container = k.core.v1.container;
   // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#integrations_config
   withIntegrations(integrations):: {
     assert std.objectHasAll(self, '_mode') : |||
-      withLokiConfig must be merged with the result of calling new.
+      withIntegrations must be merged with the result of calling new.
     |||,
     _integrations:: integrations,
   },

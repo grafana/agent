@@ -124,7 +124,7 @@ local service = k.core.v1.service;
           else {},
       } + (
         if has_loki_config then $.lokiPermissionsMixin else {}
-      ) + $.integrationsMixin,
+      ),
 
     agent_etc: if std.length(etc_instances) > 0 then
       agent.newAgent(name + '-etc', namespace, self._images.agent, self.etc_config, use_daemonset=false) +
