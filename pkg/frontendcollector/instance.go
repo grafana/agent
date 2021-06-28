@@ -73,9 +73,12 @@ func (i *Instance) ApplyConfig(loki *loki.Loki, c *InstanceConfig) error {
 	return nil
 }
 
-func (i *Instance) logEventToStdout(event FrontendSentryEvent) error {
+func (i *Instance) sendEventToStdout(event FrontendSentryEvent) error {
 	logctx := event.ToLogContext(&i.smap, i.l)
 	keyvals := LogContextToKeyVals(logctx)
+	for labelName, labelValue := range i.cfg.StaticLabels {
+		keyvals = append([]interface{}{labelName, labelValue}, keyvals...)
+	}
 	switch event.Level {
 	case sentry.LevelError:
 		level.Error(i.l).Log(keyvals...)
@@ -89,7 +92,7 @@ func (i *Instance) logEventToStdout(event FrontendSentryEvent) error {
 	return i.l.Log(keyvals...)
 }
 
-func (i *Instance) logEventToLoki(event FrontendSentryEvent) error {
+func (i *Instance) sendEventToLoki(event FrontendSentryEvent) error {
 	logctx := event.ToLogContext(&i.smap, i.l)
 	logctx["level"] = event.Level
 	keyvals := LogContextToKeyVals(logctx)
@@ -97,10 +100,16 @@ func (i *Instance) logEventToLoki(event FrontendSentryEvent) error {
 	if err != nil {
 		return err
 	}
+	labels := model.LabelSet{
+		model.LabelName("collector"): model.LabelValue(i.cfg.Name),
+	}
+
+	for labelName, labelValue := range i.cfg.StaticLabels {
+		labels[model.LabelName(labelName)] = model.LabelValue(labelValue)
+	}
+
 	sent := i.lokiInstance.SendEntry(api.Entry{
-		Labels: model.LabelSet{
-			model.LabelName("collector"): model.LabelValue(i.cfg.Name),
-		},
+		Labels: labels,
 		Entry: logproto.Entry{
 			Timestamp: time.Now(),
 			Line:      string(line),
@@ -130,13 +139,13 @@ func (i *Instance) wire(mux *mux.Router, grpc *grpc.Server) {
 			return
 		}
 		if i.cfg.LogToStdout {
-			err := i.logEventToStdout(evt)
+			err := i.sendEventToStdout(evt)
 			if err != nil {
 				level.Error(i.l).Log("msg", "error logging event", "err", err)
 			}
 		}
 		if i.lokiInstance != nil {
-			err := i.logEventToLoki(evt)
+			err := i.sendEventToLoki(evt)
 			if err != nil {
 				level.Error(i.l).Log("msg", "error sending event to loki", "err", err)
 			}
