@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
@@ -112,6 +113,7 @@ func NewInstance(c *InstanceConfig, l log.Logger) (*Instance, error) {
 func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
+	c.Server.Log = util.GoKitLogger(i.l)
 	err := i.srv.ApplyConfig(c.Server, c.wire)
 	if err != nil {
 		return err
