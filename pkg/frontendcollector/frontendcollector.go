@@ -20,14 +20,14 @@ func New(c Config, loki *loki.Loki, l log.Logger) (*FrontendCollector, error) {
 		l:         log.With(l, "component", "frontendcollector"),
 	}
 
-	if err := frontendCollector.ApplyConfig(c); err != nil {
+	if err := frontendCollector.ApplyConfig(loki, c); err != nil {
 		return nil, err
 	}
 
 	return frontendCollector, nil
 }
 
-func (f *FrontendCollector) ApplyConfig(c Config) error {
+func (f *FrontendCollector) ApplyConfig(loki *loki.Loki, c Config) error {
 	f.mut.Lock()
 	defer f.mut.Unlock()
 
@@ -36,7 +36,7 @@ func (f *FrontendCollector) ApplyConfig(c Config) error {
 	for _, ic := range c.Configs {
 		// If an old instance existed, update it and move it to the new map.
 		if old, ok := f.instances[ic.Name]; ok {
-			err := old.ApplyConfig(ic)
+			err := old.ApplyConfig(loki, ic)
 			if err != nil {
 				return err
 			}
@@ -45,7 +45,7 @@ func (f *FrontendCollector) ApplyConfig(c Config) error {
 			continue
 		}
 
-		inst, err := NewInstance(ic, f.l)
+		inst, err := NewInstance(loki, ic, f.l)
 		if err != nil {
 			return fmt.Errorf("unable to apply config for %s: %w", ic.Name, err)
 		}

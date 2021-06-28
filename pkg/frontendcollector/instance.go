@@ -5,28 +5,35 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/go-logfmt/logfmt"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
 )
 
 type Instance struct {
-	cfg  *InstanceConfig
-	mut  sync.Mutex
-	l    log.Logger
-	srv  *server.Server
-	smap SourceMapStore
+	cfg          *InstanceConfig
+	mut          sync.Mutex
+	l            log.Logger
+	srv          *server.Server
+	smap         SourceMapStore
+	lokiInstance *loki.Instance
 }
 
 // NewInstance creates and starts a frontend collector instance.
-func NewInstance(c *InstanceConfig, l log.Logger) (*Instance, error) {
+func NewInstance(loki *loki.Loki, c *InstanceConfig, l log.Logger) (*Instance, error) {
 	logger := log.With(l, "collector", c.Name)
 	srv := server.New(prometheus.NewRegistry(), logger)
 	inst := Instance{
@@ -34,12 +41,11 @@ func NewInstance(c *InstanceConfig, l log.Logger) (*Instance, error) {
 		l:   logger,
 		srv: srv,
 	}
-	if err := inst.ApplyConfig(c); err != nil {
+	if err := inst.ApplyConfig(loki, c); err != nil {
 		return nil, err
 	}
 	go func() {
 		err := srv.Run()
-		fmt.Println("stop", err)
 		if err != nil {
 			level.Error(logger).Log("msg", "Failed to start frontend collector", "err", err)
 		}
@@ -47,7 +53,7 @@ func NewInstance(c *InstanceConfig, l log.Logger) (*Instance, error) {
 	return &inst, nil
 }
 
-func (i *Instance) ApplyConfig(c *InstanceConfig) error {
+func (i *Instance) ApplyConfig(loki *loki.Loki, c *InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 	c.Server.Log = util.GoKitLogger(i.l)
@@ -56,6 +62,14 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 		return err
 	}
 	i.cfg = c
+	if len(c.LokiName) > 0 {
+		i.lokiInstance = loki.Instance(c.LokiName)
+		if i.lokiInstance == nil {
+			return fmt.Errorf("loki instance %s not found", c.LokiName)
+		}
+	} else {
+		i.lokiInstance = nil
+	}
 	return nil
 }
 
@@ -73,6 +87,29 @@ func (i *Instance) logEventToStdout(event FrontendSentryEvent) error {
 		level.Info(i.l).Log(keyvals...)
 	}
 	return i.l.Log(keyvals...)
+}
+
+func (i *Instance) logEventToLoki(event FrontendSentryEvent) error {
+	logctx := event.ToLogContext(&i.smap, i.l)
+	logctx["level"] = event.Level
+	keyvals := LogContextToKeyVals(logctx)
+	line, err := logfmt.MarshalKeyvals(keyvals...)
+	if err != nil {
+		return err
+	}
+	sent := i.lokiInstance.SendEntry(api.Entry{
+		Labels: model.LabelSet{
+			model.LabelName("collector"): model.LabelValue(i.cfg.Name),
+		},
+		Entry: logproto.Entry{
+			Timestamp: time.Now(),
+			Line:      string(line),
+		},
+	}, i.cfg.Timeout)
+	if !sent {
+		return fmt.Errorf("Failed to send to loki")
+	}
+	return nil
 }
 
 func (i *Instance) wire(mux *mux.Router, grpc *grpc.Server) {
@@ -96,8 +133,12 @@ func (i *Instance) wire(mux *mux.Router, grpc *grpc.Server) {
 			err := i.logEventToStdout(evt)
 			if err != nil {
 				level.Error(i.l).Log("msg", "error logging event", "err", err)
-				http.Error(w, fmt.Sprintf("Error logging event"), 500)
-				return
+			}
+		}
+		if i.lokiInstance != nil {
+			err := i.logEventToLoki(evt)
+			if err != nil {
+				level.Error(i.l).Log("msg", "error sending event to loki", "err", err)
 			}
 		}
 		w.WriteHeader(http.StatusOK)

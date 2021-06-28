@@ -1,6 +1,8 @@
 package frontendcollector
 
 import (
+	"time"
+
 	"github.com/grafana/agent/pkg/util/server"
 )
 
@@ -15,5 +17,6 @@ type InstanceConfig struct {
 	RateLimitRPS   int           `yaml:"rate_limit_rps"`
 	RateLimitBurst int           `yaml:"rate_limit_burst"`
 	LokiName       string        `yaml:"loki_name"`
+	Timeout        time.Duration `yaml:"timeout"`
 	LogToStdout    bool          `yaml:"log_to_stdout"`
 }

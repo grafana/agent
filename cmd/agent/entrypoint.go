@@ -142,7 +142,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.frontendCollector.ApplyConfig(cfg.FrontendCollector); err != nil {
+	if err := ep.frontendCollector.ApplyConfig(ep.lokiLogs, cfg.FrontendCollector); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update frontend collector", "err", err)
 		failed = true
 	}
