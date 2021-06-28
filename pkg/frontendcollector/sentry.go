@@ -85,6 +85,9 @@ func (event *FrontendSentryEvent) ToLogContext(store *SourceMapStore, l log.Logg
 	if event.Exception != nil {
 		ctx["stacktrace"] = event.Exception.FmtStacktraces(store, l)
 	}
+	if len(event.Release) > 0 {
+		ctx["release"] = event.Release
+	}
 	addEventContextToLogContext("context", ctx, event.Contexts)
 	if len(event.User.Email) > 0 {
 		ctx["user_email"] = event.User.Email
