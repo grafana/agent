@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
@@ -58,6 +59,22 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	return nil
 }
 
+func (i *Instance) logEventToStdout(event FrontendSentryEvent) error {
+	logctx := event.ToLogContext(&i.smap, i.l)
+	keyvals := LogContextToKeyVals(logctx)
+	switch event.Level {
+	case sentry.LevelError:
+		level.Error(i.l).Log(keyvals...)
+	case sentry.LevelWarning:
+		level.Warn(i.l).Log(keyvals...)
+	case sentry.LevelDebug:
+		level.Debug(i.l).Log(keyvals...)
+	default:
+		level.Info(i.l).Log(keyvals...)
+	}
+	return i.l.Log(keyvals...)
+}
+
 func (i *Instance) wire(mux *mux.Router, grpc *grpc.Server) {
 
 	c := cors.New(cors.Options{
@@ -75,10 +92,13 @@ func (i *Instance) wire(mux *mux.Router, grpc *grpc.Server) {
 			http.Error(w, fmt.Sprintf("Error parsing JSON: %v", err.Error()), 400)
 			return
 		}
-		logctx := evt.ToLogContext(&i.smap, i.l)
-		keyvals := LogContextToKeyVals(logctx)
 		if i.cfg.LogToStdout {
-			level.Info(i.l).Log(keyvals...)
+			err := i.logEventToStdout(evt)
+			if err != nil {
+				level.Error(i.l).Log("msg", "error logging event", "err", err)
+				http.Error(w, fmt.Sprintf("Error logging event"), 500)
+				return
+			}
 		}
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "ok")
