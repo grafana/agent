@@ -66,7 +66,7 @@ func (exception *FrontendSentryException) FmtStacktraces(store *SourceMapStore, 
 
 func addEventContextToLogContext(rootPrefix string, logCtx LogContext, eventCtx map[string]interface{}) {
 	for key, element := range eventCtx {
-		prefix := fmt.Sprintf("%s.%s", rootPrefix, key)
+		prefix := fmt.Sprintf("%s__%s", rootPrefix, key)
 		switch v := element.(type) {
 		case LogContext:
 			addEventContextToLogContext(prefix, logCtx, v)
