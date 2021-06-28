@@ -7,6 +7,64 @@ Features and other functionality that are subject to change and are not
 recommended for production use will be tagged interchangably as either "beta" or
 "experimental."
 
+## Horizontal Scaling
+
+There are three options to horizontally scale your deployment of Grafana Agents:
+
+1. [Host filtering](#host-filtering) requires you to run one Agent on every
+   machine you wish to collect metrics from. Agents will only collect metrics
+   from the machines they run on.
+2. [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
+   discovered set of targets by using hashmod/keep relabel rules.
+3. The [scraping service](./scraping-service.md) allows you to cluster Grafana
+   Agents and have them distrubute per-tenant configs throughout the cluster.
+
+Each has their own set of tradeoffs:
+
+**Host Filtering pros**
+
+* Does not need specialized configs per agent
+* No external dependencies required to operate
+
+**Host Filtering cons**
+
+* Can cause significant load on service discovery APIs
+* Requires each Agent to have the same list of scrape configs/remote_writes
+
+**Hashmod sharding pros**
+
+* Exact control on the number of shards to run
+* Smaller load on SD compared to host filtering (as there are a smaller # of
+  Agents)
+* No external dependencies required to operate
+
+**Hashmod sharding cons**
+
+* Each Agent must have a specialized config with their shard number inserted
+  into the hashmod/keep relabel rule pair.
+* Requires each Agent to have the same list of scrape configs/remote_writes,
+  with the exception of the hashmod rule being different.
+* Hashmod is not [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
+  so up to 100% of jobs will move to a new machine when scaling shards.
+
+**Scraping service pros**
+
+* Agents don't have to have a synchronized set of scrape configs / remote_writes
+  (they pull from a centralized location).
+* Exact control on the number of shards to run.
+* Uses [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
+  so only 1/N jobs will move to a new machine when scaling shards.
+* Smallest load on SD compared to host filtering, as only one Agent is
+  responsible for a config.
+
+**Scraping service cons**
+
+* Centralized configs must discover a [minimal set of targets](./scraping-service.md#best-practices)
+  to distribute evenly.
+* Requires running a separate KV store to store the centralized configs.
+* Managing centralized configs adds operational burden over managing a config
+  file.
+
 ## Host Filtering
 
 Host Filtering implements a form of "dumb sharding," where operators may deploy
@@ -59,6 +117,39 @@ If the determined hostname matches any of the meta labels, the discovered target
 is allowed. Otherwise, the target is ignored, and will not show up in the
 [targets
 API](https://github.com/grafana/agent/blob/main/docs/api.md#list-current-scrape-targets).
+
+## Hashmod Sharding
+
+Grafana Agents can be sharded by using a pair of hashmod/keep relabel rules.
+These rules will hash the address of a target and modulus it with the number
+of Agent shards that are running.
+
+```yaml
+scrape_configs:
+- job_name: some_job
+  # Add usual service discovery here, such as static_configs
+  relabel_configs:
+  - source_labels: [__address__]
+    modulus:       4    # 4 shards
+    target_label:  __tmp_hash
+    action:        hashmod
+  - source_labels: [__tmp_hash]
+    regex:         ^1$  # This is the 2nd shard
+    action:        keep
+```
+
+Add the `relabel_configs` to all of your scrape_config blocks. Ensure that each
+running Agent shard has a different value for the `regex`; the first Agent shard
+should have `^0$`, the second should have `^1$`, and so on, up to `^3$`.
+
+This sharding mechanism means each Agent will ignore roughly 1/N of the total
+targets, where N is the number of shards. This allows for horizontal scaling the
+number of Agents and distributing load between them.
+
+Note that the hashmod used here is not a consistent hashing algorithm; this
+means that changing the number of shards may cause any number of targets to move
+to a new shard, up to 100%. When moving to a new shard, any existing data in the
+WAL from the old machine is effectively discarded.
 
 ## Prometheus "Instances"
 
