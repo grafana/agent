@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/frontendcollector"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/tempo"
@@ -33,11 +34,12 @@ type Entrypoint struct {
 	log *util.Logger
 	cfg config.Config
 
-	srv         *server.Server
-	promMetrics *prom.Agent
-	lokiLogs    *loki.Loki
-	tempoTraces *tempo.Tempo
-	manager     *integrations.Manager
+	srv               *server.Server
+	promMetrics       *prom.Agent
+	lokiLogs          *loki.Loki
+	tempoTraces       *tempo.Tempo
+	manager           *integrations.Manager
+	frontendCollector *frontendcollector.FrontendCollector
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
@@ -89,6 +91,11 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
+	ep.frontendCollector, err = frontendcollector.New(cfg.FrontendCollector, ep.lokiLogs, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	// Mostly everything should be up to date except for the server, which hasn't
 	// been created yet.
 	if err := ep.ApplyConfig(*cfg); err != nil {
@@ -132,6 +139,11 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 
 	if err := ep.manager.ApplyConfig(cfg.Integrations); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
+		failed = true
+	}
+
+	if err := ep.frontendCollector.ApplyConfig(cfg.FrontendCollector); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update frontend collector", "err", err)
 		failed = true
 	}
 
@@ -214,6 +226,7 @@ func (ep *Entrypoint) Stop() {
 	ep.lokiLogs.Stop()
 	ep.promMetrics.Stop()
 	ep.tempoTraces.Stop()
+	ep.frontendCollector.Stop()
 	ep.srv.Close()
 
 	if ep.reloadServer != nil {

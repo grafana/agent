@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/common/server"
 
 	"github.com/drone/envsubst"
+	"github.com/grafana/agent/pkg/frontendcollector"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/loki"
 	"github.com/grafana/agent/pkg/prom"
@@ -28,11 +29,12 @@ var DefaultConfig = Config{
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config              `yaml:"server,omitempty"`
-	Prometheus   prom.Config                `yaml:"prometheus,omitempty"`
-	Loki         loki.Config                `yaml:"loki,omitempty"`
-	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
-	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
+	Server            server.Config              `yaml:"server,omitempty"`
+	Prometheus        prom.Config                `yaml:"prometheus,omitempty"`
+	Loki              loki.Config                `yaml:"loki,omitempty"`
+	Integrations      integrations.ManagerConfig `yaml:"integrations,omitempty"`
+	Tempo             tempo.Config               `yaml:"tempo,omitempty"`
+	FrontendCollector frontendcollector.Config   `yaml:"frontend_collector,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
