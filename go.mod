@@ -6,7 +6,8 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
 	github.com/drone/envsubst v1.0.2
-	github.com/fatih/structs v0.0.0-20180123065059-ebf56d35bba7
+	github.com/fatih/structs v1.1.0
+	github.com/getsentry/sentry-go v0.11.0 // indirect
 	github.com/go-kit/kit v0.10.0
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-logr/logr v0.4.0
@@ -43,6 +44,7 @@ require (
 	github.com/prometheus/procfs v0.6.1-0.20210313121648-b565fefb1664
 	github.com/prometheus/prometheus v1.8.2-0.20210421143221-52df5ef7a3be
 	github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
