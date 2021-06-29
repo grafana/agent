@@ -40,6 +40,12 @@ func NewInstance(loki *loki.Loki, c *InstanceConfig, l log.Logger) (*Instance, e
 		cfg: c,
 		l:   logger,
 		srv: srv,
+		smap: SourceMapStore{
+			l:               logger,
+			cache:           make(map[string]*sourceMap),
+			download:        c.DownloadSourcemaps,
+			downloadTimeout: c.DownloadSourcemapTimeout,
+		},
 	}
 	if err := inst.ApplyConfig(loki, c); err != nil {
 		return nil, err
@@ -114,7 +120,7 @@ func (i *Instance) sendEventToLoki(event FrontendSentryEvent) error {
 			Timestamp: time.Now(),
 			Line:      string(line),
 		},
-	}, i.cfg.Timeout)
+	}, i.cfg.LokiTimeout)
 	if !sent {
 		return fmt.Errorf("Failed to send to loki")
 	}

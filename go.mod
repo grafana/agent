@@ -11,6 +11,7 @@ require (
 	github.com/go-kit/kit v0.10.0
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-logr/logr v0.4.0
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
@@ -50,6 +51,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.28.0+incompatible
+	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50 // indirect
 	github.com/weaveworks/common v0.0.0-20210419092856-009d1eebd624
 	github.com/wrouesnel/postgres_exporter v0.0.0-00010101000000-000000000000
 	go.opencensus.io v0.23.0
