@@ -14,7 +14,6 @@ local container = k.core.v1.container;
     _integrations:: integrations,
   },
 
-  // TODO(rfratto): only enable this when node_exporter is used.
   integrationsMixin:: {
     container+::
       container.mixin.securityContext.withPrivileged(true) +
