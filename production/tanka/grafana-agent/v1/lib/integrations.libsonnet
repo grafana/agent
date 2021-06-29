@@ -9,25 +9,24 @@ local container = k.core.v1.container;
   // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#integrations_config
   withIntegrations(integrations):: {
     assert std.objectHasAll(self, '_mode') : |||
-      withLokiConfig must be merged with the result of calling new.
+      withIntegrations must be merged with the result of calling new.
     |||,
     _integrations:: integrations,
   },
 
-  // TODO(rfratto): only enable this when node_exporter is used.
   integrationsMixin:: {
     container+::
       container.mixin.securityContext.withPrivileged(true) +
       container.mixin.securityContext.withRunAsUser(0),
 
-    local controller = self.agent._controller,
-    agent+::
+    local controller = self._controller,
+    agent+:
       // procfs, sysfs, rotfs
       k.util.hostVolumeMount('proc', '/proc', '/host/proc', readOnly=true) +
       k.util.hostVolumeMount('sys', '/sys', '/host/sys', readOnly=true) +
       k.util.hostVolumeMount('root', '/', '/host/root', readOnly=true) +
 
-      controller.mixin.spec.template.spec.withHostPid(true) +
+      controller.mixin.spec.template.spec.withHostPID(true) +
       controller.mixin.spec.template.spec.withHostNetwork(true),
   },
 }
