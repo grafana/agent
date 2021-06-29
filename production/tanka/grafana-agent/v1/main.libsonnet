@@ -124,6 +124,8 @@ local service = k.core.v1.service;
           else {},
       } + (
         if has_loki_config then $.lokiPermissionsMixin else {}
+      ) + (
+        if has_integrations && std.objectHas(this._integrations, 'node_exporter') then $.integrationsMixin else {}
       ),
 
     agent_etc: if std.length(etc_instances) > 0 then
