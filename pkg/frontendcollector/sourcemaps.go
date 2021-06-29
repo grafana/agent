@@ -47,22 +47,21 @@ func downloadFileContents(client http.Client, url string) ([]byte, error) {
 	return body, nil
 }
 
-func (store *SourceMapStore) downloadSourceMap(sourceURL string) (*sourceMap, error) {
+func (store *SourceMapStore) downloadSourceMapContent(sourceURL string) (content []byte, resolvedSourceMapURL string, err error) {
 	level.Debug(store.l).Log("msg", "attempting to download source file", "url", sourceURL)
 	client := http.Client{
 		Timeout: store.downloadTimeout,
 	}
-	content, err := downloadFileContents(client, sourceURL)
+	result, err := downloadFileContents(client, sourceURL)
 	if err != nil {
 		level.Debug(store.l).Log("failed to download source file", "url", sourceURL, "err", err)
-		return nil, err
+		return nil, "", err
 	}
 	r := regexp.MustCompile(reSourceMap)
-	match := r.FindAllStringSubmatch(string(content), -1)
+	match := r.FindAllStringSubmatch(string(result), -1)
 	if match == nil || len(match) == 0 {
-		store.cache[sourceURL] = nil
 		level.Debug(store.l).Log("msg", "no sourcemap url found in source", "url", sourceURL)
-		return nil, nil
+		return nil, "", nil
 	}
 	sourceMapURL := match[len(match)-1][2]
 
@@ -70,62 +69,45 @@ func (store *SourceMapStore) downloadSourceMap(sourceURL string) (*sourceMap, er
 	if strings.HasPrefix(sourceMapURL, "data:") {
 		dataURL, err := dataurl.DecodeString(sourceMapURL)
 		if err != nil {
-			store.cache[sourceURL] = nil
 			level.Debug(store.l).Log("msg", "failed to parse inline sourcemap data url", "url", sourceURL, "err", err)
-			return nil, err
+			return nil, "", err
 		}
-		consumer, err := sourcemap.Parse(sourceURL+".map", dataURL.Data)
-		if err != nil {
-			store.cache[sourceURL] = nil
-			level.Debug(store.l).Log("msg", "failed to parse inline sourcemap", "url", sourceURL, "err", err)
-			return nil, err
-		}
-		level.Info(store.l).Log("msg", "successfully parsed inline sourcemap", "url", sourceURL)
-		smap := &sourceMap{
-			consumer: consumer,
-		}
-		store.cache[sourceURL] = smap
-		return smap, nil
+
+		level.Info(store.l).Log("msg", "successfully parsed inline sourcemap data url", "url", sourceURL)
+		return dataURL.Data, sourceURL + ".map", nil
 	}
 	// remote sourcemap
-	resolvedSourceMapURL := sourceMapURL
+	resolvedSourceMapURL = sourceMapURL
 
 	// if url is relative, attempt to resolve absolute
 	if !strings.HasPrefix(resolvedSourceMapURL, "http") {
 		base, err := url.Parse(sourceURL)
 		if err != nil {
 			level.Debug(store.l).Log("msg", "failed to parse source url", "url", sourceURL, "err", err)
-			store.cache[sourceURL] = nil
-			return nil, err
+			return nil, "", err
 		}
 		relative, err := url.Parse(sourceMapURL)
 		if err != nil {
 			level.Debug(store.l).Log("msg", "failed to parse source map url", "url", sourceURL, "sourceMapURL", sourceMapURL, "err", err)
-			store.cache[sourceURL] = nil
-			return nil, err
+			return nil, "", err
 		}
 		resolvedSourceMapURL = base.ResolveReference(relative).String()
 		level.Debug(store.l).Log("msg", "resolved absolute soure map url", "url", sourceURL, "sourceMapURL", resolvedSourceMapURL)
 	}
 	level.Debug(store.l).Log("msg", "attempting to download sourcemap file", "url", resolvedSourceMapURL)
-	content, err = downloadFileContents(client, resolvedSourceMapURL)
+	result, err = downloadFileContents(client, resolvedSourceMapURL)
 	if err != nil {
 		level.Debug(store.l).Log("failed to download source map file", "url", resolvedSourceMapURL, "err", err)
-		return nil, err
+		return nil, "", err
 	}
+	return result, resolvedSourceMapURL, nil
+}
 
-	consumer, err := sourcemap.Parse(resolvedSourceMapURL, content)
-	if err != nil {
-		store.cache[sourceURL] = nil
-		level.Debug(store.l).Log("msg", "failed to parse downloaded sourcemap", "url", resolvedSourceMapURL, "err", err)
-		return nil, err
+func (store *SourceMapStore) getSourceMapContent(sourceURL string) (content []byte, sourceMapURL string, err error) {
+	if strings.HasPrefix(sourceURL, "http") && store.download {
+		return store.downloadSourceMapContent(sourceURL)
 	}
-	level.Info(store.l).Log("msg", "successfully parsed downloaded sourcemap", "url", resolvedSourceMapURL)
-	smap := &sourceMap{
-		consumer: consumer,
-	}
-	store.cache[sourceURL] = smap
-	return smap, nil
+	return nil, "", nil
 }
 
 func (store *SourceMapStore) getSourceMap(sourceURL string) (*sourceMap, error) {
@@ -135,15 +117,24 @@ func (store *SourceMapStore) getSourceMap(sourceURL string) (*sourceMap, error) 
 	if smap, ok := store.cache[sourceURL]; ok {
 		return smap, nil
 	}
-	if strings.HasPrefix(sourceURL, "http") && store.download {
-		smap, err := store.downloadSourceMap(sourceURL)
+	content, sourceMapURL, err := store.downloadSourceMapContent(sourceURL)
+	if err != nil || content == nil {
+		store.cache[sourceURL] = nil
+		return nil, err
+	}
+	if content != nil {
+		consumer, err := sourcemap.Parse(sourceMapURL, content)
 		if err != nil {
+			store.cache[sourceURL] = nil
+			level.Debug(store.l).Log("msg", "failed to parse sourcemap", "url", sourceMapURL, "err", err)
 			return nil, err
 		}
-		if smap != nil {
-			store.cache[sourceURL] = smap
-			return smap, nil
+		level.Info(store.l).Log("msg", "successfully parsed sourcemap", "url", sourceMapURL)
+		smap := &sourceMap{
+			consumer: consumer,
 		}
+		store.cache[sourceURL] = smap
+		return smap, nil
 	}
 	return nil, nil
 }
