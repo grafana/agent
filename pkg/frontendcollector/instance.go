@@ -87,15 +87,14 @@ func (i *Instance) sendEventToStdout(event FrontendSentryEvent) error {
 	}
 	switch event.Level {
 	case sentry.LevelError:
-		level.Error(i.l).Log(keyvals...)
+		return level.Error(i.l).Log(keyvals...)
 	case sentry.LevelWarning:
-		level.Warn(i.l).Log(keyvals...)
+		return level.Warn(i.l).Log(keyvals...)
 	case sentry.LevelDebug:
-		level.Debug(i.l).Log(keyvals...)
+		return level.Debug(i.l).Log(keyvals...)
 	default:
-		level.Info(i.l).Log(keyvals...)
+		return level.Info(i.l).Log(keyvals...)
 	}
-	return i.l.Log(keyvals...)
 }
 
 func (i *Instance) sendEventToLoki(event FrontendSentryEvent) error {
@@ -127,6 +126,27 @@ func (i *Instance) sendEventToLoki(event FrontendSentryEvent) error {
 	return nil
 }
 
+func (i *Instance) handleEvent(event FrontendSentryEvent) error {
+	if len(event.GetKind()) == 0 {
+		level.Debug(i.l).Log("msg", "skipping frontend event, unknown kind", "event_id", event.EventID)
+		return nil
+	}
+	var err error = nil
+	if i.cfg.LogToStdout {
+		err = i.sendEventToStdout(event)
+		if err != nil {
+			level.Error(i.l).Log("msg", "error logging event", "err", err)
+		}
+	}
+	if i.lokiInstance != nil {
+		err = i.sendEventToLoki(event)
+		if err != nil {
+			level.Error(i.l).Log("msg", "error sending event to loki", "err", err)
+		}
+	}
+	return err
+}
+
 func (i *Instance) wire(mux *mux.Router, grpc *grpc.Server) {
 
 	c := cors.New(cors.Options{
@@ -144,18 +164,9 @@ func (i *Instance) wire(mux *mux.Router, grpc *grpc.Server) {
 			http.Error(w, fmt.Sprintf("Error parsing JSON: %v", err.Error()), 400)
 			return
 		}
-		if i.cfg.LogToStdout {
-			err := i.sendEventToStdout(evt)
-			if err != nil {
-				level.Error(i.l).Log("msg", "error logging event", "err", err)
-			}
-		}
-		if i.lokiInstance != nil {
-			err := i.sendEventToLoki(evt)
-			if err != nil {
-				level.Error(i.l).Log("msg", "error sending event to loki", "err", err)
-			}
-		}
+
+		i.handleEvent(evt)
+
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "ok")
 	})))

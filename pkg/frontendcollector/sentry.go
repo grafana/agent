@@ -11,6 +11,12 @@ import (
 
 type LogContext = map[string]interface{}
 
+type Measurement struct {
+	Value float32 `json:"value"`
+}
+
+type Measurements = map[string]Measurement
+
 type FrontendSentryExceptionValue struct {
 	Value      string            `json:"value,omitempty"`
 	Type       string            `json:"type,omitempty"`
@@ -23,7 +29,8 @@ type FrontendSentryException struct {
 
 type FrontendSentryEvent struct {
 	*sentry.Event
-	Exception *FrontendSentryException `json:"exception,omitempty"`
+	Exception    *FrontendSentryException `json:"exception,omitempty"`
+	Measurements Measurements             `json:"measurements,omitempty"`
 }
 
 func (value *FrontendSentryExceptionValue) FmtMessage() string {
@@ -82,11 +89,19 @@ func (event *FrontendSentryEvent) ToLogContext(store *SourceMapStore, l log.Logg
 	ctx["user_agent"] = event.Request.Headers["User-Agent"]
 	ctx["event_id"] = event.EventID
 	ctx["original_timestamp"] = event.Timestamp
+	ctx["kind"] = event.GetKind()
+	msg := event.GetMessage()
+	if len(msg) > 0 {
+		ctx["msg"] = msg
+	}
 	if event.Exception != nil {
 		ctx["stacktrace"] = event.Exception.FmtStacktraces(store, l)
 	}
 	if len(event.Release) > 0 {
 		ctx["release"] = event.Release
+	}
+	if len(event.Environment) > 0 {
+		ctx["environment"] = event.Environment
 	}
 	addEventContextToLogContext("context", ctx, event.Contexts)
 	if len(event.User.Email) > 0 {
@@ -94,7 +109,35 @@ func (event *FrontendSentryEvent) ToLogContext(store *SourceMapStore, l log.Logg
 		ctx["user_id"] = event.User.ID
 	}
 
+	if event.Measurements != nil {
+		for name, measurement := range event.Measurements {
+			ctx[name] = measurement.Value
+		}
+	}
+
 	return ctx
+}
+
+func (event *FrontendSentryEvent) GetMessage() string {
+	if len(event.Message) > 0 {
+		return event.Message
+	} else if event.Exception != nil && len(event.Exception.Values) > 0 {
+		return event.Exception.Values[0].FmtMessage()
+	}
+	return ""
+}
+
+func (event *FrontendSentryEvent) GetKind() string {
+	if event.Exception != nil {
+		return "exception"
+	}
+	if event.Measurements != nil {
+		return "perf"
+	}
+	if len(event.Message) > 0 {
+		return "log"
+	}
+	return ""
 }
 
 func LogContextToKeyVals(ctx LogContext) []interface{} {
