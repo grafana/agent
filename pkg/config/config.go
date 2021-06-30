@@ -64,6 +64,10 @@ func (c *Config) ApplyDefaults() error {
 		return err
 	}
 
+	if err := c.FrontendCollector.ApplyDefaults(); err != nil {
+		return err
+	}
+
 	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
 	c.Integrations.ListenPort = c.Server.HTTPListenPort
 	c.Integrations.ListenHost = c.Server.HTTPListenAddress
