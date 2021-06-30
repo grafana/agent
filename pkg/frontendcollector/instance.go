@@ -126,7 +126,7 @@ func (i *Instance) sendEventToLoki(event FrontendSentryEvent) error {
 	return nil
 }
 
-func (i *Instance) handleEvent(event FrontendSentryEvent) error {
+func (i *Instance) HandleEvent(event FrontendSentryEvent) error {
 	if len(event.GetKind()) == 0 {
 		level.Debug(i.l).Log("msg", "skipping frontend event, unknown kind", "event_id", event.EventID)
 		return nil
@@ -147,29 +147,31 @@ func (i *Instance) handleEvent(event FrontendSentryEvent) error {
 	return err
 }
 
+func (i *Instance) handleHTTPEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Body == nil {
+		http.Error(w, "Please send a request body", 400)
+		return
+	}
+	var evt FrontendSentryEvent
+	err := json.NewDecoder(r.Body).Decode(&evt)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error parsing JSON: %v", err.Error()), 400)
+		return
+	}
+
+	i.HandleEvent(evt)
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "ok")
+}
+
 func (i *Instance) wire(mux *mux.Router, grpc *grpc.Server) {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: i.cfg.AllowedOrigins,
 	})
 
-	mux.Handle("/collect", c.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Body == nil {
-			http.Error(w, "Please send a request body", 400)
-			return
-		}
-		var evt FrontendSentryEvent
-		err := json.NewDecoder(r.Body).Decode(&evt)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Error parsing JSON: %v", err.Error()), 400)
-			return
-		}
-
-		i.handleEvent(evt)
-
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "ok")
-	})))
+	mux.Handle("/collect", c.Handler(rateLimit(i.cfg.RateLimitRPS, i.cfg.RateLimitBurst, time.Now, http.HandlerFunc(i.handleHTTPEvent))))
 }
 
 func (i *Instance) Stop() {
