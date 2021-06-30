@@ -17,11 +17,12 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
+	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/common/config"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configloader"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/exporter/prometheusexporter"
@@ -217,7 +218,7 @@ type SpanMetricsConfig struct {
 	// Namespace if set, exports metrics under the provided value.
 	Namespace string `yaml:"namespace,omitempty"`
 	// ConstLabels are values that are applied for every exported metric.
-	ConstLabels map[string]interface{} `yaml:"const_labels,omitempty"`
+	ConstLabels *prometheus.Labels `yaml:"const_labels,omitempty"`
 	// PromInstance is the Agent's prometheus instance that will be used to push metrics
 	PromInstance string `yaml:"prom_instance"`
 	// HandlerEndpoint is the address where a prometheus exporter will be exposed
@@ -427,7 +428,7 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 	return policies, nil
 }
 
-func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
+func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
 	if len(c.Receivers) == 0 {
@@ -606,19 +607,13 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		"pipelines": pipelines,
 	}
 
-	// now build the otel configmodel from the mapstructure
-	v := viper.New()
-	err = v.MergeConfigMap(otelMapStructure)
-	if err != nil {
-		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
-	}
-
 	factories, err := tracingFactories()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
 
-	otelCfg, err := config.Load(v, factories)
+	parser := configparser.NewParserFromStringMap(otelMapStructure)
+	otelCfg, err := configloader.Load(parser, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
