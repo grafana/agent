@@ -7,6 +7,8 @@
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
+  
+- [ENHANCEMENT] Update OTel dependency to v0.29.0 (@mapno)
 
 # v0.16.1 (2021-06-22)
 
