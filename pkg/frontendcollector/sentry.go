@@ -76,7 +76,16 @@ func addEventContextToLogContext(rootPrefix string, logCtx LogContext, eventCtx 
 		prefix := fmt.Sprintf("%s__%s", rootPrefix, key)
 		switch v := element.(type) {
 		case LogContext:
-			addEventContextToLogContext(prefix, logCtx, v)
+			if key == "trace" {
+				logCtx["traceID"] = v["rootTraceId"]
+				logCtx["spanID"] = v["rootSpanId"]
+			} else if key == "measurements" {
+				for name, measurement := range v {
+					logCtx[name] = measurement
+				}
+			} else {
+				addEventContextToLogContext(prefix, logCtx, v)
+			}
 		default:
 			logCtx[prefix] = fmt.Sprintf("%v", v)
 		}
@@ -131,7 +140,7 @@ func (event *FrontendSentryEvent) GetKind() string {
 	if event.Exception != nil {
 		return "exception"
 	}
-	if event.Measurements != nil {
+	if event.Measurements != nil || event.Message == "measurements" {
 		return "perf"
 	}
 	if len(event.Message) > 0 {
