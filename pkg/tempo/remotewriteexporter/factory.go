@@ -5,7 +5,7 @@ import (
 
 	"github.com/prometheus/prometheus/pkg/labels"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -16,7 +16,7 @@ const (
 
 // Config holds the configuration for the Prometheus SD processor.
 type Config struct {
-	configmodels.ProcessorSettings `mapstructure:",squash"`
+	config.ProcessorSettings `mapstructure:",squash"`
 
 	ConstLabels  labels.Labels `mapstructure:"const_labels"`
 	Namespace    string        `mapstructure:"namespace"`
@@ -32,19 +32,16 @@ func NewFactory() component.ExporterFactory {
 	)
 }
 
-func createDefaultConfig() configmodels.Exporter {
+func createDefaultConfig() config.Exporter {
 	return &Config{
-		ProcessorSettings: configmodels.ProcessorSettings{
-			TypeVal: TypeStr,
-			NameVal: TypeStr,
-		},
+		ProcessorSettings: config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr)),
 	}
 }
 
 func createMetricsExporter(
 	_ context.Context,
-	_ component.ExporterCreateParams,
-	cfg configmodels.Exporter,
+	_ component.ExporterCreateSettings,
+	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
 	eCfg := cfg.(*Config)
 
