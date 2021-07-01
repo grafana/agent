@@ -41,7 +41,7 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 
 	// Build data point
 	dp := pdata.NewIntHistogramDataPoint()
-	dp.SetTimestamp(pdata.TimestampUnixNano(ts.UnixNano()))
+	dp.SetTimestamp(pdata.TimestampFromTime(ts.UTC()))
 	dp.SetBucketCounts(bucketCounts)
 	dp.SetExplicitBounds(explicitBounds)
 	dp.SetCount(countValue)

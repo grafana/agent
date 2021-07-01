@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 )
@@ -15,7 +15,7 @@ const TypeStr = "automatic_logging"
 
 // Config holds the configuration for the Automatic Logging processor.
 type Config struct {
-	configmodels.ProcessorSettings `mapstructure:",squash"`
+	config.ProcessorSettings `mapstructure:",squash"`
 
 	LoggingConfig *AutomaticLoggingConfig `mapstructure:"automatic_logging"`
 }
@@ -59,20 +59,17 @@ func NewFactory() component.ProcessorFactory {
 	)
 }
 
-func createDefaultConfig() configmodels.Processor {
+func createDefaultConfig() config.Processor {
 	return &Config{
-		ProcessorSettings: configmodels.ProcessorSettings{
-			TypeVal: TypeStr,
-			NameVal: TypeStr,
-		},
+		ProcessorSettings: config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr)),
 	}
 }
 
 func createTraceProcessor(
 	_ context.Context,
-	cp component.ProcessorCreateParams,
-	cfg configmodels.Processor,
-	nextConsumer consumer.TracesConsumer,
+	cp component.ProcessorCreateSettings,
+	cfg config.Processor,
+	nextConsumer consumer.Traces,
 ) (component.TracesProcessor, error) {
 	oCfg := cfg.(*Config)
 
