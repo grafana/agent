@@ -110,8 +110,13 @@ replace github.com/weaveworks/common => github.com/rfratto/weaveworks-common v0.
 // loadbalancingexporter uses non-fixed version of batchpertrace which fetches latest and causes problems
 replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.29.0
 
+// Replacing for an internal fork that exposes internal folders
+// Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
+// This is a temporary solution while a new configuration design is discussed for the collector (ref: https://github.com/open-telemetry/opentelemetry-collector/issues/3482).
 replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20210625154936-5ed8906327ca
 
-replace github.com/prometheus/common => github.com/prometheus/common v0.23.0
-
-replace github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
+// Pin prometheus dependencies
+replace (
+	github.com/prometheus/common => github.com/prometheus/common v0.23.0
+	github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
+)
