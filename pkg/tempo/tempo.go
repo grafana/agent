@@ -13,11 +13,11 @@ import (
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/stats/view"
+	"go.opentelemetry.io/collector/external/obsreportconfig"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/collector/config/configtelemetry"
-	"go.opentelemetry.io/collector/obsreport"
 )
 
 // Tempo wraps the OpenTelemetry collector to enable tracing pipelines
@@ -161,8 +161,8 @@ func (l *logLeveller) Enabled(target zapcore.Level) bool {
 }
 
 func newMetricViews(reg prom_client.Registerer) ([]*view.View, error) {
-	views := obsreport.Configure(configtelemetry.LevelBasic)
-	err := view.Register(views...)
+	obsMetrics := obsreportconfig.Configure(configtelemetry.LevelBasic)
+	err := view.Register(obsMetrics.Views...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to register views: %w", err)
 	}
@@ -177,5 +177,5 @@ func newMetricViews(reg prom_client.Registerer) ([]*view.View, error) {
 
 	view.RegisterExporter(pe)
 
-	return views, nil
+	return obsMetrics.Views, nil
 }

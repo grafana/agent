@@ -2,6 +2,7 @@ package automaticloggingprocessor
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,8 +13,8 @@ func TestSpanKeyVals(t *testing.T) {
 	tests := []struct {
 		spanName  string
 		spanAttrs map[string]pdata.AttributeValue
-		spanStart uint64
-		spanEnd   uint64
+		spanStart time.Time
+		spanEnd   time.Time
 		cfg       AutomaticLoggingConfig
 		expected  []interface{}
 	}{
@@ -40,7 +41,8 @@ func TestSpanKeyVals(t *testing.T) {
 			},
 		},
 		{
-			spanEnd: 10,
+			spanStart: time.Unix(0, 0),
+			spanEnd:   time.Unix(0, 10),
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
@@ -48,8 +50,8 @@ func TestSpanKeyVals(t *testing.T) {
 			},
 		},
 		{
-			spanStart: 10,
-			spanEnd:   100,
+			spanStart: time.Unix(0, 10),
+			spanEnd:   time.Unix(0, 100),
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
@@ -105,8 +107,8 @@ func TestSpanKeyVals(t *testing.T) {
 		span := pdata.NewSpan()
 		span.SetName(tc.spanName)
 		span.Attributes().InitFromMap(tc.spanAttrs).Sort()
-		span.SetStartTime(pdata.TimestampUnixNano(tc.spanStart))
-		span.SetEndTime(pdata.TimestampUnixNano(tc.spanEnd))
+		span.SetStartTimestamp(pdata.TimestampFromTime(tc.spanStart))
+		span.SetEndTimestamp(pdata.TimestampFromTime(tc.spanEnd))
 
 		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
 		assert.Equal(t, tc.expected, actual)

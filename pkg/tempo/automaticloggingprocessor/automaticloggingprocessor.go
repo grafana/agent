@@ -40,7 +40,7 @@ const (
 )
 
 type automaticLoggingProcessor struct {
-	nextConsumer consumer.TracesConsumer
+	nextConsumer consumer.Traces
 
 	cfg          *AutomaticLoggingConfig
 	logToStdout  bool
@@ -50,7 +50,7 @@ type automaticLoggingProcessor struct {
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggingConfig) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig) (component.TracesProcessor, error) {
 	logger := log.With(util.Logger, "component", "tempo automatic logging")
 
 	if nextConsumer == nil {
@@ -134,8 +134,8 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func (p *automaticLoggingProcessor) GetCapabilities() component.ProcessorCapabilities {
-	return component.ProcessorCapabilities{}
+func (p *automaticLoggingProcessor) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{}
 }
 
 // Start is invoked during service startup.
@@ -238,23 +238,23 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 }
 
 func spanDuration(span pdata.Span) string {
-	dur := int64(span.EndTime() - span.StartTime())
+	dur := int64(span.EndTimestamp() - span.StartTimestamp())
 	return strconv.FormatInt(dur, 10) + "ns"
 }
 
 func attributeValue(att pdata.AttributeValue) interface{} {
 	switch att.Type() {
-	case pdata.AttributeValueSTRING:
+	case pdata.AttributeValueTypeString:
 		return att.StringVal()
-	case pdata.AttributeValueINT:
+	case pdata.AttributeValueTypeInt:
 		return att.IntVal()
-	case pdata.AttributeValueDOUBLE:
+	case pdata.AttributeValueTypeDouble:
 		return att.DoubleVal()
-	case pdata.AttributeValueBOOL:
+	case pdata.AttributeValueTypeBool:
 		return att.BoolVal()
-	case pdata.AttributeValueMAP:
+	case pdata.AttributeValueTypeMap:
 		return att.MapVal()
-	case pdata.AttributeValueARRAY:
+	case pdata.AttributeValueTypeArray:
 		return att.ArrayVal()
 	}
 	return nil
