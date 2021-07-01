@@ -112,10 +112,24 @@ func (event *FrontendSentryEvent) ToLogContext(store *SourceMapStore, l log.Logg
 	if len(event.Environment) > 0 {
 		ctx["environment"] = event.Environment
 	}
+	if len(event.Dist) > 0 {
+		ctx["dist"] = event.Dist
+	}
+	if len(event.Platform) > 0 {
+		ctx["platform"] = event.Platform
+	}
 	addEventContextToLogContext("context", ctx, event.Contexts)
 	if len(event.User.Email) > 0 {
 		ctx["user_email"] = event.User.Email
+	}
+	if len(event.User.ID) > 0 {
 		ctx["user_id"] = event.User.ID
+	}
+	if len(event.User.Username) > 0 {
+		ctx["user_username"] = event.User.Username
+	}
+	if len(event.User.IPAddress) > 0 {
+		ctx["user_ip_adddress"] = event.User.IPAddress
 	}
 
 	if event.Measurements != nil {
