@@ -17,6 +17,7 @@ require (
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/miekg/dns v1.1.41
+	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
@@ -41,6 +42,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
+	github.com/tcnksm/ghr v0.14.0 // indirect
 	github.com/uber/jaeger-client-go v2.28.0+incompatible
 	github.com/weaveworks/common v0.0.0-20210419092856-009d1eebd624
 	github.com/wrouesnel/postgres_exporter v0.0.0-00010101000000-000000000000
@@ -48,8 +50,10 @@ require (
 	go.opentelemetry.io/collector v0.21.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
-	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6
+	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914 // indirect
+	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22
 	google.golang.org/grpc v1.37.0
+	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
