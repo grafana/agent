@@ -51,7 +51,7 @@ Currently, there are six ways to install the agent:
 - Use the Kubernetes manifest
 - Installing the static binaries locally
 - Using Grafana Labs' official Tanka configs (_recommended advanced_)
-- Using the [Windows Installer](./windows.md)
+- Using the [Windows Installer](./install-agent-on-windows.md)
 
 ### Docker container
 
