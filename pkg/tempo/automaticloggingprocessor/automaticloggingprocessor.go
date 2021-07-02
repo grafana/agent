@@ -47,6 +47,8 @@ type automaticLoggingProcessor struct {
 	logsInstance *logs.Instance
 	done         atomic.Bool
 
+	labels map[string]bool
+
 	logger log.Logger
 }
 
@@ -85,12 +87,18 @@ func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig
 	cfg.Overrides.DurationKey = override(cfg.Overrides.DurationKey, defaultDurationKey)
 	cfg.Overrides.TraceIDKey = override(cfg.Overrides.TraceIDKey, defaultTraceIDKey)
 
+	labels := make(map[string]bool, len(cfg.Labels))
+	for _, l := range cfg.Labels {
+		labels[l] = true
+	}
+
 	return &automaticLoggingProcessor{
 		nextConsumer: nextConsumer,
 		cfg:          cfg,
 		logToStdout:  logToStdout,
 		logger:       logger,
 		done:         atomic.Bool{},
+		labels:       labels,
 	}, nil
 }
 
@@ -116,22 +124,40 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 				traceID := span.TraceID().HexString()
 
 				if p.cfg.Spans {
-					p.exportToLogsInstance(typeSpan, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
+					keyValues := append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)
+					p.exportToLogsInstance(typeSpan, traceID, p.spanLabels(keyValues), keyValues...)
 				}
 
 				if p.cfg.Roots && span.ParentSpanID().IsEmpty() {
-					p.exportToLogsInstance(typeRoot, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
+					keyValues := append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)
+					p.exportToLogsInstance(typeSpan, traceID, p.spanLabels(keyValues), keyValues...)
 				}
 
 				if p.cfg.Processes && lastTraceID != traceID {
 					lastTraceID = traceID
-					p.exportToLogsInstance(typeProcess, traceID, p.processKeyVals(rs.Resource(), svc)...)
+					keyValues := p.processKeyVals(rs.Resource(), svc)
+					p.exportToLogsInstance(typeProcess, traceID, p.spanLabels(keyValues), keyValues...)
 				}
 			}
 		}
 	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)
+}
+
+func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.LabelSet {
+	if len(keyValues) == 0 {
+		return nil
+	}
+	ls := make(map[model.LabelName]model.LabelValue, len(keyValues))
+	for i := 0; i < len(keyValues); i += 2 {
+		k := keyValues[i]
+		v := keyValues[i+1]
+		if p.labels[k.(string)] {
+			ls[model.LabelName(k.(string))] = model.LabelValue(v.(string))
+		}
+	}
+	return ls
 }
 
 func (p *automaticLoggingProcessor) Capabilities() consumer.Capabilities {
@@ -191,7 +217,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	atts = append(atts, spanDuration(span))
 
 	atts = append(atts, p.cfg.Overrides.StatusKey)
-	atts = append(atts, span.Status().Code())
+	atts = append(atts, span.Status().Code().String())
 
 	for _, name := range p.cfg.SpanAttributes {
 		att, ok := span.Attributes().Get(name)
@@ -204,7 +230,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	return atts
 }
 
-func (p *automaticLoggingProcessor) exportToLogsInstance(kind string, traceID string, keyvals ...interface{}) {
+func (p *automaticLoggingProcessor) exportToLogsInstance(kind string, traceID string, labels model.LabelSet, keyvals ...interface{}) {
 	if p.done.Load() {
 		return
 	}
@@ -222,10 +248,12 @@ func (p *automaticLoggingProcessor) exportToLogsInstance(kind string, traceID st
 		return
 	}
 
+
+	// Add loki label
+	labels[model.LabelName(p.cfg.Overrides.LokiTag)] = model.LabelValue(kind)
+
 	sent := p.logsInstance.SendEntry(api.Entry{
-		Labels: model.LabelSet{
-			model.LabelName(p.cfg.Overrides.LogsTag): model.LabelValue(kind),
-		},
+		Labels: labels,
 		Entry: logproto.Entry{
 			Timestamp: time.Now(),
 			Line:      string(line),

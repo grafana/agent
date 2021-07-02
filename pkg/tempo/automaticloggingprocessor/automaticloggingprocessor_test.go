@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -267,4 +268,28 @@ func TestLokiNameMigration(t *testing.T) {
 	bb, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
 	require.YAMLEq(t, expect, string(bb))
+}
+
+func TestLabels(t *testing.T) {
+	tests := []struct {
+		Labels         []string
+		KeyValues      []interface{}
+		ExpectedLabels model.LabelSet
+	}{
+		{
+			Labels: []string{"loki", "svc", ""},
+		},
+	}
+
+	for _, tc := range tests {
+		cfg := &AutomaticLoggingConfig{
+			Spans:  true,
+			Labels: tc.Labels,
+		}
+		p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
+		require.NoError(t, err)
+
+		ls := p.(*automaticLoggingProcessor).spanLabels(tc.KeyValues)
+		assert.Equal(t, tc.ExpectedLabels, ls)
+	}
 }
