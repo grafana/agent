@@ -26,7 +26,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(0).String(),
 			},
 		},
 		{
@@ -34,14 +34,14 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "test",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(0).String(),
 			},
 		},
 		{
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(0).String(),
 			},
 		},
 		{
@@ -50,7 +50,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(0).String(),
 			},
 		},
 		{
@@ -59,7 +59,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(0).String(),
 			},
 		},
 		{
@@ -69,7 +69,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(0).String(),
 			},
 		},
 		{
@@ -82,7 +82,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(0).String(),
 				"xstr", "test",
 			},
 		},
@@ -97,7 +97,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"a", "",
 				"c", "0ns",
-				"d", pdata.StatusCode(0),
+				"d", pdata.StatusCode(0).String(),
 			},
 		},
 	}
@@ -277,11 +277,11 @@ func TestLabels(t *testing.T) {
 		ExpectedLabels model.LabelSet
 	}{
 		{
-			Labels: []string{"loki", "svc", ""},
+			Labels:    []string{"loki", "svc", ""},
 			KeyValues: []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
 			ExpectedLabels: map[model.LabelName]model.LabelValue{
 				"loki": "loki",
-				"svc": "gateway",
+				"svc":  "gateway",
 			},
 		},
 	}
