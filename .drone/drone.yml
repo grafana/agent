@@ -1,6 +1,6 @@
 ---
 kind: pipeline
-name: Test
+name: Lint
 platform:
   os: linux
   arch: amd64
@@ -8,32 +8,62 @@ platform:
 steps:
 - name: lint
   image: golangci/golangci-lint:v1.37.1
-  # libsystemd-dev is required for cgo
   commands:
   - apt-get update -y && apt-get install -y libsystemd-dev
   - make lint
+---
+kind: pipeline
+type: docker
+name: Dist
+platform:
+  os: linux
+  arch: amd64
 
-# - name: test
-#   image: ubuntu
-#   volumes:
-#   - name: docker
-#     path: /var/run/docker.sock
-#   commands:
-#   - apt-get update  && apt-get install -y libsystemd-dev
-#   - mkdir -p /usr/local/go/bin
-#   - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-#   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-#   - export PATH=$PATH:/usr/local/go/bin
-#   - make cmd/agent/agent cmd/agentctl/agentctl
-#   - make test
-#   - RELEASE_TAG=v0.0.0 make test-packages
-
-
+steps:
 - name: test-ubuntu
+  image: rfratto/seego
+  commands:
+  - apt-get update &&  apt-get install -y rubygems rpm nsis
+  - gem install --no-document fpm
+  - mkdir -p /usr/local/go/bin
+  - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+  - rm go1.16.5.linux-amd64.tar.gz
+  - export PATH=$PATH:/usr/local/go/bin
+  - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist/agent-freebsd-amd64
+---
+kind: pipeline
+type: docker
+name: Release
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  event:
+  - tag
+steps:
+- name: create-release
+  image: agentbuild
+  pull: if-not-exists
+  commands:
+  - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
+  - export PATH="$(go env GOPATH)/bin:$PATH"
+  - export RELEASE_TAG=${GITHUB_REF##*/}
+  - make -j4 RELEASE_BUILD=true publish
+- name: publish
+  image: plugins/github-release
+  settings:
+    api_key: xxxxxxxx
+    files: /drone/src/dist/*
+    draft: true
+---
+kind: pipeline
+type: docker
+name: Containerize2
+
+steps:
+- name: Build Agent Containers
   image: ubuntu
-  #volumes:
-  #- name: docker
-  #  path: /var/run/docker.sock
   commands:
   - export DEBIAN_FRONTEND=noninteractive  
   - dpkg --add-architecture i386 
@@ -44,19 +74,9 @@ steps:
   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
   - rm go1.16.5.linux-amd64.tar.gz
   - export PATH=$PATH:/usr/local/go/bin
-  - apt-get clean && rm -rf /var/lib/apt/lists/*
-  # - make BUILD_IN_CONTAINER=false cmd/agent/agent
-  - make BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl
-  - make BUILD_IN_CONTAINER=false dist
-  - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 BUILD_IN_CONTAINER=false test-packages
-  # - make cmd/agentctl/agentctl
-  # - make test
-  # - RELEASE_TAG=v0.0.0 make test-packages
+  - CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make agent
+  - CGO_ENABLED=1 GOOS=linux GOARCH=arm64 make agent
 
-#volumes:
-#- name: docker
-#  host: 
-#    path: /var/run/docker.sock
 
 ---
 kind: pipeline
@@ -79,6 +99,10 @@ steps:
   - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
   - chmod a+x ~/.docker/cli-plugins/docker-buildx
   - docker buildx create --use
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx inspect --bootstrap
+  - docker buildx ls
   - CROSS_BUILD=true RELEASE_BUILD=true make agent-image
 - name: Build Agentctl Container
   image: docker

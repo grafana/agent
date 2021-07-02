@@ -142,4 +142,6 @@ configure_windows() {
       exit 1
   esac
 }
-main "$@"
+main
+echo $CC 
+
