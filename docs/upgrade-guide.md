@@ -1,19 +1,26 @@
-# Migration Guide
++++
+title = "Upgrade guide"
+weight = 200
++++
 
-This is a guide detailing all breaking changes that have happened in prior
+# Upgrade guide
+
+This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-# Unreleased
+## Unreleased
 
-## Tempo: Remote write TLS config
+These changes will come in a future version.
+
+### Tempo: Remote write TLS config
 
 Tempo `remote_write` now supports configuring TLS settings in the trace
 exporter's client. `insecure_skip_verify` is moved into this setting's block.
 
-Old config's with `insecure_skip_verify` outside `tls_config` will continue
+Old configurations with `insecure_skip_verify` outside `tls_config` will continue
 to work until it's fully deprecated.
 If both `insecure_skip_verify` and `tls_config.insecure_skip_verify` are used,
-the latter take precedence
+then the latter take precedence.
 
 Example old config:
 
@@ -40,13 +47,13 @@ tempo:
             insecure_skip_verify: true
 ```
 
-# v0.15.0
+## v0.15.0
 
-## Tempo: `automatic_logging` changes
+### Tempo: `automatic_logging` changes
 
 Tempo automatic logging previously assumed that the operator wanted to log
 to a Loki instance. With the addition of an option to log to stdout a new
-field is required to maintain the old behavior:
+field is required to maintain the old behavior.
 
 Example old config:
 
@@ -69,9 +76,9 @@ tempo:
       loki_name: <some loki instance>
 ```
 
-# v0.14.0
+## v0.14.0
 
-## Scraping Service security change
+### Scraping Service security change
 
 v0.14.0 changes the default behavior of the scraping service config management
 API to reject all configuration files that read credentials from a file on disk.
@@ -98,7 +105,7 @@ prometheus:
     # ...
 ```
 
-## SigV4 config change
+### SigV4 config change
 
 v0.14.0 updates the internal Prometheus dependency to 2.26.0, which includes
 native support for SigV4, but uses a slightly different configuration structure
@@ -122,7 +129,7 @@ sigv4:
   region: us-east-1
 ```
 
-## Tempo: `push_config` deprecation
+### Tempo: `push_config` deprecation
 
 `push_config` is now deprecated in favor of a `remote_write` array which allows for sending spans to multiple endpoints.
 `push_config` will be removed in a future release, and it is recommended to migrate to `remote_write` as soon as possible.
@@ -166,12 +173,11 @@ tempo:
         send_batch_size: 100
 ```
 
-
-# v0.12.0
+## v0.12.0
 
 v0.12.0 had two breaking changes: the `tempo` and `loki` sections have been changed to require a list of `tempo`/`loki` configs rather than just one.
 
-## Tempo Config Change
+### Tempo Config Change
 
 The Tempo config (`tempo` in the config file) has been changed to store
 configs within a `configs` list. This allows for defining multiple Tempo
@@ -229,7 +235,7 @@ tempo:
         send_batch_size: 100
 ```
 
-## Loki Promtail Config Change
+### Loki Promtail Config Change
 
 The Loki Promtail config (`loki` in the config file) has been changed to store
 configs within a `configs` list. This allows for defining multiple Loki
