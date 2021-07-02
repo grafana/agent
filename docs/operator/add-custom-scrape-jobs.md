@@ -1,14 +1,9 @@
-# FAQ
++++
+title = "Add custom scrape jobs"
+weight = 400
++++
 
-## Where do I find information on the supported values for the CustomResourceDefinitions?
-
-Once you've [deployed the CustomResourceDefinitions](./getting-started.md#deploying-customresourcedefinitions)
-to your Kubernetes cluster, use `kubectl explain <resource>` to get access to
-the documentation for each resource. For example, `kubectl explain GrafanaAgent`
-will describe the GrafanaAgent CRD, and `kubectl explain GrafanaAgent.spec` will
-give you information on its spec field.
-
-## How do I add custom scrape jobs?
+# Add custom scrape jobs
 
 Sometimes you want to add a scrape job for something that isn't supported by the
 standard set of Prometheus Operator CRDs. A common example of this is node-level
