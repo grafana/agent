@@ -175,7 +175,7 @@ from that `remote_write` config separated by a `-`.
 The shared Instances mode is the new default, and the previous behavior is
 deprecated. If you wish to restore the old behavior, set `instance_mode:
 distinct` in the
-[`prometheus_config`](./configuration-reference.md#prometheus_config) block of
+[`prometheus_config`](./configuration/prometheus-config.md) block of
 your config file.
 
 Shared Instances are completely transparent to the user with the exception of
