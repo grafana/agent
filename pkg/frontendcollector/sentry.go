@@ -77,8 +77,8 @@ func addEventContextToLogContext(rootPrefix string, logCtx LogContext, eventCtx 
 		switch v := element.(type) {
 		case LogContext:
 			if key == "trace" {
-				logCtx["traceID"] = v["rootTraceId"]
-				logCtx["spanID"] = v["rootSpanId"]
+				logCtx["traceID"] = v["trace_id"]
+				logCtx["spanID"] = v["span_id"]
 			} else if key == "measurements" {
 				for name, measurement := range v {
 					logCtx[name] = measurement
