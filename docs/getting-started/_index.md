@@ -1,4 +1,9 @@
-# Getting Started
++++
+title = Getting started with Grafana Agent
+weight = 100
++++
+
+# Getting started with Grafana Agent
 
 This guide helps users get started with the Grafana Agent. For getting started
 with the Grafana Agent Operator, please refer to the Operator-specific
@@ -37,18 +42,18 @@ tk apply ./environment
 # Navigate to localhost:30080 in your browser
 ```
 
-## Installing
+## Installation methods
 
-Currently, there are five ways to install the agent:
+Currently, there are six ways to install the agent:
 
-1. Use our Docker container
-2. Use the Kubernetes install script (_recommended basic_)
-3. Use the Kubernetes manifest
-4. Installing the static binaries locally
-5. Using Grafana Labs' official Tanka configs (_recommended advanced_)
-6. Using the [Windows Installer](./windows.md)
+- Use our Docker container
+- Use the Kubernetes install script (_recommended basic_)
+- Use the Kubernetes manifest
+- Installing the static binaries locally
+- Using Grafana Labs' official Tanka configs (_recommended advanced_)
+- Using the [Windows Installer](./install-agent-on-windows.md)
 
-### Docker Container
+### Docker container
 
 ```
 docker pull grafana/agent:v0.16.1
@@ -62,26 +67,27 @@ Two manifests will be installed: one for collecting metrics, and the other for
 collecting logs. You will be prompted for input for each manifest that is
 applied.
 
-> **Warning**: Always verify scripts from the internet before running them.
+> **Warning:** Always verify scripts from the internet before running them.
 
 ```
 NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
 NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
 NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
 ```
+
 **Note:** For the above script to scrape your pods, they must conform to the following rules:
 
-1. The pod must _not_ have an annotation matching `prometheus.io/scrape: "false"` (this wouldn't be there unless you explicitly add it or if you deploy a Helm chart that has it).
-2. The pod _must_ have a port with a name ending in `-metrics`. This is the port that will be scraped by the Agent. A lot of people using Helm struggle with this, since Helm charts don't usually follow this. You would need to add a new scrape config to scrape helm charts or find a way to tweak the Helm chart to follow this rules.
-3. The pod _must_ have a label named name with any non-empty value. Helm usually lets you add extra labels, so this is less of a problem for Helm users.
-4. The pod must currently be running. (i.e., Kubernetes must not report it having a phase of Succeeded or Failed).
+- The pod must _not_ have an annotation matching `prometheus.io/scrape: "false"` (this wouldn't be there unless you explicitly add it or if you deploy a Helm chart that has it).
+- The pod _must_ have a port with a name ending in `-metrics`. This is the port that will be scraped by the Agent. A lot of people using Helm struggle with this, since Helm charts don't usually follow this. You would need to add a new scrape config to scrape helm charts or find a way to tweak the Helm chart to follow this rules.
+- The pod _must_ have a label named name with any non-empty value. Helm usually lets you add extra labels, so this is less of a problem for Helm users.
+- The pod must currently be running. (i.e., Kubernetes must not report it having a phase of Succeeded or Failed).
 
 ### Kubernetes Manifest
 
 If you wish to manually modify the Kubernetes manifest before deploying it
 yourself, you can do so by downloading the [`agent.yaml` file](/production/kubernetes/agent.yaml).
 
-### Installing Locally
+### Install locally
 
 Our [Releases](https://github.com/grafana/agent/releases) page contains
 instructions for downloading static binaries that are published with every release.
@@ -90,7 +96,7 @@ instructions for downloading static binaries that are published with every relea
 
 We provide [Tanka](https://tanka.dev) configurations in our [`production/`](/production/tanka/grafana-agent) directory.
 
-## Creating a Config File
+## Create a Config File
 
 The Grafana Agent supports configuring **integrations**, a
 **Prometheus-like** config, and a **Loki** config. All may coexist together
