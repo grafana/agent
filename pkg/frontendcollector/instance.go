@@ -163,6 +163,7 @@ func (i *Instance) handleHTTPEvent(w http.ResponseWriter, r *http.Request) {
 		i.HandleEvent(evt)
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "ok")
+		return
 	}
 	w.WriteHeader(http.StatusMethodNotAllowed)
 	fmt.Fprintf(w, "")
