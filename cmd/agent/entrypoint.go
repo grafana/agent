@@ -63,7 +63,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		}
 
 		reloadMux := mux.NewRouter()
-		reloadMux.HandleFunc("/-/reload", ep.reloadHandler)
+		reloadMux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
 		ep.reloadServer = &http.Server{Handler: reloadMux}
 	}
 
@@ -173,7 +173,7 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 		}
 	})
 
-	mux.HandleFunc("/-/reload", ep.reloadHandler)
+	mux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
 }
 
 func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {

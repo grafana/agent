@@ -216,6 +216,7 @@ you encounter.
 
 ```
 GET /-/reload
+POST /-/reload
 ```
 
 This endpoint will re-read the configuration file from disk and refresh the
