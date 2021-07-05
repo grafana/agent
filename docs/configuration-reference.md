@@ -2075,33 +2075,33 @@ remote_write:
     [ sending_queue: <otlpexporter.sending_queue> ]
     [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
-    # This processor writes a well formatted log line to a Loki instance for each span, root, or process
-    # that passes through the Agent. This allows for automatically building a mechanism for trace
-    # discovery and building metrics from traces using Loki. It should be considered experimental.
-    automatic_logging:
-      # indicates where the stream of log lines should go. Either supports writing to a loki instance defined in this same config or to stdout.
-      [ backend: <string> | default = "stdout" | supported "stdout", "loki" ]
-      # indicates the Loki instance to write logs to. Required if backend is set to loki.
-      [ loki_name: <string> ]
-      # log one line per span. Warning! possibly very high volume
-      [ spans: <boolean> ]
-      # log one line for every root span of a trace.
-      [ roots: <boolean> ]
-      # log one line for every process
-      [ processes: <boolean> ]
-      # additional span attributes to log
-      [ span_attributes: <string array> ]
-      # additional process attributes to log
-      [ process_attributes: <string array> ]
-      # timeout on sending logs to Loki
-      [ timeout: <duration> | default = 1ms ]
-      overrides:
-        [ loki_tag: <string> | default = "tempo" ]
-        [ service_key: <string> | default = "svc" ]
-        [ span_name_key: <string> | default = "span" ]
-        [ status_key: <string> | default = "status" ]
-        [ duration_key: <string> | default = "dur" ]
-        [ trace_id_key: <string> | default = "tid" ]
+# This processor writes a well formatted log line to a Loki instance for each span, root, or process
+# that passes through the Agent. This allows for automatically building a mechanism for trace
+# discovery and building metrics from traces using Loki. It should be considered experimental.
+automatic_logging:
+  # indicates where the stream of log lines should go. Either supports writing to a loki instance defined in this same config or to stdout.
+  [ backend: <string> | default = "stdout" | supported "stdout", "loki" ]
+  # indicates the Loki instance to write logs to. Required if backend is set to loki.
+  [ loki_name: <string> ]
+  # log one line per span. Warning! possibly very high volume
+  [ spans: <boolean> ]
+  # log one line for every root span of a trace.
+  [ roots: <boolean> ]
+  # log one line for every process
+  [ processes: <boolean> ]
+  # additional span attributes to log
+  [ span_attributes: <string array> ]
+  # additional process attributes to log
+  [ process_attributes: <string array> ]
+  # timeout on sending logs to Loki
+  [ timeout: <duration> | default = 1ms ]
+  overrides:
+    [ loki_tag: <string> | default = "tempo" ]
+    [ service_key: <string> | default = "svc" ]
+    [ span_name_key: <string> | default = "span" ]
+    [ status_key: <string> | default = "status" ]
+    [ duration_key: <string> | default = "dur" ]
+    [ trace_id_key: <string> | default = "tid" ]
 
 # Receiver configurations are mapped directly into the OpenTelemetry receivers block.
 #   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
