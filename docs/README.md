@@ -32,7 +32,7 @@ with:
         2. [Prometheus-like Config/Migrating from Prometheus](./getting-started.md#prometheus-like-configmigrating-from-prometheus)
         3. [Loki Config/Migrating from Promtail](./getting-started.md#loki-configmigrating-from-promtail)
     5. [Running](./getting-started.md#running)
-3. [Configuration Reference](./configuration-reference.md)
+3. [Configure Grafana Agent](./configuration/_index.md)
 4. [Migration Guide](./migration-guide.md)
 5. [API](./api.md)
 6. [Scraping Service Mode](./scraping-service.md)
