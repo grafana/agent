@@ -9,39 +9,6 @@ This guide helps users get started with the Grafana Agent. For getting started
 with the Grafana Agent Operator, please refer to the Operator-specific
 [documentation](./operator).
 
-## Docker-Compose Example
-
-The quickest way to try out the Agent with a full Cortex, Grafana, and Agent
-stack is to check out this repository's [Docker-Compose Example](../example/docker-compose/README.md):
-
-```
-# Clone the Grafana Agent repository
-git clone https://github.com/grafana/agent.git
-cd agent/example/docker-compose
-docker-compose up -d
-
-# Navigate to localhost:3000 in your browser
-```
-
-## k3d Example
-
-A more advanced [Kubernetes example](../example/k3d/README.md) using a local
-cluster and Tanka is provided to deploy the Agent "normally" alongside a
-[Scraping Service](./scraping-service.md) deployment:
-
-```
-# Clone the Grafana Agent repository
-git clone https://github.com/grafana/agent.git
-cd agent/example/k3d
-./scripts/create.bash
-
-# Wait a little bit, 5-10 seconds
-./scripts/merge_k3d.bash
-tk apply ./environment
-
-# Navigate to localhost:30080 in your browser
-```
-
 ## Installation methods
 
 Currently, there are six ways to install the agent:
@@ -56,8 +23,29 @@ Currently, there are six ways to install the agent:
 ### Docker container
 
 ```
-docker pull grafana/agent:v0.16.1
+docker run \
+  -v /tmp/agent:/etc/agent/data \
+  -v /path/to/config.yaml:/etc/agent/agent.yaml \
+  grafana/agent:v0.16.1
 ```
+
+Replace `/tmp/agent` with the folder you wish to store WAL data in. WAL data is
+where metrics are stored before they are sent to Prometheus. Old WAL data is
+cleaned up every hour, and will be used for recovering if the process happens to
+crash.
+
+To override the default flags passed to the container, add the following flags
+to the end of the `docker run` command:
+
+- `--config.file=path/to/agent.yaml`, replacing the argument with the full path
+  to your Agent's YAML configuration file.
+
+- `--prometheus.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
+  the directory you wish to use for storing data. Note that `/tmp` may get
+  deleted by most operating systems after a reboot.
+
+Note that using paths on your host machine must be exposed to the Docker
+container through a bind mount for the flags to work properly.
 
 ### Kubernetes Install Script
 
@@ -91,6 +79,8 @@ yourself, you can do so by downloading the [`agent.yaml` file](/production/kuber
 
 Our [Releases](https://github.com/grafana/agent/releases) page contains
 instructions for downloading static binaries that are published with every release.
+These releases contain the plain binary alongside system packages for Windows,
+Red Hat, and Debian.
 
 ### Tanka
 
@@ -98,57 +88,66 @@ We provide [Tanka](https://tanka.dev) configurations in our [`production/`](/pro
 
 ## Create a Config File
 
-The Grafana Agent supports configuring **integrations**, a
-**Prometheus-like** config, and a **Loki** config. All may coexist together
-within the same configuration file for the Agent.
+The Grafana Agent supports configuring multiple independent "subsystems." Each
+subsystem helps you collect data for a specific type of telemetry.
+
+* The **Prometheus** subsystem allows you collect metrics to send to Prometheus.
+* The **Loki** subsystem allows you to collect logs to send to Grafana Loki.
+* The **Tempo** subsystem allows you to collect spans to send to Grafana Tempo.
+* The **Integrations** subsystem allows you to collect metrics for common
+  applications, such as MySQL.
 
 Integrations are recommended for first-time users of observability platforms,
 especially newcomers to Prometheus. Users with more experience with Prometheus
-or users that already have an existing Prometheus config file should use the
-Prometheus-like config.
+or users that already have an existing Prometheus config file can configure
+the Prometheus subsystem manually.
 
 ### Integrations
 
-**Integrations** are subsystems that collect metrics for you. For example, the
-`agent` integration collects metrics from that running instance of the Grafana
-Agent. The `node_exporter` integration will collect metrics from the Linux
-machine that the Grafana Agent is running on.
+**Integrations** are individual features that collect metrics for you. For
+example, the `agent` integration collects metrics from that running instance of
+the Grafana Agent. The `node_exporter` integration will collect metrics from the
+Linux machine that the Grafana Agent is running on.
 
 ```yaml
 prometheus:
   wal_directory: /tmp/wal
+  global:
+    remote_write:
+      - url: http://localhost:9009/api/prom/push
 
 integrations:
   agent:
     enabled: true
-  prometheus_remote_write:
-    - url: http://localhost:9009/api/prom/push
 ```
 
 In this example, we first must configure the `wal_directory` which is used to
 store metrics in a Write-Ahead Log. This is required, but ensures that samples
-will be resent in case of failure (e.g., network issues, machine reboot).
+will be resent in case of failure (e.g., network issues, machine reboot). We
+also configure `remote_write`, which is where all metrics should be sent by
+default.
 
-Then, the `integrations` are configured. In this example, just the `agent`
-integration is enabled. Finally, `prometheus_remote_write` is configured with a
-location to send metrics. You will have to replace this URL with the appropriate
-URL for your `remote_write` system (such as a Grafana Cloud Hosted Prometheus
-instance).
+Then, the individual `integrations` are configured. In this example, just the
+`agent` integration is enabled. Finally, `prometheus_remote_write` is configured
+with a location to send metrics. You will have to replace this URL with the
+appropriate URL for your `remote_write` system (such as a Grafana Cloud Hosted
+Prometheus instance).
 
 When the Agent is run with this file, it will collect metrics from itself and
-send those metrics to the `remote_write` endpoint. All metrics will have (by
-default) an `agent_hostname` label equal to the hostname of the machine the
-Agent is running on. This label helps to uniquely identify the source of metrics
-if you run multiple Agent processes across multiple machines.
+send those metrics to the default `remote_write` endpoint. All metrics from
+integrations will have an `instance` label matching the hostname of the machine
+the Grafana Agent is running on. This label helps to uniquely identify the
+source of metrics if you are running multiple Grafana Agents across multiple
+machines.
 
 Full configuration options can be found in the
-[configuration reference](./configuration-reference.md).
+[configuration reference](../configuration).
 
-### Prometheus-like Config/Migrating from Prometheus
+### Prometheus Config/Migrating from Prometheus
 
-The Prometheus-like Config is useful for those migrating from Prometheus and
-those who want to scrape metrics from something that currently does not have an
-associated integration.
+The Prometheus subsystem config is useful for those migrating from Prometheus
+and those who want to scrape metrics from something that currently does not have
+an associated integration.
 
 To migrate from an existing Prometheus config, use this Agent config as a
 template and copy and paste subsections from your existing Prometheus config
@@ -160,8 +159,6 @@ prometheus:
   # PASTE PROMETHEUS global SECTION HERE
   configs:
     - name: agent
-      # Leave this as false for a Prometheus-like agent process
-      host_filter: false
       scrape_configs:
         # PASTE scrape_configs SECTION HERE
       remote_write:
@@ -181,7 +178,6 @@ prometheus:
     scrape_interval: 5s
   configs:
     - name: agent
-      host_filter: false
       scrape_configs:
         - job_name: agent
           static_configs:
@@ -207,26 +203,16 @@ instead of `client` and remove the `server` block if present. Then paste your
 Promtail config into the Agent config file inside of a `loki` section:
 
 ```yaml
-server:
-  # AGENT SERVER SETTINGS
-
-prometheus:
-  # AGENT PROMETHEUS SETTINGS
-
 loki:
   configs:
   - name: default
     # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
-
-tempo:
-  # AGENT TEMPO SETTINGS
-
-integrations:
-  # AGENT INTEGRATIONS SETTINGS
 ```
 
-Here is an example full config file, using integrations,
-Prometheus, Loki, and Tempo:
+### Full config example
+
+Here is an example full config file, using integrations, Prometheus, Loki, and
+Tempo:
 
 ```yaml
 server:
@@ -236,14 +222,14 @@ server:
 prometheus:
   global:
     scrape_interval: 5s
+    remote_write:
+      - url: http://localhost:9009/api/prom/push
   configs:
     - name: default
       scrape_configs:
         - job_name: agent
           static_configs:
             - targets: ['127.0.0.1:12345']
-      remote_write:
-        - url: http://localhost:9009/api/prom/push
 
 loki:
   configs:
@@ -275,42 +261,8 @@ tempo:
     batch:
       timeout: 5s
       send_batch_size: 100
+
+integrations:
+  node_exporter:
+    enabled: true
 ```
-
-## Running
-
-If you've installed the agent with Kubernetes, it's already running! The
-following sections below describe running the agent in environments that need
-extra steps.
-
-### Docker Container
-
-Copy the following block below, replacing `/tmp/agent` with the host directory
-where you want to store the agent WAL and `/path/to/config.yaml` with the full
-path of your Agent's YAML configuration file.
-
-```
-docker run \
-  -v /tmp/agent:/etc/agent \
-  -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.16.1
-```
-
-### Locally
-
-This section is only relevant if you installed the static binary of the
-Agent. We do not yet provide system packages or configurations to run the Agent
-as a daemon process.
-
-To override the default flags passed to the container, add the following flags
-to the end of the `docker run` command:
-
-- `--config.file=path/to/agent.yaml`, replacing the argument with the full path
-  to your Agent's YAML configuration file.
-
-- `--prometheus.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
-  the directory you wish to use for storing data. Note that `/tmp` may get
-  deleted by most operating systems after a reboot.
-
-Note that using paths on your host machine must be exposed to the Docker
-container through a bind mount for the flags to work properly.
