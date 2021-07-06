@@ -1,4 +1,9 @@
-# Architecture
++++
+title = "Operator architecture"
+weight = 300
++++
+
+# Operator architecture
 
 This guide gives a high-level overview of how the Grafana Agent Operator
 works. Refer to the [maintainer's guide](./maintainers-guide.md) for
