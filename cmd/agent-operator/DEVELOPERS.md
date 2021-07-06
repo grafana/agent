@@ -1,4 +1,4 @@
-# Maintainer's Guide
+# Developer's Guide
 
 This document contains maintainer-specific information.
 
