@@ -1,5 +1,5 @@
 +++
-title = "server-config"
+title = "server_config"
 weight = 100
 +++
 
