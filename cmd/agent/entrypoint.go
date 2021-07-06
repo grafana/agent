@@ -236,6 +236,11 @@ func (ep *Entrypoint) Start() error {
 	notifier := make(chan os.Signal)
 	signal.Notify(notifier, syscall.SIGHUP)
 
+	defer func() {
+		signal.Stop(notifier)
+		close(notifier)
+	}()
+
 	g.Add(func() error {
 		signalHandler.Loop()
 		return nil
