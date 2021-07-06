@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations"
@@ -230,6 +233,14 @@ func (ep *Entrypoint) Start() error {
 	// signal is received.
 	signalHandler := signals.NewHandler(ep.cfg.Server.Log)
 
+	notifier := make(chan os.Signal)
+	signal.Notify(notifier, syscall.SIGHUP)
+
+	defer func() {
+		signal.Stop(notifier)
+		close(notifier)
+	}()
+
 	g.Add(func() error {
 		signalHandler.Loop()
 		return nil
@@ -250,6 +261,12 @@ func (ep *Entrypoint) Start() error {
 	}, func(e error) {
 		ep.srv.Close()
 	})
+
+	go func() {
+		for range notifier {
+			ep.TriggerReload()
+		}
+	}()
 
 	return g.Run()
 }

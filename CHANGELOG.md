@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
+
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
 - [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
