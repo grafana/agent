@@ -12,6 +12,9 @@
   
 - [ENHANCEMENT] Update OTel dependency to v0.29.0 (@mapno)
 
+- [BUGFIX] Fix race condition that may occur and result in a panic when
+  initializing scraping service cluster. (@rfratto)
+
 # v0.16.1 (2021-06-22)
 
 - [BUGFIX] Fix issue where replaying a WAL caused incorrect metrics to be sent
