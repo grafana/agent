@@ -149,7 +149,7 @@ func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.La
 	if len(keyValues) == 0 {
 		return model.LabelSet{}
 	}
-	ls := make(map[model.LabelName]model.LabelValue, len(keyValues))
+	ls := make(map[model.LabelName]model.LabelValue, len(keyValues)/2)
 	var (
 		k, v string
 		ok   bool
