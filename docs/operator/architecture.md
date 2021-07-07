@@ -48,7 +48,7 @@ deployment will also be deleted.
 Reconciling creates a few cluster resources:
 
 1. A Secret is generated holding the
-   [configuration](../configuration-reference.md) of the Grafana Agent.
+   [configuration](../configuration/_index.md) of the Grafana Agent.
 2. Another Secret is created holding all referenced Secrets or ConfigMaps from
    the resource hierarchy. This ensures that Secrets referenced from a custom
    resource in another namespace can still be read.

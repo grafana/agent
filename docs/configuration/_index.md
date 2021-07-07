@@ -47,7 +47,7 @@ undefined. The full list of supported syntax can be found at Drone's
 ## Reloading (beta)
 
 The configuration file can be reloaded at runtime. Read the [API
-documentation](./api.md#reload-configuration-file-beta) for more information.
+documentation](../api.md#reload-configuration-file-beta) for more information.
 
 This functionality is in beta, and may have issues. Please open GitHub issues
 for any problems you encounter.
