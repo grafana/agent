@@ -7,7 +7,7 @@ weight = 100
 
 This guide helps users get started with the Grafana Agent. For getting started
 with the Grafana Agent Operator, please refer to the Operator-specific
-[documentation](./operator).
+[documentation](../operator/_index.md).
 
 ## Installation methods
 
@@ -73,7 +73,7 @@ NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com
 ### Kubernetes Manifest
 
 If you wish to manually modify the Kubernetes manifest before deploying it
-yourself, you can do so by downloading the [`agent.yaml` file](/production/kubernetes/agent.yaml).
+yourself, you can do so by downloading the [`agent.yaml` file](../../production/kubernetes/agent.yaml).
 
 ### Install locally
 
@@ -84,7 +84,7 @@ Red Hat, and Debian.
 
 ### Tanka
 
-We provide [Tanka](https://tanka.dev) configurations in our [`production/`](/production/tanka/grafana-agent) directory.
+We provide [Tanka](https://tanka.dev) configurations in our [`production/`](../../production/tanka/grafana-agent) directory.
 
 ## Create a Config File
 
@@ -141,7 +141,7 @@ source of metrics if you are running multiple Grafana Agents across multiple
 machines.
 
 Full configuration options can be found in the
-[configuration reference](../configuration).
+[configuration reference](../configuration/_index.md).
 
 ### Prometheus Config/Migrating from Prometheus
 
@@ -187,7 +187,7 @@ prometheus:
 ```
 
 Like with integrations, full configuration options can be found in the
-[configuration reference](./configuration-reference.md).
+[configuration](../configuration/_index.md).
 
 ### Loki Config/Migrating from Promtail
 
