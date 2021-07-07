@@ -71,34 +71,6 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: ContainerizeNoDocker
-
-steps:
-- name: Build Artifacts
-  image:  rfratto/seego
-  commands:
-  - apt-get update &&  apt-get install -y rubygems rpm nsis
-  - gem install --no-document fpm
-  - mkdir -p /usr/local/go/bin
-  - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-  - rm go1.16.5.linux-amd64.tar.gz
-  - export PATH=$PATH:/usr/local/go/bin
-  - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
-  - export PATH="$(go env GOPATH)/bin:$PATH"
-  - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist-agent
-  - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist-agentctl
-- name: Package Agent Containers
-  image: centos
-  commands:
-  - yum -y install buildah make
-  - make agent-image
-  - make agentctl-image
-
-
----
-kind: pipeline
-type: docker
 name: Containerize
 platform:
   os: linux
@@ -119,8 +91,6 @@ steps:
   - docker buildx create --use
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch --driver docker-container --use
-  - docker buildx inspect --bootstrap
-  - docker buildx ls
   - CROSS_BUILD=true RELEASE_BUILD=true make agent-image
 - name: Build Agentctl Container
   image: docker

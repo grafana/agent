@@ -8,7 +8,7 @@ SHELL = /usr/bin/env bash
 # Docker image info
 IMAGE_PREFIX ?= grafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
-TARGETPLATFORM ?= ""
+TARGETPLATFORM ?= normal
 
 # Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
 # different architectures. When true, docker buildx is used instead of docker,
@@ -52,7 +52,6 @@ GO_FLAGS = $(DEBUG_GO_FLAGS)
 endif
 
 NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
-       rm $@; \
        echo "\nYour go standard library was built without the 'netgo' build tag."; \
        echo "To fix that, run"; \
        echo "    sudo go clean -i net"; \
@@ -118,7 +117,7 @@ cmd/agent/agent:  cmd/agent/main.go
 	echo $(TARGETPLATFORM)
 	go clean -i net
 	go install -tags netgo std
-ifeq ($(TARGETPLATFORM),)
+ifeq ($(TARGETPLATFORM),normal)
 	export CGO_ENABLED=1 GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 ifeq ($(TARGETPLATFORM),linux/amd64)
