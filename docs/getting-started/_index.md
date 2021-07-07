@@ -82,5 +82,5 @@ Red Hat, and Debian.
 
 ## Tanka
 
-We provide [Tanka](https://tanka.dev) configurations in our [`production/`]([../../production/tanka/grafana-agent](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent)) directory.
+We provide [Tanka](https://tanka.dev) configurations in our [`production/`](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory.
 
