@@ -1,4 +1,9 @@
-# Operation Guide
++++
+title = "Operation guide"
+weight = 700
++++
+
+# Operation guide
 
 This guide helps you operate the Grafana Agent.
 
@@ -169,7 +174,7 @@ in configuration with the exception of what they scrape. `remote_write` configs
 may also differ in the order which endpoints are declared, but the unsorted
 `remote_writes` must still be an exact match.
 
-In the shared Instances mode, the `name` field of `remote_write` configs is
+In the shared instances mode, the `name` field of `remote_write` configs is
 ignored. The resulting `remote_write` configs will have a name identical to the
 first six characters of the group name and the first six characters of the hash
 from that `remote_write` config separated by a `-`.

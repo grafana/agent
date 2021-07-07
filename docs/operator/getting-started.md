@@ -1,9 +1,9 @@
 +++
-title = "Getting started with Grafana Agent Operator"
+title = "Get started with Grafana Agent Operator"
 weight = 100
 +++
 
-# Getting started with Grafana Agent Operator
+# Get started with Grafana Agent Operator
 
 An official Helm chart is planned to make it really easy to deploy the Grafana Agent
 Operator on Kubernetes. For now, things must be done a little manually.
