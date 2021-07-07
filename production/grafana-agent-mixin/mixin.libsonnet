@@ -2,6 +2,6 @@ local dashboards = import 'dashboards.libsonnet';
 
 {
   grafanaDashboards+:: std.mapWithKey(function(field, obj) obj {
-    grafanaDashboardFolder: 'Agent',
+    grafanaDashboardFolder: 'Grafana Agent',
   }, dashboards.grafanaDashboards),
 }
