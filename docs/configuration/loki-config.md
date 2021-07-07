@@ -35,10 +35,6 @@ own set of scrape rules and where to forward logs. It is identical to how
 Promtail is configured, except deprecated fields have been removed and the
 `server_config` block is not supported.
 
-Please refer to the
-[Promtail documentation](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#client_config)
-for the supported values for these fields.
-
 ```yaml
 # Name of this config. Required, and must be unique across all Loki configs.
 # The name of the config will be the value of a loki_config label for all
@@ -58,3 +54,10 @@ scrape_configs:
 
 [target_config: <promtail.target_config>]
 ```
+
+> **Note:** More information on the following types can be found on the
+> documentation for Promtail:
+>
+> * [`promtail.client_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#client_config)
+> * [`promtail.scrape_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#scrape_config)
+> * [`promtail.target_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#target_config)

@@ -27,13 +27,15 @@ configs:
 # logs and as a label on metrics.
 name: <string>
 
-# Attributes options: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor
-#  This field allows for the general manipulation of tags on spans that pass through this agent.  A common use may be to add an environment or cluster variable.
-attributes: [attributes.config]
+# This field allows for the general manipulation of tags on spans that pass
+# through this agent. A common use may be to add an environment or cluster
+# variable.
+[attributes: <attributes.config>]
 
-# Batch options: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor
-#  This field allows to configure grouping spans into batches.  Batching helps better compress the data and reduce the number of outgoing connections required to transmit the data.
-batch: [batch.config]
+# This field allows to configure grouping spans into batches. Batching helps
+# better compress the data and reduce the number of outgoing connections
+# required transmit the data.
+[batch: <batch.config>]
 
 remote_write:
   # host:port to send traces to
@@ -47,7 +49,7 @@ remote_write:
 
     # Controls whether compression is enabled.
     [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
-    
+
     # Controls what protocol to use when exporting traces.
     # Only "grpc" is supported in Grafana Cloud.
     [ protocol: <string> | default = "grpc" | supported = "grpc", "http" ]
@@ -80,7 +82,6 @@ remote_write:
       [ password: <secret> ]
       [ password_file: <string> ]
 
-    # sending_queue and retry_on_failure are the same as: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter
     [ sending_queue: <otlpexporter.sending_queue> ]
     [ retry_on_failure: <otlpexporter.retry_on_failure> ]
 
@@ -112,64 +113,89 @@ automatic_logging:
     [ duration_key: <string> | default = "dur" ]
     [ trace_id_key: <string> | default = "tid" ]
 
-# Receiver configurations are mapped directly into the OpenTelemetry receivers block.
-#   At least one receiver is required. Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
-#   Documentation for each receiver can be found at https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
-receivers:
+# Receiver configurations are mapped directly into the OpenTelemetry receivers
+# block. At least one receiver is required.
+#
+# Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
+receivers: <receivers>
 
-# A list of prometheus scrape configs.  Targets discovered through these scrape configs have their __address__ matched against the ip on incoming spans.
-# If a match is found then relabeling rules are applied.
+# A list of prometheus scrape configs.  Targets discovered through these scrape
+# configs have their __address__ matched against the ip on incoming spans. If a
+# match is found then relabeling rules are applied.
 scrape_configs:
   - [<scrape_config>]
 
-# spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics from span data.
-# https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/README.md.
-# spanmetrics generates two metrics from spans and uses remote write or opentelemetry prometheus exporters to serve the metrics locally.
-# In order to use the remote write exporter, you have to configure a tempo instance in the Agent and pass its name in `prom_instance`.
-# If you want to use the opentelemetry prometheus exporter, you have to configure handler_endpoint and then scrape that endpoint.
-# The first one is `calls` which is a counter to compute requests.
-# The second one is `latency` which is a histogram to compute the operations' duration.
-# If you want to rename them, you can configure the `namespace` option of prometheus exporter.
-# This is an experimental feature of Opentelemetry collector and the behavior may change in the future.
+# spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
+# from span data.
+#
+# spanmetrics generates two metrics from spans and uses remote_write or
+# OpenTelemetry Prometheus exporters to serve the metrics locally.
+#
+# In order to use the remote_write exporter, you have to configure a Prometheus
+# instance in the Agent and pass its name to the `prom_instance` field.
+#
+# If you want to use the OpenTelemetry Prometheus exporter, you have to
+# configure handler_endpoint and then scrape that endpoint.
+#
+# The first generated metric is `calls`, a counter to compute requests.
+# The second generated metric is `latency`, a histogram to compute the
+# operation's duration.
+#
+# If you want to rename the generated metrics, you can configure the `namespace`
+# option of prometheus exporter.
+#
+# This is an experimental feature of Opentelemetry-Collector and the behavior
+# may change in the future.
 spanmetrics:
-  # latency_histogram_buckets and dimensions are the same as the configs in spanmetricsprocessor.
-  # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47
+  # latency_histogram_buckets and dimensions are the same as the configs in
+  # spanmetricsprocessor.
   [ latency_histogram_buckets: <spanmetricsprocessor.latency_histogram_buckets> ]
   [ dimensions: <spanmetricsprocessor.dimensions> ]
 
-  # const_labels are labels that will always get applied to the exported metrics.
-  [ const_labels: <prometheus.labels> ]
+  # const_labels are labels that will always get applied to the exported
+  # metrics.
+  const_labels:
+    [ <string>: <string>... ]
+
   # Metrics are namespaced to `tempo_spanmetrics` by default.
   # They can be further namespaced, i.e. `{namespace}_tempo_spanmetrics`
   [ namespace: <string> ]
+
   # prom_instance is the prometheus used to remote write metrics.
   [ prom_instance: <string> ]
   # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
 
 # tail_sampling supports tail-based sampling of traces in the agent.
-# Policies can be defined that determine what traces are sampled and sent to the backends and what traces are dropped.
-# In order to make a correct sampling decision it's important that the agent has a complete trace.
-# This is achieved by waiting a given time for all the spans before evaluating the trace.
-# Tail sampling also supports multiple agent deployments, allowing to group all spans of a trace
-# in the same agent by load balancing the spans by trace ID between the instances.
+#
+# Policies can be defined that determine what traces are sampled and sent to the
+# backends and what traces are dropped.
+#
+# In order to make a correct sampling decision it's important that the agent has
+# a complete trace. This is achieved by waiting a given time for all the spans
+# before evaluating the trace.
+#
+# Tail sampling also supports multiple agent deployments, allowing to group all
+# spans of a trace in the same agent by load balancing the spans by trace ID
+# between the instances.
 tail_sampling:
-  # policies define the rules by which traces will be sampled. Multiple policies can be added to the same pipeline
-  # They are the same as the policies in Open-Telemetry's tailsamplingprocessor.
-  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
+  # policies define the rules by which traces will be sampled. Multiple policies
+  # can be added to the same pipeline.
   policies:
     - [<tailsamplingprocessor.policies>]
-  # decision_wait is the time that will be waited before making a decision for a trace.
-  # Longer times reduce the probability of sampling an incomplete trace at the cost of higher memory usage.
-  decision_wait: [ <string> | default="5s" ]
+
+  # Time that to wait before making a decision for a trace.
+  # Longer wait times reduce the probability of sampling an incomplete trace at
+  # the cost of higher memory usage.
+  decision_wait: [ <duration> | default="5s" ]
+
   # load_balancing configures load balancing of spans across multiple agents.
   # It ensures that all spans of a trace are sampled in the same instance.
-  # It's not necessary when only one agent is receiving traces (e.g. single instance deployments).
+  # Only necessary if more than one agent process is receiving traces.
   load_balancing:
     # resolver configures the resolution strategy for the involved backends
-    # It can be static, with a fixed list of hostnames, or DNS, with a hostname (and port) that will resolve to all IP addresses.
-    # It's the same as the config in loadbalancingexporter.
-    # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/loadbalancingexporter
+    # It can be static, with a fixed list of hostnames, or DNS, with a hostname
+    # (and port) that will resolve to all IP addresses.
     resolver:
       static:
         hostnames:
@@ -184,7 +210,7 @@ tail_sampling:
       # Controls whether compression is enabled.
       [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
 
-      # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
+      # Controls whether or not TLS is required.
       [ insecure: <boolean> | default = false ]
 
       # Disable validation of the server certificate. Only used when insecure is set
@@ -198,5 +224,17 @@ tail_sampling:
         [ username: <string> ]
         [ password: <secret> ]
         [ password_file: <string> ]
-
 ```
+
+> **Note:** More information on the following types can be found on the
+> documentation for their respective projects:
+>
+> * [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor)
+> * [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor)
+> * [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter)
+> * [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter)
+> * [`receivers`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md)
+> * [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.27/configuration/configuration/#scrape_config)
+> * [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47)
+> * [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47)
+> * [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)
