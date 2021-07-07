@@ -11,5 +11,7 @@ cover*.out
 cmd/agent/agent
 cmd/agentctl/agentctl
 dist/
+packaging/windows/LICENSE
+packaging/windows/agent-windows-amd64.exe
 
 .DS_Store
