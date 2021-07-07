@@ -98,6 +98,7 @@ func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) 
 
 	// have to have an ip for labels lookup
 	if ip == "" {
+		level.Debug(p.logger).Log("msg", "unable to find ip in span attributes, skipping attribute addition")
 		return
 	}
 
