@@ -150,9 +150,21 @@ func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.La
 		return nil
 	}
 	ls := make(map[model.LabelName]model.LabelValue, len(keyValues))
+	var (
+		k, v string
+		ok   bool
+	)
 	for i := 0; i < len(keyValues); i += 2 {
-		k := fmt.Sprintf("%s", keyValues[i])
-		v := fmt.Sprintf("%v", keyValues[i+1])
+		if k, ok = keyValues[i].(string); !ok {
+			// Should never happen, all keys are strings
+			level.Error(p.logger).Log("msg", "error casting label key to string", "key", keyValues[i])
+			continue
+		}
+		// Try to cast value to string
+		if v, ok = keyValues[i+1].(string); !ok {
+			// If it's not a string, format it to its string representation
+			v = fmt.Sprintf("%v", keyValues[i+1])
+		}
 		if p.labels[k] {
 			ls[model.LabelName(k)] = model.LabelValue(v)
 		}
