@@ -1,3 +1,7 @@
++++
+draft = "True"
++++
+
 <p align="center"><img src="assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 
 Grafana Agent is an telemetry collector for sending metrics, logs,
