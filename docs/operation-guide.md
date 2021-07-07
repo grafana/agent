@@ -1,10 +1,12 @@
 # Operation Guide
 
+This guide helps you operate the Grafana Agent.
+
 ## Stability
 
 The core of Grafana Agent is considered stable and suitable for production use.
 Features and other functionality that are subject to change and are not
-recommended for production use will be tagged interchangably as either "beta" or
+recommended for production use will be tagged as either "beta" or
 "experimental."
 
 ## Horizontal Scaling
@@ -16,8 +18,8 @@ There are three options to horizontally scale your deployment of Grafana Agents:
    from the machines they run on.
 2. [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
    discovered set of targets by using hashmod/keep relabel rules.
-3. The [scraping service](./scraping-service.md) allows you to cluster Grafana
-   Agents and have them distrubute per-tenant configs throughout the cluster.
+3. The [scraping service]({{< relref "./scraping-service.md" >}}) allows you to cluster Grafana
+   Agents and have them distribute per-tenant configs throughout the cluster.
 
 Each has their own set of tradeoffs:
 
@@ -57,9 +59,9 @@ Each has their own set of tradeoffs:
     * Managing centralized configs adds operational burden over managing a config
       file.
 
-## Host Filtering
+## Host filtering
 
-Host Filtering implements a form of "dumb sharding," where operators may deploy
+Host filtering implements a form of "dumb sharding," where operators may deploy
 one Grafana Agent instance per machine in a cluster, all using the same
 configuration, and the Grafana Agents will only scrape targets that are
 running on the same node as the Agent.
@@ -68,7 +70,7 @@ Running with `host_filter: true` means that if you have a target whose host
 machine is not also running a Grafana Agent process, _that target will not
 be scraped!_
 
-Host Filtering is usually paired with a dedicated Agent process that is used for
+Host filtering is usually paired with a dedicated Agent process that is used for
 scraping targets that are running outside of a given cluster. For example, when
 running the Grafana Agent on GKE, you would have a DaemonSet with
 `host_filter` for scraping in-cluster targets, and a single dedicated Deployment
@@ -76,7 +78,7 @@ for scraping other targets that are not running on a cluster node, such as the
 Kubernetes control plane API.
 
 If you want to scale your scrape load without host filtering, you may use the
-[scraping service](./scraping-service.md) instead.
+[scraping service]({{< relref "./scraping-service.md" >}}) instead.
 
 The host name of the Agent is determined by reading `$HOSTNAME`. If `$HOSTNAME`
 isn't defined, the Agent will use Go's [os.Hostname](https://golang.org/pkg/os/#Hostname)
@@ -110,7 +112,7 @@ is allowed. Otherwise, the target is ignored, and will not show up in the
 [targets
 API](https://github.com/grafana/agent/blob/main/docs/api.md#list-current-scrape-targets).
 
-## Hashmod Sharding
+## Hashmod sharding
 
 Grafana Agents can be sharded by using a pair of hashmod/keep relabel rules.
 These rules will hash the address of a target and modulus it with the number
@@ -143,10 +145,10 @@ means that changing the number of shards may cause any number of targets to move
 to a new shard, up to 100%. When moving to a new shard, any existing data in the
 WAL from the old machine is effectively discarded.
 
-## Prometheus "Instances"
+## Prometheus instances
 
 The Grafana Agent defines a concept of a Prometheus _Instance_, which is
-its own mini Prometheus-lite server. The Instance runs a combination of
+its own mini Prometheus-lite server. The instance runs a combination of
 Prometheus service discovery, scraping, a WAL for storage, and `remote_write`.
 
 Instances allow for fine grained control of what data gets scraped and where it
@@ -154,14 +156,14 @@ gets sent. Users can easily define two Instances that scrape different subsets
 of metrics and send them to two completely different remote_write systems.
 
 Instances are especially relevant to the [scraping service
-mode](./scraping-service.md), where breaking up your scrape configs into
+mode]({{< relref "./scraping-service.md" >}}), where breaking up your scrape configs into
 multiple Instances is required for sharding and balancing scrape load across a
 cluster of Agents.
 
-## Instance Sharing
+## Instance sharing
 
-The v0.5.0 release of the Agent introduced the concept of _Instance sharing_,
-which combines scrape_configs from compatible Instance configs into a single,
+The v0.5.0 release of the Agent introduced the concept of _instance sharing_,
+which combines scrape_configs from compatible instance configs into a single,
 shared Instance. Instance configs are compatible when they have no differences
 in configuration with the exception of what they scrape. `remote_write` configs
 may also differ in the order which endpoints are declared, but the unsorted
@@ -172,13 +174,13 @@ ignored. The resulting `remote_write` configs will have a name identical to the
 first six characters of the group name and the first six characters of the hash
 from that `remote_write` config separated by a `-`.
 
-The shared Instances mode is the new default, and the previous behavior is
+The shared instances mode is the new default, and the previous behavior is
 deprecated. If you wish to restore the old behavior, set `instance_mode:
 distinct` in the
-[`prometheus_config`](./configuration/prometheus-config.md) block of
+[`prometheus_config`]({{< relref "./configuration/prometheus-config.md" >}}) block of
 your config file.
 
-Shared Instances are completely transparent to the user with the exception of
+Shared instances are completely transparent to the user with the exception of
 exposed metrics. With `instance_mode: shared`, metrics for Prometheus components
 (WAL, service discovery, remote_write, etc) have a `instance_group_name` label,
 which is the hash of all settings used to determine the shared instance. When
@@ -188,6 +190,5 @@ individual Instance config. It is recommended to use the default of
 `instance_mode: shared` unless you don't mind the performance hit and really
 need granular metrics.
 
-Users can use the [targets API](./api.md#list-current-scrape-targets) to see all
+Users can use the [targets API]({{< relref "./api.md#list-current-scrape-targets" >}}) to see all
 scraped targets, and the name of the shared instance they were assigned to.
-
