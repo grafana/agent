@@ -26,5 +26,9 @@ func init() {
 		&GrafanaAgentList{},
 		&PrometheusInstance{},
 		&PrometheusInstanceList{},
+		&LogsInstance{},
+		&LogsInstanceList{},
+		&PodLogs{},
+		&PodLogsList{},
 	)
 }
