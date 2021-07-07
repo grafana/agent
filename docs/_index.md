@@ -1,4 +1,9 @@
-# Overview
++++
+title = "Grafana Agent"
+weight = 1
++++
+
+# Grafana Agent
 
 Grafana Agent is an telemetry collector for sending metrics, logs,
 and trace data to the opinionated Grafana observability stack. It works best
@@ -12,6 +17,10 @@ The Agent supports collecting telemetry data by utilizing the same battle-tested
 code from the official platforms. It uses Prometheus for metrics collection,
 Grafana Loki for log collection, and [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector) for trace
 collection.
+
+Grafana Agent uses less memory on average than Prometheus – by doing less (only focusing on `remote_write`-related functionality).
+
+Grafana Agent allows for deploying multiple instances of the Agent in a cluster and only scraping metrics from targets that running at the same host. This allows distributing memory requirements across the cluster rather than pressurizing a single node.
 
 ## Metrics
 
