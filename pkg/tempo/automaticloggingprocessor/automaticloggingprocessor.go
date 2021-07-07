@@ -228,8 +228,11 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	atts = append(atts, p.cfg.Overrides.DurationKey)
 	atts = append(atts, spanDuration(span))
 
-	atts = append(atts, p.cfg.Overrides.StatusKey)
-	atts = append(atts, span.Status().Code())
+	// Skip STATUS_CODE_UNSET to be less spammy
+	if span.Status().Code() != pdata.StatusCodeUnset {
+		atts = append(atts, p.cfg.Overrides.StatusKey)
+		atts = append(atts, span.Status().Code())
+	}
 
 	for _, name := range p.cfg.SpanAttributes {
 		att, ok := span.Attributes().Get(name)

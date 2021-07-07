@@ -26,7 +26,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -34,14 +34,14 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "test",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -50,7 +50,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -59,7 +59,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -69,7 +69,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -82,7 +82,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 				"xstr", "test",
 			},
 		},
@@ -97,7 +97,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"a", "",
 				"c", "0ns",
-				"d", pdata.StatusCode(0),
+				"d", pdata.StatusCode(1),
 			},
 		},
 	}
@@ -311,9 +311,9 @@ func TestLabels(t *testing.T) {
 		{
 			name:      "stringifies value if possible",
 			labels:    []string{"status"},
-			keyValues: []interface{}{"status", pdata.StatusCode(0)},
+			keyValues: []interface{}{"status", pdata.StatusCode(1)},
 			expectedLabels: map[model.LabelName]model.LabelValue{
-				"status": model.LabelValue(pdata.StatusCode(0).String()),
+				"status": model.LabelValue(pdata.StatusCode(1).String()),
 			},
 		},
 		{
