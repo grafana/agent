@@ -63,7 +63,7 @@ steps:
     GITHUB_KEY:
       from_secret: GITHUB_KEY
   settings:
-    api_key: ${GITHUB_KEY}
+    api_key: $GITHUB_KEY
     files: /drone/src/dist/*
     draft: true
   when:
@@ -77,12 +77,18 @@ platform:
   arch: amd64
 
 steps:
-- name: Build Agent Container
+- name: Build Containers
   image: docker
   volumes:
   - name: docker
     path: /var/run/docker.sock
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
   commands:
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - apk update && apk add make bash wget git qemu
   - wget https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
   - mkdir -p ~/.docker/cli-plugins 
@@ -92,20 +98,7 @@ steps:
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch --driver docker-container --use
   - CROSS_BUILD=true RELEASE_BUILD=true make agent-image
-- name: Build Agentctl Container
-  image: docker
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-  commands:
-  - apk update && apk add make bash wget git qemu
-  - wget https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
-  - mkdir -p ~/.docker/cli-plugins 
-  - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
-  - chmod a+x ~/.docker/cli-plugins/docker-buildx
-  - docker buildx create --use
   - CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
-
 volumes:
 - name: docker
   host: 
