@@ -107,6 +107,9 @@ automatic_logging:
   [ process_attributes: <string array> ]
   # Timeout on writing logs to Loki when backend is "logs_instance."
   [ timeout: <duration> | default = 1ms ]
+  # configures a set of key values that will be logged as loki labels.
+  # this feature only affects loki backends
+  [ labels: <string array> ]
   overrides:
     [ logs_instance_tag: <string> | default = "tempo" ]
     [ service_key: <string> | default = "svc" ]
