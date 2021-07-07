@@ -41,21 +41,33 @@ platform:
 trigger:
   event:
   - tag
+
 steps:
 - name: create-release
-  image: agentbuild
-  pull: if-not-exists
+  image: rfratto/seego
   commands:
+  - apt-get update &&  apt-get install -y rubygems rpm nsis
+  - gem install --no-document fpm
+  - mkdir -p /usr/local/go/bin
+  - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+  - rm go1.16.5.linux-amd64.tar.gz
+  - export PATH=$PATH:/usr/local/go/bin
   - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
   - export PATH="$(go env GOPATH)/bin:$PATH"
   - export RELEASE_TAG=${GITHUB_REF##*/}
   - make -j4 RELEASE_BUILD=true publish
 - name: publish
   image: plugins/github-release
+  environment:
+    GITHUB_KEY:
+      from_secret: GITHUB_KEY
   settings:
-    api_key: xxxxxxxx
+    api_key: ${GITHUB_KEY}
     files: /drone/src/dist/*
     draft: true
+  when:
+    event: tag
 ---
 kind: pipeline
 type: docker
