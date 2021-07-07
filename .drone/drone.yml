@@ -71,23 +71,29 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: Containerize2
+name: ContainerizeNoDocker
 
 steps:
-- name: Build Agent Containers
-  image: ubuntu
+- name: Build Artifacts
+  image:  rfratto/seego
   commands:
-  - export DEBIAN_FRONTEND=noninteractive  
-  - dpkg --add-architecture i386 
-  - apt-get update -y && apt-get install -y $(grep -vE "^\s*#" ./.drone/packages.list  | tr "\n" " ") -y 
+  - apt-get update &&  apt-get install -y rubygems rpm nsis
   - gem install --no-document fpm
   - mkdir -p /usr/local/go/bin
   - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
   - rm go1.16.5.linux-amd64.tar.gz
   - export PATH=$PATH:/usr/local/go/bin
-  - CGO_ENABLED=1 GOOS=linux GOARCH=amd64 make agent
-  - CGO_ENABLED=1 GOOS=linux GOARCH=arm64 make agent
+  - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
+  - export PATH="$(go env GOPATH)/bin:$PATH"
+  - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist-agent
+  - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist-agentctl
+- name: Package Agent Containers
+  image: centos
+  commands:
+  - yum -y install buildah make
+  - make agent-image
+  - make agentctl-image
 
 
 ---
