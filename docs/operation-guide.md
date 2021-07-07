@@ -28,40 +28,40 @@ There are three options to horizontally scale your deployment of Grafana Agents:
 
 Each has their own set of tradeoffs:
 
-_ Host Filtering
-  _ Pros
-    _ Does not need specialized configs per agent
-    _ No external dependencies required to operate
-  _ Cons
-    _ Can cause significant load on service discovery APIs
-    _ Requires each Agent to have the same list of scrape configs/remote_writes
-_ Hashmod sharding
-  _ Pros
-    _ Exact control on the number of shards to run
-    _ Smaller load on SD compared to host filtering (as there are a smaller # of
+- Host Filtering
+  - Pros
+    - Does not need specialized configs per agent
+    - No external dependencies required to operate
+  - Cons
+    - Can cause significant load on service discovery APIs
+    - Requires each Agent to have the same list of scrape configs/remote_writes
+- Hashmod sharding
+  - Pros
+    - Exact control on the number of shards to run
+    - Smaller load on SD compared to host filtering (as there are a smaller # of
       Agents)
-    _ No external dependencies required to operate
-  _ Cons
-    _ Each Agent must have a specialized config with their shard number inserted
+    - No external dependencies required to operate
+  - Cons
+    - Each Agent must have a specialized config with their shard number inserted
       into the hashmod/keep relabel rule pair.
-    _ Requires each Agent to have the same list of scrape configs/remote_writes,
+    - Requires each Agent to have the same list of scrape configs/remote_writes,
       with the exception of the hashmod rule being different.
-    _ Hashmod is not [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
+    - Hashmod is not [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
       so up to 100% of jobs will move to a new machine when scaling shards.
-_ Scraping service
-  _ Pros
-    _ Agents don't have to have a synchronized set of scrape configs / remote_writes
+- Scraping service
+  - Pros
+    - Agents don't have to have a synchronized set of scrape configs / remote_writes
       (they pull from a centralized location).
-    _ Exact control on the number of shards to run.
-    _ Uses [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
+    - Exact control on the number of shards to run.
+    - Uses [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
       so only 1/N jobs will move to a new machine when scaling shards.
-    _ Smallest load on SD compared to host filtering, as only one Agent is
+    - Smallest load on SD compared to host filtering, as only one Agent is
       responsible for a config.
-  _ Cons
-    _ Centralized configs must discover a [minimal set of targets](./scraping-service.md#best-practices)
+  - Cons
+    - Centralized configs must discover a [minimal set of targets](./scraping-service.md#best-practices)
       to distribute evenly.
-    _ Requires running a separate KV store to store the centralized configs.
-    _ Managing centralized configs adds operational burden over managing a config
+    - Requires running a separate KV store to store the centralized configs.
+    - Managing centralized configs adds operational burden over managing a config
       file.
 
 ## Host filtering
