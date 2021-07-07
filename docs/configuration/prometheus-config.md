@@ -70,7 +70,7 @@ also be provided. Acceptable values for  `client_auth_type` are found in
 ## scraping_service_config
 
 The `scraping_service` block configures the
-[scraping service](./scraping-service.md), an operational
+[scraping service](../scraping-service.md), an operational
 mode where configurations are stored centrally in a KV store and a cluster of
 agents distribute discovery and scrape load between nodes.
 
