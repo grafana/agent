@@ -8,6 +8,7 @@ SHELL = /usr/bin/env bash
 # Docker image info
 IMAGE_PREFIX ?= grafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
+TARGETPLATFORM ?= ""
 
 # Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
 # different architectures. When true, docker buildx is used instead of docker,
@@ -113,19 +114,38 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
-cmd/agent/agent: check-seego cmd/agent/main.go
-ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+cmd/agent/agent:  cmd/agent/main.go
+	echo $(TARGETPLATFORM)
+	go clean -i net
+	go install -tags netgo std
+ifeq ($(TARGETPLATFORM),)
+	export CGO_ENABLED=1 GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+ifeq ($(TARGETPLATFORM),linux/amd64)
+	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+ifeq ($(TARGETPLATFORM),'linux/arm64')
+	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+ifeq ($(TARGETPLATFORM),' linux/arm/v7')
+	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 	$(NETGO_CHECK)
 
-cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
-ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+cmd/agentctl/agentctl:  cmd/agentctl/main.go
+	go clean -i net
+	go install -tags netgo std
+ifeq ($(TARGETPLATFORM),'')
+	export CGO_ENABLED=1 GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+ifeq ($(TARGETPLATFORM),'linux/amd64')
+	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+ifeq ($(TARGETPLATFORM),'linux/arm64')
+	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+ifeq ($(TARGETPLATFORM),' linux/arm/v7')
+	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 	$(NETGO_CHECK)
 
@@ -197,7 +217,7 @@ dist/agent-linux-armv6:
 dist/agent-linux-armv7: 
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7  CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-linux-mipsle: 
-	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++;go build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++;go build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-darwin-amd64: 
 	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 dist/agent-darwin-arm64: 
