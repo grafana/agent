@@ -113,6 +113,7 @@ func TestSpanKeyVals(t *testing.T) {
 		span.Attributes().InitFromMap(tc.spanAttrs).Sort()
 		span.SetStartTimestamp(pdata.TimestampFromTime(tc.spanStart))
 		span.SetEndTimestamp(pdata.TimestampFromTime(tc.spanEnd))
+		span.Status().SetCode(pdata.StatusCodeOk)
 
 		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
 		assert.Equal(t, tc.expected, actual)
