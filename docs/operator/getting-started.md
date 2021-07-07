@@ -1,9 +1,9 @@
 +++
-title = "Getting started with Grafana Agent Operator"
+title = "Get started with Grafana Agent Operator"
 weight = 100
 +++
 
-# Getting started with Grafana Agent Operator
+# Get started with Grafana Agent Operator
 
 An official Helm chart is planned to make it really easy to deploy the Grafana Agent
 Operator on Kubernetes. For now, things must be done a little manually.
@@ -275,8 +275,7 @@ and [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator
 with a label matching `instance: primary`. Create resources as appropriate for
 your environment.
 
-As an example, here is a ServiceMonitor that can collect metrics from
-`kube-dns`:
+As an example, here is a ServiceMonitor that can collect metrics from `kube-dns`:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1

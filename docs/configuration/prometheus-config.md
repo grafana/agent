@@ -1668,21 +1668,21 @@ anchored on both ends. To un-anchor the regex, use `.*<regex>.*`.
 
 `<relabel_action>` determines the relabeling action to take:
 
-* `replace`: Match regex against the concatenated source_labels. Then, set
+- `replace`: Match regex against the concatenated source_labels. Then, set
   target_label to replacement, with match group references (${1}, ${2}, ...) in
   replacement substituted by their value. If regex does not match, no
   replacement takes place.
-* `keep`: Drop targets for which regex does not match the concatenated
+- `keep`: Drop targets for which regex does not match the concatenated
   source_labels.
-* `drop`: Drop targets for which regex matches the concatenated source_labels.
-* `hashmod`: Set target_label to the modulus of a hash of the concatenated
+- `drop`: Drop targets for which regex matches the concatenated source_labels.
+- `hashmod`: Set target_label to the modulus of a hash of the concatenated
   source_labels.
-* `labelmap`: Match regex against all label names. Then copy the values of the
+- `labelmap`: Match regex against all label names. Then copy the values of the
   matching labels to label names given by replacement with match group
   references (${1}, ${2}, ...) in replacement substituted by their value.
-* `labeldrop`: Match regex against all label names. Any label that matches will
+- `labeldrop`: Match regex against all label names. Any label that matches will
   be removed from the set of labels.
-* `labelkeep`: Match regex against all label names. Any label that does not
+- `labelkeep`: Match regex against all label names. Any label that does not
   match will be removed from the set of labels.
 
 Care must be taken with `labeldrop` and `labelkeep` to ensure that metrics are still uniquely labeled once the labels are removed.

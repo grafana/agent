@@ -1,3 +1,7 @@
++++
+draft = "True"
++++
+
 <p align="center"><img src="assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 
 Grafana Agent is an telemetry collector for sending metrics, logs,
@@ -15,26 +19,3 @@ with:
   cluster and only scraping metrics from targets that running at the same host.
   This allows distributing memory requirements across the cluster
   rather than pressurizing a single node.
-
-## Table of Contents
-
-1. [Overview](./overview.md)
-    1. [Metrics](./overview.md#metrics)
-    2. [Logs](./overview.md#logs)
-    3. [Comparison to alternatives](./overview.md#comparison-to-alternatives)
-    4. [Next Steps](./overview.md#next-steps)
-2. [Getting Started](./getting-started/_index.md)
-    1. [Docker-Compose Example](./getting-started/_index.md#docker-compose-example)
-    2. [k3d Example](./getting-started/_index.md#k3d-example)
-    3. [Installing](./getting-started/_index.md#installing)
-    4. [Creating a Config File](./getting-started/_index.md#creating-a-config-file)
-        1. [Integrations](./getting-started/_index.md#integrations)
-        2. [Prometheus-like Config/Migrating from Prometheus](./getting-started/_index.md#prometheus-like-configmigrating-from-prometheus)
-        3. [Loki Config/Migrating from Promtail](./getting-started/_index.md#loki-configmigrating-from-promtail)
-    5. [Running](./getting-started/_index.md#running)
-3. [Configure Grafana Agent](./configuration/_index.md)
-4. [Upgrade Guide](./upgrade-guide.md)
-5. [API](./api.md)
-6. [Scraping Service Mode](./scraping-service.md)
-7. [Operation Guide](./operation-guide.md)
-8. [Windows Guide](./getting-started/install-agent-on-windows.md)
