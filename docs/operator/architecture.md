@@ -21,11 +21,11 @@ discovers many other sub-resources.
 
 The full hierarchy of custom resources is as follows:
 
-1. `GrafanaAgent`
-    1. `PrometheusInstance`
-        1. `PodMonitor`
-        2. `Probe`
-        3. `ServiceMonitor`
+- `GrafanaAgent`
+    - `PrometheusInstance`
+        - `PodMonitor`
+        - `Probe`
+        - `ServiceMonitor`
 
 Most of the resources above have the ability to reference a ConfigMap or a
 Secret. All referenced ConfigMaps or Secrets are added into the resource
@@ -48,7 +48,7 @@ deployment will also be deleted.
 Reconciling creates a few cluster resources:
 
 1. A Secret is generated holding the
-   [configuration](../configuration/_index.md) of the Grafana Agent.
+   [configuration]({{< relref "../configuration/_index.md" >}}) of the Grafana Agent.
 2. Another Secret is created holding all referenced Secrets or ConfigMaps from
    the resource hierarchy. This ensures that Secrets referenced from a custom
    resource in another namespace can still be read.
@@ -58,7 +58,7 @@ Reconciling creates a few cluster resources:
 PodMonitors, Probes, and ServiceMonitors are turned into individual scrape jobs
 which all use Kubernetes SD.
 
-## Sharding and Replication
+## Sharding and replication
 
 The GrafanaAgent resource can specify a number of shards. Each shard results in
 the creation of a StatefulSet with a hashmod + keep relabel_config per job:
