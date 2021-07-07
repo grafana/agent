@@ -107,6 +107,9 @@ func (c *Cluster) storeValidate(cfg *instance.Config) error {
 // Reshard implements agentproto.ScrapingServiceServer, and syncs the state of
 // configs with the configstore.
 func (c *Cluster) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (*empty.Empty, error) {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
 	err := c.watcher.Refresh(ctx)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to perform local reshard", "err", err)
