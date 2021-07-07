@@ -275,8 +275,7 @@ and [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator
 with a label matching `instance: primary`. Create resources as appropriate for
 your environment.
 
-As an example, here is a ServiceMonitor that can collect metrics from
-`kube-dns`:
+As an example, here is a ServiceMonitor that can collect metrics from `kube-dns`:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
