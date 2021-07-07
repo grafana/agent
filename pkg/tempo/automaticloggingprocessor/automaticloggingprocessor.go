@@ -47,7 +47,7 @@ type automaticLoggingProcessor struct {
 	logsInstance *logs.Instance
 	done         atomic.Bool
 
-	labels map[string]bool
+	labels map[string]struct{}
 
 	logger log.Logger
 }
@@ -87,9 +87,9 @@ func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig
 	cfg.Overrides.DurationKey = override(cfg.Overrides.DurationKey, defaultDurationKey)
 	cfg.Overrides.TraceIDKey = override(cfg.Overrides.TraceIDKey, defaultTraceIDKey)
 
-	labels := make(map[string]bool, len(cfg.Labels))
+	labels := make(map[string]struct{}, len(cfg.Labels))
 	for _, l := range cfg.Labels {
-		labels[l] = true
+		labels[l] = struct{}{}
 	}
 
 	return &automaticLoggingProcessor{
@@ -165,7 +165,7 @@ func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.La
 			// If it's not a string, format it to its string representation
 			v = fmt.Sprintf("%v", keyValues[i+1])
 		}
-		if p.labels[k] {
+		if _, ok := p.labels[k]; ok {
 			ls[model.LabelName(k)] = model.LabelValue(v)
 		}
 	}
