@@ -6,7 +6,7 @@ SHELL = /usr/bin/env bash
 #############
 
 # Docker image info
-IMAGE_PREFIX ?= grafana
+IMAGE_PREFIX ?= mrdgrafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 TARGETPLATFORM ?= normal
 
@@ -149,20 +149,10 @@ endif
 	$(NETGO_CHECK)
 
 agent-image:
-    # We are separating these builds out to conserve memory
-	docker buildx build --push --platform linux/amd64 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
-	docker buildx build --push --platform linux/arm64 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
-	docker buildx build --push --platform linux/arm/v6 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
-	docker buildx build --push --platform linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
-#$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
+	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 
 agentctl-image:
-	docker buildx build --push --platform linux/amd64 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
-	docker buildx build --push --platform linux/arm64 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
-	docker buildx build --push --platform linux/arm/v6 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
-	docker buildx build --push --platform linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
-
-# $(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
+	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
