@@ -13,7 +13,7 @@ Prometheus instances.
 - [prometheus_config]({{< relref "./prometheus-config.md" >}})
 - [loki_config]({{< relref "./loki-config.md" >}})
 - [tempo_config]({{< relref "./tempo-config.md" >}})
-- [integrations_config]({{< relref "./integrations-config.md" >}})
+- [integrations_config]({{< relref "./integrations/_index.md" >}})
 
 ## Variable substitution
 
