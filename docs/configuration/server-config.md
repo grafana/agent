@@ -63,3 +63,23 @@ scraping service mode.
 # Configuration for HTTPS serving and scraping of metrics
 [http_tls_config: <server_tls_config>]
 ```
+
+## server_tls_config
+
+The `http_tls_config` block configures the server to run with TLS. When set, `integrations.http_tls_config` must
+also be provided. Acceptable values for  `client_auth_type` are found in
+[Go's `tls` package](https://golang.org/pkg/crypto/tls/#ClientAuthType).
+
+```yaml
+# File path to the server certificate
+[cert_file: <string>]
+
+# File path to the server key
+[key_file: <string>]
+
+# Tells the server what is acceptable from the client, this drives the options in client_tls_config
+[client_auth_type: <string>]
+
+# File path to the signing CA certificate, needed if CA is not trusted
+[client_ca_file: <string>]
+```
