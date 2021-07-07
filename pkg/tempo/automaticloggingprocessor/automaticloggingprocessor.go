@@ -151,10 +151,10 @@ func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.La
 	}
 	ls := make(map[model.LabelName]model.LabelValue, len(keyValues))
 	for i := 0; i < len(keyValues); i += 2 {
-		k := keyValues[i]
-		v := keyValues[i+1]
-		if p.labels[k.(string)] {
-			ls[model.LabelName(k.(string))] = model.LabelValue(v.(string))
+		k := fmt.Sprintf("%s", keyValues[i])
+		v := fmt.Sprintf("%v", keyValues[i+1])
+		if p.labels[k] {
+			ls[model.LabelName(k)] = model.LabelValue(v)
 		}
 	}
 	return ls
@@ -217,7 +217,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	atts = append(atts, spanDuration(span))
 
 	atts = append(atts, p.cfg.Overrides.StatusKey)
-	atts = append(atts, span.Status().Code().String())
+	atts = append(atts, span.Status().Code())
 
 	for _, name := range p.cfg.SpanAttributes {
 		att, ok := span.Attributes().Get(name)

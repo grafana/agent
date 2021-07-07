@@ -26,7 +26,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0).String(),
+				"status", pdata.StatusCode(0),
 			},
 		},
 		{
@@ -34,14 +34,14 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "test",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0).String(),
+				"status", pdata.StatusCode(0),
 			},
 		},
 		{
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0).String(),
+				"status", pdata.StatusCode(0),
 			},
 		},
 		{
@@ -50,7 +50,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
-				"status", pdata.StatusCode(0).String(),
+				"status", pdata.StatusCode(0),
 			},
 		},
 		{
@@ -59,7 +59,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
-				"status", pdata.StatusCode(0).String(),
+				"status", pdata.StatusCode(0),
 			},
 		},
 		{
@@ -69,7 +69,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0).String(),
+				"status", pdata.StatusCode(0),
 			},
 		},
 		{
@@ -82,7 +82,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0).String(),
+				"status", pdata.StatusCode(0),
 				"xstr", "test",
 			},
 		},
@@ -97,7 +97,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"a", "",
 				"c", "0ns",
-				"d", pdata.StatusCode(0).String(),
+				"d", pdata.StatusCode(0),
 			},
 		},
 	}
@@ -282,6 +282,32 @@ func TestLabels(t *testing.T) {
 			ExpectedLabels: map[model.LabelName]model.LabelValue{
 				"loki": "loki",
 				"svc":  "gateway",
+			},
+		},
+		{
+			Labels:         []string{},
+			KeyValues:      []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
+			ExpectedLabels: map[model.LabelName]model.LabelValue{},
+		},
+		{
+			Labels:    []string{"loki", "svc"},
+			KeyValues: []interface{}{"loki", "loki", "duration", "1s"},
+			ExpectedLabels: map[model.LabelName]model.LabelValue{
+				"loki": "loki",
+			},
+		},
+		{
+			Labels:    []string{"loki"},
+			KeyValues: []interface{}{"loki", 42, "duration", "1s"},
+			ExpectedLabels: map[model.LabelName]model.LabelValue{
+				"loki": "42",
+			},
+		},
+		{
+			Labels:    []string{"status"},
+			KeyValues: []interface{}{"status", pdata.StatusCode(0)},
+			ExpectedLabels: map[model.LabelName]model.LabelValue{
+				"status": model.LabelValue(pdata.StatusCode(0).String()),
 			},
 		},
 	}
