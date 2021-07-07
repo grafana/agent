@@ -33,7 +33,7 @@ type LogsClientSpec struct {
 	// protocol.
 	// Example: https://logs-prod-us-central1.grafana.net/loki/api/v1/push.
 	URL string `json:"url"`
-	// Tenant ID used by default to push logs to Loki. If ommited assumes remote
+	// Tenant ID used by default to push logs to Loki. If omitted assumes remote
 	// Loki is running in single-tenant mode or an authentication layer is used
 	// to inject an X-Scope-OrgID header.
 	TenantID string `json:"tenantId"`
@@ -344,7 +344,7 @@ type MatchStageSpec struct {
 	PipelineName string `json:"pipelineName,omitempty"`
 
 	// Determines what action is taken when the selector matches the log line.
-	// Can be keep or drop. Defualts to keep. When set to drop, entries will be
+	// Can be keep or drop. Defaults to keep. When set to drop, entries will be
 	// dropped and no later metrics will be recorded.
 	// Stages must be empty when dropping metrics.
 	Action string `json:"action,omitempty"`
