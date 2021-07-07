@@ -62,7 +62,7 @@ While `/-/reload` is enabled on the primary HTTP server, it is not recommended
 to use it, since changing the HTTP server configuration will cause it to
 restart.
 
-## File Format
+## File format
 
 To specify which configuration file to load, pass the `-config.file` flag at
 the command line. The file is written in the [YAML
@@ -72,16 +72,16 @@ value is set to the specified default.
 
 Generic placeholders are defined as follows:
 
-* `<boolean>`: a boolean that can take the values `true` or `false`
-* `<int>`: any integer matching the regular expression `[1-9]+[0-9]*`
-* `<duration>`: a duration matching the regular expression `[0-9]+(ns|us|µs|ms|[smh])`
-* `<labelname>`: a string matching the regular expression `[a-zA-Z_][a-zA-Z0-9_]*`
-* `<labelvalue>`: a string of unicode characters
-* `<filename>`: a valid path relative to current working directory or an
+- `<boolean>`: a boolean that can take the values `true` or `false`
+- `<int>`: any integer matching the regular expression `[1-9]+[0-9]*`
+- `<duration>`: a duration matching the regular expression `[0-9]+(ns|us|µs|ms|[smh])`
+- `<labelname>`: a string matching the regular expression `[a-zA-Z_][a-zA-Z0-9_]*`
+- `<labelvalue>`: a string of unicode characters
+- `<filename>`: a valid path relative to current working directory or an
     absolute path.
-* `<host>`: a valid string consisting of a hostname or IP followed by an optional port number
-* `<string>`: a regular string
-* `<secret>`: a regular string that is a secret, such as a password
+- `<host>`: a valid string consisting of a hostname or IP followed by an optional port number
+- `<string>`: a regular string
+- `<secret>`: a regular string that is a secret, such as a password
 
 Support contents and default values of `agent.yaml`:
 

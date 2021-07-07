@@ -1,4 +1,9 @@
-# API
++++
+title = "Grafana Agent API"
+weight = 400
++++
+
+# Grafana Agent API
 
 The API is divided into several parts:
 
