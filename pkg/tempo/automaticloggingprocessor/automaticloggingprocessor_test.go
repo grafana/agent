@@ -272,55 +272,69 @@ func TestLokiNameMigration(t *testing.T) {
 
 func TestLabels(t *testing.T) {
 	tests := []struct {
-		Labels         []string
-		KeyValues      []interface{}
-		ExpectedLabels model.LabelSet
+		name           string
+		labels         []string
+		keyValues      []interface{}
+		expectedLabels model.LabelSet
 	}{
 		{
-			Labels:    []string{"loki", "svc", ""},
-			KeyValues: []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
-			ExpectedLabels: map[model.LabelName]model.LabelValue{
+			name:      "happy case",
+			labels:    []string{"loki", "svc"},
+			keyValues: []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
 				"loki": "loki",
 				"svc":  "gateway",
 			},
 		},
 		{
-			Labels:         []string{},
-			KeyValues:      []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
-			ExpectedLabels: map[model.LabelName]model.LabelValue{},
+			name:           "no labels",
+			labels:         []string{},
+			keyValues:      []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{},
 		},
 		{
-			Labels:    []string{"loki", "svc"},
-			KeyValues: []interface{}{"loki", "loki", "duration", "1s"},
-			ExpectedLabels: map[model.LabelName]model.LabelValue{
+			name:      "label not present in keyValues",
+			labels:    []string{"loki", "svc"},
+			keyValues: []interface{}{"loki", "loki", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
 				"loki": "loki",
 			},
 		},
 		{
-			Labels:    []string{"loki"},
-			KeyValues: []interface{}{"loki", 42, "duration", "1s"},
-			ExpectedLabels: map[model.LabelName]model.LabelValue{
+			name:      "label value is not type string",
+			labels:    []string{"loki"},
+			keyValues: []interface{}{"loki", 42, "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
 				"loki": "42",
 			},
 		},
 		{
-			Labels:    []string{"status"},
-			KeyValues: []interface{}{"status", pdata.StatusCode(0)},
-			ExpectedLabels: map[model.LabelName]model.LabelValue{
+			name:      "stringifies value if possible",
+			labels:    []string{"status"},
+			keyValues: []interface{}{"status", pdata.StatusCode(0)},
+			expectedLabels: map[model.LabelName]model.LabelValue{
 				"status": model.LabelValue(pdata.StatusCode(0).String()),
 			},
+		},
+		{
+			name:           "no keyValues",
+			labels:         []string{"status"},
+			keyValues:      []interface{}{},
+			expectedLabels: map[model.LabelName]model.LabelValue{},
 		},
 	}
 
 	for _, tc := range tests {
-		cfg := &AutomaticLoggingConfig{
-			Spans:  true,
-			Labels: tc.Labels,
-		}
-		p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
-		require.NoError(t, err)
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &AutomaticLoggingConfig{
+				Spans:  true,
+				Labels: tc.labels,
+			}
+			p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
+			require.NoError(t, err)
 
-		ls := p.(*automaticLoggingProcessor).spanLabels(tc.KeyValues)
-		assert.Equal(t, tc.ExpectedLabels, ls)
+			ls := p.(*automaticLoggingProcessor).spanLabels(tc.keyValues)
+			assert.Equal(t, tc.expectedLabels, ls)
+		})
 	}
 }

@@ -147,7 +147,7 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 
 func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.LabelSet {
 	if len(keyValues) == 0 {
-		return nil
+		return model.LabelSet{}
 	}
 	ls := make(map[model.LabelName]model.LabelValue, len(keyValues))
 	var (
