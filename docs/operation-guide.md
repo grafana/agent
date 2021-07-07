@@ -18,50 +18,50 @@ recommended for production use will be tagged as either "beta" or
 
 There are three options to horizontally scale your deployment of Grafana Agents:
 
-1. [Host filtering](#host-filtering) requires you to run one Agent on every
+- [Host filtering](#host-filtering) requires you to run one Agent on every
    machine you wish to collect metrics from. Agents will only collect metrics
    from the machines they run on.
-2. [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
+- [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
    discovered set of targets by using hashmod/keep relabel rules.
-3. The [scraping service]({{< relref "./scraping-service.md" >}}) allows you to cluster Grafana
+- The [scraping service]({{< relref "./scraping-service.md" >}}) allows you to cluster Grafana
    Agents and have them distribute per-tenant configs throughout the cluster.
 
 Each has their own set of tradeoffs:
 
-* Host Filtering
-  * Pros
-    * Does not need specialized configs per agent
-    * No external dependencies required to operate
-  * Cons
-    * Can cause significant load on service discovery APIs
-    * Requires each Agent to have the same list of scrape configs/remote_writes
-* Hashmod sharding
-  * Pros
-    * Exact control on the number of shards to run
-    * Smaller load on SD compared to host filtering (as there are a smaller # of
+_ Host Filtering
+  _ Pros
+    _ Does not need specialized configs per agent
+    _ No external dependencies required to operate
+  _ Cons
+    _ Can cause significant load on service discovery APIs
+    _ Requires each Agent to have the same list of scrape configs/remote_writes
+_ Hashmod sharding
+  _ Pros
+    _ Exact control on the number of shards to run
+    _ Smaller load on SD compared to host filtering (as there are a smaller # of
       Agents)
-    * No external dependencies required to operate
-  * Cons
-    * Each Agent must have a specialized config with their shard number inserted
+    _ No external dependencies required to operate
+  _ Cons
+    _ Each Agent must have a specialized config with their shard number inserted
       into the hashmod/keep relabel rule pair.
-    * Requires each Agent to have the same list of scrape configs/remote_writes,
+    _ Requires each Agent to have the same list of scrape configs/remote_writes,
       with the exception of the hashmod rule being different.
-    * Hashmod is not [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
+    _ Hashmod is not [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
       so up to 100% of jobs will move to a new machine when scaling shards.
-* Scraping service
-  * Pros
-    * Agents don't have to have a synchronized set of scrape configs / remote_writes
+_ Scraping service
+  _ Pros
+    _ Agents don't have to have a synchronized set of scrape configs / remote_writes
       (they pull from a centralized location).
-    * Exact control on the number of shards to run.
-    * Uses [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
+    _ Exact control on the number of shards to run.
+    _ Uses [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
       so only 1/N jobs will move to a new machine when scaling shards.
-    * Smallest load on SD compared to host filtering, as only one Agent is
+    _ Smallest load on SD compared to host filtering, as only one Agent is
       responsible for a config.
-  * Cons
-    * Centralized configs must discover a [minimal set of targets](./scraping-service.md#best-practices)
+  _ Cons
+    _ Centralized configs must discover a [minimal set of targets](./scraping-service.md#best-practices)
       to distribute evenly.
-    * Requires running a separate KV store to store the centralized configs.
-    * Managing centralized configs adds operational burden over managing a config
+    _ Requires running a separate KV store to store the centralized configs.
+    _ Managing centralized configs adds operational burden over managing a config
       file.
 
 ## Host filtering
