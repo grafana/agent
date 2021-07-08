@@ -121,3 +121,9 @@ spec:
 ```
 
 The Secret **MUST** be in the same namespace as the PrometheusInstance.
+
+There is a known [issue](https://github.com/grafana/agent/issues/655) that
+currently prevents the Grafana Agent Operator from updating Grafana Agent
+deployments when `additionalScrapeConfigs` or the underlying secret changes.
+Until the issue is resolved, you should restart the Operator to force it to pick
+up the changes.
