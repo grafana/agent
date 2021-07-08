@@ -369,3 +369,8 @@ clean-dist:
 
 publish: dist
 	./tools/release	
+
+.PHONY: drone
+drone:
+	drone lint .drone/drone.yml --trusted
+	drone --server https://drone.grafana.net sign --save grafana/agent .drone/drone.yml
