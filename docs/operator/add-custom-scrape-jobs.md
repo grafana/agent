@@ -127,3 +127,13 @@ currently prevents the Grafana Agent Operator from updating Grafana Agent
 deployments when `additionalScrapeConfigs` or the underlying secret changes.
 Until the issue is resolved, you should restart the Operator to force it to pick
 up the changes.
+
+If you followed the [Getting Started guide]({{< relref "./getting-started.md" >}}),
+run the following command to restart your Grafana Agent Operator deployment:
+
+```
+kubectl -n default rollout restart deployment/grafana-agent-operator
+```
+
+You may need to replace `default` with the namespace you installed the Operator
+in if you changed the namespace provided in the guide.
