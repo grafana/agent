@@ -77,8 +77,6 @@ platform:
   arch: amd64
 
 steps:
-
-steps:
 - name: Build Containers
   image: docker
   volumes:
