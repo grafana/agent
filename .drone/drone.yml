@@ -46,7 +46,10 @@ steps:
 - name: create-release
   image: rfratto/seego
   commands:
-  - apt-get update &&  apt-get install -y rubygems rpm nsis
+  - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+  - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+  - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable"
+  - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io
   - gem install --no-document fpm
   - mkdir -p /usr/local/go/bin
   - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
@@ -105,6 +108,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: b4522c5f605b42a625c3f4ddd9938688459dd16ed0adc3f3abf1a40f3574afd2
+hmac: f384e403811e1770a22ef62a071d2679967c207a81202783389c8a3d4b787bbe
 
 ...
