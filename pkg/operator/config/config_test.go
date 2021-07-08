@@ -15,7 +15,7 @@ import (
 	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 )
 
-func TestBuildConfig(t *testing.T) {
+func TestBuildConfigMetrics(t *testing.T) {
 	var store = make(assets.SecretStore)
 
 	store[assets.Key("/secrets/default/example-secret/key")] = "somesecret"
@@ -130,7 +130,7 @@ func TestBuildConfig(t *testing.T) {
 			require.NoError(t, err)
 
 			d := Deployment{Agent: &spec}
-			result, err := d.BuildConfig(store)
+			result, err := d.BuildConfig(store, MetricsType)
 			require.NoError(t, err)
 
 			if !assert.YAMLEq(t, tc.expect, result) {
@@ -140,7 +140,7 @@ func TestBuildConfig(t *testing.T) {
 	}
 }
 
-func TestAdditionalScrapeConfigs(t *testing.T) {
+func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 	var store = make(assets.SecretStore)
 
 	additionalSelector := &v1.SecretKeySelector{
@@ -206,11 +206,54 @@ prometheus:
       - role: node
 	`)
 
-	result, err := input.BuildConfig(store)
+	result, err := input.BuildConfig(store, MetricsType)
 	require.NoError(t, err)
 
 	if !assert.YAMLEq(t, expect, result) {
 		fmt.Println(result)
+	}
+}
+
+func TestBuildConfigLogs(t *testing.T) {
+	var store = make(assets.SecretStore)
+
+	store[assets.Key("/secrets/default/example-secret/key")] = "somesecret"
+	store[assets.Key("/configMaps/default/example-cm/key")] = "somecm"
+
+	tt := []struct {
+		input  string
+		expect string
+	}{
+		{
+			input: util.Untab(`
+				metadata:
+					name: example
+					namespace: default
+				spec:
+					logLevel: debug
+			`),
+			expect: util.Untab(`
+				server:
+					http_listen_port: 8080
+					log_level: debug
+			`),
+		},
+	}
+
+	for i, tc := range tt {
+		t.Run(fmt.Sprintf("index_%d", i), func(t *testing.T) {
+			var spec grafana.GrafanaAgent
+			err := k8s_yaml.Unmarshal([]byte(tc.input), &spec)
+			require.NoError(t, err)
+
+			d := Deployment{Agent: &spec}
+			result, err := d.BuildConfig(store, LogsType)
+			require.NoError(t, err)
+
+			if !assert.YAMLEq(t, tc.expect, result) {
+				fmt.Println(result)
+			}
+		})
 	}
 }
 

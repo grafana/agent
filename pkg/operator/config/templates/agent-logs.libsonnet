@@ -28,6 +28,5 @@ function(ctx) marshal.YAML(optionals.trim({
 
   logs: {
     positions_directory: '/var/lib/grafana-agent/data',
-    configs:
   },
 }))
