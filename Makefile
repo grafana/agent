@@ -371,5 +371,4 @@ clean-dist:
 	rm -rf dist
 .PHONY: clean
 
-publish: dist
-	./tools/release	
+publish: dist	

@@ -55,7 +55,8 @@ steps:
   - export PATH=$PATH:/usr/local/go/bin
   - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
   - export PATH="$(go env GOPATH)/bin:$PATH"
-  - export RELEASE_TAG=$(git describe --tags --abbrev=0 )
+  - RELEASE_TAG=$DRONE_TAG
+  - echo $RELEASE_TAG
   - make -j4 RELEASE_BUILD=true publish
 - name: publish
   image: plugins/github-release
@@ -66,8 +67,8 @@ steps:
     api_key: $GITHUB_KEY
     files: /drone/src/dist/*
     draft: true
-  when:
-    event: tag
+#  when:
+#    event: tag
 ---
 kind: pipeline
 type: docker
@@ -105,6 +106,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 33e9ee03301467379a6b691425252e8a7ad68124cacb8c66ca1cbb71d4051539
+hmac: 0e3d4f13065b357b85560fc55af20da8ab27400201dcca471609c4fecc52e7a1
 
 ...
