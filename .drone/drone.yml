@@ -62,7 +62,7 @@ steps:
   - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
   - export PATH="$(go env GOPATH)/bin:$PATH"
   - RELEASE_TAG=$DRONE_TAG
-  - make -j4 RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG publish
+  - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG publish
 - name: publish
   image: plugins/github-release
   environment:
@@ -74,7 +74,7 @@ steps:
     draft: true
   when:
     event: tag
-    
+
 volumes:
 - name: docker
   host: 
@@ -116,6 +116,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 23e4dcb7c314653b378f8c5b97734427ba9df7c94fd842e75d839cf75f08568e
+hmac: 2c5a38030ab9a70a1d3cdaf436a746c0844fe40878ba2077dd9245238699ebe3
 
 ...
