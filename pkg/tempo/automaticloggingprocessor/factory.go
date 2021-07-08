@@ -38,13 +38,14 @@ type AutomaticLoggingConfig struct {
 	LokiName string `mapstructure:"loki_name" yaml:"loki_name,omitempty"` // Superseded by LogsName
 }
 
+// Validate ensures that the AutomaticLoggingConfig is valid.
 func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 	if c.Backend == BackendLoki {
 		c.Backend = BackendLogs
 	}
 
 	if c.LogsName != "" && c.LokiName != "" {
-		return fmt.Errorf("must configure at most one of logs_instance_name and loki_name. loki_name is deprecated in favor of logs_instance_name.")
+		return fmt.Errorf("must configure at most one of logs_instance_name and loki_name. loki_name is deprecated in favor of logs_instance_name")
 	}
 
 	// Migrate deprecated config to new one
@@ -53,7 +54,7 @@ func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 	}
 
 	if c.Overrides.LogsTag != "" && c.Overrides.LokiTag != "" {
-		return fmt.Errorf("must configure at most one of overrides.logs_tag and overrides.loki_tag. logs_tag is deprecated in favor of loki_tag.")
+		return fmt.Errorf("must configure at most one of overrides.logs_tag and overrides.loki_tag. logs_tag is deprecated in favor of loki_tag")
 	}
 
 	// Migrate deprecated config to new one

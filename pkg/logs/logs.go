@@ -53,6 +53,10 @@ func (l *Logs) ApplyConfig(c *Config) error {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 
+	if c == nil {
+		c = &Config{}
+	}
+
 	if c.PositionsDirectory != "" {
 		err := os.MkdirAll(c.PositionsDirectory, 0700)
 		if err != nil {

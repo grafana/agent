@@ -21,6 +21,14 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func TestLogs_NilConfig(t *testing.T) {
+	l, err := New(prometheus.NewRegistry(), nil, util.TestLogger(t))
+	require.NoError(t, err)
+	require.NoError(t, l.ApplyConfig(nil))
+
+	defer l.Stop()
+}
+
 func TestLogs(t *testing.T) {
 	//
 	// Create a temporary file to tail
@@ -132,4 +140,11 @@ configs:
 	case req := <-pushes:
 		require.Equal(t, "Hello again!", req.Streams[0].Entries[0].Line)
 	}
+
+	t.Run("update to nil", func(t *testing.T) {
+		// Applying a nil config should remove all instances.
+		err := l.ApplyConfig(nil)
+		require.NoError(t, err)
+		require.Len(t, l.instances, 0)
+	})
 }

@@ -57,6 +57,8 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*config)(c))
 }
 
+// LogDeprecations will log use of any deprecated fields to l as warn-level
+// messages.
 func (c *Config) LogDeprecations(l log.Logger) {
 	if c.UsedDeprecatedLoki {
 		level.Warn(l).Log("msg", "DEPRECATION NOTICE: `loki` is deprecated in favor of `logs`")
@@ -70,7 +72,7 @@ func (c *Config) ApplyDefaults() error {
 	}
 
 	if c.Logs != nil && c.Loki != nil {
-		return fmt.Errorf("at most one of loki and logs should be specified.")
+		return fmt.Errorf("at most one of loki and logs should be specified")
 	}
 
 	if c.Logs == nil && c.Loki != nil {
