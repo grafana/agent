@@ -1,6 +1,6 @@
 //+build !race
 
-package loki
+package logs
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestLoki(t *testing.T) {
+func TestLogs(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
@@ -83,7 +83,7 @@ configs:
 	require.NoError(t, dec.Decode(&cfg))
 
 	logger := log.NewSyncLogger(log.NewNopLogger())
-	l, err := New(prometheus.NewRegistry(), cfg, logger)
+	l, err := New(prometheus.NewRegistry(), &cfg, logger)
 	require.NoError(t, err)
 	defer l.Stop()
 
@@ -123,7 +123,7 @@ configs:
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&newCfg))
 
-	require.NoError(t, l.ApplyConfig(newCfg))
+	require.NoError(t, l.ApplyConfig(&newCfg))
 
 	fmt.Fprintf(tmpFile, "Hello again!\n")
 	select {

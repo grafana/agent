@@ -1,5 +1,5 @@
-// Package loki implements Loki logs support for the Grafana Agent.
-package loki
+// Package logs implements logs support for the Grafana Agent.
+package logs
 
 import (
 	"fmt"
@@ -23,9 +23,9 @@ func init() {
 	client.UserAgent = fmt.Sprintf("GrafanaAgent/%s", version.Version)
 }
 
-// Loki is a Loki log collection. It uses multiple distinct sets of Loki
-// Promtail agents to collect logs and send them to a Loki server.
-type Loki struct {
+// Logs is a Logs log collection. It uses multiple distinct sets of Logs
+// Promtail agents to collect logs and send them to a Logs server.
+type Logs struct {
 	mut sync.Mutex
 
 	reg       prometheus.Registerer
@@ -34,22 +34,22 @@ type Loki struct {
 }
 
 // New creates and starts Loki log collection.
-func New(reg prometheus.Registerer, c Config, l log.Logger) (*Loki, error) {
-	l = log.With(l, "component", "loki")
+func New(reg prometheus.Registerer, c *Config, l log.Logger) (*Logs, error) {
+	l = log.With(l, "component", "logs")
 
-	loki := &Loki{
+	logs := &Logs{
 		instances: make(map[string]*Instance),
 		reg:       reg,
-		l:         log.With(l, "component", "loki"),
+		l:         log.With(l, "component", "logs"),
 	}
-	if err := loki.ApplyConfig(c); err != nil {
+	if err := logs.ApplyConfig(c); err != nil {
 		return nil, err
 	}
-	return loki, nil
+	return logs, nil
 }
 
-// ApplyConfig updates Loki with a new Config.
-func (l *Loki) ApplyConfig(c Config) error {
+// ApplyConfig updates Logs with a new Config.
+func (l *Logs) ApplyConfig(c *Config) error {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 
@@ -95,7 +95,7 @@ func (l *Loki) ApplyConfig(c Config) error {
 }
 
 // Stop stops the log collector.
-func (l *Loki) Stop() {
+func (l *Logs) Stop() {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 
@@ -104,15 +104,15 @@ func (l *Loki) Stop() {
 	}
 }
 
-// Instance is used to retrieve a named Loki instance
-func (l *Loki) Instance(name string) *Instance {
+// Instance is used to retrieve a named Logs instance
+func (l *Logs) Instance(name string) *Instance {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 
 	return l.instances[name]
 }
 
-// Instance is an individual Loki instance.
+// Instance is an individual Logs instance.
 type Instance struct {
 	mut sync.Mutex
 
@@ -123,13 +123,13 @@ type Instance struct {
 	promtail *promtail.Promtail
 }
 
-// NewInstance creates and starts a Loki instance.
+// NewInstance creates and starts a Logs instance.
 func NewInstance(reg prometheus.Registerer, c *InstanceConfig, l log.Logger) (*Instance, error) {
-	instReg := prometheus.WrapRegistererWith(prometheus.Labels{"loki_config": c.Name}, reg)
+	instReg := prometheus.WrapRegistererWith(prometheus.Labels{"logs_config": c.Name}, reg)
 
 	inst := Instance{
 		reg: util.WrapWithUnregisterer(instReg),
-		log: log.With(l, "loki_config", c.Name),
+		log: log.With(l, "logs_config", c.Name),
 	}
 	if err := inst.ApplyConfig(c); err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 		TargetConfig:    c.TargetConfig,
 	}, false, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
 	if err != nil {
-		return fmt.Errorf("unable to create Loki logging instance: %w", err)
+		return fmt.Errorf("unable to create logs instance: %w", err)
 	}
 
 	i.promtail = p
