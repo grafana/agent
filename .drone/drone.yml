@@ -45,6 +45,9 @@ trigger:
 steps:
 - name: create-release
   image: rfratto/seego
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
   commands:
   - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
   - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
@@ -71,6 +74,11 @@ steps:
     draft: true
   when:
     event: tag
+    
+volumes:
+- name: docker
+  host: 
+    path: /var/run/docker.sock
 ---
 kind: pipeline
 type: docker
@@ -108,6 +116,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: f384e403811e1770a22ef62a071d2679967c207a81202783389c8a3d4b787bbe
+hmac: 23e4dcb7c314653b378f8c5b97734427ba9df7c94fd842e75d839cf75f08568e
 
 ...
