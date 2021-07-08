@@ -1,7 +1,5 @@
 # Main (unreleased)
 
-- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
-
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
 - [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
@@ -9,11 +7,19 @@
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
-  
+
 - [ENHANCEMENT] Update OTel dependency to v0.29.0 (@mapno)
+
+- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
+
+- [DEPRECATION] The `loki` key at the root of the config file has been
+  deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
+  have been renamed accordinly: `loki_name` is now `logs_instance_name`,
+  `loki_tag` is now `logs_tag`, and `backend: loki` is now
+  `backend: logs_instance`.
 
 # v0.16.1 (2021-06-22)
 
