@@ -26,7 +26,7 @@ steps:
   - apt-get update &&  apt-get install -y rubygems rpm nsis
   - gem install --no-document fpm
   - mkdir -p /usr/local/go/bin
-  - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+  - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
   - rm go1.16.5.linux-amd64.tar.gz
   - export PATH=$PATH:/usr/local/go/bin
@@ -49,15 +49,14 @@ steps:
   - apt-get update &&  apt-get install -y rubygems rpm nsis
   - gem install --no-document fpm
   - mkdir -p /usr/local/go/bin
-  - wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+  - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
   - rm go1.16.5.linux-amd64.tar.gz
   - export PATH=$PATH:/usr/local/go/bin
   - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
   - export PATH="$(go env GOPATH)/bin:$PATH"
   - RELEASE_TAG=$DRONE_TAG
-  - echo $RELEASE_TAG
-  - make -j4 RELEASE_BUILD=true publish
+  - make -j4 RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG publish
 - name: publish
   image: plugins/github-release
   environment:
@@ -67,8 +66,8 @@ steps:
     api_key: $GITHUB_KEY
     files: /drone/src/dist/*
     draft: true
-#  when:
-#    event: tag
+  when:
+    event: tag
 ---
 kind: pipeline
 type: docker
@@ -91,7 +90,7 @@ steps:
   commands:
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - apk update && apk add make bash wget git qemu
-  - wget https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
+  - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
   - mkdir -p ~/.docker/cli-plugins 
   - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
   - chmod a+x ~/.docker/cli-plugins/docker-buildx
@@ -106,6 +105,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 0e3d4f13065b357b85560fc55af20da8ab27400201dcca471609c4fecc52e7a1
+hmac: b4522c5f605b42a625c3f4ddd9938688459dd16ed0adc3f3abf1a40f3574afd2
 
 ...
