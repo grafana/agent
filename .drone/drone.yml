@@ -55,7 +55,7 @@ steps:
   - export PATH=$PATH:/usr/local/go/bin
   - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
   - export PATH="$(go env GOPATH)/bin:$PATH"
-  - export RELEASE_TAG=${GITHUB_REF##*/}
+  - export RELEASE_TAG=$(git describe --tags --abbrev=0 )
   - make -j4 RELEASE_BUILD=true publish
 - name: publish
   image: plugins/github-release
@@ -105,6 +105,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 8e141e59f309da21fc0bdde1f22584c5eca64533f8924290e8f11e3c899aa7bb
+hmac: 33e9ee03301467379a6b691425252e8a7ad68124cacb8c66ca1cbb71d4051539
 
 ...
