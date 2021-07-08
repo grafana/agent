@@ -18,66 +18,74 @@ kind: Secret
 metadata:
   name: extra-jobs
   namespace: operator
-data:
-  jobs.yaml: <BASE64 ENCODED YAML>
+stringData:
+  jobs.yaml: |
+    <SCRAPE CONFIGS>
 ```
 
-Replace `<BASE64 ENCODED YAML>` with the base64-encoded version of the jobs to
-add. Note that these jobs _must_ be an array of _Prometheus_ (not Prometheus
-Operator) scrape jobs. If you wanted to collect Kubelet and cAdvisor metrics,
-you might base64 encode these jobs:
+Replace `<SCRAPE CONFIGS>` above with the array of Prometheus scrape jobs to
+include.
+
+For example, to collect metrics from Kubelet and cAdvisor, use the following:
 
 ```yaml
-- bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-  job_name: kube-system/kubelet
-  kubernetes_sd_configs:
-  - role: node
-  relabel_configs:
-  - replacement: kubernetes.default.svc.cluster.local:443
-    target_label: __address__
-  - regex: (.+)
-    source_labels: [__meta_kubernetes_node_name]
-    replacement: /api/v1/nodes/$1/proxy/metrics
-    target_label: __metrics_path__
-  - action: hashmod
-    modulus: $(SHARDS)
-    source_labels:
-    - __address__
-    target_label: __tmp_hash
-  - action: keep
-    regex: $(SHARD)
-    source_labels:
-    - __tmp_hash
-  scheme: https
-  tls_config:
-    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-- bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-  job_name: kube-system/cadvisor
-  kubernetes_sd_configs:
-  - role: node
-  relabel_configs:
-  - replacement: kubernetes.default.svc.cluster.local:443
-    target_label: __address__
-  - regex: (.+)
-    replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
-    source_labels:
-    - __meta_kubernetes_node_name
-    target_label: __metrics_path__
-  - action: hashmod
-    modulus: $(SHARDS)
-    source_labels:
-    - __address__
-    target_label: __tmp_hash
-  - action: keep
-    regex: $(SHARD)
-    source_labels:
-    - __tmp_hash
-  scheme: https
-  tls_config:
-    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+apiVersion: v1
+kind: Secret
+metadata:
+  name: extra-jobs
+  namespace: operator
+stringData:
+  jobs.yaml: |
+    - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      job_name: integrations/kubernetes/kubelet
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - replacement: kubernetes.default.svc.cluster.local:443
+        target_label: __address__
+      - regex: (.+)
+        source_labels: [__meta_kubernetes_node_name]
+        replacement: /api/v1/nodes/$1/proxy/metrics
+        target_label: __metrics_path__
+      - action: hashmod
+        modulus: $(SHARDS)
+        source_labels:
+        - __address__
+        target_label: __tmp_hash
+      - action: keep
+        regex: $(SHARD)
+        source_labels:
+        - __tmp_hash
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    - bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      job_name: integrations/kubernetes/cadvisor
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - replacement: kubernetes.default.svc.cluster.local:443
+        target_label: __address__
+      - regex: (.+)
+        replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+        source_labels:
+        - __meta_kubernetes_node_name
+        target_label: __metrics_path__
+      - action: hashmod
+        modulus: $(SHARDS)
+        source_labels:
+        - __address__
+        target_label: __tmp_hash
+      - action: keep
+        regex: $(SHARD)
+        source_labels:
+        - __tmp_hash
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 ```
 
-You **should** always add these two relabel_configs for each custom job:
+Note that you **should** always add these two relabel_configs for each custom job:
 
 ```yaml
 - action: hashmod
