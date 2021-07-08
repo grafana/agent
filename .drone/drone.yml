@@ -48,11 +48,17 @@ steps:
   volumes:
   - name: docker
     path: /var/run/docker.sock
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
   commands:
   - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
   - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
   - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable"
   - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - gem install --no-document fpm
   - mkdir -p /usr/local/go/bin
   - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
@@ -116,6 +122,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 2c5a38030ab9a70a1d3cdaf436a746c0844fe40878ba2077dd9245238699ebe3
+hmac: 53a2c096a9477d060cefdd7a867f7b3a25ef9ae9149996d7b3065f4776a3f5ee
 
 ...
