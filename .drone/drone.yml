@@ -77,6 +77,8 @@ platform:
   arch: amd64
 
 steps:
+
+steps:
 - name: Build Containers
   image: docker
   volumes:
@@ -94,11 +96,11 @@ steps:
   - mkdir -p ~/.docker/cli-plugins 
   - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
   - chmod a+x ~/.docker/cli-plugins/docker-buildx
-  - docker buildx create --use
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch --driver docker-container --use
-  - CROSS_BUILD=true RELEASE_BUILD=true make agent-image
-  - CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
+  - make CROSS_BUILD=true RELEASE_BUILD=true agent-image
+  - make CROSS_BUILD=true RELEASE_BUILD=true agentctl-image
+
 volumes:
 - name: docker
   host: 

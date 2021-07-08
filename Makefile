@@ -78,8 +78,6 @@ docker-build = docker build $(DOCKER_BUILD_FLAGS)
 
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
-
-docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
 endif
 
 #############
@@ -114,45 +112,46 @@ agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
 cmd/agent/agent:  cmd/agent/main.go
-	echo $(TARGETPLATFORM)
-	go clean -i net
-	go install -tags netgo std
+	@echo $(TARGETPLATFORM)
+	@echo $(IMAGE_TAG)
+	@echo $(RELEASE_BUILD)
 ifeq ($(TARGETPLATFORM),normal)
-	export CGO_ENABLED=1 GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
+	export CGO_ENABLED=1 GO111MODULE=auto; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 ifeq ($(TARGETPLATFORM),linux/amd64)
-	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
+	export CGO_ENABLED=1  GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ ; go build -x $(CGO_FLAGS) -o $@ ./$(@D)
 endif
-ifeq ($(TARGETPLATFORM),'linux/arm64')
-	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
+ifeq ($(TARGETPLATFORM),linux/arm64)
+	export CGO_ENABLED=1  GOOS=linux GOARCH=arm64  CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build -x $(CGO_FLAGS) -o $@ ./$(@D)
 endif
-ifeq ($(TARGETPLATFORM),' linux/arm/v7')
-	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
+ifeq ($(TARGETPLATFORM),linux/arm/v7)
+	export CGO_ENABLED=1  GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build -x $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 	$(NETGO_CHECK)
+
 
 cmd/agentctl/agentctl:  cmd/agentctl/main.go
-	go clean -i net
-	go install -tags netgo std
-ifeq ($(TARGETPLATFORM),'')
-	export CGO_ENABLED=1 GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
+	@echo $(TARGETPLATFORM)
+ifeq ($(TARGETPLATFORM),normal)
+	export CGO_ENABLED=1 GO111MODULE=auto ; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
-ifeq ($(TARGETPLATFORM),'linux/amd64')
-	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
+ifeq ($(TARGETPLATFORM),linux/amd64)
+	export CGO_ENABLED=1  GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ ; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
-ifeq ($(TARGETPLATFORM),'linux/arm64')
-	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
+ifeq ($(TARGETPLATFORM),linux/arm64)
+	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
-ifeq ($(TARGETPLATFORM),' linux/arm/v7')
-	export CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
+ifeq ($(TARGETPLATFORM),linux/arm/v7)
+	export CGO_ENABLED=1  GOOS=linux GOARCH=arm GOARM=7  CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 	$(NETGO_CHECK)
 
-agent-image:
-	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
+agent-image: 
+#	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
+	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 
-agentctl-image:
-	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
+agentctl-image: 
+	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
@@ -172,7 +171,7 @@ test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
 
 clean:
-	rm -rf cmd/agent/agent
+	rm -r -f cmd/agent/agent
 	go clean ./...
 
 example-kubernetes:

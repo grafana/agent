@@ -19,8 +19,8 @@ ARG IMAGE_TAG
 
 # Rename seego's /go_wrapper.sh to /seego.sh for readability in the
 # Makefile.
-RUN cp /go_wrapper.sh /seego.sh
-RUN IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false make agentctl
+# RUN cp /go_wrapper.sh /seego.sh
+RUN make clean && IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false make agentctl
 
 FROM debian:buster-slim
 
