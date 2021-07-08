@@ -29,6 +29,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.2
 	github.com/oliver006/redis_exporter v1.15.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.29.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbytraceprocessor v0.29.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.29.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.29.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e

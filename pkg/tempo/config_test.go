@@ -3,7 +3,9 @@ package tempo
 import (
 	"io/ioutil"
 	"os"
+	"runtime"
 	"sort"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -570,7 +572,7 @@ exporters:
       max_elapsed_time: 60s
 processors:
   tail_sampling:
-    decision_wait: 5s
+    decision_wait: 0s
     policies:
       - name: always_sample/0
         type: always_sample
@@ -581,11 +583,14 @@ processors:
           values:
             - value1
             - value2
+  groupbytrace:
+    wait_duration: 5s
+    num_workers: ` + strconv.Itoa(runtime.NumCPU()) + `
 service:
   pipelines:
     traces:
       exporters: ["otlp/0"]
-      processors: ["tail_sampling"]
+      processors: ["groupbytrace", "tail_sampling"]
       receivers: ["jaeger"]
 `,
 		},
@@ -642,7 +647,7 @@ exporters:
         port: 4318
 processors:
   tail_sampling:
-    decision_wait: 5s
+    decision_wait: 0s
     policies:
       - name: always_sample/0
         type: always_sample
@@ -653,6 +658,9 @@ processors:
           values:
             - value1
             - value2
+  groupbytrace:
+    wait_duration: 5s
+    num_workers: ` + strconv.Itoa(runtime.NumCPU()) + `
 service:
   pipelines:
     traces/0:
@@ -661,7 +669,7 @@ service:
       receivers: ["jaeger"]
     traces/1:
       exporters: ["otlp/0"]
-      processors: ["tail_sampling"]
+      processors: ["groupbytrace", "tail_sampling"]
       receivers: ["otlp/lb"]
 `,
 		},
@@ -876,6 +884,7 @@ tail_sampling:
 				"traces": {
 					config.NewID("attributes"),
 					config.NewID("spanmetrics"),
+					config.NewID("groupbytrace"),
 					config.NewID("tail_sampling"),
 					config.NewID("automatic_logging"),
 					config.NewID("batch"),
@@ -933,6 +942,7 @@ tail_sampling:
 					config.NewID("spanmetrics"),
 				},
 				"traces/1": {
+					config.NewID("groupbytrace"),
 					config.NewID("tail_sampling"),
 					config.NewID("automatic_logging"),
 					config.NewID("batch"),
@@ -1000,11 +1010,13 @@ func TestOrderProcessors(t *testing.T) {
 				"tail_sampling",
 				"attributes",
 				"automatic_logging",
+				"groupbytrace",
 			},
 			expected: [][]string{
 				{
 					"attributes",
 					"spanmetrics",
+					"groupbytrace",
 					"tail_sampling",
 					"automatic_logging",
 					"batch",

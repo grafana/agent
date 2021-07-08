@@ -1351,6 +1351,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancing
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.29.0/go.mod h1:6XSErVryxabB3T9aT7adMGoiPV7EG+hRACn2FRxQ/R4=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.29.0 h1:zYbxW9OUwu/9W+P2bEOEqoQjn/rJfXmHxQQtYSpHLIc=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.29.0/go.mod h1:zqMjJEuS55YssiJ4EFlD/dGBpZ/ij2jrtk0D2LC46wg=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbytraceprocessor v0.29.0 h1:ZgW0DOgUDFrRCPJ9pSUZ8iezpkUu/eQOP4RBDZINokI=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbytraceprocessor v0.29.0/go.mod h1:mEhEo1eK37dvXB3VzZEZxvQzjnuJw7jO6jnik7PcVtA=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.29.0 h1:0MwrtSxAQfk6DpktK8RK/yMADqmGZuK17F4U/zJnZTA=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.29.0/go.mod h1:6mho/Bo63I7dJqWyBvgfQSMObUopYisig9OBMDb33gw=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.29.0 h1:A10YxBMf8ki9bBNSbcG4bsnhhs7GXLegQ0xzjB5G40w=

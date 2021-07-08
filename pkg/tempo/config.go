@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"runtime"
 	"sort"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
 	"github.com/grafana/agent/pkg/tempo/remotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbytraceprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	"github.com/prometheus/client_golang/prometheus"
@@ -525,11 +527,17 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 
 		// tail_sampling should be executed before the batch processor
-		// TODO(mario.rodriguez): put attributes processor before tail_sampling. Maybe we want to sample on mutated spans
-		processorNames = append([]string{"tail_sampling"}, processorNames...)
+		processorNames = append(processorNames, "tail_sampling", "groupbytrace")
 		processors["tail_sampling"] = map[string]interface{}{
-			"policies":      policies,
-			"decision_wait": wait,
+			"policies": policies,
+			// Don't wait, groupbytrace processor does it
+			"decision_wait": 0,
+		}
+
+		processors["groupbytrace"] = map[string]interface{}{
+			"wait_duration": wait,
+			// Number of workers should equal the number of physical processors
+			"num_workers": runtime.NumCPU(),
 		}
 
 		if c.TailSampling.LoadBalancing != nil {
@@ -638,6 +646,7 @@ func tracingFactories() (component.Factories, error) {
 	}
 
 	processors, err := component.MakeProcessorFactoryMap(
+		groupbytraceprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),
@@ -664,9 +673,10 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	order := map[string]int{
 		"attributes":        0,
 		"spanmetrics":       1,
-		"tail_sampling":     2,
-		"automatic_logging": 3,
-		"batch":             4,
+		"groupbytrace":      2,
+		"tail_sampling":     3,
+		"automatic_logging": 4,
+		"batch":             5,
 	}
 
 	sort.Slice(processors, func(i, j int) bool {
@@ -687,7 +697,8 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	foundAt := len(processors)
 	for i, processor := range processors {
 		if processor == "batch" ||
-			processor == "tail_sampling" {
+			processor == "tail_sampling" ||
+			processor == "groupbytrace" {
 			foundAt = i
 			break
 		}
