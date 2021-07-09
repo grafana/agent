@@ -572,7 +572,7 @@ exporters:
       max_elapsed_time: 60s
 processors:
   tail_sampling:
-    decision_wait: 0s
+    decision_wait: 1s
     policies:
       - name: always_sample/0
         type: always_sample
@@ -647,7 +647,7 @@ exporters:
         port: 4318
 processors:
   tail_sampling:
-    decision_wait: 0s
+    decision_wait: 1s
     policies:
       - name: always_sample/0
         type: always_sample

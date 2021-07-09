@@ -530,8 +530,8 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		processorNames = append(processorNames, "tail_sampling", "groupbytrace")
 		processors["tail_sampling"] = map[string]interface{}{
 			"policies": policies,
-			// Don't wait, groupbytrace processor does it
-			"decision_wait": 0,
+			// Wait just 1sec, groupbytrace waits the rest of the time
+			"decision_wait": time.Second,
 		}
 
 		processors["groupbytrace"] = map[string]interface{}{
