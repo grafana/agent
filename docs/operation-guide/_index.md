@@ -23,7 +23,7 @@ There are three options to horizontally scale your deployment of Grafana Agents:
    from the machines they run on.
 - [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
    discovered set of targets by using hashmod/keep relabel rules.
-- The [scraping service]({{< relref "./scraping-service.md" >}}) allows you to cluster Grafana
+- The [scraping service]({{< relref "../scraping-service" >}}) allows you to cluster Grafana
    Agents and have them distribute per-tenant configs throughout the cluster.
 
 Each has their own set of tradeoffs:
@@ -83,7 +83,7 @@ for scraping other targets that are not running on a cluster node, such as the
 Kubernetes control plane API.
 
 If you want to scale your scrape load without host filtering, you may use the
-[scraping service]({{< relref "./scraping-service.md" >}}) instead.
+[scraping service]({{< relref "../scraping-service" >}}) instead.
 
 The host name of the Agent is determined by reading `$HOSTNAME`. If `$HOSTNAME`
 isn't defined, the Agent will use Go's [os.Hostname](https://golang.org/pkg/os/#Hostname)
@@ -115,7 +115,7 @@ logic; only `host_filter_relabel_configs` will work.
 If the determined hostname matches any of the meta labels, the discovered target
 is allowed. Otherwise, the target is ignored, and will not show up in the
 [targets
-API](https://github.com/grafana/agent/blob/main/docs/api.md#list-current-scrape-targets).
+API](/docs/grafana/agent/latest/api#list-current-scrape-targets).
 
 ## Hashmod sharding
 
@@ -161,7 +161,7 @@ gets sent. Users can easily define two Instances that scrape different subsets
 of metrics and send them to two completely different remote_write systems.
 
 Instances are especially relevant to the [scraping service
-mode]({{< relref "./scraping-service.md" >}}), where breaking up your scrape configs into
+mode]({{< relref "../scraping-service" >}}), where breaking up your scrape configs into
 multiple Instances is required for sharding and balancing scrape load across a
 cluster of Agents.
 
@@ -182,7 +182,7 @@ from that `remote_write` config separated by a `-`.
 The shared instances mode is the new default, and the previous behavior is
 deprecated. If you wish to restore the old behavior, set `instance_mode:
 distinct` in the
-[`prometheus_config`]({{< relref "./configuration/prometheus-config.md" >}}) block of
+[`prometheus_config`]({{< relref "../configuration/prometheus-config" >}}) block of
 your config file.
 
 Shared instances are completely transparent to the user with the exception of
@@ -195,5 +195,5 @@ individual Instance config. It is recommended to use the default of
 `instance_mode: shared` unless you don't mind the performance hit and really
 need granular metrics.
 
-Users can use the [targets API]({{< relref "./api.md#list-current-scrape-targets" >}}) to see all
+Users can use the [targets API]({{< relref "../api#list-current-scrape-targets" >}}) to see all
 scraped targets, and the name of the shared instance they were assigned to.
