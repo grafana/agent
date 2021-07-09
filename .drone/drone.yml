@@ -53,6 +53,8 @@ steps:
       from_secret: DOCKER_LOGIN
     DOCKER_PASSWORD:
       from_secret: DOCKER_PASSWORD
+    GITHUB_TOKEN:
+      from_secret: GITHUB_KEY
   commands:
   - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
   - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
@@ -69,17 +71,17 @@ steps:
   - export PATH="$(go env GOPATH)/bin:$PATH"
   - RELEASE_TAG=$DRONE_TAG
   - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG publish
-- name: publish
-  image: plugins/github-release
-  environment:
-    GITHUB_KEY:
-      from_secret: GITHUB_KEY
-  settings:
-    api_key: $GITHUB_KEY
-    files: /drone/src/dist/*
-    draft: true
-  when:
-    event: tag
+# - name: publish
+#   image: plugins/github-release
+#   environment:
+#     GITHUB_KEY:
+#       from_secret: GITHUB_KEY
+#   settings:
+#     api_key: $GITHUB_KEY
+#     files: /drone/src/dist/*
+#     draft: true
+#   when:
+#     event: tag
 
 volumes:
 - name: docker
@@ -122,6 +124,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 53a2c096a9477d060cefdd7a867f7b3a25ef9ae9149996d7b3065f4776a3f5ee
+hmac: c5433753ba699c6e9472f59cfc9346c61387951408edd05372d6396557ac2c54
 
 ...

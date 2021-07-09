@@ -282,7 +282,6 @@ packaging/centos-systemd/.uptodate: $(wildcard packaging/centos-systemd/*)
 dist-packages: dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-packages-armv7
 
 ifeq ($(BUILD_IN_CONTAINER), true)
-	@echo !!! Building in container
 
 container_make = docker run --rm \
 	-v $(shell pwd):/src/agent:delegated \
@@ -371,4 +370,5 @@ clean-dist:
 	rm -rf dist
 .PHONY: clean
 
-publish: dist	
+publish: dist
+	./tools/release	
