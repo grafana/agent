@@ -71,17 +71,6 @@ steps:
   - export PATH="$(go env GOPATH)/bin:$PATH"
   - RELEASE_TAG=$DRONE_TAG
   - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG publish
-# - name: publish
-#   image: plugins/github-release
-#   environment:
-#     GITHUB_KEY:
-#       from_secret: GITHUB_KEY
-#   settings:
-#     api_key: $GITHUB_KEY
-#     files: /drone/src/dist/*
-#     draft: true
-#   when:
-#     event: tag
 
 volumes:
 - name: docker
@@ -124,6 +113,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: c5433753ba699c6e9472f59cfc9346c61387951408edd05372d6396557ac2c54
+hmac: dc1bd2e973ceede26c6b1eb745e2baf5d46d4d09ea2ab610403dc580b4eb1bbf
 
 ...

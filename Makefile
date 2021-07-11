@@ -6,13 +6,15 @@ SHELL = /usr/bin/env bash
 #############
 
 # Docker image info
-IMAGE_PREFIX ?= mrdgrafana
+IMAGE_PREFIX ?= grafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 TARGETPLATFORM ?= normal
 
 # Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
 # different architectures. When true, docker buildx is used instead of docker,
 # and seego is used for building binaries instead of go.
+# If using CROSS_BUILD the preferred method is to use 
+# `drone exec --trusted --pipeline <name_of_pipeline> ./.drone/drona.yaml` from the root directory
 CROSS_BUILD ?= true
 
 # Certain aspects of the build are done in containers for consistency.
@@ -111,10 +113,9 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 
+# TargetPlatform is set by the buildx
+
 cmd/agent/agent:  cmd/agent/main.go
-	@echo $(TARGETPLATFORM)
-	@echo $(IMAGE_TAG)
-	@echo $(RELEASE_BUILD)
 ifeq ($(TARGETPLATFORM),normal)
 	export CGO_ENABLED=1 GO111MODULE=auto; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
@@ -197,6 +198,7 @@ example-dashboards:
 #
 # We use rfratto/seego as a base for building these cross-platform images.
 # seego provides a docker image with gcc toolchains for all of these platforms.
+# OSXCROSS_PATH is set by the seego docker container
 #
 # A custom grafana/agent/seego image is built on top of the base image with
 # specific overrides. grafana/agent/seego is not pushed to Docker Hub and
@@ -371,4 +373,11 @@ clean-dist:
 .PHONY: clean
 
 publish: dist
-	./tools/release	
+	./tools/release
+
+# Drone signs the yaml, you will need to specify DRONE_TOKEN, which can be found by logging into your profile in drone
+.PHONY: drone
+drone:
+	drone lint .drone/drone.yml --trusted
+	drone --server https://drone.grafana.net sign --save grafana/agent .drone/drone.yml
+	
