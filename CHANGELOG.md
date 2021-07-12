@@ -14,6 +14,8 @@
 
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
+  
+- [BUGFIX] Upgrade dependecy that caused builds in 32-bit architectures to fail. (@mapno)
 
 # v0.16.1 (2021-06-22)
 

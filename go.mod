@@ -53,7 +53,7 @@ require (
 	go.opentelemetry.io/collector v0.29.0
 	go.uber.org/atomic v1.8.0
 	go.uber.org/zap v1.17.0
-	golang.org/x/sys v0.0.0-20210611083646-a4fc73990273
+	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
 	google.golang.org/grpc v1.38.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
@@ -120,3 +120,7 @@ replace (
 	github.com/prometheus/common => github.com/prometheus/common v0.23.0
 	github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 )
+
+// Contains a patch for 32-bit architectures.
+// TODO(mapno): Remove in next OTel upgrade
+replace github.com/Shopify/sarama => github.com/Shopify/sarama v1.29.1
