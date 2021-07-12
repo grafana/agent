@@ -1,5 +1,5 @@
 +++
-title = "redis_exporter_config
+title = "redis_exporter_config"
 +++
 
 # redis_exporter_config
