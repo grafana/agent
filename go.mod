@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.3.0
+	github.com/Shopify/sarama v1.29.1 // indirect
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
 	github.com/drone/envsubst v1.0.2
 	github.com/fatih/structs v1.1.0
@@ -12,6 +13,7 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-jsonnet v0.17.0
 	github.com/gorilla/mux v1.8.0
@@ -20,6 +22,7 @@ require (
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
+	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/miekg/dns v1.1.41
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
@@ -30,6 +33,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.29.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e
 	github.com/opentracing/opentracing-go v1.2.0
+	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.47.0
@@ -53,6 +57,7 @@ require (
 	go.opentelemetry.io/collector v0.29.0
 	go.uber.org/atomic v1.8.0
 	go.uber.org/zap v1.17.0
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
 	google.golang.org/grpc v1.38.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
@@ -120,7 +125,3 @@ replace (
 	github.com/prometheus/common => github.com/prometheus/common v0.23.0
 	github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 )
-
-// Contains a patch for 32-bit architectures.
-// TODO(mapno): Remove in next OTel upgrade
-replace github.com/Shopify/sarama => github.com/Shopify/sarama v1.29.1
