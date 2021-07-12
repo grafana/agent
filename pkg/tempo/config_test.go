@@ -747,7 +747,7 @@ receivers:
       grpc:
 remote_write:
   - endpoint: example.com:12345
-    protocol: http 
+    protocol: http
   - endpoint: example.com:12345
     protocol: grpc
 `,
