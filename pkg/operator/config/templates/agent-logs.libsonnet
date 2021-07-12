@@ -14,10 +14,12 @@
 local marshal = import 'ext/marshal.libsonnet';
 local optionals = import 'ext/optionals.libsonnet';
 
+local new_logs_instance = import './logs.libsonnet';
+
 // @param {config.Deployment} ctx
 function(ctx) marshal.YAML(optionals.trim({
   local spec = ctx.Agent.Spec,
-  local prometheus = spec.Prometheus,
+  local logs = spec.Logs,
   local namespace = ctx.Agent.ObjectMeta.Namespace,
 
   server: {
@@ -28,5 +30,14 @@ function(ctx) marshal.YAML(optionals.trim({
 
   logs: {
     positions_directory: '/var/lib/grafana-agent/data',
+    configs: optionals.array(std.map(
+      function(logs_inst) new_logs_instance(
+        agentNamespace=ctx.Agent.ObjectMeta.Namespace,
+        global=logs,
+        instance=logs_inst,
+        apiServer=spec.APIServerConfig,
+      ),
+      ctx.Logs,
+    )),
   },
 }))
