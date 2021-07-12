@@ -1,4 +1,9 @@
-# Overview
++++
+title = "Grafana Agent"
+weight = 1
++++
+
+# Grafana Agent
 
 Grafana Agent is an telemetry collector for sending metrics, logs,
 and trace data to the opinionated Grafana observability stack. It works best
@@ -13,6 +18,10 @@ code from the official platforms. It uses Prometheus for metrics collection,
 Grafana Loki for log collection, and [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector) for trace
 collection.
 
+Grafana Agent uses less memory on average than Prometheus – by doing less (only focusing on `remote_write`-related functionality).
+
+Grafana Agent allows for deploying multiple instances of the Agent in a cluster and only scraping metrics from targets that running at the same host. This allows distributing memory requirements across the cluster rather than pressurizing a single node.
+
 ## Metrics
 
 Unlike Prometheus, the Grafana Agent is _just_ targeting `remote_write`,
@@ -25,13 +34,13 @@ its own mini Prometheus agent with their own `scrape_configs` section and
 `remote_write` rules. More than one instance is useful when you want to have
 completely separated configs that write to two different locations without
 needing to worry about advanced metric relabeling rules. Multiple instances also
-come into play for the [Scraping Service Mode](./scraping-service.md).
+come into play for the [Scraping Service Mode]({{< relref "./scraping-service.md" >}}).
 
 The Grafana Agent can be deployed in three modes:
 
 - Prometheus `remote_write` drop-in
 - [Host Filtering mode](#host-filtering)
-- [Scraping Service Mode](./scraping-service.md)
+- [Scraping Service Mode]({{< relref "./scraping-service.md" >}})
 
 The default deployment mode of the Grafana Agent is the _drop-in_
 replacement for Prometheus `remote_write`. The Agent will act similarly to a
@@ -56,12 +65,11 @@ clusters a subset of agents. It acts as the in-between of the drop-in mode
 (which does no automatic sharding) and `host_filter` mode (which forces sharding
 by node). The Scraping Service Mode clusters a set of agents with a set of
 shared configs and distributes the scrape load automatically between them. For
-more information, please read the dedicated
-[Scraping Service Mode](./scraping-service.md) documentation.
+more information, refer to ({{< relref "./scraping-service.md" >}}).
 
-### Host Filtering
+### Host filtering
 
-Host Filtering configures Agents to scrape targets that are running on the same
+Host filtering configures Agents to scrape targets that are running on the same
 machine as the Grafana Agent process. It does the following:
 
 1. Gets the hostname of the agent by the `HOSTNAME` environment variable or
@@ -73,7 +81,7 @@ If the filter passes, the target is allowed to be scraped. Otherwise, the target
 will be silently ignored and not scraped.
 
 For detailed information on the host filtering mode, refer to the [operation
-guide](./operation-guide.md#host-filtering)
+guide]({{< relref "./operation-guide.md#host-filtering" >}}).
 
 ## Logs
 
@@ -86,21 +94,22 @@ developer team.
 ## Traces
 
 Grafana Agent supports collecting traces and sending them to Tempo using its
-`tempo` subsystem. This is done by utilizing the upstream [OpenTelmetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
-The agent is capable of ingesting OpenTelemetry, OpenCensus, Jaeger, Zipkin or Kafka spans.
-See documentation on how to configure [receivers](./configuration-reference.md#tempo_config).
+`tempo` subsystem. This is done by utilizing the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
+Agent can ingest OpenTelemetry, OpenCensus, Jaeger, Zipkin, or Kafka spans.
+See documentation on how to configure [receivers]({{< relref "./configuration/tempo-config.md" >}}).
 The agent is capable of exporting to any OpenTelemetry GRPC compatible system.
 
-## Comparison to Alternatives
+## Comparison to alternatives
 
 Grafana Agent is optimized for [Grafana Cloud](https://grafana.com/products/cloud/),
 but can be used while using an on-prem `remote_write`-compatible Prometheus API
 and an on-prem Loki. Unlike alternatives, Grafana Agent extends the
 official code with extra functionality. This allows the Agent to give an
 experience closest to its official counterparts compared to alternatives which
-may try to reimplement everything from scratch.
+might try to re-implement everything from scratch.
 
 ### Why not just use Telegraf?
+
 Telegraf is a fantastic project and was actually considered as an alternative
 to building our own agent.
 It could work, but ultimately it was not chosen due to lacking service discovery
@@ -116,9 +125,9 @@ specifically designed to work seamlessly with Grafana Cloud and other
 `remote_write` compatible Prometheus endpoints as well as Loki for logs
 and Tempo for traces, all-in-one.
 
-## Next Steps
+## Next steps
 
 For more information on installing and running the agent, see
-[Getting started](./getting-started.md) or
-[Configuration Reference](./configuration-reference.md) for a detailed reference
+[Getting started]({{< relref "./getting-started/_index.md" >}}) or
+[Configuration Reference]({{< relref "./configuration/_index.md" >}}) for a detailed reference
 on the configuration file.

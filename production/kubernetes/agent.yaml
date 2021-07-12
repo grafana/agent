@@ -132,7 +132,7 @@ data:
                   - replacement: https
                     target_label: __scheme__
                   - regex: (.+)
-                    replacement: /api/v1/nodes/${1}/proxy/metrics
+                    replacement: /api/v1/nodes/$1/proxy/metrics
                     source_labels:
                       - __meta_kubernetes_node_name
                     target_label: __metrics_path__
@@ -157,7 +157,7 @@ data:
                   - replacement: kubernetes.default.svc.cluster.local:443
                     target_label: __address__
                   - regex: (.+)
-                    replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+                    replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
                     source_labels:
                       - __meta_kubernetes_node_name
                     target_label: __metrics_path__
@@ -278,7 +278,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: grafana/agent:v0.14.0
+        image: grafana/agent:v0.16.1
         imagePullPolicy: IfNotPresent
         name: agent
         ports:
@@ -329,7 +329,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: grafana/agent:v0.14.0
+        image: grafana/agent:v0.16.1
         imagePullPolicy: IfNotPresent
         name: agent
         ports:

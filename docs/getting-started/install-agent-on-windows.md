@@ -1,6 +1,9 @@
-# Windows Installation
++++
+title = "Install Agent on Windows"
+weight = 120
++++
 
-## Overview
+# Install Agent on Windows
 
 The installer will install Grafana Agent into the default directory `C:\Program Files\Grafana Agent`. The [windows_exporter integration](https://github.com/prometheus-community/windows_exporter) can be enabled with all default windows_exporter options. 
 
@@ -63,4 +66,4 @@ loki:
             job: windows
 ```
 
-Additional windows_events configuration details can be found [here](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#windows_events)
+Additional windows_events configuration details can be found [here](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#windows_events).

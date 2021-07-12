@@ -49,10 +49,6 @@ func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("unexpected status code %d", resp.StatusCode)
-	}
-
 	// Even though the API returns json, we'll parse it as YAML here so we can
 	// re-encode it with the same order it was decoded in.
 	payload := struct {
@@ -62,7 +58,12 @@ func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error
 	}{}
 
 	dec := yaml.NewDecoder(resp.Body)
+	dec.SetStrict(true)
 	if err := dec.Decode(&payload); err != nil {
+		if resp.StatusCode != 200 {
+			return "", fmt.Errorf("unexpected status code %d", resp.StatusCode)
+		}
+
 		return "", fmt.Errorf("failed to read response: %w", err)
 	}
 

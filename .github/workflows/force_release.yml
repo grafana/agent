@@ -1,0 +1,143 @@
+name: Force Release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build for"
+        required: true
+jobs:
+  test:
+    name: Test
+    runs-on: Linux
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install libsystemd-dev
+
+    - name: Set up Go 1.16
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.16
+      id: go
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: '${{ github.event.inputs.tag }}'
+
+    - name: Test
+      run: make test
+  agent-container:
+    name: Build agent Container
+    runs-on: Linux
+    needs: test
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: '${{ github.event.inputs.tag }}'
+
+    - name: Login to Docker Hub
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+
+    - name: Prepare buildx
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker buildx create --name builder --node builder --driver docker-container --use
+        docker buildx inspect --bootstrap
+
+    - name: Build container
+      run: |
+        export RELEASE_TAG=${{ github.event.inputs.tag }}
+        CROSS_BUILD=true RELEASE_BUILD=true make agent-image
+  agentctl-container:
+    name: Build agentctl Container
+    runs-on: Linux
+    needs: test
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: '${{ github.event.inputs.tag }}'
+
+    - name: Login to Docker Hub
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+
+    - name: Prepare buildx
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker buildx create --name builder --node builder --driver docker-container --use
+        docker buildx inspect --bootstrap
+
+    - name: Build container
+      run: |
+        export RELEASE_TAG=${{ github.event.inputs.tag }}
+        CROSS_BUILD=true RELEASE_BUILD=true make agentctl-image
+  agent-operator-container:
+    name: Build agent-operator Container
+    runs-on: Linux
+    needs: test
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install binfmt-support qemu-user-static
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: '${{ github.event.inputs.tag }}'
+
+    - name: Login to Docker Hub
+      run: docker login -u '${{ secrets.DOCKER_USER }}' -p '${{ secrets.DOCKER_PASS }}'
+
+    - name: Prepare buildx
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker buildx create --name builder --node builder --driver docker-container --use
+        docker buildx inspect --bootstrap
+
+    - name: Build container
+      run: |
+        export RELEASE_TAG=${{ github.event.inputs.tag }}
+        CROSS_BUILD=true RELEASE_BUILD=true make agent-operator-image
+  release:
+    name: Release
+    needs: test
+    runs-on: Linux
+    steps:
+    - name: Get build dependencies
+      run: sudo apt-get update && sudo apt-get install libsystemd-dev
+
+    - name: Set up Go 1.16
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.16
+      id: go
+
+    - name: Install gox and ghr
+      run: |
+        pushd /
+        GO111MODULE=on go get -u \
+          github.com/mitchellh/gox \
+          github.com/tcnksm/ghr
+        popd
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: '${{ github.event.inputs.tag }}'
+
+    - name: Make Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # This is required so gox and ghr are available
+        export PATH="$(go env GOPATH)/bin:$PATH"
+
+        export RELEASE_TAG=${{ github.event.inputs.tag }}
+
+        make -j4 RELEASE_BUILD=true publish

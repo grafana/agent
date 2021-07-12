@@ -1,27 +1,71 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
+
+- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+
+- [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
+
+- [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
+  the matching release version of the Grafana Agent instead of v0.14.0.
+  (@rfratto)
+  
+- [ENHANCEMENT] Update OTel dependency to v0.29.0 (@mapno)
+
+- [BUGFIX] Fix race condition that may occur and result in a panic when
+  initializing scraping service cluster. (@rfratto)
+
+# v0.16.1 (2021-06-22)
+
+- [BUGFIX] Fix issue where replaying a WAL caused incorrect metrics to be sent
+  over remote write. (@rfratto)
+
+# v0.16.0 (2021-06-17)
+
+- [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
+
+- [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
+  Cloud will now be shown. (@rfratto)
+
+- [BUGFIX] Fix a leak in the shared string interner introduced in v0.14.0.
+  This fix was made to a [dependency](https://github.com/grafana/prometheus/pull/21).
+  (@rfratto)
+
+- [BUGFIX] Fix issue where a target will fail to be scraped for the process lifetime
+  if that target had gone down for long enough that its series were removed from
+  the in-memory cache (2 GC cycles). (@rfratto)
+
+# v0.15.0 (2021-06-03)
+
 BREAKING CHANGE: Configuration of Tempo Autologging changed in this release.
 Please review the [migration
 guide](./docs/migration-guide.md) for details.
 
-- [FEATURE] Add support for exemplars (@mapno)
+- [FEATURE] Add support for exemplars. (@mapno)
 
 - [ENHANCEMENT] Add the option to log to stdout instead of a Loki instance. (@joe-elliott)
+
+- [ENHANCEMENT] Update Cortex dependency to v1.8.0.
 
 - [ENHANCEMENT] Running the Agent as a DaemonSet with host_filter and role: pod
   should no longer cause unnecessary load against the Kubernetes SD API.
   (@rfratto)
 
-- [ENHANCEMENT] Update Prometheus to v2.27.0, Loki to d88f3996eaa2 and Cortex to d382e1d80eaf.
-  Loki and Cortex are non-release builds, and were needed to support exemplars. (@mapno)
+- [ENHANCEMENT] Update Prometheus to v2.27.0. (@mapno)
+
+- [ENHANCEMENT] Update Loki dependency to d88f3996eaa2. This is a non-release
+  build, and was needed to support exemplars. (@mapno)
+
+- [ENHANCEMENT] Update Cortex dependency to to d382e1d80eaf. This is a
+  non-release build, and was needed to support exemplars. (@mapno)
 
 - [BUGFIX] Host filter relabeling rules should now work. (@rfratto)
 
-- [BUGFIX] Fixed issue where span metrics where being reported with wrong time unit (@mapno)
+- [BUGFIX] Fixed issue where span metrics where being reported with wrong time unit. (@mapno)
 
 - [CHANGE] Intentionally order tracing processors. (@joe-elliott)
 
-# v0.14.0 (2021-05-19)
+# v0.14.0 (2021-05-24)
 
 BREAKING CHANGE: This release has a breaking change for SigV4 support. Please
 read the release notes carefully and our [migration

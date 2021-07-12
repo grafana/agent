@@ -1,0 +1,17 @@
+name: Check docs
+on: [pull_request]
+jobs:
+  check-docs:
+    name: Check links in docs
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Check links in docs
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      # checks all markdown files from /docs including all subfolders
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: '.github/workflows/markdown.links.config.json'
+        folder-path: 'docs/,example/,production/'

@@ -14,8 +14,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
-	"go.opentelemetry.io/collector/service/builder"
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/service/external/builder"
 	"go.uber.org/zap"
 )
 
@@ -138,6 +138,14 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	if cfg.PushConfig.Endpoint != "" {
 		i.logger.Warn("Configuring exporter with deprecated push_config. Use remote_write and batch instead")
 	}
+	for _, rw := range cfg.RemoteWrite {
+		if rw.InsecureSkipVerify {
+			i.logger.Warn("Configuring TLS with insecure_skip_verify. Use tls_config.insecure_skip_verify instead")
+		}
+		if rw.TLSConfig != nil && rw.TLSConfig.ServerName != "" {
+			i.logger.Warn("Configuring unsupported tls_config.server_name")
+		}
+	}
 
 	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
 		ctx = context.WithValue(ctx, contextkeys.Prometheus, promManager)
@@ -148,15 +156,14 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
 
-	appinfo := component.ApplicationStartInfo{
-		ExeName:  "agent",
-		GitHash:  build.Revision,
-		LongName: "agent",
-		Version:  build.Version,
+	appinfo := component.BuildInfo{
+		Command:     "agent",
+		Description: "agent",
+		Version:     build.Version,
 	}
 
 	// start exporter
-	i.exporter, err = builder.NewExportersBuilder(i.logger, appinfo, otelConfig, factories.Exporters).Build()
+	i.exporter, err = builder.BuildExporters(i.logger, appinfo, otelConfig, factories.Exporters)
 	if err != nil {
 		return fmt.Errorf("failed to create exporters builder: %w", err)
 	}
@@ -167,7 +174,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start pipelines
-	i.pipelines, err = builder.NewPipelinesBuilder(i.logger, appinfo, otelConfig, i.exporter, factories.Processors).Build()
+	i.pipelines, err = builder.BuildPipelines(i.logger, appinfo, otelConfig, i.exporter, factories.Processors)
 	if err != nil {
 		return fmt.Errorf("failed to create pipelines builder: %w", err)
 	}
@@ -178,7 +185,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start receivers
-	i.receivers, err = builder.NewReceiversBuilder(i.logger, appinfo, otelConfig, i.pipelines, factories.Receivers).Build()
+	i.receivers, err = builder.BuildReceivers(i.logger, appinfo, otelConfig, i.pipelines, factories.Receivers)
 	if err != nil {
 		return fmt.Errorf("failed to create receivers builder: %w", err)
 	}
@@ -197,17 +204,17 @@ func (i *Instance) ReportFatalError(err error) {
 }
 
 // GetFactory implements component.Host
-func (i *Instance) GetFactory(kind component.Kind, componentType configmodels.Type) component.Factory {
+func (i *Instance) GetFactory(component.Kind, config.Type) component.Factory {
 	return nil
 }
 
 // GetExtensions implements component.Host
-func (i *Instance) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
+func (i *Instance) GetExtensions() map[config.ComponentID]component.Extension {
 	return nil
 }
 
 // GetExporters implements component.Host
-func (i *Instance) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+func (i *Instance) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
 	// SpanMetricsProcessor needs to get the configured exporters.
 	return i.exporter.ToMapByDataType()
 }

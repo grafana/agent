@@ -31,7 +31,7 @@ check_installed() {
 check_installed curl
 check_installed envsubst
 
-MANIFEST_BRANCH=v0.14.0
+MANIFEST_BRANCH=v0.16.1
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent-loki.yaml}
 NAMESPACE=${NAMESPACE:-default}
 

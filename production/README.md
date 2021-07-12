@@ -27,7 +27,7 @@ See the [Kubernetes README](./kubernetes/README.md) for more information.
 
 ## Windows Installation
 
-To run the Windows Installation, download the Windows Installer executable from the [release page](https://github.com/grafana/agent/releases). Then run the installer, this will setup the Agent and run the Agent as a Windows Service. More details can be found in the [Windows Guide](../docs/windows.md)
+To run the Windows Installation, download the Windows Installer executable from the [release page](https://github.com/grafana/agent/releases). Then run the installer, this will setup the Agent and run the Agent as a Windows Service. More details can be found in the [Windows Guide](../docs/getting-started/install-agent-on-windows.md)
 
 ## Running the Agent with Docker
 
@@ -41,7 +41,7 @@ directory on your host that you want the agent to store its WAL.
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.14.0
+  grafana/agent:v0.16.1
 ```
 
 ## Running the Agent locally

@@ -9,16 +9,17 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/util"
-	"github.com/spf13/viper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configloader"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/consumer/pdata"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/service/builder"
+	"go.opentelemetry.io/collector/service/external/builder"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -94,11 +95,6 @@ service:
 		panic("could not decode config: " + err.Error())
 	}
 
-	v := viper.New()
-	if err := v.MergeConfigMap(cfg); err != nil {
-		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
-	}
-
 	extensionsFactory, err := component.MakeExtensionFactoryMap()
 	if err != nil {
 		return nil, fmt.Errorf("failed to make extension factory map: %w", err)
@@ -127,17 +123,18 @@ service:
 		Processors: processorsFactory,
 		Exporters:  exportersFactory,
 	}
-	otelCfg, err := config.Load(v, factories)
+	p := configparser.NewParserFromStringMap(cfg)
+	otelCfg, err := configloader.Load(p, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make otel config: %w", err)
 	}
 
 	var (
 		logger    = zap.NewNop()
-		startInfo component.ApplicationStartInfo
+		startInfo component.BuildInfo
 	)
 
-	exporters, err := builder.NewExportersBuilder(logger, startInfo, otelCfg, factories.Exporters).Build()
+	exporters, err := builder.BuildExporters(logger, startInfo, otelCfg, factories.Exporters)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build exporters: %w", err)
 	}
@@ -145,7 +142,7 @@ service:
 		return nil, fmt.Errorf("failed to start exporters: %w", err)
 	}
 
-	pipelines, err := builder.NewPipelinesBuilder(logger, startInfo, otelCfg, exporters, factories.Processors).Build()
+	pipelines, err := builder.BuildPipelines(logger, startInfo, otelCfg, exporters, factories.Processors)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build pipelines: %w", err)
 	}
@@ -153,11 +150,13 @@ service:
 		return nil, fmt.Errorf("failed to start pipelines: %w", err)
 	}
 
-	receivers, err := builder.NewReceiversBuilder(logger, startInfo, otelCfg, pipelines, factories.Receivers).Build()
+	receivers, err := builder.BuildReceivers(logger, startInfo, otelCfg, pipelines, factories.Receivers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build receivers: %w", err)
 	}
-	if err := receivers.StartAll(context.Background(), nil); err != nil {
+	h := &mocks.Host{}
+	h.On("GetExtensions").Return(nil)
+	if err := receivers.StartAll(context.Background(), h); err != nil {
 		return nil, fmt.Errorf("failed to start receivers: %w", err)
 	}
 
@@ -193,17 +192,15 @@ func (s *Server) Stop() error {
 func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFactory {
 	return processorhelper.NewFactory(
 		"func_processor",
-		func() configmodels.Processor {
-			return &configmodels.ProcessorSettings{
-				TypeVal: "func_processor",
-				NameVal: "func_processor",
-			}
+		func() config.Processor {
+			processorSettings := config.NewProcessorSettings(config.NewIDWithName("func_processor", "func_processor"))
+			return &processorSettings
 		},
 		processorhelper.WithTraces(func(
 			_ context.Context,
-			_ component.ProcessorCreateParams,
-			_ configmodels.Processor,
-			next consumer.TracesConsumer,
+			_ component.ProcessorCreateSettings,
+			_ config.Processor,
+			next consumer.Traces,
 		) (component.TracesProcessor, error) {
 			return &funcProcessor{
 				Callback: callback,
@@ -215,7 +212,7 @@ func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFac
 
 type funcProcessor struct {
 	Callback func(pdata.Traces)
-	Next     consumer.TracesConsumer
+	Next     consumer.Traces
 }
 
 func (p *funcProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
@@ -225,8 +222,8 @@ func (p *funcProcessor) ConsumeTraces(ctx context.Context, td pdata.Traces) erro
 	return p.Next.ConsumeTraces(ctx, td)
 }
 
-func (p *funcProcessor) GetCapabilities() component.ProcessorCapabilities {
-	return component.ProcessorCapabilities{MutatesConsumedData: true}
+func (p *funcProcessor) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{MutatesData: true}
 }
 
 func (p *funcProcessor) Start(context.Context, component.Host) error { return nil }
