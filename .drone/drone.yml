@@ -129,6 +129,7 @@ steps:
   - docker buildx create --name multiarch --driver docker-container --use
   - make CROSS_BUILD=true RELEASE_BUILD=true agent-image
   - make CROSS_BUILD=true RELEASE_BUILD=true agentctl-image
+  - docker buildx rm multiarch
 
 volumes:
 - name: docker
@@ -136,6 +137,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: ef23d4b90ddca3f05c791fa16797fbffd5ed102935109b5a1bbdfa74620b8e87
+hmac: 7ecbeab4e9191c2ec769bd5481d6b243ce6e72520bb9cc45a63afa2a20df5e46
 
 ...
