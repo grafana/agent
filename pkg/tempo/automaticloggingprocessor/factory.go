@@ -54,7 +54,7 @@ func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 	}
 
 	if c.Overrides.LogsTag != "" && c.Overrides.LokiTag != "" {
-		return fmt.Errorf("must configure at most one of overrides.logs_tag and overrides.loki_tag. logs_tag is deprecated in favor of loki_tag")
+		return fmt.Errorf("must configure at most one of overrides.logs_instance_tag and overrides.loki_tag. loki_tag is deprecated in favor of logs_instance_tag")
 	}
 
 	// Migrate deprecated config to new one
@@ -81,7 +81,7 @@ func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 
 // OverrideConfig contains overrides for various strings
 type OverrideConfig struct {
-	LogsTag     string `mapstructure:"logs_tag" yaml:"logs_tag,omitempty"`
+	LogsTag     string `mapstructure:"logs_instance_tag" yaml:"logs_instance_tag,omitempty"`
 	ServiceKey  string `mapstructure:"service_key" yaml:"service_key,omitempty"`
 	SpanNameKey string `mapstructure:"span_name_key" yaml:"span_name_key,omitempty"`
 	StatusKey   string `mapstructure:"status_key" yaml:"status_key,omitempty"`

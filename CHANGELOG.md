@@ -18,7 +18,7 @@
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
-  `loki_tag` is now `logs_tag`, and `backend: loki` is now
+  `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`.
 
 # v0.16.1 (2021-06-22)

@@ -94,7 +94,7 @@ tempo:
       processes: true
       roots: true
     overrides:
-      logs_tag: tempo
+      logs_instance_tag: tempo
 ```
 
 ### Tempo: Remote write TLS config

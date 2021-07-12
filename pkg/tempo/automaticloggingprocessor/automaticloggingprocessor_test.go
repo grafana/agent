@@ -257,7 +257,7 @@ func TestLokiNameMigration(t *testing.T) {
 		backend: logs_instance
 		logs_instance_name: default
 		overrides:
-			logs_tag: tempo
+			logs_instance_tag: tempo
 	`)
 
 	var cfg AutomaticLoggingConfig

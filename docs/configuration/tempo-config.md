@@ -108,7 +108,7 @@ automatic_logging:
   # Timeout on writing logs to Loki when backend is "logs_instance."
   [ timeout: <duration> | default = 1ms ]
   overrides:
-    [ logs_tag: <string> | default = "tempo" ]
+    [ logs_instance_tag: <string> | default = "tempo" ]
     [ service_key: <string> | default = "svc" ]
     [ span_name_key: <string> | default = "span" ]
     [ status_key: <string> | default = "status" ]
