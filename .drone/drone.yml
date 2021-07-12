@@ -1,8 +1,4 @@
 ---
-# IMPORTANT: Any changes to this file have to be signed, this can be done by running make drone
-# Note that you will need to already have added DRONE_TOKEN as an environment variable
----
-# Ensures that linting is done properly
 kind: pipeline
 name: Lint
 platform:
@@ -16,10 +12,9 @@ steps:
   - apt-get update -y && apt-get install -y libsystemd-dev
   - make lint
 ---
-# Generates executables and ensures they are built
 kind: pipeline
 type: docker
-name: Make Executables
+name: Dist
 platform:
   os: linux
   arch: amd64
@@ -37,7 +32,6 @@ steps:
   - export PATH=$PATH:/usr/local/go/bin
   - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist
 ---
-# Run golang unit tests
 kind: pipeline
 type: docker
 name: Test
@@ -58,7 +52,6 @@ steps:
   - export PATH=$PATH:/usr/local/go/bin
   - make BUILD_IN_CONTAINER=false test
 ---
-# Create artifacts and draft release, ONLY used when a tag is pushed
 kind: pipeline
 type: docker
 name: Release
@@ -104,13 +97,15 @@ volumes:
   host: 
     path: /var/run/docker.sock
 ---
-# Build and push containers
 kind: pipeline
 type: docker
 name: Containerize
 platform:
   os: linux
   arch: amd64
+trigger:
+  event:
+  - tag
 
 steps:
 - name: Build Containers
@@ -141,6 +136,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 25dc50fe5bb6e8d8c867ce8d8a3cd402ea691a75933fe42383dcd346dcfc05a6
+hmac: ef23d4b90ddca3f05c791fa16797fbffd5ed102935109b5a1bbdfa74620b8e87
 
 ...

@@ -115,27 +115,11 @@ agentctl: cmd/agentctl/agentctl
 
 # TargetPlatform is set by the buildx
 
-cmd/agent/agent:  cmd/agent/main.go
-ifeq ($(TARGETPLATFORM),normal)
-	export CGO_ENABLED=1 GO111MODULE=auto; go build $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/amd64)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ ; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm64)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64  CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v7)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v6)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-	$(NETGO_CHECK)
+cmd/agent/agent:  cmd/agent/main.go basebuild
 
+cmd/agentctl/agentctl:  cmd/agentctl/main.go basebuild
 
-cmd/agentctl/agentctl:  cmd/agentctl/main.go
-	@echo $(TARGETPLATFORM)
+basebuild:
 ifeq ($(TARGETPLATFORM),normal)
 	export CGO_ENABLED=1 GO111MODULE=auto ; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
@@ -146,12 +130,13 @@ ifeq ($(TARGETPLATFORM),linux/arm64)
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 ifeq ($(TARGETPLATFORM),linux/arm/v7)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7  CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
+	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 ifeq ($(TARGETPLATFORM),linux/arm/v6)
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
 endif
 	$(NETGO_CHECK)
+
 
 agent-image: 
 	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
