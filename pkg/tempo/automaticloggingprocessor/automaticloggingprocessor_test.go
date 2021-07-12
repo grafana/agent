@@ -4,9 +4,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"gopkg.in/yaml.v3"
 )
 
 func TestSpanKeyVals(t *testing.T) {
@@ -178,6 +181,11 @@ func TestBadConfigs(t *testing.T) {
 		},
 		{
 			cfg: &AutomaticLoggingConfig{
+				Backend: "logs",
+			},
+		},
+		{
+			cfg: &AutomaticLoggingConfig{
 				Backend: "loki",
 			},
 		},
@@ -206,7 +214,7 @@ func TestLogToStdoutSet(t *testing.T) {
 	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
 
 	cfg = &AutomaticLoggingConfig{
-		Backend: BackendLoki,
+		Backend: BackendLogs,
 		Spans:   true,
 	}
 
@@ -226,10 +234,37 @@ func TestDefaults(t *testing.T) {
 	require.Equal(t, defaultTimeout, p.(*automaticLoggingProcessor).cfg.Timeout)
 	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
 
-	require.Equal(t, defaultLokiTag, p.(*automaticLoggingProcessor).cfg.Overrides.LokiTag)
+	require.Equal(t, defaultLogsTag, p.(*automaticLoggingProcessor).cfg.Overrides.LogsTag)
 	require.Equal(t, defaultServiceKey, p.(*automaticLoggingProcessor).cfg.Overrides.ServiceKey)
 	require.Equal(t, defaultSpanNameKey, p.(*automaticLoggingProcessor).cfg.Overrides.SpanNameKey)
 	require.Equal(t, defaultStatusKey, p.(*automaticLoggingProcessor).cfg.Overrides.StatusKey)
 	require.Equal(t, defaultDurationKey, p.(*automaticLoggingProcessor).cfg.Overrides.DurationKey)
 	require.Equal(t, defaultTraceIDKey, p.(*automaticLoggingProcessor).cfg.Overrides.TraceIDKey)
+}
+
+func TestLokiNameMigration(t *testing.T) {
+	logsConfig := &logs.Config{
+		Configs: []*logs.InstanceConfig{{Name: "default"}},
+	}
+
+	input := util.Untab(`
+		backend: loki
+		loki_name: default
+		overrides:
+			loki_tag: tempo
+	`)
+	expect := util.Untab(`
+		backend: logs_instance
+		logs_instance_name: default
+		overrides:
+			logs_instance_tag: tempo
+	`)
+
+	var cfg AutomaticLoggingConfig
+	require.NoError(t, yaml.Unmarshal([]byte(input), &cfg))
+	require.NoError(t, cfg.Validate(logsConfig))
+
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	require.YAMLEq(t, expect, string(bb))
 }

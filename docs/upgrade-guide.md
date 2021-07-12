@@ -12,6 +12,91 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Logs: Deprecation of "loki" in config.
+
+The term `loki` in the config has been deprecated of favor of `logs`. This
+change is to make it clearer when referring to Grafana Loki, and
+configuration of Grafana Agent to send logs to Grafana Loki.
+
+Old configs will continue to work until it is fully deprecated. To migrate your
+config, change the `loki` key to `logs`.
+
+Example old config:
+
+```yaml
+loki:
+  positions_directory: /tmp/loki-positions
+  configs:
+  - name: default
+    clients:
+      - url: http://localhost:3100/loki/api/v1/push
+    scrape_configs:
+    - job_name: system
+      static_configs:
+      - targets: ['localhost']
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
+```
+
+Example new config:
+
+```yaml
+logs:
+  positions_directory: /tmp/loki-positions
+  configs:
+  - name: default
+    clients:
+      - url: http://localhost:3100/loki/api/v1/push
+    scrape_configs:
+    - job_name: system
+      static_configs:
+      - targets: ['localhost']
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
+```
+
+#### Tempo: Deprecation of "loki" in config.
+
+As part of the `loki` to `logs` rename, parts of the automatic_logging component
+in Tempo have been updated to refer to `logs_instance` instead.
+
+Old configurations using `loki_name`, `loki_tag`, or `backend: loki` will
+continue to work until the `loki` terminology is fully deprecated.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: loki
+      loki_name: default
+      spans: true
+      processes: true
+      roots: true
+    overrides:
+      loki_tag: tempo
+```
+
+Example new config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: logs_instance
+      logs_instance_name: default
+      spans: true
+      processes: true
+      roots: true
+    overrides:
+      logs_instance_tag: tempo
+```
+
 ### Tempo: Remote write TLS config
 
 Tempo `remote_write` now supports configuring TLS settings in the trace

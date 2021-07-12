@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/agent/pkg/util"
@@ -32,7 +32,7 @@ type Instance struct {
 }
 
 // NewInstance creates and starts an instance of tracing pipelines.
-func NewInstance(loki *loki.Loki, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
+func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
 	var err error
 
 	instance := &Instance{}
@@ -42,14 +42,14 @@ func NewInstance(loki *loki.Loki, reg prometheus.Registerer, cfg InstanceConfig,
 		return nil, fmt.Errorf("failed to create metric views: %w", err)
 	}
 
-	if err := instance.ApplyConfig(loki, promInstanceManager, cfg); err != nil {
+	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, cfg); err != nil {
 		return nil, err
 	}
 	return instance, nil
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Manager, cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -62,7 +62,7 @@ func (i *Instance) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Man
 	// Shut down any existing pipeline
 	i.stop()
 
-	createCtx := context.WithValue(context.Background(), contextkeys.Loki, loki)
+	createCtx := context.WithValue(context.Background(), contextkeys.Logs, logsSubsystem)
 	err := i.buildAndStartPipeline(createCtx, cfg, promInstanceManager)
 	if err != nil {
 		return fmt.Errorf("failed to create pipeline: %w", err)

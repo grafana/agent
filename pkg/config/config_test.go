@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/stretchr/testify/require"
@@ -183,6 +184,25 @@ tempo:
 	}
 }
 
+func TestConfig_LokiNameMigration(t *testing.T) {
+	input := util.Untab(`
+loki:
+  configs:
+  - name: foo
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+    - url: http://loki:3100/loki/api/v1/push
+`)
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
+	require.NoError(t, cfg.ApplyDefaults())
+
+	require.Nil(t, cfg.Loki)
+	require.NotNil(t, cfg.Logs)
+	require.Equal(t, "foo", cfg.Logs.Configs[0].Name)
+}
+
 func TestConfig_TempoLokiFailsValidation(t *testing.T) {
 	tests := []struct {
 		cfg           string
@@ -201,10 +221,10 @@ tempo:
   configs:
   - name: default
     automatic_logging:
-      backend: loki
-      loki_name: default
+      backend: logs_instance
+      logs_instance_name: default
       spans: true`,
-			expectedError: "error in config file: specified loki config default not found",
+			expectedError: "error in config file: failed to validate automatic_logging for tempo config default: specified logs config default not found in agent config",
 		},
 	}
 

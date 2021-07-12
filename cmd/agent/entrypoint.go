@@ -11,7 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
+	loki "github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/tempo"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
@@ -38,7 +39,7 @@ type Entrypoint struct {
 
 	srv         *server.Server
 	promMetrics *prom.Agent
-	lokiLogs    *loki.Loki
+	lokiLogs    *loki.Logs
 	tempoTraces *tempo.Tempo
 	manager     *integrations.Manager
 
@@ -77,7 +78,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.lokiLogs, err = loki.New(prometheus.DefaultRegisterer, cfg.Loki, logger)
+	ep.lokiLogs, err = logs.New(prometheus.DefaultRegisterer, cfg.Logs, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +124,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.lokiLogs.ApplyConfig(cfg.Loki); err != nil {
+	if err := ep.lokiLogs.ApplyConfig(cfg.Logs); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update loki", "err", err)
 		failed = true
 	}
@@ -199,12 +200,14 @@ func (ep *Entrypoint) TriggerReload() bool {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
+	cfg.LogDeprecations(ep.log)
 
 	err = ep.ApplyConfig(*cfg)
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
+
 	return true
 }
 
