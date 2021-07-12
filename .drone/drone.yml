@@ -1,4 +1,8 @@
 ---
+# IMPORTANT: Any changes to this file have to be signed, this can be done by running make drone
+# Note that you will need to already have added DRONE_TOKEN as an environment variable
+---
+# Ensures that linting is done properly
 kind: pipeline
 name: Lint
 platform:
@@ -12,9 +16,10 @@ steps:
   - apt-get update -y && apt-get install -y libsystemd-dev
   - make lint
 ---
+# Generates executables and ensures they are built
 kind: pipeline
 type: docker
-name: Dist
+name: Make Executables
 platform:
   os: linux
   arch: amd64
@@ -32,6 +37,28 @@ steps:
   - export PATH=$PATH:/usr/local/go/bin
   - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist
 ---
+# Run golang unit tests
+kind: pipeline
+type: docker
+name: Test
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: distribute
+  image: rfratto/seego
+  commands:
+  - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
+  - gem install --no-document fpm
+  - mkdir -p /usr/local/go/bin
+  - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+  - rm go1.16.5.linux-amd64.tar.gz
+  - export PATH=$PATH:/usr/local/go/bin
+  - make BUILD_IN_CONTAINER=false test
+---
+# Create artifacts and draft release, ONLY used when a tag is pushed
 kind: pipeline
 type: docker
 name: Release
@@ -77,6 +104,7 @@ volumes:
   host: 
     path: /var/run/docker.sock
 ---
+# Build and push containers
 kind: pipeline
 type: docker
 name: Containerize
@@ -113,6 +141,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: dc1bd2e973ceede26c6b1eb745e2baf5d46d4d09ea2ab610403dc580b4eb1bbf
+hmac: 25dc50fe5bb6e8d8c867ce8d8a3cd402ea691a75933fe42383dcd346dcfc05a6
 
 ...
