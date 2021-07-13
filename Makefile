@@ -9,6 +9,7 @@ SHELL = /usr/bin/env bash
 IMAGE_PREFIX ?= mrdgrafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 TARGETPLATFORM ?= normal
+DRONE ?= false
 
 # Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
 # different architectures. When true, docker buildx is used instead of docker,
