@@ -83,7 +83,7 @@ endif
 seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
 $(info    DRONE is $(DRONE))
 ifeq ($(DRONE),true)
-	seego = bash ./go_wrapper.sh go
+	seego = bash ./.drone/go_wrapper.sh 
 endif
 $(info    seego is $(seego))
 # Set the CGO, CC, CCX flags based on targetplatform, if non given assume 'native' to the device
