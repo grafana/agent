@@ -1,6 +1,5 @@
 # Main (unreleased)
 
-- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
@@ -9,6 +8,10 @@
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
+
+- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
+
+- [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
   
 - [ENHANCEMENT] Update OTel dependency to v0.29.0 (@mapno)
 
