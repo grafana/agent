@@ -45,7 +45,7 @@ DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAG
 
 # We need a separate set of flags for CGO, where building with -static can
 # cause problems with some C libraries.
-CGO_FLAGS := -ldflags="-s -w $(GO_LDFLAGS)" -tags 'netgo'
+CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
 DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
@@ -201,7 +201,7 @@ test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
 
 clean:
-	rm -r -f cmd/agent/agent
+	rm -rf cmd/agent/agent
 	go clean ./...
 
 example-kubernetes:
