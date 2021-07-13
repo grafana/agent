@@ -3,6 +3,8 @@ local optionals = import 'ext/optionals.libsonnet';
 local secrets = import 'ext/secrets.libsonnet';
 local k8s = import 'utils/k8s.libsonnet';
 
+local new_client = import 'component/logs/client.libsonnet';
+
 // Generates a logs_instance.
 //
 // @param {string} agentNamespace - namespace of the GrafanaAgent
@@ -21,15 +23,15 @@ function(agentNamespace, global, instance, apiServer) {
   //
   // Local clients come from the namespace of the LogsInstance and global
   // clients from the Agent's namespace.
-  local clients_namespace =
-    if std.length(spec.Clients) != 0 then meta.Namespace else agentNamespace,
-  local use_clients =
-    if std.length(spec.Clients) != 0 then spec.Clients else global.Clients,
+  local clients =
+    if std.length(spec.Clients) != 0
+    then { ns: meta.Namespace, list: spec.Clients }
+    else { ns: agentNamespace, list: global.Clients },
 
-  clients: std.optionals(std.map(
-    function(client) client,
-    use_clients,
+  clients: optionals.array(std.map(
+    function(spec) new_client(clients.ns, spec),
+    clients.list,
   )),
 
-  scrape_configs: [],
+  scrape_configs: optionals.array([]),
 }

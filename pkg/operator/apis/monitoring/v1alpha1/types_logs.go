@@ -234,7 +234,7 @@ type PipelineStageSpec struct {
 	// the Grafana Agent pod. The Grafana Agent Operator should be configured
 	// with a MetricsInstance that discovers the logging DaemonSet to collect
 	// metrics created by this stage.
-	Metrics map[string]*MetricsStageSpec `json:"metrics,omitempty"`
+	Metrics map[string]MetricsStageSpec `json:"metrics,omitempty"`
 	// Multiline stage merges multiple lines into a multiline block before
 	// passing it on to the next stage in the pipeline.
 	Multiline *MultilineStageSpec `json:"multiline,omitempty"`
@@ -412,9 +412,9 @@ type MetricsStageSpec struct {
 	// to a positive float.
 	Action string `json:"action,omitempty"`
 
-	// Buckets to create.
+	// Buckets to create. Bucket values must be convertible to floats.
 	// Only valid for type: histogram.
-	Buckets []int `json:"bucket,omitempty"`
+	Buckets []string `json:"bucket,omitempty"`
 }
 
 // MultilineStageSpec merges multiple lines into a multiline block before

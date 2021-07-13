@@ -7,8 +7,10 @@ import (
 
 	jsonnet "github.com/google/go-jsonnet"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/util"
@@ -146,6 +148,368 @@ func TestLogsClientConfig(t *testing.T) {
 	}
 }
 
+func TestLogsStages(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  map[string]interface{}
+		expect string
+	}{
+		{
+			name: "docker",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Docker: &gragent.DockerStageSpec{},
+			}},
+			expect: util.Untab(`docker: {}`),
+		},
+		{
+			name: "cri",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				CRI: &gragent.CRIStageSpec{},
+			}},
+			expect: util.Untab(`cri: {}`),
+		},
+		{
+			name: "regex",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Regex: &gragent.RegexStageSpec{
+					Source:     "time",
+					Expression: "^(?P<year>\\d+)",
+				},
+			}},
+			expect: util.Untab(`
+				regex:
+					expression: '^(?P<year>\d+)'
+					source: time
+			`),
+		},
+		{
+			name: "json",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				JSON: &gragent.JSONStageSpec{
+					Expressions: map[string]string{"user": ""},
+					Source:      "extra",
+				},
+			}},
+			expect: util.Untab(`
+				json:
+					expressions:
+						user: ""
+					source: extra
+			`),
+		},
+		{
+			name: "labelallow",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				LabelAllow: []string{"foo", "bar"},
+			}},
+			expect: util.Untab(`
+				labelallow: [foo, bar]
+			`),
+		},
+		{
+			name: "labeldrop",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				LabelDrop: []string{"foo", "bar"},
+			}},
+			expect: util.Untab(`
+				labeldrop: [foo, bar]
+			`),
+		},
+		{
+			name: "labels",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Labels: map[string]string{
+					"foo":  "",
+					"fizz": "buzz",
+				},
+			}},
+			expect: util.Untab(`
+				labels:
+					foo: ""
+					fizz: buzz
+			`),
+		},
+		{
+			name: "match",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Match: &gragent.MatchStageSpec{
+					PipelineName:      "app2",
+					Selector:          `{app="pokey"}`,
+					Action:            "keep",
+					DropCounterReason: "no_pokey",
+					Stages: []*gragent.PipelineStageSpec{{
+						JSON: &gragent.JSONStageSpec{
+							Expressions: map[string]string{"msg": "msg"},
+						},
+					}},
+				},
+			}},
+			expect: util.Untab(`
+				match:
+					pipeline_name: app2
+					selector: '{app="pokey"}'
+					action: keep
+					drop_counter_reason: no_pokey
+					stages:
+					- json:
+							expressions:
+								msg: msg
+			`),
+		},
+		{
+			name: "metrics",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Metrics: map[string]gragent.MetricsStageSpec{
+					"logs_line_total": {
+						Type:            "counter",
+						Description:     "total number of log lines",
+						Prefix:          "my_promtail_custom_",
+						MaxIdleDuration: "24h",
+						MatchAll:        boolPtr(true),
+						Action:          "inc",
+					},
+					"queue_elements": {
+						Type:        "gauge",
+						Description: "elements in queue",
+						Action:      "add",
+					},
+					"http_response_time_seconds": {
+						Type:    "histogram",
+						Source:  "response_time",
+						Action:  "inc",
+						Buckets: []string{"0.001", "0.0025", "0.050"},
+					},
+				},
+			}},
+			expect: util.Untab(`
+				metrics:
+					logs_line_total:
+						type: Counter
+						description: total number of log lines
+						prefix: my_promtail_custom_
+						max_idle_duration: 24h
+						config:
+							match_all: true
+							action: inc
+					queue_elements:
+						type: Gauge
+						description: elements in queue
+						config:
+							action: add
+					http_response_time_seconds:
+						type: Histogram
+						source: response_time
+						config:
+							action: inc
+							buckets: [0.001, 0.0025, 0.050]
+			`),
+		},
+		{
+			name: "multiline",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Multiline: &gragent.MultilineStageSpec{
+					FirstLine:   "first",
+					MaxWaitTime: "5m",
+					MaxLines:    5,
+				},
+			}},
+			expect: util.Untab(`
+				multiline:
+					firstline: first
+					max_wait_time: 5m
+					max_lines: 5
+			`),
+		},
+		{
+			name: "output",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Output: &gragent.OutputStageSpec{Source: "message"},
+			}},
+			expect: util.Untab(`
+				output:
+					source: message
+			`),
+		},
+		{
+			name: "pack",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Pack: &gragent.PackStageSpec{
+					Labels:          []string{"foo", "bar"},
+					IngestTimestamp: true,
+				},
+			}},
+			expect: util.Untab(`
+				pack:
+					labels: [foo, bar]
+					ingest_timestamp: true
+			`),
+		},
+		{
+			name: "regex",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Regex: &gragent.RegexStageSpec{
+					Source:     "msg",
+					Expression: "some regex",
+				},
+			}},
+			expect: util.Untab(`
+				regex:
+					source: msg
+					expression: some regex
+			`),
+		},
+		{
+			name: "replace",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Replace: &gragent.ReplaceStageSpec{
+					Expression: "password (\\S+)",
+					Replace:    "****",
+					Source:     "msg",
+				},
+			}},
+			expect: util.Untab(`
+				replace:
+					expression: 'password (\S+)'
+					replace: '****'
+					source: msg
+			`),
+		},
+		{
+			name: "template",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Template: &gragent.TemplateStageSpec{
+					Source:   "new_key",
+					Template: "hello world!",
+				},
+			}},
+			expect: util.Untab(`
+				template:
+					source: new_key
+					template: "hello world!"
+			`),
+		},
+		{
+			name: "tenant",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Tenant: &gragent.TenantStageSpec{
+					Source: "customer_id",
+					Value:  "fake",
+				},
+			}},
+			expect: util.Untab(`
+				tenant:
+					source: customer_id
+					value: fake
+			`),
+		},
+		{
+			name: "timestamp",
+			input: map[string]interface{}{"spec": &gragent.PipelineStageSpec{
+				Timestamp: &gragent.TimestampStageSpec{
+					Source:          "time",
+					Format:          "RFC3339Nano",
+					FallbackFormats: []string{"UnixNs"},
+					Location:        "America/New_York",
+					ActionOnFailure: "fudge",
+				},
+			}},
+			expect: util.Untab(`
+				timestamp:
+					source: time
+					format: RFC3339Nano
+					fallback_formats: [UnixNs]
+					location: America/New_York
+					action_on_failure: fudge
+			`),
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			vm, err := createVM(testStore())
+			require.NoError(t, err)
+
+			actual, err := runSnippetTLA(t, vm, "./component/logs/stages.libsonnet", tc.input)
+			require.NoError(t, err)
+			if !assert.YAMLEq(t, tc.expect, actual) {
+				fmt.Println(string(actual))
+			}
+		})
+	}
+
+}
+
+func TestLogsConfig(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  map[string]interface{}
+		expect string
+	}{
+		{
+			name: "global clients",
+			input: map[string]interface{}{
+				"agentNamespace": "operator",
+				"global": &gragent.LogsSubsystemSpec{
+					Clients: []gragent.LogsClientSpec{{URL: "global"}},
+				},
+				"instance": &LogInstance{
+					Instance: &gragent.LogsInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: "inst",
+							Name:      "default",
+						},
+						Spec: gragent.LogsInstanceSpec{},
+					},
+				},
+				"apiServer": &prom.APIServerConfig{},
+			},
+			expect: util.Untab(`
+				name: inst/default
+				clients:
+				- url: global
+			`),
+		},
+		{
+			name: "local clients",
+			input: map[string]interface{}{
+				"agentNamespace": "operator",
+				"global": &gragent.LogsSubsystemSpec{
+					Clients: []gragent.LogsClientSpec{{URL: "global"}},
+				},
+				"instance": &LogInstance{
+					Instance: &gragent.LogsInstance{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: "inst",
+							Name:      "default",
+						},
+						Spec: gragent.LogsInstanceSpec{
+							Clients: []gragent.LogsClientSpec{{URL: "local"}},
+						},
+					},
+				},
+				"apiServer": &prom.APIServerConfig{},
+			},
+			expect: util.Untab(`
+				name: inst/default
+				clients:
+				- url: local
+			`),
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			vm, err := createVM(testStore())
+			require.NoError(t, err)
+
+			actual, err := runSnippetTLA(t, vm, "./logs.libsonnet", tc.input)
+			require.NoError(t, err)
+			require.YAMLEq(t, tc.expect, actual)
+		})
+	}
+
+}
+
 func runSnippetTLA(t *testing.T, vm *jsonnet.VM, filename string, tla map[string]interface{}) (string, error) {
 	t.Helper()
 
@@ -176,3 +540,5 @@ func runSnippetTLA(t *testing.T, vm *jsonnet.VM, filename string, tla map[string
 		`, filename, strings.Join(args, ","), strings.Join(boundArgs, ",")),
 	)
 }
+
+func boolPtr(v bool) *bool { return &v }

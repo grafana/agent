@@ -512,7 +512,7 @@ func (in *MetricsStageSpec) DeepCopyInto(out *MetricsStageSpec) {
 	}
 	if in.Buckets != nil {
 		in, out := &in.Buckets, &out.Buckets
-		*out = make([]int, len(*in))
+		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
 }
@@ -624,17 +624,9 @@ func (in *PipelineStageSpec) DeepCopyInto(out *PipelineStageSpec) {
 	}
 	if in.Metrics != nil {
 		in, out := &in.Metrics, &out.Metrics
-		*out = make(map[string]*MetricsStageSpec, len(*in))
+		*out = make(map[string]MetricsStageSpec, len(*in))
 		for key, val := range *in {
-			var outVal *MetricsStageSpec
-			if val == nil {
-				(*out)[key] = nil
-			} else {
-				in, out := &val, &outVal
-				*out = new(MetricsStageSpec)
-				(*in).DeepCopyInto(*out)
-			}
-			(*out)[key] = outVal
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.Multiline != nil {

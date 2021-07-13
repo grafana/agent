@@ -122,7 +122,7 @@ spec:
                       description: ProxyURL to proxy requests through. Optional.
                       type: string
                     tenantId:
-                      description: Tenant ID used by default to push logs to Loki. If ommited assumes remote Loki is running in single-tenant mode or an authentication layer is used to inject an X-Scope-OrgID header.
+                      description: Tenant ID used by default to push logs to Loki. If omitted assumes remote Loki is running in single-tenant mode or an authentication layer is used to inject an X-Scope-OrgID header.
                       type: string
                     timeout:
                       description: Maximum time to wait for a server to respond to a request.

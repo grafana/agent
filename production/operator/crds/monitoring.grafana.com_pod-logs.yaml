@@ -113,7 +113,7 @@ spec:
                       description: Match is a filtering stage that conditionally applies a set of stages or drop entries when a log entry matches a configurable LogQL stream selector and filter expressions.
                       properties:
                         action:
-                          description: Determines what action is taken when the selector matches the log line. Can be keep or drop. Defualts to keep. When set to drop, entries will be dropped and no later metrics will be recorded. Stages must be empty when dropping metrics.
+                          description: Determines what action is taken when the selector matches the log line. Can be keep or drop. Defaults to keep. When set to drop, entries will be dropped and no later metrics will be recorded. Stages must be empty when dropping metrics.
                           type: string
                         dropCounterReason:
                           description: Every time a log line is dropped the metric logentry_dropped_lines_total will be incremented. A "reason" label is added, and can be customized by providing a custom value here. Defaults to "match_stage."
@@ -137,9 +137,9 @@ spec:
                             description: "The action to take against the metric. \n Must be either \"inc\" or \"add\" for type: counter or type: histogram. When type: gauge, must be one of \"set\", \"inc\", \"dec\", \"add\", or \"sub\". \n \"add\", \"set\", or \"sub\" requires the extracted value to be convertible to a positive float."
                             type: string
                           bucket:
-                            description: 'Buckets to create. Only valid for type: histogram.'
+                            description: 'Buckets to create. Bucket values must be convertible to floats. Only valid for type: histogram.'
                             items:
-                              type: integer
+                              type: string
                             type: array
                           countEntryBytes:
                             description: "If true all log line bytes will be counted. Can only be set with matchAll: true and action: add. \n Only valid for type: counter."
