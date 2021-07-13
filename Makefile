@@ -6,7 +6,7 @@ SHELL = /usr/bin/env bash
 #############
 
 # Docker image info
-IMAGE_PREFIX ?= mrdgrafana
+IMAGE_PREFIX ?= grafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 TARGETPLATFORM ?= normal
 DRONE ?= false
