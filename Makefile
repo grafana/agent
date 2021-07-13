@@ -316,9 +316,9 @@ ifeq ($(DRONE),true)
 	cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
 else
 ifeq ($(BUILD_IN_CONTAINER),true)
-	docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" --entrypoint "cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT=../../dist/grafana-agent-installer.exe ./packaging/windows/install_script.nsis"  grafana/agent/seego
+	docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" --entrypoint "cp ./dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT=../../dist/grafana-agent-installer.exe ./packaging/windows/install_script.nsis"  grafana/agent/seego
 else
-	cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
+	cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT./dist/grafana-agent-installer.exe ./packaging/windows/install_script.nsis
 endif
 endif 
 	
