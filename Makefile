@@ -76,10 +76,27 @@ PACKAGE_RELEASE := 1
 DOCKERFILE = Dockerfile
 
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
-
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
+docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 $(DOCKER_BUILD_FLAGS)
 endif
+
+# Set the CGO, CC, CCX flags based on targetplatform, if non given assume 'native' to the device
+CGO_CC_CCX = export CGO_ENABLED=1 GO111MODULE=auto
+
+ifeq ($(TARGETPLATFORM),linux/amd64)
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ ;
+endif
+ifeq ($(TARGETPLATFORM),linux/arm64)
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm64  CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; 
+endif
+ifeq ($(TARGETPLATFORM),linux/arm/v7)
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; 
+endif
+ifeq ($(TARGETPLATFORM),linux/arm/v6)
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; 
+endif
+
 
 
 ########
@@ -135,45 +152,18 @@ agent-operator: cmd/agent-operator/agent-operator
 # TargetPlatform is set by the buildx
 
 cmd/agent/agent:  cmd/agent/main.go
-ifeq ($(TARGETPLATFORM),normal)
-	export CGO_ENABLED=1 GO111MODULE=auto; go build $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/amd64)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ ; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm64)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64  CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v7)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v6)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
+	$(CGO_CC_CCX) go build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
 
 cmd/agentctl/agentctl:  cmd/agentctl/main.go
-ifeq ($(TARGETPLATFORM),normal)
-	export CGO_ENABLED=1 GO111MODULE=auto; go build $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/amd64)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ ; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm64)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64  CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v7)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v6)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go build  $(CGO_FLAGS) -o $@ ./$(@D)
-endif
+	$(CGO_CC_CCX) go build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
+
 
 cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)Samsung 870 EVO
 else
 	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
 endif
@@ -181,11 +171,11 @@ endif
 
 
 agent-image: 
-	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
+	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 agentctl-image: 
-	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
+	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
-	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 $(DOCKER_BUILD_FLAGS) -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
+	$(docker-build) -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 
 
 install:
