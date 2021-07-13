@@ -21,7 +21,7 @@ CROSS_BUILD ?= false
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.10.0
+BUILD_IMAGE_VERSION := 0.11.0
 BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
@@ -80,15 +80,21 @@ ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
 docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 $(DOCKER_BUILD_FLAGS)
 endif
+
+# seego is used by default when running bare make commands such as `make dist` this uses an image that has all the necessary libraries to cross build
+#	when using drone the docker in docker is more problematic so instead we boot into seego and run raw commands
 seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
-$(info    DRONE is $(DRONE))
+
+# If being called from the drone executable this will be set to true, in this case we want the go_wrapper to set the
+#	CC and CCX and other flags for the appropriate architecture
 ifeq ($(DRONE),true)
 	seego = bash ./.drone/go_wrapper.sh 
 endif
-$(info    seego is $(seego))
+
 # Set the CGO, CC, CCX flags based on targetplatform, if non given assume 'native' to the device
 CGO_CC_CCX = export CGO_ENABLED=1 GO111MODULE=auto
 
+# TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests
 ifeq ($(TARGETPLATFORM),linux/amd64)
 CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ 
 endif
@@ -154,23 +160,44 @@ agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 agent-operator: cmd/agent-operator/agent-operator
 
-# TargetPlatform is set by the buildx
 
+
+
+# In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
 cmd/agent/agent:  cmd/agent/main.go
+ifeq ($(DRONE),true)
 	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
+else
+ifeq ($(CROSS_BUILD),false)
+	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+else
+	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+endif
 	$(NETGO_CHECK)
 
 
 cmd/agentctl/agentctl:  cmd/agentctl/main.go
+ifeq ($(DRONE),true)
 	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
-	$(NETGO_CHECK)
+else
+ifeq ($(CROSS_BUILD),false)
+	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+else
+	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+endif
+endif
 
 
 cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
+ifeq ($(DRONE),true)
+	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
+else
 ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)Samsung 870 EVO
+	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
 else
 	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
+endif
 endif
 	$(NETGO_CHECK)
 

@@ -16,3 +16,4 @@ packaging/windows/LICENSE
 packaging/windows/agent-windows-amd64.exe
 
 .DS_Store
+buildx-v*
