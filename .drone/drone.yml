@@ -30,7 +30,8 @@ steps:
   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
   - rm go1.16.5.linux-amd64.tar.gz
   - export PATH=$PATH:/usr/local/go/bin
-  - make BUILD_IN_CONTAINER=false DRONE=true RELEASE_TAG=v0.0.0 dist
+  - export DRONE=true
+  - make BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist
 ---
 kind: pipeline
 type: docker
@@ -50,7 +51,8 @@ steps:
   - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
   - rm go1.16.5.linux-amd64.tar.gz
   - export PATH=$PATH:/usr/local/go/bin
-  - make BUILD_IN_CONTAINER=false DRONE=true test
+  - export DRONE=true
+  - make BUILD_IN_CONTAINER=false test
 ---
 kind: pipeline
 type: docker
@@ -90,7 +92,8 @@ steps:
   - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
   - export PATH="$(go env GOPATH)/bin:$PATH"
   - RELEASE_TAG=$DRONE_TAG
-  - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG DRONE=true publish
+  - export DRONE=true
+  - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG publish
 
 volumes:
 - name: docker
@@ -137,6 +140,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 51c1fd92a687166614a0d0560536fcfc393f8da7f0386f08ab251b7df17a7a69
+hmac: 4224ec002ff93f34e5d432a3b93ca884081ca707b9f435b6097509d7e7e42d77
 
 ...

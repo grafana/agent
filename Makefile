@@ -81,22 +81,11 @@ DOCKERFILE = Dockerfile.buildx
 docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 $(DOCKER_BUILD_FLAGS)
 endif
 seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
-
+$(info    DRONE is $(DRONE))
 ifeq ($(DRONE),true)
-ifeq ($(TARGETPLATFORM),linux/amd64)
-seego = export GO111MODULE=auto CC=gcc CCX=g++; go 
+	seego = bash ./go_wrapper.sh go
 endif
-ifeq ($(TARGETPLATFORM),linux/arm64)
-seego = export CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go 
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v7)
-seego = export CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go 
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v6)
-seego = export CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go
-endif
-endif
-
+$(info    seego is $(seego))
 # Set the CGO, CC, CCX flags based on targetplatform, if non given assume 'native' to the device
 CGO_CC_CCX = export CGO_ENABLED=1 GO111MODULE=auto
 
@@ -110,7 +99,7 @@ ifeq ($(TARGETPLATFORM),linux/arm/v7)
 CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++
 endif
 ifeq ($(TARGETPLATFORM),linux/arm/v6)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++;
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++
 endif
 
 
