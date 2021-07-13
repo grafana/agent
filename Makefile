@@ -83,16 +83,16 @@ seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABL
 
 ifeq ($(DRONE),true)
 ifeq ($(TARGETPLATFORM),linux/amd64)
-CGO_CC_CCX = export GO111MODULE=auto CC=gcc CCX=g++; go 
+seego = export GO111MODULE=auto CC=gcc CCX=g++; go 
 endif
 ifeq ($(TARGETPLATFORM),linux/arm64)
-CGO_CC_CCX = export CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go 
+seego = export CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; go 
 endif
 ifeq ($(TARGETPLATFORM),linux/arm/v7)
-CGO_CC_CCX = export CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go 
+seego = export CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go 
 endif
 ifeq ($(TARGETPLATFORM),linux/arm/v6)
-CGO_CC_CCX = export CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; 
+seego = export CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; go
 endif
 endif
 
@@ -100,16 +100,16 @@ endif
 CGO_CC_CCX = export CGO_ENABLED=1 GO111MODULE=auto
 
 ifeq ($(TARGETPLATFORM),linux/amd64)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ ;
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ 
 endif
 ifeq ($(TARGETPLATFORM),linux/arm64)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm64  CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++; 
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm64  CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++
 endif
 ifeq ($(TARGETPLATFORM),linux/arm/v7)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; 
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++
 endif
 ifeq ($(TARGETPLATFORM),linux/arm/v6)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++; 
+CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++;
 endif
 
 
@@ -167,12 +167,12 @@ agent-operator: cmd/agent-operator/agent-operator
 # TargetPlatform is set by the buildx
 
 cmd/agent/agent:  cmd/agent/main.go
-	$(CGO_CC_CCX) go build $(CGO_FLAGS) -o $@ ./$(@D)
+	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
 
 cmd/agentctl/agentctl:  cmd/agentctl/main.go
-	$(CGO_CC_CCX) go build $(CGO_FLAGS) -o $@ ./$(@D)
+	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
 
