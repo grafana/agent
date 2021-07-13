@@ -272,43 +272,43 @@ dist: dist-agent dist-agentctl dist-packages
 dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
 
 dist/agent-linux-amd64: seego
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64;        $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64;        $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agent
 
 dist/agent-linux-arm64: seego
-	CGO_ENABLED=1 GOOS=linux GOARCH=arm64;        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64;        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-armv6: seego
-	CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-armv7: seego
-	CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-mipsle: seego
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++; go build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
-	CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif
 
 dist/agent-darwin-amd64:  seego
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
-	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif
 
 dist/agent-darwin-arm64: seego
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
-	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif
 
 dist/agent-windows-amd64.exe: seego
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++;  go build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++;  go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
-	CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif 
 
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
@@ -324,9 +324,9 @@ endif
 	
 dist/agent-freebsd-amd64: seego
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" ; go build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" ; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
-	CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif 
 
 
@@ -337,53 +337,53 @@ endif
 dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
 
 dist/agentctl-linux-amd64: seego
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64;       $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64;       $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-arm64: seego
-	CGO_ENABLED=1 GOOS=linux GOARCH=arm64;        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64;        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-armv6: seego
-	CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-armv7: seego
-	CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-mipsle: seego
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
-	CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 endif
 
 dist/agentctl-darwin-amd64: seego 
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
-	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 endif
 
 dist/agentctl-darwin-arm64: seego
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
 endif
 
 dist/agentctl-windows-amd64.exe: seego 
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++;  go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++;  go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
-	CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 endif
 
 dist/agentctl-freebsd-amd64: 
 ifeq ($(DRONE),true)
-	CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" ; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" ; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
-	CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 endif 
 
 seego: tools/seego/Dockerfile
-ifeq ($(DRONE), false)
+ifeq ($(DRONE),false)
 	docker build -t grafana/agent/seego tools/seego
 endif
 
