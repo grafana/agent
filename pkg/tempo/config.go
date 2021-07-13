@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
@@ -66,7 +66,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // Validate ensures that the Config is valid.
-func (c *Config) Validate(lokiConfig *loki.Config) error {
+func (c *Config) Validate(logsConfig *logs.Config) error {
 	names := make(map[string]struct{}, len(c.Configs))
 	for idx, c := range c.Configs {
 		if c.Name == "" {
@@ -78,25 +78,10 @@ func (c *Config) Validate(lokiConfig *loki.Config) error {
 		names[c.Name] = struct{}{}
 	}
 
-	// check to make sure that any referenced Loki configs exist.
 	for _, inst := range c.Configs {
 		if inst.AutomaticLogging != nil {
-			if inst.AutomaticLogging.Backend != automaticloggingprocessor.BackendLoki { // we can ignore if we're not logging to loki
-				continue
-			}
-
-			found := false
-			lokiName := inst.AutomaticLogging.LokiName
-
-			for _, lokiInst := range lokiConfig.Configs {
-				if lokiInst.Name == lokiName {
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				return fmt.Errorf("specified loki config %s not found", lokiName)
+			if err := inst.AutomaticLogging.Validate(logsConfig); err != nil {
+				return fmt.Errorf("failed to validate automatic_logging for tempo config %s: %w", inst.Name, err)
 			}
 		}
 	}

@@ -27,6 +27,7 @@ local container = k.core.v1.container;
       k.util.hostVolumeMount('root', '/', '/host/root', readOnly=true) +
 
       controller.mixin.spec.template.spec.withHostPID(true) +
-      controller.mixin.spec.template.spec.withHostNetwork(true),
+      controller.mixin.spec.template.spec.withHostNetwork(true) +
+      controller.mixin.spec.template.spec.withDnsPolicy('ClusterFirstWithHostNet'),
   },
 }

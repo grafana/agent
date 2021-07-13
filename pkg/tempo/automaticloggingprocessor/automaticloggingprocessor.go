@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/go-logfmt/logfmt"
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultLokiTag     = "tempo"
+	defaultLogsTag     = "tempo"
 	defaultServiceKey  = "svc"
 	defaultSpanNameKey = "span"
 	defaultStatusKey   = "status"
@@ -44,7 +44,7 @@ type automaticLoggingProcessor struct {
 
 	cfg          *AutomaticLoggingConfig
 	logToStdout  bool
-	lokiInstance *loki.Instance
+	logsInstance *logs.Instance
 	done         atomic.Bool
 
 	logger log.Logger
@@ -69,8 +69,8 @@ func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig
 		cfg.Backend = BackendStdout
 	}
 
-	if cfg.Backend != BackendLoki && cfg.Backend != BackendStdout {
-		return nil, errors.New("automaticLoggingProcessor requires a backend of type 'loki' or 'stdout'")
+	if cfg.Backend != BackendLogs && cfg.Backend != BackendStdout {
+		return nil, fmt.Errorf("automaticLoggingProcessor requires a backend of type '%s' or '%s'", BackendLogs, BackendStdout)
 	}
 
 	logToStdout := false
@@ -78,7 +78,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig
 		logToStdout = true
 	}
 
-	cfg.Overrides.LokiTag = override(cfg.Overrides.LokiTag, defaultLokiTag)
+	cfg.Overrides.LogsTag = override(cfg.Overrides.LogsTag, defaultLogsTag)
 	cfg.Overrides.ServiceKey = override(cfg.Overrides.ServiceKey, defaultServiceKey)
 	cfg.Overrides.SpanNameKey = override(cfg.Overrides.SpanNameKey, defaultSpanNameKey)
 	cfg.Overrides.StatusKey = override(cfg.Overrides.StatusKey, defaultStatusKey)
@@ -116,16 +116,16 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 				traceID := span.TraceID().HexString()
 
 				if p.cfg.Spans {
-					p.exportToLoki(typeSpan, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
+					p.exportToLogsInstance(typeSpan, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
 				}
 
 				if p.cfg.Roots && span.ParentSpanID().IsEmpty() {
-					p.exportToLoki(typeRoot, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
+					p.exportToLogsInstance(typeRoot, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
 				}
 
 				if p.cfg.Processes && lastTraceID != traceID {
 					lastTraceID = traceID
-					p.exportToLoki(typeProcess, traceID, p.processKeyVals(rs.Resource(), svc)...)
+					p.exportToLogsInstance(typeProcess, traceID, p.processKeyVals(rs.Resource(), svc)...)
 				}
 			}
 		}
@@ -140,15 +140,15 @@ func (p *automaticLoggingProcessor) Capabilities() consumer.Capabilities {
 
 // Start is invoked during service startup.
 func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host) error {
-	loki := ctx.Value(contextkeys.Loki).(*loki.Loki)
-	if loki == nil {
-		return fmt.Errorf("key does not contain a Loki instance")
+	logs := ctx.Value(contextkeys.Logs).(*logs.Logs)
+	if logs == nil {
+		return fmt.Errorf("key does not contain a logs instance")
 	}
 
 	if !p.logToStdout {
-		p.lokiInstance = loki.Instance(p.cfg.LokiName)
-		if p.lokiInstance == nil {
-			return fmt.Errorf("loki instance %s not found", p.cfg.LokiName)
+		p.logsInstance = logs.Instance(p.cfg.LogsName)
+		if p.logsInstance == nil {
+			return fmt.Errorf("logs instance %s not found", p.cfg.LogsName)
 		}
 	}
 	return nil
@@ -204,7 +204,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	return atts
 }
 
-func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, keyvals ...interface{}) {
+func (p *automaticLoggingProcessor) exportToLogsInstance(kind string, traceID string, keyvals ...interface{}) {
 	if p.done.Load() {
 		return
 	}
@@ -222,9 +222,9 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 		return
 	}
 
-	sent := p.lokiInstance.SendEntry(api.Entry{
+	sent := p.logsInstance.SendEntry(api.Entry{
 		Labels: model.LabelSet{
-			model.LabelName(p.cfg.Overrides.LokiTag): model.LabelValue(kind),
+			model.LabelName(p.cfg.Overrides.LogsTag): model.LabelValue(kind),
 		},
 		Entry: logproto.Entry{
 			Timestamp: time.Now(),
@@ -233,7 +233,7 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 	}, p.cfg.Timeout)
 
 	if !sent {
-		level.Warn(p.logger).Log("msg", "failed to autolog to loki", "kind", kind, "traceid", traceID)
+		level.Warn(p.logger).Log("msg", "failed to autolog to logs pipeline", "kind", kind, "traceid", traceID)
 	}
 }
 
