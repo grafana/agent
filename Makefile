@@ -10,6 +10,8 @@ IMAGE_PREFIX ?= mrdgrafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 TARGETPLATFORM ?= normal
 DRONE ?= false
+# This is normally set by the caller but when building the agent windows installer it needs to be set to something
+RELEASE_TAG ?= v0.0.0
 
 # Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
 # different architectures. When true, docker buildx is used instead of docker,
@@ -83,7 +85,7 @@ endif
 
 # seego is used by default when running bare make commands such as `make dist` this uses an image that has all the necessary libraries to cross build
 #	when using drone the docker in docker is more problematic so instead we boot into seego and run raw commands
-seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" rfratto/seego
+seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM"  grafana/agent/seego
 
 # If being called from the drone executable this will be set to true, in this case we want the go_wrapper to set the
 #	CC and CCX and other flags for the appropriate architecture
@@ -164,7 +166,8 @@ agent-operator: cmd/agent-operator/agent-operator
 
 
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
-cmd/agent/agent:  cmd/agent/main.go
+
+cmd/agent/agent: check-seego  cmd/agent/main.go
 ifeq ($(DRONE),true)
 	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -177,7 +180,7 @@ endif
 	$(NETGO_CHECK)
 
 
-cmd/agentctl/agentctl:  cmd/agentctl/main.go
+cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
 ifeq ($(DRONE),true)
 	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
 else
@@ -225,7 +228,7 @@ lint:
 # for packages that have known race detection issues
 test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
 
 clean:
 	rm -rf cmd/agent/agent
@@ -262,83 +265,122 @@ dist: dist-agent dist-agentctl dist-packages
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
-dist-agent:  dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
-dist/agent-linux-amd64: 
+dist-agent:  seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
+
+dist/agent-linux-amd64: seego
 	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agent
-dist/agent-linux-arm64: 
+
+dist/agent-linux-arm64: seego
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv6: 
+
+dist/agent-linux-armv6: seego
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-armv7: 
+
+dist/agent-linux-armv7: seego
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-linux-mipsle: 
+
+dist/agent-linux-mipsle: seego
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
 	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif
-dist/agent-darwin-amd64: 
+
+dist/agent-darwin-amd64:  seego
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
 	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif
-dist/agent-darwin-arm64:
+
+dist/agent-darwin-arm64: seego
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
 	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif
-dist/agent-windows-amd64.exe:
+
+dist/agent-windows-amd64.exe: seego
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++;  go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
 	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif 
+
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
-	cp dist/agent-windows-amd64.exe ./packaging/windows
-	cp LICENSE ./packaging/windows
-	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
-dist/agent-freebsd-amd64: 
+ifeq ($(DRONE),true)
+	cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
+else
+ifeq ($(BUILD_IN_CONTAINER),true)
+    docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" --entrypoint "cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT=../../dist/grafana-agent-installer.exe ./packaging/windows/install_script.nsis"  grafana/agent/seego
+else
+	cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
+endif
+endif 
+	
+dist/agent-freebsd-amd64: seego
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" ; go build $(CGO_FLAGS) -o $@ ./cmd/agent
 else
 	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 endif 
 
-dist-agentctl: dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
-dist/agentctl-linux-amd64: 
+dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
+
+dist/agentctl-linux-amd64: seego
 	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agentctl
-dist/agentctl-linux-arm64: 
+
+dist/agentctl-linux-arm64: seego
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv6: 
+
+dist/agentctl-linux-armv6: seego
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-armv7: 
+
+dist/agentctl-linux-armv7: seego
 	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-dist/agentctl-linux-mipsle: 
+
+dist/agentctl-linux-mipsle: seego
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
 	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 endif
-dist/agentctl-darwin-amd64: 
+
+dist/agentctl-darwin-amd64: seego 
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
 	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 endif
-dist/agentctl-darwin-arm64: 
+
+dist/agentctl-darwin-arm64: seego
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
-	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 endif
-dist/agentctl-windows-amd64.exe: 
+
+dist/agentctl-windows-amd64.exe: seego 
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++;  go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 else
 	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+endif
+
+seego: tools/seego/Dockerfile
+ifeq ($(DRONE), false)
+	docker build -t grafana/agent/seego tools/seego
+endif
+
+# Makes seego if CROSS_BUILD is true.
+check-seego:
+ifeq ($(DRONE),false)
+ifeq ($(CROSS_BUILD),true)
+ifeq ($(BUILD_IN_CONTAINER),true)
+	$(MAKE) seego
+endif	
+endif
 endif 
+
 dist/agentctl-freebsd-amd64: 
 ifeq ($(DRONE),true)
 	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" ; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
@@ -453,7 +495,7 @@ endif
 enforce-release-tag:
 	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
-test-packages: enforce-release-tag dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
+test-packages: enforce-release-tag seego dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
 .PHONY: test-package
 
