@@ -110,7 +110,7 @@ automatic_logging:
   # Configures a set of key values that will be logged as labels
   # They need to be span or process attributes logged in the log line
   #
-  # This feature only affects logs_instace backends
+  # This feature only applies when `backend = logs_instance`
   [ labels: <string array> ]
   overrides:
     [ logs_instance_tag: <string> | default = "tempo" ]
