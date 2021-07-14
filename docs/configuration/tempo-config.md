@@ -107,8 +107,10 @@ automatic_logging:
   [ process_attributes: <string array> ]
   # Timeout on writing logs to Loki when backend is "logs_instance."
   [ timeout: <duration> | default = 1ms ]
-  # configures a set of key values that will be logged as loki labels.
-  # this feature only affects loki backends
+  # Configures a set of key values that will be logged as labels
+  # They need to be span or process attributes logged in the log line
+  #
+  # This feature only affects logs_instace backends
   [ labels: <string array> ]
   overrides:
     [ logs_instance_tag: <string> | default = "tempo" ]

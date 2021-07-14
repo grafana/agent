@@ -263,8 +263,8 @@ func (p *automaticLoggingProcessor) exportToLogsInstance(kind string, traceID st
 		return
 	}
 
-	// Add loki label
-	labels[model.LabelName(p.cfg.Overrides.LokiTag)] = model.LabelValue(kind)
+	// Add logs instance label
+	labels[model.LabelName(p.cfg.Overrides.LogsTag)] = model.LabelValue(kind)
 
 	sent := p.logsInstance.SendEntry(api.Entry{
 		Labels: labels,
