@@ -1,4 +1,9 @@
-# API
++++
+title = "Grafana Agent API"
+weight = 400
++++
+
+# Grafana Agent APIs
 
 The API is divided into several parts:
 
@@ -6,7 +11,7 @@ The API is divided into several parts:
 - [Agent API](#agent-api)
 - [Ready/Healthy API](#ready--health-api)
 
-## Config Management API
+## Config management API
 
 Grafana Agent exposes a REST API for managing instance configurations when
 it is running in [scraping service mode](./scraping-service.md). The following
@@ -17,7 +22,7 @@ endpoints are exposed:
 - Update config: [`PUT /agent/api/v1/config/{name}`](#update-config)
 - Delete config: [`DELETE /agent/api/v1/config/{name}`](#delete-config)
 
-### API Response
+### API response
 
 All Config Management API endpoints will return responses in the following
 form, unless an internal service error prevents the server from responding
@@ -40,13 +45,13 @@ The data field may or may not be present, depending on the endpoint. It
 provides extra information for the query. The documentation for each endpoint
 will describe the full response provided.
 
-### List Configs
+### List configs
 
 ```
 GET /agent/api/v1/configs
 ```
 
-List Configs returns a list of the named configurations currently known by the
+List configs returns a list of the named configurations currently known by the
 underlying KV store.
 
 Status code: 200 on success.
@@ -67,13 +72,13 @@ Response:
 }
 ```
 
-### Get Config
+### Get config
 
 ```
 GET /agent/api/v1/configs/{name}
 ```
 
-Get Config will return a single configuration by name. The configuration must
+Get config returns a single configuration by name. The configuration must
 exist or an error will be returned. URL-encoded names will be retrieved in decoded
 form. e.g., `hello%2Fworld` will represent the config named `hello/world`.
 
@@ -89,21 +94,21 @@ Response on success:
 }
 ```
 
-### Update Config
+### Update config
 
 ```
 PUT /agent/api/v1/config/{name}
 POST /agent/api/v1/config/{name}
 ```
 
-Update Config will update or add a new configuration by name. If a configuration
-with the same name already exists, it will be completely overwritten.
+Update config updates or adds a new configuration by name. If a configuration
+with the same name already exists, then it will be completely overwritten.
 
-URL-encoded names will be stored in decoded form. e.g., `hello%2Fworld` will
+URL-encoded names are stored in decoded form. e.g., `hello%2Fworld` will
 represent the config named `hello/world`.
 
 The request body passed to this endpoint must match the format of
-[prometheus_instance_config](./configuration-reference.md#prometheus_instance_config)
+[prometheus_instance_config](./configuration/prometheus-config.md)
 defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.
@@ -123,13 +128,13 @@ Response on success:
 }
 ```
 
-### Delete Config
+### Delete config
 
 ```
 DELETE /agent/api/v1/config/{name}
 ```
 
-Delete Config will attempt to delete a configuration by name. The named
+Delete config attempts to delete a configuration by name. The named
 configuration must exist; deleting a nonexistent config will result in an
 error.
 
@@ -209,13 +214,14 @@ Response on success:
 }
 ```
 
-### Reload Configuration file (beta)
+### Reload configuration file (beta)
 
 This endpoint is currently in beta and may have issues. Please open any issues
 you encounter.
 
 ```
 GET /-/reload
+POST /-/reload
 ```
 
 This endpoint will re-read the configuration file from disk and refresh the
@@ -249,7 +255,7 @@ will be logged, and should be fixed before calling `/-/reload` again.
 
 Status code: 200 on success, 400 otherwise.
 
-### Show Configuration file
+### Show configuration file
 
 ```
 GET /-/config
@@ -262,9 +268,9 @@ configuration file on disk.
 
 Status code: 200 on success.
 
-## Ready / Health API
+## Ready / health API
 
-### Readiness Check
+### Readiness check
 
 ```
 GET /-/ready
@@ -277,7 +283,7 @@ Response:
 Agent is Ready.
 ```
 
-### Healthiness Check
+### Healthiness check
 
 ```
 GET /-/healthy

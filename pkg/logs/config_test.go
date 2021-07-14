@@ -1,4 +1,4 @@
-package loki
+package logs
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			err:  nil,
 			cfg: untab(`
 				positions_directory: /tmp
-				configs: 
+				configs:
 				- name: config-a
 				- name: config-b
 		  `),
@@ -31,7 +31,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			err:  fmt.Errorf("found two Loki configs with name config-a"),
 			cfg: untab(`
 				positions_directory: /tmp
-				configs: 
+				configs:
 				- name: config-a
 				- name: config-b
 				- name: config-a
@@ -41,7 +41,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			name: "two configs, different positions path",
 			err:  nil,
 			cfg: untab(`
-				configs: 
+				configs:
 				- name: config-a
 				  positions:
 					  filename: /tmp/file-a.yml
@@ -54,7 +54,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			name: "re-used positions path",
 			err:  fmt.Errorf("Loki configs config-a and config-c must have different positions file paths"),
 			cfg: untab(`
-				configs: 
+				configs:
 				- name: config-a
 				  positions:
 					  filename: /tmp/file-a.yml
@@ -71,7 +71,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			err:  fmt.Errorf("Loki config index 1 must have a name"),
 			cfg: untab(`
 				positions_directory: /tmp
-				configs: 
+				configs:
 				- name: config-a
 				- name:
 				- name: config-a
@@ -81,7 +81,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			name: "generated positions file path without positions_directory",
 			err:  fmt.Errorf("cannot generate Loki positions file path for config-b because positions_directory is not configured"),
 			cfg: untab(`
-				configs: 
+				configs:
 				- name: config-a
 				  positions:
 					  filename: /tmp/config-a.yaml

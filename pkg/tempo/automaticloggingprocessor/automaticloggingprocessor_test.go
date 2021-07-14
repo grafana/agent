@@ -2,18 +2,22 @@ package automaticloggingprocessor
 
 import (
 	"testing"
+	"time"
 
+	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"gopkg.in/yaml.v3"
 )
 
 func TestSpanKeyVals(t *testing.T) {
 	tests := []struct {
 		spanName  string
 		spanAttrs map[string]pdata.AttributeValue
-		spanStart uint64
-		spanEnd   uint64
+		spanStart time.Time
+		spanEnd   time.Time
 		cfg       AutomaticLoggingConfig
 		expected  []interface{}
 	}{
@@ -40,7 +44,8 @@ func TestSpanKeyVals(t *testing.T) {
 			},
 		},
 		{
-			spanEnd: 10,
+			spanStart: time.Unix(0, 0),
+			spanEnd:   time.Unix(0, 10),
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
@@ -48,8 +53,8 @@ func TestSpanKeyVals(t *testing.T) {
 			},
 		},
 		{
-			spanStart: 10,
-			spanEnd:   100,
+			spanStart: time.Unix(0, 10),
+			spanEnd:   time.Unix(0, 100),
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
@@ -105,8 +110,8 @@ func TestSpanKeyVals(t *testing.T) {
 		span := pdata.NewSpan()
 		span.SetName(tc.spanName)
 		span.Attributes().InitFromMap(tc.spanAttrs).Sort()
-		span.SetStartTime(pdata.TimestampUnixNano(tc.spanStart))
-		span.SetEndTime(pdata.TimestampUnixNano(tc.spanEnd))
+		span.SetStartTimestamp(pdata.TimestampFromTime(tc.spanStart))
+		span.SetEndTimestamp(pdata.TimestampFromTime(tc.spanEnd))
 
 		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
 		assert.Equal(t, tc.expected, actual)
@@ -176,6 +181,11 @@ func TestBadConfigs(t *testing.T) {
 		},
 		{
 			cfg: &AutomaticLoggingConfig{
+				Backend: "logs",
+			},
+		},
+		{
+			cfg: &AutomaticLoggingConfig{
 				Backend: "loki",
 			},
 		},
@@ -204,7 +214,7 @@ func TestLogToStdoutSet(t *testing.T) {
 	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
 
 	cfg = &AutomaticLoggingConfig{
-		Backend: BackendLoki,
+		Backend: BackendLogs,
 		Spans:   true,
 	}
 
@@ -224,10 +234,37 @@ func TestDefaults(t *testing.T) {
 	require.Equal(t, defaultTimeout, p.(*automaticLoggingProcessor).cfg.Timeout)
 	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
 
-	require.Equal(t, defaultLokiTag, p.(*automaticLoggingProcessor).cfg.Overrides.LokiTag)
+	require.Equal(t, defaultLogsTag, p.(*automaticLoggingProcessor).cfg.Overrides.LogsTag)
 	require.Equal(t, defaultServiceKey, p.(*automaticLoggingProcessor).cfg.Overrides.ServiceKey)
 	require.Equal(t, defaultSpanNameKey, p.(*automaticLoggingProcessor).cfg.Overrides.SpanNameKey)
 	require.Equal(t, defaultStatusKey, p.(*automaticLoggingProcessor).cfg.Overrides.StatusKey)
 	require.Equal(t, defaultDurationKey, p.(*automaticLoggingProcessor).cfg.Overrides.DurationKey)
 	require.Equal(t, defaultTraceIDKey, p.(*automaticLoggingProcessor).cfg.Overrides.TraceIDKey)
+}
+
+func TestLokiNameMigration(t *testing.T) {
+	logsConfig := &logs.Config{
+		Configs: []*logs.InstanceConfig{{Name: "default"}},
+	}
+
+	input := util.Untab(`
+		backend: loki
+		loki_name: default
+		overrides:
+			loki_tag: tempo
+	`)
+	expect := util.Untab(`
+		backend: logs_instance
+		logs_instance_name: default
+		overrides:
+			logs_instance_tag: tempo
+	`)
+
+	var cfg AutomaticLoggingConfig
+	require.NoError(t, yaml.Unmarshal([]byte(input), &cfg))
+	require.NoError(t, cfg.Validate(logsConfig))
+
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	require.YAMLEq(t, expect, string(bb))
 }

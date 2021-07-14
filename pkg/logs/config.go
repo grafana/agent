@@ -1,4 +1,4 @@
-package loki
+package logs
 
 import (
 	"flag"

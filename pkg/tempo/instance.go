@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
-	"go.opentelemetry.io/collector/service/builder"
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/service/external/builder"
 	"go.uber.org/zap"
 )
 
@@ -32,7 +32,7 @@ type Instance struct {
 }
 
 // NewInstance creates and starts an instance of tracing pipelines.
-func NewInstance(loki *loki.Loki, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
+func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
 	var err error
 
 	instance := &Instance{}
@@ -42,14 +42,14 @@ func NewInstance(loki *loki.Loki, reg prometheus.Registerer, cfg InstanceConfig,
 		return nil, fmt.Errorf("failed to create metric views: %w", err)
 	}
 
-	if err := instance.ApplyConfig(loki, promInstanceManager, cfg); err != nil {
+	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, cfg); err != nil {
 		return nil, err
 	}
 	return instance, nil
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Manager, cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -62,7 +62,7 @@ func (i *Instance) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Man
 	// Shut down any existing pipeline
 	i.stop()
 
-	createCtx := context.WithValue(context.Background(), contextkeys.Loki, loki)
+	createCtx := context.WithValue(context.Background(), contextkeys.Logs, logsSubsystem)
 	err := i.buildAndStartPipeline(createCtx, cfg, promInstanceManager)
 	if err != nil {
 		return fmt.Errorf("failed to create pipeline: %w", err)
@@ -156,15 +156,14 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
 
-	appinfo := component.ApplicationStartInfo{
-		ExeName:  "agent",
-		GitHash:  build.Revision,
-		LongName: "agent",
-		Version:  build.Version,
+	appinfo := component.BuildInfo{
+		Command:     "agent",
+		Description: "agent",
+		Version:     build.Version,
 	}
 
 	// start exporter
-	i.exporter, err = builder.NewExportersBuilder(i.logger, appinfo, otelConfig, factories.Exporters).Build()
+	i.exporter, err = builder.BuildExporters(i.logger, appinfo, otelConfig, factories.Exporters)
 	if err != nil {
 		return fmt.Errorf("failed to create exporters builder: %w", err)
 	}
@@ -175,7 +174,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start pipelines
-	i.pipelines, err = builder.NewPipelinesBuilder(i.logger, appinfo, otelConfig, i.exporter, factories.Processors).Build()
+	i.pipelines, err = builder.BuildPipelines(i.logger, appinfo, otelConfig, i.exporter, factories.Processors)
 	if err != nil {
 		return fmt.Errorf("failed to create pipelines builder: %w", err)
 	}
@@ -186,7 +185,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start receivers
-	i.receivers, err = builder.NewReceiversBuilder(i.logger, appinfo, otelConfig, i.pipelines, factories.Receivers).Build()
+	i.receivers, err = builder.BuildReceivers(i.logger, appinfo, otelConfig, i.pipelines, factories.Receivers)
 	if err != nil {
 		return fmt.Errorf("failed to create receivers builder: %w", err)
 	}
@@ -205,17 +204,17 @@ func (i *Instance) ReportFatalError(err error) {
 }
 
 // GetFactory implements component.Host
-func (i *Instance) GetFactory(kind component.Kind, componentType configmodels.Type) component.Factory {
+func (i *Instance) GetFactory(component.Kind, config.Type) component.Factory {
 	return nil
 }
 
 // GetExtensions implements component.Host
-func (i *Instance) GetExtensions() map[configmodels.Extension]component.ServiceExtension {
+func (i *Instance) GetExtensions() map[config.ComponentID]component.Extension {
 	return nil
 }
 
 // GetExporters implements component.Host
-func (i *Instance) GetExporters() map[configmodels.DataType]map[configmodels.Exporter]component.Exporter {
+func (i *Instance) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
 	// SpanMetricsProcessor needs to get the configured exporters.
 	return i.exporter.ToMapByDataType()
 }

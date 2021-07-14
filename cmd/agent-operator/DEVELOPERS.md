@@ -1,4 +1,4 @@
-# Maintainer's Guide
+# Developer's Guide
 
 This document contains maintainer-specific information.
 
@@ -86,7 +86,7 @@ go run ./cmd/agent-operator
 ### Apply a GrafanaAgent custom resource
 
 Finally, you can apply an example GrafanaAgent custom resource. One is [provided
-for you](./agent-example-config.yaml). From the root of the repository, run:
+for you](../../cmd/agent-operator/agent-example-config.yaml). From the root of the repository, run:
 
 ```
 kubectl apply -f ./cmd/agent-operator/agent-example-config.yaml

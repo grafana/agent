@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
@@ -17,12 +17,14 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
+	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/common/config"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configloader"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
@@ -64,7 +66,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // Validate ensures that the Config is valid.
-func (c *Config) Validate(lokiConfig *loki.Config) error {
+func (c *Config) Validate(logsConfig *logs.Config) error {
 	names := make(map[string]struct{}, len(c.Configs))
 	for idx, c := range c.Configs {
 		if c.Name == "" {
@@ -76,25 +78,10 @@ func (c *Config) Validate(lokiConfig *loki.Config) error {
 		names[c.Name] = struct{}{}
 	}
 
-	// check to make sure that any referenced Loki configs exist.
 	for _, inst := range c.Configs {
 		if inst.AutomaticLogging != nil {
-			if inst.AutomaticLogging.Backend != automaticloggingprocessor.BackendLoki { // we can ignore if we're not logging to loki
-				continue
-			}
-
-			found := false
-			lokiName := inst.AutomaticLogging.LokiName
-
-			for _, lokiInst := range lokiConfig.Configs {
-				if lokiInst.Name == lokiName {
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				return fmt.Errorf("specified loki config %s not found", lokiName)
+			if err := inst.AutomaticLogging.Validate(logsConfig); err != nil {
+				return fmt.Errorf("failed to validate automatic_logging for tempo config %s: %w", inst.Name, err)
 			}
 		}
 	}
@@ -137,6 +124,8 @@ type InstanceConfig struct {
 const (
 	compressionNone = "none"
 	compressionGzip = "gzip"
+	protocolGRPC    = "grpc"
+	protocolHTTP    = "http"
 )
 
 // DefaultPushConfig holds the default settings for a PushConfig.
@@ -174,12 +163,14 @@ func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // DefaultRemoteWriteConfig holds the default settings for a PushConfig.
 var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Compression: compressionGzip,
+	Protocol:    protocolGRPC,
 }
 
 // RemoteWriteConfig controls the configuration of an exporter
 type RemoteWriteConfig struct {
 	Endpoint    string `yaml:"endpoint,omitempty"`
 	Compression string `yaml:"compression,omitempty"`
+	Protocol    string `yaml:"protocol,omitempty"`
 	Insecure    bool   `yaml:"insecure,omitempty"`
 	// Deprecated
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
@@ -212,7 +203,7 @@ type SpanMetricsConfig struct {
 	// Namespace if set, exports metrics under the provided value.
 	Namespace string `yaml:"namespace,omitempty"`
 	// ConstLabels are values that are applied for every exported metric.
-	ConstLabels map[string]interface{} `yaml:"const_labels,omitempty"`
+	ConstLabels *prometheus.Labels `yaml:"const_labels,omitempty"`
 	// PromInstance is the Agent's prometheus instance that will be used to push metrics
 	PromInstance string `yaml:"prom_instance"`
 	// HandlerEndpoint is the address where a prometheus exporter will be exposed
@@ -341,7 +332,13 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		exporterName := fmt.Sprintf("otlp/%d", i)
+		var exporterName string
+		switch remoteWriteConfig.Protocol {
+		case protocolGRPC:
+			exporterName = fmt.Sprintf("otlp/%d", i)
+		case protocolHTTP:
+			exporterName = fmt.Sprintf("otlphttp/%d", i)
+		}
 		exporters[exporterName] = exporter
 	}
 	return exporters, nil
@@ -416,7 +413,7 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 	return policies, nil
 }
 
-func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
+func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
 	if len(c.Receivers) == 0 {
@@ -595,19 +592,13 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		"pipelines": pipelines,
 	}
 
-	// now build the otel configmodel from the mapstructure
-	v := viper.New()
-	err = v.MergeConfigMap(otelMapStructure)
-	if err != nil {
-		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
-	}
-
 	factories, err := tracingFactories()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
 
-	otelCfg, err := config.Load(v, factories)
+	parser := configparser.NewParserFromStringMap(otelMapStructure)
+	otelCfg, err := configloader.Load(parser, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
@@ -637,6 +628,7 @@ func tracingFactories() (component.Factories, error) {
 
 	exporters, err := component.MakeExporterFactoryMap(
 		otlpexporter.NewFactory(),
+		otlphttpexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		prometheusexporter.NewFactory(),
 		remotewriteexporter.NewFactory(),

@@ -58,7 +58,7 @@ of software installed:
 1. [Tanka](https://github.com/grafana/tanka) >= v0.8
 2. [`jsonnet-bundler`](https://github.com/jsonnet-bundler/jsonnet-bundler) >= v0.2.1
 
-See the [`template` Tanka environment](./build/template) for the current
+See the [`template` Tanka environment](./build/templates) for the current
 settings that initialize the Grafana Agent Tanka configs. To build the YAML
 file, execute the `./build/build.sh` script or run `make example-kubernetes`
 from the project's root directory.
