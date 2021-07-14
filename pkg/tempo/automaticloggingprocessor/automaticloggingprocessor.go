@@ -130,7 +130,7 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 
 				if p.cfg.Roots && span.ParentSpanID().IsEmpty() {
 					keyValues := append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)
-					p.exportToLogsInstance(typeSpan, traceID, p.spanLabels(keyValues), keyValues...)
+					p.exportToLogsInstance(typeRoot, traceID, p.spanLabels(keyValues), keyValues...)
 				}
 
 				if p.cfg.Processes && lastTraceID != traceID {
@@ -262,7 +262,6 @@ func (p *automaticLoggingProcessor) exportToLogsInstance(kind string, traceID st
 		level.Info(p.logger).Log(keyvals...)
 		return
 	}
-
 
 	// Add loki label
 	labels[model.LabelName(p.cfg.Overrides.LokiTag)] = model.LabelValue(kind)
