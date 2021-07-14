@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
+  integration. (@gaantunes)
+
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
 - [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
