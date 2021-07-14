@@ -24,6 +24,15 @@ type LogsSubsystemSpec struct {
 	// namespaces to watch for LogInstances. If not provided, only checks own
 	// namespace.
 	InstanceNamespaceSelector *metav1.LabelSelector `json:"instanceNamespaceSelector,omitempty"`
+
+	// IgnoreNamespaceSelectors, if true, will ignore NamespaceSelector settings
+	// from the PodLogs configs, and they will only discover endpoints within
+	// their current namespace.
+	IgnoreNamespaceSelectors bool `json:"ignoreNamespaceSelectors,omitempty"`
+	// EnforcedNamespaceLabel enforces adding a namespace label of origin for
+	// each metric that is user-created. The label value will always be the
+	// namespace of the object that is being created.
+	EnforcedNamespaceLabel string `json:"enforcedNamespaceLabel,omitempty"`
 }
 
 // LogsClientSpec defines the client integration for logs, indicating which

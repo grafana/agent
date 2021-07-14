@@ -245,7 +245,7 @@ func TestPodMonitor(t *testing.T) {
 				"overrideHonorLabels":      false,
 				"overrideHonorTimestamps":  false,
 				"ignoreNamespaceSelectors": false,
-				"enforcedNamespaceLabel":   false,
+				"enforcedNamespaceLabel":   "",
 				"enforcedSampleLimit":      nil,
 				"enforcedTargetLimit":      nil,
 				"shards":                   1,
@@ -275,8 +275,6 @@ func TestPodMonitor(t *testing.T) {
 					replacement: operator/podmonitor
 				- target_label: endpoint
 					replacement: metrics
-				- target_label: false
-					replacement: operator
 				- source_labels: [__address__]
 					target_label: __tmp_hash
 					action: hashmod
@@ -342,7 +340,7 @@ func TestProbe(t *testing.T) {
 				"apiServer":                prom_v1.APIServerConfig{},
 				"overrideHonorTimestamps":  false,
 				"ignoreNamespaceSelectors": false,
-				"enforcedNamespaceLabel":   false,
+				"enforcedNamespaceLabel":   "",
 				"enforcedSampleLimit":      nil,
 				"enforcedTargetLimit":      nil,
 				"shards":                   1,
@@ -380,8 +378,6 @@ func TestProbe(t *testing.T) {
 					target_label: instance
 				- replacement: ""
 					target_label: __address__
-				- replacement: operator
-					target_label: false
 			`),
 		},
 	}
@@ -772,7 +768,7 @@ func TestServiceMonitor(t *testing.T) {
 				"overrideHonorLabels":      false,
 				"overrideHonorTimestamps":  false,
 				"ignoreNamespaceSelectors": false,
-				"enforcedNamespaceLabel":   false,
+				"enforcedNamespaceLabel":   "",
 				"enforcedSampleLimit":      nil,
 				"enforcedTargetLimit":      nil,
 				"shards":                   1,
@@ -824,8 +820,6 @@ func TestServiceMonitor(t *testing.T) {
 					target_label: job
 				- replacement: metrics
 					target_label: endpoint
-				- replacement: operator
-					target_label: false
 				- action: hashmod
 					modulus: 1
 					source_labels:

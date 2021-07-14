@@ -2339,6 +2339,12 @@ spec:
                       - url
                       type: object
                     type: array
+                  enforcedNamespaceLabel:
+                    description: EnforcedNamespaceLabel enforces adding a namespace label of origin for each metric that is user-created. The label value will always be the namespace of the object that is being created.
+                    type: string
+                  ignoreNamespaceSelectors:
+                    description: IgnoreNamespaceSelectors, if true, will ignore NamespaceSelector settings from the PodLogs configs, and they will only discover endpoints within their current namespace.
+                    type: boolean
                   instanceNamespaceSelector:
                     description: InstanceNamespaceSelector are the set of labels to determine which namespaces to watch for LogInstances. If not provided, only checks own namespace.
                     properties:

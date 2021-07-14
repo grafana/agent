@@ -236,6 +236,8 @@ func TestBuildConfigLogs(t *testing.T) {
 				server:
 					http_listen_port: 8080
 					log_level: debug
+				logs:
+					positions_directory: /var/lib/grafana-agent/data
 			`),
 		},
 	}

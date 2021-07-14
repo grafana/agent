@@ -13,7 +13,7 @@ local new_tls_config = import './tls_config.libsonnet';
 // @param {APIServerConfig} apiServer
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
-// @param {boolean} enforcedNamespaceLabel
+// @param {string} enforcedNamespaceLabel
 // @param {*number} enforcedSampleLimit
 // @param {*number} enforcedTargetLimit
 // @param {number} shards

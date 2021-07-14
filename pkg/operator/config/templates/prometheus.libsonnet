@@ -16,7 +16,7 @@ local new_service_monitor = import 'component/metrics/service_monitor.libsonnet'
 // @param {boolean} overrideHonorLabels
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
-// @param {boolean} enforcedNamespaceLabel
+// @param {string} enforcedNamespaceLabel
 // @param {boolean} enforcedSampleLimit
 // @param {boolean} enforcedTargetLimit
 // @param {number} shards

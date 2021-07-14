@@ -7,12 +7,15 @@ import (
 
 	jsonnet "github.com/google/go-jsonnet"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	prom_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/util"
 )
 
@@ -436,7 +439,61 @@ func TestLogsStages(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestPodLogsConfig(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  map[string]interface{}
+		expect string
+	}{
+		{
+			name: "default",
+			input: map[string]interface{}{
+				"agentNamespace": "operator",
+				"podLogs": gragent.PodLogs{
+					ObjectMeta: meta_v1.ObjectMeta{
+						Namespace: "operator",
+						Name:      "podlogs",
+					},
+				},
+				"apiServer":                prom_v1.APIServerConfig{},
+				"ignoreNamespaceSelectors": false,
+				"enforcedNamespaceLabel":   "",
+			},
+			expect: util.Untab(`
+				job_name: podLogs/operator/podlogs
+				kubernetes_sd_configs:
+				- role: pod
+				  namespaces:
+						names: [operator]
+				relabel_configs:
+				- source_labels: [job]
+					target_label: __tmp_prometheus_job_name
+				- source_labels: [__meta_kubernetes_namespace]
+					target_label: namespace
+				- source_labels: [__meta_kubernetes_service_name]
+					target_label: service
+				- source_labels: [__meta_kubernetes_pod_name]
+					target_label: pod
+				- source_labels: [__meta_kubernetes_pod_container_name]
+					target_label: container
+				- target_label: job
+					replacement: operator/podlogs
+			`),
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			vm, err := createVM(testStore())
+			require.NoError(t, err)
+
+			actual, err := runSnippetTLA(t, vm, "./component/logs/pod_logs.libsonnet", tc.input)
+			require.NoError(t, err)
+			require.YAMLEq(t, tc.expect, actual)
+		})
+	}
 }
 
 func TestLogsConfig(t *testing.T) {
@@ -462,6 +519,9 @@ func TestLogsConfig(t *testing.T) {
 					},
 				},
 				"apiServer": &prom.APIServerConfig{},
+
+				"ignoreNamespaceSelectors": false,
+				"enforcedNamespaceLabel":   "",
 			},
 			expect: util.Untab(`
 				name: inst/default
@@ -488,6 +548,9 @@ func TestLogsConfig(t *testing.T) {
 					},
 				},
 				"apiServer": &prom.APIServerConfig{},
+
+				"ignoreNamespaceSelectors": false,
+				"enforcedNamespaceLabel":   "",
 			},
 			expect: util.Untab(`
 				name: inst/default
@@ -495,19 +558,103 @@ func TestLogsConfig(t *testing.T) {
 				- url: local
 			`),
 		},
+		{
+			name: "pod logs",
+			input: map[string]interface{}{
+				"agentNamespace": "operator",
+				"global":         &gragent.LogsSubsystemSpec{},
+				"instance": &LogInstance{
+					Instance: &gragent.LogsInstance{
+						ObjectMeta: metav1.ObjectMeta{Namespace: "inst", Name: "default"},
+					},
+					PodLogs: []*gragent.PodLogs{{
+						ObjectMeta: metav1.ObjectMeta{Namespace: "app", Name: "pod"},
+					}},
+				},
+				"apiServer": &prom.APIServerConfig{},
+
+				"ignoreNamespaceSelectors": false,
+				"enforcedNamespaceLabel":   "",
+			},
+			expect: util.Untab(`
+				name: inst/default
+				scrape_configs:
+				- job_name: podLogs/app/pod
+					kubernetes_sd_configs:
+					- namespaces:
+							names:
+							- app
+						role: pod
+					relabel_configs:
+					- source_labels:
+						- job
+						target_label: __tmp_prometheus_job_name
+					- source_labels:
+						- __meta_kubernetes_namespace
+						target_label: namespace
+					- source_labels:
+						- __meta_kubernetes_service_name
+						target_label: service
+					- source_labels:
+						- __meta_kubernetes_pod_name
+						target_label: pod
+					- source_labels:
+						- __meta_kubernetes_pod_container_name
+						target_label: container
+					- replacement: app/pod
+						target_label: job
+			`),
+		},
+		{
+			name: "additional scrape configs",
+			input: map[string]interface{}{
+				"agentNamespace": "operator",
+				"global":         &gragent.LogsSubsystemSpec{},
+				"instance": &LogInstance{
+					Instance: &gragent.LogsInstance{
+						ObjectMeta: metav1.ObjectMeta{Namespace: "inst", Name: "default"},
+						Spec: gragent.LogsInstanceSpec{
+							AdditionalScrapeConfigs: &v1.SecretKeySelector{
+								LocalObjectReference: v1.LocalObjectReference{Name: "additional"},
+								Key:                  "configs",
+							},
+						},
+					},
+				},
+				"apiServer": &prom.APIServerConfig{},
+
+				"ignoreNamespaceSelectors": false,
+				"enforcedNamespaceLabel":   "",
+			},
+			expect: util.Untab(`
+				name: inst/default
+				scrape_configs:
+					- job_name: extra
+			`),
+		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			vm, err := createVM(testStore())
+			s := testStore()
+
+			s[assets.KeyForSecret("inst", &v1.SecretKeySelector{
+				LocalObjectReference: v1.LocalObjectReference{
+					Name: "additional",
+				},
+				Key: "configs",
+			})] = `[{ "job_name": "extra" }]`
+
+			vm, err := createVM(s)
 			require.NoError(t, err)
 
 			actual, err := runSnippetTLA(t, vm, "./logs.libsonnet", tc.input)
 			require.NoError(t, err)
-			require.YAMLEq(t, tc.expect, actual)
+			if !assert.YAMLEq(t, tc.expect, actual) {
+				fmt.Println(string(actual))
+			}
 		})
 	}
-
 }
 
 func runSnippetTLA(t *testing.T, vm *jsonnet.VM, filename string, tla map[string]interface{}) (string, error) {

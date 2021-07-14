@@ -4,14 +4,24 @@ local secrets = import 'ext/secrets.libsonnet';
 local k8s = import 'utils/k8s.libsonnet';
 
 local new_client = import 'component/logs/client.libsonnet';
+local new_pod_logs = import 'component/logs/pod_logs.libsonnet';
 
 // Generates a logs_instance.
 //
 // @param {string} agentNamespace - namespace of the GrafanaAgent
 // @param {LogsSubsystemSpec} global - global logs settings & defaults
-// @param {LogsInstance} instance
+// @param {LogInstance} instance
 // @param {APIServerConfig} apiServer
-function(agentNamespace, global, instance, apiServer) {
+// @param {boolean} ignoreNamespaceSelectors
+// @param {string} enforcedNamespaceLabel
+function(
+  agentNamespace,
+  global,
+  instance,
+  apiServer,
+  ignoreNamespaceSelectors,
+  enforcedNamespaceLabel,
+) {
   local meta = instance.Instance.ObjectMeta,
   local spec = instance.Instance.Spec,
 
@@ -33,5 +43,27 @@ function(agentNamespace, global, instance, apiServer) {
     clients.list,
   )),
 
-  scrape_configs: optionals.array([]),
+  scrape_configs: optionals.array(
+    // Iterate over PodLogs. Each PodMonitors converts into a
+    // single scrape_config.
+    std.map(
+      function(podLogs) new_pod_logs(
+        agentNamespace=agentNamespace,
+        podLogs=podLogs,
+        apiServer=apiServer,
+        ignoreNamespaceSelectors=ignoreNamespaceSelectors,
+        enforcedNamespaceLabel=enforcedNamespaceLabel,
+      ),
+      k8s.array(instance.PodLogs)
+    ) +
+
+    // If the user specified additional scrape configs, we need to extract
+    // their value from the secret and then unmarshal them into the array.
+    k8s.array(
+      if spec.AdditionalScrapeConfigs != null then (
+        local rawYAML = secrets.valueForSecret(meta.Namespace, spec.AdditionalScrapeConfigs);
+        marshal.fromYAML(rawYAML)
+      )
+    ),
+  ),
 }

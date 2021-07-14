@@ -16,7 +16,7 @@ local new_safe_tls_config = import './safe_tls_config.libsonnet';
 // @param {boolean} overrideHonorLabels
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
-// @param {boolean} enforcedNamespaceLabel
+// @param {string} enforcedNamespaceLabel
 // @param {*number} enforcedSampleLimit
 // @param {*number} enforcedTargetLimit
 // @param {number} shards
