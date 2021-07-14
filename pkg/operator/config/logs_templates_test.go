@@ -8,7 +8,6 @@ import (
 	jsonnet "github.com/google/go-jsonnet"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	prom_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -434,9 +433,7 @@ func TestLogsStages(t *testing.T) {
 
 			actual, err := runSnippetTLA(t, vm, "./component/logs/stages.libsonnet", tc.input)
 			require.NoError(t, err)
-			if !assert.YAMLEq(t, tc.expect, actual) {
-				fmt.Println(string(actual))
-			}
+			require.YAMLEq(t, tc.expect, actual)
 		})
 	}
 }
@@ -650,9 +647,7 @@ func TestLogsConfig(t *testing.T) {
 
 			actual, err := runSnippetTLA(t, vm, "./logs.libsonnet", tc.input)
 			require.NoError(t, err)
-			if !assert.YAMLEq(t, tc.expect, actual) {
-				fmt.Println(string(actual))
-			}
+			require.YAMLEq(t, tc.expect, actual)
 		})
 	}
 }
