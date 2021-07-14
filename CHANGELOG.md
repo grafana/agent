@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
+  
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
 
