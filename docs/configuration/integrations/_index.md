@@ -80,6 +80,9 @@ consul_exporter: <consul_exporter_config>
 # Controls the windows_exporter integration
 windows_exporter: <windows_exporter_config>
 
+# Controls the kafka_exporter integration
+kafka_exporter: <kafka_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
