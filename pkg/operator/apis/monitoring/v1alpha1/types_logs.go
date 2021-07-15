@@ -421,7 +421,8 @@ type MetricsStageSpec struct {
 	// to a positive float.
 	Action string `json:"action,omitempty"`
 
-	// Buckets to create. Bucket values must be convertible to floats.
+	// Buckets to create. Bucket values must be convertible to float64s. Extremely
+	// large or small numbers are subject to some loss of precision.
 	// Only valid for type: histogram.
 	Buckets []string `json:"bucket,omitempty"`
 }
