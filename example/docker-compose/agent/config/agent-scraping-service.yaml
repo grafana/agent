@@ -59,4 +59,6 @@ tempo:
         dimensions:
           - name: http.url
         handler_endpoint: 0.0.0.0:8889
+      group_by_trace:
+        wait: 4s
 

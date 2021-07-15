@@ -584,8 +584,12 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		wait := defaultWaitDuration
 		numTraces := defaultNumTraces
 		if c.GroupByTrace != nil {
-			wait = c.GroupByTrace.WaitDuration
-			numTraces = c.GroupByTrace.NumTraces
+			if c.GroupByTrace.WaitDuration > 0 {
+				wait = c.GroupByTrace.WaitDuration
+			}
+			if c.GroupByTrace.NumTraces > 0 {
+				numTraces = c.GroupByTrace.NumTraces
+			}
 		}
 
 		if c.TailSampling != nil {
