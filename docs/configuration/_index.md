@@ -11,7 +11,7 @@ Prometheus instances.
 
 - [server_config]({{< relref "./server-config.md" >}})
 - [prometheus_config]({{< relref "./prometheus-config.md" >}})
-- [loki_config]({{< relref "./loki-config.md" >}})
+- [logs_config]({{< relref "./logs-config.md" >}})
 - [tempo_config]({{< relref "./tempo-config.md" >}})
 - [integrations_config]({{< relref "./integrations/_index.md" >}})
 
@@ -92,8 +92,9 @@ Support contents and default values of `agent.yaml`:
 # Configures Prometheus instances.
 [prometheus: <prometheus_config>]
 
-# Configures Loki log collection.
-[loki: <loki_config>]
+# Configures log collection.
+# In previous versions of the Agent, this field was called "loki".
+[logs: <logs_config>]
 
 # Configures Tempo trace collection.
 [tempo: <tempo_config>]
