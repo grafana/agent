@@ -147,6 +147,10 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		}
 	}
 
+	if cfg.TailSampling.DecisionWait != 0 {
+		i.logger.Warn("Configuring grouping by trace with deprecated tail_sampling.duration_wait. Use group_by_trace.wait")
+	}
+
 	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
 		ctx = context.WithValue(ctx, contextkeys.Prometheus, promManager)
 	}
