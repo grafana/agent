@@ -220,7 +220,12 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 				continue
 			}
 			p.stop()
+			_ = m.im.DeleteConfig(key)
 			delete(m.integrations, key)
+		}
+
+		if !ic.CommonConfig().Enabled {
+			continue
 		}
 
 		l := log.With(m.logger, "integration", ic.Name())
@@ -258,6 +263,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		foundConfig := false
 		for _, ic := range cfg.Integrations {
 			if integrationKey(ic.Name()) == key {
+				// If this is disabled then we should delete from integrations
+				if !ic.CommonConfig().Enabled {
+					break
+				}
 				foundConfig = true
 				break
 			}
