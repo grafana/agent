@@ -4,7 +4,9 @@ go 1.16
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
+	github.com/Shopify/sarama v1.28.0
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
+	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/drone/envsubst v1.0.2
 	github.com/fatih/structs v0.0.0-20180123065059-ebf56d35bba7
 	github.com/go-kit/kit v0.10.0

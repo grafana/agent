@@ -69,4 +69,7 @@ integrations:
   elasticsearch_exporter:
     enabled: true
     address: http://localhost:9200
+  kafka_exporter:
+    enabled: true
+    kafka_uris: [localhost:9093]
 

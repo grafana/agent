@@ -1,12 +1,19 @@
 # Main (unreleased)
 
+# v0.17.0 (2021-07-15)
+
+- [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
+  
+- [BUGFIX] Fix race condition that may occur and result in a panic when
+  initializing scraping service cluster. (@rfratto)
+
 # v0.16.1 (2021-06-22)
 
 - [BUGFIX] Fix issue where replaying a WAL caused incorrect metrics to be sent
   over remote write. (@rfratto)
 
 # v0.16.0 (2021-06-17)
-
+  
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
