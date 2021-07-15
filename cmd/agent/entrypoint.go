@@ -236,7 +236,7 @@ func (ep *Entrypoint) Start() error {
 	// signal is received.
 	signalHandler := signals.NewHandler(ep.cfg.Server.Log)
 
-	notifier := make(chan os.Signal)
+	notifier := make(chan os.Signal, 1)
 	signal.Notify(notifier, syscall.SIGHUP)
 
 	defer func() {
