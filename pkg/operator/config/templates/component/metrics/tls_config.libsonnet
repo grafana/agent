@@ -1,5 +1,5 @@
-local optionals = import '../ext/optionals.libsonnet';
-local secrets = import '../ext/secrets.libsonnet';
+local optionals = import 'ext/optionals.libsonnet';
+local secrets = import 'ext/secrets.libsonnet';
 
 local new_safe_tls_config = import './safe_tls_config.libsonnet';
 

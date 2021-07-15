@@ -1,5 +1,5 @@
-// agent.libsonnet is the entrypoint for rendering a Grafana Agent config file
-// based on the Operator custom resources.
+// agent-metrics.libsonnet is the entrypoint for rendering a Grafana Agent
+// config file for metrics based on the Operator custom resources.
 //
 // When writing an object, any field will null will be removed from the final
 // YAML. This is useful as we don't want to always translate unfilled values
@@ -11,12 +11,12 @@
 // When writing a new function, please document the expected types of the
 // arguments.
 
-local marshal = import './ext/marshal.libsonnet';
-local optionals = import './ext/optionals.libsonnet';
+local marshal = import 'ext/marshal.libsonnet';
+local optionals = import 'ext/optionals.libsonnet';
 
-local new_external_labels = import './component/external_labels.libsonnet';
-local new_remote_write = import './component/remote_write.libsonnet';
 local new_prometheus_instance = import './prometheus.libsonnet';
+local new_external_labels = import 'component/metrics/external_labels.libsonnet';
+local new_remote_write = import 'component/metrics/remote_write.libsonnet';
 
 local calculateShards(requested) =
   if requested == null then 1

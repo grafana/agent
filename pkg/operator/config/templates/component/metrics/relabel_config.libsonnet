@@ -1,4 +1,4 @@
-local optionals = import '../ext/optionals.libsonnet';
+local optionals = import 'ext/optionals.libsonnet';
 
 // @param {RelabelConfig} cfg
 function(cfg) {

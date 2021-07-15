@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/fs"
 	"path"
@@ -15,30 +16,45 @@ type FSImporter struct {
 	fs fs.FS
 
 	cache map[string]jsonnet.Contents
+	paths []string
 }
 
 // NewFSImporter creates a new jsonnet VM Importer that uses the given fs.
-func NewFSImporter(f fs.FS) *FSImporter {
+func NewFSImporter(f fs.FS, paths []string) *FSImporter {
 	return &FSImporter{
 		fs:    f,
 		cache: make(map[string]jsonnet.Contents),
+		paths: paths,
 	}
 }
 
 // Import implements jsonnet.Importer.
 func (i *FSImporter) Import(importedFrom, importedPath string) (contents jsonnet.Contents, foundAt string, err error) {
-	cleanedPath := path.Clean(
-		path.Join(path.Dir(importedFrom), importedPath),
-	)
-	cleanedPath = strings.TrimPrefix(cleanedPath, "./")
 
-	// jsonnet expects the same "foundAt" to always return the same instance of
-	// contents, so we need to return a cache here.
-	if c, ok := i.cache[cleanedPath]; ok {
-		return c, cleanedPath, nil
+	tryPaths := append([]string{importedFrom}, i.paths...)
+	for _, p := range tryPaths {
+		cleanedPath := path.Clean(
+			path.Join(path.Dir(p), importedPath),
+		)
+		cleanedPath = strings.TrimPrefix(cleanedPath, "./")
+
+		c, fa, err := i.tryImport(cleanedPath)
+		if err == nil {
+			return c, fa, err
+		}
 	}
 
-	f, err := i.fs.Open(cleanedPath)
+	return jsonnet.Contents{}, "", fmt.Errorf("no such file: %s", importedPath)
+}
+
+func (i *FSImporter) tryImport(path string) (contents jsonnet.Contents, foundAt string, err error) {
+	// jsonnet expects the same "foundAt" to always return the same instance of
+	// contents, so we need to return a cache here.
+	if c, ok := i.cache[path]; ok {
+		return c, path, nil
+	}
+
+	f, err := i.fs.Open(path)
 	if err != nil {
 		err = jsonnet.RuntimeError{Msg: err.Error()}
 		return
@@ -51,6 +67,6 @@ func (i *FSImporter) Import(importedFrom, importedPath string) (contents jsonnet
 	}
 
 	contents = jsonnet.MakeContents(buf.String())
-	i.cache[cleanedPath] = contents
-	return contents, cleanedPath, nil
+	i.cache[path] = contents
+	return contents, path, nil
 }

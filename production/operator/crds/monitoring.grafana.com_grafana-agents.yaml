@@ -2222,7 +2222,7 @@ spec:
                           description: ProxyURL to proxy requests through. Optional.
                           type: string
                         tenantId:
-                          description: Tenant ID used by default to push logs to Loki. If ommited assumes remote Loki is running in single-tenant mode or an authentication layer is used to inject an X-Scope-OrgID header.
+                          description: Tenant ID used by default to push logs to Loki. If omitted assumes remote Loki is running in single-tenant mode or an authentication layer is used to inject an X-Scope-OrgID header.
                           type: string
                         timeout:
                           description: Maximum time to wait for a server to respond to a request.
@@ -2330,15 +2330,18 @@ spec:
                               type: string
                           type: object
                         url:
-                          description: 'URL is the URL where Loki is listening. Must be a full HTTP URL, including protocol. Example: https://logs-prod-us-central1.grafana.net/loki/api/v1/push.'
+                          description: 'URL is the URL where Loki is listening. Must be a full HTTP URL, including protocol. Required. Example: https://logs-prod-us-central1.grafana.net/loki/api/v1/push.'
                           type: string
                       required:
-                      - batchSize
-                      - batchWait
-                      - tenantId
                       - url
                       type: object
                     type: array
+                  enforcedNamespaceLabel:
+                    description: EnforcedNamespaceLabel enforces adding a namespace label of origin for each metric that is user-created. The label value will always be the namespace of the object that is being created.
+                    type: string
+                  ignoreNamespaceSelectors:
+                    description: IgnoreNamespaceSelectors, if true, will ignore NamespaceSelector settings from the PodLogs configs, and they will only discover endpoints within their current namespace.
+                    type: boolean
                   instanceNamespaceSelector:
                     description: InstanceNamespaceSelector are the set of labels to determine which namespaces to watch for LogInstances. If not provided, only checks own namespace.
                     properties:
@@ -2399,7 +2402,7 @@ spec:
                         description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
                         type: object
                     type: object
-                  prometheusExternalLabelName:
+                  logsExternalLabelName:
                     description: LogsExternalLabelName is the name of the external label used to denote Grafana Agent cluster. Defaults to "cluster." External label will _not_ be added when value is set to the empty string.
                     type: string
                 type: object
