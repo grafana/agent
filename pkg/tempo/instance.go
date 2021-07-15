@@ -147,7 +147,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		}
 	}
 
-	if cfg.TailSampling.DecisionWait != 0 {
+	if cfg.TailSampling != nil && cfg.TailSampling.DecisionWait != 0 {
 		i.logger.Warn("Configuring grouping by trace with deprecated tail_sampling.duration_wait. Use group_by_trace.wait")
 	}
 
