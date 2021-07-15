@@ -1,8 +1,5 @@
 # Main (unreleased)
 
-- [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
-  integration. (@gaantunes)
-
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
 - [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
@@ -17,9 +14,6 @@
 
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
-- [BUGFIX] Fix race condition that may occur and result in a panic when
-  initializing scraping service cluster. (@rfratto)
-  
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
@@ -28,6 +22,13 @@
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`.
+
+# v0.17.0 (2021-07-15)
+
+- [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
+
+- [BUGFIX] Fix race condition that may occur and result in a panic when
+  initializing scraping service cluster. (@rfratto)
 
 # v0.16.1 (2021-06-22)
 
