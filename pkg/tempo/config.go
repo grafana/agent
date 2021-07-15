@@ -40,8 +40,9 @@ import (
 const (
 	spanMetricsPipelineName = "metrics/spanmetrics"
 
-	// defaultDecisionWait is the default time to wait for a trace before making a sampling decision
-	defaultDecisionWait = time.Second * 5
+	// defaultWaitDuration is the default time to wait for a trace before making a sampling decision
+	defaultWaitDuration = time.Second * 5
+	defaultNumTraces    = 1_000_000
 
 	// defaultLoadBalancingPort is the default port the agent uses for internal load balancing
 	defaultLoadBalancingPort = "4318"
@@ -81,10 +82,8 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 	}
 
 	for _, inst := range c.Configs {
-		if inst.AutomaticLogging != nil {
-			if err := inst.AutomaticLogging.Validate(logsConfig); err != nil {
-				return fmt.Errorf("failed to validate automatic_logging for tempo config %s: %w", inst.Name, err)
-			}
+		if err := inst.Validate(logsConfig); err != nil {
+			return fmt.Errorf("failed validating config for tempo %s: %w", inst.Name, err)
 		}
 	}
 
@@ -120,7 +119,29 @@ type InstanceConfig struct {
 	AutomaticLogging *automaticloggingprocessor.AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 
 	// TailSampling defines a sampling strategy for the pipeline
-	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
+	TailSampling *tailSamplingConfig `yaml:"tail_sampling,omitempty"`
+
+	// GroupByTrace is a config that does very impressive things
+	GroupByTrace *groupByTraceConfig `yaml:"group_by_trace,omitempty"`
+}
+
+// Validate ensures that the InstanceConfig is valid
+func (c *InstanceConfig) Validate(logsConfig *logs.Config) error {
+	if c.TailSampling != nil && c.GroupByTrace != nil {
+		if c.TailSampling.DecisionWait != 0 && c.GroupByTrace.WaitDuration != defaultWaitDuration {
+			return fmt.Errorf("must configure at most one of aggregate_by_trace.wait_duration and tail_sampling.decision_wait. tail_sampling.decision_wait is deprecated in favor of aggregate_by_trace.wait_duration")
+		}
+
+		c.GroupByTrace.WaitDuration, c.TailSampling.DecisionWait = c.TailSampling.DecisionWait, 0
+	}
+
+	if c.AutomaticLogging != nil {
+		if err := c.AutomaticLogging.Validate(logsConfig); err != nil {
+			return fmt.Errorf("failed to validate automatic_logging: %w", err)
+		}
+	}
+
+	return nil
 }
 
 const (
@@ -218,11 +239,19 @@ type tailSamplingConfig struct {
 	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
 	Policies []map[string]interface{} `yaml:"policies"`
 	// DecisionWait defines the time to wait for a complete trace before making a decision
+	// Deprecated
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
 	// Port is the port the instance will use to receive load balanced traces
 	Port string `yaml:"port"`
 	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
 	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
+}
+
+type groupByTraceConfig struct {
+	// WaitDuration defines the time to wait for a complete trace before considering it complete
+	WaitDuration time.Duration `yaml:"wait,omitempty"`
+	// NumTraces is the max number of traces to keep in memory waiting for the duration
+	NumTraces int `yaml:"num_traces,omitempty"`
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
@@ -516,28 +545,15 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	}
 
 	if c.TailSampling != nil {
-		wait := defaultDecisionWait
-		if c.TailSampling.DecisionWait != 0 {
-			wait = c.TailSampling.DecisionWait
-		}
-
 		policies, err := formatPolicies(c.TailSampling.Policies)
 		if err != nil {
 			return nil, err
 		}
 
 		// tail_sampling should be executed before the batch processor
-		processorNames = append(processorNames, "tail_sampling", "groupbytrace")
+		processorNames = append(processorNames, "tail_sampling")
 		processors["tail_sampling"] = map[string]interface{}{
 			"policies": policies,
-			// Wait just 1sec, groupbytrace waits the rest of the time
-			"decision_wait": time.Second,
-		}
-
-		processors["groupbytrace"] = map[string]interface{}{
-			"wait_duration": wait,
-			// Number of workers should equal the number of physical processors
-			"num_workers": runtime.NumCPU(),
 		}
 
 		if c.TailSampling.LoadBalancing != nil {
@@ -557,6 +573,33 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 						"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
 					},
 				},
+			}
+		}
+	}
+
+	groupByTrace := c.TailSampling != nil
+	if groupByTrace {
+		wait := defaultWaitDuration
+		numTraces := defaultNumTraces
+		if c.GroupByTrace != nil {
+			wait = c.GroupByTrace.WaitDuration
+			numTraces = c.GroupByTrace.NumTraces
+		}
+
+		if c.TailSampling != nil {
+			tsp, ok := processors["tail_sampling"].(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("failed to configure tail sampling")
+			}
+			tsp["decision_wait"] = wait
+			tsp["num_traces"] = numTraces
+			processors["tail_sampling"] = tsp
+		} else {
+			processorNames = append(processorNames, "groupbytrace")
+			processors["groupbytrace"] = map[string]interface{}{
+				"wait_duration": wait,
+				"num_traces":    numTraces,
+				"num_workers":   runtime.NumCPU(),
 			}
 		}
 	}

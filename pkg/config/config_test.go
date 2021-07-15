@@ -224,7 +224,7 @@ tempo:
       backend: logs_instance
       logs_instance_name: default
       spans: true`,
-			expectedError: "error in config file: failed to validate automatic_logging for tempo config default: specified logs config default not found in agent config",
+			expectedError: "specified logs config default not found in agent config",
 		},
 	}
 
@@ -234,6 +234,7 @@ tempo:
 			return LoadBytes([]byte(tc.cfg), false, c)
 		})
 
-		require.EqualError(t, err, tc.expectedError)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), tc.expectedError)
 	}
 }
