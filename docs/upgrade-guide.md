@@ -12,6 +12,36 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Tempo: split grouping by trace from tail sampling config
+
+Grouping spans by trace has been moved from an embedded functionality in tail
+sampling to its own configuration block. This is done due to more processor
+benefiting from receiving grouped traces, other than tail sampling.
+
+As a consequence, `tail_sampling.wait_duration` has been deprecated in favor of
+a `group_by_trace` block. Old configs will continue to work until it is fully
+deprecated.
+
+Example old config:
+
+```yaml
+tail_sampling:
+  duration_wait: 2s
+  policies:
+    - always_sample:
+```
+
+Example new config:
+
+```yaml
+tail_sampling:
+  policies:
+    - always_sample:
+group_by_trace:
+  wait: 2s
+```
+
+
 ### Logs: Deprecation of "loki" in config.
 
 The term `loki` in the config has been deprecated of favor of `logs`. This

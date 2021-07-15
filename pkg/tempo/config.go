@@ -121,7 +121,9 @@ type InstanceConfig struct {
 	// TailSampling defines a sampling strategy for the pipeline
 	TailSampling *tailSamplingConfig `yaml:"tail_sampling,omitempty"`
 
-	// GroupByTrace is a config that does very impressive things
+	// GroupByTrace configures aggregation of spans by trace
+	// making processing of complete traces possible.
+	// This is useful for processing such as tail-based sampling.
 	GroupByTrace *groupByTraceConfig `yaml:"group_by_trace,omitempty"`
 }
 

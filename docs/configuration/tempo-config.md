@@ -175,7 +175,7 @@ spanmetrics:
 #
 # In order to make a correct sampling decision it's important that the agent has
 # a complete trace. This is achieved by waiting a given time for all the spans
-# before evaluating the trace.
+# before evaluating the trace. In order to get complete traces, configure group_by_trace.
 #
 # Tail sampling also supports multiple agent deployments, allowing to group all
 # spans of a trace in the same agent by load balancing the spans by trace ID
@@ -185,11 +185,6 @@ tail_sampling:
   # can be added to the same pipeline.
   policies:
     - [<tailsamplingprocessor.policies>]
-
-  # Time that to wait before making a decision for a trace.
-  # Longer wait times reduce the probability of sampling an incomplete trace at
-  # the cost of higher memory usage.
-  decision_wait: [ <duration> | default="5s" ]
 
   # load_balancing configures load balancing of spans across multiple agents.
   # It ensures that all spans of a trace are sampled in the same instance.
@@ -226,6 +221,24 @@ tail_sampling:
         [ username: <string> ]
         [ password: <secret> ]
         [ password_file: <string> ]
+
+# Configures aggregation of spans by trace.
+# This is of particular interest for processor that benefit from having complete
+# traces, such as tail-based sampling
+#
+# A trace will be considered complete after the defined `wait` duration has
+# passed since its first span arrived to the processors.
+# If the trace is not complete by then, it'll be split into more than one trace.
+#
+# Longer waiting times will increase the number of traces that are correctly
+# grouped. However, it will also increase the memory overhead of the processor.
+group_by_trace:
+  
+  # Defines the time to wait for a complete trace before considering it complete
+  [ wait: <duration> | default="5s" ]
+    
+  # Configures the max amount of traces to keep in memory waiting for the duration
+  [ num_traces: <int> | default="1_000_000" ]
 ```
 
 > **Note:** More information on the following types can be found on the
