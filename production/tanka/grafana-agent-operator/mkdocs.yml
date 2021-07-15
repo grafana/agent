@@ -1,0 +1,35 @@
+"edit_uri": ""
+"extra_css":
+  - "stylesheets/extra.css"
+"markdown_extensions":
+  - "pymdownx.highlight"
+  - "pymdownx.superfences"
+"plugins":
+  - "search":
+      "indexing": "titles"
+      "min_search_length": 2
+      "prebuild_index": true
+      "separator": "[\\s\\-\\.]+"
+  - "minify":
+      "minify_html": true
+"repo_name": "https://jsonnet-libs/grafana-agent-operator-lib"
+"repo_url": "https://github.com/jsonnet-libs/grafana-agent-operator-lib"
+"site_name": "grafana-agent-operator Jsonnet library"
+"site_url": "https://jsonnet-libs.github.io/grafana-agent-operator-lib"
+"theme":
+  "name": "material"
+  "palette":
+    - "accent": "indigo"
+      "media": "(prefers-color-scheme: light)"
+      "primary": "indigo"
+      "scheme": "default"
+      "toggle":
+        "icon": "material/toggle-switch-off-outline"
+        "name": "Switch to dark mode"
+    - "accent": "red"
+      "media": "(prefers-color-scheme: dark)"
+      "primary": "red"
+      "scheme": "slate"
+      "toggle":
+        "icon": "material/toggle-switch"
+        "name": "Switch to light mode"

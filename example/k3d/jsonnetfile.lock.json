@@ -76,6 +76,14 @@
         }
       },
       "version": ""
+    },
+    {
+      "source": {
+        "local": {
+          "directory": "../../production/tanka/grafana-agent-operator"
+        }
+      },
+      "version": ""
     }
   ],
   "legacyImports": false

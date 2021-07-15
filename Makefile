@@ -106,6 +106,9 @@ else
 	bash ./tools/generate-crds.bash
 endif
 
+operator-tanka-library:
+	bash ./tools/generate-operator-tanka.bash
+
 #############
 # Protobufs #
 #############

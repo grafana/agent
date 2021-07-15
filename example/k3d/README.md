@@ -13,7 +13,7 @@ that
 
 ## Getting Started
 
-Build latest agent images with `make agent-image agentctl-image` in the project root directory if there are local changes to test.
+Build latest agent images with `make agent-image agentctl-image agent-operator-image` in the project root directory if there are local changes to test.
 
 Run the following to create your cluster:
 
@@ -22,8 +22,9 @@ Run the following to create your cluster:
 ./scripts/create.bash
 
 # Import images into k3d if they are not available on docker hub
-k3d image import -c agent-k3d grafana/agent:latest
-k3d image import -c agent-k3d grafana/agentctl:latest
+k3d image import -c agent-k3d grafana/agent:latest \
+  grafana/agentctl:latest \
+  grafana/agent-operator:latest
 
 tk apply ./environment
 

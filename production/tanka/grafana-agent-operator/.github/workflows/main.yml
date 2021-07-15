@@ -1,0 +1,19 @@
+"jobs":
+  "build":
+    "name": "Deploy docs"
+    "runs-on": "ubuntu-latest"
+    "steps":
+      - "name": "Checkout main"
+        "uses": "actions/checkout@v2"
+        "with":
+          "fetch-depth": 0
+      - "uses": "actions/setup-python@v2"
+      - "run": "pip install -r requirements.txt"
+      - "run": "git config user.name 'github-actions[bot]' && git config user.email 'github-actions[bot]@users.noreply.github.com'"
+      - "name": "Publish docs"
+        "run": "mkdocs gh-deploy --force"
+"name": "Publish docs via GitHub Pages"
+"on":
+  "push":
+    "branches":
+      - "main"

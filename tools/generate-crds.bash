@@ -2,7 +2,6 @@
 
 ROOT=$(git rev-parse --show-toplevel)
 
-
 # Generate objects and controllers for our CRDs
 cd $ROOT/pkg/operator/apis/monitoring/v1alpha1
 controller-gen object paths=.
