@@ -571,6 +571,7 @@ exporters:
 processors:
   tail_sampling:
     decision_wait: 5s
+    num_traces: 1000000
     policies:
       - name: always_sample/0
         type: always_sample
@@ -643,6 +644,7 @@ exporters:
 processors:
   tail_sampling:
     decision_wait: 5s
+    num_traces: 1000000
     policies:
       - name: always_sample/0
         type: always_sample
@@ -666,7 +668,7 @@ service:
 `,
 		},
 		{
-			name: "automatic logging : default",
+			name: "automatic logging: default",
 			cfg: `
 receivers:
   jaeger:
@@ -772,6 +774,47 @@ service:
     traces:
       exporters: ["otlphttp/0", "otlp/1"]
       processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "tail sampling config with group by trace",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+tail_sampling:
+  policies:
+    - always_sample:
+group_by_trace:
+  wait: 1s
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  tail_sampling:
+    decision_wait: 1s
+    num_traces: 1000000
+    policies:
+      - name: always_sample/0
+        type: always_sample
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling"]
       receivers: ["jaeger"]
 `,
 		},
@@ -1000,11 +1043,13 @@ func TestOrderProcessors(t *testing.T) {
 				"tail_sampling",
 				"attributes",
 				"automatic_logging",
+				"groupbytrace",
 			},
 			expected: [][]string{
 				{
 					"attributes",
 					"spanmetrics",
+					"groupbytrace",
 					"tail_sampling",
 					"automatic_logging",
 					"batch",

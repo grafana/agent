@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"runtime"
 	"sort"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
 	"github.com/grafana/agent/pkg/tempo/remotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/groupbytraceprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	"github.com/prometheus/client_golang/prometheus"
@@ -38,8 +40,9 @@ import (
 const (
 	spanMetricsPipelineName = "metrics/spanmetrics"
 
-	// defaultDecisionWait is the default time to wait for a trace before making a sampling decision
-	defaultDecisionWait = time.Second * 5
+	// defaultWaitDuration is the default time to wait for a trace before making a sampling decision
+	defaultWaitDuration = time.Second * 5
+	defaultNumTraces    = 1_000_000
 
 	// defaultLoadBalancingPort is the default port the agent uses for internal load balancing
 	defaultLoadBalancingPort = "4318"
@@ -79,10 +82,8 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 	}
 
 	for _, inst := range c.Configs {
-		if inst.AutomaticLogging != nil {
-			if err := inst.AutomaticLogging.Validate(logsConfig); err != nil {
-				return fmt.Errorf("failed to validate automatic_logging for tempo config %s: %w", inst.Name, err)
-			}
+		if err := inst.Validate(logsConfig); err != nil {
+			return fmt.Errorf("failed validating config for tempo %s: %w", inst.Name, err)
 		}
 	}
 
@@ -118,7 +119,31 @@ type InstanceConfig struct {
 	AutomaticLogging *automaticloggingprocessor.AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 
 	// TailSampling defines a sampling strategy for the pipeline
-	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
+	TailSampling *tailSamplingConfig `yaml:"tail_sampling,omitempty"`
+
+	// GroupByTrace configures aggregation of spans by trace
+	// making processing of complete traces possible.
+	// This is useful for processing such as tail-based sampling.
+	GroupByTrace *groupByTraceConfig `yaml:"group_by_trace,omitempty"`
+}
+
+// Validate ensures that the InstanceConfig is valid
+func (c *InstanceConfig) Validate(logsConfig *logs.Config) error {
+	if c.TailSampling != nil && c.GroupByTrace != nil {
+		if c.TailSampling.DecisionWait != 0 && c.GroupByTrace.WaitDuration != defaultWaitDuration {
+			return fmt.Errorf("must configure at most one of aggregate_by_trace.wait_duration and tail_sampling.decision_wait. tail_sampling.decision_wait is deprecated in favor of aggregate_by_trace.wait_duration")
+		}
+
+		c.GroupByTrace.WaitDuration, c.TailSampling.DecisionWait = c.TailSampling.DecisionWait, 0
+	}
+
+	if c.AutomaticLogging != nil {
+		if err := c.AutomaticLogging.Validate(logsConfig); err != nil {
+			return fmt.Errorf("failed to validate automatic_logging: %w", err)
+		}
+	}
+
+	return nil
 }
 
 const (
@@ -216,11 +241,19 @@ type tailSamplingConfig struct {
 	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor
 	Policies []map[string]interface{} `yaml:"policies"`
 	// DecisionWait defines the time to wait for a complete trace before making a decision
+	// Deprecated
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
 	// Port is the port the instance will use to receive load balanced traces
 	Port string `yaml:"port"`
 	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
 	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
+}
+
+type groupByTraceConfig struct {
+	// WaitDuration defines the time to wait for a complete trace before considering it complete
+	WaitDuration time.Duration `yaml:"wait,omitempty"`
+	// NumTraces is the max number of traces to keep in memory waiting for the duration
+	NumTraces int `yaml:"num_traces,omitempty"`
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
@@ -514,22 +547,15 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	}
 
 	if c.TailSampling != nil {
-		wait := defaultDecisionWait
-		if c.TailSampling.DecisionWait != 0 {
-			wait = c.TailSampling.DecisionWait
-		}
-
 		policies, err := formatPolicies(c.TailSampling.Policies)
 		if err != nil {
 			return nil, err
 		}
 
 		// tail_sampling should be executed before the batch processor
-		// TODO(mario.rodriguez): put attributes processor before tail_sampling. Maybe we want to sample on mutated spans
-		processorNames = append([]string{"tail_sampling"}, processorNames...)
+		processorNames = append(processorNames, "tail_sampling")
 		processors["tail_sampling"] = map[string]interface{}{
-			"policies":      policies,
-			"decision_wait": wait,
+			"policies": policies,
 		}
 
 		if c.TailSampling.LoadBalancing != nil {
@@ -549,6 +575,37 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 						"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
 					},
 				},
+			}
+		}
+	}
+
+	groupByTrace := c.TailSampling != nil
+	if groupByTrace {
+		wait := defaultWaitDuration
+		numTraces := defaultNumTraces
+		if c.GroupByTrace != nil {
+			if c.GroupByTrace.WaitDuration > 0 {
+				wait = c.GroupByTrace.WaitDuration
+			}
+			if c.GroupByTrace.NumTraces > 0 {
+				numTraces = c.GroupByTrace.NumTraces
+			}
+		}
+
+		if c.TailSampling != nil {
+			tsp, ok := processors["tail_sampling"].(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("failed to configure tail sampling")
+			}
+			tsp["decision_wait"] = wait
+			tsp["num_traces"] = numTraces
+			processors["tail_sampling"] = tsp
+		} else {
+			processorNames = append(processorNames, "groupbytrace")
+			processors["groupbytrace"] = map[string]interface{}{
+				"wait_duration": wait,
+				"num_traces":    numTraces,
+				"num_workers":   runtime.NumCPU(),
 			}
 		}
 	}
@@ -638,6 +695,7 @@ func tracingFactories() (component.Factories, error) {
 	}
 
 	processors, err := component.MakeProcessorFactoryMap(
+		groupbytraceprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),
@@ -664,9 +722,10 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	order := map[string]int{
 		"attributes":        0,
 		"spanmetrics":       1,
-		"tail_sampling":     2,
-		"automatic_logging": 3,
-		"batch":             4,
+		"groupbytrace":      2,
+		"tail_sampling":     3,
+		"automatic_logging": 4,
+		"batch":             5,
 	}
 
 	sort.Slice(processors, func(i, j int) bool {
@@ -687,7 +746,8 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	foundAt := len(processors)
 	for i, processor := range processors {
 		if processor == "batch" ||
-			processor == "tail_sampling" {
+			processor == "tail_sampling" ||
+			processor == "groupbytrace" {
 			foundAt = i
 			break
 		}
