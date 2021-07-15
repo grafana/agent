@@ -1,22 +1,22 @@
-local optionals = import '../ext/optionals.libsonnet';
-local secrets = import '../ext/secrets.libsonnet';
-local k8s = import '../utils/k8s.libsonnet';
+local optionals = import 'ext/optionals.libsonnet';
+local secrets = import 'ext/secrets.libsonnet';
+local k8s = import 'utils/k8s.libsonnet';
 
-local new_kube_sd_config = import '../component/kube_sd_config.libsonnet';
-local new_relabel_config = import '../component/relabel_config.libsonnet';
-local new_safe_tls_config = import '../component/safe_tls_config.libsonnet';
+local new_kube_sd_config = import './kube_sd_config.libsonnet';
+local new_relabel_config = import './relabel_config.libsonnet';
+local new_tls_config = import './tls_config.libsonnet';
 
-// Genrates a scrape_config from a PodMonitor.
+// Genrates a scrape_config from a ServiceMonitor.
 //
 // @param {string} agentNamespace - Namespace the GrafanaAgent CR is in.
-// @param {PodMonitor} monitor
-// @param {PodMetricsEndpoint} endpoint - endpoint within the monitor
+// @param {ServiceMonitor} monitor
+// @param {Endpoint} endpoint - endpoint within the monitor
 // @param {number} index - index of the endpoint
 // @param {APIServerConfig} apiServer
 // @param {boolean} overrideHonorLabels
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
-// @param {boolean} enforcedNamespaceLabel
+// @param {string} enforcedNamespaceLabel
 // @param {*number} enforcedSampleLimit
 // @param {*number} enforcedTargetLimit
 // @param {number} shards
@@ -36,7 +36,7 @@ function(
 ) {
   local meta = monitor.ObjectMeta,
 
-  job_name: 'podMonitor/%s/%s/%d' % [meta.Namespace, meta.Name, index],
+  job_name: 'serviceMonitor/%s/%s/%d' % [meta.Namespace, meta.Name, index],
   honor_labels: k8s.honorLabels(endpoint.HonorLabels, overrideHonorLabels),
 
   // We only want to provide honorTimestamps in the file when it's not null.
@@ -53,7 +53,7 @@ function(
         ignoreNamespaceSelectors,
       ),
       apiServer=apiServer,
-      role='pod',
+      role='endpoints',
     ),
   ],
 
@@ -64,10 +64,9 @@ function(
   params: optionals.object(endpoint.Params),
   scheme: optionals.string(endpoint.Scheme),
 
-  // NOTE(rfratto): unlike ServiceMonitor, pod monitors explicitly use
-  // SafeTLSConfig.
   tls_config:
-    if endpoint.TLSConfig != null then new_safe_tls_config(meta.Namespace, endpoint.TLSConfig.SafeTLSConfig),
+    if endpoint.TLSConfig != null then new_tls_config(meta.Namespace, endpoint.TLSConfig),
+  bearer_token_file: optionals.string(endpoint.BearerTokenFile),
   bearer_token:
     if endpoint.BearerTokenSecret.LocalObjectReference.Name != ''
     then secrets.valueForSecret(meta.Namespace, endpoint.BearerTokenSecret),
@@ -83,7 +82,7 @@ function(
     // Match on service labels.
     std.map(
       function(k) {
-        source_labels: ['__meta_kubernetes_pod_label_' + k8s.sanitize(k)],
+        source_labels: ['__meta_kubernetes_service_label_' + k8s.sanitize(k)],
         regex: monitor.Spec.Selector.MatchLabels[k],
         action: 'keep',
       },
@@ -100,19 +99,19 @@ function(
     std.map(
       function(exp) (
         if exp.Operator == 'In' then {
-          source_labels: ['__meta_kubernetes_pod_label_' + k8s.sanitize(exp.Key)],
+          source_labels: ['__meta_kubernetes_service_label_' + k8s.sanitize(exp.Key)],
           regex: std.join('|', exp.Values),
           action: 'keep',
         } else if exp.Operator == 'NotIn' then {
-          source_labels: ['__meta_kubernetes_pod_label_' + k8s.sanitize(exp.Key)],
+          source_labels: ['__meta_kubernetes_service_label_' + k8s.sanitize(exp.Key)],
           regex: std.join('|', exp.Values),
           action: 'drop',
         } else if exp.Operator == 'Exists' then {
-          source_labels: ['__meta_kubernetes_pod_labelpresent_' + k8s.sanitize(exp.Key)],
+          source_labels: ['__meta_kubernetes_service_labelpresent_' + k8s.sanitize(exp.Key)],
           regex: 'true',
           action: 'keep',
         } else if exp.Operator == 'DoesNotExist' then {
-          source_labels: ['__meta_kubernetes_pod_labelpresent_' + k8s.sanitize(exp.Key)],
+          source_labels: ['__meta_kubernetes_service_labelpresent_' + k8s.sanitize(exp.Key)],
           regex: 'true',
           action: 'drop',
         }
@@ -123,14 +122,16 @@ function(
     // First targets based on correct port for the endpoint. If ep.Port,
     // ep.TargetPort.StrVal, or ep.TargetPort.IntVal aren't set, then
     // we'll have a null relabel_configs, which will be filtered out.
+    //
+    // We do this to avoid having an array with a null element inside of it.
     std.filter(function(element) element != null, [
       if endpoint.Port != '' then {
-        source_labels: ['__meta_kubernetes_pod_container_port_name'],
+        source_labels: ['__meta_kubernetes_endpoint_port_name'],
         regex: endpoint.Port,
         action: 'keep',
       } else if endpoint.TargetPort != null then (
         if endpoint.TargetPort.StrVal != '' then {
-          source_labels: ['__meta_kubernetes_pod_container_port_name'],
+          source_labels: ['__meta_kubernetes_pod_container_name'],
           regex: endpoint.TargetPort.StrVal,
           action: 'keep',
         } else if endpoint.TargetPort.IntVal != 0 then {
@@ -143,6 +144,24 @@ function(
 
     // Relabel namespace, pod, and service metalabels into proper labels.
     [{
+      source_labels: [
+        '__meta_kubernetes_endpoint_address_target_kind',
+        '__meta_kubernetes_endpoint_address_target_name',
+      ],
+      target_label: 'node',
+      separator: ';',
+      regex: 'Node;(.*)',
+      replacement: '$1',
+    }, {
+      source_labels: [
+        '__meta_kubernetes_endpoint_address_target_kind',
+        '__meta_kubernetes_endpoint_address_target_name',
+      ],
+      target_label: 'pod',
+      separator: ';',
+      regex: 'Pod;(.*)',
+      replacement: '$1',
+    }, {
       source_labels: ['__meta_kubernetes_namespace'],
       target_label: 'namespace',
     }, {
@@ -157,6 +176,15 @@ function(
     }] +
 
     // Relabel targetLabels from the service onto the target.
+    std.map(
+      function(l) {
+        source_labels: ['__meta_kubernetes_service_label_' + k8s.sanitize(l)],
+        target_label: k8s.sanitize(l),
+        regex: '(.+)',
+        replacement: '$1',
+      },
+      k8s.array(monitor.Spec.TargetLabels)
+    ) +
     std.map(
       function(l) {
         source_labels: ['__meta_kubernetes_pod_label_' + k8s.sanitize(l)],
@@ -174,11 +202,12 @@ function(
     // or (as a fallback) the port number.
     std.filter(function(e) e != null, [
       {
+        source_labels: ['__meta_kubernetes_service_name'],
         target_label: 'job',
-        replacement: '%s/%s' % [meta.Namespace, meta.Name],
+        replacement: '$1',
       },
       if monitor.Spec.JobLabel != '' then {
-        source_labels: ['__meta_kubernetes_pod_label_' + k8s.sanitize(monitor.Spec.JobLabel)],
+        source_labels: ['__meta_kubernetes_service_label_' + k8s.sanitize(monitor.Spec.JobLabel)],
         target_label: 'job',
         regex: '(.+)',
         replacement: '$1',

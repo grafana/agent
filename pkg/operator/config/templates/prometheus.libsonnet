@@ -1,12 +1,12 @@
-local marshal = import './ext/marshal.libsonnet';
-local optionals = import './ext/optionals.libsonnet';
-local secrets = import './ext/secrets.libsonnet';
-local k8s = import './utils/k8s.libsonnet';
+local marshal = import 'ext/marshal.libsonnet';
+local optionals = import 'ext/optionals.libsonnet';
+local secrets = import 'ext/secrets.libsonnet';
+local k8s = import 'utils/k8s.libsonnet';
 
-local new_pod_monitor = import './component/pod_monitor.libsonnet';
-local new_probe = import './component/probe.libsonnet';
-local new_remote_write = import './component/remote_write.libsonnet';
-local new_service_monitor = import './component/service_monitor.libsonnet';
+local new_pod_monitor = import 'component/metrics/pod_monitor.libsonnet';
+local new_probe = import 'component/metrics/probe.libsonnet';
+local new_remote_write = import 'component/metrics/remote_write.libsonnet';
+local new_service_monitor = import 'component/metrics/service_monitor.libsonnet';
 
 // Generates a prometheus_instance.
 //
@@ -16,7 +16,7 @@ local new_service_monitor = import './component/service_monitor.libsonnet';
 // @param {boolean} overrideHonorLabels
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
-// @param {boolean} enforcedNamespaceLabel
+// @param {string} enforcedNamespaceLabel
 // @param {boolean} enforcedSampleLimit
 // @param {boolean} enforcedTargetLimit
 // @param {number} shards

@@ -1,10 +1,10 @@
-local optionals = import '../ext/optionals.libsonnet';
-local secrets = import '../ext/secrets.libsonnet';
-local k8s = import '../utils/k8s.libsonnet';
+local optionals = import 'ext/optionals.libsonnet';
+local secrets = import 'ext/secrets.libsonnet';
+local k8s = import 'utils/k8s.libsonnet';
 
-local new_kube_sd_config = import '../component/kube_sd_config.libsonnet';
-local new_relabel_config = import '../component/relabel_config.libsonnet';
-local new_tls_config = import '../component/tls_config.libsonnet';
+local new_kube_sd_config = import './kube_sd_config.libsonnet';
+local new_relabel_config = import './relabel_config.libsonnet';
+local new_tls_config = import './tls_config.libsonnet';
 
 // Genrates a scrape_config from a Probe.
 //
@@ -13,7 +13,7 @@ local new_tls_config = import '../component/tls_config.libsonnet';
 // @param {APIServerConfig} apiServer
 // @param {boolean} overrideHonorTimestamps
 // @param {boolean} ignoreNamespaceSelectors
-// @param {boolean} enforcedNamespaceLabel
+// @param {string} enforcedNamespaceLabel
 // @param {*number} enforcedSampleLimit
 // @param {*number} enforcedTargetLimit
 // @param {number} shards

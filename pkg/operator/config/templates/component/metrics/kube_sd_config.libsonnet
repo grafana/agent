@@ -1,6 +1,6 @@
-local optionals = import '../ext/optionals.libsonnet';
-local secrets = import '../ext/secrets.libsonnet';
-local k8s = import '../utils/k8s.libsonnet';
+local optionals = import 'ext/optionals.libsonnet';
+local secrets = import 'ext/secrets.libsonnet';
+local k8s = import 'utils/k8s.libsonnet';
 
 local new_tls_config = import './tls_config.libsonnet';
 

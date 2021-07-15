@@ -15,7 +15,7 @@ type LogsSubsystemSpec struct {
 	// LogsExternalLabelName is the name of the external label used to
 	// denote Grafana Agent cluster. Defaults to "cluster." External label will
 	// _not_ be added when value is set to the empty string.
-	LogsExternalLabelName *string `json:"prometheusExternalLabelName,omitempty"`
+	LogsExternalLabelName *string `json:"logsExternalLabelName,omitempty"`
 	// InstanceSelector determines which LogInstances should be selected
 	// for running. Each instance runs its own set of Prometheus components,
 	// including service discovery, scraping, and remote_write.
@@ -24,25 +24,34 @@ type LogsSubsystemSpec struct {
 	// namespaces to watch for LogInstances. If not provided, only checks own
 	// namespace.
 	InstanceNamespaceSelector *metav1.LabelSelector `json:"instanceNamespaceSelector,omitempty"`
+
+	// IgnoreNamespaceSelectors, if true, will ignore NamespaceSelector settings
+	// from the PodLogs configs, and they will only discover endpoints within
+	// their current namespace.
+	IgnoreNamespaceSelectors bool `json:"ignoreNamespaceSelectors,omitempty"`
+	// EnforcedNamespaceLabel enforces adding a namespace label of origin for
+	// each metric that is user-created. The label value will always be the
+	// namespace of the object that is being created.
+	EnforcedNamespaceLabel string `json:"enforcedNamespaceLabel,omitempty"`
 }
 
 // LogsClientSpec defines the client integration for logs, indicating which
 // Loki server to send logs to.
 type LogsClientSpec struct {
 	// URL is the URL where Loki is listening. Must be a full HTTP URL, including
-	// protocol.
+	// protocol. Required.
 	// Example: https://logs-prod-us-central1.grafana.net/loki/api/v1/push.
 	URL string `json:"url"`
 	// Tenant ID used by default to push logs to Loki. If omitted assumes remote
 	// Loki is running in single-tenant mode or an authentication layer is used
 	// to inject an X-Scope-OrgID header.
-	TenantID string `json:"tenantId"`
+	TenantID string `json:"tenantId,omitempty"`
 	// Maximum amount of time to wait before sending a batch, even if that batch
 	// isn't full.
-	BatchWait string `json:"batchWait"`
+	BatchWait string `json:"batchWait,omitempty"`
 	// Maximum batch size (in bytes) of logs to accumulate before sending the
 	// batch to Loki.
-	BatchSize int `json:"batchSize"`
+	BatchSize int `json:"batchSize,omitempty"`
 	// BasicAuth for the Loki server.
 	BasicAuth *prom_v1.BasicAuth `json:"basicAuth,omitempty"`
 	// BearerToken used for remote_write.
@@ -123,7 +132,7 @@ type LogsInstanceSpec struct {
 	AdditionalScrapeConfigs *v1.SecretKeySelector `json:"additionalScrapeConfigs,omitempty"`
 
 	// Configures how tailed targets will be watched.
-	TargetConfig LogsTargetConfigSpec `json:"targetConfig,omitempty"`
+	TargetConfig *LogsTargetConfigSpec `json:"targetConfig,omitempty"`
 }
 
 // LogsTargetConfigSpec configures how tailed targets are watched.
@@ -163,7 +172,7 @@ type PodLogsSpec struct {
 	JobLabel string `json:"jobLabel,omitempty"`
 	// PodTargetLabels transfers labels on the Kubernetes Pod onto the target.
 	PodTargetLabels []string `json:"podTargetLabels,omitempty"`
-	// Selector to select Pod objects.
+	// Selector to select Pod objects. Required.
 	Selector metav1.LabelSelector `json:"selector"`
 	// Selector to select which namespaces the Pod objects are discovered from.
 	NamespaceSelector prom_v1.NamespaceSelector `json:"namespaceSelector,omitempty"`
@@ -234,7 +243,7 @@ type PipelineStageSpec struct {
 	// the Grafana Agent pod. The Grafana Agent Operator should be configured
 	// with a MetricsInstance that discovers the logging DaemonSet to collect
 	// metrics created by this stage.
-	Metrics map[string]*MetricsStageSpec `json:"metrics,omitempty"`
+	Metrics map[string]MetricsStageSpec `json:"metrics,omitempty"`
 	// Multiline stage merges multiple lines into a multiline block before
 	// passing it on to the next stage in the pipeline.
 	Multiline *MultilineStageSpec `json:"multiline,omitempty"`
@@ -335,8 +344,8 @@ type JSONStageSpec struct {
 // stages or drop entries when a log entry matches a configurable LogQL stream
 // selector and filter expressions.
 type MatchStageSpec struct {
-	// LogQL stream selector and filter expressions.
-	Selector string `json:"selector,omitempty"`
+	// LogQL stream selector and filter expressions. Required.
+	Selector string `json:"selector"`
 
 	// Names the pipeline. When defined, creates an additional label
 	// in the pipeline_duration_seconds histogram, where the value is
@@ -356,7 +365,7 @@ type MatchStageSpec struct {
 
 	// Nested set of pipeline stages to execute when action: keep and the log
 	// line matches selector.
-	Stages []*PipelineStageSpec `json:"staged,omitempty"`
+	Stages []*PipelineStageSpec `json:"stages,omitempty"`
 }
 
 // MetricsStageSpec is an action stage that allows for defining and updating
@@ -367,7 +376,8 @@ type MatchStageSpec struct {
 // created by this stage.
 type MetricsStageSpec struct {
 	// The metric type to create. Must be one of counter, gauge, histogram.
-	Type string `json:"type,omitempty"`
+	// Required.
+	Type string `json:"type"`
 
 	// Sets the description for the created metric.
 	Description string `json:"description,omitempty"`
@@ -403,18 +413,19 @@ type MetricsStageSpec struct {
 	// data will match.
 	Value string `json:"value,omitempty"`
 
-	// The action to take against the metric.
+	// The action to take against the metric. Required.
 	//
 	// Must be either "inc" or "add" for type: counter or type: histogram.
 	// When type: gauge, must be one of "set", "inc", "dec", "add", or "sub".
 	//
 	// "add", "set", or "sub" requires the extracted value to be convertible
 	// to a positive float.
-	Action string `json:"action,omitempty"`
+	Action string `json:"action"`
 
-	// Buckets to create.
+	// Buckets to create. Bucket values must be convertible to float64s. Extremely
+	// large or small numbers are subject to some loss of precision.
 	// Only valid for type: histogram.
-	Buckets []int `json:"bucket,omitempty"`
+	Buckets []string `json:"buckets,omitempty"`
 }
 
 // MultilineStageSpec merges multiple lines into a multiline block before
@@ -422,7 +433,7 @@ type MetricsStageSpec struct {
 type MultilineStageSpec struct {
 	// RE2 regular expression. Creates a new multiline block when matched.
 	// Required.
-	FirstLine string `json:"firstLine,omitempty"`
+	FirstLine string `json:"firstLine"`
 
 	// Maximum time to wait before passing on the multiline block to the next
 	// stage if no new lines are received. Defaults to 3s.
@@ -436,17 +447,17 @@ type MultilineStageSpec struct {
 // OutputStageSpec is an action stage that takes data from the extracted map
 // and changes the log line that will be sent to Loki.
 type OutputStageSpec struct {
-	// Name from extract data to use for the log entry.
-	Source string `json:"source,omitempty"`
+	// Name from extract data to use for the log entry. Required.
+	Source string `json:"source"`
 }
 
 // PackStageSpec is a transform stage that lets you embed extracted values and
 // labels into the log line by packing the log line and labels inside of a JSON
 // object.
 type PackStageSpec struct {
-	// Name from extracted data or line labels.
+	// Name from extracted data or line labels. Requiried.
 	// Labels provided here are automatically removed from output labels.
-	Labels []string `json:"labels,omitempty"`
+	Labels []string `json:"labels"`
 
 	// If the resulting log line should use any existing timestamp or use time.Now()
 	// when the line was created. Set to true when combining several log streams from
@@ -462,8 +473,8 @@ type RegexStageSpec struct {
 	// message.
 	Source string `json:"source,omitempty"`
 
-	// RE2 regular expression. Each capture group MUST be named.
-	Expression string `json:"expression,omitempty"`
+	// RE2 regular expression. Each capture group MUST be named. Required.
+	Expression string `json:"expression"`
 }
 
 // ReplaceStageSpec is a parsing stage that parses a log line using a regular
@@ -474,8 +485,8 @@ type ReplaceStageSpec struct {
 	// message.
 	Source string `json:"source,omitempty"`
 
-	// RE2 regular expression. Each capture group MUST be named.
-	Expression string `json:"expression,omitempty"`
+	// RE2 regular expression. Each capture group MUST be named. Required.
+	Expression string `json:"expression"`
 
 	// Value to replace the captured group with.
 	Replace string `json:"replace,omitempty"`
@@ -484,14 +495,14 @@ type ReplaceStageSpec struct {
 // TemplateStageSpec is a transform stage that manipulates the values in the
 // extracted map using Go's template syntax.
 type TemplateStageSpec struct {
-	// Name from extracted data to parse. If empty, defaults to using the log
-	// message.
-	Source string `json:"source,omitempty"`
+	// Name from extracted data to parse. Required. If empty, defaults to using
+	// the log message.
+	Source string `json:"source"`
 
-	// Go template string to use. In additional to normal template functions,
-	// ToLower, ToUpper, Replace, Trim, TrimLeft, TrimRight, TrimPrefix, and
-	// TrimSpace are also available.
-	Template string `json:"template,omitempty"`
+	// Go template string to use. Required. In additional to normal template
+	// functions, ToLower, ToUpper, Replace, Trim, TrimLeft, TrimRight,
+	// TrimPrefix, and TrimSpace are also available.
+	Template string `json:"template"`
 }
 
 // TenantStageSpec is an action stage that sets the tenant ID for the log entry
@@ -509,13 +520,13 @@ type TenantStageSpec struct {
 // TimestampStageSpec is an action stage that can change the timestamp of a log
 // line before it is sent to Loki.
 type TimestampStageSpec struct {
-	// Name from extracted data to use as the timestamp.
-	Source string `json:"source,omitempty"`
+	// Name from extracted data to use as the timestamp. Required.
+	Source string `json:"source"`
 
-	// Determines format of the time string. Can be one of:
+	// Determines format of the time string. Required. Can be one of:
 	// ANSIC, UnixDate, RubyDate, RFC822, RFC822Z, RFC850, RFC1123, RFC1123Z,
 	// RFC3339, RFC3339Nano, Unix, UnixMs, UnixUs, UnixNs.
-	Format string `json:"format,omitempty"`
+	Format string `json:"format"`
 
 	// Fallback formats to try if format fails.
 	FallbackFormats []string `json:"fallbackFormats,omitempty"`

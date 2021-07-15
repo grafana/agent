@@ -18,6 +18,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Type is the type of Agent deployment that a config is being generated
+// for.
+type Type int
+
+const (
+	// MetricsType generates a configuration for metrics.
+	MetricsType Type = iota + 1
+	// LogsType generates a configuration for logs.
+	LogsType
+)
+
 //go:embed templates/*
 var templates embed.FS
 
@@ -27,6 +38,9 @@ type Deployment struct {
 	Agent *grafana.GrafanaAgent
 	// Prometheis is the set of prometheus instances discovered from the root Agent resource.
 	Prometheis []PrometheusInstance
+	// Logs is the set of logging instances discovered from the root Agent
+	// resource.
+	Logs []LogInstance
 }
 
 // DeepCopy creates a deep copy of d.
@@ -67,7 +81,7 @@ func (d *Deployment) DeepCopy() *Deployment {
 // TODO(rfratto): the "Optional" field of secrets is currently ignored.
 
 // BuildConfig builds an Agent configuration file.
-func (d *Deployment) BuildConfig(secrets assets.SecretStore) (string, error) {
+func (d *Deployment) BuildConfig(secrets assets.SecretStore, ty Type) (string, error) {
 	vm, err := createVM(secrets)
 	if err != nil {
 		return "", err
@@ -79,7 +93,15 @@ func (d *Deployment) BuildConfig(secrets assets.SecretStore) (string, error) {
 	}
 
 	vm.TLACode("ctx", string(bb))
-	return vm.EvaluateFile("./agent.libsonnet")
+
+	switch ty {
+	case MetricsType:
+		return vm.EvaluateFile("./agent-metrics.libsonnet")
+	case LogsType:
+		return vm.EvaluateFile("./agent-logs.libsonnet")
+	default:
+		panic(fmt.Sprintf("unexpected config type %v", ty))
+	}
 }
 
 func createVM(secrets assets.SecretStore) (*jsonnet.VM, error) {
@@ -91,7 +113,7 @@ func createVM(secrets assets.SecretStore) (*jsonnet.VM, error) {
 		return nil, err
 	}
 
-	vm.Importer(NewFSImporter(templatesContents))
+	vm.Importer(NewFSImporter(templatesContents, []string{"./"}))
 
 	vm.NativeFunction(&jsonnet.NativeFunction{
 		Name:   "marshalYAML",
@@ -185,4 +207,10 @@ type PrometheusInstance struct {
 	ServiceMonitors []*prom.ServiceMonitor
 	PodMonitors     []*prom.PodMonitor
 	Probes          []*prom.Probe
+}
+
+// LogInstance is an instance with a set of associated PodLogs.
+type LogInstance struct {
+	Instance *grafana.LogsInstance
+	PodLogs  []*grafana.PodLogs
 }

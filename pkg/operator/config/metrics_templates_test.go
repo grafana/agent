@@ -92,7 +92,7 @@ func TestExternalLabels(t *testing.T) {
 			require.NoError(t, err)
 
 			vm.TLACode("ctx", string(bb))
-			actual, err := runSnippet(vm, "./component/external_labels.libsonnet", "ctx")
+			actual, err := runSnippet(vm, "./component/metrics/external_labels.libsonnet", "ctx")
 			require.NoError(t, err)
 			require.YAMLEq(t, tc.expect, actual)
 		})
@@ -214,7 +214,7 @@ func TestKubeSDConfig(t *testing.T) {
 				vm.TLACode(arg, string(bb))
 			}
 
-			actual, err := runSnippet(vm, "./component/kube_sd_config.libsonnet", args...)
+			actual, err := runSnippet(vm, "./component/metrics/kube_sd_config.libsonnet", args...)
 			require.NoError(t, err)
 			require.YAMLEq(t, tc.expect, actual)
 		})
@@ -245,7 +245,7 @@ func TestPodMonitor(t *testing.T) {
 				"overrideHonorLabels":      false,
 				"overrideHonorTimestamps":  false,
 				"ignoreNamespaceSelectors": false,
-				"enforcedNamespaceLabel":   false,
+				"enforcedNamespaceLabel":   "",
 				"enforcedSampleLimit":      nil,
 				"enforcedTargetLimit":      nil,
 				"shards":                   1,
@@ -275,8 +275,6 @@ func TestPodMonitor(t *testing.T) {
 					replacement: operator/podmonitor
 				- target_label: endpoint
 					replacement: metrics
-				- target_label: false
-					replacement: operator
 				- source_labels: [__address__]
 					target_label: __tmp_hash
 					action: hashmod
@@ -304,7 +302,7 @@ func TestPodMonitor(t *testing.T) {
 				vm.TLACode(arg, string(bb))
 			}
 
-			actual, err := runSnippet(vm, "./component/pod_monitor.libsonnet", args...)
+			actual, err := runSnippet(vm, "./component/metrics/pod_monitor.libsonnet", args...)
 			require.NoError(t, err)
 			if !assert.YAMLEq(t, tc.expect, actual) {
 				fmt.Fprintln(os.Stderr, actual)
@@ -342,7 +340,7 @@ func TestProbe(t *testing.T) {
 				"apiServer":                prom_v1.APIServerConfig{},
 				"overrideHonorTimestamps":  false,
 				"ignoreNamespaceSelectors": false,
-				"enforcedNamespaceLabel":   false,
+				"enforcedNamespaceLabel":   "",
 				"enforcedSampleLimit":      nil,
 				"enforcedTargetLimit":      nil,
 				"shards":                   1,
@@ -380,8 +378,6 @@ func TestProbe(t *testing.T) {
 					target_label: instance
 				- replacement: ""
 					target_label: __address__
-				- replacement: operator
-					target_label: false
 			`),
 		},
 	}
@@ -402,7 +398,7 @@ func TestProbe(t *testing.T) {
 				vm.TLACode(arg, string(bb))
 			}
 
-			actual, err := runSnippet(vm, "./component/probe.libsonnet", args...)
+			actual, err := runSnippet(vm, "./component/metrics/probe.libsonnet", args...)
 			require.NoError(t, err)
 			if !assert.YAMLEq(t, tc.expect, actual) {
 				fmt.Fprintln(os.Stderr, actual)
@@ -448,7 +444,7 @@ func TestRelabelConfig(t *testing.T) {
 			require.NoError(t, err)
 
 			vm.TLACode("cfg", string(bb))
-			actual, err := runSnippet(vm, "./component/relabel_config.libsonnet", "cfg")
+			actual, err := runSnippet(vm, "./component/metrics/relabel_config.libsonnet", "cfg")
 			require.NoError(t, err)
 			require.YAMLEq(t, tc.expect, actual)
 		})
@@ -648,7 +644,7 @@ func TestRemoteWrite(t *testing.T) {
 				vm.TLACode(arg, string(bb))
 			}
 
-			actual, err := runSnippet(vm, "./component/remote_write.libsonnet", args...)
+			actual, err := runSnippet(vm, "./component/metrics/remote_write.libsonnet", args...)
 			require.NoError(t, err)
 			require.YAMLEq(t, tc.expect, actual)
 		})
@@ -741,7 +737,7 @@ func TestSafeTLSConfig(t *testing.T) {
 				vm.TLACode(arg, string(bb))
 			}
 
-			actual, err := runSnippet(vm, "./component/safe_tls_config.libsonnet", args...)
+			actual, err := runSnippet(vm, "./component/metrics/safe_tls_config.libsonnet", args...)
 			require.NoError(t, err)
 			require.YAMLEq(t, tc.expect, actual)
 		})
@@ -772,7 +768,7 @@ func TestServiceMonitor(t *testing.T) {
 				"overrideHonorLabels":      false,
 				"overrideHonorTimestamps":  false,
 				"ignoreNamespaceSelectors": false,
-				"enforcedNamespaceLabel":   false,
+				"enforcedNamespaceLabel":   "",
 				"enforcedSampleLimit":      nil,
 				"enforcedTargetLimit":      nil,
 				"shards":                   1,
@@ -824,8 +820,6 @@ func TestServiceMonitor(t *testing.T) {
 					target_label: job
 				- replacement: metrics
 					target_label: endpoint
-				- replacement: operator
-					target_label: false
 				- action: hashmod
 					modulus: 1
 					source_labels:
@@ -855,7 +849,7 @@ func TestServiceMonitor(t *testing.T) {
 				vm.TLACode(arg, string(bb))
 			}
 
-			actual, err := runSnippet(vm, "./component/service_monitor.libsonnet", args...)
+			actual, err := runSnippet(vm, "./component/metrics/service_monitor.libsonnet", args...)
 			require.NoError(t, err)
 			if !assert.YAMLEq(t, tc.expect, actual) {
 				fmt.Fprintln(os.Stderr, actual)
@@ -957,7 +951,7 @@ func TestTLSConfig(t *testing.T) {
 				vm.TLACode(arg, string(bb))
 			}
 
-			actual, err := runSnippet(vm, "./component/tls_config.libsonnet", args...)
+			actual, err := runSnippet(vm, "./component/metrics/tls_config.libsonnet", args...)
 			require.NoError(t, err)
 			require.YAMLEq(t, tc.expect, actual)
 		})
