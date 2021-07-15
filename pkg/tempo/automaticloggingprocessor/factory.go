@@ -33,6 +33,7 @@ type AutomaticLoggingConfig struct {
 	ProcessAttributes []string       `mapstructure:"process_attributes" yaml:"process_attributes,omitempty"`
 	Overrides         OverrideConfig `mapstructure:"overrides" yaml:"overrides,omitempty"`
 	Timeout           time.Duration  `mapstructure:"timeout" yaml:"timeout,omitempty"`
+	Labels            []string       `mapstructure:"labels" yaml:"labels,omitempty"`
 
 	// Deprecated fields:
 	LokiName string `mapstructure:"loki_name" yaml:"loki_name,omitempty"` // Superseded by LogsName

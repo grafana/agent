@@ -7,6 +7,8 @@
 
 - [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
 
+- [FEATURE] Support autologging span attributes as log labels (@mapno)
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
@@ -17,6 +19,9 @@
 
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
+  
+- [CHANGE] Breaking change: reduced verbosity of tracing autologging
+  by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
