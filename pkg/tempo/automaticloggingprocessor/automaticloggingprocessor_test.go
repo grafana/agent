@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
@@ -25,7 +26,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -33,14 +34,14 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "test",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -49,7 +50,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -58,7 +59,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -68,7 +69,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -81,7 +82,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 				"xstr", "test",
 			},
 		},
@@ -96,7 +97,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"a", "",
 				"c", "0ns",
-				"d", pdata.StatusCode(0),
+				"d", pdata.StatusCode(1),
 			},
 		},
 	}
@@ -112,6 +113,7 @@ func TestSpanKeyVals(t *testing.T) {
 		span.Attributes().InitFromMap(tc.spanAttrs).Sort()
 		span.SetStartTimestamp(pdata.TimestampFromTime(tc.spanStart))
 		span.SetEndTimestamp(pdata.TimestampFromTime(tc.spanEnd))
+		span.Status().SetCode(pdata.StatusCodeOk)
 
 		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
 		assert.Equal(t, tc.expected, actual)
@@ -267,4 +269,73 @@ func TestLokiNameMigration(t *testing.T) {
 	bb, err := yaml.Marshal(cfg)
 	require.NoError(t, err)
 	require.YAMLEq(t, expect, string(bb))
+}
+
+func TestLabels(t *testing.T) {
+	tests := []struct {
+		name           string
+		labels         []string
+		keyValues      []interface{}
+		expectedLabels model.LabelSet
+	}{
+		{
+			name:      "happy case",
+			labels:    []string{"loki", "svc"},
+			keyValues: []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
+				"loki": "loki",
+				"svc":  "gateway",
+			},
+		},
+		{
+			name:           "no labels",
+			labels:         []string{},
+			keyValues:      []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{},
+		},
+		{
+			name:      "label not present in keyValues",
+			labels:    []string{"loki", "svc"},
+			keyValues: []interface{}{"loki", "loki", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
+				"loki": "loki",
+			},
+		},
+		{
+			name:      "label value is not type string",
+			labels:    []string{"loki"},
+			keyValues: []interface{}{"loki", 42, "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
+				"loki": "42",
+			},
+		},
+		{
+			name:      "stringifies value if possible",
+			labels:    []string{"status"},
+			keyValues: []interface{}{"status", pdata.StatusCode(1)},
+			expectedLabels: map[model.LabelName]model.LabelValue{
+				"status": model.LabelValue(pdata.StatusCode(1).String()),
+			},
+		},
+		{
+			name:           "no keyValues",
+			labels:         []string{"status"},
+			keyValues:      []interface{}{},
+			expectedLabels: map[model.LabelName]model.LabelValue{},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &AutomaticLoggingConfig{
+				Spans:  true,
+				Labels: tc.labels,
+			}
+			p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
+			require.NoError(t, err)
+
+			ls := p.(*automaticLoggingProcessor).spanLabels(tc.keyValues)
+			assert.Equal(t, tc.expectedLabels, ls)
+		})
+	}
 }
