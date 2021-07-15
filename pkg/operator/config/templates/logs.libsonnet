@@ -66,4 +66,8 @@ function(
       )
     ),
   ),
+
+  target_config: if spec.TargetConfig != null then {
+    sync_period: optionals.string(spec.TargetConfig.SyncPeriod),
+  },
 }

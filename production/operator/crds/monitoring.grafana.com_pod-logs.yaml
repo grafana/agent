@@ -122,22 +122,24 @@ spec:
                           description: Names the pipeline. When defined, creates an additional label in the pipeline_duration_seconds histogram, where the value is concatenated with job_name using an underscore.
                           type: string
                         selector:
-                          description: LogQL stream selector and filter expressions.
+                          description: LogQL stream selector and filter expressions. Required.
                           type: string
-                        staged:
+                        stages:
                           description: 'Nested set of pipeline stages to execute when action: keep and the log line matches selector.'
                           items: {}
                           type: array
+                      required:
+                      - selector
                       type: object
                     metrics:
                       additionalProperties:
                         description: MetricsStageSpec is an action stage that allows for defining and updating metrics based on data from the extracted map. Created metrics are not pushed to Loki or Prometheus and are instead exposed via the /metrics endpoint of the Grafana Agent pod. The Grafana Agent Operator should be configured with a MetricsInstance that discovers the logging DaemonSet to collect metrics created by this stage.
                         properties:
                           action:
-                            description: "The action to take against the metric. \n Must be either \"inc\" or \"add\" for type: counter or type: histogram. When type: gauge, must be one of \"set\", \"inc\", \"dec\", \"add\", or \"sub\". \n \"add\", \"set\", or \"sub\" requires the extracted value to be convertible to a positive float."
+                            description: "The action to take against the metric. Required. \n Must be either \"inc\" or \"add\" for type: counter or type: histogram. When type: gauge, must be one of \"set\", \"inc\", \"dec\", \"add\", or \"sub\". \n \"add\", \"set\", or \"sub\" requires the extracted value to be convertible to a positive float."
                             type: string
-                          bucket:
-                            description: 'Buckets to create. Bucket values must be convertible to floats. Only valid for type: histogram.'
+                          buckets:
+                            description: 'Buckets to create. Bucket values must be convertible to float64s. Extremely large or small numbers are subject to some loss of precision. Only valid for type: histogram.'
                             items:
                               type: string
                             type: array
@@ -160,11 +162,14 @@ spec:
                             description: Key from the extracted data map to use for the metric. Defaults to the metrics name if not present.
                             type: string
                           type:
-                            description: The metric type to create. Must be one of counter, gauge, histogram.
+                            description: The metric type to create. Must be one of counter, gauge, histogram. Required.
                             type: string
                           value:
                             description: Filters down source data and only changes the metric if the targeted value exactly matches the provided string. If not present, all data will match.
                             type: string
+                        required:
+                        - action
+                        - type
                         type: object
                       description: Metrics is an action stage that allows for defining and updating metrics based on data from the extracted map. Created metrics are not pushed to Loki or Prometheus and are instead exposed via the /metrics endpoint of the Grafana Agent pod. The Grafana Agent Operator should be configured with a MetricsInstance that discovers the logging DaemonSet to collect metrics created by this stage.
                       type: object
@@ -180,13 +185,17 @@ spec:
                         maxWaitTime:
                           description: Maximum time to wait before passing on the multiline block to the next stage if no new lines are received. Defaults to 3s.
                           type: string
+                      required:
+                      - firstLine
                       type: object
                     output:
                       description: Output stage is an action stage that takes data from the extracted map and changes the log line that will be sent to Loki.
                       properties:
                         source:
-                          description: Name from extract data to use for the log entry.
+                          description: Name from extract data to use for the log entry. Required.
                           type: string
+                      required:
+                      - source
                       type: object
                     pack:
                       description: Pack is a transform stage that lets you embed extracted values and labels into the log line by packing the log line and labels inside of a JSON object.
@@ -195,26 +204,30 @@ spec:
                           description: If the resulting log line should use any existing timestamp or use time.Now() when the line was created. Set to true when combining several log streams from different containers to avoid out of order errors.
                           type: boolean
                         labels:
-                          description: Name from extracted data or line labels. Labels provided here are automatically removed from output labels.
+                          description: Name from extracted data or line labels. Requiried. Labels provided here are automatically removed from output labels.
                           items:
                             type: string
                           type: array
+                      required:
+                      - labels
                       type: object
                     regex:
                       description: Regex is a parsing stage that parses a log line using a regular expression.  Named capture groups in the regex allows for adding data into the extracted map.
                       properties:
                         expression:
-                          description: RE2 regular expression. Each capture group MUST be named.
+                          description: RE2 regular expression. Each capture group MUST be named. Required.
                           type: string
                         source:
                           description: Name from extracted data to parse. If empty, defaults to using the log message.
                           type: string
+                      required:
+                      - expression
                       type: object
                     replace:
                       description: Replace is a parsing stage that parses a log line using a regular expression and replaces the log line. Named capture groups in the regex allows for adding data into the extracted map.
                       properties:
                         expression:
-                          description: RE2 regular expression. Each capture group MUST be named.
+                          description: RE2 regular expression. Each capture group MUST be named. Required.
                           type: string
                         replace:
                           description: Value to replace the captured group with.
@@ -222,16 +235,21 @@ spec:
                         source:
                           description: Name from extracted data to parse. If empty, defaults to using the log message.
                           type: string
+                      required:
+                      - expression
                       type: object
                     template:
                       description: Template is a transform stage that manipulates the values in the extracted map using Go's template syntax.
                       properties:
                         source:
-                          description: Name from extracted data to parse. If empty, defaults to using the log message.
+                          description: Name from extracted data to parse. Required. If empty, defaults to using the log message.
                           type: string
                         template:
-                          description: Go template string to use. In additional to normal template functions, ToLower, ToUpper, Replace, Trim, TrimLeft, TrimRight, TrimPrefix, and TrimSpace are also available.
+                          description: Go template string to use. Required. In additional to normal template functions, ToLower, ToUpper, Replace, Trim, TrimLeft, TrimRight, TrimPrefix, and TrimSpace are also available.
                           type: string
+                      required:
+                      - source
+                      - template
                       type: object
                     tenant:
                       description: Tenant is an action stage that sets the tenant ID for the log entry picking it from a field in the extracted data map. If the field is missing, the default LogsClientSpec.tenantId will be used.
@@ -255,14 +273,17 @@ spec:
                             type: string
                           type: array
                         format:
-                          description: 'Determines format of the time string. Can be one of: ANSIC, UnixDate, RubyDate, RFC822, RFC822Z, RFC850, RFC1123, RFC1123Z, RFC3339, RFC3339Nano, Unix, UnixMs, UnixUs, UnixNs.'
+                          description: 'Determines format of the time string. Required. Can be one of: ANSIC, UnixDate, RubyDate, RFC822, RFC822Z, RFC850, RFC1123, RFC1123Z, RFC3339, RFC3339Nano, Unix, UnixMs, UnixUs, UnixNs.'
                           type: string
                         location:
                           description: IANA Timezone Database string.
                           type: string
                         source:
-                          description: Name from extracted data to use as the timestamp.
+                          description: Name from extracted data to use as the timestamp. Required.
                           type: string
+                      required:
+                      - format
+                      - source
                       type: object
                   type: object
                 type: array
@@ -303,7 +324,7 @@ spec:
                   type: object
                 type: array
               selector:
-                description: Selector to select Pod objects.
+                description: Selector to select Pod objects. Required.
                 properties:
                   matchExpressions:
                     description: matchExpressions is a list of label selector requirements. The requirements are ANDed.

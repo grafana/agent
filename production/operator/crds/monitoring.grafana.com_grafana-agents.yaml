@@ -2330,12 +2330,9 @@ spec:
                               type: string
                           type: object
                         url:
-                          description: 'URL is the URL where Loki is listening. Must be a full HTTP URL, including protocol. Example: https://logs-prod-us-central1.grafana.net/loki/api/v1/push.'
+                          description: 'URL is the URL where Loki is listening. Must be a full HTTP URL, including protocol. Required. Example: https://logs-prod-us-central1.grafana.net/loki/api/v1/push.'
                           type: string
                       required:
-                      - batchSize
-                      - batchWait
-                      - tenantId
                       - url
                       type: object
                     type: array
@@ -2405,7 +2402,7 @@ spec:
                         description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
                         type: object
                     type: object
-                  prometheusExternalLabelName:
+                  logsExternalLabelName:
                     description: LogsExternalLabelName is the name of the external label used to denote Grafana Agent cluster. Defaults to "cluster." External label will _not_ be added when value is set to the empty string.
                     type: string
                 type: object

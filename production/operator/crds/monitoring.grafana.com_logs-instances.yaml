@@ -230,12 +230,9 @@ spec:
                           type: string
                       type: object
                     url:
-                      description: 'URL is the URL where Loki is listening. Must be a full HTTP URL, including protocol. Example: https://logs-prod-us-central1.grafana.net/loki/api/v1/push.'
+                      description: 'URL is the URL where Loki is listening. Must be a full HTTP URL, including protocol. Required. Example: https://logs-prod-us-central1.grafana.net/loki/api/v1/push.'
                       type: string
                   required:
-                  - batchSize
-                  - batchWait
-                  - tenantId
                   - url
                   type: object
                 type: array
