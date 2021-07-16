@@ -2,23 +2,18 @@ package operator
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"os"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/google/go-jsonnet"
 	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/operator/logutil"
-	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime"
@@ -82,10 +77,17 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 
 	type reconcileFunc func(context.Context, log.Logger, config.Deployment, assets.SecretStore) error
 	actors := []reconcileFunc{
-		r.createConfigurationSecret,
+		// Operator-wide resources
 		r.createSecrets,
-		r.createGoverningService,
-		r.createStatefulSets,
+
+		// Metrics resources (may be a no-op if no metrics configured)
+		r.createMetricsConfigurationSecret,
+		r.createMetricsGoverningService,
+		r.createMetricsStatefulSets,
+
+		// Logs resources (may be a no-op if no logs configured)
+		r.createLogsConfigurationSecret,
+		r.createLogsDaemonSet,
 	}
 	for _, actor := range actors {
 		err := actor(ctx, l, deployment, secrets)
@@ -143,53 +145,6 @@ func (r *reconciler) fillStore(ctx context.Context, refs []config.AssetReference
 	return nil
 }
 
-// createConfigurationSecret creates the Grafana Agent configuration and stores
-// it into a secret.
-func (r *reconciler) createConfigurationSecret(
-	ctx context.Context,
-	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
-) error {
-
-	rawConfig, err := d.BuildConfig(s, config.MetricsType)
-
-	var jsonnetError jsonnet.RuntimeError
-	if errors.As(err, &jsonnetError) {
-		// Dump Jsonnet errors to the console to retain newlines and make them
-		// easier to digest.
-		fmt.Fprintf(os.Stderr, "%s", jsonnetError.Error())
-	}
-	if err != nil {
-		return fmt.Errorf("unable to build config: %w", err)
-	}
-
-	blockOwnerDeletion := true
-
-	secret := core_v1.Secret{
-		ObjectMeta: v1.ObjectMeta{
-			Namespace: d.Agent.Namespace,
-			Name:      fmt.Sprintf("%s-config", d.Agent.Name),
-			Labels:    r.config.Labels.Merge(managedByOperatorLabels),
-			OwnerReferences: []v1.OwnerReference{{
-				APIVersion:         d.Agent.APIVersion,
-				BlockOwnerDeletion: &blockOwnerDeletion,
-				Kind:               d.Agent.Kind,
-				Name:               d.Agent.Name,
-				UID:                d.Agent.UID,
-			}},
-		},
-		Data: map[string][]byte{"agent.yml": []byte(rawConfig)},
-	}
-
-	level.Info(l).Log("msg", "reconciling secret", "secret", secret.Name)
-	err = clientutil.CreateOrUpdateSecret(ctx, r.Client, &secret)
-	if err != nil {
-		return fmt.Errorf("failed to reconcile secret: %w", err)
-	}
-	return nil
-}
-
 // createSecrets creates secrets from the secret store.
 func (r *reconciler) createSecrets(
 	ctx context.Context,
@@ -225,81 +180,5 @@ func (r *reconciler) createSecrets(
 	if err != nil {
 		return fmt.Errorf("failed to reconcile secret: %w", err)
 	}
-	return nil
-}
-
-// createGoverningService creates the service that governs the (eventual)
-// StatefulSet. It must be created before the StatefulSet.
-func (r *reconciler) createGoverningService(
-	ctx context.Context,
-	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
-) error {
-	svc := generateStatefulSetService(r.config, d)
-	level.Info(l).Log("msg", "reconciling statefulset service", "service", svc.Name)
-	err := clientutil.CreateOrUpdateService(ctx, r.Client, svc)
-	if err != nil {
-		return fmt.Errorf("failed to reconcile statefulset governing service: %w", err)
-	}
-	return nil
-}
-
-// createStatefulSets creates a set of Grafana Agent StatefulSets, one per shard.
-func (r *reconciler) createStatefulSets(
-	ctx context.Context,
-	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
-) error {
-
-	shards := minShards
-	if reqShards := d.Agent.Spec.Prometheus.Shards; reqShards != nil && *reqShards > 1 {
-		shards = *reqShards
-	}
-
-	// Keep track of generated stateful sets so we can delete ones that should
-	// no longer exist.
-	generated := make(map[string]struct{})
-
-	for shard := int32(0); shard < shards; shard++ {
-		name := d.Agent.Name
-		if shard > 0 {
-			name = fmt.Sprintf("%s-shard-%d", name, shard)
-		}
-
-		ss, err := generateStatefulSet(r.config, name, d, shard)
-		if err != nil {
-			return fmt.Errorf("failed to generate statefulset for shard: %w", err)
-		}
-
-		level.Info(l).Log("msg", "reconciling statefulset", "statefulset", ss.Name)
-		err = clientutil.CreateOrUpdateStatefulSet(ctx, r.Client, ss)
-		if err != nil {
-			return fmt.Errorf("failed to reconcile statefulset for shard: %w", err)
-		}
-		generated[ss.Name] = struct{}{}
-	}
-
-	// Clean up statefulsets that should no longer exist.
-	var statefulSets apps_v1.StatefulSetList
-	err := r.List(ctx, &statefulSets, &client.ListOptions{
-		LabelSelector: labels.SelectorFromSet(labels.Set{
-			agentNameLabelName: d.Agent.Name,
-		}),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to list statefulsets: %w", err)
-	}
-	for _, ss := range statefulSets.Items {
-		if _, keep := generated[ss.Name]; keep {
-			continue
-		}
-		level.Info(l).Log("msg", "deleting stale statefulset", "name", ss.Name)
-		if err := r.Client.Delete(ctx, &ss); err != nil {
-			return fmt.Errorf("failed to delete stale statefulset %s: %w", ss.Name, err)
-		}
-	}
-
 	return nil
 }

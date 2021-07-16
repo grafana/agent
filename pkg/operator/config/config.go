@@ -15,7 +15,7 @@ import (
 	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/assets"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Type is the type of Agent deployment that a config is being generated
@@ -28,6 +28,18 @@ const (
 	// LogsType generates a configuration for logs.
 	LogsType
 )
+
+// String returns the string form of Type.
+func (t Type) String() string {
+	switch t {
+	case MetricsType:
+		return "metrics"
+	case LogsType:
+		return "logs"
+	default:
+		return fmt.Sprintf("unknown (%d)", int(t))
+	}
+}
 
 //go:embed templates/*
 var templates embed.FS
@@ -72,9 +84,25 @@ func (d *Deployment) DeepCopy() *Deployment {
 		})
 	}
 
+	l := make([]LogInstance, 0, len(d.Logs))
+	for _, i := range d.Logs {
+		var (
+			inst  = i.Instance.DeepCopy()
+			pLogs = make([]*grafana.PodLogs, 0, len(i.PodLogs))
+		)
+		for _, pLog := range i.PodLogs {
+			pLogs = append(pLogs, pLog.DeepCopy())
+		}
+		l = append(l, LogInstance{
+			Instance: inst,
+			PodLogs:  pLogs,
+		})
+	}
+
 	return &Deployment{
 		Agent:      d.Agent.DeepCopy(),
 		Prometheis: p,
+		Logs:       l,
 	}
 }
 
@@ -130,6 +158,61 @@ func createVM(secrets assets.SecretStore) (*jsonnet.VM, error) {
 		Name:   "unmarshalYAML",
 		Params: ast.Identifiers{"text"},
 		Func:   unmarshalYAML,
+	})
+	vm.NativeFunction(&jsonnet.NativeFunction{
+		Name:   "intoStages",
+		Params: ast.Identifiers{"text"},
+		Func: func(i []interface{}) (interface{}, error) {
+			text, ok := i[0].(string)
+			if !ok {
+				return nil, jsonnet.RuntimeError{Msg: "text argument not string"}
+			}
+
+			// The way this works is really bad. First we have to
+			// read in the raw YAML so we can convert it to JSON
+			// and get the underlying Spec.
+			var raw interface{}
+			if err := yaml.Unmarshal([]byte(text), &raw); err != nil {
+				return nil, jsonnet.RuntimeError{
+					Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+				}
+			}
+
+			bb, err := json.Marshal(raw)
+			if err != nil {
+				return nil, jsonnet.RuntimeError{
+					Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+				}
+			}
+
+			var ps []*grafana.PipelineStageSpec
+			if err := json.Unmarshal(bb, &ps); err != nil {
+				return nil, jsonnet.RuntimeError{
+					Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+				}
+			}
+
+			// Then we need to convert each into their raw types.
+			rawPS := make([]interface{}, 0, len(ps))
+			for _, stage := range ps {
+				bb, err := json.Marshal(structs.Map(stage))
+				if err != nil {
+					return nil, jsonnet.RuntimeError{
+						Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+					}
+				}
+
+				var v interface{}
+				if err := json.Unmarshal(bb, &v); err != nil {
+					return nil, jsonnet.RuntimeError{
+						Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+					}
+				}
+
+				rawPS = append(rawPS, v)
+			}
+			return rawPS, nil
+		},
 	})
 
 	vm.NativeFunction(&jsonnet.NativeFunction{

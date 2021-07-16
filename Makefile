@@ -92,7 +92,7 @@ endif
 # CRDs #
 ########
 
-crds:
+crds: build-image/.uptodate
 ifeq ($(BUILD_IN_CONTAINER),true)
 	@mkdir -p $(shell pwd)/.pkg
 	@mkdir -p $(shell pwd)/.cache

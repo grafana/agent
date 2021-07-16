@@ -119,14 +119,17 @@ func New(l log.Logger, c *Config, m manager.Manager) error {
 
 	err := controller.NewControllerManagedBy(m).
 		For(applyGVK(&grafana_v1alpha1.GrafanaAgent{}), builder.WithPredicates(agentPredicates...)).
-		Owns(applyGVK(&core_v1.Service{})).
-		Owns(applyGVK(&core_v1.Secret{})).
 		Owns(applyGVK(&apps_v1.StatefulSet{})).
+		Owns(applyGVK(&apps_v1.DaemonSet{})).
+		Owns(applyGVK(&core_v1.Secret{})).
+		Owns(applyGVK(&core_v1.Service{})).
+		Watches(watchType(&core_v1.Secret{}), events[resourceSecret]).
+		Watches(watchType(&grafana_v1alpha1.LogsInstance{}), events[resourceLogsInstance]).
+		Watches(watchType(&grafana_v1alpha1.PodLogs{}), events[resourcePodLogs]).
 		Watches(watchType(&grafana_v1alpha1.PrometheusInstance{}), events[resourcePromInstance]).
-		Watches(watchType(&promop_v1.ServiceMonitor{}), events[resourceServiceMonitor]).
 		Watches(watchType(&promop_v1.PodMonitor{}), events[resourcePodMonitor]).
 		Watches(watchType(&promop_v1.Probe{}), events[resourceProbe]).
-		Watches(watchType(&core_v1.Secret{}), events[resourceSecret]).
+		Watches(watchType(&promop_v1.ServiceMonitor{}), events[resourceServiceMonitor]).
 		Complete(&reconciler{
 			Client:        m.GetClient(),
 			scheme:        m.GetScheme(),

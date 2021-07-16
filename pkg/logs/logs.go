@@ -4,6 +4,7 @@ package logs
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -55,13 +56,6 @@ func (l *Logs) ApplyConfig(c *Config) error {
 
 	if c == nil {
 		c = &Config{}
-	}
-
-	if c.PositionsDirectory != "" {
-		err := os.MkdirAll(c.PositionsDirectory, 0700)
-		if err != nil {
-			level.Warn(l.l).Log("msg", "failed to create the positions directory. logs may be unable to save their position", "path", c.PositionsDirectory, "err", err)
-		}
 	}
 
 	newInstances := make(map[string]*Instance, len(c.Configs))
@@ -147,6 +141,12 @@ func NewInstance(reg prometheus.Registerer, c *InstanceConfig, l log.Logger) (*I
 func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
+
+	positionsDir := filepath.Dir(c.PositionsConfig.PositionsFile)
+	err := os.MkdirAll(positionsDir, 0700)
+	if err != nil {
+		level.Warn(i.log).Log("msg", "failed to create the positions directory. logs may be unable to save their position", "path", positionsDir, "err", err)
+	}
 
 	// No-op if the configs haven't changed.
 	if util.CompareYAML(c, i.cfg) {

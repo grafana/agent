@@ -153,8 +153,6 @@ type LogsInstanceList struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path="pod-logs"
-// +kubebuilder:resource:singular="pod-logs"
 // +kubebuilder:resource:categories="agent-operator"
 
 // PodLogs defines how to collect logs for a pod.
@@ -365,7 +363,16 @@ type MatchStageSpec struct {
 
 	// Nested set of pipeline stages to execute when action: keep and the log
 	// line matches selector.
-	Stages []*PipelineStageSpec `json:"stages,omitempty"`
+	//
+	// An example value for stages may be:
+	//
+	//   stages: |
+	//     - json: {}
+	//     - labelAllow: [foo, bar]
+	//
+	// Note that stages is a string and because SIG API Machinery does not support
+	// recursive types. Be careful not to mistype anything.
+	Stages string `json:"stages,omitempty"`
 }
 
 // MetricsStageSpec is an action stage that allows for defining and updating

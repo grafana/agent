@@ -84,6 +84,24 @@ func (d *Deployment) AssetReferences() []AssetReference {
 		}
 	}
 
+	for _, client := range d.Agent.Spec.Logs.Clients {
+		res = append(res, clientAssetReferences(d.Agent.Namespace, &client)...)
+	}
+
+	// Retrieve references from each LogsInstance
+	for _, inst := range d.Logs {
+		// Retrieve from inner LogsInstance
+		res = append(res, AssetReference{
+			Namespace: inst.Instance.Namespace,
+			Reference: prom.SecretOrConfigMap{Secret: inst.Instance.Spec.AdditionalScrapeConfigs},
+		})
+		for _, client := range inst.Instance.Spec.Clients {
+			res = append(res, clientAssetReferences(inst.Instance.Namespace, &client)...)
+		}
+
+		// NOTE(rfratto): PodLogs doesn't have any secrets in it (yet)
+	}
+
 	return filterEmptyReferences(res)
 }
 
@@ -142,6 +160,18 @@ func tlsConfigReferences(namespace string, cfg *prom.TLSConfig) []AssetReference
 		{Namespace: namespace, Reference: cfg.Cert},
 		{Namespace: namespace, Reference: prom.SecretOrConfigMap{Secret: cfg.KeySecret}},
 	})
+}
+
+func clientAssetReferences(namespace string, client *grafana.LogsClientSpec) []AssetReference {
+	var res []AssetReference
+
+	res = append(res, basicAuthAssetReferences(namespace, client.BasicAuth)...)
+
+	if client.TLSConfig != nil {
+		res = append(res, tlsConfigReferences(namespace, client.TLSConfig)...)
+	}
+
+	return filterEmptyReferences(res)
 }
 
 // filterEmptyReferences is a post-processing step of retrieving references to

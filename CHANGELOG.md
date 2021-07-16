@@ -9,6 +9,8 @@
 
 - [FEATURE] Support autologging span attributes as log labels (@mapno)
 
+- [FEATURE] Add logging support to the Grafana Agent Operator. (@rfratto)
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
@@ -19,7 +21,7 @@
 
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
-  
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
