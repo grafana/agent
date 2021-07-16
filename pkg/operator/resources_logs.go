@@ -43,6 +43,7 @@ func generateLogsDaemonSet(
 		labels[k] = v
 	}
 	labels[agentNameLabelName] = d.Agent.Name
+	labels[agentTypeLabel] = "logs"
 
 	boolTrue := true
 	ds := &apps_v1.DaemonSet{
@@ -216,6 +217,7 @@ func generateLogsDaemonSetSpec(
 		"app.kubernetes.io/instance":   d.Agent.Name,
 		"grafana-agent":                d.Agent.Name,
 		agentNameLabelName:             d.Agent.Name,
+		agentTypeLabel:                 "logs",
 	}
 	if d.Agent.Spec.PodMetadata != nil {
 		for k, v := range d.Agent.Spec.PodMetadata.Labels {

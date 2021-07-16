@@ -29,6 +29,7 @@ var (
 	}
 	shardLabelName            = "operator.agent.grafana.com/shard"
 	agentNameLabelName        = "operator.agent.grafana.com/name"
+	agentTypeLabel            = "operator.agent.grafana.com/type"
 	probeTimeoutSeconds int32 = 3
 )
 
@@ -118,6 +119,7 @@ func generateMetricsStatefulSet(
 		labels[k] = v
 	}
 	labels[agentNameLabelName] = d.Agent.Name
+	labels[agentTypeLabel] = "metrics"
 
 	boolTrue := true
 
@@ -319,6 +321,7 @@ func generateMetricsStatefulSetSpec(
 		"grafana-agent":                d.Agent.Name,
 		shardLabelName:                 fmt.Sprintf("%d", shard),
 		agentNameLabelName:             d.Agent.Name,
+		agentTypeLabel:                 "metrics",
 	}
 	if d.Agent.Spec.PodMetadata != nil {
 		for k, v := range d.Agent.Spec.PodMetadata.Labels {

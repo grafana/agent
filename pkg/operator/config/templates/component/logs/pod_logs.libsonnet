@@ -126,6 +126,14 @@ function(
       },
     ]) +
 
+    // Kubernetes puts logs under subdirectories keyed pod UID and container_name.
+    [{
+      source_labels: ['__meta_kubernetes_pod_uid', '__meta_kubernetes_pod_container_name'],
+      target_label: '__path__',
+      separator: '/',
+      replacement: '/var/log/pods/*$1/*.log',
+    }] +
+
     std.map(
       function(c) new_relabel_config(c),
       k8s.array(podLogs.Spec.RelabelConfigs),

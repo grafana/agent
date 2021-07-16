@@ -142,6 +142,12 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
+	positionsDir := filepath.Dir(c.PositionsConfig.PositionsFile)
+	err := os.MkdirAll(positionsDir, 0700)
+	if err != nil {
+		level.Warn(i.log).Log("msg", "failed to create the positions directory. logs may be unable to save their position", "path", positionsDir, "err", err)
+	}
+
 	// No-op if the configs haven't changed.
 	if util.CompareYAML(c, i.cfg) {
 		level.Debug(i.log).Log("msg", "instance config hasn't changed, not recreating Promtail")

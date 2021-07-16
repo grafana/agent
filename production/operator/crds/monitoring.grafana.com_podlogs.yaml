@@ -186,10 +186,13 @@ spec:
                             Required.
                           type: string
                         stages:
-                          description: 'Nested set of pipeline stages to execute when
-                            action: keep and the log line matches selector.'
-                          items: {}
-                          type: array
+                          description: "Nested set of pipeline stages to execute when
+                            action: keep and the log line matches selector. \n An
+                            example value for stages may be: \n   stages: |     -
+                            json: {}     - labelAllow: [foo, bar] \n Note that stages
+                            is a string and because SIG API Machinery does not support
+                            recursive types. Be careful not to mistype anything."
+                          type: string
                       required:
                       - selector
                       type: object

@@ -1,3 +1,4 @@
+local marshal = import 'ext/marshal.libsonnet';
 local optionals = import 'ext/optionals.libsonnet';
 
 // Creates a new stage.
@@ -114,9 +115,11 @@ local new_stage = function(spec) {
     pipeline_name: optionals.string(spec.Match.PipelineName),
     action: optionals.string(spec.Match.Action),
     drop_counter_reason: optionals.string(spec.Match.DropCounterReason),
-    stages: std.map(
-      function(stage) new_stage(stage),
-      spec.Match.Stages,
+    stages: if spec.Match.Stages != '' then (
+      std.map(
+        function(stage) new_stage(stage),
+        marshal.intoStages(spec.Match.Stages),
+      )
     ),
   },
 
