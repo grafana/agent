@@ -12,8 +12,8 @@ These manifests do not include the Agent's configuration (ConfigMaps).
 
 For sample configurations and detailed installation instructions, please head to:
 
-- [Grafana Agent Metrics Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent_k8s/)
-- [Grafana Agent Logs Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/k8s_agent_logs/)
+- [Grafana Agent Metrics Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_metrics/)
+- [Grafana Agent Logs Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_logs/)
 
 ## Manually Applying
 
