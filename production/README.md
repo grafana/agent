@@ -3,27 +3,12 @@
 There are a few ways to run the Grafana Agent, in order from
 easiest to hardest:
 
-- [Use the Install Script for Kubernetes](#install-script-for-kubernetes)
 - [Windows Installation](#windows-installation)
 - [Run the Agent with Docker](#running-the-agent-with-docker)
 - [Run the Agent locally](#running-the-agent-locally)
 - [Use the example Kubernetes configs](#use-the-example-kubernetes-configs)
 - [Build the Agent from Source](#build-the-agent-from-source)
 - [Use our production Tanka configs](#use-our-production-tanka-configs)
-
-## Install Script for Kubernetes
-
-The Grafana Agent repository comes with installation scripts to
-configure components and return a Kubernetes manifest that uses our preferred
-defaults. To run the script, copy and paste this in your terminal:
-
-```
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
-```
-
-See the [Kubernetes README](./kubernetes/README.md) for more information.
 
 ## Windows Installation
 
@@ -51,9 +36,7 @@ Agent as a long-living process (e.g., write your own systemd unit files).
 
 ## Use the example Kubernetes configs
 
-The install script replaces variable placeholders in the [example Kubernetes
-manifest](./kubernetes/agent.yaml) in the Kubernetes directory. Feel free to
-examine that file and modify it for your own needs!
+You can find sample deployment manifests in the [Kubernetes](./kubernetes) directory.
 
 ## Build the Agent from source
 
