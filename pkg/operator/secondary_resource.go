@@ -18,6 +18,8 @@ const (
 	resourcePodMonitor
 	resourceProbe
 	resourceSecret
+	resourceLogsInstance
+	resourcePodLogs
 )
 
 // secondaryResources is the list of valid secondaryResources.
@@ -27,6 +29,8 @@ var secondaryResources = []secondaryResource{
 	resourcePodMonitor,
 	resourceProbe,
 	resourceSecret,
+	resourceLogsInstance,
+	resourcePodLogs,
 }
 
 // eventHandlers is a set of EnqueueRequestForSelector event handlers, one per

@@ -153,8 +153,6 @@ type LogsInstanceList struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path="pod-logs"
-// +kubebuilder:resource:singular="pod-logs"
 // +kubebuilder:resource:categories="agent-operator"
 
 // PodLogs defines how to collect logs for a pod.

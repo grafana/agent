@@ -29,6 +29,18 @@ const (
 	LogsType
 )
 
+// String returns the string form of Type.
+func (t Type) String() string {
+	switch t {
+	case MetricsType:
+		return "metrics"
+	case LogsType:
+		return "logs"
+	default:
+		return fmt.Sprintf("unknown (%d)", int(t))
+	}
+}
+
 //go:embed templates/*
 var templates embed.FS
 
@@ -72,9 +84,25 @@ func (d *Deployment) DeepCopy() *Deployment {
 		})
 	}
 
+	l := make([]LogInstance, 0, len(d.Logs))
+	for _, i := range d.Logs {
+		var (
+			inst  = i.Instance.DeepCopy()
+			pLogs = make([]*grafana.PodLogs, 0, len(i.PodLogs))
+		)
+		for _, pLog := range i.PodLogs {
+			pLogs = append(pLogs, pLog.DeepCopy())
+		}
+		l = append(l, LogInstance{
+			Instance: inst,
+			PodLogs:  pLogs,
+		})
+	}
+
 	return &Deployment{
 		Agent:      d.Agent.DeepCopy(),
 		Prometheis: p,
+		Logs:       l,
 	}
 }
 

@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: pod-logs.monitoring.grafana.com
+  name: podlogs.monitoring.grafana.com
 spec:
   group: monitoring.grafana.com
   names:
@@ -14,8 +14,8 @@ spec:
     - agent-operator
     kind: PodLogs
     listKind: PodLogsList
-    plural: pod-logs
-    singular: pod-logs
+    plural: podlogs
+    singular: podlogs
   scope: Namespaced
   versions:
   - name: v1alpha1

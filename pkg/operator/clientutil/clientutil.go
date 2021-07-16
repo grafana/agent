@@ -114,10 +114,47 @@ func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1
 			}
 			err = c.Create(ctx, ss)
 			if err != nil {
-				return fmt.Errorf("failed to update statefulset: statefulset: %w", err)
+				return fmt.Errorf("failed to update statefulset: creating new statefulset: %w", err)
 			}
 		} else if err != nil {
 			return fmt.Errorf("failed to update statefulset: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// CreateOrUpdateDaemonSet applies the given DaemonSet against the client.
+func CreateOrUpdateDaemonSet(ctx context.Context, c client.Client, ss *apps_v1.DaemonSet) error {
+	var exist apps_v1.DaemonSet
+	err := c.Get(ctx, client.ObjectKeyFromObject(ss), &exist)
+	if err != nil && !k8s_errors.IsNotFound(err) {
+		return fmt.Errorf("failed to retrieve existing daemonset: %w", err)
+	}
+
+	if k8s_errors.IsNotFound(err) {
+		err := c.Create(ctx, ss)
+		if err != nil {
+			return fmt.Errorf("failed to create daemonset: %w", err)
+		}
+	} else {
+		ss.ResourceVersion = exist.ResourceVersion
+		ss.SetOwnerReferences(mergeOwnerReferences(ss.GetOwnerReferences(), exist.GetOwnerReferences()))
+		ss.SetLabels(mergeMaps(ss.Labels, exist.Labels))
+		ss.SetAnnotations(mergeMaps(ss.Annotations, exist.Annotations))
+
+		err := c.Update(ctx, ss)
+		if k8s_errors.IsNotAcceptable(err) {
+			err = c.Delete(ctx, ss)
+			if err != nil {
+				return fmt.Errorf("failed to update daemonset: deleting old daemonset: %w", err)
+			}
+			err = c.Create(ctx, ss)
+			if err != nil {
+				return fmt.Errorf("failed to update daemonset: creating new deamonset: %w", err)
+			}
+		} else if err != nil {
+			return fmt.Errorf("failed to update daemonset: %w", err)
 		}
 	}
 
