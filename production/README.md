@@ -1,12 +1,12 @@
 # Running Grafana Agent
 
-There are a few ways to run the Grafana Agent, in order from
-easiest to hardest:
+Here are some resources to help you run the Grafana Agent:
 
 - [Windows Installation](#windows-installation)
 - [Run the Agent with Docker](#running-the-agent-with-docker)
 - [Run the Agent locally](#running-the-agent-locally)
 - [Use the example Kubernetes configs](#use-the-example-kubernetes-configs)
+- [Grafana Cloud Kubernetes Quickstart Guides](#grafana-cloud-kubernetes-quickstart-guides)
 - [Build the Agent from Source](#build-the-agent-from-source)
 - [Use our production Tanka configs](#use-our-production-tanka-configs)
 
@@ -37,6 +37,12 @@ Agent as a long-living process (e.g., write your own systemd unit files).
 ## Use the example Kubernetes configs
 
 You can find sample deployment manifests in the [Kubernetes](./kubernetes) directory.
+
+## Grafana Cloud Kubernetes quickstart guides
+
+These guides help you get up and running with the Agent and Grafana Cloud, and include sample ConfigMaps.
+
+You can find them in the [Grafana Cloud documentation](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/)
 
 ## Build the Agent from source
 
