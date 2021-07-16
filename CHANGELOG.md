@@ -8,6 +8,8 @@
 
 - [FEATURE] Put Tests requiring Network Access behind a -online flag (@flokli)
 
+- [FEATURE] Add logging support to the Grafana Agent Operator. (@rfratto)
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
@@ -20,7 +22,7 @@
   the $HOSTNAME variable in agent config.  (@dfrankel33)
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
-  using `-config.expand-env`.
+  using `-config.expand-env`. (@rfratto)
 
 - [BUGFIX] The directory of the logs positions file will now properly be created
   on startup for all instances.
