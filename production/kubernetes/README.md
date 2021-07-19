@@ -8,7 +8,7 @@ Manifests:
 - Log collection (DaemonSet): [`agent-loki.yaml`](./agent-loki.yaml)
 - Trace collection (DaemonSet): [`agent-tempo.yaml`](./agent-tempo.yaml)
 
-These manifests do not include the Agent's configuration (ConfigMaps). 
+These manifests do not include the Agent's configuration (ConfigMaps).
 
 For sample configurations and detailed installation instructions, please head to:
 

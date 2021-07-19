@@ -47,7 +47,7 @@ container through a bind mount for the flags to work properly.
 
 ## Kubernetes manifests
 
-If you wish to manually modify the Kubernetes manifests before deploying them, you can do so by downloading them from the [`kubernetes` directory](../../production/kubernetes/).
+If you wish to manually modify the Kubernetes manifests before deploying them, you can do so by downloading them from the [`kubernetes` directory](../../production/kubernetes/). Note that these manifests do not include Agent configuration files. For sample configuration, please see the Grafana Cloud Kubernetes quickstarts.
 
 ## Grafana Cloud kubernetes quickstart guides
 
