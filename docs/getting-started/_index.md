@@ -12,8 +12,8 @@ with the Grafana Agent Operator, please refer to the Operator-specific
 Currently, there are six ways to install the agent:
 
 - Use our Docker container
-- Use the Kubernetes install script (_recommended basic_)
-- Use the Kubernetes manifest
+- Use the Kubernetes manifests directly
+- Use the Kubernetes manifests along with the [Grafana Cloud Kubernetes Quickstart Guides](#grafana-cloud-kubernetes-quickstart-guides)
 - Installing the static binaries locally
 - Using Grafana Labs' official Tanka configs (_recommended advanced_)
 - Using the [Windows Installer]({{< relref "./install-agent-on-windows.md" >}})
@@ -45,33 +45,15 @@ to the end of the `docker run` command:
 Note that using paths on your host machine must be exposed to the Docker
 container through a bind mount for the flags to work properly.
 
-## Kubernetes install script
+## Kubernetes manifests
 
-Running this script automatically downloads and applies our recommended
-Grafana Agent Kubernetes deployment manifests (requires `envsubst` (GNU gettext)).
-Two manifests will be installed: one for collecting metrics, and the other for
-collecting logs. You will be prompted for input for each manifest that is
-applied.
+If you wish to manually modify the Kubernetes manifests before deploying them, you can do so by downloading them from the [`kubernetes` directory](../../production/kubernetes/).
 
-> **Warning:** Always verify scripts from the internet before running them.
+## Grafana Cloud kubernetes quickstart guides
 
-```
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl -ndefault apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
-```
+These guides help you get up and running with the Agent and Grafana Cloud, and include sample ConfigMaps.
 
-**Note:** For the above script to scrape your pods, they must conform to the following rules:
-
-- The pod must _not_ have an annotation matching `prometheus.io/scrape: "false"` (this wouldn't be there unless you explicitly add it or if you deploy a Helm chart that has it).
-- The pod _must_ have a port with a name ending in `-metrics`. This is the port that will be scraped by the Agent. A lot of people using Helm struggle with this, since Helm charts don't usually follow this. You would need to add a new scrape config to scrape helm charts or find a way to tweak the Helm chart to follow this rules.
-- The pod _must_ have a label named name with any non-empty value. Helm usually lets you add extra labels, so this is less of a problem for Helm users.
-- The pod must currently be running. (i.e., Kubernetes must not report it having a phase of Succeeded or Failed).
-
-## Kubernetes manifest
-
-If you wish to manually modify the Kubernetes manifest before deploying it
-yourself, you can do so by downloading the [`agent.yaml` file](../../production/kubernetes/agent.yaml).
+You can find them in the [Grafana Cloud documentation](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/)
 
 ## Install locally
 
