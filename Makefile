@@ -74,9 +74,9 @@ DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAG
 CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
 DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
 # If we're not building the release, use the debug flags instead.
-#ifeq ($(RELEASE_BUILD),false)
+ifeq ($(RELEASE_BUILD),false)
 GO_FLAGS = $(DEBUG_GO_FLAGS)
-#endif
+endif
 
 NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
        rm $@; \
