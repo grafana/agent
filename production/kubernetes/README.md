@@ -8,7 +8,8 @@ Manifests:
 - Log collection (DaemonSet): [`agent-loki.yaml`](./agent-loki.yaml)
 - Trace collection (DaemonSet): [`agent-tempo.yaml`](./agent-tempo.yaml)
 
-These manifests do not include the Agent's configuration (ConfigMaps).
+⚠️  **These manifests do not include the Agent's configuration (ConfigMaps)**,
+which are necessary to run the Agent.
 
 For sample configurations and detailed installation instructions, please head to:
 
@@ -26,6 +27,11 @@ applying out of the box and you will have to manually perform the following step
 
 3. Apply the modified manifest file: `kubectl -ndefault apply -f manifest.yaml`.
 
+This directory also conains an `install-bare.sh` script that is used inside of
+Grafana Cloud instructions. If using the Grafana Agent outside of Grafana Cloud,
+it is recommended to follow the steps above instead of calling this script
+directly.
+
 ## Rebuilding the manifests
 
 The manifests provided are created using Grafana Labs' production
@@ -37,7 +43,7 @@ of software installed:
 2. [`jsonnet-bundler`](https://github.com/jsonnet-bundler/jsonnet-bundler) >= v0.2.1
 
 See the [`template` Tanka environment](./build/templates) for the current
-settings that initialize the Grafana Agent Tanka configs. 
+settings that initialize the Grafana Agent Tanka configs.
 
-To build the YAML files, execute the `./build/build.sh` script or run `make example-kubernetes` 
+To build the YAML files, execute the `./build/build.sh` script or run `make example-kubernetes`
 from the project's root directory.
