@@ -12,24 +12,35 @@ DRONE ?= false
 # This is normally set by the caller but when building the agent windows installer it needs to be set to something
 RELEASE_TAG ?= v0.0.0
 
+
+CGO_ENABLED_VAR=${CGO_ENABLED:-$(shell go env CGO_ENABLED)}
+
+
 # Set the CGO, CC, CCX flags based on targetplatform, if non given assume 'native' to the device
 CGO_CC_CCX = export CGO_ENABLED=1 GO111MODULE=auto
 
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?= normal
-ifeq ($(TARGETPLATFORM),linux/amd64)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=auto CC=gcc CCX=g++ 
-endif
-ifeq ($(TARGETPLATFORM),linux/arm64)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm64  CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v7)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++
-endif
-ifeq ($(TARGETPLATFORM),linux/arm/v6)
-CGO_CC_CCX = export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++
-endif
 
+# This function sets up all the appropriate flags for a drone or local build, this is actually a list of chained if statements with the false
+#	condition being the next if, its reformatted to look more like a series of if elses
+define SetBuildVarsConditional
+export CGO_ENABLED=1 $(if $(filter $(1),linux/amd64),GOOS=linux GOARCH=amd64 CC=gcc CCX=g++, \
+$(if $(filter $(1),linux/arm64),GOOS=linux GOARCH=amd64 CC=gcc CCX=g++, \
+$(if $(filter $(1),linux/arm/v7),GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++, \
+$(if $(filter $(1),linux/arm/v6),GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++, \
+$(if $(filter $(1),darwin/amd64),GOOS=darwin  GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib, \
+$(if $(filter $(1),darwin/arm64),GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib, \
+$(if $(filter $(1),windows),GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++, \
+$(if $(filter $(1),mipls),GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++, \
+$(if $(filter $(1),freebsd),GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11"  , $(error invalid flag $(1))) \
+))))))))
+endef
+
+
+ifneq ($(TARGETPLATFORM),normal)
+ALL_CGO_BUILD_FLAGS = $(call SetBuildVarsConditional $(TARGETPLATFORM))
+endif
 
 # Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
 # different architectures. When true, docker buildx is used instead of docker,
@@ -68,9 +79,9 @@ DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAG
 CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
 DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
 # If we're not building the release, use the debug flags instead.
-ifeq ($(RELEASE_BUILD),false)
+#ifeq ($(RELEASE_BUILD),false)
 GO_FLAGS = $(DEBUG_GO_FLAGS)
-endif
+#endif
 
 NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
        rm $@; \
@@ -104,12 +115,11 @@ docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
 docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
+# docker-build = docker buildx build --push --platform linux/arm64 $(DOCKER_BUILD_FLAGS)
 endif
 
-# If being called from the drone executable this will be set to true, in this case we want the go_wrapper to set the
-#	CC and CCX and other flags for the appropriate architecture
-ifeq ($(DRONE),true)
-	seego = bash ./.drone/go_wrapper.sh 
+ifeq ($(CROSS_BUILD),false)
+seego = go 
 endif
 
 ########
@@ -168,40 +178,17 @@ agent-operator: cmd/agent-operator/agent-operator
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
 
 cmd/agent/agent: check-seego  cmd/agent/main.go
-ifeq ($(DRONE),true)
-	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-	CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-endif
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
 
 cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
-ifeq ($(DRONE),true)
-	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-	CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
-endif
-endif
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+	$(NETGO_CHECK)
 
 
 cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
-ifeq ($(DRONE),true)
-	$(CGO_CC_CCX); go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
-else
-	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
-endif
-endif
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
 
@@ -270,46 +257,29 @@ dist: dist-agent dist-agentctl dist-packages
 ####################
 
 dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
-
 dist/agent-linux-amd64: seego
-	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64;        $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agent
 
 dist/agent-linux-arm64: seego
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64;        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/arm64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-armv6: seego
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/arm/v6) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-armv7: seego
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/arm/v7) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-mipsle: seego
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++; go build $(CGO_FLAGS) -o $@ ./cmd/agent
-else
-	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-endif
+	$(call SetBuildVarsConditional,linux/mipsle) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-darwin-amd64:  seego
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
-else
-	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-endif
+	$(call SetBuildVarsConditional,darwin/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-darwin-arm64: seego
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agent
-else
-	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-endif
+	$(call SetBuildVarsConditional,darwin/arm64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-windows-amd64.exe: seego
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++;  go build $(CGO_FLAGS) -o $@ ./cmd/agent
-else
-	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-endif 
+	$(call SetBuildVarsConditional,windows) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 ifeq ($(DRONE),true)
@@ -326,11 +296,7 @@ endif
 endif 
 	
 dist/agent-freebsd-amd64: seego
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" ; go build $(CGO_FLAGS) -o $@ ./cmd/agent
-else
-	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-endif 
+	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 
 #######################
@@ -340,50 +306,31 @@ endif
 dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
 
 dist/agentctl-linux-amd64: seego
-	export CGO_ENABLED=1 GOOS=linux GOARCH=amd64;       $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/amd64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-arm64: seego
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm64;        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-armv6: seego
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm/v6);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-armv7: seego
-	export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7;  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm/v7);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-mipsle: seego
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-else
-	export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-endif
+	$(call SetBuildVarsConditional,linux/mipsle);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-darwin-amd64: seego 
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-else
-	export CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-endif
+	$(call SetBuildVarsConditional,darwin/amd64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-darwin-arm64: seego
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-else
-endif
+	$(call SetBuildVarsConditional,darwin/arm64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-windows-amd64.exe: seego 
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++;  go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-else
-	export CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-endif
+	$(call SetBuildVarsConditional,windows);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-freebsd-amd64: 
-ifeq ($(DRONE),true)
-	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" ; go build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-else
-	export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
-endif 
+dist/agentctl-freebsd-amd64:
+	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
 ifeq ($(DRONE),false)
