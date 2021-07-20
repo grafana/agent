@@ -19,7 +19,10 @@
 
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
-  
+
+- [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
+  using `-config.expand-env`.
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
@@ -27,7 +30,7 @@
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
-  `backend: logs_instance`.
+  `backend: logs_instance`. (@rfratto)[]
 
 # v0.16.1 (2021-06-22)
 
