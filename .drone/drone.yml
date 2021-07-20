@@ -4,6 +4,10 @@ name: Lint
 platform:
   os: linux
   arch: amd64
+when:
+  event:
+    include:
+    - push
 
 steps:
 - name: lint
@@ -19,6 +23,10 @@ name: Test
 platform:
   os: linux
   arch: amd64
+when:
+  event:
+    include:
+    - push
 
 steps:
 - name: test
@@ -153,6 +161,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 8568b191261d5895d9426c3c175e91cb69d347275226d774988ecde8db3329bc
+hmac: 7bad93b9bac9c25d4b6ab7c172944afda0f90d409ebdcd35c6751f00ca8cd095
 
 ...
