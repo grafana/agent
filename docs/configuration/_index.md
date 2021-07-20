@@ -44,6 +44,17 @@ Where default_value is the value to use if the environment variable is
 undefined. The full list of supported syntax can be found at Drone's
 [envsubst repository](https://github.com/drone/envsubst).
 
+### Regex capture group references
+
+When using `-config.expand-env`, `VAR` must be an alphanumeric string with at
+least one non-digit character. If `VAR` is a number, the expander will assume
+you're trying to use a regex capture group reference, and will coerce the result
+to be one.
+
+This means references in your config file like `${1}` will remain
+untouched, but edge cases like `${1:-default}` will also be coerced to `${1}`,
+which may be slightly unexpected.
+
 ## Reloading (beta)
 
 The configuration file can be reloaded at runtime. Read the [API
