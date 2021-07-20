@@ -16,6 +16,7 @@ RELEASE_TAG ?= v0.0.0
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
 
+# This is used to set all the environment variables to pass to the go build/seego/docker commands
 define SetBuildVarsConditional
 $(if $(filter $(1),normal),CGO_ENABLED=1, \
 $(if $(filter $(1),linux/amd64),CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
@@ -109,6 +110,7 @@ DOCKERFILE = Dockerfile.buildx
 docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
 endif
 
+# we want to override the default seego behavior. Drone always builds locally inside seego and if build in container is false then use 
 ifeq ($(DRONE),true)
 seego = "/go_wrapper.sh" 
 else ifeq ($(BUILD_IN_CONTAINER),false)
@@ -258,36 +260,32 @@ dist/agent-linux-arm64: seego
 	$(call SetBuildVarsConditional,linux/arm64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-armv6: seego
-	$(call SetBuildVarsConditional,linux/arm/v6) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/arm/v6) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-armv7: seego
-	$(call SetBuildVarsConditional,linux/arm/v7) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/arm/v7) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-mipsle: seego
-	$(call SetBuildVarsConditional,linux/mipsle) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/mipsle) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-darwin-amd64:  seego
-	$(call SetBuildVarsConditional,darwin/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,darwin/amd64) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-darwin-arm64: seego
-	$(call SetBuildVarsConditional,darwin/arm64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,darwin/arm64) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-windows-amd64.exe: seego
-	$(call SetBuildVarsConditional,windows) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,windows) ;          $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
-ifeq ($(DRONE),true)
-	cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
-else
-ifeq ($(BUILD_IN_CONTAINER),true)
 	cp ./dist/agent-windows-amd64.exe ./packaging/windows 
 	cp LICENSE ./packaging/windows 
+ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t windows_installer ./packaging/windows
 	docker run --rm -t -v "${PWD}:/home" windows_installer
 else
-	cp dist/agent-windows-amd64.exe ./packaging/windows && cp LICENSE ./packaging/windows && makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT./dist/grafana-agent-installer.exe ./packaging/windows/install_script.nsis
+	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
 endif
-endif 
 	
 dist/agent-freebsd-amd64: seego
 	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
@@ -300,31 +298,31 @@ dist/agent-freebsd-amd64: seego
 dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
 
 dist/agentctl-linux-amd64: seego
-	$(call SetBuildVarsConditional,linux/amd64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/amd64);    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-arm64: seego
-	$(call SetBuildVarsConditional,linux/arm64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm64);    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-armv6: seego
-	$(call SetBuildVarsConditional,linux/arm/v6);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm/v6);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-armv7: seego
-	$(call SetBuildVarsConditional,linux/arm/v7);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm/v7);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-mipsle: seego
-	$(call SetBuildVarsConditional,linux/mipsle);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/mipsle);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-darwin-amd64: seego 
-	$(call SetBuildVarsConditional,darwin/amd64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,darwin/amd64);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-darwin-arm64: seego
-	$(call SetBuildVarsConditional,darwin/arm64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,darwin/arm64);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-windows-amd64.exe: seego 
-	$(call SetBuildVarsConditional,windows);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,windows);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-freebsd-amd64:
-	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,freebsd);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
 ifeq ($(DRONE),false)
