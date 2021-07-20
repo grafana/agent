@@ -18,7 +18,7 @@ import (
 const sampleDataRelPath = "testdata/trace-sample.json"
 
 func TestConsumeMetrics(t *testing.T) {
-	traces := sampleTraces(t)
+	traces := traceSamples(t)
 
 	p, err := newProcessor(&mockConsumer{}, &Config{})
 	require.NoError(t, err)
@@ -70,7 +70,7 @@ func TestConsumeMetrics(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func sampleTraces(t *testing.T) pdata.Traces {
+func traceSamples(t *testing.T) pdata.Traces {
 	f, err := os.Open(sampleDataRelPath)
 	require.NoError(t, err)
 

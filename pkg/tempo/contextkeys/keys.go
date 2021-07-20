@@ -9,6 +9,6 @@ const (
 	// InstanceManager is used to pass instance.Manager through the context
 	InstanceManager
 
-	// PrometheusRegisterer is many things
+	// PrometheusRegisterer is used to pass prometheus.Registerer through the context
 	PrometheusRegisterer
 )

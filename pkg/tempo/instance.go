@@ -156,7 +156,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		i.logger.Warn("Configuring tail_sampling without load_balance." +
 			"Load balancing is required for tail sampling to properly work in multi agent deployments")
 	}
-	
+
 	ctx = context.WithValue(ctx, contextkeys.PrometheusRegisterer, reg)
 
 	factories, err := tracingFactories()

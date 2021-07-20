@@ -42,7 +42,7 @@ type processor struct {
 	reg          prometheus.Registerer
 
 	store    *cache.Cache
-	maxEdges int
+	maxItems int
 
 	serviceGraphRequestTotal       *prometheus.CounterVec
 	serviceGraphRequestFailedTotal *prometheus.CounterVec
@@ -64,7 +64,7 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error)
 	p := &processor{
 		nextConsumer: nextConsumer,
 		store:        cache.New(cfg.wait, cfg.wait*2),
-		maxEdges:     defaultMaxEdges,
+		maxItems:     defaultMaxEdges,
 		closed:       atomic.Bool{},
 	}
 
@@ -139,7 +139,7 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 		return nil
 	}
 
-	if p.store.ItemCount() >= p.maxEdges {
+	if p.store.ItemCount() >= p.maxItems {
 		return ErrTooManyEdges
 	}
 

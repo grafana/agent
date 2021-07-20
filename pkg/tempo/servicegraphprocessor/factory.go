@@ -18,7 +18,7 @@ const (
 	defaultMaxEdges = 10_000
 )
 
-// Config holds the configuration for the Prometheus SD processor.
+// Config holds the configuration for the Prometheus service graph processor.
 type Config struct {
 	config.ProcessorSettings `mapstructure:",squash"`
 
@@ -26,7 +26,7 @@ type Config struct {
 	maxEdges int           `mapstructure:"max_edges"`
 }
 
-// NewFactory returns a new factory for the Service Graphs processor.
+// NewFactory returns a new factory for the Prometheus service graph processor.
 func NewFactory() component.ProcessorFactory {
 	return processorhelper.NewFactory(
 		TypeStr,

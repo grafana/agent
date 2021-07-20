@@ -125,6 +125,9 @@ type InstanceConfig struct {
 
 	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
 	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
+
+	// ServiceGraphs
+	ServiceGraphs
 }
 
 const (
