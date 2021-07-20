@@ -23,10 +23,6 @@ name: Test
 platform:
   os: linux
   arch: amd64
-trigger:
-  ref:
-    exclude:
-    - refs/pull/**
 
 steps:
 - name: test
