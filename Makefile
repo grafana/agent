@@ -326,7 +326,9 @@ dist/agentctl-freebsd-amd64:
 
 seego: tools/seego/Dockerfile
 ifeq ($(DRONE),false)
+ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t grafana/agent/seego tools/seego
+endif
 endif
 
 # Makes seego if CROSS_BUILD is true.
