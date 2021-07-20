@@ -69,7 +69,7 @@ platform:
   arch: amd64
 trigger:
   branch:
-  - master
+  - main
 
 steps:
 - name: Build Containers
@@ -150,6 +150,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: ea86d777863c66f544750a9cad7d819cef4d51ac6476aa501c10adad17af7424
+hmac: fbeeed31dae21b5120c38c4a88597ab4edd02579e03e739322e191588293bbb4
 
 ...
