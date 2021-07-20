@@ -162,57 +162,7 @@ func createVM(secrets assets.SecretStore) (*jsonnet.VM, error) {
 	vm.NativeFunction(&jsonnet.NativeFunction{
 		Name:   "intoStages",
 		Params: ast.Identifiers{"text"},
-		Func: func(i []interface{}) (interface{}, error) {
-			text, ok := i[0].(string)
-			if !ok {
-				return nil, jsonnet.RuntimeError{Msg: "text argument not string"}
-			}
-
-			// The way this works is really bad. First we have to
-			// read in the raw YAML so we can convert it to JSON
-			// and get the underlying Spec.
-			var raw interface{}
-			if err := yaml.Unmarshal([]byte(text), &raw); err != nil {
-				return nil, jsonnet.RuntimeError{
-					Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
-				}
-			}
-
-			bb, err := json.Marshal(raw)
-			if err != nil {
-				return nil, jsonnet.RuntimeError{
-					Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
-				}
-			}
-
-			var ps []*grafana.PipelineStageSpec
-			if err := json.Unmarshal(bb, &ps); err != nil {
-				return nil, jsonnet.RuntimeError{
-					Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
-				}
-			}
-
-			// Then we need to convert each into their raw types.
-			rawPS := make([]interface{}, 0, len(ps))
-			for _, stage := range ps {
-				bb, err := json.Marshal(structs.Map(stage))
-				if err != nil {
-					return nil, jsonnet.RuntimeError{
-						Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
-					}
-				}
-
-				var v interface{}
-				if err := json.Unmarshal(bb, &v); err != nil {
-					return nil, jsonnet.RuntimeError{
-						Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
-					}
-				}
-
-				rawPS = append(rawPS, v)
-			}
-			return rawPS, nil
-		},
+		Func:   intoStages,
 	})
 
 	vm.NativeFunction(&jsonnet.NativeFunction{

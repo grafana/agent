@@ -370,8 +370,9 @@ type MatchStageSpec struct {
 	//     - json: {}
 	//     - labelAllow: [foo, bar]
 	//
-	// Note that stages is a string and because SIG API Machinery does not support
-	// recursive types. Be careful not to mistype anything.
+	// Note that stages is a string because SIG API Machinery does not
+	// support recursive types, and so it cannot be validated for correctness. Be
+	// careful not to mistype anything.
 	Stages string `json:"stages,omitempty"`
 }
 
