@@ -5,11 +5,11 @@ weight = 120
 
 # Install Agent on Windows
 
-The installer will install Grafana Agent into the default directory `C:\Program Files\Grafana Agent`. The [windows_exporter integration](https://github.com/prometheus-community/windows_exporter) can be enabled with all default windows_exporter options. 
+The installer will install Grafana Agent into the default directory `C:\Program Files\Grafana Agent`. The [windows_exporter integration](https://github.com/prometheus-community/windows_exporter) can be enabled with all default windows_exporter options.
 
 ## Installation
 
-After installation, ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/targets`. 
+After installation, ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/targets`.
 
 After installation, you can adjust `C:\Program Files\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, the Grafana Agent service must be restarted to load changes to the configuration.
 
@@ -21,7 +21,7 @@ Silent installation can be achieved via  `grafana-agent-installer.exe /S  /Enabl
 
 ## Security
 
-A configuration file for the Agent is provided by default at `C:\Program Files\Grafana Agent`. Depending on your configuration, you may wish to modify the default permissions of the file or move it to another directory. 
+A configuration file for the Agent is provided by default at `C:\Program Files\Grafana Agent`. Depending on your configuration, you may wish to modify the default permissions of the file or move it to another directory.
 
 When changing the location of the configuration file, you must update the Grafana Agent service to load the new path. Run the following in an elevated prompt, replacing `<new_path>` with the full path holding `agent-config.yaml`:
 
@@ -46,14 +46,15 @@ server:
   log_level: debug
   http_listen_port: 12345
 loki:
-  # This directory needs to already exist
+  # Choose a directory to save the last read position of log files at.
+  # This directory will be created if it doesn't already exist.
   positions_directory: "C:\\path\\to\\directory"
   configs:
-    - name: windows 
+    - name: windows
       # Loki endpoint to push logs to
       clients:
         - url: https://example.com
-      scrape_configs: 
+      scrape_configs:
       - job_name: windows
         windows_events:
           # Note the directory structure must already exist but the file will be created on demand
