@@ -76,7 +76,7 @@ ifeq ($(RELEASE_BUILD),false)
 GO_FLAGS = $(DEBUG_GO_FLAGS)
 endif
 
-NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
+NETGO_CHECK = strings $@ | grep cgo_stub\\\.go >/dev/null || { \
        rm $@; \
        echo "\nYour go standard library was built without the 'netgo' build tag."; \
        echo "To fix that, run"; \
@@ -124,8 +124,8 @@ endif
 
 crds:
 ifeq ($(BUILD_IN_CONTAINER),true)
-	@mkdir -p $(shell pwd)/.pkg
-	@mkdir -p $(shell pwd)/.cache
+	mkdir -p $(shell pwd)/.pkg
+	mkdir -p $(shell pwd)/.cache
 	docker run -i \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
@@ -148,8 +148,8 @@ touch-protos:
 
 %.pb.go: $(PROTO_DEFS)
 ifeq ($(BUILD_IN_CONTAINER),true)
-	@mkdir -p $(shell pwd)/.pkg
-	@mkdir -p $(shell pwd)/.cache
+	mkdir -p $(shell pwd)/.pkg
+	mkdir -p $(shell pwd)/.cache
 	docker run -i \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
@@ -254,7 +254,7 @@ dist: dist-agent dist-agentctl dist-packages
 
 dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
 dist/agent-linux-amd64: seego
-	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS)  -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-arm64: seego
 	$(call SetBuildVarsConditional,linux/arm64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
@@ -446,7 +446,7 @@ $(PACKAGE_PREFIX).armv7.rpm: $(RPM_DEPS)
 endif
 
 enforce-release-tag:
-	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
+	sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
 test-packages: enforce-release-tag seego dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
