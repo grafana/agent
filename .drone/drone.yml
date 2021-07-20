@@ -23,7 +23,16 @@ name: Test
 platform:
   os: linux
   arch: amd64
-
+trigger:
+  event:
+  - push
+  - pull_request
+  - tag 
+  ref:
+  - refs/heads/main
+  - refs/pull/*/head
+  - refs/tags/**
+  
 steps:
 - name: test
   image: rfratto/seego
@@ -157,6 +166,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: ae5861af3577c9ef1f568a743392fd59f431c362939928090a0e4a6be9394465
+hmac: 7229c40ced8c5df3fa20a1196e2427c35db161ea4208a7322b460ab44ed57a36
 
 ...
