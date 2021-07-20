@@ -17,6 +17,8 @@
 
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
+- [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
+
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
 
