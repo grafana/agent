@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"unicode"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -130,7 +131,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
-		s, err := envsubst.EvalEnv(string(buf))
+		s, err := envsubst.Eval(string(buf), getenv)
 		if err != nil {
 			return fmt.Errorf("unable to substitute config with environment variables: %w", err)
 		}
@@ -138,6 +139,25 @@ func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
 	}
 	// Unmarshal yaml config
 	return yaml.UnmarshalStrict(buf, c)
+}
+
+// getenv is a wrapper around os.Getenv that ignores patterns that are numeric
+// regex capture groups (ie "${1}").
+func getenv(name string) string {
+	numericName := true
+
+	for _, r := range name {
+		if !unicode.IsDigit(r) {
+			numericName = false
+			break
+		}
+	}
+
+	if numericName {
+		// We need to add ${} back in since envsubst removes it.
+		return fmt.Sprintf("${%s}", name)
+	}
+	return os.Getenv(name)
 }
 
 // Load loads a config file from a flagset. Flags will be registered
