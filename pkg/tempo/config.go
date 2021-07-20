@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
 	"github.com/grafana/agent/pkg/tempo/remotewriteexporter"
+	"github.com/grafana/agent/pkg/tempo/servicegraphprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
@@ -647,6 +648,7 @@ func tracingFactories() (component.Factories, error) {
 		spanmetricsprocessor.NewFactory(),
 		automaticloggingprocessor.NewFactory(),
 		tailsamplingprocessor.NewFactory(),
+		servicegraphprocessor.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err

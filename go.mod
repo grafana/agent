@@ -23,11 +23,13 @@ require (
 	github.com/google/go-jsonnet v0.17.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
+	github.com/grafana/tempo v1.0.1
 	github.com/hashicorp/consul/api v1.8.1
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/klauspost/compress v1.13.1 // indirect
@@ -43,6 +45,7 @@ require (
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e
 	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
+	github.com/patrickmn/go-cache v0.0.0-20180527043350-9f6ff22cfff8
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/postgres_exporter v0.0.0-00010101000000-000000000000

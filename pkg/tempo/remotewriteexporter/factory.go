@@ -14,7 +14,7 @@ const (
 	TypeStr = "remote_write"
 )
 
-// Config holds the configuration for the Prometheus SD processor.
+// Config holds the configuration for the Prometheus remote write processor.
 type Config struct {
 	config.ProcessorSettings `mapstructure:",squash"`
 
@@ -23,7 +23,7 @@ type Config struct {
 	PromInstance string        `mapstructure:"prom_instance"`
 }
 
-// NewFactory returns a new factory for the Attributes processor.
+// NewFactory returns a new factory for the Prometheus remote write processor.
 func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		TypeStr,

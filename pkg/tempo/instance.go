@@ -43,14 +43,14 @@ func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg Instan
 		return nil, fmt.Errorf("failed to create metric views: %w", err)
 	}
 
-	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, cfg); err != nil {
+	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, reg, cfg); err != nil {
 		return nil, err
 	}
 	return instance, nil
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prometheus.Registerer, cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -64,7 +64,7 @@ func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager ins
 	i.stop()
 
 	createCtx := context.WithValue(context.Background(), contextkeys.Logs, logsSubsystem)
-	err := i.buildAndStartPipeline(createCtx, cfg, promInstanceManager)
+	err := i.buildAndStartPipeline(createCtx, cfg, promInstanceManager, reg)
 	if err != nil {
 		return fmt.Errorf("failed to create pipeline: %w", err)
 	}
@@ -130,7 +130,7 @@ func (i *Instance) stop() {
 	i.exporter = nil
 }
 
-func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, promManager instance.Manager) error {
+func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, promManager instance.Manager, reg prometheus.Registerer) error {
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
@@ -149,13 +149,15 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
-		ctx = context.WithValue(ctx, contextkeys.Prometheus, promManager)
+		ctx = context.WithValue(ctx, contextkeys.InstanceManager, promManager)
 	}
 
 	if cfg.TailSampling != nil && cfg.LoadBalancing == nil {
 		i.logger.Warn("Configuring tail_sampling without load_balance." +
-			"Load balancing is required for tail sampling to properly work in multi instance deployments")
+			"Load balancing is required for tail sampling to properly work in multi agent deployments")
 	}
+	
+	ctx = context.WithValue(ctx, contextkeys.PrometheusRegisterer, reg)
 
 	factories, err := tracingFactories()
 	if err != nil {
