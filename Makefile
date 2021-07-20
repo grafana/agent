@@ -16,20 +16,17 @@ RELEASE_TAG ?= v0.0.0
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
 
-# This function sets up all the appropriate flags for a drone or local build, this is actually a list of chained if statements with the false
-#	condition being the next if, its reformatted to look more like a series of if elses. The normal basically adds a noop so the ; used later on isnt
-#	left hanging
 define SetBuildVarsConditional
-$(if $(filter $(1),normal),export CGO_ENABLED=1, \
-$(if $(filter $(1),linux/amd64),export CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC=gcc CCX=g++, \
-$(if $(filter $(1),linux/arm64),export CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc CCX=aarch64-linux-gnu-g++, \
-$(if $(filter $(1),linux/arm/v7),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++, \
-$(if $(filter $(1),linux/arm/v6),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6 CC=arm-linux-gnueabi-gcc CCX=arm-linux-gnueabi-g++, \
-$(if $(filter $(1),darwin/amd64),export CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64 CC=x86_64-apple-darwin20.2-clang CCX=x86_64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib, \
-$(if $(filter $(1),darwin/arm64),export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=arm64-apple-darwin20.2-clang CCX=arm64-apple-darwin20.2-clang++ LD_LIBRARY_PATH=$(OSXCROSS_PATH)/lib, \
-$(if $(filter $(1),windows),export CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CCX=x86_64-w64-mingw32-g++, \
-$(if $(filter $(1),mipls),export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat CC=mipsel-linux-gnu-gcc CCX=mipsel-linux-gnu-f++, \
-$(if $(filter $(1),freebsd),export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64 CC=clang CCX=clang++ CGO_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_CXX_CFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11" CGO_LDFLAGS="-target x86_64-pc-freebsd11 --sysroot=/usr/freebsd/x86_64-pc-freebsd11"  , $(error invalid flag $(1))) \
+$(if $(filter $(1),normal),CGO_ENABLED=1, \
+$(if $(filter $(1),linux/amd64),CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
+$(if $(filter $(1),linux/arm64),CGO_ENABLED=1 GOOS=linux GOARCH=arm64, \
+$(if $(filter $(1),linux/arm/v7),CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7, \
+$(if $(filter $(1),linux/arm/v6),CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
+$(if $(filter $(1),darwin/amd64),CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
+$(if $(filter $(1),darwin/arm64),CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
+$(if $(filter $(1),windows),CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
+$(if $(filter $(1),mipls),CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
+$(if $(filter $(1),freebsd),CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
 )))))))))
 endef
 
@@ -110,12 +107,14 @@ docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
 docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
-# docker-build = docker buildx build --push --platform linux/arm64 $(DOCKER_BUILD_FLAGS)
 endif
 
-ifeq ($(CROSS_BUILD),false)
+ifeq ($(DRONE),true)
+seego = "/go_wrapper.sh" 
+else ifeq ($(BUILD_IN_CONTAINER),false)
 seego = go 
 endif
+
 
 ########
 # CRDs #
