@@ -23,10 +23,10 @@ name: Test
 platform:
   os: linux
   arch: amd64
-when:
-  event:
-    include:
-    - push
+trigger:
+  ref:
+    exclude:
+    - refs/pull/**
 
 steps:
 - name: test
@@ -161,6 +161,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 7bad93b9bac9c25d4b6ab7c172944afda0f90d409ebdcd35c6751f00ca8cd095
+hmac: 001cb9be2916b8b25b029b7c3d1629ebc766952932efae639dd53c029ada92e3
 
 ...
