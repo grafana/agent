@@ -42,9 +42,6 @@ name: Dist
 platform:
   os: linux
   arch: amd64
-trigger:
-  event:
-  - tag
 
 steps:
 - name: distribute
@@ -68,8 +65,9 @@ platform:
   os: linux
   arch: amd64
 trigger:
-  branch:
-  - main
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
 
 steps:
 - name: Build Containers
@@ -94,6 +92,8 @@ steps:
   - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true agent-image
   - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true agentctl-image
   - docker buildx rm multiarch
+
+
 depends_on:
   - Lint
 
@@ -109,8 +109,8 @@ platform:
   os: linux
   arch: amd64
 trigger:
-  event:
-  - tag
+  ref:
+  - refs/tags/v*
 
 steps:
 - name: create-release
@@ -150,6 +150,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 0ce87ea79164012f25134505c767ee8e5950fa35cacc4e17aea469dba94a1750
+hmac: 38add315b1c28944ba1b0d1c36b3e883208399220a9f19b7f962dd9d75e6339f
 
 ...
