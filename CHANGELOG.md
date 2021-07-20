@@ -25,6 +25,9 @@
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
 
+- [BUGFIX] The directory of the logs positions file will now properly be created
+  on startup for all instances.
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
