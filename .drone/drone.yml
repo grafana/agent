@@ -42,6 +42,9 @@ name: Dist
 platform:
   os: linux
   arch: amd64
+trigger:
+  event:
+  - tag
 
 steps:
 - name: distribute
@@ -65,8 +68,8 @@ platform:
   os: linux
   arch: amd64
 trigger:
-  event:
-  - tag
+  branch:
+  - master
 
 steps:
 - name: Build Containers
@@ -147,6 +150,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 28ff14ebdeb71c36700f010e77cf80b30adb7d44588e10b05438703470939c1f
+hmac: ea86d777863c66f544750a9cad7d819cef4d51ac6476aa501c10adad17af7424
 
 ...
