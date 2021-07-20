@@ -321,7 +321,7 @@ dist/agentctl-darwin-arm64: seego
 dist/agentctl-windows-amd64.exe: seego 
 	$(call SetBuildVarsConditional,windows);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-freebsd-amd64:
+dist/agentctl-freebsd-amd64: seego
 	$(call SetBuildVarsConditional,freebsd);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
