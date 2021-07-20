@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -147,4 +148,46 @@ configs:
 		require.NoError(t, err)
 		require.Len(t, l.instances, 0)
 	})
+}
+
+func TestLogs_PositionsDirectory(t *testing.T) {
+	//
+	// Create a temporary file to tail
+	//
+	positionsDir, err := ioutil.TempDir(os.TempDir(), "positions-*")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = os.RemoveAll(positionsDir)
+	})
+
+	//
+	// Launch Loki so it starts tailing the file and writes to our server.
+	//
+	cfgText := util.Untab(fmt.Sprintf(`
+positions_directory: %[1]s/positions
+configs:
+- name: instance-a
+  clients:
+	- url: http://127.0.0.1:80/loki/api/v1/push
+- name: instance-b
+  positions:
+	  filename: %[1]s/other-positions/instance.yml
+  clients:
+	- url: http://127.0.0.1:80/loki/api/v1/push
+	`, positionsDir))
+
+	var cfg Config
+	dec := yaml.NewDecoder(strings.NewReader(cfgText))
+	dec.SetStrict(true)
+	require.NoError(t, dec.Decode(&cfg))
+
+	logger := util.TestLogger(t)
+	l, err := New(prometheus.NewRegistry(), &cfg, logger)
+	require.NoError(t, err)
+	defer l.Stop()
+
+	_, err = os.Stat(filepath.Join(positionsDir, "positions"))
+	require.NoError(t, err, "default shared positions directory did not get created")
+	_, err = os.Stat(filepath.Join(positionsDir, "other-positions"))
+	require.NoError(t, err, "instance-specific positions directory did not get creatd")
 }
