@@ -100,21 +100,28 @@ PACKAGE_RELEASE := 1
 
 DOCKERFILE = Dockerfile
 
+# If Go is installed locally mount the local module cache so seego builds
+# aren't too slow.
+ifeq (, $(shell which go))
+MOD_MOUNT=""
+else
+MOD_MOUNT=-v "$(shell go env GOMODCACHE):/go/pkg/mod"
+endif
 
 # seego is used by default when running bare make commands such as `make dist` this uses an image that has all the necessary libraries to cross build
 #	when using drone the docker in docker is more problematic so instead drone uses seego has the base image then calls make running "raw" commands
-seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS"  grafana/agent/seego
+seego = docker run --rm -t $(MOD_MOUNT) -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS"  grafana/agent/seego
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
 docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
 endif
 
-# we want to override the default seego behavior. Drone always builds locally inside seego and if build in container is false then use 
+# we want to override the default seego behavior. Drone always builds locally inside seego and if build in container is false then use
 ifeq ($(DRONE),true)
-seego = "/go_wrapper.sh" 
+seego = "/go_wrapper.sh"
 else ifeq ($(BUILD_IN_CONTAINER),false)
-seego = go 
+seego = go
 endif
 
 
@@ -188,9 +195,9 @@ cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 	$(NETGO_CHECK)
 
 
-agent-image: 
+agent-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
-agentctl-image: 
+agentctl-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
@@ -278,15 +285,15 @@ dist/agent-windows-amd64.exe: seego
 	$(call SetBuildVarsConditional,windows) ;          $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
-	cp ./dist/agent-windows-amd64.exe ./packaging/windows 
-	cp LICENSE ./packaging/windows 
+	cp ./dist/agent-windows-amd64.exe ./packaging/windows
+	cp LICENSE ./packaging/windows
 ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t windows_installer ./packaging/windows
 	docker run --rm -t -v "${PWD}:/home" windows_installer
 else
 	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
 endif
-	
+
 dist/agent-freebsd-amd64: seego
 	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
@@ -312,13 +319,13 @@ dist/agentctl-linux-armv7: seego
 dist/agentctl-linux-mipsle: seego
 	$(call SetBuildVarsConditional,linux/mipsle);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-darwin-amd64: seego 
+dist/agentctl-darwin-amd64: seego
 	$(call SetBuildVarsConditional,darwin/amd64);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-darwin-arm64: seego
 	$(call SetBuildVarsConditional,darwin/arm64);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-windows-amd64.exe: seego 
+dist/agentctl-windows-amd64.exe: seego
 	$(call SetBuildVarsConditional,windows);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-freebsd-amd64: seego
