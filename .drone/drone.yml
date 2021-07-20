@@ -42,6 +42,9 @@ name: Dist
 platform:
   os: linux
   arch: amd64
+trigger:
+  ref:
+  - refs/tags/v*
 
 steps:
 - name: distribute
@@ -150,6 +153,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 38add315b1c28944ba1b0d1c36b3e883208399220a9f19b7f962dd9d75e6339f
+hmac: 8568b191261d5895d9426c3c175e91cb69d347275226d774988ecde8db3329bc
 
 ...
