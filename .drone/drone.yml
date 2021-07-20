@@ -95,7 +95,7 @@ steps:
   - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true agentctl-image
   - docker buildx rm multiarch
 depends_on:
-  - Dist
+  - Lint
 
 volumes:
 - name: docker
