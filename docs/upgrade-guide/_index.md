@@ -6,9 +6,7 @@ weight = 200
 # Upgrade guide
 
 This guide describes all breaking changes that have happened in prior
-releases and how to migrate to newer versions. For upgrading the
-Grafana Agent Operator, please refer to its
-[upgrade guide]({{< relref "./operator/upgrade-guide" >}}) instead.
+releases and how to migrate to newer versions.
 
 ## Unreleased
 
