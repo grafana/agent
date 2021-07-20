@@ -173,12 +173,12 @@ agent-operator: cmd/agent-operator/agent-operator
 
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
 
-cmd/agent/agent: check-seego  cmd/agent/main.go
+cmd/agent/agent: seego  cmd/agent/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
 
-cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
+cmd/agentctl/agentctl: seego cmd/agentctl/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
@@ -331,15 +331,6 @@ ifeq ($(BUILD_IN_CONTAINER),true)
 endif
 endif
 
-# Makes seego if CROSS_BUILD is true.
-check-seego:
-ifeq ($(DRONE),false)
-ifeq ($(CROSS_BUILD),true)
-ifeq ($(BUILD_IN_CONTAINER),true)
-	$(MAKE) seego
-endif	
-endif
-endif 
 
 build-image/.uptodate: build-image/Dockerfile
 	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
