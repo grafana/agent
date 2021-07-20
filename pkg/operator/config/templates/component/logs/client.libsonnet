@@ -1,13 +1,15 @@
 local optionals = import 'ext/optionals.libsonnet';
 local secrets = import 'ext/secrets.libsonnet';
 
+local new_external_labels = import './external_labels.libsonnet';
 local new_tls_config = import 'component/metrics/tls_config.libsonnet';
 
 // Generates the content of a client object to send logs to Loki.
 //
+// @param {GrafanaAgent} agent
 // @param {string} namespace - namespace of spec.
 // @param {LogsClientSpec} spec
-function(namespace, spec) {
+function(agent, namespace, spec) {
   url: spec.URL,
   tls_config:
     if spec.TLSConfig != null then new_tls_config(namespace, spec.TLSConfig),
@@ -33,5 +35,5 @@ function(namespace, spec) {
     max_retries: optionals.number(spec.BackoffConfig.MaxRetries),
   },
 
-  external_labels: optionals.object(spec.ExternalLabels),
+  external_labels: optionals.object(new_external_labels(agent, spec)),
 }
