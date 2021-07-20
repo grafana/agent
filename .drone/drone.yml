@@ -4,10 +4,15 @@ name: Lint
 platform:
   os: linux
   arch: amd64
-when:
+trigger:
   event:
-    include:
-    - push
+  - push
+  - pull_request
+  - tag 
+  ref:
+  - refs/heads/main
+  - refs/pull/*/head
+  - refs/tags/**
 
 steps:
 - name: lint
@@ -32,7 +37,7 @@ trigger:
   - refs/heads/main
   - refs/pull/*/head
   - refs/tags/**
-  
+
 steps:
 - name: test
   image: rfratto/seego
@@ -166,6 +171,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 7229c40ced8c5df3fa20a1196e2427c35db161ea4208a7322b460ab44ed57a36
+hmac: 13ae086c4ff0380f263dc4e3e7289bb82b0130e266cd6763e75cf0e451928225
 
 ...
