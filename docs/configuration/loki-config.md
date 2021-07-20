@@ -21,6 +21,8 @@ for the supported values for these fields.
 # <positions_directory>/<loki_instance_config.name>.yml.
 #
 # Optional only if every config has a positions.filename manually provided.
+#
+# This directory will be automatically created if it doesn't exist.
 [positions_directory: <string>]
 
 # Loki Promtail instances to run for log collection.
@@ -47,6 +49,9 @@ clients:
 # Optional configuration for where to store the positions files. If
 # positions.filename is left empty, the file will be stored in
 # <loki_config.positions_directory>/<loki_instance_config.name>.yml.
+#
+# The directory of the positions file will automatically be created on start up
+# if it doesn't already exist..
 [positions: <promtail.position_config>]
 
 scrape_configs:
