@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,6 +79,23 @@ prometheus:
 	})
 	require.NoError(t, err)
 	require.Equal(t, expect, c.Prometheus.Global)
+}
+
+func TestConfig_OverrideByEnvironmentOnLoad_NoDigits(t *testing.T) {
+	cfg := `
+prometheus:
+  wal_directory: /tmp/wal
+  global:
+    external_labels:
+      foo: ${1}`
+	expect := labels.Labels{{Name: "foo", Value: "${1}"}}
+
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(cfg), true, c)
+	})
+	require.NoError(t, err)
+	require.Equal(t, expect, c.Prometheus.Global.Prometheus.ExternalLabels)
 }
 
 func TestConfig_FlagsAreAccepted(t *testing.T) {
