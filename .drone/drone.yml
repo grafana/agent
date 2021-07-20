@@ -11,26 +11,7 @@ steps:
   commands:
   - apt-get update -y && apt-get install -y libsystemd-dev
   - make lint
----
-kind: pipeline
-type: docker
-name: Dist
-platform:
-  os: linux
-  arch: amd64
 
-steps:
-- name: distribute
-  image: rfratto/seego
-  commands:
-  - apt-get update &&  apt-get install -y rubygems rpm nsis
-  - gem install --no-document fpm
-  - mkdir -p /usr/local/go/bin
-  - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-  - rm go1.16.5.linux-amd64.tar.gz
-  - export PATH=$PATH:/usr/local/go/bin
-  - make DRONE=true BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist
 ---
 kind: pipeline
 type: docker
@@ -51,6 +32,72 @@ steps:
   - rm go1.16.5.linux-amd64.tar.gz
   - export PATH=$PATH:/usr/local/go/bin
   - make DRONE=true BUILD_IN_CONTAINER=false test
+depends_on:
+  - Lint
+
+---
+kind: pipeline
+type: docker
+name: Dist
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: distribute
+  image: rfratto/seego
+  commands:
+  - apt-get update &&  apt-get install -y rubygems rpm nsis
+  - gem install --no-document fpm
+  - mkdir -p /usr/local/go/bin
+  - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+  - rm go1.16.5.linux-amd64.tar.gz
+  - export PATH=$PATH:/usr/local/go/bin
+  - make DRONE=true BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist
+depends_on:
+  - Test
+---
+kind: pipeline
+type: docker
+name: Containerize
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  event:
+  - tag
+
+steps:
+- name: Build Containers
+  image: docker
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  environment:
+    DOCKER_LOGIN:
+      from_secret: DOCKER_LOGIN
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+  commands:
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - apk update && apk add make bash wget git qemu
+  - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
+  - mkdir -p ~/.docker/cli-plugins 
+  - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
+  - chmod a+x ~/.docker/cli-plugins/docker-buildx
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true agent-image
+  - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true agentctl-image
+  - docker buildx rm multiarch
+depends_on:
+  - Dist
+
+volumes:
+- name: docker
+  host: 
+    path: /var/run/docker.sock
 ---
 kind: pipeline
 type: docker
@@ -91,45 +138,8 @@ steps:
   - export PATH="$(go env GOPATH)/bin:$PATH"
   - RELEASE_TAG=$DRONE_TAG
   - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG publish
-
-volumes:
-- name: docker
-  host: 
-    path: /var/run/docker.sock
----
-kind: pipeline
-type: docker
-name: Containerize
-platform:
-  os: linux
-  arch: amd64
-trigger:
-  event:
-  - tag
-
-steps:
-- name: Build Containers
-  image: docker
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-  environment:
-    DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
-    DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
-  commands:
-  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - apk update && apk add make bash wget git qemu
-  - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
-  - mkdir -p ~/.docker/cli-plugins 
-  - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
-  - chmod a+x ~/.docker/cli-plugins/docker-buildx
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch --driver docker-container --use
-  - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true agent-image
-  - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true agentctl-image
-  - docker buildx rm multiarch
+depends_on:
+  - Dist
 
 volumes:
 - name: docker
@@ -137,6 +147,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 4068ab750b156d97a68a5a0cdda0ca71f21d2bad13208bc1cdffdab1cf246e52
+hmac: 9d4cd5d2a328651b94215cd0b722bd612ad3fbb5a8287182a144d8150664085e
 
 ...
