@@ -21,7 +21,7 @@ platform:
   arch: amd64
 
 steps:
-- name: distribute
+- name: test
   image: rfratto/seego
   commands:
   - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
@@ -147,6 +147,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 9d4cd5d2a328651b94215cd0b722bd612ad3fbb5a8287182a144d8150664085e
+hmac: 28ff14ebdeb71c36700f010e77cf80b30adb7d44588e10b05438703470939c1f
 
 ...
