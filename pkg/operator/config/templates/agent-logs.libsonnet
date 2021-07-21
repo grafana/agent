@@ -32,7 +32,7 @@ function(ctx) marshal.YAML(optionals.trim({
     positions_directory: '/var/lib/grafana-agent/data',
     configs: optionals.array(std.map(
       function(logs_inst) new_logs_instance(
-        agentNamespace=ctx.Agent.ObjectMeta.Namespace,
+        agent=ctx.Agent,
         global=logs,
         instance=logs_inst,
         apiServer=spec.APIServerConfig,

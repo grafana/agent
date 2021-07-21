@@ -8,20 +8,21 @@ local new_pod_logs = import 'component/logs/pod_logs.libsonnet';
 
 // Generates a logs_instance.
 //
-// @param {string} agentNamespace - namespace of the GrafanaAgent
+// @param {GrafanaAgent} agent
 // @param {LogsSubsystemSpec} global - global logs settings & defaults
 // @param {LogInstance} instance
 // @param {APIServerConfig} apiServer
 // @param {boolean} ignoreNamespaceSelectors
 // @param {string} enforcedNamespaceLabel
 function(
-  agentNamespace,
+  agent,
   global,
   instance,
   apiServer,
   ignoreNamespaceSelectors,
   enforcedNamespaceLabel,
 ) {
+  local agentNamespace = agent.ObjectMeta.Namespace,
   local meta = instance.Instance.ObjectMeta,
   local spec = instance.Instance.Spec,
 
@@ -39,7 +40,7 @@ function(
     else { ns: agentNamespace, list: global.Clients },
 
   clients: optionals.array(std.map(
-    function(spec) new_client(clients.ns, spec),
+    function(spec) new_client(agent, clients.ns, spec),
     clients.list,
   )),
 
