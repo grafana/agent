@@ -18,6 +18,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Type is the type of Agent deployment that a config is being generated
+// for.
+type Type int
+
+const (
+	// MetricsType generates a configuration for metrics.
+	MetricsType Type = iota + 1
+	// LogsType generates a configuration for logs.
+	LogsType
+)
+
 //go:embed templates/*
 var templates embed.FS
 
@@ -27,6 +38,9 @@ type Deployment struct {
 	Agent *grafana.GrafanaAgent
 	// Prometheis is the set of prometheus instances discovered from the root Agent resource.
 	Prometheis []PrometheusInstance
+	// Logs is the set of logging instances discovered from the root Agent
+	// resource.
+	Logs []LogInstance
 }
 
 // DeepCopy creates a deep copy of d.
@@ -67,16 +81,39 @@ func (d *Deployment) DeepCopy() *Deployment {
 // TODO(rfratto): the "Optional" field of secrets is currently ignored.
 
 // BuildConfig builds an Agent configuration file.
-func (d *Deployment) BuildConfig(secrets assets.SecretStore) (string, error) {
+func (d *Deployment) BuildConfig(secrets assets.SecretStore, ty Type) (string, error) {
+	vm, err := createVM(secrets)
+	if err != nil {
+		return "", err
+	}
+
+	bb, err := jsonnetMarshal(d)
+	if err != nil {
+		return "", err
+	}
+
+	vm.TLACode("ctx", string(bb))
+
+	switch ty {
+	case MetricsType:
+		return vm.EvaluateFile("./agent-metrics.libsonnet")
+	case LogsType:
+		return vm.EvaluateFile("./agent-logs.libsonnet")
+	default:
+		panic(fmt.Sprintf("unexpected config type %v", ty))
+	}
+}
+
+func createVM(secrets assets.SecretStore) (*jsonnet.VM, error) {
 	vm := jsonnet.MakeVM()
 	vm.StringOutput = true
 
 	templatesContents, err := fs.Sub(templates, "templates")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	vm.Importer(NewFSImporter(templatesContents))
+	vm.Importer(NewFSImporter(templatesContents, []string{"./"}))
 
 	vm.NativeFunction(&jsonnet.NativeFunction{
 		Name:   "marshalYAML",
@@ -148,15 +185,18 @@ func (d *Deployment) BuildConfig(secrets assets.SecretStore) (string, error) {
 		},
 	})
 
-	// Hack: we want to allow the Jsonnet code to reference the deployment's
-	// fields using the Go names and NOT the JSON names.
-	bb, err := json.Marshal(structs.Map(d))
-	if err != nil {
-		return "", err
-	}
+	return vm, nil
+}
 
-	vm.TLACode("ctx", string(bb))
-	return vm.EvaluateFile("./agent.libsonnet")
+// jsonnetMarshal marshals a value for passing to Jsonnet. This marshals to a
+// JSON representation of the Go value, ignoring all json struct tags. Fields
+// must be access as they would from Go, with the exception of embedded fields,
+// which must be accessed through the embedded type name (a.Embedded.Field).
+func jsonnetMarshal(v interface{}) ([]byte, error) {
+	if structs.IsStruct(v) {
+		return json.Marshal(structs.Map(v))
+	}
+	return json.Marshal(v)
 }
 
 // PrometheusInstance is an instance with a set of associated service monitors,
@@ -167,4 +207,10 @@ type PrometheusInstance struct {
 	ServiceMonitors []*prom.ServiceMonitor
 	PodMonitors     []*prom.PodMonitor
 	Probes          []*prom.Probe
+}
+
+// LogInstance is an instance with a set of associated PodLogs.
+type LogInstance struct {
+	Instance *grafana.LogsInstance
+	PodLogs  []*grafana.PodLogs
 }

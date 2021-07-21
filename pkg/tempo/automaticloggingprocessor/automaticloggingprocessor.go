@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/go-logfmt/logfmt"
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultLokiTag     = "tempo"
+	defaultLogsTag     = "tempo"
 	defaultServiceKey  = "svc"
 	defaultSpanNameKey = "span"
 	defaultStatusKey   = "status"
@@ -40,17 +40,19 @@ const (
 )
 
 type automaticLoggingProcessor struct {
-	nextConsumer consumer.TracesConsumer
+	nextConsumer consumer.Traces
 
 	cfg          *AutomaticLoggingConfig
 	logToStdout  bool
-	lokiInstance *loki.Instance
+	logsInstance *logs.Instance
 	done         atomic.Bool
+
+	labels map[string]struct{}
 
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggingConfig) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig) (component.TracesProcessor, error) {
 	logger := log.With(util.Logger, "component", "tempo automatic logging")
 
 	if nextConsumer == nil {
@@ -69,8 +71,8 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 		cfg.Backend = BackendStdout
 	}
 
-	if cfg.Backend != BackendLoki && cfg.Backend != BackendStdout {
-		return nil, errors.New("automaticLoggingProcessor requires a backend of type 'loki' or 'stdout'")
+	if cfg.Backend != BackendLogs && cfg.Backend != BackendStdout {
+		return nil, fmt.Errorf("automaticLoggingProcessor requires a backend of type '%s' or '%s'", BackendLogs, BackendStdout)
 	}
 
 	logToStdout := false
@@ -78,12 +80,17 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 		logToStdout = true
 	}
 
-	cfg.Overrides.LokiTag = override(cfg.Overrides.LokiTag, defaultLokiTag)
+	cfg.Overrides.LogsTag = override(cfg.Overrides.LogsTag, defaultLogsTag)
 	cfg.Overrides.ServiceKey = override(cfg.Overrides.ServiceKey, defaultServiceKey)
 	cfg.Overrides.SpanNameKey = override(cfg.Overrides.SpanNameKey, defaultSpanNameKey)
 	cfg.Overrides.StatusKey = override(cfg.Overrides.StatusKey, defaultStatusKey)
 	cfg.Overrides.DurationKey = override(cfg.Overrides.DurationKey, defaultDurationKey)
 	cfg.Overrides.TraceIDKey = override(cfg.Overrides.TraceIDKey, defaultTraceIDKey)
+
+	labels := make(map[string]struct{}, len(cfg.Labels))
+	for _, l := range cfg.Labels {
+		labels[l] = struct{}{}
+	}
 
 	return &automaticLoggingProcessor{
 		nextConsumer: nextConsumer,
@@ -91,6 +98,7 @@ func newTraceProcessor(nextConsumer consumer.TracesConsumer, cfg *AutomaticLoggi
 		logToStdout:  logToStdout,
 		logger:       logger,
 		done:         atomic.Bool{},
+		labels:       labels,
 	}, nil
 }
 
@@ -116,16 +124,19 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 				traceID := span.TraceID().HexString()
 
 				if p.cfg.Spans {
-					p.exportToLoki(typeSpan, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
+					keyValues := append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)
+					p.exportToLogsInstance(typeSpan, traceID, p.spanLabels(keyValues), keyValues...)
 				}
 
 				if p.cfg.Roots && span.ParentSpanID().IsEmpty() {
-					p.exportToLoki(typeRoot, traceID, append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)...)
+					keyValues := append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)
+					p.exportToLogsInstance(typeRoot, traceID, p.spanLabels(keyValues), keyValues...)
 				}
 
 				if p.cfg.Processes && lastTraceID != traceID {
 					lastTraceID = traceID
-					p.exportToLoki(typeProcess, traceID, p.processKeyVals(rs.Resource(), svc)...)
+					keyValues := p.processKeyVals(rs.Resource(), svc)
+					p.exportToLogsInstance(typeProcess, traceID, p.spanLabels(keyValues), keyValues...)
 				}
 			}
 		}
@@ -134,21 +145,48 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func (p *automaticLoggingProcessor) GetCapabilities() component.ProcessorCapabilities {
-	return component.ProcessorCapabilities{}
+func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.LabelSet {
+	if len(keyValues) == 0 {
+		return model.LabelSet{}
+	}
+	ls := make(map[model.LabelName]model.LabelValue, len(keyValues)/2)
+	var (
+		k, v string
+		ok   bool
+	)
+	for i := 0; i < len(keyValues); i += 2 {
+		if k, ok = keyValues[i].(string); !ok {
+			// Should never happen, all keys are strings
+			level.Error(p.logger).Log("msg", "error casting label key to string", "key", keyValues[i])
+			continue
+		}
+		// Try to cast value to string
+		if v, ok = keyValues[i+1].(string); !ok {
+			// If it's not a string, format it to its string representation
+			v = fmt.Sprintf("%v", keyValues[i+1])
+		}
+		if _, ok := p.labels[k]; ok {
+			ls[model.LabelName(k)] = model.LabelValue(v)
+		}
+	}
+	return ls
+}
+
+func (p *automaticLoggingProcessor) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{}
 }
 
 // Start is invoked during service startup.
 func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host) error {
-	loki := ctx.Value(contextkeys.Loki).(*loki.Loki)
-	if loki == nil {
-		return fmt.Errorf("key does not contain a Loki instance")
+	logs := ctx.Value(contextkeys.Logs).(*logs.Logs)
+	if logs == nil {
+		return fmt.Errorf("key does not contain a logs instance")
 	}
 
 	if !p.logToStdout {
-		p.lokiInstance = loki.Instance(p.cfg.LokiName)
-		if p.lokiInstance == nil {
-			return fmt.Errorf("loki instance %s not found", p.cfg.LokiName)
+		p.logsInstance = logs.Instance(p.cfg.LogsName)
+		if p.logsInstance == nil {
+			return fmt.Errorf("logs instance %s not found", p.cfg.LogsName)
 		}
 	}
 	return nil
@@ -190,8 +228,11 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	atts = append(atts, p.cfg.Overrides.DurationKey)
 	atts = append(atts, spanDuration(span))
 
-	atts = append(atts, p.cfg.Overrides.StatusKey)
-	atts = append(atts, span.Status().Code())
+	// Skip STATUS_CODE_UNSET to be less spammy
+	if span.Status().Code() != pdata.StatusCodeUnset {
+		atts = append(atts, p.cfg.Overrides.StatusKey)
+		atts = append(atts, span.Status().Code())
+	}
 
 	for _, name := range p.cfg.SpanAttributes {
 		att, ok := span.Attributes().Get(name)
@@ -204,7 +245,7 @@ func (p *automaticLoggingProcessor) spanKeyVals(span pdata.Span) []interface{} {
 	return atts
 }
 
-func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, keyvals ...interface{}) {
+func (p *automaticLoggingProcessor) exportToLogsInstance(kind string, traceID string, labels model.LabelSet, keyvals ...interface{}) {
 	if p.done.Load() {
 		return
 	}
@@ -222,10 +263,11 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 		return
 	}
 
-	sent := p.lokiInstance.SendEntry(api.Entry{
-		Labels: model.LabelSet{
-			model.LabelName(p.cfg.Overrides.LokiTag): model.LabelValue(kind),
-		},
+	// Add logs instance label
+	labels[model.LabelName(p.cfg.Overrides.LogsTag)] = model.LabelValue(kind)
+
+	sent := p.logsInstance.SendEntry(api.Entry{
+		Labels: labels,
 		Entry: logproto.Entry{
 			Timestamp: time.Now(),
 			Line:      string(line),
@@ -233,28 +275,28 @@ func (p *automaticLoggingProcessor) exportToLoki(kind string, traceID string, ke
 	}, p.cfg.Timeout)
 
 	if !sent {
-		level.Warn(p.logger).Log("msg", "failed to autolog to loki", "kind", kind, "traceid", traceID)
+		level.Warn(p.logger).Log("msg", "failed to autolog to logs pipeline", "kind", kind, "traceid", traceID)
 	}
 }
 
 func spanDuration(span pdata.Span) string {
-	dur := int64(span.EndTime() - span.StartTime())
+	dur := int64(span.EndTimestamp() - span.StartTimestamp())
 	return strconv.FormatInt(dur, 10) + "ns"
 }
 
 func attributeValue(att pdata.AttributeValue) interface{} {
 	switch att.Type() {
-	case pdata.AttributeValueSTRING:
+	case pdata.AttributeValueTypeString:
 		return att.StringVal()
-	case pdata.AttributeValueINT:
+	case pdata.AttributeValueTypeInt:
 		return att.IntVal()
-	case pdata.AttributeValueDOUBLE:
+	case pdata.AttributeValueTypeDouble:
 		return att.DoubleVal()
-	case pdata.AttributeValueBOOL:
+	case pdata.AttributeValueTypeBool:
 		return att.BoolVal()
-	case pdata.AttributeValueMAP:
+	case pdata.AttributeValueTypeMap:
 		return att.MapVal()
-	case pdata.AttributeValueARRAY:
+	case pdata.AttributeValueTypeArray:
 		return att.ArrayVal()
 	}
 	return nil

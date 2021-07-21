@@ -2,18 +2,23 @@ package automaticloggingprocessor
 
 import (
 	"testing"
+	"time"
 
+	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/pdata"
+	"gopkg.in/yaml.v3"
 )
 
 func TestSpanKeyVals(t *testing.T) {
 	tests := []struct {
 		spanName  string
 		spanAttrs map[string]pdata.AttributeValue
-		spanStart uint64
-		spanEnd   uint64
+		spanStart time.Time
+		spanEnd   time.Time
 		cfg       AutomaticLoggingConfig
 		expected  []interface{}
 	}{
@@ -21,7 +26,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -29,31 +34,32 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "test",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
-			spanEnd: 10,
+			spanStart: time.Unix(0, 0),
+			spanEnd:   time.Unix(0, 10),
 			expected: []interface{}{
 				"span", "",
 				"dur", "10ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
-			spanStart: 10,
-			spanEnd:   100,
+			spanStart: time.Unix(0, 10),
+			spanEnd:   time.Unix(0, 100),
 			expected: []interface{}{
 				"span", "",
 				"dur", "90ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -63,7 +69,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 			},
 		},
 		{
@@ -76,7 +82,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"span", "",
 				"dur", "0ns",
-				"status", pdata.StatusCode(0),
+				"status", pdata.StatusCode(1),
 				"xstr", "test",
 			},
 		},
@@ -91,7 +97,7 @@ func TestSpanKeyVals(t *testing.T) {
 			expected: []interface{}{
 				"a", "",
 				"c", "0ns",
-				"d", pdata.StatusCode(0),
+				"d", pdata.StatusCode(1),
 			},
 		},
 	}
@@ -105,8 +111,9 @@ func TestSpanKeyVals(t *testing.T) {
 		span := pdata.NewSpan()
 		span.SetName(tc.spanName)
 		span.Attributes().InitFromMap(tc.spanAttrs).Sort()
-		span.SetStartTime(pdata.TimestampUnixNano(tc.spanStart))
-		span.SetEndTime(pdata.TimestampUnixNano(tc.spanEnd))
+		span.SetStartTimestamp(pdata.TimestampFromTime(tc.spanStart))
+		span.SetEndTimestamp(pdata.TimestampFromTime(tc.spanEnd))
+		span.Status().SetCode(pdata.StatusCodeOk)
 
 		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
 		assert.Equal(t, tc.expected, actual)
@@ -176,6 +183,11 @@ func TestBadConfigs(t *testing.T) {
 		},
 		{
 			cfg: &AutomaticLoggingConfig{
+				Backend: "logs",
+			},
+		},
+		{
+			cfg: &AutomaticLoggingConfig{
 				Backend: "loki",
 			},
 		},
@@ -204,7 +216,7 @@ func TestLogToStdoutSet(t *testing.T) {
 	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
 
 	cfg = &AutomaticLoggingConfig{
-		Backend: BackendLoki,
+		Backend: BackendLogs,
 		Spans:   true,
 	}
 
@@ -224,10 +236,106 @@ func TestDefaults(t *testing.T) {
 	require.Equal(t, defaultTimeout, p.(*automaticLoggingProcessor).cfg.Timeout)
 	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
 
-	require.Equal(t, defaultLokiTag, p.(*automaticLoggingProcessor).cfg.Overrides.LokiTag)
+	require.Equal(t, defaultLogsTag, p.(*automaticLoggingProcessor).cfg.Overrides.LogsTag)
 	require.Equal(t, defaultServiceKey, p.(*automaticLoggingProcessor).cfg.Overrides.ServiceKey)
 	require.Equal(t, defaultSpanNameKey, p.(*automaticLoggingProcessor).cfg.Overrides.SpanNameKey)
 	require.Equal(t, defaultStatusKey, p.(*automaticLoggingProcessor).cfg.Overrides.StatusKey)
 	require.Equal(t, defaultDurationKey, p.(*automaticLoggingProcessor).cfg.Overrides.DurationKey)
 	require.Equal(t, defaultTraceIDKey, p.(*automaticLoggingProcessor).cfg.Overrides.TraceIDKey)
+}
+
+func TestLokiNameMigration(t *testing.T) {
+	logsConfig := &logs.Config{
+		Configs: []*logs.InstanceConfig{{Name: "default"}},
+	}
+
+	input := util.Untab(`
+		backend: loki
+		loki_name: default
+		overrides:
+			loki_tag: tempo
+	`)
+	expect := util.Untab(`
+		backend: logs_instance
+		logs_instance_name: default
+		overrides:
+			logs_instance_tag: tempo
+	`)
+
+	var cfg AutomaticLoggingConfig
+	require.NoError(t, yaml.Unmarshal([]byte(input), &cfg))
+	require.NoError(t, cfg.Validate(logsConfig))
+
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	require.YAMLEq(t, expect, string(bb))
+}
+
+func TestLabels(t *testing.T) {
+	tests := []struct {
+		name           string
+		labels         []string
+		keyValues      []interface{}
+		expectedLabels model.LabelSet
+	}{
+		{
+			name:      "happy case",
+			labels:    []string{"loki", "svc"},
+			keyValues: []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
+				"loki": "loki",
+				"svc":  "gateway",
+			},
+		},
+		{
+			name:           "no labels",
+			labels:         []string{},
+			keyValues:      []interface{}{"loki", "loki", "svc", "gateway", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{},
+		},
+		{
+			name:      "label not present in keyValues",
+			labels:    []string{"loki", "svc"},
+			keyValues: []interface{}{"loki", "loki", "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
+				"loki": "loki",
+			},
+		},
+		{
+			name:      "label value is not type string",
+			labels:    []string{"loki"},
+			keyValues: []interface{}{"loki", 42, "duration", "1s"},
+			expectedLabels: map[model.LabelName]model.LabelValue{
+				"loki": "42",
+			},
+		},
+		{
+			name:      "stringifies value if possible",
+			labels:    []string{"status"},
+			keyValues: []interface{}{"status", pdata.StatusCode(1)},
+			expectedLabels: map[model.LabelName]model.LabelValue{
+				"status": model.LabelValue(pdata.StatusCode(1).String()),
+			},
+		},
+		{
+			name:           "no keyValues",
+			labels:         []string{"status"},
+			keyValues:      []interface{}{},
+			expectedLabels: map[model.LabelName]model.LabelValue{},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &AutomaticLoggingConfig{
+				Spans:  true,
+				Labels: tc.labels,
+			}
+			p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
+			require.NoError(t, err)
+
+			ls := p.(*automaticLoggingProcessor).spanLabels(tc.keyValues)
+			assert.Equal(t, tc.expectedLabels, ls)
+		})
+	}
 }

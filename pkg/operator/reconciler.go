@@ -152,7 +152,7 @@ func (r *reconciler) createConfigurationSecret(
 	s assets.SecretStore,
 ) error {
 
-	rawConfig, err := d.BuildConfig(s)
+	rawConfig, err := d.BuildConfig(s, config.MetricsType)
 
 	var jsonnetError jsonnet.RuntimeError
 	if errors.As(err, &jsonnetError) {

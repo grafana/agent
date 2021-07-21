@@ -1,11 +1,63 @@
 # Main (unreleased)
 
+- [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
+  integration. (@gaantunes)
+
+- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+
+- [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
+
+- [FEATURE] Support autologging span attributes as log labels (@mapno)
+
+- [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
+  the matching release version of the Grafana Agent instead of v0.14.0.
+  (@rfratto)
+
+- [ENHANCEMENT] Update OTel dependency to v0.29.0 (@mapno)
+
+- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
+
+- [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
+
+- [BUGFIX] Fix race condition that may occur and result in a panic when
+  initializing scraping service cluster. (@rfratto)
+
+- [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
+  using `-config.expand-env`.
+
+- [BUGFIX] The directory of the logs positions file will now properly be created
+  on startup for all instances.
+
+- [CHANGE] Breaking change: reduced verbosity of tracing autologging
+  by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
+
+- [DEPRECATION] The `loki` key at the root of the config file has been
+  deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
+  have been renamed accordinly: `loki_name` is now `logs_instance_name`,
+  `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
+  `backend: logs_instance`. (@rfratto)
+
+# v0.16.1 (2021-06-22)
+
+- [BUGFIX] Fix issue where replaying a WAL caused incorrect metrics to be sent
+  over remote write. (@rfratto)
+
+# v0.16.0 (2021-06-17)
+
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
   Cloud will now be shown. (@rfratto)
   
 - [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
+
+- [BUGFIX] Fix a leak in the shared string interner introduced in v0.14.0.
+  This fix was made to a [dependency](https://github.com/grafana/prometheus/pull/21).
+  (@rfratto)
+
+- [BUGFIX] Fix issue where a target will fail to be scraped for the process lifetime
+  if that target had gone down for long enough that its series were removed from
+  the in-memory cache (2 GC cycles). (@rfratto)
 
 # v0.15.0 (2021-06-03)
 
