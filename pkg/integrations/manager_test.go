@@ -45,12 +45,12 @@ use_hostname_label: true
 	cfg.ListenHost = listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
-	require.NoError(t, err, "Failed creating Integration")
+	require.NoError(t, err, "Failed creating integration")
 	fmt.Println(string(outBytes))
 	require.YAMLEq(t, cfgText, string(outBytes))
 }
 
-// Test that embedded Integration fields in the struct can be unmarshaled and
+// Test that embedded integration fields in the struct can be unmarshaled and
 // remarshaled back out to text.
 func TestConfig_Remarshal(t *testing.T) {
 	RegisterIntegration(&testIntegrationA{})
@@ -76,7 +76,7 @@ test:
 	cfg.ListenHost = listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
-	require.NoError(t, err, "Failed creating Integration")
+	require.NoError(t, err, "Failed creating integration")
 	fmt.Println(string(outBytes))
 	require.YAMLEq(t, cfgText, string(outBytes))
 }
@@ -149,7 +149,7 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 }
 
 // TestManager_NoIntegrationScrape ensures that configs don't get generates
-// when the ScrapeIntegration flag is disabled on the Integration.
+// when the ScrapeIntegration flag is disabled on the integration.
 func TestManager_NoIntegrationScrape(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{Integration: mock}
@@ -170,8 +170,8 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	require.Zero(t, len(im.ListConfigs()))
 }
 
-// TestManager_StartsIntegrations tests that, when given an Integration to
-// launch, TestManager applies a config and runs the Integration.
+// TestManager_StartsIntegrations tests that, when given an integration to
+// launch, TestManager applies a config and runs the integration.
 func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{Integration: mock}
