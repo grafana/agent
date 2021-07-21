@@ -47,6 +47,7 @@ type processor struct {
 	serviceGraphRequestTotal       *prometheus.CounterVec
 	serviceGraphRequestFailedTotal *prometheus.CounterVec
 	serviceGraphRequestHistogram   *prometheus.HistogramVec
+	serviceGraphUnpairedSpansTotal *prometheus.CounterVec
 
 	closed atomic.Bool
 
@@ -61,8 +62,11 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error)
 		cfg.maxEdges = defaultMaxEdges
 	}
 
+	// TODO(mapno): Add support for an external cache (e.g. memcached)
 	p := &processor{
 		nextConsumer: nextConsumer,
+		// Cleanup period is hardcoded to twice the waiting time for simplicity
+		// Most likely not ideal in every scenario
 		store:        cache.New(cfg.wait, cfg.wait*2),
 		maxItems:     defaultMaxEdges,
 		closed:       atomic.Bool{},
@@ -96,11 +100,16 @@ func (p *processor) registerMetrics() error {
 		Help:    "Time for a request between two nodes",
 		Buckets: prometheus.ExponentialBuckets(0.01, 2, 12),
 	}, []string{"client", "server"})
+	p.serviceGraphUnpairedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "tempo_service_graph_unpaired_spans_total",
+		Help: "Total count of requests between two nodes",
+	}, []string{"client", "server"})
 
 	cs := []prometheus.Collector{
 		p.serviceGraphRequestTotal,
 		p.serviceGraphRequestFailedTotal,
 		p.serviceGraphRequestHistogram,
+		p.serviceGraphUnpairedSpansTotal,
 	}
 
 	for _, c := range cs {
@@ -108,6 +117,15 @@ func (p *processor) registerMetrics() error {
 			return err
 		}
 	}
+
+	// Collect unpaired spans when evicting items from the store during
+	// periodic cleanup
+	p.store.OnEvicted(func(s string, i interface{}) {
+		e := i.(edge)
+		if !e.complete() {
+			p.serviceGraphUnpairedSpansTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+		}
+	})
 
 	return nil
 }
@@ -123,6 +141,7 @@ func (p *processor) unregisterMetrics() {
 		p.serviceGraphRequestTotal,
 		p.serviceGraphRequestFailedTotal,
 		p.serviceGraphRequestHistogram,
+		p.serviceGraphUnpairedSpansTotal,
 	}
 
 	for _, c := range cs {

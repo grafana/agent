@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/grafana/tempo/pkg/tempopb"
@@ -29,7 +30,56 @@ func TestConsumeMetrics(t *testing.T) {
 	err = p.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
 
-	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(`
+	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(histogramMetric+counterMetric))
+	require.NoError(t, err)
+}
+
+func TestConsumeMetrics_Unpaired(t *testing.T) {
+	traces := traceSamples(t)
+
+	p, err := newProcessor(&mockConsumer{}, &Config{
+		wait: time.Nanosecond, // Configure minimum possible time of eviction, all spans will go unpaired
+	})
+	require.NoError(t, err)
+
+	err = p.Start(context.Background(), nil)
+	require.NoError(t, err)
+
+	err = p.ConsumeTraces(context.Background(), traces)
+	require.NoError(t, err)
+
+	// Force cleanup of evicted keys
+	p.store.DeleteExpired()
+
+	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(unpairedMetric))
+	require.NoError(t, err)
+}
+
+func traceSamples(t *testing.T) pdata.Traces {
+	f, err := os.Open(sampleDataRelPath)
+	require.NoError(t, err)
+
+	r := &tempopb.Trace{}
+	err = jsonpb.Unmarshal(f, r)
+	require.NoError(t, err)
+
+	b, err := r.Marshal()
+	require.NoError(t, err)
+
+	traces, err := pdata.TracesFromOtlpProtoBytes(b)
+	require.NoError(t, err)
+
+	return traces
+}
+
+type mockConsumer struct{}
+
+func (m *mockConsumer) Capabilities() consumer.Capabilities { return consumer.Capabilities{} }
+
+func (m *mockConsumer) ConsumeTraces(context.Context, pdata.Traces) error { return nil }
+
+const (
+	histogramMetric = `
 		# HELP tempo_service_graph_request_seconds Time for a request between two nodes
 		# TYPE tempo_service_graph_request_seconds histogram
 		tempo_service_graph_request_seconds_bucket{client="app",server="db",le="0.01"} 3
@@ -62,33 +112,19 @@ func TestConsumeMetrics(t *testing.T) {
 		tempo_service_graph_request_seconds_bucket{client="lb",server="app",le="+Inf"} 3
 		tempo_service_graph_request_seconds_sum{client="lb",server="app"} 0.013146
 		tempo_service_graph_request_seconds_count{client="lb",server="app"} 3
+`
+
+	counterMetric = `
 		# HELP tempo_service_graph_request_total Total count of requests between two nodes
 		# TYPE tempo_service_graph_request_total counter
 		tempo_service_graph_request_total{client="app",server="db"} 3
 		tempo_service_graph_request_total{client="lb",server="app"} 3
-	`))
-	require.NoError(t, err)
-}
-
-func traceSamples(t *testing.T) pdata.Traces {
-	f, err := os.Open(sampleDataRelPath)
-	require.NoError(t, err)
-
-	r := &tempopb.Trace{}
-	err = jsonpb.Unmarshal(f, r)
-	require.NoError(t, err)
-
-	b, err := r.Marshal()
-	require.NoError(t, err)
-
-	traces, err := pdata.TracesFromOtlpProtoBytes(b)
-	require.NoError(t, err)
-
-	return traces
-}
-
-type mockConsumer struct{}
-
-func (m *mockConsumer) Capabilities() consumer.Capabilities { return consumer.Capabilities{} }
-
-func (m *mockConsumer) ConsumeTraces(context.Context, pdata.Traces) error { return nil }
+`
+	unpairedMetric = `
+		# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes
+		# TYPE tempo_service_graph_unpaired_spans_total counter
+		tempo_service_graph_unpaired_spans_total{client="",server="app"} 3
+		tempo_service_graph_unpaired_spans_total{client="",server="db"} 3
+		tempo_service_graph_unpaired_spans_total{client="lb",server=""} 1
+`
+)
