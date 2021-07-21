@@ -34,7 +34,7 @@ func TestWalk(t *testing.T) {
 	fv = func(val interface{}) Visitor {
 		iteration++
 
-		// After visiting all 3 structs, should recieve a w.Visit(nil) for each level
+		// After visiting all 3 structs, should receive a w.Visit(nil) for each level
 		if iteration >= 4 {
 			require.Nil(t, val)
 			return nil

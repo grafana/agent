@@ -17,7 +17,7 @@ import (
 // o must be non-nil.
 func Walk(v Visitor, o interface{}) {
 	sw := structWalker{v: v}
-	reflectwalk.Walk(o, &sw)
+	_ = reflectwalk.Walk(o, &sw)
 }
 
 // Visitor will have its Visit method invoked for each struct value encountered
@@ -59,7 +59,7 @@ func (sw *structWalker) Struct(v reflect.Value) error {
 	if w == nil {
 		return reflectwalk.SkipEntry
 	}
-	reflectwalk.Walk(rawValue, &structWalker{cur: rawValue, v: w})
+	_ = reflectwalk.Walk(rawValue, &structWalker{cur: rawValue, v: w})
 	w.Visit(nil)
 
 	return reflectwalk.SkipEntry
