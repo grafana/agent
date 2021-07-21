@@ -205,9 +205,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// No-op
 	}
 
+	// Filter out disabled integrations. Disabled integrations are treated as if
+	// they don't exist at all.
+	enabledIntegrations := getEnabledIntegrations(cfg.Integrations)
+
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
-	for _, ic := range cfg.Integrations {
+	for _, ic := range enabledIntegrations {
 		// Key is used to identify the instance of this integration within the
 		// instance manager and within our set of running integrations.
 		key := integrationKey(ic.Name())
@@ -220,14 +224,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 				continue
 			}
 			p.stop()
-			// This line is needed because of the interaction between our two lists of running processes/integrations
-			// since we remove the key from the m.integrations it is no longer able to be looped and deleted later
-			_ = m.im.DeleteConfig(key)
 			delete(m.integrations, key)
-		}
-
-		if !ic.CommonConfig().Enabled {
-			continue
 		}
 
 		l := log.With(m.logger, "integration", ic.Name())
@@ -263,12 +260,8 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// ApplyConfig.
 	for key, process := range m.integrations {
 		foundConfig := false
-		for _, ic := range cfg.Integrations {
+		for _, ic := range enabledIntegrations {
 			if integrationKey(ic.Name()) == key {
-				// If this is disabled then we should delete from integrations
-				if !ic.CommonConfig().Enabled {
-					break
-				}
 				foundConfig = true
 				break
 			}
@@ -318,6 +311,16 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		return fmt.Errorf("not all integrations were correctly updated")
 	}
 	return nil
+}
+
+func getEnabledIntegrations(in []Config) []Config {
+	out := make([]Config, 0, len(in))
+	for _, c := range in {
+		if c.CommonConfig().Enabled {
+			out = append(out, c)
+		}
+	}
+	return out
 }
 
 // integrationProcess is a running integration.
