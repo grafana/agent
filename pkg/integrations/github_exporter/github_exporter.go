@@ -19,22 +19,22 @@ var DefaultConfig Config = Config{
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-  // URL for the github API
+	// URL for the github API
 	ApiUrl string `yaml:"api_url,omitempty"`
 
-  // A list of github repositories for which to collect metrics.
+	// A list of github repositories for which to collect metrics.
 	Repositories []string `yaml:"repositories,omitempty"`
 
-  // A list of github organizations for which to collect metrics.
+	// A list of github organizations for which to collect metrics.
 	Organizations []string `yaml:"organizations,omitempty"`
 
-  // A list of github users for which to collect metrics.
+	// A list of github users for which to collect metrics.
 	Users []string `yaml:"users,omitempty"`
 
-  // A github authentication token that allows the API to be queried more often.
-  ApiToken string `yaml:"api_token,omitempty"`
+	// A github authentication token that allows the API to be queried more often.
+	ApiToken string `yaml:"api_token,omitempty"`
 
-  // A path to a file containing a github authentication token that allows the API to be queried more often. If supplied, this supercedes `api_token`
+	// A path to a file containing a github authentication token that allows the API to be queried more often. If supplied, this supercedes `api_token`
 	ApiTokenFile string `yaml:"api_token_file,omitempty"`
 }
 
