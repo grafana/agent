@@ -208,6 +208,9 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
 	for _, ic := range cfg.Integrations {
+		if !ic.CommonConfig().Enabled {
+			continue
+		}
 		// Key is used to identify the instance of this integration within the
 		// instance manager and within our set of running integrations.
 		key := integrationKey(ic.Name())
@@ -258,6 +261,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		foundConfig := false
 		for _, ic := range cfg.Integrations {
 			if integrationKey(ic.Name()) == key {
+				// If this is disabled then we should delete from integrations
+				if !ic.CommonConfig().Enabled {
+					break
+				}
 				foundConfig = true
 				break
 			}
