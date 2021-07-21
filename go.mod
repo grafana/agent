@@ -20,6 +20,7 @@ require (
 	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
 	github.com/hashicorp/consul/api v1.8.1
 	github.com/hashicorp/go-getter v1.5.3
+	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034 // indirect
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/klauspost/compress v1.13.1 // indirect
