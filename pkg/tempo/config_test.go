@@ -606,13 +606,13 @@ tail_sampling:
         values:
           - value1
           - value2
-  load_balancing:
-    exporter:
-      insecure: true
-    resolver:
-      dns:
-        hostname: agent
-        port: 4318
+load_balancing:
+  exporter:
+    insecure: true
+  resolver:
+    dns:
+      hostname: agent
+      port: 4318
 `,
 			expectedConfig: `
 receivers:
@@ -919,13 +919,13 @@ tail_sampling:
         values:
           - value1
           - value2
-  load_balancing:
-    exporter:
-      insecure: true
-    resolver:
-      dns:
-        hostname: agent
-        port: 4318
+load_balancing:
+  exporter:
+    insecure: true
+  resolver:
+    dns:
+      hostname: agent
+      port: 4318
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {

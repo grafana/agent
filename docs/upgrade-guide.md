@@ -12,6 +12,48 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Tempo: split grouping by trace from tail sampling config
+
+Load balancing traces between agent instances has been moved from an embedded
+functionality in tail sampling to its own configuration block.
+This is done due to more processor benefiting from receiving consistently
+receiving all spans for a trace in the same agent to be processed, such as
+service graphs.
+
+As a consequence, `tail_sampling.load_balancing` has been deprecated in favor of
+a `load_balancing` block. Old configs will continue to work until it is fully
+deprecated.
+
+Example old config:
+
+```yaml
+tail_sampling:
+  policies:
+    - always_sample:
+  load_balancing:
+    exporter:
+      insecure: true
+    resolver:
+      dns:
+        hostname: agent
+        port: 4318
+```
+
+Example new config:
+
+```yaml
+tail_sampling:
+  policies:
+    - always_sample:
+load_balancing:
+  exporter:
+    insecure: true
+  resolver:
+    dns:
+      hostname: agent
+      port: 4318
+```
+
 ### Logs: Deprecation of "loki" in config.
 
 The term `loki` in the config has been deprecated of favor of `logs`. This

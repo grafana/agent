@@ -196,41 +196,51 @@ tail_sampling:
   # the cost of higher memory usage.
   decision_wait: [ <duration> | default="5s" ]
 
-  # load_balancing configures load balancing of spans across multiple agents.
-  # It ensures that all spans of a trace are sampled in the same instance.
-  # Only necessary if more than one agent process is receiving traces.
-  load_balancing:
-    # resolver configures the resolution strategy for the involved backends
-    # It can be static, with a fixed list of hostnames, or DNS, with a hostname
-    # (and port) that will resolve to all IP addresses.
-    resolver:
-      static:
-        hostnames:
-          [ - <string> ... ]
-      dns:
-        hostname: <string>
-        [ port: <int> ]
+# load_balancing configures load balancing of spans across multiple agents.
+# It ensures that all spans of a trace are sampled in the same instance.
+# It works by exporting spans based on their traceID via consistent hashing.
+#
+# Enabling this feature is required for tail_sampling to correctly work when
+# multiple agent instances can receive spans for the same trace.
+#
+# Load balancing works by layering two pipelines and consistently exporting 
+# spans belonging to a trace to the same agent instance.
+# Agent instances need to be able to communicate with each other via gRPC.
+#
+# Load balancing significantly increases CPU usage. This is because spans are
+# exported an additional time between agents.
+load_balancing:
+  # resolver configures the resolution strategy for the involved backends
+  # It can be static, with a fixed list of hostnames, or DNS, with a hostname
+  # (and port) that will resolve to all IP addresses.
+  resolver:
+    static:
+      hostnames:
+        [ - <string> ... ]
+    dns:
+      hostname: <string>
+      [ port: <int> ]
 
-    # Load balancing is done via an otlp exporter.
-    # The remaining configuration is common with the remote_write block.
-    exporter:
-      # Controls whether compression is enabled.
-      [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
+  # Load balancing is done via an otlp exporter.
+  # The remaining configuration is common with the remote_write block.
+  exporter:
+    # Controls whether compression is enabled.
+    [ compression: <string> | default = "gzip" | supported = "none", "gzip"]
 
-      # Controls whether or not TLS is required.
-      [ insecure: <boolean> | default = false ]
+    # Controls whether or not TLS is required.
+    [ insecure: <boolean> | default = false ]
 
-      # Disable validation of the server certificate. Only used when insecure is set
-      # to false.
-      [ insecure_skip_verify: <bool> | default = false ]
+    # Disable validation of the server certificate. Only used when insecure is set
+    # to false.
+    [ insecure_skip_verify: <bool> | default = false ]
 
-      # Sets the `Authorization` header on every trace push with the
-      # configured username and password.
-      # password and password_file are mutually exclusive.
-      basic_auth:
-        [ username: <string> ]
-        [ password: <secret> ]
-        [ password_file: <string> ]
+    # Sets the `Authorization` header on every trace push with the
+    # configured username and password.
+    # password and password_file are mutually exclusive.
+    basic_auth:
+      [ username: <string> ]
+      [ password: <secret> ]
+      [ password_file: <string> ]
 ```
 
 > **Note:** More information on the following types can be found on the
