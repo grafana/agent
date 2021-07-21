@@ -19,6 +19,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const mockIntegrationName = "integration/mock"
+
 func noOpValidator(*instance.Config) error { return nil }
 
 // TestConfig_MarshalEmptyIntegrations ensures that an empty set of integrations
@@ -43,12 +45,12 @@ use_hostname_label: true
 	cfg.ListenHost = listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
-	require.NoError(t, err, "Failed creating integration")
+	require.NoError(t, err, "Failed creating Integration")
 	fmt.Println(string(outBytes))
 	require.YAMLEq(t, cfgText, string(outBytes))
 }
 
-// Test that embedded integration fields in the struct can be unmarshaled and
+// Test that embedded Integration fields in the struct can be unmarshaled and
 // remarshaled back out to text.
 func TestConfig_Remarshal(t *testing.T) {
 	RegisterIntegration(&testIntegrationA{})
@@ -74,7 +76,7 @@ test:
 	cfg.ListenHost = listenHost
 
 	outBytes, err := yaml.Marshal(cfg)
-	require.NoError(t, err, "Failed creating integration")
+	require.NoError(t, err, "Failed creating Integration")
 	fmt.Println(string(outBytes))
 	require.YAMLEq(t, cfgText, string(outBytes))
 }
@@ -109,7 +111,7 @@ agent:
 
 func TestManager_instanceConfigForIntegration(t *testing.T) {
 	mock := newMockIntegration()
-	icfg := mockConfig{integration: mock}
+	icfg := mockConfig{Integration: mock}
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 	m, err := NewManager(mockManagerConfig(), log.NewNopLogger(), im, noOpValidator)
@@ -127,7 +129,7 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 // when the ScrapeIntegrations flag is disabled.
 func TestManager_NoIntegrationsScrape(t *testing.T) {
 	mock := newMockIntegration()
-	icfg := mockConfig{integration: mock}
+	icfg := mockConfig{Integration: mock}
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 
@@ -147,13 +149,13 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 }
 
 // TestManager_NoIntegrationScrape ensures that configs don't get generates
-// when the ScrapeIntegration flag is disabled on the integration.
+// when the ScrapeIntegration flag is disabled on the Integration.
 func TestManager_NoIntegrationScrape(t *testing.T) {
 	mock := newMockIntegration()
-	icfg := mockConfig{integration: mock}
+	icfg := mockConfig{Integration: mock}
 
 	noScrape := false
-	mock.commonCfg.ScrapeIntegration = &noScrape
+	mock.CommonCfg.ScrapeIntegration = &noScrape
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 
@@ -168,11 +170,11 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	require.Zero(t, len(im.ListConfigs()))
 }
 
-// TestManager_StartsIntegrations tests that, when given an integration to
-// launch, TestManager applies a config and runs the integration.
+// TestManager_StartsIntegrations tests that, when given an Integration to
+// launch, TestManager applies a config and runs the Integration.
 func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
-	icfg := mockConfig{integration: mock}
+	icfg := mockConfig{Integration: mock}
 
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
@@ -194,7 +196,7 @@ func TestManager_StartsIntegrations(t *testing.T) {
 
 func TestManager_RestartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
-	icfg := mockConfig{integration: mock}
+	icfg := mockConfig{Integration: mock}
 
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
@@ -213,7 +215,7 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 
 func TestManager_GracefulStop(t *testing.T) {
 	mock := newMockIntegration()
-	icfg := mockConfig{integration: mock}
+	icfg := mockConfig{Integration: mock}
 
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
@@ -229,28 +231,90 @@ func TestManager_GracefulStop(t *testing.T) {
 	m.Stop()
 
 	time.Sleep(500 * time.Millisecond)
-	require.Equal(t, 1, int(mock.startedCount.Load()), "graceful shutdown should not have restarted the integration")
+	require.Equal(t, 1, int(mock.startedCount.Load()), "graceful shutdown should not have restarted the Integration")
 
 	test.Poll(t, time.Second, false, func() interface{} {
 		return mock.running.Load()
 	})
 }
 
+func TestManager_IntegrationEnabledToDisabledReload(t *testing.T) {
+	mock := newMockIntegration()
+	icfg := mockConfig{Integration: mock}
+	cfg := mockManagerConfig()
+	cfg.Integrations = append(cfg.Integrations, icfg)
+
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	require.NoError(t, err)
+
+	// Test for Enabled -> Disabled
+	disabledMock := newMockIntegration()
+	disabledMock.CommonCfg.Enabled = false
+	disabledConfig := mockConfig{Integration: disabledMock}
+	disabledManagerConfig := mockManagerConfig()
+	disabledManagerConfig.Integrations = append(disabledManagerConfig.Integrations, disabledConfig)
+	_ = m.ApplyConfig(disabledManagerConfig)
+	require.Len(t, m.integrations, 0, "Integration was disabled so should be removed from map")
+	_, err = m.im.GetInstance(mockIntegrationName)
+	require.Error(t, err, "This mock should not exist")
+
+	// test for Disabled -> Enabled
+	enabledMock := newMockIntegration()
+	enabledMock.CommonCfg.Enabled = true
+	enabledConfig := mockConfig{Integration: enabledMock}
+	enabledManagerConfig := mockManagerConfig()
+	enabledManagerConfig.Integrations = append(enabledManagerConfig.Integrations, enabledConfig)
+	_ = m.ApplyConfig(enabledManagerConfig)
+	require.Len(t, m.integrations, 1, "Integration was enabled so should be here")
+	_, err = m.im.GetInstance(mockIntegrationName)
+	require.NoError(t, err, "This mock should exist")
+	require.Len(t, m.im.ListInstances(), 1, "This instance should exist")
+}
+
+func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
+	mock := newMockIntegration()
+	mock.CommonCfg.Enabled = false
+	icfg := mockConfig{Integration: mock}
+
+	cfg := mockManagerConfig()
+	cfg.Integrations = append(cfg.Integrations, icfg)
+
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	require.NoError(t, err)
+	require.Len(t, m.integrations, 0, "Integration was disabled so should be removed from map")
+	_, err = m.im.GetInstance(mockIntegrationName)
+	require.Error(t, err, "This mock should not exist")
+
+	// test for Disabled -> Enabled
+	enabledMock := newMockIntegration()
+	enabledMock.CommonCfg.Enabled = true
+	enabledConfig := mockConfig{Integration: enabledMock}
+	enabledManagerConfig := mockManagerConfig()
+	enabledManagerConfig.Integrations = append(enabledManagerConfig.Integrations, enabledConfig)
+	_ = m.ApplyConfig(enabledManagerConfig)
+	require.Len(t, m.integrations, 1, "Integration was enabled so should be here")
+	_, err = m.im.GetInstance(mockIntegrationName)
+	require.NoError(t, err, "This mock should exist")
+	require.Len(t, m.im.ListInstances(), 1, "This instance should exist")
+}
+
 type mockConfig struct {
-	integration *mockIntegration
+	Integration *mockIntegration `yaml:"mock"`
 }
 
 // Equal is used for cmp.Equal, since otherwise mockConfig can't be compared to itself.
-func (c mockConfig) Equal(other mockConfig) bool { return c.integration == other.integration }
+func (c mockConfig) Equal(other mockConfig) bool { return c.Integration == other.Integration }
 
 func (c mockConfig) Name() string                { return "mock" }
-func (c mockConfig) CommonConfig() config.Common { return c.integration.commonCfg }
+func (c mockConfig) CommonConfig() config.Common { return c.Integration.CommonCfg }
 func (c mockConfig) NewIntegration(_ log.Logger) (Integration, error) {
-	return c.integration, nil
+	return c.Integration, nil
 }
 
 type mockIntegration struct {
-	commonCfg    config.Common
+	CommonCfg    config.Common `yaml:",inline"`
 	startedCount *atomic.Uint32
 	running      *atomic.Bool
 	err          chan error
@@ -261,7 +325,7 @@ func newMockIntegration() *mockIntegration {
 		running:      atomic.NewBool(true),
 		startedCount: atomic.NewUint32(0),
 		err:          make(chan error),
-		commonCfg:    config.Common{Enabled: true},
+		CommonCfg:    config.Common{Enabled: true},
 	}
 }
 

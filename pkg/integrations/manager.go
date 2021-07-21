@@ -220,6 +220,8 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 				continue
 			}
 			p.stop()
+			// This line is needed because of the interaction between our two lists of running processes/integrations
+			// since we remove the key from the m.integrations it is no longer able to be looped and deleted later
 			_ = m.im.DeleteConfig(key)
 			delete(m.integrations, key)
 		}
