@@ -19,6 +19,13 @@ import (
 )
 
 func TestLogsClientConfig(t *testing.T) {
+	agent := &gragent.GrafanaAgent{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "telemetry",
+			Name:      "grafana-agent",
+		},
+	}
+
 	tt := []struct {
 		name   string
 		input  map[string]interface{}
@@ -27,6 +34,7 @@ func TestLogsClientConfig(t *testing.T) {
 		{
 			name: "all-in-one URL",
 			input: map[string]interface{}{
+				"agent":     agent,
 				"namespace": "operator",
 				"spec": &gragent.LogsClientSpec{
 					URL: "http://username:password@localhost:3100/loki/api/v1/push",
@@ -34,11 +42,14 @@ func TestLogsClientConfig(t *testing.T) {
 			},
 			expect: util.Untab(`
 				url: http://username:password@localhost:3100/loki/api/v1/push
+				external_labels:
+					cluster: telemetry/grafana-agent
 			`),
 		},
 		{
 			name: "full basic config",
 			input: map[string]interface{}{
+				"agent":     agent,
 				"namespace": "operator",
 				"spec": &gragent.LogsClientSpec{
 					URL:       "http://localhost:3100/loki/api/v1/push",
@@ -69,6 +80,7 @@ func TestLogsClientConfig(t *testing.T) {
 					max_period: 5m
 					max_retries: 100
 				external_labels:
+					cluster: telemetry/grafana-agent
 					foo: bar
 					fizz: buzz
 				timeout: 5m
@@ -77,6 +89,7 @@ func TestLogsClientConfig(t *testing.T) {
 		{
 			name: "tls config",
 			input: map[string]interface{}{
+				"agent":     agent,
 				"namespace": "operator",
 				"spec": &gragent.LogsClientSpec{
 					URL: "http://localhost:3100/loki/api/v1/push",
@@ -93,11 +106,14 @@ func TestLogsClientConfig(t *testing.T) {
 					ca_file: ca
 					key_file: key
 					cert_file: cert
+				external_labels:
+					cluster: telemetry/grafana-agent
 			`),
 		},
 		{
 			name: "bearer tokens",
 			input: map[string]interface{}{
+				"agent":     agent,
 				"namespace": "operator",
 				"spec": &gragent.LogsClientSpec{
 					URL:             "http://localhost:3100/loki/api/v1/push",
@@ -109,11 +125,14 @@ func TestLogsClientConfig(t *testing.T) {
 				url: http://localhost:3100/loki/api/v1/push
 				bearer_token: tok
 				bearer_token_file: tokfile
+				external_labels:
+					cluster: telemetry/grafana-agent
 			`),
 		},
 		{
 			name: "basic auth",
 			input: map[string]interface{}{
+				"agent":     agent,
 				"namespace": "operator",
 				"spec": &gragent.LogsClientSpec{
 					URL: "http://localhost:3100/loki/api/v1/push",
@@ -134,6 +153,8 @@ func TestLogsClientConfig(t *testing.T) {
 				basic_auth:
 					username: secretkey
 					password: secretkey
+				external_labels:
+					cluster: telemetry/grafana-agent
 			`),
 		},
 	}
@@ -494,6 +515,13 @@ func TestPodLogsConfig(t *testing.T) {
 }
 
 func TestLogsConfig(t *testing.T) {
+	agent := &gragent.GrafanaAgent{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "operator",
+			Name:      "grafana-agent",
+		},
+	}
+
 	tt := []struct {
 		name   string
 		input  map[string]interface{}
@@ -502,7 +530,7 @@ func TestLogsConfig(t *testing.T) {
 		{
 			name: "global clients",
 			input: map[string]interface{}{
-				"agentNamespace": "operator",
+				"agent": agent,
 				"global": &gragent.LogsSubsystemSpec{
 					Clients: []gragent.LogsClientSpec{{URL: "global"}},
 				},
@@ -524,12 +552,14 @@ func TestLogsConfig(t *testing.T) {
 				name: inst/default
 				clients:
 				- url: global
+				  external_labels:
+					  cluster: operator/grafana-agent
 			`),
 		},
 		{
 			name: "local clients",
 			input: map[string]interface{}{
-				"agentNamespace": "operator",
+				"agent": agent,
 				"global": &gragent.LogsSubsystemSpec{
 					Clients: []gragent.LogsClientSpec{{URL: "global"}},
 				},
@@ -553,13 +583,15 @@ func TestLogsConfig(t *testing.T) {
 				name: inst/default
 				clients:
 				- url: local
+				  external_labels:
+					  cluster: operator/grafana-agent
 			`),
 		},
 		{
 			name: "pod logs",
 			input: map[string]interface{}{
-				"agentNamespace": "operator",
-				"global":         &gragent.LogsSubsystemSpec{},
+				"agent":  agent,
+				"global": &gragent.LogsSubsystemSpec{},
 				"instance": &LogInstance{
 					Instance: &gragent.LogsInstance{
 						ObjectMeta: metav1.ObjectMeta{Namespace: "inst", Name: "default"},
@@ -605,8 +637,8 @@ func TestLogsConfig(t *testing.T) {
 		{
 			name: "additional scrape configs",
 			input: map[string]interface{}{
-				"agentNamespace": "operator",
-				"global":         &gragent.LogsSubsystemSpec{},
+				"agent":  agent,
+				"global": &gragent.LogsSubsystemSpec{},
 				"instance": &LogInstance{
 					Instance: &gragent.LogsInstance{
 						ObjectMeta: metav1.ObjectMeta{Namespace: "inst", Name: "default"},
