@@ -20,7 +20,7 @@ require (
 	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
 	github.com/hashicorp/consul/api v1.8.1
 	github.com/hashicorp/go-getter v1.5.3
-	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034 // indirect
+	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/klauspost/compress v1.13.1 // indirect
@@ -104,7 +104,7 @@ replace (
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20210325142439-9e8f66d53433
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
-
+	github.com/infinityworks/github-exporter => github.com/rgeyer/github-exporter v0.0.0-20210721193401-c2f9ee5601d6
 )
 
 // Required for redis_exporter, which is incompatible with v2.0.0+incompatible.
