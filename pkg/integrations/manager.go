@@ -226,10 +226,6 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 			delete(m.integrations, key)
 		}
 
-		if !ic.CommonConfig().Enabled {
-			continue
-		}
-
 		l := log.With(m.logger, "integration", ic.Name())
 		i, err := ic.NewIntegration(l)
 		if err != nil {
