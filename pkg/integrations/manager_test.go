@@ -249,23 +249,13 @@ func TestManager_IntegrationEnabledToDisabledReload(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test for Enabled -> Disabled
-	disabledMock := newMockIntegration()
-	disabledMock.CommonCfg.Enabled = false
-	disabledConfig := mockConfig{Integration: disabledMock}
-	disabledManagerConfig := mockManagerConfig()
-	disabledManagerConfig.Integrations = append(disabledManagerConfig.Integrations, disabledConfig)
-	_ = m.ApplyConfig(disabledManagerConfig)
+	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(false))
 	require.Len(t, m.integrations, 0, "Integration was disabled so should be removed from map")
 	_, err = m.im.GetInstance(mockIntegrationName)
 	require.Error(t, err, "This mock should not exist")
 
 	// test for Disabled -> Enabled
-	enabledMock := newMockIntegration()
-	enabledMock.CommonCfg.Enabled = true
-	enabledConfig := mockConfig{Integration: enabledMock}
-	enabledManagerConfig := mockManagerConfig()
-	enabledManagerConfig.Integrations = append(enabledManagerConfig.Integrations, enabledConfig)
-	_ = m.ApplyConfig(enabledManagerConfig)
+	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(true))
 	require.Len(t, m.integrations, 1, "Integration was enabled so should be here")
 	_, err = m.im.GetInstance(mockIntegrationName)
 	require.NoError(t, err, "This mock should exist")
@@ -288,16 +278,21 @@ func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
 	require.Error(t, err, "This mock should not exist")
 
 	// test for Disabled -> Enabled
-	enabledMock := newMockIntegration()
-	enabledMock.CommonCfg.Enabled = true
-	enabledConfig := mockConfig{Integration: enabledMock}
-	enabledManagerConfig := mockManagerConfig()
-	enabledManagerConfig.Integrations = append(enabledManagerConfig.Integrations, enabledConfig)
-	_ = m.ApplyConfig(enabledManagerConfig)
+
+	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(true))
 	require.Len(t, m.integrations, 1, "Integration was enabled so should be here")
 	_, err = m.im.GetInstance(mockIntegrationName)
 	require.NoError(t, err, "This mock should exist")
 	require.Len(t, m.im.ListInstances(), 1, "This instance should exist")
+}
+
+func generateMockConfigWithEnabledFlag(enabled bool) ManagerConfig {
+	enabledMock := newMockIntegration()
+	enabledMock.CommonCfg.Enabled = enabled
+	enabledConfig := mockConfig{Integration: enabledMock}
+	enabledManagerConfig := mockManagerConfig()
+	enabledManagerConfig.Integrations = append(enabledManagerConfig.Integrations, enabledConfig)
+	return enabledManagerConfig
 }
 
 type mockConfig struct {
