@@ -140,7 +140,7 @@ func newCrow(cfg Config) (*Crow, error) {
 func (c *Crow) runLoop() {
 	defer c.wg.Done()
 
-	ticker := time.NewTicker(500 * time.Millisecond)
+	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
