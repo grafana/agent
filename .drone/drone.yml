@@ -117,6 +117,7 @@ steps:
 
 depends_on:
   - Lint
+  - Test
 
 volumes:
 - name: docker
@@ -164,6 +165,7 @@ steps:
   - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$RELEASE_TAG publish
 depends_on:
   - Dist
+  - Test
 
 volumes:
 - name: docker
@@ -171,6 +173,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 13ae086c4ff0380f263dc4e3e7289bb82b0130e266cd6763e75cf0e451928225
+hmac: 86c8826dfd4a5e5e58e71df40f2ebbb71bc2d196c2b85330ab0d93aec06b88c5
 
 ...
