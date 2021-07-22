@@ -25,6 +25,7 @@ require (
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/miekg/dns v1.1.41
+	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
