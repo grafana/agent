@@ -165,7 +165,6 @@ steps:
   - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG publish
 depends_on:
   - Dist
-  - Test
 
 volumes:
 - name: docker
@@ -173,6 +172,6 @@ volumes:
     path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 3e462eeb839da58ad118b4ba3263ab9a93aaf5894a1ae855be9646b7542f8129
+hmac: 670cf64db6fd792fbb5b1e33d77be8ac23d2631e1a3d75308abb9d2c39522247
 
 ...
