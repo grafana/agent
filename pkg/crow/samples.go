@@ -2,7 +2,6 @@ package crow
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"time"
 
@@ -20,9 +19,13 @@ type sample struct {
 
 // Ready checks if this sample is ready to be validated.
 func (s *sample) Ready(now time.Time) bool {
-	// Exponential backoff from 500ms up (500ms * 2^attempt).
-	backoff := (500 * time.Millisecond) * time.Duration(math.Pow(2, float64(s.ValidationAttempt)))
+	backoff := sampleBackoff(s.ValidationAttempt)
 	return now.After(s.ScrapeTime.Add(backoff))
+}
+
+func sampleBackoff(attempt int) time.Duration {
+	// Exponential backoff from 1s up to 1s + (500ms * 2^attempt).
+	return time.Second + (250 * time.Millisecond * 1 << attempt)
 }
 
 type sampleGenerator struct {
