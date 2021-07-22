@@ -21,8 +21,7 @@ receiving all spans for a trace in the same agent to be processed, such as
 service graphs.
 
 As a consequence, `tail_sampling.load_balancing` has been deprecated in favor of
-a `load_balancing` block. Old configs will continue to work until it is fully
-deprecated.
+a `load_balancing` block.
 
 Example old config:
 
