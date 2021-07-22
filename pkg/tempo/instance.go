@@ -151,6 +151,11 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		ctx = context.WithValue(ctx, contextkeys.Prometheus, promManager)
 	}
 
+	if cfg.TailSampling != nil && cfg.LoadBalancing == nil {
+		i.logger.Warn("Configuring tail_sampling without load_balance." +
+			"Load balancing is required for tail sampling to properly work in multi instance deployments")
+	}
+
 	factories, err := tracingFactories()
 	if err != nil {
 		return fmt.Errorf("failed to load tracing factories: %w", err)
