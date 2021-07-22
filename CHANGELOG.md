@@ -22,6 +22,10 @@
 - [BUGFIX] The directory of the logs positions file will now properly be created
   on startup for all instances.
 
+- [BUGFIX] The deb packages will now configure the grafana-agent user to be a
+  member of the adm and systemd-journal groups. This will allow logs to read
+  from journald and /var/log by default. (@rfratto)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
@@ -35,7 +39,7 @@
 
 - [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
   integration. (@gaantunes)
-  
+
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
 
@@ -50,7 +54,7 @@
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
   Cloud will now be shown. (@rfratto)
-  
+
 - [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
 
 - [BUGFIX] Fix a leak in the shared string interner introduced in v0.14.0.
