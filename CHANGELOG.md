@@ -1,8 +1,5 @@
 # Main (unreleased)
 
-- [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
-  integration. (@gaantunes)
-
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
 - [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
@@ -18,9 +15,6 @@
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
 - [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
-
-- [BUGFIX] Fix race condition that may occur and result in a panic when
-  initializing scraping service cluster. (@rfratto)
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
@@ -39,7 +33,8 @@
 
 # v0.17.0 (2021-07-15)
 
-- [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
+- [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
+  integration. (@gaantunes)
   
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
