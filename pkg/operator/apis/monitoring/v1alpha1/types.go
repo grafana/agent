@@ -86,7 +86,7 @@ type GrafanaAgentSpec struct {
 	// ConfigMaps is a liset of config maps in the same namespace as the
 	// GrafanaAgent object which will be mounted into each running Grafana Agent
 	// pod.
-	// The secrets are mounted into /etc/grafana-agent/configmaps/<configmap-name>.
+	// The ConfigMaps are mounted into /etc/grafana-agent/configmaps/<configmap-name>.
 	ConfigMaps []string `json:"configMaps,omitempty"`
 	// Affinity, if specified, controls pod scheduling constraints.
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
