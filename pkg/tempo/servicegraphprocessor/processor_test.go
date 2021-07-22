@@ -16,10 +16,13 @@ import (
 	"go.opentelemetry.io/collector/consumer/pdata"
 )
 
-const sampleDataRelPath = "testdata/trace-sample.json"
+const (
+	traceSamplePath         = "testdata/trace-sample.json"
+	unpairedTraceSamplePath = "testdata/unpaired-trace-sample.json"
+)
 
 func TestConsumeMetrics(t *testing.T) {
-	traces := traceSamples(t)
+	traces := traceSamples(t, traceSamplePath)
 
 	p, err := newProcessor(&mockConsumer{}, &Config{})
 	require.NoError(t, err)
@@ -35,10 +38,32 @@ func TestConsumeMetrics(t *testing.T) {
 }
 
 func TestConsumeMetrics_Unpaired(t *testing.T) {
-	traces := traceSamples(t)
+	traces := traceSamples(t, unpairedTraceSamplePath)
+
+	p, err := newProcessor(&mockConsumer{}, &Config{})
+	require.NoError(t, err)
+
+	err = p.Start(context.Background(), nil)
+	require.NoError(t, err)
+
+	err = p.ConsumeTraces(context.Background(), traces)
+	require.NoError(t, err)
+
+	// Force cleanup of all items
+	for k := range p.store.Items() {
+		p.store.Delete(k)
+	}
+
+	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(unpairedMetric))
+	require.NoError(t, err)
+}
+
+func TestConsumeMetrics_MaxItems(t *testing.T) {
+	traces := traceSamples(t, traceSamplePath)
 
 	p, err := newProcessor(&mockConsumer{}, &Config{
-		wait: time.Nanosecond, // Configure minimum possible time of eviction, all spans will go unpaired
+		wait:     time.Nanosecond,
+		maxItems: 1, // Configure max number of items in store to 1. Only one edge will be processed.
 	})
 	require.NoError(t, err)
 
@@ -48,15 +73,21 @@ func TestConsumeMetrics_Unpaired(t *testing.T) {
 	err = p.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
 
-	// Force cleanup of evicted keys
-	p.store.DeleteExpired()
+	// Force deletion of unpaired processed span
+	for k := range p.store.Items() {
+		p.store.Delete(k)
+	}
 
-	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(unpairedMetric))
+	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(`
+		# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes
+		# TYPE tempo_service_graph_unpaired_spans_total counter
+		tempo_service_graph_unpaired_spans_total{client="lb",server=""} 1
+`))
 	require.NoError(t, err)
 }
 
-func traceSamples(t *testing.T) pdata.Traces {
-	f, err := os.Open(sampleDataRelPath)
+func traceSamples(t *testing.T, path string) pdata.Traces {
+	f, err := os.Open(path)
 	require.NoError(t, err)
 
 	r := &tempopb.Trace{}
@@ -123,8 +154,8 @@ const (
 	unpairedMetric = `
 		# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes
 		# TYPE tempo_service_graph_unpaired_spans_total counter
-		tempo_service_graph_unpaired_spans_total{client="",server="app"} 3
-		tempo_service_graph_unpaired_spans_total{client="",server="db"} 3
-		tempo_service_graph_unpaired_spans_total{client="lb",server=""} 1
+        tempo_service_graph_unpaired_spans_total{client="",server="db"} 2
+        tempo_service_graph_unpaired_spans_total{client="app",server=""} 3
+        tempo_service_graph_unpaired_spans_total{client="lb",server=""} 3
 `
 )

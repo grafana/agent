@@ -15,7 +15,7 @@ const (
 	TypeStr = "service_graphs"
 
 	defaultWait     = time.Second * 10
-	defaultMaxEdges = 10_000
+	defaultMaxItems = 10_000
 )
 
 // Config holds the configuration for the Prometheus service graph processor.
@@ -23,7 +23,7 @@ type Config struct {
 	config.ProcessorSettings `mapstructure:",squash"`
 
 	wait     time.Duration `mapstructure:"wait"`
-	maxEdges int           `mapstructure:"max_edges"`
+	maxItems int           `mapstructure:"max_items"`
 }
 
 // NewFactory returns a new factory for the Prometheus service graph processor.

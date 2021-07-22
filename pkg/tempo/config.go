@@ -127,7 +127,7 @@ type InstanceConfig struct {
 	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
 
 	// ServiceGraphs
-	ServiceGraphs
+	// ServiceGraphs *serviceGraphsConfig
 }
 
 const (

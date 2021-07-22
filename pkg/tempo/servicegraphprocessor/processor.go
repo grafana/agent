@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal"
@@ -21,7 +23,7 @@ import (
 
 var (
 	ErrNoServiceName = errors.New("failed to find service name")
-	ErrTooManyEdges  = errors.New("too many edges in memory")
+	ErrTooManyItems  = errors.New("too many items in store")
 )
 
 type edge struct {
@@ -55,11 +57,13 @@ type processor struct {
 }
 
 func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error) {
+	logger := log.With(util.Logger, "component", "tempo service graphs")
+
 	if cfg.wait == 0 {
 		cfg.wait = defaultWait
 	}
-	if cfg.maxEdges == 0 {
-		cfg.maxEdges = defaultMaxEdges
+	if cfg.maxItems == 0 {
+		cfg.maxItems = defaultMaxItems
 	}
 
 	// TODO(mapno): Add support for an external cache (e.g. memcached)
@@ -67,9 +71,10 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error)
 		nextConsumer: nextConsumer,
 		// Cleanup period is hardcoded to twice the waiting time for simplicity
 		// Most likely not ideal in every scenario
-		store:        cache.New(cfg.wait, cfg.wait*2),
-		maxItems:     defaultMaxEdges,
-		closed:       atomic.Bool{},
+		store:    cache.New(cfg.wait, cfg.wait*2),
+		maxItems: cfg.maxItems,
+		closed:   atomic.Bool{},
+		logger:   logger,
 	}
 
 	return p, nil
@@ -158,13 +163,13 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 		return nil
 	}
 
-	if p.store.ItemCount() >= p.maxItems {
-		return ErrTooManyEdges
-	}
-
 	var errs error
 	for _, trace := range batchpersignal.SplitTraces(td) {
 		if err := p.consume(trace); err != nil {
+			if errors.Is(err, ErrTooManyItems) {
+				level.Warn(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", ErrTooManyItems)
+				break
+			}
 			errs = multierror.Append(errs, err)
 		}
 	}
@@ -180,6 +185,9 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 func (p *processor) collectMetrics() {
 	for _, v := range p.store.Items() {
 		e := v.Object.(edge)
+		if v.Expired() {
+
+		}
 		if e.complete() {
 			p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 			if e.failed {
@@ -206,6 +214,10 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 			for k := 0; k < ils.Spans().Len(); k++ {
 				span := ils.Spans().At(k)
+
+				if p.store.ItemCount() >= p.maxItems {
+					return ErrTooManyItems
+				}
 
 				switch span.Kind() {
 				case pdata.SpanKindClient:
