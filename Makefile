@@ -7,7 +7,9 @@ SHELL = /usr/bin/env bash
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
-IMAGE_TAG ?= $(shell ./tools/image-tag)
+ifeq ($(IMAGE_TAG),)
+IMAGE_TAG := $(shell ./tools/image-tag)
+endif
 DRONE ?= false
 # This is normally set by the caller but when building the agent windows installer it needs to be set to something
 RELEASE_TAG ?= v0.0.0
