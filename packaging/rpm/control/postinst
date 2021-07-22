@@ -2,6 +2,7 @@
 
 set -e
 
+# shellcheck disable=SC1091
 [ -f /etc/sysconfig/grafana-agent ] && . /etc/sysconfig/grafana-agent
 [ -z "$AGENT_USER" ] && AGENT_USER="grafana-agent"
 [ -z "$AGENT_GROUP" ] && AGENT_GROUP="grafana-agent"
@@ -18,7 +19,7 @@ add_to_logging_groups() {
 
 # Initial installation: $1 == 1
 # Upgrade: $1 == 2, and configured to restart on upgrade
-if [ $1 -eq 1 ] ; then
+if [ "$1" -eq 1 ] ; then
     if ! getent group "$AGENT_GROUP" > /dev/null 2>&1 ; then
         groupadd -r "$AGENT_GROUP"
     fi
@@ -32,10 +33,10 @@ if [ $1 -eq 1 ] ; then
     chmod 640 /etc/grafana-agent.yaml
     chown root:$AGENT_GROUP /etc/grafana-agent.yaml
 
-elif [ $1 -ge 2 ] ; then
+elif [ "$1" -ge 2 ] ; then
     add_to_logging_groups
 
-    if [ "$RESTART_ON_UPGRADE" == "true" ]; then
+    if [ "$RESTART_ON_UPGRADE" = "true" ]; then
         systemctl daemon-reload
         systemctl restart grafana-agent
     fi
