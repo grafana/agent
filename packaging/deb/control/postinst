@@ -5,7 +5,7 @@ set -e
 [ -f /etc/default/grafana-agent ] && . /etc/default/grafana-agent
 
 # Initial installation: $1 == configure
-# Upgrade: $1 == 2, and configured to restart on upgrade
+# Upgrade: $1 == configure, $2 == old version
 case "$1" in
     configure)
         [ -z "$GRAFANA_AGENT_USER" ] && GRAFANA_AGENT_USER="grafana-agent"
