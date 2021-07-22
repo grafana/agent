@@ -185,6 +185,7 @@ spanmetrics:
 # Tail sampling also supports multiple agent deployments, allowing to group all
 # spans of a trace in the same agent by load balancing the spans by trace ID
 # between the instances.
+# * To make use of this feature, check load_balancing below *
 tail_sampling:
   # policies define the rules by which traces will be sampled. Multiple policies
   # can be added to the same pipeline.
