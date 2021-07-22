@@ -1,9 +1,6 @@
 package github_exporter //nolint:golint
 
 import (
-	"os"
-	"strings"
-
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
@@ -69,34 +66,18 @@ func init() {
 
 // New creates a new github_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	// It's not very pretty, but this exporter is configured entirely by environment
-	// variables, and uses some private helper methods in it's config package to
-	// assemble other key pieces of the config. Thus, we can't (easily) access the
-	// config directly, and must assign environment variables.
-	//
-	// In an effort to avoid conflicts with other integrations, the environment vars
-	// are unset immediately after being consumed.
 
-	os.Setenv("API_URL", c.APIURL)
-	os.Setenv("REPOS", strings.Join(c.Repositories, ", "))
-	os.Setenv("ORGS", strings.Join(c.Organizations, ", "))
-	os.Setenv("USERS", strings.Join(c.Users, ", "))
+	conf := gh_config.Config{}
+	conf.SetAPIURL(c.APIURL)
+	conf.SetRepositories(c.Repositories)
+	conf.SetOrganisations(c.Organizations)
+	conf.SetUsers(c.Users)
 	if c.APIToken != "" {
-		os.Setenv("GITHUB_TOKEN", c.APIToken)
+		conf.SetAPIToken(c.APIToken)
 	}
-
 	if c.APITokenFile != "" {
-		os.Setenv("GITHUB_TOKEN_FILE", c.APITokenFile)
+		conf.SetAPITokenFromFile(c.APITokenFile)
 	}
-
-	conf := gh_config.Init()
-
-	os.Unsetenv("API_URL")
-	os.Unsetenv("REPOS")
-	os.Unsetenv("ORGS")
-	os.Unsetenv("USERS")
-	os.Unsetenv("GITHUB_TOKEN")
-	os.Unsetenv("GITHUB_TOKEN_FILE")
 
 	ghExporter := exporter.Exporter{
 		APIMetrics: exporter.AddMetrics(),
