@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
-	"github.com/wrouesnel/postgres_exporter/exporter"
+	"github.com/prometheus-community/postgres_exporter/exporter"
 )
 
 // Config controls the postgres_exporter integration.
@@ -22,6 +22,7 @@ type Config struct {
 	DisableSettingsMetrics bool     `yaml:"disable_settings_metrics,omitempty"`
 	AutodiscoverDatabases  bool     `yaml:"autodiscover_databases,omitempty"`
 	ExcludeDatabases       []string `yaml:"exclude_databases,omitempty"`
+	IncludeDatabases       []string `yaml:"include_databases,omitempty"`
 	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics,omitempty"`
 	QueryPath              string   `yaml:"query_path,omitempty"`
 }
@@ -59,11 +60,13 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 
 	e := exporter.NewExporter(
 		dsn,
+		log,
 		exporter.DisableDefaultMetrics(c.DisableDefaultMetrics),
 		exporter.WithUserQueriesPath(c.QueryPath),
 		exporter.DisableSettingsMetrics(c.DisableSettingsMetrics),
 		exporter.AutoDiscoverDatabases(c.AutodiscoverDatabases),
 		exporter.ExcludeDatabases(strings.Join(c.ExcludeDatabases, ",")),
+		exporter.IncludeDatabases(strings.Join(c.IncludeDatabases, ",")),
 	)
 
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(e)), nil

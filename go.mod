@@ -9,7 +9,7 @@ require (
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/drone/envsubst v1.0.2
 	github.com/fatih/structs v1.1.0
-	github.com/go-kit/kit v0.10.0
+	github.com/go-kit/kit v0.11.0
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-logr/logr v0.4.0
 	github.com/gogo/protobuf v1.3.2
@@ -37,6 +37,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus-community/postgres_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.47.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
@@ -49,12 +50,11 @@ require (
 	github.com/prometheus/procfs v0.6.1-0.20210313121648-b565fefb1664
 	github.com/prometheus/prometheus v1.8.2-0.20210621150501-ff58416a0b02
 	github.com/prometheus/statsd_exporter v0.21.0
-	github.com/sirupsen/logrus v1.7.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/weaveworks/common v0.0.0-20210419092856-009d1eebd624
-	github.com/wrouesnel/postgres_exporter v0.0.0-00010101000000-000000000000
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.29.0
 	go.uber.org/atomic v1.8.0
@@ -99,9 +99,9 @@ replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984
 replace (
 	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a
+	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20210325142439-9e8f66d53433
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
-	github.com/wrouesnel/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20201106170118-5eedee00c1db
 
 )
 
