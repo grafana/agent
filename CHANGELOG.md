@@ -1,7 +1,5 @@
 # Main (unreleased)
 
-- [ENHANCEMENT] Update postgres_exporter to a [branch of](https://github.com/grafana/postgres_exporter/tree/exporter-package-v0.10.0) v0.10.0
-
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
 - [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
@@ -17,6 +15,8 @@
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
 - [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
+
+- [ENHANCEMENT] Update postgres_exporter to a [branch of](https://github.com/grafana/postgres_exporter/tree/exporter-package-v0.10.0) v0.10.0
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.

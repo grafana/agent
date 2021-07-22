@@ -77,6 +77,11 @@ Full reference of options:
   exclude_databases:
   [ - <string> ]
 
+  # Includes only specific databases (excluding all others) when autodiscover_databases
+  # is true.
+  include_databases:
+  [ - <string> ]
+
   # Path to a YAML file containing custom queries to run. Check out
   # postgres_exporter's queries.yaml for examples of the format:
   # https://github.com/prometheus-community/postgres_exporter/blob/master/queries.yaml
