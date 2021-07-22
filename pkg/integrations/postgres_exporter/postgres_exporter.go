@@ -67,6 +67,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		exporter.AutoDiscoverDatabases(c.AutodiscoverDatabases),
 		exporter.ExcludeDatabases(strings.Join(c.ExcludeDatabases, ",")),
 		exporter.IncludeDatabases(strings.Join(c.IncludeDatabases, ",")),
+		exporter.MetricPrefix("pg"),
 	)
 
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(e)), nil
