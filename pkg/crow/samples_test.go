@@ -2,11 +2,45 @@ package crow
 
 import (
 	"fmt"
+	"math/rand"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/expfmt"
 	"github.com/stretchr/testify/require"
 )
+
+func Test_sample_Ready(t *testing.T) {
+	tt := []struct {
+		sample sample
+		now    time.Time
+		expect bool
+	}{
+		{
+			sample: sample{
+				ScrapeTime:        time.Unix(100, 0).UTC(),
+				ValidationAttempt: 0,
+			},
+			now:    time.Unix(100, 0).UTC(),
+			expect: false,
+		},
+		{
+			sample: sample{
+				ScrapeTime:        time.Unix(100, 0).UTC(),
+				ValidationAttempt: 0,
+			},
+			now:    time.Unix(500, 0).UTC(),
+			expect: true,
+		},
+	}
+
+	for _, tc := range tt {
+		ready := tc.sample.Ready(tc.now)
+		require.Equal(t, tc.expect, ready)
+	}
+}
 
 func Test_sampleBackoff(t *testing.T) {
 	tt := []struct {
@@ -27,4 +61,41 @@ func Test_sampleBackoff(t *testing.T) {
 			require.Equal(t, tc.expect, actual)
 		})
 	}
+}
+
+func Test_sampleGenerator(t *testing.T) {
+	var (
+		reg = prometheus.NewRegistry()
+	)
+
+	gen := sampleGenerator{
+		numSamples: 10,
+		sendCh:     make(chan<- []*sample, 10),
+		r:          rand.New(rand.NewSource(0)),
+	}
+	reg.MustRegister(&gen)
+
+	mfs, err := reg.Gather()
+	require.NoError(t, err)
+
+	var sb strings.Builder
+	enc := expfmt.NewEncoder(&sb, expfmt.FmtText)
+	for _, mf := range mfs {
+		require.NoError(t, enc.Encode(mf))
+	}
+
+	expect := `# HELP crow_validation_sample Sample to validate
+# TYPE crow_validation_sample gauge
+crow_validation_sample{sample_num="sample_0"} 165505
+crow_validation_sample{sample_num="sample_1"} 393152
+crow_validation_sample{sample_num="sample_2"} 995827
+crow_validation_sample{sample_num="sample_3"} 197794
+crow_validation_sample{sample_num="sample_4"} 376202
+crow_validation_sample{sample_num="sample_5"} 126063
+crow_validation_sample{sample_num="sample_6"} 980153
+crow_validation_sample{sample_num="sample_7"} 422456
+crow_validation_sample{sample_num="sample_8"} 894929
+crow_validation_sample{sample_num="sample_9"} 637646
+`
+	require.Equal(t, expect, sb.String())
 }
