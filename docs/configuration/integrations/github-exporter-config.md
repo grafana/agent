@@ -68,5 +68,5 @@ Full reference of options:
   # A path to a file containing a github authentication token that allows the
   # API to be queried more often. If supplied, this supercedes `api_token`
   # Optional, but recommended.
-  [api_token_file: <string> ]
+  [api_token_file: <string>]
 ```
