@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 )
 
 const (
@@ -40,14 +40,13 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	app := instance.Appender(context.TODO())
 
 	// Build data point
-	dp := pdata.NewIntHistogramDataPoint()
+	dps := pdata.NewIntHistogramDataPointSlice()
+	dp := dps.AppendEmpty()
 	dp.SetTimestamp(pdata.TimestampFromTime(ts.UTC()))
 	dp.SetBucketCounts(bucketCounts)
 	dp.SetExplicitBounds(explicitBounds)
 	dp.SetCount(countValue)
 	dp.SetSum(sumValue)
-	dps := pdata.NewIntHistogramDataPointSlice()
-	dps.Append(dp)
 
 	err := exp.handleHistogramIntDataPoints(app, "latency", dps)
 	require.NoError(t, err)
