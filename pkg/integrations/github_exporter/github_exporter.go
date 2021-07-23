@@ -2,6 +2,7 @@ package github_exporter //nolint:golint
 
 import (
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	gh_config "github.com/infinityworks/github-exporter/config"
