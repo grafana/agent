@@ -64,28 +64,24 @@ local container = k.core.v1.container;
 
     agent:
       agent.newAgent(name, namespace, self._images.agent, self.config, use_daemonset=false) +
-      agent.withConfigHash(self._config_hash) + (
-        if has_tempo_config
-        then 
-          {
-            container+:: container.withEnvMixin([
-              k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
-            ]),
-
-            // If sampling strategies were defined, we need to mount them as a JSON
-            // file.
-            config_map+:
-              if has_sampling_strategies
-              then configMap.withDataMixin({
-                'strategies.json': std.toString(this._tempo_sampling_strategies),
-              })
-              else {},
-
+      agent.withConfigHash(self._config_hash) + {
+        container+:: container.withEnvMixin([
+          k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
+        ]),
+          // If sampling strategies were defined, we need to mount them as a JSON
+          // file.
+          config_map+:
+            if has_sampling_strategies
+            then configMap.withDataMixin({
+              'strategies.json': std.toString(this._tempo_sampling_strategies),
+            })
+            else {},
             // If we're deploying for tracing, applications will want to write to
             // a service for load balancing span delivery.
             service:
-              k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
-          } else {}
-      )
+              if has_tempo_config
+              then k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
+              else {},
+      },
   },
 }
