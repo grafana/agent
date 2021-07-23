@@ -15,6 +15,7 @@ For sample configurations and detailed installation instructions, please head to
 
 - [Grafana Agent Metrics Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_metrics/)
 - [Grafana Agent Logs Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_logs/)
+- [Grafana Agent Traces Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_traces/)
 
 ## Manually Applying
 
