@@ -197,12 +197,12 @@ tail_sampling:
   # the cost of higher memory usage.
   decision_wait: [ <duration> | default="5s" ]
 
-# load_balancing configures load balancing of spans across multiple agents.
+# load_balancing configures load balancing of spans across multi agent deployments.
 # It ensures that all spans of a trace are sampled in the same instance.
 # It works by exporting spans based on their traceID via consistent hashing.
 #
 # Enabling this feature is required for tail_sampling to correctly work when
-# multiple agent instances can receive spans for the same trace.
+# different agent instances can receive spans for the same trace.
 #
 # Load balancing works by layering two pipelines and consistently exporting 
 # spans belonging to a trace to the same agent instance.
