@@ -101,12 +101,6 @@ local service = k.core.v1.service;
     agent:
       agent.newAgent(name, namespace, self._images.agent, self.config, use_daemonset=true) +
       agent.withConfigHash(self._config_hash) + {
-        // Required for the scraping service; get the node name and store it in
-        // $HOSTNAME so host_filtering works.
-        container+:: container.withEnvMixin([
-          k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
-        ]),
-
         // If sampling strategies were defined, we need to mount them as a JSON
         // file.
         config_map+:
