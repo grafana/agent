@@ -68,7 +68,11 @@ func init() {
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	conf := gh_config.Config{}
-	conf.SetAPIURL(c.APIURL)
+	err := conf.SetAPIURL(c.APIURL)
+	if err != nil {
+		level.Error(logger).Log("msg", "api url is invalid", "err", err)
+		return nil, err
+	}
 	conf.SetRepositories(c.Repositories)
 	conf.SetOrganisations(c.Organizations)
 	conf.SetUsers(c.Users)
@@ -76,7 +80,11 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		conf.SetAPIToken(c.APIToken)
 	}
 	if c.APITokenFile != "" {
-		conf.SetAPITokenFromFile(c.APITokenFile)
+		err = conf.SetAPITokenFromFile(c.APITokenFile)
+		if err != nil {
+			level.Error(logger).Log("msg", "unable to load Github API token from file", "err", err)
+			return nil, err
+		}
 	}
 
 	ghExporter := exporter.Exporter{
