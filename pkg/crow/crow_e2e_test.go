@@ -73,7 +73,7 @@ prometheus:
 
 	crowCfg := DefaultConfig
 	crowCfg.PrometheusAddr = "http://" + promAddr
-	crowCfg.GenerateSamples = 1
+	crowCfg.NumSamples = 1
 	crowCfg.ExtraSelectors = `cluster="test"`
 	crowCfg.UserID = "user"
 

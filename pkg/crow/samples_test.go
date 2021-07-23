@@ -86,16 +86,16 @@ func Test_sampleGenerator(t *testing.T) {
 
 	expect := `# HELP crow_validation_sample Sample to validate
 # TYPE crow_validation_sample gauge
-crow_validation_sample{sample_num="sample_0"} 165505
-crow_validation_sample{sample_num="sample_1"} 393152
-crow_validation_sample{sample_num="sample_2"} 995827
-crow_validation_sample{sample_num="sample_3"} 197794
-crow_validation_sample{sample_num="sample_4"} 376202
-crow_validation_sample{sample_num="sample_5"} 126063
-crow_validation_sample{sample_num="sample_6"} 980153
-crow_validation_sample{sample_num="sample_7"} 422456
-crow_validation_sample{sample_num="sample_8"} 894929
-crow_validation_sample{sample_num="sample_9"} 637646
+crow_validation_sample{sample_num="sample_1204"} 197794
+crow_validation_sample{sample_num="sample_48a7"} 980153
+crow_validation_sample{sample_num="sample_5baf"} 376202
+crow_validation_sample{sample_num="sample_9ee0"} 422456
+crow_validation_sample{sample_num="sample_b10d"} 894929
+crow_validation_sample{sample_num="sample_b44c"} 976708
+crow_validation_sample{sample_num="sample_c041"} 165505
+crow_validation_sample{sample_num="sample_d3ff"} 995827
+crow_validation_sample{sample_num="sample_e85f"} 259259
+crow_validation_sample{sample_num="sample_f8f9"} 637646
 `
 	require.Equal(t, expect, sb.String())
 }

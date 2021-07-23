@@ -21,10 +21,10 @@ import (
 
 // Config for the Crow metrics checker.
 type Config struct {
-	PrometheusAddr  string // Base URL of Prometheus server
-	GenerateSamples int    // Number of samples to generate
-	UserID          string // User ID to use when querying.
-	ExtraSelectors  string // Extra selectors for queries, i.e., cluster="prod"
+	PrometheusAddr string // Base URL of Prometheus server
+	NumSamples     int    // Number of samples to generate
+	UserID         string // User ID to use when querying.
+	ExtraSelectors string // Extra selectors for queries, i.e., cluster="prod"
 
 	// Querying Params
 
@@ -42,13 +42,13 @@ type Config struct {
 // RegisterFlags registers flags for the config to the given FlagSet.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.PrometheusAddr, "prometheus-addr", DefaultConfig.PrometheusAddr, "Root URL of the Prometheus API to query against")
-	f.IntVar(&c.GenerateSamples, "generate-samples", DefaultConfig.GenerateSamples, "Number of samples to generate when being scraped")
+	f.IntVar(&c.NumSamples, "generate-samples", DefaultConfig.NumSamples, "Number of samples to generate when being scraped")
 	f.StringVar(&c.UserID, "user-id", DefaultConfig.UserID, "UserID to attach to query. Useful for querying multi-tenated Cortex.")
 	f.StringVar(&c.ExtraSelectors, "extra-selectors", DefaultConfig.ExtraSelectors, "Extra selectors to include in queries, useful for identifying different instances of this job.")
 
-	f.DurationVar(&c.QueryDuration, "query-timeout", DefaultConfig.QueryTimeout, "timeout for querying")
+	f.DurationVar(&c.QueryTimeout, "query-timeout", DefaultConfig.QueryTimeout, "timeout for querying")
 	f.DurationVar(&c.QueryDuration, "query-duration", DefaultConfig.QueryDuration, "time before and after sample to search")
-	f.DurationVar(&c.QueryDuration, "query-step", DefaultConfig.QueryStep, "step between samples when searching")
+	f.DurationVar(&c.QueryStep, "query-step", DefaultConfig.QueryStep, "step between samples when searching")
 
 	f.IntVar(&c.MaxValidations, "max-validations", DefaultConfig.MaxValidations, "Maximum number of times to try validating a sample")
 	f.DurationVar(&c.MaxTimestampDelta, "max-timestamp-delta", DefaultConfig.MaxTimestampDelta, "maximum difference from the stored timestamp from the validating sample to allow")
@@ -57,8 +57,8 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 // DefaultConfig holds defaults for Crow settings.
 var DefaultConfig = Config{
-	MaxValidations:  5,
-	GenerateSamples: 10,
+	MaxValidations: 5,
+	NumSamples:     10,
 
 	QueryTimeout:  150 * time.Millisecond,
 	QueryDuration: 2 * time.Second,
@@ -291,7 +291,7 @@ func (c *Crow) validateInMatrix(b *sample, m model.Matrix) error {
 // schedule a validation job.
 func (c *Crow) TestMetrics() prometheus.Collector {
 	return &sampleGenerator{
-		numSamples: c.cfg.GenerateSamples,
+		numSamples: c.cfg.NumSamples,
 		sendCh:     c.sampleCh,
 
 		r: rand.New(rand.NewSource(time.Now().Unix())),

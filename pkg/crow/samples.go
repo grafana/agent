@@ -54,6 +54,8 @@ func (sg *sampleGenerator) Collect(ch chan<- prometheus.Metric) {
 		)
 	)
 
+	usedLabels := map[string]struct{}{}
+
 	samples := make([]*sample, sg.numSamples)
 	for s := 0; s < sg.numSamples; s++ {
 		samples[s] = &sample{
@@ -62,10 +64,19 @@ func (sg *sampleGenerator) Collect(ch chan<- prometheus.Metric) {
 			Value:      float64(sg.r.Int63n(1_000_000)),
 		}
 
+	GenLabel:
+		labelSuffix := make([]byte, 2)
+		_, _ = sg.r.Read(labelSuffix)
+		label := fmt.Sprintf("sample_%x", labelSuffix)
+		if _, exist := usedLabels[label]; exist {
+			goto GenLabel
+		}
+		usedLabels[label] = struct{}{}
+
 		ch <- prometheus.MustNewConstMetric(
 			desc,
 			prometheus.GaugeValue,
-			samples[s].Value, fmt.Sprintf("sample_%d", s),
+			samples[s].Value, label,
 		)
 	}
 
