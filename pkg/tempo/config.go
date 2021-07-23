@@ -119,6 +119,9 @@ type InstanceConfig struct {
 
 	// TailSampling defines a sampling strategy for the pipeline
 	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
+
+	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
+	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
 }
 
 const (
@@ -219,8 +222,6 @@ type tailSamplingConfig struct {
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
 	// Port is the port the instance will use to receive load balanced traces
 	Port string `yaml:"port"`
-	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
-	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
@@ -364,15 +365,15 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 	exporter, err := exporter(RemoteWriteConfig{
 		// Endpoint is omitted in OTel load balancing exporter
 		Endpoint:    "noop",
-		Compression: c.TailSampling.LoadBalancing.Exporter.Compression,
-		Insecure:    c.TailSampling.LoadBalancing.Exporter.Insecure,
-		TLSConfig:   &prom_config.TLSConfig{InsecureSkipVerify: c.TailSampling.LoadBalancing.Exporter.InsecureSkipVerify},
-		BasicAuth:   c.TailSampling.LoadBalancing.Exporter.BasicAuth,
+		Compression: c.LoadBalancing.Exporter.Compression,
+		Insecure:    c.LoadBalancing.Exporter.Insecure,
+		TLSConfig:   &prom_config.TLSConfig{InsecureSkipVerify: c.LoadBalancing.Exporter.InsecureSkipVerify},
+		BasicAuth:   c.LoadBalancing.Exporter.BasicAuth,
 	})
 	if err != nil {
 		return nil, err
 	}
-	resolverCfg, err := resolver(c.TailSampling.LoadBalancing.Resolver)
+	resolverCfg, err := resolver(c.LoadBalancing.Resolver)
 	if err != nil {
 		return nil, err
 	}
@@ -531,30 +532,30 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 			"policies":      policies,
 			"decision_wait": wait,
 		}
+	}
 
-		if c.TailSampling.LoadBalancing != nil {
-			internalExporter, err := c.loadBalancingExporter()
-			if err != nil {
-				return nil, err
-			}
-			exporters["loadbalancing"] = internalExporter
+	if c.LoadBalancing != nil {
+		internalExporter, err := c.loadBalancingExporter()
+		if err != nil {
+			return nil, err
+		}
+		exporters["loadbalancing"] = internalExporter
 
-			receiverPort := defaultLoadBalancingPort
-			if c.TailSampling.Port != "" {
-				receiverPort = c.TailSampling.Port
-			}
-			c.Receivers["otlp/lb"] = map[string]interface{}{
-				"protocols": map[string]interface{}{
-					"grpc": map[string]interface{}{
-						"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
-					},
+		receiverPort := defaultLoadBalancingPort
+		if c.TailSampling.Port != "" {
+			receiverPort = c.TailSampling.Port
+		}
+		c.Receivers["otlp/lb"] = map[string]interface{}{
+			"protocols": map[string]interface{}{
+				"grpc": map[string]interface{}{
+					"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
 				},
-			}
+			},
 		}
 	}
 
 	// Build Pipelines
-	splitPipeline := c.TailSampling != nil && c.TailSampling.LoadBalancing != nil
+	splitPipeline := c.TailSampling != nil && c.LoadBalancing != nil
 	orderedSplitProcessors := orderProcessors(processorNames, splitPipeline)
 	if splitPipeline {
 		// load balancing pipeline

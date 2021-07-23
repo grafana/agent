@@ -46,15 +46,15 @@ tempo:
 #            Example of rate limiting policy. Uncomment to start rate limiting!
 #          - rate_limiting:
 #              spans_per_second: 35
-        load_balancing:
-          exporter:
-            insecure: true
-          resolver:
-            static:
-              hostnames:
-                - agent-1:4318
-                - agent-2:4318
-                - agent-3:4318
+      load_balancing:
+        exporter:
+          insecure: true
+        resolver:
+          static:
+            hostnames:
+              - agent-1:4318
+              - agent-2:4318
+              - agent-3:4318
       spanmetrics:
         dimensions:
           - name: http.url
