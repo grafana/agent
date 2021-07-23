@@ -6,6 +6,8 @@
 
 - [FEATURE] Support autologging span attributes as log labels (@mapno)
 
+- [FEATURE] Put Tests requiring Network Access behind a -online flag (@flokli)
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
