@@ -216,9 +216,10 @@ lint:
 
 # We have to run test twice: once for all packages with -race and then once more without -race
 # for packages that have known race detection issues
+# Run tests with -online flag set to true, to include tests requiring network connectivity in CI
 test:
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./... -online
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs -online
 
 clean:
 	rm -rf cmd/agent/agent
