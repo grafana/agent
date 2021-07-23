@@ -16,6 +16,8 @@
 
 - [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
 
+- [ENHANCEMENT] Update postgres_exporter to a [branch of](https://github.com/grafana/postgres_exporter/tree/exporter-package-v0.10.0) v0.10.0
+
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
 
