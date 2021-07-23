@@ -9,7 +9,6 @@ import (
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal"
 	"github.com/patrickmn/go-cache"
@@ -59,20 +58,21 @@ type processor struct {
 func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error) {
 	logger := log.With(util.Logger, "component", "tempo service graphs")
 
-	if cfg.wait == 0 {
-		cfg.wait = defaultWait
+	if cfg.Wait == 0 {
+		cfg.Wait = DefaultWait
 	}
-	if cfg.maxItems == 0 {
-		cfg.maxItems = defaultMaxItems
+	if cfg.MaxItems == 0 {
+		cfg.MaxItems = DefaultMaxItems
 	}
 
 	// TODO(mapno): Add support for an external cache (e.g. memcached)
 	p := &processor{
 		nextConsumer: nextConsumer,
+		reg:          prometheus.DefaultRegisterer,
 		// Cleanup period is hardcoded to twice the waiting time for simplicity
 		// Most likely not ideal in every scenario
-		store:    cache.New(cfg.wait, cfg.wait*2),
-		maxItems: cfg.maxItems,
+		store:    cache.New(cfg.Wait, cfg.Wait*2),
+		maxItems: cfg.MaxItems,
 		closed:   atomic.Bool{},
 		logger:   logger,
 	}
@@ -80,14 +80,7 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error)
 	return p, nil
 }
 
-func (p *processor) Start(ctx context.Context, _ component.Host) error {
-	var reg prometheus.Registerer
-	reg = prometheus.NewRegistry()
-	if v, ok := ctx.Value(contextkeys.PrometheusRegisterer).(prometheus.Registerer); ok {
-		reg = v
-	}
-	p.reg = reg
-
+func (p *processor) Start(context.Context, component.Host) error {
 	return p.registerMetrics()
 }
 
@@ -159,6 +152,7 @@ func (p *processor) Capabilities() consumer.Capabilities {
 }
 
 func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
+	level.Info(p.logger).Log("msg", "consuming traces")
 	if p.closed.Load() {
 		return nil
 	}
@@ -183,17 +177,16 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 }
 
 func (p *processor) collectMetrics() {
-	for _, v := range p.store.Items() {
+	level.Info(p.logger).Log("msg", "collecting metrics")
+	for k, v := range p.store.Items() {
 		e := v.Object.(edge)
-		if v.Expired() {
-
-		}
 		if e.complete() {
 			p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 			if e.failed {
 				p.serviceGraphRequestFailedTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 			}
 			p.serviceGraphRequestHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
+			p.store.Delete(k)
 		}
 	}
 }

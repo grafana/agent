@@ -27,6 +27,7 @@ func TestConsumeMetrics(t *testing.T) {
 	p, err := newProcessor(&mockConsumer{}, &Config{})
 	require.NoError(t, err)
 
+	p.reg = prometheus.NewRegistry()
 	err = p.Start(context.Background(), nil)
 	require.NoError(t, err)
 
@@ -40,50 +41,43 @@ func TestConsumeMetrics(t *testing.T) {
 func TestConsumeMetrics_Unpaired(t *testing.T) {
 	traces := traceSamples(t, unpairedTraceSamplePath)
 
-	p, err := newProcessor(&mockConsumer{}, &Config{})
+	p, err := newProcessor(&mockConsumer{}, &Config{
+		Wait: time.Millisecond*100,
+	})
 	require.NoError(t, err)
 
+	p.reg = prometheus.NewRegistry()
 	err = p.Start(context.Background(), nil)
 	require.NoError(t, err)
 
 	err = p.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
 
-	// Force cleanup of all items
-	for k := range p.store.Items() {
-		p.store.Delete(k)
-	}
-
-	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(unpairedMetric))
-	require.NoError(t, err)
+	require.Eventually(t, func() bool {
+		return testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(unpairedMetric)) == nil
+	}, time.Second, time.Millisecond*100)
 }
 
 func TestConsumeMetrics_MaxItems(t *testing.T) {
 	traces := traceSamples(t, traceSamplePath)
 
 	p, err := newProcessor(&mockConsumer{}, &Config{
-		wait:     time.Nanosecond,
-		maxItems: 1, // Configure max number of items in store to 1. Only one edge will be processed.
+		Wait:     time.Millisecond,
+		MaxItems: 1, // Configure max number of items in store to 1. Only one edge will be processed.
 	})
 	require.NoError(t, err)
 
+	p.reg = prometheus.NewRegistry()
 	err = p.Start(context.Background(), nil)
 	require.NoError(t, err)
 
 	err = p.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
 
-	// Force deletion of unpaired processed span
-	for k := range p.store.Items() {
-		p.store.Delete(k)
-	}
+	require.Eventually(t, func() bool {
+		return testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(maxItemsMetric)) == nil
+	}, time.Millisecond*100, time.Millisecond*100)
 
-	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(`
-		# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes
-		# TYPE tempo_service_graph_unpaired_spans_total counter
-		tempo_service_graph_unpaired_spans_total{client="lb",server=""} 1
-`))
-	require.NoError(t, err)
 }
 
 func traceSamples(t *testing.T, path string) pdata.Traces {
@@ -157,5 +151,11 @@ const (
         tempo_service_graph_unpaired_spans_total{client="",server="db"} 2
         tempo_service_graph_unpaired_spans_total{client="app",server=""} 3
         tempo_service_graph_unpaired_spans_total{client="lb",server=""} 3
+`
+
+	maxItemsMetric = `
+		# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes
+		# TYPE tempo_service_graph_unpaired_spans_total counter
+		tempo_service_graph_unpaired_spans_total{client="lb",server=""} 1
 `
 )

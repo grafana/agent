@@ -14,16 +14,17 @@ const (
 	// TypeStr is the unique identifier for the Prometheus service graph exporter.
 	TypeStr = "service_graphs"
 
-	defaultWait     = time.Second * 10
-	defaultMaxItems = 10_000
+	// TODO: document
+	DefaultWait     = time.Second * 10
+	DefaultMaxItems = 10_000
 )
 
 // Config holds the configuration for the Prometheus service graph processor.
 type Config struct {
 	config.ProcessorSettings `mapstructure:",squash"`
 
-	wait     time.Duration `mapstructure:"wait"`
-	maxItems int           `mapstructure:"max_items"`
+	Wait     time.Duration `mapstructure:"wait"`
+	MaxItems int           `mapstructure:"max_items"`
 }
 
 // NewFactory returns a new factory for the Prometheus service graph processor.
