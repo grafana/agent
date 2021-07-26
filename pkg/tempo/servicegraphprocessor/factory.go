@@ -14,8 +14,9 @@ const (
 	// TypeStr is the unique identifier for the Prometheus service graph exporter.
 	TypeStr = "service_graphs"
 
-	// TODO: document
-	DefaultWait     = time.Second * 10
+	// DefaultWait is the default value to wait for an edge to be completed
+	DefaultWait = time.Second * 10
+	// DefaultMaxItems is the default amount of edges that will be stored in the store
 	DefaultMaxItems = 10_000
 )
 
@@ -50,5 +51,5 @@ func createTracesProcessor(
 ) (component.TracesProcessor, error) {
 	eCfg := cfg.(*Config)
 
-	return newProcessor(nextConsumer, eCfg)
+	return newProcessor(nextConsumer, eCfg), nil
 }

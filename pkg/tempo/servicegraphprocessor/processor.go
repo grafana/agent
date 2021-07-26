@@ -21,8 +21,7 @@ import (
 )
 
 var (
-	ErrNoServiceName = errors.New("failed to find service name")
-	ErrTooManyItems  = errors.New("too many items in store")
+	errTooManyItems = errors.New("too many items in store")
 )
 
 type edge struct {
@@ -54,7 +53,7 @@ type processor struct {
 	logger log.Logger
 }
 
-func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error) {
+func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 	logger := log.With(util.Logger, "component", "tempo service graphs")
 
 	if cfg.Wait == 0 {
@@ -74,7 +73,7 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error)
 		logger:   logger,
 	}
 
-	return p, nil
+	return p
 }
 
 func (p *processor) Start(ctx context.Context, _ component.Host) error {
@@ -164,8 +163,8 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	var errs error
 	for _, trace := range batchpersignal.SplitTraces(td) {
 		if err := p.consume(trace); err != nil {
-			if errors.Is(err, ErrTooManyItems) {
-				level.Warn(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", ErrTooManyItems)
+			if errors.Is(err, errTooManyItems) {
+				level.Warn(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
 				break
 			}
 			errs = multierror.Append(errs, err)
@@ -201,7 +200,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 		svc, ok := rSpan.Resource().Attributes().Get(conventions.AttributeServiceName)
 		if !ok {
-			return ErrNoServiceName
+			continue
 		}
 
 		ilsSlice := rSpan.InstrumentationLibrarySpans()
@@ -212,7 +211,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 				span := ils.Spans().At(k)
 
 				if p.store.ItemCount() >= p.maxItems {
-					return ErrTooManyItems
+					return errTooManyItems
 				}
 
 				switch span.Kind() {
