@@ -9,13 +9,14 @@ import (
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal"
 	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
 	"go.uber.org/atomic"
 )
@@ -49,6 +50,7 @@ type processor struct {
 	serviceGraphRequestFailedTotal *prometheus.CounterVec
 	serviceGraphRequestHistogram   *prometheus.HistogramVec
 	serviceGraphUnpairedSpansTotal *prometheus.CounterVec
+	serviceGraphUntaggedSpansTotal *prometheus.CounterVec
 
 	closed atomic.Bool
 
@@ -68,7 +70,6 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error)
 	// TODO(mapno): Add support for an external cache (e.g. memcached)
 	p := &processor{
 		nextConsumer: nextConsumer,
-		reg:          prometheus.DefaultRegisterer,
 		// Cleanup period is hardcoded to twice the waiting time for simplicity
 		// Most likely not ideal in every scenario
 		store:    cache.New(cfg.Wait, cfg.Wait*2),
@@ -80,7 +81,12 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error)
 	return p, nil
 }
 
-func (p *processor) Start(context.Context, component.Host) error {
+func (p *processor) Start(ctx context.Context, _ component.Host) error {
+	reg, ok := ctx.Value(contextkeys.PrometheusRegisterer).(prometheus.Registerer)
+	if !ok || reg == nil {
+		return fmt.Errorf("key does not contain a prometheus registerer")
+	}
+	p.reg = reg
 	return p.registerMetrics()
 }
 
@@ -102,12 +108,17 @@ func (p *processor) registerMetrics() error {
 		Name: "tempo_service_graph_unpaired_spans_total",
 		Help: "Total count of requests between two nodes",
 	}, []string{"client", "server"})
+	p.serviceGraphUntaggedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "tempo_service_graph_untagged_spans_total",
+		Help: "Total count of spans processed that were not tagged with span.kind",
+	}, []string{"span_kind"})
 
 	cs := []prometheus.Collector{
 		p.serviceGraphRequestTotal,
 		p.serviceGraphRequestFailedTotal,
 		p.serviceGraphRequestHistogram,
 		p.serviceGraphUnpairedSpansTotal,
+		p.serviceGraphUntaggedSpansTotal,
 	}
 
 	for _, c := range cs {
@@ -140,6 +151,7 @@ func (p *processor) unregisterMetrics() {
 		p.serviceGraphRequestFailedTotal,
 		p.serviceGraphRequestHistogram,
 		p.serviceGraphUnpairedSpansTotal,
+		p.serviceGraphUntaggedSpansTotal,
 	}
 
 	for _, c := range cs {
@@ -168,7 +180,7 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 		}
 	}
 	if errs != nil {
-		return errs
+		level.Error(p.logger).Log("msg", "failed consuming traces", "err", errs)
 	}
 
 	p.collectMetrics()
@@ -177,7 +189,6 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 }
 
 func (p *processor) collectMetrics() {
-	level.Info(p.logger).Log("msg", "collecting metrics")
 	for k, v := range p.store.Items() {
 		e := v.Object.(edge)
 		if e.complete() {
@@ -235,6 +246,8 @@ func (p *processor) consume(trace pdata.Traces) error {
 					e.serverService = svc.StringVal()
 					e.serverLatency = spanDuration(span)
 					p.store.SetDefault(k, e)
+				default:
+					p.serviceGraphUntaggedSpansTotal.WithLabelValues(span.Kind().String()).Inc()
 				}
 			}
 		}

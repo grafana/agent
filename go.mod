@@ -27,9 +27,9 @@ require (
 	github.com/hashicorp/consul/api v1.8.1
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
-	github.com/hashicorp/go-multierror v1.1.0
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/klauspost/compress v1.13.1 // indirect
@@ -40,6 +40,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.2
 	github.com/oliver006/redis_exporter v1.15.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.30.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.0.0-00010101000000-000000000000
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.30.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.30.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e

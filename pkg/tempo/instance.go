@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -63,8 +64,7 @@ func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager ins
 	// Shut down any existing pipeline
 	i.stop()
 
-	createCtx := context.WithValue(context.Background(), contextkeys.Logs, logsSubsystem)
-	err := i.buildAndStartPipeline(createCtx, cfg, promInstanceManager, reg)
+	err := i.buildAndStartPipeline(context.Background(), cfg, logsSubsystem, promInstanceManager, reg)
 	if err != nil {
 		return fmt.Errorf("failed to create pipeline: %w", err)
 	}
@@ -130,7 +130,7 @@ func (i *Instance) stop() {
 	i.exporter = nil
 }
 
-func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, promManager instance.Manager, reg prometheus.Registerer) error {
+func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager, reg prometheus.Registerer) error {
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
@@ -149,7 +149,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
-		ctx = context.WithValue(ctx, contextkeys.InstanceManager, promManager)
+		ctx = context.WithValue(ctx, contextkeys.InstanceManager, instManager)
 	}
 
 	if cfg.TailSampling != nil && cfg.LoadBalancing == nil {
@@ -157,7 +157,13 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 			"Load balancing is required for tail sampling to properly work in multi agent deployments")
 	}
 
-	ctx = context.WithValue(ctx, contextkeys.PrometheusRegisterer, reg)
+	if cfg.AutomaticLogging != nil && cfg.AutomaticLogging.Backend != automaticloggingprocessor.BackendStdout {
+		ctx = context.WithValue(ctx, contextkeys.Logs, logs)
+	}
+
+	if cfg.ServiceGraphs != nil {
+		ctx = context.WithValue(ctx, contextkeys.PrometheusRegisterer, reg)
+	}
 
 	factories, err := tracingFactories()
 	if err != nil {

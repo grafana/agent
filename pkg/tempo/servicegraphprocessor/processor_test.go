@@ -8,12 +8,14 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/tempo/pkg/tempopb"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/otlp"
+	"go.opentelemetry.io/collector/model/pdata"
 )
 
 const (
@@ -27,14 +29,16 @@ func TestConsumeMetrics(t *testing.T) {
 	p, err := newProcessor(&mockConsumer{}, &Config{})
 	require.NoError(t, err)
 
-	p.reg = prometheus.NewRegistry()
-	err = p.Start(context.Background(), nil)
+	reg := prometheus.NewRegistry()
+	ctx := context.WithValue(context.Background(), contextkeys.PrometheusRegisterer, reg)
+
+	err = p.Start(ctx, nil)
 	require.NoError(t, err)
 
 	err = p.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
 
-	err = testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(histogramMetric+counterMetric))
+	err = testutil.GatherAndCompare(reg, bytes.NewBufferString(histogramMetric+counterMetric+untaggedMetric))
 	require.NoError(t, err)
 }
 
@@ -42,19 +46,21 @@ func TestConsumeMetrics_Unpaired(t *testing.T) {
 	traces := traceSamples(t, unpairedTraceSamplePath)
 
 	p, err := newProcessor(&mockConsumer{}, &Config{
-		Wait: time.Millisecond*100,
+		Wait: time.Millisecond * 100,
 	})
 	require.NoError(t, err)
 
-	p.reg = prometheus.NewRegistry()
-	err = p.Start(context.Background(), nil)
+	reg := prometheus.NewRegistry()
+	ctx := context.WithValue(context.Background(), contextkeys.PrometheusRegisterer, reg)
+
+	err = p.Start(ctx, nil)
 	require.NoError(t, err)
 
 	err = p.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
-		return testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(unpairedMetric)) == nil
+		return testutil.GatherAndCompare(reg, bytes.NewBufferString(unpairedMetric+untaggedMetric)) == nil
 	}, time.Second, time.Millisecond*100)
 }
 
@@ -67,16 +73,18 @@ func TestConsumeMetrics_MaxItems(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	p.reg = prometheus.NewRegistry()
-	err = p.Start(context.Background(), nil)
+	reg := prometheus.NewRegistry()
+	ctx := context.WithValue(context.Background(), contextkeys.PrometheusRegisterer, reg)
+
+	err = p.Start(ctx, nil)
 	require.NoError(t, err)
 
 	err = p.ConsumeTraces(context.Background(), traces)
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
-		return testutil.GatherAndCompare(p.reg.(prometheus.Gatherer), bytes.NewBufferString(maxItemsMetric)) == nil
-	}, time.Millisecond*100, time.Millisecond*100)
+		return testutil.GatherAndCompare(reg, bytes.NewBufferString(maxItemsMetric)) == nil
+	}, time.Second, time.Millisecond*100)
 
 }
 
@@ -91,7 +99,7 @@ func traceSamples(t *testing.T, path string) pdata.Traces {
 	b, err := r.Marshal()
 	require.NoError(t, err)
 
-	traces, err := pdata.TracesFromOtlpProtoBytes(b)
+	traces, err := otlp.NewProtobufTracesUnmarshaler().UnmarshalTraces(b)
 	require.NoError(t, err)
 
 	return traces
@@ -157,5 +165,14 @@ const (
 		# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes
 		# TYPE tempo_service_graph_unpaired_spans_total counter
 		tempo_service_graph_unpaired_spans_total{client="lb",server=""} 1
+		# HELP tempo_service_graph_untagged_spans_total Total count of spans processed that were not tagged with span.kind
+		# TYPE tempo_service_graph_untagged_spans_total counter
+		tempo_service_graph_untagged_spans_total{span_kind="SPAN_KIND_UNSPECIFIED"} 1
+`
+
+	untaggedMetric = `
+		# HELP tempo_service_graph_untagged_spans_total Total count of spans processed that were not tagged with span.kind
+		# TYPE tempo_service_graph_untagged_spans_total counter
+		tempo_service_graph_untagged_spans_total{span_kind="SPAN_KIND_UNSPECIFIED"} 5
 `
 )
