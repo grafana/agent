@@ -237,6 +237,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					e.serverService = svc.StringVal()
 					e.serverLatency = spanDuration(span)
 					p.store.SetDefault(k, e)
+
 				default:
 					p.serviceGraphUntaggedSpansTotal.WithLabelValues(span.Kind().String()).Inc()
 				}
