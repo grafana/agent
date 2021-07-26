@@ -18,7 +18,6 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
-	"go.uber.org/atomic"
 )
 
 var (
@@ -52,8 +51,6 @@ type processor struct {
 	serviceGraphUnpairedSpansTotal *prometheus.CounterVec
 	serviceGraphUntaggedSpansTotal *prometheus.CounterVec
 
-	closed atomic.Bool
-
 	logger log.Logger
 }
 
@@ -74,7 +71,6 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) (*processor, error)
 		// Most likely not ideal in every scenario
 		store:    cache.New(cfg.Wait, cfg.Wait*2),
 		maxItems: cfg.MaxItems,
-		closed:   atomic.Bool{},
 		logger:   logger,
 	}
 
@@ -140,7 +136,6 @@ func (p *processor) registerMetrics() error {
 }
 
 func (p *processor) Shutdown(context.Context) error {
-	p.closed.Store(true)
 	p.unregisterMetrics()
 	return nil
 }
@@ -164,10 +159,7 @@ func (p *processor) Capabilities() consumer.Capabilities {
 }
 
 func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
-	level.Info(p.logger).Log("msg", "consuming traces")
-	if p.closed.Load() {
-		return nil
-	}
+	level.Debug(p.logger).Log("msg", "consuming traces")
 
 	var errs error
 	for _, trace := range batchpersignal.SplitTraces(td) {
