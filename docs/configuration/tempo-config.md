@@ -182,7 +182,7 @@ spanmetrics:
 # a complete trace. This is achieved by waiting a given time for all the spans
 # before evaluating the trace.
 #
-# Tail sampling also supports multiple agent deployments, allowing to group all
+# Tail sampling also supports multi agent deployments, allowing to group all
 # spans of a trace in the same agent by load balancing the spans by trace ID
 # between the instances.
 # * To make use of this feature, check load_balancing below *
@@ -242,6 +242,33 @@ load_balancing:
       [ username: <string> ]
       [ password: <secret> ]
       [ password_file: <string> ]
+
+# service_graphs configures processing of traces for building service graphs in
+# the form of prometheus metrics. The generated metrics represent edges between
+# nodes in the graph. Nodes are represented by `client` and `server` labels.
+#
+#  e.g. tempo_service_graph_request_total{client="app", server="db"} 20
+#
+# Service graphs works by inspecting spans and looking for the tag `span.kind`.
+# If it finds the span kind to be client or server, it stores the request in a
+# local in-memory store.
+#
+# That request waits until its corresponding client or server pair span is
+# processed or until the maximum waiting time has passed.
+# When either of those conditions is reached, the request is processed and
+# removed from the local store. If the request is complete by that time, it'll
+# be recorded as an edge in the graph.
+#
+# Service graphs supports multi agent deployments, allowing to group all spans
+# of a trace in the same agent by load balancing the spans by trace ID between
+# the instances.
+# * To make use of this feature, check load_balancing above *
+service_graphs:
+  [ enabled: <bool> | default = false ]
+
+  [ wait: <duration> | default = "10s"]
+
+  [ max_items: <integer> | default = 10_000 ]
 ```
 
 > **Note:** More information on the following types can be found on the

@@ -59,7 +59,7 @@ func TestConsumeMetrics(t *testing.T) {
 			sampleDataPath: traceSamplePath,
 			cfg: &Config{
 				Wait:     time.Millisecond,
-				MaxItems: 1, // Configure max number of items in store to 1. Only one edge will be processed.
+				MaxItems: 1, // Configure max number of items in store to 1. Only one edgeRequest will be processed.
 			},
 			expectedMetrics: `
 				# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes

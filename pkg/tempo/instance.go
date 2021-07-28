@@ -152,9 +152,9 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		ctx = context.WithValue(ctx, contextkeys.InstanceManager, instManager)
 	}
 
-	if cfg.TailSampling != nil && cfg.LoadBalancing == nil {
-		i.logger.Warn("Configuring tail_sampling without load_balance." +
-			"Load balancing is required for tail sampling to properly work in multi agent deployments")
+	if cfg.LoadBalancing == nil && (cfg.TailSampling != nil || cfg.ServiceGraphs != nil) {
+		i.logger.Warn("Configuring tail_sampling and/or service_graphs without load_balance." +
+			"Load balancing is required for those features to properly work in multi agent deployments")
 	}
 
 	if cfg.AutomaticLogging != nil && cfg.AutomaticLogging.Backend != automaticloggingprocessor.BackendStdout {

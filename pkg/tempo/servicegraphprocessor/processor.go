@@ -24,14 +24,17 @@ var (
 	errTooManyItems = errors.New("too many items in store")
 )
 
-type edge struct {
+// edgeRequest is a request between two nodes in the graph
+type edgeRequest struct {
 	serverService, clientService string
 	serverLatency, clientLatency time.Duration
 
 	failed bool
 }
 
-func (e *edge) complete() bool {
+// complete returns true if the corresponding client and server
+// pair spans have been processed for the given request
+func (e *edgeRequest) complete() bool {
 	return len(e.clientService) != 0 && len(e.serverService) != 0
 }
 
@@ -41,14 +44,16 @@ type processor struct {
 	nextConsumer consumer.Traces
 	reg          prometheus.Registerer
 
+	// store is a local storage for request between graphs nodes
 	store    *cache.Cache
 	maxItems int
 
-	serviceGraphRequestTotal       *prometheus.CounterVec
-	serviceGraphRequestFailedTotal *prometheus.CounterVec
-	serviceGraphRequestHistogram   *prometheus.HistogramVec
-	serviceGraphUnpairedSpansTotal *prometheus.CounterVec
-	serviceGraphUntaggedSpansTotal *prometheus.CounterVec
+	serviceGraphRequestTotal           *prometheus.CounterVec
+	serviceGraphRequestFailedTotal     *prometheus.CounterVec
+	serviceGraphRequestServerHistogram *prometheus.HistogramVec
+	serviceGraphRequestClientHistogram *prometheus.HistogramVec
+	serviceGraphUnpairedSpansTotal     *prometheus.CounterVec
+	serviceGraphUntaggedSpansTotal     *prometheus.CounterVec
 
 	logger log.Logger
 }
@@ -94,9 +99,14 @@ func (p *processor) registerMetrics() error {
 		Name: "tempo_service_graph_request_failed_total",
 		Help: "Total count of failed requests between two nodes",
 	}, []string{"client", "server"})
-	p.serviceGraphRequestHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    "tempo_service_graph_request_seconds",
-		Help:    "Time for a request between two nodes",
+	p.serviceGraphRequestServerHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "tempo_service_graph_request_server_seconds",
+		Help:    "Time for a request between two nodes as seen from the server",
+		Buckets: prometheus.ExponentialBuckets(0.01, 2, 12),
+	}, []string{"client", "server"})
+	p.serviceGraphRequestClientHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "tempo_service_graph_request_client_seconds",
+		Help:    "Time for a request between two nodes as seen from the client",
 		Buckets: prometheus.ExponentialBuckets(0.01, 2, 12),
 	}, []string{"client", "server"})
 	p.serviceGraphUnpairedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -111,7 +121,8 @@ func (p *processor) registerMetrics() error {
 	cs := []prometheus.Collector{
 		p.serviceGraphRequestTotal,
 		p.serviceGraphRequestFailedTotal,
-		p.serviceGraphRequestHistogram,
+		p.serviceGraphRequestServerHistogram,
+		p.serviceGraphRequestClientHistogram,
 		p.serviceGraphUnpairedSpansTotal,
 		p.serviceGraphUntaggedSpansTotal,
 	}
@@ -125,7 +136,7 @@ func (p *processor) registerMetrics() error {
 	// Collect unpaired spans when evicting items from the store during
 	// periodic cleanup
 	p.store.OnEvicted(func(s string, i interface{}) {
-		e := i.(edge)
+		e := i.(edgeRequest)
 		if !e.complete() {
 			p.serviceGraphUnpairedSpansTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 		}
@@ -136,6 +147,7 @@ func (p *processor) registerMetrics() error {
 
 func (p *processor) Shutdown(context.Context) error {
 	p.unregisterMetrics()
+	p.store.Flush()
 	return nil
 }
 
@@ -143,7 +155,8 @@ func (p *processor) unregisterMetrics() {
 	cs := []prometheus.Collector{
 		p.serviceGraphRequestTotal,
 		p.serviceGraphRequestFailedTotal,
-		p.serviceGraphRequestHistogram,
+		p.serviceGraphRequestServerHistogram,
+		p.serviceGraphRequestClientHistogram,
 		p.serviceGraphUnpairedSpansTotal,
 		p.serviceGraphUntaggedSpansTotal,
 	}
@@ -181,13 +194,14 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 
 func (p *processor) collectMetrics() {
 	for k, v := range p.store.Items() {
-		e := v.Object.(edge)
+		e := v.Object.(edgeRequest)
 		if e.complete() {
 			p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 			if e.failed {
 				p.serviceGraphRequestFailedTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 			}
-			p.serviceGraphRequestHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
+			p.serviceGraphRequestServerHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
+			p.serviceGraphRequestClientHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.clientLatency.Seconds())
 			p.store.Delete(k)
 		}
 	}
@@ -208,35 +222,35 @@ func (p *processor) consume(trace pdata.Traces) error {
 			ils := ilsSlice.At(j)
 
 			for k := 0; k < ils.Spans().Len(); k++ {
-				span := ils.Spans().At(k)
-
 				if p.store.ItemCount() >= p.maxItems {
 					return errTooManyItems
 				}
+
+				span := ils.Spans().At(k)
 
 				switch span.Kind() {
 				case pdata.SpanKindClient:
 					k := key(span.TraceID().HexString(), span.SpanID().HexString())
 
-					var e edge
+					var r edgeRequest
 					if v, ok := p.store.Get(k); ok {
-						e = v.(edge)
+						r = v.(edgeRequest)
 					}
-					e.clientService = svc.StringVal()
-					e.clientLatency = spanDuration(span)
-					p.store.SetDefault(k, e)
+					r.clientService = svc.StringVal()
+					r.clientLatency = spanDuration(span)
+					p.store.SetDefault(k, r)
 
 				case pdata.SpanKindServer:
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
-					var e edge
+					var r edgeRequest
 					if v, ok := p.store.Get(k); ok {
-						e = v.(edge)
+						r = v.(edgeRequest)
 					}
 
-					e.serverService = svc.StringVal()
-					e.serverLatency = spanDuration(span)
-					p.store.SetDefault(k, e)
+					r.serverService = svc.StringVal()
+					r.serverLatency = spanDuration(span)
+					p.store.SetDefault(k, r)
 
 				default:
 					p.serviceGraphUntaggedSpansTotal.WithLabelValues(span.Kind().String()).Inc()
