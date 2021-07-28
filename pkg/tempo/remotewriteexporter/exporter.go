@@ -17,7 +17,7 @@ import (
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.uber.org/atomic"
 )
 
@@ -96,7 +96,7 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 			ms := ilm.At(j).Metrics()
 			for k := 0; k < ms.Len(); k++ {
 				switch m := ms.At(k); m.DataType() {
-				case pdata.MetricDataTypeDoubleSum, pdata.MetricDataTypeIntSum, pdata.MetricDataTypeDoubleGauge, pdata.MetricDataTypeIntGauge:
+				case pdata.MetricDataTypeSum, pdata.MetricDataTypeIntSum, pdata.MetricDataTypeGauge, pdata.MetricDataTypeIntGauge:
 					if err := e.processScalarMetric(app, m); err != nil {
 						return fmt.Errorf("failed to process metric %s", err)
 					}
@@ -169,8 +169,8 @@ func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.
 		if err := e.handleScalarIntDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
 			return err
 		}
-	case pdata.MetricDataTypeDoubleSum:
-		dataPoints := m.DoubleSum().DataPoints()
+	case pdata.MetricDataTypeSum:
+		dataPoints := m.Sum().DataPoints()
 		if err := e.handleScalarFloatDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
 			return err
 		}
@@ -179,8 +179,8 @@ func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.
 		if err := e.handleScalarIntDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
 			return err
 		}
-	case pdata.MetricDataTypeDoubleGauge:
-		dataPoints := m.DoubleGauge().DataPoints()
+	case pdata.MetricDataTypeGauge:
+		dataPoints := m.Gauge().DataPoints()
 		if err := e.handleScalarFloatDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
 			return err
 		}

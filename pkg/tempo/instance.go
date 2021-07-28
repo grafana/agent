@@ -16,6 +16,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/external/builder"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -168,7 +169,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start exporter
-	i.exporter, err = builder.BuildExporters(i.logger, appinfo, otelConfig, factories.Exporters)
+	i.exporter, err = builder.BuildExporters(i.logger, trace.NewNoopTracerProvider(), appinfo, otelConfig, factories.Exporters)
 	if err != nil {
 		return fmt.Errorf("failed to create exporters builder: %w", err)
 	}
@@ -179,7 +180,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start pipelines
-	i.pipelines, err = builder.BuildPipelines(i.logger, appinfo, otelConfig, i.exporter, factories.Processors)
+	i.pipelines, err = builder.BuildPipelines(i.logger, trace.NewNoopTracerProvider(), appinfo, otelConfig, i.exporter, factories.Processors)
 	if err != nil {
 		return fmt.Errorf("failed to create pipelines builder: %w", err)
 	}
@@ -190,7 +191,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start receivers
-	i.receivers, err = builder.BuildReceivers(i.logger, appinfo, otelConfig, i.pipelines, factories.Receivers)
+	i.receivers, err = builder.BuildReceivers(i.logger, trace.NewNoopTracerProvider(), appinfo, otelConfig, i.pipelines, factories.Receivers)
 	if err != nil {
 		return fmt.Errorf("failed to create receivers builder: %w", err)
 	}

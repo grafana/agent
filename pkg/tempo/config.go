@@ -52,6 +52,8 @@ const (
 	stringAttributePolicy  = "string_attribute"
 	numericAttributePolicy = "numeric_attribute"
 	rateLimitingPolicy     = "rate_limiting"
+	latencyPolicy          = "latency"
+	statusCodePolicy       = "status_code"
 )
 
 // Config controls the configuration of Tempo trace pipelines.
@@ -400,7 +402,7 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 					"name": fmt.Sprintf("%s/%d", typ, i),
 					"type": typ,
 				})
-			case stringAttributePolicy, rateLimitingPolicy, numericAttributePolicy:
+			case stringAttributePolicy, rateLimitingPolicy, numericAttributePolicy, latencyPolicy, statusCodePolicy:
 				policies = append(policies, map[string]interface{}{
 					"name": fmt.Sprintf("%s/%d", typ, i),
 					"type": typ,
