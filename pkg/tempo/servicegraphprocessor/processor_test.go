@@ -129,12 +129,12 @@ const (
 		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="0.32"} 0
 		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="0.64"} 0
 		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="1.28"} 2
-		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="2.56"} 2
+		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="2.56"} 3
 		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="5.12"} 3
 		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="10.24"} 3
 		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="20.48"} 3
 		tempo_service_graph_request_client_seconds_bucket{client="app",server="db",le="+Inf"} 3
-		tempo_service_graph_request_client_seconds_sum{client="app",server="db"} 4.6
+		tempo_service_graph_request_client_seconds_sum{client="app",server="db"} 4.4
 		tempo_service_graph_request_client_seconds_count{client="app",server="db"} 3
 		tempo_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.01"} 0
 		tempo_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.02"} 0

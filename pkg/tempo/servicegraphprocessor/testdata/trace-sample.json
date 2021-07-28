@@ -1608,7 +1608,7 @@
               "parentSpanId":"H7/n/FTsqf0=",
               "name":"HTTP GET",
               "kind":"SPAN_KIND_CLIENT",
-              "startTimeUnixNano":"1626717502430304000",
+              "startTimeUnixNano":"1626717502630304000",
               "endTimeUnixNano":"1626717505130304000",
               "attributes":[
                 {
