@@ -16,10 +16,11 @@ import (
 	"go.opentelemetry.io/collector/config/configloader"
 	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/service/external/builder"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -134,7 +135,7 @@ service:
 		startInfo component.BuildInfo
 	)
 
-	exporters, err := builder.BuildExporters(logger, startInfo, otelCfg, factories.Exporters)
+	exporters, err := builder.BuildExporters(logger, trace.NewNoopTracerProvider(), startInfo, otelCfg, factories.Exporters)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build exporters: %w", err)
 	}
@@ -142,7 +143,7 @@ service:
 		return nil, fmt.Errorf("failed to start exporters: %w", err)
 	}
 
-	pipelines, err := builder.BuildPipelines(logger, startInfo, otelCfg, exporters, factories.Processors)
+	pipelines, err := builder.BuildPipelines(logger, trace.NewNoopTracerProvider(), startInfo, otelCfg, exporters, factories.Processors)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build pipelines: %w", err)
 	}
@@ -150,7 +151,7 @@ service:
 		return nil, fmt.Errorf("failed to start pipelines: %w", err)
 	}
 
-	receivers, err := builder.BuildReceivers(logger, startInfo, otelCfg, pipelines, factories.Receivers)
+	receivers, err := builder.BuildReceivers(logger, trace.NewNoopTracerProvider(), startInfo, otelCfg, pipelines, factories.Receivers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build receivers: %w", err)
 	}

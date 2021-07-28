@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	"github.com/weaveworks/common/logging"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/model/pdata"
 	"gopkg.in/yaml.v2"
 )
 
