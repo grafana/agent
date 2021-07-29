@@ -1,6 +1,6 @@
 # agent-local is intended to be used with docker-compose.integrations.yaml.
 server:
-  log_level: info
+  log_level: debug
   http_listen_port: 12345
 
 prometheus:
@@ -37,39 +37,44 @@ integrations:
   agent:
     enabled: true
   node_exporter:
-    enabled: true
+    enabled: false
   process_exporter:
-    enabled: true
+    enabled: false
     process_names:
       - name: "{{.Comm}}"
         cmdline:
         - '.+'
   mysqld_exporter:
-    enabled: true
+    enabled: false
     data_source_name: root@(localhost:3306)/
   postgres_exporter:
-    enabled: true
+    enabled: false
     data_source_names:
       - postgresql://postgres:password@localhost:5432/postgres?sslmode=disable
   redis_exporter:
-    enabled: true
+    enabled: false
     redis_addr: localhost:6379
   dnsmasq_exporter:
-    enabled: true
+    enabled: false
     dnsmasq_address: localhost:30053
     leases_path: /tmp/dnsmasq-leases/dnsmasq.leases
   memcached_exporter:
-    enabled: true
+    enabled: false
     memcached_address: localhost:11211
     timeout: 10s
   statsd_exporter:
-    enabled: true
+    enabled: false
   consul_exporter:
-    enabled: true
+    enabled: false
   elasticsearch_exporter:
-    enabled: true
+    enabled: false
     address: http://localhost:9200
   kafka_exporter:
-    enabled: true
+    enabled: false
     kafka_uris: [localhost:9093]
+  mongodb_exporter:
+    enabled: true
+    mongodb_uri: mongodb://192.168.99.102:27017
+    discovering_mode: true
+
 

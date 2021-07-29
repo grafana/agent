@@ -88,8 +88,5 @@ tempo:
       spans: true
       processes: true
       roots: true
-      labels:
-        - svc
-        - status
     spanmetrics:
       prom_instance: tempo
