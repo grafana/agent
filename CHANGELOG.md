@@ -1,5 +1,50 @@
 # Main (unreleased)
 
+- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+
+- [FEATURE] Support autologging span attributes as log labels (@mapno)
+
+- [FEATURE] Put Tests requiring Network Access behind a -online flag (@flokli)
+
+- [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
+  the matching release version of the Grafana Agent instead of v0.14.0.
+  (@rfratto)
+
+- [ENHANCEMENT] Update OTel dependency to v0.30.0 (@mapno)
+
+- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
+
+- [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
+  using `-config.expand-env`.
+
+- [BUGFIX] The directory of the logs positions file will now properly be created
+  on startup for all instances.
+
+- [BUGFIX] The Linux system packages will now configure the grafana-agent user
+  to be a member of the adm and systemd-journal groups. This will allow logs to
+  read from journald and /var/log by default. (@rfratto)
+
+- [CHANGE] Breaking change: reduced verbosity of tracing autologging
+  by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
+
+- [DEPRECATION] The `loki` key at the root of the config file has been
+  deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
+  have been renamed accordinly: `loki_name` is now `logs_instance_name`,
+  `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
+  `backend: logs_instance`. (@rfratto)
+
+# v0.18.0 (2021-07-28)
+
+- [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
+
+- [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
+
+- [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
+
+- [ENHANCEMENT] Update postgres_exporter to a [branch of](https://github.com/grafana/postgres_exporter/tree/exporter-package-v0.10.0) v0.10.0
+
+- [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
+
 # v0.17.0 (2021-07-15)
 
 - [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)

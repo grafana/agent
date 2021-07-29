@@ -5,6 +5,7 @@
 .pkg
 .cache
 cover*.out
+vendor
 
 cmd/agent/agent
 cmd/agentctl/agentctl

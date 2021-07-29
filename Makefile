@@ -8,6 +8,32 @@ SHELL = /usr/bin/env bash
 # Docker image info
 IMAGE_PREFIX ?= grafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
+DRONE ?= false
+# This is normally set by the caller but when building the agent windows installer it needs to be set to something
+RELEASE_TAG ?= v0.0.0
+
+
+# TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
+TARGETPLATFORM ?=normal
+
+# This is used to set all the environment variables to pass to the go build/seego/docker commands
+define SetBuildVarsConditional
+$(if $(filter $(1),normal),CGO_ENABLED=1, \
+$(if $(filter $(1),linux/amd64),CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
+$(if $(filter $(1),linux/arm64),CGO_ENABLED=1 GOOS=linux GOARCH=arm64, \
+$(if $(filter $(1),linux/arm/v7),CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7, \
+$(if $(filter $(1),linux/arm/v6),CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
+$(if $(filter $(1),darwin/amd64),CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
+$(if $(filter $(1),darwin/arm64),CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
+$(if $(filter $(1),windows),CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
+$(if $(filter $(1),mipls),CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
+$(if $(filter $(1),freebsd),CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
+)))))))))
+endef
+
+ALL_CGO_BUILD_FLAGS = $(call SetBuildVarsConditional,$(TARGETPLATFORM))
+
+
 
 # Setting CROSS_BUILD=true enables cross-compiling `agent` and `agentctl` for
 # different architectures. When true, docker buildx is used instead of docker,
@@ -45,13 +71,12 @@ DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAG
 # cause problems with some C libraries.
 CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
 DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
-
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
 GO_FLAGS = $(DEBUG_GO_FLAGS)
 endif
 
-NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
+NETGO_CHECK = strings $@ | grep cgo_stub\\\.go >/dev/null || { \
        rm $@; \
        echo "\nYour go standard library was built without the 'netgo' build tag."; \
        echo "To fix that, run"; \
@@ -75,18 +100,30 @@ PACKAGE_RELEASE := 1
 
 DOCKERFILE = Dockerfile
 
-seego = docker run --rm -t -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS" grafana/agent/seego
-docker-build = docker build $(DOCKER_BUILD_FLAGS)
+# If Go is installed locally mount the local module cache so seego builds
+# aren't too slow.
+ifeq (, $(shell which go))
+MOD_MOUNT=""
+else
+MOD_MOUNT=-v "$(shell go env GOMODCACHE):/go/pkg/mod"
+endif
 
+# seego is used by default when running bare make commands such as `make dist` this uses an image that has all the necessary libraries to cross build
+#	when using drone the docker in docker is more problematic so instead drone uses seego has the base image then calls make running "raw" commands
+seego = docker run --rm -t $(MOD_MOUNT) -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS"  grafana/agent/seego
+docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
-
 docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
 endif
 
-ifeq ($(BUILD_IN_CONTAINER),false)
-seego = "/seego.sh"
+# we want to override the default seego behavior. Drone always builds locally inside seego and if build in container is false then use
+ifeq ($(DRONE),true)
+seego = "/go_wrapper.sh"
+else ifeq ($(BUILD_IN_CONTAINER),false)
+seego = go
 endif
+
 
 ########
 # CRDs #
@@ -94,8 +131,8 @@ endif
 
 crds:
 ifeq ($(BUILD_IN_CONTAINER),true)
-	@mkdir -p $(shell pwd)/.pkg
-	@mkdir -p $(shell pwd)/.cache
+	mkdir -p $(shell pwd)/.pkg
+	mkdir -p $(shell pwd)/.cache
 	docker run -i \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
@@ -118,8 +155,8 @@ touch-protos:
 
 %.pb.go: $(PROTO_DEFS)
 ifeq ($(BUILD_IN_CONTAINER),true)
-	@mkdir -p $(shell pwd)/.pkg
-	@mkdir -p $(shell pwd)/.cache
+	mkdir -p $(shell pwd)/.pkg
+	mkdir -p $(shell pwd)/.cache
 	docker run -i \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
@@ -138,38 +175,33 @@ agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 agent-operator: cmd/agent-operator/agent-operator
 
-cmd/agent/agent: check-seego cmd/agent/main.go
-ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
-endif
+
+
+
+# In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
+
+cmd/agent/agent: seego  cmd/agent/main.go
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
-cmd/agentctl/agentctl: check-seego cmd/agentctl/main.go
-ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=1 go build $(CGO_FLAGS) -o $@ ./$(@D)
-else
-	@CGO_ENABLED=1 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM); $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
-endif
+
+cmd/agentctl/agentctl: seego cmd/agentctl/main.go
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
+
 
 cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
-ifeq ($(CROSS_BUILD),false)
-	CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
-else
-	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=0 go build $(GO_FLAGS) -o $@ ./$(@D)
-endif
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
+
 
 agent-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
-
 agentctl-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
-
 agent-operator-image:
 	$(docker-build) -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
+
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
@@ -184,9 +216,10 @@ lint:
 
 # We have to run test twice: once for all packages with -race and then once more without -race
 # for packages that have known race detection issues
+# Run tests with -online flag set to true, to include tests requiring network connectivity in CI
 test:
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./... -- -online
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs -- -online
 
 clean:
 	rm -rf cmd/agent/agent
@@ -223,61 +256,89 @@ dist: dist-agent dist-agentctl dist-packages
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
+####################
+# BEGIN AGENT DIST #
+####################
+
 dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
 dist/agent-linux-amd64: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
 dist/agent-linux-arm64: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/arm64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
 dist/agent-linux-armv6: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/arm/v6) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
 dist/agent-linux-armv7: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/arm/v7) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
 dist/agent-linux-mipsle: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-dist/agent-darwin-amd64: seego
-	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,linux/mipsle) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
+dist/agent-darwin-amd64:  seego
+	$(call SetBuildVarsConditional,darwin/amd64) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
 dist/agent-darwin-arm64: seego
-	@CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,darwin/arm64) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
 dist/agent-windows-amd64.exe: seego
-	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,windows) ;          $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
 dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
-	cp dist/agent-windows-amd64.exe ./packaging/windows
+	cp ./dist/agent-windows-amd64.exe ./packaging/windows
 	cp LICENSE ./packaging/windows
-	docker build ./packaging/windows -t windows_nsis
-	docker run -e VERSION=${RELEASE_TAG} --rm -t -v $(CURDIR)/dist:/app windows_nsis
+ifeq ($(BUILD_IN_CONTAINER),true)
+	docker build -t windows_installer ./packaging/windows
+	docker run --rm -t -v "${PWD}:/home" windows_installer
+else
+	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
+endif
+
 dist/agent-freebsd-amd64: seego
-	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
+
+#######################
+# BEGIN AGENTCTL DIST #
+#######################
 
 dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
+
 dist/agentctl-linux-amd64: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/amd64);    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
 dist/agentctl-linux-arm64: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm64);    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
 dist/agentctl-linux-armv6: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm/v6);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
 dist/agentctl-linux-armv7: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/arm/v7);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
 dist/agentctl-linux-mipsle: seego
-	@CGO_ENABLED=1 GOOS=linux GOARCH=mipsle GOMIPS=softfloat; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,linux/mipsle);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
 dist/agentctl-darwin-amd64: seego
-	@CGO_ENABLED=1 GOOS=darwin GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,darwin/amd64);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
 dist/agentctl-darwin-arm64: seego
-	@CGO_ENABLED=1 GOOS=darwin GOARCH=arm64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,darwin/arm64);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
 dist/agentctl-windows-amd64.exe: seego
-	@CGO_ENABLED=1 GOOS=windows GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,windows);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
 dist/agentctl-freebsd-amd64: seego
-	@CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64; $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+	$(call SetBuildVarsConditional,freebsd);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
-	docker build -t grafana/agent/seego tools/seego
-
-# Makes seego if CROSS_BUILD is true.
-check-seego:
-ifeq ($(CROSS_BUILD),true)
+ifeq ($(DRONE),false)
 ifeq ($(BUILD_IN_CONTAINER),true)
-	$(MAKE) seego
+	docker build -t grafana/agent/seego tools/seego
 endif
 endif
+
 
 build-image/.uptodate: build-image/Dockerfile
 	docker pull $(BUILD_IMAGE) || docker build -t $(BUILD_IMAGE) $(@D)
@@ -323,9 +384,7 @@ dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-li
 	$(container_make) $@;
 
 else
-
-package_base = dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
-
+package_base = ./dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
 dist-packages-amd64: $(package_base).amd64.deb $(package_base).amd64.rpm
 dist-packages-arm64: $(package_base).arm64.deb $(package_base).arm64.rpm
 dist-packages-armv6: $(package_base).armv6.deb
@@ -386,7 +445,7 @@ $(PACKAGE_PREFIX).armv7.rpm: $(RPM_DEPS)
 endif
 
 enforce-release-tag:
-	@sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
+	sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
 test-packages: enforce-release-tag seego dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
 	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
@@ -398,3 +457,9 @@ clean-dist:
 
 publish: dist
 	./tools/release
+
+# Drone signs the yaml, you will need to specify DRONE_TOKEN, which can be found by logging into your profile in drone
+.PHONY: drone
+drone:
+	drone lint .drone/drone.yml --trusted
+	drone --server https://drone.grafana.net sign --save grafana/agent .drone/drone.yml

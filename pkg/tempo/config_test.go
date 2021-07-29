@@ -700,6 +700,81 @@ service:
       receivers: ["jaeger"]
       `,
 		},
+		{
+			name: "tls config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - insecure: false
+    tls_config:
+      ca_file: server.crt
+      cert_file: client.crt
+      key_file: client.key
+    endpoint: example.com:12345
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    insecure: false
+    ca_file: server.crt
+    cert_file: client.crt
+    key_file: client.key
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "otlp http & grpc exporters",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http 
+  - endpoint: example.com:12345
+    protocol: grpc
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  otlp/1:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0", "otlp/1"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
