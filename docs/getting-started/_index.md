@@ -7,7 +7,7 @@ weight = 100
 
 This guide helps users get started with the Grafana Agent. For getting started
 with the Grafana Agent Operator, please refer to the Operator-specific
-[documentation](../operator/_index.md).
+[documentation](../operator/).
 
 Currently, there are six ways to install the agent:
 
