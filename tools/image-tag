@@ -18,4 +18,4 @@ SHA=$(git rev-parse --short=7 HEAD | head -c7)
 
 # If this is a tag, use it, otherwise use <branch>-<hash>
 TAG=$(git describe --exact-match 2> /dev/null || echo "${BRANCH}-${SHA}")
-echo ${TAG}${WIP}
+echo ${TAG}
