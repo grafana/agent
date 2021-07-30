@@ -18,16 +18,16 @@ TARGETPLATFORM ?=normal
 
 # This is used to set all the environment variables to pass to the go build/seego/docker commands
 define SetBuildVarsConditional
-$(if $(filter $(1),normal),CGO_ENABLED=1, \
-$(if $(filter $(1),linux/amd64),CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
-$(if $(filter $(1),linux/arm64),CGO_ENABLED=1 GOOS=linux GOARCH=arm64, \
-$(if $(filter $(1),linux/arm/v7),CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7, \
-$(if $(filter $(1),linux/arm/v6),CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
-$(if $(filter $(1),darwin/amd64),CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
-$(if $(filter $(1),darwin/arm64),CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
-$(if $(filter $(1),windows),CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
-$(if $(filter $(1),mipls),CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
-$(if $(filter $(1),freebsd),CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
+$(if $(filter $(1),normal),export CGO_ENABLED=1, \
+$(if $(filter $(1),linux/amd64),export CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
+$(if $(filter $(1),linux/arm64),export CGO_ENABLED=1 GOOS=linux GOARCH=arm64, \
+$(if $(filter $(1),linux/arm/v7),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7, \
+$(if $(filter $(1),linux/arm/v6),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
+$(if $(filter $(1),darwin/amd64),export CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
+$(if $(filter $(1),darwin/arm64),export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
+$(if $(filter $(1),windows),export CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
+$(if $(filter $(1),mipls),export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
+$(if $(filter $(1),freebsd),export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
 )))))))))
 endef
 

@@ -9,3 +9,5 @@ RUN  rm -rf /usr/local/go                                           \
   && echo "$GOLANG_DOWNLOAD_SHA256  golang.tar.gz" | sha256sum -c - \
   && tar -C /usr/local -xzf golang.tar.gz                           \
   && rm golang.tar.gz
+RUN apt-get update
+RUN apt-get install -y nsis
