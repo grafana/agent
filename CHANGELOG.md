@@ -26,7 +26,7 @@
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
 
-# v0.18.0 (2021-07-28)
+# v0.18.0 (2021-07-29)
 
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
