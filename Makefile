@@ -292,6 +292,7 @@ ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t windows_installer ./packaging/windows
 	docker run --rm -t -v "${PWD}:/home" windows_installer
 else
+
 	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
 endif
 

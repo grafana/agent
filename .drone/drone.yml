@@ -18,6 +18,7 @@ steps:
   - name: lint
     image: golangci/golangci-lint:v1.37.1
     commands:
+      - echo $DRONE_TAG
       - apt-get update -y && apt-get install -y libsystemd-dev
       - make lint
 
@@ -111,6 +112,7 @@ steps:
       - chmod a+x ~/.docker/cli-plugins/docker-buildx
       - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - docker buildx create --name multiarch --driver docker-container --use
+      - echo $DRONE_TAG
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agent-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agentctl-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agent-operator-image
@@ -172,6 +174,6 @@ volumes:
       path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 5538be22d889779b2c351544e13a4ac9cb1f50cfe0730ecc7c88d5eb7d32b76c
+hmac: e7dbb65ac03116918fafda75fa37ad41555ace9736aafaafff56f2c9d59573bd
 
 ...
