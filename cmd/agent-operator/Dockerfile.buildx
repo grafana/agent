@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.16-buster as build
+FROM --platform=$BUILDPLATFORM rfratto/seego:latest as build
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
