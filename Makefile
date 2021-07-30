@@ -9,7 +9,11 @@ RELEASE_TAG ?= v0.0.0
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
+ifeq ($(RELEASE_TAG),v0.0.0)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
+else
+IMAGE_TAG ?= $(RELEASE_TAG)
+endif
 DRONE ?= false
 
 $(info RELEASE_TAG $(RELEASE_TAG))
@@ -198,10 +202,8 @@ cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 
 
 agent-image:
-	$(IMAGE_TAG)
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 agentctl-image:
-	$(IMAGE_TAG)
 	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
 	$(IMAGE_TAG)
