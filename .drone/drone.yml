@@ -111,9 +111,9 @@ steps:
       - chmod a+x ~/.docker/cli-plugins/docker-buildx
       - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - docker buildx create --name multiarch --driver docker-container --use
-      - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agent-image
-      - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agentctl-image
-      - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agent-operator-image
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agent-image
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agentctl-image
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agent-operator-image
       - docker buildx rm multiarch
 
 
@@ -172,6 +172,6 @@ volumes:
       path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 7839a2012e477ad81027dbc8aadddca44440eda3fd8e7d37c9008f04f8b5f83b
+hmac: 5538be22d889779b2c351544e13a4ac9cb1f50cfe0730ecc7c88d5eb7d32b76c
 
 ...
