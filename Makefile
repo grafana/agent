@@ -206,7 +206,6 @@ agent-image:
 agentctl-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
-	$(IMAGE_TAG)
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 
 
