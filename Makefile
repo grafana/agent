@@ -4,14 +4,16 @@ SHELL = /usr/bin/env bash
 #############
 # Variables #
 #############
+# This is normally set by the caller but when building the agent windows installer it needs to be set to something
+RELEASE_TAG ?= v0.0.0
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 DRONE ?= false
-# This is normally set by the caller but when building the agent windows installer it needs to be set to something
-RELEASE_TAG ?= v0.0.0
 
+$(info RELEASE_TAG $(RELEASE_TAG))
+$(info IMAGE_TAG $(IMAGE_TAG))
 
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
@@ -196,10 +198,13 @@ cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 
 
 agent-image:
+	$(IMAGE_TAG)
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 agentctl-image:
+	$(IMAGE_TAG)
 	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
+	$(IMAGE_TAG)
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 
 
