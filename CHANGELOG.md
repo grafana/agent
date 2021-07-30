@@ -1,4 +1,4 @@
-# Main (unreleased)
+# Main (unreleased) 
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
