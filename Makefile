@@ -219,7 +219,7 @@ lint:
 # Run tests with -online flag set to true, to include tests requiring network connectivity in CI
 test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./... -- -online
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs -- -online
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki -- -online
 
 clean:
 	rm -rf cmd/agent/agent
