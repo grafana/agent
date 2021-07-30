@@ -3,6 +3,43 @@
 This is a guide detailing all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
+# v0.18.0
+
+### Tempo: Remote write TLS config
+
+Tempo `remote_write` now supports configuring TLS settings in the trace
+exporter's client. `insecure_skip_verify` is moved into this setting's block.
+
+Old configurations with `insecure_skip_verify` outside `tls_config` will continue
+to work until it's fully deprecated.
+If both `insecure_skip_verify` and `tls_config.insecure_skip_verify` are used,
+then the latter take precedence.
+
+Example old config:
+
+```
+tempo:
+  configs:
+    - name: default
+      remote_write:
+        - endpoint: otel-collector:55680
+          insecure: true
+          insecure_skip_verify: true
+```
+
+Example new config:
+
+```
+tempo:
+  configs:
+    - name: default
+      remote_write:
+        - endpoint: otel-collector:55680
+          insecure: true
+          tls_config:
+            insecure_skip_verify: true
+```
+
 # v0.15.0
 
 ## Tempo: `automatic_logging` changes
