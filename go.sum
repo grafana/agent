@@ -1548,8 +1548,6 @@ github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04 h1:1HAVwfHi7d7nGq7
 github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7 h1:pi0dqcmXlW/cEqOG3OH0yy3BLHwmshd0w+0JLmK4dX4=
 github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7/go.mod h1:ykzWac1LtVfOxdCK+jD754at1Ws9dKCwFeUzkFBffPs=
-github.com/rgeyer/github-exporter v0.0.0-20210721193401-c2f9ee5601d6 h1:Ar4hftEP9NrjCICMzhuZ3AOVXO1cYHO/4yetq4Ff0h8=
-github.com/rgeyer/github-exporter v0.0.0-20210721193401-c2f9ee5601d6/go.mod h1:6XoOvFDTfk3aqGaOLHLxoWiZNx4zHobApOhKc3oHF/g=
 github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8 h1:wNuNGrFzFmZlhrtz1Q8EiK1Ob6yWli8lX7D2AGmSGzE=
 github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8/go.mod h1:6XoOvFDTfk3aqGaOLHLxoWiZNx4zHobApOhKc3oHF/g=
 github.com/rhnvrm/simples3 v0.6.1/go.mod h1:Y+3vYm2V7Y4VijFoJHHTrja6OgPrJ2cBti8dPGkC3sA=
@@ -1669,15 +1667,9 @@ github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An
 github.com/spf13/viper v1.3.2/go.mod h1:ZiWeW+zYFKm7srdB9IoDzzZXaJaI5eL9QjNiN/DMA2s=
 github.com/spf13/viper v1.4.0/go.mod h1:PTJ7Z/lr49W6bUbkmS1V3by4uWynFiR9p7+dSq/yZzE=
 github.com/spf13/viper v1.7.0/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
-<<<<<<< HEAD
 github.com/spf13/viper v1.8.1 h1:Kq1fyeebqsBfbjZj4EL7gj2IO0mMaiyjYUWcUsl2O44=
 github.com/spf13/viper v1.8.1/go.mod h1:o0Pch8wJ9BVSWGQMbra6iw0oQ5oktSIBaujf1rJH9Ns=
-=======
-github.com/spf13/viper v1.7.1/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
-github.com/spf13/viper v1.8.0 h1:QRwDgoG8xX+kp69di68D+YYTCWfYEckbZRfUlEIAal0=
-github.com/spf13/viper v1.8.0/go.mod h1:o0Pch8wJ9BVSWGQMbra6iw0oQ5oktSIBaujf1rJH9Ns=
 github.com/steinfletcher/apitest v1.3.8/go.mod h1:LOVbGzWvWCiiVE4PZByfhRnA5L00l5uZQEx403xQ4K8=
->>>>>>> Initial commit of github exporter integration
 github.com/stoewer/go-strcase v1.2.0/go.mod h1:IBiWB2sKIp3wVVQ3Y035++gc+knqhUQag1KpM8ahLw8=
 github.com/streadway/amqp v0.0.0-20180528204448-e5adc2ada8b8/go.mod h1:1WNBiOZtZQLpVAyu0iTduoJL9hEsMloAK5XWrtW0xdY=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
