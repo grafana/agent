@@ -83,6 +83,9 @@ windows_exporter: <windows_exporter_config>
 # Controls the kafka_exporter integration
 kafka_exporter: <kafka_exporter_config>
 
+# Controls the github_exporter integration
+github_exporter: <github_exporter_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics
