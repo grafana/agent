@@ -3,6 +3,137 @@
 This is a guide detailing all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
+## Unreleased
+
+These changes will come in a future version.
+
+
+### Tempo: split grouping by trace from tail sampling config
+
+Load balancing traces between agent instances has been moved from an embedded
+functionality in tail sampling to its own configuration block.
+This is done due to more processor benefiting from receiving consistently
+receiving all spans for a trace in the same agent to be processed, such as
+service graphs.
+
+As a consequence, `tail_sampling.load_balancing` has been deprecated in favor of
+a `load_balancing` block.
+
+Example old config:
+
+```yaml
+tail_sampling:
+  policies:
+    - always_sample:
+  load_balancing:
+    exporter:
+      insecure: true
+    resolver:
+      dns:
+        hostname: agent
+        port: 4318
+```
+
+Example new config:
+
+```yaml
+tail_sampling:
+  policies:
+    - always_sample:
+load_balancing:
+  exporter:
+    insecure: true
+  resolver:
+    dns:
+      hostname: agent
+      port: 4318
+```
+
+### Logs: Deprecation of "loki" in config.
+
+The term `loki` in the config has been deprecated of favor of `logs`. This
+change is to make it clearer when referring to Grafana Loki, and
+configuration of Grafana Agent to send logs to Grafana Loki.
+
+Old configs will continue to work until it is fully deprecated. To migrate your
+config, change the `loki` key to `logs`.
+
+Example old config:
+
+```yaml
+loki:
+  positions_directory: /tmp/loki-positions
+  configs:
+  - name: default
+    clients:
+      - url: http://localhost:3100/loki/api/v1/push
+    scrape_configs:
+    - job_name: system
+      static_configs:
+      - targets: ['localhost']
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
+```
+
+Example new config:
+
+```yaml
+logs:
+  positions_directory: /tmp/loki-positions
+  configs:
+  - name: default
+    clients:
+      - url: http://localhost:3100/loki/api/v1/push
+    scrape_configs:
+    - job_name: system
+      static_configs:
+      - targets: ['localhost']
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
+```
+
+#### Tempo: Deprecation of "loki" in config.
+
+As part of the `loki` to `logs` rename, parts of the automatic_logging component
+in Tempo have been updated to refer to `logs_instance` instead.
+
+Old configurations using `loki_name`, `loki_tag`, or `backend: loki` will
+continue to work until the `loki` terminology is fully deprecated.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: loki
+      loki_name: default
+      spans: true
+      processes: true
+      roots: true
+    overrides:
+      loki_tag: tempo
+```
+
+Example new config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: logs_instance
+      logs_instance_name: default
+      spans: true
+      processes: true
+      roots: true
+    overrides:
+      logs_instance_tag: tempo
+```
+
 # v0.18.0
 
 ### Tempo: Remote write TLS config
