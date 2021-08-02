@@ -1,11 +1,11 @@
 +++
-title = "Upgrade guide"
+title = "Upgrade Guide"
 weight = 200
 +++
 
 # Upgrade Guide
 
-This is a guide detailing all breaking changes that have happened in prior
+This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
 ## Unreleased
@@ -182,7 +182,7 @@ tempo:
 
 Tempo automatic logging previously assumed that the operator wanted to log
 to a Loki instance. With the addition of an option to log to stdout a new
-field is required to maintain the old behavior:
+field is required to maintain the old behavior.
 
 Example old config:
 
