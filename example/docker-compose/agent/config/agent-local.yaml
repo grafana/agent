@@ -72,4 +72,7 @@ integrations:
   kafka_exporter:
     enabled: true
     kafka_uris: [localhost:9093]
-
+  github_exporter:
+    enabled: true
+    repositories:
+      - grafana/agent
