@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
+	loki "github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/tempo"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
@@ -35,7 +39,7 @@ type Entrypoint struct {
 
 	srv         *server.Server
 	promMetrics *prom.Agent
-	lokiLogs    *loki.Loki
+	lokiLogs    *loki.Logs
 	tempoTraces *tempo.Tempo
 	manager     *integrations.Manager
 
@@ -63,7 +67,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		}
 
 		reloadMux := mux.NewRouter()
-		reloadMux.HandleFunc("/-/reload", ep.reloadHandler)
+		reloadMux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
 		ep.reloadServer = &http.Server{Handler: reloadMux}
 	}
 
@@ -74,7 +78,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.lokiLogs, err = loki.New(prometheus.DefaultRegisterer, cfg.Loki, logger)
+	ep.lokiLogs, err = logs.New(prometheus.DefaultRegisterer, cfg.Logs, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +124,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.lokiLogs.ApplyConfig(cfg.Loki); err != nil {
+	if err := ep.lokiLogs.ApplyConfig(cfg.Logs); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update loki", "err", err)
 		failed = true
 	}
@@ -173,7 +177,7 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 		}
 	})
 
-	mux.HandleFunc("/-/reload", ep.reloadHandler)
+	mux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
 }
 
 func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
@@ -196,12 +200,14 @@ func (ep *Entrypoint) TriggerReload() bool {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
+	cfg.LogDeprecations(ep.log)
 
 	err = ep.ApplyConfig(*cfg)
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
+
 	return true
 }
 
@@ -230,6 +236,14 @@ func (ep *Entrypoint) Start() error {
 	// signal is received.
 	signalHandler := signals.NewHandler(ep.cfg.Server.Log)
 
+	notifier := make(chan os.Signal, 1)
+	signal.Notify(notifier, syscall.SIGHUP)
+
+	defer func() {
+		signal.Stop(notifier)
+		close(notifier)
+	}()
+
 	g.Add(func() error {
 		signalHandler.Loop()
 		return nil
@@ -250,6 +264,12 @@ func (ep *Entrypoint) Start() error {
 	}, func(e error) {
 		ep.srv.Close()
 	})
+
+	go func() {
+		for range notifier {
+			ep.TriggerReload()
+		}
+	}()
 
 	return g.Run()
 }

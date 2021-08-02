@@ -6,6 +6,7 @@ package operator
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -34,11 +35,16 @@ var (
 		runtime.GOOS,
 		runtime.GOARCH,
 	)
+
+	online = flag.Bool("online", false, "Run tests requiring network access")
 )
 
 // TestEnqueueRequestForSelector creates an example Kubenretes cluster and runs
 // EnqueueRequestForSelector to validate it works.
 func TestEnqueueRequestForSelector(t *testing.T) {
+	if !*online {
+		t.Skip("skipping test, pass -online to run tests requiring network access")
+	}
 	l := log.NewNopLogger()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)

@@ -1,12 +1,16 @@
-# Main (unreleased) 
+# Main (unreleased)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+
+- [FEATURE] Support autologging span attributes as log labels (@mapno)
 
 - [FEATURE] Put Tests requiring Network Access behind a -online flag (@flokli)
 
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
+
+- [ENHANCEMENT] Update OTel dependency to v0.30.0 (@mapno)
 
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
@@ -19,6 +23,9 @@
 - [BUGFIX] The Linux system packages will now configure the grafana-agent user
   to be a member of the adm and systemd-journal groups. This will allow logs to
   read from journald and /var/log by default. (@rfratto)
+
+- [CHANGE] Breaking change: reduced verbosity of tracing autologging
+  by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
@@ -51,7 +58,7 @@
   over remote write. (@rfratto)
 
 # v0.16.0 (2021-06-17)
-  
+
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana

@@ -7,17 +7,17 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/prom/instance"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/stats/view"
+	"go.opentelemetry.io/collector/external/obsreportconfig"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"go.opentelemetry.io/collector/config/configtelemetry"
-	"go.opentelemetry.io/collector/obsreport"
 )
 
 // Tempo wraps the OpenTelemetry collector to enable tracing pipelines
@@ -32,8 +32,8 @@ type Tempo struct {
 	promInstanceManager instance.Manager
 }
 
-// New creates and starts Loki log collection.
-func New(loki *loki.Loki, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
+// New creates and starts trace collection.
+func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
 	var leveller logLeveller
 
 	tempo := &Tempo{
@@ -43,14 +43,14 @@ func New(loki *loki.Loki, promInstanceManager instance.Manager, reg prom_client.
 		reg:                 reg,
 		promInstanceManager: promInstanceManager,
 	}
-	if err := tempo.ApplyConfig(loki, promInstanceManager, cfg, level); err != nil {
+	if err := tempo.ApplyConfig(logsSubsystem, promInstanceManager, cfg, level); err != nil {
 		return nil, err
 	}
 	return tempo, nil
 }
 
 // ApplyConfig updates Tempo with a new Config.
-func (t *Tempo) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Manager, cfg Config, level logrus.Level) error {
+func (t *Tempo) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg Config, level logrus.Level) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
 
@@ -62,7 +62,7 @@ func (t *Tempo) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Manage
 	for _, c := range cfg.Configs {
 		// If an old instance exists, update it and move it to the new map.
 		if old, ok := t.instances[c.Name]; ok {
-			err := old.ApplyConfig(loki, promInstanceManager, c)
+			err := old.ApplyConfig(logsSubsystem, promInstanceManager, c)
 			if err != nil {
 				return err
 			}
@@ -76,7 +76,7 @@ func (t *Tempo) ApplyConfig(loki *loki.Loki, promInstanceManager instance.Manage
 			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"tempo_config": c.Name}, t.reg)
 		)
 
-		inst, err := NewInstance(loki, instReg, c, instLogger, t.promInstanceManager)
+		inst, err := NewInstance(logsSubsystem, instReg, c, instLogger, t.promInstanceManager)
 		if err != nil {
 			return fmt.Errorf("failed to create tempo instance %s: %w", c.Name, err)
 		}
@@ -161,8 +161,8 @@ func (l *logLeveller) Enabled(target zapcore.Level) bool {
 }
 
 func newMetricViews(reg prom_client.Registerer) ([]*view.View, error) {
-	views := obsreport.Configure(configtelemetry.LevelBasic)
-	err := view.Register(views...)
+	obsMetrics := obsreportconfig.Configure(configtelemetry.LevelBasic)
+	err := view.Register(obsMetrics.Views...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to register views: %w", err)
 	}
@@ -177,5 +177,5 @@ func newMetricViews(reg prom_client.Registerer) ([]*view.View, error) {
 
 	view.RegisterExporter(pe)
 
-	return views, nil
+	return obsMetrics.Views, nil
 }

@@ -2,9 +2,17 @@
 # shellcheck shell=bash
 
 #
-# install-bare.sh is a installer for the Agent without the ConfigMap. It is
-# useful for being integrated into an installation process that provides a
-# ConfigMap following the installation of Kubernetes components.
+# install-bare.sh is an installer for the Agent without a ConfigMap. It is
+# used during the Grafana Cloud integrations wizard and is not recommended
+# to be used directly. Instead of calling this script directly, please
+# make a copy of ./agent-bare.yaml and modify it for your needs.
+#
+# Note that agent-bare.yaml does not have a ConfigMap, so the Grafana Agent
+# will not launch until one is created. For more information on setting up
+# a ConfigMap, please refer to:
+#
+# Metrics quickstart: https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_metrics/
+# Logs quickstart: https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_logs/
 #
 
 check_installed() {
@@ -17,7 +25,7 @@ check_installed() {
 check_installed curl
 check_installed envsubst
 
-MANIFEST_BRANCH=v0.18.0
+MANIFEST_BRANCH=v0.16.1
 MANIFEST_URL=${MANIFEST_URL:-https://raw.githubusercontent.com/grafana/agent/${MANIFEST_BRANCH}/production/kubernetes/agent-bare.yaml}
 NAMESPACE=${NAMESPACE:-default}
 

@@ -2,6 +2,7 @@
 
 set -e
 
+# shellcheck disable=SC1091
 [ -f /etc/default/grafana-agent ] && . /etc/default/grafana-agent
 
 if [ "$1" = "remove" ]; then

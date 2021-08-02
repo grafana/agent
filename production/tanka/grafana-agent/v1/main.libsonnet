@@ -15,8 +15,8 @@ local service = k.core.v1.service;
 (import './lib/tempo.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v0.18.0',
-    agentctl: 'grafana/agentctl:v0.18.0',
+    agent: 'grafana/agent:v0.16.1',
+    agentctl: 'grafana/agentctl:v0.16.1',
   },
 
   // new creates a new DaemonSet deployment of the grafana-agent. By default,
@@ -101,12 +101,6 @@ local service = k.core.v1.service;
     agent:
       agent.newAgent(name, namespace, self._images.agent, self.config, use_daemonset=true) +
       agent.withConfigHash(self._config_hash) + {
-        // Required for the scraping service; get the node name and store it in
-        // $HOSTNAME so host_filtering works.
-        container+:: container.withEnvMixin([
-          k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
-        ]),
-
         // If sampling strategies were defined, we need to mount them as a JSON
         // file.
         config_map+:
@@ -124,6 +118,8 @@ local service = k.core.v1.service;
           else {},
       } + (
         if has_loki_config then $.lokiPermissionsMixin else {}
+      ) + (
+        if has_integrations && std.objectHas(this._integrations, 'node_exporter') then $.integrationsMixin else {}
       ),
 
     agent_etc: if std.length(etc_instances) > 0 then

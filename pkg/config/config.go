@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"unicode"
 
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/weaveworks/common/server"
 
 	"github.com/drone/envsubst"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/prom"
 	"github.com/grafana/agent/pkg/tempo"
 	"github.com/grafana/agent/pkg/util"
@@ -30,9 +33,12 @@ var DefaultConfig = Config{
 type Config struct {
 	Server       server.Config              `yaml:"server,omitempty"`
 	Prometheus   prom.Config                `yaml:"prometheus,omitempty"`
-	Loki         loki.Config                `yaml:"loki,omitempty"`
 	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
 	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
+
+	Logs               *logs.Config `yaml:"logs,omitempty"`
+	Loki               *logs.Config `yaml:"loki,omitempty"` // Deprecated: use Logs instead
+	UsedDeprecatedLoki bool         `yaml:"-"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
@@ -52,10 +58,28 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*config)(c))
 }
 
+// LogDeprecations will log use of any deprecated fields to l as warn-level
+// messages.
+func (c *Config) LogDeprecations(l log.Logger) {
+	if c.UsedDeprecatedLoki {
+		level.Warn(l).Log("msg", "DEPRECATION NOTICE: `loki` is deprecated in favor of `logs`")
+	}
+}
+
 // ApplyDefaults sets default values in the config
 func (c *Config) ApplyDefaults() error {
 	if err := c.Prometheus.ApplyDefaults(); err != nil {
 		return err
+	}
+
+	if c.Logs != nil && c.Loki != nil {
+		return fmt.Errorf("at most one of loki and logs should be specified")
+	}
+
+	if c.Logs == nil && c.Loki != nil {
+		c.Logs = c.Loki
+		c.Loki = nil
+		c.UsedDeprecatedLoki = true
 	}
 
 	if err := c.Integrations.ApplyDefaults(&c.Prometheus); err != nil {
@@ -74,7 +98,7 @@ func (c *Config) ApplyDefaults() error {
 
 	// since the Tempo config might rely on an existing Loki config
 	// this check is made here to look for cross config issues before we attempt to load
-	if err := c.Tempo.Validate(&c.Loki); err != nil {
+	if err := c.Tempo.Validate(c.Logs); err != nil {
 		return err
 	}
 
@@ -107,7 +131,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
-		s, err := envsubst.EvalEnv(string(buf))
+		s, err := envsubst.Eval(string(buf), getenv)
 		if err != nil {
 			return fmt.Errorf("unable to substitute config with environment variables: %w", err)
 		}
@@ -115,6 +139,25 @@ func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
 	}
 	// Unmarshal yaml config
 	return yaml.UnmarshalStrict(buf, c)
+}
+
+// getenv is a wrapper around os.Getenv that ignores patterns that are numeric
+// regex capture groups (ie "${1}").
+func getenv(name string) string {
+	numericName := true
+
+	for _, r := range name {
+		if !unicode.IsDigit(r) {
+			numericName = false
+			break
+		}
+	}
+
+	if numericName {
+		// We need to add ${} back in since envsubst removes it.
+		return fmt.Sprintf("${%s}", name)
+	}
+	return os.Getenv(name)
 }
 
 // Load loads a config file from a flagset. Flags will be registered

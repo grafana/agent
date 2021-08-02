@@ -1,3 +1,8 @@
++++
+title = "Scraping Service Mode"
+weight = 500
++++
+
 # Scraping Service Mode
 
 Scraping Service Mode is a third operational mode of the Grafana Agent
@@ -35,7 +40,7 @@ remote_write:
 
 The full set of supported options for an instance configuration file is
 available in the
-[`prometheus_instance_config` section of Configuration Reference](./configuration-reference.md#prometheus_instance_config).
+[`prometheus-config.md` file](./configuration/prometheus-config.md).
 
 Having multiple instance configuration files is necessary for sharding; each
 config file is distributed to a particular agent on the cluster based on the
@@ -46,7 +51,7 @@ instance configurations locally in the configuration file; using the KV store
 is required. [`agentctl`](#agentctl) can be used to manually sync
 instance configuration files to the Agent's API server.
 
-## Distributed Hash Ring
+## Distributed hash ring
 
 Scraping Service Mode uses a Distributed Hash Ring (commonly just called "the
 ring") to cluster agents and to shard configurations within that ring. Each
@@ -105,7 +110,7 @@ configurations stored in the KV store and determining if:
    associated instance should be stopped.
 3. The config has been deleted and the associated instance should be stopped.
 
-## Best Practices
+## Best practices
 
 Because distribution is determined by the number of config files and not how
 many targets exist per config file, the best amount of distribution is achieved

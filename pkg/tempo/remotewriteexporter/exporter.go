@@ -16,7 +16,8 @@ import (
 	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/consumer/pdata"
+	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.uber.org/atomic"
 )
 
@@ -59,8 +60,8 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 }
 
 func (e *remoteWriteExporter) Start(ctx context.Context, _ component.Host) error {
-	manager := ctx.Value(contextkeys.Prometheus).(instance.Manager)
-	if manager == nil {
+	manager, ok := ctx.Value(contextkeys.Prometheus).(instance.Manager)
+	if !ok || manager == nil {
 		return fmt.Errorf("key does not contain a Prometheus instance")
 	}
 	e.manager = manager
@@ -70,6 +71,10 @@ func (e *remoteWriteExporter) Start(ctx context.Context, _ component.Host) error
 func (e *remoteWriteExporter) Shutdown(_ context.Context) error {
 	e.done.Store(true)
 	return nil
+}
+
+func (e *remoteWriteExporter) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{}
 }
 
 func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metrics) error {
@@ -91,15 +96,15 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 			ms := ilm.At(j).Metrics()
 			for k := 0; k < ms.Len(); k++ {
 				switch m := ms.At(k); m.DataType() {
-				case pdata.MetricDataTypeDoubleSum, pdata.MetricDataTypeIntSum, pdata.MetricDataTypeDoubleGauge, pdata.MetricDataTypeIntGauge:
+				case pdata.MetricDataTypeSum, pdata.MetricDataTypeIntSum, pdata.MetricDataTypeGauge, pdata.MetricDataTypeIntGauge:
 					if err := e.processScalarMetric(app, m); err != nil {
 						return fmt.Errorf("failed to process metric %s", err)
 					}
-				case pdata.MetricDataTypeDoubleHistogram, pdata.MetricDataTypeIntHistogram:
+				case pdata.MetricDataTypeHistogram, pdata.MetricDataTypeIntHistogram:
 					if err := e.processHistogramMetrics(app, m); err != nil {
 						return fmt.Errorf("failed to process metric %s", err)
 					}
-				case pdata.MetricDataTypeDoubleSummary:
+				case pdata.MetricDataTypeSummary:
 					return fmt.Errorf("%s processing unimplemented", m.DataType())
 				default:
 					return fmt.Errorf("unsupported m data type %s", m.DataType())
@@ -118,7 +123,7 @@ func (e *remoteWriteExporter) processHistogramMetrics(app storage.Appender, m pd
 		if err := e.handleHistogramIntDataPoints(app, m.Name(), dps); err != nil {
 			return nil
 		}
-	case pdata.MetricDataTypeDoubleHistogram:
+	case pdata.MetricDataTypeHistogram:
 		return fmt.Errorf("unsupported metric data type %s", m.DataType().String())
 	}
 	return nil
@@ -164,8 +169,8 @@ func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.
 		if err := e.handleScalarIntDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
 			return err
 		}
-	case pdata.MetricDataTypeDoubleSum:
-		dataPoints := m.DoubleSum().DataPoints()
+	case pdata.MetricDataTypeSum:
+		dataPoints := m.Sum().DataPoints()
 		if err := e.handleScalarFloatDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
 			return err
 		}
@@ -174,8 +179,8 @@ func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.
 		if err := e.handleScalarIntDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
 			return err
 		}
-	case pdata.MetricDataTypeDoubleGauge:
-		dataPoints := m.DoubleGauge().DataPoints()
+	case pdata.MetricDataTypeGauge:
+		dataPoints := m.Gauge().DataPoints()
 		if err := e.handleScalarFloatDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
 			return err
 		}
@@ -221,11 +226,12 @@ func (e *remoteWriteExporter) appendDataPointWithLabels(app storage.Appender, na
 func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata.StringMap, customLabels labels.Labels) labels.Labels {
 	ls := make(labels.Labels, 0, labelMap.Len()+1+len(e.constLabels)+len(customLabels))
 	// Labels from spanmetrics processor
-	labelMap.ForEach(func(k string, v string) {
+	labelMap.Range(func(k string, v string) bool {
 		ls = append(ls, labels.Label{
 			Name:  strings.Replace(k, ".", "_", -1),
 			Value: v,
 		})
+		return true
 	})
 	// Metric name label
 	ls = append(ls, labels.Label{

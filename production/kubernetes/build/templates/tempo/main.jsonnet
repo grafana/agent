@@ -11,7 +11,7 @@ local newPort(name, portNumber, protocol='TCP') =
 
 {
   agent:
-    agent.new('grafana-agent-traces', '${NAMESPACE}') +
+    agent.newDeployment('grafana-agent-traces', 'YOUR_NAMESPACE') +
     agent.withConfigHash(false) +
     agent.withImages({
       agent: (import 'version.libsonnet'),
@@ -74,5 +74,10 @@ local newPort(name, portNumber, protocol='TCP') =
         param: 0.001,
       },
     }) +
-    agent.withTempoScrapeConfigs(agent.tempoScrapeKubernetes),
+    agent.withTempoScrapeConfigs(agent.tempoScrapeKubernetes) + {
+      agent+: {
+        // Remove this block to generate ConfigMap
+        config_map:: {},
+      },
+    },
 }
