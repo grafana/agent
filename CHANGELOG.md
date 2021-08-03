@@ -4,8 +4,6 @@
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
-- [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
-
 - [FEATURE] Support autologging span attributes as log labels (@mapno)
 
 - [FEATURE] Put Tests requiring Network Access behind a -online flag (@flokli)
@@ -18,17 +16,13 @@
 
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
-- [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
-
-- [ENHANCEMENT] Update postgres_exporter to a [branch of](https://github.com/grafana/postgres_exporter/tree/exporter-package-v0.10.0) v0.10.0
-
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
 
 - [BUGFIX] The directory of the logs positions file will now properly be created
   on startup for all instances.
 
-- [BUGFIX] The Liunx system packages will now configure the grafana-agent user
+- [BUGFIX] The Linux system packages will now configure the grafana-agent user
   to be a member of the adm and systemd-journal groups. This will allow logs to
   read from journald and /var/log by default. (@rfratto)
 
@@ -41,11 +35,23 @@
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
 
+# v0.18.0 (2021-07-29)
+
+- [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
+
+- [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
+
+- [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
+
+- [ENHANCEMENT] Update postgres_exporter to a [branch of](https://github.com/grafana/postgres_exporter/tree/exporter-package-v0.10.0) v0.10.0
+
+- [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
+
 # v0.17.0 (2021-07-15)
 
 - [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
   integration. (@gaantunes)
-
+  
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
 
@@ -60,8 +66,6 @@
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
   Cloud will now be shown. (@rfratto)
-
-- [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
 
 - [BUGFIX] Fix a leak in the shared string interner introduced in v0.14.0.
   This fix was made to a [dependency](https://github.com/grafana/prometheus/pull/21).

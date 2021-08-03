@@ -12,6 +12,7 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+
 ### Tempo: split grouping by trace from tail sampling config
 
 Load balancing traces between agent instances has been moved from an embedded
@@ -137,6 +138,8 @@ tempo:
     overrides:
       logs_instance_tag: tempo
 ```
+
+## v0.18.0
 
 ### Tempo: Remote write TLS config
 
@@ -298,6 +301,7 @@ tempo:
         timeout: 5s
         send_batch_size: 100
 ```
+
 
 ## v0.12.0
 
