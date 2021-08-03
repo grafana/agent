@@ -1021,8 +1021,6 @@ github.com/imdario/mergo v0.3.11 h1:3tnifQM4i+fbajXKBHXWEH+KvNHqojZ778UH75j3bGA=
 github.com/imdario/mergo v0.3.11/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/infinityworks/github-exporter v0.0.0-20210723122656-fc2e58a5128f h1:TXxQ1OZviQxyr0vMCOo8fhWE7iIoLpy7xtksoJQXEIo=
-github.com/infinityworks/github-exporter v0.0.0-20210723122656-fc2e58a5128f/go.mod h1:6XoOvFDTfk3aqGaOLHLxoWiZNx4zHobApOhKc3oHF/g=
 github.com/infinityworks/go-common v0.0.0-20170820165359-7f20a140fd37 h1:Lm6kyC3JBiJQvJrus66He0E4viqDc/m5BdiFNSkIFfU=
 github.com/infinityworks/go-common v0.0.0-20170820165359-7f20a140fd37/go.mod h1:+OaHNKQvQ9oOCr+DgkF95PkiDx20fLHpzMp8SmRPQTg=
 github.com/influxdata/flux v0.65.1/go.mod h1:J754/zds0vvpfwuq7Gc2wRdVwEodfpCFM7mYlOw2LqY=
@@ -1550,6 +1548,8 @@ github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04 h1:1HAVwfHi7d7nGq7
 github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7 h1:pi0dqcmXlW/cEqOG3OH0yy3BLHwmshd0w+0JLmK4dX4=
 github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7/go.mod h1:ykzWac1LtVfOxdCK+jD754at1Ws9dKCwFeUzkFBffPs=
+github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8 h1:wNuNGrFzFmZlhrtz1Q8EiK1Ob6yWli8lX7D2AGmSGzE=
+github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8/go.mod h1:6XoOvFDTfk3aqGaOLHLxoWiZNx4zHobApOhKc3oHF/g=
 github.com/rhnvrm/simples3 v0.6.1/go.mod h1:Y+3vYm2V7Y4VijFoJHHTrja6OgPrJ2cBti8dPGkC3sA=
 github.com/rivo/tview v0.0.0-20200219210816-cd38d7432498/go.mod h1:6lkG1x+13OShEf0EaOCaTQYyB7d5nSbb181KtjlS+84=
 github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
