@@ -4,30 +4,36 @@ SHELL = /usr/bin/env bash
 #############
 # Variables #
 #############
-
-# Docker image info
-IMAGE_PREFIX ?= grafana
-IMAGE_TAG ?= $(shell ./tools/image-tag)
-DRONE ?= false
 # This is normally set by the caller but when building the agent windows installer it needs to be set to something
 RELEASE_TAG ?= v0.0.0
 
+# Docker image info
+IMAGE_PREFIX ?= grafana
+ifeq ($(RELEASE_TAG),v0.0.0)
+IMAGE_TAG ?= $(shell ./tools/image-tag)
+else
+IMAGE_TAG ?= $(RELEASE_TAG)
+endif
+DRONE ?= false
+
+$(info RELEASE_TAG $(RELEASE_TAG))
+$(info IMAGE_TAG $(IMAGE_TAG))
 
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
 
 # This is used to set all the environment variables to pass to the go build/seego/docker commands
 define SetBuildVarsConditional
-$(if $(filter $(1),normal),CGO_ENABLED=1, \
-$(if $(filter $(1),linux/amd64),CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
-$(if $(filter $(1),linux/arm64),CGO_ENABLED=1 GOOS=linux GOARCH=arm64, \
-$(if $(filter $(1),linux/arm/v7),CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7, \
-$(if $(filter $(1),linux/arm/v6),CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
-$(if $(filter $(1),darwin/amd64),CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
-$(if $(filter $(1),darwin/arm64),CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
-$(if $(filter $(1),windows),CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
-$(if $(filter $(1),mipls),CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
-$(if $(filter $(1),freebsd),CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
+$(if $(filter $(1),normal),export CGO_ENABLED=1, \
+$(if $(filter $(1),linux/amd64),export CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
+$(if $(filter $(1),linux/arm64),export CGO_ENABLED=1 GOOS=linux GOARCH=arm64, \
+$(if $(filter $(1),linux/arm/v7),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7, \
+$(if $(filter $(1),linux/arm/v6),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
+$(if $(filter $(1),darwin/amd64),export CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
+$(if $(filter $(1),darwin/arm64),export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
+$(if $(filter $(1),windows),export CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
+$(if $(filter $(1),mipls),export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
+$(if $(filter $(1),freebsd),export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
 )))))))))
 endef
 
@@ -65,7 +71,7 @@ VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build"
 DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build"
-DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAGE_TAG=$(IMAGE_TAG)
+DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAGE_TAG=$(IMAGE_TAG) --build-arg DRONE=$(DRONE)
 
 # We need a separate set of flags for CGO, where building with -static can
 # cause problems with some C libraries.
@@ -121,7 +127,7 @@ endif
 ifeq ($(DRONE),true)
 seego = "/go_wrapper.sh"
 else ifeq ($(BUILD_IN_CONTAINER),false)
-seego = go
+seego =  go
 endif
 
 
@@ -196,11 +202,11 @@ cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 
 
 agent-image:
-	$(docker-build) -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 agentctl-image:
-	$(docker-build) -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
-	$(docker-build) -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 
 
 install:
@@ -292,6 +298,7 @@ ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t windows_installer ./packaging/windows
 	docker run --rm -t -v "${PWD}:/home" windows_installer
 else
+
 	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
 endif
 
