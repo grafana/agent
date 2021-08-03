@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -19,10 +20,6 @@ type Exporter struct {
 	topologyInfo exporter.LabelsGetter
 	context      context.Context
 	config       Config
-	cc           exporter.CollstatsCollector
-	ic           exporter.IndexstatsCollector
-	ddc          exporter.DiagnosticDataCollector
-	rsgsc        exporter.ReplSetGetStatusCollector
 }
 
 var DefaultConfig = Config{
@@ -107,8 +104,10 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, fmt.Errorf("cannot get node type to check if this is a mongos: %s", err)
 	}
 
+	collectors := []prometheus.Collector{}
+
 	if len(e.config.CollStatsCollections) > 0 {
-		e.cc = exporter.CollstatsCollector{
+		var cc = exporter.CollstatsCollector{
 			Ctx:             context,
 			Client:          e.client,
 			Collections:     e.config.CollStatsCollections,
@@ -117,11 +116,12 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 			Logger:          logrusLogger,
 			TopologyInfo:    e.topologyInfo,
 		}
-		level.Debug(logger).Log("initialized collstatscollector")
+
+		collectors = append(collectors, &cc)
 	}
 
 	if len(e.config.IndexStatsCollections) > 0 {
-		e.ic = exporter.IndexstatsCollector{
+		var ic = exporter.IndexstatsCollector{
 			Ctx:             context,
 			Client:          e.client,
 			Collections:     e.config.IndexStatsCollections,
@@ -129,10 +129,11 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 			Logger:          logrusLogger,
 			TopologyInfo:    e.topologyInfo,
 		}
-		level.Debug(logger).Log("initialized diagnosticdatacollector")
+
+		collectors = append(collectors, &ic)
 	}
 
-	e.ddc = exporter.DiagnosticDataCollector{
+	var ddc = exporter.DiagnosticDataCollector{
 		Ctx:            context,
 		Client:         e.client,
 		CompatibleMode: true,
@@ -140,21 +141,20 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		TopologyInfo:   e.topologyInfo,
 	}
 
+	collectors = append(collectors, &ddc)
+
 	// replSetGetStatus is not supported through mongos
 	if nodeType != exporter.TypeMongos {
-		e.rsgsc = exporter.ReplSetGetStatusCollector{
+		var rsgsc = exporter.ReplSetGetStatusCollector{
 			Ctx:            context,
 			Client:         e.client,
 			CompatibleMode: true,
 			Logger:         logrusLogger,
 			TopologyInfo:   e.topologyInfo,
 		}
-		level.Debug(logger).Log("initialized replsetgetstatuscollector")
-
+		collectors = append(collectors, &rsgsc)
 	}
 
-	return integrations.NewCollectorIntegration(
-		c.Name(),
-		integrations.WithCollectors(&e.ddc, &e.cc, &e.ic, &e.rsgsc),
-	), nil
+	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(collectors...)), nil
+
 }

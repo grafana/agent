@@ -74,7 +74,7 @@ integrations:
     kafka_uris: [localhost:9093]
   mongodb_exporter:
     enabled: true
-    mongodb_uri: mongodb://192.168.99.102:27017
+    mongodb_uri: mongodb://192.168.99.102:27000
     discovering_mode: true
 
 
