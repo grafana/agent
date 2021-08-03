@@ -1,9 +1,9 @@
 +++
-title = "Upgrade Guide"
+title = "Upgrade guide"
 weight = 200
 +++
 
-# Upgrade Guide
+# Upgrade guide
 
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
