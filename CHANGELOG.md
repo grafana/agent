@@ -47,7 +47,8 @@
 
 # v0.17.0 (2021-07-15)
 
-- [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
+- [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
+  integration. (@gaantunes)
   
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
