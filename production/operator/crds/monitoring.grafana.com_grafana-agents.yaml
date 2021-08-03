@@ -3790,7 +3790,7 @@ spec:
                         type: boolean
                     type: object
                   enforcedNamespaceLabel:
-                    description: EnforcedNamepsaceLabel enforces adding a namespace
+                    description: EnforcedNamespaceLabel enforces adding a namespace
                       label of origin for each metric that is user-created. The label
                       value will always be the namespace of the object that is being
                       created.
