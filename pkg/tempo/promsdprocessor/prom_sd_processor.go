@@ -112,7 +112,7 @@ func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) 
 	}
 
 	for k, v := range labels {
-		attrs.UpsertString(string(k), string(v))
+		attrs.InsertString(string(k), string(v))
 	}
 }
 
