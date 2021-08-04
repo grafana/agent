@@ -1,7 +1,5 @@
 # Main (unreleased) 
 
-- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
-
 - [FEATURE] Put Tests requiring Network Access behind a -online flag (@flokli)
 
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
@@ -27,6 +25,8 @@
   `backend: logs_instance`. (@rfratto)
 
 # v0.18.0 (2021-07-29)
+
+- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
