@@ -1,4 +1,4 @@
-# Main (unreleased) 
+# Main (unreleased)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
@@ -26,6 +26,10 @@
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
 
+# v0.18.1 (2021-08-09)
+
+- [BUGFIX] Reduce number of consul calls when ran in scrape service mode (@mattdurham)
+
 # v0.18.0 (2021-07-29)
 
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
@@ -38,10 +42,10 @@
 
 - [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
 
-# v0.17.0 (2021-07-15)
+git p# v0.17.0 (2021-07-15)
 
 - [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
-  
+
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
 
@@ -51,7 +55,7 @@
   over remote write. (@rfratto)
 
 # v0.16.0 (2021-06-17)
-  
+
 - [FEATURE] (beta) A Grafana Agent Operator is now available. (@rfratto)
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
@@ -685,12 +689,12 @@ files to the new format.
 - [FEATURE] The Prometheus remote write protocol will now send scraped metadata (metric name, help, type and unit). This results in almost negligent bytes sent increase as metadata is only sent every minute. It is on by default. (@gotjosh)
 
   These metrics are available to monitor metadata being sent:
-    - `prometheus_remote_storage_succeeded_metadata_total`
-    - `prometheus_remote_storage_failed_metadata_total`
-    - `prometheus_remote_storage_retried_metadata_total`
-    - `prometheus_remote_storage_sent_batch_duration_seconds` and
-      `prometheus_remote_storage_sent_bytes_total` have a new label “type” with
-      the values of `metadata` or `samples`.
+  - `prometheus_remote_storage_succeeded_metadata_total`
+  - `prometheus_remote_storage_failed_metadata_total`
+  - `prometheus_remote_storage_retried_metadata_total`
+  - `prometheus_remote_storage_sent_batch_duration_seconds` and
+    `prometheus_remote_storage_sent_bytes_total` have a new label “type” with
+    the values of `metadata` or `samples`.
 
 - [FEATURE] The Agent has upgraded its vendored Prometheus to v2.17.1 (@rfratto)
 
