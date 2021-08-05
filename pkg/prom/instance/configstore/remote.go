@@ -55,6 +55,8 @@ type Remote struct {
 	configsCh  chan WatchEvent
 }
 
+// agentRemoteClient is a simple wrapper to allow the shortcircuit of consul, while being backwards compatible with non
+// consul kv stores
 type agentRemoteClient struct {
 	kv.Client
 	consul       *api.Client
