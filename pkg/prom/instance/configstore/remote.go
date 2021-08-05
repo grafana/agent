@@ -136,9 +136,13 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 // setClient sets the active client and notifies run to restart the
 // kv watcher.
 func (r *Remote) setClient(client kv.Client, consulClient *api.Client) {
-	r.kv = &agentRemoteClient{
-		Client: client,
-		consul: consulClient,
+	if client == nil && consulClient == nil {
+		r.kv = nil
+	} else {
+		r.kv = &agentRemoteClient{
+			Client: client,
+			consul: consulClient,
+		}
 	}
 	r.reloadKV <- struct{}{}
 }
@@ -172,7 +176,7 @@ Outer:
 	}
 }
 
-func (r *Remote) watchKV(ctx context.Context, client kv.Client) {
+func (r *Remote) watchKV(ctx context.Context, client *agentRemoteClient) {
 	// Edge case: client was unset, nothing to do here.
 	if client == nil {
 		level.Info(r.log).Log("msg", "not watching the KV, none set")
