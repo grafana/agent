@@ -402,19 +402,23 @@ func (r *Remote) allConsul(ctx context.Context, keep func(key string) bool) (<-c
 }
 
 func (r *Remote) allOther(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error) {
-
-	ch := make(chan instance.Config)
-	var wg sync.WaitGroup
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
+	if r.kv == nil {
+		return nil, ErrNotConnected
+	}
 
 	keys, err := r.kv.List(ctx, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list configs: %w", err)
 	}
+
+	ch := make(chan instance.Config)
+
+	var wg sync.WaitGroup
 	wg.Add(len(keys))
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
 
 	for _, key := range keys {
 		go func(key string) {
