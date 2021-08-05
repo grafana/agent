@@ -42,7 +42,7 @@
 
 - [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
 
-git p# v0.17.0 (2021-07-15)
+# v0.17.0 (2021-07-15)
 
 - [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
 
