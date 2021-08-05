@@ -41,7 +41,7 @@ directory on your host that you want the agent to store its WAL.
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.18.0
+  grafana/agent:v0.18.1
 ```
 
 ## Running the Agent locally

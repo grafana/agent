@@ -2667,7 +2667,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.18.0
+  - image: grafana/agent:v0.18.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
