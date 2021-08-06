@@ -24,11 +24,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-/****************************************************88
+/***********************************************************************************************************************
 The consul code skipping the cortex handler is due to performance issue with a large number of configs and overloading
 consul. See issue https://github.com/grafana/agent/issues/789. The long term method will be to refactor and extract
 the cortex code so other stores can also benefit from this. @mattdurham
-*/
+***********************************************************************************************************************/
 
 // This is copied from cortex code so that stats stay the same
 var consulRequestDuration = instrument.NewHistogramCollector(prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -219,7 +219,7 @@ func (r *Remote) List(ctx context.Context) ([]string, error) {
 	return r.kv.List(ctx, "")
 }
 
-// ListConsul returns Key Value Pairs instead of []string
+// listConsul returns Key Value Pairs instead of []string
 func (r *Remote) listConsul(ctx context.Context) (api.KVPairs, error) {
 	if r.kv == nil {
 		return nil, ErrNotConnected
