@@ -52,10 +52,10 @@ type PrometheusSubsystemSpec struct {
 	// from the PodMonitor and ServiceMonitor configs, and they will only
 	// discover endpoints within their current namespace.
 	IgnoreNamespaceSelectors bool `json:"ignoreNamespaceSelectors,omitempty"`
-	// EnforcedNamepsaceLabel enforces adding a namespace label of origin for
+	// EnforcedNamespaceLabel enforces adding a namespace label of origin for
 	// each metric that is user-created. The label value will always be the
 	// namespace of the object that is being created.
-	EnforcedNamepsaceLabel string `json:"enforcedNamespaceLabel,omitempty"`
+	EnforcedNamespaceLabel string `json:"enforcedNamespaceLabel,omitempty"`
 	// EnforcedSampleLimit defines global limit on the number of scraped samples
 	// that will be accepted. This overrides any SampleLimit set per
 	// ServiceMonitor and/or PodMonitor. It is meant to be used by admins to
