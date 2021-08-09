@@ -33,6 +33,6 @@ and get started with the Grafana Agent Operator.
 
 ## Developer Reference
 
-The [Maintainer's Guide](../../docs/operator/maintainers-guide.md) includes
+The [Maintainer's Guide](./DEVELOPERS.md) includes
 basic information to help you understand how the code works. This can be very
 useful if you are planning on working on the operator.

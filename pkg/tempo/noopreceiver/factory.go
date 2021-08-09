@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
@@ -25,23 +25,21 @@ func NewFactory() component.ReceiverFactory {
 
 // Config defines configuration for noop receiver.
 type Config struct {
-	configmodels.Receiver `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct.
+	config.Receiver `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct.
 }
 
-func createDefaultConfig() configmodels.Receiver {
-	return &configmodels.ReceiverSettings{
-		TypeVal: TypeStr,
-		NameVal: TypeStr,
-	}
+func createDefaultConfig() config.Receiver {
+	s := config.NewReceiverSettings(config.NewIDWithName(TypeStr, TypeStr))
+	return &s
 }
 
 // noop receiver is used in the metrics pipeline so we need to
 // implement a metrics receiver.
 func createMetricsReceiver(
 	_ context.Context,
-	_ component.ReceiverCreateParams,
-	_ configmodels.Receiver,
-	_ consumer.MetricsConsumer,
+	_ component.ReceiverCreateSettings,
+	_ config.Receiver,
+	_ consumer.Metrics,
 ) (component.MetricsReceiver, error) {
 	return newNoopReceiver(nil, nil, nil), nil
 }
