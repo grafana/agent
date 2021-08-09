@@ -35,6 +35,11 @@
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
 
+
+# v0.18.1 (2021-08-09)
+
+- [BUGFIX] Reduce number of consul calls when ran in scrape service mode (@mattdurham)
+
 # v0.18.0 (2021-07-29)
 
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
