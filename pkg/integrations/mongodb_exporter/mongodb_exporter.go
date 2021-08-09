@@ -106,6 +106,14 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	collectors := []prometheus.Collector{}
 
+	gc := exporter.GeneralCollector{
+		Ctx:    context,
+		Client: e.client,
+		Logger: logrusLogger,
+	}
+
+	collectors = append(collectors, &gc)
+
 	if len(e.config.CollStatsCollections) > 0 {
 		var cc = exporter.CollstatsCollector{
 			Ctx:             context,
