@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies used for the operator
-RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
+# Keep versions in sync with cmd/agent-operator/DEVELOPERS.md
+RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2
 
 # Fix permissions for /go/bin directory.
 RUN chmod 0755 /go/bin
