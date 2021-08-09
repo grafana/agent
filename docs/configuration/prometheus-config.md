@@ -21,6 +21,10 @@ define one instance.
 [global: <global_config>]
 
 # Configure the directory used by instances to store their WAL.
+#
+# The Grafana Agent assumes that all folders within wal_directory are managed by
+# the agent itself. This means if you are using a PVC, you must point
+# wal_directory to a subdirectory of the PVC mount.
 [wal_directory: <string> | default = ""]
 
 # Configures how long ago an abandoned (not associated with an instance) WAL
