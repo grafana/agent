@@ -16,9 +16,6 @@ IMAGE_TAG ?= $(RELEASE_TAG)
 endif
 DRONE ?= false
 
-$(info RELEASE_TAG $(RELEASE_TAG))
-$(info IMAGE_TAG $(IMAGE_TAG))
-
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
 
