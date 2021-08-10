@@ -18,7 +18,6 @@ steps:
   - name: lint
     image: golangci/golangci-lint:v1.37.1
     commands:
-      - echo $DRONE_TAG
       - apt-get update -y && apt-get install -y libsystemd-dev
       - make lint
 
@@ -112,7 +111,7 @@ steps:
       - chmod a+x ~/.docker/cli-plugins/docker-buildx
       - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - docker buildx create --name multiarch --driver docker-container --use
-      - export RELEASE_TAG=$DRONE_TAG
+      - export RELEASE_TAG=${DRONE_TAG:-v0.0.0}
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
@@ -164,7 +163,7 @@ steps:
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
-      - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG publish
+      - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG:-v0.0.0} publish
 depends_on:
   - Dist
 
@@ -174,6 +173,6 @@ volumes:
       path: /var/run/docker.sock
 ---
 kind: signature
-hmac: a591ba790350023b3c81df8639ecf4e9e84b6b0ac10784ce2cd1861881380b5c
+hmac: 46567e17e4575977c0b42ad45c3013f159b1d510df27656349d91a68853be485
 
 ...
