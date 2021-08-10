@@ -86,10 +86,10 @@ name: Containerize
 platform:
   os: linux
   arch: amd64
-trigger:
-  ref:
-    - refs/heads/main
-    - refs/tags/v*
+#trigger:
+#  ref:
+#    - refs/heads/main
+#    - refs/tags/v*
 
 steps:
   - name: Build Containers
@@ -173,6 +173,6 @@ volumes:
       path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 46567e17e4575977c0b42ad45c3013f159b1d510df27656349d91a68853be485
+hmac: 01f414d161ab4b9c6f4f20c483a0c10fdf9f4d3c77d2efce7bd45d68af142198
 
 ...
