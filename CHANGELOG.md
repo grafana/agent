@@ -16,6 +16,9 @@
 
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
+- [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
+  the $HOSTNAME variable in agent config.  (@dfrankel33)
+
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
 
@@ -56,7 +59,7 @@
 
 - [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
   integration. (@gaantunes)
-  
+
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
 
