@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
+  the $HOSTNAME variable in agent config.  (@dfrankel33)
+  
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
