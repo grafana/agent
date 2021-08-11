@@ -9,7 +9,7 @@ require (
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/drone/envsubst v1.0.2
 	github.com/fatih/structs v1.1.0
-	github.com/gaantunes/mongodb_exporter v1.0.1
+	github.com/gaantunes/mongodb_exporter v1.0.2
 	github.com/go-kit/kit v0.11.0
 	github.com/go-kit/log v0.1.0
 	github.com/go-logfmt/logfmt v0.5.0
