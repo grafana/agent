@@ -71,8 +71,8 @@ func main() {
 	}))
 
 	// Register crow's metrics to /metrics and /valiate respectively.
-	s.Registerer.Register(c.StateMetrics())
-	validator.Register(c.TestMetrics())
+	s.Registerer.MustRegister(c.StateMetrics())
+	validator.MustRegister(c.TestMetrics())
 
 	if err := s.Run(); err != nil {
 		level.Error(l).Log("msg", "server exited with error", "err", err)
