@@ -24,7 +24,7 @@ func (s *sample) Ready(now time.Time) bool {
 }
 
 func sampleBackoff(attempt int) time.Duration {
-	// Exponential backoff from 1s up to 1s + (500ms * 2^attempt).
+	// Exponential backoff from 1s up to 1s + (250ms * 2^attempt).
 	return time.Second + (250 * time.Millisecond * 1 << attempt)
 }
 
