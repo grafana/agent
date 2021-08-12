@@ -55,7 +55,7 @@ func init() {
 	case "linux":
 		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev|proc|sys|var/lib/docker/.+)($|/)"
 		DefaultConfig.FilesystemIgnoredFSTypes = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
-	case "freebsd", "netbsd", "openbsd":
+	case "freebsd", "netbsd", "openbsd", "darwin":
 		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev)($|/)"
 		DefaultConfig.FilesystemIgnoredFSTypes = "^devfs$"
 	}
