@@ -10,8 +10,6 @@ import (
 
 	"github.com/weaveworks/common/instrument"
 
-	"github.com/cortexproject/cortex/pkg/ring/kv/consul"
-
 	"github.com/hashicorp/go-cleanhttp"
 
 	"github.com/hashicorp/consul/api"
@@ -59,8 +57,8 @@ type Remote struct {
 // consul kv stores
 type agentRemoteClient struct {
 	kv.Client
-	consul       *api.Client
-	consulConfig consul.Config
+	consul *api.Client
+	config kv.Config
 }
 
 // NewRemote creates a new Remote store that uses a Key-Value client to store
@@ -102,7 +100,7 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 	r.reg.UnregisterAll()
 
 	if !enable {
-		r.setClient(nil, nil)
+		r.setClient(nil, nil, kv.Config{})
 		return nil
 	}
 
@@ -129,19 +127,20 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 		return fmt.Errorf("failed to create kv client: %w", err)
 	}
 
-	r.setClient(cli, consulClient)
+	r.setClient(cli, consulClient, cfg)
 	return nil
 }
 
 // setClient sets the active client and notifies run to restart the
 // kv watcher.
-func (r *Remote) setClient(client kv.Client, consulClient *api.Client) {
+func (r *Remote) setClient(client kv.Client, consulClient *api.Client, config kv.Config) {
 	if client == nil && consulClient == nil {
 		r.kv = nil
 	} else {
 		r.kv = &agentRemoteClient{
 			Client: client,
 			consul: consulClient,
+			config: config,
 		}
 	}
 	r.reloadKV <- struct{}{}
@@ -227,14 +226,13 @@ func (r *Remote) listConsul(ctx context.Context) (api.KVPairs, error) {
 
 	var pairs api.KVPairs
 	options := &api.QueryOptions{
-		AllowStale:        !r.kv.consulConfig.ConsistentReads,
-		RequireConsistent: r.kv.consulConfig.ConsistentReads,
+		AllowStale:        !r.kv.config.Consul.ConsistentReads,
+		RequireConsistent: r.kv.config.Consul.ConsistentReads,
 	}
 	// This is copied from cortex list so that stats stay the same
 	err := instrument.CollectedRequest(ctx, "List", consulRequestDuration, instrument.ErrorCode, func(ctx context.Context) error {
 		var err error
-		// This mirrors the default prefix in cortex
-		pairs, _, err = r.kv.consul.KV().List("configurations/", options.WithContext(ctx))
+		pairs, _, err = r.kv.consul.KV().List(r.kv.config.Prefix, options.WithContext(ctx))
 		return err
 	})
 
@@ -245,6 +243,9 @@ func (r *Remote) listConsul(ctx context.Context) (api.KVPairs, error) {
 	if pairs == nil {
 		blankPairs := make(api.KVPairs, 0)
 		return blankPairs, nil
+	}
+	for _, kvp := range pairs {
+		kvp.Key = strings.TrimPrefix(kvp.Key, r.kv.config.Prefix)
 	}
 	return pairs, nil
 }
