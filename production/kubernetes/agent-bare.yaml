@@ -61,7 +61,7 @@ spec:
         - -config.file=/etc/agent/agent.yaml
         command:
         - /bin/agent
-        image: grafana/agent:v0.18.1
+        image: grafana/agent:v0.18.2
         imagePullPolicy: IfNotPresent
         name: agent
         ports:
