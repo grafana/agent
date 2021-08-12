@@ -8,14 +8,14 @@ jobs:
         platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - name: Set up Go 1.16
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.16
-        id: go
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Build
-        run: make BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
-      - name: Test
-        run: make BUILD_IN_CONTAINER=false test
+    - name: Set up Go 1.16
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.16
+      id: go
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Build
+      run: make BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
+    - name: Test
+      run: make BUILD_IN_CONTAINER=false test

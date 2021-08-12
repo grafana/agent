@@ -16,9 +16,6 @@ IMAGE_TAG ?= $(RELEASE_TAG)
 endif
 DRONE ?= false
 
-$(info RELEASE_TAG $(RELEASE_TAG))
-$(info IMAGE_TAG $(IMAGE_TAG))
-
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
 
@@ -51,7 +48,7 @@ CROSS_BUILD ?= false
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.11.0
+BUILD_IMAGE_VERSION := 0.12.0
 BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
@@ -225,7 +222,7 @@ lint:
 # Run tests with -online flag set to true, to include tests requiring network connectivity in CI
 test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./... -- -online
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/loki -- -online
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs -- -online
 
 clean:
 	rm -rf cmd/agent/agent

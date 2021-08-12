@@ -1,6 +1,10 @@
 # Main (unreleased)
 
+- [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
+
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+
+- [FEATURE] Support autologging span attributes as log labels (@mapno)
 
 - [FEATURE] Put Tests requiring Network Access behind a -online flag (@flokli)
 
@@ -8,7 +12,12 @@
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
 
+- [ENHANCEMENT] Update OTel dependency to v0.30.0 (@mapno)
+
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
+
+- [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
+  the $HOSTNAME variable in agent config.  (@dfrankel33)
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
@@ -19,6 +28,9 @@
 - [BUGFIX] The Linux system packages will now configure the grafana-agent user
   to be a member of the adm and systemd-journal groups. This will allow logs to
   read from journald and /var/log by default. (@rfratto)
+
+- [CHANGE] Breaking change: reduced verbosity of tracing autologging
+  by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
@@ -49,7 +61,8 @@
 
 # v0.17.0 (2021-07-15)
 
-- [FEATURE] Added Kafka Lag exporter integration. (@gaantunes)
+- [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
+  integration. (@gaantunes)
 
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
@@ -694,12 +707,12 @@ files to the new format.
 - [FEATURE] The Prometheus remote write protocol will now send scraped metadata (metric name, help, type and unit). This results in almost negligent bytes sent increase as metadata is only sent every minute. It is on by default. (@gotjosh)
 
   These metrics are available to monitor metadata being sent:
-  - `prometheus_remote_storage_succeeded_metadata_total`
-  - `prometheus_remote_storage_failed_metadata_total`
-  - `prometheus_remote_storage_retried_metadata_total`
-  - `prometheus_remote_storage_sent_batch_duration_seconds` and
-    `prometheus_remote_storage_sent_bytes_total` have a new label “type” with
-    the values of `metadata` or `samples`.
+    - `prometheus_remote_storage_succeeded_metadata_total`
+    - `prometheus_remote_storage_failed_metadata_total`
+    - `prometheus_remote_storage_retried_metadata_total`
+    - `prometheus_remote_storage_sent_batch_duration_seconds` and
+      `prometheus_remote_storage_sent_bytes_total` have a new label “type” with
+      the values of `metadata` or `samples`.
 
 - [FEATURE] The Agent has upgraded its vendored Prometheus to v2.17.1 (@rfratto)
 

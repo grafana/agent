@@ -1,9 +1,14 @@
-# Getting Started
++++
+title = "Get started with Grafana Agent Operator"
+weight = 100
++++
+
+# Get started with Grafana Agent Operator
 
 An official Helm chart is planned to make it really easy to deploy the Grafana Agent
 Operator on Kubernetes. For now, things must be done a little manually.
 
-## Deploying CustomResourceDefinitions
+## Deploy CustomResourceDefinitions
 
 Before you can write custom resources to describe a Grafana Agent deployment,
 you _must_ deploy the
@@ -21,12 +26,20 @@ root of this repository using:
 kubectl apply -f production/operator/crds
 ```
 
-This step *must* be done before installing the Operator, as the Operator will
+This step _must_ be done before installing the Operator, as the Operator will
 fail to start if the CRDs do not exist.
 
-## Installing on Kubernetes
+### Find information on the supported values for the CustomResourceDefinitions
 
-Use the following Deployment to run the Operator, changing values as desired:
+Once you've deployed the CustomResourceDefinitions
+to your Kubernetes cluster, use `kubectl explain <resource>` to get access to
+the documentation for each resource. For example, `kubectl explain GrafanaAgent`
+will describe the GrafanaAgent CRD, and `kubectl explain GrafanaAgent.spec` will
+give you information on its spec field.
+
+## Install Agent Operator on Kubernetes
+
+Use the following deployment to run the Operator, changing values as desired:
 
 ```yaml
 apiVersion: apps/v1
@@ -106,9 +119,9 @@ subjects:
   namespace: default
 ```
 
-## Running locally
+## Run Operator locally
 
-Before running locally, **make sure your kubectl context is correct!**
+Before running locally, _make sure your kubectl context is correct!_
 Running locally uses your current kubectl context, and you probably don't want
 to accidentally deploy a new Grafana Agent to prod.
 
@@ -122,7 +135,7 @@ Afterwards, you can run the operator using `go run`:
 go run ./cmd/agent-operator
 ```
 
-## Deploying GrafanaAgent
+## Deploy GrafanaAgent
 
 Now that the Operator is running, you can create a deployment of the
 Grafana Agent. The first step is to create a GrafanaAgent resource. This
@@ -262,8 +275,7 @@ and [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator
 with a label matching `instance: primary`. Create resources as appropriate for
 your environment.
 
-As an example, here is a ServiceMonitor that can collect metrics from
-`kube-dns`:
+As an example, here is a ServiceMonitor that can collect metrics from `kube-dns`:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1

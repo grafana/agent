@@ -4,6 +4,8 @@
 .published
 .pkg
 .cache
+.vscode
+vendor
 cover*.out
 vendor
 
@@ -11,5 +13,8 @@ cmd/agent/agent
 cmd/agentctl/agentctl
 cmd/agent-operator/agent-operator
 dist/
+packaging/windows/LICENSE
+packaging/windows/agent-windows-amd64.exe
 
 .DS_Store
+buildx-v*

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/grafana/agent/pkg/loki"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/tempo/noopreceiver"
 	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
@@ -17,11 +17,12 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
+	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/common/config"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configmodels"
+	"go.opentelemetry.io/collector/config/configloader"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/exporter/prometheusexporter"
@@ -51,6 +52,8 @@ const (
 	stringAttributePolicy  = "string_attribute"
 	numericAttributePolicy = "numeric_attribute"
 	rateLimitingPolicy     = "rate_limiting"
+	latencyPolicy          = "latency"
+	statusCodePolicy       = "status_code"
 )
 
 // Config controls the configuration of Tempo trace pipelines.
@@ -65,7 +68,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // Validate ensures that the Config is valid.
-func (c *Config) Validate(lokiConfig *loki.Config) error {
+func (c *Config) Validate(logsConfig *logs.Config) error {
 	names := make(map[string]struct{}, len(c.Configs))
 	for idx, c := range c.Configs {
 		if c.Name == "" {
@@ -77,25 +80,10 @@ func (c *Config) Validate(lokiConfig *loki.Config) error {
 		names[c.Name] = struct{}{}
 	}
 
-	// check to make sure that any referenced Loki configs exist.
 	for _, inst := range c.Configs {
 		if inst.AutomaticLogging != nil {
-			if inst.AutomaticLogging.Backend != automaticloggingprocessor.BackendLoki { // we can ignore if we're not logging to loki
-				continue
-			}
-
-			found := false
-			lokiName := inst.AutomaticLogging.LokiName
-
-			for _, lokiInst := range lokiConfig.Configs {
-				if lokiInst.Name == lokiName {
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				return fmt.Errorf("specified loki config %s not found", lokiName)
+			if err := inst.AutomaticLogging.Validate(logsConfig); err != nil {
+				return fmt.Errorf("failed to validate automatic_logging for tempo config %s: %w", inst.Name, err)
 			}
 		}
 	}
@@ -133,6 +121,9 @@ type InstanceConfig struct {
 
 	// TailSampling defines a sampling strategy for the pipeline
 	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
+
+	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
+	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
 }
 
 const (
@@ -217,7 +208,7 @@ type SpanMetricsConfig struct {
 	// Namespace if set, exports metrics under the provided value.
 	Namespace string `yaml:"namespace,omitempty"`
 	// ConstLabels are values that are applied for every exported metric.
-	ConstLabels map[string]interface{} `yaml:"const_labels,omitempty"`
+	ConstLabels *prometheus.Labels `yaml:"const_labels,omitempty"`
 	// PromInstance is the Agent's prometheus instance that will be used to push metrics
 	PromInstance string `yaml:"prom_instance"`
 	// HandlerEndpoint is the address where a prometheus exporter will be exposed
@@ -233,8 +224,6 @@ type tailSamplingConfig struct {
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
 	// Port is the port the instance will use to receive load balanced traces
 	Port string `yaml:"port"`
-	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
-	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
@@ -378,15 +367,15 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 	exporter, err := exporter(RemoteWriteConfig{
 		// Endpoint is omitted in OTel load balancing exporter
 		Endpoint:    "noop",
-		Compression: c.TailSampling.LoadBalancing.Exporter.Compression,
-		Insecure:    c.TailSampling.LoadBalancing.Exporter.Insecure,
-		TLSConfig:   &prom_config.TLSConfig{InsecureSkipVerify: c.TailSampling.LoadBalancing.Exporter.InsecureSkipVerify},
-		BasicAuth:   c.TailSampling.LoadBalancing.Exporter.BasicAuth,
+		Compression: c.LoadBalancing.Exporter.Compression,
+		Insecure:    c.LoadBalancing.Exporter.Insecure,
+		TLSConfig:   &prom_config.TLSConfig{InsecureSkipVerify: c.LoadBalancing.Exporter.InsecureSkipVerify},
+		BasicAuth:   c.LoadBalancing.Exporter.BasicAuth,
 	})
 	if err != nil {
 		return nil, err
 	}
-	resolverCfg, err := resolver(c.TailSampling.LoadBalancing.Resolver)
+	resolverCfg, err := resolver(c.LoadBalancing.Resolver)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +402,7 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 					"name": fmt.Sprintf("%s/%d", typ, i),
 					"type": typ,
 				})
-			case stringAttributePolicy, rateLimitingPolicy, numericAttributePolicy:
+			case stringAttributePolicy, rateLimitingPolicy, numericAttributePolicy, latencyPolicy, statusCodePolicy:
 				policies = append(policies, map[string]interface{}{
 					"name": fmt.Sprintf("%s/%d", typ, i),
 					"type": typ,
@@ -427,7 +416,7 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 	return policies, nil
 }
 
-func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
+func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
 	if len(c.Receivers) == 0 {
@@ -545,30 +534,30 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 			"policies":      policies,
 			"decision_wait": wait,
 		}
+	}
 
-		if c.TailSampling.LoadBalancing != nil {
-			internalExporter, err := c.loadBalancingExporter()
-			if err != nil {
-				return nil, err
-			}
-			exporters["loadbalancing"] = internalExporter
+	if c.LoadBalancing != nil {
+		internalExporter, err := c.loadBalancingExporter()
+		if err != nil {
+			return nil, err
+		}
+		exporters["loadbalancing"] = internalExporter
 
-			receiverPort := defaultLoadBalancingPort
-			if c.TailSampling.Port != "" {
-				receiverPort = c.TailSampling.Port
-			}
-			c.Receivers["otlp/lb"] = map[string]interface{}{
-				"protocols": map[string]interface{}{
-					"grpc": map[string]interface{}{
-						"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
-					},
+		receiverPort := defaultLoadBalancingPort
+		if c.TailSampling.Port != "" {
+			receiverPort = c.TailSampling.Port
+		}
+		c.Receivers["otlp/lb"] = map[string]interface{}{
+			"protocols": map[string]interface{}{
+				"grpc": map[string]interface{}{
+					"endpoint": net.JoinHostPort("0.0.0.0", receiverPort),
 				},
-			}
+			},
 		}
 	}
 
 	// Build Pipelines
-	splitPipeline := c.TailSampling != nil && c.TailSampling.LoadBalancing != nil
+	splitPipeline := c.TailSampling != nil && c.LoadBalancing != nil
 	orderedSplitProcessors := orderProcessors(processorNames, splitPipeline)
 	if splitPipeline {
 		// load balancing pipeline
@@ -606,19 +595,13 @@ func (c *InstanceConfig) otelConfig() (*configmodels.Config, error) {
 		"pipelines": pipelines,
 	}
 
-	// now build the otel configmodel from the mapstructure
-	v := viper.New()
-	err = v.MergeConfigMap(otelMapStructure)
-	if err != nil {
-		return nil, fmt.Errorf("failed to merge in mapstructure config: %w", err)
-	}
-
 	factories, err := tracingFactories()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
 
-	otelCfg, err := config.Load(v, factories)
+	parser := configparser.NewParserFromStringMap(otelMapStructure)
+	otelCfg, err := configloader.Load(parser, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
