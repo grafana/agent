@@ -39,9 +39,6 @@ type Config struct {
 	//  MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
 	URI string `yaml:"mongodb_uri"`
 
-	// Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used."
-	DirectConnect bool `yaml:"direct_connect"`
-
 	// Enable autodiscover collections
 	DiscoveringMode bool `yaml:"discovering_mode"`
 }
@@ -87,7 +84,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	e.context = context
 
 	var err error
-	e.client, err = exporter.Connect(context, c.URI, c.DirectConnect)
+	e.client, err = exporter.Connect(context, c.URI, true)
 	if err != nil {
 		return nil, err
 	}
