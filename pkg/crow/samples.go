@@ -47,25 +47,21 @@ func (sg *sampleGenerator) Describe(ch chan<- *prometheus.Desc) {
 func (sg *sampleGenerator) Collect(ch chan<- prometheus.Metric) {
 	var (
 		scrapeTime = time.Now()
-		desc       = prometheus.NewDesc(
+
+		sampleLabel = "sample_num"
+		desc        = prometheus.NewDesc(
 			validationSampleName, "Sample to validate",
-			[]string{"sample_num"},
+			[]string{sampleLabel},
 			prometheus.Labels{},
 		)
+
+		usedLabels = map[string]struct{}{}
+		samples    = make([]*sample, sg.numSamples)
 	)
 
-	usedLabels := map[string]struct{}{}
-
-	samples := make([]*sample, sg.numSamples)
 	for s := 0; s < sg.numSamples; s++ {
-		samples[s] = &sample{
-			ScrapeTime: scrapeTime,
-			Labels:     prometheus.Labels{},
-			Value:      float64(sg.r.Int63n(1_000_000)),
-		}
-
 	GenLabel:
-		labelSuffix := make([]byte, 2)
+		labelSuffix := make([]byte, 1)
 		_, _ = sg.r.Read(labelSuffix)
 		label := fmt.Sprintf("sample_%x", labelSuffix)
 		if _, exist := usedLabels[label]; exist {
@@ -73,10 +69,15 @@ func (sg *sampleGenerator) Collect(ch chan<- prometheus.Metric) {
 		}
 		usedLabels[label] = struct{}{}
 
+		samples[s] = &sample{
+			ScrapeTime: scrapeTime,
+			Labels:     prometheus.Labels{sampleLabel: label},
+			Value:      float64(sg.r.Int63n(1_000_000)),
+		}
 		ch <- prometheus.MustNewConstMetric(
 			desc,
 			prometheus.GaugeValue,
-			samples[s].Value, label,
+			samples[s].Value, samples[s].Labels[sampleLabel],
 		)
 	}
 
