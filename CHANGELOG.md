@@ -41,6 +41,10 @@
   `backend: logs_instance`. (@rfratto)
 
 
+# v0.18.2 (2021-08-12)
+
+- [BUGFIX] Honor the prefix and remove prefix from consul list results (@mattdurham)
+
 # v0.18.1 (2021-08-09)
 
 - [BUGFIX] Reduce number of consul calls when ran in scrape service mode (@mattdurham)
