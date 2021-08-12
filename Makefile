@@ -177,26 +177,25 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 agent-operator: cmd/agent-operator/agent-operator
-
-
-
+grafana-agent-crow: cmd/grafana-agent-crow/grafana-agent-crow
 
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
 
-cmd/agent/agent: seego  cmd/agent/main.go
+cmd/agent/agent: seego cmd/agent/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
-
 
 cmd/agentctl/agentctl: seego cmd/agentctl/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
-
 cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
+cmd/grafana-agent-crow/grafana-agent-crow: cmd/grafana-agent-crow/main.go
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+	$(NETGO_CHECK)
 
 agent-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
@@ -204,11 +203,14 @@ agentctl-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
-
+grafana-agent-crow-image:
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent-crow:latest -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f cmd/grafana-agent-crow/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent-operator
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/grafana-agent-crow
 
 #######################
 # Development targets #
@@ -217,12 +219,14 @@ install:
 lint:
 	GO111MODULE=on golangci-lint run -v --timeout=10m
 
-# We have to run test twice: once for all packages with -race and then once more without -race
-# for packages that have known race detection issues
-# Run tests with -online flag set to true, to include tests requiring network connectivity in CI
+# We have to run test twice: once for all packages with -race and then once
+# more without -race for packages that have known race detection issues.
+#
+# Run tests with -tags=has_network to include tests that require network
+# connectivity.
 test:
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./... -- -online
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs -- -online
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -race -cover -coverprofile=cover.out -p=4 ./...
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
 
 clean:
 	rm -rf cmd/agent/agent
