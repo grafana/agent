@@ -22,30 +22,16 @@ type Exporter struct {
 	config       Config
 }
 
-var DefaultConfig = Config{
-	DiscoveringMode: true,
-}
-
 // Config controls mongodb_exporter
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	// List of comma separared databases.collections to get $collStats. example: db1.col1,db2.col2
-	CollStatsCollections []string `yaml:"collstats_colls"`
-
-	// List of comma separared databases.collections to get $indexStats. example:"db1.col1,db2.col2"
-	IndexStatsCollections []string `yaml:"indexstats_colls"`
-
 	//  MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
 	URI string `yaml:"mongodb_uri"`
-
-	// Enable autodiscover collections
-	DiscoveringMode bool `yaml:"discovering_mode"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
 
 	type plain Config
 	return unmarshal((*plain)(c))
@@ -110,33 +96,6 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	collectors = append(collectors, &gc)
-
-	if len(e.config.CollStatsCollections) > 0 {
-		var cc = exporter.CollstatsCollector{
-			Ctx:             context,
-			Client:          e.client,
-			Collections:     e.config.CollStatsCollections,
-			CompatibleMode:  true,
-			DiscoveringMode: e.config.DiscoveringMode,
-			Logger:          logrusLogger,
-			TopologyInfo:    e.topologyInfo,
-		}
-
-		collectors = append(collectors, &cc)
-	}
-
-	if len(e.config.IndexStatsCollections) > 0 {
-		var ic = exporter.IndexstatsCollector{
-			Ctx:             context,
-			Client:          e.client,
-			Collections:     e.config.IndexStatsCollections,
-			DiscoveringMode: e.config.DiscoveringMode,
-			Logger:          logrusLogger,
-			TopologyInfo:    e.topologyInfo,
-		}
-
-		collectors = append(collectors, &ic)
-	}
 
 	var ddc = exporter.DiagnosticDataCollector{
 		Ctx:            context,
