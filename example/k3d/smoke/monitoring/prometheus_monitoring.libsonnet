@@ -54,6 +54,38 @@ local agent_prometheus = import 'grafana-agent/v1/lib/prometheus.libsonnet';
               summary: '{{ $labels.job }} is flapping',
             },
           },
+
+          // Checks that the CPU usage doesn't go too high. This was generated
+          // from main where the CPU usage hovered around 2-3% per pod.
+          //
+          // TODO: something less guessworky here.
+          {
+            alert: 'GrafanaAgentCPUHigh',
+            expr: |||
+              rate(container_cpu_usage_seconds_total{namespace="smoke", pod=~"grafana-agent-.*"}[1m]) > 0.05
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: '{{ $labels.pod }} is using more than 5% CPU over the last 5 minutes',
+            },
+          },
+
+          // We assume roughly ~8KB per series. Check that each deployment
+          // doesn't go too far above this.
+          //
+          // We aggregate the memory of the scraping service together since an individual
+          // node with a really small number of active series will throw this metric off.
+          {
+            alert: 'GrafanaAgentMemHigh',
+            expr: |||
+              sum without (pod, instance) (go_memstats_heap_inuse_bytes{job=~"smoke/grafana-agent.*"}) /
+              sum without (pod, instance, instance_group_name) (agent_wal_storage_active_series{job=~"smoke/grafana-agent.*"}) / 1e3 > 10
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: '{{ $labels.job }} has used more than 10KB per series for more than 5 minutes',
+            },
+          },
         ],
       },
       {
