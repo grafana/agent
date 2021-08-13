@@ -56,6 +56,65 @@ local agent_prometheus = import 'grafana-agent/v1/lib/prometheus.libsonnet';
           },
         ],
       },
+      {
+        name: 'CrowChecks',
+        rules: [
+          {
+            alert: 'CrowMissing',
+            expr: |||
+              absent(up{container="crow-single"})  == 1 or
+              absent(up{container="crow-cluster"}) == 1
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: '{{ $labels.container }} is not running.',
+            },
+          },
+          {
+            alert: 'CrowDown',
+            expr: |||
+              up{job=~"smoke/crow-.*"} == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Crow {{ $labels.job }} is down.',
+            },
+          },
+          {
+            alert: 'CrowFlapping',
+            expr: |||
+              avg_over_time(up{job=~"smoke/crow-.*"}[5m]) < 1
+            |||,
+            'for': '15m',
+            annotations: {
+              summary: 'Crow {{ $labels.job }} is flapping.',
+            },
+          },
+          {
+            alert: 'CrowNotScraped',
+            expr: |||
+              rate(crow_test_samples_total[1m]) == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Crow {{ $labels.job }} is not being scraped.',
+            },
+          },
+          {
+            alert: 'CrowFailures',
+            expr: |||
+              (
+                rate(crow_test_sample_results_total{result="success"}[1m])
+                / ignoring(result) rate(crow_test_samples_total[1m])
+              ) < 1
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Crow {{ $labels.job }} has had failures for at least 5m',
+            },
+          },
+        ],
+      },
     ],
   },
 }

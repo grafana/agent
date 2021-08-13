@@ -10,11 +10,11 @@ local volumeMount = k.core.v1.volumeMount;
 local volume = k.core.v1.volume;
 
 {
-  new(name='test-exporter', namespace='', config={}):: {
+  new(name='crow', namespace='', config={}):: {
     local this = self,
 
     _config+:: {
-      image: 'cortexproject/test-exporter:v1.9.0',
+      image: 'grafana/agent-crow:latest',
       args: {},
     } + config,
 

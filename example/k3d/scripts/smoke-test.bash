@@ -30,6 +30,8 @@
 # The k3d cluster is kept alive after the test for analysis. To clean up assets created
 # by the script, re-run the script with the -d flag.
 
+set -euo pipefail
+
 # Constants
 ROOT=$(git rev-parse --show-toplevel)
 K3D_CLUSTER_NAME="agent-smoke-test"
@@ -43,11 +45,15 @@ ENTRYPOINT="run"
 TEST_DURATION="3h"
 IMPORT_IMAGES=""
 
-while getopts "dt:" opt; do
+while getopts "dt:ih" opt; do
   case $opt in
     d) ENTRYPOINT="cleanup" ;;
     t) TEST_DURATION=$OPTARG ;;
     i) IMPORT_IMAGES="yes" ;;
+    h)
+      echo "Usage: $0 [-i] [-d] [-t <duration>]"
+      exit 0
+      ;;
     *)
       echo "Usage: $0 [-i] [-d] [-t <duration>]"
       exit 1
@@ -75,7 +81,8 @@ run() {
 
     k3d image import -c $K3D_CLUSTER_NAME \
       grafana/agent:latest \
-      grafana/agentctl:latest
+      grafana/agentctl:latest \
+      grafana/agent-crow:latest
   fi
 
   tk apply $ROOT/example/k3d/smoke --dangerous-auto-approve

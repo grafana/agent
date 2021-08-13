@@ -1,10 +1,10 @@
 local monitoring = import './monitoring/main.jsonnet';
 local avalanche = import 'avalanche/main.libsonnet';
 local cortex = import 'cortex/main.libsonnet';
+local crow = import 'crow/main.libsonnet';
 local etcd = import 'etcd/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
-local test_exporter = import 'test-exporter/main.libsonnet';
 
 local namespace = k.core.v1.namespace;
 local pvc = k.core.v1.persistentVolumeClaim;
@@ -15,15 +15,13 @@ local images = {
   agentctl: 'grafana/agentctl:latest',
 };
 
-local new_test_exporter(name, selector) =
-  test_exporter.new(name, namespace='smoke', config={
+local new_crow(name, selector) =
+  crow.new(name, namespace='smoke', config={
     args: {
-      'prometheus-address': 'http://cortex/api/prom',
-      'scrape-interval': '15s',
-      'extra-selectors': selector,
+      'crow.prometheus-addr': 'http://cortex/api/prom',
+      'crow.extra-selectors': selector,
     },
   });
-
 
 local smoke = {
   ns: namespace.new('smoke'),
@@ -41,17 +39,19 @@ local smoke = {
     metric_interval: 600,
   }),
 
-  test_exporters: [
-    new_test_exporter('test-exporter-single', 'cluster="grafana-agent"'),
-    new_test_exporter('test-exporter-cluster', 'cluster="grafana-agent-cluster"'),
+  crows: [
+    new_crow('crow-single', 'cluster="grafana-agent"'),
+    new_crow('crow-cluster', 'cluster="grafana-agent-cluster"'),
   ],
 
-  local metric_instances(test_exporter_name) = [{
-    name: 'test-exporter',
+  local metric_instances(crow_name) = [{
+    name: 'crow',
     remote_write: [{ url: 'http://cortex/api/prom/push' }],
     scrape_configs: [
       {
-        job_name: 'test-exporter',
+        job_name: 'crow',
+        metrics_path: '/validate',
+
         kubernetes_sd_configs: [{ role: 'pod' }],
         tls_config: {
           ca_file: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
@@ -64,7 +64,7 @@ local smoke = {
           action: 'keep',
         }, {
           source_labels: ['__meta_kubernetes_pod_container_name'],
-          regex: test_exporter_name,
+          regex: crow_name,
           action: 'keep',
         }],
       },
@@ -119,7 +119,7 @@ local smoke = {
           },
         },
         wal_directory: '/var/lib/agent/data',
-        configs: metric_instances('test-exporter-single'),
+        configs: metric_instances('crow-single'),
       },
     }),
 
@@ -176,7 +176,7 @@ local smoke = {
     config={
       image: images.agentctl,
       api: 'http://grafana-agent-cluster.smoke.svc.cluster.local',
-      configs: metric_instances('test-exporter-cluster'),
+      configs: metric_instances('crow-cluster'),
     }
   ),
 };
