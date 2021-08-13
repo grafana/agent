@@ -1,8 +1,8 @@
 # Main (unreleased)
 
-- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
+- [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
-- [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
+- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
 
 - [FEATURE] Support autologging span attributes as log labels (@mapno)
 
@@ -16,9 +16,8 @@
 
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
-- [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
-
-- [ENHANCEMENT] Update postgres_exporter to a [branch of](https://github.com/grafana/postgres_exporter/tree/exporter-package-v0.10.0) v0.10.0
+- [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
+  the $HOSTNAME variable in agent config.  (@dfrankel33)
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
@@ -26,9 +25,11 @@
 - [BUGFIX] The directory of the logs positions file will now properly be created
   on startup for all instances.
 
-- [BUGFIX] The Liunx system packages will now configure the grafana-agent user
+- [BUGFIX] The Linux system packages will now configure the grafana-agent user
   to be a member of the adm and systemd-journal groups. This will allow logs to
   read from journald and /var/log by default. (@rfratto)
+
+- [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the `node_exporter` integration default config. (@eamonryan)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
@@ -38,6 +39,27 @@
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
+
+
+# v0.18.2 (2021-08-12)
+
+- [BUGFIX] Honor the prefix and remove prefix from consul list results (@mattdurham)
+
+# v0.18.1 (2021-08-09)
+
+- [BUGFIX] Reduce number of consul calls when ran in scrape service mode (@mattdurham)
+
+# v0.18.0 (2021-07-29)
+
+- [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
+
+- [FEATURE] Add support for OTLP HTTP trace exporting. (@mapno)
+
+- [ENHANCEMENT] Switch to drone for releases. (@mattdurham)
+
+- [ENHANCEMENT] Update postgres_exporter to a [branch of](https://github.com/grafana/postgres_exporter/tree/exporter-package-v0.10.0) v0.10.0
+
+- [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
 
 # v0.17.0 (2021-07-15)
 
@@ -58,8 +80,6 @@
 
 - [ENHANCEMENT] Error messages when installing the Grafana Agent for Grafana
   Cloud will now be shown. (@rfratto)
-
-- [BUGFIX]  Enabled flag is not being honored. (@mattdurham)
 
 - [BUGFIX] Fix a leak in the shared string interner introduced in v0.14.0.
   This fix was made to a [dependency](https://github.com/grafana/prometheus/pull/21).

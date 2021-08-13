@@ -6,20 +6,20 @@ platform:
   arch: amd64
 trigger:
   event:
-  - push
-  - pull_request
-  - tag 
+    - push
+    - pull_request
+    - tag
   ref:
-  - refs/heads/main
-  - refs/pull/*/head
-  - refs/tags/**
+    - refs/heads/main
+    - refs/pull/*/head
+    - refs/tags/**
 
 steps:
-- name: lint
-  image: golangci/golangci-lint:v1.37.1
-  commands:
-  - apt-get update -y && apt-get install -y libsystemd-dev
-  - make lint
+  - name: lint
+    image: golangci/golangci-lint:v1.37.1
+    commands:
+      - apt-get update -y && apt-get install -y libsystemd-dev
+      - make lint
 
 ---
 kind: pipeline
@@ -30,27 +30,27 @@ platform:
   arch: amd64
 trigger:
   event:
-  - push
-  - pull_request
-  - tag 
+    - push
+    - pull_request
+    - tag
   ref:
-  - refs/heads/main
-  - refs/pull/*/head
-  - refs/tags/**
+    - refs/heads/main
+    - refs/pull/*/head
+    - refs/tags/**
 
 steps:
-- name: test
-  image: rfratto/seego
-  commands:
-  - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
-  - gem install --no-document fpm
-  - mkdir -p /usr/local/go/bin
-  - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-  - rm go1.16.5.linux-amd64.tar.gz
-  - export PATH=$PATH:/usr/local/go/bin
-  - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
-  - make DRONE=true BUILD_IN_CONTAINER=false test
+  - name: test
+    image: rfratto/seego
+    commands:
+      - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
+      - gem install --no-document fpm
+      - mkdir -p /usr/local/go/bin
+      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+      - rm go1.16.5.linux-amd64.tar.gz
+      - export PATH=$PATH:/usr/local/go/bin
+      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator cmd/grafana-agent-crow/grafana-agent-crow
+      - make DRONE=true BUILD_IN_CONTAINER=false test
 depends_on:
   - Lint
 
@@ -63,20 +63,20 @@ platform:
   arch: amd64
 trigger:
   ref:
-  - refs/tags/v*
+    - refs/tags/v*
 
 steps:
-- name: distribute
-  image: rfratto/seego
-  commands:
-  - apt-get update &&  apt-get install -y rubygems rpm nsis
-  - gem install --no-document fpm
-  - mkdir -p /usr/local/go/bin
-  - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-  - rm go1.16.5.linux-amd64.tar.gz
-  - export PATH=$PATH:/usr/local/go/bin
-  - make DRONE=true BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist
+  - name: distribute
+    image: rfratto/seego
+    commands:
+      - apt-get update &&  apt-get install -y rubygems rpm nsis
+      - gem install --no-document fpm
+      - mkdir -p /usr/local/go/bin
+      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+      - rm go1.16.5.linux-amd64.tar.gz
+      - export PATH=$PATH:/usr/local/go/bin
+      - make DRONE=true BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist
 depends_on:
   - Test
 ---
@@ -88,42 +88,43 @@ platform:
   arch: amd64
 trigger:
   ref:
-  - refs/heads/main
-  - refs/tags/v*
+    - refs/heads/main
+    - refs/tags/v*
 
 steps:
-- name: Build Containers
-  image: docker
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-  environment:
-    DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
-    DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
-  commands:
-  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - apk update && apk add make bash wget git qemu
-  - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
-  - mkdir -p ~/.docker/cli-plugins 
-  - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
-  - chmod a+x ~/.docker/cli-plugins/docker-buildx
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch --driver docker-container --use
-  - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agent-image
-  - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agentctl-image
-  - make DRONE=true CROSS_BUILD=true RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG agent-operator-image
-  - docker buildx rm multiarch
-
+  - name: Build Containers
+    image: docker
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    environment:
+      DOCKER_LOGIN:
+        from_secret: DOCKER_LOGIN
+      DOCKER_PASSWORD:
+        from_secret: DOCKER_PASSWORD
+    commands:
+      - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+      - apk update && apk add make bash wget git qemu
+      - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
+      - mkdir -p ~/.docker/cli-plugins
+      - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
+      - chmod a+x ~/.docker/cli-plugins/docker-buildx
+      - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      - docker buildx create --name multiarch --driver docker-container --use
+      - export RELEASE_TAG=${DRONE_TAG:-v0.0.0}
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
+      - docker buildx rm multiarch
 
 depends_on:
   - Test
 
 volumes:
-- name: docker
-  host: 
-    path: /var/run/docker.sock
+  - name: docker
+    host:
+      path: /var/run/docker.sock
 ---
 kind: pipeline
 type: docker
@@ -133,45 +134,45 @@ platform:
   arch: amd64
 trigger:
   ref:
-  - refs/tags/v*
+    - refs/tags/v*
 
 steps:
-- name: create-release
-  image: rfratto/seego
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-  environment:
-    DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
-    DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
-    GITHUB_TOKEN:
-      from_secret: GITHUB_KEY
-  commands:
-  - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-  - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-  - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable"
-  - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io
-  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - gem install --no-document fpm
-  - mkdir -p /usr/local/go/bin
-  - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-  - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-  - rm go1.16.5.linux-amd64.tar.gz
-  - export PATH=$PATH:/usr/local/go/bin
-  - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
-  - export PATH="$(go env GOPATH)/bin:$PATH"
-  - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=$DRONE_TAG publish
+  - name: create-release
+    image: rfratto/seego
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    environment:
+      DOCKER_LOGIN:
+        from_secret: DOCKER_LOGIN
+      DOCKER_PASSWORD:
+        from_secret: DOCKER_PASSWORD
+      GITHUB_TOKEN:
+        from_secret: GITHUB_KEY
+    commands:
+      - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+      - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+      - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable"
+      - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io
+      - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+      - gem install --no-document fpm
+      - mkdir -p /usr/local/go/bin
+      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+      - rm go1.16.5.linux-amd64.tar.gz
+      - export PATH=$PATH:/usr/local/go/bin
+      - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
+      - export PATH="$(go env GOPATH)/bin:$PATH"
+      - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG:-v0.0.0} publish
 depends_on:
   - Dist
 
 volumes:
-- name: docker
-  host: 
-    path: /var/run/docker.sock
+  - name: docker
+    host:
+      path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 670cf64db6fd792fbb5b1e33d77be8ac23d2631e1a3d75308abb9d2c39522247
+hmac: fe10154b59ce9b9446f781eb801b147c689f1f6e3194c2d8d20447c4e0715b6e
 
 ...

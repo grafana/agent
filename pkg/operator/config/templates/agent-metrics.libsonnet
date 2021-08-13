@@ -54,7 +54,7 @@ function(ctx) marshal.YAML(optionals.trim({
         overrideHonorLabels=prometheus.OverrideHonorLabels,
         overrideHonorTimestamps=prometheus.OverrideHonorTimestamps,
         ignoreNamespaceSelectors=prometheus.IgnoreNamespaceSelectors,
-        enforcedNamespaceLabel=prometheus.EnforcedNamepsaceLabel,
+        enforcedNamespaceLabel=prometheus.EnforcedNamespaceLabel,
         enforcedSampleLimit=prometheus.EnforcedSampleLimit,
         enforcedTargetLimit=prometheus.EnforcedTargetLimit,
         shards=calculateShards(prometheus.Shards),
