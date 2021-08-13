@@ -138,7 +138,7 @@ chaos_loop() {
     kubectl --context=k3d-$K3D_CLUSTER_NAME --namespace=smoke \
       delete --grace-period=0 --force pod/grafana-agent-0
 
-    REPLICA=$(($RANDOM % 4))
+    REPLICA=$(($RANDOM % 3))
     echo "--- Force deleting pod/agent-cluster-$REPLICA"
     kubectl --context=k3d-$K3D_CLUSTER_NAME --namespace=smoke \
       delete --grace-period=0 --force pod/grafana-agent-cluster-$REPLICA
