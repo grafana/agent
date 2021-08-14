@@ -26,7 +26,7 @@ type Exporter struct {
 type Config struct {
 	Common config.Common `yaml:",inline"`
 
-	//  MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
+	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
 	URI string `yaml:"mongodb_uri"`
 }
 
