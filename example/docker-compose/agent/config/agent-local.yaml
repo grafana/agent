@@ -74,11 +74,11 @@ integrations:
     kafka_uris: [localhost:9093]
   mongodb_exporter:
     enabled: true
-    mongodb_uri: mongodb://192.168.99.102:27000
-    discovering_mode: true
-
-
-  github_exporter:
-    enabled: true
-    repositories:
-      - grafana/agent
+    mongodb_uri: mongodb://mongodb:27017
+    relabel_configs:        
+    - source_labels: [__address__]
+      target_label: service_name
+      replacement: 'mongodb'   
+    - source_labels: [__address__]
+      target_label: mongodb_cluster
+      replacement: 'mongodb-cluster'  

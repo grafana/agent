@@ -4,25 +4,24 @@ title = "mongodb_exporter_config"
 
 # mongodb_exporter_config
 
-The `mongodb_exporter_config` block configures the `mongodb_exporter`
-integration, which is an embedded version of percona's [`mongodb_exporter`](https://github.com/percona/mongodb_exporter).
+The `mongodb_exporter_config` block configures the `mongodb_exporter` integration, which is an embedded version of percona's [`mongodb_exporter`](https://github.com/percona/mongodb_exporter).
 
 In order for this integration to work prorperly, you have to connect each node of your mongoDB cluster to an agent instance.
-That`s because this exporter does not collect metrics from multiple nodes.
+That's because this exporter does not collect metrics from multiple nodes.
 Additionally, you need to define two custom label for you metrics using relabel_configs.
 The first one is service_name, which is how you identify this node in your cluster (example: ReplicaSet1-Node1).
 The second one is mongodb_cluster, which is the name of your mongodb cluster, and must be set the same value for all nodes composing the cluster (example: prod-cluster).
 Here`s an example:
 
-`
+```yaml
 relabel_configs:        
     - source_labels: [__address__]
       target_label: service_name
-      replacement: 'mongodb-rs1-3'   
+      replacement: 'replicaset1-node1'   
     - source_labels: [__address__]
       target_label: mongodb_cluster
-      replacement: 'mongodb-cluster'  
-`
+      replacement: 'prod-cluster'  
+```
 
 Besides that, there's not much to configure. Please refer to the full reference of options:
 
@@ -66,3 +65,4 @@ Besides that, there's not much to configure. Please refer to the full reference 
 
   # MongoDB node connection URL, which must be in the [`Standard Connection String Format`](https://docs.mongodb.com/manual/reference/connection-string/#std-label-connections-standard-connection-string-format)
   [mongodb_uri: <string>]
+```

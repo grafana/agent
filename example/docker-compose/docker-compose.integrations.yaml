@@ -154,6 +154,12 @@ services:
     restart: always
     container_name: kafka-consumer
 
+  mongodb:
+    container_name: "mongodb"
+    image: mongo:4.2
+    ports:
+      - "127.0.0.1:27017:27017" 
+
 volumes:
   elasticsearch_data:
     driver: local
