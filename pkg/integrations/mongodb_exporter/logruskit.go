@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Transalates log.Logger to logrus.Logger
+// NewLogger transalates log.Logger to logrus.Logger
 func NewLogger(logger log.Logger, opts ...Option) *logrus.Logger {
 	o := output{}
 	for _, apply := range opts {
@@ -25,10 +25,10 @@ func NewLogger(logger log.Logger, opts ...Option) *logrus.Logger {
 	return l
 }
 
-// Exposes logging options
+// Option Exposes logging options
 type Option func(*output)
 
-// Sets tsFromLogrus logging option
+// WithTimestampFromLogrus sets tsFromLogrus logging option
 func WithTimestampFromLogrus() Option {
 	return func(o *output) {
 		o.tsFromLogrus = true
