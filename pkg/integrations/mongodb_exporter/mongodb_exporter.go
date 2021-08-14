@@ -3,7 +3,6 @@ package mongodb_exporter //nolint:golint
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/gaantunes/mongodb_exporter/exporter"
 	"github.com/go-kit/kit/log"
@@ -60,8 +59,7 @@ func init() {
 // New creates a new mongodb_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
-	logkitLogger := log.NewLogfmtLogger(os.Stdout)
-	logrusLogger := NewLogger(logkitLogger)
+	logrusLogger := NewLogger(logger)
 
 	e := &Exporter{}
 	e.config = *c
