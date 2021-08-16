@@ -47,7 +47,7 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
-// NewIntegration creates a new elasticsearch_exporter
+// NewIntegration creates a new mongodb_exporter
 func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
 	return New(logger, c)
 }
