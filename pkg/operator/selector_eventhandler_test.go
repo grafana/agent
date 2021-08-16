@@ -90,11 +90,11 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		q := workqueue.NewRateLimitingQueue(limiter)
 
 		e := enqueueRequestForSelector{Client: cli, Log: l}
-		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
-			NamespaceName:   NamespaceSelector{Any: true},
-			NamespaceLabels: parseSelector(t, "foo in (bar)"),
-			Labels:          parseSelector(t, "fizz in (buzz)"),
-		}})
+
+		e.Notify(types.NamespacedName{Name: "watcher"}, buildSelectorSet(
+			&namespaceLabelSelector{Selector: parseSelector(t, "foo in (bar)")},
+			&labelSelector{Selector: parseSelector(t, "fizz in (buzz)")},
+		))
 
 		e.Create(event.CreateEvent{Object: testPod}, q)
 		require.Equal(t, 1, q.Len(), "expected one enqueue")
@@ -105,11 +105,11 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		q := workqueue.NewRateLimitingQueue(limiter)
 
 		e := enqueueRequestForSelector{Client: cli, Log: l}
-		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
-			NamespaceName:   NamespaceSelector{MatchNames: []string{"enqueue-test"}},
-			NamespaceLabels: labels.Everything(),
-			Labels:          labels.Everything(),
-		}})
+		e.Notify(types.NamespacedName{Name: "watcher"}, buildSelectorSet(
+			&namespaceSelector{Namespace: "enqueue-test"},
+			&namespaceLabelSelector{Selector: labels.Everything()},
+			&labelSelector{Selector: labels.Everything()},
+		))
 
 		e.Create(event.CreateEvent{Object: testPod}, q)
 		require.Equal(t, 1, q.Len(), "expected one enqueue")
@@ -120,11 +120,11 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		q := workqueue.NewRateLimitingQueue(limiter)
 
 		e := enqueueRequestForSelector{Client: cli, Log: l}
-		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
-			NamespaceName:   NamespaceSelector{MatchNames: []string{"default"}},
-			NamespaceLabels: labels.Everything(),
-			Labels:          labels.Everything(),
-		}})
+		e.Notify(types.NamespacedName{Name: "watcher"}, buildSelectorSet(
+			&namespaceSelector{Namespace: "default"},
+			&namespaceLabelSelector{Selector: labels.Everything()},
+			&labelSelector{Selector: labels.Everything()},
+		))
 
 		e.Create(event.CreateEvent{Object: testPod}, q)
 		require.Equal(t, 0, q.Len(), "expected no enqueues")
@@ -135,11 +135,10 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		q := workqueue.NewRateLimitingQueue(limiter)
 
 		e := enqueueRequestForSelector{Client: cli, Log: l}
-		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
-			NamespaceName:   NamespaceSelector{Any: true},
-			NamespaceLabels: parseSelector(t, "foo notin (bar)"),
-			Labels:          parseSelector(t, "fizz in (buzz)"),
-		}})
+		e.Notify(types.NamespacedName{Name: "watcher"}, buildSelectorSet(
+			&namespaceLabelSelector{Selector: parseSelector(t, "foo notin (bar)")},
+			&labelSelector{Selector: parseSelector(t, "fizz in (buzz)")},
+		))
 
 		e.Create(event.CreateEvent{Object: testPod}, q)
 		require.Equal(t, 0, q.Len(), "no changes should have been enqueued")
@@ -150,15 +149,19 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 		q := workqueue.NewRateLimitingQueue(limiter)
 
 		e := enqueueRequestForSelector{Client: cli, Log: l}
-		e.Notify(types.NamespacedName{Name: "watcher"}, []ResourceSelector{{
-			NamespaceName:   NamespaceSelector{Any: true},
-			NamespaceLabels: parseSelector(t, "foo in (bar)"),
-			Labels:          parseSelector(t, "fizz notin (buzz)"),
-		}})
+		e.Notify(types.NamespacedName{Name: "watcher"}, buildSelectorSet(
+			&namespaceLabelSelector{Selector: parseSelector(t, "foo in (bar)")},
+			&labelSelector{Selector: parseSelector(t, "fizz notin (buzz)")},
+		))
 
 		e.Create(event.CreateEvent{Object: testPod}, q)
 		require.Equal(t, 0, q.Len(), "no changes should have been enqueued")
 	})
+}
+
+// buildSelectorSet returns a single multiSelector composed of ss.
+func buildSelectorSet(ss ...resourceSelector) []resourceSelector {
+	return []resourceSelector{&multiSelector{Selectors: ss}}
 }
 
 // setupEnvtest downloads Envtest dependencies to a temporary directory.

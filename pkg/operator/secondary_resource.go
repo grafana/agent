@@ -18,6 +18,7 @@ const (
 	resourcePodMonitor
 	resourceProbe
 	resourceSecret
+	resourceConfigMap
 	resourceLogsInstance
 	resourcePodLogs
 )
@@ -29,6 +30,7 @@ var secondaryResources = []secondaryResource{
 	resourcePodMonitor,
 	resourceProbe,
 	resourceSecret,
+	resourceConfigMap,
 	resourceLogsInstance,
 	resourcePodLogs,
 }

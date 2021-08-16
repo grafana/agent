@@ -97,6 +97,7 @@ rules:
   resources:
   - secrets
   - services
+  - configmaps
   verbs: [get, list, watch, create, update, patch, delete]
 - apiGroups: ["apps"]
   resources:

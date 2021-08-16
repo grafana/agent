@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/operator/config"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,8 +16,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
 // enqueueRequestForSelector allows for requesting that specific
@@ -29,7 +28,7 @@ type enqueueRequestForSelector struct {
 	Log    log.Logger
 
 	mut      sync.RWMutex
-	watchers map[types.NamespacedName][]ResourceSelector
+	watchers map[types.NamespacedName][]resourceSelector
 }
 
 // Create implements handler.EventHandler.
@@ -77,66 +76,29 @@ func (e *enqueueRequestForSelector) handleEvent(obj client.Object, q workqueue.R
 	// Go through our watchers. If any of their selectors match this object,
 	// enqueue a reconcile request for the watcher.
 	for watcher, selectors := range e.watchers {
-		performReconcile := false
-
+		var performReconcile bool
 		for _, selector := range selectors {
-			if !e.namespaceNameMatches(obj.GetNamespace(), selector.NamespaceName) ||
-				!e.namespaceMatches(obj.GetNamespace(), selector.NamespaceLabels) ||
-				!selector.Labels.Matches(labels.Set(obj.GetLabels())) {
-				continue
+			if selector.Matches(e.Log, e.Client, obj) {
+				performReconcile = true
+				break
 			}
-
-			performReconcile = true
-			break
 		}
-
 		if performReconcile {
 			q.Add(reconcile.Request{NamespacedName: watcher})
 		}
 	}
 }
 
-// namespaceNameMatches checks to see if the namespace "in" matches the name
-// selector provided.
-func (e *enqueueRequestForSelector) namespaceNameMatches(in string, selector promop_v1.NamespaceSelector) bool {
-	if selector.Any {
-		return true
-	}
-
-	for _, n := range selector.MatchNames {
-		if n == in {
-			return true
-		}
-	}
-
-	return false
-}
-
-// namespaceMatches checks to see if the namespace "in" matches the labels
-// selector provided.
-func (e *enqueueRequestForSelector) namespaceMatches(in string, selector labels.Selector) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
-	defer cancel()
-
-	var ns v1.Namespace
-	if err := e.Client.Get(ctx, types.NamespacedName{Name: in}, &ns); err != nil {
-		level.Error(e.Log).Log("msg", "failed to look up namespace", "namespace", in, "err", err)
-		return false
-	}
-
-	return selector.Matches(labels.Set(ns.Labels))
-}
-
 // Notify will notify obj to reconcile if an event was received that matches
 // any selector in ss.
 //
 // To stop being notified for changes, call Notify again with nil for ss.
-func (e *enqueueRequestForSelector) Notify(obj types.NamespacedName, ss []ResourceSelector) {
+func (e *enqueueRequestForSelector) Notify(obj types.NamespacedName, ss []resourceSelector) {
 	e.mut.Lock()
 	defer e.mut.Unlock()
 
 	if e.watchers == nil {
-		e.watchers = make(map[types.NamespacedName][]ResourceSelector)
+		e.watchers = make(map[types.NamespacedName][]resourceSelector)
 	}
 
 	if ss == nil {
@@ -146,19 +108,72 @@ func (e *enqueueRequestForSelector) Notify(obj types.NamespacedName, ss []Resour
 	}
 }
 
-// NamespaceSelector re-exports the Prometheus Operator NamespaceSelector.
-type NamespaceSelector = promop_v1.NamespaceSelector
+type resourceSelector interface {
+	Matches(l log.Logger, c client.Reader, o client.Object) bool
+}
 
-// ResourceSelector is a combination of namespace and label selectors
-// to match against an incoming resource.
-type ResourceSelector struct {
-	// NamespaceName matches the name of the namespace.
-	NamespaceName NamespaceSelector
+// multiSelector returns true if all inner selectors match.
+type multiSelector struct {
+	Selectors []resourceSelector
+}
 
-	// NamespaceLabels matches the labels on the namespace of the modified
-	// resource.
-	NamespaceLabels labels.Selector
+func (s *multiSelector) Matches(l log.Logger, c client.Reader, o client.Object) bool {
+	for _, inner := range s.Selectors {
+		if !inner.Matches(l, c, o) {
+			return false
+		}
+	}
+	return true
+}
 
-	// Labels matches the labels on the modified resource.
-	Labels labels.Selector
+type namespaceSelector struct {
+	Namespace string
+}
+
+func (s *namespaceSelector) Matches(l log.Logger, c client.Reader, o client.Object) bool {
+	return o.GetNamespace() == s.Namespace
+}
+
+type namespaceLabelSelector struct {
+	Selector labels.Selector
+}
+
+func (s *namespaceLabelSelector) Matches(l log.Logger, c client.Reader, o client.Object) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
+	in := o.GetNamespace()
+	var ns v1.Namespace
+	if err := c.Get(ctx, types.NamespacedName{Name: in}, &ns); err != nil {
+		level.Error(l).Log("msg", "failed to look up namespace", "namespace", in, "err", err)
+		return false
+	}
+
+	return s.Selector.Matches(labels.Set(ns.Labels))
+}
+
+type labelSelector struct {
+	Selector labels.Selector
+}
+
+func (s *labelSelector) Matches(l log.Logger, c client.Reader, o client.Object) bool {
+	return s.Selector.Matches(labels.Set(o.GetLabels()))
+}
+
+type assetReferenceSelector struct {
+	Reference config.AssetReference
+}
+
+func (s *assetReferenceSelector) Matches(l log.Logger, c client.Reader, o client.Object) bool {
+	if o.GetNamespace() != s.Reference.Namespace {
+		return false
+	}
+
+	if sc, ok := o.(*v1.Secret); ok {
+		return s.Reference.Reference.Secret != nil && sc.Name == s.Reference.Reference.Secret.Name
+	} else if cm, ok := o.(*v1.ConfigMap); ok {
+		return s.Reference.Reference.ConfigMap != nil && cm.Name == s.Reference.Reference.ConfigMap.Name
+	}
+
+	return false
 }

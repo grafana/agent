@@ -11,8 +11,10 @@ import (
 	"github.com/grafana/agent/pkg/operator/config"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	core_v1 "k8s.io/api/core/v1"
+	api_meta "k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -26,7 +28,7 @@ type deploymentBuilder struct {
 
 	// ResourceSelectors is filled as objects are found and can be used to
 	// trigger future reconciles.
-	ResourceSelectors map[secondaryResource][]ResourceSelector
+	ResourceSelectors map[secondaryResource][]resourceSelector
 }
 
 func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Deployment, error) {
@@ -83,108 +85,106 @@ func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Dep
 	}, nil
 }
 
+// list will search for all objects in list using the provided
+// namespaceSelector and objectSelector. When namespaceSelector is nil, only
+// objects in parentNamespace are returned.
+//
+// Returns a resourceSelector that can be used to be notified of one of the
+// discovered objects changing.
+func (b *deploymentBuilder) list(
+	ctx context.Context,
+	list client.ObjectList,
+	parentNamespace string,
+	namespaceSelector *v1.LabelSelector,
+	objectSelector *v1.LabelSelector,
+) (resourceSelector, error) {
+	var namespace string
+	if namespaceSelector == nil {
+		namespace = parentNamespace
+	}
+
+	nsLabels, err := v1.LabelSelectorAsSelector(namespaceSelector)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert object namespace selector into label selector: %w", err)
+	}
+	objectLabels, err := v1.LabelSelectorAsSelector(objectSelector)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert object selector into label selector: %w", err)
+	}
+
+	listOptions := &client.ListOptions{
+		LabelSelector: objectLabels,
+		Namespace:     namespace,
+	}
+	if err := b.List(ctx, list, listOptions); err != nil {
+		return nil, fmt.Errorf("failed to list objects: %w", err)
+	}
+
+	elements, err := api_meta.ExtractList(list)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list: %w", err)
+	}
+
+	filteredElements := make([]runtime.Object, 0, len(elements))
+	for _, e := range elements {
+		o, ok := e.(client.Object)
+		if !ok {
+			return nil, fmt.Errorf("unexpected object returned")
+		}
+
+		// We aren't using a namespaceSelector when namespace is set.
+		// Don't do any matching.
+		if namespace != "" {
+			continue
+		}
+
+		var ns core_v1.Namespace
+		if err := b.Get(ctx, types.NamespacedName{Name: o.GetNamespace()}, &ns); err != nil {
+			return nil, fmt.Errorf("failed getting namespace for selector filtering: %w", err)
+		}
+		if nsLabels.Matches(labels.Set(ns.Labels)) {
+			filteredElements = append(filteredElements, e)
+		}
+	}
+
+	if err := api_meta.SetList(list, elements); err != nil {
+		return nil, fmt.Errorf("failed to populate list of objects: %w", err)
+	}
+	return b.getResourceSelector(namespace, nsLabels, objectLabels), nil
+}
+
+func (b *deploymentBuilder) getResourceSelector(
+	matchNamespace string,
+	nsSel labels.Selector,
+	oSel labels.Selector,
+) resourceSelector {
+	var ss []resourceSelector
+
+	if matchNamespace != "" {
+		ss = append(ss, &namespaceSelector{Namespace: matchNamespace})
+	} else {
+		ss = append(ss, &namespaceLabelSelector{Selector: nsSel})
+	}
+
+	ss = append(ss, &labelSelector{Selector: oSel})
+
+	return &multiSelector{Selectors: ss}
+}
+
 func (b *deploymentBuilder) getPrometheusInstances(ctx context.Context) ([]*grafana_v1alpha1.PrometheusInstance, error) {
-	sel, err := b.getResourceSelector(
+	var list grafana_v1alpha1.PrometheusInstanceList
+	sel, err := b.list(
+		ctx,
+		&list,
 		b.Agent.Namespace,
 		b.Agent.Spec.Prometheus.InstanceNamespaceSelector,
 		b.Agent.Spec.Prometheus.InstanceSelector,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build prometheus resource selector: %w", err)
+		return nil, fmt.Errorf("unable to discover PrometheusInstances: %w", err)
 	}
 	b.ResourceSelectors[resourcePromInstance] = append(b.ResourceSelectors[resourcePromInstance], sel)
-
-	var (
-		list        grafana_v1alpha1.PrometheusInstanceList
-		namespace   = namespaceFromSelector(sel)
-		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	)
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
-	}
-
-	items := make([]*grafana_v1alpha1.PrometheusInstance, 0, len(list.Items))
-	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		}
-	}
-	return items, nil
-}
-
-func (b *deploymentBuilder) getResourceSelector(
-	currentNamespace string,
-	namespaceSelector *v1.LabelSelector,
-	objectSelector *v1.LabelSelector,
-) (sel ResourceSelector, err error) {
-
-	// Set up our namespace label and object label selectors. By default, we'll
-	// match everything (the inverse of the k8s default). If we specify anything,
-	// we'll narrow it down.
-	var (
-		nsLabels  = labels.Everything()
-		objLabels = labels.Everything()
-	)
-	if namespaceSelector != nil {
-		nsLabels, err = v1.LabelSelectorAsSelector(namespaceSelector)
-		if err != nil {
-			return sel, err
-		}
-	}
-	if objectSelector != nil {
-		objLabels, err = v1.LabelSelectorAsSelector(objectSelector)
-		if err != nil {
-			return sel, err
-		}
-	}
-
-	sel = ResourceSelector{
-		NamespaceName: prom.NamespaceSelector{
-			MatchNames: []string{currentNamespace},
-		},
-		NamespaceLabels: nsLabels,
-		Labels:          objLabels,
-	}
-
-	// If we have a namespace selector, that means we're matching more than one
-	// namespace and we should adjust NamespaceName appropriatel.
-	if namespaceSelector != nil {
-		sel.NamespaceName = prom.NamespaceSelector{Any: true}
-	}
-
-	return
-}
-
-// namespaceFromSelector returns the namespace string that should be used for
-// querying lists of objects. If the ResourceSelector is looking at more than
-// one namespace, an empty string will be returned. Otherwise, it will return
-// the first namespace.
-func namespaceFromSelector(sel ResourceSelector) string {
-	if !sel.NamespaceName.Any && len(sel.NamespaceName.MatchNames) == 1 {
-		return sel.NamespaceName.MatchNames[0]
-	}
-	return ""
-}
-
-func (b *deploymentBuilder) matchNamespace(
-	ctx context.Context,
-	obj *v1.ObjectMeta,
-	sel ResourceSelector,
-) (bool, error) {
-	// If we were matching on a specific namespace, there's no
-	// further work to do here.
-	if namespaceFromSelector(sel) != "" {
-		return true, nil
-	}
-
-	var ns core_v1.Namespace
-	if err := b.Get(ctx, types.NamespacedName{Name: obj.Namespace}, &ns); err != nil {
-		return false, fmt.Errorf("failed getting namespace: %w", err)
-	}
-
-	return sel.NamespaceLabels.Matches(labels.Set(ns.Labels)), nil
+	return list.Items, nil
 }
 
 func (b *deploymentBuilder) getServiceMonitors(
@@ -192,36 +192,22 @@ func (b *deploymentBuilder) getServiceMonitors(
 	l log.Logger,
 	inst *grafana_v1alpha1.PrometheusInstance,
 ) ([]*prom.ServiceMonitor, error) {
-	sel, err := b.getResourceSelector(
+	var list prom.ServiceMonitorList
+	sel, err := b.list(
+		ctx,
+		&list,
 		inst.Namespace,
 		inst.Spec.ServiceMonitorNamespaceSelector,
 		inst.Spec.ServiceMonitorSelector,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build service monitor resource selector: %w", err)
+		return nil, fmt.Errorf("unable to discover ServiceMonitors: %w", err)
 	}
 	b.ResourceSelectors[resourceServiceMonitor] = append(b.ResourceSelectors[resourceServiceMonitor], sel)
 
-	var (
-		list        prom.ServiceMonitorList
-		namespace   = namespaceFromSelector(sel)
-		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	)
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
-	}
-
 	items := make([]*prom.ServiceMonitor, 0, len(list.Items))
-
 Item:
 	for _, item := range list.Items {
-		match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel)
-		if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		} else if !match {
-			continue
-		}
-
 		if b.Agent.Spec.Prometheus.ArbitraryFSAccessThroughSMs.Deny {
 			for _, ep := range item.Spec.Endpoints {
 				err := testForArbitraryFSAccess(ep)
@@ -239,9 +225,9 @@ Item:
 				continue Item
 			}
 		}
-
 		items = append(items, item)
 	}
+
 	return items, nil
 }
 
@@ -265,70 +251,38 @@ func (b *deploymentBuilder) getPodMonitors(
 	ctx context.Context,
 	inst *grafana_v1alpha1.PrometheusInstance,
 ) ([]*prom.PodMonitor, error) {
-	sel, err := b.getResourceSelector(
+	var list prom.PodMonitorList
+	sel, err := b.list(
+		ctx,
+		&list,
 		inst.Namespace,
 		inst.Spec.PodMonitorNamespaceSelector,
 		inst.Spec.PodMonitorSelector,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build service monitor resource selector: %w", err)
+		return nil, fmt.Errorf("unable to discover PodMonitors: %w", err)
 	}
 	b.ResourceSelectors[resourcePodMonitor] = append(b.ResourceSelectors[resourcePodMonitor], sel)
-
-	var (
-		list        prom.PodMonitorList
-		namespace   = namespaceFromSelector(sel)
-		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	)
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
-	}
-
-	items := make([]*prom.PodMonitor, 0, len(list.Items))
-	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		}
-	}
-	return items, nil
+	return list.Items, nil
 }
 
 func (b *deploymentBuilder) getProbes(
 	ctx context.Context,
 	inst *grafana_v1alpha1.PrometheusInstance,
 ) ([]*prom.Probe, error) {
-	sel, err := b.getResourceSelector(
+	var list prom.ProbeList
+	sel, err := b.list(
+		ctx,
+		&list,
 		inst.Namespace,
 		inst.Spec.ProbeNamespaceSelector,
 		inst.Spec.ProbeSelector,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build service monitor resource selector: %w", err)
+		return nil, fmt.Errorf("unable to discover PodMonitors: %w", err)
 	}
 	b.ResourceSelectors[resourceProbe] = append(b.ResourceSelectors[resourceProbe], sel)
-
-	var namespace string
-	if !sel.NamespaceName.Any && len(sel.NamespaceName.MatchNames) == 1 {
-		namespace = sel.NamespaceName.MatchNames[0]
-	}
-
-	var list prom.ProbeList
-	listOptions := &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
-	}
-
-	items := make([]*prom.Probe, 0, len(list.Items))
-	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		}
-	}
-	return items, nil
+	return list.Items, nil
 }
 
 func (b *deploymentBuilder) getLogsInstances(ctx context.Context) ([]*grafana_v1alpha1.LogsInstance, error) {
