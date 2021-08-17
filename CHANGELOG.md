@@ -39,6 +39,12 @@
 
 - [BUGFIX] Fix issue with global scrape_interval changes not reloading integrations (@kgeckhart)
 
+- [BUGFIX] Grafana Agent Operator will now detect changes to referenced
+  ConfigMaps and Secrets and reload the Agent properly. (@rfratto)
+
+- [BUGFIX] Grafana Agent Operator's object label selectors will now use
+  Kubernetes defaults when undefined (i.e., default to nothing). (@rfratto)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
