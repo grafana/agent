@@ -31,6 +31,8 @@
 
 - [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the `node_exporter` integration default config. (@eamonryan)
 
+- [BUGFIX] Fix info logging on windows. (@mattdurham)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
