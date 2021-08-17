@@ -11,7 +11,9 @@ require (
 	github.com/docker/docker v20.10.7+incompatible // indirect
 	github.com/drone/envsubst v1.0.2
 	github.com/fatih/structs v1.1.0
+	github.com/gaantunes/mongodb_exporter v1.0.2
 	github.com/go-kit/kit v0.11.0
+	github.com/go-kit/log v0.1.0
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-logr/logr v0.4.0
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
@@ -61,6 +63,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/weaveworks/common v0.0.0-20210419092856-009d1eebd624
+	go.mongodb.org/mongo-driver v1.5.3
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.30.0
 	go.opentelemetry.io/collector/model v0.30.0
