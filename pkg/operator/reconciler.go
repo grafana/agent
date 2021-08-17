@@ -49,6 +49,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 
 	secrets := make(assets.SecretStore)
 	builder := deploymentBuilder{
+		Logger:            l,
 		Config:            r.config,
 		Client:            r.Client,
 		Agent:             &agent,
@@ -56,7 +57,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		ResourceSelectors: make(map[secondaryResource][]resourceSelector),
 	}
 
-	deployment, err := builder.Build(ctx, l)
+	deployment, err := builder.Build(ctx)
 	if err != nil {
 		level.Error(l).Log("msg", "unable to collect resources", "err", err)
 		return controller.Result{}, nil

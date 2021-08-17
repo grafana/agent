@@ -110,6 +110,7 @@ func (e *enqueueRequestForSelector) Notify(obj types.NamespacedName, ss []resour
 
 type resourceSelector interface {
 	Matches(l log.Logger, c client.Reader, o client.Object) bool
+	SetListOptions(lo *client.ListOptions)
 }
 
 // multiSelector returns true if all inner selectors match.
@@ -126,12 +127,22 @@ func (s *multiSelector) Matches(l log.Logger, c client.Reader, o client.Object) 
 	return true
 }
 
+func (s *multiSelector) SetListOptions(lo *client.ListOptions) {
+	for _, inner := range s.Selectors {
+		inner.SetListOptions(lo)
+	}
+}
+
 type namespaceSelector struct {
 	Namespace string
 }
 
 func (s *namespaceSelector) Matches(l log.Logger, c client.Reader, o client.Object) bool {
 	return o.GetNamespace() == s.Namespace
+}
+
+func (s *namespaceSelector) SetListOptions(lo *client.ListOptions) {
+	lo.Namespace = s.Namespace
 }
 
 type namespaceLabelSelector struct {
@@ -152,12 +163,20 @@ func (s *namespaceLabelSelector) Matches(l log.Logger, c client.Reader, o client
 	return s.Selector.Matches(labels.Set(ns.Labels))
 }
 
+func (s *namespaceLabelSelector) SetListOptions(lo *client.ListOptions) {
+	// no-op
+}
+
 type labelSelector struct {
 	Selector labels.Selector
 }
 
 func (s *labelSelector) Matches(l log.Logger, c client.Reader, o client.Object) bool {
 	return s.Selector.Matches(labels.Set(o.GetLabels()))
+}
+
+func (s *labelSelector) SetListOptions(lo *client.ListOptions) {
+	lo.LabelSelector = s.Selector
 }
 
 type assetReferenceSelector struct {
@@ -176,4 +195,8 @@ func (s *assetReferenceSelector) Matches(l log.Logger, c client.Reader, o client
 	}
 
 	return false
+}
+
+func (s *assetReferenceSelector) SetListOptions(lo *client.ListOptions) {
+	// no-op
 }
