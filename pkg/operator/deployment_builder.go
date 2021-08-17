@@ -147,7 +147,7 @@ func (b *deploymentBuilder) list(
 		}
 	}
 
-	if err := api_meta.SetList(list, elements); err != nil {
+	if err := api_meta.SetList(list, filteredElements); err != nil {
 		return nil, fmt.Errorf("failed to populate list of objects: %w", err)
 	}
 	return b.getResourceSelector(namespace, nsLabels, objectLabels), nil
