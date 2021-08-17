@@ -16,6 +16,6 @@ with:
 - Grafana Agent uses less memory on average than Prometheus – by doing less
   (only focusing on `remote_write`-related functionality).
 - Grafana Agent allows for deploying multiple instances of the Agent in a
-  cluster and only scraping metrics from targets that running at the same host.
-  This allows distributing memory requirements across the cluster
+  cluster and only scraping metrics from targets that are running on the same host.
+  This allows for distributing memory requirements across the cluster
   rather than pressurizing a single node.

@@ -10,7 +10,7 @@ that allows for clustering a set of Agent processes and distributing scrape load
 across them.
 
 Determining what to scrape is done by writing instance configuration files to an
-[API](./api.md), which then stores the configuration files in a KV store backend.
+[API]({{< relref "../api" >}}), which then stores the configuration files in a KV store backend.
 All agents in the cluster **must** use the same KV store so they see the same set
 of config files.
 
@@ -40,7 +40,7 @@ remote_write:
 
 The full set of supported options for an instance configuration file is
 available in the
-[`prometheus-config.md` file](./configuration/prometheus-config.md).
+[`prometheus-config.md` file]({{< relref "../configuration/prometheus-config" >}}).
 
 Having multiple instance configuration files is necessary for sharding; each
 config file is distributed to a particular agent on the cluster based on the
@@ -153,7 +153,7 @@ prometheus:
 
 Note that there are no instance configs present in this example; instance
 configs must be passed to the API for the Agent to start scraping metrics.
-See [the docker-compose Scraping Service Example](../example/docker-compose/README.md)
+See [the docker-compose Scraping Service Example](https://github.com/grafana/agent/blob/main/example/docker-compose/docker-compose.scraping-service.yaml)
 for how to run a Scraping Service Agent cluster locally.
 
 ## agentctl
