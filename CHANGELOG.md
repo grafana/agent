@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a
+  goroutine. (@mattdurham)
+
 # v0.18.3 (2021-09-08)
 
 - [BUGFIX] Register missing metric for configstore consul request duration.
@@ -10,9 +13,6 @@
 
 - [BUGFIX] In scraping service mode, the polling configuration refresh should
   honor timeout. (@mattdurham)
-
-- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a
-  goroutine. (@mattdurham)
 
 - [BUGFIX] In scraping service mode, scraping service can deadlock when
   reloading during join. (@mattdurham)
