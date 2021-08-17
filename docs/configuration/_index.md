@@ -9,10 +9,10 @@ The Grafana Agent is configured in a YAML file (usually called
 `agent.yaml`) which contains information on the Grafana Agent and its
 Prometheus instances.
 
-- [server_config]({{< relref "./server-config.md" >}})
-- [prometheus_config]({{< relref "./prometheus-config.md" >}})
-- [loki_config]({{< relref "./loki-config.md" >}})
-- [tempo_config]({{< relref "./tempo-config.md" >}})
+- [server_config]({{< relref "./server-config" >}})
+- [prometheus_config]({{< relref "./prometheus-config" >}})
+- [loki_config]({{< relref "./loki-config" >}})
+- [tempo_config]({{< relref "./tempo-config" >}})
 - [integrations_config]({{< relref "./integrations/_index.md" >}})
 
 ## Variable substitution
@@ -58,7 +58,7 @@ which may be slightly unexpected.
 ## Reloading (beta)
 
 The configuration file can be reloaded at runtime. Read the [API
-documentation](../api.md#reload-configuration-file-beta) for more information.
+documentation]({{< relref "../api#reload-configuration-file-beta" >}}) for more information.
 
 This functionality is in beta, and may have issues. Please open GitHub issues
 for any problems you encounter.

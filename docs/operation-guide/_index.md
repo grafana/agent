@@ -58,7 +58,7 @@ Each has their own set of tradeoffs:
     - Smallest load on SD compared to host filtering, as only one Agent is
       responsible for a config.
   - Cons
-    - Centralized configs must discover a [minimal set of targets](./scraping-service.md#best-practices)
+    - Centralized configs must discover a [minimal set of targets]({{< relref "../scraping-service#best-practices" >}})
       to distribute evenly.
     - Requires running a separate KV store to store the centralized configs.
     - Managing centralized configs adds operational burden over managing a config
@@ -115,7 +115,7 @@ logic; only `host_filter_relabel_configs` will work.
 If the determined hostname matches any of the meta labels, the discovered target
 is allowed. Otherwise, the target is ignored, and will not show up in the
 [targets
-API](/docs/grafana/agent/latest/api#list-current-scrape-targets).
+API]({{< relref "../api#list-current-scrape-targets" >}}).
 
 ## Hashmod sharding
 

@@ -57,7 +57,7 @@ Useful one-off queries to run once everything is up:
 
 ## Scraping Service
 
-A [Scraping Service](../../docs/scraping-service.md) cluster example is also
+A [Scraping Service](https://grafana.com/docs/agent/latest/scraping-service/) cluster example is also
 present in this directory. To start it, run:
 
 ```
