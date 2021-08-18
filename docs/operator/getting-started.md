@@ -152,7 +152,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.15.0
+  image: grafana/agent:v0.18.2
   logLevel: info
   serviceAccountName: grafana-agent
   prometheus:
