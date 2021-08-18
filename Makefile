@@ -4,13 +4,14 @@ SHELL = /usr/bin/env bash
 #############
 # Variables #
 #############
-# This is normally set by the caller but when building the agent windows installer it needs to be set to something
-RELEASE_TAG ?= v0.0.0
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
-ifeq ($(RELEASE_TAG),v0.0.0)
+ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
+# If RELEASE_TAG has a valid value it will be the same as IMAGE_TAG
+# If it does not then we should use the IMAGE_TAG
+RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
 endif
@@ -297,7 +298,7 @@ dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	cp LICENSE ./packaging/windows
 ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t windows_installer ./packaging/windows
-	docker run --rm -t -v "${PWD}:/home" windows_installer
+	docker run --rm -t -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} windows_installer
 else
 
 	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis

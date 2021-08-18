@@ -76,7 +76,7 @@ steps:
       - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
       - rm go1.16.5.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make DRONE=true BUILD_IN_CONTAINER=false RELEASE_TAG=v0.0.0 dist
+      - make DRONE=true BUILD_IN_CONTAINER=false dist
 depends_on:
   - Test
 ---
@@ -111,7 +111,7 @@ steps:
       - chmod a+x ~/.docker/cli-plugins/docker-buildx
       - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - docker buildx create --name multiarch --driver docker-container --use
-      - export RELEASE_TAG=${DRONE_TAG:-v0.0.0}
+      - export RELEASE_TAG=${DRONE_TAG}
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
@@ -163,7 +163,7 @@ steps:
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
-      - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG:-v0.0.0} publish
+      - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
   - Dist
 
@@ -173,6 +173,6 @@ volumes:
       path: /var/run/docker.sock
 ---
 kind: signature
-hmac: fe10154b59ce9b9446f781eb801b147c689f1f6e3194c2d8d20447c4e0715b6e
+hmac: 45dd2046cb9f7392b2dfac3ace3c88966d48a9cce9828e64e39ddefb477b4dfb
 
 ...
