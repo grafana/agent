@@ -31,6 +31,8 @@
 
 - [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the `node_exporter` integration default config. (@eamonryan)
 
+- [BUGFIX] Fix info logging on windows. (@mattdurham)
+
 - [BUGFIX] Remove v0.0.0 flags during build with no explicit release tag (@mattdurham)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging

@@ -1,5 +1,5 @@
 +++
-title = Getting started with Grafana Agent
+title = "Getting started with Grafana Agent"
 weight = 100
 +++
 

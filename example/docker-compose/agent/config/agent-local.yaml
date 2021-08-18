@@ -76,3 +76,13 @@ integrations:
     enabled: true
     repositories:
       - grafana/agent
+  mongodb_exporter:
+    enabled: true
+    mongodb_uri: mongodb://mongodb:27017
+    relabel_configs:        
+    - source_labels: [__address__]
+      target_label: service_name
+      replacement: 'mongodb'   
+    - source_labels: [__address__]
+      target_label: mongodb_cluster
+      replacement: 'mongodb-cluster'  
