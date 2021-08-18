@@ -4,20 +4,18 @@ SHELL = /usr/bin/env bash
 #############
 # Variables #
 #############
-# This is normally set by the caller but when building the agent windows installer it needs to be set to something
-RELEASE_TAG ?= v0.0.0
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
-ifeq ($(RELEASE_TAG),v0.0.0)
+ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
+# If RELEASE_TAG has a valid value it will be the same as IMAGE_TAG
+# If it does not then we should use the IMAGE_TAG
+RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
 endif
 DRONE ?= false
-
-$(info RELEASE_TAG $(RELEASE_TAG))
-$(info IMAGE_TAG $(IMAGE_TAG))
 
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
@@ -51,7 +49,7 @@ CROSS_BUILD ?= false
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.11.0
+BUILD_IMAGE_VERSION := 0.12.0
 BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
@@ -180,26 +178,25 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 agent-operator: cmd/agent-operator/agent-operator
-
-
-
+grafana-agent-crow: cmd/grafana-agent-crow/grafana-agent-crow
 
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
 
-cmd/agent/agent: seego  cmd/agent/main.go
+cmd/agent/agent: seego cmd/agent/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
-
 
 cmd/agentctl/agentctl: seego cmd/agentctl/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
-
 cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
+cmd/grafana-agent-crow/grafana-agent-crow: cmd/grafana-agent-crow/main.go
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+	$(NETGO_CHECK)
 
 agent-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
@@ -207,11 +204,14 @@ agentctl-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
-
+grafana-agent-crow-image:
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent-crow:latest -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f cmd/grafana-agent-crow/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent-operator
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/grafana-agent-crow
 
 #######################
 # Development targets #
@@ -220,12 +220,14 @@ install:
 lint:
 	GO111MODULE=on golangci-lint run -v --timeout=10m
 
-# We have to run test twice: once for all packages with -race and then once more without -race
-# for packages that have known race detection issues
-# Run tests with -online flag set to true, to include tests requiring network connectivity in CI
+# We have to run test twice: once for all packages with -race and then once
+# more without -race for packages that have known race detection issues.
+#
+# Run tests with -tags=has_network to include tests that require network
+# connectivity.
 test:
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./... -- -online
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs -- -online
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -race -cover -coverprofile=cover.out -p=4 ./...
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
 
 clean:
 	rm -rf cmd/agent/agent
@@ -296,7 +298,7 @@ dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	cp LICENSE ./packaging/windows
 ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t windows_installer ./packaging/windows
-	docker run --rm -t -v "${PWD}:/home" windows_installer
+	docker run --rm -t -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} windows_installer
 else
 
 	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis

@@ -4,14 +4,19 @@ go 1.16
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.3.0
+	github.com/Microsoft/hcsshim v0.8.16 // indirect
 	github.com/Shopify/sarama v1.29.1
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
+	github.com/docker/docker v20.10.7+incompatible // indirect
 	github.com/drone/envsubst v1.0.2
 	github.com/fatih/structs v1.1.0
+	github.com/gaantunes/mongodb_exporter v1.0.2
 	github.com/go-kit/kit v0.11.0
+	github.com/go-kit/log v0.1.0
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-logr/logr v0.4.0
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
@@ -19,7 +24,9 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
 	github.com/hashicorp/consul/api v1.8.1
+	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
+	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/justwatchcom/elasticsearch_exporter v1.1.0
@@ -34,6 +41,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.30.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.30.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e
+	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
@@ -55,6 +63,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/weaveworks/common v0.0.0-20210419092856-009d1eebd624
+	go.mongodb.org/mongo-driver v1.5.3
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.30.0
 	go.opentelemetry.io/collector/model v0.30.0

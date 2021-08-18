@@ -4,11 +4,23 @@ server:
 
 prometheus:
   global:
-    scrape_interval: 5s
+    scrape_interval: 30s
   configs:
     - name: test
       host_filter: false
       scrape_configs:
+        - job_name: crow
+          static_configs:
+            - targets: ['crow:8080']
+              labels:
+                cluster: 'docker_compose'
+                container: 'crow'
+                pod: 'crow'
+        - job_name: crow_validate
+          metrics_path: /validate
+          static_configs:
+            - targets: ['crow:8080']
+
         - job_name: local_scrape
           static_configs:
             - targets: ['127.0.0.1:12345']
@@ -41,10 +53,6 @@ prometheus:
               labels:
                 cluster: 'docker_compose'
                 container: 'avalanche-3'
-      remote_write:
-        - url: http://cortex:9009/api/prom/push
-    - name: tempo
-      host_filter: false
       remote_write:
         - url: http://cortex:9009/api/prom/push
 
@@ -88,8 +96,5 @@ tempo:
       spans: true
       processes: true
       roots: true
-      labels:
-        - svc
-        - status
     spanmetrics:
-      prom_instance: tempo
+      prom_instance: test

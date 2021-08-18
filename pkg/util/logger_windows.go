@@ -94,7 +94,7 @@ func (w *winLogger) Log(keyvals ...interface{}) error {
 	case level.DebugValue():
 		return w.infoLogger.Log(keyvals...)
 	case level.InfoValue():
-		return w.infoLogger.Log(keyvals)
+		return w.infoLogger.Log(keyvals...)
 	case level.WarnValue():
 		return w.warningLogger.Log(keyvals...)
 	case level.ErrorValue():

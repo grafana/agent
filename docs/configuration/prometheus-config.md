@@ -21,6 +21,10 @@ define one instance.
 [global: <global_config>]
 
 # Configure the directory used by instances to store their WAL.
+#
+# The Grafana Agent assumes that all folders within wal_directory are managed by
+# the agent itself. This means if you are using a PVC, you must point
+# wal_directory to a subdirectory of the PVC mount.
 [wal_directory: <string> | default = ""]
 
 # Configures how long ago an abandoned (not associated with an instance) WAL
@@ -48,7 +52,7 @@ configs:
 ## scraping_service_config
 
 The `scraping_service` block configures the
-[scraping service](../scraping-service.md), an operational
+[scraping service]({{< relref "../scraping-service" >}}), an operational
 mode where configurations are stored centrally in a KV store and a cluster of
 agents distribute discovery and scrape load between nodes.
 

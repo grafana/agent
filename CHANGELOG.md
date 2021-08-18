@@ -16,6 +16,9 @@
 
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
+- [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
+  the $HOSTNAME variable in agent config.  (@dfrankel33)
+
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
 
@@ -26,6 +29,12 @@
   to be a member of the adm and systemd-journal groups. This will allow logs to
   read from journald and /var/log by default. (@rfratto)
 
+- [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the `node_exporter` integration default config. (@eamonryan)
+
+- [BUGFIX] Fix info logging on windows. (@mattdurham)
+
+- [BUGFIX] Remove v0.0.0 flags during build with no explicit release tag (@mattdurham)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
@@ -34,6 +43,15 @@
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
+
+
+# v0.18.2 (2021-08-12)
+
+- [BUGFIX] Honor the prefix and remove prefix from consul list results (@mattdurham)
+
+# v0.18.1 (2021-08-09)
+
+- [BUGFIX] Reduce number of consul calls when ran in scrape service mode (@mattdurham)
 
 # v0.18.0 (2021-07-29)
 
@@ -51,7 +69,7 @@
 
 - [FEATURE] Added [Kafka Lag exporter](https://github.com/davidmparrott/kafka_exporter)
   integration. (@gaantunes)
-  
+
 - [BUGFIX] Fix race condition that may occur and result in a panic when
   initializing scraping service cluster. (@rfratto)
 

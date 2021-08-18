@@ -37,7 +37,7 @@ function(ctx) marshal.YAML(optionals.trim({
         instance=logs_inst,
         apiServer=spec.APIServerConfig,
         ignoreNamespaceSelectors=logs.IgnoreNamespaceSelectors,
-        enforcedNamespaceLabel=logs.EnforcedNamepsaceLabel,
+        enforcedNamespaceLabel=logs.EnforcedNamespaceLabel,
       ),
       ctx.Logs,
     )),
