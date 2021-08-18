@@ -96,15 +96,15 @@ local images = {
       policies: [{
         always_sample: null,
       }],
-      load_balancing: {
-        exporter: {
-          insecure: true,
-        },
-        resolver: {
-          dns: {
-            hostname: 'grafana-agent.default.svc.cluster.local',
-            port: 4318,
-          },
+    }) +
+    grafana_agent.withTempoLoadBalancingConfig({
+      exporter: {
+        insecure: true,
+      },
+      resolver: {
+        dns: {
+          hostname: 'grafana-agent.default.svc.cluster.local',
+          port: 4318,
         },
       },
     }),

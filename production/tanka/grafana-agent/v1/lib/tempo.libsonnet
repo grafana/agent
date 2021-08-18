@@ -122,5 +122,13 @@
       withTempoConfig.
     |||,
     _tempo_config+:: { tail_sampling: tail_sampling },
+  },
+
+  withTempoLoadBalancingConfig(load_balancing):: {
+    assert std.objectHasAll(self, '_tempo_config') : |||
+      withTempoLoadBalancingConfig must be merged with the result of calling
+      withTempoConfig.
+    |||,
+    _tempo_config+:: { load_balancing: load_balancing },
   }
 }
