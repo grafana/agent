@@ -260,11 +260,11 @@ func TestLogsStages(t *testing.T) {
 					Selector:          `{app="pokey"}`,
 					Action:            "keep",
 					DropCounterReason: "no_pokey",
-					Stages: []*gragent.PipelineStageSpec{{
-						JSON: &gragent.JSONStageSpec{
-							Expressions: map[string]string{"msg": "msg"},
-						},
-					}},
+					Stages: util.Untab(`
+					- json:
+  			      expressions:
+							  msg: msg
+					`),
 				},
 			}},
 			expect: util.Untab(`
@@ -498,6 +498,10 @@ func TestPodLogsConfig(t *testing.T) {
 					target_label: container
 				- target_label: job
 					replacement: operator/podlogs
+				- source_labels: ['__meta_kubernetes_pod_uid', '__meta_kubernetes_pod_container_name']
+					target_label: __path__
+					separator: /
+					replacement: /var/log/pods/*$1/*.log
 			`),
 		},
 	}
@@ -632,6 +636,10 @@ func TestLogsConfig(t *testing.T) {
 						target_label: container
 					- replacement: app/pod
 						target_label: job
+					- source_labels: ['__meta_kubernetes_pod_uid', '__meta_kubernetes_pod_container_name']
+						target_label: __path__
+						separator: /
+						replacement: /var/log/pods/*$1/*.log
 			`),
 		},
 		{

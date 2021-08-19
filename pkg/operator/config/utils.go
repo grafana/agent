@@ -1,9 +1,13 @@
 package config
 
 import (
+	"encoding/json"
+	"fmt"
 	"regexp"
 
+	"github.com/fatih/structs"
 	jsonnet "github.com/google/go-jsonnet"
+	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"gopkg.in/yaml.v3"
 )
 
@@ -58,6 +62,66 @@ func trimSlice(s []interface{}) []interface{} {
 	}
 
 	return res
+}
+
+// intoStages converts the a yaml slice of stages into a Jsonnet array.
+func intoStages(i []interface{}) (interface{}, error) {
+	text, ok := i[0].(string)
+	if !ok {
+		return nil, jsonnet.RuntimeError{Msg: "text argument not string"}
+	}
+
+	// The way this works is really, really gross. We only need any of this
+	// because Kubernetes CRDs can't recursively define types, which we need
+	// for the match stage.
+	//
+	// 1. Convert YAML -> map[string]interface{}
+	// 2. Convert map[string]interface{} -> JSON
+	// 3. Convert JSON -> []*grafana.PipelineStageSpec
+	// 4. Convert []*grafana.PipelineStageSpec into []interface{}, where
+	//    each interface{} has the type information lost so marshaling it
+	//    again to JSON doesn't break anything.
+	var raw interface{}
+	if err := yaml.Unmarshal([]byte(text), &raw); err != nil {
+		return nil, jsonnet.RuntimeError{
+			Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+		}
+	}
+
+	bb, err := json.Marshal(raw)
+	if err != nil {
+		return nil, jsonnet.RuntimeError{
+			Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+		}
+	}
+
+	var ps []*grafana.PipelineStageSpec
+	if err := json.Unmarshal(bb, &ps); err != nil {
+		return nil, jsonnet.RuntimeError{
+			Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+		}
+	}
+
+	// Then we need to convert each into their raw types.
+	rawPS := make([]interface{}, 0, len(ps))
+	for _, stage := range ps {
+		bb, err := json.Marshal(structs.Map(stage))
+		if err != nil {
+			return nil, jsonnet.RuntimeError{
+				Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+			}
+		}
+
+		var v interface{}
+		if err := json.Unmarshal(bb, &v); err != nil {
+			return nil, jsonnet.RuntimeError{
+				Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),
+			}
+		}
+
+		rawPS = append(rawPS, v)
+	}
+	return rawPS, nil
 }
 
 var invalidLabelCharRE = regexp.MustCompile(`[^a-zA-Z0-9_]`)
