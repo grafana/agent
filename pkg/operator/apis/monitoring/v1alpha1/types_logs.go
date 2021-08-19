@@ -100,7 +100,7 @@ type LogsInstance struct {
 	Spec LogsInstanceSpec `json:"spec,omitempty"`
 }
 
-// PodLogsNamespaceSelector returns the selector to discover PodLogs.
+// PodLogsInstanceSelector returns the selector to discover PodLogs.
 func (i *LogsInstance) PodLogsInstanceSelector() ObjectSelector {
 	return ObjectSelector{
 		ParentNamespace:   i.Namespace,
