@@ -30,13 +30,13 @@ type deploymentBuilder struct {
 }
 
 func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Deployment, error) {
-	instances, err := b.getPrometheusInstances(ctx)
+	rootMetricInstances, err := b.getPrometheusInstances(ctx)
 	if err != nil {
 		return config.Deployment{}, err
 	}
-	promInstances := make([]config.PrometheusInstance, 0, len(instances))
+	metricInstances := make([]config.PrometheusInstance, 0, len(rootMetricInstances))
 
-	for _, inst := range instances {
+	for _, inst := range rootMetricInstances {
 		sMons, err := b.getServiceMonitors(ctx, l, inst)
 		if err != nil {
 			return config.Deployment{}, fmt.Errorf("unable to fetch ServiceMonitors: %w", err)
@@ -50,7 +50,7 @@ func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Dep
 			return config.Deployment{}, fmt.Errorf("unable to fetch Probes: %w", err)
 		}
 
-		promInstances = append(promInstances, config.PrometheusInstance{
+		metricInstances = append(metricInstances, config.PrometheusInstance{
 			Instance:        inst,
 			ServiceMonitors: sMons,
 			PodMonitors:     pMons,
@@ -58,9 +58,28 @@ func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Dep
 		})
 	}
 
+	rootLogsInstances, err := b.getLogsInstances(ctx)
+	if err != nil {
+		return config.Deployment{}, err
+	}
+	logsInstances := make([]config.LogInstance, 0, len(rootLogsInstances))
+
+	for _, inst := range rootLogsInstances {
+		podLogs, err := b.getPodLogs(ctx, inst)
+		if err != nil {
+			return config.Deployment{}, fmt.Errorf("unable to fetch PodLogs: %w", err)
+		}
+
+		logsInstances = append(logsInstances, config.LogInstance{
+			Instance: inst,
+			PodLogs:  podLogs,
+		})
+	}
+
 	return config.Deployment{
 		Agent:      b.Agent,
-		Prometheis: promInstances,
+		Prometheis: metricInstances,
+		Logs:       logsInstances,
 	}, nil
 }
 
@@ -302,6 +321,71 @@ func (b *deploymentBuilder) getProbes(
 	}
 
 	items := make([]*prom.Probe, 0, len(list.Items))
+	for _, item := range list.Items {
+		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
+			items = append(items, item)
+		} else if err != nil {
+			return nil, fmt.Errorf("failed getting namespace: %w", err)
+		}
+	}
+	return items, nil
+}
+
+func (b *deploymentBuilder) getLogsInstances(ctx context.Context) ([]*grafana_v1alpha1.LogsInstance, error) {
+	sel, err := b.getResourceSelector(
+		b.Agent.Namespace,
+		b.Agent.Spec.Logs.InstanceNamespaceSelector,
+		b.Agent.Spec.Logs.InstanceSelector,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build logs resource selector: %w", err)
+	}
+	b.ResourceSelectors[resourceLogsInstance] = append(b.ResourceSelectors[resourceLogsInstance], sel)
+
+	var (
+		list        grafana_v1alpha1.LogsInstanceList
+		namespace   = namespaceFromSelector(sel)
+		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
+	)
+	if err := b.List(ctx, &list, listOptions); err != nil {
+		return nil, err
+	}
+
+	items := make([]*grafana_v1alpha1.LogsInstance, 0, len(list.Items))
+	for _, item := range list.Items {
+		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
+			items = append(items, item)
+		} else if err != nil {
+			return nil, fmt.Errorf("failed getting namespace: %w", err)
+		}
+	}
+	return items, nil
+}
+
+func (b *deploymentBuilder) getPodLogs(
+	ctx context.Context,
+	inst *grafana_v1alpha1.LogsInstance,
+) ([]*grafana_v1alpha1.PodLogs, error) {
+	sel, err := b.getResourceSelector(
+		inst.Namespace,
+		inst.Spec.PodLogsNamespaceSelector,
+		inst.Spec.PodLogsSelector,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build service monitor resource selector: %w", err)
+	}
+	b.ResourceSelectors[resourcePodLogs] = append(b.ResourceSelectors[resourcePodLogs], sel)
+
+	var (
+		list        grafana_v1alpha1.PodLogsList
+		namespace   = namespaceFromSelector(sel)
+		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
+	)
+	if err := b.List(ctx, &list, listOptions); err != nil {
+		return nil, err
+	}
+
+	items := make([]*grafana_v1alpha1.PodLogs, 0, len(list.Items))
 	for _, item := range list.Items {
 		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
 			items = append(items, item)

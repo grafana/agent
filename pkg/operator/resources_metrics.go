@@ -29,10 +29,11 @@ var (
 	}
 	shardLabelName            = "operator.agent.grafana.com/shard"
 	agentNameLabelName        = "operator.agent.grafana.com/name"
+	agentTypeLabel            = "operator.agent.grafana.com/type"
 	probeTimeoutSeconds int32 = 3
 )
 
-func generateStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
+func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
 	d = *d.DeepCopy()
 
 	if d.Agent.Spec.PortName == "" {
@@ -71,7 +72,7 @@ func generateStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
 	}
 }
 
-func generateStatefulSet(
+func generateMetricsStatefulSet(
 	cfg *Config,
 	name string,
 	d config.Deployment,
@@ -99,7 +100,7 @@ func generateStatefulSet(
 		d.Agent.Spec.Resources.Requests = v1.ResourceList{}
 	}
 
-	spec, err := generateStatefulSetSpec(cfg, name, d, shard)
+	spec, err := generateMetricsStatefulSetSpec(cfg, name, d, shard)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +119,7 @@ func generateStatefulSet(
 		labels[k] = v
 	}
 	labels[agentNameLabelName] = d.Agent.Name
+	labels[agentTypeLabel] = "metrics"
 
 	boolTrue := true
 
@@ -185,7 +187,7 @@ func generateStatefulSet(
 	return ss, nil
 }
 
-func generateStatefulSetSpec(
+func generateMetricsStatefulSetSpec(
 	cfg *Config,
 	name string,
 	d config.Deployment,
@@ -319,6 +321,7 @@ func generateStatefulSetSpec(
 		"grafana-agent":                d.Agent.Name,
 		shardLabelName:                 fmt.Sprintf("%d", shard),
 		agentNameLabelName:             d.Agent.Name,
+		agentTypeLabel:                 "metrics",
 	}
 	if d.Agent.Spec.PodMetadata != nil {
 		for k, v := range d.Agent.Spec.PodMetadata.Labels {

@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: pod-logs.monitoring.grafana.com
+  name: podlogs.monitoring.grafana.com
 spec:
   group: monitoring.grafana.com
   names:
@@ -14,8 +14,8 @@ spec:
     - agent-operator
     kind: PodLogs
     listKind: PodLogsList
-    plural: pod-logs
-    singular: pod-logs
+    plural: podlogs
+    singular: podlogs
   scope: Namespaced
   versions:
   - name: v1alpha1
@@ -186,10 +186,14 @@ spec:
                             Required.
                           type: string
                         stages:
-                          description: 'Nested set of pipeline stages to execute when
-                            action: keep and the log line matches selector.'
-                          items: {}
-                          type: array
+                          description: "Nested set of pipeline stages to execute when
+                            action: keep and the log line matches selector. \n An
+                            example value for stages may be: \n   stages: |     -
+                            json: {}     - labelAllow: [foo, bar] \n Note that stages
+                            is a string because SIG API Machinery does not support
+                            recursive types, and so it cannot be validated for correctness.
+                            Be careful not to mistype anything."
+                          type: string
                       required:
                       - selector
                       type: object
