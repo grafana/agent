@@ -22,7 +22,7 @@ spec:
         app: grafana
     spec:
       containers:
-      - name: loki
+      - name: grafana
         image: grafana/grafana:8.0.4
         args:
           - --homepath=/usr/share/grafana

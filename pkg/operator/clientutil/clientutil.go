@@ -110,11 +110,11 @@ func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1
 		if k8s_errors.IsNotAcceptable(err) || k8s_errors.IsInvalid(err) {
 			err = c.Delete(ctx, ss)
 			if err != nil {
-				return fmt.Errorf("failed to update statefulset: deleting old statefulset: %w", err)
+				return fmt.Errorf("failed to update statefulset when deleting old statefulset: %w", err)
 			}
 			err = c.Create(ctx, ss)
 			if err != nil {
-				return fmt.Errorf("failed to update statefulset: creating new statefulset: %w", err)
+				return fmt.Errorf("failed to update statefulset when creating replacement statefulset: %w", err)
 			}
 		} else if err != nil {
 			return fmt.Errorf("failed to update statefulset: %w", err)
