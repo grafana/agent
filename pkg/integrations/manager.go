@@ -75,6 +75,11 @@ type ManagerConfig struct {
 
 	// This is set to true if the Server TLSConfig Cert and Key path are set
 	ServerUsingTLS bool `yaml:"-"`
+
+	// We use this config to check if we need to reload integrations or not
+	// The Integrations Configs don't have prometheus defaults applied which
+	// can cause us skip reload when scrape configs change
+	PrometheusGlobalConfig promConfig.GlobalConfig `yaml:"-"`
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -138,9 +143,8 @@ func (c *ManagerConfig) ApplyDefaults(cfg *prom.Config) error {
 type Manager struct {
 	logger log.Logger
 
-	cfgMut        sync.RWMutex
-	cfg           ManagerConfig
-	promGlobalCfg promConfig.GlobalConfig
+	cfgMut sync.RWMutex
+	cfg    ManagerConfig
 
 	hostname string
 
@@ -158,7 +162,7 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator, pcfg promConfig.GlobalConfig) (*Manager, error) {
+func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Manager{
@@ -171,8 +175,6 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 		validator: validate,
 
 		integrations: make(map[string]*integrationProcess, len(cfg.Integrations)),
-
-		promGlobalCfg: pcfg,
 	}
 
 	var err error
@@ -181,14 +183,14 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 		return nil, err
 	}
 
-	if err := m.ApplyConfig(cfg, pcfg); err != nil {
+	if err := m.ApplyConfig(cfg); err != nil {
 		return nil, fmt.Errorf("failed applying config: %w", err)
 	}
 	return m, nil
 }
 
 // ApplyConfig updates the configuration of the integrations subsystem.
-func (m *Manager) ApplyConfig(cfg ManagerConfig, pcfg promConfig.GlobalConfig) error {
+func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	var failed bool
 
 	m.cfgMut.Lock()
@@ -198,9 +200,8 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig, pcfg promConfig.GlobalConfig) e
 	defer m.integrationsMut.Unlock()
 
 	// The global prometheus config settings don't get applied to integrations until later. This
-	// causes us to skip reload when those settings change. Applying those settings to the integration
-	// config interfaces is really challenging so this is a workaround
-	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.promGlobalCfg, pcfg) {
+	// causes us to skip reload when those settings change.
+	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.cfg.PrometheusGlobalConfig, cfg.PrometheusGlobalConfig) {
 		level.Info(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
 		return nil
 	} else {
@@ -228,7 +229,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig, pcfg promConfig.GlobalConfig) e
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
 		// it with the new settings, so we'll need to stop it.
 		if p, exist := m.integrations[key]; exist {
-			if util.CompareYAML(p.cfg, ic) && util.CompareYAML(m.promGlobalCfg, pcfg) {
+			if util.CompareYAML(p.cfg, ic) {
 				continue
 			}
 			p.stop()

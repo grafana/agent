@@ -116,7 +116,7 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 	icfg := mockConfig{Integration: mock}
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(mockManagerConfig(), log.NewNopLogger(), im, noOpValidator, mockPromConfig())
+	m, err := NewManager(mockManagerConfig(), log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -139,7 +139,7 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 	cfg.ScrapeIntegrations = false
 	cfg.Integrations = append(cfg.Integrations, &icfg)
 
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator, mockPromConfig())
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -164,7 +164,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator, mockPromConfig())
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -182,7 +182,7 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator, mockPromConfig())
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -205,7 +205,7 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator, mockPromConfig())
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -224,7 +224,7 @@ func TestManager_GracefulStop(t *testing.T) {
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator, mockPromConfig())
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second, 1, func() interface{} {
@@ -248,17 +248,17 @@ func TestManager_IntegrationEnabledToDisabledReload(t *testing.T) {
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator, mockPromConfig())
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 
 	// Test for Enabled -> Disabled
-	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(false), mockPromConfig())
+	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(false))
 	require.Len(t, m.integrations, 0, "Integration was disabled so should be removed from map")
 	_, err = m.im.GetInstance(mockIntegrationName)
 	require.Error(t, err, "This mock should not exist")
 
 	// test for Disabled -> Enabled
-	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(true), mockPromConfig())
+	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(true))
 	require.Len(t, m.integrations, 1, "Integration was enabled so should be here")
 	_, err = m.im.GetInstance(mockIntegrationName)
 	require.NoError(t, err, "This mock should exist")
@@ -274,7 +274,7 @@ func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator, mockPromConfig())
+	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 	require.Len(t, m.integrations, 0, "Integration was disabled so should be removed from map")
 	_, err = m.im.GetInstance(mockIntegrationName)
@@ -282,11 +282,22 @@ func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
 
 	// test for Disabled -> Enabled
 
-	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(true), mockPromConfig())
+	_ = m.ApplyConfig(generateMockConfigWithEnabledFlag(true))
 	require.Len(t, m.integrations, 1, "Integration was enabled so should be here")
 	_, err = m.im.GetInstance(mockIntegrationName)
 	require.NoError(t, err, "This mock should exist")
 	require.Len(t, m.im.ListInstances(), 1, "This instance should exist")
+}
+
+type PromDefaultsValidator struct {
+	PrometheusGlobalConfig promConfig.GlobalConfig
+}
+
+func (i *PromDefaultsValidator) validate(c *instance.Config) error {
+	instanceConfig := instance.GlobalConfig{
+		Prometheus: i.PrometheusGlobalConfig,
+	}
+	return c.ApplyDefaults(instanceConfig)
 }
 
 func TestManager_PromConfigChangeReloads(t *testing.T) {
@@ -298,8 +309,11 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 
-	startingPromConfig := mockPromConfigWithValues(model.Duration(30*time.Second), model.Duration(33*time.Second))
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator, startingPromConfig)
+	startingPromConfig := mockPromConfigWithValues(model.Duration(30*time.Second), model.Duration(25*time.Second))
+	cfg.PrometheusGlobalConfig = startingPromConfig
+	validator := PromDefaultsValidator{startingPromConfig}
+
+	m, err := NewManager(cfg, log.NewNopLogger(), im, validator.validate)
 	require.NoError(t, err)
 	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
 	//The integration never has the prom config overrides happen so go after the running instance config instead
@@ -310,16 +324,19 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 		}
 	}
 
-	newPromConfig := mockPromConfigWithValues(model.Duration(60*time.Second), model.Duration(63*time.Second))
-	err = m.ApplyConfig(cfg, newPromConfig)
+	newPromConfig := mockPromConfigWithValues(model.Duration(60*time.Second), model.Duration(55*time.Second))
+	cfg.PrometheusGlobalConfig = newPromConfig
+	validator.PrometheusGlobalConfig = newPromConfig
+
+	err = m.ApplyConfig(cfg)
 	require.NoError(t, err)
 
 	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
 	//The integration never has the prom config overrides happen so go after the running instance config instead
 	for _, c := range m.im.ListConfigs() {
 		for _, scrape := range c.ScrapeConfigs {
-			require.Equal(t, startingPromConfig.ScrapeInterval, scrape.ScrapeInterval)
-			require.Equal(t, startingPromConfig.ScrapeTimeout, scrape.ScrapeTimeout)
+			require.Equal(t, newPromConfig.ScrapeInterval, scrape.ScrapeInterval)
+			require.Equal(t, newPromConfig.ScrapeTimeout, scrape.ScrapeTimeout)
 		}
 	}
 }
@@ -398,13 +415,6 @@ func mockManagerConfig() ManagerConfig {
 		IntegrationRestartBackoff: 0,
 		ListenPort:                listenPort,
 		ListenHost:                listenHost,
-	}
-}
-
-func mockPromConfig() promConfig.GlobalConfig {
-	return promConfig.GlobalConfig{
-		ScrapeInterval: model.Duration(30 * time.Second),
-		ScrapeTimeout:  model.Duration(33 * time.Second),
 	}
 }
 
