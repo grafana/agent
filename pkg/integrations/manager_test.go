@@ -12,6 +12,8 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/model"
+	promConfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/stretchr/testify/require"
@@ -286,6 +288,58 @@ func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
 	require.Len(t, m.im.ListInstances(), 1, "This instance should exist")
 }
 
+type PromDefaultsValidator struct {
+	PrometheusGlobalConfig promConfig.GlobalConfig
+}
+
+func (i *PromDefaultsValidator) validate(c *instance.Config) error {
+	instanceConfig := instance.GlobalConfig{
+		Prometheus: i.PrometheusGlobalConfig,
+	}
+	return c.ApplyDefaults(instanceConfig)
+}
+
+func TestManager_PromConfigChangeReloads(t *testing.T) {
+	mock := newMockIntegration()
+	icfg := mockConfig{Integration: mock}
+
+	cfg := mockManagerConfig()
+	cfg.Integrations = append(cfg.Integrations, icfg)
+
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+
+	startingPromConfig := mockPromConfigWithValues(model.Duration(30*time.Second), model.Duration(25*time.Second))
+	cfg.PrometheusGlobalConfig = startingPromConfig
+	validator := PromDefaultsValidator{startingPromConfig}
+
+	m, err := NewManager(cfg, log.NewNopLogger(), im, validator.validate)
+	require.NoError(t, err)
+	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
+	//The integration never has the prom config overrides happen so go after the running instance config instead
+	for _, c := range m.im.ListConfigs() {
+		for _, scrape := range c.ScrapeConfigs {
+			require.Equal(t, startingPromConfig.ScrapeInterval, scrape.ScrapeInterval)
+			require.Equal(t, startingPromConfig.ScrapeTimeout, scrape.ScrapeTimeout)
+		}
+	}
+
+	newPromConfig := mockPromConfigWithValues(model.Duration(60*time.Second), model.Duration(55*time.Second))
+	cfg.PrometheusGlobalConfig = newPromConfig
+	validator.PrometheusGlobalConfig = newPromConfig
+
+	err = m.ApplyConfig(cfg)
+	require.NoError(t, err)
+
+	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
+	//The integration never has the prom config overrides happen so go after the running instance config instead
+	for _, c := range m.im.ListConfigs() {
+		for _, scrape := range c.ScrapeConfigs {
+			require.Equal(t, newPromConfig.ScrapeInterval, scrape.ScrapeInterval)
+			require.Equal(t, newPromConfig.ScrapeTimeout, scrape.ScrapeTimeout)
+		}
+	}
+}
+
 func generateMockConfigWithEnabledFlag(enabled bool) ManagerConfig {
 	enabledMock := newMockIntegration()
 	enabledMock.CommonCfg.Enabled = enabled
@@ -360,5 +414,12 @@ func mockManagerConfig() ManagerConfig {
 		IntegrationRestartBackoff: 0,
 		ListenPort:                listenPort,
 		ListenHost:                listenHost,
+	}
+}
+
+func mockPromConfigWithValues(scrapeInterval model.Duration, scrapeTimeout model.Duration) promConfig.GlobalConfig {
+	return promConfig.GlobalConfig{
+		ScrapeInterval: scrapeInterval,
+		ScrapeTimeout:  scrapeTimeout,
 	}
 }

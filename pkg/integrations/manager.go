@@ -20,7 +20,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/config"
+	promConfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
@@ -59,7 +59,7 @@ type ManagerConfig struct {
 	Labels model.LabelSet `yaml:"labels,omitempty"`
 
 	// Prometheus RW configs to use for all integrations.
-	PrometheusRemoteWrite []*config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
+	PrometheusRemoteWrite []*promConfig.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
 
 	IntegrationRestartBackoff time.Duration `yaml:"integration_restart_backoff,omitempty"`
 
@@ -75,6 +75,11 @@ type ManagerConfig struct {
 
 	// This is set to true if the Server TLSConfig Cert and Key path are set
 	ServerUsingTLS bool `yaml:"-"`
+
+	// We use this config to check if we need to reload integrations or not
+	// The Integrations Configs don't have prometheus defaults applied which
+	// can cause us skip reload when scrape configs change
+	PrometheusGlobalConfig promConfig.GlobalConfig `yaml:"-"`
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -157,7 +162,7 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
+func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Manager{
@@ -169,7 +174,7 @@ func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validat
 		im:        im,
 		validator: validate,
 
-		integrations: make(map[string]*integrationProcess, len(c.Integrations)),
+		integrations: make(map[string]*integrationProcess, len(cfg.Integrations)),
 	}
 
 	var err error
@@ -178,7 +183,7 @@ func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validat
 		return nil, err
 	}
 
-	if err := m.ApplyConfig(c); err != nil {
+	if err := m.ApplyConfig(cfg); err != nil {
 		return nil, fmt.Errorf("failed applying config: %w", err)
 	}
 	return m, nil
@@ -194,9 +199,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	m.integrationsMut.Lock()
 	defer m.integrationsMut.Unlock()
 
-	if util.CompareYAML(m.cfg, cfg) {
+	// The global prometheus config settings don't get applied to integrations until later. This
+	// causes us to skip reload when those settings change.
+	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.cfg.PrometheusGlobalConfig, cfg.PrometheusGlobalConfig) {
+		level.Debug(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
 		return nil
 	}
+	level.Debug(m.logger).Log("msg", "Applying integrations config changes")
 
 	select {
 	case <-m.ctx.Done():
@@ -372,10 +381,10 @@ func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg M
 		httpClientConfig.TLSConfig = cfg.TLSConfig
 	}
 
-	var scrapeConfigs []*config.ScrapeConfig
+	var scrapeConfigs []*promConfig.ScrapeConfig
 
 	for _, isc := range i.ScrapeConfigs() {
-		sc := &config.ScrapeConfig{
+		sc := &promConfig.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
 			MetricsPath:             path.Join("/integrations", icfg.Name(), isc.MetricsPath),
 			Scheme:                  schema,
