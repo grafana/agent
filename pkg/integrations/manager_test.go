@@ -196,7 +196,6 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	})
 }
 
-//TODO how does this work it's looks exactly the same as above?
 func TestManager_RestartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{Integration: mock}
