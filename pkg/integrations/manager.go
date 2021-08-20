@@ -202,10 +202,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// The global prometheus config settings don't get applied to integrations until later. This
 	// causes us to skip reload when those settings change.
 	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.cfg.PrometheusGlobalConfig, cfg.PrometheusGlobalConfig) {
-		level.Info(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
+		level.Debug(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
 		return nil
 	}
-	level.Info(m.logger).Log("msg", "Applying integrations config changes")
+	level.Debug(m.logger).Log("msg", "Applying integrations config changes")
 
 	select {
 	case <-m.ctx.Done():
