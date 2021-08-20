@@ -179,6 +179,33 @@ type PrometheusInstance struct {
 	Spec PrometheusInstanceSpec `json:"spec,omitempty"`
 }
 
+// ServiceMonitorSelector returns a selector to find ServiceMonitors.
+func (p *PrometheusInstance) ServiceMonitorSelector() ObjectSelector {
+	return ObjectSelector{
+		ParentNamespace:   p.Namespace,
+		NamespaceSelector: p.Spec.ServiceMonitorNamespaceSelector,
+		Labels:            p.Spec.ServiceMonitorSelector,
+	}
+}
+
+// PodMonitorSelector returns a selector to find PodMonitors.
+func (p *PrometheusInstance) PodMonitorSelector() ObjectSelector {
+	return ObjectSelector{
+		ParentNamespace:   p.Namespace,
+		NamespaceSelector: p.Spec.PodMonitorNamespaceSelector,
+		Labels:            p.Spec.PodMonitorSelector,
+	}
+}
+
+// ProbeSelector returns a selector to find Probes.
+func (p *PrometheusInstance) ProbeSelector() ObjectSelector {
+	return ObjectSelector{
+		ParentNamespace:   p.Namespace,
+		NamespaceSelector: p.Spec.ProbeNamespaceSelector,
+		Labels:            p.Spec.ProbeSelector,
+	}
+}
+
 // PrometheusInstanceSpec controls how an individual instance will be used to discover PodMonitors.
 type PrometheusInstanceSpec struct {
 	// WALTruncateFrequency specifies how frequently the WAL truncation process

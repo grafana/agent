@@ -49,14 +49,15 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 
 	secrets := make(assets.SecretStore)
 	builder := deploymentBuilder{
+		Logger:            l,
 		Config:            r.config,
 		Client:            r.Client,
 		Agent:             &agent,
 		Secrets:           secrets,
-		ResourceSelectors: make(map[secondaryResource][]ResourceSelector),
+		ResourceSelectors: make(map[secondaryResource][]resourceSelector),
 	}
 
-	deployment, err := builder.Build(ctx, l)
+	deployment, err := builder.Build(ctx)
 	if err != nil {
 		level.Error(l).Log("msg", "unable to collect resources", "err", err)
 		return controller.Result{}, nil
@@ -69,8 +70,13 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		r.eventHandlers[secondary].Notify(req.NamespacedName, builder.ResourceSelectors[secondary])
 	}
 
+	assetRefs := deployment.AssetReferences()
+
+	// Update our notifiers with asset references discovered through the deployment.
+	r.watchSecrets(req, assetRefs)
+
 	// Fill secrets in store
-	if err := r.fillStore(ctx, deployment.AssetReferences(), secrets); err != nil {
+	if err := r.fillStore(ctx, assetRefs, secrets); err != nil {
 		level.Error(l).Log("msg", "unable to cache secrets for building config", "err", err)
 		return controller.Result{}, nil
 	}
@@ -98,6 +104,30 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 	}
 
 	return controller.Result{}, nil
+}
+
+// watchSecrets will go iterate over asset references and configure them to be
+// watched for updates. This allows reconciles to trigger when a referenced
+// Secret or ConfigMap changes.
+func (r *reconciler) watchSecrets(req controller.Request, refs []config.AssetReference) {
+	var (
+		configMapSelectors []resourceSelector
+		secretSelectors    []resourceSelector
+	)
+
+	for _, ref := range refs {
+		switch {
+		case ref.Reference.ConfigMap != nil:
+			configMapSelectors = append(configMapSelectors, &assetReferenceSelector{Reference: ref})
+		case ref.Reference.Secret != nil:
+			secretSelectors = append(secretSelectors, &assetReferenceSelector{Reference: ref})
+		default:
+			panic("unknown AssetReference")
+		}
+	}
+
+	r.eventHandlers[resourceConfigMap].Notify(req.NamespacedName, configMapSelectors)
+	r.eventHandlers[resourceSecret].Notify(req.NamespacedName, secretSelectors)
 }
 
 // fillStore retrieves all the values from refs and caches them in the provided store.

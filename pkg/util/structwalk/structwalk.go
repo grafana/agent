@@ -35,6 +35,13 @@ type structWalker struct {
 
 // Struct invoke the Visitor for v and its children.
 func (sw *structWalker) Struct(v reflect.Value) error {
+	// structWalker will walk absolutely all fields, even unexported fields or
+	// types. We can only interface exported fields, so we need to abort early
+	// for anything that's not supported.
+	if !v.CanInterface() {
+		return nil
+	}
+
 	// Get the interface to the value. reflectwalk will fully derefernce all
 	// structs, so if it's possible for us to get address it into a pointer,
 	// we will use that for visiting.

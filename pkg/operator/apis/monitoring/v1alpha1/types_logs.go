@@ -100,6 +100,15 @@ type LogsInstance struct {
 	Spec LogsInstanceSpec `json:"spec,omitempty"`
 }
 
+// PodLogsInstanceSelector returns the selector to discover PodLogs.
+func (i *LogsInstance) PodLogsInstanceSelector() ObjectSelector {
+	return ObjectSelector{
+		ParentNamespace:   i.Namespace,
+		NamespaceSelector: i.Spec.PodLogsNamespaceSelector,
+		Labels:            i.Spec.PodLogsSelector,
+	}
+}
+
 // LogsInstanceSpec controls how an individual instance will be used to
 // discover LogMonitors.
 type LogsInstanceSpec struct {

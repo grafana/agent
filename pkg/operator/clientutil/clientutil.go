@@ -108,6 +108,9 @@ func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1
 
 		err := c.Update(ctx, ss)
 		if k8s_errors.IsNotAcceptable(err) || k8s_errors.IsInvalid(err) {
+			// Resource version should only be set when updating
+			ss.ResourceVersion = ""
+
 			err = c.Delete(ctx, ss)
 			if err != nil {
 				return fmt.Errorf("failed to update statefulset when deleting old statefulset: %w", err)
@@ -145,6 +148,9 @@ func CreateOrUpdateDaemonSet(ctx context.Context, c client.Client, ss *apps_v1.D
 
 		err := c.Update(ctx, ss)
 		if k8s_errors.IsNotAcceptable(err) || k8s_errors.IsInvalid(err) {
+			// Resource version should only be set when updating
+			ss.ResourceVersion = ""
+
 			err = c.Delete(ctx, ss)
 			if err != nil {
 				return fmt.Errorf("failed to update daemonset: deleting old daemonset: %w", err)

@@ -21,6 +21,24 @@ type GrafanaAgent struct {
 	Spec GrafanaAgentSpec `json:"spec,omitempty"`
 }
 
+// PrometheusInstanceSelector returns a selector to find PrometheusInstances.
+func (a *GrafanaAgent) PrometheusInstanceSelector() ObjectSelector {
+	return ObjectSelector{
+		ParentNamespace:   a.Namespace,
+		NamespaceSelector: a.Spec.Prometheus.InstanceNamespaceSelector,
+		Labels:            a.Spec.Prometheus.InstanceSelector,
+	}
+}
+
+// LogsInstanceSelector returns a selector to find LogsInstances.
+func (a *GrafanaAgent) LogsInstanceSelector() ObjectSelector {
+	return ObjectSelector{
+		ParentNamespace:   a.Namespace,
+		NamespaceSelector: a.Spec.Logs.InstanceNamespaceSelector,
+		Labels:            a.Spec.Logs.InstanceSelector,
+	}
+}
+
 // +kubebuilder:object:root=true
 
 // GrafanaAgentList is a list of GrafanaAgents.
@@ -127,4 +145,13 @@ type GrafanaAgentSpec struct {
 	// Logs controls the logging subsystem of the Agent and settings unique to
 	// logging-specific pods that are deployed.
 	Logs LogsSubsystemSpec `json:"logs,omitempty"`
+}
+
+// ObjectSelector is a set of selectors to use for finding an object in the
+// resource hierarchy. When NamespaceSelector is nil, objects should be
+// searched directly in the ParentNamespace.
+type ObjectSelector struct {
+	ParentNamespace   string
+	NamespaceSelector *metav1.LabelSelector
+	Labels            *metav1.LabelSelector
 }
