@@ -204,9 +204,8 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.cfg.PrometheusGlobalConfig, cfg.PrometheusGlobalConfig) {
 		level.Info(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
 		return nil
-	} else {
-		level.Info(m.logger).Log("msg", "Applying integrations config changes")
 	}
+	level.Info(m.logger).Log("msg", "Applying integrations config changes")
 
 	select {
 	case <-m.ctx.Done():
