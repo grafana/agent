@@ -6,7 +6,7 @@ metadata:
   labels:
     app: grafana-agent-example
 spec:
-  image: grafana/agent:v0.18.2
+  image: grafana/agent:latest
   logLevel: info
   serviceAccountName: grafana-agent
   storage:

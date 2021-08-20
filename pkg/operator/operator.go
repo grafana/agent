@@ -130,6 +130,8 @@ func New(l log.Logger, c *Config, m manager.Manager) error {
 		Watches(watchType(&promop_v1.PodMonitor{}), events[resourcePodMonitor]).
 		Watches(watchType(&promop_v1.Probe{}), events[resourceProbe]).
 		Watches(watchType(&promop_v1.ServiceMonitor{}), events[resourceServiceMonitor]).
+		Watches(watchType(&core_v1.Secret{}), events[resourceSecret]).
+		Watches(watchType(&core_v1.ConfigMap{}), events[resourceConfigMap]).
 		Complete(&reconciler{
 			Client:        m.GetClient(),
 			scheme:        m.GetScheme(),

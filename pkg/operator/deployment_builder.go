@@ -6,46 +6,74 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/operator/config"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	core_v1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type deploymentBuilder struct {
 	client.Client
 
+	Logger  log.Logger
 	Config  *Config
-	Agent   *grafana_v1alpha1.GrafanaAgent
+	Agent   *grafana.GrafanaAgent
 	Secrets assets.SecretStore
 
 	// ResourceSelectors is filled as objects are found and can be used to
 	// trigger future reconciles.
-	ResourceSelectors map[secondaryResource][]ResourceSelector
+	ResourceSelectors map[secondaryResource][]resourceSelector
 }
 
-func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Deployment, error) {
-	rootMetricInstances, err := b.getPrometheusInstances(ctx)
+func (b *deploymentBuilder) Build(ctx context.Context) (config.Deployment, error) {
+	metricsInstanceSel, err := b.buildResourceSelector(b.Agent.PrometheusInstanceSelector())
+	if err != nil {
+		return config.Deployment{}, fmt.Errorf("failed to build PrometheusInstance selector: %w", err)
+	}
+	b.addSelector(resourcePromInstance, metricsInstanceSel)
+
+	rootMetricInstances, err := b.getPrometheusInstances(ctx, metricsInstanceSel)
 	if err != nil {
 		return config.Deployment{}, err
 	}
 	metricInstances := make([]config.PrometheusInstance, 0, len(rootMetricInstances))
 
 	for _, inst := range rootMetricInstances {
-		sMons, err := b.getServiceMonitors(ctx, l, inst)
+		// Get resource selectors for ServiceMonitors, PodMonitors, Probes
+		var (
+			sMonSel, pMonSel, probeSel resourceSelector
+		)
+		getters := []struct {
+			name string
+			rsel *resourceSelector
+			osel grafana.ObjectSelector
+		}{
+			{"ServiceMonitor", &sMonSel, inst.ServiceMonitorSelector()},
+			{"PodMonitor", &pMonSel, inst.PodMonitorSelector()},
+			{"Probe", &probeSel, inst.ProbeSelector()},
+		}
+		for _, g := range getters {
+			var err error
+			*g.rsel, err = b.buildResourceSelector(g.osel)
+			if err != nil {
+				return config.Deployment{}, fmt.Errorf("failed to build %s selector: %w", g.name, err)
+			}
+		}
+
+		// Use resource selectors to look up objects
+		sMons, err := b.getServiceMonitors(ctx, sMonSel)
 		if err != nil {
 			return config.Deployment{}, fmt.Errorf("unable to fetch ServiceMonitors: %w", err)
 		}
-		pMons, err := b.getPodMonitors(ctx, inst)
+		pMons, err := b.getPodMonitors(ctx, pMonSel)
 		if err != nil {
 			return config.Deployment{}, fmt.Errorf("unable to fetch PodMonitors: %w", err)
 		}
-		probes, err := b.getProbes(ctx, inst)
+		probes, err := b.getProbes(ctx, probeSel)
 		if err != nil {
 			return config.Deployment{}, fmt.Errorf("unable to fetch Probes: %w", err)
 		}
@@ -56,16 +84,30 @@ func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Dep
 			PodMonitors:     pMons,
 			Probes:          probes,
 		})
+
+		b.addSelector(resourceServiceMonitor, sMonSel)
+		b.addSelector(resourcePodMonitor, pMonSel)
+		b.addSelector(resourceProbe, probeSel)
 	}
 
-	rootLogsInstances, err := b.getLogsInstances(ctx)
+	logsInstanceSel, err := b.buildResourceSelector(b.Agent.LogsInstanceSelector())
+	if err != nil {
+		return config.Deployment{}, fmt.Errorf("failed to build LogsInstance selector: %w", err)
+	}
+	b.addSelector(resourceLogsInstance, logsInstanceSel)
+
+	rootLogsInstances, err := b.getLogsInstances(ctx, logsInstanceSel)
 	if err != nil {
 		return config.Deployment{}, err
 	}
 	logsInstances := make([]config.LogInstance, 0, len(rootLogsInstances))
 
 	for _, inst := range rootLogsInstances {
-		podLogs, err := b.getPodLogs(ctx, inst)
+		podLogsSel, err := b.buildResourceSelector(inst.PodLogsInstanceSelector())
+		if err != nil {
+			return config.Deployment{}, fmt.Errorf("failed to build PodLogs selector: %w", err)
+		}
+		podLogs, err := b.getPodLogs(ctx, podLogsSel)
 		if err != nil {
 			return config.Deployment{}, fmt.Errorf("unable to fetch PodLogs: %w", err)
 		}
@@ -74,6 +116,8 @@ func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Dep
 			Instance: inst,
 			PodLogs:  podLogs,
 		})
+
+		b.addSelector(resourcePodLogs, podLogsSel)
 	}
 
 	return config.Deployment{
@@ -83,145 +127,97 @@ func (b *deploymentBuilder) Build(ctx context.Context, l log.Logger) (config.Dep
 	}, nil
 }
 
-func (b *deploymentBuilder) getPrometheusInstances(ctx context.Context) ([]*grafana_v1alpha1.PrometheusInstance, error) {
-	sel, err := b.getResourceSelector(
-		b.Agent.Namespace,
-		b.Agent.Spec.Prometheus.InstanceNamespaceSelector,
-		b.Agent.Spec.Prometheus.InstanceSelector,
-	)
+// buildResourceSelector builds a selector for discovering objects with a
+// namespace selector and an object selector. If the namespace
+// selector, it will default to finding everything in the parent
+// namespace.
+func (b *deploymentBuilder) buildResourceSelector(sel grafana.ObjectSelector) (resourceSelector, error) {
+	var namespaceFilter string
+	if sel.NamespaceSelector == nil {
+		// When there's no namespaceSelector defined, default to looking in the
+		// current namespace and matching everything within that namespace.
+		namespaceFilter = sel.ParentNamespace
+		sel.NamespaceSelector = &metav1.LabelSelector{}
+	}
+
+	nsLabels, err := metav1.LabelSelectorAsSelector(sel.NamespaceSelector)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build prometheus resource selector: %w", err)
+		return nil, fmt.Errorf("failed to convert object namespace selector into label selector: %w", err)
 	}
-	b.ResourceSelectors[resourcePromInstance] = append(b.ResourceSelectors[resourcePromInstance], sel)
-
-	var (
-		list        grafana_v1alpha1.PrometheusInstanceList
-		namespace   = namespaceFromSelector(sel)
-		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	)
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
-	}
-
-	items := make([]*grafana_v1alpha1.PrometheusInstance, 0, len(list.Items))
-	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		}
-	}
-	return items, nil
-}
-
-func (b *deploymentBuilder) getResourceSelector(
-	currentNamespace string,
-	namespaceSelector *v1.LabelSelector,
-	objectSelector *v1.LabelSelector,
-) (sel ResourceSelector, err error) {
-
-	// Set up our namespace label and object label selectors. By default, we'll
-	// match everything (the inverse of the k8s default). If we specify anything,
-	// we'll narrow it down.
-	var (
-		nsLabels  = labels.Everything()
-		objLabels = labels.Everything()
-	)
-	if namespaceSelector != nil {
-		nsLabels, err = v1.LabelSelectorAsSelector(namespaceSelector)
-		if err != nil {
-			return sel, err
-		}
-	}
-	if objectSelector != nil {
-		objLabels, err = v1.LabelSelectorAsSelector(objectSelector)
-		if err != nil {
-			return sel, err
-		}
-	}
-
-	sel = ResourceSelector{
-		NamespaceName: prom.NamespaceSelector{
-			MatchNames: []string{currentNamespace},
-		},
-		NamespaceLabels: nsLabels,
-		Labels:          objLabels,
-	}
-
-	// If we have a namespace selector, that means we're matching more than one
-	// namespace and we should adjust NamespaceName appropriatel.
-	if namespaceSelector != nil {
-		sel.NamespaceName = prom.NamespaceSelector{Any: true}
-	}
-
-	return
-}
-
-// namespaceFromSelector returns the namespace string that should be used for
-// querying lists of objects. If the ResourceSelector is looking at more than
-// one namespace, an empty string will be returned. Otherwise, it will return
-// the first namespace.
-func namespaceFromSelector(sel ResourceSelector) string {
-	if !sel.NamespaceName.Any && len(sel.NamespaceName.MatchNames) == 1 {
-		return sel.NamespaceName.MatchNames[0]
-	}
-	return ""
-}
-
-func (b *deploymentBuilder) matchNamespace(
-	ctx context.Context,
-	obj *v1.ObjectMeta,
-	sel ResourceSelector,
-) (bool, error) {
-	// If we were matching on a specific namespace, there's no
-	// further work to do here.
-	if namespaceFromSelector(sel) != "" {
-		return true, nil
-	}
-
-	var ns core_v1.Namespace
-	if err := b.Get(ctx, types.NamespacedName{Name: obj.Namespace}, &ns); err != nil {
-		return false, fmt.Errorf("failed getting namespace: %w", err)
-	}
-
-	return sel.NamespaceLabels.Matches(labels.Set(ns.Labels)), nil
-}
-
-func (b *deploymentBuilder) getServiceMonitors(
-	ctx context.Context,
-	l log.Logger,
-	inst *grafana_v1alpha1.PrometheusInstance,
-) ([]*prom.ServiceMonitor, error) {
-	sel, err := b.getResourceSelector(
-		inst.Namespace,
-		inst.Spec.ServiceMonitorNamespaceSelector,
-		inst.Spec.ServiceMonitorSelector,
-	)
+	objectLabels, err := metav1.LabelSelectorAsSelector(sel.Labels)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build service monitor resource selector: %w", err)
+		return nil, fmt.Errorf("failed to convert object selector into label selector: %w", err)
 	}
-	b.ResourceSelectors[resourceServiceMonitor] = append(b.ResourceSelectors[resourceServiceMonitor], sel)
 
-	var (
-		list        prom.ServiceMonitorList
-		namespace   = namespaceFromSelector(sel)
-		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	)
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
+	var ss []resourceSelector
+
+	if namespaceFilter != "" {
+		ss = append(ss, &namespaceSelector{Namespace: namespaceFilter})
+	}
+	ss = append(ss, &namespaceLabelSelector{Selector: nsLabels})
+	ss = append(ss, &labelSelector{Selector: objectLabels})
+	return &multiSelector{Selectors: ss}, nil
+}
+
+// addSelector registers the given selector for the resource to use for update
+// tracking.
+func (b *deploymentBuilder) addSelector(res secondaryResource, sel resourceSelector) {
+	b.ResourceSelectors[res] = append(b.ResourceSelectors[res], sel)
+}
+
+func (b *deploymentBuilder) getPrometheusInstances(ctx context.Context, sel resourceSelector) ([]*grafana.PrometheusInstance, error) {
+	var list grafana.PrometheusInstanceList
+	if err := b.list(ctx, &list, sel); err != nil {
+		return nil, fmt.Errorf("unable to discover PrometheusInstances: %w", err)
+	}
+	return list.Items, nil
+}
+
+// list finds all objects for sel and fills them into list.
+func (b *deploymentBuilder) list(
+	ctx context.Context,
+	list client.ObjectList,
+	sel resourceSelector,
+) error {
+
+	var lo client.ListOptions
+	sel.SetListOptions(&lo)
+	if err := b.List(ctx, list, &lo); err != nil {
+		return fmt.Errorf("failed to list objects: %w", err)
+	}
+
+	elements, err := meta.ExtractList(list)
+	if err != nil {
+		return fmt.Errorf("failed to get list: %w", err)
+	}
+
+	filteredElements := make([]runtime.Object, 0, len(elements))
+	for _, e := range elements {
+		o, ok := e.(client.Object)
+		if !ok {
+			return fmt.Errorf("unexpected object returned")
+		}
+
+		if sel.Matches(b.Logger, b.Client, o) {
+			filteredElements = append(filteredElements, e)
+		}
+	}
+
+	if err := meta.SetList(list, filteredElements); err != nil {
+		return fmt.Errorf("failed to populate list of objects: %w", err)
+	}
+	return nil
+}
+
+func (b *deploymentBuilder) getServiceMonitors(ctx context.Context, sel resourceSelector) ([]*prom.ServiceMonitor, error) {
+	var list prom.ServiceMonitorList
+	if err := b.list(ctx, &list, sel); err != nil {
+		return nil, fmt.Errorf("unable to discover ServiceMonitors: %w", err)
 	}
 
 	items := make([]*prom.ServiceMonitor, 0, len(list.Items))
-
 Item:
 	for _, item := range list.Items {
-		match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel)
-		if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		} else if !match {
-			continue
-		}
-
 		if b.Agent.Spec.Prometheus.ArbitraryFSAccessThroughSMs.Deny {
 			for _, ep := range item.Spec.Endpoints {
 				err := testForArbitraryFSAccess(ep)
@@ -229,7 +225,7 @@ Item:
 					continue
 				}
 
-				level.Warn(l).Log(
+				level.Warn(b.Logger).Log(
 					"msg", "skipping service monitor",
 					"agent", client.ObjectKeyFromObject(b.Agent),
 					"servicemonitor", client.ObjectKeyFromObject(item),
@@ -239,9 +235,9 @@ Item:
 				continue Item
 			}
 		}
-
 		items = append(items, item)
 	}
+
 	return items, nil
 }
 
@@ -261,137 +257,34 @@ func testForArbitraryFSAccess(e prom.Endpoint) error {
 	return nil
 }
 
-func (b *deploymentBuilder) getPodMonitors(
-	ctx context.Context,
-	inst *grafana_v1alpha1.PrometheusInstance,
-) ([]*prom.PodMonitor, error) {
-	sel, err := b.getResourceSelector(
-		inst.Namespace,
-		inst.Spec.PodMonitorNamespaceSelector,
-		inst.Spec.PodMonitorSelector,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build service monitor resource selector: %w", err)
+func (b *deploymentBuilder) getPodMonitors(ctx context.Context, sel resourceSelector) ([]*prom.PodMonitor, error) {
+	var list prom.PodMonitorList
+	if err := b.list(ctx, &list, sel); err != nil {
+		return nil, fmt.Errorf("unable to discover PodMonitors: %w", err)
 	}
-	b.ResourceSelectors[resourcePodMonitor] = append(b.ResourceSelectors[resourcePodMonitor], sel)
-
-	var (
-		list        prom.PodMonitorList
-		namespace   = namespaceFromSelector(sel)
-		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	)
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
-	}
-
-	items := make([]*prom.PodMonitor, 0, len(list.Items))
-	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		}
-	}
-	return items, nil
+	return list.Items, nil
 }
 
-func (b *deploymentBuilder) getProbes(
-	ctx context.Context,
-	inst *grafana_v1alpha1.PrometheusInstance,
-) ([]*prom.Probe, error) {
-	sel, err := b.getResourceSelector(
-		inst.Namespace,
-		inst.Spec.ProbeNamespaceSelector,
-		inst.Spec.ProbeSelector,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build service monitor resource selector: %w", err)
-	}
-	b.ResourceSelectors[resourceProbe] = append(b.ResourceSelectors[resourceProbe], sel)
-
-	var namespace string
-	if !sel.NamespaceName.Any && len(sel.NamespaceName.MatchNames) == 1 {
-		namespace = sel.NamespaceName.MatchNames[0]
-	}
-
+func (b *deploymentBuilder) getProbes(ctx context.Context, sel resourceSelector) ([]*prom.Probe, error) {
 	var list prom.ProbeList
-	listOptions := &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
+	if err := b.list(ctx, &list, sel); err != nil {
+		return nil, fmt.Errorf("unable to discover Probes: %w", err)
 	}
-
-	items := make([]*prom.Probe, 0, len(list.Items))
-	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		}
-	}
-	return items, nil
+	return list.Items, nil
 }
 
-func (b *deploymentBuilder) getLogsInstances(ctx context.Context) ([]*grafana_v1alpha1.LogsInstance, error) {
-	sel, err := b.getResourceSelector(
-		b.Agent.Namespace,
-		b.Agent.Spec.Logs.InstanceNamespaceSelector,
-		b.Agent.Spec.Logs.InstanceSelector,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build logs resource selector: %w", err)
+func (b *deploymentBuilder) getLogsInstances(ctx context.Context, sel resourceSelector) ([]*grafana.LogsInstance, error) {
+	var list grafana.LogsInstanceList
+	if err := b.list(ctx, &list, sel); err != nil {
+		return nil, fmt.Errorf("unable to discover LogsInstances: %w", err)
 	}
-	b.ResourceSelectors[resourceLogsInstance] = append(b.ResourceSelectors[resourceLogsInstance], sel)
-
-	var (
-		list        grafana_v1alpha1.LogsInstanceList
-		namespace   = namespaceFromSelector(sel)
-		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	)
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
-	}
-
-	items := make([]*grafana_v1alpha1.LogsInstance, 0, len(list.Items))
-	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		}
-	}
-	return items, nil
+	return list.Items, nil
 }
 
-func (b *deploymentBuilder) getPodLogs(
-	ctx context.Context,
-	inst *grafana_v1alpha1.LogsInstance,
-) ([]*grafana_v1alpha1.PodLogs, error) {
-	sel, err := b.getResourceSelector(
-		inst.Namespace,
-		inst.Spec.PodLogsNamespaceSelector,
-		inst.Spec.PodLogsSelector,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build service monitor resource selector: %w", err)
+func (b *deploymentBuilder) getPodLogs(ctx context.Context, sel resourceSelector) ([]*grafana.PodLogs, error) {
+	var list grafana.PodLogsList
+	if err := b.list(ctx, &list, sel); err != nil {
+		return nil, fmt.Errorf("unable to discover PodLogs: %w", err)
 	}
-	b.ResourceSelectors[resourcePodLogs] = append(b.ResourceSelectors[resourcePodLogs], sel)
-
-	var (
-		list        grafana_v1alpha1.PodLogsList
-		namespace   = namespaceFromSelector(sel)
-		listOptions = &client.ListOptions{LabelSelector: sel.Labels, Namespace: namespace}
-	)
-	if err := b.List(ctx, &list, listOptions); err != nil {
-		return nil, err
-	}
-
-	items := make([]*grafana_v1alpha1.PodLogs, 0, len(list.Items))
-	for _, item := range list.Items {
-		if match, err := b.matchNamespace(ctx, &item.ObjectMeta, sel); match {
-			items = append(items, item)
-		} else if err != nil {
-			return nil, fmt.Errorf("failed getting namespace: %w", err)
-		}
-	}
-	return items, nil
+	return list.Items, nil
 }
