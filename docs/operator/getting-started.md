@@ -82,6 +82,8 @@ rules:
   resources:
   - grafana-agents
   - prometheus-instances
+  - logs-instances
+  - podlogs
   verbs: [get, list, watch]
 - apiGroups: [monitoring.coreos.com]
   resources:
@@ -102,6 +104,7 @@ rules:
 - apiGroups: ["apps"]
   resources:
   - statefulsets
+  - daemonsets
   verbs: [get, list, watch, create, update, patch, delete]
 
 ---
