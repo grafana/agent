@@ -4,7 +4,7 @@
 # tap directory to install the specified version.
 set -eo pipefail
 
-FORMULA_PATH="grafana-cloud-agent.rb"
+FORMULA_PATH="grafana-agent.rb"
 TAP_DIR=""
 VERSION=""
 
