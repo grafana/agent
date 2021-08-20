@@ -61,7 +61,8 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	)
 
 	if cfg.ReloadPort != 0 {
-		ep.reloadListener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.ReloadAddress, cfg.ReloadPort))
+		reloadUrl := fmt.Sprintf("%s:%d", cfg.ReloadAddress, cfg.ReloadPort)
+		ep.reloadListener, err = net.Listen("tcp", reloadUrl)
 		if err != nil {
 			return nil, fmt.Errorf("failed to listen on address for secondary /-/reload server: %w", err)
 		}
@@ -69,6 +70,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		reloadMux := mux.NewRouter()
 		reloadMux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
 		ep.reloadServer = &http.Server{Handler: reloadMux}
+		level.Info(ep.log).Log("msg", "reload server started", "url", reloadUrl)
 	}
 
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
@@ -88,7 +90,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.manager, err = integrations.NewManager(cfg.Integrations, logger, ep.promMetrics.InstanceManager(), ep.promMetrics.Validate)
+	ep.manager, err = integrations.NewManager(cfg.Integrations, logger, ep.promMetrics.InstanceManager(), ep.promMetrics.Validate, cfg.Prometheus.Global.Prometheus)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +136,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.manager.ApplyConfig(cfg.Integrations); err != nil {
+	if err := ep.manager.ApplyConfig(cfg.Integrations, cfg.Prometheus.Global.Prometheus); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
 		failed = true
 	}

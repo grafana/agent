@@ -20,7 +20,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/config"
+	promConfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
@@ -59,7 +59,7 @@ type ManagerConfig struct {
 	Labels model.LabelSet `yaml:"labels,omitempty"`
 
 	// Prometheus RW configs to use for all integrations.
-	PrometheusRemoteWrite []*config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
+	PrometheusRemoteWrite []*promConfig.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
 
 	IntegrationRestartBackoff time.Duration `yaml:"integration_restart_backoff,omitempty"`
 
@@ -138,8 +138,9 @@ func (c *ManagerConfig) ApplyDefaults(cfg *prom.Config) error {
 type Manager struct {
 	logger log.Logger
 
-	cfgMut sync.RWMutex
-	cfg    ManagerConfig
+	cfgMut        sync.RWMutex
+	cfg           ManagerConfig
+	promGlobalCfg promConfig.GlobalConfig
 
 	hostname string
 
@@ -157,7 +158,7 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
+func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator, pcfg promConfig.GlobalConfig) (*Manager, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Manager{
@@ -169,7 +170,9 @@ func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validat
 		im:        im,
 		validator: validate,
 
-		integrations: make(map[string]*integrationProcess, len(c.Integrations)),
+		integrations: make(map[string]*integrationProcess, len(cfg.Integrations)),
+
+		promGlobalCfg: pcfg,
 	}
 
 	var err error
@@ -178,14 +181,14 @@ func NewManager(c ManagerConfig, logger log.Logger, im instance.Manager, validat
 		return nil, err
 	}
 
-	if err := m.ApplyConfig(c); err != nil {
+	if err := m.ApplyConfig(cfg, pcfg); err != nil {
 		return nil, fmt.Errorf("failed applying config: %w", err)
 	}
 	return m, nil
 }
 
 // ApplyConfig updates the configuration of the integrations subsystem.
-func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
+func (m *Manager) ApplyConfig(cfg ManagerConfig, pcfg promConfig.GlobalConfig) error {
 	var failed bool
 
 	m.cfgMut.Lock()
@@ -194,8 +197,14 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	m.integrationsMut.Lock()
 	defer m.integrationsMut.Unlock()
 
-	if util.CompareYAML(m.cfg, cfg) {
+	// The global prometheus config settings don't get applied to integrations until later. This
+	// causes us to skip reload when those settings change. Applying those settings to the integration
+	// config interfaces is really challenging so this is a workaround
+	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.promGlobalCfg, pcfg) {
+		level.Info(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
 		return nil
+	} else {
+		level.Info(m.logger).Log("msg", "Applying integrations config changes")
 	}
 
 	select {
@@ -219,7 +228,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
 		// it with the new settings, so we'll need to stop it.
 		if p, exist := m.integrations[key]; exist {
-			if util.CompareYAML(p.cfg, ic) {
+			if util.CompareYAML(p.cfg, ic) && util.CompareYAML(m.promGlobalCfg, pcfg) {
 				continue
 			}
 			p.stop()
@@ -372,10 +381,10 @@ func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg M
 		httpClientConfig.TLSConfig = cfg.TLSConfig
 	}
 
-	var scrapeConfigs []*config.ScrapeConfig
+	var scrapeConfigs []*promConfig.ScrapeConfig
 
 	for _, isc := range i.ScrapeConfigs() {
-		sc := &config.ScrapeConfig{
+		sc := &promConfig.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
 			MetricsPath:             path.Join("/integrations", icfg.Name(), isc.MetricsPath),
 			Scheme:                  schema,
