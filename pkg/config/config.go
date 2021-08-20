@@ -96,6 +96,8 @@ func (c *Config) ApplyDefaults() error {
 		c.Integrations.PrometheusRemoteWrite = c.Prometheus.Global.RemoteWrite
 	}
 
+	c.Integrations.PrometheusGlobalConfig = c.Prometheus.Global.Prometheus
+
 	// since the Tempo config might rely on an existing Loki config
 	// this check is made here to look for cross config issues before we attempt to load
 	if err := c.Tempo.Validate(c.Logs); err != nil {
