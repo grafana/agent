@@ -1,5 +1,10 @@
 # Main (unreleased)
 
+This release has breaking changes. Please read [CHANGE] entries carefully and
+consult the
+[upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
+for specific instructions.
+
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
@@ -48,12 +53,18 @@
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
+- [CHANGE] Breaking change: Operator: rename Prometheus* CRDs to Metrics* and
+  Prometheus* fields to Metrics*. (@rfratto)
+
+- [CHANGE] Breaking change: Operator: CRDs are no longer referenced using a
+  hyphen in the name to be consistent with how Kubernetes refers to resources.
+  (@rfratto)
+
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
-
 
 # v0.18.2 (2021-08-12)
 
