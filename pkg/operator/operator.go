@@ -126,7 +126,7 @@ func New(l log.Logger, c *Config, m manager.Manager) error {
 		Watches(watchType(&core_v1.Secret{}), events[resourceSecret]).
 		Watches(watchType(&grafana_v1alpha1.LogsInstance{}), events[resourceLogsInstance]).
 		Watches(watchType(&grafana_v1alpha1.PodLogs{}), events[resourcePodLogs]).
-		Watches(watchType(&grafana_v1alpha1.PrometheusInstance{}), events[resourcePromInstance]).
+		Watches(watchType(&grafana_v1alpha1.MetricsInstance{}), events[resourcePromInstance]).
 		Watches(watchType(&promop_v1.PodMonitor{}), events[resourcePodMonitor]).
 		Watches(watchType(&promop_v1.Probe{}), events[resourceProbe]).
 		Watches(watchType(&promop_v1.ServiceMonitor{}), events[resourceServiceMonitor]).

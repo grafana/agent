@@ -30,17 +30,17 @@ type deploymentBuilder struct {
 }
 
 func (b *deploymentBuilder) Build(ctx context.Context) (config.Deployment, error) {
-	metricsInstanceSel, err := b.buildResourceSelector(b.Agent.PrometheusInstanceSelector())
+	metricsInstanceSel, err := b.buildResourceSelector(b.Agent.MetricsInstanceSelector())
 	if err != nil {
-		return config.Deployment{}, fmt.Errorf("failed to build PrometheusInstance selector: %w", err)
+		return config.Deployment{}, fmt.Errorf("failed to build MetricsInstance selector: %w", err)
 	}
 	b.addSelector(resourcePromInstance, metricsInstanceSel)
 
-	rootMetricInstances, err := b.getPrometheusInstances(ctx, metricsInstanceSel)
+	rootMetricInstances, err := b.getMetricsInstances(ctx, metricsInstanceSel)
 	if err != nil {
 		return config.Deployment{}, err
 	}
-	metricInstances := make([]config.PrometheusInstance, 0, len(rootMetricInstances))
+	metricInstances := make([]config.MetricsInstance, 0, len(rootMetricInstances))
 
 	for _, inst := range rootMetricInstances {
 		// Get resource selectors for ServiceMonitors, PodMonitors, Probes
@@ -78,7 +78,7 @@ func (b *deploymentBuilder) Build(ctx context.Context) (config.Deployment, error
 			return config.Deployment{}, fmt.Errorf("unable to fetch Probes: %w", err)
 		}
 
-		metricInstances = append(metricInstances, config.PrometheusInstance{
+		metricInstances = append(metricInstances, config.MetricsInstance{
 			Instance:        inst,
 			ServiceMonitors: sMons,
 			PodMonitors:     pMons,
@@ -121,9 +121,9 @@ func (b *deploymentBuilder) Build(ctx context.Context) (config.Deployment, error
 	}
 
 	return config.Deployment{
-		Agent:      b.Agent,
-		Prometheis: metricInstances,
-		Logs:       logsInstances,
+		Agent:   b.Agent,
+		Metrics: metricInstances,
+		Logs:    logsInstances,
 	}, nil
 }
 
@@ -165,10 +165,10 @@ func (b *deploymentBuilder) addSelector(res secondaryResource, sel resourceSelec
 	b.ResourceSelectors[res] = append(b.ResourceSelectors[res], sel)
 }
 
-func (b *deploymentBuilder) getPrometheusInstances(ctx context.Context, sel resourceSelector) ([]*grafana.PrometheusInstance, error) {
-	var list grafana.PrometheusInstanceList
+func (b *deploymentBuilder) getMetricsInstances(ctx context.Context, sel resourceSelector) ([]*grafana.MetricsInstance, error) {
+	var list grafana.MetricsInstanceList
 	if err := b.list(ctx, &list, sel); err != nil {
-		return nil, fmt.Errorf("unable to discover PrometheusInstances: %w", err)
+		return nil, fmt.Errorf("unable to discover MetricsInstance: %w", err)
 	}
 	return list.Items, nil
 }
@@ -218,7 +218,7 @@ func (b *deploymentBuilder) getServiceMonitors(ctx context.Context, sel resource
 	items := make([]*prom.ServiceMonitor, 0, len(list.Items))
 Item:
 	for _, item := range list.Items {
-		if b.Agent.Spec.Prometheus.ArbitraryFSAccessThroughSMs.Deny {
+		if b.Agent.Spec.Metrics.ArbitraryFSAccessThroughSMs.Deny {
 			for _, ep := range item.Spec.Endpoints {
 				err := testForArbitraryFSAccess(ep)
 				if err == nil {

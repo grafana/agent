@@ -80,9 +80,9 @@ metadata:
 rules:
 - apiGroups: [monitoring.grafana.com]
   resources:
-  - grafana-agents
-  - prometheus-instances
-  - logs-instances
+  - grafanaagents
+  - metricsinstances
+  - logsinstances
   - podlogs
   verbs: [get, list, watch]
 - apiGroups: [monitoring.coreos.com]
@@ -143,7 +143,7 @@ go run ./cmd/agent-operator
 
 Now that the Operator is running, you can create a deployment of the
 Grafana Agent. The first step is to create a GrafanaAgent resource. This
-resource will discover a set of PrometheusInstance resources. You can use
+resource will discover a set of MetricsInstance resources. You can use
 this example, which creates a GrafanaAgent and the appropriate ServiceAccount
 for you:
 
@@ -159,7 +159,7 @@ spec:
   image: grafana/agent:v0.18.2
   logLevel: info
   serviceAccountName: grafana-agent
-  prometheus:
+  metrics:
     instanceSelector:
       matchLabels:
         agent: grafana-agent
@@ -212,13 +212,13 @@ subjects:
   namespace: default
 ```
 
-Note that this searches for PrometheusInstances in the same namespace with the
-label matching `agent: grafana-agent`. A PrometheusInstance is a custom resource
+Note that this searches for MetricsInstances in the same namespace with the
+label matching `agent: grafana-agent`. A MetricsInstance is a custom resource
 that describes where to write collected metrics. Use this one as an example:
 
 ```yaml
 apiVersion: monitoring.grafana.com/v1alpha1
-kind: PrometheusInstance
+kind: MetricsInstance
 metadata:
   name: primary
   namespace: default
@@ -272,7 +272,7 @@ data:
   password: BASE64_ENCODED_PASSWORD
 ```
 
-The above configuration of PrometheusInstance will discover all
+The above configuration of MetricsInstance will discover all
 [PodMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#podmonitor),
 [Probes](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#probe),
 and [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitor)

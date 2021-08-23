@@ -26,7 +26,7 @@ local calculateShards(requested) =
 // @param {config.Deployment} ctx
 function(ctx) marshal.YAML(optionals.trim({
   local spec = ctx.Agent.Spec,
-  local prometheus = spec.Prometheus,
+  local prometheus = spec.Metrics,
   local namespace = ctx.Agent.ObjectMeta.Namespace,
 
   server: {
@@ -59,7 +59,7 @@ function(ctx) marshal.YAML(optionals.trim({
         enforcedTargetLimit=prometheus.EnforcedTargetLimit,
         shards=calculateShards(prometheus.Shards),
       ),
-      ctx.Prometheis,
+      ctx.Metrics,
     )),
   },
 }))

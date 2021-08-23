@@ -11,7 +11,7 @@ local new_service_monitor = import 'component/metrics/service_monitor.libsonnet'
 // Generates a prometheus_instance.
 //
 // @param {string} agentNamespace - namespace of the GrafanaAgent
-// @param {PrometheusInstance} instance
+// @param {MetricsInstance} instance
 // @param {APIServerConfig} apiServer
 // @param {boolean} overrideHonorLabels
 // @param {boolean} overrideHonorTimestamps

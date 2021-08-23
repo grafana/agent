@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: logs-instances.monitoring.grafana.com
+  name: logsinstances.monitoring.grafana.com
 spec:
   group: monitoring.grafana.com
   names:
@@ -14,8 +14,8 @@ spec:
     - agent-operator
     kind: LogsInstance
     listKind: LogsInstanceList
-    plural: logs-instances
-    singular: logs-instance
+    plural: logsinstances
+    singular: logsinstance
   scope: Namespaced
   versions:
   - name: v1alpha1
