@@ -68,6 +68,11 @@ This includes:
 This is a hard breaking change, and all fields must change accordingly for the
 operator to continue working.
 
+To do a zero-downtime upgrade of the Operator when there is a breaking change,
+refer to the new `agentctl operator-detatch` command: this will iterate through
+all of your objects and remove any OwnerReferences to a CRD, allowing you to
+delete your Operator CRDs or CRs.
+
 ### Operator: Rename of CRD paths (Breaking change)
 
 `prometheus-instances` and `grafana-agents` have been renamed to
@@ -76,6 +81,12 @@ consistent with how Kubernetes names multi-word objects.
 
 As a result, you will need to update your ClusterRoles to change the path of
 resources.
+
+To do a zero-downtime upgrade of the Operator when there is a breaking change,
+refer to the new `agentctl operator-detatch` command: this will iterate through
+all of your objects and remove any OwnerReferences to a CRD, allowing you to
+delete your Operator CRDs or CRs.
+
 
 Example old ClusterRole:
 
