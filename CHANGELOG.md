@@ -15,6 +15,9 @@ for specific instructions.
 
 - [FEATURE] Add logging support to the Grafana Agent Operator. (@rfratto)
 
+- [FEATURE] Add `operator-detach` command to agentctl to allow zero-downtime
+  upgrades when removing an Operator CRD. (@rfratto)
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
