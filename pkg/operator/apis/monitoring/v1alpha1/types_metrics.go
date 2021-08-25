@@ -6,9 +6,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// PrometheusSubsystemSpec defines global settings to apply across the
-// Prometheus subsystem.
-type PrometheusSubsystemSpec struct {
+// MetricsSubsystemSpec defines global settings to apply across the
+// Metrics subsystem.
+type MetricsSubsystemSpec struct {
 	// RemoteWrite controls default remote_write settings for all instances. If
 	// an instance does not provide its own remoteWrite settings, these will be
 	// used instead.
@@ -23,14 +23,14 @@ type PrometheusSubsystemSpec struct {
 	// continue to be available from the same instances. Sharding is performed on
 	// the content of the __address__ target meta-label.
 	Shards *int32 `json:"shards,omitempty"`
-	// ReplicaExternalLabelName is the name of the Prometheus external label used
+	// ReplicaExternalLabelName is the name of the metrics external label used
 	// to denote replica name. Defaults to __replica__. External label will _not_
 	// be added when value is set to the empty string.
 	ReplicaExternalLabelName *string `json:"replicaExternalLabelName,omitempty"`
-	// PrometheusExternalLabelName is the name of the external label used to
+	// MetricsExternalLabelName is the name of the external label used to
 	// denote Grafana Agent cluster. Defaults to "cluster." External label will
 	// _not_ be added when value is set to the empty string.
-	PrometheusExternalLabelName *string `json:"prometheusExternalLabelName,omitempty"`
+	MetricsExternalLabelName *string `json:"metricsExternalLabelName,omitempty"`
 	// ScrapeInterval is the time between consecutive scrapes.
 	ScrapeInterval string `json:"scrapeInterval,omitempty"`
 	// ScrapeTimeout is the time to wait for a target to respond before marking a
@@ -71,12 +71,12 @@ type PrometheusSubsystemSpec struct {
 	// be used instead.
 	EnforcedTargetLimit *uint64 `json:"enforcedTargetLimit,omitempty"`
 
-	// InstanceSelector determines which PrometheusInstances should be selected
-	// for running. Each instance runs its own set of Prometheus components,
+	// InstanceSelector determines which MetricsInstances should be selected
+	// for running. Each instance runs its own set of Metrics components,
 	// including service discovery, scraping, and remote_write.
 	InstanceSelector *metav1.LabelSelector `json:"instanceSelector,omitempty"`
 	// InstanceNamespaceSelector are the set of labels to determine which
-	// namespaces to watch for PrometheusInstances. If not provided, only checks own namespace.
+	// namespaces to watch for MetricsInstances. If not provided, only checks own namespace.
 	InstanceNamespaceSelector *metav1.LabelSelector `json:"instanceNamespaceSelector,omitempty"`
 }
 
@@ -164,23 +164,23 @@ type MetadataConfig struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path="prometheus-instances"
-// +kubebuilder:resource:singular="prometheus-instance"
+// +kubebuilder:resource:path="metricsinstances"
+// +kubebuilder:resource:singular="metricsinstance"
 // +kubebuilder:resource:categories="agent-operator"
 
-// PrometheusInstance controls an individual Prometheus instance within a
+// MetricsInstance controls an individual Metrics instance within a
 // Grafana Agent deployment.
-type PrometheusInstance struct {
+type MetricsInstance struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// Spec holds the specification of the desired behavior for the Prometheus
+	// Spec holds the specification of the desired behavior for the Metrics
 	// instance.
-	Spec PrometheusInstanceSpec `json:"spec,omitempty"`
+	Spec MetricsInstanceSpec `json:"spec,omitempty"`
 }
 
 // ServiceMonitorSelector returns a selector to find ServiceMonitors.
-func (p *PrometheusInstance) ServiceMonitorSelector() ObjectSelector {
+func (p *MetricsInstance) ServiceMonitorSelector() ObjectSelector {
 	return ObjectSelector{
 		ParentNamespace:   p.Namespace,
 		NamespaceSelector: p.Spec.ServiceMonitorNamespaceSelector,
@@ -189,7 +189,7 @@ func (p *PrometheusInstance) ServiceMonitorSelector() ObjectSelector {
 }
 
 // PodMonitorSelector returns a selector to find PodMonitors.
-func (p *PrometheusInstance) PodMonitorSelector() ObjectSelector {
+func (p *MetricsInstance) PodMonitorSelector() ObjectSelector {
 	return ObjectSelector{
 		ParentNamespace:   p.Namespace,
 		NamespaceSelector: p.Spec.PodMonitorNamespaceSelector,
@@ -198,7 +198,7 @@ func (p *PrometheusInstance) PodMonitorSelector() ObjectSelector {
 }
 
 // ProbeSelector returns a selector to find Probes.
-func (p *PrometheusInstance) ProbeSelector() ObjectSelector {
+func (p *MetricsInstance) ProbeSelector() ObjectSelector {
 	return ObjectSelector{
 		ParentNamespace:   p.Namespace,
 		NamespaceSelector: p.Spec.ProbeNamespaceSelector,
@@ -206,8 +206,8 @@ func (p *PrometheusInstance) ProbeSelector() ObjectSelector {
 	}
 }
 
-// PrometheusInstanceSpec controls how an individual instance will be used to discover PodMonitors.
-type PrometheusInstanceSpec struct {
+// MetricsInstanceSpec controls how an individual instance will be used to discover PodMonitors.
+type MetricsInstanceSpec struct {
 	// WALTruncateFrequency specifies how frequently the WAL truncation process
 	// should run. Higher values causes the WAL to increase and for old series to
 	// stay in the WAL for longer, but reduces the chances of data loss when
@@ -262,10 +262,10 @@ type PrometheusInstanceSpec struct {
 
 // +kubebuilder:object:root=true
 
-// PrometheusInstanceList is a list of PrometheusInsatnce.
-type PrometheusInstanceList struct {
+// MetricsInstanceList is a list of MetricsInstance.
+type MetricsInstanceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	// Items is the list of PrometheusInstance.
-	Items []*PrometheusInstance `json:"items"`
+	// Items is the list of MetricsInstance.
+	Items []*MetricsInstance `json:"items"`
 }

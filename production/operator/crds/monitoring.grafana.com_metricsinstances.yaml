@@ -6,23 +6,23 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: prometheus-instances.monitoring.grafana.com
+  name: metricsinstances.monitoring.grafana.com
 spec:
   group: monitoring.grafana.com
   names:
     categories:
     - agent-operator
-    kind: PrometheusInstance
-    listKind: PrometheusInstanceList
-    plural: prometheus-instances
-    singular: prometheus-instance
+    kind: MetricsInstance
+    listKind: MetricsInstanceList
+    plural: metricsinstances
+    singular: metricsinstance
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PrometheusInstance controls an individual Prometheus instance
-          within a Grafana Agent deployment.
+        description: MetricsInstance controls an individual Metrics instance within
+          a Grafana Agent deployment.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -38,7 +38,7 @@ spec:
             type: object
           spec:
             description: Spec holds the specification of the desired behavior for
-              the Prometheus instance.
+              the Metrics instance.
             properties:
               additionalScrapeConfigs:
                 description: 'AdditionalScrapeConfigs allows specifying a key of a

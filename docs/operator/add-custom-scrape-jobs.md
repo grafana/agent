@@ -103,11 +103,11 @@ These rules ensure if your GrafanaAgent has multiple metrics shards, only one
 pod per replica will collect metrics for each job.
 
 Once your Secret is defined, you'll then need to add a `additionalScrapeConfigs`
-field to your PrometheusInstance:
+field to your MetricsInstance:
 
 ```yaml
 apiVersion: monitoring.grafana.com/v1alpha1
-kind: PrometheusInstance
+kind: MetricsInstance
 metadata:
   labels:
     name: grafana-agent
@@ -120,7 +120,7 @@ spec:
   # ... Other settings ...
 ```
 
-The Secret **MUST** be in the same namespace as the PrometheusInstance.
+The Secret **MUST** be in the same namespace as the MetricsInstance.
 
 There is a known [issue](https://github.com/grafana/agent/issues/655) that
 currently prevents the Grafana Agent Operator from updating Grafana Agent

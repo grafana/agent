@@ -153,11 +153,11 @@ CR:
 2. The Controller's event handlers get notified about the event and queue a
    reconcile request for `default/agent`.
 
-3. The reonciler discovers all secondary `PrometheusInstance` referenced by
+3. The reonciler discovers all secondary `MetricsInstance` referenced by
    `default/agent`.
 
 4. The reconciler discovers all secondary `ServiceMonitor`, `PodMonitor` and
-   `Probe` resources that are referenced by the discovered `PrometheusInstance`
+   `Probe` resources that are referenced by the discovered `MetricsInstance`
    resource.
 
 5. The reconciler informs the appropriate `EnqueueRequestForSelector` event

@@ -29,8 +29,8 @@ func TestDeployment_AssetReferences(t *testing.T) {
 				},
 			},
 		},
-		Prometheis: []PrometheusInstance{{
-			Instance: &v1alpha1.PrometheusInstance{
+		Metrics: []MetricsInstance{{
+			Instance: &v1alpha1.MetricsInstance{
 				ObjectMeta: v1.ObjectMeta{Namespace: "metrics-instance"},
 			},
 			PodMonitors: []*prom.PodMonitor{{

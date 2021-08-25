@@ -85,8 +85,8 @@ type LogsBackoffConfigSpec struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path="logs-instances"
-// +kubebuilder:resource:singular="logs-instance"
+// +kubebuilder:resource:path="logsinstances"
+// +kubebuilder:resource:singular="logsinstance"
 // +kubebuilder:resource:categories="agent-operator"
 
 // LogsInstance controls an individual logs instance within a Grafana Agent

@@ -24,8 +24,8 @@ func init() {
 	SchemeBuilder.Register(
 		&GrafanaAgent{},
 		&GrafanaAgentList{},
-		&PrometheusInstance{},
-		&PrometheusInstanceList{},
+		&MetricsInstance{},
+		&MetricsInstanceList{},
 		&LogsInstance{},
 		&LogsInstanceList{},
 		&PodLogs{},

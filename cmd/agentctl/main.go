@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	// Adds version information
@@ -27,6 +28,20 @@ import (
 
 	// Register integrations
 	_ "github.com/grafana/agent/pkg/integrations/install"
+
+	// Needed for operator-detach
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	apps_v1 "k8s.io/api/apps/v1"
+	core_v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	kconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 func main() {
@@ -43,6 +58,7 @@ func main() {
 		walStatsCmd(),
 		targetStatsCmd(),
 		samplesCmd(),
+		operatorDetachCmd(),
 		cloudConfigCmd(),
 	)
 
@@ -304,6 +320,108 @@ deletion but then comes back at some point).`,
 			}
 		},
 	}
+}
+
+func operatorDetachCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "operator-detach",
+		Short: "Detaches any Operator-Managed resource so CRDs can temporarily be deleted",
+		Long:  `operator-detach will find Grafana Agent Operator-Managed resources across the cluster and edit them to remove the OwnerReferences tying them to a GrafanaAgent CRD. This allows the CRDs to be modified without losing the deployment of Grafana Agents.`,
+		Args:  cobra.ExactArgs(0),
+
+		RunE: func(_ *cobra.Command, args []string) error {
+			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
+			scheme := runtime.NewScheme()
+			hadErrors := false
+
+			for _, add := range []func(*runtime.Scheme) error{
+				core_v1.AddToScheme,
+				apps_v1.AddToScheme,
+			} {
+				if err := add(scheme); err != nil {
+					return fmt.Errorf("unable to register scheme: %w", err)
+				}
+			}
+
+			cli, err := kclient.New(kconfig.GetConfigOrDie(), kclient.Options{
+				Scheme: scheme,
+				Mapper: nil,
+			})
+			if err != nil {
+				return fmt.Errorf("unable to generate Kubernetes client: %w", err)
+			}
+
+			// Resources to list
+			lists := []kclient.ObjectList{
+				&apps_v1.StatefulSetList{},
+				&apps_v1.DaemonSetList{},
+				&core_v1.SecretList{},
+				&core_v1.ServiceList{},
+			}
+			for _, l := range lists {
+				gvk, err := apiutil.GVKForObject(l, scheme)
+				if err != nil {
+					return fmt.Errorf("failed to get GroupVersionKind: %w", err)
+				}
+				level.Info(logger).Log("msg", "getting objects for resource", "resource", gvk.Kind)
+
+				err = cli.List(context.Background(), l, &kclient.ListOptions{
+					LabelSelector: labels.Everything(),
+					FieldSelector: fields.Everything(),
+					Namespace:     "",
+				})
+				if err != nil {
+					level.Error(logger).Log("msg", "failed to list resource", "resource", gvk.Kind, "err", err)
+					hadErrors = true
+					continue
+				}
+
+				elements, err := meta.ExtractList(l)
+				if err != nil {
+					level.Error(logger).Log("msg", "failed to get elements for resource", "resource", gvk.Kind, "err", err)
+					hadErrors = true
+					continue
+				}
+				for _, e := range elements {
+					obj := e.(kclient.Object)
+
+					filtered, changed := filterAgentOwners(obj.GetOwnerReferences())
+					if !changed {
+						continue
+					}
+
+					level.Info(logger).Log("msg", "detatching ownerreferences for object", "resource", gvk.Kind, "namespace", obj.GetNamespace(), "name", obj.GetName())
+					obj.SetOwnerReferences(filtered)
+
+					if err := cli.Update(context.Background(), obj); err != nil {
+						level.Error(logger).Log("msg", "failed to update object", "resource", gvk.Kind, "namespace", obj.GetNamespace(), "name", obj.GetName(), "err", err)
+						hadErrors = true
+						continue
+					}
+				}
+			}
+
+			if hadErrors {
+				return fmt.Errorf("encountered errors during execution")
+			}
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+func filterAgentOwners(refs []meta_v1.OwnerReference) (filtered []meta_v1.OwnerReference, changed bool) {
+	filtered = make([]meta_v1.OwnerReference, 0, len(refs))
+
+	for _, ref := range refs {
+		if ref.Kind == "GrafanaAgent" && strings.HasPrefix(ref.APIVersion, "monitoring.grafana.com/") {
+			changed = true
+			continue
+		}
+		filtered = append(filtered, ref)
+	}
+	return
 }
 
 func cloudConfigCmd() *cobra.Command {

@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: grafana-agents.monitoring.grafana.com
+  name: grafanaagents.monitoring.grafana.com
 spec:
   group: monitoring.grafana.com
   names:
@@ -14,8 +14,8 @@ spec:
     - agent-operator
     kind: GrafanaAgent
     listKind: GrafanaAgentList
-    plural: grafana-agents
-    singular: grafana-agent
+    plural: grafanaagents
+    singular: grafanaagent
   scope: Namespaced
   versions:
   - name: v1alpha1
@@ -3731,54 +3731,9 @@ spec:
                       empty string.
                     type: string
                 type: object
-              nodeSelector:
-                additionalProperties:
-                  type: string
-                description: NodeSelector defines which nodes pods should be scheduling
-                  on.
-                type: object
-              paused:
-                description: Paused prevents actions except for deletion to be performed
-                  on the underlying managed objects.
-                type: boolean
-              podMetadata:
-                description: PodMetadata configures Labels and Annotations which are
-                  propagated to created Grafana Agent pods.
-                properties:
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: 'Annotations is an unstructured key value map stored
-                      with a resource that may be set by external tools to store and
-                      retrieve arbitrary metadata. They are not queryable and should
-                      be preserved when modifying objects. More info: http://kubernetes.io/docs/user-guide/annotations'
-                    type: object
-                  labels:
-                    additionalProperties:
-                      type: string
-                    description: 'Map of string keys and values that can be used to
-                      organize and categorize (scope and select) objects. May match
-                      selectors of replication controllers and services. More info:
-                      http://kubernetes.io/docs/user-guide/labels'
-                    type: object
-                  name:
-                    description: 'Name must be unique within a namespace. Is required
-                      when creating resources, although some resources may allow a
-                      client to request the generation of an appropriate name automatically.
-                      Name is primarily intended for creation idempotence and configuration
-                      definition. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/identifiers#names'
-                    type: string
-                type: object
-              portName:
-                description: Port name used for the pods and governing service. This
-                  defaults to agent-metrics.
-                type: string
-              priorityClassName:
-                description: PriorityClassName is the priority class assigned to pods.
-                type: string
-              prometheus:
-                description: Prometheus controls the Prometheus subsystem of the Agent
-                  and settings unique to Prometheus-specific pods that are deployed.
+              metrics:
+                description: Metrics controls the metrics subsystem of the Agent and
+                  settings unique to metrics-specific pods that are deployed.
                 properties:
                   arbitraryFSAccessThroughSMs:
                     description: ArbitraryFSAccessThroughSMs configures whether configuration
@@ -3828,8 +3783,8 @@ spec:
                     type: boolean
                   instanceNamespaceSelector:
                     description: InstanceNamespaceSelector are the set of labels to
-                      determine which namespaces to watch for PrometheusInstances.
-                      If not provided, only checks own namespace.
+                      determine which namespaces to watch for MetricsInstances. If
+                      not provided, only checks own namespace.
                     properties:
                       matchExpressions:
                         description: matchExpressions is a list of label selector
@@ -3873,9 +3828,9 @@ spec:
                         type: object
                     type: object
                   instanceSelector:
-                    description: InstanceSelector determines which PrometheusInstances
+                    description: InstanceSelector determines which MetricsInstances
                       should be selected for running. Each instance runs its own set
-                      of Prometheus components, including service discovery, scraping,
+                      of Metrics components, including service discovery, scraping,
                       and remote_write.
                     properties:
                       matchExpressions:
@@ -3919,6 +3874,12 @@ spec:
                           "value". The requirements are ANDed.
                         type: object
                     type: object
+                  metricsExternalLabelName:
+                    description: MetricsExternalLabelName is the name of the external
+                      label used to denote Grafana Agent cluster. Defaults to "cluster."
+                      External label will _not_ be added when value is set to the
+                      empty string.
+                    type: string
                   overrideHonorLabels:
                     description: OverrideHonorLabels, if true, overrides all configured
                       honor_labels read from ServiceMonitor or PodMonitor to false.
@@ -3927,12 +3888,6 @@ spec:
                     description: OverrideHonorTimestamps allows to globally enforce
                       honoring timestamps in all scrape configs.
                     type: boolean
-                  prometheusExternalLabelName:
-                    description: PrometheusExternalLabelName is the name of the external
-                      label used to denote Grafana Agent cluster. Defaults to "cluster."
-                      External label will _not_ be added when value is set to the
-                      empty string.
-                    type: string
                   remoteWrite:
                     description: RemoteWrite controls default remote_write settings
                       for all instances. If an instance does not provide its own remoteWrite
@@ -4315,7 +4270,7 @@ spec:
                       type: object
                     type: array
                   replicaExternalLabelName:
-                    description: ReplicaExternalLabelName is the name of the Prometheus
+                    description: ReplicaExternalLabelName is the name of the metrics
                       external label used to denote replica name. Defaults to __replica__.
                       External label will _not_ be added when value is set to the
                       empty string.
@@ -4344,6 +4299,51 @@ spec:
                     format: int32
                     type: integer
                 type: object
+              nodeSelector:
+                additionalProperties:
+                  type: string
+                description: NodeSelector defines which nodes pods should be scheduling
+                  on.
+                type: object
+              paused:
+                description: Paused prevents actions except for deletion to be performed
+                  on the underlying managed objects.
+                type: boolean
+              podMetadata:
+                description: PodMetadata configures Labels and Annotations which are
+                  propagated to created Grafana Agent pods.
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: 'Annotations is an unstructured key value map stored
+                      with a resource that may be set by external tools to store and
+                      retrieve arbitrary metadata. They are not queryable and should
+                      be preserved when modifying objects. More info: http://kubernetes.io/docs/user-guide/annotations'
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: 'Map of string keys and values that can be used to
+                      organize and categorize (scope and select) objects. May match
+                      selectors of replication controllers and services. More info:
+                      http://kubernetes.io/docs/user-guide/labels'
+                    type: object
+                  name:
+                    description: 'Name must be unique within a namespace. Is required
+                      when creating resources, although some resources may allow a
+                      client to request the generation of an appropriate name automatically.
+                      Name is primarily intended for creation idempotence and configuration
+                      definition. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/identifiers#names'
+                    type: string
+                type: object
+              portName:
+                description: Port name used for the pods and governing service. This
+                  defaults to agent-metrics.
+                type: string
+              priorityClassName:
+                description: PriorityClassName is the priority class assigned to pods.
+                type: string
               resources:
                 description: Resources holds requests and limits for individual pods.
                 properties:

@@ -88,13 +88,13 @@ func generateMetricsStatefulSet(
 		d.Agent.Spec.PortName = defaultPortName
 	}
 
-	if d.Agent.Spec.Prometheus.Replicas == nil {
-		d.Agent.Spec.Prometheus.Replicas = &minReplicas
+	if d.Agent.Spec.Metrics.Replicas == nil {
+		d.Agent.Spec.Metrics.Replicas = &minReplicas
 	}
 
-	if d.Agent.Spec.Prometheus.Replicas != nil && *d.Agent.Spec.Prometheus.Replicas < 0 {
+	if d.Agent.Spec.Metrics.Replicas != nil && *d.Agent.Spec.Metrics.Replicas < 0 {
 		intZero := int32(0)
-		d.Agent.Spec.Prometheus.Replicas = &intZero
+		d.Agent.Spec.Metrics.Replicas = &intZero
 	}
 	if d.Agent.Spec.Resources.Requests == nil {
 		d.Agent.Spec.Resources.Requests = v1.ResourceList{}
@@ -195,7 +195,7 @@ func generateMetricsStatefulSetSpec(
 ) (*apps_v1.StatefulSetSpec, error) {
 
 	shards := minShards
-	if reqShards := d.Agent.Spec.Prometheus.Shards; reqShards != nil && *reqShards > 1 {
+	if reqShards := d.Agent.Spec.Metrics.Shards; reqShards != nil && *reqShards > 1 {
 		shards = *reqShards
 	}
 
@@ -407,7 +407,7 @@ func generateMetricsStatefulSetSpec(
 
 	return &apps_v1.StatefulSetSpec{
 		ServiceName:         governingServiceName,
-		Replicas:            d.Agent.Spec.Prometheus.Replicas,
+		Replicas:            d.Agent.Spec.Metrics.Replicas,
 		PodManagementPolicy: apps_v1.ParallelPodManagement,
 		UpdateStrategy: apps_v1.StatefulSetUpdateStrategy{
 			Type: apps_v1.RollingUpdateStatefulSetStrategyType,

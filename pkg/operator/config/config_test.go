@@ -32,7 +32,7 @@ func TestBuildConfigMetrics(t *testing.T) {
 					namespace: default
 				spec:
 					logLevel: debug
-					prometheus:
+					metrics:
 						scrapeInterval: 15s
 						scrapeTimeout: 10s
 						externalLabels:
@@ -68,7 +68,7 @@ func TestBuildConfigMetrics(t *testing.T) {
 						namespace: default
 					spec:
 						logLevel: debug
-						prometheus:
+						metrics:
 							scrapeInterval: 15s
 							scrapeTimeout: 10s
 							externalLabels:
@@ -157,20 +157,20 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 			Spec: grafana.GrafanaAgentSpec{
 				Image:              strPointer("grafana/agent:latest"),
 				ServiceAccountName: "agent",
-				Prometheus: grafana.PrometheusSubsystemSpec{
+				Metrics: grafana.MetricsSubsystemSpec{
 					InstanceSelector: &meta_v1.LabelSelector{
 						MatchLabels: map[string]string{"agent": "agent"},
 					},
 				},
 			},
 		},
-		Prometheis: []PrometheusInstance{{
-			Instance: &grafana.PrometheusInstance{
+		Metrics: []MetricsInstance{{
+			Instance: &grafana.MetricsInstance{
 				ObjectMeta: meta_v1.ObjectMeta{
 					Namespace: "operator",
 					Name:      "primary",
 				},
-				Spec: grafana.PrometheusInstanceSpec{
+				Spec: grafana.MetricsInstanceSpec{
 					RemoteWrite: []grafana.RemoteWriteSpec{{
 						URL: "http://cortex:80/api/prom/push",
 					}},
