@@ -7,8 +7,8 @@ import (
 )
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path="grafana-agents"
-// +kubebuilder:resource:singular="grafana-agent"
+// +kubebuilder:resource:path="grafanaagents"
+// +kubebuilder:resource:singular="grafanaagent"
 // +kubebuilder:resource:categories="agent-operator"
 
 // GrafanaAgent defines a Grafana Agent deployment.
@@ -21,12 +21,12 @@ type GrafanaAgent struct {
 	Spec GrafanaAgentSpec `json:"spec,omitempty"`
 }
 
-// PrometheusInstanceSelector returns a selector to find PrometheusInstances.
-func (a *GrafanaAgent) PrometheusInstanceSelector() ObjectSelector {
+// MetricsInstanceSelector returns a selector to find MetricsInstances.
+func (a *GrafanaAgent) MetricsInstanceSelector() ObjectSelector {
 	return ObjectSelector{
 		ParentNamespace:   a.Namespace,
-		NamespaceSelector: a.Spec.Prometheus.InstanceNamespaceSelector,
-		Labels:            a.Spec.Prometheus.InstanceSelector,
+		NamespaceSelector: a.Spec.Metrics.InstanceNamespaceSelector,
+		Labels:            a.Spec.Metrics.InstanceSelector,
 	}
 }
 
@@ -139,9 +139,11 @@ type GrafanaAgentSpec struct {
 	PriorityClassName string `json:"priorityClassName,omitempty"`
 	// Port name used for the pods and governing service. This defaults to agent-metrics.
 	PortName string `json:"portName,omitempty"`
-	// Prometheus controls the Prometheus subsystem of the Agent and settings
-	// unique to Prometheus-specific pods that are deployed.
-	Prometheus PrometheusSubsystemSpec `json:"prometheus,omitempty"`
+
+	// Metrics controls the metrics subsystem of the Agent and settings
+	// unique to metrics-specific pods that are deployed.
+	Metrics MetricsSubsystemSpec `json:"metrics,omitempty"`
+
 	// Logs controls the logging subsystem of the Agent and settings unique to
 	// logging-specific pods that are deployed.
 	Logs LogsSubsystemSpec `json:"logs,omitempty"`

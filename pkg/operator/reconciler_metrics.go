@@ -46,7 +46,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 	switch ty {
 	case config.MetricsType:
 		key.Name = fmt.Sprintf("%s-config", d.Agent.Name)
-		shouldCreate = len(d.Prometheis) > 0
+		shouldCreate = len(d.Metrics) > 0
 	case config.LogsType:
 		key.Name = fmt.Sprintf("%s-logs-config", d.Agent.Name)
 		shouldCreate = len(d.Logs) > 0
@@ -120,7 +120,7 @@ func (r *reconciler) createMetricsGoverningService(
 	svc := generateMetricsStatefulSetService(r.config, d)
 
 	// Delete the old Secret if one exists and we have no prometheus instances.
-	if len(d.Prometheis) == 0 {
+	if len(d.Metrics) == 0 {
 		key := types.NamespacedName{Namespace: svc.Namespace, Name: svc.Name}
 
 		var service core_v1.Service
@@ -155,7 +155,7 @@ func (r *reconciler) createMetricsStatefulSets(
 ) error {
 
 	shards := minShards
-	if reqShards := d.Agent.Spec.Prometheus.Shards; reqShards != nil && *reqShards > 1 {
+	if reqShards := d.Agent.Spec.Metrics.Shards; reqShards != nil && *reqShards > 1 {
 		shards = *reqShards
 	}
 
@@ -165,7 +165,7 @@ func (r *reconciler) createMetricsStatefulSets(
 
 	for shard := int32(0); shard < shards; shard++ {
 		// Don't generate anything if there weren't any instances.
-		if len(d.Prometheis) == 0 {
+		if len(d.Metrics) == 0 {
 			continue
 		}
 

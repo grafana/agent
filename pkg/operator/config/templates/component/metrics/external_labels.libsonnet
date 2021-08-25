@@ -5,13 +5,13 @@
 // @param {config.Deployment} ctx
 function(ctx) (
   local meta = ctx.Agent.ObjectMeta;
-  local prometheus = ctx.Agent.Spec.Prometheus;
+  local metrics = ctx.Agent.Spec.Metrics;
 
   // Provide the cluster label first. Doing it this way allows the user to
   // override with a value they choose.
   (
     local clusterValue = '%s/%s' % [meta.Namespace, meta.Name];
-    local clusterLabel = prometheus.PrometheusExternalLabelName;
+    local clusterLabel = metrics.MetricsExternalLabelName;
 
     if clusterLabel == null then { cluster: clusterValue }
     else if clusterLabel != '' then { [clusterLabel]: clusterValue }
@@ -20,20 +20,18 @@ function(ctx) (
 
   // Then add in any user-configured labels.
   (
-    if prometheus.ExternalLabels == null then {}
-    else prometheus.ExternalLabels
+    if metrics.ExternalLabels == null then {}
+    else metrics.ExternalLabels
   ) +
 
   // Finally, add the replica label. We don't want the user to overrwrite the
   // replica label since it can cause duplicate sample problems.
   (
     local replicaValue = 'replica-$(STATEFULSET_ORDINAL_NUMBER)';
-    local replicaLabel = prometheus.ReplicaExternalLabelName;
+    local replicaLabel = metrics.ReplicaExternalLabelName;
 
     if replicaLabel == null then { __replica__: replicaValue }
     else if replicaLabel != '' then { [replicaLabel]: replicaValue }
     else {}
   )
-
-
 )

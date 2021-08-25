@@ -48,8 +48,8 @@ var templates embed.FS
 type Deployment struct {
 	// Agent is the root resource that the deployment represents.
 	Agent *grafana.GrafanaAgent
-	// Prometheis is the set of prometheus instances discovered from the root Agent resource.
-	Prometheis []PrometheusInstance
+	// Metrics is the set of metrics instances discovered from the root Agent resource.
+	Metrics []MetricsInstance
 	// Logs is the set of logging instances discovered from the root Agent
 	// resource.
 	Logs []LogInstance
@@ -57,8 +57,8 @@ type Deployment struct {
 
 // DeepCopy creates a deep copy of d.
 func (d *Deployment) DeepCopy() *Deployment {
-	p := make([]PrometheusInstance, 0, len(d.Prometheis))
-	for _, i := range d.Prometheis {
+	p := make([]MetricsInstance, 0, len(d.Metrics))
+	for _, i := range d.Metrics {
 		var (
 			inst   = i.Instance.DeepCopy()
 			sMons  = make([]*prom.ServiceMonitor, 0, len(i.ServiceMonitors))
@@ -76,7 +76,7 @@ func (d *Deployment) DeepCopy() *Deployment {
 			probes = append(probes, probe.DeepCopy())
 		}
 
-		p = append(p, PrometheusInstance{
+		p = append(p, MetricsInstance{
 			Instance:        inst,
 			ServiceMonitors: sMons,
 			PodMonitors:     pMons,
@@ -100,9 +100,9 @@ func (d *Deployment) DeepCopy() *Deployment {
 	}
 
 	return &Deployment{
-		Agent:      d.Agent.DeepCopy(),
-		Prometheis: p,
-		Logs:       l,
+		Agent:   d.Agent.DeepCopy(),
+		Metrics: p,
+		Logs:    l,
 	}
 }
 
@@ -232,11 +232,11 @@ func jsonnetMarshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-// PrometheusInstance is an instance with a set of associated service monitors,
+// MetricsInstance is an instance with a set of associated service monitors,
 // pod monitors, and probes, which compose the final configuration of the
-// generated Prometheus instance.
-type PrometheusInstance struct {
-	Instance        *grafana.PrometheusInstance
+// generated Metrics instance.
+type MetricsInstance struct {
+	Instance        *grafana.MetricsInstance
 	ServiceMonitors []*prom.ServiceMonitor
 	PodMonitors     []*prom.PodMonitor
 	Probes          []*prom.Probe

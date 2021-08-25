@@ -19,7 +19,7 @@ spec:
     instanceSelector:
       matchLabels:
         agent: grafana-agent-example
-  prometheus:
+  metrics:
     instanceSelector:
       matchLabels:
         agent: grafana-agent-example
@@ -27,7 +27,7 @@ spec:
 ---
 
 apiVersion: monitoring.grafana.com/v1alpha1
-kind: PrometheusInstance
+kind: MetricsInstance
 metadata:
   name: primary
   namespace: default

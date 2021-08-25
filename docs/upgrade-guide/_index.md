@@ -12,8 +12,7 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
-
-### Tempo: split grouping by trace from tail sampling config
+### Tempo: split grouping by trace from tail sampling config (Breaking change)
 
 Load balancing traces between agent instances has been moved from an embedded
 functionality in tail sampling to its own configuration block.
@@ -54,7 +53,72 @@ load_balancing:
       port: 4318
 ```
 
-### Logs: Deprecation of "loki" in config.
+### Operator: Rename of Prometheus to Metrics (Breaking change)
+
+As a part of the deprecation of "Prometheus," all Operator CRDs and fields with
+"Prometheus" in the name have changed to "Metrics."
+
+This includes:
+
+- The `PrometheusInstance` CRD is now `MetricsInstance` (referenced by
+  `metricsinstances` and not `metrics-instances` within ClusterRoles).
+- The `Prometheus` field of the `GrafanaAgent` resource is now `Metrics`
+- `PrometheusExternalLabelName` is now `MetricsExternalLabelName`
+
+This is a hard breaking change, and all fields must change accordingly for the
+operator to continue working.
+
+To do a zero-downtime upgrade of the Operator when there is a breaking change,
+refer to the new `agentctl operator-detatch` command: this will iterate through
+all of your objects and remove any OwnerReferences to a CRD, allowing you to
+delete your Operator CRDs or CRs.
+
+### Operator: Rename of CRD paths (Breaking change)
+
+`prometheus-instances` and `grafana-agents` have been renamed to
+`metricsinstances` and `grafanaagents` respectively. This is to remain
+consistent with how Kubernetes names multi-word objects.
+
+As a result, you will need to update your ClusterRoles to change the path of
+resources.
+
+To do a zero-downtime upgrade of the Operator when there is a breaking change,
+refer to the new `agentctl operator-detatch` command: this will iterate through
+all of your objects and remove any OwnerReferences to a CRD, allowing you to
+delete your Operator CRDs or CRs.
+
+
+Example old ClusterRole:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent-operator
+rules:
+- apiGroups: [monitoring.grafana.com]
+  resources:
+  - grafana-agents
+  - prometheus-instances
+  verbs: [get, list, watch]
+```
+
+Example new ClusterRole:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent-operator
+rules:
+- apiGroups: [monitoring.grafana.com]
+  resources:
+  - grafanaagents
+  - metricsinstances
+  verbs: [get, list, watch]
+```
+
+### Logs: Deprecation of "loki" in config. (Deprecation)
 
 The term `loki` in the config has been deprecated of favor of `logs`. This
 change is to make it clearer when referring to Grafana Loki, and
@@ -99,7 +163,7 @@ logs:
           __path__: /var/log/*log
 ```
 
-#### Tempo: Deprecation of "loki" in config.
+#### Tempo: Deprecation of "loki" in config. (Deprecation)
 
 As part of the `loki` to `logs` rename, parts of the automatic_logging component
 in Tempo have been updated to refer to `logs_instance` instead.

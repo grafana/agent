@@ -47,7 +47,7 @@ func TestExternalLabels(t *testing.T) {
 						Name:      "agent",
 					},
 					Spec: v1alpha1.GrafanaAgentSpec{
-						Prometheus: v1alpha1.PrometheusSubsystemSpec{
+						Metrics: v1alpha1.MetricsSubsystemSpec{
 							ExternalLabels: map[string]string{"foo": "bar"},
 						},
 					},
@@ -68,10 +68,10 @@ func TestExternalLabels(t *testing.T) {
 						Name:      "agent",
 					},
 					Spec: v1alpha1.GrafanaAgentSpec{
-						Prometheus: v1alpha1.PrometheusSubsystemSpec{
-							PrometheusExternalLabelName: strPointer("deployment"),
-							ReplicaExternalLabelName:    strPointer("replica"),
-							ExternalLabels:              map[string]string{"foo": "bar"},
+						Metrics: v1alpha1.MetricsSubsystemSpec{
+							MetricsExternalLabelName: strPointer("deployment"),
+							ReplicaExternalLabelName: strPointer("replica"),
+							ExternalLabels:           map[string]string{"foo": "bar"},
 						},
 					},
 				},
