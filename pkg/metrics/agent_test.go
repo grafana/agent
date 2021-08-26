@@ -1,4 +1,4 @@
-package prom
+package metrics
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"

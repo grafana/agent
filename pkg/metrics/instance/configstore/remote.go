@@ -17,7 +17,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -351,7 +351,7 @@ func (r *Remote) all(ctx context.Context, keep func(key string) bool) (<-chan in
 	// If we are using a consul client then do the short circuit way, this is done so that we receive all the key value pairs
 	//	in one call then, operate on them in memory. Previously we retrieved the list (which stripped the values)
 	//	then ran a goroutine to get each individual value from consul. In situations with an extremely large number of
-	// 	configs this overloaded the consul instances. This reduces that to one call, that was being made anyways.
+	//	configs this overloaded the consul instances. This reduces that to one call, that was being made anyways.
 	if r.kv.consul != nil {
 		return r.allConsul(ctx, keep)
 	}

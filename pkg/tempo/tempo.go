@@ -8,7 +8,7 @@ import (
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"

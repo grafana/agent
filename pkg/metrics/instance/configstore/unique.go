@@ -1,7 +1,7 @@
 package configstore
 
 import (
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 )
 
 // checkUnique validates that cfg is unique from all, ensuring that no two

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 )

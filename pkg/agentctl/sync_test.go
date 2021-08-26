@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/grafana/agent/pkg/prom/cluster/configapi"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/stretchr/testify/require"
 )
 

@@ -13,9 +13,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prom"
-	"github.com/grafana/agent/pkg/prom/instance"
-	"github.com/grafana/agent/pkg/prom/instance/configstore"
+	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -119,7 +119,7 @@ func (c *ManagerConfig) DefaultRelabelConfigs(hostname string) []*relabel.Config
 //
 // If any integrations are enabled and are configured to be scraped, the
 // Prometheus configuration must have a WAL directory configured.
-func (c *ManagerConfig) ApplyDefaults(cfg *prom.Config) error {
+func (c *ManagerConfig) ApplyDefaults(cfg *metrics.Config) error {
 	for _, ic := range c.Integrations {
 		if !ic.CommonConfig().Enabled {
 			continue

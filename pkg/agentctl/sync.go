@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/client"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 )
 
 // ConfigSync loads YAML files from a directory and syncs them to the

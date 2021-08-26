@@ -10,7 +10,7 @@ import (
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/timestamp"
