@@ -19,7 +19,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/prom/wal"
+	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"

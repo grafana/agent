@@ -14,7 +14,7 @@ import (
 	"github.com/drone/envsubst"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/prom"
+	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/tempo"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/pkg/errors"
@@ -25,14 +25,14 @@ import (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Prometheus:   prom.DefaultConfig,
+	Prometheus:   metrics.DefaultConfig,
 	Integrations: integrations.DefaultManagerConfig,
 }
 
 // Config contains underlying configurations for the agent
 type Config struct {
 	Server       server.Config              `yaml:"server,omitempty"`
-	Prometheus   prom.Config                `yaml:"prometheus,omitempty"`
+	Prometheus   metrics.Config             `yaml:"prometheus,omitempty"`
 	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
 	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
 

@@ -1,4 +1,4 @@
-package prom
+package metrics
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/prom/instance"
-	"github.com/grafana/agent/pkg/prom/wal"
+	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	promwal "github.com/prometheus/prometheus/tsdb/wal"

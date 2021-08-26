@@ -1,4 +1,4 @@
-package prom
+package metrics
 
 import (
 	"io/ioutil"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/stretchr/testify/require"
 )
 

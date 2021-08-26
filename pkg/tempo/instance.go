@@ -8,7 +8,7 @@ import (
 
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/tempo/contextkeys"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
