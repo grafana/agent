@@ -6,7 +6,7 @@ import (
 
 	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/cortexproject/cortex/pkg/ring/kv"
-	"github.com/grafana/agent/pkg/prom/cluster/client"
+	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	flagutil "github.com/grafana/agent/pkg/util"
 )
 

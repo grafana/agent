@@ -1,7 +1,7 @@
-// Package prom implements a Prometheus-lite client for service discovery,
+// Package metrics implements a Prometheus-lite client for service discovery,
 // scraping metrics into a WAL, and remote_write. Clients are broken into a
 // set of instances, each of which contain their own set of configs.
-package prom
+package metrics
 
 import (
 	"errors"
@@ -12,9 +12,9 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/grafana/agent/pkg/prom/cluster"
-	"github.com/grafana/agent/pkg/prom/cluster/client"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/cluster"
+	"github.com/grafana/agent/pkg/metrics/cluster/client"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"

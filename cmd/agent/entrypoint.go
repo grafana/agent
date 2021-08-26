@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/tempo"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
@@ -21,7 +22,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/prom"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/signals"
 
@@ -38,7 +38,7 @@ type Entrypoint struct {
 	cfg config.Config
 
 	srv         *server.Server
-	promMetrics *prom.Agent
+	promMetrics *metrics.Agent
 	lokiLogs    *loki.Logs
 	tempoTraces *tempo.Tempo
 	manager     *integrations.Manager
@@ -75,7 +75,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 
-	ep.promMetrics, err = prom.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
+	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
 	if err != nil {
 		return nil, err
 	}

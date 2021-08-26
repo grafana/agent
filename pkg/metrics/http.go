@@ -1,4 +1,4 @@
-package prom
+package metrics
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/prom/cluster/configapi"
+	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 )

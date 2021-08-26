@@ -16,7 +16,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	pb "github.com/grafana/agent/pkg/agentproto"
-	"github.com/grafana/agent/pkg/prom/cluster/client"
+	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/user"

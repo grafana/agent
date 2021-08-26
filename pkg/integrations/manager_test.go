@@ -10,7 +10,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations/config"
-	"github.com/grafana/agent/pkg/prom/instance"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
 	promConfig "github.com/prometheus/prometheus/config"
