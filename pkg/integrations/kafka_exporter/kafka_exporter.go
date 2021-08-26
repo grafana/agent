@@ -52,7 +52,7 @@ type Config struct {
 	CAFile string `yaml:"ca_file,omitempty"`
 
 	// The optional certificate file for TLS client authentication
-	CertFile string `yam:"cert_file,omitempty"`
+	CertFile string `yaml:"cert_file,omitempty"`
 
 	// The optional key file for TLS client authentication
 	KeyFile string `yaml:"key_file,omitempty"`
