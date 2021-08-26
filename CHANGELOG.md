@@ -53,6 +53,8 @@ for specific instructions.
 - [BUGFIX] Grafana Agent Operator's object label selectors will now use
   Kubernetes defaults when undefined (i.e., default to nothing). (@rfratto)
 
+- [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
