@@ -30,7 +30,7 @@ the cortex code so other stores can also benefit from this. @mattdurham
 ***********************************************************************************************************************/
 
 var consulRequestDuration = instrument.NewHistogramCollector(promauto.NewHistogramVec(prometheus.HistogramOpts{
-	Name:    "agent_configstore_consul_list_request_duration_seconds",
+	Name:    "agent_configstore_consul_request_duration_seconds",
 	Help:    "Time spent on consul requests when listing configs.",
 	Buckets: prometheus.DefBuckets,
 }, []string{"operation", "status_code"}))
