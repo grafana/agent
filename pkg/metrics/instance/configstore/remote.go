@@ -20,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 /***********************************************************************************************************************
@@ -28,12 +29,10 @@ consul. See issue https://github.com/grafana/agent/issues/789. The long term met
 the cortex code so other stores can also benefit from this. @mattdurham
 ***********************************************************************************************************************/
 
-// This is copied from cortex code so that stats stay the same
-var consulRequestDuration = instrument.NewHistogramCollector(prometheus.NewHistogramVec(prometheus.HistogramOpts{
-	Namespace: "cortex",
-	Name:      "consul_request_duration_seconds",
-	Help:      "Time spent on consul requests.",
-	Buckets:   prometheus.DefBuckets,
+var consulRequestDuration = instrument.NewHistogramCollector(promauto.NewHistogramVec(prometheus.HistogramOpts{
+	Name:    "agent_configstore_consul_request_duration_seconds",
+	Help:    "Time spent on consul requests when loading configs.",
+	Buckets: prometheus.DefBuckets,
 }, []string{"operation", "status_code"}))
 
 // Remote loads instance files from a remote KV store. The KV store
