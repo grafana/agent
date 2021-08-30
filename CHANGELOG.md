@@ -57,6 +57,8 @@ for specific instructions.
 
 - [BUGFIX] Register missing metric for configstore consul request duration.
 
+- [BUGFIX] Logs should contain a caller field with file and line numbers again (@kgeckhart)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
