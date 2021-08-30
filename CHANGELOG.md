@@ -1,31 +1,7 @@
 # Main (unreleased)
 
-- [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
-
-- [FEATURE] Put Tests requiring Network Access behind a -online flag (@flokli)
-
-- [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
-  the matching release version of the Grafana Agent instead of v0.14.0.
+- [BUGFIX] Register missing metric for configstore consul request duration.
   (@rfratto)
-
-- [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
-
-- [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
-  using `-config.expand-env`.
-
-- [BUGFIX] The directory of the logs positions file will now properly be created
-  on startup for all instances.
-
-- [BUGFIX] The Linux system packages will now configure the grafana-agent user
-  to be a member of the adm and systemd-journal groups. This will allow logs to
-  read from journald and /var/log by default. (@rfratto)
-
-- [DEPRECATION] The `loki` key at the root of the config file has been
-  deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
-  have been renamed accordinly: `loki_name` is now `logs_instance_name`,
-  `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
-  `backend: logs_instance`. (@rfratto)
-
 
 # v0.18.2 (2021-08-12)
 
