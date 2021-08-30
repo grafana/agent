@@ -55,6 +55,8 @@ for specific instructions.
 
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
 
+- [BUGFIX] Register missing metric for configstore consul request duration.
+
 - [BUGFIX] Logs should contain a caller field with file and line numbers again (@kgeckhart)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
