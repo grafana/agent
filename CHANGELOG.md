@@ -3,6 +3,9 @@
 - [BUGFIX] Register missing metric for configstore consul request duration.
   (@rfratto)
 
+- [BUGFIX] Logs should contain a caller field with file and line numbers again
+  (@kgeckhart)
+
 # v0.18.2 (2021-08-12)
 
 - [BUGFIX] Honor the prefix and remove prefix from consul list results (@mattdurham)
