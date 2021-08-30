@@ -55,6 +55,8 @@ for specific instructions.
 
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
 
+- [BUGFIX] Register missing metric for configstore consul request duration.
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
