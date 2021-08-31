@@ -99,11 +99,12 @@ func (w *configWatcher) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-time.After(nextPoll):
-			refreshCtx, _ := context.WithTimeout(ctx, timeout)
+			refreshCtx, cancelFunc := context.WithTimeout(ctx, timeout)
 			err := w.Refresh(refreshCtx)
 			if err != nil {
 				level.Error(w.log).Log("msg", "failed polling refresh", "err", err)
 			}
+			cancelFunc()
 		case ev := <-w.store.Watch():
 			if err := w.handleEvent(ev); err != nil {
 				level.Error(w.log).Log("msg", "failed to handle changed or deleted config", "key", ev.Key, "err", err)

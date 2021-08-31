@@ -174,7 +174,7 @@ func (n *node) run() {
 // of their workloads. if joining is true, the server provided to newNode will
 // also be informed.
 func (n *node) performClusterReshard(ctx context.Context, joining bool) chan error {
-	errCh := make(chan error, 0)
+	errCh := make(chan error, 1)
 	if n.ring == nil || n.lc == nil {
 		level.Info(n.log).Log("msg", "node disabled, not resharding")
 		errCh <- nil
