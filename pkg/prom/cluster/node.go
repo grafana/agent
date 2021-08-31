@@ -173,16 +173,13 @@ func (n *node) run() {
 // performClusterReshard informs the cluster to immediately trigger a reshard
 // of their workloads. if joining is true, the server provided to newNode will
 // also be informed.
-func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
+func (n *node) performClusterReshard(ctx context.Context, joining bool) chan error {
+	errCh := make(chan error, 0)
 	if n.ring == nil || n.lc == nil {
 		level.Info(n.log).Log("msg", "node disabled, not resharding")
-		return nil
-	}
-
-	if n.cfg.ReshardTimeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, n.cfg.ReshardTimeout)
-		defer cancel()
+		errCh <- nil
+		close(errCh)
+		return errCh
 	}
 
 	var (
@@ -192,43 +189,46 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		firstError error
 	)
 
-	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
-	for backoff.Ongoing() {
-		rs, err = n.ring.GetAllHealthy(ring.Read)
-		if err == nil {
-			break
+	go func() {
+		backoff := cortex_util.NewBackoff(ctx, backoffConfig)
+		for backoff.Ongoing() {
+			rs, err = n.ring.GetAllHealthy(ring.Read)
+			if err == nil {
+				break
+			}
+			backoff.Wait()
 		}
-		backoff.Wait()
-	}
-	if err := backoff.Err(); err != nil && firstError == nil {
-		firstError = err
-	}
-
-	if len(rs.Instances) > 0 {
-		level.Info(n.log).Log("msg", "informing remote nodes to reshard")
-	}
-
-	_, err = rs.Do(ctx, 500*time.Millisecond, func(c context.Context, id *ring.InstanceDesc) (interface{}, error) {
-		// Skip over ourselves.
-		if id.Addr == n.lc.Addr {
-			return nil, nil
+		if err := backoff.Err(); err != nil && firstError == nil {
+			firstError = err
 		}
 
-		ctx = user.InjectOrgID(ctx, "fake")
-		return nil, n.notifyReshard(ctx, id)
-	})
-	if err != nil && firstError == nil {
-		firstError = err
-	}
-
-	if joining {
-		level.Info(n.log).Log("msg", "running local reshard")
-		if _, err := n.srv.Reshard(ctx, &pb.ReshardRequest{}); err != nil {
-			level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
+		if len(rs.Instances) > 0 {
+			level.Info(n.log).Log("msg", "informing remote nodes to reshard")
 		}
-	}
 
-	return firstError
+		_, err = rs.Do(ctx, 500*time.Millisecond, func(c context.Context, id *ring.InstanceDesc) (interface{}, error) {
+			// Skip over ourselves.
+			if id.Addr == n.lc.Addr {
+				return nil, nil
+			}
+
+			ctx = user.InjectOrgID(ctx, "fake")
+			return nil, n.notifyReshard(ctx, id)
+		})
+		if err != nil && firstError == nil {
+			firstError = err
+		}
+
+		if joining {
+			level.Info(n.log).Log("msg", "running local reshard")
+			if _, err := n.srv.Reshard(ctx, &pb.ReshardRequest{}); err != nil {
+				level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
+			}
+		}
+		errCh <- firstError
+		close(errCh)
+	}()
+	return errCh
 }
 
 // notifyReshard informs an individual node to reshard.
@@ -352,7 +352,15 @@ func (n *node) Flush() {}
 // tells them to reshard. TransferOut should NOT be called manually unless the mutex is
 // held.
 func (n *node) TransferOut(ctx context.Context) error {
-	return n.performClusterReshard(ctx, false)
+	// The above signature is required for backwards compatibility with the FlushTransferer
+	// interface.
+	errCh := n.performClusterReshard(ctx, false)
+	select {
+	case err := <-errCh:
+		return err
+	default:
+		return nil
+	}
 }
 
 // Owns checks to see if a key is owned by this node. owns will return
