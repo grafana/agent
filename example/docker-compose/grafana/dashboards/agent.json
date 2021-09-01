@@ -584,7 +584,7 @@
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Appended Samples",
+               "title": "Created Series",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
