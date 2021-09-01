@@ -473,7 +473,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum by (job) (rate(prometheus_target_scrapes_exceeded_sample_limit_total[1m]))",
+                     "expr": "sum by (job) (rate(prometheus_target_scrapes_exceeded_sample_limit_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "exceeded sample limit: {{job}}",
@@ -481,7 +481,7 @@
                      "step": 10
                   },
                   {
-                     "expr": "sum by (job) (rate(prometheus_target_scrapes_sample_duplicate_timestamp_total[1m]))",
+                     "expr": "sum by (job) (rate(prometheus_target_scrapes_sample_duplicate_timestamp_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "duplicate timestamp: {{job}}",
@@ -489,7 +489,7 @@
                      "step": 10
                   },
                   {
-                     "expr": "sum by (job) (rate(prometheus_target_scrapes_sample_out_of_bounds_total[1m]))",
+                     "expr": "sum by (job) (rate(prometheus_target_scrapes_sample_out_of_bounds_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "out of bounds: {{job}}",
@@ -497,7 +497,7 @@
                      "step": 10
                   },
                   {
-                     "expr": "sum by (job) (rate(prometheus_target_scrapes_sample_out_of_order_total[1m]))",
+                     "expr": "sum by (job) (rate(prometheus_target_scrapes_sample_out_of_order_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "out of order: {{job}}",
@@ -573,7 +573,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum by (job, instance_group_name) (rate(agent_wal_storage_samples_appended_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]))",
+                     "expr": "sum by (job, instance_group_name) (rate(agent_wal_storage_created_series_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{job}} {{instance_group_name}}",
@@ -628,7 +628,9 @@
    ],
    "schemaVersion": 14,
    "style": "dark",
-   "tags": [ ],
+   "tags": [
+      "grafana-agent-mixin"
+   ],
    "templating": {
       "list": [
          {
