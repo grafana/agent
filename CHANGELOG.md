@@ -12,7 +12,7 @@
 
 - [BUGFIX] In scraping service mode, the polling configuration refresh should honor timeout. (@mattdurham)
 
-- [BUGFIX] In scraping service mode, the lifecycle reshard should happen on a background context asynchronously. (@mattdurham) 
+- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a background context. (@mattdurham) 
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`.
