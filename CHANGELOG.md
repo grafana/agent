@@ -59,6 +59,10 @@ for specific instructions.
 
 - [BUGFIX] Logs should contain a caller field with file and line numbers again (@kgeckhart)
 
+- [BUGFIX] In scraping service mode, the polling configuration refresh should honor timeout. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a background context. (@mattdurham)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 

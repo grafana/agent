@@ -92,17 +92,22 @@ func (w *configWatcher) run(ctx context.Context) {
 	for {
 		w.mut.Lock()
 		nextPoll := w.cfg.ReshardInterval
+		timeout := w.cfg.ReshardTimeout
 		w.mut.Unlock()
 
 		select {
 		case <-ctx.Done():
 			return
 		case <-time.After(nextPoll):
-			// Errors are logged by w.Refresh, ignore the error here.
-			_ = w.Refresh(ctx)
+			refreshCtx, cancelFunc := context.WithTimeout(ctx, timeout)
+			err := w.Refresh(refreshCtx)
+			if err != nil {
+				level.Error(w.log).Log("msg", "failed polling refresh", "err", err)
+			}
+			cancelFunc()
 		case ev := <-w.store.Watch():
 			if err := w.handleEvent(ev); err != nil {
-				level.Error(w.log).Log("msg", "failed to handle changend or deleted config", "key", ev.Key, "err", err)
+				level.Error(w.log).Log("msg", "failed to handle changed or deleted config", "key", ev.Key, "err", err)
 			}
 		}
 	}
@@ -130,6 +135,11 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		}
 		reshardDuration.WithLabelValues(success).Observe(time.Since(start).Seconds())
 	}()
+
+	// This is used to determine if the context was already exceeded before calling the kv provider
+	if err = ctx.Err(); err != nil {
+		return fmt.Errorf("context deadline exceeded before calling store.all")
+	}
 
 	configs, err := w.store.All(ctx, func(key string) bool {
 		owns, err := w.owns(key)

@@ -159,7 +159,6 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*rin
 func (n *node) run() {
 	for range n.reload {
 		n.mut.RLock()
-
 		if err := n.performClusterReshard(context.Background(), true); err != nil {
 			level.Warn(n.log).Log("msg", "dynamic cluster reshard did not succeed", "err", err)
 		}
@@ -176,13 +175,6 @@ func (n *node) run() {
 func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 	if n.ring == nil || n.lc == nil {
 		level.Info(n.log).Log("msg", "node disabled, not resharding")
-		return nil
-	}
-
-	if n.cfg.ReshardTimeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, n.cfg.ReshardTimeout)
-		defer cancel()
 	}
 
 	var (
@@ -214,8 +206,8 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 			return nil, nil
 		}
 
-		ctx = user.InjectOrgID(ctx, "fake")
-		return nil, n.notifyReshard(ctx, id)
+		notifyCtx := user.InjectOrgID(c, "fake")
+		return nil, n.notifyReshard(notifyCtx, id)
 	})
 	if err != nil && firstError == nil {
 		firstError = err
