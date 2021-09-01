@@ -206,8 +206,8 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 			return nil, nil
 		}
 
-		notifyCtx := user.InjectOrgID(ctx, "fake")
-		return nil, n.notifyReshard(notifyCtx, id)
+		c = user.InjectOrgID(c, "fake")
+		return nil, n.notifyReshard(c, id)
 	})
 	if err != nil && firstError == nil {
 		firstError = err
