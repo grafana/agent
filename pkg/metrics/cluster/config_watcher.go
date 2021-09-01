@@ -140,7 +140,10 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 	if err = ctx.Err(); err != nil {
 		return fmt.Errorf("context deadline exceeded before calling store.all")
 	}
-
+	// These two checks for deadline are to be able to get fine grained information about the deadline
+	if deadline, set := ctx.Deadline(); set {
+		level.Debug(w.log).Log("msg", "deadline before store.all", "deadline", deadline)
+	}
 	configs, err := w.store.All(ctx, func(key string) bool {
 		owns, err := w.owns(key)
 		if err != nil {
@@ -149,6 +152,10 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		}
 		return owns
 	})
+	if deadline, set := ctx.Deadline(); set {
+		level.Debug(w.log).Log("msg", "deadline after store.all", "deadline", deadline)
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to get configs from store: %w", err)
 	}
