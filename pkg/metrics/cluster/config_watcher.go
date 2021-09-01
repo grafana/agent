@@ -118,7 +118,9 @@ func (w *configWatcher) run(ctx context.Context) {
 func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 	w.mut.Lock()
 	enabled := w.cfg.Enabled
+	refreshTimeout := w.cfg.RefreshTimeout
 	w.mut.Unlock()
+
 	if !enabled {
 		level.Debug(w.log).Log("msg", "refresh skipped because clustering is disabled")
 		return nil
@@ -126,6 +128,12 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 
 	w.refreshMut.Lock()
 	defer w.refreshMut.Unlock()
+
+	if refreshTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, refreshTimeout)
+		defer cancel()
+	}
 
 	start := time.Now()
 	defer func() {
@@ -141,9 +149,8 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		return fmt.Errorf("context deadline exceeded before calling store.all")
 	}
 	// These two checks for deadline are to be able to get fine grained information about the deadline
-	if deadline, set := ctx.Deadline(); set {
-		level.Debug(w.log).Log("msg", "deadline before store.all", "deadline", deadline)
-	}
+	deadline, _ := ctx.Deadline()
+	level.Debug(w.log).Log("msg", "deadline before store.all", "deadline", deadline)
 	configs, err := w.store.All(ctx, func(key string) bool {
 		owns, err := w.owns(key)
 		if err != nil {
@@ -152,9 +159,7 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		}
 		return owns
 	})
-	if deadline, set := ctx.Deadline(); set {
-		level.Debug(w.log).Log("msg", "deadline after store.all", "deadline", deadline)
-	}
+	level.Debug(w.log).Log("msg", "count of configs from store.all", "count", len(configs))
 
 	if err != nil {
 		return fmt.Errorf("failed to get configs from store: %w", err)

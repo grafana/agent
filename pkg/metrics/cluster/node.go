@@ -180,32 +180,29 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 	var (
 		rs  ring.ReplicationSet
 		err error
-
-		firstError error
 	)
-
-	if n.cfg.ReshardTimeout > 0 {
+	if n.cfg.RefreshTimeout > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, n.cfg.ReshardTimeout)
+		ctx, cancel = context.WithTimeout(ctx, n.cfg.RefreshTimeout)
 		defer cancel()
 	}
-
 	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		rs, err = n.ring.GetAllHealthy(ring.Read)
 		if err == nil {
 			break
 		}
 		backoff.Wait()
 	}
-	if err := backoff.Err(); err != nil && firstError == nil {
-		firstError = err
-	}
 
 	if len(rs.Instances) > 0 {
 		level.Info(n.log).Log("msg", "informing remote nodes to reshard")
 	}
 
+	// These are not in the go routine below due to potential race condition with n.lc.addr
 	_, err = rs.Do(ctx, 500*time.Millisecond, func(c context.Context, id *ring.InstanceDesc) (interface{}, error) {
 		// Skip over ourselves.
 		if id.Addr == n.lc.Addr {
@@ -215,20 +212,22 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		notifyCtx := user.InjectOrgID(c, "fake")
 		return nil, n.notifyReshard(notifyCtx, id)
 	})
-	if err != nil && firstError == nil {
-		firstError = err
+
+	if err != nil {
+		level.Error(n.log).Log("msg", "notifying other nodes failed", "err", err)
 	}
 
+	// This is ran in the background to help prevent unnecessary mutex locking.
 	if joining {
 		go func() {
 			level.Info(n.log).Log("msg", "running local reshard")
-			if _, err := n.srv.Reshard(ctx, &pb.ReshardRequest{}); err != nil {
+			if _, reshardErr := n.srv.Reshard(ctx, &pb.ReshardRequest{}); reshardErr != nil {
 				level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
 			}
 		}()
 	}
 
-	return firstError
+	return err
 }
 
 // notifyReshard informs an individual node to reshard.
