@@ -37,14 +37,14 @@ local utils = import './utils.libsonnet';
         .addPanel(
           g.panel('CPU') +
           g.queryPanel(
-            'rate(container_cpu_usage_seconds_total{cluster=~"$cluster", container=~"$container", pod=~"$pod"}[5m])',
+            'rate(container_cpu_usage_seconds_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}[5m])',
             '{{pod}}',
           )
         )
         .addPanel(
           g.panel('WSS') +
           g.queryPanel(
-            'container_memory_working_set_bytes{cluster=~"$cluster", container=~"$container", pod=~"$pod"}',
+            'container_memory_working_set_bytes{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}',
             '{{pod}}',
           )
         )
