@@ -181,10 +181,10 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		rs  ring.ReplicationSet
 		err error
 	)
+
+	var cancel context.CancelFunc
 	if n.cfg.RefreshTimeout > 0 {
-		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, n.cfg.RefreshTimeout)
-		defer cancel()
 	}
 	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
@@ -220,6 +220,7 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 	// This is ran in the background to help prevent unnecessary mutex locking.
 	if joining {
 		go func() {
+			defer cancel()
 			level.Info(n.log).Log("msg", "running local reshard")
 			if _, reshardErr := n.srv.Reshard(ctx, &pb.ReshardRequest{}); reshardErr != nil {
 				level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)

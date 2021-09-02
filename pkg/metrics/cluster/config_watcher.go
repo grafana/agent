@@ -118,7 +118,7 @@ func (w *configWatcher) run(ctx context.Context) {
 func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 	w.mut.Lock()
 	enabled := w.cfg.Enabled
-	refreshTimeout := w.cfg.RefreshTimeout
+	refreshTimeout := w.cfg.ReshardTimeout
 	w.mut.Unlock()
 
 	if !enabled {
