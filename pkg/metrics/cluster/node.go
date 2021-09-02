@@ -186,6 +186,11 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 	if n.cfg.RefreshTimeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, n.cfg.RefreshTimeout)
 	}
+
+	// This is necessary since we are running the ctx inside the goroutine, which is protected by joining.
+	if !joining {
+		defer cancel()
+	}
 	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
 		if ctx.Err() != nil {
@@ -226,8 +231,6 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 				level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
 			}
 		}()
-	} else {
-		defer cancel()
 	}
 
 	return err
