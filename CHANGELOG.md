@@ -18,6 +18,8 @@ for specific instructions.
 - [FEATURE] Add `operator-detach` command to agentctl to allow zero-downtime
   upgrades when removing an Operator CRD. (@rfratto)
 
+- [FEATURE] Service graphs processor (@mapno)
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)

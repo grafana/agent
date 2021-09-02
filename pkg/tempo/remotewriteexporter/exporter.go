@@ -60,9 +60,9 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 }
 
 func (e *remoteWriteExporter) Start(ctx context.Context, _ component.Host) error {
-	manager, ok := ctx.Value(contextkeys.Prometheus).(instance.Manager)
+	manager, ok := ctx.Value(contextkeys.InstanceManager).(instance.Manager)
 	if !ok || manager == nil {
-		return fmt.Errorf("key does not contain a Prometheus instance")
+		return fmt.Errorf("key does not contain a InstanceManager instance")
 	}
 	e.manager = manager
 	return nil
