@@ -148,7 +148,6 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 	if err = ctx.Err(); err != nil {
 		return fmt.Errorf("context deadline exceeded before calling store.all")
 	}
-	// These two checks for deadline are to be able to get fine grained information about the deadline
 	deadline, _ := ctx.Deadline()
 	level.Debug(w.log).Log("msg", "deadline before store.all", "deadline", deadline)
 	configs, err := w.store.All(ctx, func(key string) bool {
