@@ -223,7 +223,7 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 
 	if joining {
 		level.Info(n.log).Log("msg", "running local reshard")
-		if _, err = n.srv.Reshard(ctx, &pb.ReshardRequest{}); err != nil {
+		if _, err := n.srv.Reshard(ctx, &pb.ReshardRequest{}); err != nil {
 			level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
 		}
 	}
