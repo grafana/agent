@@ -221,10 +221,9 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		level.Error(n.log).Log("msg", "notifying other nodes failed", "err", err)
 	}
 
-	// This is ran in the background to help prevent unnecessary mutex locking.
 	if joining {
 		level.Info(n.log).Log("msg", "running local reshard")
-		if _, reshardErr := n.srv.Reshard(ctx, &pb.ReshardRequest{}); reshardErr != nil {
+		if _, err = n.srv.Reshard(ctx, &pb.ReshardRequest{}); err != nil {
 			level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
 		}
 	}
