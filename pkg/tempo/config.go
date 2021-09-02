@@ -222,8 +222,6 @@ type tailSamplingConfig struct {
 	Policies []map[string]interface{} `yaml:"policies"`
 	// DecisionWait defines the time to wait for a complete trace before making a decision
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
-	// Port is the port the instance will use to receive load balanced traces
-	Port string `yaml:"port"`
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
@@ -231,6 +229,8 @@ type tailSamplingConfig struct {
 type loadBalancingConfig struct {
 	Exporter exporterConfig         `yaml:"exporter"`
 	Resolver map[string]interface{} `yaml:"resolver"`
+	// ReceiverPort is the port the instance will use to receive load balanced traces
+	ReceiverPort string `yaml:"receiver_port"`
 }
 
 // exporterConfig defined the config for a otlp exporter for load balancing
@@ -544,8 +544,8 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		exporters["loadbalancing"] = internalExporter
 
 		receiverPort := defaultLoadBalancingPort
-		if c.TailSampling.Port != "" {
-			receiverPort = c.TailSampling.Port
+		if c.LoadBalancing.ReceiverPort != "" {
+			receiverPort = c.LoadBalancing.ReceiverPort
 		}
 		c.Receivers["otlp/lb"] = map[string]interface{}{
 			"protocols": map[string]interface{}{
