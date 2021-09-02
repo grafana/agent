@@ -137,6 +137,7 @@ func (w *configWatcher) refresh(ctx context.Context) (err error) {
 		level.Debug(w.log).Log("msg", "refresh skipped because clustering is disabled")
 		return nil
 	}
+	level.Debug(w.log).Log("msg", "starting refresh")
 
 	if refreshTimeout > 0 {
 		var cancel context.CancelFunc
