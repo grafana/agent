@@ -98,11 +98,13 @@ func (w *configWatcher) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-time.After(nextPoll):
-			// Errors are logged by w.Refresh, ignore the error here.
-			_ = w.Refresh(ctx)
+			err := w.Refresh(ctx)
+			if err != nil {
+				level.Error(w.log).Log("msg", "failed polling refresh", "err", err)
+			}
 		case ev := <-w.store.Watch():
 			if err := w.handleEvent(ev); err != nil {
-				level.Error(w.log).Log("msg", "failed to handle changend or deleted config", "key", ev.Key, "err", err)
+				level.Error(w.log).Log("msg", "failed to handle changed or deleted config", "key", ev.Key, "err", err)
 			}
 		}
 	}
@@ -113,7 +115,9 @@ func (w *configWatcher) run(ctx context.Context) {
 func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 	w.mut.Lock()
 	enabled := w.cfg.Enabled
+	refreshTimeout := w.cfg.ReshardTimeout
 	w.mut.Unlock()
+
 	if !enabled {
 		level.Debug(w.log).Log("msg", "refresh skipped because clustering is disabled")
 		return nil
@@ -121,6 +125,12 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 
 	w.refreshMut.Lock()
 	defer w.refreshMut.Unlock()
+
+	if refreshTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, refreshTimeout)
+		defer cancel()
+	}
 
 	start := time.Now()
 	defer func() {
@@ -131,6 +141,13 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		reshardDuration.WithLabelValues(success).Observe(time.Since(start).Seconds())
 	}()
 
+	// This is used to determine if the context was already exceeded before calling the kv provider
+	if err = ctx.Err(); err != nil {
+		level.Error(w.log).Log("msg", "context deadline exceeded before calling store.all", "err", err)
+		return err
+	}
+	deadline, _ := ctx.Deadline()
+	level.Debug(w.log).Log("msg", "deadline before store.all", "deadline", deadline)
 	configs, err := w.store.All(ctx, func(key string) bool {
 		owns, err := w.owns(key)
 		if err != nil {
@@ -139,6 +156,8 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		}
 		return owns
 	})
+	level.Debug(w.log).Log("msg", "count of configs from store.all", "count", len(configs))
+
 	if err != nil {
 		return fmt.Errorf("failed to get configs from store: %w", err)
 	}
