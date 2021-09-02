@@ -226,6 +226,8 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 				level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
 			}
 		}()
+	} else {
+		defer cancel()
 	}
 
 	return err
