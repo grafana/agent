@@ -37,7 +37,7 @@ type configWatcher struct {
 	owns     OwnershipFunc
 	validate ValidationFunc
 
-	refreshMut  sync.Mutex
+	refreshCh   chan struct{}
 	instanceMut sync.Mutex
 	instances   map[string]struct{}
 }
@@ -63,6 +63,7 @@ func newConfigWatcher(log log.Logger, cfg Config, store configstore.Store, im in
 		owns:     owns,
 		validate: validate,
 
+		refreshCh: make(chan struct{}, 1),
 		instances: make(map[string]struct{}),
 	}
 	if err := w.ApplyConfig(cfg); err != nil {
@@ -97,11 +98,13 @@ func (w *configWatcher) run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(nextPoll):
-			err := w.Refresh(ctx)
+		case <-w.refreshCh:
+			err := w.refresh(ctx)
 			if err != nil {
 				level.Error(w.log).Log("msg", "failed polling refresh", "err", err)
 			}
+		case <-time.After(nextPoll):
+			w.RequestRefresh()
 		case ev := <-w.store.Watch():
 			if err := w.handleEvent(ev); err != nil {
 				level.Error(w.log).Log("msg", "failed to handle changed or deleted config", "key", ev.Key, "err", err)
@@ -110,9 +113,20 @@ func (w *configWatcher) run(ctx context.Context) {
 	}
 }
 
-// Refresh reloads all configs from the configstore. Deleted configs will be
-// removed.
-func (w *configWatcher) Refresh(ctx context.Context) (err error) {
+// RequestRefresh will queue a refresh. No more than one refresh can be queued at a time.
+func (w *configWatcher) RequestRefresh() {
+	select {
+	case w.refreshCh <- struct{}{}:
+		// no-op: refresh has been scheduled
+	default:
+		level.Debug(w.log).Log("msg", "ignoring request refresh: refresh already scheduled")
+	}
+}
+
+// refresh reloads all configs from the configstore. Deleted configs will be
+// removed. refresh may not be called concurrently and must only be invoked from run.
+// Call RequestRefresh to queue a call to refresh.
+func (w *configWatcher) refresh(ctx context.Context) (err error) {
 	w.mut.Lock()
 	enabled := w.cfg.Enabled
 	refreshTimeout := w.cfg.ReshardTimeout
@@ -122,9 +136,6 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		level.Debug(w.log).Log("msg", "refresh skipped because clustering is disabled")
 		return nil
 	}
-
-	w.refreshMut.Lock()
-	defer w.refreshMut.Unlock()
 
 	if refreshTimeout > 0 {
 		var cancel context.CancelFunc
