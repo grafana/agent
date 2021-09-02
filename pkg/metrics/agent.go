@@ -51,6 +51,7 @@ type Config struct {
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
+	util.DefaultConfigFromFlags(c)
 	c.Unmarshaled = true
 
 	type plain Config
