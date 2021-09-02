@@ -61,7 +61,7 @@ for specific instructions.
 
 - [BUGFIX] In scraping service mode, the polling configuration refresh should honor timeout. (@mattdurham)
 
-- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a background context. (@mattdurham)
+- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a goroutine. (@mattdurham)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
