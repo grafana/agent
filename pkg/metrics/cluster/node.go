@@ -182,18 +182,19 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		err error
 	)
 
+	// This cancel has to exist outside since it is used in the goroutine
+	// originally it was put in a if !joining block which would logically
+	// ensure it would be called, but the linter does not process those paths
+	// so instead its sprinkled around before the returns.
 	var cancel context.CancelFunc
 	if n.cfg.RefreshTimeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, n.cfg.RefreshTimeout)
 	}
 
-	// This is necessary since we are running the ctx inside the goroutine, which is protected by joining.
-	if !joining {
-		defer cancel()
-	}
 	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
 		if ctx.Err() != nil {
+			cancel()
 			return ctx.Err()
 		}
 		rs, err = n.ring.GetAllHealthy(ring.Read)
@@ -232,7 +233,7 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 			}
 		}()
 	}
-
+	cancel()
 	return err
 }
 
