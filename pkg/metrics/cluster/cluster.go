@@ -110,11 +110,13 @@ func (c *Cluster) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (*e
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	err := c.watcher.Refresh(ctx)
-	if err != nil {
-		level.Error(c.log).Log("msg", "failed to perform local reshard", "err", err)
-	}
-	return &empty.Empty{}, err
+	go func() {
+		err := c.watcher.Refresh(context.Background())
+		if err != nil {
+			level.Error(c.log).Log("msg", "failed to perform local reshard", "err", err)
+		}
+	}()
+	return &empty.Empty{}, nil
 }
 
 // ApplyConfig applies configuration changes to Cluster.

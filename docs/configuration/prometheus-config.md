@@ -73,7 +73,7 @@ agents distribute discovery and scrape load between nodes.
 [reshard_timeout: <duration> | default = "30s"]
 
 # The timeout for a cluster reshard events. A timeout of 0 indicates no timeout.
-[refresh_timeout: <duration> | default = "30s"]
+[cluster_reshard_event_timeout: <duration> | default = "30s"]
 
 # Configuration for the KV store to store configurations.
 kvstore: <kvstore_config>

@@ -159,6 +159,7 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*rin
 func (n *node) run() {
 	for range n.reload {
 		n.mut.RLock()
+
 		if err := n.performClusterReshard(context.Background(), true); err != nil {
 			level.Warn(n.log).Log("msg", "dynamic cluster reshard did not succeed", "err", err)
 		}
@@ -175,6 +176,13 @@ func (n *node) run() {
 func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 	if n.ring == nil || n.lc == nil {
 		level.Info(n.log).Log("msg", "node disabled, not resharding")
+		return nil
+	}
+
+	if n.cfg.ClusterReshardEventTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, n.cfg.ClusterReshardEventTimeout)
+		defer cancel()
 	}
 
 	var (
@@ -182,19 +190,9 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		err error
 	)
 
-	// This cancel has to exist outside since it is used in the goroutine
-	// originally it was put in a if !joining block which would logically
-	// ensure it would be called, but the linter does not process those paths
-	// so instead its sprinkled around before the returns.
-	var cancel context.CancelFunc
-	if n.cfg.RefreshTimeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, n.cfg.RefreshTimeout)
-	}
-
 	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
 		if ctx.Err() != nil {
-			cancel()
 			return ctx.Err()
 		}
 		rs, err = n.ring.GetAllHealthy(ring.Read)
@@ -225,15 +223,11 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 
 	// This is ran in the background to help prevent unnecessary mutex locking.
 	if joining {
-		go func() {
-			defer cancel()
-			level.Info(n.log).Log("msg", "running local reshard")
-			if _, reshardErr := n.srv.Reshard(ctx, &pb.ReshardRequest{}); reshardErr != nil {
-				level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
-			}
-		}()
+		level.Info(n.log).Log("msg", "running local reshard")
+		if _, reshardErr := n.srv.Reshard(ctx, &pb.ReshardRequest{}); reshardErr != nil {
+			level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
+		}
 	}
-	cancel()
 	return err
 }
 
@@ -249,6 +243,9 @@ func (n *node) notifyReshard(ctx context.Context, id *ring.InstanceDesc) error {
 
 	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		_, err := cli.Reshard(ctx, &pb.ReshardRequest{})
 		if err == nil {
 			break
