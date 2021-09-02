@@ -104,9 +104,10 @@ func (w *configWatcher) run(ctx context.Context) {
 				level.Error(w.log).Log("msg", "refresh failed", "err", err)
 			}
 		case <-time.After(nextPoll):
-			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
+			level.Debug(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
 			w.RequestRefresh()
 		case ev := <-w.store.Watch():
+			level.Debug(w.log).Log("msg", "handling event from config store")
 			if err := w.handleEvent(ev); err != nil {
 				level.Error(w.log).Log("msg", "failed to handle changed or deleted config", "key", ev.Key, "err", err)
 			}
