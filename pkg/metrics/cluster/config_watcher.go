@@ -101,9 +101,10 @@ func (w *configWatcher) run(ctx context.Context) {
 		case <-w.refreshCh:
 			err := w.refresh(ctx)
 			if err != nil {
-				level.Error(w.log).Log("msg", "failed polling refresh", "err", err)
+				level.Error(w.log).Log("msg", "refresh failed", "err", err)
 			}
 		case <-time.After(nextPoll):
+			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
 			w.RequestRefresh()
 		case ev := <-w.store.Watch():
 			if err := w.handleEvent(ev); err != nil {
