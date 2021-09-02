@@ -30,9 +30,9 @@ prometheus:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.NotEmpty(t, c.Prometheus.ServiceConfig.Lifecycler.InfNames)
-	require.NotZero(t, c.Prometheus.ServiceConfig.Lifecycler.NumTokens)
-	require.NotZero(t, c.Prometheus.ServiceConfig.Lifecycler.HeartbeatPeriod)
+	require.NotEmpty(t, c.Metrics.ServiceConfig.Lifecycler.InfNames)
+	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.NumTokens)
+	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.HeartbeatPeriod)
 	require.True(t, c.Server.RegisterInstrumentation)
 }
 
@@ -55,7 +55,7 @@ prometheus:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, expect, c.Prometheus.Global)
+	require.Equal(t, expect, c.Metrics.Global)
 }
 
 func TestConfig_OverrideByEnvironmentOnLoad(t *testing.T) {
@@ -78,7 +78,7 @@ prometheus:
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, expect, c.Prometheus.Global)
+	require.Equal(t, expect, c.Metrics.Global)
 }
 
 func TestConfig_OverrideByEnvironmentOnLoad_NoDigits(t *testing.T) {
@@ -95,7 +95,7 @@ prometheus:
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, expect, c.Prometheus.Global.Prometheus.ExternalLabels)
+	require.Equal(t, expect, c.Metrics.Global.Prometheus.ExternalLabels)
 }
 
 func TestConfig_FlagsAreAccepted(t *testing.T) {
@@ -115,7 +115,7 @@ prometheus:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, "/tmp/wal", c.Prometheus.WALDir)
+	require.Equal(t, "/tmp/wal", c.Metrics.WALDir)
 }
 
 func TestConfig_StrictYamlParsing(t *testing.T) {
@@ -148,7 +148,7 @@ func TestConfig_Defaults(t *testing.T) {
 	err := LoadBytes([]byte(`{}`), false, &c)
 	require.NoError(t, err)
 
-	require.Equal(t, metrics.DefaultConfig, c.Prometheus)
+	require.Equal(t, metrics.DefaultConfig, c.Metrics)
 	require.Equal(t, integrations.DefaultManagerConfig, c.Integrations)
 }
 
@@ -216,9 +216,51 @@ loki:
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
 	require.NoError(t, cfg.ApplyDefaults())
 
-	require.Nil(t, cfg.Loki)
 	require.NotNil(t, cfg.Logs)
 	require.Equal(t, "foo", cfg.Logs.Configs[0].Name)
+	require.Equal(t, []string{"`loki` has been deprecated in favor of `logs`"}, cfg.Deprecations)
+}
+
+func TestConfig_PrometheusNonNil(t *testing.T) {
+	tt := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "missing",
+			input: `{}`,
+		},
+		{
+			name:  "null",
+			input: `prometheus: null`,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			var cfg Config
+			require.NoError(t, LoadBytes([]byte(tc.input), false, &cfg))
+			require.NoError(t, cfg.ApplyDefaults())
+
+			require.NotNil(t, cfg.Metrics)
+		})
+	}
+}
+
+func TestConfig_PrometheusNameMigration(t *testing.T) {
+	input := util.Untab(`
+prometheus:
+	wal_directory: /tmp
+  configs:
+  - name: default
+`)
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
+	require.NoError(t, cfg.ApplyDefaults())
+
+	require.Equal(t, "default", cfg.Metrics.Configs[0].Name)
+	require.Equal(t, "/tmp", cfg.Metrics.WALDir)
+	require.Equal(t, []string{"`prometheus` has been deprecated in favor of `metrics`"}, cfg.Deprecations)
 }
 
 func TestConfig_TempoLokiFailsValidation(t *testing.T) {
