@@ -63,6 +63,8 @@ for specific instructions.
 
 - [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a goroutine. (@mattdurham)
 
+- [BUGFIX] In scraping service mode, scraping service can deadlock when reloading during join. (@mattdurham)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
