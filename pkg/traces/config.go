@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/traces/noopreceiver"
 	"github.com/grafana/agent/pkg/traces/promsdprocessor"
 	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
+	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
@@ -122,10 +123,13 @@ type InstanceConfig struct {
 	AutomaticLogging *automaticloggingprocessor.AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 
 	// TailSampling defines a sampling strategy for the pipeline
-	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
+	TailSampling *tailSamplingConfig `yaml:"tail_sampling,omitempty"`
 
 	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
 	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
+
+	// ServiceGraphs
+	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
 }
 
 const (
@@ -241,6 +245,12 @@ type exporterConfig struct {
 	Insecure           bool                   `yaml:"insecure,omitempty"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+}
+
+type serviceGraphsConfig struct {
+	Enabled  bool          `yaml:"enabled,omitempty"`
+	Wait     time.Duration `yaml:"wait,omitempty"`
+	MaxItems int           `yaml:"max_items,omitempty"`
 }
 
 // exporter builds an OTel exporter from RemoteWriteConfig
@@ -564,6 +574,14 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 	}
 
+	if c.ServiceGraphs != nil && c.ServiceGraphs.Enabled {
+		processors[servicegraphprocessor.TypeStr] = map[string]interface{}{
+			"wait":      c.ServiceGraphs.Wait,
+			"max_items": c.ServiceGraphs.MaxItems,
+		}
+		processorNames = append(processorNames, servicegraphprocessor.TypeStr)
+	}
+
 	// Build Pipelines
 	splitPipeline := c.LoadBalancing != nil
 	orderedSplitProcessors := orderProcessors(processorNames, splitPipeline)
@@ -660,6 +678,7 @@ func tracingFactories() (component.Factories, error) {
 		spanmetricsprocessor.NewFactory(),
 		automaticloggingprocessor.NewFactory(),
 		tailsamplingprocessor.NewFactory(),
+		servicegraphprocessor.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
@@ -680,9 +699,10 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	order := map[string]int{
 		"attributes":        0,
 		"spanmetrics":       1,
-		"tail_sampling":     2,
-		"automatic_logging": 3,
-		"batch":             4,
+		"service_graphs":    2,
+		"tail_sampling":     3,
+		"automatic_logging": 4,
+		"batch":             5,
 	}
 
 	sort.Slice(processors, func(i, j int) bool {
