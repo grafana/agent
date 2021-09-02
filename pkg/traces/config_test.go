@@ -811,6 +811,38 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["prom_sd_processor"]
+      receivers: ["jaeger"]`,
+		},
+		{
+			name: "service graphs",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+service_graphs:
+  enabled: true
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  service_graphs:
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["service_graphs"]
       receivers: ["jaeger"]
 `,
 		},
@@ -910,11 +942,14 @@ tail_sampling:
         values:
           - value1
           - value2
+service_graphs:
+  enabled: true
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces": {
 					config.NewID("attributes"),
 					config.NewID("spanmetrics"),
+					config.NewID("service_graphs"),
 					config.NewID("tail_sampling"),
 					config.NewID("automatic_logging"),
 					config.NewID("batch"),
@@ -965,11 +1000,14 @@ load_balancing:
     dns:
       hostname: agent
       port: 4318
+service_graphs:
+  enabled: true
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
 					config.NewID("attributes"),
 					config.NewID("spanmetrics"),
+					config.NewID("service_graphs"),
 				},
 				"traces/1": {
 					config.NewID("tail_sampling"),

@@ -23,7 +23,7 @@ prometheus:
 
         - job_name: local_scrape
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ['127.0.0.1:12345', '0.0.0.0:8889']
               labels:
                 cluster: 'docker_compose'
                 container: 'agent'
@@ -97,4 +97,10 @@ traces:
       processes: true
       roots: true
     spanmetrics:
+<<<<<<< HEAD
       metrics_instance: test
+=======
+      handler_endpoint: 0.0.0.0:8889
+    service_graphs:
+      enabled: true
+>>>>>>> 091a7bea (Service graphs processor (#756))
