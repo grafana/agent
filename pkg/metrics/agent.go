@@ -43,11 +43,15 @@ type Config struct {
 	Configs                []instance.Config     `yaml:"configs,omitempty,omitempty"`
 	InstanceRestartBackoff time.Duration         `yaml:"instance_restart_backoff,omitempty"`
 	InstanceMode           instance.Mode         `yaml:"instance_mode,omitempty"`
+
+	// Unmarshaled is true when the Config was unmarshaled from YAML.
+	Unmarshaled bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
+	c.Unmarshaled = true
 
 	type plain Config
 	err := unmarshal((*plain)(c))
@@ -97,13 +101,21 @@ func (c *Config) ApplyDefaults() error {
 
 // RegisterFlags defines flags corresponding to the Config.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	f.StringVar(&c.WALDir, "prometheus.wal-directory", "", "base directory to store the WAL in")
-	f.DurationVar(&c.WALCleanupAge, "prometheus.wal-cleanup-age", DefaultConfig.WALCleanupAge, "remove abandoned (unused) WALs older than this")
-	f.DurationVar(&c.WALCleanupPeriod, "prometheus.wal-cleanup-period", DefaultConfig.WALCleanupPeriod, "how often to check for abandoned WALs")
-	f.DurationVar(&c.InstanceRestartBackoff, "prometheus.instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
+	c.RegisterFlagsWithPrefix("metrics.", f)
 
-	c.ServiceConfig.RegisterFlagsWithPrefix("prometheus.service.", f)
-	c.ServiceClientConfig.RegisterFlags(f)
+	// Register deprecated flag names.
+	c.RegisterFlagsWithPrefix("prometheus.", f)
+}
+
+// RegisterFlagsWithPrefix defines flags with the provided prefix.
+func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
+	f.StringVar(&c.WALDir, prefix+"wal-directory", "", "base directory to store the WAL in")
+	f.DurationVar(&c.WALCleanupAge, prefix+"wal-cleanup-age", DefaultConfig.WALCleanupAge, "remove abandoned (unused) WALs older than this")
+	f.DurationVar(&c.WALCleanupPeriod, prefix+"wal-cleanup-period", DefaultConfig.WALCleanupPeriod, "how often to check for abandoned WALs")
+	f.DurationVar(&c.InstanceRestartBackoff, prefix+"instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
+
+	c.ServiceConfig.RegisterFlagsWithPrefix(prefix+"service.", f)
+	c.ServiceClientConfig.RegisterFlagsWithPrefix(prefix, f)
 }
 
 // Agent is an agent for collecting Prometheus metrics. It acts as a

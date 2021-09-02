@@ -25,78 +25,102 @@ import (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Prometheus:   metrics.DefaultConfig,
+	Metrics:      metrics.DefaultConfig,
 	Integrations: integrations.DefaultManagerConfig,
 }
 
 // Config contains underlying configurations for the agent
 type Config struct {
 	Server       server.Config              `yaml:"server,omitempty"`
-	Prometheus   metrics.Config             `yaml:"prometheus,omitempty"`
+	Metrics      metrics.Config             `yaml:"metrics,omitempty"`
 	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
 	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
-
-	Logs               *logs.Config `yaml:"logs,omitempty"`
-	Loki               *logs.Config `yaml:"loki,omitempty"` // Deprecated: use Logs instead
-	UsedDeprecatedLoki bool         `yaml:"-"`
+	Logs         *logs.Config               `yaml:"logs,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
 	// to restart.
 	ReloadAddress string `yaml:"-"`
 	ReloadPort    int    `yaml:"-"`
+
+	// Deprecated fields user has used. Generated during UnmarshalYAML.
+	Deprecations []string `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Apply defaults to the config from our struct and any defaults inherited
-	// from flags.
+	// from flags before unmarshaling.
 	*c = DefaultConfig
 	util.DefaultConfigFromFlags(c)
 
-	type config Config
-	return unmarshal((*config)(c))
+	type baseConfig Config
+
+	type config struct {
+		baseConfig `yaml:",inline"`
+
+		// Deprecated field names:
+		Prometheus *metrics.Config `yaml:"prometheus,omitempty"`
+		Loki       *logs.Config    `yaml:"loki,omitempty"`
+	}
+
+	var fc config
+	fc.baseConfig = baseConfig(*c)
+
+	if err := unmarshal(&fc); err != nil {
+		return err
+	}
+
+	// Migrate old fields to the new name
+	if fc.Prometheus != nil && fc.Metrics.Unmarshaled && fc.Prometheus.Unmarshaled {
+		return fmt.Errorf("at most one of prometheus and metrics should be specified")
+	} else if fc.Prometheus != nil && fc.Prometheus.Unmarshaled {
+		fc.Deprecations = append(fc.Deprecations, "`prometheus` has been deprecated in favor of `metrics`")
+		fc.Metrics = *fc.Prometheus
+		fc.Prometheus = nil
+	}
+
+	if fc.Logs != nil && fc.Loki != nil {
+		return fmt.Errorf("at most one of loki and logs should be specified")
+	} else if fc.Logs == nil && fc.Loki != nil {
+		fc.Deprecations = append(fc.Deprecations, "`loki` has been deprecated in favor of `logs`")
+		fc.Logs = fc.Loki
+		fc.Loki = nil
+	}
+
+	*c = Config(fc.baseConfig)
+	return nil
 }
 
 // LogDeprecations will log use of any deprecated fields to l as warn-level
 // messages.
 func (c *Config) LogDeprecations(l log.Logger) {
-	if c.UsedDeprecatedLoki {
-		level.Warn(l).Log("msg", "DEPRECATION NOTICE: `loki` is deprecated in favor of `logs`")
+	for _, d := range c.Deprecations {
+		level.Warn(l).Log("msg", fmt.Sprintf("DEPRECATION NOTICE: %s", d))
 	}
 }
 
 // ApplyDefaults sets default values in the config
 func (c *Config) ApplyDefaults() error {
-	if err := c.Prometheus.ApplyDefaults(); err != nil {
+	if err := c.Metrics.ApplyDefaults(); err != nil {
 		return err
 	}
 
-	if c.Logs != nil && c.Loki != nil {
-		return fmt.Errorf("at most one of loki and logs should be specified")
-	}
-
-	if c.Logs == nil && c.Loki != nil {
-		c.Logs = c.Loki
-		c.Loki = nil
-		c.UsedDeprecatedLoki = true
-	}
-
-	if err := c.Integrations.ApplyDefaults(&c.Prometheus); err != nil {
+	if err := c.Integrations.ApplyDefaults(&c.Metrics); err != nil {
 		return err
 	}
 
-	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
 	c.Integrations.ListenPort = c.Server.HTTPListenPort
 	c.Integrations.ListenHost = c.Server.HTTPListenAddress
 
 	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
 
 	if len(c.Integrations.PrometheusRemoteWrite) == 0 {
-		c.Integrations.PrometheusRemoteWrite = c.Prometheus.Global.RemoteWrite
+		c.Integrations.PrometheusRemoteWrite = c.Metrics.Global.RemoteWrite
 	}
 
-	c.Integrations.PrometheusGlobalConfig = c.Prometheus.Global.Prometheus
+	c.Integrations.PrometheusGlobalConfig = c.Metrics.Global.Prometheus
 
 	// since the Tempo config might rely on an existing Loki config
 	// this check is made here to look for cross config issues before we attempt to load
@@ -111,7 +135,7 @@ func (c *Config) ApplyDefaults() error {
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.MetricsNamespace = "agent"
 	c.Server.RegisterInstrumentation = true
-	c.Prometheus.RegisterFlags(f)
+	c.Metrics.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
