@@ -118,7 +118,7 @@ func (w *configWatcher) run(ctx context.Context) {
 func (w *configWatcher) RequestRefresh() {
 	select {
 	case w.refreshCh <- struct{}{}:
-		// no-op: refresh has been scheduled
+		level.Debug(w.log).Log("msg", "successfully scheduled a refresh")
 	default:
 		level.Debug(w.log).Log("msg", "ignoring request refresh: refresh already scheduled")
 	}
