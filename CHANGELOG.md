@@ -75,6 +75,11 @@ for specific instructions.
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
 
+- [DEPRECATION] The `prometheus` key at the root of the config file has been
+  deprecated in favor of `metrics`. Flag names starting with `prometheus.` have
+  also been deprecated in favor of the same flags with the `metrics.` prefix.
+  (@rfratto)
+
 # v0.18.2 (2021-08-12)
 
 - [BUGFIX] Honor the prefix and remove prefix from consul list results (@mattdurham)

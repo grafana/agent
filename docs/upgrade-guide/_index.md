@@ -118,6 +118,51 @@ rules:
   verbs: [get, list, watch]
 ```
 
+### Metrics: Deprecation of "prometheus" in config. (Deprecation)
+
+The term `prometheus` in the config has been deprecated of favor of `metrics`. This
+change is to make it clearer when referring to Prometheus or another
+Prometheus-like database, and configuration of Grafana Agent to send metrics to
+one of those systems.
+
+Old configs will continue to work until it is fully deprecated. To migrate your
+config, change the `prometheus` key to `metrics`.
+
+Example old config:
+
+```yaml
+prometheus:
+  configs:
+    - name: default
+      host_filter: false
+      scrape_configs:
+        - job_name: local_scrape
+          static_configs:
+            - targets: ['127.0.0.1:12345']
+              labels:
+                cluster: 'localhost'
+      remote_write:
+        - url: http://localhost:9009/api/prom/push
+```
+
+Example new config:
+
+```yaml
+metrics:
+  configs:
+    - name: default
+      host_filter: false
+      scrape_configs:
+        - job_name: local_scrape
+          static_configs:
+            - targets: ['127.0.0.1:12345']
+              labels:
+                cluster: 'localhost'
+      remote_write:
+        - url: http://localhost:9009/api/prom/push
+```
+
+
 ### Logs: Deprecation of "loki" in config. (Deprecation)
 
 The term `loki` in the config has been deprecated of favor of `logs`. This

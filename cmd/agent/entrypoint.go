@@ -75,7 +75,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 
-	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
+	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 	}
 
 	// Go through each component and update it.
-	if err := ep.promMetrics.ApplyConfig(cfg.Prometheus); err != nil {
+	if err := ep.promMetrics.ApplyConfig(cfg.Metrics); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update prometheus", "err", err)
 		failed = true
 	}
