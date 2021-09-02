@@ -6,6 +6,15 @@
 - [BUGFIX] Logs should contain a caller field with file and line numbers again
   (@kgeckhart)
 
+- [BUGFIX] In scraping service mode, the polling configuration refresh should
+  honor timeout. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a
+  goroutine. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, scraping service can deadlock when
+  reloading during join. (@mattdurham)
+
 # v0.18.2 (2021-08-12)
 
 - [BUGFIX] Honor the prefix and remove prefix from consul list results (@mattdurham)

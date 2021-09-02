@@ -234,14 +234,16 @@ agents distribute discovery and scrape load between nodes.
 # cannot be used.
 [enabled: boolean | default = false]
 
-# How often should the agent manually reshard. Useful for if KV change
+# How often should the agent manually refresh the configuration. Useful for if KV change
 # events are not sent by an agent.
 [reshard_interval: <duration> | default = "1m"]
 
-# The timeout for a reshard. Applies to a cluster-wide reshard (done when
-# joining or leaving the cluster) and local reshards (done every
-# reshard_interval). A timeout of 0 indicates no timeout.
+# The timeout for configuration refreshes. This can occur on cluster events or
+# on the reshard interval. A timeout of 0 indicates no timeout.
 [reshard_timeout: <duration> | default = "30s"]
+
+# The timeout for a cluster reshard events. A timeout of 0 indicates no timeout.
+[cluster_reshard_event_timeout: <duration> | default = "30s"]
 
 # Configuration for the KV store to store configurations.
 kvstore: <kvstore_config>
@@ -3800,7 +3802,7 @@ Full reference of options:
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
-    
+
   # Address array (host:port) of Kafka server
   [kafka_uris: <[]string>]
 
@@ -3809,7 +3811,7 @@ Full reference of options:
 
   # Only set this to false if using a non-Kafka SASL proxy
   [use_sasl_handshake: <bool> | default = true]
-  
+
   # SASL user name
   [sasl_username: <string>]
 
@@ -3846,7 +3848,7 @@ Full reference of options:
   # Kafka cluster name
   [kafka_cluster_name: <string>]
 
-  # Metadata refresh interval  
+  # Metadata refresh interval
   [metadata_refresh_interval: <duration> | default = "1m"]
 
   # If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
