@@ -1,0 +1,3 @@
+server:
+  log_level: debug
+  http_listen_port: 12345

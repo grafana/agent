@@ -25,6 +25,7 @@ require (
 	github.com/grafana/tempo v1.0.1
 	github.com/hashicorp/consul/api v1.11.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
+	github.com/hashicorp/go-discover v0.0.0-20190403160810-22221edb15cd
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
@@ -64,6 +65,7 @@ require (
 	github.com/prometheus/procfs v0.7.3
 	github.com/prometheus/prometheus v1.8.2-0.20211102100715-d4c83da6d252
 	github.com/prometheus/statsd_exporter v0.22.2
+	github.com/rfratto/ckit v0.0.0-20210903030023-721309d48f1e
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0

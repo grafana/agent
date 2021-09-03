@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -8,8 +9,13 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	loki "github.com/grafana/agent/pkg/logs"
@@ -18,14 +24,11 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
 	"github.com/oklog/run"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rfratto/ckit"
+	"github.com/weaveworks/common/signals"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
-
-	"github.com/grafana/agent/pkg/config"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/weaveworks/common/signals"
-
-	"github.com/go-kit/log/level"
 )
 
 // Entrypoint is the entrypoint of the application that starts all subsystems.
@@ -37,6 +40,7 @@ type Entrypoint struct {
 	log *util.Logger
 	cfg config.Config
 
+	node        *cluster.Node
 	srv         *server.Server
 	promMetrics *metrics.Agent
 	lokiLogs    *loki.Logs
@@ -75,6 +79,13 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 
+	clusterLogger := log.With(logger, "component", "cluster")
+	ep.node = cluster.NewNode(clusterLogger, &cfg.Cluster)
+	ep.node.OnPeersChanged(func(ps ckit.PeerSet) (reregister bool) {
+		level.Debug(clusterLogger).Log("msg", "cluster peers changed", "ps", ps)
+		return true
+	})
+
 	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
 	if err != nil {
 		return nil, err
@@ -100,6 +111,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	if err := ep.ApplyConfig(*cfg); err != nil {
 		return nil, err
 	}
+
 	return ep, nil
 }
 
@@ -229,6 +241,7 @@ func (ep *Entrypoint) Stop() {
 	ep.promMetrics.Stop()
 	ep.tempoTraces.Stop()
 	ep.srv.Close()
+	ep.node.Close()
 
 	if ep.reloadServer != nil {
 		ep.reloadServer.Close()
@@ -272,6 +285,23 @@ func (ep *Entrypoint) Start() error {
 	}, func(e error) {
 		ep.srv.Close()
 	})
+
+	{
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		g.Add(func() error {
+			// Wait just a litle bit of time to start the cluster so that our APIs
+			// and other components are running, allowing peers to immediately invoke
+			// them.
+			time.Sleep(100 * time.Millisecond)
+			ep.node.Start()
+			<-ctx.Done()
+			return nil
+		}, func(e error) {
+			cancel()
+		})
+	}
 
 	go func() {
 		for range notifier {
