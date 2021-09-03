@@ -16,6 +16,7 @@ import (
 func TestCluster(t *testing.T) {
 	opts := func(v ...string) []string {
 		baseOptions := []string{
+			"--cluster.enable",
 			"--cluster.listen-addr=127.0.0.1",
 			"--cluster.advertise-addr=127.0.0.1",
 		}

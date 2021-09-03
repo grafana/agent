@@ -187,14 +187,11 @@ func (c *Config) ApplyDefaults() error {
 		return err
 	}
 
-<<<<<<< HEAD
-	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
-=======
 	if err := c.Cluster.ApplyDefaults(c.Server.GRPCListenPort); err != nil {
 		return err
 	}
->>>>>>> 7d9ee73e (agent-wide cluster mechanism)
 
+	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
 	return nil
 }
 
