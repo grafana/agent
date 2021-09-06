@@ -941,6 +941,54 @@ load_balancing:
 				"metrics/spanmetrics": nil,
 			},
 		},
+		{
+			name: "load balancing without tail sampling",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    headers:
+      x-some-header: Some value!
+attributes:
+  actions:
+  - key: montgomery
+    value: forever
+    action: update
+spanmetrics:
+  latency_histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
+  dimensions:
+    - name: http.method
+      default: GET
+    - name: http.status_code
+  prom_instance: tempo
+automatic_logging:
+  spans: true
+batch:
+  timeout: 5s
+  send_batch_size: 100
+load_balancing:
+  exporter:
+    insecure: true
+  resolver:
+    dns:
+      hostname: agent
+      port: 4318
+`,
+			expectedProcessors: map[string][]config.ComponentID{
+				"traces/0": {
+					config.NewID("attributes"),
+					config.NewID("spanmetrics"),
+				},
+				"traces/1": {
+					config.NewID("automatic_logging"),
+					config.NewID("batch"),
+				},
+				"metrics/spanmetrics": nil,
+			},
+		},
 	}
 
 	for _, tc := range tt {

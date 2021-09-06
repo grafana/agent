@@ -557,7 +557,7 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	}
 
 	// Build Pipelines
-	splitPipeline := c.TailSampling != nil && c.LoadBalancing != nil
+	splitPipeline := c.LoadBalancing != nil
 	orderedSplitProcessors := orderProcessors(processorNames, splitPipeline)
 	if splitPipeline {
 		// load balancing pipeline
@@ -690,7 +690,8 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	foundAt := len(processors)
 	for i, processor := range processors {
 		if processor == "batch" ||
-			processor == "tail_sampling" {
+			processor == "tail_sampling" ||
+			processor == "automatic_logging" {
 			foundAt = i
 			break
 		}
