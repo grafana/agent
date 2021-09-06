@@ -90,6 +90,7 @@ trigger:
   ref:
     - refs/heads/main
     - refs/tags/v*
+    - refs/heads/dev.*
 
 steps:
   - name: Build Containers
