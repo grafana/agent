@@ -61,6 +61,12 @@ for specific instructions.
 
 - [BUGFIX] Logs should contain a caller field with file and line numbers again (@kgeckhart)
 
+- [BUGFIX] In scraping service mode, the polling configuration refresh should honor timeout. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a goroutine. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, scraping service can deadlock when reloading during join. (@mattdurham)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
@@ -76,6 +82,11 @@ for specific instructions.
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
+
+- [DEPRECATION] The `prometheus` key at the root of the config file has been
+  deprecated in favor of `metrics`. Flag names starting with `prometheus.` have
+  also been deprecated in favor of the same flags with the `metrics.` prefix.
+  (@rfratto)
 
 # v0.18.2 (2021-08-12)
 
