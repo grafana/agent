@@ -15,6 +15,9 @@
 - [BUGFIX] In scraping service mode, scraping service can deadlock when
   reloading during join. (@mattdurham)
 
+- [BUGFIX] Scraping service: prevent more than one refresh from being queued at
+  a time. (@rfratto)
+
 # v0.18.2 (2021-08-12)
 
 - [BUGFIX] Honor the prefix and remove prefix from consul list results (@mattdurham)
