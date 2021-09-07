@@ -12,18 +12,18 @@ These alerts are viewable [here](http://prometheus.k3d.localhost:50080/alerts).
 
 
 Prometheus alerts are triggered:
-- If any Crow instances are not running or Crow samples are not being generated correctly. 
+- If any Crow instances are not running or Crow samples are not being propagated correctly. 
 - If any Grafana Agents are nor or system limits are outside their norm.
 
 NOTE: The alerts might be in pending until the system settles down. 
 
 ![](./assets/pending_alert.png)
 
-An alert firing will look similiar to the below.
+An alert firing will look similar to the below.
 
 ![](./assets/alert_firing.png)
 
-If at the end of the test any issues are found they will look similiar to the below.
+If at the end of the test any issues are found they will look similar to the below.
 
 ![](./assets/console_failure.png)
 
@@ -36,7 +36,7 @@ Changing the avalanche setting for label_count to 1000, located [here](example/k
 
 ## Architecture
 
-By default you will have a k3d cluster running the following instances
+By default, a k3d cluster will be created running the following instances
 
 - agent-single - single instance
 - agent-cluster - 3 Grafana Agents in clustered configuration
@@ -49,7 +49,9 @@ Crow instance will check to see if the metrics that were scraped shows up in the
 
 ### Flow
 
-Crow Loop -> Generate Samples -> Agent Scrapes -> Crow Checks Prometheus for those Samples -> Update Success/Mismatch Count -> Repeat
+Crow uses two endpoints; the traditional `metrics` and then `validate` that generates the results of Crow checking for successful samples. 
+
+![](./assets/order.png)
 
 ### Avalanche
 
