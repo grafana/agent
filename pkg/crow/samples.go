@@ -13,7 +13,7 @@ type sample struct {
 	Labels     prometheus.Labels
 	Value      float64
 
-	// How many times this sample has attempted to be valdated. Starts at 0.
+	// How many times this sample has attempted to be validated. Starts at 0.
 	ValidationAttempt int
 }
 
