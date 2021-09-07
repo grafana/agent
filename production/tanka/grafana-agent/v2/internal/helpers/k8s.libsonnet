@@ -6,7 +6,7 @@ local k8s_tls_config(config) = {
   bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
 };
 
-local gen_logs_scrape_config(job_name, pod_uid) = {
+local gen_scrape_config(job_name, pod_uid) = {
   job_name: job_name,
   pipeline_stages: [{
     docker: {},

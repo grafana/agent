@@ -9,7 +9,7 @@
 #   jq
 #
 # smoke-test.bash performs smoke tests that can be used to validate a release.
-# It only validates correctness, and does not attempt to do significiant load
+# It only validates correctness, and does not attempt to do significant load
 # testing or performance benchmarks.
 #
 # It works by deploying a k3d cluster with two pairs of Agent deployments: one
@@ -24,7 +24,7 @@
 # as test cases for the smoke tests; alerts generated within the span of the testing
 # period are treated as failures.
 #
-# After the smoke-test duration period (defualting to 3h), alerts will
+# After the smoke-test duration period (defaulting to 3h), alerts will
 # be checked, and the script will end.
 #
 # The k3d cluster is kept alive after the test for analysis. To clean up assets created

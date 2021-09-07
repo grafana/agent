@@ -45,7 +45,7 @@ By default you will have a k3d cluster running the following instances
 - cortex
 - avalanche - selection of avalanche instances serving traffic
 
-Crow instance will check to see if the metrics that were scraped shows up in the prometheus endpoint and then will emit metrics on the success of those metrics. This success flag will trigger an alert if it is incorrect. 
+Crow instance will check to see if the metrics that were scraped shows up in the prometheus endpoint and then will emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect. 
 
 ### Flow
 
