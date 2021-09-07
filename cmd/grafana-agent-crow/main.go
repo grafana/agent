@@ -70,7 +70,7 @@ func main() {
 		EnableOpenMetrics: true,
 	}))
 
-	// Register crow's metrics to /metrics and /valiate respectively.
+	// Register crow's metrics to /metrics and /validate respectively.
 	s.Registerer.MustRegister(c.StateMetrics())
 	validator.MustRegister(c.TestMetrics())
 
