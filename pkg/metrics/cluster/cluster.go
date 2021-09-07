@@ -110,6 +110,7 @@ func (c *Cluster) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (*e
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
+	level.Info(c.log).Log("msg", "received reshard notification, requesting refresh")
 	c.watcher.RequestRefresh()
 	return &empty.Empty{}, nil
 }

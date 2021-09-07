@@ -104,7 +104,7 @@ func (w *configWatcher) run(ctx context.Context) {
 				level.Error(w.log).Log("msg", "refresh failed", "err", err)
 			}
 		case <-time.After(nextPoll):
-			level.Debug(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
+			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
 			w.RequestRefresh()
 		case ev := <-w.store.Watch():
 			level.Debug(w.log).Log("msg", "handling event from config store")
@@ -138,7 +138,7 @@ func (w *configWatcher) refresh(ctx context.Context) (err error) {
 		level.Debug(w.log).Log("msg", "refresh skipped because clustering is disabled")
 		return nil
 	}
-	level.Debug(w.log).Log("msg", "starting refresh")
+	level.Info(w.log).Log("msg", "starting refresh")
 
 	if refreshTimeout > 0 {
 		var cancel context.CancelFunc
@@ -152,7 +152,9 @@ func (w *configWatcher) refresh(ctx context.Context) (err error) {
 		if err != nil {
 			success = "0"
 		}
-		reshardDuration.WithLabelValues(success).Observe(time.Since(start).Seconds())
+		duration := time.Since(start)
+		level.Info(w.log).Log("msg", "refresh finished", "duration", duration, "success", success, "err", err)
+		reshardDuration.WithLabelValues(success).Observe(duration.Seconds())
 	}()
 
 	// This is used to determine if the context was already exceeded before calling the kv provider
