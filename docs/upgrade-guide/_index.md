@@ -30,6 +30,7 @@ Example old config:
 tail_sampling:
   policies:
     - always_sample:
+  port: 4318
   load_balancing:
     exporter:
       insecure: true
@@ -37,7 +38,6 @@ tail_sampling:
       dns:
         hostname: agent
         port: 4318
-  port: 4318
 ```
 
 Example new config:
