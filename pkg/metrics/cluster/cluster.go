@@ -107,14 +107,11 @@ func (c *Cluster) storeValidate(cfg *instance.Config) error {
 // Reshard implements agentproto.ScrapingServiceServer, and syncs the state of
 // configs with the configstore.
 func (c *Cluster) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (*empty.Empty, error) {
-	go func() {
-		c.mut.RLock()
-		defer c.mut.RUnlock()
-		err := c.watcher.Refresh(context.Background())
-		if err != nil {
-			level.Error(c.log).Log("msg", "failed to perform local reshard", "err", err)
-		}
-	}()
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	level.Info(c.log).Log("msg", "received reshard notification, requesting refresh")
+	c.watcher.RequestRefresh()
 	return &empty.Empty{}, nil
 }
 
@@ -144,20 +141,8 @@ func (c *Cluster) ApplyConfig(
 	c.cfg = cfg
 
 	// Force a refresh so all the configs get updated with new defaults.
-	level.Info(c.log).Log("msg", "cluster config changed, refreshing from configstore in background")
-	go func() {
-		ctx := context.Background()
-		if c.cfg.ReshardTimeout > 0 {
-			var cancel context.CancelFunc
-			ctx, cancel = context.WithTimeout(ctx, c.cfg.ReshardTimeout)
-			defer cancel()
-		}
-		err := c.watcher.Refresh(ctx)
-		if err != nil {
-			level.Error(c.log).Log("msg", "failed to perform local reshard", "err", err)
-		}
-	}()
-
+	level.Info(c.log).Log("msg", "cluster config changed, queueing refresh")
+	c.watcher.RequestRefresh()
 	return nil
 }
 

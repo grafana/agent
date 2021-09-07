@@ -48,7 +48,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 		return ch, nil
 	}
 
-	err = w.Refresh(context.Background())
+	err = w.refresh(context.Background())
 	require.NoError(t, err)
 
 	// Then: return a "new" config.
@@ -61,7 +61,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 		return ch, nil
 	}
 
-	err = w.Refresh(context.Background())
+	err = w.refresh(context.Background())
 	require.NoError(t, err)
 
 	// "hello" and "new" should've been applied, and "hello" should've been deleted

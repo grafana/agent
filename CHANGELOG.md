@@ -33,7 +33,7 @@ for specific instructions.
   using `-config.expand-env`. (@rfratto)
 
 - [BUGFIX] The directory of the logs positions file will now properly be created
-  on startup for all instances.
+  on startup for all instances. (@rfratto)
 
 - [BUGFIX] The Linux system packages will now configure the grafana-agent user
   to be a member of the adm and systemd-journal groups. This will allow logs to
@@ -56,6 +56,7 @@ for specific instructions.
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
 
 - [BUGFIX] Register missing metric for configstore consul request duration.
+  (@rfratto)
 
 - [BUGFIX] Logs should contain a caller field with file and line numbers again (@kgeckhart)
 
@@ -64,6 +65,9 @@ for specific instructions.
 - [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a goroutine. (@mattdurham)
 
 - [BUGFIX] In scraping service mode, scraping service can deadlock when reloading during join. (@mattdurham)
+
+- [BUGFIX] Scraping service: prevent more than one refresh from being queued at
+  a time. (@rfratto)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
