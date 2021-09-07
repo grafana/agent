@@ -1,4 +1,4 @@
-# `k3d` Example
+# `k3d` Examples
 
 ## Agent Environment
 
@@ -35,21 +35,23 @@ tk apply ./environment
 k3d cluster delete agent-k3d
 ```
 
-## Smoke Testing
+## Smoke Test Environment
 
-Smoke Test environment is invoked via `/scripts/smoke_test.bash`
+The smoke test environment is used to validate samples end to end. 
 
 ### Running
 
-This tool will spin up cluster of Grafana Agent, Cortex, Avalanche and [Crow](../../cmd/grafana-agent-crow/README.md) instances. The spin up process may take a few minutes before the cluster is ready. Every 30 minutes the smoke test will delete an agent and replica to introduce instability to the system. The impact to the alerts should not change. 
+Smoke Test environment is invoked via `/scripts/smoke_test.bash`
+
+This tool will spin up cluster of Grafana Agent, Cortex, Avalanche and [Crow](../../cmd/grafana-agent-crow/README.md) instances. The tool will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing. 
 
 ### What to look for?
 
-These alerts are viewable [here](http://prometheus.k3d.localhost:50080/alerts).
+These alerts are viewable [here](http://prometheus.k3d.localhost:50080/alerts). 
 
 Prometheus alerts are triggered:
 - If any Crow instances are not running or Crow samples are not being propagated correctly.
-- If any Grafana Agents are nor or system limits are outside their norm.
+- If any Grafana Agents are not running or Grafana Agent limits are outside their norm.
 
 NOTE: The alerts might be in pending until the system settles down.
 
