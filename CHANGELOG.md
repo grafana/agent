@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+# v0.18.3 (2021-09-08)
+
 - [BUGFIX] Register missing metric for configstore consul request duration.
   (@rfratto)
 
