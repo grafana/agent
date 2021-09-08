@@ -90,6 +90,9 @@ for specific instructions.
   also been deprecated in favor of the same flags with the `metrics.` prefix.
   (@rfratto)
 
+- [ENHANCEMENT] `agentctl cloud-config` now allows specifying an url for
+  Grafana Cloud's API. (@cristiangreco)
+
 # v0.18.2 (2021-08-12)
 
 - [BUGFIX] Honor the prefix and remove prefix from consul list results (@mattdurham)

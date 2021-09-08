@@ -40,7 +40,7 @@ func TestClient_AgentConfig(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	cli := NewClient(httpClient, testSecret)
+	cli := NewClient(httpClient, testSecret, "")
 	cfg, err := cli.AgentConfig(context.Background(), testStackID)
 	require.NoError(t, err)
 	fmt.Println(cfg)
@@ -62,7 +62,7 @@ func TestClient_AgentConfig_Error(t *testing.T) {
 		w.WriteHeader(http.StatusNotFound)
 	}))
 
-	cli := NewClient(httpClient, testSecret)
+	cli := NewClient(httpClient, testSecret, "")
 	_, err := cli.AgentConfig(context.Background(), testStackID)
 	require.Error(t, err, "unexpected status code 404")
 }
@@ -77,7 +77,7 @@ func TestClient_AgentConfig_ErrorMessage(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	cli := NewClient(httpClient, testSecret)
+	cli := NewClient(httpClient, testSecret, "")
 	_, err := cli.AgentConfig(context.Background(), testStackID)
 	require.Error(t, err, "request was not successful: Something went wrong")
 }
