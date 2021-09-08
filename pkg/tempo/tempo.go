@@ -115,7 +115,7 @@ func newLogger(zapLevel zapcore.LevelEnabler) *zap.Logger {
 		zaplogfmt.NewEncoder(config),
 		os.Stdout,
 		zapLevel,
-	))
+	), zap.AddCaller())
 	logger = logger.With(zap.String("component", "tempo"))
 	logger.Info("Tempo Logger Initialized")
 
