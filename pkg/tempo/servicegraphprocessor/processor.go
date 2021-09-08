@@ -240,7 +240,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					}
 					r.clientService = svc.StringVal()
 					r.clientLatency = spanDuration(span)
-					r.failed = span.Status().Code() == pdata.StatusCodeError
+					r.failed = spanFailed(span)
 					p.store.SetDefault(k, r)
 
 				case pdata.SpanKindServer:
@@ -253,7 +253,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 					r.serverService = svc.StringVal()
 					r.serverLatency = spanDuration(span)
-					r.failed = span.Status().Code() == pdata.StatusCodeError
+					r.failed = spanFailed(span)
 					p.store.SetDefault(k, r)
 
 				default:
@@ -263,6 +263,11 @@ func (p *processor) consume(trace pdata.Traces) error {
 		}
 	}
 	return nil
+}
+
+func spanFailed(span pdata.Span) bool {
+	httpStatusCode, ok := span.Attributes().Get("http.status_code")
+	return span.Status().Code() == pdata.StatusCodeError || (ok && httpStatusCode.IntVal()/100 != 2)
 }
 
 func spanDuration(span pdata.Span) time.Duration {
