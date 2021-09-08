@@ -29,6 +29,8 @@ type edgeRequest struct {
 	serverService, clientService string
 	serverLatency, clientLatency time.Duration
 
+	// If either the client or the server spans have status code error,
+	// the request will be considered as failed.
 	failed bool
 }
 
@@ -238,6 +240,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					}
 					r.clientService = svc.StringVal()
 					r.clientLatency = spanDuration(span)
+					r.failed = span.Status().Code() == pdata.StatusCodeError
 					p.store.SetDefault(k, r)
 
 				case pdata.SpanKindServer:
@@ -250,6 +253,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 					r.serverService = svc.StringVal()
 					r.serverLatency = spanDuration(span)
+					r.failed = span.Status().Code() == pdata.StatusCodeError
 					p.store.SetDefault(k, r)
 
 				default:
