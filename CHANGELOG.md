@@ -39,7 +39,8 @@ for specific instructions.
   to be a member of the adm and systemd-journal groups. This will allow logs to
   read from journald and /var/log by default. (@rfratto)
 
-- [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the `node_exporter` integration default config. (@eamonryan)
+- [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the
+  `node_exporter` integration default config. (@eamonryan)
 
 - [BUGFIX] Fix info logging on windows. (@mattdurham)
 
@@ -54,20 +55,6 @@ for specific instructions.
   Kubernetes defaults when undefined (i.e., default to nothing). (@rfratto)
 
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
-
-- [BUGFIX] Register missing metric for configstore consul request duration.
-  (@rfratto)
-
-- [BUGFIX] Logs should contain a caller field with file and line numbers again (@kgeckhart)
-
-- [BUGFIX] In scraping service mode, the polling configuration refresh should honor timeout. (@mattdurham)
-
-- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a goroutine. (@mattdurham)
-
-- [BUGFIX] In scraping service mode, scraping service can deadlock when reloading during join. (@mattdurham)
-
-- [BUGFIX] Scraping service: prevent more than one refresh from being queued at
-  a time. (@rfratto)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
@@ -90,8 +77,25 @@ for specific instructions.
   also been deprecated in favor of the same flags with the `metrics.` prefix.
   (@rfratto)
 
-- [ENHANCEMENT] `agentctl cloud-config` now allows specifying an url for
-  Grafana Cloud's API. (@cristiangreco)
+# v0.18.3 (2021-09-08)
+
+- [BUGFIX] Register missing metric for configstore consul request duration.
+  (@rfratto)
+
+- [BUGFIX] Logs should contain a caller field with file and line numbers again
+  (@kgeckhart)
+
+- [BUGFIX] In scraping service mode, the polling configuration refresh should
+  honor timeout. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a
+  goroutine. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, scraping service can deadlock when
+  reloading during join. (@mattdurham)
+
+- [BUGFIX] Scraping service: prevent more than one refresh from being queued at
+  a time. (@rfratto)
 
 # v0.18.2 (2021-08-12)
 
