@@ -21,7 +21,8 @@ receiving all spans for a trace in the same agent to be processed, such as
 service graphs.
 
 As a consequence, `tail_sampling.load_balancing` has been deprecated in favor of
-a `load_balancing` block.
+a `load_balancing` block. Also, `port` has been renamed to `receiver_port` and
+moved to the new `load_balancing` block.
 
 Example old config:
 
@@ -29,6 +30,7 @@ Example old config:
 tail_sampling:
   policies:
     - always_sample:
+  port: 4318
   load_balancing:
     exporter:
       insecure: true
@@ -51,6 +53,7 @@ load_balancing:
     dns:
       hostname: agent
       port: 4318
+  receiver_port: 4318
 ```
 
 ### Operator: Rename of Prometheus to Metrics (Breaking change)
