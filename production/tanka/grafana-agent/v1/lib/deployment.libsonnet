@@ -53,7 +53,7 @@ local container = k.core.v1.container;
       else {}
     ) + (
       if has_tempo_config then {
-        tempo: {
+        traces: {
           configs: [this._tempo_config {
             name: 'default',
           }],

@@ -36,8 +36,8 @@ type promServiceDiscoProcessor struct {
 
 func newTraceProcessor(nextConsumer consumer.Traces, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	logger := log.With(util.Logger, "component", "tempo service disco")
-	mgr := discovery.NewManager(ctx, logger, discovery.Name("tempo service disco"))
+	logger := log.With(util.Logger, "component", "traces service disco")
+	mgr := discovery.NewManager(ctx, logger, discovery.Name("traces service disco"))
 
 	relabelConfigs := map[string][]*relabel.Config{}
 	cfg := map[string]discovery.Configs{}

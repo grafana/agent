@@ -165,7 +165,7 @@ loki:
       filename: /tmp/positions.yaml
     clients:
     - url: http://loki:3100/loki/api/v1/push
-tempo:
+traces:
   configs:
   - name: default
     automatic_logging:
@@ -182,7 +182,7 @@ loki:
       filename: /tmp/positions.yaml
     clients:
     - url: http://loki:3100/loki/api/v1/push
-tempo:
+traces:
   configs:
   - name: default
     automatic_logging:
@@ -277,14 +277,14 @@ loki:
       filename: /tmp/positions.yaml
     clients:
     - url: http://loki:3100/loki/api/v1/push
-tempo:
+traces:
   configs:
   - name: default
     automatic_logging:
       backend: logs_instance
       logs_instance_name: default
       spans: true`,
-			expectedError: "error in config file: failed to validate automatic_logging for tempo config default: specified logs config default not found in agent config",
+			expectedError: "error in config file: failed to validate automatic_logging for traces config default: specified logs config default not found in agent config",
 		},
 	}
 

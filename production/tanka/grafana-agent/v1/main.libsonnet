@@ -12,7 +12,7 @@ local service = k.core.v1.service;
 (import './lib/prometheus.libsonnet') +
 (import './lib/scraping_service.libsonnet') +
 (import './lib/loki.libsonnet') +
-(import './lib/tempo.libsonnet') +
+(import './lib/traces.libsonnet') +
 {
   _images:: {
     agent: 'grafana/agent:v0.18.2',
@@ -76,7 +76,7 @@ local service = k.core.v1.service;
       } else {}
     ) + (
       if has_tempo_config then {
-        tempo: {
+        traces: {
           configs: [this._tempo_config {
             name: 'default',
           }],
@@ -94,7 +94,7 @@ local service = k.core.v1.service;
         configs: std.map(function(cfg) cfg { host_filter: false }, etc_instances),
       },
       loki:: {},
-      tempo:: {},
+      traces:: {},
       integrations:: {},
     },
 

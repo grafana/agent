@@ -10,7 +10,7 @@ subsystem helps you collect data for a specific type of telemetry.
 
 - The **Prometheus** subsystem allows you collect metrics to send to Prometheus.
 - The **Loki** subsystem allows you to collect logs to send to Grafana Loki.
-- The **Tempo** subsystem allows you to collect spans to send to Grafana Tempo.
+- The **Traces** subsystem allows you to collect spans to send to Grafana Tempo.
 - The **Integrations** subsystem allows you to collect metrics for common
   applications, such as MySQL.
 
@@ -163,7 +163,7 @@ loki:
     clients:
       - url: http://localhost:3100/loki/api/v1/push
 
-tempo:
+traces:
   configs:
   - name: default
     receivers:

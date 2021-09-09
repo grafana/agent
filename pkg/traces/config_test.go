@@ -1,4 +1,4 @@
-package tempo
+package traces
 
 import (
 	"io/ioutil"
@@ -447,7 +447,7 @@ spanmetrics:
     - name: http.method
       default: GET
     - name: http.status_code
-  prom_instance: tempo
+  prom_instance: traces
 `,
 			expectedConfig: `
 receivers:
@@ -462,8 +462,8 @@ exporters:
     retry_on_failure:
       max_elapsed_time: 60s
   remote_write:
-    namespace: tempo_spanmetrics
-    prom_instance: tempo
+    namespace: traces_spanmetrics
+    prom_instance: traces
 processors:
   spanmetrics:
     metrics_exporter: remote_write
@@ -509,7 +509,7 @@ exporters:
       max_elapsed_time: 60s
   prometheus:
     endpoint: "0.0.0.0:8889"
-    namespace: tempo_spanmetrics
+    namespace: traces_spanmetrics
 processors:
   spanmetrics:
     metrics_exporter: prometheus
@@ -535,7 +535,7 @@ remote_write:
   - endpoint: example.com:12345
 spanmetrics:
   handler_endpoint: "0.0.0.0:8889"
-  prom_instance: tempo
+  prom_instance: traces
 `,
 			expectedError: true,
 		},
@@ -857,7 +857,7 @@ spanmetrics:
     - name: http.method
       default: GET
     - name: http.status_code
-  prom_instance: tempo
+  prom_instance: traces
 automatic_logging:
   spans: true
 batch:
@@ -905,7 +905,7 @@ spanmetrics:
     - name: http.method
       default: GET
     - name: http.status_code
-  prom_instance: tempo
+  prom_instance: traces
 automatic_logging:
   spans: true
 batch:

@@ -1,4 +1,4 @@
-package tempo
+package traces
 
 import (
 	"fmt"
@@ -20,8 +20,8 @@ import (
 	"go.opentelemetry.io/collector/config/configtelemetry"
 )
 
-// Tempo wraps the OpenTelemetry collector to enable tracing pipelines
-type Tempo struct {
+// Traces wraps the OpenTelemetry collector to enable tracing pipelines
+type Traces struct {
 	mut       sync.Mutex
 	instances map[string]*Instance
 
@@ -33,24 +33,24 @@ type Tempo struct {
 }
 
 // New creates and starts trace collection.
-func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Tempo, error) {
+func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Traces, error) {
 	var leveller logLeveller
 
-	tempo := &Tempo{
+	traces := &Traces{
 		instances:           make(map[string]*Instance),
 		leveller:            &leveller,
 		logger:              newLogger(&leveller),
 		reg:                 reg,
 		promInstanceManager: promInstanceManager,
 	}
-	if err := tempo.ApplyConfig(logsSubsystem, promInstanceManager, cfg, level); err != nil {
+	if err := traces.ApplyConfig(logsSubsystem, promInstanceManager, cfg, level); err != nil {
 		return nil, err
 	}
-	return tempo, nil
+	return traces, nil
 }
 
-// ApplyConfig updates Tempo with a new Config.
-func (t *Tempo) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg Config, level logrus.Level) error {
+// ApplyConfig updates Traces with a new Config.
+func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg Config, level logrus.Level) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
 
@@ -73,7 +73,7 @@ func (t *Tempo) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instan
 
 		var (
 			instLogger = t.logger.With(zap.String("tempo_config", c.Name))
-			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"tempo_config": c.Name}, t.reg)
+			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"traces_config": c.Name}, t.reg)
 		)
 
 		inst, err := NewInstance(logsSubsystem, instReg, c, instLogger, t.promInstanceManager)
@@ -97,7 +97,7 @@ func (t *Tempo) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instan
 }
 
 // Stop stops the OpenTelemetry collector subsystem
-func (t *Tempo) Stop() {
+func (t *Traces) Stop() {
 	t.mut.Lock()
 	defer t.mut.Unlock()
 
@@ -116,8 +116,8 @@ func newLogger(zapLevel zapcore.LevelEnabler) *zap.Logger {
 		os.Stdout,
 		zapLevel,
 	), zap.AddCaller())
-	logger = logger.With(zap.String("component", "tempo"))
-	logger.Info("Tempo Logger Initialized")
+	logger = logger.With(zap.String("component", "traces"))
+	logger.Info("Traces Logger Initialized")
 
 	return logger
 }
@@ -168,7 +168,7 @@ func newMetricViews(reg prom_client.Registerer) ([]*view.View, error) {
 	}
 
 	pe, err := prometheus.NewExporter(prometheus.Options{
-		Namespace:  "tempo",
+		Namespace:  "traces",
 		Registerer: reg,
 	})
 	if err != nil {

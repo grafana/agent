@@ -1,4 +1,4 @@
-package tempo
+package traces
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/tempo/internal/tempoutils"
+	"github.com/grafana/agent/pkg/traces/internal/tempoutils"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,7 +18,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestTempo(t *testing.T) {
+func TestTraces(t *testing.T) {
 	tracesCh := make(chan pdata.Traces)
 	tracesAddr := tempoutils.NewTestServer(t, func(t pdata.Traces) {
 		tracesCh <- t
@@ -138,7 +138,7 @@ func testJaegerTracer(t *testing.T) opentracing.Tracer {
 	t.Helper()
 
 	jaegerConfig := jaegercfg.Configuration{
-		ServiceName: "TestTempo",
+		ServiceName: "TestTraces",
 		Sampler: &jaegercfg.SamplerConfig{
 			Type:  "const",
 			Param: 1,

@@ -59,9 +59,9 @@ example, you may not deploy a scraping service with Loki logs collection.
 - `scrapeKubernetesLogs`: Default Loki config that collects logs from Kubernetes
   pods.
 
-## Configure Tempo
+## Configure Traces
 
-- `withTempoConfig(config)`: Creates a Tempo config block to pass to the Agent.
+- `withTempoConfig(config)`: Creates a Traces config block to pass to the Agent.
 - (Deprecated) `withTempoPushConfig(push_config)`: Configures a location to push spans to.
 - `withTempoRemoteWrite(remote_write)`: Configures one or multiple locations to push spans to.
 - `withTempoSamplingStrategies(strategies)`: Configures strategies for trace collection.

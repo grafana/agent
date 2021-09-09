@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/tempo"
+	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
@@ -34,7 +34,7 @@ type Config struct {
 	Server       server.Config              `yaml:"server,omitempty"`
 	Metrics      metrics.Config             `yaml:"metrics,omitempty"`
 	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
-	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
+	Traces       traces.Config              `yaml:"traces,omitempty"`
 	Logs         *logs.Config               `yaml:"logs,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
@@ -122,9 +122,9 @@ func (c *Config) ApplyDefaults() error {
 
 	c.Integrations.PrometheusGlobalConfig = c.Metrics.Global.Prometheus
 
-	// since the Tempo config might rely on an existing Loki config
+	// since the Traces config might rely on an existing Loki config
 	// this check is made here to look for cross config issues before we attempt to load
-	if err := c.Tempo.Validate(c.Logs); err != nil {
+	if err := c.Traces.Validate(c.Logs); err != nil {
 		return err
 	}
 

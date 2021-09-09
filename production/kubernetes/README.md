@@ -6,7 +6,7 @@ Manifests:
 
 - Metric collection (Deployment): [`agent-bare.yaml`](./agent-bare.yaml)
 - Log collection (DaemonSet): [`agent-loki.yaml`](./agent-loki.yaml)
-- Trace collection (Deployment): [`agent-tempo.yaml`](./agent-tempo.yaml)
+- Trace collection (Deployment): [`agent-traces.yaml`](./agent-traces.yaml)
 
 ⚠️  **These manifests do not include the Agent's configuration (ConfigMaps)**,
 which are necessary to run the Agent.

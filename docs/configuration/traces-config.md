@@ -1,11 +1,11 @@
 +++
-title = "tempo_config"
+title = "traces_config"
 weight = 400
 +++
 
-# tempo_config
+# traces_config
 
-The `tempo_config` block configures a set of Tempo instances, each of which
+The `traces_config` block configures a set of Tempo instances, each of which
 configures its own tracing pipeline. Having multiple configs allows you to
 configure multiple distinct pipelines, each of which collects spans and sends
 them to a different location.
@@ -16,10 +16,10 @@ start.
 
 ```yaml
 configs:
- - [<tempo_instance_config>]
+ - [<trace_instance_config>]
  ```
 
-## tempo_instance_config
+## trace_instance_config
 
 ```yaml
 # Name configures the name of this Tempo instance. Names must be non-empty and
@@ -113,7 +113,7 @@ automatic_logging:
   # This feature only applies when `backend = logs_instance`
   [ labels: <string array> ]
   overrides:
-    [ logs_instance_tag: <string> | default = "tempo" ]
+    [ logs_instance_tag: <string> | default = "traces" ]
     [ service_key: <string> | default = "svc" ]
     [ span_name_key: <string> | default = "span" ]
     [ status_key: <string> | default = "status" ]
@@ -164,8 +164,8 @@ spanmetrics:
   const_labels:
     [ <string>: <string>... ]
 
-  # Metrics are namespaced to `tempo_spanmetrics` by default.
-  # They can be further namespaced, i.e. `{namespace}_tempo_spanmetrics`
+  # Metrics are namespaced to `traces_spanmetrics` by default.
+  # They can be further namespaced, i.e. `{namespace}_traces_spanmetrics`
   [ namespace: <string> ]
 
   # prom_instance is the prometheus used to remote write metrics.

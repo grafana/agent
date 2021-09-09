@@ -72,7 +72,7 @@ loki:
             job: varlogs
             __path__: /var/log/*log
 
-tempo:
+traces:
   configs:
   - name: default
     receivers:

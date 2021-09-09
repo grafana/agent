@@ -14,7 +14,7 @@
   // withTempoPushConfig configures a location to write traces to.
   //
   // Availabile options can be found in the configuration reference:
-  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#tempo_config
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#traces_config
   withTempoPushConfig(push_config):: {
     assert std.objectHasAll(self, '_tempo_config') : |||
       withTempoPushConfig must be merged with the result of calling
