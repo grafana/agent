@@ -209,8 +209,8 @@ type SpanMetricsConfig struct {
 	Namespace string `yaml:"namespace,omitempty"`
 	// ConstLabels are values that are applied for every exported metric.
 	ConstLabels *prometheus.Labels `yaml:"const_labels,omitempty"`
-	// PromInstance is the Agent's prometheus instance that will be used to push metrics
-	PromInstance string `yaml:"prom_instance"`
+	// MetricsInstance is the Agent's metrics instance that will be used to push metrics
+	MetricsInstance string `yaml:"metrics_instance"`
 	// HandlerEndpoint is the address where a prometheus exporter will be exposed
 	HandlerEndpoint string `yaml:"handler_endpoint"`
 }
@@ -479,14 +479,14 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 
 		var exporterName string
-		if len(c.SpanMetrics.PromInstance) != 0 && len(c.SpanMetrics.HandlerEndpoint) == 0 {
+		if len(c.SpanMetrics.MetricsInstance) != 0 && len(c.SpanMetrics.HandlerEndpoint) == 0 {
 			exporterName = remotewriteexporter.TypeStr
 			exporters[remotewriteexporter.TypeStr] = map[string]interface{}{
-				"namespace":     namespace,
-				"const_labels":  c.SpanMetrics.ConstLabels,
-				"prom_instance": c.SpanMetrics.PromInstance,
+				"namespace":        namespace,
+				"const_labels":     c.SpanMetrics.ConstLabels,
+				"metrics_instance": c.SpanMetrics.MetricsInstance,
 			}
-		} else if len(c.SpanMetrics.PromInstance) == 0 && len(c.SpanMetrics.HandlerEndpoint) != 0 {
+		} else if len(c.SpanMetrics.MetricsInstance) == 0 && len(c.SpanMetrics.HandlerEndpoint) != 0 {
 			exporterName = "prometheus"
 			exporters[exporterName] = map[string]interface{}{
 				"endpoint":     c.SpanMetrics.HandlerEndpoint,
