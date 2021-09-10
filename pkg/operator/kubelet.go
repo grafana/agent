@@ -128,5 +128,5 @@ func nodeAddress(node core_v1.Node) (string, error) {
 	if addresses, ok := m[core_v1.NodeExternalIP]; ok {
 		return addresses[0], nil
 	}
-	return "", m, fmt.Errorf("host address unknown")
+	return "", fmt.Errorf("host address unknown")
 }
