@@ -165,6 +165,31 @@ metrics:
         - url: http://localhost:9009/api/prom/push
 ```
 
+### Tempo: prom_instance rename (Breaking change)
+
+As part of `prometheus` being renamed to `metrics`, the spanmetrics
+`prom_instance` field has been renamed to `metrics_instance`. This is a breaking
+change, and the old name will no longer work.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    spanmetrics:
+      prom_instance: default
+```
+
+Example new config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    spanmetrics:
+      metrics_instance: default
+```
 
 ### Logs: Deprecation of "loki" in config. (Deprecation)
 

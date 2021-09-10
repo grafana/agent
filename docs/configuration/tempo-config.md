@@ -139,7 +139,7 @@ scrape_configs:
 # OpenTelemetry Prometheus exporters to serve the metrics locally.
 #
 # In order to use the remote_write exporter, you have to configure a Prometheus
-# instance in the Agent and pass its name to the `prom_instance` field.
+# instance in the Agent and pass its name to the `metrics_instance` field.
 #
 # If you want to use the OpenTelemetry Prometheus exporter, you have to
 # configure handler_endpoint and then scrape that endpoint.
@@ -168,8 +168,8 @@ spanmetrics:
   # They can be further namespaced, i.e. `{namespace}_tempo_spanmetrics`
   [ namespace: <string> ]
 
-  # prom_instance is the prometheus used to remote write metrics.
-  [ prom_instance: <string> ]
+  # metrics_instance is the metrics instance used to remote write metrics.
+  [ metrics_instance: <string> ]
   # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
 
@@ -204,7 +204,7 @@ tail_sampling:
 # Enabling this feature is required for tail_sampling to correctly work when
 # different agent instances can receive spans for the same trace.
 #
-# Load balancing works by layering two pipelines and consistently exporting 
+# Load balancing works by layering two pipelines and consistently exporting
 # spans belonging to a trace to the same agent instance.
 # Agent instances need to be able to communicate with each other via gRPC.
 #

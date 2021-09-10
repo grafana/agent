@@ -97,4 +97,4 @@ tempo:
       processes: true
       roots: true
     spanmetrics:
-      prom_instance: test
+      metrics_instance: test
