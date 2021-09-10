@@ -20,7 +20,7 @@ type Config struct {
 
 	ConstLabels  labels.Labels `mapstructure:"const_labels"`
 	Namespace    string        `mapstructure:"namespace"`
-	PromInstance string        `mapstructure:"prom_instance"`
+	PromInstance string        `mapstructure:"metrics_instance"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
