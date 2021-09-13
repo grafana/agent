@@ -54,7 +54,8 @@ receiving all spans for a trace in the same agent to be processed, such as
 service graphs.
 
 As a consequence, `tail_sampling.load_balancing` has been deprecated in favor of
-a `load_balancing` block.
+a `load_balancing` block. Also, `port` has been renamed to `receiver_port` and
+moved to the new `load_balancing` block.
 
 Example old config:
 
@@ -62,6 +63,7 @@ Example old config:
 tail_sampling:
   policies:
     - always_sample:
+  port: 4318
   load_balancing:
     exporter:
       insecure: true
@@ -84,6 +86,7 @@ load_balancing:
     dns:
       hostname: agent
       port: 4318
+  receiver_port: 4318
 ```
 
 ### Operator: Rename of Prometheus to Metrics (Breaking change)
@@ -195,6 +198,31 @@ metrics:
         - url: http://localhost:9009/api/prom/push
 ```
 
+### Tempo: prom_instance rename (Breaking change)
+
+As part of `prometheus` being renamed to `metrics`, the spanmetrics
+`prom_instance` field has been renamed to `metrics_instance`. This is a breaking
+change, and the old name will no longer work.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    spanmetrics:
+      prom_instance: default
+```
+
+Example new config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    spanmetrics:
+      metrics_instance: default
+```
 
 ### Logs: Deprecation of "loki" in config. (Deprecation)
 

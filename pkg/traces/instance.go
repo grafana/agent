@@ -148,7 +148,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		}
 	}
 
-	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.PromInstance) != 0 {
+	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.MetricsInstance) != 0 {
 		ctx = context.WithValue(ctx, contextkeys.Prometheus, promManager)
 	}
 

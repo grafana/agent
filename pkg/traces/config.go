@@ -209,8 +209,8 @@ type SpanMetricsConfig struct {
 	Namespace string `yaml:"namespace,omitempty"`
 	// ConstLabels are values that are applied for every exported metric.
 	ConstLabels *prometheus.Labels `yaml:"const_labels,omitempty"`
-	// PromInstance is the Agent's prometheus instance that will be used to push metrics
-	PromInstance string `yaml:"prom_instance"`
+	// MetricsInstance is the Agent's metrics instance that will be used to push metrics
+	MetricsInstance string `yaml:"metrics_instance"`
 	// HandlerEndpoint is the address where a prometheus exporter will be exposed
 	HandlerEndpoint string `yaml:"handler_endpoint"`
 }
@@ -222,8 +222,6 @@ type tailSamplingConfig struct {
 	Policies []map[string]interface{} `yaml:"policies"`
 	// DecisionWait defines the time to wait for a complete trace before making a decision
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
-	// Port is the port the instance will use to receive load balanced traces
-	Port string `yaml:"port"`
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
@@ -231,6 +229,8 @@ type tailSamplingConfig struct {
 type loadBalancingConfig struct {
 	Exporter exporterConfig         `yaml:"exporter"`
 	Resolver map[string]interface{} `yaml:"resolver"`
+	// ReceiverPort is the port the instance will use to receive load balanced traces
+	ReceiverPort string `yaml:"receiver_port"`
 }
 
 // exporterConfig defined the config for a otlp exporter for load balancing
@@ -479,14 +479,14 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 
 		var exporterName string
-		if len(c.SpanMetrics.PromInstance) != 0 && len(c.SpanMetrics.HandlerEndpoint) == 0 {
+		if len(c.SpanMetrics.MetricsInstance) != 0 && len(c.SpanMetrics.HandlerEndpoint) == 0 {
 			exporterName = remotewriteexporter.TypeStr
 			exporters[remotewriteexporter.TypeStr] = map[string]interface{}{
-				"namespace":     namespace,
-				"const_labels":  c.SpanMetrics.ConstLabels,
-				"prom_instance": c.SpanMetrics.PromInstance,
+				"namespace":        namespace,
+				"const_labels":     c.SpanMetrics.ConstLabels,
+				"metrics_instance": c.SpanMetrics.MetricsInstance,
 			}
-		} else if len(c.SpanMetrics.PromInstance) == 0 && len(c.SpanMetrics.HandlerEndpoint) != 0 {
+		} else if len(c.SpanMetrics.MetricsInstance) == 0 && len(c.SpanMetrics.HandlerEndpoint) != 0 {
 			exporterName = "prometheus"
 			exporters[exporterName] = map[string]interface{}{
 				"endpoint":     c.SpanMetrics.HandlerEndpoint,
@@ -544,8 +544,8 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		exporters["loadbalancing"] = internalExporter
 
 		receiverPort := defaultLoadBalancingPort
-		if c.TailSampling.Port != "" {
-			receiverPort = c.TailSampling.Port
+		if c.LoadBalancing.ReceiverPort != "" {
+			receiverPort = c.LoadBalancing.ReceiverPort
 		}
 		c.Receivers["otlp/lb"] = map[string]interface{}{
 			"protocols": map[string]interface{}{
@@ -557,7 +557,7 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	}
 
 	// Build Pipelines
-	splitPipeline := c.TailSampling != nil && c.LoadBalancing != nil
+	splitPipeline := c.LoadBalancing != nil
 	orderedSplitProcessors := orderProcessors(processorNames, splitPipeline)
 	if splitPipeline {
 		// load balancing pipeline
@@ -690,7 +690,8 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	foundAt := len(processors)
 	for i, processor := range processors {
 		if processor == "batch" ||
-			processor == "tail_sampling" {
+			processor == "tail_sampling" ||
+			processor == "automatic_logging" {
 			foundAt = i
 			break
 		}
