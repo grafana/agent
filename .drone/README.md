@@ -1,6 +1,6 @@
-When updating the drone.yml file you need to run `make drone` to sign the drone file. This is limited to Grafana employees for security reasons.
+When updating the drone.yml file the file must be re-signed using `make drone`. This is limited to Grafana employees for security reasons.
 
-Drone environment variables will be need to be setup beforehand.
+Drone environment variables will need to be setup beforehand.
 
 ```
 export DRONE_SERVER=<url>
