@@ -1,9 +1,6 @@
 +++
-title = "traces_config"
+title = "tempo_config"
 weight = 400
-aliases = [
-"/configuration/tempo_config"
-]
 +++
 
 # traces_config
