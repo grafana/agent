@@ -297,3 +297,42 @@ traces:
 		require.EqualError(t, err, tc.expectedError)
 	}
 }
+
+func TestConfig_TempoNameMigration(t *testing.T) {
+	input := util.Untab(`
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: stdout
+      loki_name: doesnt_exist
+      spans: true`)
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
+	require.NoError(t, cfg.ApplyDefaults())
+
+	require.NotNil(t, cfg.Traces)
+
+	require.Equal(t, "default", cfg.Traces.Configs[0].Name)
+	require.Equal(t, []string{"`tempo` has been deprecated in favor of `traces`"}, cfg.Deprecations)
+}
+
+func TestConfig_TempoTracesDuplicateMigration(t *testing.T) {
+	input := util.Untab(`
+traces:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: stdout
+      loki_name: doesnt_exist
+      spans: true
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: stdout
+      loki_name: doesnt_exist
+      spans: true`)
+	var cfg Config
+	require.EqualError(t, LoadBytes([]byte(input), false, &cfg), "at most one of tempo and traces should be specified")
+}

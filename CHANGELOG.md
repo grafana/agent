@@ -29,8 +29,6 @@ for specific instructions.
 - [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
   the $HOSTNAME variable in agent config.  (@dfrankel33) 
 
-- [ENHANCEMENT] Rename Tempo to Traces (@mattdurham)
-
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`. (@rfratto)
 
@@ -81,6 +79,8 @@ for specific instructions.
   deprecated in favor of `metrics`. Flag names starting with `prometheus.` have
   also been deprecated in favor of the same flags with the `metrics.` prefix.
   (@rfratto)
+
+- [DEPRECATION] Rename Tempo to Traces (@mattdurham)
 
 # v0.18.3 (2021-09-08)
 

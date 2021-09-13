@@ -62,6 +62,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		// Deprecated field names:
 		Prometheus *metrics.Config `yaml:"prometheus,omitempty"`
 		Loki       *logs.Config    `yaml:"loki,omitempty"`
+		Tempo      *traces.Config  `yaml:"tempo,omitempty"`
 	}
 
 	var fc config
@@ -86,6 +87,14 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		fc.Deprecations = append(fc.Deprecations, "`loki` has been deprecated in favor of `logs`")
 		fc.Logs = fc.Loki
 		fc.Loki = nil
+	}
+
+	if fc.Tempo != nil && fc.Traces.Unmarshaled {
+		return fmt.Errorf("at most one of tempo and traces should be specified")
+	} else if fc.Tempo != nil && fc.Tempo.Unmarshaled {
+		fc.Deprecations = append(fc.Deprecations, "`tempo` has been deprecated in favor of `traces`")
+		fc.Traces = *fc.Tempo
+		fc.Tempo = nil
 	}
 
 	*c = Config(fc.baseConfig)

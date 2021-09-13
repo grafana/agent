@@ -59,10 +59,14 @@ const (
 // Config controls the configuration of Traces trace pipelines.
 type Config struct {
 	Configs []InstanceConfig `yaml:"configs,omitempty"`
+
+	// Unmarshaled is true when the Config was unmarshaled from YAML.
+	Unmarshaled bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	c.Unmarshaled = true
 	type plain Config
 	return unmarshal((*plain)(c))
 }
