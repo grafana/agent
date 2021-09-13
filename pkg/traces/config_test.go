@@ -963,7 +963,7 @@ spanmetrics:
     - name: http.method
       default: GET
     - name: http.status_code
-  metrics_instance: tempo
+  metrics_instance: traces
 automatic_logging:
   spans: true
 batch:
