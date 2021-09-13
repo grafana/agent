@@ -40,7 +40,7 @@ type Entrypoint struct {
 	srv         *server.Server
 	promMetrics *metrics.Agent
 	lokiLogs    *loki.Logs
-	traces      *traces.Traces
+	tempoTraces *traces.Traces
 	manager     *integrations.Manager
 
 	reloadListener net.Listener
@@ -85,7 +85,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.traces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Traces, cfg.Server.LogLevel.Logrus)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Traces, cfg.Server.LogLevel.Logrus)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.traces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces, cfg.Server.LogLevel.Logrus); err != nil {
+	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces, cfg.Server.LogLevel.Logrus); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update traces", "err", err)
 		failed = true
 	}
@@ -221,7 +221,7 @@ func (ep *Entrypoint) Stop() {
 	ep.manager.Stop()
 	ep.lokiLogs.Stop()
 	ep.promMetrics.Stop()
-	ep.traces.Stop()
+	ep.tempoTraces.Stop()
 	ep.srv.Close()
 
 	if ep.reloadServer != nil {
