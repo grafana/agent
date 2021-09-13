@@ -22,6 +22,8 @@ for specific instructions.
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
 
+- [ENHANCEMENT] Rename Tempo to Traces (@mattdurham)
+
 - [ENHANCEMENT] Update OTel dependency to v0.30.0 (@mapno)
 
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
