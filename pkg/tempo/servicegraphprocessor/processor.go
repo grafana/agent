@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
@@ -18,10 +19,26 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
+	"google.golang.org/grpc/codes"
 )
 
 var (
-	errTooManyItems = errors.New("too many items in store")
+	errTooManyItems     = errors.New("too many items in store")
+	defaultSuccessCodes = successCodes{
+		http: []int64{
+			http.StatusOK,
+			http.StatusCreated,
+			http.StatusAccepted,
+			http.StatusNonAuthoritativeInfo,
+			http.StatusNoContent,
+			http.StatusResetContent,
+			http.StatusPartialContent,
+			http.StatusMultiStatus,
+			http.StatusAlreadyReported,
+			http.StatusIMUsed,
+		},
+		grpc: []int64{int64(codes.OK)},
+	}
 )
 
 // edgeRequest is a request between two nodes in the graph
@@ -57,6 +74,8 @@ type processor struct {
 	serviceGraphUnpairedSpansTotal     *prometheus.CounterVec
 	serviceGraphUntaggedSpansTotal     *prometheus.CounterVec
 
+	successCodes successCodes
+
 	logger log.Logger
 }
 
@@ -70,14 +89,21 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		cfg.MaxItems = DefaultMaxItems
 	}
 
+	successCodes := defaultSuccessCodes
+	if cfg.SuccessCodes != nil {
+		successCodes.http = append(successCodes.http, cfg.SuccessCodes.http...)
+		successCodes.grpc = append(successCodes.grpc, cfg.SuccessCodes.grpc...)
+	}
+
 	// TODO(mapno): Add support for an external cache (e.g. memcached)
 	p := &processor{
 		nextConsumer: nextConsumer,
 		// Cleanup period is hardcoded to twice the waiting time for simplicity
 		// Most likely not ideal in every scenario
-		store:    cache.New(cfg.Wait, cfg.Wait*2),
-		maxItems: cfg.MaxItems,
-		logger:   logger,
+		store:        cache.New(cfg.Wait, cfg.Wait*2),
+		maxItems:     cfg.MaxItems,
+		logger:       logger,
+		successCodes: successCodes,
 	}
 
 	return p
@@ -240,7 +266,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					}
 					r.clientService = svc.StringVal()
 					r.clientLatency = spanDuration(span)
-					r.failed = spanFailed(span)
+					r.failed = p.spanFailed(span)
 					p.store.SetDefault(k, r)
 
 				case pdata.SpanKindServer:
@@ -253,7 +279,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 					r.serverService = svc.StringVal()
 					r.serverLatency = spanDuration(span)
-					r.failed = spanFailed(span)
+					r.failed = p.spanFailed(span)
 					p.store.SetDefault(k, r)
 
 				default:
@@ -265,9 +291,25 @@ func (p *processor) consume(trace pdata.Traces) error {
 	return nil
 }
 
-func spanFailed(span pdata.Span) bool {
-	httpStatusCode, ok := span.Attributes().Get("http.status_code")
-	return span.Status().Code() == pdata.StatusCodeError || (ok && httpStatusCode.IntVal()/100 != 2)
+func (p *processor) spanFailed(span pdata.Span) bool {
+	var httpOK, grpcOK bool
+	if statusCode, ok := span.Attributes().Get("http.status_code"); ok {
+		for _, successCode := range p.successCodes.http {
+			if statusCode.IntVal() == successCode {
+				httpOK = true
+				break
+			}
+		}
+	}
+	if statusCode, ok := span.Attributes().Get("rpc.grpc.status_code"); ok {
+		for _, successCode := range p.successCodes.grpc {
+			if statusCode.IntVal() == successCode {
+				grpcOK = true
+				break
+			}
+		}
+	}
+	return span.Status().Code() == pdata.StatusCodeError || !httpOK || !grpcOK
 }
 
 func spanDuration(span pdata.Span) time.Duration {

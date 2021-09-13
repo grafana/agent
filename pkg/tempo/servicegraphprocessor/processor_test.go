@@ -153,7 +153,8 @@ const (
 		tempo_service_graph_request_client_seconds_count{client="lb",server="app"} 3
 		# HELP tempo_service_graph_request_failed_total Total count of failed requests between two nodes
 		# TYPE tempo_service_graph_request_failed_total counter
-		tempo_service_graph_request_failed_total{client="lb",server="app"} 1
+		tempo_service_graph_request_failed_total{client="app",server="db"} 3
+		tempo_service_graph_request_failed_total{client="lb",server="app"} 3
 		# HELP tempo_service_graph_request_server_seconds Time for a request between two nodes as seen from the server
 		# TYPE tempo_service_graph_request_server_seconds histogram
 		tempo_service_graph_request_server_seconds_bucket{client="app",server="db",le="0.01"} 0

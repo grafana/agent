@@ -284,7 +284,8 @@
                 }
               ],
               "status":{
-
+                "deprecatedCode":"DEPRECATED_STATUS_CODE_UNKNOWN_ERROR",
+                "code":"STATUS_CODE_ERROR"
               }
             },
             {
