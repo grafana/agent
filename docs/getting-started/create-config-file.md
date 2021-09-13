@@ -8,8 +8,8 @@ weight = 200
 The Grafana Agent supports configuring multiple independent "subsystems." Each
 subsystem helps you collect data for a specific type of telemetry.
 
-- The **Prometheus** subsystem allows you collect metrics to send to Prometheus.
-- The **Loki** subsystem allows you to collect logs to send to Grafana Loki.
+- The **Metrics** subsystem allows you collect metrics to send to Prometheus.
+- The **Logs** subsystem allows you to collect logs to send to Grafana Loki.
 - The **Traces** subsystem allows you to collect spans to send to Grafana Tempo.
 - The **Integrations** subsystem allows you to collect metrics for common
   applications, such as MySQL.

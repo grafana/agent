@@ -1,6 +1,7 @@
 +++
-title = "tempo_config"
+title = "traces_config"
 weight = 400
+aliases = ["/docs/agent/latest/configuration/tempo-config/"]
 +++
 
 # traces_config
