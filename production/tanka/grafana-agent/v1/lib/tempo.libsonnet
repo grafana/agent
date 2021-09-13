@@ -1,64 +1,64 @@
 {
-  // withTempoConfig adds a Tempo config to collect traces.
+  // withTracesConfig adds a Traces config to collect traces.
   //
   // For the full list of options, refer to the configuration reference:
   //
-  withTempoConfig(config):: {
+  withTracesConfig(config):: {
     assert std.objectHasAll(self, '_mode') : |||
-      withTempoConfig must be merged with the result of calling new.
+      withTracesConfig must be merged with the result of calling new.
     |||,
-    _tempo_config:: config,
+    _trace_config:: config,
   },
 
-  // Deprecated in favor of withTempoRemoteWrite.
-  // withTempoPushConfig configures a location to write traces to.
+  // Deprecated in favor of withTracesRemoteWrite.
+  // withTracePushConfig configures a location to write traces to.
   //
-  // Availabile options can be found in the configuration reference:
+  // Available options can be found in the configuration reference:
   // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#traces_config
-  withTempoPushConfig(push_config):: {
-    assert std.objectHasAll(self, '_tempo_config') : |||
-      withTempoPushConfig must be merged with the result of calling
-      withTempoConfig.
+  withTracePushConfig(push_config):: {
+    assert std.objectHasAll(self, '_trace_config') : |||
+      withTracePushConfig must be merged with the result of calling
+      withTracesConfig.
     |||,
-    _tempo_config+:: { push_config: push_config },
+    _trace_config+:: { push_config: push_config },
   },
 
-  // withTempoRemoteWrite configures one or multiple backends to write traces to.
+  // withTracesRemoteWrite configures one or multiple backends to write traces to.
   //
-  // Availabile options can be found in the configuration reference:
-  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#tempo_config
-  withTempoRemoteWrite(remote_write):: {
-    assert std.objectHasAll(self, '_tempo_config') : |||
-      withTempoRemoteWrite must be merged with the result of calling
-      withTempoConfig.
+  // Available options can be found in the configuration reference:
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#traces_config
+  withTracesRemoteWrite(remote_write):: {
+    assert std.objectHasAll(self, '_trace_config') : |||
+      withTracesRemoteWrite must be merged with the result of calling
+      withTracesConfig.
     |||,
-    _tempo_config+:: { remote_write: remote_write },
+    _trace_config+:: { remote_write: remote_write },
   },
 
-  // withTempoSamplingStrategies accepts an object for trace sampling strategies.
+  // withTracesSamplingStrategies accepts an object for trace sampling strategies.
   //
   // Refer to Jaeger's documentation for available fields:
   // https://www.jaegertracing.io/docs/1.17/sampling/#collector-sampling-configuration
   //
   // Creating a file isn't necessary; just provide the object and a ConfigMap
   // will be created for you and added to the tempo config.
-  withTempoSamplingStrategies(strategies):: {
-    assert std.objectHasAll(self, '_tempo_config') : |||
-      withTempoPushConfig must be merged with the result of calling
-      withTempoConfig.
+  withTracesSamplingStrategies(strategies):: {
+    assert std.objectHasAll(self, '_trace_config') : |||
+      withTracesPushConfig must be merged with the result of calling
+      withTracesConfig.
     |||,
 
     assert
-    std.objectHasAll(self._tempo_config, 'receivers') &&
-    std.objectHasAll(self._tempo_config.receivers, 'jaeger') : |||
-        withStrategies can only be used if the tempo config is configured for
+    std.objectHasAll(self._trace_config, 'receivers') &&
+    std.objectHasAll(self._trace_config.receivers, 'jaeger') : |||
+        withStrategies can only be used if the traces config is configured for
         receiving Jaeger spans and traces.
       |||,
 
-    // The main library should detect the presence of _tempo_sampling_strategies
+    // The main library should detect the presence of _traces_sampling_strategies
     // and create a ConfigMap bound to /etc/agent/strategies.json.
-    _tempo_sampling_strategies:: strategies,
-    _tempo_config+:: {
+    _traces_sampling_strategies:: strategies,
+    _trace_config+:: {
       receivers+: {
         jaeger+: {
           remote_sampling: {
@@ -73,17 +73,17 @@
   // Configures scrape_configs for discovering meta labels that will be attached
   // to incoming metrics and spans whose IP matches the __address__ of the
   // target.
-  withTempoScrapeConfigs(scrape_configs):: {
-    assert std.objectHasAll(self, '_tempo_config') : |||
-      withTempoScrapeConfigs must be merged with the result of calling
-      withTempoConfig.
+  withTracesScrapeConfigs(scrape_configs):: {
+    assert std.objectHasAll(self, '_trace_config') : |||
+      withTracesScrapeConfigs must be merged with the result of calling
+      withTracesConfig.
     |||,
-    _tempo_config+: { scrape_configs: scrape_configs },
+    _trace_config+: { scrape_configs: scrape_configs },
   },
 
   // Provides a default set of scrape_configs to use for discovering labels from
   // Pods. Labels will be attached to any traces sent from the discovered pods.
-  tempoScrapeKubernetes:: [
+  tracesScrapeKubernetes:: [
     {
       bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
       job_name: 'kubernetes-pods',
@@ -112,23 +112,23 @@
     },
   ],
 
-  // withTempoTailSamplingConfig tail-based sampling for traces.
+  // withTracesTailSamplingConfig tail-based sampling for traces.
   //
-  // Availabile options can be found in the configuration reference:
-  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#tempo_config
-  withTempoTailSamplingConfig(tail_sampling):: {
-    assert std.objectHasAll(self, '_tempo_config') : |||
-      withTempoTailSamplingConfig must be merged with the result of calling
-      withTempoConfig.
+  // Available options can be found in the configuration reference:
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#traces_config
+  withTracesTailSamplingConfig(tail_sampling):: {
+    assert std.objectHasAll(self, '_trace_config') : |||
+      withTracesTailSamplingConfig must be merged with the result of calling
+      withTracesConfig.
     |||,
-    _tempo_config+:: { tail_sampling: tail_sampling },
+    _trace_config+:: { tail_sampling: tail_sampling },
   },
 
-  withTempoLoadBalancingConfig(load_balancing):: {
-    assert std.objectHasAll(self, '_tempo_config') : |||
-      withTempoLoadBalancingConfig must be merged with the result of calling
-      withTempoConfig.
+  withTracesLoadBalancingConfig(load_balancing):: {
+    assert std.objectHasAll(self, '_trace_config') : |||
+      withTracesLoadBalancingConfig must be merged with the result of calling
+      withTracesConfig.
     |||,
-    _tempo_config+:: { load_balancing: load_balancing },
+    _trace_config+:: { load_balancing: load_balancing },
   }
 }

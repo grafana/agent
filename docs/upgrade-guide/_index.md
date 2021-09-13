@@ -14,7 +14,7 @@ These changes will come in a future version.
 
 
 
-### Traces: Deprecation of "tempo" in config and span attributes. (Deprecation)
+### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
 
 The term `tempo` in the config has been deprecated of favor of `traces`. This
 change is to make intent clearer.

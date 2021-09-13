@@ -16,10 +16,10 @@ start.
 
 ```yaml
 configs:
- - [<trace_instance_config>]
+ - [<traces_instance_config>]
  ```
 
-## trace_instance_config
+## traces_instance_config
 
 ```yaml
 # Name configures the name of this Tempo instance. Names must be non-empty and

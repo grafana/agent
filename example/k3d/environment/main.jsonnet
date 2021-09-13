@@ -69,7 +69,7 @@ local images = {
       hostname: 'loki.default.svc.cluster.local',
       external_labels: { cluster: cluster_label },
     })) +
-    grafana_agent.withTempoConfig({
+    grafana_agent.withTracesConfig({
       receivers: {
         jaeger: {
           protocols: {
@@ -86,18 +86,18 @@ local images = {
       containerPort.new('thrift-http', 14268) + containerPort.withProtocol('TCP'),
       containerPort.new('otlp-lb', 4318) + containerPort.withProtocol('TCP'),
     ]) +
-    grafana_agent.withTempoRemoteWrite([
+    grafana_agent.withTracesRemoteWrite([
       {
         endpoint: 'collector.default.svc.cluster.local:55680',
         insecure: true,
       },
     ]) +
-    grafana_agent.withTempoTailSamplingConfig({
+    grafana_agent.withTracesTailSamplingConfig({
       policies: [{
         always_sample: null,
       }],
     }) +
-    grafana_agent.withTempoLoadBalancingConfig({
+    grafana_agent.withTracesLoadBalancingConfig({
       exporter: {
         insecure: true,
       },

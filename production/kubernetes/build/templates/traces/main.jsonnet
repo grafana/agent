@@ -16,7 +16,7 @@ local newPort(name, portNumber, protocol='TCP') =
     agent.withImages({
       agent: (import 'version.libsonnet'),
     }) +
-    agent.withTempoConfig({
+    agent.withTracesConfig({
       receivers: {
         jaeger: {
           protocols: {
@@ -56,7 +56,7 @@ local newPort(name, portNumber, protocol='TCP') =
       // Opencensus
       newPort('opencensus', 55678, 'TCP'),
     ]) +
-    agent.withTempoRemoteWrite([
+    agent.withTracesRemoteWrite([
       {
         endpoint: '${TEMPO_ENDPOINT}',
         basic_auth: {
@@ -68,13 +68,13 @@ local newPort(name, portNumber, protocol='TCP') =
         },
       },
     ]) +
-    agent.withTempoSamplingStrategies({
+    agent.withTracesSamplingStrategies({
       default_strategy: {
         type: 'probabilistic',
         param: 0.001,
       },
     }) +
-    agent.withTempoScrapeConfigs(agent.tempoScrapeKubernetes) + {
+    agent.withTracesScrapeConfigs(agent.tracesScrapeKubernetes) + {
       agent+: {
         // Remove this block to generate ConfigMap
         config_map:: {},

@@ -72,13 +72,13 @@ func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager insta
 		}
 
 		var (
-			instLogger = t.logger.With(zap.String("tempo_config", c.Name))
+			instLogger = t.logger.With(zap.String("traces_config", c.Name))
 			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"traces_config": c.Name}, t.reg)
 		)
 
 		inst, err := NewInstance(logsSubsystem, instReg, c, instLogger, t.promInstanceManager)
 		if err != nil {
-			return fmt.Errorf("failed to create tempo instance %s: %w", c.Name, err)
+			return fmt.Errorf("failed to create tracing instance %s: %w", c.Name, err)
 		}
 		newInstances[c.Name] = inst
 	}

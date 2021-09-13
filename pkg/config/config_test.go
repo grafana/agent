@@ -152,7 +152,7 @@ func TestConfig_Defaults(t *testing.T) {
 	require.Equal(t, integrations.DefaultManagerConfig, c.Integrations)
 }
 
-func TestConfig_TempoLokiValidates(t *testing.T) {
+func TestConfig_TracesLokiValidates(t *testing.T) {
 	tests := []struct {
 		cfg string
 	}{
@@ -263,7 +263,7 @@ prometheus:
 	require.Equal(t, []string{"`prometheus` has been deprecated in favor of `metrics`"}, cfg.Deprecations)
 }
 
-func TestConfig_TempoLokiFailsValidation(t *testing.T) {
+func TestConfig_TracesLokiFailsValidation(t *testing.T) {
 	tests := []struct {
 		cfg           string
 		expectedError string

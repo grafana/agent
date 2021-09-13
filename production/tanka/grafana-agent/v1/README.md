@@ -61,13 +61,13 @@ example, you may not deploy a scraping service with Loki logs collection.
 
 ## Configure Traces
 
-- `withTempoConfig(config)`: Creates a Traces config block to pass to the Agent.
-- (Deprecated) `withTempoPushConfig(push_config)`: Configures a location to push spans to.
-- `withTempoRemoteWrite(remote_write)`: Configures one or multiple locations to push spans to.
-- `withTempoSamplingStrategies(strategies)`: Configures strategies for trace collection.
-- `withTempoScrapeConfigs(scrape_configs)`: Configures scrape configs to attach
+- `withTracesConfig(config)`: Creates a Traces config block to pass to the Agent.
+- (Deprecated) `withTracesPushConfig(push_config)`: Configures a location to push spans to.
+- `withTracesRemoteWrite(remote_write)`: Configures one or multiple locations to push spans to.
+- `withTracesSamplingStrategies(strategies)`: Configures strategies for trace collection.
+- `withTracesScrapeConfigs(scrape_configs)`: Configures scrape configs to attach
    labels to incoming spans.
-- `tempoScrapeKubernetes`: Default scrape configs to collect meta information
+- `tracesScrapeKubernetes`: Default scrape configs to collect meta information
    from pods. Aligns with the labels from `scrapeInstanceKubernetes` and
    `scrapeKubernetesLogs` so logs, metrics, and traces all use the same set of
    labels.
