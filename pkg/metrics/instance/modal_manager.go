@@ -50,8 +50,7 @@ type ModalManager struct {
 	mode    Mode
 	configs map[string]Config
 
-	appliedConfigs       *prometheus.GaugeVec
-	deletedConfigs       prometheus.Gauge
+	changedConfigs       *prometheus.GaugeVec
 	currentActiveConfigs prometheus.Gauge
 
 	log log.Logger
@@ -71,14 +70,10 @@ type ModalManager struct {
 
 // NewModalManager creates a new ModalManager.
 func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode Mode) (*ModalManager, error) {
-	appliedConfigs := promauto.With(reg).NewGaugeVec(prometheus.GaugeOpts{
-		Name: "agent_prometheus_configs_applied_total",
+	changedConfigs := promauto.With(reg).NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_prometheus_configs_changed_total",
 		Help: "Total number of dynamically updated configs",
-	}, []string{"created"})
-	deletedConfigs := promauto.With(reg).NewGauge(prometheus.GaugeOpts{
-		Name: "agent_prometheus_configs_deleted_total",
-		Help: "Total number of dynamically deleted configs",
-	})
+	}, []string{"event"})
 	currentActiveConfigs := promauto.With(reg).NewGauge(prometheus.GaugeOpts{
 		Name: "agent_prometheus_active_configs",
 		Help: "Current number of active configs being used by the agent.",
@@ -87,8 +82,7 @@ func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode
 	mm := ModalManager{
 		wrapped:              next,
 		log:                  l,
-		appliedConfigs:       appliedConfigs,
-		deletedConfigs:       deletedConfigs,
+		changedConfigs:       changedConfigs,
 		currentActiveConfigs: currentActiveConfigs,
 		configs:              make(map[string]Config),
 	}
@@ -183,9 +177,9 @@ func (m *ModalManager) ApplyConfig(c Config) error {
 
 	if _, existingConfig := m.configs[c.Name]; !existingConfig {
 		m.currentActiveConfigs.Inc()
-		m.appliedConfigs.WithLabelValues("1").Inc()
+		m.changedConfigs.WithLabelValues("created").Inc()
 	} else {
-		m.appliedConfigs.WithLabelValues("0").Inc()
+		m.changedConfigs.WithLabelValues("updated").Inc()
 	}
 
 	m.configs[c.Name] = c
@@ -207,7 +201,7 @@ func (m *ModalManager) DeleteConfig(name string) error {
 		delete(m.configs, name)
 	}
 
-	m.deletedConfigs.Inc()
+	m.changedConfigs.WithLabelValues("deleted").Inc()
 	return nil
 }
 

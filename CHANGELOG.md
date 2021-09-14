@@ -72,6 +72,9 @@ for specific instructions.
 - [CHANGE] Breaking change: `prom_instance` in the spanmetrics config is now
   named `metrics_instance`. (@rfratto)
 
+- [CHANGE] Add `agent_prometheus_configs_changed_total` metric to track instance
+  config events. (@rfratto)
+
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
