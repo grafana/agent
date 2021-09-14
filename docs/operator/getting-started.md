@@ -49,7 +49,7 @@ spec:
       serviceAccountName: grafana-agent-operator
       containers:
       - name: operator
-        image: grafana/agent-operator:v0.18.3
+        image: grafana/agent-operator:v0.18.4
 ---
 
 apiVersion: v1
@@ -139,7 +139,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.18.3
+  image: grafana/agent:v0.18.4
   logLevel: info
   serviceAccountName: grafana-agent
   prometheus:
