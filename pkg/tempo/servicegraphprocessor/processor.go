@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
@@ -23,22 +22,7 @@ import (
 )
 
 var (
-	errTooManyItems     = errors.New("too many items in store")
-	defaultSuccessCodes = successCodes{
-		http: []int64{
-			http.StatusOK,
-			http.StatusCreated,
-			http.StatusAccepted,
-			http.StatusNonAuthoritativeInfo,
-			http.StatusNoContent,
-			http.StatusResetContent,
-			http.StatusPartialContent,
-			http.StatusMultiStatus,
-			http.StatusAlreadyReported,
-			http.StatusIMUsed,
-		},
-		grpc: []int64{int64(codes.OK)},
-	}
+	errTooManyItems = errors.New("too many items in store")
 )
 
 // edgeRequest is a request between two nodes in the graph
@@ -74,7 +58,9 @@ type processor struct {
 	serviceGraphUnpairedSpansTotal     *prometheus.CounterVec
 	serviceGraphUntaggedSpansTotal     *prometheus.CounterVec
 
-	successCodes successCodes
+	successCodes    successCodes
+	httpSuccessCode map[int]struct{}
+	grpcSuccessCode map[int]struct{}
 
 	logger log.Logger
 }
@@ -89,10 +75,14 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		cfg.MaxItems = DefaultMaxItems
 	}
 
-	successCodes := defaultSuccessCodes
+	var httpSuccessCode, grpcSuccessCode map[int]struct{}
 	if cfg.SuccessCodes != nil {
-		successCodes.http = append(successCodes.http, cfg.SuccessCodes.http...)
-		successCodes.grpc = append(successCodes.grpc, cfg.SuccessCodes.grpc...)
+		for _, sc := range cfg.SuccessCodes.http {
+			httpSuccessCode[int(sc)] = struct{}{}
+		}
+		for _, sc := range cfg.SuccessCodes.grpc {
+			grpcSuccessCode[int(sc)] = struct{}{}
+		}
 	}
 
 	// TODO(mapno): Add support for an external cache (e.g. memcached)
@@ -100,10 +90,9 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		nextConsumer: nextConsumer,
 		// Cleanup period is hardcoded to twice the waiting time for simplicity
 		// Most likely not ideal in every scenario
-		store:        cache.New(cfg.Wait, cfg.Wait*2),
-		maxItems:     cfg.MaxItems,
-		logger:       logger,
-		successCodes: successCodes,
+		store:    cache.New(cfg.Wait, cfg.Wait*2),
+		maxItems: cfg.MaxItems,
+		logger:   logger,
 	}
 
 	return p
@@ -292,24 +281,23 @@ func (p *processor) consume(trace pdata.Traces) error {
 }
 
 func (p *processor) spanFailed(span pdata.Span) bool {
-	var httpOK, grpcOK bool
+	// Request considered failed if status is not 2XX or added as a successful status code
 	if statusCode, ok := span.Attributes().Get("http.status_code"); ok {
-		for _, successCode := range p.successCodes.http {
-			if statusCode.IntVal() == successCode {
-				httpOK = true
-				break
-			}
+		sc := int(statusCode.IntVal())
+		if _, ok := p.httpSuccessCode[sc]; !ok || sc/100 != 2 {
+			return true
 		}
 	}
-	if statusCode, ok := span.Attributes().Get("rpc.grpc.status_code"); ok {
-		for _, successCode := range p.successCodes.grpc {
-			if statusCode.IntVal() == successCode {
-				grpcOK = true
-				break
-			}
+
+	// Request considered failed if status is not OK or added as a successful status code
+	if statusCode, ok := span.Attributes().Get("grpc.status_code"); ok {
+		sc := int(statusCode.IntVal())
+		if _, ok := p.httpSuccessCode[sc]; !ok || sc != int(codes.OK) {
+			return true
 		}
 	}
-	return span.Status().Code() == pdata.StatusCodeError || !httpOK || !grpcOK
+
+	return span.Status().Code() == pdata.StatusCodeError
 }
 
 func spanDuration(span pdata.Span) time.Duration {
