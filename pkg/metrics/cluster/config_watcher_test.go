@@ -206,6 +206,30 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 	})
 }
 
+func Test_configWatcher_nextReshard(t *testing.T) {
+	watcher := &configWatcher{
+		log: util.TestLogger(t),
+		cfg: Config{ReshardInterval: time.Second},
+	}
+
+	t.Run("past time", func(t *testing.T) {
+		select {
+		case <-watcher.nextReshard(time.Time{}):
+		case <-time.After(250 * time.Millisecond):
+			require.FailNow(t, "nextReshard did not return an already ready channel")
+		}
+	})
+
+	t.Run("future time", func(t *testing.T) {
+		select {
+		case <-watcher.nextReshard(time.Now()):
+		case <-time.After(1500 * time.Millisecond):
+			require.FailNow(t, "nextReshard took too long to return")
+		}
+	})
+
+}
+
 type mockConfigManager struct {
 	mock.Mock
 }
