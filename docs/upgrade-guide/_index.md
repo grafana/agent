@@ -12,7 +12,26 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Traces: Add operation_type to PromSD processor
 
+As part of making configurable what method is used when adding k/v to spans,
+the scrape configs config block used in the processor have been moved into
+a prom_sd config block.
+
+Example old config:
+
+```yaml
+scrape_configs:
+- [<scrape_config>]
+```
+
+Example new config:
+
+```yaml
+prom_sd:
+  scrape_configs:
+    - [<scrape_config>]
+```
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
 

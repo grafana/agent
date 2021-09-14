@@ -115,7 +115,7 @@ type InstanceConfig struct {
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
 	// prom service discovery
-	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
+	PromSDConfig *PromSDConfig `yaml:"prom_sd,omitempty"`
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
@@ -165,6 +165,27 @@ func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	if c.Compression != compressionGzip && c.Compression != compressionNone {
 		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
+	}
+	return nil
+}
+
+var DefaultPromSDConfig = PromSDConfig{
+	OperationType: promsdprocessor.OperationTypeUpsert,
+}
+
+type PromSDConfig struct {
+	// prom service discovery
+	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
+	OperationType string        `yaml:"operation_type,omitempty"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *PromSDConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultPromSDConfig
+
+	type plain PromSDConfig
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
 	}
 	return nil
 }
@@ -447,10 +468,11 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	// processors
 	processors := map[string]interface{}{}
 	processorNames := []string{}
-	if c.ScrapeConfigs != nil {
+	if c.PromSDConfig != nil && c.PromSDConfig.ScrapeConfigs != nil {
 		processorNames = append(processorNames, promsdprocessor.TypeStr)
 		processors[promsdprocessor.TypeStr] = map[string]interface{}{
-			"scrape_configs": c.ScrapeConfigs,
+			"scrape_configs": c.PromSDConfig.ScrapeConfigs,
+			"operation_type": c.PromSDConfig.OperationType,
 		}
 	}
 

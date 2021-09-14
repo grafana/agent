@@ -15,10 +15,17 @@ import (
 // TypeStr is the unique identifier for the Prometheus SD processor.
 const TypeStr = "prom_sd_processor"
 
+const (
+	OperationTypeUpsert = "upsert"
+	OperationTypeInsert = "insert"
+	OperationTypeUpdate = "update"
+)
+
 // Config holds the configuration for the Prometheus SD processor.
 type Config struct {
 	config.ProcessorSettings `mapstructure:",squash"`
 	ScrapeConfigs            []interface{} `mapstructure:"scrape_configs"`
+	OperationType            string        `mapstructure:"operation_type"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
@@ -55,5 +62,5 @@ func createTraceProcessor(
 		return nil, fmt.Errorf("unable to unmarshal bytes to []*config.ScrapeConfig: %w", err)
 	}
 
-	return newTraceProcessor(nextConsumer, scrapeConfigs)
+	return newTraceProcessor(nextConsumer, oCfg.OperationType, scrapeConfigs)
 }

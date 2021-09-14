@@ -776,6 +776,45 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "prom SD config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: grpc
+prom_sd:
+  scrape_configs:
+    - im_a_scrape_config
+  operation_type: update
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  prom_sd_processor:
+    scrape_configs:
+      - im_a_scrape_config
+    operation_type: update
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["prom_sd_processor"]
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
