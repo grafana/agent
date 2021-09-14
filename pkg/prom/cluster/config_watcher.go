@@ -90,22 +90,23 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 }
 
 func (w *configWatcher) run(ctx context.Context) {
-	for {
-		w.mut.Lock()
-		nextPoll := w.cfg.ReshardInterval
-		w.mut.Unlock()
+	defer level.Info(w.log).Log("msg", "config watcher run loop exiting")
 
+	lastReshard := time.Now()
+
+	for {
 		select {
 		case <-ctx.Done():
 			return
+		case <-w.nextReshard(lastReshard):
+			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
+			w.RequestRefresh()
+			lastReshard = time.Now()
 		case <-w.refreshCh:
 			err := w.refresh(ctx)
 			if err != nil {
 				level.Error(w.log).Log("msg", "refresh failed", "err", err)
 			}
-		case <-time.After(nextPoll):
-			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
-			w.RequestRefresh()
 		case ev := <-w.store.Watch():
 			level.Debug(w.log).Log("msg", "handling event from config store")
 			if err := w.handleEvent(ev); err != nil {
@@ -113,6 +114,27 @@ func (w *configWatcher) run(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// nextReshard returns a channel to that will fill a value when the reshard
+// interval has elapsed.
+func (w *configWatcher) nextReshard(lastReshard time.Time) <-chan time.Time {
+	w.mut.Lock()
+	nextReshard := lastReshard.Add(w.cfg.ReshardInterval)
+	w.mut.Unlock()
+
+	now := time.Now()
+	if now.After(nextReshard) || now.Equal(nextReshard) {
+		level.Debug(w.log).Log("msg", "next reshard is in past, immediately scheduling", "now", now, "next_reshard", nextReshard)
+
+		ch := make(chan time.Time, 1)
+		ch <- now
+		return ch
+	}
+
+	remaining := time.Until(nextReshard)
+	level.Debug(w.log).Log("msg", "waiting for next reshard interval", "next_reshard", nextReshard, "remaining", remaining)
+	return time.After(remaining)
 }
 
 // RequestRefresh will queue a refresh. No more than one refresh can be queued at a time.

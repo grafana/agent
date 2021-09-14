@@ -3,6 +3,12 @@
 - [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a
   goroutine. (@mattdurham)
 
+- [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
+  interval. (@rfratto)
+
+- [CHANGE] Add `agent_prometheus_configs_changed_total` metric to track instance
+  config events. (@rfratto)
+
 # v0.18.3 (2021-09-08)
 
 - [BUGFIX] Register missing metric for configstore consul request duration.
