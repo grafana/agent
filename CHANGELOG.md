@@ -56,9 +56,6 @@ for specific instructions.
 
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
 
-- [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
-  interval. (@rfratto)
-
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
@@ -72,9 +69,6 @@ for specific instructions.
 - [CHANGE] Breaking change: `prom_instance` in the spanmetrics config is now
   named `metrics_instance`. (@rfratto)
 
-- [CHANGE] Add `agent_prometheus_configs_changed_total` metric to track instance
-  config events. (@rfratto)
-
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
@@ -85,6 +79,14 @@ for specific instructions.
   deprecated in favor of `metrics`. Flag names starting with `prometheus.` have
   also been deprecated in favor of the same flags with the `metrics.` prefix.
   (@rfratto)
+
+# v0.18.4 (2021-09-14)
+
+- [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
+  interval. (@rfratto)
+
+- [CHANGE] Add `agent_prometheus_configs_changed_total` metric to track instance
+  config events. (@rfratto)
 
 # v0.18.3 (2021-09-08)
 
