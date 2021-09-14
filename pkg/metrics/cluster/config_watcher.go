@@ -125,12 +125,15 @@ func (w *configWatcher) nextReshard(lastReshard time.Time) <-chan time.Time {
 
 	now := time.Now()
 	if now.After(nextReshard) || now.Equal(nextReshard) {
+		level.Debug(w.log).Log("msg", "next reshard is in past, immediately scheduling", "now", now, "next_reshard", nextReshard)
+
 		ch := make(chan time.Time, 1)
 		ch <- now
 		return ch
 	}
 
 	remaining := time.Until(nextReshard)
+	level.Debug(w.log).Log("msg", "waiting for next reshard interval", "next_reshard", nextReshard, "remaining", remaining)
 	return time.After(remaining)
 }
 
