@@ -1,7 +1,8 @@
 # Main (unreleased)
 
-- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a
-  goroutine. (@mattdurham)
+# v0.18.4 (2021-09-14)
+
+- [BUGFIX] Fix info logging on windows. (@mattdurham)
 
 - [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
   interval. (@rfratto)
