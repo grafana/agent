@@ -56,6 +56,9 @@ for specific instructions.
 
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
 
+- [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
+  interval. (@rfratto)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 

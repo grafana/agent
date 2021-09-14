@@ -50,6 +50,8 @@ type ModalManager struct {
 	mode    Mode
 	configs map[string]Config
 
+	appliedConfigs       *prometheus.GaugeVec
+	deletedConfigs       prometheus.Gauge
 	currentActiveConfigs prometheus.Gauge
 
 	log log.Logger
@@ -69,6 +71,14 @@ type ModalManager struct {
 
 // NewModalManager creates a new ModalManager.
 func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode Mode) (*ModalManager, error) {
+	appliedConfigs := promauto.With(reg).NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_prometheus_configs_applied_total",
+		Help: "Total number of dynamically updated configs",
+	}, []string{"created"})
+	deletedConfigs := promauto.With(reg).NewGauge(prometheus.GaugeOpts{
+		Name: "agent_prometheus_configs_deleted_total",
+		Help: "Total number of dynamically deleted configs",
+	})
 	currentActiveConfigs := promauto.With(reg).NewGauge(prometheus.GaugeOpts{
 		Name: "agent_prometheus_active_configs",
 		Help: "Current number of active configs being used by the agent.",
@@ -77,6 +87,8 @@ func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode
 	mm := ModalManager{
 		wrapped:              next,
 		log:                  l,
+		appliedConfigs:       appliedConfigs,
+		deletedConfigs:       deletedConfigs,
 		currentActiveConfigs: currentActiveConfigs,
 		configs:              make(map[string]Config),
 	}
@@ -171,7 +183,11 @@ func (m *ModalManager) ApplyConfig(c Config) error {
 
 	if _, existingConfig := m.configs[c.Name]; !existingConfig {
 		m.currentActiveConfigs.Inc()
+		m.appliedConfigs.WithLabelValues("1").Inc()
+	} else {
+		m.appliedConfigs.WithLabelValues("0").Inc()
 	}
+
 	m.configs[c.Name] = c
 
 	return nil
@@ -190,6 +206,8 @@ func (m *ModalManager) DeleteConfig(name string) error {
 		m.currentActiveConfigs.Dec()
 		delete(m.configs, name)
 	}
+
+	m.deletedConfigs.Inc()
 	return nil
 }
 
