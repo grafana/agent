@@ -42,8 +42,6 @@ for specific instructions.
 - [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the
   `node_exporter` integration default config. (@eamonryan)
 
-- [BUGFIX] Fix info logging on windows. (@mattdurham)
-
 - [BUGFIX] Remove v0.0.0 flags during build with no explicit release tag (@mattdurham)
 
 - [BUGFIX] Fix issue with global scrape_interval changes not reloading integrations (@kgeckhart)
@@ -81,6 +79,8 @@ for specific instructions.
   (@rfratto)
 
 # v0.18.4 (2021-09-14)
+
+- [BUGFIX] Fix info logging on windows. (@mattdurham)
 
 - [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
   interval. (@rfratto)
