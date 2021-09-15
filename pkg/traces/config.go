@@ -114,8 +114,9 @@ type InstanceConfig struct {
 	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor/config.go#L30
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
-	// prom service discovery
-	PromSDConfig *PromSDConfig `yaml:"prom_sd,omitempty"`
+	// prom service discovery config
+	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
+	OperationType string        `yaml:"prom_sd_operation_type,omitempty"`
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
@@ -165,27 +166,6 @@ func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	if c.Compression != compressionGzip && c.Compression != compressionNone {
 		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
-	}
-	return nil
-}
-
-var DefaultPromSDConfig = PromSDConfig{
-	OperationType: promsdprocessor.OperationTypeUpsert,
-}
-
-type PromSDConfig struct {
-	// prom service discovery
-	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
-	OperationType string        `yaml:"operation_type,omitempty"`
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *PromSDConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultPromSDConfig
-
-	type plain PromSDConfig
-	if err := unmarshal((*plain)(c)); err != nil {
-		return err
 	}
 	return nil
 }
@@ -468,11 +448,15 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	// processors
 	processors := map[string]interface{}{}
 	processorNames := []string{}
-	if c.PromSDConfig != nil && c.PromSDConfig.ScrapeConfigs != nil {
+	if c.ScrapeConfigs != nil {
+		opType := promsdprocessor.OperationTypeUpsert
+		if c.OperationType != "" {
+			opType = c.OperationType
+		}
 		processorNames = append(processorNames, promsdprocessor.TypeStr)
 		processors[promsdprocessor.TypeStr] = map[string]interface{}{
-			"scrape_configs": c.PromSDConfig.ScrapeConfigs,
-			"operation_type": c.PromSDConfig.OperationType,
+			"scrape_configs": c.ScrapeConfigs,
+			"operation_type": opType,
 		}
 	}
 

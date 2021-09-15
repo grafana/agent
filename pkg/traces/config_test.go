@@ -786,10 +786,9 @@ receivers:
 remote_write:
   - endpoint: example.com:12345
     protocol: grpc
-prom_sd:
-  scrape_configs:
-    - im_a_scrape_config
-  operation_type: update
+scrape_configs:
+  - im_a_scrape_config
+prom_sd_operation_type: update
 `,
 			expectedConfig: `
 receivers:

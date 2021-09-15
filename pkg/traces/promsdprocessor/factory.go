@@ -16,9 +16,12 @@ import (
 const TypeStr = "prom_sd_processor"
 
 const (
-	OperationTypeUpsert = "upsert"
+	// OperationTypeInsert inserts a new k/v if it isn't already present
 	OperationTypeInsert = "insert"
+	// OperationTypeUpdate only modifies an existing k/v
 	OperationTypeUpdate = "update"
+	// OperationTypeUpsert does both of above
+	OperationTypeUpsert = "upsert"
 )
 
 // Config holds the configuration for the Prometheus SD processor.

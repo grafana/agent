@@ -127,17 +127,16 @@ automatic_logging:
 # Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 receivers: <receivers>
 
-prom_sd:
-  # A list of prometheus scrape configs.  Targets discovered through these scrape
-  # configs have their __address__ matched against the ip on incoming spans. If a
-  # match is found then relabeling rules are applied.
-  scrape_configs:
-    - [<scrape_config>]
-  # Defines what method is used when adding k/v to spans.
-  # Options are `update`, `insert` and `upsert`.
-  # `update` only modifies an existing k/v and `insert` only appends if the k/v
-  # is not present. `upsert` does both.
-  [ operation_type: <string> | default = "upsert" ]
+# A list of prometheus scrape configs.  Targets discovered through these scrape
+# configs have their __address__ matched against the ip on incoming spans. If a
+# match is found then relabeling rules are applied.
+scrape_configs:
+  - [<scrape_config>]
+# Defines what method is used when adding k/v to spans.
+# Options are `update`, `insert` and `upsert`.
+# `update` only modifies an existing k/v and `insert` only appends if the k/v
+# is not present. `upsert` does both.
+[ prom_sd_operation_type: <string> | default = "upsert" ]
 
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
 # from span data.
