@@ -184,6 +184,7 @@ rules:
   resources:
   - nodes
   - nodes/proxy
+  - nodes/metrics
   - services
   - endpoints
   - pods
@@ -191,8 +192,17 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
 - nonResourceURLs:
   - /metrics
+  - /metrics/cadvisor
   verbs:
   - get
 
