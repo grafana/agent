@@ -58,7 +58,6 @@ type processor struct {
 	serviceGraphUnpairedSpansTotal     *prometheus.CounterVec
 	serviceGraphUntaggedSpansTotal     *prometheus.CounterVec
 
-	successCodes    successCodes
 	httpSuccessCode map[int]struct{}
 	grpcSuccessCode map[int]struct{}
 
@@ -75,7 +74,10 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		cfg.MaxItems = DefaultMaxItems
 	}
 
-	var httpSuccessCode, grpcSuccessCode map[int]struct{}
+	var (
+		httpSuccessCode = make(map[int]struct{})
+		grpcSuccessCode = make(map[int]struct{})
+	)
 	if cfg.SuccessCodes != nil {
 		for _, sc := range cfg.SuccessCodes.http {
 			httpSuccessCode[int(sc)] = struct{}{}
@@ -292,7 +294,7 @@ func (p *processor) spanFailed(span pdata.Span) bool {
 	// Request considered failed if status is not OK or added as a successful status code
 	if statusCode, ok := span.Attributes().Get("grpc.status_code"); ok {
 		sc := int(statusCode.IntVal())
-		if _, ok := p.httpSuccessCode[sc]; !ok || sc != int(codes.OK) {
+		if _, ok := p.grpcSuccessCode[sc]; !ok || sc != int(codes.OK) {
 			return true
 		}
 	}
