@@ -2,6 +2,7 @@ package promsdprocessor
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -39,6 +40,8 @@ type promServiceDiscoProcessor struct {
 
 func newTraceProcessor(nextConsumer consumer.Traces, operationType string, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	logger := log.With(util.Logger, "component", "traces service disco")
 	mgr := discovery.NewManager(ctx, logger, discovery.Name("traces service disco"))
 
@@ -51,12 +54,15 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, scrap
 
 	err := mgr.ApplyConfig(managerConfig)
 	if err != nil {
-		cancel()
 		return nil, err
 	}
 
-	if operationType == "" {
+	switch operationType {
+	case OperationTypeUpsert, OperationTypeInsert, OperationTypeUpdate:
+	case "": // Use Upsert by default
 		operationType = OperationTypeUpsert
+	default:
+		return nil, fmt.Errorf("unknown operation type %s", operationType)
 	}
 
 	if nextConsumer == nil {
