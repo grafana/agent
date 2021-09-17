@@ -64,17 +64,7 @@ the remote system.
 
 ## Getting Started
 
-The easiest way to get started with the Grafana Agent is to use the
-Kubernetes install scripts. The first script installs an Agent for collecting
-metrics, the second for collecting logs, and the third for collecting traces.
-Simply copy and paste the following lines in your terminal (requires `envsubst`
-(GNU gettext)):
-
-```
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-traces.sh)" | kubectl apply -f -
-```
+When using Kubernetes this [link](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s) offers the best guide. 
 
 Other installation methods can be found in our
 [Production](./production/README.md) documentation.
