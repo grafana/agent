@@ -27,7 +27,7 @@ for specific instructions.
 - [ENHANCEMENT] Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
 - [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
-  the $HOSTNAME variable in agent config.  (@dfrankel33) 
+  the $HOSTNAME variable in agent config.  (@dfrankel33)
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`. (@rfratto)
@@ -42,8 +42,6 @@ for specific instructions.
 - [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the
   `node_exporter` integration default config. (@eamonryan)
 
-- [BUGFIX] Fix info logging on windows. (@mattdurham)
-
 - [BUGFIX] Remove v0.0.0 flags during build with no explicit release tag (@mattdurham)
 
 - [BUGFIX] Fix issue with global scrape_interval changes not reloading integrations (@kgeckhart)
@@ -55,6 +53,8 @@ for specific instructions.
   Kubernetes defaults when undefined (i.e., default to nothing). (@rfratto)
 
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
+
+- [BUGFIX] Fix warn-level logging of dropped targets. (@james-callahan)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
@@ -79,8 +79,18 @@ for specific instructions.
   deprecated in favor of `metrics`. Flag names starting with `prometheus.` have
   also been deprecated in favor of the same flags with the `metrics.` prefix.
   (@rfratto)
-
+  
 - [DEPRECATION] Rename Tempo to Traces (@mattdurham)
+
+# v0.18.4 (2021-09-14)
+
+- [BUGFIX] Fix info logging on windows. (@mattdurham)
+
+- [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
+  interval. (@rfratto)
+
+- [CHANGE] Add `agent_prometheus_configs_changed_total` metric to track instance
+  config events. (@rfratto)
 
 # v0.18.3 (2021-09-08)
 
