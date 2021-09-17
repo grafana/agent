@@ -34,11 +34,18 @@ func (r *kubeletReconciler) Reconcile(ctx context.Context, req controller.Reques
 		return res, fmt.Errorf("unable to get addresses from nodes: %w", err)
 	}
 
+	labels := mergeMaps(managedByOperatorLabels, map[string]string{
+		// Labels taken from prometheus-operator:
+		// https://github.com/prometheus-operator/prometheus-operator/blob/2c81b0cf6a5673e08057499a08ddce396b19dda4/pkg/prometheus/operator.go#L586-L587
+		"k8s-app":                "kubelet",
+		"app.kubernetes.io/name": "kubelet",
+	})
+
 	svc := &core_v1.Service{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:      r.kubeletName,
 			Namespace: r.kubeletNamespace,
-			Labels:    managedByOperatorLabels,
+			Labels:    labels,
 		},
 		Spec: core_v1.ServiceSpec{
 			Type:      core_v1.ServiceTypeClusterIP,
@@ -55,7 +62,7 @@ func (r *kubeletReconciler) Reconcile(ctx context.Context, req controller.Reques
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:      r.kubeletName,
 			Namespace: r.kubeletNamespace,
-			Labels:    managedByOperatorLabels,
+			Labels:    labels,
 		},
 		Subsets: []core_v1.EndpointSubset{{
 			Addresses: nodeAddrs,
@@ -81,6 +88,18 @@ func (r *kubeletReconciler) Reconcile(ctx context.Context, req controller.Reques
 	}
 
 	return
+}
+
+// mergeMaps merges the contents of b with a. Keys from b take precednece.
+func mergeMaps(a, b map[string]string) map[string]string {
+	res := make(map[string]string)
+	for k, v := range a {
+		res[k] = v
+	}
+	for k, v := range b {
+		res[k] = v
+	}
+	return res
 }
 
 func getNodeAddrs(l log.Logger, nodes *core_v1.NodeList) (addrs []core_v1.EndpointAddress, err error) {
