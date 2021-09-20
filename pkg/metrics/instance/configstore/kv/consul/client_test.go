@@ -39,7 +39,8 @@ func TestWatchKeyWithRateLimit(t *testing.T) {
 
 	ch := writeValuesToKV(c, key, 0, max, 10*time.Millisecond)
 
-	observed := observeValueForSomeTime(c, key, 1200*time.Millisecond) // little over 1 second
+	// Only observe for a little over 1.5 rate limits (5 req/s)
+	observed := observeValueForSomeTime(c, key, 1700*time.Millisecond)
 
 	// wait until updater finishes
 	<-ch
@@ -69,7 +70,7 @@ func TestWatchKeyNoRateLimit(t *testing.T) {
 	const max = 100
 
 	ch := writeValuesToKV(c, key, 0, max, time.Millisecond)
-	observed := observeValueForSomeTime(c, key, 500*time.Millisecond)
+	observed := observeValueForSomeTime(c, key, 2400*time.Millisecond)
 
 	// wait until updater finishes
 	<-ch
@@ -103,7 +104,7 @@ func TestReset(t *testing.T) {
 		}
 	}()
 
-	observed := observeValueForSomeTime(c, key, 25*max*time.Millisecond)
+	observed := observeValueForSomeTime(c, key, 2400*time.Millisecond)
 
 	// wait until updater finishes
 	<-ch
@@ -150,7 +151,7 @@ func TestWatchKeyWithNoStartValue(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	ctx, fn := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	ctx, fn := context.WithTimeout(context.Background(), 750*time.Millisecond)
 	defer fn()
 
 	reported := 0
