@@ -43,7 +43,7 @@ local template = grafana.template;
         )
         .addPanel(
           g.panel('Targets') +
-          g.queryPanel('sum(prometheus_sd_discovered_targets{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})', 'Targets') +
+          g.queryPanel('sum by (pod) (prometheus_sd_discovered_targets{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})', '{{pod}}') +
           g.stack
         )
       )
