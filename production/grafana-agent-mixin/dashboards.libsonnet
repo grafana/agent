@@ -75,8 +75,8 @@ local template = grafana.template;
           g.stack
         )
         .addPanel(
-          g.panel('Created Series') +
-          g.queryPanel('sum by (job, instance_group_name) (rate(agent_wal_storage_created_series_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))', '{{job}} {{instance_group_name}}') +
+          g.panel('Appended Samples') +
+          g.queryPanel('sum by (job, instance_group_name) (rate(agent_wal_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))', '{{job}} {{instance_group_name}}') +
           g.stack
         )
       ),
