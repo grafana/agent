@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/tempo/contextkeys"
+	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultLogsTag     = "tempo"
+	defaultLogsTag     = "traces"
 	defaultServiceKey  = "svc"
 	defaultSpanNameKey = "span"
 	defaultStatusKey   = "status"
@@ -53,7 +53,7 @@ type automaticLoggingProcessor struct {
 }
 
 func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig) (component.TracesProcessor, error) {
-	logger := log.With(util.Logger, "component", "tempo automatic logging")
+	logger := log.With(util.Logger, "component", "traces automatic logging")
 
 	if nextConsumer == nil {
 		return nil, componenterror.ErrNilNextConsumer

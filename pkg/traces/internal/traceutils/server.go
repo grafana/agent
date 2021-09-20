@@ -1,4 +1,4 @@
-package tempoutils
+package traceutils
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Server is a Tempo testing server that invokes a function every time a span
+// Server is a Tracing testing server that invokes a function every time a span
 // is received.
 type Server struct {
 	receivers builder.Receivers

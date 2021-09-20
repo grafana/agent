@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	sumMetric    = "tempo_spanmetrics_latency_sum"
-	countMetric  = "tempo_spanmetrics_latency_count"
-	bucketMetric = "tempo_spanmetrics_latency_bucket"
+	sumMetric    = "traces_spanmetrics_latency_sum"
+	countMetric  = "traces_spanmetrics_latency_count"
+	bucketMetric = "traces_spanmetrics_latency_bucket"
 )
 
 func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
@@ -33,10 +33,10 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	manager := &mockManager{}
 	exp := remoteWriteExporter{
 		manager:      manager,
-		namespace:    "tempo_spanmetrics",
-		promInstance: "tempo",
+		namespace:    "traces_spanmetrics",
+		promInstance: "traces",
 	}
-	instance, _ := manager.GetInstance("tempo")
+	instance, _ := manager.GetInstance("traces")
 	app := instance.Appender(context.TODO())
 
 	// Build data point
@@ -55,13 +55,13 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	sum := manager.instance.GetAppended(sumMetric)
 	require.Equal(t, len(sum), 1)
 	require.Equal(t, sum[0].v, float64(sumValue))
-	require.Equal(t, sum[0].l, labels.Labels{{Name: nameLabelKey, Value: "tempo_spanmetrics_latency_" + sumSuffix}})
+	require.Equal(t, sum[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + sumSuffix}})
 
 	// Check _count
 	count := manager.instance.GetAppended(countMetric)
 	require.Equal(t, len(count), 1)
 	require.Equal(t, count[0].v, float64(countValue))
-	require.Equal(t, count[0].l, labels.Labels{{Name: nameLabelKey, Value: "tempo_spanmetrics_latency_" + countSuffix}})
+	require.Equal(t, count[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + countSuffix}})
 
 	// Check _bucket
 	buckets := manager.instance.GetAppended(bucketMetric)
@@ -75,7 +75,7 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 			eb = fmt.Sprint(explicitBounds[i])
 		}
 		require.Equal(t, b.l, labels.Labels{
-			{Name: nameLabelKey, Value: "tempo_spanmetrics_latency_" + bucketSuffix},
+			{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + bucketSuffix},
 			{Name: leStr, Value: eb},
 		})
 	}

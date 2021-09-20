@@ -1,4 +1,4 @@
-package tempo
+package traces
 
 import (
 	"encoding/base64"
@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/tempo/automaticloggingprocessor"
-	"github.com/grafana/agent/pkg/tempo/noopreceiver"
-	"github.com/grafana/agent/pkg/tempo/promsdprocessor"
-	"github.com/grafana/agent/pkg/tempo/remotewriteexporter"
+	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
+	"github.com/grafana/agent/pkg/traces/noopreceiver"
+	"github.com/grafana/agent/pkg/traces/promsdprocessor"
+	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
@@ -56,13 +56,17 @@ const (
 	statusCodePolicy       = "status_code"
 )
 
-// Config controls the configuration of Tempo trace pipelines.
+// Config controls the configuration of Traces trace pipelines.
 type Config struct {
 	Configs []InstanceConfig `yaml:"configs,omitempty"`
+
+	// Unmarshaled is true when the Config was unmarshaled from YAML.
+	Unmarshaled bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	c.Unmarshaled = true
 	type plain Config
 	return unmarshal((*plain)(c))
 }
@@ -72,10 +76,10 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 	names := make(map[string]struct{}, len(c.Configs))
 	for idx, c := range c.Configs {
 		if c.Name == "" {
-			return fmt.Errorf("tempo config at index %d is missing a name", idx)
+			return fmt.Errorf("traces config at index %d is missing a name", idx)
 		}
 		if _, exist := names[c.Name]; exist {
-			return fmt.Errorf("found multiple tempo configs with name %s", c.Name)
+			return fmt.Errorf("found multiple traces configs with name %s", c.Name)
 		}
 		names[c.Name] = struct{}{}
 	}
@@ -83,7 +87,7 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 	for _, inst := range c.Configs {
 		if inst.AutomaticLogging != nil {
 			if err := inst.AutomaticLogging.Validate(logsConfig); err != nil {
-				return fmt.Errorf("failed to validate automatic_logging for tempo config %s: %w", inst.Name, err)
+				return fmt.Errorf("failed to validate automatic_logging for traces config %s: %w", inst.Name, err)
 			}
 		}
 	}
@@ -91,7 +95,7 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 	return nil
 }
 
-// InstanceConfig configures an individual Tempo trace pipeline.
+// InstanceConfig configures an individual Traces trace pipeline.
 type InstanceConfig struct {
 	Name string `yaml:"name"`
 
@@ -473,7 +477,7 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	pipelines := make(map[string]interface{})
 	if c.SpanMetrics != nil {
 		// Configure the metrics exporter.
-		namespace := "tempo_spanmetrics"
+		namespace := "traces_spanmetrics"
 		if len(c.SpanMetrics.Namespace) != 0 {
 			namespace = fmt.Sprintf("%s_%s", c.SpanMetrics.Namespace, namespace)
 		}

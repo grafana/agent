@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
-	"github.com/grafana/agent/pkg/tempo/contextkeys"
+	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/storage"
@@ -48,7 +48,7 @@ type remoteWriteExporter struct {
 }
 
 func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
-	logger := log.With(util.Logger, "component", "tempo remote write exporter")
+	logger := log.With(util.Logger, "component", "traces remote write exporter")
 
 	return &remoteWriteExporter{
 		done:         atomic.Bool{},

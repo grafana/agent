@@ -1,4 +1,4 @@
-package tempo
+package traces
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/tempo/internal/tempoutils"
+	"github.com/grafana/agent/pkg/traces/internal/traceutils"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,13 +18,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestTempo(t *testing.T) {
+func TestTraces(t *testing.T) {
 	tracesCh := make(chan pdata.Traces)
-	tracesAddr := tempoutils.NewTestServer(t, func(t pdata.Traces) {
+	tracesAddr := traceutils.NewTestServer(t, func(t pdata.Traces) {
 		tracesCh <- t
 	})
 
-	tempoCfgText := util.Untab(fmt.Sprintf(`
+	tracesCfgText := util.Untab(fmt.Sprintf(`
 configs:
 - name: default
   receivers:
@@ -40,7 +40,7 @@ configs:
 	`, tracesAddr))
 
 	var cfg Config
-	dec := yaml.NewDecoder(strings.NewReader(tempoCfgText))
+	dec := yaml.NewDecoder(strings.NewReader(tracesCfgText))
 	dec.SetStrict(true)
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
@@ -48,9 +48,9 @@ configs:
 	var loggingLevel logging.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
-	tempo, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel)
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel)
 	require.NoError(t, err)
-	t.Cleanup(tempo.Stop)
+	t.Cleanup(traces.Stop)
 
 	tr := testJaegerTracer(t)
 	span := tr.StartSpan("test-span")
@@ -65,13 +65,13 @@ configs:
 	}
 }
 
-func TestTempo_ApplyConfig(t *testing.T) {
+func TestTrace_ApplyConfig(t *testing.T) {
 	tracesCh := make(chan pdata.Traces)
-	tracesAddr := tempoutils.NewTestServer(t, func(t pdata.Traces) {
+	tracesAddr := traceutils.NewTestServer(t, func(t pdata.Traces) {
 		tracesCh <- t
 	})
 
-	tempoCfgText := util.Untab(`
+	tracesCfgText := util.Untab(`
 configs:
 - name: default
   receivers:
@@ -87,17 +87,17 @@ configs:
 	`)
 
 	var cfg Config
-	dec := yaml.NewDecoder(strings.NewReader(tempoCfgText))
+	dec := yaml.NewDecoder(strings.NewReader(tracesCfgText))
 	dec.SetStrict(true)
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	tempo, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.DebugLevel)
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.DebugLevel)
 	require.NoError(t, err)
-	t.Cleanup(tempo.Stop)
+	t.Cleanup(traces.Stop)
 
 	// Fix the config and apply it before sending spans.
-	tempoCfgText = util.Untab(fmt.Sprintf(`
+	tracesCfgText = util.Untab(fmt.Sprintf(`
 configs:
 - name: default
   receivers:
@@ -113,12 +113,12 @@ configs:
 	`, tracesAddr))
 
 	var fixedConfig Config
-	dec = yaml.NewDecoder(strings.NewReader(tempoCfgText))
+	dec = yaml.NewDecoder(strings.NewReader(tracesCfgText))
 	dec.SetStrict(true)
 	err = dec.Decode(&fixedConfig)
 	require.NoError(t, err)
 
-	err = tempo.ApplyConfig(nil, nil, fixedConfig, logrus.DebugLevel)
+	err = traces.ApplyConfig(nil, nil, fixedConfig, logrus.DebugLevel)
 	require.NoError(t, err)
 
 	tr := testJaegerTracer(t)
@@ -138,7 +138,7 @@ func testJaegerTracer(t *testing.T) opentracing.Tracer {
 	t.Helper()
 
 	jaegerConfig := jaegercfg.Configuration{
-		ServiceName: "TestTempo",
+		ServiceName: "TestTraces",
 		Sampler: &jaegercfg.SamplerConfig{
 			Type:  "const",
 			Param: 1,
