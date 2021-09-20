@@ -260,7 +260,7 @@ local template = grafana.template;
           legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
-      dashboard.new('Agent Prometheus Remote Write', tags=['grafana-agent-mixin'], editable=true)
+      dashboard.new('Agent Prometheus Remote Write', tags=['grafana-agent-mixin'], editable=true, refresh='30s', time_from='now-1h')
       .addTemplate(
         {
           hide: 0,
