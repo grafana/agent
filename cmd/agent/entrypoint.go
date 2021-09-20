@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	loki "github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/tempo"
+	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
 	"github.com/oklog/run"
@@ -40,7 +40,7 @@ type Entrypoint struct {
 	srv         *server.Server
 	promMetrics *metrics.Agent
 	lokiLogs    *loki.Logs
-	tempoTraces *tempo.Tempo
+	tempoTraces *traces.Traces
 	manager     *integrations.Manager
 
 	reloadListener net.Listener
@@ -85,7 +85,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.tempoTraces, err = tempo.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel.Logrus)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Traces, cfg.Server.LogLevel.Logrus)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +131,8 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Tempo, cfg.Server.LogLevel.Logrus); err != nil {
-		level.Error(ep.log).Log("msg", "failed to update tempo", "err", err)
+	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces, cfg.Server.LogLevel.Logrus); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update traces", "err", err)
 		failed = true
 	}
 

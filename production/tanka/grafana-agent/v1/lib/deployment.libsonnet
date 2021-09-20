@@ -31,8 +31,8 @@ local container = k.core.v1.container;
 
     local has_prometheus_config = std.objectHasAll(self, '_prometheus_config'),
     local has_prometheus_instances = std.objectHasAll(self, '_prometheus_instances'),
-    local has_tempo_config = std.objectHasAll(self, '_tempo_config'),
-    local has_sampling_strategies = std.objectHasAll(self, '_tempo_sampling_strategies'),
+    local has_trace_config = std.objectHasAll(self, '_trace_config'),
+    local has_sampling_strategies = std.objectHasAll(self, '_traces_sampling_strategies'),
 
     config:: {
       server: {
@@ -52,9 +52,9 @@ local container = k.core.v1.container;
       }
       else {}
     ) + (
-      if has_tempo_config then {
-        tempo: {
-          configs: [this._tempo_config {
+      if has_trace_config then {
+        traces: {
+          configs: [this._trace_config {
             name: 'default',
           }],
         },
@@ -70,13 +70,13 @@ local container = k.core.v1.container;
         config_map+:
           if has_sampling_strategies
           then configMap.withDataMixin({
-            'strategies.json': std.toString(this._tempo_sampling_strategies),
+            'strategies.json': std.toString(this._traces_sampling_strategies),
           })
           else {},
         // If we're deploying for tracing, applications will want to write to
         // a service for load balancing span delivery.
         service:
-          if has_tempo_config
+          if has_trace_config
           then k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
           else {},
       },

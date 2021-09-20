@@ -1,4 +1,4 @@
-package tempo
+package traces
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
-	"github.com/grafana/agent/pkg/tempo/contextkeys"
+	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
@@ -134,7 +134,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
-		return fmt.Errorf("failed to load otelConfig from agent tempo config: %w", err)
+		return fmt.Errorf("failed to load otelConfig from agent traces config: %w", err)
 	}
 	if cfg.PushConfig.Endpoint != "" {
 		i.logger.Warn("Configuring exporter with deprecated push_config. Use remote_write and batch instead")

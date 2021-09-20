@@ -12,6 +12,39 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+
+
+### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
+
+The term `tempo` in the config has been deprecated of favor of `traces`. This
+change is to make intent clearer.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            thrift_http:
+```
+
+Example of new config:
+```yaml
+traces:
+  configs:
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            thrift_http:
+```
+
+Any tempo metrics have been renamed from `tempo_*` to `traces_*`.
+
+
 ### Tempo: split grouping by trace from tail sampling config (Breaking change)
 
 Load balancing traces between agent instances has been moved from an embedded
