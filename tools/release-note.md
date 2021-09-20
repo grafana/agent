@@ -17,7 +17,7 @@ The following scripts will download and install two Kubernetes manifests for the
 ```
 NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl apply -f -
 NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-loki.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
+NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-traces.sh)" | kubectl apply -f -
 ```
 
 #### Docker container:

@@ -253,13 +253,13 @@ func TestLokiNameMigration(t *testing.T) {
 		backend: loki
 		loki_name: default
 		overrides:
-			loki_tag: tempo
+			loki_tag: traces
 	`)
 	expect := util.Untab(`
 		backend: logs_instance
 		logs_instance_name: default
 		overrides:
-			logs_instance_tag: tempo
+			logs_instance_tag: traces
 	`)
 
 	var cfg AutomaticLoggingConfig

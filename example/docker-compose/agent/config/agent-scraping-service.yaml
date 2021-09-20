@@ -21,7 +21,7 @@ prometheus:
             endpoints:
               - etcd:2379
 
-tempo:
+traces:
   configs:
     - name: default
       receivers:

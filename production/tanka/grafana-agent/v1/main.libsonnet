@@ -12,7 +12,7 @@ local service = k.core.v1.service;
 (import './lib/prometheus.libsonnet') +
 (import './lib/scraping_service.libsonnet') +
 (import './lib/loki.libsonnet') +
-(import './lib/tempo.libsonnet') +
+(import './lib/traces.libsonnet') +
 {
   _images:: {
     agent: 'grafana/agent:v0.18.4',
@@ -45,11 +45,11 @@ local service = k.core.v1.service;
     _config_hash:: true,
 
     local has_loki_config = std.objectHasAll(self, '_loki_config'),
-    local has_tempo_config = std.objectHasAll(self, '_tempo_config'),
+    local has_trace_config = std.objectHasAll(self, '_trace_config'),
     local has_prometheus_config = std.objectHasAll(self, '_prometheus_config'),
     local has_prometheus_instances = std.objectHasAll(self, '_prometheus_instances'),
     local has_integrations = std.objectHasAll(self, '_integrations'),
-    local has_sampling_strategies = std.objectHasAll(self, '_tempo_sampling_strategies'),
+    local has_sampling_strategies = std.objectHasAll(self, '_traces_sampling_strategies'),
 
     local prometheus_instances =
       if has_prometheus_instances then this._prometheus_instances else [],
@@ -75,9 +75,9 @@ local service = k.core.v1.service;
         },
       } else {}
     ) + (
-      if has_tempo_config then {
-        tempo: {
-          configs: [this._tempo_config {
+      if has_trace_config then {
+        traces: {
+          configs: [this._trace_config {
             name: 'default',
           }],
         },
@@ -94,7 +94,7 @@ local service = k.core.v1.service;
         configs: std.map(function(cfg) cfg { host_filter: false }, etc_instances),
       },
       loki:: {},
-      tempo:: {},
+      traces:: {},
       integrations:: {},
     },
 
@@ -106,14 +106,14 @@ local service = k.core.v1.service;
         config_map+:
           if has_sampling_strategies
           then configMap.withDataMixin({
-            'strategies.json': std.toString(this._tempo_sampling_strategies),
+            'strategies.json': std.toString(this._traces_sampling_strategies),
           })
           else {},
 
         // If we're deploying for tracing, applications will want to write to
         // a service for load balancing span delivery.
         service:
-          if has_tempo_config
+          if has_trace_config
           then k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
           else {},
       } + (
