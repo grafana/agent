@@ -119,6 +119,24 @@ local template = grafana.template;
           legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
+      local samplesRate =
+        graphPanel.new(
+          'Rate, in vs. succeeded or dropped [5m]',
+          datasource='$datasource',
+          span=12,
+        )
+        .addTarget(prometheus.target(
+          |||
+            rate(agent_wal_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
+            -
+              ignoring(remote_name, url) group_right(pod)
+              (rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]) or rate(prometheus_remote_storage_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))
+            -
+              (rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]) or rate(prometheus_remote_storage_samples_dropped_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))
+          |||,
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
+        ));
+
       local currentShards =
         graphPanel.new(
           'Current Shards',
@@ -327,6 +345,7 @@ local template = grafana.template;
       )
       .addRow(
         row.new('Samples')
+        .addPanel(samplesRate)
         .addPanel(pendingSamples)
         .addPanel(droppedSamples)
         .addPanel(failedSamples)
