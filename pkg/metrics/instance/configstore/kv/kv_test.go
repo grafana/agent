@@ -29,6 +29,14 @@ func withFixtures(t *testing.T, f func(*testing.T, Client)) {
 		{"etcd", func() (Client, io.Closer, error) {
 			return etcd.Mock(codec.String{})
 		}},
+		{"prefixed/etcd", func() (cli Client, closer io.Closer, err error) {
+			cli, closer, err = etcd.Mock(codec.String{})
+			if err != nil {
+				return
+			}
+			cli = PrefixClient(cli, "prefix/")
+			return
+		}},
 	} {
 		t.Run(fixture.name, func(t *testing.T) {
 			client, closer, err := fixture.factory()
