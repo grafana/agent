@@ -85,19 +85,26 @@ type mockManager struct {
 	instance *mockInstance
 }
 
-func (m *mockManager) ApplyConfigs(configs []instance.Config) (successful []instance.Config, failed []instance.Config, lastError error) {
-	successful = make([]instance.Config, 0)
-	failed = make([]instance.Config, 0)
+// ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
+func (m *mockManager) ApplyConfigs(configs []instance.Config) instance.BatchApplyResult {
+	successful := make([]instance.Config, 0)
+	failed := make([]instance.BatchFailure, 0)
 	for _, v := range configs {
 		err := m.ApplyConfig(v)
 		if err != nil {
-			lastError = err
-			failed = append(failed, v)
+			failed = append(failed, instance.BatchFailure{
+				Err:    err,
+				Config: v,
+			})
 		} else {
 			successful = append(successful, v)
 		}
 	}
-	return successful, failed, lastError
+	return instance.BatchApplyResult{
+		Failed:         failed,
+		Successful:     successful,
+		NonConfigError: nil,
+	}
 
 }
 

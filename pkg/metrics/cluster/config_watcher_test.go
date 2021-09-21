@@ -234,20 +234,24 @@ type mockConfigManager struct {
 	mock.Mock
 }
 
-func (m *mockConfigManager) ApplyConfigs(configs []instance.Config) (successful []instance.Config, failed []instance.Config, err error) {
-	successful = make([]instance.Config, 0)
-	failed = make([]instance.Config, 0)
-
+func (m *mockConfigManager) ApplyConfigs(configs []instance.Config) instance.BatchApplyResult {
+	successful := make([]instance.Config, 0)
+	failed := make([]instance.BatchFailure, 0)
 	for _, v := range configs {
-		applyError := m.ApplyConfig(v)
-		if applyError != nil {
-			err = applyError
-			failed = append(failed, v)
+		err := m.ApplyConfig(v)
+		if err != nil {
+			failed = append(failed, instance.BatchFailure{
+				Err:    err,
+				Config: v,
+			})
 		} else {
 			successful = append(successful, v)
 		}
 	}
-	return successful, failed, err
+	return instance.BatchApplyResult{
+		Failed:     failed,
+		Successful: successful,
+	}
 }
 
 func (m *mockConfigManager) GetInstance(name string) (instance.ManagedInstance, error) {

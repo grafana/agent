@@ -51,13 +51,33 @@ type Manager interface {
 	ApplyConfig(Config) error
 
 	// ApplyConfigs batch applies the config
-	ApplyConfigs([]Config) (successful []Config, failed []Config, err error)
+	ApplyConfigs([]Config) BatchApplyResult
 
 	// DeleteConfig deletes a given managed instance based on its Config.Name.
 	DeleteConfig(name string) error
 
 	// Stop stops the Manager and all managed instances.
 	Stop()
+}
+
+// BatchApplyResult contains the failed configs with error, successful configurations, and then if there is an error
+// that is not tied to a specific config then NonConfigError contains it
+type BatchApplyResult struct {
+	Failed     []BatchFailure
+	Successful []Config
+	// NonConfigError is used when the error is not with a specific configuration, but likely the grouping
+	// or applying the group.
+	NonConfigError error
+}
+
+// BatchFailure for a given config has the associated error
+type BatchFailure struct {
+	Err    error
+	Config Config
+}
+
+func (e BatchApplyResult) Error() string {
+	return fmt.Sprintf("%d configs failed to apply", len(e.Failed))
 }
 
 // ManagedInstance is implemented by Instance. It is defined as an interface
@@ -92,19 +112,25 @@ type BasicManager struct {
 	launch Factory
 }
 
-func (m *BasicManager) ApplyConfigs(configs []Config) (successful []Config, failed []Config, lastError error) {
-	successful = make([]Config, 0)
-	failed = make([]Config, 0)
-	for _, k := range configs {
-		err := m.ApplyConfig(k)
+// ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
+func (m *BasicManager) ApplyConfigs(configs []Config) BatchApplyResult {
+	successful := make([]Config, 0)
+	failed := make([]BatchFailure, 0)
+	for _, v := range configs {
+		err := m.ApplyConfig(v)
 		if err != nil {
-			lastError = err
-			failed = append(failed, k)
+			failed = append(failed, BatchFailure{
+				Err:    err,
+				Config: v,
+			})
 		} else {
-			successful = append(successful, k)
+			successful = append(successful, v)
 		}
 	}
-	return successful, failed, lastError
+	return BatchApplyResult{
+		Failed:     failed,
+		Successful: successful,
+	}
 }
 
 // managedProcess represents a goroutine running a ManagedInstance. cancel
@@ -341,14 +367,24 @@ type MockManager struct {
 	StopFunc          func()
 }
 
-func (m MockManager) ApplyConfigs(configs []Config) (successful []Config, failed []Config, lastError error) {
+// ApplyConfigs is used to batch apply configurations
+func (m MockManager) ApplyConfigs(configs []Config) BatchApplyResult {
 
-	for _, k := range configs {
-		if err := m.ApplyConfig(k); err != nil {
-			lastError = err
+	successful := make([]Config, 0)
+	failed := make([]BatchFailure, 0)
+	for _, v := range configs {
+		if err := m.ApplyConfig(v); err != nil {
+			failed = append(failed, BatchFailure{
+				Err:    err,
+				Config: v,
+			})
 		}
 	}
-	return nil, successful, lastError
+	return BatchApplyResult{
+		Failed:         failed,
+		Successful:     successful,
+		NonConfigError: nil,
+	}
 }
 
 // GetInstance implements Manager.
