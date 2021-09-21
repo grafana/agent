@@ -43,20 +43,20 @@ type GroupManager struct {
 	log log.Logger
 }
 
-func (m *GroupManager) ApplyConfigs(configs []Config) (err error, successful []Config, failed []Config) {
+func (m *GroupManager) ApplyConfigs(configs []Config) (successful []Config, failed []Config, lastError error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	return m.applyConfigs(configs)
 }
 
-func (m *GroupManager) applyConfigs(configs []Config) (err error, successful []Config, failed []Config) {
+func (m *GroupManager) applyConfigs(configs []Config) (successful []Config, failed []Config, lastError error) {
 	if len(configs) == 0 {
 		return nil, nil, nil
 	}
 	successful = make([]Config, 0)
 	failed = make([]Config, 0)
 	// This is the grouping of the passed in configs
-	groupsInConfigs := make(map[string]groupedConfigs, 0)
+	groupsInConfigs := make(map[string]groupedConfigs)
 	oldConfigs := make([]Config, 0)
 	// Add the config to the group. If the config already exists within this
 	// group, it'll be overwritten.
@@ -64,11 +64,12 @@ func (m *GroupManager) applyConfigs(configs []Config) (err error, successful []C
 		groupName, err := hashConfig(c)
 		if err != nil {
 			failed = append(failed, c)
+			lastError = err
 			level.Error(m.log).Log("err", fmt.Sprintf("failed to get group name for config %s: %s", c.Name, err))
 			continue
 		}
 		if _, exists := groupsInConfigs[groupName]; !exists {
-			groupsInConfigs[groupName] = make(groupedConfigs, 0)
+			groupsInConfigs[groupName] = make(groupedConfigs)
 		}
 		grouped := m.groups[groupName]
 		if grouped == nil {
@@ -98,6 +99,7 @@ func (m *GroupManager) applyConfigs(configs []Config) (err error, successful []C
 
 			err = m.deleteConfig(c.Name)
 			if err != nil {
+				lastError = err
 				level.Error(m.log).Log("err", fmt.Sprintf("cannot apply config %s because deleting it from the old group failed: %s", c.Name, err))
 				failed = append(failed, c)
 				continue
@@ -113,17 +115,18 @@ func (m *GroupManager) applyConfigs(configs []Config) (err error, successful []C
 	for groupName, grouped := range groupsInConfigs {
 		mergedConfig, err := groupConfigs(groupName, grouped)
 		if err != nil {
+			lastError = err
 			m.rollbackConfigs(oldConfigs)
-			return err, nil, configs
+			return nil, configs, err
 		}
 		err = m.inner.ApplyConfig(mergedConfig)
 		if err != nil {
 			m.rollbackConfigs(oldConfigs)
-			return err, nil, configs
+			return nil, configs, err
 		}
 		m.groups[groupName] = grouped
 	}
-	return nil, successful, failed
+	return successful, failed, lastError
 }
 
 func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
@@ -137,7 +140,7 @@ func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
 	// should already be valid. If it does happen to fail, though, the
 	// internal state is left corrupted since we've completely lost a
 	// config.
-	m.applyConfigs(oldConfigs)
+	_, _, _ = m.applyConfigs(oldConfigs)
 }
 
 // groupedConfigs holds a set of grouped configs, keyed by the config name.
@@ -209,7 +212,7 @@ func (m *GroupManager) ListConfigs() map[string]Config {
 // will be updated.
 func (m *GroupManager) ApplyConfig(c Config) error {
 	cfgs := []Config{c}
-	err, _, _ := m.ApplyConfigs(cfgs)
+	_, _, err := m.ApplyConfigs(cfgs)
 	return err
 }
 

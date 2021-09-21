@@ -68,11 +68,11 @@ type ModalManager struct {
 	wrapped, active Manager
 }
 
-func (m *ModalManager) ApplyConfigs(configs []Config) (lastError error, successful []Config, failed []Config) {
+func (m *ModalManager) ApplyConfigs(configs []Config) (successful []Config, failed []Config, lastError error) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	err, successful, failed := m.active.ApplyConfigs(configs)
+	successful, failed, err := m.active.ApplyConfigs(configs)
 	if len(failed) > 0 {
 		level.Error(m.log).Log("msg", fmt.Sprintf("number of configs failed %d", len(failed)))
 	}
@@ -86,7 +86,7 @@ func (m *ModalManager) ApplyConfigs(configs []Config) (lastError error, successf
 
 		m.configs[c.Name] = c
 	}
-	return err, successful, failed
+	return successful, failed, err
 }
 
 // NewModalManager creates a new ModalManager.

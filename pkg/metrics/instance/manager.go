@@ -51,7 +51,7 @@ type Manager interface {
 	ApplyConfig(Config) error
 
 	// ApplyConfigs batch applies the config
-	ApplyConfigs([]Config) (err error, successful []Config, failed []Config)
+	ApplyConfigs([]Config) (successful []Config, failed []Config, err error)
 
 	// DeleteConfig deletes a given managed instance based on its Config.Name.
 	DeleteConfig(name string) error
@@ -92,7 +92,7 @@ type BasicManager struct {
 	launch Factory
 }
 
-func (m *BasicManager) ApplyConfigs(configs []Config) (lastError error, successful []Config, failed []Config) {
+func (m *BasicManager) ApplyConfigs(configs []Config) (successful []Config, failed []Config, lastError error) {
 	successful = make([]Config, 0)
 	failed = make([]Config, 0)
 	for _, k := range configs {
@@ -104,7 +104,7 @@ func (m *BasicManager) ApplyConfigs(configs []Config) (lastError error, successf
 			successful = append(successful, k)
 		}
 	}
-	return lastError, successful, failed
+	return successful, failed, lastError
 }
 
 // managedProcess represents a goroutine running a ManagedInstance. cancel
@@ -341,11 +341,14 @@ type MockManager struct {
 	StopFunc          func()
 }
 
-func (m MockManager) ApplyConfigs(configs []Config) (err error, successful []Config, failed []Config) {
+func (m MockManager) ApplyConfigs(configs []Config) (successful []Config, failed []Config, lastError error) {
+
 	for _, k := range configs {
-		m.ApplyConfig(k)
+		if err := m.ApplyConfig(k); err != nil {
+			lastError = err
+		}
 	}
-	return nil, successful, nil
+	return nil, successful, lastError
 }
 
 // GetInstance implements Manager.

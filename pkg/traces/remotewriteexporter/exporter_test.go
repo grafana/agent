@@ -85,18 +85,19 @@ type mockManager struct {
 	instance *mockInstance
 }
 
-func (m *mockManager) ApplyConfigs(configs []instance.Config) (err error, successful []instance.Config, failed []instance.Config) {
+func (m *mockManager) ApplyConfigs(configs []instance.Config) (successful []instance.Config, failed []instance.Config, lastError error) {
 	successful = make([]instance.Config, 0)
 	failed = make([]instance.Config, 0)
 	for _, v := range configs {
-		err = m.ApplyConfig(v)
+		err := m.ApplyConfig(v)
 		if err != nil {
+			lastError = err
 			failed = append(failed, v)
 		} else {
 			successful = append(successful, v)
 		}
 	}
-	return err, successful, failed
+	return successful, failed, lastError
 
 }
 

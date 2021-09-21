@@ -234,7 +234,7 @@ type mockConfigManager struct {
 	mock.Mock
 }
 
-func (m *mockConfigManager) ApplyConfigs(configs []instance.Config) (err error, successful []instance.Config, failed []instance.Config) {
+func (m *mockConfigManager) ApplyConfigs(configs []instance.Config) (successful []instance.Config, failed []instance.Config, err error) {
 	successful = make([]instance.Config, 0)
 	failed = make([]instance.Config, 0)
 
@@ -247,7 +247,7 @@ func (m *mockConfigManager) ApplyConfigs(configs []instance.Config) (err error, 
 			successful = append(successful, v)
 		}
 	}
-	return err, successful, failed
+	return successful, failed, err
 }
 
 func (m *mockConfigManager) GetInstance(name string) (instance.ManagedInstance, error) {
