@@ -56,6 +56,9 @@ for specific instructions.
 
 - [BUGFIX] Fix warn-level logging of dropped targets. (@james-callahan)
 
+- [BUGFIX] Reloading the scraping service kvstore config for loading instance
+  configs will no longer use the clustering config instead. (@rfratto)
+
 - [BUGFIX] Batch applying of configurations when running as scraping service for performance. (@mattdurham)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
@@ -81,7 +84,7 @@ for specific instructions.
   deprecated in favor of `metrics`. Flag names starting with `prometheus.` have
   also been deprecated in favor of the same flags with the `metrics.` prefix.
   (@rfratto)
-  
+
 - [DEPRECATION] Rename Tempo to Traces (@mattdurham)
 
 # v0.18.4 (2021-09-14)

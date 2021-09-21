@@ -14,10 +14,10 @@ import (
 
 	"github.com/hashicorp/consul/api"
 
-	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
