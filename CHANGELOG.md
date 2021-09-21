@@ -56,6 +56,8 @@ for specific instructions.
 
 - [BUGFIX] Fix warn-level logging of dropped targets. (@james-callahan)
 
+- [BUGFIX] Batch applying of configurations when running as scraping service for performance. (@mattdurham)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
