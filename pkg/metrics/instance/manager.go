@@ -50,8 +50,8 @@ type Manager interface {
 	// one with Config.Name already exists.
 	ApplyConfig(Config) error
 
-	// ApplyConfigs batch applies the config
-	ApplyConfigs([]Config) *BatchApplyError
+	// ApplyConfigs batch applies the config, it will return a BatchApplyError if any error occurs
+	ApplyConfigs([]Config) error
 
 	// DeleteConfig deletes a given managed instance based on its Config.Name.
 	DeleteConfig(name string) error
@@ -93,7 +93,7 @@ type BasicManager struct {
 }
 
 // ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
-func (m *BasicManager) ApplyConfigs(configs []Config) *BatchApplyError {
+func (m *BasicManager) ApplyConfigs(configs []Config) error {
 	failed := make([]BatchFailure, 0)
 	for _, v := range configs {
 		err := m.ApplyConfig(v)
@@ -342,7 +342,7 @@ type MockManager struct {
 }
 
 // ApplyConfigs is used to batch apply configurations
-func (m MockManager) ApplyConfigs(configs []Config) *BatchApplyError {
+func (m MockManager) ApplyConfigs(configs []Config) error {
 	failed := make([]BatchFailure, 0)
 	for _, v := range configs {
 		if err := m.ApplyConfig(v); err != nil {
@@ -352,13 +352,7 @@ func (m MockManager) ApplyConfigs(configs []Config) *BatchApplyError {
 			})
 		}
 	}
-	if len(failed) == 0 {
-		return nil
-	}
-	return &BatchApplyError{
-		Failed:         failed,
-		NonConfigError: nil,
-	}
+	return CreateBatchApplyErrorOrNil(failed, nil)
 }
 
 // GetInstance implements Manager.

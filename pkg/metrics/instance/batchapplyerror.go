@@ -19,7 +19,7 @@ type BatchFailure struct {
 
 // CreateBatchApplyErrorOrNil will create an error if failed has > 0 elements on nonConfigError is not nil, else will
 // return nil
-func CreateBatchApplyErrorOrNil(failed []BatchFailure, nonConfigError error) *BatchApplyError {
+func CreateBatchApplyErrorOrNil(failed []BatchFailure, nonConfigError error) error {
 	if len(failed) == 0 && nonConfigError == nil {
 		return nil
 	}
@@ -55,7 +55,7 @@ func FindSuccessfulConfigs(e *BatchApplyError, allConfigs []Config) []Config {
 	return succeeded
 }
 
-func (e *BatchApplyError) Error() string {
+func (e BatchApplyError) Error() string {
 	if len(e.Failed) == 0 && e.NonConfigError == nil {
 		return ""
 	}

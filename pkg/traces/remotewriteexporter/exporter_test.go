@@ -86,7 +86,7 @@ type mockManager struct {
 }
 
 // ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
-func (m *mockManager) ApplyConfigs(configs []instance.Config) *instance.BatchApplyError {
+func (m *mockManager) ApplyConfigs(configs []instance.Config) error {
 	failed := make([]instance.BatchFailure, 0)
 	for _, v := range configs {
 		err := m.ApplyConfig(v)

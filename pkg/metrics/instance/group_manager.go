@@ -3,6 +3,7 @@ package instance
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/go-kit/kit/log"
@@ -44,17 +45,16 @@ type GroupManager struct {
 }
 
 // ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
-func (m *GroupManager) ApplyConfigs(configs []Config) *BatchApplyError {
+func (m *GroupManager) ApplyConfigs(configs []Config) error {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	return m.applyConfigs(configs)
 }
 
-func (m *GroupManager) applyConfigs(configs []Config) *BatchApplyError {
+func (m *GroupManager) applyConfigs(configs []Config) error {
 	if len(configs) == 0 {
 		return nil
 	}
-	successful := make([]Config, 0)
 	failed := make([]BatchFailure, 0)
 	// This is the grouping of the passed in configs
 	groupsInConfigs := make(map[string]groupedConfigs)
@@ -110,8 +110,6 @@ func (m *GroupManager) applyConfigs(configs []Config) *BatchApplyError {
 				continue
 			}
 			oldConfigs = append(oldConfigs, oldConfig)
-
-			successful = append(successful, c)
 			m.groupLookup[c.Name] = groupName
 		}
 		m.groupLookup[c.Name] = groupName
@@ -217,10 +215,15 @@ func (m *GroupManager) ListConfigs() map[string]Config {
 // will be updated.
 func (m *GroupManager) ApplyConfig(c Config) error {
 	cfgs := []Config{c}
-	result := m.ApplyConfigs(cfgs)
-	if result != nil && len(result.Failed) > 0 {
-		return result.Failed[0].Err
+	err := m.ApplyConfigs(cfgs)
+	var bae BatchApplyError
+
+	if err != nil && errors.As(err, &bae) {
+		if len(bae.Failed) > 0 {
+			return bae.Failed[0].Err
+		}
 	}
+
 	return nil
 }
 
