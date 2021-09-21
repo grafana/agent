@@ -4,6 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+
 	"sort"
 	"sync"
 
@@ -35,6 +39,105 @@ type GroupManager struct {
 
 	// groupLookup is a map of config name to group name.
 	groupLookup map[string]string
+
+	log log.Logger
+}
+
+func (m *GroupManager) ApplyConfigs(configs []Config) (err error, successful []Config, failed []Config) {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+	return m.applyConfigs(configs)
+}
+
+func (m *GroupManager) applyConfigs(configs []Config) (err error, successful []Config, failed []Config) {
+	if len(configs) == 0 {
+		return nil, nil, nil
+	}
+	successful = make([]Config, 0)
+	failed = make([]Config, 0)
+	// This is the grouping of the passed in configs
+	groupsInConfigs := make(map[string]groupedConfigs, 0)
+	oldConfigs := make([]Config, 0)
+	// Add the config to the group. If the config already exists within this
+	// group, it'll be overwritten.
+	for _, c := range configs {
+		groupName, err := hashConfig(c)
+		if err != nil {
+			failed = append(failed, c)
+			level.Error(m.log).Log("err", fmt.Sprintf("failed to get group name for config %s: %s", c.Name, err))
+			continue
+		}
+		if _, exists := groupsInConfigs[groupName]; !exists {
+			groupsInConfigs[groupName] = make(groupedConfigs, 0)
+		}
+		grouped := m.groups[groupName]
+		if grouped == nil {
+			grouped = make(groupedConfigs)
+		} else {
+			grouped = grouped.Copy()
+		}
+		groupsInConfigs[groupName] = grouped
+		grouped[c.Name] = c
+
+		// If this config already exists in another group, we have to delete it.
+		// If we can't delete it from the old group, we also can't apply it.
+		if oldGroup, ok := m.groupLookup[c.Name]; ok && oldGroup != groupName {
+			// There's a few cases here where if something fails, it's safer to crash
+			// out and restart the Agent from scratch than it would be to continue as
+			// normal. The panics here are for truly exceptional cases, otherwise if
+			// something is recoverable, we'll return an error like normal.
+
+			// If we can't find the old config, something got messed up when applying
+			// the config. But it also means that we're not going to be able to restore
+			// the config if something fails. Preemptively we should panic, since the
+			// internal state has gotten messed up and can't be fixed.
+			oldConfig, ok := m.groups[oldGroup][c.Name]
+			if !ok {
+				panic("failed to properly move config to new group. THIS IS A BUG!")
+			}
+
+			err = m.deleteConfig(c.Name)
+			if err != nil {
+				level.Error(m.log).Log("err", fmt.Sprintf("cannot apply config %s because deleting it from the old group failed: %s", c.Name, err))
+				failed = append(failed, c)
+				continue
+			}
+			oldConfigs = append(oldConfigs, oldConfig)
+
+			successful = append(successful, c)
+			m.groupLookup[c.Name] = groupName
+		}
+		m.groupLookup[c.Name] = groupName
+
+	}
+	for groupName, grouped := range groupsInConfigs {
+		mergedConfig, err := groupConfigs(groupName, grouped)
+		if err != nil {
+			m.rollbackConfigs(oldConfigs)
+			return err, nil, configs
+		}
+		err = m.inner.ApplyConfig(mergedConfig)
+		if err != nil {
+			m.rollbackConfigs(oldConfigs)
+			return err, nil, configs
+		}
+		m.groups[groupName] = grouped
+	}
+	return nil, successful, failed
+}
+
+func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
+	// THIS LOOKS LIKE RECURSION AND IT SORT OF IS, BUT OLD CONFIGS SHOULD NEVER FAIL
+	// If restoring a config fails, we've left the Agent in a really bad
+	// state: the new config can't be applied and the old config can't be
+	// brought back. Just crash and let the Agent start fresh.
+	//
+	// Restoring the config _shouldn't_ fail here since applies only fail
+	// if the config is invalid. Since the config was running before, it
+	// should already be valid. If it does happen to fail, though, the
+	// internal state is left corrupted since we've completely lost a
+	// config.
+	m.applyConfigs(oldConfigs)
 }
 
 // groupedConfigs holds a set of grouped configs, keyed by the config name.
@@ -53,11 +156,12 @@ func (g groupedConfigs) Copy() groupedConfigs {
 
 // NewGroupManager creates a new GroupManager for combining instances of the
 // same "group."
-func NewGroupManager(inner Manager) *GroupManager {
+func NewGroupManager(inner Manager, log log.Logger) *GroupManager {
 	return &GroupManager{
 		inner:       inner,
 		groups:      make(map[string]groupedConfigs),
 		groupLookup: make(map[string]string),
+		log:         log,
 	}
 }
 
@@ -104,89 +208,9 @@ func (m *GroupManager) ListConfigs() map[string]Config {
 // exists, the group will have its settings merged with the Config and
 // will be updated.
 func (m *GroupManager) ApplyConfig(c Config) error {
-	m.mtx.Lock()
-	defer m.mtx.Unlock()
-	return m.applyConfig(c)
-}
-
-func (m *GroupManager) applyConfig(c Config) (err error) {
-	groupName, err := hashConfig(c)
-	if err != nil {
-		return fmt.Errorf("failed to get group name for config %s: %w", c.Name, err)
-	}
-
-	grouped := m.groups[groupName]
-	if grouped == nil {
-		grouped = make(groupedConfigs)
-	} else {
-		grouped = grouped.Copy()
-	}
-
-	// Add the config to the group. If the config already exists within this
-	// group, it'll be overwritten.
-	grouped[c.Name] = c
-	mergedConfig, err := groupConfigs(groupName, grouped)
-	if err != nil {
-		err = fmt.Errorf("failed to group configs for %s: %w", c.Name, err)
-		return
-	}
-
-	// If this config already exists in another group, we have to delete it.
-	// If we can't delete it from the old group, we also can't apply it.
-	if oldGroup, ok := m.groupLookup[c.Name]; ok && oldGroup != groupName {
-		// There's a few cases here where if something fails, it's safer to crash
-		// out and restart the Agent from scratch than it would be to continue as
-		// normal. The panics here are for truly exceptional cases, otherwise if
-		// something is recoverable, we'll return an error like normal.
-
-		// If we can't find the old config, something got messed up when applying
-		// the config. But it also means that we're not going to be able to restore
-		// the config if something fails. Preemptively we should panic, since the
-		// internal state has gotten messed up and can't be fixed.
-		oldConfig, ok := m.groups[oldGroup][c.Name]
-		if !ok {
-			panic("failed to properly move config to new group. THIS IS A BUG!")
-		}
-
-		err = m.deleteConfig(c.Name)
-		if err != nil {
-			err = fmt.Errorf("cannot apply config %s because deleting it from the old group failed: %w", c.Name, err)
-			return
-		}
-
-		// Now that the config is deleted, we need to restore it in case applying
-		// the new one happens to fail.
-		defer func() {
-			if err == nil {
-				return
-			}
-
-			// If restoring a config fails, we've left the Agent in a really bad
-			// state: the new config can't be applied and the old config can't be
-			// brought back. Just crash and let the Agent start fresh.
-			//
-			// Restoring the config _shouldn't_ fail here since applies only fail
-			// if the config is invalid. Since the config was running before, it
-			// should already be valid. If it does happen to fail, though, the
-			// internal state is left corrupted since we've completely lost a
-			// config.
-			restoreError := m.applyConfig(oldConfig)
-			if restoreError != nil {
-				panic(fmt.Sprintf("failed to properly restore config. THIS IS A BUG! error: %s", restoreError))
-			}
-		}()
-	}
-
-	err = m.inner.ApplyConfig(mergedConfig)
-	if err != nil {
-		err = fmt.Errorf("failed to apply grouped configs for config %s: %w", c.Name, err)
-		return
-	}
-
-	// If the inner apply succeeded, we can update our group and the lookup.
-	m.groups[groupName] = grouped
-	m.groupLookup[c.Name] = groupName
-	return
+	cfgs := []Config{c}
+	err, _, _ := m.ApplyConfigs(cfgs)
+	return err
 }
 
 // DeleteConfig will remove a Config from its associated group. If there are
