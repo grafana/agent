@@ -6,28 +6,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/weaveworks/common/instrument"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
-
-/***********************************************************************************************************************
-The consul code skipping the cortex handler is due to performance issue with a large number of configs and overloading
-consul. See issue https://github.com/grafana/agent/issues/789. The long term method will be to refactor and extract
-the cortex code so other stores can also benefit from this. @mattdurham
-***********************************************************************************************************************/
-
-var consulRequestDuration = instrument.NewHistogramCollector(promauto.NewHistogramVec(prometheus.HistogramOpts{
-	Name:    "agent_configstore_consul_request_duration_seconds",
-	Help:    "Time spent on consul requests when listing configs.",
-	Buckets: prometheus.DefBuckets,
-}, []string{"operation", "status_code"}))
 
 // Remote loads instance files from a remote KV store. The KV store
 // can be swapped out in real time.
@@ -85,7 +70,7 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 	r.reg.UnregisterAll()
 
 	if !enable {
-		r.setClient(nil, kv.Config{})
+		r.setClient(nil)
 		return nil
 	}
 
@@ -94,13 +79,13 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 		return fmt.Errorf("failed to create kv client: %w", err)
 	}
 
-	r.setClient(cli, cfg)
+	r.setClient(cli)
 	return nil
 }
 
 // setClient sets the active client and notifies run to restart the
 // kv watcher.
-func (r *Remote) setClient(client kv.Client, config kv.Config) {
+func (r *Remote) setClient(client kv.Client) {
 	r.kv = client
 	r.reloadKV <- struct{}{}
 }
