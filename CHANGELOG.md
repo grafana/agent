@@ -5,6 +5,8 @@ consult the
 [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for specific instructions.
 
+- [ENHANCEMENT] Update jsonnet-libs to 1.21 for Kubernetes 1.21+ compatability. (@MurzNN)
+
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
