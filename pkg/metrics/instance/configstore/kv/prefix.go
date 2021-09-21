@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 )
 
 type prefixedKVClient struct {
@@ -17,8 +19,8 @@ func PrefixClient(client Client, prefix string) Client {
 }
 
 // List returns a list of keys under a given prefix.
-func (c *prefixedKVClient) List(ctx context.Context, prefix string) ([]string, error) {
-	keys, err := c.client.List(ctx, c.prefix+prefix)
+func (c *prefixedKVClient) List(ctx context.Context, prefix string) ([]pair.KVP, error) {
+	pairs, err := c.client.List(ctx, c.prefix+prefix)
 	if err != nil {
 		return nil, err
 	}
@@ -27,11 +29,11 @@ func (c *prefixedKVClient) List(ctx context.Context, prefix string) ([]string, e
 	// prefixed client is supposed to be transparent and the values returned
 	// by List should be able to be immediately inserted into the Get
 	// function, which means that our injected prefix needs to be removed.
-	for i := range keys {
-		keys[i] = strings.TrimPrefix(keys[i], c.prefix)
+	for i := range pairs {
+		pairs[i].Key = strings.TrimPrefix(pairs[i].Key, c.prefix)
 	}
 
-	return keys, nil
+	return pairs, nil
 }
 
 // CAS atomically modifies a value in a callback. If the value doesn't exist,

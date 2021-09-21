@@ -15,6 +15,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring/kv/codec"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/consul"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/etcd"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 )
 
 func withFixtures(t *testing.T, f func(*testing.T, Client)) {
@@ -257,20 +258,24 @@ func TestWatchPrefix(t *testing.T) {
 
 // TestList makes sure stored keys are listed back.
 func TestList(t *testing.T) {
-	keysToCreate := []string{"a", "b", "c"}
+	kvpsToCreate := []pair.KVP{
+		{Key: "a", Value: "value_a"},
+		{Key: "b", Value: "value_b"},
+		{Key: "c", Value: "value_c"},
+	}
 
 	withFixtures(t, func(t *testing.T, client Client) {
-		for _, key := range keysToCreate {
-			err := client.CAS(context.Background(), key, func(in interface{}) (out interface{}, retry bool, err error) {
-				return key, false, nil
+		for _, kvp := range kvpsToCreate {
+			err := client.CAS(context.Background(), kvp.Key, func(in interface{}) (out interface{}, retry bool, err error) {
+				return kvp.Value, false, nil
 			})
 			require.NoError(t, err)
 		}
 
-		storedKeys, err := client.List(context.Background(), "")
+		storedKVPs, err := client.List(context.Background(), "")
 		require.NoError(t, err)
-		sort.Strings(storedKeys)
+		sort.Slice(storedKVPs, func(i, j int) bool { return storedKVPs[i].Key < storedKVPs[j].Key })
 
-		require.Equal(t, keysToCreate, storedKeys)
+		require.Equal(t, kvpsToCreate, storedKVPs)
 	})
 }

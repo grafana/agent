@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 	consul "github.com/hashicorp/consul/api"
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/weaveworks/common/instrument"
@@ -323,7 +324,7 @@ func (c *Client) WatchPrefix(ctx context.Context, prefix string, f func(string, 
 }
 
 // List implements kv.List.
-func (c *Client) List(ctx context.Context, prefix string) ([]string, error) {
+func (c *Client) List(ctx context.Context, prefix string) ([]pair.KVP, error) {
 	options := &consul.QueryOptions{
 		AllowStale:        !c.cfg.ConsistentReads,
 		RequireConsistent: c.cfg.ConsistentReads,
@@ -333,11 +334,20 @@ func (c *Client) List(ctx context.Context, prefix string) ([]string, error) {
 		return nil, err
 	}
 
-	keys := make([]string, 0, len(pairs))
+	res := make([]pair.KVP, 0, len(pairs))
 	for _, kvp := range pairs {
-		keys = append(keys, kvp.Key)
+		value, err := c.codec.Decode(kvp.Value)
+		if err != nil {
+			level.Error(util_log.Logger).Log("msg", "error decoding list of values for prefix:key", "prefix", prefix, "key", kvp.Key, "err", err)
+			continue
+		}
+
+		res = append(res, pair.KVP{
+			Key:   kvp.Key,
+			Value: value,
+		})
 	}
-	return keys, nil
+	return res, nil
 }
 
 // Get implements kv.Get.
