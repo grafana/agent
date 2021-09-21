@@ -51,33 +51,13 @@ type Manager interface {
 	ApplyConfig(Config) error
 
 	// ApplyConfigs batch applies the config
-	ApplyConfigs([]Config) BatchApplyResult
+	ApplyConfigs([]Config) *BatchApplyError
 
 	// DeleteConfig deletes a given managed instance based on its Config.Name.
 	DeleteConfig(name string) error
 
 	// Stop stops the Manager and all managed instances.
 	Stop()
-}
-
-// BatchApplyResult contains the failed configs with error, successful configurations, and then if there is an error
-// that is not tied to a specific config then NonConfigError contains it
-type BatchApplyResult struct {
-	Failed     []BatchFailure
-	Successful []Config
-	// NonConfigError is used when the error is not with a specific configuration, but likely the grouping
-	// or applying the group.
-	NonConfigError error
-}
-
-// BatchFailure for a given config has the associated error
-type BatchFailure struct {
-	Err    error
-	Config Config
-}
-
-func (e BatchApplyResult) Error() string {
-	return fmt.Sprintf("%d configs failed to apply", len(e.Failed))
 }
 
 // ManagedInstance is implemented by Instance. It is defined as an interface
@@ -113,8 +93,7 @@ type BasicManager struct {
 }
 
 // ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
-func (m *BasicManager) ApplyConfigs(configs []Config) BatchApplyResult {
-	successful := make([]Config, 0)
+func (m *BasicManager) ApplyConfigs(configs []Config) *BatchApplyError {
 	failed := make([]BatchFailure, 0)
 	for _, v := range configs {
 		err := m.ApplyConfig(v)
@@ -123,14 +102,9 @@ func (m *BasicManager) ApplyConfigs(configs []Config) BatchApplyResult {
 				Err:    err,
 				Config: v,
 			})
-		} else {
-			successful = append(successful, v)
 		}
 	}
-	return BatchApplyResult{
-		Failed:     failed,
-		Successful: successful,
-	}
+	return CreateBatchApplyErrorOrNil(failed, nil)
 }
 
 // managedProcess represents a goroutine running a ManagedInstance. cancel
@@ -368,9 +342,7 @@ type MockManager struct {
 }
 
 // ApplyConfigs is used to batch apply configurations
-func (m MockManager) ApplyConfigs(configs []Config) BatchApplyResult {
-
-	successful := make([]Config, 0)
+func (m MockManager) ApplyConfigs(configs []Config) *BatchApplyError {
 	failed := make([]BatchFailure, 0)
 	for _, v := range configs {
 		if err := m.ApplyConfig(v); err != nil {
@@ -380,9 +352,11 @@ func (m MockManager) ApplyConfigs(configs []Config) BatchApplyResult {
 			})
 		}
 	}
-	return BatchApplyResult{
+	if len(failed) == 0 {
+		return nil
+	}
+	return &BatchApplyError{
 		Failed:         failed,
-		Successful:     successful,
 		NonConfigError: nil,
 	}
 }

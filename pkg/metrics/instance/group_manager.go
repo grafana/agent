@@ -44,15 +44,15 @@ type GroupManager struct {
 }
 
 // ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
-func (m *GroupManager) ApplyConfigs(configs []Config) BatchApplyResult {
+func (m *GroupManager) ApplyConfigs(configs []Config) *BatchApplyError {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	return m.applyConfigs(configs)
 }
 
-func (m *GroupManager) applyConfigs(configs []Config) BatchApplyResult {
+func (m *GroupManager) applyConfigs(configs []Config) *BatchApplyError {
 	if len(configs) == 0 {
-		return BatchApplyResult{}
+		return nil
 	}
 	successful := make([]Config, 0)
 	failed := make([]BatchFailure, 0)
@@ -120,30 +120,18 @@ func (m *GroupManager) applyConfigs(configs []Config) BatchApplyResult {
 	for groupName, grouped := range groupsInConfigs {
 		mergedConfig, err := groupConfigs(groupName, grouped)
 		if err != nil {
-
 			m.rollbackConfigs(oldConfigs)
-			return BatchApplyResult{
-				Failed:         failed,
-				Successful:     successful,
-				NonConfigError: err,
-			}
+			return CreateBatchApplyErrorOrNil(failed, err)
 		}
 		err = m.inner.ApplyConfig(mergedConfig)
 		if err != nil {
 			m.rollbackConfigs(oldConfigs)
-			return BatchApplyResult{
-				Failed:         failed,
-				Successful:     successful,
-				NonConfigError: err,
-			}
+			return CreateBatchApplyErrorOrNil(failed, err)
 		}
 		m.groups[groupName] = grouped
 	}
-	return BatchApplyResult{
-		Failed:         failed,
-		Successful:     successful,
-		NonConfigError: nil,
-	}
+
+	return CreateBatchApplyErrorOrNil(failed, nil)
 }
 
 func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
@@ -230,7 +218,7 @@ func (m *GroupManager) ListConfigs() map[string]Config {
 func (m *GroupManager) ApplyConfig(c Config) error {
 	cfgs := []Config{c}
 	result := m.ApplyConfigs(cfgs)
-	if len(result.Failed) > 0 {
+	if result != nil && len(result.Failed) > 0 {
 		return result.Failed[0].Err
 	}
 	return nil

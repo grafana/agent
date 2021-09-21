@@ -69,7 +69,7 @@ type ModalManager struct {
 }
 
 // ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
-func (m *ModalManager) ApplyConfigs(configs []Config) BatchApplyResult {
+func (m *ModalManager) ApplyConfigs(configs []Config) *BatchApplyError {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
@@ -78,7 +78,8 @@ func (m *ModalManager) ApplyConfigs(configs []Config) BatchApplyResult {
 	if len(result.Failed) > 0 {
 		level.Error(m.log).Log("msg", fmt.Sprintf("number of configs failed %d", len(result.Failed)))
 	}
-	for _, c := range result.Successful {
+
+	for _, c := range FindSuccessfulConfigs(result, configs) {
 		if _, existingConfig := m.configs[c.Name]; !existingConfig {
 			m.currentActiveConfigs.Inc()
 			m.changedConfigs.WithLabelValues("created").Inc()
