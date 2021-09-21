@@ -68,14 +68,15 @@ agents distribute discovery and scrape load between nodes.
 # events are not sent by an agent.
 [reshard_interval: <duration> | default = "1m"]
 
-# The timeout for configuration refreshes. This can occur on cluster events or 
+# The timeout for configuration refreshes. This can occur on cluster events or
 # on the reshard interval. A timeout of 0 indicates no timeout.
 [reshard_timeout: <duration> | default = "30s"]
 
 # The timeout for a cluster reshard events. A timeout of 0 indicates no timeout.
 [cluster_reshard_event_timeout: <duration> | default = "30s"]
 
-# Configuration for the KV store to store configurations.
+# Configuration for the KV store to store configurations. Note that gossip
+# cannot be configured for the scraping service config.
 kvstore: <kvstore_config>
 
 # When set, allows configs pushed to the KV store to specify configuration

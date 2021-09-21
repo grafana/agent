@@ -130,7 +130,7 @@ func (c *Cluster) ApplyConfig(
 		return fmt.Errorf("failed to apply config to node membership: %w", err)
 	}
 
-	if err := c.store.ApplyConfig(cfg.Lifecycler.RingConfig.KVStore, cfg.Enabled); err != nil {
+	if err := c.store.ApplyConfig(cfg.KVStore, cfg.Enabled); err != nil {
 		return fmt.Errorf("failed to apply config to config store: %w", err)
 	}
 

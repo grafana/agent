@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
-	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv"
 	flagutil "github.com/grafana/agent/pkg/util"
 )
 
