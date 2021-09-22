@@ -7,7 +7,7 @@
    "graphTooltip": 0,
    "hideControls": false,
    "links": [ ],
-   "refresh": "10s",
+   "refresh": "1m",
    "rows": [
       {
          "collapse": false,
@@ -117,7 +117,7 @@
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 2,
-               "stack": "true",
+               "stack": false,
                "steppedLine": false,
                "targets": [
                   {
@@ -673,7 +673,7 @@
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 2,
-               "stack": "true",
+               "stack": false,
                "steppedLine": false,
                "targets": [
                   {
@@ -749,7 +749,7 @@
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 2,
-               "stack": "true",
+               "stack": false,
                "steppedLine": false,
                "targets": [
                   {
@@ -825,7 +825,7 @@
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 2,
-               "stack": "true",
+               "stack": false,
                "steppedLine": false,
                "targets": [
                   {
@@ -901,7 +901,7 @@
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 2,
-               "stack": "true",
+               "stack": false,
                "steppedLine": false,
                "targets": [
                   {
@@ -977,7 +977,7 @@
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 2,
-               "stack": "true",
+               "stack": false,
                "steppedLine": false,
                "targets": [
                   {
