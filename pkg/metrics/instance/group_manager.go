@@ -51,17 +51,19 @@ type GroupManager struct {
 func (m *GroupManager) ApplyConfigs(configs []Config) error {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	return m.applyConfigs(configs)
+	return m.applyConfigs(configs, false)
 }
 
-func (m *GroupManager) applyConfigs(configs []Config) error {
+// applyConfigs is used to take the currently running set of configs, plus the new ones. (update/append configs).
+// isRollback determines whether we are rolling back any changes and if so avoid recursion in calling rollback again
+func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 	if len(configs) == 0 {
 		return nil
 	}
 	failed := make([]BatchFailure, 0)
 
 	// This will form our master set of configurations to apply by their group, this includes any that are currently
-	// running but not in the configs parameter. NOTE currently this does not support DELETING any configurations
+	// running but not in the configs parameter.
 	groupsInConfigs := make(map[string]groupedConfigs)
 
 	// Combined group of current and new configs
@@ -70,8 +72,8 @@ func (m *GroupManager) applyConfigs(configs []Config) error {
 	oldConfigs := make([]Config, 0)
 	// In case of an error in applying the new configs, we need to grab the old config for rollback
 	copy(oldConfigs, m.activeConfigs)
-	m.activeConfigs = make([]Config, 0)
-	m.groupLookup = make(map[string]string)
+	activeConfigs := make([]Config, 0)
+	groupLookup := make(map[string]string)
 	// Iterate through the combined configurations
 	for _, c := range combinedConfigs {
 		groupName, err := hashConfig(c)
@@ -87,38 +89,42 @@ func (m *GroupManager) applyConfigs(configs []Config) error {
 			groupsInConfigs[groupName] = make(groupedConfigs)
 		}
 		groupsInConfigs[groupName][c.Name] = c
-		m.groupLookup[c.Name] = groupName
-		m.activeConfigs = append(m.activeConfigs, c)
+		groupLookup[c.Name] = groupName
+		activeConfigs = append(activeConfigs, c)
 	}
 	// If we have group that no longer exist then we need to delete them
 	for groupName := range m.groups {
 		if _, exists := groupsInConfigs[groupName]; !exists {
-			_ = m.inner.DeleteConfig(groupName)
+			if err := m.inner.DeleteConfig(groupName); err != nil {
+				level.Error(m.log).Log("err", fmt.Sprintf("failed to delete group named  %s with error %s", groupName, err))
+			}
 		}
 	}
-	m.groups = make(map[string]groupedConfigs)
+	groups := make(map[string]groupedConfigs)
 	// Now that we have grouped all the new and existing configurations we can apply them
 	for groupName, grouped := range groupsInConfigs {
 		mergedConfig, err := groupConfigs(groupName, grouped)
-		// Something terrible happened so roll back to the old configurations, this ensure that at least the agent
-		// always has a valid configuration
-		if err != nil {
+		// Something terrible happened so roll back to the old configurations, this ensures that at least the agent
+		// always has a valid configuration. If we are already in a rollback then dont try again
+		if err != nil && !isRollback {
 			m.rollbackConfigs(oldConfigs)
 			return CreateBatchApplyErrorOrNil(failed, err)
 		}
 		err = m.inner.ApplyConfig(mergedConfig)
-		if err != nil {
+		if err != nil && !isRollback {
 			m.rollbackConfigs(oldConfigs)
 			return CreateBatchApplyErrorOrNil(failed, err)
 		}
-		m.groups[groupName] = grouped
+		groups[groupName] = grouped
 	}
+	m.groups = groups
+	m.activeConfigs = activeConfigs
+	m.groupLookup = groupLookup
 
 	return CreateBatchApplyErrorOrNil(failed, nil)
 }
 
 func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
-	// THIS LOOKS LIKE RECURSION AND IT SORT OF IS, BUT OLD CONFIGS SHOULD NEVER FAIL
 	// If restoring a config fails, we've left the Agent in a really bad
 	// state: the new config can't be applied and the old config can't be
 	// brought back. Just crash and let the Agent start fresh.
@@ -128,14 +134,17 @@ func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
 	// should already be valid. If it does happen to fail, though, the
 	// internal state is left corrupted since we've completely lost a
 	// config.
-	_ = m.applyConfigs(oldConfigs)
+	if err := m.applyConfigs(oldConfigs, true); err != nil {
+		level.Error(m.log).Log("err", fmt.Sprintf("failed to rollback configs with error %s", err))
+		panic(err)
+	}
 }
 
 func (m *GroupManager) getCombinedConfigs(newConfigs []Config) map[string]Config {
 	// There is also a known issue in that this DOES not handle deleted configs
 	combinedConfigsMap := make(map[string]Config)
 
-	// Proload all our existing configs
+	// Preload all our existing configs
 	for _, ac := range m.activeConfigs {
 		combinedConfigsMap[ac.Name] = ac
 	}
