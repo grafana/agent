@@ -271,19 +271,18 @@ func TestWatchPrefix_Deletes(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		go func() {
-			// start watching before we even start generating values. values will be buffered
-			client.WatchPrefix(ctx, "", func(key string, val interface{}) bool {
-				if val != nil {
-					err := client.Delete(ctx, key)
-					require.NoError(t, err)
-					return true
-				}
+		// Watch for keys in the background. As soon as a key comes through, delete
+		// it. The next invoke should be from the deleted key.
+		go client.WatchPrefix(ctx, "", func(key string, val interface{}) bool {
+			if val != nil {
+				err := client.Delete(ctx, key)
+				require.NoError(t, err)
+				return true
+			}
 
-				observedKVPs <- pair.KVP{Key: key, Value: val}
-				return false
-			})
-		}()
+			observedKVPs <- pair.KVP{Key: key, Value: val}
+			return false
+		})
 
 		// Wait before generating a key to be deleted.
 		time.Sleep(250 * time.Millisecond)
