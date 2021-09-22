@@ -7,7 +7,7 @@
    "graphTooltip": 0,
    "hideControls": false,
    "links": [ ],
-   "refresh": "10s",
+   "refresh": "1m",
    "rows": [
       {
          "collapse": false,
@@ -309,10 +309,10 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum(prometheus_sd_discovered_targets{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"})",
+                     "expr": "sum by (pod) (prometheus_sd_discovered_targets{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"})",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "Targets",
+                     "legendFormat": "{{pod}}",
                      "legendLink": null,
                      "step": 10
                   }
@@ -573,7 +573,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum by (job, instance_group_name) (rate(agent_wal_storage_created_series_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]))",
+                     "expr": "sum by (job, instance_group_name) (rate(agent_wal_samples_appended_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{job}} {{instance_group_name}}",
@@ -584,7 +584,7 @@
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Created Series",
+               "title": "Appended Samples",
                "tooltip": {
                   "shared": true,
                   "sort": 0,

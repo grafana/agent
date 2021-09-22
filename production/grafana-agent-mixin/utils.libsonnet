@@ -1,6 +1,7 @@
 {
   injectUtils(dashboard):: dashboard {
     tags: ['grafana-agent-mixin'],
+    refresh: '30s',
     addMultiTemplateWithAll(name, metric_name, label_name, all='.*', hide=0):: self {
       templating+: {
         list+: [{

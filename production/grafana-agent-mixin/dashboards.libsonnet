@@ -43,7 +43,7 @@ local template = grafana.template;
         )
         .addPanel(
           g.panel('Targets') +
-          g.queryPanel('sum(prometheus_sd_discovered_targets{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})', 'Targets') +
+          g.queryPanel('sum by (pod) (prometheus_sd_discovered_targets{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"})', '{{pod}}') +
           g.stack
         )
       )
@@ -75,8 +75,8 @@ local template = grafana.template;
           g.stack
         )
         .addPanel(
-          g.panel('Created Series') +
-          g.queryPanel('sum by (job, instance_group_name) (rate(agent_wal_storage_created_series_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))', '{{job}} {{instance_group_name}}') +
+          g.panel('Appended Samples') +
+          g.queryPanel('sum by (job, instance_group_name) (rate(agent_wal_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))', '{{job}} {{instance_group_name}}') +
           g.stack
         )
       ),
@@ -115,6 +115,24 @@ local template = grafana.template;
               ignoring(url, remote_name) group_right(pod)
               rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
             )
+          |||,
+          legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
+        ));
+
+      local samplesRate =
+        graphPanel.new(
+          'Rate, in vs. succeeded or dropped [5m]',
+          datasource='$datasource',
+          span=12,
+        )
+        .addTarget(prometheus.target(
+          |||
+            rate(agent_wal_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
+            -
+              ignoring(remote_name, url) group_right(pod)
+              (rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]) or rate(prometheus_remote_storage_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))
+            -
+              (rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]) or rate(prometheus_remote_storage_samples_dropped_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))
           |||,
           legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
@@ -242,7 +260,7 @@ local template = grafana.template;
           legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
-      dashboard.new('Agent Prometheus Remote Write', tags=['grafana-agent-mixin'], editable=true)
+      dashboard.new('Agent Prometheus Remote Write', tags=['grafana-agent-mixin'], editable=true, refresh='30s', time_from='now-1h')
       .addTemplate(
         {
           hide: 0,
@@ -327,6 +345,7 @@ local template = grafana.template;
       )
       .addRow(
         row.new('Samples')
+        .addPanel(samplesRate)
         .addPanel(pendingSamples)
         .addPanel(droppedSamples)
         .addPanel(failedSamples)
