@@ -35,6 +35,9 @@ type GroupManager struct {
 
 	mtx sync.Mutex
 
+	// activeConfigs is a list of all the configs currently being used in the group
+	activeConfigs []Config
+
 	// groups is a map of group name to the grouped configs.
 	groups map[string]groupedConfigs
 
@@ -56,12 +59,21 @@ func (m *GroupManager) applyConfigs(configs []Config) error {
 		return nil
 	}
 	failed := make([]BatchFailure, 0)
-	// This is the grouping of the passed in configs
+
+	// This will form our master set of configurations to apply by their group, this includes any that are currently
+	// running but not in the configs parameter. NOTE currently this does not support DELETING any configurations
 	groupsInConfigs := make(map[string]groupedConfigs)
+
+	// Combined group of current and new configs
+	combinedConfigs := m.getCombinedConfigs(configs)
+
 	oldConfigs := make([]Config, 0)
-	// Add the config to the group. If the config already exists within this
-	// group, it'll be overwritten.
-	for _, c := range configs {
+	// In case of an error in applying the new configs, we need to grab the old config for rollback
+	copy(oldConfigs, m.activeConfigs)
+	m.activeConfigs = make([]Config, 0)
+	m.groupLookup = make(map[string]string)
+	// Iterate through the combined configurations
+	for _, c := range combinedConfigs {
 		groupName, err := hashConfig(c)
 		if err != nil {
 			failed = append(failed, BatchFailure{
@@ -74,49 +86,22 @@ func (m *GroupManager) applyConfigs(configs []Config) error {
 		if _, exists := groupsInConfigs[groupName]; !exists {
 			groupsInConfigs[groupName] = make(groupedConfigs)
 		}
-		grouped := m.groups[groupName]
-		if grouped == nil {
-			grouped = make(groupedConfigs)
-		} else {
-			grouped = grouped.Copy()
-		}
-		groupsInConfigs[groupName] = grouped
-		grouped[c.Name] = c
-
-		// If this config already exists in another group, we have to delete it.
-		// If we can't delete it from the old group, we also can't apply it.
-		if oldGroup, ok := m.groupLookup[c.Name]; ok && oldGroup != groupName {
-			// There's a few cases here where if something fails, it's safer to crash
-			// out and restart the Agent from scratch than it would be to continue as
-			// normal. The panics here are for truly exceptional cases, otherwise if
-			// something is recoverable, we'll return an error like normal.
-
-			// If we can't find the old config, something got messed up when applying
-			// the config. But it also means that we're not going to be able to restore
-			// the config if something fails. Preemptively we should panic, since the
-			// internal state has gotten messed up and can't be fixed.
-			oldConfig, ok := m.groups[oldGroup][c.Name]
-			if !ok {
-				panic("failed to properly move config to new group. THIS IS A BUG!")
-			}
-
-			err = m.deleteConfig(c.Name)
-			if err != nil {
-				level.Error(m.log).Log("err", fmt.Sprintf("cannot apply config %s because deleting it from the old group failed: %s", c.Name, err))
-				failed = append(failed, BatchFailure{
-					Err:    err,
-					Config: c,
-				})
-				continue
-			}
-			oldConfigs = append(oldConfigs, oldConfig)
-			m.groupLookup[c.Name] = groupName
-		}
+		groupsInConfigs[groupName][c.Name] = c
 		m.groupLookup[c.Name] = groupName
-
+		m.activeConfigs = append(m.activeConfigs, c)
 	}
+	// If we have group that no longer exist then we need to delete them
+	for groupName := range m.groups {
+		if _, exists := groupsInConfigs[groupName]; !exists {
+			_ = m.inner.DeleteConfig(groupName)
+		}
+	}
+	m.groups = make(map[string]groupedConfigs)
+	// Now that we have grouped all the new and existing configurations we can apply them
 	for groupName, grouped := range groupsInConfigs {
 		mergedConfig, err := groupConfigs(groupName, grouped)
+		// Something terrible happened so roll back to the old configurations, this ensure that at least the agent
+		// always has a valid configuration
 		if err != nil {
 			m.rollbackConfigs(oldConfigs)
 			return CreateBatchApplyErrorOrNil(failed, err)
@@ -146,6 +131,22 @@ func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
 	_ = m.applyConfigs(oldConfigs)
 }
 
+func (m *GroupManager) getCombinedConfigs(newConfigs []Config) map[string]Config {
+	// There is also a known issue in that this DOES not handle deleted configs
+	combinedConfigsMap := make(map[string]Config)
+
+	// Proload all our existing configs
+	for _, ac := range m.activeConfigs {
+		combinedConfigsMap[ac.Name] = ac
+	}
+	for _, nc := range newConfigs {
+		// If new config shares the name with an active config we assume they are the same config and should
+		// use the new config
+		combinedConfigsMap[nc.Name] = nc
+	}
+	return combinedConfigsMap
+}
+
 // groupedConfigs holds a set of grouped configs, keyed by the config name.
 // They are stored in a map rather than a slice to make overriding an existing
 // config within the group less error prone.
@@ -162,7 +163,7 @@ func (g groupedConfigs) Copy() groupedConfigs {
 
 // NewGroupManager creates a new GroupManager for combining instances of the
 // same "group."
-func NewGroupManager(inner Manager, log log.Logger) *GroupManager {
+func NewGroupManager(log log.Logger, inner Manager) *GroupManager {
 	return &GroupManager{
 		inner:       inner,
 		groups:      make(map[string]groupedConfigs),

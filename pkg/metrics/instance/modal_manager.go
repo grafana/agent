@@ -144,7 +144,7 @@ func (m *ModalManager) SetMode(newMode Mode) error {
 	case ModeDistinct:
 		m.active = m.wrapped
 	case ModeShared:
-		m.active = NewGroupManager(m.wrapped, m.log)
+		m.active = NewGroupManager(m.log, m.wrapped)
 	default:
 		panic("unknown mode " + m.mode)
 	}
