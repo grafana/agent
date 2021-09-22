@@ -5,5 +5,6 @@ type KVP struct {
 	Key string
 
 	// Value should be deserialised through the Client's codec.
+	// Nil indicates a deletion.
 	Value interface{}
 }

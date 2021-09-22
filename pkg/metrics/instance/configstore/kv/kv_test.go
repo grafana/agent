@@ -264,6 +264,44 @@ func TestWatchPrefix(t *testing.T) {
 	})
 }
 
+func TestWatchPrefix_Deletes(t *testing.T) {
+	withFixtures(t, func(t *testing.T, client Client) {
+		observedKVPs := make(chan pair.KVP, 1)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		go func() {
+			// start watching before we even start generating values. values will be buffered
+			client.WatchPrefix(ctx, "", func(key string, val interface{}) bool {
+				if val != nil {
+					err := client.Delete(ctx, key)
+					require.NoError(t, err)
+					return true
+				}
+
+				observedKVPs <- pair.KVP{Key: key, Value: val}
+				return false
+			})
+		}()
+
+		// Wait before generating a key to be deleted.
+		time.Sleep(250 * time.Millisecond)
+		err := client.CAS(ctx, "key", func(in interface{}) (out interface{}, retry bool, err error) {
+			return "value", false, nil
+		})
+		require.NoError(t, err)
+
+		select {
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "test timed out waiting for delete event")
+		case kvp := <-observedKVPs:
+			require.Equal(t, "key", kvp.Key)
+			require.Nil(t, kvp.Value, "value must be nil to indicate deleteion")
+		}
+	})
+}
+
 // TestList makes sure stored keys are listed back.
 func TestList(t *testing.T) {
 	kvpsToCreate := []pair.KVP{
