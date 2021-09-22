@@ -103,7 +103,7 @@ func TestNilCAS(t *testing.T) {
 func TestWatchKey(t *testing.T) {
 	const key = "test"
 	const max = 100
-	const sleep = 15 * time.Millisecond
+	const sleep = 50 * time.Millisecond
 	const totalTestTimeout = 3 * max * sleep
 	const expectedFactor = 0.75 // we may not see every single value
 
