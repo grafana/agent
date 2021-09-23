@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 
@@ -43,6 +45,8 @@ type GroupManager struct {
 
 	// groupLookup is a map of config name to group name.
 	groupLookup map[string]string
+
+	mergedConfigHashes map[string]int
 
 	log log.Logger
 }
@@ -101,9 +105,21 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 		}
 	}
 	groups := make(map[string]groupedConfigs)
+	mergedHashes := make(map[string]int)
 	// Now that we have grouped all the new and existing configurations we can apply them
 	for groupName, grouped := range groupsInConfigs {
+		groups[groupName] = grouped
 		mergedConfig, err := groupConfigs(groupName, grouped)
+		// If we have the exact same config no need to reload it
+		newHash, err := createMergedConfigHash(mergedConfig)
+		if err != nil {
+			level.Error(m.log).Log("err", fmt.Sprintf("failed to create merged hash named  %s with error %s", groupName, err))
+		}
+		mergedHashes[newHash] = 0
+		if _, exists := m.mergedConfigHashes[newHash]; exists {
+			continue
+		}
+
 		// Something terrible happened so roll back to the old configurations, this ensures that at least the agent
 		// always has a valid configuration. If we are already in a rollback then dont try again
 		if err != nil && !isRollback {
@@ -115,13 +131,22 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 			m.rollbackConfigs(oldConfigs)
 			return CreateBatchApplyErrorOrNil(failed, err)
 		}
-		groups[groupName] = grouped
 	}
 	m.groups = groups
 	m.activeConfigs = activeConfigs
 	m.groupLookup = groupLookup
+	m.mergedConfigHashes = mergedHashes
 
 	return CreateBatchApplyErrorOrNil(failed, nil)
+}
+
+func createMergedConfigHash(mergedConfig Config) (string, error) {
+	bb, err := yaml.Marshal(mergedConfig)
+	if err != nil {
+		return "", err
+	}
+	hash := md5.Sum(bb)
+	return hex.EncodeToString(hash[:]), nil
 }
 
 func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
@@ -174,10 +199,11 @@ func (g groupedConfigs) Copy() groupedConfigs {
 // same "group."
 func NewGroupManager(log log.Logger, inner Manager) *GroupManager {
 	return &GroupManager{
-		inner:       inner,
-		groups:      make(map[string]groupedConfigs),
-		groupLookup: make(map[string]string),
-		log:         log,
+		inner:              inner,
+		groups:             make(map[string]groupedConfigs),
+		groupLookup:        make(map[string]string),
+		mergedConfigHashes: make(map[string]int),
+		log:                log,
 	}
 }
 
