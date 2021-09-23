@@ -26,6 +26,13 @@ type Config struct {
 
 	Wait     time.Duration `mapstructure:"wait"`
 	MaxItems int           `mapstructure:"max_items"`
+
+	SuccessCodes *successCodes `mapstructure:"success_codes"`
+}
+
+type successCodes struct {
+	http []int64 `mapstructure:"http"`
+	grpc []int64 `mapstructure:"grpc"`
 }
 
 // NewFactory returns a new factory for the Prometheus service graph processor.
