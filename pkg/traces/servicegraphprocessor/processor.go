@@ -18,6 +18,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/translator/conventions"
+	"google.golang.org/grpc/codes"
 )
 
 var (
@@ -29,6 +30,8 @@ type edgeRequest struct {
 	serverService, clientService string
 	serverLatency, clientLatency time.Duration
 
+	// If either the client or the server spans have status code error,
+	// the request will be considered as failed.
 	failed bool
 }
 
@@ -55,6 +58,9 @@ type processor struct {
 	serviceGraphUnpairedSpansTotal     *prometheus.CounterVec
 	serviceGraphUntaggedSpansTotal     *prometheus.CounterVec
 
+	httpSuccessCode map[int]struct{}
+	grpcSuccessCode map[int]struct{}
+
 	logger log.Logger
 }
 
@@ -66,6 +72,19 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 	}
 	if cfg.MaxItems == 0 {
 		cfg.MaxItems = DefaultMaxItems
+	}
+
+	var (
+		httpSuccessCode = make(map[int]struct{})
+		grpcSuccessCode = make(map[int]struct{})
+	)
+	if cfg.SuccessCodes != nil {
+		for _, sc := range cfg.SuccessCodes.http {
+			httpSuccessCode[int(sc)] = struct{}{}
+		}
+		for _, sc := range cfg.SuccessCodes.grpc {
+			grpcSuccessCode[int(sc)] = struct{}{}
+		}
 	}
 
 	// TODO(mapno): Add support for an external cache (e.g. memcached)
@@ -238,6 +257,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					}
 					r.clientService = svc.StringVal()
 					r.clientLatency = spanDuration(span)
+					r.failed = p.spanFailed(span)
 					p.store.SetDefault(k, r)
 
 				case pdata.SpanKindServer:
@@ -250,6 +270,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 					r.serverService = svc.StringVal()
 					r.serverLatency = spanDuration(span)
+					r.failed = p.spanFailed(span)
 					p.store.SetDefault(k, r)
 
 				default:
@@ -259,6 +280,26 @@ func (p *processor) consume(trace pdata.Traces) error {
 		}
 	}
 	return nil
+}
+
+func (p *processor) spanFailed(span pdata.Span) bool {
+	// Request considered failed if status is not 2XX or added as a successful status code
+	if statusCode, ok := span.Attributes().Get("http.status_code"); ok {
+		sc := int(statusCode.IntVal())
+		if _, ok := p.httpSuccessCode[sc]; !ok || sc/100 != 2 {
+			return true
+		}
+	}
+
+	// Request considered failed if status is not OK or added as a successful status code
+	if statusCode, ok := span.Attributes().Get("grpc.status_code"); ok {
+		sc := int(statusCode.IntVal())
+		if _, ok := p.grpcSuccessCode[sc]; !ok || sc != int(codes.OK) {
+			return true
+		}
+	}
+
+	return span.Status().Code() == pdata.StatusCodeError
 }
 
 func spanDuration(span pdata.Span) time.Duration {
