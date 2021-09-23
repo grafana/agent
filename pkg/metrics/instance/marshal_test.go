@@ -25,9 +25,9 @@ func TestUnmarshalConfig_Invalid(t *testing.T) {
 	require.Error(t, err)
 }
 
-// TestMarshal_UnmarshalConfig ensures that any method of marshaling an
-// instance config does the same thing and retains secrets.
-func TestMarshal_UnmarshalConfig(t *testing.T) {
+// TestMarshal_UnmarshalConfig_RetainSecrets ensures that secrets can be
+// retained.
+func TestMarshal_UnmarshalConfig_RetainSecrets(t *testing.T) {
 	cfg := `name: test
 scrape_configs:
 - job_name: local_scrape
@@ -68,39 +68,17 @@ max_wal_time: 4h0m0s
 remote_flush_deadline: 1m0s
 `
 
-	t.Run("direct marshal", func(t *testing.T) {
-		var c Config
-		err := yaml.Unmarshal([]byte(cfg), &c)
-		require.NoError(t, err)
+	c, err := UnmarshalConfig(strings.NewReader(cfg))
+	require.NoError(t, err)
 
-		out, err := yaml.Marshal(c)
-		require.NoError(t, err)
-		require.YAMLEq(t, cfg, string(out))
-	})
-
-	t.Run("direct mashal pointer", func(t *testing.T) {
-		c := &Config{}
-		err := yaml.Unmarshal([]byte(cfg), c)
-		require.NoError(t, err)
-
-		out, err := yaml.Marshal(c)
-		require.NoError(t, err)
-		require.YAMLEq(t, cfg, string(out))
-	})
-
-	t.Run("custom marshal methods", func(t *testing.T) {
-		c, err := UnmarshalConfig(strings.NewReader(cfg))
-		require.NoError(t, err)
-
-		out, err := MarshalConfig(c, false)
-		require.NoError(t, err)
-		require.YAMLEq(t, cfg, string(out))
-	})
+	out, err := MarshalConfig(c, false)
+	require.NoError(t, err)
+	require.YAMLEq(t, cfg, string(out))
 }
 
-// TestMarshal_UnmarshalConfig ensures that any method of marshaling an
-// instance config does the same thing and retains secrets.
-func TestMarshal_UnmarshalConfig_Sigv4(t *testing.T) {
+// TestMarshal_UnmarshalConfig_ScrubSecrets ensures that secrets can be
+// scrubbed.
+func TestMarshal_UnmarshalConfig_ScrubSecrets(t *testing.T) {
 	cfg := `name: test
 scrape_configs:
 - job_name: local_scrape
@@ -115,12 +93,14 @@ scrape_configs:
       cluster: localhost
   basic_auth:
     username: admin
-    password: foobar
+    password: SCRUBME
 remote_write:
 - url: http://localhost:9009/api/prom/push
   remote_timeout: 30s
   name: test-d0f32c
-  sigv4: {}
+  basic_auth:
+    username: admin
+    password: SCRUBME
   queue_config:
     capacity: 500
     max_shards: 1000
@@ -139,6 +119,10 @@ max_wal_time: 4h0m0s
 remote_flush_deadline: 1m0s
 `
 
+	scrub := func(in string) string {
+		return strings.ReplaceAll(in, "SCRUBME", "<secret>")
+	}
+
 	t.Run("direct marshal", func(t *testing.T) {
 		var c Config
 		err := yaml.Unmarshal([]byte(cfg), &c)
@@ -146,25 +130,25 @@ remote_flush_deadline: 1m0s
 
 		out, err := yaml.Marshal(c)
 		require.NoError(t, err)
-		require.YAMLEq(t, cfg, string(out))
+		require.YAMLEq(t, scrub(cfg), string(out))
 	})
 
-	t.Run("direct mashal pointer", func(t *testing.T) {
-		c := &Config{}
-		err := yaml.Unmarshal([]byte(cfg), c)
+	t.Run("direct marshal pointer", func(t *testing.T) {
+		var c Config
+		err := yaml.Unmarshal([]byte(cfg), &c)
 		require.NoError(t, err)
 
-		out, err := yaml.Marshal(c)
+		out, err := yaml.Marshal(&c)
 		require.NoError(t, err)
-		require.YAMLEq(t, cfg, string(out))
+		require.YAMLEq(t, scrub(cfg), string(out))
 	})
 
 	t.Run("custom marshal methods", func(t *testing.T) {
 		c, err := UnmarshalConfig(strings.NewReader(cfg))
 		require.NoError(t, err)
 
-		out, err := MarshalConfig(c, false)
+		out, err := MarshalConfig(c, true)
 		require.NoError(t, err)
-		require.YAMLEq(t, cfg, string(out))
+		require.YAMLEq(t, scrub(cfg), string(out))
 	})
 }
