@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	config_util "github.com/prometheus/common/config"
+
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
@@ -17,7 +19,7 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DataSourceNames to use to connect to Postgres.
-	DataSourceNames []string `yaml:"data_source_names,omitempty"`
+	DataSourceNames []config_util.Secret `yaml:"data_source_names,omitempty"`
 
 	DisableSettingsMetrics bool     `yaml:"disable_settings_metrics,omitempty"`
 	AutodiscoverDatabases  bool     `yaml:"autodiscover_databases,omitempty"`
@@ -51,15 +53,20 @@ func init() {
 // metrics from a postgres process.
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	dsn := c.DataSourceNames
+	var stringDsn []string
 	if len(dsn) == 0 {
-		dsn = strings.Split(os.Getenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME"), ",")
+		stringDsn = append(stringDsn, strings.Split(os.Getenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME"), ",")...)
+	} else {
+		for _, d := range dsn {
+			stringDsn = append(stringDsn, string(d))
+		}
 	}
 	if len(dsn) == 0 {
 		return nil, fmt.Errorf("cannot create postgres_exporter; neither postgres_exporter.data_source_name or $POSTGRES_EXPORTER_DATA_SOURCE_NAME is set")
 	}
 
 	e := exporter.NewExporter(
-		dsn,
+		stringDsn,
 		log,
 		exporter.DisableDefaultMetrics(c.DisableDefaultMetrics),
 		exporter.WithUserQueriesPath(c.QueryPath),

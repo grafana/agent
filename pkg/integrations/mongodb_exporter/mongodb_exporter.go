@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	config_util "github.com/prometheus/common/config"
+
 	"github.com/gaantunes/mongodb_exporter/exporter"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -26,7 +28,7 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
-	URI string `yaml:"mongodb_uri"`
+	URI config_util.Secret `yaml:"mongodb_uri"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -68,7 +70,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	e.context = context
 
 	var err error
-	e.client, err = exporter.Connect(context, c.URI, true)
+	e.client, err = exporter.Connect(context, string(c.URI), true)
 	if err != nil {
 		return nil, err
 	}

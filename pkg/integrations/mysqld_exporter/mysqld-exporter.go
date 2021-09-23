@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	config_util "github.com/prometheus/common/config"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
@@ -36,7 +38,7 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DataSourceName to use to connect to MySQL.
-	DataSourceName string `yaml:"data_source_name,omitempty"`
+	DataSourceName config_util.Secret `yaml:"data_source_name,omitempty"`
 
 	// Collectors to mark as enabled in addition to the default.
 	EnableCollectors []string `yaml:"enable_collectors,omitempty"`
@@ -98,14 +100,14 @@ func init() {
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	dsn := c.DataSourceName
 	if len(dsn) == 0 {
-		dsn = os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME")
+		dsn = config_util.Secret(os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME"))
 	}
 	if len(dsn) == 0 {
 		return nil, fmt.Errorf("cannot create mysqld_exporter; neither mysqld_exporter.data_source_name or $MYSQLD_EXPORTER_DATA_SOURCE_NAME is set")
 	}
 
 	scrapers := GetScrapers(c)
-	exporter := collector.New(context.Background(), dsn, collector.NewMetrics(), scrapers, log, collector.Config{
+	exporter := collector.New(context.Background(), string(dsn), collector.NewMetrics(), scrapers, log, collector.Config{
 		LockTimeout:   c.LockWaitTimeout,
 		SlowLogFilter: c.LogSlowFilter,
 	})
