@@ -108,13 +108,17 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 	mergedHashes := make(map[string]int)
 	// Now that we have grouped all the new and existing configurations we can apply them
 	for groupName, grouped := range groupsInConfigs {
-		groups[groupName] = grouped
 		mergedConfig, err := groupConfigs(groupName, grouped)
+		if err != nil {
+			level.Error(m.log).Log("err", fmt.Sprintf("failed to group configs with groupname  %s with error %s", groupName, err))
+		}
 		// If we have the exact same config no need to reload it
 		newHash, err := createMergedConfigHash(mergedConfig)
 		if err != nil {
 			level.Error(m.log).Log("err", fmt.Sprintf("failed to create merged hash named  %s with error %s", groupName, err))
+			continue
 		}
+		groups[groupName] = grouped
 		mergedHashes[newHash] = 0
 		if _, exists := m.mergedConfigHashes[newHash]; exists {
 			continue
