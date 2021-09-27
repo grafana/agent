@@ -10,13 +10,13 @@ local container = k.core.v1.container;
   // grafana-agent. By default, this deployment will do no collection. You must
   // merge the result of this function with the following:
   //
-  // - withPrometheusConfig
-  // - withPrometheusInstances
+  // - withMetricsConfig
+  // - withMetricsInstances
   // - optionally withRemoteWrite
   //
   // newDeployment does not support log collection.
   newDeployment(name='grafana-agent', namespace='default'):: {
-    assert !std.objectHas(self, '_loki_config') : |||
+    assert !std.objectHas(self, '_logs_config') : |||
       Log collection is not supported with newDeployment.
     |||,
     assert !std.objectHas(self, '_integrations') : |||
@@ -29,8 +29,8 @@ local container = k.core.v1.container;
     _images:: $._images,
     _config_hash:: true,
 
-    local has_prometheus_config = std.objectHasAll(self, '_prometheus_config'),
-    local has_prometheus_instances = std.objectHasAll(self, '_prometheus_instances'),
+    local has_metrics_config = std.objectHasAll(self, '_metrics_config'),
+    local has_metrics_instances = std.objectHasAll(self, '_metrics_instances'),
     local has_trace_config = std.objectHasAll(self, '_trace_config'),
     local has_sampling_strategies = std.objectHasAll(self, '_traces_sampling_strategies'),
 
@@ -40,13 +40,13 @@ local container = k.core.v1.container;
         http_listen_port: 8080,
       },
     } + (
-      if has_prometheus_config
+      if has_metrics_config
       then {
-        prometheus:
-          this._prometheus_config {
+        metrics:
+          this._metrics_config {
             configs:
-              if has_prometheus_instances
-              then this._prometheus_instances
+              if has_metrics_instances
+              then this._metrics_instances
               else [],
           },
       }
