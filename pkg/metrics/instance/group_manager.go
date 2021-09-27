@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 
@@ -126,7 +124,7 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 
 		// Something terrible happened so roll back to the old configurations, this ensures that at least the agent
 		// always has a valid configuration. If we are already in a rollback then dont try again
-		if err != nil && !isRollback {
+		if !isRollback {
 			m.rollbackConfigs(oldConfigs)
 			return CreateBatchApplyErrorOrNil(failed, err)
 		}
@@ -145,7 +143,7 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 }
 
 func createMergedConfigHash(mergedConfig Config) (string, error) {
-	bb, err := yaml.Marshal(mergedConfig)
+	bb, err := MarshalConfig(&mergedConfig, false)
 	if err != nil {
 		return "", err
 	}
