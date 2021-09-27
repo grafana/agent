@@ -1,6 +1,7 @@
 +++
 title = "loki_config"
 weight = 300
+aliases = ["/docs/agent/latest/configuration/loki-config/"]
 +++
 
 # loki_config
