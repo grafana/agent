@@ -58,6 +58,8 @@ for specific instructions.
 
 - [BUGFIX] Fix warn-level logging of dropped targets. (@james-callahan)
 
+- [BUGFIX] Hide integration passwords at /-/config endpoint (@mattdurham) 
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
