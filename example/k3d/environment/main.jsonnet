@@ -43,7 +43,7 @@ local images = {
     grafana_agent.withPrometheusConfig({
       wal_directory: '/var/lib/agent/data',
       global: {
-        scrape_interval: '15s',
+        scrape_interval: '1m',
         external_labels: {
           cluster: cluster_label,
         },

@@ -92,7 +92,7 @@ server:
 
 prometheus:
   global:
-    scrape_interval: 5s
+    scrape_interval: 1m
   configs:
     - name: agent
       scrape_configs:
@@ -138,7 +138,7 @@ server:
 
 prometheus:
   global:
-    scrape_interval: 5s
+    scrape_interval: 1m
     remote_write:
       - url: http://localhost:9009/api/prom/push
   configs:

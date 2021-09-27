@@ -113,7 +113,7 @@ local smoke = {
 
       prometheus: {
         global: {
-          scrape_interval: '15s',
+          scrape_interval: '1m',
           external_labels: {
             cluster: 'grafana-agent',
           },
@@ -142,7 +142,7 @@ local smoke = {
 
       prometheus: {
         global: {
-          scrape_interval: '15s',
+          scrape_interval: '1m',
           external_labels: {
             cluster: 'grafana-agent-cluster',
           },
