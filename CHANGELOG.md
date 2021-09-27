@@ -5,8 +5,6 @@ consult the
 [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for specific instructions.
 
-- [ENHANCEMENT] Update jsonnet-libs to 1.21 for Kubernetes 1.21+ compatability. (@MurzNN)
-
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
@@ -30,6 +28,8 @@ for specific instructions.
 
 - [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
   the $HOSTNAME variable in agent config.  (@dfrankel33)
+
+- [ENHANCEMENT] Update jsonnet-libs to 1.21 for Kubernetes 1.21+ compatability. (@MurzNN)
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`. (@rfratto)
@@ -57,6 +57,8 @@ for specific instructions.
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
 
 - [BUGFIX] Fix warn-level logging of dropped targets. (@james-callahan)
+
+- [BUGFIX] Standardize scrape_interval to 1m in examples. (@mattdurham)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
