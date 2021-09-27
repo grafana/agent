@@ -3,11 +3,8 @@ package config
 import (
 	"flag"
 	"os"
-	"strings"
 	"testing"
 	"time"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/metrics"
@@ -17,122 +14,7 @@ import (
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/stretchr/testify/require"
-
-	_ "github.com/grafana/agent/pkg/integrations/github_exporter"   // register github_exporter
-	_ "github.com/grafana/agent/pkg/integrations/kafka_exporter"    // register kafka_exporter
-	_ "github.com/grafana/agent/pkg/integrations/mongodb_exporter"  // register mongodb_exporter
-	_ "github.com/grafana/agent/pkg/integrations/mysqld_exporter"   // register mysqld_exporter
-	_ "github.com/grafana/agent/pkg/integrations/postgres_exporter" // register postgres_exporter
-	_ "github.com/grafana/agent/pkg/integrations/redis_exporter"    // register redis_exporter
 )
-
-func TestConfig_SecretMysqlD(t *testing.T) {
-	stringCfg := `
-prometheus:
-  wal_directory: /tmp/agent
-integrations:
-  mysqld_exporter:
-    enabled: true
-    data_source_name: root:secret_password@myserver:3306`
-	checkSecret(t, stringCfg, "secret_password")
-
-}
-
-func TestConfig_SecretGithub(t *testing.T) {
-	stringCfg := `
-prometheus:
-  wal_directory: /tmp/agent
-integrations:
-  github_exporter:
-    enabled: true
-    api_token: secret_api`
-	checkSecret(t, stringCfg, "secret_api")
-}
-
-func TestConfig_SecretKafkaUserName(t *testing.T) {
-	stringCfg := `
-prometheus:
-  wal_directory: /tmp/agent
-integrations:
-  kafka_exporter:
-    enabled: true
-    sasl_password: secret_password
-`
-	checkSecret(t, stringCfg, "secret_password")
-}
-
-func TestConfig_SecretKafkaPassword(t *testing.T) {
-	stringCfg := `
-prometheus:
-  wal_directory: /tmp/agent
-integrations:
-  kafka_exporter:
-    enabled: true
-    sasl_username: secret_username
-`
-	checkSecret(t, stringCfg, "secret_username")
-}
-
-func TestConfig_SecretMongoDB(t *testing.T) {
-	stringCfg := `
-prometheus:
-  wal_directory: /tmp/agent
-integrations:
-  mongodb_exporter:
-    enabled: true
-    mongodb_uri: secret_password_in_uri
-`
-	checkSecret(t, stringCfg, "secret_password_in_uri")
-}
-
-func TestConfig_SecretPostgres(t *testing.T) {
-	stringCfg := `
-prometheus:
-  wal_directory: /tmp/agent
-integrations:
-  postgres_exporter:
-    enabled: true
-    data_source_names: ["secret_password_in_uri","secret_password_in_uri_2"]
-`
-	checkSecret(t, stringCfg, "secret_password_in_uri")
-	checkSecret(t, stringCfg, "secret_password_in_uri_2")
-
-}
-
-func TestConfig_SecretRedisPassword(t *testing.T) {
-	stringCfg := `
-prometheus:
-  wal_directory: /tmp/agent
-integrations:
-  redis_exporter:
-    enabled: true
-    redis_password: secret_password
-`
-	checkSecret(t, stringCfg, "secret_password")
-}
-
-func TestConfig_SecretRedisUsername(t *testing.T) {
-	stringCfg := `
-prometheus:
-  wal_directory: /tmp/agent
-integrations:
-  redis_exporter:
-    enabled: true
-    redis_user: secret_user
-`
-	checkSecret(t, stringCfg, "secret_user")
-}
-
-func checkSecret(t *testing.T, rawCfg string, originalValue string) {
-	var cfg = &Config{}
-	err := LoadBytes([]byte(rawCfg), false, cfg)
-	require.NoError(t, err)
-	bb, err := yaml.Marshal(cfg)
-	require.NoError(t, err)
-	scrubbedCfg := string(bb)
-	require.True(t, strings.Contains(scrubbedCfg, "<secret>"))
-	require.False(t, strings.Contains(scrubbedCfg, originalValue))
-}
 
 // TestConfig_FlagDefaults makes sure that default values of flags are kept
 // when parsing the config.

@@ -39,7 +39,7 @@ type Config struct {
 	UseSASLHandshake bool `yaml:"use_sasl_handshake,omitempty"`
 
 	// SASL user name
-	SASLUsername config_util.Secret `yaml:"sasl_username,omitempty"`
+	SASLUsername string `yaml:"sasl_username,omitempty"`
 
 	// SASL user password
 	SASLPassword config_util.Secret `yaml:"sasl_password,omitempty"`
@@ -140,7 +140,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		Uri:                      c.KafkaURIs,
 		UseSASL:                  c.UseSASL,
 		UseSASLHandshake:         c.UseSASLHandshake,
-		SaslUsername:             string(c.SASLUsername),
+		SaslUsername:             c.SASLUsername,
 		SaslPassword:             string(c.SASLPassword),
 		SaslMechanism:            c.SASLMechanism,
 		UseTLS:                   c.UseTLS,

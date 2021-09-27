@@ -42,7 +42,7 @@ type Config struct {
 	// The exporter binary config differs to this, but these
 	// are the only fields that are relevant to the exporter struct.
 	RedisAddr               string             `yaml:"redis_addr,omitempty"`
-	RedisUser               config_util.Secret `yaml:"redis_user,omitempty"`
+	RedisUser               string             `yaml:"redis_user,omitempty"`
 	RedisPassword           config_util.Secret `yaml:"redis_password,omitempty"`
 	RedisPasswordFile       string             `yaml:"redis_password_file,omitempty"`
 	Namespace               string             `yaml:"namespace,omitempty"`
@@ -75,7 +75,7 @@ type Config struct {
 // we marshal the yaml into Config and then create the re.Options from that.
 func (c Config) GetExporterOptions() re.Options {
 	return re.Options{
-		User:                    string(c.RedisUser),
+		User:                    c.RedisUser,
 		Password:                string(c.RedisPassword),
 		Namespace:               c.Namespace,
 		ConfigCommandName:       c.ConfigCommand,
