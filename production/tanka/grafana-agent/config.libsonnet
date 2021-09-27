@@ -60,7 +60,7 @@ local k8s_v2 = import './v2/internal/helpers/k8s.libsonnet';
 
       prometheus: {
         global: {
-          scrape_interval: '15s',
+          scrape_interval: '1m',
         },
 
         wal_directory: $._config.agent_wal_dir,

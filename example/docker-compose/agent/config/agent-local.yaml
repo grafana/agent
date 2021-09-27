@@ -6,7 +6,7 @@ server:
 prometheus:
   wal_directory: /tmp/agent
   global:
-    scrape_interval: 5s
+    scrape_interval: 1m
     remote_write:
       - url: http://localhost:9009/api/prom/push
   configs:

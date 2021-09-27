@@ -4,7 +4,7 @@ server:
 
 prometheus:
   global:
-    scrape_interval: 5s
+    scrape_interval: 1m
   scraping_service:
     enabled: true
     kvstore:
