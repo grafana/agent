@@ -4,11 +4,6 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 local container = k.core.v1.container;
 
 {
-  // Deprecated methods, aliases to the new names
-  withLokiConfig(config):: $.withLogsConfig(config),
-  newLokiClient(client_config):: $.newLogsClient(client_config),
-  withLokiClients(clients):: $.withLogsClients(clients),
-
   // withLogsConfig adds a Logs config to collect logs.
   //
   // For the full list of options, refer to the configuration reference:
