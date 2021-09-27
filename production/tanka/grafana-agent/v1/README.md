@@ -15,7 +15,7 @@ incompatible changes will be made.
 This library is significantly more flexible than its `v0` counterpart. It tries
 to allow to deploy and configure the Agent in a feature matrix:
 
-| Mechanism        | Prometheus Metrics | Loki Logs | Traces | Integrations |
+| Mechanism        | Prometheus Metrics | Logs      | Traces | Integrations |
 | ---------------- | ------------------ | --------- | ------ | ------------ |
 | DaemonSet        | Yes                | Yes       | Yes    | Yes          |
 | Deployment       | Yes                | No        | No     | No           |
@@ -50,13 +50,13 @@ example, you may not deploy a scraping service with Loki logs collection.
 - `scrapeInstanceKubernetes`: Default Prometheus instance config to scrape from
   Kubernetes.
 
-## Configure Loki
+## Configure Logs
 
-- `withLokiConfig(config)`: Creates a Loki config block to pass to the Agent.
-- `newLokiClient(client_config)`: Creates a new client configuration to pass
-  to `withLokiClients`.
-- `withLokiClients(clients)`: Add a set of clients to a Loki config block.
-- `scrapeKubernetesLogs`: Default Loki config that collects logs from Kubernetes
+- `withLogsConfig(config)`: Creates a Logs config block to pass to the Agent.
+- `newLogsClient(client_config)`: Creates a new client configuration to pass
+  to `withLogsClients`.
+- `withLogsClients(clients)`: Add a set of clients to a Logs config block.
+- `scrapeKubernetesLogs`: Default Logs config that collects logs from Kubernetes
   pods.
 
 ## Configure Traces

@@ -11,7 +11,7 @@ local service = k.core.v1.service;
 (import './lib/integrations.libsonnet') +
 (import './lib/prometheus.libsonnet') +
 (import './lib/scraping_service.libsonnet') +
-(import './lib/loki.libsonnet') +
+(import './lib/logs.libsonnet') +
 (import './lib/traces.libsonnet') +
 {
   _images:: {
@@ -24,7 +24,7 @@ local service = k.core.v1.service;
   // function with one or more of the following:
   //
   // - withPrometheusConfig, withPrometheusInstances (and optionally withRemoteWrite)
-  // - withLokiConfig
+  // - withLogsConfig
   //
   // When using withPrometheusInstances, a [name]-etc deployment
   // with one replica will be created alongside the DaemonSet. This deployment
@@ -44,7 +44,7 @@ local service = k.core.v1.service;
     _images:: $._images,
     _config_hash:: true,
 
-    local has_loki_config = std.objectHasAll(self, '_loki_config'),
+    local has_logs_config = std.objectHasAll(self, '_logs_config'),
     local has_trace_config = std.objectHasAll(self, '_trace_config'),
     local has_prometheus_config = std.objectHasAll(self, '_prometheus_config'),
     local has_prometheus_instances = std.objectHasAll(self, '_prometheus_instances'),
@@ -66,10 +66,10 @@ local service = k.core.v1.service;
       then { prometheus: this._prometheus_config { configs: host_filter_instances } }
       else {}
     ) + (
-      if has_loki_config then {
-        loki: {
+      if has_logs_config then {
+        logs: {
           positions_directory: '/tmp/positions',
-          configs: [this._loki_config {
+          configs: [this._logs_config {
             name: 'default',
           }],
         },
@@ -88,12 +88,12 @@ local service = k.core.v1.service;
     ),
 
     etc_config:: if has_prometheus_config then this.config {
-      // Hide loki and integrations from our extra configs, we just want the
+      // Hide logs and integrations from our extra configs, we just want the
       // scrape configs that wouldn't work for the DaemonSet.
       prometheus+: {
         configs: std.map(function(cfg) cfg { host_filter: false }, etc_instances),
       },
-      loki:: {},
+      logs:: {},
       traces:: {},
       integrations:: {},
     },
@@ -117,7 +117,7 @@ local service = k.core.v1.service;
           then k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
           else {},
       } + (
-        if has_loki_config then $.lokiPermissionsMixin else {}
+        if has_logs_config then $.logsPermissionsMixin else {}
       ) + (
         if has_integrations && std.objectHas(this._integrations, 'node_exporter') then $.integrationsMixin else {}
       ),
