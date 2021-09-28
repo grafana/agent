@@ -132,6 +132,11 @@ receivers: <receivers>
 # match is found then relabeling rules are applied.
 scrape_configs:
   - [<scrape_config>]
+# Defines what method is used when adding k/v to spans.
+# Options are `update`, `insert` and `upsert`.
+# `update` only modifies an existing k/v and `insert` only appends if the k/v
+# is not present. `upsert` does both.
+[ prom_sd_operation_type: <string> | default = "upsert" ]
 
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
 # from span data.

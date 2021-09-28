@@ -114,8 +114,9 @@ type InstanceConfig struct {
 	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor/config.go#L30
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
-	// prom service discovery
+	// prom service discovery config
 	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
+	OperationType string        `yaml:"prom_sd_operation_type,omitempty"`
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
@@ -448,9 +449,14 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	processors := map[string]interface{}{}
 	processorNames := []string{}
 	if c.ScrapeConfigs != nil {
+		opType := promsdprocessor.OperationTypeUpsert
+		if c.OperationType != "" {
+			opType = c.OperationType
+		}
 		processorNames = append(processorNames, promsdprocessor.TypeStr)
 		processors[promsdprocessor.TypeStr] = map[string]interface{}{
 			"scrape_configs": c.ScrapeConfigs,
+			"operation_type": opType,
 		}
 	}
 

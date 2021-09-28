@@ -31,6 +31,9 @@ for specific instructions.
 
 - [ENHANCEMENT] Update jsonnet-libs to 1.21 for Kubernetes 1.21+ compatability. (@MurzNN)
 
+- [ENHANCEMENT] Make method used to add k/v to spans in prom_sd processor
+  configurable. (@mapno)
+
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`. (@rfratto)
 
