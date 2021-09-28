@@ -41,15 +41,15 @@ func NewAPI(l log.Logger, store Store, v Validator) *API {
 		validator: v,
 
 		totalCreatedConfigs: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "agent_prometheus_ha_configs_created_total",
+			Name: "agent_metrics_ha_configs_created_total",
 			Help: "Total number of created scraping service configs",
 		}),
 		totalUpdatedConfigs: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "agent_prometheus_ha_configs_updated_total",
+			Name: "agent_metrics_ha_configs_updated_total",
 			Help: "Total number of updated scraping service configs",
 		}),
 		totalDeletedConfigs: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "agent_prometheus_ha_configs_deleted_total",
+			Name: "agent_metrics_ha_configs_deleted_total",
 			Help: "Total number of deleted scraping service configs",
 		}),
 	}
