@@ -60,10 +60,25 @@ scrape_configs:
 
 [target_config: <promtail.target_config>]
 ```
-
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
 > * [`promtail.client_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#client_config)
 > * [`promtail.scrape_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#scrape_config)
 > * [`promtail.target_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#target_config)
+
+> **Note:** Backticks in values are not supported. Also use quadruple 
+> backslash (`\\\\`) construction to add backslashes into regular 
+> expressions, here is example for `name=(\w+)\s` regex:
+```
+  selector: '{app="my-app"} |~ "name=(\\\\w+)\\\\s"'
+```
+
+Using single or double backslash construction produces the error:
+```
+failed to make file target manager: invalid match stage config: invalid selector syntax for match stage: parse error at line 1, col 40: literal not terminated
+```
+Using backticks produces the error:
+```
+invalid match stage config: invalid selector syntax for match stage: parse error at line 1, col 51: syntax error: unexpected IDENTIFIER, expecting STRING"
+```
