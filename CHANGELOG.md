@@ -59,6 +59,9 @@ for specific instructions.
 - [BUGFIX] Reloading the scraping service kvstore config for loading instance
   configs will no longer use the clustering config instead. (@rfratto)
 
+- [BUGFIX] Scraping service: deleted configs will now properly immediately fire
+  off a change event for nodes to respond to. (@rfratto)
+
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 

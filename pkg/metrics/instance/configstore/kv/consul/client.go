@@ -265,10 +265,12 @@ func (c *Client) WatchKey(ctx context.Context, key string, f func(interface{}) b
 // Values in Consul are assumed to be JSON. This function blocks until the context is cancelled.
 func (c *Client) WatchPrefix(ctx context.Context, prefix string, f func(string, interface{}) bool) {
 	var (
-		backoff = util.NewBackoff(ctx, backoffConfig)
-		index   = uint64(0)
-		limiter = c.createRateLimiter()
+		backoff  = util.NewBackoff(ctx, backoffConfig)
+		index    = uint64(0)
+		limiter  = c.createRateLimiter()
+		lastKeys = map[string]struct{}{}
 	)
+
 	for backoff.Ongoing() {
 		err := limiter.Wait(ctx)
 		if err != nil {
@@ -288,6 +290,7 @@ func (c *Client) WatchPrefix(ctx context.Context, prefix string, f func(string, 
 		}
 
 		kvps, meta, err := c.kv.List(prefix, queryOptions.WithContext(ctx))
+
 		// kvps being nil here is not an error -- quite the opposite. Consul returns index,
 		// which makes next query blocking, so there is no need to detect this and act on it.
 		if err != nil {
@@ -302,7 +305,13 @@ func (c *Client) WatchPrefix(ctx context.Context, prefix string, f func(string, 
 			continue
 		}
 
+		newKeys := make(map[string]struct{}, len(kvps))
+
 		for _, kvp := range kvps {
+			// Keep track of all returned keys. This *must* be done before the check
+			// below otherwise an unchanged key will be treated as deleted.
+			newKeys[kvp.Key] = struct{}{}
+
 			// We asked for values newer than 'index', but Consul returns all values below given prefix,
 			// even those that haven't changed. We don't need to report all of them as updated.
 			if index > 0 && kvp.ModifyIndex <= index && kvp.CreateIndex <= index {
@@ -319,7 +328,19 @@ func (c *Client) WatchPrefix(ctx context.Context, prefix string, f func(string, 
 			}
 		}
 
+		// Send deleted events using keys that have disappeared betwwn the last
+		// List and this List.
+		for key := range lastKeys {
+			_, exist := newKeys[key]
+			if !exist {
+				if !f(key, nil) {
+					return
+				}
+			}
+		}
+
 		index = newIndex
+		lastKeys = newKeys
 	}
 }
 

@@ -228,15 +228,19 @@ outer:
 			backoff.Reset()
 
 			for _, event := range resp.Events {
-				if event.Kv.Version == 0 && event.Kv.Value == nil {
-					// Delete notification. Since not all KV store clients (and Cortex codecs) support this, we ignore it.
-					continue
-				}
+				var (
+					out interface{}
+					err error
+				)
 
-				out, err := c.codec.Decode(event.Kv.Value)
-				if err != nil {
-					level.Error(util_log.Logger).Log("msg", "error decoding key", "key", key, "err", err)
-					continue
+				// Version == 0 && Value == nil indicates a deletion. We only want to
+				// decode when the key was not deleted.
+				if event.Kv.Version != 0 || event.Kv.Value != nil {
+					out, err = c.codec.Decode(event.Kv.Value)
+					if err != nil {
+						level.Error(util_log.Logger).Log("msg", "error decoding key", "key", key, "err", err)
+						continue
+					}
 				}
 
 				if !f(string(event.Kv.Key), out) {
