@@ -15,11 +15,11 @@ incompatible changes will be made.
 This library is significantly more flexible than its `v0` counterpart. It tries
 to allow to deploy and configure the Agent in a feature matrix:
 
-| Mechanism        | Prometheus Metrics | Logs      | Traces | Integrations |
-| ---------------- | ------------------ | --------- | ------ | ------------ |
-| DaemonSet        | Yes                | Yes       | Yes    | Yes          |
-| Deployment       | Yes                | No        | No     | No           |
-| Scraping Service | Yes                | No        | No     | No           |
+| Mechanism        | Metrics | Logs      | Traces | Integrations |
+| ---------------- | ------- | --------- | ------ | ------------ |
+| DaemonSet        | Yes     | Yes       | Yes    | Yes          |
+| Deployment       | Yes     | No        | No     | No           |
+| Scraping Service | Yes     | No        | No     | No           |
 
 The library can be invoked multiple times to get full coverage. For example, you
 may wish to deploy a scraping service for scalable metrics collection, and a
@@ -39,15 +39,15 @@ example, you may not deploy a scraping service with Loki logs collection.
 - `newScrapingService(name, namespace, replicas)`: (Not yet available). Create a
   scalable deployment of clustered Agents. Requires being given a KV store such as Redis or ETCD.
 
-## Configure Prometheus
+## Configure Metrics
 
-- `withPrometheusConfig(config)`: Creates a Prometheus config block.
-- `defaultPrometheusConfig`: Default Prometheus config block.
-- `withPrometheusInstances(instances)`: Creates a Prometheus instance config to
+- `withMetricsConfig(config)`: Creates a metrics config block.
+- `defaultMetricsConfig`: Default metrics config block.
+- `withMetricsInstances(instances)`: Creates a metrics instance config to
   tell the Agent what to scrape.
 - `withRemoteWrite(remote_writes)`: Configures locations to remote write metrics
    to. Controls remote writes globally.
-- `scrapeInstanceKubernetes`: Default Prometheus instance config to scrape from
+- `scrapeInstanceKubernetes`: Default metrics instance config to scrape from
   Kubernetes.
 
 ## Configure Logs

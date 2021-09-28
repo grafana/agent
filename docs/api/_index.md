@@ -108,7 +108,7 @@ URL-encoded names are stored in decoded form. e.g., `hello%2Fworld` will
 represent the config named `hello/world`.
 
 The request body passed to this endpoint must match the format of
-[prometheus_instance_config]({{< relref "../configuration/prometheus-config" >}})
+[metrics_instance_config]({{< relref "../configuration/metrics-config" >}})
 defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.
