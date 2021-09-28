@@ -5,13 +5,13 @@ consult the
 [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for specific instructions.
 
-- [ENHANCEMENT] Updated the following integrations dependencies to the newest version available:
-  github.com/prometheus/mysqld_exporter: v0.12.0 to v0.13.0
-  github.com/prometheus-community/postgres_exporter: v0.8.0 to v0.10.0
-  github.com/oliver006/redis_exporter: v1.15.0 to v1.27.1
-  github.com/prometheus/memcached_exporter: v0.8.0 to v0.9.0
-  github.com/prometheus/statsd_exporter: v0.21.0 to v0.22.2
-  github.com/justwatchcom/elasticsearch_exporter: v1.1.0 to v1.2.1
+- [ENHANCEMENT] Updated the following exporters to the newest version available:
+  mysqld_exporter to v0.13.0
+  postgres_exporter to v0.10.0
+  redis_exporterto v1.27.1
+  memcached_exporter to v0.9.0
+  statsd_exporter to v0.22.2
+  elasticsearch_exporter to v1.2.1
 
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
