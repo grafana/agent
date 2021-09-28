@@ -6,7 +6,7 @@ title = "postgres_exporter_config"
 
 The `postgres_exporter_config` block configures the `postgres_exporter`
 integration, which is an embedded version of
-[`postgres_exporter`](github.com/prometheus-community/postgres_exporter). This
+[`postgres_exporter`](https://github.com/prometheus-community/postgres_exporter). This
 allows for the collection of metrics from Postgres servers.
 
 Full reference of options:
