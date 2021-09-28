@@ -1,6 +1,6 @@
 [Unit]
 Description=Monitoring system and forwarder
-Documentation=https://github.com/grafana/agent/blob/main/docs/README.md
+Documentation=https://grafana.com/docs/agent/latest/
 Wants=network-online.target
 After=network-online.target
 
