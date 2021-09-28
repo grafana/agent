@@ -8,6 +8,10 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/translator/conventions"
 )
 
 func TestSyncGroups(t *testing.T) {
@@ -111,6 +115,91 @@ func TestSyncGroups(t *testing.T) {
 			p.syncGroups(tc.jobToSync, groups, hostLabels)
 
 			assert.Equal(t, tc.expected, hostLabels)
+		})
+	}
+}
+
+func TestOperationType(t *testing.T) {
+	const (
+		attrKey = "key"
+		attrIP  = "1.1.1.1"
+	)
+	testCases := []struct {
+		name            string
+		operationType   string
+		attributeExists bool
+		newValue        string
+		expectedValue   string
+	}{
+		{
+			name:            "Upsert updates the attribute already exists",
+			operationType:   OperationTypeUpsert,
+			attributeExists: true,
+			newValue:        "new-value",
+			expectedValue:   "new-value",
+		},
+		{
+			name:            "Update updates the attribute already exists",
+			operationType:   OperationTypeUpdate,
+			attributeExists: true,
+			newValue:        "new-value",
+			expectedValue:   "new-value",
+		},
+		{
+			name:            "Insert does not update the attribute if it's already present",
+			operationType:   OperationTypeInsert,
+			attributeExists: true,
+			newValue:        "new-value",
+			expectedValue:   "old-value",
+		},
+		{
+			name:            "Upsert updates the attribute if it isn't present",
+			operationType:   OperationTypeUpsert,
+			attributeExists: false,
+			newValue:        "new-value",
+			expectedValue:   "new-value",
+		},
+		{
+			name:            "Update updates the attribute already exists",
+			operationType:   OperationTypeUpdate,
+			attributeExists: false,
+			newValue:        "new-value",
+			expectedValue:   "",
+		},
+		{
+			name:            "Insert updates the attribute if it isn't present",
+			operationType:   OperationTypeInsert,
+			attributeExists: false,
+			newValue:        "new-value",
+			expectedValue:   "new-value",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockProcessor := new(consumertest.TracesSink)
+			p, err := newTraceProcessor(mockProcessor, tc.operationType, nil)
+			require.NoError(t, err)
+
+			attrValue := pdata.NewAttributeValueString("old-value")
+			ipAttrValue := pdata.NewAttributeValueString(attrIP)
+
+			attrMap := pdata.NewAttributeMap()
+			if tc.attributeExists {
+				attrMap.Insert(attrKey, attrValue)
+			}
+			attrMap.Insert(conventions.AttributeNetHostIP, ipAttrValue)
+
+			hostLabels := map[string]model.LabelSet{
+				attrIP: {
+					attrKey: model.LabelValue(tc.newValue),
+				},
+			}
+			p.(*promServiceDiscoProcessor).hostLabels = hostLabels
+			p.(*promServiceDiscoProcessor).processAttributes(attrMap)
+
+			actualAttrValue, _ := attrMap.Get(attrKey)
+			assert.Equal(t, tc.expectedValue, actualAttrValue.StringVal())
 		})
 	}
 }

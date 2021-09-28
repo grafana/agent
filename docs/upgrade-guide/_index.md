@@ -12,8 +12,6 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
-
-
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
 
 The term `tempo` in the config has been deprecated of favor of `traces`. This

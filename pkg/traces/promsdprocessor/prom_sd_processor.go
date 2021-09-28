@@ -2,6 +2,7 @@ package promsdprocessor
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -19,6 +20,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/translator/conventions"
 )
 
 type promServiceDiscoProcessor struct {
@@ -31,25 +33,36 @@ type promServiceDiscoProcessor struct {
 	hostLabels     map[string]model.LabelSet
 	mtx            sync.Mutex
 
+	operationType string
+
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.Traces, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.Traces, operationType string, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	logger := log.With(util.Logger, "component", "traces service disco")
 	mgr := discovery.NewManager(ctx, logger, discovery.Name("traces service disco"))
 
 	relabelConfigs := map[string][]*relabel.Config{}
-	cfg := map[string]discovery.Configs{}
+	managerConfig := map[string]discovery.Configs{}
 	for _, v := range scrapeConfigs {
-		cfg[v.JobName] = v.ServiceDiscoveryConfigs
+		managerConfig[v.JobName] = v.ServiceDiscoveryConfigs
 		relabelConfigs[v.JobName] = v.RelabelConfigs
 	}
 
-	err := mgr.ApplyConfig(cfg)
+	err := mgr.ApplyConfig(managerConfig)
 	if err != nil {
-		cancel()
 		return nil, err
+	}
+
+	switch operationType {
+	case OperationTypeUpsert, OperationTypeInsert, OperationTypeUpdate:
+	case "": // Use Upsert by default
+		operationType = OperationTypeUpsert
+	default:
+		return nil, fmt.Errorf("unknown operation type %s", operationType)
 	}
 
 	if nextConsumer == nil {
@@ -64,6 +77,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, scrapeConfigs []*config.Scr
 		relabelConfigs:   relabelConfigs,
 		hostLabels:       make(map[string]model.LabelSet),
 		logger:           logger,
+		operationType:    operationType,
 	}, nil
 }
 
@@ -81,8 +95,8 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) {
 	// find the ip
 	ipTagNames := []string{
-		"ip",          // jaeger/opentracing? default
-		"net.host.ip", // otel semantics for host ip
+		"ip",                           // jaeger/opentracing? default
+		conventions.AttributeNetHostIP, // otel semantics for host ip
 	}
 
 	var ip string
@@ -112,7 +126,14 @@ func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) 
 	}
 
 	for k, v := range labels {
-		attrs.UpsertString(string(k), string(v))
+		switch p.operationType {
+		case OperationTypeUpsert:
+			attrs.UpsertString(string(k), string(v))
+		case OperationTypeInsert:
+			attrs.InsertString(string(k), string(v))
+		case OperationTypeUpdate:
+			attrs.UpdateString(string(k), string(v))
+		}
 	}
 }
 
