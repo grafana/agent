@@ -67,9 +67,13 @@ scrape_configs:
 > * [`promtail.scrape_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#scrape_config)
 > * [`promtail.target_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#target_config)
 
-> **Note:** Backticks in values are not supported. Also use quadruple 
-> backslash (`\\\\`) construction to add backslashes into regular 
-> expressions, here is example for `name=(\w+)\s` regex:
+> **Note:** Backticks in values are not supported. 
+
+> **Note:**  Because of how YAML treats backslashes in double-quoted strings, 
+> all backslashes in a regex expression must be escaped when using double 
+> quotes. But because of double processing, in Grafana Agent config file 
+> you must use quadruple backslash (`\\\\`) construction to add backslashes 
+> into regular expressions, here is example for `name=(\w+)\s` regex:
 ```
   selector: '{app="my-app"} |~ "name=(\\\\w+)\\\\s"'
 ```
