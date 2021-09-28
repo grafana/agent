@@ -71,11 +71,11 @@ type ModalManager struct {
 // NewModalManager creates a new ModalManager.
 func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode Mode) (*ModalManager, error) {
 	changedConfigs := promauto.With(reg).NewGaugeVec(prometheus.GaugeOpts{
-		Name: "agent_prometheus_configs_changed_total",
+		Name: "agent_metrics_configs_changed_total",
 		Help: "Total number of dynamically updated configs",
 	}, []string{"event"})
 	currentActiveConfigs := promauto.With(reg).NewGauge(prometheus.GaugeOpts{
-		Name: "agent_prometheus_active_configs",
+		Name: "agent_metrics_active_configs",
 		Help: "Current number of active configs being used by the agent.",
 	})
 
