@@ -63,8 +63,8 @@ local images = {
     grafana_agent.withRemoteWrite([{
       url: 'http://cortex.default.svc.cluster.local/api/prom/push',
     }]) +
-    grafana_agent.withLokiConfig(loki_config) +
-    grafana_agent.withLokiClients(grafana_agent.newLokiClient({
+    grafana_agent.withLogsConfig(loki_config) +
+    grafana_agent.withLogsClients(grafana_agent.newLogsClient({
       scheme: 'http',
       hostname: 'loki.default.svc.cluster.local',
       external_labels: { cluster: cluster_label },
