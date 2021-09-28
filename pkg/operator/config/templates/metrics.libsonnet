@@ -8,7 +8,7 @@ local new_probe = import 'component/metrics/probe.libsonnet';
 local new_remote_write = import 'component/metrics/remote_write.libsonnet';
 local new_service_monitor = import 'component/metrics/service_monitor.libsonnet';
 
-// Generates a prometheus_instance.
+// Generates a metrics_instance.
 //
 // @param {string} agentNamespace - namespace of the GrafanaAgent
 // @param {MetricsInstance} instance
