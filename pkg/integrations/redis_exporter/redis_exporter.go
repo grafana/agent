@@ -44,7 +44,6 @@ type Config struct {
 	Namespace               string        `yaml:"namespace,omitempty"`
 	ConfigCommand           string        `yaml:"config_command,omitempty"`
 	CheckKeys               string        `yaml:"check_keys,omitempty"`
-	CheckKeysBatchSize      int64         `yaml:"check_keys_batch_size,omitempty"`
 	CheckKeyGroups          string        `yaml:"check_key_groups,omitempty"`
 	CheckKeyGroupsBatchSize int64         `yaml:"check_key_groups_batch_size,omitempty"`
 	MaxDistinctKeyGroups    int64         `yaml:"max_distinct_key_groups,omitempty"`
@@ -77,7 +76,7 @@ func (c Config) GetExporterOptions() re.Options {
 		Namespace:             c.Namespace,
 		ConfigCommandName:     c.ConfigCommand,
 		CheckKeys:             c.CheckKeys,
-		CheckKeysBatchSize:    c.CheckKeysBatchSize,
+		CheckKeysBatchSize:    c.CheckKeyGroupsBatchSize,
 		CheckKeyGroups:        c.CheckKeyGroups,
 		CheckSingleKeys:       c.CheckSingleKeys,
 		CheckStreams:          c.CheckStreams,
@@ -141,6 +140,8 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		}
 		exporterConfig.LuaScript = ls
 	}
+
+	//new version of the exporter takes the file paths directly, for hot-reloading support (https://github.com/oliver006/redis_exporter/pull/526)
 
 	if (c.TLSClientKeyFile != "") != (c.TLSClientCertFile != "") {
 		return nil, errors.New("TLS client key file and cert file should both be present")
