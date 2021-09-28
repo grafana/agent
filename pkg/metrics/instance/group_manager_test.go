@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/pkg/util"
+
 	"github.com/go-kit/log"
 
 	"github.com/stretchr/testify/require"
@@ -58,7 +60,7 @@ func testUnmarshalConfig(t *testing.T, cfg string) Config {
 func TestGroupManager_ApplyConfig(t *testing.T) {
 	t.Run("combining configs", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(log.NewNopLogger(), inner)
+		gm := NewGroupManager(util.TestLogger(t), inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs: []
@@ -96,7 +98,7 @@ remote_write: []
 
 	t.Run("updating existing config within group", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(log.NewNopLogger(), inner)
+		gm := NewGroupManager(util.TestLogger(t), inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs: []

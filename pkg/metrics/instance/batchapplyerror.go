@@ -13,8 +13,8 @@ type BatchApplyError struct {
 
 // BatchFailure for a given config has the associated error
 type BatchFailure struct {
-	Err    error
-	Config Config
+	Err        error
+	ConfigName string
 }
 
 // CreateBatchApplyErrorOrNil will create an error if failed has > 0 elements on nonConfigError is not nil, else will
@@ -40,7 +40,7 @@ func FindSuccessfulConfigs(e *BatchApplyError, allConfigs []Config) []Config {
 	for _, c := range allConfigs {
 		var didFail = false
 		for _, failed := range e.Failed {
-			if failed.Config.Name == c.Name {
+			if failed.ConfigName == c.Name {
 				didFail = true
 				break
 			}

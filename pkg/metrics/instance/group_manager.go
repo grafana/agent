@@ -81,8 +81,8 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 		groupName, err := hashConfig(c)
 		if err != nil {
 			failed = append(failed, BatchFailure{
-				Err:    err,
-				Config: c,
+				Err:        err,
+				ConfigName: c.Name,
 			})
 			level.Error(m.log).Log("err", fmt.Sprintf("failed to get group name for config %s: %s", c.Name, err))
 			continue
@@ -98,43 +98,50 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 	for groupName := range m.groups {
 		if _, exists := groupsInConfigs[groupName]; !exists {
 			if err := m.inner.DeleteConfig(groupName); err != nil {
-				level.Error(m.log).Log("err", fmt.Sprintf("failed to delete group named  %s with error %s", groupName, err))
+				level.Error(m.log).Log("err", err, "group", groupName)
+				panic(err)
 			}
 		}
 	}
-	groups := make(map[string]groupedConfigs)
 	mergedHashes := make(map[string]int)
 	// Now that we have grouped all the new and existing configurations we can apply them
 	for groupName, grouped := range groupsInConfigs {
 		mergedConfig, err := groupConfigs(groupName, grouped)
+		if err != nil && isRollback {
+			return err
+		} else if err != nil {
+			m.rollbackConfigs(oldConfigs)
+			return CreateBatchApplyErrorOrNil(failed, err)
+		}
 		if err != nil {
 			level.Error(m.log).Log("err", fmt.Sprintf("failed to group configs with groupname  %s with error %s", groupName, err))
+			continue
 		}
 		// If we have the exact same config no need to reload it
 		newHash, err := createMergedConfigHash(mergedConfig)
-		if err != nil {
-			level.Error(m.log).Log("err", fmt.Sprintf("failed to create merged hash named  %s with error %s", groupName, err))
-			continue
+		if err != nil && isRollback {
+			return err
+		} else if err != nil {
+			// Something terrible happened so roll back to the old configurations, this ensures that at least the agent
+			// always has a valid configuration. If we are already in a rollback then dont try again
+			m.rollbackConfigs(oldConfigs)
+			return CreateBatchApplyErrorOrNil(failed, err)
 		}
-		groups[groupName] = grouped
+
 		mergedHashes[newHash] = 0
 		if _, exists := m.mergedConfigHashes[newHash]; exists {
 			continue
 		}
 
-		// Something terrible happened so roll back to the old configurations, this ensures that at least the agent
-		// always has a valid configuration. If we are already in a rollback then dont try again
-		if !isRollback {
-			m.rollbackConfigs(oldConfigs)
-			return CreateBatchApplyErrorOrNil(failed, err)
-		}
 		err = m.inner.ApplyConfig(mergedConfig)
-		if err != nil && !isRollback {
+		if err != nil && isRollback {
+			return err
+		} else if err != nil {
 			m.rollbackConfigs(oldConfigs)
 			return CreateBatchApplyErrorOrNil(failed, err)
 		}
 	}
-	m.groups = groups
+	m.groups = groupsInConfigs
 	m.activeConfigs = activeConfigs
 	m.groupLookup = groupLookup
 	m.mergedConfigHashes = mergedHashes
