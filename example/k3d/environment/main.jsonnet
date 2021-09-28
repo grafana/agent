@@ -40,7 +40,7 @@ local images = {
 
     grafana_agent.new('grafana-agent', 'default') +
     grafana_agent.withImages(images) +
-    grafana_agent.withPrometheusConfig({
+    grafana_agent.withMetricsConfig({
       wal_directory: '/var/lib/agent/data',
       global: {
         scrape_interval: '1m',
@@ -49,7 +49,7 @@ local images = {
         },
       },
     }) +
-    grafana_agent.withPrometheusInstances(grafana_agent.scrapeInstanceKubernetes {
+    grafana_agent.withMetricsInstances(grafana_agent.scrapeInstanceKubernetes {
       // We want our cluster and label to remain static for this deployment, so
       // if they are overwritten by a metric we will change them to the values
       // set by external_labels.
@@ -136,7 +136,7 @@ local images = {
 
       local cluster_label = 'k3d-agent/cluster',
       agent_config+: {
-        prometheus+: {
+        metrics+: {
           global+: {
             external_labels+: {
               cluster: cluster_label,

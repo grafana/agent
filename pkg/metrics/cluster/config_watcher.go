@@ -17,7 +17,7 @@ import (
 
 var (
 	reshardDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "agent_prometheus_scraping_service_reshard_duration",
+		Name: "agent_metrics_scraping_service_reshard_duration",
 		Help: "How long it took for resharding to run.",
 	}, []string{"success"})
 )
