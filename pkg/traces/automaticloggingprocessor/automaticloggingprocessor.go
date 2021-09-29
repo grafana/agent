@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
@@ -13,6 +12,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
@@ -39,9 +39,6 @@ const (
 	typeRoot    = "root"
 	typeProcess = "process"
 )
-
-// todo: make configurable
-var replacer = strings.NewReplacer(".", "_")
 
 type automaticLoggingProcessor struct {
 	nextConsumer consumer.Traces
@@ -172,7 +169,7 @@ func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.La
 		if _, ok := p.labels[k]; ok {
 			// Loki does not accept "." as a valid character for labels
 			// Dots . are replaced by underscores _
-			k = replacer.Replace(k)
+			k = config.SanitizeLabelName(k)
 
 			ls[model.LabelName(k)] = model.LabelValue(v)
 		}

@@ -63,8 +63,7 @@ for specific instructions.
 
 - [BUGFIX] Standardize scrape_interval to 1m in examples. (@mattdurham)
 
-- [BUGFIX] Replace dots for underscores when autologging span attributes or tags
-  as Loki labels (@mapno)
+- [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
