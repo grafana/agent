@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
@@ -38,6 +39,9 @@ const (
 	typeRoot    = "root"
 	typeProcess = "process"
 )
+
+// todo: make configurable
+var replacer = strings.NewReplacer(".", "_")
 
 type automaticLoggingProcessor struct {
 	nextConsumer consumer.Traces
@@ -166,6 +170,10 @@ func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.La
 			v = fmt.Sprintf("%v", keyValues[i+1])
 		}
 		if _, ok := p.labels[k]; ok {
+			// Loki does not accept "." as a valid character for labels
+			// Dots . are replaced by underscores _
+			k = replacer.Replace(k)
+
 			ls[model.LabelName(k)] = model.LabelValue(v)
 		}
 	}

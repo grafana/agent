@@ -112,6 +112,9 @@ automatic_logging:
   # They need to be span or process attributes logged in the log line
   #
   # This feature only applies when `backend = logs_instance`
+  #
+  # Loki only accepts alphanumeric and "_" as valid characters for labels.
+  # Attributes containing dots are replaced for underscores
   [ labels: <string array> ]
   overrides:
     [ logs_instance_tag: <string> | default = "traces" ]
