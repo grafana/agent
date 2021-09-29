@@ -1,4 +1,4 @@
-local agent_prometheus = import 'grafana-agent/v1/lib/prometheus.libsonnet';
+local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
 
 {
   config: {
