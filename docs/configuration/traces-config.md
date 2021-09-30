@@ -40,6 +40,10 @@ name: <string>
 
 remote_write:
   # host:port to send traces to
+  # Here must be the port of gRPC receiver, not the Tempo default port.
+  # Example for cloud instances: something like `tempo-us-central1.grafana.net:443`
+  # For local / on-premises instances: `localhost:55680` or `tempo.example.com:14250`
+  # Note: for non-encrypted connections you must also set `insecure: true`
   - endpoint: <string>
 
     # Custom HTTP headers to be sent along with each remote write request.
