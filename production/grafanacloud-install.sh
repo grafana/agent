@@ -48,7 +48,7 @@ PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 #
 # Global constants.
 #
-RELEASE_VERSION="0.18.4"
+RELEASE_VERSION="0.19.0"
 
 RELEASE_URL="https://github.com/grafana/agent/releases/download/v${RELEASE_VERSION}"
 DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.${ARCH}.deb"
