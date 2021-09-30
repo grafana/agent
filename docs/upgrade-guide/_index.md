@@ -8,9 +8,11 @@ weight = 200
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## Unreleased
+## Unreleased Changes
 
 These changes will come in a future version.
+
+## v0.19.0
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
 
