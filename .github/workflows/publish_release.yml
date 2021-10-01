@@ -1,0 +1,45 @@
+name: publish_release_docs
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - run: git clone --single-branch --no-tags --depth 1 -b master https://grafanabot:${{ secrets.GH_BOT_ACCESS_TOKEN }}@github.com/grafana/website-sync ./.github/actions/website-sync
+
+    # Sync tag docs to versioned folder
+    - name: publish-tag-to-git
+      uses: ./.github/actions/website-sync
+      id: publish_tag
+      with:
+        repository: grafana/website
+        branch: master
+        host: github.com
+        github_pat: '${{ secrets.GH_BOT_ACCESS_TOKEN }}'
+        source_folder: docs
+        target_folder: 'content/docs/agent/${GITHUB_REF##*/}'
+    - shell: bash
+      run: |
+        test -n "${{ steps.publish_tag.outputs.commit_hash }}"
+        test -n "${{ steps.publish_tag.outputs.working_directory }}"
+
+    # Also send it to latest folder
+    - name: publish-latest-to-git
+      uses: ./.github/actions/website-sync
+      id: publish_latest
+      with:
+        repository: grafana/website
+        branch: master
+        host: github.com
+        github_pat: '${{ secrets.GH_BOT_ACCESS_TOKEN }}'
+        source_folder: docs
+        target_folder: 'content/docs/agent/latest'
+    - shell: bash
+      run: |
+        test -n "${{ steps.publish_latest.outputs.commit_hash }}"
+        test -n "${{ steps.publish_latest.outputs.working_directory }}"

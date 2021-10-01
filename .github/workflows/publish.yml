@@ -22,7 +22,7 @@ jobs:
         host: github.com
         github_pat: '${{ secrets.GH_BOT_ACCESS_TOKEN }}'
         source_folder: docs
-        target_folder: content/docs/agent/latest
+        target_folder: content/docs/agent/next
     - shell: bash
       run: |
         test -n "${{ steps.publish.outputs.commit_hash }}"
