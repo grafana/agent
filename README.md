@@ -98,5 +98,5 @@ If you have any questions or feedback regarding the Grafana Agent:
   
 ## Contributing
 
-Any contributions are welcome and details can be found [here](./cmd/agent/DEVELOPERS.md).
+Any contributions are welcome and details can be found [in our developers guide](./cmd/agent/DEVELOPERS.md).
 
