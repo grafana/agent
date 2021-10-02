@@ -20,6 +20,11 @@ for specific instructions.
 - [FEATURE] Add `operator-detach` command to agentctl to allow zero-downtime
   upgrades when removing an Operator CRD. (@rfratto)
 
+- [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
+  service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
+  This requires passing a `--kubelet-service` flag to the Operator in
+  `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
