@@ -5,14 +5,18 @@
   This requires passing a `--kubelet-service` flag to the Operator in
   `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
   
-- [ENHANCEMENT] Updated the following exporters to the newest version available:
-  mysqld_exporter to v0.13.0
-  postgres_exporter to v0.10.0
-  redis_exporter to v1.27.1
-  memcached_exporter to v0.9.0
-  statsd_exporter to v0.22.2
-  elasticsearch_exporter to v1.2.1
-  
+- [ENHANCEMENT] Updated mysqld_exporter to v0.13.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated postgres_exporter to v0.10.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated redis_exporter to v1.27.1 (@gaantunes)
+
+- [ENHANCEMENT] Updated memcached_exporter to v0.9.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated statsd_exporter to v0.22.2 (@gaantunes)
+
+- [ENHANCEMENT] Updated elasticsearch_exporter to v1.2.1 (@gaantunes)
+
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
 # v0.19.0 (2021-09-29)
