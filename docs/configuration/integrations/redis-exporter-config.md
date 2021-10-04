@@ -82,7 +82,7 @@ Full reference of options:
   # groups will be made.
   [check_key_groups: <string>]
 
-  # Check key groups batch size hint for the underlying SCAN.
+  # Check key or key groups batch size hint for the underlying SCAN. Keeping the same name for backwards compatibility, but this applies to both key and key groups batch size configuration.
   [check_key_groups_batch_size: <int> | default = 10000]
 
   # The maximum number of distinct key groups with the most memory utilization

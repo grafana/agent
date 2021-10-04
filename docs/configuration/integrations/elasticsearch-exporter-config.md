@@ -6,7 +6,7 @@ title = "elasticsearch_exporter_config"
 
 The `elasticsearch_exporter_config` block configures the `elasticsearch_exporter` integration,
 which is an embedded version of
-[`elasticsearch_exporter`](https://github.com/justwatchcom/elasticsearch_exporter). This allows for
+[`elasticsearch_exporter`](https://github.com/prometheus-community/elasticsearch_exporter). This allows for
 the collection of metrics from ElasticSearch servers.
 
 Note that currently, an Agent can only collect metrics from a single ElasticSearch server.

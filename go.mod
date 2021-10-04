@@ -26,17 +26,15 @@ require (
 	github.com/hashicorp/consul/api v1.8.1
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
-	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
 	github.com/jsternberg/zap-logfmt v1.2.0
-	github.com/justwatchcom/elasticsearch_exporter v1.1.0
 	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/miekg/dns v1.1.41
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.2
-	github.com/oliver006/redis_exporter v1.15.0
+	github.com/oliver006/redis_exporter v1.27.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.30.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.30.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.30.0
@@ -45,19 +43,20 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus-community/postgres_exporter v0.0.0-00010101000000-000000000000
+	github.com/prometheus-community/elasticsearch_exporter v1.2.1
+	github.com/prometheus-community/postgres_exporter v0.10.0
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.47.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/common v0.29.0
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
-	github.com/prometheus/memcached_exporter v0.8.0
-	github.com/prometheus/mysqld_exporter v0.0.0-00010101000000-000000000000
+	github.com/prometheus/memcached_exporter v0.9.0
+	github.com/prometheus/mysqld_exporter v0.13.0
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.6.1-0.20210313121648-b565fefb1664
 	github.com/prometheus/prometheus v1.8.2-0.20210621150501-ff58416a0b02
-	github.com/prometheus/statsd_exporter v0.21.0
+	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0

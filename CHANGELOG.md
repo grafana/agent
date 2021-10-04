@@ -7,6 +7,14 @@ consult the
 [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for specific instructions.
 
+- [ENHANCEMENT] Updated the following exporters to the newest version available:
+  mysqld_exporter to v0.13.0
+  postgres_exporter to v0.10.0
+  redis_exporter to v1.27.1
+  memcached_exporter to v0.9.0
+  statsd_exporter to v0.22.2
+  elasticsearch_exporter to v1.2.1
+
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
