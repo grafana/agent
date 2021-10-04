@@ -1,12 +1,10 @@
 # Main (unreleased)
 
-# v0.19.0 (2021-09-29)
-
-This release has breaking changes. Please read [CHANGE] entries carefully and
-consult the
-[upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
-for specific instructions.
-
+- [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
+  service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
+  This requires passing a `--kubelet-service` flag to the Operator in
+  `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
+  
 - [ENHANCEMENT] Updated the following exporters to the newest version available:
   mysqld_exporter to v0.13.0
   postgres_exporter to v0.10.0
@@ -14,6 +12,16 @@ for specific instructions.
   memcached_exporter to v0.9.0
   statsd_exporter to v0.22.2
   elasticsearch_exporter to v1.2.1
+  
+- [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
+
+# v0.19.0 (2021-09-29)
+
+This release has breaking changes. Please read [CHANGE] entries carefully and
+consult the
+[upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
+for specific instructions.
+
 
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
@@ -27,12 +35,7 @@ for specific instructions.
 
 - [FEATURE] Add `operator-detach` command to agentctl to allow zero-downtime
   upgrades when removing an Operator CRD. (@rfratto)
-
-- [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
-  service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
-  This requires passing a `--kubelet-service` flag to the Operator in
-  `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
-
+  
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
@@ -77,8 +80,6 @@ for specific instructions.
 - [BUGFIX] Fix warn-level logging of dropped targets. (@james-callahan)
 
 - [BUGFIX] Standardize scrape_interval to 1m in examples. (@mattdurham)
-
-- [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
