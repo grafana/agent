@@ -99,12 +99,15 @@ func (m *BasicManager) ApplyConfigs(configs []Config) error {
 		err := m.ApplyConfig(v)
 		if err != nil {
 			failed = append(failed, BatchFailure{
-				Err:    err,
-				Config: v,
+				Err:        err,
+				ConfigName: v.Name,
 			})
 		}
 	}
-	return CreateBatchApplyErrorOrNil(failed, nil)
+	if len(failed) > 0 {
+		return &BatchApplyError{Failed: failed}
+	}
+	return nil
 }
 
 // managedProcess represents a goroutine running a ManagedInstance. cancel
@@ -347,12 +350,15 @@ func (m MockManager) ApplyConfigs(configs []Config) error {
 	for _, v := range configs {
 		if err := m.ApplyConfig(v); err != nil {
 			failed = append(failed, BatchFailure{
-				Err:    err,
-				Config: v,
+				Err:        err,
+				ConfigName: v.Name,
 			})
 		}
 	}
-	return CreateBatchApplyErrorOrNil(failed, nil)
+	if len(failed) > 0 {
+		return &BatchApplyError{Failed: failed}
+	}
+	return nil
 }
 
 // GetInstance implements Manager.

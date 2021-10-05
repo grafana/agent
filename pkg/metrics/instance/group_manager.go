@@ -104,6 +104,14 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 		}
 	}
 	mergedHashes := make(map[string]int)
+	// The whole batch fails or succeeds here, so precompute if failures happen
+	failedConfigs := make([]BatchFailure, 0)
+	for _, c := range configs {
+		failedConfigs = append(failedConfigs, BatchFailure{
+			Err:        errors.New("failed during batch apply"),
+			ConfigName: c.Name,
+		})
+	}
 	// Now that we have grouped all the new and existing configurations we can apply them
 	for groupName, grouped := range groupsInConfigs {
 		mergedConfig, err := groupConfigs(groupName, grouped)
@@ -111,23 +119,25 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 			return err
 		} else if err != nil {
 			m.rollbackConfigs(oldConfigs)
-			return CreateBatchApplyErrorOrNil(failed, err)
+			return &BatchApplyError{Failed: failedConfigs}
 		}
 		if err != nil {
 			level.Error(m.log).Log("err", fmt.Sprintf("failed to group configs with groupname  %s with error %s", groupName, err))
 			continue
 		}
-		// If we have the exact same config no need to reload it
 		newHash, err := createMergedConfigHash(mergedConfig)
+
+		// Something terrible happened so roll back to the old configurations, this ensures that at least the agent
+		// always has a valid configuration. If we are already in a rollback then dont try again
 		if err != nil && isRollback {
 			return err
 		} else if err != nil {
-			// Something terrible happened so roll back to the old configurations, this ensures that at least the agent
-			// always has a valid configuration. If we are already in a rollback then dont try again
+
 			m.rollbackConfigs(oldConfigs)
-			return CreateBatchApplyErrorOrNil(failed, err)
+			return &BatchApplyError{Failed: failedConfigs}
 		}
 
+		// If we have the exact same config no need to reload it
 		mergedHashes[newHash] = 0
 		if _, exists := m.mergedConfigHashes[newHash]; exists {
 			continue
@@ -138,15 +148,17 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 			return err
 		} else if err != nil {
 			m.rollbackConfigs(oldConfigs)
-			return CreateBatchApplyErrorOrNil(failed, err)
+			return &BatchApplyError{Failed: failedConfigs}
 		}
 	}
 	m.groups = groupsInConfigs
 	m.activeConfigs = activeConfigs
 	m.groupLookup = groupLookup
 	m.mergedConfigHashes = mergedHashes
-
-	return CreateBatchApplyErrorOrNil(failed, nil)
+	if len(failed) > 0 {
+		return &BatchApplyError{Failed: failed}
+	}
+	return nil
 }
 
 func createMergedConfigHash(mergedConfig Config) (string, error) {
