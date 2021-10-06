@@ -271,17 +271,7 @@ func (m *GroupManager) ListConfigs() map[string]Config {
 // exists, the group will have its settings merged with the Config and
 // will be updated.
 func (m *GroupManager) ApplyConfig(c Config) error {
-	cfgs := []Config{c}
-	err := m.ApplyConfigs(cfgs)
-	var bae BatchApplyError
-
-	if err != nil && errors.As(err, &bae) {
-		if len(bae.Failed) > 0 {
-			return bae.Failed[0].Err
-		}
-	}
-
-	return nil
+	return m.ApplyConfigs([]Config{c})
 }
 
 // DeleteConfig will remove a Config from its associated group. If there are

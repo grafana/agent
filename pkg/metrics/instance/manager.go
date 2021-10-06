@@ -340,25 +340,17 @@ type MockManager struct {
 	ListInstancesFunc func() map[string]ManagedInstance
 	ListConfigsFunc   func() map[string]Config
 	ApplyConfigFunc   func(Config) error
+	ApplyConfigsFunc  func([]Config) error
 	DeleteConfigFunc  func(name string) error
 	StopFunc          func()
 }
 
 // ApplyConfigs is used to batch apply configurations
 func (m MockManager) ApplyConfigs(configs []Config) error {
-	failed := make([]BatchFailure, 0)
-	for _, v := range configs {
-		if err := m.ApplyConfig(v); err != nil {
-			failed = append(failed, BatchFailure{
-				Err:        err,
-				ConfigName: v.Name,
-			})
-		}
+	if m.ApplyConfigsFunc != nil {
+		return m.ApplyConfigsFunc(configs)
 	}
-	if len(failed) > 0 {
-		return &BatchApplyError{Failed: failed}
-	}
-	return nil
+	panic("ListInstancesFunc not implemented")
 }
 
 // GetInstance implements Manager.

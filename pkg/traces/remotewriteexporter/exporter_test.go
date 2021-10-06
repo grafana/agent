@@ -86,9 +86,7 @@ type mockManager struct {
 }
 
 // ApplyConfigs is used to batch configurations for performance instead of the singular ApplyConfig
-func (m *mockManager) ApplyConfigs(configs []instance.Config) error {
-	return m.ApplyConfigs(configs)
-}
+func (m *mockManager) ApplyConfigs(configs []instance.Config) error { return nil }
 
 func (m *mockManager) GetInstance(name string) (instance.ManagedInstance, error) {
 	if m.instance == nil {

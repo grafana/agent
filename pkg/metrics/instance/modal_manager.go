@@ -76,10 +76,7 @@ func (m *ModalManager) ApplyConfigs(configs []Config) error {
 
 	err := m.active.ApplyConfigs(configs)
 	var bae BatchApplyError
-	if err != nil {
-		errors.As(err, &bae)
-	}
-
+	_ = errors.As(err, &bae)
 	for _, c := range FindSuccessfulConfigs(&bae, configs) {
 		if _, existingConfig := m.configs[c.Name]; !existingConfig {
 			m.currentActiveConfigs.Inc()
