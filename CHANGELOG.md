@@ -4,7 +4,7 @@
   service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
   This requires passing a `--kubelet-service` flag to the Operator in
   `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
-  
+
 - [ENHANCEMENT] Updated mysqld_exporter to v0.13.0 (@gaantunes)
 
 - [ENHANCEMENT] Updated postgres_exporter to v0.10.0 (@gaantunes)
@@ -18,6 +18,8 @@
 - [ENHANCEMENT] Updated elasticsearch_exporter to v1.2.1 (@gaantunes)
 
 - [ENHANCEMENT] Add remote write to silent Windows Installer  (@mattdurham)
+
+- [ENHANCEMENT] Updated mongodb_exporter to v0.20.7 (@rfratto)
 
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
@@ -41,7 +43,7 @@ for specific instructions.
 
 - [FEATURE] Add `operator-detach` command to agentctl to allow zero-downtime
   upgrades when removing an Operator CRD. (@rfratto)
-  
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
@@ -99,7 +101,7 @@ for specific instructions.
 
 - [CHANGE] Breaking change: `prom_instance` in the spanmetrics config is now
   named `metrics_instance`. (@rfratto)
-  
+
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
