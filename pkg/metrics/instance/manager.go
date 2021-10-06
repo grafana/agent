@@ -350,7 +350,7 @@ func (m MockManager) ApplyConfigs(configs []Config) error {
 	if m.ApplyConfigsFunc != nil {
 		return m.ApplyConfigsFunc(configs)
 	}
-	panic("ListInstancesFunc not implemented")
+	panic("ApplyConfigsFunc not implemented")
 }
 
 // GetInstance implements Manager.
