@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/hashicorp/go-getter"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
@@ -38,7 +39,7 @@ var (
 // TestEnqueueRequestForSelector creates an example Kubenretes cluster and runs
 // EnqueueRequestForSelector to validate it works.
 func TestEnqueueRequestForSelector(t *testing.T) {
-	l := util.TestLogger(t)
+	l := log.NewNopLogger()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
