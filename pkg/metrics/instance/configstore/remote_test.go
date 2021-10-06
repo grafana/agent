@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv"
 	"github.com/grafana/agent/pkg/util"
@@ -17,7 +16,7 @@ import (
 )
 
 func TestRemote_List(t *testing.T) {
-	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
+	remote, err := NewRemote(util.TestLogger(t), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
 	}, true)
@@ -42,7 +41,7 @@ func TestRemote_List(t *testing.T) {
 }
 
 func TestRemote_Get(t *testing.T) {
-	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
+	remote, err := NewRemote(util.TestLogger(t), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
 	}, true)
@@ -66,7 +65,7 @@ func TestRemote_Get(t *testing.T) {
 }
 
 func TestRemote_Put(t *testing.T) {
-	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
+	remote, err := NewRemote(util.TestLogger(t), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
 	}, true)
@@ -119,7 +118,7 @@ scrape_configs:
 	conflictingBCfg, err := instance.UnmarshalConfig(strings.NewReader(conflictingB))
 	require.NoError(t, err)
 
-	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
+	remote, err := NewRemote(util.TestLogger(t), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
 	}, true)
@@ -138,7 +137,7 @@ scrape_configs:
 }
 
 func TestRemote_Delete(t *testing.T) {
-	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
+	remote, err := NewRemote(util.TestLogger(t), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "configs/",
 	}, true)
@@ -166,7 +165,7 @@ func TestRemote_Delete(t *testing.T) {
 }
 
 func TestRemote_All(t *testing.T) {
-	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
+	remote, err := NewRemote(util.TestLogger(t), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "all-configs/",
 	}, true)
@@ -197,7 +196,7 @@ func TestRemote_All(t *testing.T) {
 }
 
 func TestRemote_Watch(t *testing.T) {
-	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
+	remote, err := NewRemote(util.TestLogger(t), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "watch-configs/",
 	}, true)
@@ -234,7 +233,7 @@ func TestRemote_Watch(t *testing.T) {
 }
 
 func TestRemote_ApplyConfig(t *testing.T) {
-	remote, err := NewRemote(log.NewNopLogger(), prometheus.NewRegistry(), kv.Config{
+	remote, err := NewRemote(util.TestLogger(t), prometheus.NewRegistry(), kv.Config{
 		Store:  "inmemory",
 		Prefix: "test-applyconfig/",
 	}, true)

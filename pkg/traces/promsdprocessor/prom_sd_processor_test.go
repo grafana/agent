@@ -3,7 +3,8 @@ package promsdprocessor
 import (
 	"testing"
 
-	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/util"
+
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/relabel"
@@ -103,7 +104,7 @@ func TestSyncGroups(t *testing.T) {
 			}
 
 			p := &promServiceDiscoProcessor{
-				logger:         log.NewNopLogger(),
+				logger:         util.TestLogger(t),
 				relabelConfigs: tc.relabelCfgs,
 			}
 

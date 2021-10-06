@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/util"
+
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations/config"
@@ -115,8 +117,8 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{Integration: mock}
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(mockManagerConfig(), log.NewNopLogger(), im, noOpValidator)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
+	m, err := NewManager(mockManagerConfig(), util.TestLogger(t), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -133,13 +135,13 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{Integration: mock}
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
 
 	cfg := mockManagerConfig()
 	cfg.ScrapeIntegrations = false
 	cfg.Integrations = append(cfg.Integrations, &icfg)
 
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	m, err := NewManager(cfg, util.TestLogger(t), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -159,12 +161,12 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 	noScrape := false
 	mock.CommonCfg.ScrapeIntegration = &noScrape
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
 
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	m, err := NewManager(cfg, util.TestLogger(t), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -181,8 +183,8 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
+	m, err := NewManager(cfg, util.TestLogger(t), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -203,8 +205,8 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
+	m, err := NewManager(cfg, util.TestLogger(t), im, noOpValidator)
 	require.NoError(t, err)
 	defer m.Stop()
 
@@ -222,8 +224,8 @@ func TestManager_GracefulStop(t *testing.T) {
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
+	m, err := NewManager(cfg, util.TestLogger(t), im, noOpValidator)
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second, 1, func() interface{} {
@@ -246,8 +248,8 @@ func TestManager_IntegrationEnabledToDisabledReload(t *testing.T) {
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
+	m, err := NewManager(cfg, util.TestLogger(t), im, noOpValidator)
 	require.NoError(t, err)
 
 	// Test for Enabled -> Disabled
@@ -272,8 +274,8 @@ func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
-	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
+	m, err := NewManager(cfg, util.TestLogger(t), im, noOpValidator)
 	require.NoError(t, err)
 	require.Len(t, m.integrations, 0, "Integration was disabled so should be removed from map")
 	_, err = m.im.GetInstance(mockIntegrationName)
@@ -306,13 +308,13 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, icfg)
 
-	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
+	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, util.TestLogger(t), mockInstanceFactory)
 
 	startingPromConfig := mockPromConfigWithValues(model.Duration(30*time.Second), model.Duration(25*time.Second))
 	cfg.PrometheusGlobalConfig = startingPromConfig
 	validator := PromDefaultsValidator{startingPromConfig}
 
-	m, err := NewManager(cfg, log.NewNopLogger(), im, validator.validate)
+	m, err := NewManager(cfg, util.TestLogger(t), im, validator.validate)
 	require.NoError(t, err)
 	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
 	//The integration never has the prom config overrides happen so go after the running instance config instead

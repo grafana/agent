@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/util"
+
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -126,7 +128,7 @@ func TestAgent(t *testing.T) {
 
 	fact := newFakeInstanceFactory()
 
-	a, err := newAgent(prometheus.NewRegistry(), cfg, log.NewNopLogger(), fact.factory)
+	a, err := newAgent(prometheus.NewRegistry(), cfg, util.TestLogger(t), fact.factory)
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second*30, true, func() interface{} {
@@ -187,7 +189,7 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			fact := newFakeInstanceFactory()
 
-			a, err := newAgent(prometheus.NewRegistry(), cfg, log.NewNopLogger(), fact.factory)
+			a, err := newAgent(prometheus.NewRegistry(), cfg, util.TestLogger(t), fact.factory)
 			require.NoError(t, err)
 
 			test.Poll(t, time.Second*30, true, func() interface{} {
@@ -231,7 +233,7 @@ func TestAgent_Stop(t *testing.T) {
 
 	fact := newFakeInstanceFactory()
 
-	a, err := newAgent(prometheus.NewRegistry(), cfg, log.NewNopLogger(), fact.factory)
+	a, err := newAgent(prometheus.NewRegistry(), cfg, util.TestLogger(t), fact.factory)
 	require.NoError(t, err)
 
 	test.Poll(t, time.Second*30, true, func() interface{} {

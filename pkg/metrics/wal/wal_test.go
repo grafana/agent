@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -25,7 +24,7 @@ func TestStorage_InvalidSeries(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
-	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	s, err := NewStorage(util.TestLogger(t), nil, walDir)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, s.Close())
@@ -67,7 +66,7 @@ func TestStorage(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
-	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	s, err := NewStorage(util.TestLogger(t), nil, walDir)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, s.Close())
@@ -109,7 +108,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
-	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	s, err := NewStorage(util.TestLogger(t), nil, walDir)
 	require.NoError(t, err)
 
 	app := s.Appender(context.Background())
@@ -128,7 +127,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	time.Sleep(time.Millisecond * 150)
 
 	// Create a new storage, write the other half of samples.
-	s, err = NewStorage(log.NewNopLogger(), nil, walDir)
+	s, err = NewStorage(util.TestLogger(t), nil, walDir)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, s.Close())
@@ -209,7 +208,7 @@ func TestStorage_Truncate(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
-	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	s, err := NewStorage(util.TestLogger(t), nil, walDir)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, s.Close())
@@ -270,7 +269,7 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
-	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	s, err := NewStorage(util.TestLogger(t), nil, walDir)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, s.Close())
@@ -324,7 +323,7 @@ func TestStorage_TruncateAfterClose(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(walDir)
 
-	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	s, err := NewStorage(util.TestLogger(t), nil, walDir)
 	require.NoError(t, err)
 
 	require.NoError(t, s.Close())

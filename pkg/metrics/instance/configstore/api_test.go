@@ -10,7 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/util"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/client"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
@@ -26,7 +27,7 @@ func TestAPI_ListConfigurations(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(util.TestLogger(t), s, nil)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs")
@@ -60,7 +61,7 @@ func TestAPI_GetConfiguration_Invalid(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(util.TestLogger(t), s, nil)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/does-not-exist")
@@ -96,7 +97,7 @@ func TestAPI_GetConfiguration(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(util.TestLogger(t), s, nil)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
@@ -131,7 +132,7 @@ func TestAPI_GetConfiguration(t *testing.T) {
 func TestServer_PutConfiguration(t *testing.T) {
 	var s Mock
 
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(util.TestLogger(t), &s, nil)
 	env := newAPITestEnvironment(t, api)
 
 	cfg := instance.Config{Name: "newconfig"}
@@ -164,7 +165,7 @@ func TestServer_PutConfiguration(t *testing.T) {
 func TestServer_PutConfiguration_Invalid(t *testing.T) {
 	var s Mock
 
-	api := NewAPI(log.NewNopLogger(), &s, func(c *instance.Config) error {
+	api := NewAPI(util.TestLogger(t), &s, func(c *instance.Config) error {
 		return fmt.Errorf("custom validation error")
 	})
 	env := newAPITestEnvironment(t, api)
@@ -190,7 +191,7 @@ func TestServer_PutConfiguration_Invalid(t *testing.T) {
 
 func TestServer_PutConfiguration_WithClient(t *testing.T) {
 	var s Mock
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(util.TestLogger(t), &s, nil)
 	env := newAPITestEnvironment(t, api)
 
 	cfg := instance.DefaultConfig
@@ -216,7 +217,7 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(util.TestLogger(t), s, nil)
 	env := newAPITestEnvironment(t, api)
 
 	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/config/deleteme", nil)
@@ -235,7 +236,7 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 func TestServer_URLEncoded(t *testing.T) {
 	var s Mock
 
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(util.TestLogger(t), &s, nil)
 	env := newAPITestEnvironment(t, api)
 
 	var cfg instance.Config

@@ -234,9 +234,7 @@ type mockConfigManager struct {
 	mock.Mock
 }
 
-func (m *mockConfigManager) ApplyConfigs(configs []instance.Config) error {
-	return m.ApplyConfigs(configs)
-}
+func (m *mockConfigManager) ApplyConfigs(configs []instance.Config) error { return nil }
 
 func (m *mockConfigManager) GetInstance(name string) (instance.ManagedInstance, error) {
 	args := m.Mock.Called()

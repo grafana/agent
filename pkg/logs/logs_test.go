@@ -58,7 +58,7 @@ func TestLogs(t *testing.T) {
 	})
 	go func() {
 		_ = http.Serve(lis, http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			req, err := loki_util.ParseRequest(log.NewNopLogger(), "user_id", r)
+			req, err := loki_util.ParseRequest(util.TestLogger(t), "user_id", r)
 			require.NoError(t, err)
 
 			pushes <- req
@@ -91,7 +91,7 @@ configs:
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
 
-	logger := log.NewSyncLogger(log.NewNopLogger())
+	logger := log.NewSyncLogger(util.TestLogger(t))
 	l, err := New(prometheus.NewRegistry(), &cfg, logger)
 	require.NoError(t, err)
 	defer l.Stop()

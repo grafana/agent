@@ -8,8 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/pkg/util"
+
 	"github.com/cortexproject/cortex/pkg/util/test"
-	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -23,7 +24,7 @@ func TestAgent_ListInstancesHandler(t *testing.T) {
 	fact := newFakeInstanceFactory()
 	a, err := newAgent(prometheus.NewRegistry(), Config{
 		WALDir: "/tmp/agent",
-	}, log.NewNopLogger(), fact.factory)
+	}, util.TestLogger(t), fact.factory)
 	require.NoError(t, err)
 	defer a.Stop()
 
@@ -53,7 +54,7 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 	fact := newFakeInstanceFactory()
 	a, err := newAgent(prometheus.NewRegistry(), Config{
 		WALDir: "/tmp/agent",
-	}, log.NewNopLogger(), fact.factory)
+	}, util.TestLogger(t), fact.factory)
 	require.NoError(t, err)
 
 	mockManager := &instance.MockManager{
