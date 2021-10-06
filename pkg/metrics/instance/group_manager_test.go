@@ -7,13 +7,11 @@ import (
 
 	"github.com/grafana/agent/pkg/util"
 
-	"github.com/go-kit/log"
-
 	"github.com/stretchr/testify/require"
 )
 
 func TestGroupManager_ListInstances_Configs(t *testing.T) {
-	gm := NewGroupManager(log.NewNopLogger(), newFakeManager())
+	gm := NewGroupManager(util.TestLogger(t), newFakeManager())
 
 	// Create two configs in the same group and one in another
 	// group.
@@ -135,7 +133,7 @@ remote_write: []
 
 	t.Run("updating existing config to new group", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(log.NewNopLogger(), inner)
+		gm := NewGroupManager(util.TestLogger(t), inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs: []
@@ -178,7 +176,7 @@ remote_write: []
 
 func TestGroupManager_ApplyConfig_RemoteWriteName(t *testing.T) {
 	inner := newFakeManager()
-	gm := NewGroupManager(log.NewNopLogger(), inner)
+	gm := NewGroupManager(util.TestLogger(t), inner)
 	err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs: []
@@ -203,7 +201,7 @@ remote_write:
 func TestGroupManager_DeleteConfig(t *testing.T) {
 	t.Run("partial delete", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(log.NewNopLogger(), inner)
+		gm := NewGroupManager(util.TestLogger(t), inner)
 
 		// Apply two configs in the same group and then delete one. The group
 		// should still be active with the one config inside of it.
@@ -245,7 +243,7 @@ remote_write: []`, gm.groupLookup["configB"]))
 
 	t.Run("full delete", func(t *testing.T) {
 		inner := newFakeManager()
-		gm := NewGroupManager(log.NewNopLogger(), inner)
+		gm := NewGroupManager(util.TestLogger(t), inner)
 
 		// Apply a single config but delete the entire group.
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
