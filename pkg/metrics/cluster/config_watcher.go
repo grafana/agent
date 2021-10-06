@@ -17,7 +17,7 @@ import (
 
 var (
 	reshardDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "agent_prometheus_scraping_service_reshard_duration",
+		Name: "agent_metrics_scraping_service_reshard_duration",
 		Help: "How long it took for resharding to run.",
 	}, []string{"success"})
 )
@@ -90,22 +90,23 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 }
 
 func (w *configWatcher) run(ctx context.Context) {
-	for {
-		w.mut.Lock()
-		nextPoll := w.cfg.ReshardInterval
-		w.mut.Unlock()
+	defer level.Info(w.log).Log("msg", "config watcher run loop exiting")
 
+	lastReshard := time.Now()
+
+	for {
 		select {
 		case <-ctx.Done():
 			return
+		case <-w.nextReshard(lastReshard):
+			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
+			w.RequestRefresh()
+			lastReshard = time.Now()
 		case <-w.refreshCh:
 			err := w.refresh(ctx)
 			if err != nil {
 				level.Error(w.log).Log("msg", "refresh failed", "err", err)
 			}
-		case <-time.After(nextPoll):
-			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
-			w.RequestRefresh()
 		case ev := <-w.store.Watch():
 			level.Debug(w.log).Log("msg", "handling event from config store")
 			if err := w.handleEvent(ev); err != nil {
@@ -113,6 +114,26 @@ func (w *configWatcher) run(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// nextReshard returns a channel to that will fill a value when the reshard
+// interval has elapsed.
+func (w *configWatcher) nextReshard(lastReshard time.Time) <-chan time.Time {
+	w.mut.Lock()
+	nextReshard := lastReshard.Add(w.cfg.ReshardInterval)
+	w.mut.Unlock()
+
+	remaining := time.Until(nextReshard)
+
+	// NOTE(rfratto): clamping to 0 isn't necessary for time.After,
+	// but it makes the log message clearer to always use "0s" as
+	// "next reshard will be scheduled immediately."
+	if remaining < 0 {
+		remaining = 0
+	}
+
+	level.Debug(w.log).Log("msg", "waiting for next reshard interval", "last_reshard", lastReshard, "next_reshard", nextReshard, "remaining", remaining)
+	return time.After(remaining)
 }
 
 // RequestRefresh will queue a refresh. No more than one refresh can be queued at a time.

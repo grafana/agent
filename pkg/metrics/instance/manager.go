@@ -17,12 +17,12 @@ import (
 
 var (
 	instanceAbnormalExits = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "agent_prometheus_instance_abnormal_exits_total",
+		Name: "agent_metrics_instance_abnormal_exits_total",
 		Help: "Total number of times a Prometheus instance exited unexpectedly, causing it to be restarted.",
 	}, []string{"instance_name"})
 
 	currentActiveInstances = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "agent_prometheus_active_instances",
+		Name: "agent_metrics_active_instances",
 		Help: "Current number of active instances being used by the agent.",
 	})
 

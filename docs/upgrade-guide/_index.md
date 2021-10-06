@@ -8,9 +8,42 @@ weight = 200
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## Unreleased
+## Unreleased Changes
 
 These changes will come in a future version.
+
+## v0.19.0
+
+### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
+
+The term `tempo` in the config has been deprecated of favor of `traces`. This
+change is to make intent clearer.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            thrift_http:
+```
+
+Example of new config:
+```yaml
+traces:
+  configs:
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            thrift_http:
+```
+
+Any tempo metrics have been renamed from `tempo_*` to `traces_*`.
+
 
 ### Tempo: split grouping by trace from tail sampling config (Breaking change)
 

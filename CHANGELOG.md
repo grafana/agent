@@ -1,9 +1,33 @@
 # Main (unreleased)
 
+- [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
+  service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
+  This requires passing a `--kubelet-service` flag to the Operator in
+  `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
+  
+- [ENHANCEMENT] Updated mysqld_exporter to v0.13.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated postgres_exporter to v0.10.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated redis_exporter to v1.27.1 (@gaantunes)
+
+- [ENHANCEMENT] Updated memcached_exporter to v0.9.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated statsd_exporter to v0.22.2 (@gaantunes)
+
+- [ENHANCEMENT] Updated elasticsearch_exporter to v1.2.1 (@gaantunes)
+
+- [ENHANCEMENT] Add remote write to silent Windows Installer  (@mattdurham)
+
+- [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
+
+# v0.19.0 (2021-09-29)
+
 This release has breaking changes. Please read [CHANGE] entries carefully and
 consult the
 [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for specific instructions.
+
 
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
@@ -17,7 +41,7 @@ for specific instructions.
 
 - [FEATURE] Add `operator-detach` command to agentctl to allow zero-downtime
   upgrades when removing an Operator CRD. (@rfratto)
-
+  
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
@@ -29,7 +53,10 @@ for specific instructions.
 - [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
   the $HOSTNAME variable in agent config.  (@dfrankel33)
 
-- [ENHANCEMENT] Add remote write to silent Windows Installer  (@mattdurham)
+- [ENHANCEMENT] Update jsonnet-libs to 1.21 for Kubernetes 1.21+ compatability. (@MurzNN)
+
+- [ENHANCEMENT] Make method used to add k/v to spans in prom_sd processor
+  configurable. (@mapno)
 
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`. (@rfratto)
@@ -44,8 +71,6 @@ for specific instructions.
 - [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the
   `node_exporter` integration default config. (@eamonryan)
 
-- [BUGFIX] Fix info logging on windows. (@mattdurham)
-
 - [BUGFIX] Remove v0.0.0 flags during build with no explicit release tag (@mattdurham)
 
 - [BUGFIX] Fix issue with global scrape_interval changes not reloading integrations (@kgeckhart)
@@ -57,6 +82,10 @@ for specific instructions.
   Kubernetes defaults when undefined (i.e., default to nothing). (@rfratto)
 
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
+
+- [BUGFIX] Fix warn-level logging of dropped targets. (@james-callahan)
+
+- [BUGFIX] Standardize scrape_interval to 1m in examples. (@mattdurham)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
@@ -70,7 +99,7 @@ for specific instructions.
 
 - [CHANGE] Breaking change: `prom_instance` in the spanmetrics config is now
   named `metrics_instance`. (@rfratto)
-
+  
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
@@ -80,7 +109,21 @@ for specific instructions.
 - [DEPRECATION] The `prometheus` key at the root of the config file has been
   deprecated in favor of `metrics`. Flag names starting with `prometheus.` have
   also been deprecated in favor of the same flags with the `metrics.` prefix.
-  (@rfratto)
+  Metrics prefixed with `agent_prometheus_` are now prefixed with
+  `agent_metrics_`. (@rfratto)
+
+- [DEPRECATION] The `tempo` key at the root of the config file has been
+  deprecated in favor of `traces`. (@mattdurham)
+
+# v0.18.4 (2021-09-14)
+
+- [BUGFIX] Fix info logging on windows. (@mattdurham)
+
+- [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
+  interval. (@rfratto)
+
+- [CHANGE] Add `agent_prometheus_configs_changed_total` metric to track instance
+  config events. (@rfratto)
 
 # v0.18.3 (2021-09-08)
 

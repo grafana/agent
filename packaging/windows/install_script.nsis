@@ -148,7 +148,7 @@ Function WriteConfig
         FileWrite $9 `prometheus:$\n`
         FileWrite $9 `  wal_directory: $APPDATA\grafana-agent-wal$\n`
         FileWrite $9 `  global:$\n`
-        FileWrite $9 `    scrape_interval: 15s$\n`
+        FileWrite $9 `    scrape_interval: 1m$\n`
         ${If} $Url != ""
         FileWrite $9 `    remote_write: $\n`
         FileWrite $9 `    - url: $Url $\n`

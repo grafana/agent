@@ -20,7 +20,7 @@ import (
 // when parsing the config.
 func TestConfig_FlagDefaults(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: 33s`
@@ -38,7 +38,7 @@ prometheus:
 
 func TestConfig_OverrideDefaultsOnLoad(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: 33s`
@@ -60,7 +60,7 @@ prometheus:
 
 func TestConfig_OverrideByEnvironmentOnLoad(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: ${SCRAPE_TIMEOUT}`
@@ -83,7 +83,7 @@ prometheus:
 
 func TestConfig_OverrideByEnvironmentOnLoad_NoDigits(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     external_labels:
@@ -100,14 +100,14 @@ prometheus:
 
 func TestConfig_FlagsAreAccepted(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   global:
     scrape_timeout: 33s`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	args := []string{
 		"-config.file", "test",
-		"-prometheus.wal-directory", "/tmp/wal",
+		"-metrics.wal-directory", "/tmp/wal",
 		"-config.expand-env",
 	}
 
@@ -121,7 +121,7 @@ prometheus:
 func TestConfig_StrictYamlParsing(t *testing.T) {
 	t.Run("duplicate key", func(t *testing.T) {
 		cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: 10s
@@ -133,7 +133,7 @@ prometheus:
 
 	t.Run("non existing key", func(t *testing.T) {
 		cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
   scrape_timeout: 10s`
@@ -152,7 +152,7 @@ func TestConfig_Defaults(t *testing.T) {
 	require.Equal(t, integrations.DefaultManagerConfig, c.Integrations)
 }
 
-func TestConfig_TempoLokiValidates(t *testing.T) {
+func TestConfig_TracesLokiValidates(t *testing.T) {
 	tests := []struct {
 		cfg string
 	}{
@@ -165,7 +165,7 @@ loki:
       filename: /tmp/positions.yaml
     clients:
     - url: http://loki:3100/loki/api/v1/push
-tempo:
+traces:
   configs:
   - name: default
     automatic_logging:
@@ -182,7 +182,7 @@ loki:
       filename: /tmp/positions.yaml
     clients:
     - url: http://loki:3100/loki/api/v1/push
-tempo:
+traces:
   configs:
   - name: default
     automatic_logging:
@@ -232,7 +232,7 @@ func TestConfig_PrometheusNonNil(t *testing.T) {
 		},
 		{
 			name:  "null",
-			input: `prometheus: null`,
+			input: `metrics: null`,
 		},
 	}
 
@@ -263,7 +263,7 @@ prometheus:
 	require.Equal(t, []string{"`prometheus` has been deprecated in favor of `metrics`"}, cfg.Deprecations)
 }
 
-func TestConfig_TempoLokiFailsValidation(t *testing.T) {
+func TestConfig_TracesLokiFailsValidation(t *testing.T) {
 	tests := []struct {
 		cfg           string
 		expectedError string
@@ -277,14 +277,14 @@ loki:
       filename: /tmp/positions.yaml
     clients:
     - url: http://loki:3100/loki/api/v1/push
-tempo:
+traces:
   configs:
   - name: default
     automatic_logging:
       backend: logs_instance
       logs_instance_name: default
       spans: true`,
-			expectedError: "error in config file: failed to validate automatic_logging for tempo config default: specified logs config default not found in agent config",
+			expectedError: "error in config file: failed to validate automatic_logging for traces config default: specified logs config default not found in agent config",
 		},
 	}
 
@@ -296,4 +296,43 @@ tempo:
 
 		require.EqualError(t, err, tc.expectedError)
 	}
+}
+
+func TestConfig_TempoNameMigration(t *testing.T) {
+	input := util.Untab(`
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: stdout
+      loki_name: doesnt_exist
+      spans: true`)
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
+	require.NoError(t, cfg.ApplyDefaults())
+
+	require.NotNil(t, cfg.Traces)
+
+	require.Equal(t, "default", cfg.Traces.Configs[0].Name)
+	require.Equal(t, []string{"`tempo` has been deprecated in favor of `traces`"}, cfg.Deprecations)
+}
+
+func TestConfig_TempoTracesDuplicateMigration(t *testing.T) {
+	input := util.Untab(`
+traces:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: stdout
+      loki_name: doesnt_exist
+      spans: true
+tempo:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: stdout
+      loki_name: doesnt_exist
+      spans: true`)
+	var cfg Config
+	require.EqualError(t, LoadBytes([]byte(input), false, &cfg), "at most one of tempo and traces should be specified")
 }

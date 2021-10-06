@@ -24,7 +24,7 @@ Currently, there are six ways to install the agent:
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.18.3
+  grafana/agent:v0.19.0
 ```
 
 Replace `/tmp/agent` with the folder you wish to store WAL data in. WAL data is

@@ -41,6 +41,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // RegisterFlags registers flags to the provided flag set.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.RegisterFlagsWithPrefix("prometheus.", f)
+	c.RegisterFlagsWithPrefix("metrics.", f)
 }
 
 // RegisterFlagsWithPrefix registers flags to the provided flag set with the

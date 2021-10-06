@@ -1,4 +1,4 @@
-// Package elasticsearch_exporter instantiates the exporter from github.com/justwatchcom/elasticsearch_exporter
+// Package elasticsearch_exporter instantiates the exporter from github.com/justwatchcom/elasticsearch_exporter - replaced for github.com/prometheus-community/elasticsearch_exporter
 // Using the YAML config provided by the agent
 package elasticsearch_exporter //nolint:golint
 
@@ -15,8 +15,8 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/justwatchcom/elasticsearch_exporter/collector"
-	"github.com/justwatchcom/elasticsearch_exporter/pkg/clusterinfo"
+	"github.com/prometheus-community/elasticsearch_exporter/collector"
+	"github.com/prometheus-community/elasticsearch_exporter/pkg/clusterinfo"
 )
 
 // DefaultConfig holds the default settings for the elasticsearch_exporter
