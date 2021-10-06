@@ -19,7 +19,7 @@ func FindSuccessfulConfigs(e *BatchApplyError, allConfigs []Config) []Config {
 	if e == nil || len(e.Failed) == 0 {
 		return allConfigs
 	}
-	succeeded := make([]Config, 0)
+	var succeeded []Config
 	// Need to get the list of successful configs that were applied
 	for _, c := range allConfigs {
 		var didFail = false

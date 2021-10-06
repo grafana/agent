@@ -34,16 +34,12 @@ type GroupManager struct {
 	inner Manager
 
 	mtx sync.Mutex
-
 	// activeConfigs is a list of all the configs currently being used in the group
 	activeConfigs []Config
-
 	// groups is a map of group name to the grouped configs.
 	groups map[string]groupedConfigs
-
 	// groupLookup is a map of config name to group name.
-	groupLookup map[string]string
-
+	groupLookup        map[string]string
 	mergedConfigHashes map[string]int
 
 	log log.Logger
@@ -62,7 +58,7 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 	if len(configs) == 0 {
 		return nil
 	}
-	failed := make([]BatchFailure, 0)
+	var failed []BatchFailure
 
 	// This will form our master set of configurations to apply by their group, this includes any that are currently
 	// running but not in the configs parameter.
@@ -71,10 +67,10 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 	// Combined group of current and new configs
 	combinedConfigs := m.getCombinedConfigs(configs)
 
-	oldConfigs := make([]Config, 0)
+	var oldConfigs []Config
 	// In case of an error in applying the new configs, we need to grab the old config for rollback
 	copy(oldConfigs, m.activeConfigs)
-	activeConfigs := make([]Config, 0)
+	var activeConfigs []Config
 	groupLookup := make(map[string]string)
 	// Iterate through the combined configurations
 	for _, c := range combinedConfigs {
@@ -84,7 +80,7 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 				Err:        err,
 				ConfigName: c.Name,
 			})
-			level.Error(m.log).Log("err", fmt.Sprintf("failed to get group name for config %s: %s", c.Name, err))
+			level.Error(m.log).Log("msg", "failed to get group name for config", "config", c.Name, "err", err)
 			continue
 		}
 		if _, exists := groupsInConfigs[groupName]; !exists {
@@ -105,7 +101,7 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 	}
 	mergedHashes := make(map[string]int)
 	// The whole batch fails or succeeds here, so precompute if failures happen
-	failedConfigs := make([]BatchFailure, 0)
+	var failedConfigs []BatchFailure
 	for _, c := range configs {
 		failedConfigs = append(failedConfigs, BatchFailure{
 			Err:        errors.New("failed during batch apply"),
@@ -170,16 +166,19 @@ func createMergedConfigHash(mergedConfig Config) (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
+// rollbackConfigs is an emergency action used to get the agent back
+// to a known good state if something drastic fails.
+//
+// If restoring a config fails, we've left the Agent in a really bad
+// state: the new config can't be applied and the old config can't be
+// brought back. Just crash and let the Agent start fresh.
+//
+// Restoring the config _shouldn't_ fail here since applies only fail
+// if the config is invalid. Since the config was running before, it
+// should already be valid. If it does happen to fail, though, the
+// internal state is left corrupted since we've completely lost a
+// config.
 func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
-	// If restoring a config fails, we've left the Agent in a really bad
-	// state: the new config can't be applied and the old config can't be
-	// brought back. Just crash and let the Agent start fresh.
-	//
-	// Restoring the config _shouldn't_ fail here since applies only fail
-	// if the config is invalid. Since the config was running before, it
-	// should already be valid. If it does happen to fail, though, the
-	// internal state is left corrupted since we've completely lost a
-	// config.
 	if err := m.applyConfigs(oldConfigs, true); err != nil {
 		level.Error(m.log).Log("err", fmt.Sprintf("failed to rollback configs with error %s", err))
 		panic(err)
@@ -188,7 +187,7 @@ func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
 
 func (m *GroupManager) getCombinedConfigs(newConfigs []Config) map[string]Config {
 	// There is also a known issue in that this DOES not handle deleted configs
-	combinedConfigsMap := make(map[string]Config)
+	combinedConfigsMap := make(map[string]Config, len(m.activeConfigs))
 
 	// Preload all our existing configs
 	for _, ac := range m.activeConfigs {
