@@ -56,7 +56,7 @@ type processor struct {
 	serviceGraphRequestServerHistogram *prometheus.HistogramVec
 	serviceGraphRequestClientHistogram *prometheus.HistogramVec
 	serviceGraphUnpairedSpansTotal     *prometheus.CounterVec
-	serviceGraphUntaggedSpansTotal     *prometheus.CounterVec
+	serviceGraphDroppedSpansTotal      *prometheus.CounterVec
 
 	httpSuccessCode map[int]struct{}
 	grpcSuccessCode map[int]struct{}
@@ -130,12 +130,12 @@ func (p *processor) registerMetrics() error {
 	}, []string{"client", "server"})
 	p.serviceGraphUnpairedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "tempo_service_graph_unpaired_spans_total",
-		Help: "Total count of requests between two nodes",
+		Help: "Total count of unpaired spans",
 	}, []string{"client", "server"})
-	p.serviceGraphUntaggedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "tempo_service_graph_untagged_spans_total",
-		Help: "Total count of spans processed that were not tagged with span.kind",
-	}, []string{"span_kind"})
+	p.serviceGraphDroppedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "tempo_service_graph_dropped_spans_total",
+		Help: "Total count of dropped spans",
+	}, []string{"service"})
 
 	cs := []prometheus.Collector{
 		p.serviceGraphRequestTotal,
@@ -143,7 +143,7 @@ func (p *processor) registerMetrics() error {
 		p.serviceGraphRequestServerHistogram,
 		p.serviceGraphRequestClientHistogram,
 		p.serviceGraphUnpairedSpansTotal,
-		p.serviceGraphUntaggedSpansTotal,
+		p.serviceGraphDroppedSpansTotal,
 	}
 
 	for _, c := range cs {
@@ -177,7 +177,6 @@ func (p *processor) unregisterMetrics() {
 		p.serviceGraphRequestServerHistogram,
 		p.serviceGraphRequestClientHistogram,
 		p.serviceGraphUnpairedSpansTotal,
-		p.serviceGraphUntaggedSpansTotal,
 	}
 
 	for _, c := range cs {
@@ -196,7 +195,7 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	for _, trace := range batchpersignal.SplitTraces(td) {
 		if err := p.consume(trace); err != nil {
 			if errors.Is(err, errTooManyItems) {
-				level.Warn(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
+				level.Info(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
 				break
 			}
 			errs = multierror.Append(errs, err)
@@ -241,7 +240,11 @@ func (p *processor) consume(trace pdata.Traces) error {
 			ils := ilsSlice.At(j)
 
 			for k := 0; k < ils.Spans().Len(); k++ {
+
 				if p.store.ItemCount() >= p.maxItems {
+					remainingSpans := float64(ils.Spans().Len() - k)
+					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(remainingSpans)
+
 					return errTooManyItems
 				}
 
@@ -274,7 +277,6 @@ func (p *processor) consume(trace pdata.Traces) error {
 					p.store.SetDefault(k, r)
 
 				default:
-					p.serviceGraphUntaggedSpansTotal.WithLabelValues(span.Kind().String()).Inc()
 				}
 			}
 		}

@@ -44,14 +44,11 @@ func TestConsumeMetrics(t *testing.T) {
 				Wait: time.Millisecond,
 			},
 			expectedMetrics: `
-				# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes
+				# HELP tempo_service_graph_unpaired_spans_total Total count of unpaired spans
 				# TYPE tempo_service_graph_unpaired_spans_total counter
 				tempo_service_graph_unpaired_spans_total{client="",server="db"} 2
 				tempo_service_graph_unpaired_spans_total{client="app",server=""} 3
 				tempo_service_graph_unpaired_spans_total{client="lb",server=""} 3
-        	    # HELP tempo_service_graph_untagged_spans_total Total count of spans processed that were not tagged with span.kind
-        	    # TYPE tempo_service_graph_untagged_spans_total counter
-        	    tempo_service_graph_untagged_spans_total{span_kind="SPAN_KIND_UNSPECIFIED"} 5
 `,
 		},
 		{
@@ -62,12 +59,12 @@ func TestConsumeMetrics(t *testing.T) {
 				MaxItems: 1, // Configure max number of items in store to 1. Only one edgeRequest will be processed.
 			},
 			expectedMetrics: `
-				# HELP tempo_service_graph_unpaired_spans_total Total count of requests between two nodes
+        	    # HELP tempo_service_graph_dropped_spans_total Total count of dropped spans
+        	    # TYPE tempo_service_graph_dropped_spans_total counter
+        	    tempo_service_graph_dropped_spans_total{service="lb"} 1
+				# HELP tempo_service_graph_unpaired_spans_total Total count of unpaired spans
 				# TYPE tempo_service_graph_unpaired_spans_total counter
 				tempo_service_graph_unpaired_spans_total{client="lb",server=""} 1
-				# HELP tempo_service_graph_untagged_spans_total Total count of spans processed that were not tagged with span.kind
-				# TYPE tempo_service_graph_untagged_spans_total counter
-				tempo_service_graph_untagged_spans_total{span_kind="SPAN_KIND_UNSPECIFIED"} 1
 `,
 		},
 	} {
@@ -191,8 +188,5 @@ const (
 		# TYPE tempo_service_graph_request_total counter
 		tempo_service_graph_request_total{client="app",server="db"} 3
 		tempo_service_graph_request_total{client="lb",server="app"} 3
-		# HELP tempo_service_graph_untagged_spans_total Total count of spans processed that were not tagged with span.kind
-		# TYPE tempo_service_graph_untagged_spans_total counter
-		tempo_service_graph_untagged_spans_total{span_kind="SPAN_KIND_UNSPECIFIED"} 5
 `
 )
