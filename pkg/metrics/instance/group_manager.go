@@ -117,10 +117,6 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 			m.rollbackConfigs(oldConfigs)
 			return &BatchApplyError{Failed: failedConfigs}
 		}
-		if err != nil {
-			level.Error(m.log).Log("err", fmt.Sprintf("failed to group configs with groupname  %s with error %s", groupName, err))
-			continue
-		}
 		newHash, err := createMergedConfigHash(mergedConfig)
 
 		// Something terrible happened so roll back to the old configurations, this ensures that at least the agent
@@ -128,7 +124,6 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 		if err != nil && isRollback {
 			return err
 		} else if err != nil {
-
 			m.rollbackConfigs(oldConfigs)
 			return &BatchApplyError{Failed: failedConfigs}
 		}
