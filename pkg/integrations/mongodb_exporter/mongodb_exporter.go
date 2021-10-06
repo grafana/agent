@@ -1,23 +1,13 @@
 package mongodb_exporter //nolint:golint
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/percona/mongodb_exporter/exporter"
-	"go.mongodb.org/mongo-driver/mongo"
 )
-
-// Exporter holds Exporter methods and attributes.
-type Exporter struct {
-	client *mongo.Client
-	//  topologyInfo exporter.LabelsGetter
-	context context.Context
-	config  Config
-}
 
 // Config controls mongodb_exporter
 type Config struct {
