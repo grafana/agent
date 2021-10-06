@@ -29,6 +29,8 @@ for specific instructions.
 - [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
   the $HOSTNAME variable in agent config.  (@dfrankel33)
 
+- [ENHANCEMENT] Add remote write to silent Windows Installer  (@mattdurham)
+
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`. (@rfratto)
 
