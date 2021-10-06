@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 )
@@ -17,8 +18,8 @@ func buildMockClient() (Client, error) {
 	return mockClient{}, nil
 }
 
-func (m mockClient) List(ctx context.Context, prefix string) ([]string, error) {
-	return []string{}, nil
+func (m mockClient) List(ctx context.Context, prefix string) ([]pair.KVP, error) {
+	return []pair.KVP{}, nil
 }
 
 func (m mockClient) Get(ctx context.Context, key string) (interface{}, error) {

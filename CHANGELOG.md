@@ -59,7 +59,8 @@ for specific instructions.
 - [BUGFIX] Reloading the scraping service kvstore config for loading instance
   configs will no longer use the clustering config instead. (@rfratto)
 
-- [BUGFIX] Batch applying of configurations when running as scraping service for performance. (@mattdurham)
+- [BUGFIX] Scraping service: deleted configs will now properly immediately fire
+  off a change event for nodes to respond to. (@rfratto)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
@@ -73,6 +74,12 @@ for specific instructions.
 
 - [CHANGE] Breaking change: `prom_instance` in the spanmetrics config is now
   named `metrics_instance`. (@rfratto)
+
+- [CHANGE] Scraping service: metrics for the config store have been changed to
+  `agent_kv_request_duration_seconds`. The temporary
+  `agent_configstore_consul_request_duration_seconds` metric has been removed
+  and will roll up into `agent_kv_request_duration_seconds` now with the
+  appropriate List operation.
 
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`

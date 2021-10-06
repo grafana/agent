@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log/level"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 	"github.com/pkg/errors"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/pkg/transport"
@@ -227,15 +228,19 @@ outer:
 			backoff.Reset()
 
 			for _, event := range resp.Events {
-				if event.Kv.Version == 0 && event.Kv.Value == nil {
-					// Delete notification. Since not all KV store clients (and Cortex codecs) support this, we ignore it.
-					continue
-				}
+				var (
+					out interface{}
+					err error
+				)
 
-				out, err := c.codec.Decode(event.Kv.Value)
-				if err != nil {
-					level.Error(util_log.Logger).Log("msg", "error decoding key", "key", key, "err", err)
-					continue
+				// Version == 0 && Value == nil indicates a deletion. We only want to
+				// decode when the key was not deleted.
+				if event.Kv.Version != 0 || event.Kv.Value != nil {
+					out, err = c.codec.Decode(event.Kv.Value)
+					if err != nil {
+						level.Error(util_log.Logger).Log("msg", "error decoding key", "key", key, "err", err)
+						continue
+					}
 				}
 
 				if !f(string(event.Kv.Key), out) {
@@ -247,16 +252,26 @@ outer:
 }
 
 // List implements kv.Client.
-func (c *Client) List(ctx context.Context, prefix string) ([]string, error) {
-	resp, err := c.cli.Get(ctx, prefix, clientv3.WithPrefix(), clientv3.WithKeysOnly())
+func (c *Client) List(ctx context.Context, prefix string) ([]pair.KVP, error) {
+	resp, err := c.cli.Get(ctx, prefix, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
-	keys := make([]string, 0, len(resp.Kvs))
+
+	res := make([]pair.KVP, 0, len(resp.Kvs))
 	for _, kv := range resp.Kvs {
-		keys = append(keys, string(kv.Key))
+		out, err := c.codec.Decode(kv.Value)
+		if err != nil {
+			level.Error(util_log.Logger).Log("msg", "error decoding key", "key", string(kv.Key), "err", err)
+			continue
+		}
+
+		res = append(res, pair.KVP{
+			Key:   string(kv.Key),
+			Value: out,
+		})
 	}
-	return keys, nil
+	return res, nil
 }
 
 // Get implements kv.Client.

@@ -11,6 +11,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring/kv/codec"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/consul"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/etcd"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 )
 
 const (
@@ -89,7 +90,7 @@ func (cfg *Config) RegisterFlagsWithPrefix(flagsPrefix, defaultPrefix string, f 
 type Client interface {
 	// List returns a list of keys under the given prefix. Returned keys will
 	// include the prefix.
-	List(ctx context.Context, prefix string) ([]string, error)
+	List(ctx context.Context, prefix string) ([]pair.KVP, error)
 
 	// Get a specific key.  Will use a codec to deserialise key to appropriate type.
 	// If the key does not exist, Get will return nil and no error.

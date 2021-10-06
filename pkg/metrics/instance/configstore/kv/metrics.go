@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/weaveworks/common/httpgrpc"
@@ -61,8 +62,8 @@ func newMetricsClient(backend string, c Client, reg prometheus.Registerer) Clien
 	}
 }
 
-func (m metrics) List(ctx context.Context, prefix string) ([]string, error) {
-	var result []string
+func (m metrics) List(ctx context.Context, prefix string) ([]pair.KVP, error) {
+	var result []pair.KVP
 	err := instrument.CollectedRequest(ctx, "List", m.requestDuration, instrument.ErrorCode, func(ctx context.Context) error {
 		var err error
 		result, err = m.c.List(ctx, prefix)

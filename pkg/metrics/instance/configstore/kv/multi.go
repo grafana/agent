@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 
@@ -285,7 +286,7 @@ func (m *MultiClient) runWithPrimaryClient(origCtx context.Context, fn func(newC
 }
 
 // List is a part of the kv.Client interface.
-func (m *MultiClient) List(ctx context.Context, prefix string) ([]string, error) {
+func (m *MultiClient) List(ctx context.Context, prefix string) ([]pair.KVP, error) {
 	_, kv := m.getPrimaryClient()
 	return kv.client.List(ctx, prefix)
 }

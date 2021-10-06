@@ -15,6 +15,7 @@ import (
 	"github.com/cortexproject/cortex/pkg/ring/kv/codec"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/consul"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/etcd"
+	"github.com/grafana/agent/pkg/metrics/instance/configstore/kv/pair"
 )
 
 func withFixtures(t *testing.T, f func(*testing.T, Client)) {
@@ -27,6 +28,14 @@ func withFixtures(t *testing.T, f func(*testing.T, Client)) {
 		}},
 		{"etcd", func() (Client, io.Closer, error) {
 			return etcd.Mock(codec.String{})
+		}},
+		{"prefixed/etcd", func() (cli Client, closer io.Closer, err error) {
+			cli, closer, err = etcd.Mock(codec.String{})
+			if err != nil {
+				return
+			}
+			cli = PrefixClient(cli, "prefix/")
+			return
 		}},
 	} {
 		t.Run(fixture.name, func(t *testing.T) {
@@ -94,7 +103,7 @@ func TestNilCAS(t *testing.T) {
 func TestWatchKey(t *testing.T) {
 	const key = "test"
 	const max = 100
-	const sleep = 15 * time.Millisecond
+	const sleep = 50 * time.Millisecond
 	const totalTestTimeout = 3 * max * sleep
 	const expectedFactor = 0.75 // we may not see every single value
 
@@ -255,22 +264,63 @@ func TestWatchPrefix(t *testing.T) {
 	})
 }
 
+func TestWatchPrefix_Deletes(t *testing.T) {
+	withFixtures(t, func(t *testing.T, client Client) {
+		observedKVPs := make(chan pair.KVP, 1)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		// Watch for keys in the background. As soon as a key comes through, delete
+		// it. The next invoke should be from the deleted key.
+		go client.WatchPrefix(ctx, "", func(key string, val interface{}) bool {
+			if val != nil {
+				err := client.Delete(ctx, key)
+				require.NoError(t, err)
+				return true
+			}
+
+			observedKVPs <- pair.KVP{Key: key, Value: val}
+			return false
+		})
+
+		// Wait before generating a key to be deleted.
+		time.Sleep(250 * time.Millisecond)
+		err := client.CAS(ctx, "key", func(in interface{}) (out interface{}, retry bool, err error) {
+			return "value", false, nil
+		})
+		require.NoError(t, err)
+
+		select {
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "test timed out waiting for delete event")
+		case kvp := <-observedKVPs:
+			require.Equal(t, "key", kvp.Key)
+			require.Nil(t, kvp.Value, "value must be nil to indicate deleteion")
+		}
+	})
+}
+
 // TestList makes sure stored keys are listed back.
 func TestList(t *testing.T) {
-	keysToCreate := []string{"a", "b", "c"}
+	kvpsToCreate := []pair.KVP{
+		{Key: "a", Value: "value_a"},
+		{Key: "b", Value: "value_b"},
+		{Key: "c", Value: "value_c"},
+	}
 
 	withFixtures(t, func(t *testing.T, client Client) {
-		for _, key := range keysToCreate {
-			err := client.CAS(context.Background(), key, func(in interface{}) (out interface{}, retry bool, err error) {
-				return key, false, nil
+		for _, kvp := range kvpsToCreate {
+			err := client.CAS(context.Background(), kvp.Key, func(in interface{}) (out interface{}, retry bool, err error) {
+				return kvp.Value, false, nil
 			})
 			require.NoError(t, err)
 		}
 
-		storedKeys, err := client.List(context.Background(), "")
+		storedKVPs, err := client.List(context.Background(), "")
 		require.NoError(t, err)
-		sort.Strings(storedKeys)
+		sort.Slice(storedKVPs, func(i, j int) bool { return storedKVPs[i].Key < storedKVPs[j].Key })
 
-		require.Equal(t, keysToCreate, storedKeys)
+		require.Equal(t, kvpsToCreate, storedKVPs)
 	})
 }

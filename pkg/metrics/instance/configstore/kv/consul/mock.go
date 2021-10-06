@@ -181,8 +181,7 @@ func (m *mockKV) List(prefix string, q *consul.QueryOptions) (consul.KVPairs, *c
 
 	result := consul.KVPairs{}
 	for _, kvp := range m.kvps {
-		if strings.HasPrefix(kvp.Key, prefix) && kvp.ModifyIndex >= q.WaitIndex {
-			// unfortunately real consul doesn't do index check and returns everything with given prefix.
+		if strings.HasPrefix(kvp.Key, prefix) {
 			result = append(result, copyKVPair(kvp))
 		}
 	}
@@ -192,7 +191,12 @@ func (m *mockKV) List(prefix string, q *consul.QueryOptions) (consul.KVPairs, *c
 func (m *mockKV) Delete(key string, q *consul.WriteOptions) (*consul.WriteMeta, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
+
+	// Deletes increment the ModifyIndex
 	delete(m.kvps, key)
+	m.current++
+	m.cond.Broadcast()
+
 	return nil, nil
 }
 
