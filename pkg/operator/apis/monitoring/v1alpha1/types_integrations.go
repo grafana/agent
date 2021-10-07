@@ -107,9 +107,9 @@ type IntegrationMonitor struct {
 type IntegrationMonitorSpec struct {
 	// PodTargetLabels transfers labels on the Kubernetes Pod onto the target.
 	PodTargetLabels []string `json:"podTargetLabels,omitempty"`
-	// Selector to select Endpoints objects.
+	// Selector to select IntegrationInstance objects.
 	Selector metav1.LabelSelector `json:"selector"`
-	// Selector to select which namespaces the Endpoints objects are discovered from.
+	// Selector to select which namespaces the IntegrationInstance objects are discovered from.
 	NamespaceSelector prom_v1.NamespaceSelector `json:"namespaceSelector,omitempty"`
 	// SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
 	SampleLimit uint64 `json:"sampleLimit,omitempty"`
