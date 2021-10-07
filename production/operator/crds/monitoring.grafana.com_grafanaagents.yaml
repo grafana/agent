@@ -3980,7 +3980,7 @@ spec:
                     type: string
                   overrideHonorLabels:
                     description: OverrideHonorLabels, if true, overrides all configured
-                      honor_labels read from nerviceMonitor or PodMonitor to false.
+                      honor_labels read from ServiceMonitor or PodMonitor to false.
                     type: boolean
                   overrideHonorTimestamps:
                     description: OverrideHonorTimestamps allows to globally enforce

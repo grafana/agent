@@ -44,7 +44,7 @@ type MetricsSubsystemSpec struct {
 	// Grafana Agent container e.g. bearer token files.
 	ArbitraryFSAccessThroughSMs prom_v1.ArbitraryFSAccessThroughSMsConfig `json:"arbitraryFSAccessThroughSMs,omitempty"`
 	// OverrideHonorLabels, if true, overrides all configured honor_labels read
-	// from nerviceMonitor or PodMonitor to false.
+	// from ServiceMonitor or PodMonitor to false.
 	OverrideHonorLabels bool `json:"overrideHonorLabels,omitempty"`
 	// OverrideHonorTimestamps allows to globally enforce honoring timestamps in all scrape configs.
 	OverrideHonorTimestamps bool `json:"overrideHonorTimestamps,omitempty"`
