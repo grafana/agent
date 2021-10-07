@@ -44,7 +44,7 @@ type MetricsSubsystemSpec struct {
 	// Grafana Agent container e.g. bearer token files.
 	ArbitraryFSAccessThroughSMs prom_v1.ArbitraryFSAccessThroughSMsConfig `json:"arbitraryFSAccessThroughSMs,omitempty"`
 	// OverrideHonorLabels, if true, overrides all configured honor_labels read
-	// from ServiceMonitor or PodMonitor to false.
+	// from nerviceMonitor or PodMonitor to false.
 	OverrideHonorLabels bool `json:"overrideHonorLabels,omitempty"`
 	// OverrideHonorTimestamps allows to globally enforce honoring timestamps in all scrape configs.
 	OverrideHonorTimestamps bool `json:"overrideHonorTimestamps,omitempty"`
@@ -206,6 +206,15 @@ func (p *MetricsInstance) ProbeSelector() ObjectSelector {
 	}
 }
 
+// IntegrationMonitorSelector returns a selector to find IntegrationMonitors.
+func (p *MetricsInstance) IntegrationMonitorSelector() ObjectSelector {
+	return ObjectSelector{
+		ParentNamespace:   p.Namespace,
+		NamespaceSelector: p.Spec.IntegrationMonitorNamespaceSelector,
+		Labels:            p.Spec.IntegrationMonitorSelector,
+	}
+}
+
 // MetricsInstanceSpec controls how an individual instance will be used to discover PodMonitors.
 type MetricsInstanceSpec struct {
 	// WALTruncateFrequency specifies how frequently the WAL truncation process
@@ -244,6 +253,12 @@ type MetricsInstanceSpec struct {
 	// ProbeNamespaceSelector are the set of labels to determine which namespaces
 	// to watch for Probe discovery. If nil, only checks own namespace.
 	ProbeNamespaceSelector *metav1.LabelSelector `json:"probeNamespaceSelector,omitempty"`
+	// IntegrationMonitorSelector determines which IntegrationMonitors should be selected for target
+	// discovery.
+	IntegrationMonitorSelector *metav1.LabelSelector `json:"integrationMonitorSelector,omitempty"`
+	// IntegrationMonitorNamespaceSelector are the set of labels to determine which namespaces
+	// to watch for IntegrationMonitor discovery. If nil, only checks own namespace.
+	IntegrationMonitorNamespaceSelector *metav1.LabelSelector `json:"integrationMonitorNamespaceSelector,omitempty"`
 	// RemoteWrite controls remote_write settings for this instance.
 	RemoteWrite []RemoteWriteSpec `json:"remoteWrite,omitempty"`
 	// AdditionalScrapeConfigs allows specifying a key of a Secret containing

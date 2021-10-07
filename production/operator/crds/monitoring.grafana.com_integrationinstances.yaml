@@ -6,23 +6,24 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: agentintegrations.monitoring.grafana.com
+  name: integrationinstances.monitoring.grafana.com
 spec:
   group: monitoring.grafana.com
   names:
     categories:
     - agent-operator
-    kind: AgentIntegration
-    listKind: AgentIntegrationList
-    plural: agentintegrations
-    singular: agentintegration
+    kind: IntegrationInstance
+    listKind: IntegrationInstanceList
+    plural: integrationinstances
+    singular: integrationinstance
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: AgentIntegration defines an integration for the Grafana Agent.
-          The integration will have a single pod for the whole cluster.
+        description: IntegrationInstance defines an integration for the Grafana Agent.
+          The integration, when discovered by a GrafanaAgent, will be run as one or
+          more pods on the cluster.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
