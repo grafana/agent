@@ -17,6 +17,8 @@
 
 - [ENHANCEMENT] Updated elasticsearch_exporter to v1.2.1 (@gaantunes)
 
+- [ENHANCEMENT] Add remote write to silent Windows Installer  (@mattdurham)
+
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
 # v0.19.0 (2021-09-29)
