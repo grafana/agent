@@ -1,4 +1,3 @@
-//go:build !windows
 // +build !windows
 
 package windows_exporter //nolint:golint
