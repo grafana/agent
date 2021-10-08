@@ -56,7 +56,7 @@ func init() {
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics
 // from a dnsmasq server.
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	exporter := collector.New(&dns.Client{
+	exporter := collector.New(log, &dns.Client{
 		SingleInflight: true,
 	}, c.DnsmasqAddress, c.LeasesPath)
 
