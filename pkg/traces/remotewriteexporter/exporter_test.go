@@ -54,7 +54,7 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	// Verify _sum
 	sum := manager.instance.GetAppended(sumMetric)
 	require.Equal(t, len(sum), 1)
-	require.Equal(t, sum[0].v, float64(sumValue))
+	require.Equal(t, sum[0].v, sumValue)
 	require.Equal(t, sum[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + sumSuffix}})
 
 	// Check _count

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/model/semconv/v1.6.1"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
 )
 
 func TestSyncGroups(t *testing.T) {

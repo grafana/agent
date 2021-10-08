@@ -20,7 +20,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/model/semconv/v1.6.1"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
 )
 
 type promServiceDiscoProcessor struct {

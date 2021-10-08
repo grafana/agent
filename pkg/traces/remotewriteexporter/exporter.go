@@ -126,16 +126,13 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 
 func (e *remoteWriteExporter) processHistogramMetrics(app storage.Appender, m pdata.Metric) error {
 	dps := m.Histogram().DataPoints()
-	if err := e.handleHistogramIntDataPoints(app, m.Name(), dps); err != nil {
-		return nil
-	}
-	return nil
+	return e.handleHistogramIntDataPoints(app, m.Name(), dps)
 }
 
 func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender, name string, dataPoints pdata.HistogramDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
-		if err := e.appendDataPoint(app, name, sumSuffix, dataPoint, float64(dataPoint.Sum())); err != nil {
+		if err := e.appendDataPoint(app, name, sumSuffix, dataPoint, dataPoint.Sum()); err != nil {
 			return err
 		}
 		if err := e.appendDataPoint(app, name, countSuffix, dataPoint, float64(dataPoint.Count())); err != nil {
