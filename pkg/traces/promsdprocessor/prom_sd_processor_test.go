@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	"go.opentelemetry.io/collector/model/semconv/v1.6.1"
 )
 
 func TestSyncGroups(t *testing.T) {
@@ -188,7 +188,7 @@ func TestOperationType(t *testing.T) {
 			if tc.attributeExists {
 				attrMap.Insert(attrKey, attrValue)
 			}
-			attrMap.Insert(conventions.AttributeNetHostIP, ipAttrValue)
+			attrMap.Insert(semconv.AttributeNetHostIP, ipAttrValue)
 
 			hostLabels := map[string]model.LabelSet{
 				attrIP: {

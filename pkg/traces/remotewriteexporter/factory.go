@@ -3,10 +3,10 @@ package remotewriteexporter
 import (
 	"context"
 
-	"github.com/prometheus/prometheus/pkg/labels"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 const (
@@ -14,13 +14,15 @@ const (
 	TypeStr = "remote_write"
 )
 
+var _ config.Exporter = (*Config)(nil)
+
 // Config holds the configuration for the Prometheus SD processor.
 type Config struct {
-	config.ProcessorSettings `mapstructure:",squash"`
+	config.ExporterSettings `mapstructure:",squash"`
 
 	ConstLabels  labels.Labels `mapstructure:"const_labels"`
-	Namespace    string        `mapstructure:"namespace"`
-	PromInstance string        `mapstructure:"metrics_instance"`
+	Namespace    string      `mapstructure:"namespace"`
+	PromInstance string      `mapstructure:"metrics_instance"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
@@ -34,7 +36,7 @@ func NewFactory() component.ExporterFactory {
 
 func createDefaultConfig() config.Exporter {
 	return &Config{
-		ProcessorSettings: config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr)),
+		ExporterSettings: config.NewExporterSettings(config.NewIDWithName(TypeStr, TypeStr)),
 	}
 }
 

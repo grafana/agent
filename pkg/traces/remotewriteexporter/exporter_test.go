@@ -23,11 +23,11 @@ const (
 
 func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	var (
-		countValue     uint64 = 20
-		sumValue       int64  = 100
-		bucketCounts          = []uint64{1, 2, 3, 4, 5, 6}
-		explicitBounds        = []float64{1, 2.5, 5, 7.5, 10}
-		ts                    = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
+		countValue     uint64  = 20
+		sumValue       float64 = 100
+		bucketCounts           = []uint64{1, 2, 3, 4, 5, 6}
+		explicitBounds         = []float64{1, 2.5, 5, 7.5, 10}
+		ts                     = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
 	)
 
 	manager := &mockManager{}
@@ -40,9 +40,9 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	app := instance.Appender(context.TODO())
 
 	// Build data point
-	dps := pdata.NewIntHistogramDataPointSlice()
+	dps := pdata.NewHistogramDataPointSlice()
 	dp := dps.AppendEmpty()
-	dp.SetTimestamp(pdata.TimestampFromTime(ts.UTC()))
+	dp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
 	dp.SetBucketCounts(bucketCounts)
 	dp.SetExplicitBounds(explicitBounds)
 	dp.SetCount(countValue)
