@@ -14,7 +14,7 @@ const (
 )
 
 type label struct {
-	Name string `mapstructure:"name"`
+	Name  string `mapstructure:"name"`
 	Value string `mapstructure:"name"`
 }
 
@@ -25,8 +25,8 @@ type Config struct {
 	config.ExporterSettings `mapstructure:",squash"`
 
 	ConstLabels  []label `mapstructure:"const_labels"`
-	Namespace    string        `mapstructure:"namespace"`
-	PromInstance string        `mapstructure:"metrics_instance"`
+	Namespace    string  `mapstructure:"namespace"`
+	PromInstance string  `mapstructure:"metrics_instance"`
 }
 
 // NewFactory returns a new factory for the Attributes processor.
