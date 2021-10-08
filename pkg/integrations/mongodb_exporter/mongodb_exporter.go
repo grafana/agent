@@ -52,6 +52,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		URI:                    c.URI,
 		Logger:                 logrusLogger,
 		DisableDefaultRegistry: true,
+		CompatibleMode: true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create mongodb_exporter: %w", err)
