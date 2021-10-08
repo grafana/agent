@@ -6,7 +6,7 @@ server:
 
 prometheus:
   global:
-    scrape_interval: 15s
+    scrape_interval: 1m
   wal_directory: '/var/lib/grafana-agent'
   configs:
     # Example Prometheus scrape configuration to scrape the agent itself for metrics.

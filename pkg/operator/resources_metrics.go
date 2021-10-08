@@ -22,7 +22,7 @@ const (
 var (
 	minShards                   int32 = 1
 	minReplicas                 int32 = 1
-	managedByOperatorLabel            = "managed-by"
+	managedByOperatorLabel            = "app.kubernetes.io/managed-by"
 	managedByOperatorLabelValue       = "grafana-agent-operator"
 	managedByOperatorLabels           = map[string]string{
 		managedByOperatorLabel: managedByOperatorLabelValue,

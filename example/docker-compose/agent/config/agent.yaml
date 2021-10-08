@@ -4,7 +4,7 @@ server:
 
 prometheus:
   global:
-    scrape_interval: 30s
+    scrape_interval: 1m
   configs:
     - name: test
       host_filter: false
@@ -72,7 +72,7 @@ loki:
             job: varlogs
             __path__: /var/log/*log
 
-tempo:
+traces:
   configs:
   - name: default
     receivers:

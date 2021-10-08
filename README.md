@@ -52,29 +52,9 @@ means that reliability of alerts are tied to the reliability of the remote syste
 and alerts will be delayed at least by the time it takes for samples to reach
 the remote system.
 
-## Roadmap
-
-- [x] Prometheus metrics
-- [x] A second clustering mode to solve sharding monitoring availability problems.
-- [x] Support for integrations (embedded exporters/automatic scrape configs)
-- [x] Promtail for Loki logs
-- [x] Tempo traces
-- [ ] `carbon-relay-ng` for Graphite metrics.
-- [ ] All-in-one installation script (metrics, logs, and traces)
-
 ## Getting Started
 
-The easiest way to get started with the Grafana Agent is to use the
-Kubernetes install scripts. The first script installs an Agent for collecting
-metrics, the second for collecting logs, and the third for collecting traces.
-Simply copy and paste the following lines in your terminal (requires `envsubst`
-(GNU gettext)):
-
-```
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-loki.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
-```
+When using Kubernetes this [link](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s) offers the best guide. 
 
 Other installation methods can be found in our
 [Production](./production/README.md) documentation.
@@ -115,4 +95,8 @@ If you have any questions or feedback regarding the Grafana Agent:
   [Discussions page](https://github.com/grafana/agent/discussions).
 * [File an issue](https://github.com/grafana/agent/issues/new) for bugs, issues
   and feature suggestions.
+  
+## Contributing
+
+Any contributions are welcome and details can be found [in our developers guide](./cmd/agent/DEVELOPERS.md).
 
