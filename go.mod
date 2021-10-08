@@ -3,11 +3,11 @@ module github.com/grafana/agent
 go 1.16
 
 require (
-	cloud.google.com/go v0.87.0 // indirect
+	cloud.google.com/go/kms v1.0.0 // indirect
 	cloud.google.com/go/pubsub v1.5.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Microsoft/hcsshim v0.8.16 // indirect
-	github.com/Shopify/sarama v1.29.1
+	github.com/Shopify/sarama v1.30.0
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/drone/envsubst v1.0.2
@@ -24,7 +24,7 @@ require (
 	github.com/google/go-jsonnet v0.17.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
-	github.com/hashicorp/consul/api v1.8.1
+	github.com/hashicorp/consul/api v1.10.1
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -51,7 +51,6 @@ require (
 	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/percona/mongodb_exporter v0.0.0-00010101000000-000000000000
-	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/elasticsearch_exporter v1.2.1
 	github.com/prometheus-community/postgres_exporter v0.10.0
@@ -59,7 +58,7 @@ require (
 	github.com/prometheus-operator/prometheus-operator v0.47.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
 	github.com/prometheus/client_golang v1.11.0
-	github.com/prometheus/common v0.30.0
+	github.com/prometheus/common v0.31.1
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.9.0
 	github.com/prometheus/mysqld_exporter v0.13.0
@@ -80,8 +79,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.0.0-RC3
 	go.uber.org/atomic v1.9.0
 	go.uber.org/zap v1.19.1
-	golang.org/x/sys v0.0.0-20210816074244-15123e1e1f71
-	google.golang.org/grpc v1.40.0
+	golang.org/x/sys v0.0.0-20210908233432-aa78b53d3365
+	google.golang.org/grpc v1.41.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
@@ -148,3 +147,8 @@ replace (
 	github.com/prometheus/common => github.com/prometheus/common v0.23.0
 	github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 )
+
+// Jaeger v1.16.0 can't be run with go@1.16 (https://github.com/jaegertracing/jaeger/issues/3268)
+// Problem was fixed in https://github.com/jaegertracing/jaeger/issues/3268
+// Replace can't be removed when all dependencies update to >=v1.27
+replace github.com/jaegertracing/jaeger => github.com/jaegertracing/jaeger v1.27.0
