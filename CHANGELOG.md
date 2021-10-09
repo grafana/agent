@@ -25,6 +25,8 @@
 
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
+- [BUGFIX] Traces: remove extra line feed/spaces/tabs when reading password_file content (@nicoche)
+
 # v0.19.0 (2021-09-29)
 
 This release has breaking changes. Please read [CHANGE] entries carefully and
