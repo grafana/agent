@@ -20,7 +20,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
 )
 
 type promServiceDiscoProcessor struct {
@@ -95,8 +95,8 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) {
 	// find the ip
 	ipTagNames := []string{
-		"ip",                           // jaeger/opentracing? default
-		conventions.AttributeNetHostIP, // otel semantics for host ip
+		"ip",                       // jaeger/opentracing? default
+		semconv.AttributeNetHostIP, // otel semantics for host ip
 	}
 
 	var ip string
