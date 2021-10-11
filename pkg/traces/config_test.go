@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configloader"
 	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"gopkg.in/yaml.v2"
 )
 
@@ -115,7 +115,8 @@ exporters:
   otlp:
     endpoint: example.com:12345
     compression: gzip
-    insecure: true
+    tls:
+      insecure: true
     headers:
       authorization: Basic dGVzdDpibGVyZw==
     retry_on_failure:
@@ -204,7 +205,8 @@ exporters:
   otlp:
     endpoint: example.com:12345
     compression: gzip
-    insecure: true
+    tls:
+      insecure: true
     headers:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
     retry_on_failure:
@@ -236,7 +238,8 @@ exporters:
   otlp:
     endpoint: example.com:12345
     compression: gzip
-    insecure_skip_verify: true
+    tls:
+      insecure_skip_verify: true
     retry_on_failure:
       max_elapsed_time: 60s
 service:
@@ -266,7 +269,8 @@ receivers:
 exporters:
   otlp:
     endpoint: example.com:12345
-    insecure_skip_verify: true
+    tls:
+      insecure_skip_verify: true
     retry_on_failure:
       max_elapsed_time: 60s
 service:
@@ -379,8 +383,9 @@ exporters:
       max_elapsed_time: 60s
   otlp/1:
     endpoint: anotherexample.com:12345
-    insecure: false
-    insecure_skip_verify: true
+    tls:
+      insecure: false
+      insecure_skip_verify: true
     headers:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
     retry_on_failure:
@@ -551,11 +556,25 @@ remote_write:
 tail_sampling:
   policies:
     - always_sample:
+    - latency:
+        threshold_ms: 5000
+    - numeric_attribute:
+        key: key1
+        min_value: 50
+        max_value: 100
+    - probabilistic:
+        sampling_percentage: 10
+    - status_code:
+        status_codes:
+          - ERROR
+          - UNSET
     - string_attribute:
         key: key
         values:
           - value1
           - value2
+    - rate_limiting:
+        spans_per_second: 35
 `,
 			expectedConfig: `
 receivers:
@@ -574,13 +593,37 @@ processors:
     policies:
       - name: always_sample/0
         type: always_sample
-      - name: string_attribute/1
+      - name: latency/1
+        type: latency
+        latency:
+          threshold_ms: 5000
+      - name: numeric_attribute/2
+        type: numeric_attribute
+        numeric_attribute:
+          key: key1
+          min_value: 50
+          max_value: 100
+      - name: probabilistic/3
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+      - name: status_code/4
+        type: status_code
+        status_code:
+          status_codes:
+            - ERROR
+            - UNSET
+      - name: string_attribute/5
         type: string_attribute
         string_attribute:
           key: key
           values:
             - value1
             - value2
+      - name: rate_limiting/6
+        type: rate_limiting
+        rate_limiting:
+          spans_per_second: 35
 service:
   pipelines:
     traces:
@@ -633,7 +676,8 @@ exporters:
   loadbalancing:
     protocol:
       otlp:
-        insecure: true
+        tls:
+          insecure: true
         endpoint: noop
         retry_on_failure:
           max_elapsed_time: 60s
@@ -724,10 +768,11 @@ receivers:
 exporters:
   otlp/0:
     endpoint: example.com:12345
-    insecure: false
-    ca_file: server.crt
-    cert_file: client.crt
-    key_file: client.key
+    tls:
+      insecure: false
+      ca_file: server.crt
+      cert_file: client.crt
+      key_file: client.key
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
@@ -838,8 +883,9 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			p := configparser.NewParserFromStringMap(otelMapStructure)
-			expectedConfig, err := configloader.Load(p, factories)
+			configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
+			cfgUnmarshaler := configunmarshaler.NewDefault()
+			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
 
 			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
@@ -960,7 +1006,8 @@ tail_sampling:
           - value2
 load_balancing:
   exporter:
-    insecure: true
+    tls:
+      insecure: true
   resolver:
     dns:
       hostname: agent
@@ -1009,7 +1056,8 @@ batch:
   send_batch_size: 100
 load_balancing:
   exporter:
-    insecure: true
+    tls:
+      insecure: true
   resolver:
     dns:
       hostname: agent

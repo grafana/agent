@@ -15,24 +15,25 @@ import (
 	"github.com/grafana/agent/pkg/traces/promsdprocessor"
 	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/common/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configloader"
+	"go.opentelemetry.io/collector/config/configcheck"
 	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
-	"go.opentelemetry.io/collector/exporter/prometheusexporter"
-	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
-	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
-	"go.opentelemetry.io/collector/receiver/kafkareceiver"
-	"go.opentelemetry.io/collector/receiver/opencensusreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
 )
 
 const (
@@ -48,12 +49,7 @@ const (
 	staticTagName = "static"
 
 	// sampling policies
-	alwaysSamplePolicy     = "always_sample"
-	stringAttributePolicy  = "string_attribute"
-	numericAttributePolicy = "numeric_attribute"
-	rateLimitingPolicy     = "rate_limiting"
-	latencyPolicy          = "latency"
-	statusCodePolicy       = "status_code"
+	alwaysSamplePolicy = "always_sample"
 )
 
 // Config controls the configuration of Traces trace pipelines.
@@ -281,23 +277,26 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 		"endpoint":         rwCfg.Endpoint,
 		"compression":      compression,
 		"headers":          headers,
-		"insecure":         rwCfg.Insecure,
 		"sending_queue":    rwCfg.SendingQueue,
 		"retry_on_failure": rwCfg.RetryOnFailure,
 	}
 
+	tlsConfig := map[string]interface{}{
+		"insecure": rwCfg.Insecure,
+	}
 	if !rwCfg.Insecure {
 		// If there is a TLSConfig use it
 		if rwCfg.TLSConfig != nil {
-			otlpExporter["ca_file"] = rwCfg.TLSConfig.CAFile
-			otlpExporter["cert_file"] = rwCfg.TLSConfig.CertFile
-			otlpExporter["key_file"] = rwCfg.TLSConfig.KeyFile
-			otlpExporter["insecure_skip_verify"] = rwCfg.TLSConfig.InsecureSkipVerify
+			tlsConfig["ca_file"] = rwCfg.TLSConfig.CAFile
+			tlsConfig["cert_file"] = rwCfg.TLSConfig.CertFile
+			tlsConfig["key_file"] = rwCfg.TLSConfig.KeyFile
+			tlsConfig["insecure_skip_verify"] = rwCfg.TLSConfig.InsecureSkipVerify
 		} else {
 			// If not, set whatever value is specified in the old config.
-			otlpExporter["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
+			tlsConfig["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
 		}
 	}
+	otlpExporter["tls"] = tlsConfig
 
 	// Apply some sane defaults to the exporter. The
 	// sending_queue.retry_on_failure default is 300s which prevents any
@@ -393,7 +392,7 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 }
 
 // formatPolicies creates sampling policies (i.e. rules) compatible with OTel's tail sampling processor
-// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.21.0/processor/tailsamplingprocessor
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.36.0/processor/tailsamplingprocessor
 func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, error) {
 	policies := make([]map[string]interface{}, 0, len(cfg))
 	for i, policy := range cfg {
@@ -407,14 +406,12 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 					"name": fmt.Sprintf("%s/%d", typ, i),
 					"type": typ,
 				})
-			case stringAttributePolicy, rateLimitingPolicy, numericAttributePolicy, latencyPolicy, statusCodePolicy:
+			default:
 				policies = append(policies, map[string]interface{}{
 					"name": fmt.Sprintf("%s/%d", typ, i),
 					"type": typ,
 					typ:    rules,
 				})
-			default:
-				return nil, fmt.Errorf("unsupported policy type %s", typ)
 			}
 		}
 	}
@@ -610,8 +607,13 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
 
-	parser := configparser.NewParserFromStringMap(otelMapStructure)
-	otelCfg, err := configloader.Load(parser, factories)
+	if err := configcheck.ValidateConfigFromFactories(factories); err != nil {
+		return nil, fmt.Errorf("failed to validate factories: %w", err)
+	}
+
+	configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
+	cfgUnmarshaler := configunmarshaler.NewDefault()
+	otelCfg, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
