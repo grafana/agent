@@ -145,7 +145,7 @@ Function WriteConfig
         FileOpen $9 "$INSTDIR\agent-config.yaml" w #Opens a Empty File and fills it
         FileWrite $9 `server:$\n`
         FileWrite $9 `  http_listen_port: 12345$\n`
-        FileWrite $9 `prometheus:$\n`
+        FileWrite $9 `metrics:$\n`
         FileWrite $9 `  wal_directory: $APPDATA\grafana-agent-wal$\n`
         FileWrite $9 `  global:$\n`
         FileWrite $9 `    scrape_interval: 1m$\n`

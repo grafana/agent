@@ -38,7 +38,7 @@ server:
   log_level: info
   http_listen_port: 12345
 
-prometheus:
+metrics:
   wal_directory: /tmp/agent
   global:
     scrape_interval: 15s
