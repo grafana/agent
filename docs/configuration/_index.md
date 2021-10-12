@@ -102,7 +102,7 @@ Support contents and default values of `agent.yaml`:
 
 # Configures metric collection.
 # In previous versions of the agent, this field was called "prometheus".
-[prometheus: <metrics_config>]
+[metrics: <metrics_config>]
 
 # Configures log collection.
 # In previous versions of the agent, this field was called "loki".

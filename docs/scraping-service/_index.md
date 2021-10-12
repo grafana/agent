@@ -131,7 +131,7 @@ server:
   log_level: debug
   http_listen_port: 12345
 
-prometheus:
+metrics:
   global:
     scrape_interval: 1m
   scraping_service:
