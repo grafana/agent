@@ -143,10 +143,7 @@ replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersi
 replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20211008102704-a5d23001cb71
 
 // Pin prometheus dependencies
-replace (
-	github.com/prometheus/common => github.com/prometheus/common v0.23.0
-	github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
-)
+replace github.com/prometheus/common => github.com/prometheus/common v0.23.0
 
 // Jaeger v1.16.0 can't be run with go@1.16 (https://github.com/jaegertracing/jaeger/issues/3268)
 // Problem was fixed in https://github.com/jaegertracing/jaeger/issues/3268
