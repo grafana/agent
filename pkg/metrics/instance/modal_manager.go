@@ -76,17 +76,19 @@ func (m *ModalManager) ApplyConfigs(configs []Config) error {
 
 	err := m.active.ApplyConfigs(configs)
 	var bae BatchApplyError
-	_ = errors.As(err, &bae)
-	for _, c := range FindSuccessfulConfigs(&bae, configs) {
-		if _, existingConfig := m.configs[c.Name]; !existingConfig {
-			m.currentActiveConfigs.Inc()
-			m.changedConfigs.WithLabelValues("created").Inc()
-		} else {
-			m.changedConfigs.WithLabelValues("updated").Inc()
-		}
+	if errors.As(err, &bae) {
+		for _, c := range bae.FindSuccessfulConfigs(configs) {
+			if _, existingConfig := m.configs[c.Name]; !existingConfig {
+				m.currentActiveConfigs.Inc()
+				m.changedConfigs.WithLabelValues("created").Inc()
+			} else {
+				m.changedConfigs.WithLabelValues("updated").Inc()
+			}
 
-		m.configs[c.Name] = c
+			m.configs[c.Name] = c
+		}
 	}
+
 	return err
 }
 

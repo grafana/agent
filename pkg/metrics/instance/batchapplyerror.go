@@ -15,7 +15,7 @@ type BatchFailure struct {
 
 // FindSuccessfulConfigs will take the list of all configs and compare them against the failed
 // return the successful based on name
-func FindSuccessfulConfigs(e *BatchApplyError, allConfigs []Config) []Config {
+func (e *BatchApplyError) FindSuccessfulConfigs(allConfigs []Config) []Config {
 	if e == nil || len(e.Failed) == 0 {
 		return allConfigs
 	}

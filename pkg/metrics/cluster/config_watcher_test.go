@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -234,7 +235,9 @@ type mockConfigManager struct {
 	mock.Mock
 }
 
-func (m *mockConfigManager) ApplyConfigs(configs []instance.Config) error { return nil }
+func (m *mockConfigManager) ApplyConfigs(_ []instance.Config) error {
+	panic(errors.New("ApplyConfigs should not be called"))
+}
 
 func (m *mockConfigManager) GetInstance(name string) (instance.ManagedInstance, error) {
 	args := m.Mock.Called()

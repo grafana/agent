@@ -1,9 +1,12 @@
 package instance
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/grafana/agent/pkg/util"
 
@@ -445,4 +448,47 @@ remote_write:
 		require.NoError(t, err)
 		require.Equal(t, *expect, actual)
 	}
+}
+
+func Test_Rollback(t *testing.T) {
+	configAText := `
+name: configA
+host_filter: true
+scrape_configs: []
+remote_write: []`
+
+	configBText := `
+name: configB
+host_filter: false
+scrape_configs: []
+remote_write: []`
+
+	configA := testUnmarshalConfig(t, configAText)
+	configB := testUnmarshalConfig(t, configBText)
+
+	logger := util.TestLogger(t)
+	mockManager := &MockManager{
+		GetInstanceFunc:   nil,
+		ListInstancesFunc: nil,
+		ListConfigsFunc:   nil,
+		ApplyConfigFunc: func(config Config) error {
+			return nil
+		},
+		ApplyConfigsFunc: func(configs []Config) error {
+			return nil
+		},
+		DeleteConfigFunc: func(name string) error {
+			return errors.New("cant delete")
+		},
+		StopFunc: nil,
+	}
+	groupManager := NewGroupManager(logger, mockManager)
+	groupManager.ApplyConfigs([]Config{configA})
+	// This should panic because the configs will be different groups
+	// the groupA will no longer be valid and will delete, thus triggering a rollback
+	// that should panic
+	assert.Panics(t, assert.PanicTestFunc(func() {
+		groupManager.ApplyConfigs([]Config{configB})
+	}), "should rollback")
+
 }

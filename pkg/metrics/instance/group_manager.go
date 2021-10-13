@@ -99,7 +99,7 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 			}
 		}
 	}
-	mergedHashes := make(map[string]int)
+	newMergedHashes := make(map[string]int)
 	// The whole batch fails or succeeds here, so precompute if failures happen
 	var groupFailedConfigs []BatchFailure
 	for _, c := range configs {
@@ -129,7 +129,7 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 		}
 
 		// If we have the exact same config no need to reload it
-		mergedHashes[newHash] = 0
+		newMergedHashes[newHash] = 0
 		if _, exists := m.mergedConfigHashes[newHash]; exists {
 			continue
 		}
@@ -145,7 +145,7 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 	m.groups = groupsInConfigs
 	m.activeConfigs = activeConfigs
 	m.groupLookup = groupLookup
-	m.mergedConfigHashes = mergedHashes
+	m.mergedConfigHashes = newMergedHashes
 	if len(failed) > 0 {
 		return &BatchApplyError{Failed: failed}
 	}
