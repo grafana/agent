@@ -48,7 +48,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 		return ch, nil
 	}
 
-	err = w.Refresh(context.Background())
+	err = w.refresh(context.Background())
 	require.NoError(t, err)
 
 	// Then: return a "new" config.
@@ -61,7 +61,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 		return ch, nil
 	}
 
-	err = w.Refresh(context.Background())
+	err = w.refresh(context.Background())
 	require.NoError(t, err)
 
 	// "hello" and "new" should've been applied, and "hello" should've been deleted
@@ -204,6 +204,30 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		im.AssertNumberOfCalls(t, "ApplyConfig", 1)
 		im.AssertNumberOfCalls(t, "DeleteConfig", 1)
 	})
+}
+
+func Test_configWatcher_nextReshard(t *testing.T) {
+	watcher := &configWatcher{
+		log: util.TestLogger(t),
+		cfg: Config{ReshardInterval: time.Second},
+	}
+
+	t.Run("past time", func(t *testing.T) {
+		select {
+		case <-watcher.nextReshard(time.Time{}):
+		case <-time.After(250 * time.Millisecond):
+			require.FailNow(t, "nextReshard did not return an already ready channel")
+		}
+	})
+
+	t.Run("future time", func(t *testing.T) {
+		select {
+		case <-watcher.nextReshard(time.Now()):
+		case <-time.After(1500 * time.Millisecond):
+			require.FailNow(t, "nextReshard took too long to return")
+		}
+	})
+
 }
 
 type mockConfigManager struct {

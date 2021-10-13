@@ -27,7 +27,7 @@ import (
 
 var (
 	integrationAbnormalExits = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "agent_prometheus_integration_abnormal_exits_total",
+		Name: "agent_metrics_integration_abnormal_exits_total",
 		Help: "Total number of times an agent integration exited unexpectedly, causing it to be restarted.",
 	}, []string{"integration_name"})
 )

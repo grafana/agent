@@ -3,6 +3,17 @@
 This document provides relevant instructions for maintainers of the Grafana
 Agent.
 
+## Branching Strategy
+
+The Grafana Agent's branching strategy is to have main always releasable. 
+This allows us to better control  the release cadence and ensure that the project has regular releases. 
+
+For any small change, those can be made with a direct PR.
+
+For any large change, we ask that you create an issue to discuss it on. Then we can create a `dev` branch
+for this larger change. This allows us to keep main releasable until we are ready to merge the dev branch to
+main.
+
 ## Master Branch Rename
 
 The `master` branch was renamed to `main` on 17 Feb 2021. If you have already

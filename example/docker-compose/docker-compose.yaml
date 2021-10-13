@@ -3,7 +3,6 @@ services:
   agent:
     image: grafana/agent:latest
     volumes:
-      - /tmp/agent:/tmp/agent
       - ./agent/config:/etc/agent-config
       - /var/log:/var/log
     entrypoint:

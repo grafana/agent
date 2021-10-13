@@ -3,10 +3,10 @@ server:
   log_level: info
   http_listen_port: 12345
 
-prometheus:
+metrics:
   wal_directory: /tmp/agent
   global:
-    scrape_interval: 5s
+    scrape_interval: 1m
     remote_write:
       - url: http://localhost:9009/api/prom/push
   configs:
@@ -19,7 +19,7 @@ prometheus:
         static_configs:
           - targets: ['localhost:3100']
 
-loki:
+logs:
   positions_directory: /tmp/loki-positions
   configs:
   - name: default

@@ -17,7 +17,7 @@ Existing configuration files will be kept when re-installing or upgrading the Gr
 
 ### Silent Installation
 
-Silent installation can be achieved via  `grafana-agent-installer.exe /S  /EnableExporter "true"`. EnableExporter enables or disables Windows Exporter, default is `false`.
+Silent installation can be achieved via  `grafana-agent-installer.exe /S /EnableExporter true /Username 12345 /Password password /Url http://example.com `. EnableExporter enables or disables Windows Exporter, default is `false`. Username, Password and Url set the global remote_write configuration, they can be omitted if not using remote_write.
 
 ## Security
 
@@ -45,7 +45,7 @@ Grafana Agent can use the embedded [promtail](https://grafana.com/docs/loki/late
 server:
   log_level: debug
   http_listen_port: 12345
-loki:
+logs:
   # Choose a directory to save the last read position of log files at.
   # This directory will be created if it doesn't already exist.
   positions_directory: "C:\\path\\to\\directory"

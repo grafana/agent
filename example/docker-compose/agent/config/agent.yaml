@@ -2,9 +2,9 @@ server:
   log_level: debug
   http_listen_port: 12345
 
-prometheus:
+metrics:
   global:
-    scrape_interval: 30s
+    scrape_interval: 1m
   configs:
     - name: test
       host_filter: false
@@ -56,7 +56,7 @@ prometheus:
       remote_write:
         - url: http://cortex:9009/api/prom/push
 
-loki:
+logs:
   configs:
   - name: default
     positions:
@@ -72,7 +72,7 @@ loki:
             job: varlogs
             __path__: /var/log/*log
 
-tempo:
+traces:
   configs:
   - name: default
     receivers:
@@ -91,8 +91,8 @@ tempo:
       timeout: 5s
       send_batch_size: 100
     automatic_logging:
-      backend: loki
-      loki_name: default
+      backend: logs_instance
+      logs_instance_name: default
       spans: true
       processes: true
       roots: true
