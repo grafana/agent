@@ -27,7 +27,6 @@ import (
 	"github.com/prometheus/statsd_exporter/pkg/line"
 	"github.com/prometheus/statsd_exporter/pkg/listener"
 	"github.com/prometheus/statsd_exporter/pkg/mapper"
-	_ "github.com/prometheus/statsd_exporter/pkg/mappercache"
 	"gopkg.in/yaml.v2"
 )
 
