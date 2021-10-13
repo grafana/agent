@@ -2,6 +2,9 @@
   "ignorePatterns": [
     {
       "pattern": "^http://prometheus.k3d.localhost:30080"
+    },
+    {
+      "pattern": "^http://prometheus.k3d.localhost:50080"
     }
   ]
 }

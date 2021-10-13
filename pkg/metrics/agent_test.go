@@ -113,7 +113,7 @@ configs:
 }
 
 func TestAgent(t *testing.T) {
-	// Lanch two instances
+	// Launch two instances
 	cfg := Config{
 		WALDir: "/tmp/wal",
 		Configs: []instance.Config{
@@ -218,7 +218,7 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 }
 
 func TestAgent_Stop(t *testing.T) {
-	// Lanch two instances
+	// Launch two instances
 	cfg := Config{
 		WALDir: "/tmp/wal",
 		Configs: []instance.Config{

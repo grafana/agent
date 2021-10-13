@@ -63,7 +63,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "rate(tempo_receiver_accepted_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
+            "expr": "rate(traces_receiver_accepted_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
             "format": "time_series",
             "interval": "1m",
             "intervalFactor": 2,
@@ -156,7 +156,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "rate(tempo_exporter_sent_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
+            "expr": "rate(traces_exporter_sent_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
             "format": "time_series",
             "interval": "1m",
             "intervalFactor": 2,
@@ -249,7 +249,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "rate(tempo_exporter_send_failed_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
+            "expr": "rate(traces_exporter_send_failed_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
             "format": "time_series",
             "interval": "1m",
             "intervalFactor": 2,
@@ -342,7 +342,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "rate(tempo_receiver_refused_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
+            "expr": "rate(traces_receiver_refused_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
             "format": "time_series",
             "interval": "1m",
             "intervalFactor": 2,
@@ -436,7 +436,7 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "rate(tempo_processor_dropped_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
+            "expr": "rate(traces_processor_dropped_spans{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__interval])",
             "format": "time_series",
             "interval": "1m",
             "intervalFactor": 2,

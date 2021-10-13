@@ -8,9 +8,42 @@ weight = 200
 This guide describes all breaking changes that have happened in prior
 releases and how to migrate to newer versions.
 
-## Unreleased
+## Unreleased Changes
 
 These changes will come in a future version.
+
+## v0.19.0
+
+### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
+
+The term `tempo` in the config has been deprecated of favor of `traces`. This
+change is to make intent clearer.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            thrift_http:
+```
+
+Example of new config:
+```yaml
+traces:
+  configs:
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            thrift_http:
+```
+
+Any tempo metrics have been renamed from `tempo_*` to `traces_*`.
+
 
 ### Tempo: split grouping by trace from tail sampling config (Breaking change)
 
@@ -119,6 +152,76 @@ rules:
   - grafanaagents
   - metricsinstances
   verbs: [get, list, watch]
+```
+
+### Metrics: Deprecation of "prometheus" in config. (Deprecation)
+
+The term `prometheus` in the config has been deprecated of favor of `metrics`. This
+change is to make it clearer when referring to Prometheus or another
+Prometheus-like database, and configuration of Grafana Agent to send metrics to
+one of those systems.
+
+Old configs will continue to work until it is fully deprecated. To migrate your
+config, change the `prometheus` key to `metrics`.
+
+Example old config:
+
+```yaml
+prometheus:
+  configs:
+    - name: default
+      host_filter: false
+      scrape_configs:
+        - job_name: local_scrape
+          static_configs:
+            - targets: ['127.0.0.1:12345']
+              labels:
+                cluster: 'localhost'
+      remote_write:
+        - url: http://localhost:9009/api/prom/push
+```
+
+Example new config:
+
+```yaml
+metrics:
+  configs:
+    - name: default
+      host_filter: false
+      scrape_configs:
+        - job_name: local_scrape
+          static_configs:
+            - targets: ['127.0.0.1:12345']
+              labels:
+                cluster: 'localhost'
+      remote_write:
+        - url: http://localhost:9009/api/prom/push
+```
+
+### Tempo: prom_instance rename (Breaking change)
+
+As part of `prometheus` being renamed to `metrics`, the spanmetrics
+`prom_instance` field has been renamed to `metrics_instance`. This is a breaking
+change, and the old name will no longer work.
+
+Example old config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    spanmetrics:
+      prom_instance: default
+```
+
+Example new config:
+
+```yaml
+tempo:
+  configs:
+  - name: default
+    spanmetrics:
+      metrics_instance: default
 ```
 
 ### Logs: Deprecation of "loki" in config. (Deprecation)

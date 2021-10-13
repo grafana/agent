@@ -103,11 +103,20 @@ data:
   loki.yml: |
     apiVersion: 1
     datasources:
+    - name: prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus.default.svc.cluster.local:9090
+      isDefault: true
+      version: 1
+      editable: false
+      jsonData:
+        httpMethod: GET
     - name: loki
       type: loki
       access: proxy
       url: http://loki.default.svc.cluster.local:8080
-      isDefault: true
+      isDefault: false
       version: 1
       editable: false
       jsonData:

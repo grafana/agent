@@ -1,9 +1,39 @@
 # Main (unreleased)
 
+- [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
+  service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
+  This requires passing a `--kubelet-service` flag to the Operator in
+  `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
+
+- [ENHANCEMENT] Updated mysqld_exporter to v0.13.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated postgres_exporter to v0.10.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated redis_exporter to v1.27.1 (@gaantunes)
+
+- [ENHANCEMENT] Updated memcached_exporter to v0.9.0 (@gaantunes)
+
+- [ENHANCEMENT] Updated statsd_exporter to v0.22.2 (@gaantunes)
+
+- [ENHANCEMENT] Updated elasticsearch_exporter to v1.2.1 (@gaantunes)
+
+- [ENHANCEMENT] Add remote write to silent Windows Installer  (@mattdurham)
+
+- [ENHANCEMENT] Updated mongodb_exporter to v0.20.7 (@rfratto)
+
+- [ENHANCEMENT] Upgrade OTel to v0.36 (@mapno)
+
+- [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
+
+- [BUGFIX] Traces: remove extra line feed/spaces/tabs when reading password_file content (@nicoche)
+
+# v0.19.0 (2021-09-29)
+
 This release has breaking changes. Please read [CHANGE] entries carefully and
 consult the
 [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for specific instructions.
+
 
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
@@ -31,19 +61,23 @@ for specific instructions.
 - [ENHANCEMENT] Add HOSTNAME environment variable to service file to allow for expanding
   the $HOSTNAME variable in agent config.  (@dfrankel33)
 
+- [ENHANCEMENT] Update jsonnet-libs to 1.21 for Kubernetes 1.21+ compatability. (@MurzNN)
+
+- [ENHANCEMENT] Make method used to add k/v to spans in prom_sd processor
+  configurable. (@mapno)
+
 - [BUGFIX] Regex capture groups like `${1}` will now be kept intact when
   using `-config.expand-env`. (@rfratto)
 
 - [BUGFIX] The directory of the logs positions file will now properly be created
-  on startup for all instances.
+  on startup for all instances. (@rfratto)
 
 - [BUGFIX] The Linux system packages will now configure the grafana-agent user
   to be a member of the adm and systemd-journal groups. This will allow logs to
   read from journald and /var/log by default. (@rfratto)
 
-- [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the `node_exporter` integration default config. (@eamonryan)
-
-- [BUGFIX] Fix info logging on windows. (@mattdurham)
+- [BUGFIX] Fix collecting filesystem metrics on Mac OS (darwin) in the
+  `node_exporter` integration default config. (@eamonryan)
 
 - [BUGFIX] Remove v0.0.0 flags during build with no explicit release tag (@mattdurham)
 
@@ -57,9 +91,9 @@ for specific instructions.
 
 - [BUGFIX] Fix yaml marshalling tag for cert_file in kafka exporter agent config. (@rgeyer)
 
-- [BUGFIX] Register missing metric for configstore consul request duration.
+- [BUGFIX] Fix warn-level logging of dropped targets. (@james-callahan)
 
-- [BUGFIX] Logs should contain a caller field with file and line numbers again (@kgeckhart)
+- [BUGFIX] Standardize scrape_interval to 1m in examples. (@mattdurham)
 
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
@@ -71,11 +105,53 @@ for specific instructions.
   hyphen in the name to be consistent with how Kubernetes refers to resources.
   (@rfratto)
 
+- [CHANGE] Breaking change: `prom_instance` in the spanmetrics config is now
+  named `metrics_instance`. (@rfratto)
+
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,
   `loki_tag` is now `logs_instance_tag`, and `backend: loki` is now
   `backend: logs_instance`. (@rfratto)
+
+- [DEPRECATION] The `prometheus` key at the root of the config file has been
+  deprecated in favor of `metrics`. Flag names starting with `prometheus.` have
+  also been deprecated in favor of the same flags with the `metrics.` prefix.
+  Metrics prefixed with `agent_prometheus_` are now prefixed with
+  `agent_metrics_`. (@rfratto)
+
+- [DEPRECATION] The `tempo` key at the root of the config file has been
+  deprecated in favor of `traces`. (@mattdurham)
+
+# v0.18.4 (2021-09-14)
+
+- [BUGFIX] Fix info logging on windows. (@mattdurham)
+
+- [BUGFIX] Scraping service: Ensure that a reshard is scheduled every reshard
+  interval. (@rfratto)
+
+- [CHANGE] Add `agent_prometheus_configs_changed_total` metric to track instance
+  config events. (@rfratto)
+
+# v0.18.3 (2021-09-08)
+
+- [BUGFIX] Register missing metric for configstore consul request duration.
+  (@rfratto)
+
+- [BUGFIX] Logs should contain a caller field with file and line numbers again
+  (@kgeckhart)
+
+- [BUGFIX] In scraping service mode, the polling configuration refresh should
+  honor timeout. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, the lifecycle reshard should happen using a
+  goroutine. (@mattdurham)
+
+- [BUGFIX] In scraping service mode, scraping service can deadlock when
+  reloading during join. (@mattdurham)
+
+- [BUGFIX] Scraping service: prevent more than one refresh from being queued at
+  a time. (@rfratto)
 
 # v0.18.2 (2021-08-12)
 
