@@ -21,7 +21,9 @@
 
 - [ENHANCEMENT] Updated mongodb_exporter to v0.20.7 (@rfratto)
 
-- [ENHANCEMENT] Upgrade OTel to v0.36 (@mapno)
+- [ENHANCEMENT] Updated OTel to v0.36 (@mapno)
+
+- [ENHANCEMENT] Updated statsd_exporter to v0.22.2 (@mattdurham)
 
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
