@@ -14,17 +14,31 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func tmpFile(t *testing.T, content string) (*os.File, func()) {
+	f, err := ioutil.TempFile("", "")
+	require.NoError(t, err)
+
+	_, err = f.Write([]byte(content))
+	require.NoError(t, err)
+
+	err = f.Close()
+	require.NoError(t, err)
+
+	return f, func() {
+		os.Remove(f.Name())
+	}
+}
+
 func TestOTelConfig(t *testing.T) {
 	// create a password file to test the password file logic
 	password := "password_in_file"
-	tmpfile, err := ioutil.TempFile("", "")
-	require.NoError(t, err)
-	defer os.Remove(tmpfile.Name())
+	passwordFile, teardown := tmpFile(t, password)
+	defer teardown()
 
-	_, err = tmpfile.Write([]byte(password))
-	require.NoError(t, err)
-	err = tmpfile.Close()
-	require.NoError(t, err)
+	// Extra linefeed in password_file. Spaces, tabs line feeds should be
+	// stripped when reading it
+	passwordFileExtraNewline, teardown := tmpFile(t, password+"\n")
+	defer teardown()
 
 	// tests!
 	tt := []struct {
@@ -195,7 +209,43 @@ push_config:
   endpoint: example.com:12345
   basic_auth:
     username: test
-    password_file: ` + tmpfile.Name(),
+    password_file: ` + passwordFile.Name(),
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp:
+    endpoint: example.com:12345
+    compression: gzip
+    tls:
+      insecure: true
+    headers:
+      authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "push_config password in file with extra newline",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+push_config:
+  insecure: true
+  endpoint: example.com:12345
+  basic_auth:
+    username: test
+    password_file: ` + passwordFileExtraNewline.Name(),
 			expectedConfig: `
 receivers:
   jaeger:
@@ -362,7 +412,7 @@ remote_write:
     insecure_skip_verify: true
     basic_auth:
       username: test
-      password_file: ` + tmpfile.Name() + `
+      password_file: ` + passwordFile.Name() + `
     retry_on_failure:
       initial_interval: 10s
     sending_queue:

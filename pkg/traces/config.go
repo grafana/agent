@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/pkg/logs"
@@ -261,7 +262,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unable to load password file %s: %w", rwCfg.BasicAuth.PasswordFile, err)
 			}
-			password = string(buff)
+			password = strings.TrimSpace(string(buff))
 		}
 
 		encodedAuth := base64.StdEncoding.EncodeToString([]byte(rwCfg.BasicAuth.Username + ":" + password))
