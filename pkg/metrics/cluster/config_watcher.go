@@ -17,7 +17,7 @@ import (
 
 var (
 	reshardDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "agent_prometheus_scraping_service_reshard_duration",
+		Name: "agent_metrics_scraping_service_reshard_duration",
 		Help: "How long it took for resharding to run.",
 	}, []string{"success"})
 )
@@ -37,7 +37,7 @@ type configWatcher struct {
 	owns     OwnershipFunc
 	validate ValidationFunc
 
-	refreshMut  sync.Mutex
+	refreshCh   chan struct{}
 	instanceMut sync.Mutex
 	instances   map[string]struct{}
 }
@@ -63,6 +63,7 @@ func newConfigWatcher(log log.Logger, cfg Config, store configstore.Store, im in
 		owns:     owns,
 		validate: validate,
 
+		refreshCh: make(chan struct{}, 1),
 		instances: make(map[string]struct{}),
 	}
 	if err := w.ApplyConfig(cfg); err != nil {
@@ -89,38 +90,82 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 }
 
 func (w *configWatcher) run(ctx context.Context) {
-	for {
-		w.mut.Lock()
-		nextPoll := w.cfg.ReshardInterval
-		w.mut.Unlock()
+	defer level.Info(w.log).Log("msg", "config watcher run loop exiting")
 
+	lastReshard := time.Now()
+
+	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(nextPoll):
-			// Errors are logged by w.Refresh, ignore the error here.
-			_ = w.Refresh(ctx)
+		case <-w.nextReshard(lastReshard):
+			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
+			w.RequestRefresh()
+			lastReshard = time.Now()
+		case <-w.refreshCh:
+			err := w.refresh(ctx)
+			if err != nil {
+				level.Error(w.log).Log("msg", "refresh failed", "err", err)
+			}
 		case ev := <-w.store.Watch():
+			level.Debug(w.log).Log("msg", "handling event from config store")
 			if err := w.handleEvent(ev); err != nil {
-				level.Error(w.log).Log("msg", "failed to handle changend or deleted config", "key", ev.Key, "err", err)
+				level.Error(w.log).Log("msg", "failed to handle changed or deleted config", "key", ev.Key, "err", err)
 			}
 		}
 	}
 }
 
-// Refresh reloads all configs from the configstore. Deleted configs will be
-// removed.
-func (w *configWatcher) Refresh(ctx context.Context) (err error) {
+// nextReshard returns a channel to that will fill a value when the reshard
+// interval has elapsed.
+func (w *configWatcher) nextReshard(lastReshard time.Time) <-chan time.Time {
+	w.mut.Lock()
+	nextReshard := lastReshard.Add(w.cfg.ReshardInterval)
+	w.mut.Unlock()
+
+	remaining := time.Until(nextReshard)
+
+	// NOTE(rfratto): clamping to 0 isn't necessary for time.After,
+	// but it makes the log message clearer to always use "0s" as
+	// "next reshard will be scheduled immediately."
+	if remaining < 0 {
+		remaining = 0
+	}
+
+	level.Debug(w.log).Log("msg", "waiting for next reshard interval", "last_reshard", lastReshard, "next_reshard", nextReshard, "remaining", remaining)
+	return time.After(remaining)
+}
+
+// RequestRefresh will queue a refresh. No more than one refresh can be queued at a time.
+func (w *configWatcher) RequestRefresh() {
+	select {
+	case w.refreshCh <- struct{}{}:
+		level.Debug(w.log).Log("msg", "successfully scheduled a refresh")
+	default:
+		level.Debug(w.log).Log("msg", "ignoring request refresh: refresh already scheduled")
+	}
+}
+
+// refresh reloads all configs from the configstore. Deleted configs will be
+// removed. refresh may not be called concurrently and must only be invoked from run.
+// Call RequestRefresh to queue a call to refresh.
+func (w *configWatcher) refresh(ctx context.Context) (err error) {
 	w.mut.Lock()
 	enabled := w.cfg.Enabled
+	refreshTimeout := w.cfg.ReshardTimeout
 	w.mut.Unlock()
+
 	if !enabled {
 		level.Debug(w.log).Log("msg", "refresh skipped because clustering is disabled")
 		return nil
 	}
+	level.Info(w.log).Log("msg", "starting refresh")
 
-	w.refreshMut.Lock()
-	defer w.refreshMut.Unlock()
+	if refreshTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, refreshTimeout)
+		defer cancel()
+	}
 
 	start := time.Now()
 	defer func() {
@@ -128,9 +173,18 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		if err != nil {
 			success = "0"
 		}
-		reshardDuration.WithLabelValues(success).Observe(time.Since(start).Seconds())
+		duration := time.Since(start)
+		level.Info(w.log).Log("msg", "refresh finished", "duration", duration, "success", success, "err", err)
+		reshardDuration.WithLabelValues(success).Observe(duration.Seconds())
 	}()
 
+	// This is used to determine if the context was already exceeded before calling the kv provider
+	if err = ctx.Err(); err != nil {
+		level.Error(w.log).Log("msg", "context deadline exceeded before calling store.all", "err", err)
+		return err
+	}
+	deadline, _ := ctx.Deadline()
+	level.Debug(w.log).Log("msg", "deadline before store.all", "deadline", deadline)
 	configs, err := w.store.All(ctx, func(key string) bool {
 		owns, err := w.owns(key)
 		if err != nil {
@@ -139,6 +193,8 @@ func (w *configWatcher) Refresh(ctx context.Context) (err error) {
 		}
 		return owns
 	})
+	level.Debug(w.log).Log("msg", "count of configs from store.all", "count", len(configs))
+
 	if err != nil {
 		return fmt.Errorf("failed to get configs from store: %w", err)
 	}

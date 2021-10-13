@@ -5,6 +5,7 @@ local configMap = k.core.v1.configMap;
 local container = k.core.v1.container;
 local containerPort = k.core.v1.containerPort;
 local deployment = k.apps.v1.deployment;
+local service = k.core.v1.service;
 
 {
   new(dashboards={}, datasources=[], namespace='default'):: {
@@ -20,6 +21,7 @@ local deployment = k.apps.v1.deployment;
 
     grafana_cm:
       configMap.new('grafana-config') +
+      configMap.mixin.metadata.withNamespace(namespace) +
       configMap.withData({
         'grafana.ini': std.manifestIni(_config.grafana_ini),
       }),
@@ -29,6 +31,7 @@ local deployment = k.apps.v1.deployment;
       then {}
       else
         configMap.new('dashboards') +
+        configMap.mixin.metadata.withNamespace(namespace) +
         configMap.withDataMixin({
           [name]: std.toString(
             $.dashboards[name]
@@ -40,6 +43,7 @@ local deployment = k.apps.v1.deployment;
     grafana_dashboard_cms: {
       ['dashboard-%d' % shard]:
         configMap.new('dashboards-%d' % shard) +
+        configMap.mixin.metadata.withNamespace(namespace) +
         configMap.withDataMixin({
           [name]: std.toString(
             _dashboards[name]
@@ -53,12 +57,14 @@ local deployment = k.apps.v1.deployment;
 
     grafana_datasource_cm:
       configMap.new('grafana-datasources') +
+      configMap.mixin.metadata.withNamespace(namespace) +
       configMap.withDataMixin(std.foldl(function(acc, obj) acc {
         ['%s.yml' % obj.datasources[0].name]: k.util.manifestYaml(obj),
       }, self._datasources, {})),
 
     grafana_dashboard_provisioning_cm:
       configMap.new('grafana-dashboard-provisioning') +
+      configMap.mixin.metadata.withNamespace(namespace) +
       configMap.withData({
         'dashboards.yml': k.util.manifestYaml({
           apiVersion: 1,
@@ -91,6 +97,7 @@ local deployment = k.apps.v1.deployment;
 
     deployment:
       deployment.new('grafana', 1, [self.container]) +
+      deployment.mixin.metadata.withNamespace(namespace) +
       deployment.mixin.spec.template.spec.securityContext.withRunAsUser(0) +
       k.util.configMapVolumeMount(self.grafana_cm, '/etc/grafana-config') +
       k.util.configMapVolumeMount(self.grafana_datasource_cm, '%(provisioning_dir)s/datasources' % _config) +
@@ -111,7 +118,8 @@ local deployment = k.apps.v1.deployment;
       k.util.podPriority('critical'),
 
     service:
-      k.util.serviceFor(self.deployment),
+      k.util.serviceFor(self.deployment) +
+      service.mixin.metadata.withNamespace(namespace),
   },
 
   // withDashboards sets the list of dashboards. Dashboards is an object where the

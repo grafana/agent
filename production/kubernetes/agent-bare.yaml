@@ -4,7 +4,7 @@ metadata:
   name: grafana-agent
   namespace: ${NAMESPACE}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: grafana-agent
@@ -26,7 +26,7 @@ rules:
   verbs:
   - get
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: grafana-agent
@@ -66,7 +66,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: grafana/agent:v0.18.2
+        image: grafana/agent:v0.19.0
         imagePullPolicy: IfNotPresent
         name: agent
         ports:

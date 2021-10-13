@@ -26,7 +26,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.15.0 \
+  grafana/agent:v0.19.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -38,7 +38,7 @@ server:
   log_level: info
   http_listen_port: 12345
 
-prometheus:
+metrics:
   wal_directory: /tmp/agent
   global:
     scrape_interval: 15s
@@ -66,7 +66,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.15.0
+  - image: grafana/agent:v0.19.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml

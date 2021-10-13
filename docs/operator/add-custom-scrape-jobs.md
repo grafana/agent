@@ -41,7 +41,7 @@ stringData:
       kubernetes_sd_configs:
       - role: node
       relabel_configs:
-      - replacement: kubernetes.default.svc.cluster.local:443
+      - replacement: kubernetes.default.svc:443
         target_label: __address__
       - regex: (.+)
         source_labels: [__meta_kubernetes_node_name]
@@ -64,7 +64,7 @@ stringData:
       kubernetes_sd_configs:
       - role: node
       relabel_configs:
-      - replacement: kubernetes.default.svc.cluster.local:443
+      - replacement: kubernetes.default.svc:443
         target_label: __address__
       - regex: (.+)
         replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
