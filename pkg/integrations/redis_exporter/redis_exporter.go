@@ -2,8 +2,6 @@
 package redis_exporter //nolint:golint
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -73,26 +71,26 @@ type Config struct {
 // we marshal the yaml into Config and then create the re.Options from that.
 func (c Config) GetExporterOptions() re.Options {
 	return re.Options{
-		User:                    c.RedisUser,
-		Password:                c.RedisPassword,
-		Namespace:               c.Namespace,
-		ConfigCommandName:       c.ConfigCommand,
-		CheckKeys:               c.CheckKeys,
-		CheckKeyGroups:          c.CheckKeyGroups,
-		CheckKeyGroupsBatchSize: c.CheckKeyGroupsBatchSize,
-		CheckSingleKeys:         c.CheckSingleKeys,
-		CheckStreams:            c.CheckStreams,
-		CheckSingleStreams:      c.CheckSingleStreams,
-		CountKeys:               c.CountKeys,
-		InclSystemMetrics:       c.InclSystemMetrics,
-		SkipTLSVerification:     c.SkipTLSVerification,
-		SetClientName:           c.SetClientName,
-		IsTile38:                c.IsTile38,
-		ExportClientList:        c.ExportClientList,
-		ExportClientsInclPort:   c.ExportClientPort,
-		ConnectionTimeouts:      c.ConnectionTimeout,
-		RedisMetricsOnly:        c.RedisMetricsOnly,
-		PingOnConnect:           c.PingOnConnect,
+		User:                  c.RedisUser,
+		Password:              c.RedisPassword,
+		Namespace:             c.Namespace,
+		ConfigCommandName:     c.ConfigCommand,
+		CheckKeys:             c.CheckKeys,
+		CheckKeysBatchSize:    c.CheckKeyGroupsBatchSize,
+		CheckKeyGroups:        c.CheckKeyGroups,
+		CheckSingleKeys:       c.CheckSingleKeys,
+		CheckStreams:          c.CheckStreams,
+		CheckSingleStreams:    c.CheckSingleStreams,
+		CountKeys:             c.CountKeys,
+		InclSystemMetrics:     c.InclSystemMetrics,
+		SkipTLSVerification:   c.SkipTLSVerification,
+		SetClientName:         c.SetClientName,
+		IsTile38:              c.IsTile38,
+		ExportClientList:      c.ExportClientList,
+		ExportClientsInclPort: c.ExportClientPort,
+		ConnectionTimeouts:    c.ConnectionTimeout,
+		RedisMetricsOnly:      c.RedisMetricsOnly,
+		PingOnConnect:         c.PingOnConnect,
 	}
 }
 
@@ -143,30 +141,20 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		exporterConfig.LuaScript = ls
 	}
 
-	var tlsClientCertificates []tls.Certificate
+	//new version of the exporter takes the file paths directly, for hot-reloading support (https://github.com/oliver006/redis_exporter/pull/526)
+
 	if (c.TLSClientKeyFile != "") != (c.TLSClientCertFile != "") {
 		return nil, errors.New("TLS client key file and cert file should both be present")
 	}
 	if c.TLSClientKeyFile != "" && c.TLSClientCertFile != "" {
-		cert, err := tls.LoadX509KeyPair(c.TLSClientCertFile, c.TLSClientKeyFile)
-		if err != nil {
 
-			return nil, fmt.Errorf("couldn't load TLS client key pair: %w", err)
-		}
-		tlsClientCertificates = append(tlsClientCertificates, cert)
+		exporterConfig.ClientKeyFile = c.TLSClientKeyFile
+		exporterConfig.ClientCertFile = c.TLSClientCertFile
 	}
-	exporterConfig.ClientCertificates = tlsClientCertificates
 
-	var tlsCaCertificates *x509.CertPool
 	if c.TLSCaCertFile != "" {
-		caCert, err := ioutil.ReadFile(c.TLSCaCertFile)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't load TLS Ca certificate: %w", err)
-		}
-		tlsCaCertificates = x509.NewCertPool()
-		tlsCaCertificates.AppendCertsFromPEM(caCert)
+		exporterConfig.CaCertFile = c.TLSCaCertFile
 	}
-	exporterConfig.CaCertificates = tlsCaCertificates
 
 	// optional password file to take precedence over password property
 	if c.RedisPasswordFile != "" {

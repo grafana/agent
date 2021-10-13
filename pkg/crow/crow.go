@@ -86,7 +86,7 @@ var DefaultConfig = Config{
 	ValueEpsilon:      0.0001,
 }
 
-// Crow is a collectness checker that validates scraped metrics reach a
+// Crow is a correctness checker that validates scraped metrics reach a
 // Prometheus-compatible server with the same values and roughly the same
 // timestamp.
 //
@@ -96,12 +96,12 @@ var DefaultConfig = Config{
 // 2. State metrics, exposing state of the Crow checker itself.
 //
 // These two metrics should be exposed via different endpoints, and only state
-// metrics are safe to be manually collecetd from.
+// metrics are safe to be manually collected from.
 //
 // Collecting from the set of test metrics generates a validation job, where
 // Crow will query the Prometheus API to ensure the metrics that were scraped
 // were written with (approximately) the same timestamp as the scrape time
-// and with (approximately) the same floatnig point values exposed in the
+// and with (approximately) the same floating point values exposed in the
 // scrape.
 //
 // If a set of test metrics were not found and retries have been exhausted,

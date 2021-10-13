@@ -179,46 +179,46 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		return nil
 	}
 
-	if n.cfg.ReshardTimeout > 0 {
+	if n.cfg.ClusterReshardEventTimeout > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, n.cfg.ReshardTimeout)
+		ctx, cancel = context.WithTimeout(ctx, n.cfg.ClusterReshardEventTimeout)
 		defer cancel()
 	}
 
 	var (
 		rs  ring.ReplicationSet
 		err error
-
-		firstError error
 	)
 
 	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		rs, err = n.ring.GetAllHealthy(ring.Read)
 		if err == nil {
 			break
 		}
 		backoff.Wait()
 	}
-	if err := backoff.Err(); err != nil && firstError == nil {
-		firstError = err
-	}
 
 	if len(rs.Instances) > 0 {
 		level.Info(n.log).Log("msg", "informing remote nodes to reshard")
 	}
 
+	// These are not in the go routine below due to potential race condition with n.lc.addr
 	_, err = rs.Do(ctx, 500*time.Millisecond, func(c context.Context, id *ring.InstanceDesc) (interface{}, error) {
 		// Skip over ourselves.
 		if id.Addr == n.lc.Addr {
 			return nil, nil
 		}
 
-		ctx = user.InjectOrgID(ctx, "fake")
-		return nil, n.notifyReshard(ctx, id)
+		notifyCtx := user.InjectOrgID(c, "fake")
+		return nil, n.notifyReshard(notifyCtx, id)
 	})
-	if err != nil && firstError == nil {
-		firstError = err
+
+	if err != nil {
+		level.Error(n.log).Log("msg", "notifying other nodes failed", "err", err)
 	}
 
 	if joining {
@@ -227,8 +227,7 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 			level.Warn(n.log).Log("msg", "dynamic local reshard did not succeed", "err", err)
 		}
 	}
-
-	return firstError
+	return err
 }
 
 // notifyReshard informs an individual node to reshard.
@@ -243,6 +242,9 @@ func (n *node) notifyReshard(ctx context.Context, id *ring.InstanceDesc) error {
 
 	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
 	for backoff.Ongoing() {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		_, err := cli.Reshard(ctx, &pb.ReshardRequest{})
 		if err == nil {
 			break

@@ -87,6 +87,34 @@ func CreateOrUpdateService(ctx context.Context, c client.Client, svc *v1.Service
 	return nil
 }
 
+// CreateOrUpdateEndpoints applies the given eps against the client.
+func CreateOrUpdateEndpoints(ctx context.Context, c client.Client, eps *v1.Endpoints) error {
+	var exist v1.Endpoints
+	err := c.Get(ctx, client.ObjectKeyFromObject(eps), &exist)
+	if err != nil && !k8s_errors.IsNotFound(err) {
+		return fmt.Errorf("failed to retrieve existing endpoints: %w", err)
+	}
+
+	if k8s_errors.IsNotFound(err) {
+		err := c.Create(ctx, eps)
+		if err != nil {
+			return fmt.Errorf("failed to create endpoints: %w", err)
+		}
+	} else {
+		eps.ResourceVersion = exist.ResourceVersion
+		eps.SetOwnerReferences(mergeOwnerReferences(eps.GetOwnerReferences(), exist.GetOwnerReferences()))
+		eps.SetLabels(mergeMaps(eps.Labels, exist.Labels))
+		eps.SetAnnotations(mergeMaps(eps.Annotations, exist.Annotations))
+
+		err := c.Update(ctx, eps)
+		if err != nil && !k8s_errors.IsNotFound(err) {
+			return fmt.Errorf("failed to update endpoints: %w", err)
+		}
+	}
+
+	return nil
+}
+
 // CreateOrUpdateStatefulSet applies the given StatefulSet against the client.
 func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1.StatefulSet) error {
 	var exist apps_v1.StatefulSet

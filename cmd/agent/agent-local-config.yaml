@@ -2,9 +2,9 @@ server:
   log_level: info
   http_listen_port: 12345
 
-prometheus:
+metrics:
   global:
-    scrape_interval: 5s
+    scrape_interval: 1m
   configs:
     - name: test
       host_filter: false

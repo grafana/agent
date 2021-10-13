@@ -14,13 +14,13 @@ The second one is mongodb_cluster, which is the name of your mongodb cluster, an
 Here`s an example:
 
 ```yaml
-relabel_configs:        
+relabel_configs:
     - source_labels: [__address__]
       target_label: service_name
-      replacement: 'replicaset1-node1'   
+      replacement: 'replicaset1-node1'
     - source_labels: [__address__]
       target_label: mongodb_cluster
-      replacement: 'prod-cluster'  
+      replacement: 'prod-cluster'
 ```
 
 Besides that, there's not much to configure. Please refer to the full reference of options:
@@ -37,11 +37,11 @@ Besides that, there's not much to configure. Please refer to the full reference 
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
   # How often should the metrics be collected? Defaults to
-  # prometheus.global.scrape_interval.
+  # metrics.global.scrape_interval.
   [scrape_interval: <duration> | default = <global_config.scrape_interval>]
 
   # The timeout before considering the scrape a failure. Defaults to
-  # prometheus.global.scrape_timeout.
+  # metrics.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
   # Allows for relabeling labels on the target.
