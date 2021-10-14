@@ -272,15 +272,27 @@ load_balancing:
 # removed from the local store. If the request is complete by that time, it'll
 # be recorded as an edge in the graph.
 #
-# Service graphs supports multi agent deployments, allowing to group all spans
+# Service graphs supports multi-agent deployments, allowing to group all spans
 # of a trace in the same agent by load balancing the spans by trace ID between
 # the instances.
 # * To make use of this feature, check load_balancing above *
 service_graphs:
   [ enabled: <bool> | default = false ]
 
+  # configures the time the processor will wait since a span is consumed until
+  # it's considered expired if its paired has not been processed.
+  #
+  # increasing the waiting time will increase the percentage of paired spans.
+  # retaining unpaired spans for longer will make reaching max_items more likely.
   [ wait: <duration> | default = "10s"]
 
+  # configures the max amount of edges that will be stored in memory.
+  #
+  # spans that arrive to the processor that do not pair with an already
+  # processed span are dropped.
+  #
+  # a higher max number of items increases the max throughput of processed spans
+  # with a higher memory consumption.
   [ max_items: <integer> | default = 10_000 ]
 ```
 
