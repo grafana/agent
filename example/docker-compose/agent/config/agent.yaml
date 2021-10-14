@@ -23,7 +23,7 @@ metrics:
 
         - job_name: local_scrape
           static_configs:
-            - targets: ['127.0.0.1:12345', '0.0.0.0:8889']
+            - targets: ['127.0.0.1:12345', '127.0.0.1:8889']
               labels:
                 cluster: 'docker_compose'
                 container: 'agent'
