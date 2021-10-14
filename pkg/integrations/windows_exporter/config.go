@@ -5,6 +5,14 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
+// DefaultConfig holds the default settings for the windows_exporter integration.
+var DefaultConfig = Config{
+	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system,textfile",
+
+	// NOTE(rfratto): there is an init function in config_windows.go that
+	// populates defaults for collectors based on the exporter defaults.
+}
+
 func init() {
 	integrations.RegisterIntegration(&Config{})
 }
@@ -26,6 +34,14 @@ type Config struct {
 	MSSQL       MSSQLConfig       `yaml:"mssql,omitempty"`
 	MSMQ        MSMQConfig        `yaml:"msmq,omitempty"`
 	LogicalDisk LogicalDiskConfig `yaml:"logical_disk,omitempty"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for Config.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
 }
 
 // Name returns the name used, "windows_explorer"

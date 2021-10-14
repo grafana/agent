@@ -34,6 +34,8 @@
 
 - [ENHANCEMENT] Updated statsd_exporter to v0.22.2 (@mattdurham)
 
+- [ENHANCEMENT] Update windows_exporter to v0.16.0 (@rfratto, @mattdurham)
+
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
 - [BUGFIX] Traces: remove extra line feed/spaces/tabs when reading password_file content (@nicoche)
