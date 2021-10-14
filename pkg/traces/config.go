@@ -724,7 +724,8 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	for i, processor := range processors {
 		if processor == "batch" ||
 			processor == "tail_sampling" ||
-			processor == "automatic_logging" {
+			processor == "automatic_logging" ||
+			processor == "service_graphs" {
 			foundAt = i
 			break
 		}

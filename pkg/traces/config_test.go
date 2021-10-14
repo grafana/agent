@@ -1105,9 +1105,9 @@ service_graphs:
 				"traces/0": {
 					config.NewID("attributes"),
 					config.NewID("spanmetrics"),
-					config.NewID("service_graphs"),
 				},
 				"traces/1": {
+					config.NewID("service_graphs"),
 					config.NewID("tail_sampling"),
 					config.NewID("automatic_logging"),
 					config.NewID("batch"),
