@@ -25,6 +25,9 @@
 
 - [ENHANCEMENT] Updated statsd_exporter to v0.22.2 (@mattdurham)
 
+- [ENHANCEMENT] Updated perflib_exporter (used by windows_exporter) to forked v0.1.1 to 
+  remove usage of prometheus logger (@mattdurham)
+
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
 - [BUGFIX] Traces: remove extra line feed/spaces/tabs when reading password_file content (@nicoche)
