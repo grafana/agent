@@ -5,6 +5,8 @@
   This requires passing a `--kubelet-service` flag to the Operator in
   `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
 
+- [FEATURE] Service graphs processor (@mapno)
+
 - [ENHANCEMENT] Updated mysqld_exporter to v0.13.0 (@gaantunes)
 
 - [ENHANCEMENT] Updated postgres_exporter to v0.10.0 (@gaantunes)
@@ -49,8 +51,6 @@ for specific instructions.
 
 - [FEATURE] Add `operator-detach` command to agentctl to allow zero-downtime
   upgrades when removing an Operator CRD. (@rfratto)
-
-- [FEATURE] Service graphs processor (@mapno)
 
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
