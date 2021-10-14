@@ -149,3 +149,6 @@ replace github.com/prometheus/common => github.com/prometheus/common v0.23.0
 // Problem was fixed in https://github.com/jaegertracing/jaeger/issues/3268
 // Replace can't be removed when all dependencies update to >=v1.27
 replace github.com/jaegertracing/jaeger => github.com/jaegertracing/jaeger v1.27.0
+
+// Replacement necessary for windows_exporter so that we can use gokit logging and not the old prometheus logging
+replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_exporter v0.1.1-0.20211013152516-e37e14fb8b0a
