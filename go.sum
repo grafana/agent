@@ -1022,6 +1022,8 @@ github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a h1:D5NS
 github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a/go.mod h1:rjb/swXiCWLlC3gWlyugy/xEOZioF5PclbB8sf/9p/Q=
 github.com/grafana/opentelemetry-collector v0.4.1-0.20211008102704-a5d23001cb71 h1:aX9FuWEq7B8WgHmYc93CmlDrCyRH4flFLVVpTJrHO2I=
 github.com/grafana/opentelemetry-collector v0.4.1-0.20211008102704-a5d23001cb71/go.mod h1:w/nWBmMpwBF1Lk3o7XYuT7m369ByBKCQs1cVSFN+X78=
+github.com/grafana/perflib_exporter v0.1.1-0.20211013152516-e37e14fb8b0a h1:H+syQKTZuBnoVp9qOuHoktNeuCDrgySAbMT9jyTp564=
+github.com/grafana/perflib_exporter v0.1.1-0.20211013152516-e37e14fb8b0a/go.mod h1:MinSWm88jguXFFrGsP56PtleUb4Qtm4tNRH/wXNXRTI=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a h1:JUnP/laSl2GylHT0+fqAqOZY+7XkLh1mLefLN0n8Mmk=
