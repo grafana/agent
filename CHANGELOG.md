@@ -29,6 +29,9 @@
 
 - [BUGFIX] Traces: remove extra line feed/spaces/tabs when reading password_file content (@nicoche)
 
+- [CHANGE] Configuration API now returns 404 instead of 400 when attempting to get or delete a config 
+  which does not exist. (@kgeckhart)
+
 # v0.19.0 (2021-09-29)
 
 This release has breaking changes. Please read [CHANGE] entries carefully and
