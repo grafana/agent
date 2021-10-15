@@ -9,7 +9,7 @@ This guide helps users get started with the Grafana Agent. For getting started
 with the Grafana Agent Operator, please refer to the Operator-specific
 [documentation](../operator/).
 
-Currently, there are seven ways to install the agent:
+Currently, there are six ways to install the agent:
 
 - Use our Docker container
 - Use the Kubernetes manifests directly
@@ -17,7 +17,8 @@ Currently, there are seven ways to install the agent:
 - Installing the static binaries locally
 - Using Grafana Labs' official Tanka configs (_recommended advanced_)
 - Using the [Windows Installer]({{< relref "./install-agent-on-windows.md" >}})
-- Community lead Kubernetes [Helm chart](https://github.com/DandyDeveloper/charts/tree/master/charts/grafana-agent)
+
+See the list of [Community Projects](#community-projects) for the community-driven ecosystem around the Grafana Agent.
 
 ## Docker container
 
@@ -69,9 +70,10 @@ We provide [Tanka](https://tanka.dev) configurations in our [`production/`](http
 
 ## Community Projects
 
-Below is a list of community lead projects for working with Grafana Agent. 
+Below is a list of community lead projects for working with Grafana Agent. These projects are not maintained or supported by Grafana Labs.
 
 ### Helm (Kubernetes Deployment)
 
 A publically available release of a Grafana Agent Helm chart is maintained [here](https://github.com/DandyDeveloper/charts/tree/master/charts/grafana-agent). Contributions and improvements are welcomed. Full details on rolling out and supported options can be found in the [readme](https://github.com/DandyDeveloper/charts/blob/master/charts/grafana-agent/README.md).
 
+This *does not* require the Grafana Agent Operator to rollout / deploy. 
