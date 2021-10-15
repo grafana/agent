@@ -1,6 +1,6 @@
 # Main (unreleased)
 
-- [ENHANCEMENT] Documenting security recommendations for the users used by the embedded exporters, 
+- [ENHANCEMENT] Documenting security recommendations for the users used by the embedded exporters,
   to give only the strictly necessary roles as per the official docs.
 
 - [BUGFIX] Do not immediately cancel context when creating a new trace
@@ -40,8 +40,10 @@
 
 - [BUGFIX] Traces: remove extra line feed/spaces/tabs when reading password_file content (@nicoche)
 
-- [CHANGE] Configuration API now returns 404 instead of 400 when attempting to get or delete a config 
+- [CHANGE] Configuration API now returns 404 instead of 400 when attempting to get or delete a config
   which does not exist. (@kgeckhart)
+
+- [CHANGE] The windows_exporter now disables the textfile collector by default. (@rfratto)
 
 # v0.19.0 (2021-09-29)
 
