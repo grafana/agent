@@ -18,3 +18,4 @@
 buildx-v*
 cover*.out
 .uptodate
+/agent
