@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [BUGFIX] Correct issue preventing trace scrape_configs from functioning (@lheinlen)
+
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
   service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
   This requires passing a `--kubelet-service` flag to the Operator in
