@@ -1,5 +1,9 @@
 # Main (unreleased)
 
+- [BUGFIX] Do not immediately cancel context when creating a new trace
+  processor. This was preventing scrape_configs in traces from
+  functioning. (@lheinlen)
+
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
   service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
   This requires passing a `--kubelet-service` flag to the Operator in
