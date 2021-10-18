@@ -122,7 +122,7 @@ func (api *API) GetConfiguration(rw http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, ErrNotConnected):
 		api.writeError(rw, http.StatusNotFound, err)
 	case errors.As(err, &NotExistError{}):
-		api.writeError(rw, http.StatusBadRequest, err)
+		api.writeError(rw, http.StatusNotFound, err)
 	case err != nil:
 		api.writeError(rw, http.StatusInternalServerError, err)
 	case err == nil:
@@ -218,7 +218,7 @@ func (api *API) DeleteConfiguration(rw http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, ErrNotConnected):
 		api.writeError(rw, http.StatusNotFound, err)
 	case errors.As(err, &NotExistError{}):
-		api.writeError(rw, http.StatusBadRequest, err)
+		api.writeError(rw, http.StatusNotFound, err)
 	case err != nil:
 		api.writeError(rw, http.StatusInternalServerError, err)
 	default:
