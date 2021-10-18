@@ -110,36 +110,35 @@ func (p *processor) Start(ctx context.Context, _ component.Host) error {
 }
 
 func (p *processor) registerMetrics() error {
-	// todo: rename namespace to `traces`
 	p.serviceGraphRequestTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "tempo",
+		Namespace: "traces",
 		Name:      "service_graph_request_total",
 		Help:      "Total count of requests between two nodes",
 	}, []string{"client", "server"})
 	p.serviceGraphRequestFailedTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "tempo",
+		Namespace: "traces",
 		Name:      "service_graph_request_failed_total",
 		Help:      "Total count of failed requests between two nodes",
 	}, []string{"client", "server"})
 	p.serviceGraphRequestServerHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "tempo",
+		Namespace: "traces",
 		Name:      "service_graph_request_server_seconds",
 		Help:      "Time for a request between two nodes as seen from the server",
 		Buckets:   prometheus.ExponentialBuckets(0.01, 2, 12),
 	}, []string{"client", "server"})
 	p.serviceGraphRequestClientHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "tempo",
+		Namespace: "traces",
 		Name:      "service_graph_request_client_seconds",
 		Help:      "Time for a request between two nodes as seen from the client",
 		Buckets:   prometheus.ExponentialBuckets(0.01, 2, 12),
 	}, []string{"client", "server"})
 	p.serviceGraphUnpairedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "tempo",
+		Namespace: "traces",
 		Name:      "service_graph_unpaired_spans_total",
 		Help:      "Total count of unpaired spans",
 	}, []string{"client", "server"})
 	p.serviceGraphDroppedSpansTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "tempo",
+		Namespace: "traces",
 		Name:      "service_graph_dropped_spans_total",
 		Help:      "Total count of dropped spans",
 	}, []string{"service"})
