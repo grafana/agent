@@ -24,6 +24,9 @@ mysqld_exporter:
     replacement: server-a
 ```
 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
+security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/prometheus/mysqld_exporter#required-grants).
+
 Full reference of options:
 
 ```yaml

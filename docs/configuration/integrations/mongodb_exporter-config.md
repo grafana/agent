@@ -23,6 +23,9 @@ relabel_configs:
       replacement: 'prod-cluster'
 ```
 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
+security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/percona/mongodb_exporter#permissions).
+
 Besides that, there's not much to configure. Please refer to the full reference of options:
 
 ```yaml

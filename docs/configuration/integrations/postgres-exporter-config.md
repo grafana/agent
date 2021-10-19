@@ -9,6 +9,9 @@ integration, which is an embedded version of
 [`postgres_exporter`](https://github.com/prometheus-community/postgres_exporter). This
 allows for the collection of metrics from Postgres servers.
 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
+security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/prometheus-community/postgres_exporter#running-as-non-superuser).
+
 Full reference of options:
 
 ```yaml

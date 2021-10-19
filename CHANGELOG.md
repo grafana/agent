@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] Documenting security recommendations for the users used by the embedded exporters, 
+  to give only the strictly necessary roles as per the official docs.
+
 - [BUGFIX] Do not immediately cancel context when creating a new trace
   processor. This was preventing scrape_configs in traces from
   functioning. (@lheinlen)
