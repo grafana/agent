@@ -20,7 +20,7 @@ type label struct {
 
 var _ config.Exporter = (*Config)(nil)
 
-// Config holds the configuration for the Prometheus SD processor.
+// Config holds the configuration for the Prometheus remote write processor.
 type Config struct {
 	config.ExporterSettings `mapstructure:",squash"`
 
@@ -29,7 +29,7 @@ type Config struct {
 	PromInstance string  `mapstructure:"metrics_instance"`
 }
 
-// NewFactory returns a new factory for the Attributes processor.
+// NewFactory returns a new factory for the Prometheus remote write processor.
 func NewFactory() component.ExporterFactory {
 	return exporterhelper.NewFactory(
 		TypeStr,
