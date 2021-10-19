@@ -9,6 +9,7 @@ go_modules:
   - github.com/prometheus/memcached_exporter
   - github.com/prometheus/statsd_exporter
   - github.com/weaveworks/common
+  - github.com/drone/envsubst/v2
   - go.opentelemetry.io/collector
   - sigs.k8s.io/controller-runtime
 
@@ -19,7 +20,6 @@ go_modules:
 # The "current" version being used in the Agent must be provided explicitly as
 # you can see below.
 github_repos:
-  - github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
   - github.com/google/dnsmasq_exporter v0.2.0
   - github.com/ncabatoff/process-exporter v0.7.5
   - github.com/prometheus/mysqld_exporter v0.13.0
