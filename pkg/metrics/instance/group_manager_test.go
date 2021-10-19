@@ -450,7 +450,7 @@ remote_write:
 	}
 }
 
-func Test_Rollback(t *testing.T) {
+func Test_RollbackPanic(t *testing.T) {
 	configAText := `
 name: configA
 host_filter: true
@@ -463,8 +463,15 @@ host_filter: false
 scrape_configs: []
 remote_write: []`
 
+	configATextInGroupB := `
+name: configA
+host_filter: false
+scrape_configs: []
+remote_write: []`
+
 	configA := testUnmarshalConfig(t, configAText)
 	configB := testUnmarshalConfig(t, configBText)
+	configAInB := testUnmarshalConfig(t, configATextInGroupB)
 
 	logger := util.TestLogger(t)
 	mockManager := &MockManager{
@@ -484,11 +491,100 @@ remote_write: []`
 	}
 	groupManager := NewGroupManager(logger, mockManager)
 	groupManager.ApplyConfigs([]Config{configA})
-	// This should panic because the configs will be different groups
+	// This should panic because the configA is moved into the same group as configb
+	// will be different groups
 	// the groupA will no longer be valid and will delete, thus triggering a rollback
 	// that should panic
-	assert.Panics(t, assert.PanicTestFunc(func() {
-		groupManager.ApplyConfigs([]Config{configB})
-	}), "should rollback")
+	assert.Panics(t, func() {
+		groupManager.ApplyConfigs([]Config{configB, configAInB})
+	}, "should rollback")
 
+}
+
+func Test_Rollback(t *testing.T) {
+	configAText := `
+name: configA
+host_filter: true
+scrape_configs: []
+remote_write: []`
+
+	configTriggerRollbackText := `
+name: configRollback
+host_filter: false
+scrape_configs: []
+remote_write: []`
+
+	configA := testUnmarshalConfig(t, configAText)
+	configTriggerRollback := testUnmarshalConfig(t, configTriggerRollbackText)
+	hashOfOriginalMergedConfig := ""
+	logger := util.TestLogger(t)
+	mockManager := &MockManager{
+		GetInstanceFunc:   nil,
+		ListInstancesFunc: nil,
+		ListConfigsFunc:   nil,
+		ApplyConfigFunc: func(config Config) error {
+			// First iteration should return no error
+			if hashOfOriginalMergedConfig == "" {
+				return nil
+			}
+			// this takes in the grouped config and the hashed value
+			if config.Name != hashOfOriginalMergedConfig {
+				return errors.New("bad config")
+			}
+			return nil
+		},
+		ApplyConfigsFunc: func(configs []Config) error {
+			return nil
+		},
+		DeleteConfigFunc: func(name string) error {
+			return nil
+		},
+		StopFunc: nil,
+	}
+	groupManager := NewGroupManager(logger, mockManager)
+	groupManager.ApplyConfigs([]Config{configA})
+	require.Len(t, groupManager.mergedConfigHashes, 1)
+	for k := range groupManager.mergedConfigHashes {
+		hashOfOriginalMergedConfig = k
+	}
+	// this should trigger a rollback due to the applyconfigfunc above
+	groupManager.ApplyConfigs([]Config{configTriggerRollback})
+
+	require.Len(t, groupManager.activeConfigs, 1)
+	// Ensure the config name is our original
+	require.Equal(t, groupManager.activeConfigs[0].Name, configA.Name)
+	require.Len(t, groupManager.activeConfigs, 1)
+
+}
+
+func Test_RollbackToNoConfigs(t *testing.T) {
+	configAText := `
+name: configA
+host_filter: true
+scrape_configs: []
+remote_write: []`
+
+	configA := testUnmarshalConfig(t, configAText)
+	logger := util.TestLogger(t)
+	mockManager := &MockManager{
+		GetInstanceFunc:   nil,
+		ListInstancesFunc: nil,
+		ListConfigsFunc:   nil,
+		ApplyConfigFunc: func(config Config) error {
+			// this will trigger a rollback
+			return errors.New("this is meant to fail")
+		},
+		ApplyConfigsFunc: func(configs []Config) error {
+			return nil
+		},
+		DeleteConfigFunc: func(name string) error {
+			return nil
+		},
+		StopFunc: nil,
+	}
+	groupManager := NewGroupManager(logger, mockManager)
+
+	assert.Panics(t, func() {
+		groupManager.ApplyConfigs([]Config{configA})
+	})
 }

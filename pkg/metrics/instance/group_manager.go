@@ -67,8 +67,8 @@ func (m *GroupManager) applyConfigs(configs []Config, isRollback bool) error {
 	// Combined group of current and new configs
 	combinedConfigs := m.getCombinedConfigs(configs)
 
-	var oldConfigs []Config
 	// In case of an error in applying the new configs, we need to grab the old config for rollback
+	oldConfigs := make([]Config, len(m.activeConfigs))
 	copy(oldConfigs, m.activeConfigs)
 	var activeConfigs []Config
 	groupLookup := make(map[string]string)
@@ -174,6 +174,10 @@ func createMergedConfigHash(mergedConfig Config) (string, error) {
 // internal state is left corrupted since we've completely lost a
 // config.
 func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
+	if len(oldConfigs) == 0 {
+		level.Error(m.log).Log("err", "rollback was called but no configs to rollback to")
+		panic(errors.New("rollback was called but no configs to rollback to"))
+	}
 	if err := m.applyConfigs(oldConfigs, true); err != nil {
 		level.Error(m.log).Log("err", fmt.Sprintf("failed to rollback configs with error %s", err))
 		panic(err)
