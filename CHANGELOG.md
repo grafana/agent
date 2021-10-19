@@ -3,10 +3,6 @@
 - [ENHANCEMENT] Documenting security recommendations for the users used by the embedded exporters,
   to give only the strictly necessary roles as per the official docs.
 
-- [BUGFIX] Do not immediately cancel context when creating a new trace
-  processor. This was preventing scrape_configs in traces from
-  functioning. (@lheinlen)
-
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
   service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
   This requires passing a `--kubelet-service` flag to the Operator in
@@ -35,6 +31,10 @@
 - [ENHANCEMENT] Updated statsd_exporter to v0.22.2 (@mattdurham)
 
 - [ENHANCEMENT] Update windows_exporter to v0.16.0 (@rfratto, @mattdurham)
+
+- [BUGFIX] Do not immediately cancel context when creating a new trace
+  processor. This was preventing scrape_configs in traces from
+  functioning. (@lheinlen)
 
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
 
