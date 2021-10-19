@@ -8,4 +8,7 @@ const (
 
 	// Metrics is used to pass instance.Manager through the context
 	Metrics
+
+	// PrometheusRegisterer is used to pass prometheus.Registerer through the context
+	PrometheusRegisterer
 )

@@ -60,9 +60,13 @@ func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager insta
 	newInstances := make(map[string]*Instance, len(cfg.Configs))
 
 	for _, c := range cfg.Configs {
+		var (
+			instReg = prom_client.WrapRegistererWith(prom_client.Labels{"traces_config": c.Name}, t.reg)
+		)
+
 		// If an old instance exists, update it and move it to the new map.
 		if old, ok := t.instances[c.Name]; ok {
-			err := old.ApplyConfig(logsSubsystem, promInstanceManager, c)
+			err := old.ApplyConfig(logsSubsystem, promInstanceManager, instReg, c)
 			if err != nil {
 				return err
 			}
@@ -73,7 +77,6 @@ func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager insta
 
 		var (
 			instLogger = t.logger.With(zap.String("traces_config", c.Name))
-			instReg    = prom_client.WrapRegistererWith(prom_client.Labels{"traces_config": c.Name}, t.reg)
 		)
 
 		inst, err := NewInstance(logsSubsystem, instReg, c, instLogger, t.promInstanceManager)

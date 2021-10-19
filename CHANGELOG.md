@@ -9,6 +9,8 @@
   This requires passing a `--kubelet-service` flag to the Operator in
   `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
 
+- [FEATURE] Service graphs processor (@mapno)
+
 - [ENHANCEMENT] Updated mysqld_exporter to v0.13.0 (@gaantunes)
 
 - [ENHANCEMENT] Updated postgres_exporter to v0.10.0 (@gaantunes)
