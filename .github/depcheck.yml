@@ -9,6 +9,7 @@ go_modules:
   - github.com/prometheus/memcached_exporter
   - github.com/prometheus/statsd_exporter
   - github.com/weaveworks/common
+  - github.com/drone/envsubst/v2
   - go.opentelemetry.io/collector
   - sigs.k8s.io/controller-runtime
 
