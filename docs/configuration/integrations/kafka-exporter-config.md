@@ -8,6 +8,9 @@ The `kafka_exporter_config` block configures the `kafka_exporter`
 integration, which is an embedded version of [`kafka_exporter`](https://github.com/davidmparrott/kafka_exporter).
 This allows for the collection of Kafka Lag metrics and exposing them as Prometheus metrics.
 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
+security privileges necessary for monitoring your node, as per the [documentation](https://github.com/lightbend/kafka-lag-exporter#required-permissions-for-kafka-acl).
+
 Full reference of options:
 
 ```yaml
