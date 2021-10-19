@@ -40,13 +40,13 @@
 
 - [BUGFIX] Traces: remove extra line feed/spaces/tabs when reading password_file content (@nicoche)
 
+- [BUGFIX] Updated envsubst to v2.0.0-20210730161058-179042472c46. This version has a fix needed for escaping values
+  outside of variable substitutions. (@rlankfo)
+
 - [CHANGE] Configuration API now returns 404 instead of 400 when attempting to get or delete a config
   which does not exist. (@kgeckhart)
 
 - [CHANGE] The windows_exporter now disables the textfile collector by default. (@rfratto)
-
-- [BUGFIX] Updated envsubst to v2.0.0-20210730161058-179042472c46. This version has a fix needed for escaping values
-  outside of variable substitutions. (@rlankfo)
 
 # v0.19.0 (2021-09-29)
 
