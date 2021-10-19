@@ -1038,8 +1038,8 @@ github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03 h1:fGgFrAraMB0BaPfYum
 github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03/go.mod h1:GIMXMPB/lRAllP5rVDvcGif87ryO2hgD7tCtHMdHrho=
 github.com/grafana/tempo v1.0.1 h1:8M4u1D/noVASoYmFlDNY9LNerMbVZ+8zPep7Qs0ldfA=
 github.com/grafana/tempo v1.0.1/go.mod h1:hd+8igGfN6WE4uIuJxXuPeyZDslpy6Gt0LRAsUWPrKg=
-github.com/grafana/windows_exporter v0.15.1-0.20210325142439-9e8f66d53433 h1:3WaMH1VOp8T2gCwjM5iHtH2SW3BpN8pAmRhzy9TYVAA=
-github.com/grafana/windows_exporter v0.15.1-0.20210325142439-9e8f66d53433/go.mod h1:FZy59lGh3jUzgaaS6jYzzTfk1NTNrH5+UK3NCeQF4Ao=
+github.com/grafana/windows_exporter v0.15.1-0.20211019183116-592dfa92f9fd h1:jQ9JCvwdRW32X/LP3ezXT4EnJCirq9bb3l5svQs8j7k=
+github.com/grafana/windows_exporter v0.15.1-0.20211019183116-592dfa92f9fd/go.mod h1:zWjLDqyEy3ZEy1LNlR6iUJJgYCoUDJTyUbrjeLUp3ZE=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
 github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6 h1:vqwzYov9hrRoGAmy61um8mVteOCD0bEbKgXr1mmkTlI=
 github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6/go.mod h1:L69/dBlPQlWkcnU76WgcppK5e4rrxzQdi6LhLnK/ytA=
@@ -1352,8 +1352,6 @@ github.com/leesper/go_rng v0.0.0-20190531154944-a612b043e353/go.mod h1:N0SVk0uhy
 github.com/leodido/go-urn v1.1.0/go.mod h1:+cyI34gQWZcE1eQU7NVgKkkzdXDQHr1dBMtdAPozLkw=
 github.com/leodido/ragel-machinery v0.0.0-20181214104525-299bdde78165 h1:bCiVCRCs1Heq84lurVinUPy19keqGEe4jh5vtK37jcg=
 github.com/leodido/ragel-machinery v0.0.0-20181214104525-299bdde78165/go.mod h1:WZxr2/6a/Ar9bMDc2rN/LJrE/hF6bXE4LPyDSIxwAfg=
-github.com/leoluk/perflib_exporter v0.1.0 h1:fXe/mDaf9jR+Zk8FjFlcCSksACuIj2VNN4GyKHmQqtA=
-github.com/leoluk/perflib_exporter v0.1.0/go.mod h1:rpV0lYj7lemdTm31t7zpCqYqPnw7xs86f+BaaNBVYFM=
 github.com/lib/pq v0.0.0-20180523175426-90697d60dd84/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
@@ -2434,7 +2432,6 @@ golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223/go.mod h1:STP8DvDyc/dI5b8T5h
 golang.org/x/sys v0.0.0-20190312061237-fead79001313/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190321052220-f7bb7a8bee54/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190403152447-81d4e9dc473e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
-golang.org/x/sys v0.0.0-20190405154228-4b34438f7a67/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190411185658-b44545bcd369/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190419153524-e8e3143a4f4a/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=

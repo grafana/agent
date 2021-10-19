@@ -1,20 +1,80 @@
 package windows_exporter //nolint:golint
 
 import (
+	"fmt"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/prometheus-community/windows_exporter/exporter"
+	"github.com/prometheus-community/windows_exporter/collector"
+	"github.com/prometheus/statsd_exporter/pkg/level"
 )
 
 // New creates a new windows_exporter integration.
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	configMap := exporter.GenerateConfigs()
-	c.applyConfig(configMap)
-	wc, err := exporter.NewWindowsCollector(c.Name(), c.EnabledCollectors, configMap)
+	// Get a list of collector configs and map our local config to it.
+	availableConfigs := collector.AllConfigs()
+	c.toExporterConfig(availableConfigs)
+
+	enabledCollectorNames := enabledCollectors(c.EnabledCollectors)
+	collectors, err := buildCollectors(enabledCollectorNames, availableConfigs)
 	if err != nil {
 		return nil, err
 	}
-	_ = level.Info(log).Log("msg", "Enabled windows_exporter collectors")
-	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(wc)), nil
+
+	collectorNames := make([]string, 0, len(collectors))
+	for key := range collectors {
+		collectorNames = append(collectorNames, key)
+	}
+	sort.Strings(collectorNames)
+	level.Info(log).Log("msg", "enabled windows_exporter collectors", "collectors", collectorNames)
+
+	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(
+		// Hard-coded 4m timeout to represent the time a series goes stale.
+		// TODO: Make configurable if useful.
+		collector.NewPrometheus(4*time.Minute, collectors),
+	)), nil
+}
+
+func enabledCollectors(input string) []string {
+	separated := strings.Split(input, ",")
+	unique := map[string]struct{}{}
+	for _, s := range separated {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			unique[s] = struct{}{}
+		}
+	}
+	result := make([]string, 0, len(unique))
+	for s := range unique {
+		result = append(result, s)
+	}
+	return result
+}
+
+func buildCollectors(enabled []string, available []collector.Config) (map[string]collector.Collector, error) {
+	collectors := map[string]collector.Collector{}
+
+	for _, name := range enabled {
+		var found collector.Config
+		for _, c := range available {
+			if c.Name() == name {
+				found = c
+				break
+			}
+		}
+		if found == nil {
+			return nil, fmt.Errorf("unknown collector %q", name)
+		}
+
+		c, err := found.Build()
+		if err != nil {
+			return nil, err
+		}
+		collectors[name] = c
+	}
+
+	return collectors, nil
 }
