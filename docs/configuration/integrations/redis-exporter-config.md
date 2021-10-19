@@ -19,7 +19,7 @@ redis_exporter:
 ```
 
 We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
-security privilegies necessary for monitoring your node, as per the [official documentation](https://github.com/oliver006/redis_exporter#authenticating-with-redis).
+security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/oliver006/redis_exporter#authenticating-with-redis).
 
 Full reference of options:
 ```yaml

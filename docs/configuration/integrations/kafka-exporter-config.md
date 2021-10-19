@@ -9,7 +9,7 @@ integration, which is an embedded version of [`kafka_exporter`](https://github.c
 This allows for the collection of Kafka Lag metrics and exposing them as Prometheus metrics.
 
 We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
-security privilegies necessary for monitoring your node, as per the [documentation](https://github.com/lightbend/kafka-lag-exporter#required-permissions-for-kafka-acl).
+security privileges necessary for monitoring your node, as per the [documentation](https://github.com/lightbend/kafka-lag-exporter#required-permissions-for-kafka-acl).
 
 Full reference of options:
 
