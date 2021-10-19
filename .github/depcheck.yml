@@ -19,6 +19,7 @@ go_modules:
 # The "current" version being used in the Agent must be provided explicitly as
 # you can see below.
 github_repos:
+  - github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
   - github.com/google/dnsmasq_exporter v0.2.0
   - github.com/ncabatoff/process-exporter v0.7.5
   - github.com/prometheus/mysqld_exporter v0.13.0
