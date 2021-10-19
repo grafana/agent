@@ -553,7 +553,7 @@ remote_write: []`
 	}
 	// this should trigger a rollback due to the applyconfigfunc above
 	err = groupManager.ApplyConfigs([]Config{configTriggerRollback})
-	require.NoError(t, err)
+	require.Error(t, err)
 	require.Len(t, groupManager.activeConfigs, 1)
 	// Ensure the config name is our original
 	require.Equal(t, groupManager.activeConfigs[0].Name, configA.Name)
