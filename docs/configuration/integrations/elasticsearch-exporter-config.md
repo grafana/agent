@@ -12,6 +12,9 @@ the collection of metrics from ElasticSearch servers.
 Note that currently, an Agent can only collect metrics from a single ElasticSearch server.
 However, the exporter is able to collect the metrics from all nodes through that server configured.
 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
+security privilegies necessary for monitoring your node, as per the [official documentation](https://github.com/prometheus-community/elasticsearch_exporter#elasticsearch-7x-security-privileges).
+
 Full reference of options:
 
 ```yaml

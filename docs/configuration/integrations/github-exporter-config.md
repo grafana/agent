@@ -8,6 +8,10 @@ The `github_exporter_config` block configures the `github_exporter` integration,
 which is an embedded version of
 [`github_exporter`](https://github.com/infinityworks/github-exporter). This allows for the collection of metrics from the github api.
 
+We strongly recommend that you configure a separate authentication token for the Agent, and give it only the strictly mandatory 
+security privilegies necessary for monitoring your node, as per the [official documentation](https://docs.github.com/en/rest/reference/permissions-required-for-github-apps).
+We also recommend that you use `api_token_file` parameter, to avoid setting the authentication token directly on the Agent config file.
+
 Full reference of options:
 
 ```yaml
