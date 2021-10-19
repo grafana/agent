@@ -10,7 +10,7 @@ require (
 	github.com/Shopify/sarama v1.30.0
 	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
-	github.com/drone/envsubst v1.0.2
+	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
 	github.com/fatih/color v1.12.0 // indirect
 	github.com/fatih/structs v1.1.0
 	github.com/go-kit/kit v0.11.0
