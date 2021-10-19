@@ -490,13 +490,15 @@ remote_write: []`
 		StopFunc: nil,
 	}
 	groupManager := NewGroupManager(logger, mockManager)
-	groupManager.ApplyConfigs([]Config{configA})
+	err := groupManager.ApplyConfigs([]Config{configA})
+	require.NoError(t, err)
+
 	// This should panic because the configA is moved into the same group as configb
 	// will be different groups
 	// the groupA will no longer be valid and will delete, thus triggering a rollback
 	// that should panic
 	assert.Panics(t, func() {
-		groupManager.ApplyConfigs([]Config{configB, configAInB})
+		_ = groupManager.ApplyConfigs([]Config{configB, configAInB})
 	}, "should rollback")
 
 }
@@ -542,14 +544,15 @@ remote_write: []`
 		StopFunc: nil,
 	}
 	groupManager := NewGroupManager(logger, mockManager)
-	groupManager.ApplyConfigs([]Config{configA})
+	err := groupManager.ApplyConfigs([]Config{configA})
+	require.NoError(t, err)
 	require.Len(t, groupManager.mergedConfigHashes, 1)
 	for k := range groupManager.mergedConfigHashes {
 		hashOfOriginalMergedConfig = k
 	}
 	// this should trigger a rollback due to the applyconfigfunc above
-	groupManager.ApplyConfigs([]Config{configTriggerRollback})
-
+	err = groupManager.ApplyConfigs([]Config{configTriggerRollback})
+	require.NoError(t, err)
 	require.Len(t, groupManager.activeConfigs, 1)
 	// Ensure the config name is our original
 	require.Equal(t, groupManager.activeConfigs[0].Name, configA.Name)
@@ -585,6 +588,6 @@ remote_write: []`
 	groupManager := NewGroupManager(logger, mockManager)
 
 	assert.Panics(t, func() {
-		groupManager.ApplyConfigs([]Config{configA})
+		_ = groupManager.ApplyConfigs([]Config{configA})
 	})
 }
