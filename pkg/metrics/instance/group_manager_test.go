@@ -1,4 +1,4 @@
-//nolint
+//nolint:goconst
 package instance
 
 import (
