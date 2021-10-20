@@ -9,6 +9,8 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -48,7 +50,7 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // NewIntegration creates a new mongodb_exporter
-func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(logger log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (integrations.Integration, error) {
 	return New(logger, c)
 }
 

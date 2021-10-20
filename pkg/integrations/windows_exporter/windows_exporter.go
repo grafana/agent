@@ -22,9 +22,9 @@ func New(logger log.Logger, _ *Config) (*Integration, error) {
 	return &Integration{}, nil
 }
 
-// MetricsHandler satisfies Integration.RegisterRoutes.
-func (i *Integration) MetricsHandler() (http.Handler, error) {
-	return http.NotFoundHandler(), nil
+// Handlers satisifes Integration.Handlers
+func (i *Integration) Handlers() (map[string]http.Handler, error) {
+	return map[string]http.Handler{}, nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

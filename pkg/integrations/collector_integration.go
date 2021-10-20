@@ -60,8 +60,8 @@ func WithExporterMetricsIncluded(included bool) CollectorIntegrationConfig {
 	}
 }
 
-// MetricsHandler returns the HTTP handler for the integration.
-func (i *CollectorIntegration) MetricsHandler() (http.Handler, error) {
+// Handlers returns the HTTP handlers for the integration.
+func (i *CollectorIntegration) Handlers() (map[string]http.Handler, error) {
 	r := prometheus.NewRegistry()
 	for _, c := range i.cs {
 		if err := r.Register(c); err != nil {
@@ -88,7 +88,7 @@ func (i *CollectorIntegration) MetricsHandler() (http.Handler, error) {
 		handler = promhttp.InstrumentMetricHandler(r, handler)
 	}
 
-	return handler, nil
+	return map[string]http.Handler{"metrics": handler}, nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

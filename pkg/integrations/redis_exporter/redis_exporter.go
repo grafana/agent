@@ -16,6 +16,8 @@ import (
 
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 )
 
 // DefaultConfig holds non-zero default options for the Config when it is
@@ -116,7 +118,7 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // NewIntegration converts the config into an integration instance.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (integrations.Integration, error) {
 	return New(l, c)
 }
 

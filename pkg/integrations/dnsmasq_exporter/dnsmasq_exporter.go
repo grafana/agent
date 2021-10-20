@@ -6,6 +6,8 @@ import (
 	"github.com/google/dnsmasq_exporter/collector"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 	"github.com/miekg/dns"
 )
 
@@ -37,7 +39,7 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (integrations.Integration, error) {
 	return New(l, c)
 }
 

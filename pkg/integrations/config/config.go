@@ -3,6 +3,7 @@
 package config
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/prometheus/prometheus/pkg/relabel"
@@ -38,4 +39,9 @@ type ScrapeConfig struct {
 	// The path will be prepended by "/integrations/<integration name>" when read by
 	// the integrations manager.
 	MetricsPath string
+}
+
+type Endpoint struct {
+	Handler http.Handler
+	Name    string
 }

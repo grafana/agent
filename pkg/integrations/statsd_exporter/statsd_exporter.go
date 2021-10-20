@@ -14,6 +14,8 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
@@ -86,7 +88,7 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (integrations.Integration, error) {
 	return New(l, c)
 }
 
@@ -149,11 +151,13 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	}, nil
 }
 
-// MetricsHandler returns the HTTP handler for the integration.
-func (e *Exporter) MetricsHandler() (http.Handler, error) {
-	return promhttp.HandlerFor(e.reg, promhttp.HandlerOpts{
-		ErrorHandling: promhttp.ContinueOnError,
-	}), nil
+// MetricsHandler returns the HTTP handlers for the integration.
+func (e *Exporter) Handlers() (map[string]http.Handler, error) {
+	return map[string]http.Handler{
+		"metrics": promhttp.HandlerFor(e.reg, promhttp.HandlerOpts{
+			ErrorHandling: promhttp.ContinueOnError,
+		}),
+	}, nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

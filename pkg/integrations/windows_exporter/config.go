@@ -3,6 +3,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 )
 
 func init() {
@@ -39,7 +41,7 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // NewIntegration creates an integration based on the given configuration
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (integrations.Integration, error) {
 	return New(l, c)
 }
 

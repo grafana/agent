@@ -3,6 +3,7 @@ module github.com/grafana/agent
 go 1.16
 
 require (
+	cloud.google.com/go/kms v1.0.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.3.0
 	github.com/Microsoft/hcsshim v0.8.16 // indirect
 	github.com/Shopify/sarama v1.29.1
@@ -14,7 +15,7 @@ require (
 	github.com/gaantunes/mongodb_exporter v1.0.2
 	github.com/go-kit/kit v0.11.0
 	github.com/go-kit/log v0.1.0
-	github.com/go-logfmt/logfmt v0.5.0
+	github.com/go-logfmt/logfmt v0.5.1
 	github.com/go-logr/logr v0.4.0
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gogo/protobuf v1.3.2
@@ -22,8 +23,9 @@ require (
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-jsonnet v0.17.0
 	github.com/gorilla/mux v1.8.0
+	github.com/grafana/grafana-frontend-telemetry-receiver v0.0.0-00010101000000-000000000000
 	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
-	github.com/hashicorp/consul/api v1.8.1
+	github.com/hashicorp/consul/api v1.10.1
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/imdario/mergo v0.3.12 // indirect
@@ -70,9 +72,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.0.0-RC1
 	go.uber.org/atomic v1.8.0
 	go.uber.org/zap v1.18.1
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
-	google.golang.org/grpc v1.39.0
+	golang.org/x/sys v0.0.0-20210908233432-aa78b53d3365
+	google.golang.org/grpc v1.40.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
@@ -138,3 +139,6 @@ replace (
 	github.com/prometheus/common => github.com/prometheus/common v0.23.0
 	github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 )
+
+// Domas: @TODO remove once all rquired features are in main branch
+replace github.com/grafana/grafana-frontend-telemetry-receiver => ../grafana-frontend-telemetry-receiver

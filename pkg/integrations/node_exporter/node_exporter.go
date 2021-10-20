@@ -66,7 +66,7 @@ func New(log log.Logger, c *Config) (*Integration, error) {
 }
 
 // MetricsHandler implements Integration.
-func (i *Integration) MetricsHandler() (http.Handler, error) {
+func (i *Integration) Handlers() (map[string]http.Handler, error) {
 	r := prometheus.NewRegistry()
 	if err := r.Register(i.nc); err != nil {
 		return nil, fmt.Errorf("couldn't register node_exporter node collector: %w", err)
@@ -92,7 +92,9 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 		handler = promhttp.InstrumentMetricHandler(i.exporterMetricsRegistry, handler)
 	}
 
-	return handler, nil
+	return map[string]http.Handler{
+		"metrics": handler,
+	}, nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

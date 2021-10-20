@@ -10,7 +10,8 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 )
 
 // Config controls the Agent integration.
@@ -29,7 +30,7 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(_ log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (integrations.Integration, error) {
 	return New(c), nil
 }
 
@@ -48,9 +49,9 @@ func New(c *Config) *Integration {
 	return &Integration{c: c}
 }
 
-// MetricsHandler satisfies Integration.RegisterRoutes.
-func (i *Integration) MetricsHandler() (http.Handler, error) {
-	return promhttp.Handler(), nil
+// Handlers satisfies Integration.Handlers.
+func (i *Integration) Handlers() (map[string]http.Handler, error) {
+	return map[string]http.Handler{}, nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

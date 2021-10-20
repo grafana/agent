@@ -90,7 +90,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.manager, err = integrations.NewManager(cfg.Integrations, logger, ep.promMetrics.InstanceManager(), ep.promMetrics.Validate)
+	ep.manager, err = integrations.NewManager(cfg.Integrations, logger, ep.promMetrics.InstanceManager(), ep.promMetrics.Validate, ep.lokiLogs, ep.tempoTraces)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.manager.ApplyConfig(cfg.Integrations); err != nil {
+	if err := ep.manager.ApplyConfig(cfg.Integrations, ep.lokiLogs, ep.tempoTraces); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
 		failed = true
 	}

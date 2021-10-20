@@ -46,8 +46,8 @@ func New(logger log.Logger, c *Config) (*Integration, error) {
 	return &Integration{c: c, collector: pc}, nil
 }
 
-// MetricsHandler satisfies Integration.RegisterRoutes.
-func (i *Integration) MetricsHandler() (http.Handler, error) {
+// Handlers satisfies Integration.Handlers.
+func (i *Integration) Handlers() (map[string]http.Handler, error) {
 	r := prometheus.NewRegistry()
 	if err := r.Register(i.collector); err != nil {
 		return nil, fmt.Errorf("couldn't register process_exporter collector: %w", err)
@@ -59,13 +59,14 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 		return nil, fmt.Errorf("couldn't register process_exporter: %w", err)
 	}
 
-	return promhttp.HandlerFor(
-		prometheus.Gatherers{r},
-		promhttp.HandlerOpts{
-			ErrorHandling:       promhttp.ContinueOnError,
-			MaxRequestsInFlight: 0,
-		},
-	), nil
+	return map[string]http.Handler{
+		"metrics": promhttp.HandlerFor(
+			prometheus.Gatherers{r},
+			promhttp.HandlerOpts{
+				ErrorHandling:       promhttp.ContinueOnError,
+				MaxRequestsInFlight: 0,
+			},
+		)}, nil
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.

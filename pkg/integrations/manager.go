@@ -13,9 +13,11 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
+	loki "github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore"
+	"github.com/grafana/agent/pkg/tempo"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -162,7 +164,7 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
+func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator, loki *loki.Logs, tempo *tempo.Tempo) (*Manager, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Manager{
@@ -183,14 +185,14 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 		return nil, err
 	}
 
-	if err := m.ApplyConfig(cfg); err != nil {
+	if err := m.ApplyConfig(cfg, loki, tempo); err != nil {
 		return nil, fmt.Errorf("failed applying config: %w", err)
 	}
 	return m, nil
 }
 
 // ApplyConfig updates the configuration of the integrations subsystem.
-func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
+func (m *Manager) ApplyConfig(cfg ManagerConfig, loki *loki.Logs, tempo *tempo.Tempo) error {
 	var failed bool
 
 	m.cfgMut.Lock()
@@ -236,7 +238,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		}
 
 		l := log.With(m.logger, "integration", ic.Name())
-		i, err := ic.NewIntegration(l)
+		i, err := ic.NewIntegration(l, loki, tempo)
 		if err != nil {
 			level.Error(m.logger).Log("msg", "failed to initialize integration. it will not run or be scraped", "integration", ic.Name(), "err", err)
 			failed = true
@@ -440,11 +442,11 @@ func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
 	}
 }
 
-// WireAPI hooks up /metrics routes per-integration.
+// WireAPI hooks up routes per-integration.
 func (m *Manager) WireAPI(r *mux.Router) {
 	type handlerCacheEntry struct {
-		handler http.Handler
-		process *integrationProcess
+		handlers map[string]http.Handler
+		process  *integrationProcess
 	}
 	var (
 		handlerMut   sync.Mutex
@@ -454,7 +456,7 @@ func (m *Manager) WireAPI(r *mux.Router) {
 	// loadHandler will perform a dynamic lookup of an HTTP handler for an
 	// integration. loadHandler should be called with a read lock on the
 	// integrations mutex.
-	loadHandler := func(key string) http.Handler {
+	loadHandler := func(key string, endpoint string) http.Handler {
 		handlerMut.Lock()
 		defer handlerMut.Unlock()
 
@@ -468,28 +470,36 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		// Now look in the cache for a handler for the running process.
 		cacheEntry, ok := handlerCache[key]
 		if ok && cacheEntry.process == p {
-			return cacheEntry.handler
+			handler, ok := cacheEntry.handlers[endpoint]
+			if !ok {
+				return http.NotFoundHandler()
+			}
+			return handler
 		}
 
-		// New integration process that hasn't been scraped before. Generate
-		// a handler for it and cache it.
-		handler, err := p.i.MetricsHandler()
+		handlers, err := p.i.Handlers()
 		if err != nil {
-			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Name(), "err", err)
+			level.Error(m.logger).Log("msg", "could not create http handlers for integration", "integration", p.cfg.Name(), "err", err)
 			return http.HandlerFunc(internalServiceError)
 		}
 
-		cacheEntry = handlerCacheEntry{handler: handler, process: p}
+		cacheEntry = handlerCacheEntry{handlers: handlers, process: p}
 		handlerCache[key] = cacheEntry
-		return cacheEntry.handler
+
+		handler, ok := handlers[endpoint]
+		if !ok {
+			return http.NotFoundHandler()
+		}
+
+		return handler
 	}
 
-	r.HandleFunc("/integrations/{name}/metrics", func(rw http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/integrations/{key}/{endpoint}", func(rw http.ResponseWriter, r *http.Request) {
 		m.integrationsMut.RLock()
 		defer m.integrationsMut.RUnlock()
 
-		key := integrationKey(mux.Vars(r)["name"])
-		handler := loadHandler(key)
+		key := integrationKey(mux.Vars(r)["key"])
+		handler := loadHandler(key, mux.Vars(r)["endpoint"])
 		handler.ServeHTTP(rw, r)
 	})
 }

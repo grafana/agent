@@ -6,6 +6,8 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations/config"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 )
 
 // Config provides the configuration and constructor for an integration.
@@ -19,14 +21,14 @@ type Config interface {
 	CommonConfig() config.Common
 
 	// NewIntegration returns an integration for the given with the given logger.
-	NewIntegration(l log.Logger) (Integration, error)
+	NewIntegration(l log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (Integration, error)
 }
 
 // An Integration is a process that integrates with some external system and
 // pulls telemetry data.
 type Integration interface {
-	// MetricsHandler returns an http.Handler that will return metrics.
-	MetricsHandler() (http.Handler, error)
+	// Handlers returns slice of arbitrary http endpoints to be exposed for this integration
+	Handlers() (map[string]http.Handler, error)
 
 	// ScrapeConfigs returns a set of scrape configs that determine where metrics
 	// can be scraped.

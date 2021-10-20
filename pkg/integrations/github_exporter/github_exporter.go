@@ -5,6 +5,8 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 	gh_config "github.com/infinityworks/github-exporter/config"
 	"github.com/infinityworks/github-exporter/exporter"
 )
@@ -57,7 +59,7 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // NewIntegration creates a new github_exporter
-func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(logger log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (integrations.Integration, error) {
 	return New(logger, c)
 }
 
