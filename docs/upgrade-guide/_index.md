@@ -12,7 +12,7 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
-### Traces: Changes to receiver's TLS config.
+### Traces: Changes to receiver's TLS config (Breaking change).
 
 Upgrading to OpenTelemetry v0.36.0 contains a change in the receivers TLS config.
 TLS params have been changed from being squashed to being in its own block.
