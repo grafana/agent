@@ -174,10 +174,8 @@ func createMergedConfigHash(mergedConfig Config) (string, error) {
 // internal state is left corrupted since we've completely lost a
 // config.
 func (m *GroupManager) rollbackConfigs(oldConfigs []Config) {
-	if len(oldConfigs) == 0 {
-		level.Error(m.log).Log("err", "rollback was called but no configs to rollback to")
-		panic(errors.New("rollback was called but no configs to rollback to"))
-	}
+	// We dont do a len = 0 check and exit early since we still need to do cleanup
+	// even if there are 0 configs
 	if err := m.applyConfigs(oldConfigs, true); err != nil {
 		level.Error(m.log).Log("err", fmt.Sprintf("failed to rollback configs with error %s", err))
 		panic(err)

@@ -588,7 +588,6 @@ remote_write: []`
 	}
 	groupManager := NewGroupManager(logger, mockManager)
 
-	assert.Panics(t, func() {
-		_ = groupManager.ApplyConfigs([]Config{configA})
-	})
+	_ = groupManager.ApplyConfigs([]Config{configA})
+	require.Len(t, groupManager.activeConfigs, 0)
 }
