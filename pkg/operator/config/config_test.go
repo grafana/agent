@@ -27,99 +27,99 @@ func TestBuildConfigMetrics(t *testing.T) {
 	}{
 		{
 			input: util.Untab(`
-				metadata:
-					name: example
-					namespace: default
-				spec:
-					logLevel: debug
-					metrics:
-						scrapeInterval: 15s
-						scrapeTimeout: 10s
-						externalLabels:
-							cluster: prod
-							foo: bar
-						remoteWrite:
-						- name: rw-1
-							url: http://localhost:9090/api/v1/write
-			`),
+        metadata:
+          name: example
+          namespace: default
+        spec:
+          logLevel: debug
+          metrics:
+            scrapeInterval: 15s
+            scrapeTimeout: 10s
+            externalLabels:
+              cluster: prod
+              foo: bar
+            remoteWrite:
+            - name: rw-1
+              url: http://localhost:9090/api/v1/write
+      `),
 			expect: util.Untab(`
-				server:
-					http_listen_port: 8080
-					log_level: debug
+        server:
+          http_listen_port: 8080
+          log_level: debug
 
-				metrics:
-					wal_directory: /var/lib/grafana-agent/data
-					global:
-						scrape_interval: 15s
-						scrape_timeout: 10s
-						external_labels:
-							cluster: prod
-							foo: bar
-							__replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
-						remote_write:
-						- name: rw-1
-							url: http://localhost:9090/api/v1/write
-			`),
+        metrics:
+          wal_directory: /var/lib/grafana-agent/data
+          global:
+            scrape_interval: 15s
+            scrape_timeout: 10s
+            external_labels:
+              cluster: prod
+              foo: bar
+              __replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
+            remote_write:
+            - name: rw-1
+              url: http://localhost:9090/api/v1/write
+      `),
 		},
 		{
 			input: util.Untab(`
-					metadata:
-						name: example
-						namespace: default
-					spec:
-						logLevel: debug
-						metrics:
-							scrapeInterval: 15s
-							scrapeTimeout: 10s
-							externalLabels:
-								cluster: prod
-								foo: bar
-							remoteWrite:
-							- url: http://localhost:9090/api/v1/write
-								basicAuth:
-									username:
-										name: example-secret
-										key: key
-									password:
-										name: example-secret
-										key: key
-								tlsConfig:
-									ca:
-										configMap:
-											name:	example-cm
-											key: key
-									cert:
-										secret:
-											name: example-secret
-											key: key
-									keySecret:
-										name: example-secret
-										key: key
-				`),
+          metadata:
+            name: example
+            namespace: default
+          spec:
+            logLevel: debug
+            metrics:
+              scrapeInterval: 15s
+              scrapeTimeout: 10s
+              externalLabels:
+                cluster: prod
+                foo: bar
+              remoteWrite:
+              - url: http://localhost:9090/api/v1/write
+                basicAuth:
+                  username:
+                    name: example-secret
+                    key: key
+                  password:
+                    name: example-secret
+                    key: key
+                tlsConfig:
+                  ca:
+                    configMap:
+                      name: example-cm
+                      key: key
+                  cert:
+                    secret:
+                      name: example-secret
+                      key: key
+                  keySecret:
+                    name: example-secret
+                    key: key
+        `),
 			expect: util.Untab(`
-					server:
-						http_listen_port: 8080
-						log_level: debug
+          server:
+            http_listen_port: 8080
+            log_level: debug
 
-					metrics:
-						wal_directory: /var/lib/grafana-agent/data
-						global:
-							scrape_interval: 15s
-							scrape_timeout: 10s
-							external_labels:
-								cluster: prod
-								foo: bar
-								__replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
-							remote_write:
-							- url: http://localhost:9090/api/v1/write
-								basic_auth:
-									username: somesecret
-									password: somesecret
-								tls_config:
-									ca_file: /var/lib/grafana-agent/secrets/_configMaps_default_example_cm_key
-									cert_file: /var/lib/grafana-agent/secrets/_secrets_default_example_secret_key
-									key_file: /var/lib/grafana-agent/secrets/_secrets_default_example_secret_key
-				`),
+          metrics:
+            wal_directory: /var/lib/grafana-agent/data
+            global:
+              scrape_interval: 15s
+              scrape_timeout: 10s
+              external_labels:
+                cluster: prod
+                foo: bar
+                __replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
+              remote_write:
+              - url: http://localhost:9090/api/v1/write
+                basic_auth:
+                  username: somesecret
+                  password: somesecret
+                tls_config:
+                  ca_file: /var/lib/grafana-agent/secrets/_configMaps_default_example_cm_key
+                  cert_file: /var/lib/grafana-agent/secrets/_secrets_default_example_secret_key
+                  key_file: /var/lib/grafana-agent/secrets/_secrets_default_example_secret_key
+        `),
 		},
 	}
 
@@ -181,10 +181,10 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 	}
 
 	store[assets.KeyForSecret("operator", additionalSelector)] = util.Untab(`
-	- job_name: job
-		kubernetes_sd_configs:
-		- role: node
-	`)
+  - job_name: job
+    kubernetes_sd_configs:
+    - role: node
+  `)
 
 	expect := util.Untab(`
 server:
@@ -204,7 +204,7 @@ metrics:
     - job_name: job
       kubernetes_sd_configs:
       - role: node
-	`)
+  `)
 
 	result, err := input.BuildConfig(store, MetricsType)
 	require.NoError(t, err)
@@ -226,19 +226,19 @@ func TestBuildConfigLogs(t *testing.T) {
 	}{
 		{
 			input: util.Untab(`
-				metadata:
-					name: example
-					namespace: default
-				spec:
-					logLevel: debug
-			`),
+        metadata:
+          name: example
+          namespace: default
+        spec:
+          logLevel: debug
+      `),
 			expect: util.Untab(`
-				server:
-					http_listen_port: 8080
-					log_level: debug
-				logs:
-					positions_directory: /var/lib/grafana-agent/data
-			`),
+        server:
+          http_listen_port: 8080
+          log_level: debug
+        logs:
+          positions_directory: /var/lib/grafana-agent/data
+      `),
 		},
 	}
 
@@ -256,6 +256,54 @@ func TestBuildConfigLogs(t *testing.T) {
 				fmt.Println(result)
 			}
 		})
+	}
+}
+
+func TestBuildConfigIntegration(t *testing.T) {
+	var store = make(assets.SecretStore)
+
+	input := Deployment{
+		Agent: &grafana.GrafanaAgent{
+			ObjectMeta: meta_v1.ObjectMeta{
+				Namespace: "operator",
+				Name:      "agent",
+			},
+			Spec: grafana.GrafanaAgentSpec{
+				Image:              strPointer("grafana/agent:latest"),
+				ServiceAccountName: "agent",
+			},
+		},
+		Integration: &grafana.IntegrationInstance{
+			Spec: grafana.IntegrationInstanceSpec{
+				Name: "node_exporter",
+				Config: util.Untab(`
+          enabled: true
+          rootfs_path: /host/root
+          sysfs_path: /host/sys
+          procfs_path: /host/proc
+        `),
+			},
+		},
+	}
+
+	expect := util.Untab(`
+server:
+  http_listen_port: 8080
+
+integrations:
+  node_exporter:
+    enabled: true
+    scrape_integration: false
+    rootfs_path: /host/root
+    sysfs_path: /host/sys
+    procfs_path: /host/proc
+  `)
+
+	result, err := input.BuildConfig(store, IntegrationType)
+	require.NoError(t, err)
+
+	if !assert.YAMLEq(t, expect, result) {
+		fmt.Println(result)
 	}
 }
 
