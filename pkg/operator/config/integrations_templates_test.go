@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 )
 
-func TestIntegrationsConfig(t *testing.T) {
+func TestIntegrationConfig(t *testing.T) {
 	tt := []struct {
 		name   string
 		input  map[string]interface{}
@@ -86,7 +86,7 @@ func TestIntegrationsConfig(t *testing.T) {
 			vm, err := createVM(testStore())
 			require.NoError(t, err)
 
-			actual, err := runSnippetTLA(t, vm, "./integrations.libsonnet", tc.input)
+			actual, err := runSnippetTLA(t, vm, "./integration.libsonnet", tc.input)
 			require.NoError(t, err)
 			require.YAMLEq(t, tc.expect, actual)
 		})

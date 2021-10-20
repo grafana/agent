@@ -1,5 +1,5 @@
-// agent-integrations.libsonnet is the entrypoint for rendering a Grafana Agent
-// config file for integrations based on the Operator custom resources.
+// agent-integration.libsonnet is the entrypoint for rendering a Grafana Agent
+// config file for a single integration based on the Operator custom resources.
 //
 // When writing an object, any field with null will be removed from the final
 // YAML. This is useful as we don't want to always translate unfilled values
@@ -14,7 +14,7 @@
 local marshal = import 'ext/marshal.libsonnet';
 local optionals = import 'ext/optionals.libsonnet';
 
-local new_integration_instance = import './integrations.libsonnet';
+local new_integration_instance = import './integration.libsonnet';
 
 // @param {config.Deployment} ctx
 function(ctx) marshal.YAML(optionals.trim({
