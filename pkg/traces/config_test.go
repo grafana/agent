@@ -72,8 +72,8 @@ receivers:
 			cfg: `
 receivers:
   jaeger:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 `,
 			expectedError: true,
 		},
@@ -84,8 +84,8 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 `,
 			expectedConfig: `
 receivers:
@@ -93,7 +93,7 @@ receivers:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -101,45 +101,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
-      processors: []
-      receivers: ["jaeger"]
-`,
-		},
-		{
-			name: "push_config options",
-			cfg: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-push_config:
-  insecure: true
-  endpoint: example.com:12345
-  basic_auth:
-    username: test
-    password: blerg
-`,
-			expectedConfig: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-exporters:
-  otlp:
-    endpoint: example.com:12345
-    compression: gzip
-    tls:
-      insecure: true
-    headers:
-      authorization: Basic dGVzdDpibGVyZw==
-    retry_on_failure:
-      enabled: true
-      max_elapsed_time: 60s
-service:
-  pipelines:
-    traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -156,15 +118,15 @@ attributes:
   - key: montgomery
     value: forever
     action: update
-push_config:
-  endpoint: example.com:12345
-  batch:
-    timeout: 5s
-    send_batch_size: 100
-  retry_on_failure:
-    initial_interval: 10s
-  sending_queue:
-    num_consumers: 15
+batch:
+  timeout: 5s
+  send_batch_size: 100
+remote_write:
+  - endpoint: example.com:12345
+    retry_on_failure:
+      initial_interval: 10s
+    sending_queue:
+      num_consumers: 15
 `,
 			expectedConfig: `
 receivers:
@@ -172,7 +134,7 @@ receivers:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -192,31 +154,31 @@ processors:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: ["attributes", "batch"]
       receivers: ["jaeger"]
 `,
 		},
 		{
-			name: "push_config password in file",
+			name: "password in file",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure: true
-  endpoint: example.com:12345
-  basic_auth:
-    username: test
-    password_file: ` + passwordFile.Name(),
+remote_write:
+  - insecure: true
+    endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password_file: ` + passwordFile.Name(),
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     tls:
@@ -228,31 +190,31 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
 		},
 		{
-			name: "push_config password in file with extra newline",
+			name: "password in file with extra newline",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure: true
-  endpoint: example.com:12345
-  basic_auth:
-    username: test
-    password_file: ` + passwordFileExtraNewline.Name(),
+remote_write:
+  - insecure: true
+    endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password_file: ` + passwordFileExtraNewline.Name(),
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     tls:
@@ -264,7 +226,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -276,16 +238,16 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure_skip_verify: true
-  endpoint: example.com:12345`,
+remote_write:
+  - insecure_skip_verify: true
+    endpoint: example.com:12345`,
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     tls:
@@ -295,7 +257,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -307,17 +269,17 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure_skip_verify: true
-  endpoint: example.com:12345
-  compression: none`,
+remote_write:
+  - insecure_skip_verify: true
+    endpoint: example.com:12345
+    compression: none`,
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     tls:
       insecure_skip_verify: true
@@ -326,7 +288,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -808,8 +770,8 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 automatic_logging:
   spans: true
 `,
@@ -823,7 +785,7 @@ processors:
     automatic_logging:
       spans: true
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -831,7 +793,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: ["automatic_logging"]
       receivers: ["jaeger"]
       `,

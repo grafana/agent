@@ -62,7 +62,6 @@ example, you may not deploy a scraping service with Loki logs collection.
 ## Configure Traces
 
 - `withTracesConfig(config)`: Creates a Traces config block to pass to the Agent.
-- (Deprecated) `withTracesPushConfig(push_config)`: Configures a location to push spans to.
 - `withTracesRemoteWrite(remote_write)`: Configures one or multiple locations to push spans to.
 - `withTracesSamplingStrategies(strategies)`: Configures strategies for trace collection.
 - `withTracesScrapeConfigs(scrape_configs)`: Configures scrape configs to attach

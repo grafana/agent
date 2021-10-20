@@ -97,9 +97,6 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 type InstanceConfig struct {
 	Name string `yaml:"name"`
 
-	// Deprecated in favor of RemoteWrite and Batch.
-	PushConfig PushConfig `yaml:"push_config,omitempty"`
-
 	// RemoteWrite defines one or multiple backends that can receive the pipeline's traffic.
 	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
@@ -139,39 +136,7 @@ const (
 	protocolHTTP    = "http"
 )
 
-// DefaultPushConfig holds the default settings for a PushConfig.
-var DefaultPushConfig = PushConfig{
-	Compression: compressionGzip,
-}
-
-// PushConfig controls the configuration of exporting to Grafana Cloud
-type PushConfig struct {
-	Endpoint           string                 `yaml:"endpoint,omitempty"`
-	Compression        string                 `yaml:"compression,omitempty"`
-	Insecure           bool                   `yaml:"insecure,omitempty"`
-	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
-	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty,omitempty"`
-	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
-	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
-	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultPushConfig
-
-	type plain PushConfig
-	if err := unmarshal((*plain)(c)); err != nil {
-		return err
-	}
-
-	if c.Compression != compressionGzip && c.Compression != compressionNone {
-		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
-	}
-	return nil
-}
-
-// DefaultRemoteWriteConfig holds the default settings for a PushConfig.
+// DefaultRemoteWriteConfig holds the default setting	s for a PushConfig.
 var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Compression: compressionGzip,
 	Protocol:    protocolGRPC,
@@ -325,25 +290,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 }
 
 // exporters builds one or multiple exporters from a remote_write block.
-// It also supports building an exporter from push_config.
 func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
-	if len(c.RemoteWrite) == 0 {
-		otlpExporter, err := exporter(RemoteWriteConfig{
-			Endpoint:    c.PushConfig.Endpoint,
-			Compression: c.PushConfig.Compression,
-			Insecure:    c.PushConfig.Insecure,
-			TLSConfig: &prom_config.TLSConfig{
-				InsecureSkipVerify: c.PushConfig.InsecureSkipVerify,
-			},
-			BasicAuth:      c.PushConfig.BasicAuth,
-			SendingQueue:   c.PushConfig.SendingQueue,
-			RetryOnFailure: c.PushConfig.RetryOnFailure,
-		})
-		return map[string]interface{}{
-			"otlp": otlpExporter,
-		}, err
-	}
-
 	exporters := map[string]interface{}{}
 	for i, remoteWriteConfig := range c.RemoteWrite {
 		exporter, err := exporter(remoteWriteConfig)
@@ -436,14 +383,6 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		return nil, errors.New("must have at least one configured receiver")
 	}
 
-	if len(c.RemoteWrite) != 0 && len(c.PushConfig.Endpoint) != 0 {
-		return nil, errors.New("must not configure push_config and remote_write. push_config is deprecated in favor of remote_write")
-	}
-
-	if c.Batch != nil && c.PushConfig.Batch != nil {
-		return nil, errors.New("must not configure push_config.batch and batch. push_config.batch is deprecated in favor of batch")
-	}
-
 	exporters, err := c.exporters()
 	if err != nil {
 		return nil, err
@@ -482,9 +421,6 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 
 	if c.Batch != nil {
 		processors["batch"] = c.Batch
-		processorNames = append(processorNames, "batch")
-	} else if c.PushConfig.Batch != nil {
-		processors["batch"] = c.PushConfig.Batch
 		processorNames = append(processorNames, "batch")
 	}
 

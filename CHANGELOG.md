@@ -48,6 +48,8 @@
 
 - [CHANGE] The windows_exporter now disables the textfile collector by default. (@rfratto)
 
+- [CHANGE] **Breaking change** push_config is no longer supported in trace's config (@mapno)
+
 # v0.19.0 (2021-09-29)
 
 This release has breaking changes. Please read [CHANGE] entries carefully and
