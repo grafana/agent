@@ -130,6 +130,7 @@ automatic_logging:
 
 # Receiver configurations are mapped directly into the OpenTelemetry receivers
 # block. At least one receiver is required.
+# The Agent uses OpenTelemetry v0.36.0. Refer to the corresponding receiver's config.
 #
 # Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 receivers: <receivers>
@@ -299,12 +300,17 @@ service_graphs:
 > **Note:** More information on the following types can be found on the
 > documentation for their respective projects:
 >
-> * [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor)
-> * [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor)
-> * [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter)
-> * [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter)
-> * [`receivers`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md)
-> * [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.27/configuration/configuration/#scrape_config)
-> * [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47)
-> * [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47)
-> * [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)
+* [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/processor/attributesprocessor)
+* [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/processor/batchprocessor)
+* [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/exporter/otlpexporter)
+* [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/exporter/otlpexporter)
+* `receivers`:
+  * [`jaegerreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/jaegerreceiver)
+  * [`kafkareceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/kafkareceiver)
+  * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/receiver/otlpreceiver)
+  * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/opencensusreceiver)
+  * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/zipkinreceiver)
+* [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.27/configuration/configuration/#scrape_config)
+* [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/spanmetricsprocessor/config.go#L38-L47)
+* [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/spanmetricsprocessor/config.go#L38-L47)
+* [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/tailsamplingprocessor)

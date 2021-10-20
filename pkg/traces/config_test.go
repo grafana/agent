@@ -332,6 +332,47 @@ service:
 `,
 		},
 		{
+			name: "jaeger receiver remote_sampling TLS config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+    remote_sampling:
+      strategy_file: file_path
+      tls:
+        insecure: true
+        insecure_skip_verify: true
+        server_name_override: hostname
+remote_write:
+  - endpoint: example.com:12345
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+    remote_sampling:
+      strategy_file: file_path
+      tls:
+        insecure: true
+        insecure_skip_verify: true
+        server_name_override: hostname
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
 			name: "push_config and remote_write",
 			cfg: `
 receivers:

@@ -12,6 +12,37 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Traces: Changes to receiver's TLS config.
+
+Upgrading to OpenTelemetry v0.36.0 contains a change in the receivers TLS config.
+TLS params have been changed from being squashed to being in its own block.
+This affect the jaeger receiver's `remote_sampling` config.
+
+Example old config:
+
+```yaml
+receivers:
+  jaeger:
+    protocols:
+      grpc: null,
+    remote_sampling:
+      strategy_file: <file_path>
+      insecure: true
+```
+
+Example new config:
+
+```yaml
+receivers:
+  jaeger:
+    protocols:
+      grpc: null,
+    remote_sampling:
+      strategy_file: <file_path>
+      tls:
+        insecure: true
+```
+
 ## v0.19.0
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
