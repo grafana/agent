@@ -43,6 +43,12 @@ receivers:
         insecure: true
 ```
 
+### Traces: push_config is no longer supported (Breaking change)
+
+`push_config` was deprecated in favor of `remote_write` in v0.14.0, while
+maintaining backwards compatibility.
+Refer to the [deprecation announcement](#tempo-push_config-deprecation) for how to upgrade.
+
 ## v0.19.0
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
