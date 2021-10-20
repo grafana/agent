@@ -1,0 +1,75 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.6.2
+  creationTimestamp: null
+  name: integrationinstances.monitoring.grafana.com
+spec:
+  group: monitoring.grafana.com
+  names:
+    categories:
+    - agent-operator
+    kind: IntegrationInstance
+    listKind: IntegrationInstanceList
+    plural: integrationinstances
+    singular: integrationinstance
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: IntegrationInstance defines an integration for the Grafana Agent.
+          The integration, when discovered by a GrafanaAgent, will be run as one or
+          more pods on the cluster.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec holds the specification of the desired behavior for
+              the integration.
+            properties:
+              config:
+                description: Config holds the contents of the config for the integration.
+                type: string
+              mode:
+                default: single
+                description: Mode configures how this integration is run on the cluster.
+                  Integrations that are related to metrics from machines should use
+                  "per-node" so that the integration runs on every single machine.
+                  Otherwise, the default mode of "single" is appropriate.
+                enum:
+                - per-node
+                - single
+                type: string
+              name:
+                description: 'Name is the name of the integration this spec configures.
+                  Must be an integration available in the GrafanaAgent version used.
+                  Examples: node_exporter, agent, mysqld_exporter.'
+                type: string
+            required:
+            - config
+            - mode
+            - name
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
