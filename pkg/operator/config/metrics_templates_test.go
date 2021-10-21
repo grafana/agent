@@ -34,9 +34,9 @@ func TestExternalLabels(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				cluster: operator/agent
-				__replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
-			`),
+        cluster: operator/agent
+        __replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
+      `),
 		},
 		{
 			name: "external_labels",
@@ -54,10 +54,10 @@ func TestExternalLabels(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				cluster: operator/agent
-				foo: bar
-				__replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
-			`),
+        cluster: operator/agent
+        foo: bar
+        __replica__: replica-$(STATEFULSET_ORDINAL_NUMBER)
+      `),
 		},
 		{
 			name: "custom labels",
@@ -77,10 +77,10 @@ func TestExternalLabels(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				deployment: operator/agent
-				foo: bar
-				replica: replica-$(STATEFULSET_ORDINAL_NUMBER)
-			`),
+        deployment: operator/agent
+        foo: bar
+        replica: replica-$(STATEFULSET_ORDINAL_NUMBER)
+      `),
 		},
 	}
 
@@ -112,8 +112,8 @@ func TestKubeSDConfig(t *testing.T) {
 				"role":      "pod",
 			},
 			expect: util.Untab(`
-				role: pod
-			`),
+        role: pod
+      `),
 		},
 		{
 			name: "defaults",
@@ -123,10 +123,10 @@ func TestKubeSDConfig(t *testing.T) {
 				"role":       "pod",
 			},
 			expect: util.Untab(`
-				role: pod
-				namespaces:
-					names: [operator]
-			`),
+        role: pod
+        namespaces:
+          names: [operator]
+      `),
 		},
 		{
 			name: "host",
@@ -136,9 +136,9 @@ func TestKubeSDConfig(t *testing.T) {
 				"role":      "pod",
 			},
 			expect: util.Untab(`
-				role: pod
-				api_server: host
-			`),
+        role: pod
+        api_server: host
+      `),
 		},
 		{
 			name: "basic auth",
@@ -159,11 +159,11 @@ func TestKubeSDConfig(t *testing.T) {
 				"role": "pod",
 			},
 			expect: util.Untab(`
-				role: pod
-				basic_auth:
-					username: secretkey
-					password: secretkey
-			`),
+        role: pod
+        basic_auth:
+          username: secretkey
+          password: secretkey
+      `),
 		},
 		{
 			name: "bearer auth",
@@ -176,12 +176,12 @@ func TestKubeSDConfig(t *testing.T) {
 				"role": "pod",
 			},
 			expect: util.Untab(`
-				role: pod
-				authorization:
-					type: Bearer
-					credentials: bearer
-					credentials_file: file
-			`),
+        role: pod
+        authorization:
+          type: Bearer
+          credentials: bearer
+          credentials_file: file
+      `),
 		},
 		{
 			name: "tls_config",
@@ -195,10 +195,10 @@ func TestKubeSDConfig(t *testing.T) {
 				"role": "pod",
 			},
 			expect: util.Untab(`
-				role: pod
-				tls_config:
-					ca_file: ca
-			`),
+        role: pod
+        tls_config:
+          ca_file: ca
+      `),
 		},
 	}
 
@@ -251,38 +251,38 @@ func TestPodMonitor(t *testing.T) {
 				"shards":                   1,
 			},
 			expect: util.Untab(`
-				job_name: podMonitor/operator/podmonitor/0
-				honor_labels: false
-				kubernetes_sd_configs:
-				- role: pod
-				  namespaces:
-						names: [operator]
-				relabel_configs:
-				- source_labels: [job]
-					target_label: __tmp_prometheus_job_name
-				- source_labels: [__meta_kubernetes_pod_container_port_name]
-					regex: metrics
-					action: keep
-				- source_labels: [__meta_kubernetes_namespace]
-					target_label: namespace
-				- source_labels: [__meta_kubernetes_service_name]
-					target_label: service
-				- source_labels: [__meta_kubernetes_pod_name]
-					target_label: pod
-				- source_labels: [__meta_kubernetes_pod_container_name]
-					target_label: container
-				- target_label: job
-					replacement: operator/podmonitor
-				- target_label: endpoint
-					replacement: metrics
-				- source_labels: [__address__]
-					target_label: __tmp_hash
-					action: hashmod
-					modulus: 1
-				- source_labels: [__tmp_hash]
-					action: keep
-					regex: $(SHARD)
-			`),
+        job_name: podMonitor/operator/podmonitor/0
+        honor_labels: false
+        kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names: [operator]
+        relabel_configs:
+        - source_labels: [job]
+          target_label: __tmp_prometheus_job_name
+        - source_labels: [__meta_kubernetes_pod_container_port_name]
+          regex: metrics
+          action: keep
+        - source_labels: [__meta_kubernetes_namespace]
+          target_label: namespace
+        - source_labels: [__meta_kubernetes_service_name]
+          target_label: service
+        - source_labels: [__meta_kubernetes_pod_name]
+          target_label: pod
+        - source_labels: [__meta_kubernetes_pod_container_name]
+          target_label: container
+        - target_label: job
+          replacement: operator/podmonitor
+        - target_label: endpoint
+          replacement: metrics
+        - source_labels: [__address__]
+          target_label: __tmp_hash
+          action: hashmod
+          modulus: 1
+        - source_labels: [__tmp_hash]
+          action: keep
+          regex: $(SHARD)
+      `),
 		},
 	}
 
@@ -346,39 +346,39 @@ func TestProbe(t *testing.T) {
 				"shards":                   1,
 			},
 			expect: util.Untab(`
-				job_name: probe/operator/probe
-				honor_timestamps: true
-				kubernetes_sd_configs:
-				- role: ingress
-					namespaces:
-						names: [operator]
-				metrics_path: /probe
-				params:
-					module: ["mod"]
-				relabel_configs:
-				- source_labels: [job]
-					target_label: __tmp_prometheus_job_name
-				- action: keep
-					regex: bar
-					source_labels: [__meta_kubernetes_ingress_label_foo]
-				- action: replace
-					regex: (.+);(.+);(.+)
-					replacement: $1://$2$3
-					separator: ;
-					source_labels:
-						- __meta_kubernetes_ingress_scheme
-						- __address__
-						- __meta_kubernetes_ingress_path
-					target_label: __param_target
-				- source_labels: [__meta_kubernetes_namespace]
-					target_label: namespace
-				- source_labels: [__meta_kubernetes_ingress_name]
-					target_label: ingress
-				- source_labels: [__param_target]
-					target_label: instance
-				- replacement: ""
-					target_label: __address__
-			`),
+        job_name: probe/operator/probe
+        honor_timestamps: true
+        kubernetes_sd_configs:
+        - role: ingress
+          namespaces:
+            names: [operator]
+        metrics_path: /probe
+        params:
+          module: ["mod"]
+        relabel_configs:
+        - source_labels: [job]
+          target_label: __tmp_prometheus_job_name
+        - action: keep
+          regex: bar
+          source_labels: [__meta_kubernetes_ingress_label_foo]
+        - action: replace
+          regex: (.+);(.+);(.+)
+          replacement: $1://$2$3
+          separator: ;
+          source_labels:
+            - __meta_kubernetes_ingress_scheme
+            - __address__
+            - __meta_kubernetes_ingress_path
+          target_label: __param_target
+        - source_labels: [__meta_kubernetes_namespace]
+          target_label: namespace
+        - source_labels: [__meta_kubernetes_ingress_name]
+          target_label: ingress
+        - source_labels: [__param_target]
+          target_label: instance
+        - replacement: ""
+          target_label: __address__
+      `),
 		},
 	}
 
@@ -425,14 +425,14 @@ func TestRelabelConfig(t *testing.T) {
 				Action:       "replace",
 			},
 			expect: util.Untab(`
-				source_labels: ["input_a", "input_b"]
-				separator: ";"
-				target_label: "target_a"
-				regex: regex
-				modulus: 1234
-				replacement: foobar
-				action: replace
-			`),
+        source_labels: ["input_a", "input_b"]
+        separator: ";"
+        target_label: "target_a"
+        regex: regex
+        modulus: 1234
+        replacement: foobar
+        action: replace
+      `),
 		},
 	}
 
@@ -466,8 +466,8 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				url: http://cortex/api/prom/push
-			`),
+        url: http://cortex/api/prom/push
+      `),
 		},
 		{
 			name: "base configs",
@@ -481,12 +481,12 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				name: cortex
-				url: http://cortex/api/prom/push
-				remote_timeout: 5m
-				headers:
-					foo: bar
-			`),
+        name: cortex
+        url: http://cortex/api/prom/push
+        remote_timeout: 5m
+        headers:
+          foo: bar
+      `),
 		},
 		{
 			name: "write_relabel_configs",
@@ -501,11 +501,11 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				url: http://cortex/api/prom/push
-				write_relabel_configs:
-				- source_labels: [__name__]
-					action: drop
-			`),
+        url: http://cortex/api/prom/push
+        write_relabel_configs:
+        - source_labels: [__name__]
+          action: drop
+      `),
 		},
 		{
 			name: "tls_config",
@@ -520,11 +520,11 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				url: http://cortex/api/prom/push
-				tls_config:
-					ca_file: ca
-					cert_file: cert
-			`),
+        url: http://cortex/api/prom/push
+        tls_config:
+          ca_file: ca
+          cert_file: cert
+      `),
 		},
 		{
 			name: "basic_auth",
@@ -545,11 +545,11 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				url: http://cortex/api/prom/push
-				basic_auth:
-					username: secretkey
-					password: secretkey
-			`),
+        url: http://cortex/api/prom/push
+        basic_auth:
+          username: secretkey
+          password: secretkey
+      `),
 		},
 		{
 			name: "sigv4",
@@ -573,14 +573,14 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				url: http://cortex/api/prom/push
-				sigv4:
-					region: region
-					access_key: secretkey
-					secret_key: secretkey
-					profile: profile
-					role_arn: arn
-			`),
+        url: http://cortex/api/prom/push
+        sigv4:
+          region: region
+          access_key: secretkey
+          secret_key: secretkey
+          profile: profile
+          role_arn: arn
+      `),
 		},
 		{
 			name: "queue_config",
@@ -600,16 +600,16 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				url: http://cortex/api/prom/push
-				queue_config:
-					capacity: 1000
-					min_shards: 1
-					max_shards: 100
-					max_samples_per_send: 500
-					batch_send_deadline: 5m
-					min_backoff: 1m
-					max_backoff: 5m
-			`),
+        url: http://cortex/api/prom/push
+        queue_config:
+          capacity: 1000
+          min_shards: 1
+          max_shards: 100
+          max_samples_per_send: 500
+          batch_send_deadline: 5m
+          min_backoff: 1m
+          max_backoff: 5m
+      `),
 		},
 		{
 			name: "metadata_config",
@@ -624,11 +624,11 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				url: http://cortex/api/prom/push
-				metadata_config:
-					send: true
-					send_interval: 5m
-			`),
+        url: http://cortex/api/prom/push
+        metadata_config:
+          send: true
+          send_interval: 5m
+      `),
 		},
 	}
 
@@ -683,12 +683,12 @@ func TestSafeTLSConfig(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				ca_file: /var/lib/grafana-agent/secrets/_configMaps_operator_obj_key
-				cert_file: /var/lib/grafana-agent/secrets/_configMaps_operator_obj_key
-				key_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
-				server_name: server
-				insecure_skip_verify: true
-			`),
+        ca_file: /var/lib/grafana-agent/secrets/_configMaps_operator_obj_key
+        cert_file: /var/lib/grafana-agent/secrets/_configMaps_operator_obj_key
+        key_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+        server_name: server
+        insecure_skip_verify: true
+      `),
 		},
 		{
 			name: "secrets",
@@ -716,12 +716,12 @@ func TestSafeTLSConfig(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				ca_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
-				cert_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
-				key_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
-				server_name: server
-				insecure_skip_verify: true
-			`),
+        ca_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+        cert_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+        key_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+        server_name: server
+        insecure_skip_verify: true
+      `),
 		},
 	}
 
@@ -774,62 +774,62 @@ func TestServiceMonitor(t *testing.T) {
 				"shards":                   1,
 			},
 			expect: util.Untab(`
-				job_name: serviceMonitor/operator/servicemonitor/0
-				honor_labels: false
-				kubernetes_sd_configs:
-				- role: endpoints
-				  namespaces:
-						names: [operator]
-				relabel_configs:
-				- source_labels:
-					- job
-					target_label: __tmp_prometheus_job_name
-				- action: keep
-					regex: metrics
-					source_labels:
-					- __meta_kubernetes_endpoint_port_name
-				- regex: Node;(.*)
-					replacement: $1
-					separator: ;
-					source_labels:
-					- __meta_kubernetes_endpoint_address_target_kind
-					- __meta_kubernetes_endpoint_address_target_name
-					target_label: node
-				- regex: Pod;(.*)
-					replacement: $1
-					separator: ;
-					source_labels:
-					- __meta_kubernetes_endpoint_address_target_kind
-					- __meta_kubernetes_endpoint_address_target_name
-					target_label: pod
-				- source_labels:
-					- __meta_kubernetes_namespace
-					target_label: namespace
-				- source_labels:
-					- __meta_kubernetes_service_name
-					target_label: service
-				- source_labels:
-					- __meta_kubernetes_pod_name
-					target_label: pod
-				- source_labels:
-					- __meta_kubernetes_pod_container_name
-					target_label: container
-				- replacement: $1
-					source_labels:
-					- __meta_kubernetes_service_name
-					target_label: job
-				- replacement: metrics
-					target_label: endpoint
-				- action: hashmod
-					modulus: 1
-					source_labels:
-					- __address__
-					target_label: __tmp_hash
-				- action: keep
-					regex: $(SHARD)
-					source_labels:
-					- __tmp_hash
-			`),
+        job_name: serviceMonitor/operator/servicemonitor/0
+        honor_labels: false
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names: [operator]
+        relabel_configs:
+        - source_labels:
+          - job
+          target_label: __tmp_prometheus_job_name
+        - action: keep
+          regex: metrics
+          source_labels:
+          - __meta_kubernetes_endpoint_port_name
+        - regex: Node;(.*)
+          replacement: $1
+          separator: ;
+          source_labels:
+          - __meta_kubernetes_endpoint_address_target_kind
+          - __meta_kubernetes_endpoint_address_target_name
+          target_label: node
+        - regex: Pod;(.*)
+          replacement: $1
+          separator: ;
+          source_labels:
+          - __meta_kubernetes_endpoint_address_target_kind
+          - __meta_kubernetes_endpoint_address_target_name
+          target_label: pod
+        - source_labels:
+          - __meta_kubernetes_namespace
+          target_label: namespace
+        - source_labels:
+          - __meta_kubernetes_service_name
+          target_label: service
+        - source_labels:
+          - __meta_kubernetes_pod_name
+          target_label: pod
+        - source_labels:
+          - __meta_kubernetes_pod_container_name
+          target_label: container
+        - replacement: $1
+          source_labels:
+          - __meta_kubernetes_service_name
+          target_label: job
+        - replacement: metrics
+          target_label: endpoint
+        - action: hashmod
+          modulus: 1
+          source_labels:
+          - __address__
+          target_label: __tmp_hash
+        - action: keep
+          regex: $(SHARD)
+          source_labels:
+          - __tmp_hash
+      `),
 		},
 	}
 
@@ -892,12 +892,12 @@ func TestTLSConfig(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				ca_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
-				cert_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
-				key_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
-				server_name: server
-				insecure_skip_verify: true
-			`),
+        ca_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+        cert_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+        key_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+        server_name: server
+        insecure_skip_verify: true
+      `),
 		},
 		{
 			name: "overrides",
@@ -930,12 +930,12 @@ func TestTLSConfig(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				ca_file: ca
-				cert_file: cert
-				key_file: key
-				server_name: server
-				insecure_skip_verify: true
-			`),
+        ca_file: ca
+        cert_file: cert
+        key_file: key
+        server_name: server
+        insecure_skip_verify: true
+      `),
 		},
 	}
 
@@ -967,11 +967,11 @@ func runSnippet(vm *jsonnet.VM, filename string, args ...string) (string, error)
 	return vm.EvaluateAnonymousSnippet(
 		filename,
 		fmt.Sprintf(`
-			local marshal = import './ext/marshal.libsonnet';
-			local optionals = import './ext/optionals.libsonnet';
-			local eval = import '%s';
-			function(%s) marshal.YAML(optionals.trim(eval(%s)))
-		`, filename, strings.Join(args, ","), strings.Join(boundArgs, ",")),
+      local marshal = import './ext/marshal.libsonnet';
+      local optionals = import './ext/optionals.libsonnet';
+      local eval = import '%s';
+      function(%s) marshal.YAML(optionals.trim(eval(%s)))
+    `, filename, strings.Join(args, ","), strings.Join(boundArgs, ",")),
 	)
 }
 

@@ -27,6 +27,8 @@ const (
 	MetricsType Type = iota + 1
 	// LogsType generates a configuration for logs.
 	LogsType
+	// IntegrationType generates a configuration for an integration.
+	IntegrationType
 )
 
 // String returns the string form of Type.
@@ -36,6 +38,8 @@ func (t Type) String() string {
 		return "metrics"
 	case LogsType:
 		return "logs"
+	case IntegrationType:
+		return "integration"
 	default:
 		return fmt.Sprintf("unknown (%d)", int(t))
 	}
@@ -53,6 +57,15 @@ type Deployment struct {
 	// Logs is the set of logging instances discovered from the root Agent
 	// resource.
 	Logs []LogInstance
+
+	// Integration is the integration that the Deployment will run. Deployments
+	// are limited to a single integration until Grafana Agent supports multiple
+	// instances for an integration of the same type:
+	//
+	// https://github.com/grafana/agent/issues/350
+	//
+	// To run multiple integrations, more than one Deployment must be created.
+	Integration *grafana.IntegrationInstance
 }
 
 // DeepCopy creates a deep copy of d.
@@ -99,10 +112,16 @@ func (d *Deployment) DeepCopy() *Deployment {
 		})
 	}
 
+	var i *grafana.IntegrationInstance
+	if d.Integration != nil {
+		i = d.Integration.DeepCopy()
+	}
+
 	return &Deployment{
-		Agent:   d.Agent.DeepCopy(),
-		Metrics: p,
-		Logs:    l,
+		Agent:       d.Agent.DeepCopy(),
+		Metrics:     p,
+		Logs:        l,
+		Integration: i,
 	}
 }
 
@@ -127,6 +146,8 @@ func (d *Deployment) BuildConfig(secrets assets.SecretStore, ty Type) (string, e
 		return vm.EvaluateFile("./agent-metrics.libsonnet")
 	case LogsType:
 		return vm.EvaluateFile("./agent-logs.libsonnet")
+	case IntegrationType:
+		return vm.EvaluateFile("./agent-integration.libsonnet")
 	default:
 		panic(fmt.Sprintf("unexpected config type %v", ty))
 	}
