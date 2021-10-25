@@ -176,9 +176,12 @@ func (p *processor) registerMetrics() error {
 		}
 	}
 
-	// Collect metrics
+	// Periodically collect metrics.
+	// This ensures that expired edges are periodically cleaned up
+	// in very low throughput set-ups.
 	go func() {
-		t := time.NewTicker(time.Second * 20)
+		// todo: make collection period configurable
+		t := time.NewTicker(time.Minute)
 		for {
 			select {
 			case <-t.C:
@@ -241,6 +244,8 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
+// collectEdge records the metrics for the given edge.
+// Returns true if the edge is completed or expired and should be deleted.
 func (p *processor) collectEdge(e *edge) bool {
 	if e.isCompleted() {
 		p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
@@ -257,6 +262,8 @@ func (p *processor) collectEdge(e *edge) bool {
 	return false
 }
 
+// collectMetrics loops through all the stored edges and process them.
+// If an edge is completed or expired, it's recorded through the processor's metrics and deleted from the store.
 func (p *processor) collectMetrics() {
 	p.storeMtx.Lock()
 	for k, e := range p.store {
@@ -265,13 +272,6 @@ func (p *processor) collectMetrics() {
 		}
 	}
 	p.storeMtx.Unlock()
-}
-
-func (p *processor) getEdge(k string) (*edge, bool) {
-	p.storeMtx.Lock()
-	defer p.storeMtx.Unlock()
-	
-	return nil, false
 }
 
 func (p *processor) consume(trace pdata.Traces) error {
@@ -290,6 +290,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 			for k := 0; k < ils.Spans().Len(); k++ {
 
+				// todo: consider trying to clear up space from the store before dropping spans.
 				if len(p.store) >= p.maxItems {
 					remainingSpans := float64(ils.Spans().Len() - k)
 					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(remainingSpans)
@@ -315,6 +316,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					e.clientLatency = spanDuration(span)
 					e.failed = p.spanFailed(span)
 
+					// todo: can check if edge is completed and get it processed
 					p.store[k] = e
 					p.storeMtx.Unlock()
 

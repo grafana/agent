@@ -70,6 +70,8 @@
 
 - [CHANGE] **Breaking change** push_config is no longer supported in trace's config (@mapno)
 
+- [CHANGE] Changed service graphs store implementation to improve CPU performance (@mapno)
+
 # v0.19.0 (2021-09-29)
 
 This release has breaking changes. Please read [CHANGE] entries carefully and
