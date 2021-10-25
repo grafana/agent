@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
@@ -12,7 +13,6 @@ import (
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal"
-	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -25,20 +25,32 @@ var (
 	errTooManyItems = errors.New("too many items in store")
 )
 
-// edgeRequest is a request between two nodes in the graph
-type edgeRequest struct {
+// edge is a edge between two nodes in the graph
+type edge struct {
 	serverService, clientService string
 	serverLatency, clientLatency time.Duration
 
 	// If either the client or the server spans have status code error,
-	// the request will be considered as failed.
+	// the edge will be considered as failed.
 	failed bool
+
+	expiration int64
 }
 
-// complete returns true if the corresponding client and server
-// pair spans have been processed for the given request
-func (e *edgeRequest) complete() bool {
+func newEdge() *edge {
+	return &edge{
+		expiration: time.Now().Unix(),
+	}
+}
+
+// completed returns true if the corresponding client and server
+// pair spans have been processed for the given edge
+func (e *edge) isCompleted() bool {
 	return len(e.clientService) != 0 && len(e.serverService) != 0
+}
+
+func (e *edge) isExpired() bool {
+	return time.Now().Unix() >= e.expiration
 }
 
 var _ component.TracesProcessor = (*processor)(nil)
@@ -47,9 +59,13 @@ type processor struct {
 	nextConsumer consumer.Traces
 	reg          prometheus.Registerer
 
-	// store is a local storage for request between graphs nodes
-	store    *cache.Cache
+	// store is a local storage for edge between graphs nodes
+	store    map[string]*edge
+	storeMtx sync.Mutex
 	maxItems int
+	wait     time.Duration
+
+	closedCh chan struct{}
 
 	serviceGraphRequestTotal           *prometheus.CounterVec
 	serviceGraphRequestFailedTotal     *prometheus.CounterVec
@@ -87,14 +103,16 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		}
 	}
 
-	// TODO(mapno): Add support for an external cache (e.g. memcached)
 	p := &processor{
 		nextConsumer: nextConsumer,
-		// Cleanup period is hardcoded to twice the waiting time for simplicity
-		// Most likely not ideal in every scenario
-		store:    cache.New(cfg.Wait, cfg.Wait*2),
+		logger:       logger,
+
+		store:    map[string]*edge{},
+		storeMtx: sync.Mutex{},
 		maxItems: cfg.MaxItems,
-		logger:   logger,
+		wait:     cfg.Wait,
+
+		closedCh: make(chan struct{}, 1),
 	}
 
 	return p
@@ -158,21 +176,28 @@ func (p *processor) registerMetrics() error {
 		}
 	}
 
-	// Collect unpaired spans when evicting items from the store during
-	// periodic cleanup
-	p.store.OnEvicted(func(s string, i interface{}) {
-		e := i.(edgeRequest)
-		if !e.complete() {
-			p.serviceGraphUnpairedSpansTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+	// Collect metrics
+	go func() {
+		t := time.NewTicker(time.Second * 20)
+		for {
+			select {
+			case <-t.C:
+				p.collectMetrics()
+
+			case <-p.closedCh:
+				p.collectMetrics()
+				t.Stop()
+				return
+			}
 		}
-	})
+	}()
 
 	return nil
 }
 
 func (p *processor) Shutdown(context.Context) error {
+	close(p.closedCh)
 	p.unregisterMetrics()
-	p.store.Flush()
 	return nil
 }
 
@@ -216,19 +241,37 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
+func (p *processor) collectEdge(e *edge) bool {
+	if e.isCompleted() {
+		p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+		if e.failed {
+			p.serviceGraphRequestFailedTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+		}
+		p.serviceGraphRequestServerHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
+		p.serviceGraphRequestClientHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.clientLatency.Seconds())
+		return true
+	} else if e.isExpired() {
+		p.serviceGraphUnpairedSpansTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+		return true
+	}
+	return false
+}
+
 func (p *processor) collectMetrics() {
-	for k, v := range p.store.Items() {
-		e := v.Object.(edgeRequest)
-		if e.complete() {
-			p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
-			if e.failed {
-				p.serviceGraphRequestFailedTotal.WithLabelValues(e.clientService, e.serverService).Inc()
-			}
-			p.serviceGraphRequestServerHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
-			p.serviceGraphRequestClientHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.clientLatency.Seconds())
-			p.store.Delete(k)
+	p.storeMtx.Lock()
+	for k, e := range p.store {
+		if p.collectEdge(e) {
+			delete(p.store, k)
 		}
 	}
+	p.storeMtx.Unlock()
+}
+
+func (p *processor) getEdge(k string) (*edge, bool) {
+	p.storeMtx.Lock()
+	defer p.storeMtx.Unlock()
+	
+	return nil, false
 }
 
 func (p *processor) consume(trace pdata.Traces) error {
@@ -247,7 +290,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 			for k := 0; k < ils.Spans().Len(); k++ {
 
-				if p.store.ItemCount() >= p.maxItems {
+				if len(p.store) >= p.maxItems {
 					remainingSpans := float64(ils.Spans().Len() - k)
 					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(remainingSpans)
 
@@ -260,27 +303,38 @@ func (p *processor) consume(trace pdata.Traces) error {
 				case pdata.SpanKindClient:
 					k := key(span.TraceID().HexString(), span.SpanID().HexString())
 
-					var r edgeRequest
-					if v, ok := p.store.Get(k); ok {
-						r = v.(edgeRequest)
+					p.storeMtx.Lock()
+					var e *edge
+					if storedEdge, ok := p.store[k]; ok {
+						e = storedEdge
+					} else {
+						e = newEdge()
 					}
-					r.clientService = svc.StringVal()
-					r.clientLatency = spanDuration(span)
-					r.failed = p.spanFailed(span)
-					p.store.SetDefault(k, r)
+
+					e.clientService = svc.StringVal()
+					e.clientLatency = spanDuration(span)
+					e.failed = p.spanFailed(span)
+
+					p.store[k] = e
+					p.storeMtx.Unlock()
 
 				case pdata.SpanKindServer:
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
-					var r edgeRequest
-					if v, ok := p.store.Get(k); ok {
-						r = v.(edgeRequest)
+					p.storeMtx.Lock()
+					var e *edge
+					if storedEdge, ok := p.store[k]; ok {
+						e = storedEdge
+					} else {
+						e = newEdge()
 					}
 
-					r.serverService = svc.StringVal()
-					r.serverLatency = spanDuration(span)
-					r.failed = p.spanFailed(span)
-					p.store.SetDefault(k, r)
+					e.serverService = svc.StringVal()
+					e.serverLatency = spanDuration(span)
+					e.failed = p.spanFailed(span)
+
+					p.store[k] = e
+					p.storeMtx.Unlock()
 
 				default:
 				}
