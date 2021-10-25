@@ -37,12 +37,8 @@ var (
 // isManagedResource returns true if the given object has a managed-by
 // grafana-agent-operator label.
 func isManagedResource(obj client.Object) bool {
-	for key, value := range obj.GetLabels() {
-		if key == managedByOperatorLabel && value == managedByOperatorLabelValue {
-			return true
-		}
-	}
-	return false
+	labelValue := obj.GetLabels()[managedByOperatorLabel]
+	return labelValue == managedByOperatorLabelValue
 }
 
 func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
