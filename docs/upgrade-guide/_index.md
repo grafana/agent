@@ -135,6 +135,10 @@ This includes:
 This is a hard breaking change, and all fields must change accordingly for the
 operator to continue working.
 
+Note that old CRDs with the old hyphenated names must be deleted (`kubectl
+delete crds/{grafana-agents,prometheus-instances}`) for ClusterRoles to work
+correctly.
+
 To do a zero-downtime upgrade of the Operator when there is a breaking change,
 refer to the new `agentctl operator-detatch` command: this will iterate through
 all of your objects and remove any OwnerReferences to a CRD, allowing you to
