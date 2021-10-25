@@ -12,6 +12,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -32,6 +33,17 @@ var (
 	agentTypeLabel            = "operator.agent.grafana.com/type"
 	probeTimeoutSeconds int32 = 3
 )
+
+// isManagedResource returns true if the given object has a managed-by
+// grafana-agent-operator label.
+func isManagedResource(obj client.Object) bool {
+	for key, value := range obj.GetLabels() {
+		if key == managedByOperatorLabel && value == managedByOperatorLabelValue {
+			return true
+		}
+	}
+	return false
+}
 
 func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
 	d = *d.DeepCopy()
@@ -55,7 +67,8 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 				UID:                d.Agent.UID,
 			}},
 			Labels: cfg.Labels.Merge(map[string]string{
-				"operated-agent": "true",
+				managedByOperatorLabel: managedByOperatorLabelValue,
+				"operated-agent":       "true",
 			}),
 		},
 		Spec: v1.ServiceSpec{
@@ -120,6 +133,7 @@ func generateMetricsStatefulSet(
 	}
 	labels[agentNameLabelName] = d.Agent.Name
 	labels[agentTypeLabel] = "metrics"
+	labels[managedByOperatorLabel] = managedByOperatorLabelValue
 
 	boolTrue := true
 
@@ -314,14 +328,14 @@ func generateMetricsStatefulSetSpec(
 	podAnnotations := map[string]string{}
 	podLabels := map[string]string{}
 	podSelectorLabels := map[string]string{
-		"app.kubernetes.io/name":       "grafana-agent",
-		"app.kubernetes.io/version":    build.Version,
-		"app.kubernetes.io/managed-by": "grafana-agent-operator",
-		"app.kubernetes.io/instance":   d.Agent.Name,
-		"grafana-agent":                d.Agent.Name,
-		shardLabelName:                 fmt.Sprintf("%d", shard),
-		agentNameLabelName:             d.Agent.Name,
-		agentTypeLabel:                 "metrics",
+		"app.kubernetes.io/name":     "grafana-agent",
+		"app.kubernetes.io/version":  build.Version,
+		"app.kubernetes.io/instance": d.Agent.Name,
+		"grafana-agent":              d.Agent.Name,
+		managedByOperatorLabel:       managedByOperatorLabelValue,
+		shardLabelName:               fmt.Sprintf("%d", shard),
+		agentNameLabelName:           d.Agent.Name,
+		agentTypeLabel:               "metrics",
 	}
 	if d.Agent.Spec.PodMetadata != nil {
 		for k, v := range d.Agent.Spec.PodMetadata.Labels {

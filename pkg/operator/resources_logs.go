@@ -44,6 +44,7 @@ func generateLogsDaemonSet(
 	}
 	labels[agentNameLabelName] = d.Agent.Name
 	labels[agentTypeLabel] = "logs"
+	labels[managedByOperatorLabel] = managedByOperatorLabelValue
 
 	boolTrue := true
 	ds := &apps_v1.DaemonSet{
