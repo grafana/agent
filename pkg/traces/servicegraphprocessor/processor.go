@@ -37,9 +37,9 @@ type edge struct {
 	expiration int64
 }
 
-func newEdge() *edge {
+func newEdge(w time.Duration) *edge {
 	return &edge{
-		expiration: time.Now().Unix(),
+		expiration: time.Now().Add(w).Unix(),
 	}
 }
 
@@ -309,7 +309,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					if storedEdge, ok := p.store[k]; ok {
 						e = storedEdge
 					} else {
-						e = newEdge()
+						e = newEdge(p.wait)
 					}
 
 					e.clientService = svc.StringVal()
@@ -328,7 +328,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					if storedEdge, ok := p.store[k]; ok {
 						e = storedEdge
 					} else {
-						e = newEdge()
+						e = newEdge(p.wait)
 					}
 
 					e.serverService = svc.StringVal()
