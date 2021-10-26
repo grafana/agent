@@ -32,9 +32,9 @@ func TestConsumeMetrics(t *testing.T) {
 		expectedMetrics string
 	}{
 		{
-			name:            "happy case",
-			sampleDataPath:  traceSamplePath,
-			cfg:             &Config{
+			name:           "happy case",
+			sampleDataPath: traceSamplePath,
+			cfg: &Config{
 				Wait: time.Hour,
 			},
 			expectedMetrics: happyCaseExpectedMetrics,
@@ -83,7 +83,7 @@ func TestConsumeMetrics(t *testing.T) {
 			err = p.ConsumeTraces(context.Background(), traces)
 			require.NoError(t, err)
 
-			p.collectMetrics()
+			collectMetrics(p)
 
 			assert.Eventually(t, func() bool {
 				return testutil.GatherAndCompare(reg, bytes.NewBufferString(tc.expectedMetrics)) == nil
@@ -110,6 +110,19 @@ func traceSamples(t *testing.T, path string) pdata.Traces {
 	require.NoError(t, err)
 
 	return traces
+}
+
+// helper function to force collection of all metrics
+func collectMetrics(p *processor) {
+	p.storeMtx.Lock()
+	defer p.storeMtx.Unlock()
+
+	for h := p.store.Front(); h != nil; h = p.store.Front() {
+		edge := h.Value.(*edge)
+		p.collectEdge(edge)
+		delete(p.storeMap, edge.key)
+		p.store.Remove(h)
+	}
 }
 
 type mockConsumer struct{}

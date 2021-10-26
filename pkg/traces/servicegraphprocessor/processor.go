@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	errTooManyItems = errors.New("too many items in storeMap")
+	errTooManyItems = errors.New("too many items in memory")
 )
 
 // edge is an edge between two nodes in the graph
@@ -43,11 +43,11 @@ type edge struct {
 	expiration int64
 }
 
-func newEdge(key string, w time.Duration) *edge {
+func newEdge(key string, ttl time.Duration) *edge {
 	return &edge{
 		key: key,
 
-		expiration: time.Now().Add(w).Unix(),
+		expiration: time.Now().Add(ttl).Unix(),
 	}
 }
 
@@ -74,7 +74,8 @@ type processor struct {
 	maxItems int
 	wait     time.Duration
 
-	firesCh chan string
+	// completed edges are pushed through this channel to be processed.
+	collectCh chan string
 
 	closeCh chan struct{}
 
@@ -124,7 +125,7 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		maxItems: cfg.MaxItems,
 		wait:     cfg.Wait,
 
-		firesCh: make(chan string, runtime.NumCPU()),
+		collectCh: make(chan string, runtime.NumCPU()),
 
 		closeCh: make(chan struct{}, 1),
 	}
@@ -193,18 +194,21 @@ func (p *processor) registerMetrics() error {
 	go func() {
 		for {
 			select {
-			case k := <-p.firesCh:
+			case k := <-p.collectCh:
 				p.storeMtx.Lock()
+
 				ele := p.storeMap[k]
-				if ele == nil {
-					// it may already have been processed
+				if ele == nil { // it may already have been processed
+					p.storeMtx.Unlock()
 					continue
 				}
+
 				edge := ele.Value.(*edge)
 				if shouldDelete := p.collectEdge(edge); shouldDelete {
 					delete(p.storeMap, k)
 					p.store.Remove(ele)
 				}
+
 				p.storeMtx.Unlock()
 
 			case <-p.closeCh:
@@ -281,24 +285,8 @@ func (p *processor) collectEdge(e *edge) bool {
 	return false
 }
 
-// collectMetrics loops through all the stored edges and process them.
-// If an edge is completed or expired, it's recorded through the processor's metrics and deleted from the storeMap.
-func (p *processor) collectMetrics() {
-	p.storeMtx.Lock()
-	for h := p.store.Front(); h != nil; h = p.store.Front() {
-		edge := h.Value.(*edge)
-		if shouldDelete := p.collectEdge(edge); shouldDelete {
-			delete(p.storeMap, edge.key)
-			p.store.Remove(h)
-		}
-	}
-	p.storeMtx.Unlock()
-}
-
+// shouldEvictHead checks if the oldest item (head of list) has expired and should be evicted.
 func (p *processor) shouldEvictHead() bool {
-	if p.store.Len() >= p.maxItems {
-		return true
-	}
 	h := p.store.Front()
 	if h == nil {
 		return false
@@ -307,6 +295,10 @@ func (p *processor) shouldEvictHead() bool {
 	return ts >= time.Now().Unix()
 }
 
+// evictHead removes the head from the store (and map).
+// It also collects metrics for the evicted edge.
+//
+// Must be called under lock.
 func (p *processor) evictHead() {
 	front := p.store.Front()
 	oldest := front.Value.(*edge)
@@ -317,6 +309,9 @@ func (p *processor) evictHead() {
 	p.store.Remove(front)
 }
 
+// Fetches an edge from the store.
+// If the edge doesn't exist, it creates a new one with the default TTL.
+// Must be called under lock.
 func (p *processor) getOrCreateEdge(k string) *edge {
 	if storedEdge, ok := p.storeMap[k]; ok {
 		return storedEdge.Value.(*edge)
@@ -329,6 +324,7 @@ func (p *processor) getOrCreateEdge(k string) *edge {
 	return newEdge
 }
 
+// expire evicts all expired items in the store.
 func (p *processor) expire() {
 	p.storeMtx.RLock()
 	if !p.shouldEvictHead() {
@@ -361,8 +357,10 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 			for k := 0; k < ils.Spans().Len(); k++ {
 
+				// Check if the store can process the remaining spans
 				p.storeMtx.RLock()
-				if len(p.storeMap) >= p.maxItems {
+				if p.store.Len() >= p.maxItems {
+					// todo: try to evict expired items before dropping more
 					remainingSpans := float64(ils.Spans().Len() - k)
 					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(remainingSpans)
 					p.storeMtx.RUnlock()
@@ -387,7 +385,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					p.storeMtx.Unlock()
 
 					if edge.isCompleted() {
-						p.firesCh <- k
+						p.collectCh <- k
 					}
 
 				case pdata.SpanKindServer:
@@ -403,7 +401,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					p.storeMtx.Unlock()
 
 					if edge.isCompleted() {
-						p.firesCh <- k
+						p.collectCh <- k
 					}
 
 				default:
