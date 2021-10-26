@@ -201,6 +201,9 @@ func (r *reconciler) createSecrets(
 				Name:               d.Agent.Name,
 				UID:                d.Agent.UID,
 			}},
+			Labels: map[string]string{
+				managedByOperatorLabel: managedByOperatorLabelValue,
+			},
 		},
 		Data: data,
 	}
