@@ -65,7 +65,7 @@ func New(log log.Logger, c *Config) (*Integration, error) {
 	}, nil
 }
 
-// MetricsHandler implements Integration.
+// Handlers implements Integration.
 func (i *Integration) Handlers() (map[string]http.Handler, error) {
 	r := prometheus.NewRegistry()
 	if err := r.Register(i.nc); err != nil {

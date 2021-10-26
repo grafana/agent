@@ -140,5 +140,5 @@ replace (
 	github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
 )
 
-// Domas: @TODO remove once all rquired features are in main branch
+// Domas: @TODO remove once public
 replace github.com/grafana/grafana-frontend-telemetry-receiver => ../grafana-frontend-telemetry-receiver

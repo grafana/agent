@@ -7,6 +7,8 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations/config"
+	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/tempo"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -50,7 +52,7 @@ type testIntegrationA struct {
 func (i *testIntegrationA) Name() string                { return "test" }
 func (i *testIntegrationA) CommonConfig() config.Common { return config.Common{} }
 
-func (i *testIntegrationA) NewIntegration(l log.Logger) (Integration, error) {
+func (i *testIntegrationA) NewIntegration(l log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (Integration, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
@@ -67,7 +69,7 @@ type testIntegrationB struct {
 func (*testIntegrationB) Name() string                { return "shouldnotbefound" }
 func (*testIntegrationB) CommonConfig() config.Common { return config.Common{} }
 
-func (*testIntegrationB) NewIntegration(l log.Logger) (Integration, error) {
+func (*testIntegrationB) NewIntegration(l log.Logger, loki *loki.Logs, tempo *tempo.Tempo) (Integration, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 

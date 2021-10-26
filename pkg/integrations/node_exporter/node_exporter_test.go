@@ -1,3 +1,4 @@
+//go:build !race
 // +build !race
 
 package node_exporter //nolint:golint
@@ -43,9 +44,11 @@ func TestNodeExporter(t *testing.T) {
 	require.NoError(t, err, "failed to setup node_exporter")
 
 	r := mux.NewRouter()
-	handler, err := integration.MetricsHandler()
+	handlers, err := integration.Handlers()
 	require.NoError(t, err)
-	r.Handle("/metrics", handler)
+	for endpoint, handler := range handlers {
+		r.Handle("/"+endpoint, handler)
+	}
 
 	// Invoke /metrics and parse the response
 	srv := httptest.NewServer(r)

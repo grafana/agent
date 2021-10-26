@@ -65,7 +65,7 @@ type ManagerConfig struct {
 
 	IntegrationRestartBackoff time.Duration `yaml:"integration_restart_backoff,omitempty"`
 
-	// ListenPort tells the integration Manager which port the Agent is
+	// ListenPort tells the integration Manager which port the directory Agent is
 	// listening on for generating Prometheus instance configs.
 	ListenPort int `yaml:"-"`
 
@@ -499,7 +499,8 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		defer m.integrationsMut.RUnlock()
 
 		key := integrationKey(mux.Vars(r)["key"])
-		handler := loadHandler(key, mux.Vars(r)["endpoint"])
+		endpoint := mux.Vars(r)["endpoint"]
+		handler := loadHandler(key, endpoint)
 		handler.ServeHTTP(rw, r)
 	})
 }

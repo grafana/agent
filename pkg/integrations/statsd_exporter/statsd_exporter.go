@@ -151,7 +151,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	}, nil
 }
 
-// MetricsHandler returns the HTTP handlers for the integration.
+// Handlers returns the HTTP handlers for the integration.
 func (e *Exporter) Handlers() (map[string]http.Handler, error) {
 	return map[string]http.Handler{
 		"metrics": promhttp.HandlerFor(e.reg, promhttp.HandlerOpts{

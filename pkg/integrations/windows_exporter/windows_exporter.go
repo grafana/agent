@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 package windows_exporter //nolint:golint
@@ -22,7 +23,7 @@ func New(logger log.Logger, _ *Config) (*Integration, error) {
 	return &Integration{}, nil
 }
 
-// Handlers satisifes Integration.Handlers
+// Handlers satisfies Integration.Handlers
 func (i *Integration) Handlers() (map[string]http.Handler, error) {
 	return map[string]http.Handler{}, nil
 }

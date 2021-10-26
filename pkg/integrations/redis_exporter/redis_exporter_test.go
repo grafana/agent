@@ -113,9 +113,11 @@ func TestRedisCases(t *testing.T) {
 			require.NoError(t, err, "failed to setup redis_exporter")
 
 			r := mux.NewRouter()
-			handler, err := integration.MetricsHandler()
+			handlers, err := integration.Handlers()
 			require.NoError(t, err)
-			r.Handle("/metrics", handler)
+			for endpoint, handler := range handlers {
+				r.Handle("/"+endpoint, handler)
+			}
 			require.NoError(t, err)
 
 			srv := httptest.NewServer(r)
