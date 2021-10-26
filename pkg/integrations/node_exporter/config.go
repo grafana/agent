@@ -128,6 +128,11 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// IntsanceKey returns the hostname:port of the agent process.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
+}
+
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)

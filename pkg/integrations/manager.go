@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -36,19 +37,23 @@ var (
 var DefaultManagerConfig = ManagerConfig{
 	ScrapeIntegrations:        true,
 	IntegrationRestartBackoff: 5 * time.Second,
-	UseHostnameLabel:          true,
-	ReplaceInstanceLabel:      true,
+
+	// Deprecated fields which keep their previous defaults:
+	UseHostnameLabel:     true,
+	ReplaceInstanceLabel: true,
 }
 
 // ManagerConfig holds the configuration for all integrations.
 type ManagerConfig struct {
 	// When true, scrapes metrics from integrations.
 	ScrapeIntegrations bool `yaml:"scrape_integrations,omitempty"`
-	// When true, replaces the instance label with the agent hostname.
+
+	// DREPRCATED. When true, replaces the instance label with the agent hostname.
+	// Ignored in favor of per-integration instance keys.
 	ReplaceInstanceLabel bool `yaml:"replace_instance_label,omitempty"`
 
 	// DEPRECATED. When true, adds an agent_hostname label to all samples from integrations.
-	// ReplaceInstanceLabel should be used instead.
+	// Ignored and always added.
 	UseHostnameLabel bool `yaml:"use_hostname_label,omitempty"`
 
 	// The integration configs is merged with the manager config struct so we
@@ -95,23 +100,43 @@ func (c *ManagerConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // DefaultRelabelConfigs returns the set of relabel configs that should be
 // prepended to all RelabelConfigs for an integration.
-func (c *ManagerConfig) DefaultRelabelConfigs(hostname string) []*relabel.Config {
+func (c *ManagerConfig) DefaultRelabelConfigs(hostname string, cfg Config) ([]*relabel.Config, error) {
 	var cfgs []*relabel.Config
 
-	if c.ReplaceInstanceLabel {
-		replacement := fmt.Sprintf("%s:%d", hostname, c.ListenPort)
-
-		cfgs = append(cfgs, &relabel.Config{
-			SourceLabels: model.LabelNames{model.AddressLabel},
-			Action:       relabel.Replace,
-			Separator:    ";",
-			Regex:        relabel.MustNewRegexp("(.*)"),
-			Replacement:  replacement,
-			TargetLabel:  model.InstanceLabel,
-		})
+	var instanceKey string
+	if kp := cfg.CommonConfig().InstanceKey; kp != nil {
+		instanceKey = strings.TrimSpace(*kp)
 	}
 
-	return cfgs
+	if instanceKey == "" {
+		var err error
+		instanceKey, err = cfg.InstanceKey(c.AgentInstanceKey(hostname))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get instance key for integration: %w", err)
+		}
+	}
+
+	if instanceKey == "" {
+		return nil, fmt.Errorf("integration %s missing instance key, cannot run", cfg.Name())
+	}
+
+	cfgs = append(cfgs, &relabel.Config{
+		SourceLabels: model.LabelNames{model.AddressLabel},
+		Action:       relabel.Replace,
+		Separator:    ";",
+		Regex:        relabel.MustNewRegexp("(.*)"),
+		Replacement:  instanceKey,
+		TargetLabel:  model.InstanceLabel,
+	})
+
+	return cfgs, nil
+}
+
+// AgentInstanceKey returns an agent-wide instance key that resolves to the
+// hostname of the machine the agent is running on and the HTTP port it is
+// listening on.
+func (c *ManagerConfig) AgentInstanceKey(hostname string) string {
+	return fmt.Sprintf("%s:%d", hostname, c.ListenPort), nil
 }
 
 // ApplyDefaults applies default settings to the ManagerConfig and validates
@@ -298,7 +323,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 		switch shouldCollect {
 		case true:
-			instanceConfig := m.instanceConfigForIntegration(p.cfg, p.i, cfg)
+			instanceConfig, err := m.instanceConfigForIntegration(p.cfg, p.i, cfg)
+			if err != nil {
+				level.Error(p.log).Log("msg", "failed to generate config for integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
+				failed = true
+				break
+			}
+
 			if err := m.validator(&instanceConfig); err != nil {
 				level.Error(p.log).Log("msg", "failed to validate generated scrape config for integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
 				failed = true
@@ -369,9 +400,14 @@ func (m *Manager) instanceBackoff(cfg Config, err error) {
 	time.Sleep(m.cfg.IntegrationRestartBackoff)
 }
 
-func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg ManagerConfig) instance.Config {
+func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg ManagerConfig) (instance.Config, error) {
+	defaultRelabelConfigs, err := cfg.DefaultRelabelConfigs(m.hostname, icfg)
+	if err != nil {
+		return instance.Config{}, err
+	}
+
 	common := icfg.CommonConfig()
-	relabelConfigs := append(cfg.DefaultRelabelConfigs(m.hostname), common.RelabelConfigs...)
+	relabelConfigs := append(defaultRelabelConfigs, common.RelabelConfigs...)
 
 	schema := "http"
 	// Check for HTTPS support
@@ -408,7 +444,7 @@ func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg M
 	if common.WALTruncateFrequency > 0 {
 		instanceCfg.WALTruncateFrequency = common.WALTruncateFrequency
 	}
-	return instanceCfg
+	return instanceCfg, nil
 }
 
 // integrationKey returns the key for an integration Config, used for its
@@ -425,9 +461,7 @@ func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
 	}
 	localAddr := fmt.Sprintf("%s:%d", newHost, cfg.ListenPort)
 	labels := model.LabelSet{}
-	if cfg.UseHostnameLabel {
-		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
-	}
+	labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
 	for k, v := range cfg.Labels {
 		labels[k] = v
 	}

@@ -2,6 +2,8 @@
 package consul_exporter //nolint:golint
 
 import (
+	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -56,6 +58,15 @@ func (c *Config) Name() string {
 // CommonConfig returns the common set of settings for this integration.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
+}
+
+// InstanceKey returns the hostname:port of the Consul server.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	u, err := url.Parse(c.Server)
+	if err != nil {
+		return "", fmt.Errorf("could not parse url: %w", err)
+	}
+	return u.Host, nil
 }
 
 // NewIntegration converts the config into an instance of an integration.
