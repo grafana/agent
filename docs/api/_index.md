@@ -7,7 +7,7 @@ weight = 400
 
 The API is divided into several parts:
 
-- [Config Management API](#config-management-api)
+- [Config Management API](#config-management-api) (The Config Management API requires the Agent to be running in 'Scraping Service Mode') 
 - [Agent API](#agent-api)
 - [Ready/Healthy API](#ready--health-api)
 
