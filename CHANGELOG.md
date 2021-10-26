@@ -43,6 +43,13 @@
 - [BUGFIX] Updated envsubst to v2.0.0-20210730161058-179042472c46. This version has a fix needed for escaping values
   outside of variable substitutions. (@rlankfo)
 
+- [BUGFIX] Grafana Agent Operator should no longer delete resources matching
+  the names of the resources it manages. (@rfratto)
+
+- [BUGFIX] Grafana Agent Operator will now appropriately assign an
+  `app.kubernetes.io/managed-by=grafana-agent-operator` to all created
+  resources.
+
 - [CHANGE] Configuration API now returns 404 instead of 400 when attempting to get or delete a config
   which does not exist. (@kgeckhart)
 

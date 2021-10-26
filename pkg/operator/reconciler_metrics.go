@@ -58,7 +58,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 	if !shouldCreate {
 		var secret core_v1.Secret
 		err := r.Client.Get(ctx, key, &secret)
-		if k8s_errors.IsNotFound(err) {
+		if k8s_errors.IsNotFound(err) || !isManagedResource(&secret) {
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("failed to find stale secret %s: %w", key, err)
@@ -125,7 +125,7 @@ func (r *reconciler) createMetricsGoverningService(
 
 		var service core_v1.Service
 		err := r.Client.Get(ctx, key, &service)
-		if k8s_errors.IsNotFound(err) {
+		if k8s_errors.IsNotFound(err) || !isManagedResource(&service) {
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("failed to find stale Service %s: %w", key, err)
@@ -191,7 +191,8 @@ func (r *reconciler) createMetricsStatefulSets(
 	var statefulSets apps_v1.StatefulSetList
 	err := r.List(ctx, &statefulSets, &client.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labels.Set{
-			agentNameLabelName: d.Agent.Name,
+			managedByOperatorLabel: managedByOperatorLabelValue,
+			agentNameLabelName:     d.Agent.Name,
 		}),
 	})
 	if err != nil {
