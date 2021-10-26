@@ -34,7 +34,9 @@ func TestConsumeMetrics(t *testing.T) {
 		{
 			name:            "happy case",
 			sampleDataPath:  traceSamplePath,
-			cfg:             &Config{},
+			cfg:             &Config{
+				Wait: time.Hour,
+			},
 			expectedMetrics: happyCaseExpectedMetrics,
 		},
 		{
@@ -52,11 +54,11 @@ func TestConsumeMetrics(t *testing.T) {
 `,
 		},
 		{
-			name:           "max items in store is reached",
+			name:           "max items in storeMap is reached",
 			sampleDataPath: traceSamplePath,
 			cfg: &Config{
 				Wait:     time.Millisecond,
-				MaxItems: 1, // Configure max number of items in store to 1. Only one edge will be processed.
+				MaxItems: 1, // Configure max number of items in storeMap to 1. Only one edge will be processed.
 			},
 			expectedMetrics: `
         	    # HELP traces_service_graph_dropped_spans_total Total count of dropped spans
@@ -80,6 +82,8 @@ func TestConsumeMetrics(t *testing.T) {
 			traces := traceSamples(t, tc.sampleDataPath)
 			err = p.ConsumeTraces(context.Background(), traces)
 			require.NoError(t, err)
+
+			p.collectMetrics()
 
 			assert.Eventually(t, func() bool {
 				return testutil.GatherAndCompare(reg, bytes.NewBufferString(tc.expectedMetrics)) == nil

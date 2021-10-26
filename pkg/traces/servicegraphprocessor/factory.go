@@ -16,7 +16,7 @@ const (
 
 	// DefaultWait is the default value to wait for an edge to be completed
 	DefaultWait = time.Second * 10
-	// DefaultMaxItems is the default amount of edges that will be stored in the store
+	// DefaultMaxItems is the default amount of edges that will be stored in the storeMap
 	DefaultMaxItems = 10_000
 )
 

@@ -1,6 +1,7 @@
 package servicegraphprocessor
 
 import (
+	"container/list"
 	"context"
 	"errors"
 	"fmt"
@@ -24,11 +25,13 @@ import (
 )
 
 var (
-	errTooManyItems = errors.New("too many items in store")
+	errTooManyItems = errors.New("too many items in storeMap")
 )
 
-// edge is a edge between two nodes in the graph
+// edge is an edge between two nodes in the graph
 type edge struct {
+	key string
+
 	serverService, clientService string
 	serverLatency, clientLatency time.Duration
 
@@ -40,9 +43,10 @@ type edge struct {
 	expiration int64
 }
 
-func newEdge(w time.Duration, expireFn func()) *edge {
-	go expireFn()
+func newEdge(key string, w time.Duration) *edge {
 	return &edge{
+		key: key,
+
 		expiration: time.Now().Add(w).Unix(),
 	}
 }
@@ -63,15 +67,16 @@ type processor struct {
 	nextConsumer consumer.Traces
 	reg          prometheus.Registerer
 
-	// store is a local storage for edge between graphs nodes
-	store    map[string]*edge
+	store    *list.List
 	storeMtx sync.RWMutex
+	storeMap map[string]*list.Element
+
 	maxItems int
 	wait     time.Duration
 
 	firesCh chan string
 
-	closedCh chan struct{}
+	closeCh chan struct{}
 
 	serviceGraphRequestTotal           *prometheus.CounterVec
 	serviceGraphRequestFailedTotal     *prometheus.CounterVec
@@ -113,14 +118,15 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		nextConsumer: nextConsumer,
 		logger:       logger,
 
-		store:    map[string]*edge{},
+		store:    list.New(),
 		storeMtx: sync.RWMutex{},
+		storeMap: make(map[string]*list.Element),
 		maxItems: cfg.MaxItems,
 		wait:     cfg.Wait,
 
 		firesCh: make(chan string, runtime.NumCPU()),
 
-		closedCh: make(chan struct{}, 1),
+		closeCh: make(chan struct{}, 1),
 	}
 
 	return p
@@ -188,24 +194,20 @@ func (p *processor) registerMetrics() error {
 		for {
 			select {
 			case k := <-p.firesCh:
-				// Take a read lock to check if the edge has already been processed
-				// Processed edges still fire their fire func
-				p.storeMtx.RLock()
-				if _, ok := p.store[k]; !ok {
-					p.storeMtx.RUnlock()
+				p.storeMtx.Lock()
+				ele := p.storeMap[k]
+				if ele == nil {
+					// it may already have been processed
 					continue
 				}
-				p.storeMtx.RUnlock()
-
-				p.storeMtx.Lock()
-				e := p.store[k]
-				if shouldDelete := p.collectEdge(e); shouldDelete {
-					delete(p.store, k)
+				edge := ele.Value.(*edge)
+				if shouldDelete := p.collectEdge(edge); shouldDelete {
+					delete(p.storeMap, k)
+					p.store.Remove(ele)
 				}
 				p.storeMtx.Unlock()
 
-			case <-p.closedCh:
-				p.collectMetrics()
+			case <-p.closeCh:
 				return
 			}
 		}
@@ -215,7 +217,7 @@ func (p *processor) registerMetrics() error {
 }
 
 func (p *processor) Shutdown(context.Context) error {
-	close(p.closedCh)
+	close(p.closeCh)
 	p.unregisterMetrics()
 	return nil
 }
@@ -240,6 +242,9 @@ func (p *processor) Capabilities() consumer.Capabilities {
 
 func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	level.Debug(p.logger).Log("msg", "consuming traces")
+
+	// Evict expired edges
+	p.expire()
 
 	var errs error
 	for _, trace := range batchpersignal.SplitTraces(td) {
@@ -277,36 +282,67 @@ func (p *processor) collectEdge(e *edge) bool {
 }
 
 // collectMetrics loops through all the stored edges and process them.
-// If an edge is completed or expired, it's recorded through the processor's metrics and deleted from the store.
+// If an edge is completed or expired, it's recorded through the processor's metrics and deleted from the storeMap.
 func (p *processor) collectMetrics() {
 	p.storeMtx.Lock()
-	for k, e := range p.store {
-		if shouldDelete := p.collectEdge(e); shouldDelete {
-			delete(p.store, k)
+	for h := p.store.Front(); h != nil; h = p.store.Front() {
+		edge := h.Value.(*edge)
+		if shouldDelete := p.collectEdge(edge); shouldDelete {
+			delete(p.storeMap, edge.key)
+			p.store.Remove(h)
 		}
 	}
 	p.storeMtx.Unlock()
 }
 
-func (p *processor) fireFn(k string) func() {
-	// todo: find a way to return early when an edge is processed before expiring
-	t := time.Tick(p.wait)
-	return func() {
-		for {
-			select {
-			case <-t:
-				p.firesCh <- k
-			}
-		}
+func (p *processor) shouldEvictHead() bool {
+	if p.store.Len() >= p.maxItems {
+		return true
 	}
+	h := p.store.Front()
+	if h == nil {
+		return false
+	}
+	ts := h.Value.(*edge).expiration
+	return ts >= time.Now().Unix()
+}
+
+func (p *processor) evictHead() {
+	front := p.store.Front()
+	oldest := front.Value.(*edge)
+
+	_ = p.collectEdge(oldest)
+
+	delete(p.storeMap, oldest.key)
+	p.store.Remove(front)
 }
 
 func (p *processor) getOrCreateEdge(k string) *edge {
-	if storedEdge, ok := p.store[k]; ok {
-		return storedEdge
+	if storedEdge, ok := p.storeMap[k]; ok {
+		return storedEdge.Value.(*edge)
 	}
 
-	return newEdge(p.wait, p.fireFn(k))
+	newEdge := newEdge(k, p.wait)
+	ele := p.store.PushBack(newEdge)
+	p.storeMap[k] = ele
+
+	return newEdge
+}
+
+func (p *processor) expire() {
+	p.storeMtx.RLock()
+	if !p.shouldEvictHead() {
+		p.storeMtx.RUnlock()
+		return
+	}
+	p.storeMtx.RUnlock()
+
+	p.storeMtx.Lock()
+	defer p.storeMtx.Unlock()
+
+	for p.shouldEvictHead() {
+		p.evictHead()
+	}
 }
 
 func (p *processor) consume(trace pdata.Traces) error {
@@ -326,7 +362,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 			for k := 0; k < ils.Spans().Len(); k++ {
 
 				p.storeMtx.RLock()
-				if len(p.store) >= p.maxItems {
+				if len(p.storeMap) >= p.maxItems {
 					remainingSpans := float64(ils.Spans().Len() - k)
 					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(remainingSpans)
 					p.storeMtx.RUnlock()
@@ -342,13 +378,12 @@ func (p *processor) consume(trace pdata.Traces) error {
 					k := key(span.TraceID().HexString(), span.SpanID().HexString())
 
 					p.storeMtx.Lock()
-					edge := p.getOrCreateEdge(k)
 
+					edge := p.getOrCreateEdge(k)
 					edge.clientService = svc.StringVal()
 					edge.clientLatency = spanDuration(span)
 					edge.failed = p.spanFailed(span)
 
-					p.store[k] = edge
 					p.storeMtx.Unlock()
 
 					if edge.isCompleted() {
@@ -359,13 +394,12 @@ func (p *processor) consume(trace pdata.Traces) error {
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
 					p.storeMtx.Lock()
-					edge := p.getOrCreateEdge(k)
 
+					edge := p.getOrCreateEdge(k)
 					edge.serverService = svc.StringVal()
 					edge.serverLatency = spanDuration(span)
 					edge.failed = p.spanFailed(span)
 
-					p.store[k] = edge
 					p.storeMtx.Unlock()
 
 					if edge.isCompleted() {
