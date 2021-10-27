@@ -2,8 +2,6 @@
 package process_exporter //nolint:golint
 
 import (
-	"os"
-
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
@@ -52,7 +50,7 @@ func (c *Config) CommonConfig() config.Common {
 
 // InstanceKey returns the hostname of the machine.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-	return os.Hostname()
+	return agentKey, nil
 }
 
 // NewIntegration converts this config into an instance of an integration.

@@ -47,7 +47,10 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 // InstanceKey returns a simplified DSN of the first postgresql DSN, or an error if
 // not exactly one DSN is provided.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-	dsn := c.getDataSourceNames()
+	dsn, err := c.getDataSourceNames()
+	if err != nil {
+		return "", err
+	}
 	if len(dsn) != 1 {
 		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSN. either use 1 DSN or manually assign a value for `instance` in the integration config", len(dsn))
 	}
