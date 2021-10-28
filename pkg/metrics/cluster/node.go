@@ -9,15 +9,15 @@ import (
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
-	"github.com/cortexproject/cortex/pkg/ring/kv"
-	cortex_util "github.com/cortexproject/cortex/pkg/util"
-	"github.com/cortexproject/cortex/pkg/util/services"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	pb "github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/backoff"
+	"github.com/grafana/dskit/kv"
+	"github.com/grafana/dskit/services"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/user"
 )
@@ -27,7 +27,7 @@ const (
 	agentKey = "agent"
 )
 
-var backoffConfig = cortex_util.BackoffConfig{
+var backoffConfig = backoff.Config{
 	MinBackoff: time.Second,
 	MaxBackoff: 2 * time.Minute,
 	MaxRetries: 10,
@@ -110,7 +110,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 		return nil
 	}
 
-	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", agentKey, n.reg)
+	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", agentKey, n.reg, n.log)
 	if err != nil {
 		return fmt.Errorf("failed to create ring: %w", err)
 	}
@@ -142,12 +142,13 @@ func (n *node) ApplyConfig(cfg Config) error {
 }
 
 // newRing creates a new Cortex Ring that ignores unhealthy nodes.
-func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer) (*ring.Ring, error) {
+func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer, log log.Logger) (*ring.Ring, error) {
 	codec := ring.GetCodec()
 	store, err := kv.NewClient(
 		cfg.KVStore,
 		codec,
 		kv.RegistererWithKVName(reg, name+"-ring"),
+		log,
 	)
 	if err != nil {
 		return nil, err
@@ -190,7 +191,7 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		err error
 	)
 
-	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
+	backoff := backoff.New(ctx, backoffConfig)
 	for backoff.Ongoing() {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -240,7 +241,7 @@ func (n *node) notifyReshard(ctx context.Context, id *ring.InstanceDesc) error {
 
 	level.Info(n.log).Log("msg", "attempting to notify remote agent to reshard", "addr", id.Addr)
 
-	backoff := cortex_util.NewBackoff(ctx, backoffConfig)
+	backoff := backoff.New(ctx, backoffConfig)
 	for backoff.Ongoing() {
 		if ctx.Err() != nil {
 			return ctx.Err()

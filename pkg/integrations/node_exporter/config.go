@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/util/flagext"
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
 	"github.com/prometheus/procfs/sysfs"
 	"gopkg.in/alecthomas/kingpin.v2"
