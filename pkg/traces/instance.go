@@ -137,9 +137,6 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	if err != nil {
 		return fmt.Errorf("failed to load otelConfig from agent traces config: %w", err)
 	}
-	if cfg.PushConfig.Endpoint != "" {
-		i.logger.Warn("Configuring exporter with deprecated push_config. Use remote_write and batch instead")
-	}
 	for _, rw := range cfg.RemoteWrite {
 		if rw.InsecureSkipVerify {
 			i.logger.Warn("Configuring TLS with insecure_skip_verify. Use tls_config.insecure_skip_verify instead")
