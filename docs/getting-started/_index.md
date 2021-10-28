@@ -26,7 +26,7 @@ See the list of [Community Projects](#community-projects) for the community-driv
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.19.0
+  grafana/agent:v0.20.0
 ```
 
 Replace `/tmp/agent` with the folder you wish to store WAL data in. WAL data is
@@ -76,7 +76,7 @@ Below is a list of community lead projects for working with Grafana Agent. These
 
 A publically available release of a Grafana Agent Helm chart is maintained [here](https://github.com/DandyDeveloper/charts/tree/master/charts/grafana-agent). Contributions and improvements are welcomed. Full details on rolling out and supported options can be found in the [readme](https://github.com/DandyDeveloper/charts/blob/master/charts/grafana-agent/README.md).
 
-This *does not* require the Grafana Agent Operator to rollout / deploy. 
+This *does not* require the Grafana Agent Operator to rollout / deploy.
 
 ### Juju (Charmed Operator)
 

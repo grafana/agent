@@ -62,7 +62,7 @@ spec:
       serviceAccountName: grafana-agent-operator
       containers:
       - name: operator
-        image: grafana/agent-operator:v0.19.0
+        image: grafana/agent-operator:v0.20.0
         args:
         - --kubelet-service=default/kubelet
 ---
@@ -160,7 +160,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.19.0
+  image: grafana/agent:v0.20.0
   logLevel: info
   serviceAccountName: grafana-agent
   metrics:
