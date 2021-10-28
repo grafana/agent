@@ -1,1 +1,1 @@
-'grafana/agent:v0.19.0'
+'grafana/agent:v0.20.0'
