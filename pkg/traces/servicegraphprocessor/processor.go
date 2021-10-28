@@ -68,7 +68,7 @@ type processor struct {
 	reg          prometheus.Registerer
 
 	store    *list.List
-	storeMtx sync.RWMutex
+	storeMtx *sync.RWMutex
 	storeMap map[string]*list.Element
 
 	maxItems int
@@ -120,7 +120,7 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		logger:       logger,
 
 		store:    list.New(),
-		storeMtx: sync.RWMutex{},
+		storeMtx: &sync.RWMutex{},
 		storeMap: make(map[string]*list.Element),
 		maxItems: cfg.MaxItems,
 		wait:     cfg.Wait,
@@ -292,7 +292,7 @@ func (p *processor) shouldEvictHead() bool {
 		return false
 	}
 	ts := h.Value.(*edge).expiration
-	return ts >= time.Now().Unix()
+	return ts < time.Now().Unix()
 }
 
 // evictHead removes the head from the store (and map).
@@ -306,7 +306,7 @@ func (p *processor) evictHead() {
 	_ = p.collectEdge(oldest)
 
 	delete(p.storeMap, oldest.key)
-	p.store.Remove(front)
+	_ = p.store.Remove(front)
 }
 
 // Fetches an edge from the store.
