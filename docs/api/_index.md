@@ -7,15 +7,17 @@ weight = 400
 
 The API is divided into several parts:
 
-- [Config Management API](#config-management-api) (The Config Management API requires the Agent to be running in 'Scraping Service Mode') 
+- [Config Management API](#config-management-api)  
 - [Agent API](#agent-api)
 - [Ready/Healthy API](#ready--health-api)
 
 ## Config management API
 
-Grafana Agent exposes a REST API for managing instance configurations when
-it is running in [scraping service mode]({{< relref "../scraping-service" >}}). The following
-endpoints are exposed:
+Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../scraping-service" >}}). 
+
+(Note that scraping service mode is a requirement for the config management API, however this is not a pre-req for the Agent API or Ready/Healthy API) 
+
+The following endpoints are exposed:
 
 - List configs: [`GET /agent/api/v1/configs`](#list-configs)
 - Get config: [`GET /agent/api/v1/configs/{name}`](#get-config)
