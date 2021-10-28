@@ -111,7 +111,7 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // InstanceKey returns the hostname:port of the first Kafka node, if any. If
-// there is not exactly onethan one Kafka node, the user must manually provide
+// there is not exactly one Kafka node, the user must manually provide
 // their own value for instance key in the common config.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	if len(c.KafkaURIs) != 1 {
