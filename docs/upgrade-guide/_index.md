@@ -12,6 +12,8 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.20.0
+
 ### Traces: Changes to receiver's TLS config (Breaking change).
 
 Upgrading to OpenTelemetry v0.36.0 contains a change in the receivers TLS config.
@@ -49,7 +51,7 @@ receivers:
 maintaining backwards compatibility.
 Refer to the [deprecation announcement](#tempo-push_config-deprecation) for how to upgrade.
 
-## v0.20.0
+## v0.19.0
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
 
