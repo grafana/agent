@@ -1,7 +1,6 @@
 # Main (unreleased)
 
-- [ENHANCEMENT] Documenting security recommendations for the users used by the embedded exporters,
-  to give only the strictly necessary roles as per the official docs.
+# v0.20.0 (2021-10-28)
 
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
   service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.

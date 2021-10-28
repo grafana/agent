@@ -49,7 +49,7 @@ receivers:
 maintaining backwards compatibility.
 Refer to the [deprecation announcement](#tempo-push_config-deprecation) for how to upgrade.
 
-## v0.19.0
+## v0.20.0
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
 
