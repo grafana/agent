@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +14,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/scrape"
-	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -110,51 +108,35 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 		rr := httptest.NewRecorder()
 		a.ListTargetsHandler(rr, r)
 		expect := `{
-			"status": "success",
-			"data": [{
-				"instance": "test_instance",
-				"target_group": "group_a",
-				"endpoint": "http://localhost:12345/metrics",
-				"state": "down",
-				"labels": {
-					"foo": "bar",
-					"instance": "instance",
-					"job": "job"
-				},
-				"discovered_labels": {
-					"__discovered__": "yes"
-				},
-				"last_scrape": "1994-01-12T00:00:00Z",
-				"scrape_duration_ms": 60000,
-				"scrape_error":"something went wrong"
-			}]
-		}`
+      "status": "success",
+      "data": [{
+        "instance": "test_instance",
+        "target_group": "group_a",
+        "endpoint": "http://localhost:12345/metrics",
+        "state": "down",
+        "labels": {
+          "foo": "bar",
+          "instance": "instance",
+          "job": "job"
+        },
+        "discovered_labels": {
+          "__discovered__": "yes"
+        },
+        "last_scrape": "1994-01-12T00:00:00Z",
+        "scrape_duration_ms": 60000,
+        "scrape_error":"something went wrong"
+      }]
+    }`
 		require.JSONEq(t, expect, rr.Body.String())
 		require.Equal(t, http.StatusOK, rr.Result().StatusCode)
 	})
 }
 
 type mockInstanceScrape struct {
+	instance.NoOpInstance
 	tgts map[string][]*scrape.Target
-}
-
-func (i *mockInstanceScrape) Run(ctx context.Context) error {
-	<-ctx.Done()
-	return nil
-}
-
-func (i *mockInstanceScrape) Update(_ instance.Config) error {
-	return nil
 }
 
 func (i *mockInstanceScrape) TargetsActive() map[string][]*scrape.Target {
 	return i.tgts
-}
-
-func (i *mockInstanceScrape) StorageDirectory() string {
-	return ""
-}
-
-func (i *mockInstanceScrape) Appender(ctx context.Context) storage.Appender {
-	return nil
 }

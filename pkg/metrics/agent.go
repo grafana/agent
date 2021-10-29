@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 )
 
@@ -143,6 +144,8 @@ type Agent struct {
 	stopped  bool
 	stopOnce sync.Once
 	actor    chan func()
+
+	initialBootDone atomic.Bool
 }
 
 // New creates and starts a new Agent.
@@ -260,10 +263,28 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 
 	a.actor <- func() {
 		a.syncInstances(oldConfig, cfg)
+		a.initialBootDone.Store(true)
 	}
 
 	a.cfg = cfg
 	return nil
+}
+
+// Ready returns true if all instances spawned by a have completed startup.
+func (a *Agent) Ready() bool {
+	// Wait for the initial load to complete so the instance manager has at least
+	// the base set of expected instances.
+	if !a.initialBootDone.Load() {
+		return false
+	}
+
+	for _, inst := range a.mm.ListInstances() {
+		if !inst.Ready() {
+			return false
+		}
+	}
+
+	return true
 }
 
 // syncInstances syncs the state of the instance manager to newConfig by

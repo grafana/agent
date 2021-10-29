@@ -158,6 +158,13 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	ep.manager.WireAPI(mux)
 
 	mux.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
+		if !ep.promMetrics.Ready() {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Fprintf(w, "Metrics are still loading.\n")
+
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Agent is Healthy.\n")
 	})

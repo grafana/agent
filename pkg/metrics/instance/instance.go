@@ -30,6 +30,7 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
+	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
 )
 
@@ -236,6 +237,9 @@ type Instance struct {
 	remoteStore        *remote.Storage
 	storage            storage.Storage
 
+	// ready is set to true after the initial initialization finishes.
+	ready atomic.Bool
+
 	hostFilter *HostFilter
 
 	logger log.Logger
@@ -310,11 +314,12 @@ func (i *Instance) Run(ctx context.Context) error {
 		level.Error(i.logger).Log("msg", "failed to initialize instance", "err", err)
 		return fmt.Errorf("failed to initialize instance: %w", err)
 	}
+	i.ready.Store(true)
 
 	// The actors defined here are defined in the order we want them to shut down.
 	// Primarily, we want to ensure that the following shutdown order is
 	// maintained:
-	//		1. The scrape manager stops
+	//    1. The scrape manager stops
 	//    2. WAL storage is closed
 	//    3. Remote write storage is closed
 	// This is done to allow the instance to write stale markers for all active
@@ -387,6 +392,12 @@ func (i *Instance) Run(ctx context.Context) error {
 		level.Error(i.logger).Log("msg", "agent instance stopped with error", "err", err)
 	}
 	return err
+}
+
+// Ready returns true if the Instance has been initialized and is ready to
+// start scraping and delivering metrics.
+func (i *Instance) Ready() bool {
+	return i.ready.Load()
 }
 
 // initialize sets up the various Prometheus components with their initial
