@@ -32,6 +32,8 @@ type Instance struct {
 	exporter  builder.Exporters
 	pipelines builder.BuiltPipelines
 	receivers builder.Receivers
+
+	factories component.Factories
 }
 
 // NewInstance creates and starts an instance of tracing pipelines.
@@ -167,6 +169,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	if err != nil {
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
+	i.factories = factories
 
 	appinfo := component.BuildInfo{
 		Command:     "agent",
@@ -222,8 +225,13 @@ func (i *Instance) ReportFatalError(err error) {
 }
 
 // GetFactory implements component.Host
-func (i *Instance) GetFactory(component.Kind, config.Type) component.Factory {
-	return nil
+func (i *Instance) GetFactory(kind component.Kind, componentType config.Type) component.Factory {
+	switch kind {
+	case component.KindReceiver:
+		return i.factories.Receivers[componentType]
+	default:
+		return nil
+	}
 }
 
 // GetExtensions implements component.Host
