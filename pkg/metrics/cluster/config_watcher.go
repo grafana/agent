@@ -99,7 +99,7 @@ func (w *configWatcher) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-w.nextReshard(lastReshard):
-			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
+			level.Debug(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
 			w.RequestRefresh()
 			lastReshard = time.Now()
 		case <-w.refreshCh:
