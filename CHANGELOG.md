@@ -31,6 +31,8 @@
 
 - [ENHANCEMENT] Update windows_exporter to v0.16.0 (@rfratto, @mattdurham)
 
+- [ENHANCEMENT] Add send latency to agent dashboard (@bboreham)
+
 - [BUGFIX] Do not immediately cancel context when creating a new trace
   processor. This was preventing scrape_configs in traces from
   functioning. (@lheinlen)
