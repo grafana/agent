@@ -7,7 +7,7 @@ weight: 1
 
 * Date: 2021-11-02
 * Author: Robert Fratto (@rfratto)
-* PR: TODO
+* PR: [grafana/agent#1055](https://github.com/grafana/agent/pull/1055)
 
 ## Summary
 
