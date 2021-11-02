@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
+
+
 # v0.20.0 (2021-10-28)
 
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
