@@ -133,6 +133,7 @@ A few existing public proposal processes have been examined for inspiration:
 * [Rust's RFCs](https://github.com/rust-lang/rfcs)
 * [Joyent's Requests for Discussions](https://github.com/joyent/rfd)
 * [OpenTelemetry's OTEPs](https://github.com/open-telemetry/oteps)
+* [Kubernetes Enhancement Proposals (KEPs)](https://github.com/kubernetes/enhancements)
 
 All of these processes are similar, but in the end, a mix of the IETF and Rust
 workflows were used to derive this document.
