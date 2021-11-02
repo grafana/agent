@@ -12,7 +12,7 @@ weight: 1
 ## Summary
 
 Traditionally, design proposals to Grafana Agent have been done in private by
-default, and then made only made public after internal consensus was reached.
+default, and then only made public after internal consensus was reached.
 This causes a few problems:
 
 * Community concerns are less likely to have an impact as core maintainers have
