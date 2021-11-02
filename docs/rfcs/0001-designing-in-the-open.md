@@ -7,6 +7,7 @@ weight: 1
 
 * Date: 2021-11-02
 * Author: Robert Fratto (@rfratto)
+* PR: TODO
 
 ## Summary
 
@@ -73,6 +74,8 @@ RFCs MUST be valid markdown composed of at least the following:
 3. A summary section describing the context for what is being proposed.
 4. A list of goals and non-goals for the proposal.
 5. One or more sections dedicated to the proposal.
+
+RFCs MUST be placed into the `docs/rfcs` folder of the Grafana Agent repository.
 
 RFCs SHOULD have a `Terminology` section following the goals and non goals that
 conform to [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
