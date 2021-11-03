@@ -14,7 +14,7 @@ require (
 	github.com/go-kit/kit v0.11.0
 	github.com/go-kit/log v0.2.0
 	github.com/go-logfmt/logfmt v0.5.1
-	github.com/go-logr/logr v0.4.0
+	github.com/go-logr/logr v1.0.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
@@ -24,7 +24,7 @@ require (
 	github.com/grafana/dskit v0.0.0-20211011144203-3a88ec0b675f
 	github.com/grafana/loki v1.6.2-0.20211021114919-0ae0d4da122d
 	github.com/grafana/tempo v1.0.1
-	github.com/hashicorp/consul/api v1.10.1
+	github.com/hashicorp/consul/api v1.11.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -57,13 +57,13 @@ require (
 	github.com/prometheus-operator/prometheus-operator v0.47.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
 	github.com/prometheus/client_golang v1.11.0
-	github.com/prometheus/common v0.31.1
+	github.com/prometheus/common v0.32.1
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.9.0
 	github.com/prometheus/mysqld_exporter v0.13.0
 	github.com/prometheus/node_exporter v1.0.1
 	github.com/prometheus/procfs v0.6.1-0.20210313121648-b565fefb1664
-	github.com/prometheus/prometheus v1.8.2-0.20211011171444-354d8d2ecfac
+	github.com/prometheus/prometheus v1.8.2-0.20211102100715-d4c83da6d252
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
@@ -77,20 +77,24 @@ require (
 	go.opentelemetry.io/otel/trace v1.0.0-RC3
 	go.uber.org/atomic v1.9.0
 	go.uber.org/zap v1.19.1
-	golang.org/x/sys v0.0.0-20210908233432-aa78b53d3365
+	golang.org/x/sys v0.0.0-20211020174200-9d6173849985
 	google.golang.org/grpc v1.41.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/api v0.22.1
-	k8s.io/apimachinery v0.22.1
+	k8s.io/api v0.22.3
+	k8s.io/apimachinery v0.22.3
 	k8s.io/client-go v12.0.0+incompatible
 	sigs.k8s.io/controller-runtime v0.9.0-beta.5
 	sigs.k8s.io/yaml v1.2.0
 )
 
 // Replace directives from Prometheus
-replace k8s.io/klog => github.com/simonpasquier/klog-gokit v0.1.0
+replace (
+	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
+	k8s.io/klog => github.com/simonpasquier/klog-gokit v0.3.0
+	k8s.io/klog/v2 => github.com/rlankfo/klog-gokit/v3 v3.0.1-0.20211103030435-2602604e10dd
+)
 
 //replace github.com/gophercloud/gophercloud => github.com/gophercloud/gophercloud v0.17.0
 
@@ -106,7 +110,7 @@ replace (
 	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
 	github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03
-	github.com/prometheus/prometheus => github.com/rlankfo/prometheus v1.8.2-0.20211028213304-e8f236550fd7
+	github.com/prometheus/prometheus => github.com/rlankfo/prometheus v1.8.2-0.20211103002007-436c62163d60
 	gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
 	k8s.io/api => k8s.io/api v0.21.0
 	k8s.io/apimachinery => k8s.io/apimachinery v0.21.0
