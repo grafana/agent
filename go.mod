@@ -28,7 +28,7 @@ require (
 	github.com/hashicorp/consul/api v1.10.1
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
-	github.com/hashicorp/go-multierror v1.1.1
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/lib/pq v1.10.1
@@ -42,7 +42,6 @@ require (
 	github.com/onsi/gomega v1.11.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.36.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.36.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.36.0
@@ -53,7 +52,6 @@ require (
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e
 	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/patrickmn/go-cache v0.0.0-20180527043350-9f6ff22cfff8
 	github.com/percona/mongodb_exporter v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/elasticsearch_exporter v1.2.1

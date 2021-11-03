@@ -14,8 +14,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
-	"github.com/hashicorp/go-multierror"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -204,10 +202,9 @@ func (p *processor) registerMetrics() error {
 				}
 
 				edge := ele.Value.(*edge)
-				if shouldDelete := p.collectEdge(edge); shouldDelete {
-					delete(p.storeMap, k)
-					p.store.Remove(ele)
-				}
+				p.collectEdge(edge)
+				delete(p.storeMap, k)
+				p.store.Remove(ele)
 
 				p.storeMtx.Unlock()
 
@@ -250,18 +247,13 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	// Evict expired edges
 	p.expire()
 
-	var errs error
-	for _, trace := range batchpersignal.SplitTraces(td) {
-		if err := p.consume(trace); err != nil {
-			if errors.Is(err, errTooManyItems) {
-				level.Info(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
-				break
-			}
-			errs = multierror.Append(errs, err)
+	if err := p.consume(td); err != nil {
+		if errors.Is(err, errTooManyItems) {
+			level.Info(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
+		} else {
+			level.Error(p.logger).Log("msg", "failed consuming traces", "err", err)
 		}
-	}
-	if errs != nil {
-		level.Error(p.logger).Log("msg", "failed consuming traces", "err", errs)
+		return nil
 	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)
@@ -269,7 +261,7 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 
 // collectEdge records the metrics for the given edge.
 // Returns true if the edge is completed or expired and should be deleted.
-func (p *processor) collectEdge(e *edge) bool {
+func (p *processor) collectEdge(e *edge) {
 	if e.isCompleted() {
 		p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 		if e.failed {
@@ -277,12 +269,9 @@ func (p *processor) collectEdge(e *edge) bool {
 		}
 		p.serviceGraphRequestServerHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
 		p.serviceGraphRequestClientHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.clientLatency.Seconds())
-		return true
 	} else if e.isExpired() {
 		p.serviceGraphUnpairedSpansTotal.WithLabelValues(e.clientService, e.serverService).Inc()
-		return true
 	}
-	return false
 }
 
 // shouldEvictHead checks if the oldest item (head of list) has expired and should be evicted.
@@ -303,7 +292,7 @@ func (p *processor) evictHead() {
 	front := p.store.Front()
 	oldest := front.Value.(*edge)
 
-	_ = p.collectEdge(oldest)
+	p.collectEdge(oldest)
 
 	delete(p.storeMap, oldest.key)
 	_ = p.store.Remove(front)
