@@ -11,9 +11,10 @@ weight: 1
 
 ## Summary
 
-Traditionally, design proposals to Grafana Agent have been done in private by
-default, and then only made public after internal consensus was reached.
-This causes a few problems:
+Traditionally, design proposals for Grafana Agent tend to be done internally to
+Grafana Labs by default. If the proposals are made public, it generally only
+happens after internal consensus was already reached. This can cause a few
+problems for external contributors:
 
 * Community concerns are less likely to have an impact as core maintainers have
   already agreed on a solution.
@@ -21,8 +22,8 @@ This causes a few problems:
 * Historical design docs with context and discussions become hard to find both
   internally and even harder publicly.
 
-In the spirit of building a broader community, this document proposes inverting
-the design process to be public by default.
+In the spirit of fostering broader community participation, this document
+proposes inverting the design process to best-effort being done in the open.
 
 ## Goals
 
@@ -34,8 +35,10 @@ the design process to be public by default.
 
 ## Non-Goals
 
-* Make everything public. If something can't be public for confidentiality
-  reasons, it can remain internal to the company.
+* Guarantee that everything will be made public. All contributors, regardless
+  of company affiliation, are encouraged to design publicly when possible. We
+  recognize that there will always be situations in which public design cannot
+  happen, including (but not limited to) legal or security reasons.
 * Identify strict rules for when an RFC or issue is appropriate.
 
 ## Terminology
