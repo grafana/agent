@@ -70,8 +70,6 @@ type processor struct {
 	// completed edges are pushed through this channel to be processed.
 	collectCh chan<- string
 
-	closeCh chan struct{}
-
 	serviceGraphRequestTotal           *prometheus.CounterVec
 	serviceGraphRequestFailedTotal     *prometheus.CounterVec
 	serviceGraphRequestServerHistogram *prometheus.HistogramVec
@@ -118,8 +116,6 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		wait:     cfg.Wait,
 		maxItems: cfg.MaxItems,
 		workers:  cfg.Workers,
-
-		closeCh: make(chan struct{}, 1),
 	}
 
 	return p
@@ -190,7 +186,7 @@ func (p *processor) registerMetrics() error {
 }
 
 func (p *processor) Shutdown(context.Context) error {
-	close(p.closeCh)
+	p.store.shutdown()
 	p.unregisterMetrics()
 	return nil
 }
