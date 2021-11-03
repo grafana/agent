@@ -12,6 +12,31 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Integrations: Change in how instance labels are handled (Breaking change)
+
+Integrations will now use a SUO-specific `instance` label value. Integrations
+that apply to a whole machine or agent will continue to use `<agent machine
+hostname>:<agent listen port>`, but integrations that connect to an external
+system will now infer an appropriate value based on the config for that specific
+integration. Please refer to the documentation for each integration for which
+defaults are used.
+
+*Note:* In some cases, a default value for `instance` cannot be inferred. This
+is the case for mongodb_exporter and postgres_exporter if more than one SUO is
+being connected to. In these cases, the instance value can be manually set by
+configuring the `instance` field on the integration. This can also be useful if
+two agents infer the same value for instance for the same integration.
+
+As part of this change, the `agent_hostname` label is permanently affixed to
+self-scraped integrations and cannot be disabled. This disambigutates multiple
+agents using the same instance label for an integration, and allows users to
+identify which agents need to be updated with an override for `instance`.
+
+Both `use_hostname_label` and `replace_instance_label` are now both deprecated
+and ignored from the YAML file, permanently treated as true. A future release
+will fully remove these fields, causing YAML errors on load instead of being
+silently ignored.
+
 ## v0.20.0
 
 ### Traces: Changes to receiver's TLS config (Breaking change).

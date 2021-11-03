@@ -2,6 +2,7 @@ package mongodb_exporter //nolint:golint
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
@@ -33,6 +34,15 @@ func (c *Config) Name() string {
 // integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
+}
+
+// InstanceKey returns the address:port of the mongodb server being queried.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	u, err := url.Parse(c.URI)
+	if err != nil {
+		return "", fmt.Errorf("could not parse url: %w", err)
+	}
+	return u.Host, nil
 }
 
 // NewIntegration creates a new mongodb_exporter

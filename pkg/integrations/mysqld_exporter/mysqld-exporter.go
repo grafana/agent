@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/go-sql-driver/mysql"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/mysqld_exporter/collector"
@@ -82,6 +83,23 @@ func (c *Config) Name() string {
 // CommonConfig returns the common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
+}
+
+// InstanceKey returns network(hostname:port)/dbname of the MySQL server.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	m, err := mysql.ParseDSN(c.DataSourceName)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse DSN: %w", err)
+	}
+
+	if m.Addr == "" {
+		m.Addr = "localhost:3306"
+	}
+	if m.Net == "" {
+		m.Net = "tcp"
+	}
+
+	return fmt.Sprintf("%s(%s)/%s", m.Net, m.Addr, m.DBName), nil
 }
 
 // NewIntegration converts this config into an instance of an integration.

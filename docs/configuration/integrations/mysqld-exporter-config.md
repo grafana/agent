@@ -24,7 +24,7 @@ mysqld_exporter:
     replacement: server-a
 ```
 
-We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
 security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/prometheus/mysqld_exporter#required-grants).
 
 Full reference of options:
@@ -33,6 +33,14 @@ Full reference of options:
   # Enables the mysqld_exporter integration, allowing the Agent to collect
   # metrics from a MySQL server.
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is a truncated version of the
+  # connection DSN, containing only the server and db name. (Credentials
+  # are not included.)
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the mysqld_exporter integration will be run but not scraped and thus not
