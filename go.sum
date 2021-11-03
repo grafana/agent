@@ -1961,8 +1961,6 @@ github.com/rlankfo/klog-gokit/v3 v3.0.1-0.20211103030435-2602604e10dd h1:7qTUktW
 github.com/rlankfo/klog-gokit/v3 v3.0.1-0.20211103030435-2602604e10dd/go.mod h1:xfi2laZC8X3QCauErQa4YkznzRpyA8fVxI5PQffhiFM=
 github.com/rlankfo/percona-toolkit v0.0.0-20211028191359-7aada1bf148f h1:rmF1x0fYpkVM5UsjL0RCGBUpfE2lS9vAGWbyAdDvXGY=
 github.com/rlankfo/percona-toolkit v0.0.0-20211028191359-7aada1bf148f/go.mod h1:rfOuOPhJETQRkJGQ68P6KBGlQzC4/L69S9f5JCHlk8E=
-github.com/rlankfo/prometheus v1.8.2-0.20211103002007-436c62163d60 h1:5gMgwpmUq93dZ3FOEttHvPqs4HYvwrJqwAHsy7gwdPw=
-github.com/rlankfo/prometheus v1.8.2-0.20211103002007-436c62163d60/go.mod h1:ZJuc8Ryf9icwMGB68aSEfw2YVSWuY3Ljrl/WCVqXeYc=
 github.com/rlankfo/weaveworks-common v0.0.0-20211028201502-f0486066ff0a h1:pbVk98H/Fjb/NsfXisqHrBza67HEu+ebCMTE3455By0=
 github.com/rlankfo/weaveworks-common v0.0.0-20211028201502-f0486066ff0a/go.mod h1:GWX2dQ7yjrgvqH0+d3kCJC5bsY8oOFwqjxFMHaRK4/k=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
@@ -2029,8 +2027,6 @@ github.com/siebenmann/go-kstat v0.0.0-20200303194639-4e8294f9e9d5 h1:rRF7gJ7t0E1
 github.com/siebenmann/go-kstat v0.0.0-20200303194639-4e8294f9e9d5/go.mod h1:G81aIFAMS9ECrwBYR9YxhlPjWgrItd+Kje78O6+uqm8=
 github.com/simonpasquier/klog-gokit v0.3.0 h1:TkFK21cbwDRS+CiystjqbAiq5ubJcVTk9hLUck5Ntcs=
 github.com/simonpasquier/klog-gokit v0.3.0/go.mod h1:+SUlDQNrhVtGt2FieaqNftzzk8P72zpWlACateWxA9k=
-github.com/simonpasquier/klog-gokit/v3 v3.0.0 h1:J0QrVhAULISHWN05PeXX/xMqJBjnpl2fAuO8uHdQGsA=
-github.com/simonpasquier/klog-gokit/v3 v3.0.0/go.mod h1:+WRhGy707Lp2Q4r727m9Oc7FxazOHgW76FIyCr23nus=
 github.com/sirupsen/logrus v1.0.4-0.20170822132746-89742aefa4b2/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.0.5/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.0.6/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
@@ -3172,19 +3168,6 @@ k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8
 k8s.io/gengo v0.0.0-20200114144118-36b2048a9120/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=
 k8s.io/gengo v0.0.0-20200413195148-3a45101e95ac/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=
 k8s.io/gengo v0.0.0-20201214224949-b6c5ce23f027/go.mod h1:FiNAH4ZV3gBg2Kwh89tzAEV2be7d5xI0vBa/VySYy3E=
-k8s.io/klog v0.0.0-20181102134211-b9b56d5dfc92/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
-k8s.io/klog v0.3.0/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
-k8s.io/klog v1.0.0 h1:Pt+yjF5aB1xDSVbau4VsWe+dQNzA0qv1LlXdC2dF6Q8=
-k8s.io/klog v1.0.0/go.mod h1:4Bi6QPql/J/LkTDqv7R/cd3hPo4k2DG6Ptcz060Ez5I=
-k8s.io/klog/v2 v2.0.0/go.mod h1:PBfzABfn139FHAV07az/IF9Wp1bkk3vpT2XSJ76fSDE=
-k8s.io/klog/v2 v2.2.0/go.mod h1:Od+F08eJP+W3HUb4pSrPpgp9DGU4GzlpG/TmITuYh/Y=
-k8s.io/klog/v2 v2.3.0/go.mod h1:Od+F08eJP+W3HUb4pSrPpgp9DGU4GzlpG/TmITuYh/Y=
-k8s.io/klog/v2 v2.4.0/go.mod h1:Od+F08eJP+W3HUb4pSrPpgp9DGU4GzlpG/TmITuYh/Y=
-k8s.io/klog/v2 v2.8.0/go.mod h1:hy9LJ/NvuK+iVyP4Ehqva4HxZG/oXyIS3n3Jmire4Ec=
-k8s.io/klog/v2 v2.9.0/go.mod h1:hy9LJ/NvuK+iVyP4Ehqva4HxZG/oXyIS3n3Jmire4Ec=
-k8s.io/klog/v2 v2.10.0/go.mod h1:hy9LJ/NvuK+iVyP4Ehqva4HxZG/oXyIS3n3Jmire4Ec=
-k8s.io/klog/v2 v2.20.0 h1:tlyxlSvd63k7axjhuchckaRJm+a92z5GSOrTOQY5sHw=
-k8s.io/klog/v2 v2.20.0/go.mod h1:Gm8eSIfQN6457haJuPaMxZw4wyP5k+ykPFlrhQDvhvw=
 k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a/go.mod h1:1TqjTSzOxsLGIKfj0lK8EeCP7K1iUG65v09OM0/WG5E=
 k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6/go.mod h1:GRQhZsXIAJ1xR0C9bd8UpWHZ5plfAS9fzPjJuQ6JL3E=
 k8s.io/kube-openapi v0.0.0-20200805222855-6aeccd4b50c6/go.mod h1:UuqjUnNftUyPE5H64/qeyjQoUZhGpeFDVdxjTeEVN2o=

@@ -96,8 +96,6 @@ replace (
 	k8s.io/klog/v2 => github.com/rlankfo/klog-gokit/v3 v3.0.1-0.20211103030435-2602604e10dd
 )
 
-//replace github.com/gophercloud/gophercloud => github.com/gophercloud/gophercloud v0.17.0
-
 // Replace directives from Cortex
 replace (
 	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
