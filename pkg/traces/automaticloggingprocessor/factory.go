@@ -49,6 +49,10 @@ func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 		return fmt.Errorf("must configure at most one of logs_instance_name and loki_name. loki_name is deprecated in favor of logs_instance_name")
 	}
 
+	if c.LogsName != "" && logsConfig == nil {
+		return fmt.Errorf("logs instance %s is set but no logs config is provided", c.LogsName)
+	}
+
 	// Migrate deprecated config to new one
 	if c.LogsName == "" && c.LokiName != "" {
 		c.LogsName, c.LokiName = c.LokiName, ""
