@@ -18,6 +18,8 @@ const (
 	DefaultWait = time.Second * 10
 	// DefaultMaxItems is the default amount of edges that will be stored in the storeMap
 	DefaultMaxItems = 10_000
+	// DefaultWorkers is the default amount of workers that will be used to process the edges
+	DefaultWorkers = 10
 )
 
 // Config holds the configuration for the Prometheus service graph processor.
@@ -26,6 +28,8 @@ type Config struct {
 
 	Wait     time.Duration `mapstructure:"wait"`
 	MaxItems int           `mapstructure:"max_items"`
+
+	Workers int `mapstructure:"workers"`
 
 	SuccessCodes *successCodes `mapstructure:"success_codes"`
 }

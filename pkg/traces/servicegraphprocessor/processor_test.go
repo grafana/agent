@@ -114,14 +114,14 @@ func traceSamples(t *testing.T, path string) pdata.Traces {
 
 // helper function to force collection of all metrics
 func collectMetrics(p *processor) {
-	p.storeMtx.Lock()
-	defer p.storeMtx.Unlock()
+	p.store.mtx.Lock()
+	defer p.store.mtx.Unlock()
 
-	for h := p.store.Front(); h != nil; h = p.store.Front() {
+	for h := p.store.l.Front(); h != nil; h = p.store.l.Front() {
 		edge := h.Value.(*edge)
 		p.collectEdge(edge)
-		delete(p.storeMap, edge.key)
-		p.store.Remove(h)
+		delete(p.store.m, edge.key)
+		p.store.l.Remove(h)
 	}
 }
 

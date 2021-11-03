@@ -1,14 +1,10 @@
 package servicegraphprocessor
 
 import (
-	"container/list"
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
-
-	"runtime"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/kit/log"
@@ -65,15 +61,14 @@ type processor struct {
 	nextConsumer consumer.Traces
 	reg          prometheus.Registerer
 
-	store    *list.List
-	storeMtx *sync.RWMutex
-	storeMap map[string]*list.Element
+	store *store
 
-	maxItems int
 	wait     time.Duration
+	maxItems int
+	workers  int
 
 	// completed edges are pushed through this channel to be processed.
-	collectCh chan string
+	collectCh chan<- string
 
 	closeCh chan struct{}
 
@@ -99,6 +94,9 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 	if cfg.MaxItems == 0 {
 		cfg.MaxItems = DefaultMaxItems
 	}
+	if cfg.Workers == 0 {
+        cfg.Workers = DefaultWorkers
+    }
 
 	var (
 		httpSuccessCode = make(map[int]struct{})
@@ -117,13 +115,9 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		nextConsumer: nextConsumer,
 		logger:       logger,
 
-		store:    list.New(),
-		storeMtx: &sync.RWMutex{},
-		storeMap: make(map[string]*list.Element),
-		maxItems: cfg.MaxItems,
 		wait:     cfg.Wait,
-
-		collectCh: make(chan string, runtime.NumCPU()),
+		maxItems: cfg.MaxItems,
+		workers:  cfg.Workers,
 
 		closeCh: make(chan struct{}, 1),
 	}
@@ -132,6 +126,9 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 }
 
 func (p *processor) Start(ctx context.Context, _ component.Host) error {
+	// initialize store
+	p.store, p.collectCh = newStore(p.wait, p.maxItems, p.workers, p.collectEdge)
+
 	reg, ok := ctx.Value(contextkeys.PrometheusRegisterer).(prometheus.Registerer)
 	if !ok || reg == nil {
 		return fmt.Errorf("key does not contain a prometheus registerer")
@@ -189,31 +186,6 @@ func (p *processor) registerMetrics() error {
 		}
 	}
 
-	go func() {
-		for {
-			select {
-			case k := <-p.collectCh:
-				p.storeMtx.Lock()
-
-				ele := p.storeMap[k]
-				if ele == nil { // it may already have been processed
-					p.storeMtx.Unlock()
-					continue
-				}
-
-				edge := ele.Value.(*edge)
-				p.collectEdge(edge)
-				delete(p.storeMap, k)
-				p.store.Remove(ele)
-
-				p.storeMtx.Unlock()
-
-			case <-p.closeCh:
-				return
-			}
-		}
-	}()
-
 	return nil
 }
 
@@ -245,7 +217,7 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	level.Debug(p.logger).Log("msg", "consuming traces")
 
 	// Evict expired edges
-	p.expire()
+	p.store.expire()
 
 	if err := p.consume(td); err != nil {
 		if errors.Is(err, errTooManyItems) {
@@ -274,62 +246,6 @@ func (p *processor) collectEdge(e *edge) {
 	}
 }
 
-// shouldEvictHead checks if the oldest item (head of list) has expired and should be evicted.
-func (p *processor) shouldEvictHead() bool {
-	h := p.store.Front()
-	if h == nil {
-		return false
-	}
-	ts := h.Value.(*edge).expiration
-	return ts < time.Now().Unix()
-}
-
-// evictHead removes the head from the store (and map).
-// It also collects metrics for the evicted edge.
-//
-// Must be called under lock.
-func (p *processor) evictHead() {
-	front := p.store.Front()
-	oldest := front.Value.(*edge)
-
-	p.collectEdge(oldest)
-
-	delete(p.storeMap, oldest.key)
-	_ = p.store.Remove(front)
-}
-
-// Fetches an edge from the store.
-// If the edge doesn't exist, it creates a new one with the default TTL.
-// Must be called under lock.
-func (p *processor) getOrCreateEdge(k string) *edge {
-	if storedEdge, ok := p.storeMap[k]; ok {
-		return storedEdge.Value.(*edge)
-	}
-
-	newEdge := newEdge(k, p.wait)
-	ele := p.store.PushBack(newEdge)
-	p.storeMap[k] = ele
-
-	return newEdge
-}
-
-// expire evicts all expired items in the store.
-func (p *processor) expire() {
-	p.storeMtx.RLock()
-	if !p.shouldEvictHead() {
-		p.storeMtx.RUnlock()
-		return
-	}
-	p.storeMtx.RUnlock()
-
-	p.storeMtx.Lock()
-	defer p.storeMtx.Unlock()
-
-	for p.shouldEvictHead() {
-		p.evictHead()
-	}
-}
-
 func (p *processor) consume(trace pdata.Traces) error {
 	rSpansSlice := trace.ResourceSpans()
 	for i := 0; i < rSpansSlice.Len(); i++ {
@@ -347,16 +263,13 @@ func (p *processor) consume(trace pdata.Traces) error {
 			for k := 0; k < ils.Spans().Len(); k++ {
 
 				// Check if the store can process the remaining spans
-				p.storeMtx.RLock()
-				if p.store.Len() >= p.maxItems {
+				if p.store.len() >= p.maxItems {
 					// todo: try to evict expired items before dropping more
 					remainingSpans := float64(ils.Spans().Len() - k)
 					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(remainingSpans)
-					p.storeMtx.RUnlock()
 
 					return errTooManyItems
 				}
-				p.storeMtx.RUnlock()
 
 				span := ils.Spans().At(k)
 
@@ -364,14 +277,11 @@ func (p *processor) consume(trace pdata.Traces) error {
 				case pdata.SpanKindClient:
 					k := key(span.TraceID().HexString(), span.SpanID().HexString())
 
-					p.storeMtx.Lock()
-
-					edge := p.getOrCreateEdge(k)
-					edge.clientService = svc.StringVal()
-					edge.clientLatency = spanDuration(span)
-					edge.failed = p.spanFailed(span)
-
-					p.storeMtx.Unlock()
+					edge := p.store.upsertEdge(k, func(e *edge) {
+						e.clientService = svc.StringVal()
+						e.clientLatency = spanDuration(span)
+						e.failed = p.spanFailed(span)
+					})
 
 					if edge.isCompleted() {
 						p.collectCh <- k
@@ -380,14 +290,11 @@ func (p *processor) consume(trace pdata.Traces) error {
 				case pdata.SpanKindServer:
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
-					p.storeMtx.Lock()
-
-					edge := p.getOrCreateEdge(k)
-					edge.serverService = svc.StringVal()
-					edge.serverLatency = spanDuration(span)
-					edge.failed = p.spanFailed(span)
-
-					p.storeMtx.Unlock()
+					edge := p.store.upsertEdge(k, func(e *edge) {
+						e.serverService = svc.StringVal()
+						e.serverLatency = spanDuration(span)
+						e.failed = p.spanFailed(span)
+					})
 
 					if edge.isCompleted() {
 						p.collectCh <- k
@@ -426,5 +333,5 @@ func spanDuration(span pdata.Span) time.Duration {
 }
 
 func key(k1, k2 string) string {
-	return fmt.Sprintf("%s-%s", k1, k2)
+	return fmt.Sprintf("%store-%store", k1, k2)
 }
