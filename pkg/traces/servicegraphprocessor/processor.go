@@ -95,8 +95,8 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		cfg.MaxItems = DefaultMaxItems
 	}
 	if cfg.Workers == 0 {
-        cfg.Workers = DefaultWorkers
-    }
+		cfg.Workers = DefaultWorkers
+	}
 
 	var (
 		httpSuccessCode = make(map[int]struct{})

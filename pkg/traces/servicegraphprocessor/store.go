@@ -70,10 +70,10 @@ func (s *store) shutdown() {
 }
 
 func (s *store) len() int {
-    s.mtx.RLock()
-    defer s.mtx.RUnlock()
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
 
-    return s.l.Len()
+	return s.l.Len()
 }
 
 // shouldEvictHead checks if the oldest item (head of list) has expired and should be evicted.
@@ -95,7 +95,7 @@ func (s *store) shouldEvictHead() bool {
 // Must be called under lock.
 func (s *store) evictHead() {
 	front := s.l.Front()
-	oldest := &(*front.Value.(*edge))
+	oldest := front.Value.(*edge)
 
 	s.evictCallback(oldest)
 
