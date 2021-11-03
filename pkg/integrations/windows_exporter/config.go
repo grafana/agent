@@ -54,6 +54,11 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// InstanceKey returns the hostname:port of the agent.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
+}
+
 // NewIntegration creates an integration based on the given configuration
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)

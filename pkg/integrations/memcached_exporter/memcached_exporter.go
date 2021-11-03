@@ -45,6 +45,11 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// InstanceKey returns the address:port of the memcached server.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return c.MemcachedAddress, nil
+}
+
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)

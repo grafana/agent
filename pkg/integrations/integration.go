@@ -18,6 +18,17 @@ type Config interface {
 	// all integrations.
 	CommonConfig() config.Common
 
+	// InstanceKey should return the key the reprsents the config, which will be
+	// used to populate the value of the `instance` label for metrics.
+	//
+	// InstanceKey is given an agentKey that represents the agent process. This
+	// may be used if the integration being configured applies to an entire
+	// machine.
+	//
+	// This method is only used if the common config does not have an override for
+	// InstanceKey.
+	InstanceKey(agentKey string) (string, error)
+
 	// NewIntegration returns an integration for the given with the given logger.
 	NewIntegration(l log.Logger) (Integration, error)
 }

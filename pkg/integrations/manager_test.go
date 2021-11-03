@@ -102,7 +102,7 @@ agent:
 	cfg.ListenHost = listenHost
 
 	expectHostname, _ := instance.Hostname()
-	relabels := cfg.DefaultRelabelConfigs(expectHostname)
+	relabels := cfg.DefaultRelabelConfigs(expectHostname + ":12345")
 
 	// Ensure that the relabel configs are functional
 	require.Len(t, relabels, 1)
@@ -120,7 +120,8 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 	require.NoError(t, err)
 	defer m.Stop()
 
-	cfg := m.instanceConfigForIntegration(icfg, mock, mockManagerConfig())
+	p := &integrationProcess{instanceKey: "key", cfg: icfg, i: mock}
+	cfg := m.instanceConfigForIntegration(p, mockManagerConfig())
 
 	// Validate that the generated MetricsPath is a valid URL path
 	require.Len(t, cfg.ScrapeConfigs, 1)
@@ -356,8 +357,10 @@ type mockConfig struct {
 // Equal is used for cmp.Equal, since otherwise mockConfig can't be compared to itself.
 func (c mockConfig) Equal(other mockConfig) bool { return c.Integration == other.Integration }
 
-func (c mockConfig) Name() string                { return "mock" }
-func (c mockConfig) CommonConfig() config.Common { return c.Integration.CommonCfg }
+func (c mockConfig) Name() string                                { return "mock" }
+func (c mockConfig) CommonConfig() config.Common                 { return c.Integration.CommonCfg }
+func (c mockConfig) InstanceKey(agentKey string) (string, error) { return agentKey, nil }
+
 func (c mockConfig) NewIntegration(_ log.Logger) (Integration, error) {
 	return c.Integration, nil
 }

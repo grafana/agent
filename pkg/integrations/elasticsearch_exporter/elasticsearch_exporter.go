@@ -83,6 +83,15 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// InstanceKey returns the hostname:port of the elasticsearch node being queried.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	u, err := url.Parse(c.Address)
+	if err != nil {
+		return "", fmt.Errorf("could not parse url: %w", err)
+	}
+	return u.Host, nil
+}
+
 // NewIntegration creates a new elasticsearch_exporter
 func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
 	return New(logger, c)

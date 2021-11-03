@@ -113,6 +113,11 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// InstanceKey returns the addr of the redis server.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return c.RedisAddr, nil
+}
+
 // NewIntegration converts the config into an integration instance.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)

@@ -47,8 +47,9 @@ type testIntegrationA struct {
 	Truth bool   `yaml:"truth"`
 }
 
-func (i *testIntegrationA) Name() string                { return "test" }
-func (i *testIntegrationA) CommonConfig() config.Common { return config.Common{} }
+func (i *testIntegrationA) Name() string                         { return "test" }
+func (i *testIntegrationA) CommonConfig() config.Common          { return config.Common{} }
+func (i *testIntegrationA) InstanceKey(_ string) (string, error) { return "integrationA", nil }
 
 func (i *testIntegrationA) NewIntegration(l log.Logger) (Integration, error) {
 	return nil, fmt.Errorf("not implemented")
@@ -64,8 +65,9 @@ type testIntegrationB struct {
 	Text string `yaml:"text"`
 }
 
-func (*testIntegrationB) Name() string                { return "shouldnotbefound" }
-func (*testIntegrationB) CommonConfig() config.Common { return config.Common{} }
+func (*testIntegrationB) Name() string                         { return "shouldnotbefound" }
+func (*testIntegrationB) CommonConfig() config.Common          { return config.Common{} }
+func (*testIntegrationB) InstanceKey(_ string) (string, error) { return "integrationB", nil }
 
 func (*testIntegrationB) NewIntegration(l log.Logger) (Integration, error) {
 	return nil, fmt.Errorf("not implemented")

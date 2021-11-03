@@ -23,7 +23,7 @@ relabel_configs:
       replacement: 'prod-cluster'
 ```
 
-We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
 security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/percona/mongodb_exporter#permissions).
 
 Besides that, there's not much to configure. Please refer to the full reference of options:
@@ -31,6 +31,13 @@ Besides that, there's not much to configure. Please refer to the full reference 
 ```yaml
   # Enables the mongodb_exporter integration
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the hostname
+  # portion of the mongodb_uri field.
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the mongodb_exporter integration will be run but not scraped and thus not
