@@ -71,7 +71,7 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 			ClusterIP: "None",
 			Ports: []v1.ServicePort{{
 				Name:       d.Agent.Spec.PortName,
-				Port:       9090,
+				Port:       8080,
 				TargetPort: intstr.FromString(d.Agent.Spec.PortName),
 			}},
 			Selector: map[string]string{

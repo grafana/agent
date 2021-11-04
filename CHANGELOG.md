@@ -4,6 +4,8 @@
 
 - [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)
 
+- [BUGFIX] Operator: Fix MetricsInstance Service port (@hjet)
+
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
 # v0.20.0 (2021-10-28)
