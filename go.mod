@@ -93,6 +93,10 @@ require (
 replace (
 	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
 	k8s.io/klog => github.com/simonpasquier/klog-gokit v0.3.0
+
+	// k8s.io/client-go requires the api added in my PR to be compatible:
+	// https://github.com/simonpasquier/klog-gokit/pull/23
+	// once this is merged we should be able to remove this replace
 	k8s.io/klog/v2 => github.com/rlankfo/klog-gokit/v3 v3.0.1-0.20211103030435-2602604e10dd
 )
 
