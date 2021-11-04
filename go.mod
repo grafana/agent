@@ -69,7 +69,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
-	github.com/weaveworks/common v0.0.0-20211015155308-ebe5bdc2c89e
+	github.com/weaveworks/common v0.0.0-20211104141906-05b06253aab8
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.36.0
 	go.opentelemetry.io/collector/model v0.36.0
@@ -137,9 +137,6 @@ replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
-
-// Used for /-/reload
-replace github.com/weaveworks/common => github.com/rlankfo/weaveworks-common v0.0.0-20211028201502-f0486066ff0a
 
 // loadbalancingexporter uses non-fixed version of batchpertrace which fetches latest and causes problems
 replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.30.0
