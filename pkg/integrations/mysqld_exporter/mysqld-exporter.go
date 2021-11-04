@@ -16,6 +16,7 @@ import (
 
 // DefaultConfig holds the default settings for the mysqld_exporter integration.
 var DefaultConfig = Config{
+	Common:          config.DefaultCommon,
 	LockWaitTimeout: 2,
 
 	InfoSchemaProcessListProcessesByUser: true,

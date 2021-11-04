@@ -15,7 +15,7 @@ import (
 
 // Config controls the postgres_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
+	config.Common `yaml:",inline"`
 
 	// DataSourceNames to use to connect to Postgres.
 	DataSourceNames []string `yaml:"data_source_names,omitempty"`

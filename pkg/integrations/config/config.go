@@ -8,6 +8,12 @@ import (
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
+// DefaultCommon is the default common settings for all integrations.
+var DefaultCommon = Common{
+	// Integrations are enabled by default when defined.
+	Enabled: true,
+}
+
 // Common is a set of common options shared by all integrations. It should be
 // utilised by an integration's config by inlining the common options:
 //
@@ -23,6 +29,14 @@ type Common struct {
 	RelabelConfigs       []*relabel.Config `yaml:"relabel_configs,omitempty"`
 	MetricRelabelConfigs []*relabel.Config `yaml:"metric_relabel_configs,omitempty"`
 	WALTruncateFrequency time.Duration     `yaml:"wal_truncate_frequency,omitempty"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Common) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultCommon
+
+	type common Common
+	return unmarshal((*common)(c))
 }
 
 // ScrapeConfig is a subset of options used by integrations to inform how samples
