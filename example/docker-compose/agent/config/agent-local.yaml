@@ -34,55 +34,41 @@ logs:
           __path__: /var/log/*log
 
 integrations:
-  agent:
-    enabled: true
-  node_exporter:
-    enabled: true
+  agent: {}
+  node_exporter: {}
   process_exporter:
-    enabled: true
     process_names:
       - name: "{{.Comm}}"
         cmdline:
         - '.+'
   mysqld_exporter:
-    enabled: true
     data_source_name: root@(localhost:3306)/
   postgres_exporter:
-    enabled: true
     data_source_names:
       - postgresql://postgres:password@localhost:5432/postgres?sslmode=disable
   redis_exporter:
-    enabled: true
     redis_addr: localhost:6379
   dnsmasq_exporter:
-    enabled: true
     dnsmasq_address: localhost:30053
     leases_path: /tmp/dnsmasq-leases/dnsmasq.leases
   memcached_exporter:
-    enabled: true
     memcached_address: localhost:11211
     timeout: 10s
   statsd_exporter:
-    enabled: true
   consul_exporter:
-    enabled: true
   elasticsearch_exporter:
-    enabled: true
     address: http://localhost:9200
   kafka_exporter:
-    enabled: true
     kafka_uris: [localhost:9093]
   github_exporter:
-    enabled: true
     repositories:
       - grafana/agent
   mongodb_exporter:
-    enabled: true
     mongodb_uri: mongodb://mongodb:27017
-    relabel_configs:        
+    relabel_configs:
     - source_labels: [__address__]
       target_label: service_name
-      replacement: 'mongodb'   
+      replacement: 'mongodb'
     - source_labels: [__address__]
       target_label: mongodb_cluster
-      replacement: 'mongodb-cluster'  
+      replacement: 'mongodb-cluster'

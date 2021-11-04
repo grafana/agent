@@ -16,7 +16,6 @@ the servers:
 
 ```yaml
 memcached_exporter:
-  enabled: true
   memcached_address: memcached-a:53
   relabel_configs:
   - source_labels: [__address__]
@@ -29,7 +28,11 @@ Full reference of options:
 ```yaml
   # Enables the memcached_exporter integration, allowing the Agent to automatically
   # collect system metrics from the configured memcached server address
-  [enabled: <boolean> | default = false]
+  #
+  # Enabled is DEPRECATED and will be removed in a future release. To disable
+  # an integration, comment it out or remove it from your config instead of
+  # setting `enabled: false`.
+  [enabled: <boolean> | default = true]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.

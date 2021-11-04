@@ -21,7 +21,13 @@ var DefaultCommon = Common{
 //     Common config.Common `yaml:",inline"`
 //   }
 type Common struct {
-	Enabled              bool              `yaml:"enabled,omitempty"`
+	// Enabled controls whether a present integration should run.
+	//
+	// Enabled is DEPRECATED and will be removed in a future version. Users
+	// should change to removing or commenting out integrations instead of
+	// using `enabled: false` to prevent it from running.
+	Enabled bool `yaml:"enabled,omitempty"`
+
 	InstanceKey          *string           `yaml:"instance,omitempty"`
 	ScrapeIntegration    *bool             `yaml:"scrape_integration,omitempty"`
 	ScrapeInterval       time.Duration     `yaml:"scrape_interval,omitempty"`
