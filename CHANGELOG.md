@@ -6,7 +6,7 @@
 
 - [BUGFIX] Operator: Fix MetricsInstance Service port (@hjet)
 
-- [BUGFIX] Add relabel_config.libsonnet to logs templates dir (@hjet)
+- [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
 
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
