@@ -6,6 +6,8 @@
 
 - [BUGFIX] Operator: Fix MetricsInstance Service port (@hjet)
 
+- [BUGFIX] Operator: Create govern service per Grafana Agent (@shturman)
+
 - [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
 
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
