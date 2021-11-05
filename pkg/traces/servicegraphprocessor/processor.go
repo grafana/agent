@@ -18,9 +18,13 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-var (
-	errTooManyItems = errors.New("too many items in memory")
-)
+type tooManySpansError struct {
+	droppedSpans int
+}
+
+func (t tooManySpansError) Error() string {
+	return fmt.Sprintf("dropped %d spans", t.droppedSpans)
+}
 
 // edge is an edge between two nodes in the graph
 type edge struct {
@@ -216,8 +220,8 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	p.store.expire()
 
 	if err := p.consume(td); err != nil {
-		if errors.Is(err, errTooManyItems) {
-			level.Warn(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
+		if errors.As(err, &tooManySpansError{}) {
+			level.Warn(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", err)
 		} else {
 			level.Error(p.logger).Log("msg", "failed consuming traces", "err", err)
 		}
@@ -243,6 +247,7 @@ func (p *processor) collectEdge(e *edge) {
 }
 
 func (p *processor) consume(trace pdata.Traces) error {
+	var totalDroppedSpans int
 	rSpansSlice := trace.ResourceSpans()
 	for i := 0; i < rSpansSlice.Len(); i++ {
 		rSpan := rSpansSlice.At(i)
@@ -261,10 +266,12 @@ func (p *processor) consume(trace pdata.Traces) error {
 				// Check if the store can process the remaining spans
 				if p.store.len() >= p.maxItems {
 					// todo: try to evict expired items before dropping more
-					remainingSpans := float64(ils.Spans().Len() - k)
-					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(remainingSpans)
+					droppedSpans := ils.Spans().Len() - k
+					totalDroppedSpans += droppedSpans
 
-					return errTooManyItems
+					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(float64(droppedSpans))
+
+					continue
 				}
 
 				span := ils.Spans().At(k)
@@ -299,6 +306,12 @@ func (p *processor) consume(trace pdata.Traces) error {
 				default:
 				}
 			}
+		}
+	}
+
+	if totalDroppedSpans > 0 {
+		return &tooManySpansError{
+			droppedSpans: totalDroppedSpans,
 		}
 	}
 	return nil
