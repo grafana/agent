@@ -6,6 +6,8 @@
 
 - [BUGFIX] Operator: Fix MetricsInstance Service port (@hjet)
 
+- [BUGFIX] Operator: Create govern service per Grafana Agent (@shturman)
+
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
 # v0.20.0 (2021-10-28)
