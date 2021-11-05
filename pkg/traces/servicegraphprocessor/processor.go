@@ -217,7 +217,7 @@ func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 
 	if err := p.consume(td); err != nil {
 		if errors.Is(err, errTooManyItems) {
-			level.Info(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
+			level.Warn(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
 		} else {
 			level.Error(p.logger).Log("msg", "failed consuming traces", "err", err)
 		}
