@@ -4,6 +4,8 @@
 
 - [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)
 
+- [BUGFIX] Operator: Fix MetricsInstance Service port (@hjet)
+
 - [BUGFIX] Add relabel_config.libsonnet to logs templates dir (@hjet)
 
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
