@@ -283,7 +283,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					edge := p.store.upsertEdge(k, func(e *edge) {
 						e.clientService = svc.StringVal()
 						e.clientLatency = spanDuration(span)
-						e.failed = p.spanFailed(span)
+						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
 
 					if edge.isCompleted() {
@@ -296,7 +296,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 					edge := p.store.upsertEdge(k, func(e *edge) {
 						e.serverService = svc.StringVal()
 						e.serverLatency = spanDuration(span)
-						e.failed = p.spanFailed(span)
+						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
 
 					if edge.isCompleted() {
@@ -342,5 +342,5 @@ func spanDuration(span pdata.Span) time.Duration {
 }
 
 func key(k1, k2 string) string {
-	return fmt.Sprintf("%store-%store", k1, k2)
+	return fmt.Sprintf("%s-%s", k1, k2)
 }

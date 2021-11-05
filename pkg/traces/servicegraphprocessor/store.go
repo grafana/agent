@@ -36,27 +36,25 @@ func newStore(ttl time.Duration, maxItems, workers int, evictCallback func(e *ed
 	for i := 0; i < workers; i++ {
 		go func() {
 			for {
-				for {
-					select {
-					case k := <-collectCh:
-						s.mtx.Lock()
+				select {
+				case k := <-collectCh:
+					s.mtx.Lock()
 
-						ele := s.m[k]
-						if ele == nil { // it may already have been processed
-							s.mtx.Unlock()
-							continue
-						}
-
-						edge := ele.Value.(*edge)
-						s.evictCallback(edge)
-						delete(s.m, k)
-						s.l.Remove(ele)
-
+					ele := s.m[k]
+					if ele == nil { // it may already have been processed
 						s.mtx.Unlock()
-
-					case <-s.closeCh:
-						return
+						continue
 					}
+
+					edge := ele.Value.(*edge)
+					s.evictCallback(edge)
+					delete(s.m, k)
+					s.l.Remove(ele)
+
+					s.mtx.Unlock()
+
+				case <-s.closeCh:
+					return
 				}
 			}
 		}()
