@@ -16,7 +16,6 @@ import (
 )
 
 const (
-	// governingServiceName = "grafana-agent-operated"
 	defaultPortName = "http-metrics"
 )
 
