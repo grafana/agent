@@ -6,34 +6,28 @@ import (
 	"time"
 )
 
+type storeCallback func(e *edge)
+
 type store struct {
 	l   *list.List
 	mtx *sync.RWMutex
 	m   map[string]*list.Element
 
-	closeCh chan struct{}
-
-	evictCallback func(e *edge)
+	evictCallback storeCallback
 	ttl           time.Duration
 }
 
-func newStore(ttl time.Duration, evictCallback func(e *edge)) *store {
+func newStore(ttl time.Duration, evictCallback storeCallback) *store {
 	s := &store{
 		l:   list.New(),
 		mtx: &sync.RWMutex{},
 		m:   make(map[string]*list.Element),
-
-		closeCh: make(chan struct{}, 1),
 
 		evictCallback: evictCallback,
 		ttl:           ttl,
 	}
 
 	return s
-}
-
-func (s *store) shutdown() {
-	close(s.closeCh)
 }
 
 func (s *store) len() int {
@@ -92,7 +86,7 @@ func (s *store) evictEdge(key string) {
 
 // Fetches an edge from the store.
 // If the edge doesn't exist, it creates a new one with the default TTL.
-func (s *store) upsertEdge(k string, cb func(e *edge)) *edge {
+func (s *store) upsertEdge(k string, cb storeCallback) *edge {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 

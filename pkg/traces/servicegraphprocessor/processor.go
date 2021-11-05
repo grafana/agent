@@ -208,7 +208,6 @@ func (p *processor) registerMetrics() error {
 
 func (p *processor) Shutdown(context.Context) error {
 	close(p.closeCh)
-	p.store.shutdown()
 	p.unregisterMetrics()
 	return nil
 }
