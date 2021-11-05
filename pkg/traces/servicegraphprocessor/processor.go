@@ -69,10 +69,9 @@ type processor struct {
 
 	wait     time.Duration
 	maxItems int
-	workers  int
 
 	// completed edges are pushed through this channel to be processed.
-	collectCh chan<- string
+	collectCh chan string
 
 	serviceGraphRequestTotal           *prometheus.CounterVec
 	serviceGraphRequestFailedTotal     *prometheus.CounterVec
@@ -84,7 +83,8 @@ type processor struct {
 	httpSuccessCode map[int]struct{}
 	grpcSuccessCode map[int]struct{}
 
-	logger log.Logger
+	logger  log.Logger
+	closeCh chan struct{}
 }
 
 func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
@@ -119,7 +119,24 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 
 		wait:     cfg.Wait,
 		maxItems: cfg.MaxItems,
-		workers:  cfg.Workers,
+
+		collectCh: make(chan string, cfg.Workers),
+
+		closeCh: make(chan struct{}, 1),
+	}
+
+	for i := 0; i < cfg.Workers; i++ {
+		go func() {
+			for {
+				select {
+				case k := <-p.collectCh:
+					p.store.evictEdgeWithLock(k)
+
+				case <-p.closeCh:
+					return
+				}
+			}
+		}()
 	}
 
 	return p
@@ -127,7 +144,7 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 
 func (p *processor) Start(ctx context.Context, _ component.Host) error {
 	// initialize store
-	p.store, p.collectCh = newStore(p.wait, p.maxItems, p.workers, p.collectEdge)
+	p.store = newStore(p.wait, p.collectEdge)
 
 	reg, ok := ctx.Value(contextkeys.PrometheusRegisterer).(prometheus.Registerer)
 	if !ok || reg == nil {
@@ -190,6 +207,7 @@ func (p *processor) registerMetrics() error {
 }
 
 func (p *processor) Shutdown(context.Context) error {
+	close(p.closeCh)
 	p.store.shutdown()
 	p.unregisterMetrics()
 	return nil

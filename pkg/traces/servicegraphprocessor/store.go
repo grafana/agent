@@ -15,10 +15,9 @@ type store struct {
 
 	evictCallback func(e *edge)
 	ttl           time.Duration
-	maxItems      int
 }
 
-func newStore(ttl time.Duration, maxItems, workers int, evictCallback func(e *edge)) (*store, chan<- string) {
+func newStore(ttl time.Duration, evictCallback func(e *edge)) *store {
 	s := &store{
 		l:   list.New(),
 		mtx: &sync.RWMutex{},
@@ -28,39 +27,9 @@ func newStore(ttl time.Duration, maxItems, workers int, evictCallback func(e *ed
 
 		evictCallback: evictCallback,
 		ttl:           ttl,
-		maxItems:      maxItems,
 	}
 
-	collectCh := make(chan string, workers)
-
-	for i := 0; i < workers; i++ {
-		go func() {
-			for {
-				select {
-				case k := <-collectCh:
-					s.mtx.Lock()
-
-					ele := s.m[k]
-					if ele == nil { // it may already have been processed
-						s.mtx.Unlock()
-						continue
-					}
-
-					edge := ele.Value.(*edge)
-					s.evictCallback(edge)
-					delete(s.m, k)
-					s.l.Remove(ele)
-
-					s.mtx.Unlock()
-
-				case <-s.closeCh:
-					return
-				}
-			}
-		}()
-	}
-
-	return s, collectCh
+	return s
 }
 
 func (s *store) shutdown() {
@@ -92,13 +61,33 @@ func (s *store) shouldEvictHead() bool {
 //
 // Must be called under lock.
 func (s *store) evictHead() {
-	front := s.l.Front()
-	oldest := front.Value.(*edge)
+	front := s.l.Front().Value.(*edge)
+	s.evictEdge(front.key)
+}
 
-	s.evictCallback(oldest)
+// evictEdge evicts and edge under lock
+func (s *store) evictEdgeWithLock(key string) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 
-	delete(s.m, oldest.key)
-	_ = s.l.Remove(front)
+	s.evictEdge(key)
+}
+
+// evictEdge removes the edge from the store (and map).
+// It also collects metrics for the evicted edge.
+//
+// Must be called under lock.
+func (s *store) evictEdge(key string) {
+	ele := s.m[key]
+	if ele == nil { // it may already have been processed
+		return
+	}
+
+	edge := ele.Value.(*edge)
+	s.evictCallback(edge)
+
+	delete(s.m, key)
+	s.l.Remove(ele)
 }
 
 // Fetches an edge from the store.

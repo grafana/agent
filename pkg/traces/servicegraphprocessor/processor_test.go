@@ -63,7 +63,9 @@ func TestConsumeMetrics(t *testing.T) {
 			expectedMetrics: `
         	    # HELP traces_service_graph_dropped_spans_total Total count of dropped spans
         	    # TYPE traces_service_graph_dropped_spans_total counter
-        	    traces_service_graph_dropped_spans_total{service="lb"} 1
+        	    traces_service_graph_dropped_spans_total{service="app"} 27
+        	    traces_service_graph_dropped_spans_total{service="db"} 4
+        	    traces_service_graph_dropped_spans_total{service="lb"} 4
 				# HELP traces_service_graph_unpaired_spans_total Total count of unpaired spans
 				# TYPE traces_service_graph_unpaired_spans_total counter
 				traces_service_graph_unpaired_spans_total{client="lb",server=""} 1
