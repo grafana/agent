@@ -270,7 +270,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 		rSpan := rSpansSlice.At(i)
 
 		svc, ok := rSpan.Resource().Attributes().Get(semconv.AttributeServiceName)
-		if !ok || svc.StringVal() == ""{
+		if !ok || svc.StringVal() == "" {
 			continue
 		}
 
