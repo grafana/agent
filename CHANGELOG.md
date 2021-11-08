@@ -12,6 +12,8 @@
 
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
+- [CHANGE] Changed service graphs store implementation to improve CPU performance (@mapno)
+
 # v0.20.0 (2021-10-28)
 
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet

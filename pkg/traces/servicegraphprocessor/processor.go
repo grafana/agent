@@ -10,9 +10,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
-	"github.com/hashicorp/go-multierror"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal"
-	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -21,24 +18,45 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-var (
-	errTooManyItems = errors.New("too many items in store")
-)
+type tooManySpansError struct {
+	droppedSpans int
+}
 
-// edgeRequest is a request between two nodes in the graph
-type edgeRequest struct {
+func (t tooManySpansError) Error() string {
+	return fmt.Sprintf("dropped %d spans", t.droppedSpans)
+}
+
+// edge is an edge between two nodes in the graph
+type edge struct {
+	key string
+
 	serverService, clientService string
 	serverLatency, clientLatency time.Duration
 
 	// If either the client or the server spans have status code error,
-	// the request will be considered as failed.
+	// the edge will be considered as failed.
 	failed bool
+
+	// expiration is the time at which the edge expires, expressed as Unix time
+	expiration int64
 }
 
-// complete returns true if the corresponding client and server
-// pair spans have been processed for the given request
-func (e *edgeRequest) complete() bool {
+func newEdge(key string, ttl time.Duration) *edge {
+	return &edge{
+		key: key,
+
+		expiration: time.Now().Add(ttl).Unix(),
+	}
+}
+
+// isCompleted returns true if the corresponding client and server
+// pair spans have been processed for the given edge
+func (e *edge) isCompleted() bool {
 	return len(e.clientService) != 0 && len(e.serverService) != 0
+}
+
+func (e *edge) isExpired() bool {
+	return time.Now().Unix() >= e.expiration
 }
 
 var _ component.TracesProcessor = (*processor)(nil)
@@ -47,9 +65,13 @@ type processor struct {
 	nextConsumer consumer.Traces
 	reg          prometheus.Registerer
 
-	// store is a local storage for request between graphs nodes
-	store    *cache.Cache
+	store *store
+
+	wait     time.Duration
 	maxItems int
+
+	// completed edges are pushed through this channel to be processed.
+	collectCh chan string
 
 	serviceGraphRequestTotal           *prometheus.CounterVec
 	serviceGraphRequestFailedTotal     *prometheus.CounterVec
@@ -61,7 +83,8 @@ type processor struct {
 	httpSuccessCode map[int]struct{}
 	grpcSuccessCode map[int]struct{}
 
-	logger log.Logger
+	logger  log.Logger
+	closeCh chan struct{}
 }
 
 func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
@@ -72,6 +95,9 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 	}
 	if cfg.MaxItems == 0 {
 		cfg.MaxItems = DefaultMaxItems
+	}
+	if cfg.Workers == 0 {
+		cfg.Workers = DefaultWorkers
 	}
 
 	var (
@@ -87,20 +113,39 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		}
 	}
 
-	// TODO(mapno): Add support for an external cache (e.g. memcached)
 	p := &processor{
 		nextConsumer: nextConsumer,
-		// Cleanup period is hardcoded to twice the waiting time for simplicity
-		// Most likely not ideal in every scenario
-		store:    cache.New(cfg.Wait, cfg.Wait*2),
+		logger:       logger,
+
+		wait:     cfg.Wait,
 		maxItems: cfg.MaxItems,
-		logger:   logger,
+
+		collectCh: make(chan string, cfg.Workers),
+
+		closeCh: make(chan struct{}, 1),
+	}
+
+	for i := 0; i < cfg.Workers; i++ {
+		go func() {
+			for {
+				select {
+				case k := <-p.collectCh:
+					p.store.evictEdgeWithLock(k)
+
+				case <-p.closeCh:
+					return
+				}
+			}
+		}()
 	}
 
 	return p
 }
 
 func (p *processor) Start(ctx context.Context, _ component.Host) error {
+	// initialize store
+	p.store = newStore(p.wait, p.maxItems, p.collectEdge)
+
 	reg, ok := ctx.Value(contextkeys.PrometheusRegisterer).(prometheus.Registerer)
 	if !ok || reg == nil {
 		return fmt.Errorf("key does not contain a prometheus registerer")
@@ -141,7 +186,7 @@ func (p *processor) registerMetrics() error {
 		Namespace: "traces",
 		Name:      "service_graph_dropped_spans_total",
 		Help:      "Total count of dropped spans",
-	}, []string{"service"})
+	}, []string{"client", "server"})
 
 	cs := []prometheus.Collector{
 		p.serviceGraphRequestTotal,
@@ -158,21 +203,12 @@ func (p *processor) registerMetrics() error {
 		}
 	}
 
-	// Collect unpaired spans when evicting items from the store during
-	// periodic cleanup
-	p.store.OnEvicted(func(s string, i interface{}) {
-		e := i.(edgeRequest)
-		if !e.complete() {
-			p.serviceGraphUnpairedSpansTotal.WithLabelValues(e.clientService, e.serverService).Inc()
-		}
-	})
-
 	return nil
 }
 
 func (p *processor) Shutdown(context.Context) error {
+	close(p.closeCh)
 	p.unregisterMetrics()
-	p.store.Flush()
 	return nil
 }
 
@@ -197,47 +233,44 @@ func (p *processor) Capabilities() consumer.Capabilities {
 func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
 	level.Debug(p.logger).Log("msg", "consuming traces")
 
-	var errs error
-	for _, trace := range batchpersignal.SplitTraces(td) {
-		if err := p.consume(trace); err != nil {
-			if errors.Is(err, errTooManyItems) {
-				level.Info(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", errTooManyItems)
-				break
-			}
-			errs = multierror.Append(errs, err)
-		}
-	}
-	if errs != nil {
-		level.Error(p.logger).Log("msg", "failed consuming traces", "err", errs)
-	}
+	// Evict expired edges
+	p.store.expire()
 
-	p.collectMetrics()
+	if err := p.consume(td); err != nil {
+		if errors.As(err, &tooManySpansError{}) {
+			level.Warn(p.logger).Log("msg", "skipped processing of spans", "maxItems", p.maxItems, "err", err)
+		} else {
+			level.Error(p.logger).Log("msg", "failed consuming traces", "err", err)
+		}
+		return nil
+	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func (p *processor) collectMetrics() {
-	for k, v := range p.store.Items() {
-		e := v.Object.(edgeRequest)
-		if e.complete() {
-			p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
-			if e.failed {
-				p.serviceGraphRequestFailedTotal.WithLabelValues(e.clientService, e.serverService).Inc()
-			}
-			p.serviceGraphRequestServerHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
-			p.serviceGraphRequestClientHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.clientLatency.Seconds())
-			p.store.Delete(k)
+// collectEdge records the metrics for the given edge.
+// Returns true if the edge is completed or expired and should be deleted.
+func (p *processor) collectEdge(e *edge) {
+	if e.isCompleted() {
+		p.serviceGraphRequestTotal.WithLabelValues(e.clientService, e.serverService).Inc()
+		if e.failed {
+			p.serviceGraphRequestFailedTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 		}
+		p.serviceGraphRequestServerHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.serverLatency.Seconds())
+		p.serviceGraphRequestClientHistogram.WithLabelValues(e.clientService, e.serverService).Observe(e.clientLatency.Seconds())
+	} else if e.isExpired() {
+		p.serviceGraphUnpairedSpansTotal.WithLabelValues(e.clientService, e.serverService).Inc()
 	}
 }
 
 func (p *processor) consume(trace pdata.Traces) error {
+	var totalDroppedSpans int
 	rSpansSlice := trace.ResourceSpans()
 	for i := 0; i < rSpansSlice.Len(); i++ {
 		rSpan := rSpansSlice.At(i)
 
 		svc, ok := rSpan.Resource().Attributes().Get(semconv.AttributeServiceName)
-		if !ok {
+		if !ok || svc.StringVal() == "" {
 			continue
 		}
 
@@ -247,44 +280,64 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 			for k := 0; k < ils.Spans().Len(); k++ {
 
-				if p.store.ItemCount() >= p.maxItems {
-					remainingSpans := float64(ils.Spans().Len() - k)
-					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(remainingSpans)
-
-					return errTooManyItems
-				}
-
 				span := ils.Spans().At(k)
 
 				switch span.Kind() {
 				case pdata.SpanKindClient:
 					k := key(span.TraceID().HexString(), span.SpanID().HexString())
 
-					var r edgeRequest
-					if v, ok := p.store.Get(k); ok {
-						r = v.(edgeRequest)
+					edge, err := p.store.upsertEdge(k, func(e *edge) {
+						e.clientService = svc.StringVal()
+						e.clientLatency = spanDuration(span)
+						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
+					})
+
+					if errors.Is(err, errTooManyItems) {
+						totalDroppedSpans++
+						p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal(), "").Inc()
+						continue
 					}
-					r.clientService = svc.StringVal()
-					r.clientLatency = spanDuration(span)
-					r.failed = p.spanFailed(span)
-					p.store.SetDefault(k, r)
+					// upsertEdge will only return this errTooManyItems
+					if err != nil {
+						return err
+					}
+
+					if edge.isCompleted() {
+						p.collectCh <- k
+					}
 
 				case pdata.SpanKindServer:
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
-					var r edgeRequest
-					if v, ok := p.store.Get(k); ok {
-						r = v.(edgeRequest)
+					edge, err := p.store.upsertEdge(k, func(e *edge) {
+						e.serverService = svc.StringVal()
+						e.serverLatency = spanDuration(span)
+						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
+					})
+
+					if errors.Is(err, errTooManyItems) {
+						totalDroppedSpans++
+						p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.StringVal()).Inc()
+						continue
+					}
+					// upsertEdge will only return this errTooManyItems
+					if err != nil {
+						return err
 					}
 
-					r.serverService = svc.StringVal()
-					r.serverLatency = spanDuration(span)
-					r.failed = p.spanFailed(span)
-					p.store.SetDefault(k, r)
+					if edge.isCompleted() {
+						p.collectCh <- k
+					}
 
 				default:
 				}
 			}
+		}
+	}
+
+	if totalDroppedSpans > 0 {
+		return &tooManySpansError{
+			droppedSpans: totalDroppedSpans,
 		}
 	}
 	return nil
