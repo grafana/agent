@@ -4,7 +4,7 @@
 
 - [ENHANCEMENT] Update Loki dependency to v2.1.0-656-g0ae0d4da1. (@rlankfo)
 
-- [ENHANCEMENT] Update Prometheus dependency to v2.31.0-1-g89bb32ee4. (@rlankfo)
+- [ENHANCEMENT] Update Prometheus dependency to v2.31.0 (@rlankfo)
 
 - [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
 
