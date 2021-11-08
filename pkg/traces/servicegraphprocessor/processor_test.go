@@ -57,19 +57,10 @@ func TestConsumeMetrics(t *testing.T) {
 			name:           "max items in storeMap is reached",
 			sampleDataPath: traceSamplePath,
 			cfg: &Config{
-				Wait:     time.Millisecond,
+				Wait:     -time.Millisecond,
 				MaxItems: 1, // Configure max number of items in storeMap to 1. Only one edge will be processed.
 			},
-			expectedMetrics: `
-        	    # HELP traces_service_graph_dropped_spans_total Total count of dropped spans
-        	    # TYPE traces_service_graph_dropped_spans_total counter
-        	    traces_service_graph_dropped_spans_total{service="app"} 27
-        	    traces_service_graph_dropped_spans_total{service="db"} 4
-        	    traces_service_graph_dropped_spans_total{service="lb"} 4
-				# HELP traces_service_graph_unpaired_spans_total Total count of unpaired spans
-				# TYPE traces_service_graph_unpaired_spans_total counter
-				traces_service_graph_unpaired_spans_total{client="lb",server=""} 1
-`,
+			expectedMetrics: droppedSpansCaseMetrics,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -207,5 +198,53 @@ const (
 		# TYPE traces_service_graph_request_total counter
 		traces_service_graph_request_total{client="app",server="db"} 3
 		traces_service_graph_request_total{client="lb",server="app"} 3
+`
+	droppedSpansCaseMetrics = `
+        # HELP traces_service_graph_dropped_spans_total Total count of dropped spans
+        # TYPE traces_service_graph_dropped_spans_total counter
+        traces_service_graph_dropped_spans_total{client="",server="app"} 2
+        traces_service_graph_dropped_spans_total{client="",server="db"} 3
+        traces_service_graph_dropped_spans_total{client="app",server=""} 3
+        traces_service_graph_dropped_spans_total{client="lb",server=""} 2
+        # HELP traces_service_graph_request_client_seconds Time for a request between two nodes as seen from the client
+        # TYPE traces_service_graph_request_client_seconds histogram
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.01"} 0
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.02"} 0
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.04"} 0
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.08"} 0
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.16"} 0
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.32"} 0
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="0.64"} 0
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="1.28"} 0
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="2.56"} 1
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="5.12"} 1
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="10.24"} 1
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="20.48"} 1
+        traces_service_graph_request_client_seconds_bucket{client="lb",server="app",le="+Inf"} 1
+        traces_service_graph_request_client_seconds_sum{client="lb",server="app"} 2.5
+        traces_service_graph_request_client_seconds_count{client="lb",server="app"} 1
+        # HELP traces_service_graph_request_failed_total Total count of failed requests between two nodes
+        # TYPE traces_service_graph_request_failed_total counter
+        traces_service_graph_request_failed_total{client="lb",server="app"} 1
+        # HELP traces_service_graph_request_server_seconds Time for a request between two nodes as seen from the server
+        # TYPE traces_service_graph_request_server_seconds histogram
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="0.01"} 0
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="0.02"} 0
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="0.04"} 0
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="0.08"} 0
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="0.16"} 0
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="0.32"} 0
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="0.64"} 0
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="1.28"} 1
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="2.56"} 1
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="5.12"} 1
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="10.24"} 1
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="20.48"} 1
+        traces_service_graph_request_server_seconds_bucket{client="lb",server="app",le="+Inf"} 1
+        traces_service_graph_request_server_seconds_sum{client="lb",server="app"} 1
+        traces_service_graph_request_server_seconds_count{client="lb",server="app"} 1
+        # HELP traces_service_graph_request_total Total count of requests between two nodes
+        # TYPE traces_service_graph_request_total counter
+        traces_service_graph_request_total{client="lb",server="app"} 1
 `
 )

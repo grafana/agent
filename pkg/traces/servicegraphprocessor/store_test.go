@@ -14,7 +14,7 @@ func TestStore_upsertEdge(t *testing.T) {
 	const keyStr = "key"
 
 	var cbCallCount int
-	s := newStore(time.Hour, func(e *edge) {
+	s := newStore(time.Hour, 100, func(e *edge) {
 		cbCallCount++
 	})
 	assert.Equal(t, 0, s.len())
@@ -53,7 +53,7 @@ func TestStore_expire(t *testing.T) {
 	}
 
 	// all new keys are immediately expired.
-	s := newStore(-time.Second, func(e *edge) {
+	s := newStore(-time.Second, 100, func(e *edge) {
 		assert.True(t, keys[e.key])
 	})
 
@@ -68,7 +68,7 @@ func TestStore_expire(t *testing.T) {
 func getEdge(s *store, k string) *edge {
 	ele, ok := s.m[k]
 	if !ok {
-        return nil
-    }
+		return nil
+	}
 	return ele.Value.(*edge)
 }

@@ -2,8 +2,13 @@ package servicegraphprocessor
 
 import (
 	"container/list"
+	"errors"
 	"sync"
 	"time"
+)
+
+var (
+	errTooManyItems = errors.New("too many items")
 )
 
 type storeCallback func(e *edge)
@@ -15,9 +20,10 @@ type store struct {
 
 	evictCallback storeCallback
 	ttl           time.Duration
+	maxItems      int
 }
 
-func newStore(ttl time.Duration, evictCallback storeCallback) *store {
+func newStore(ttl time.Duration, maxItems int, evictCallback storeCallback) *store {
 	s := &store{
 		l:   list.New(),
 		mtx: &sync.RWMutex{},
@@ -25,6 +31,7 @@ func newStore(ttl time.Duration, evictCallback storeCallback) *store {
 
 		evictCallback: evictCallback,
 		ttl:           ttl,
+		maxItems:      maxItems,
 	}
 
 	return s
@@ -86,14 +93,19 @@ func (s *store) evictEdge(key string) {
 
 // Fetches an edge from the store.
 // If the edge doesn't exist, it creates a new one with the default TTL.
-func (s *store) upsertEdge(k string, cb storeCallback) *edge {
+func (s *store) upsertEdge(k string, cb storeCallback) (*edge, error) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
 	if storedEdge, ok := s.m[k]; ok {
 		edge := storedEdge.Value.(*edge)
 		cb(edge)
-		return edge
+		return edge, nil
+	}
+
+	if s.l.Len() >= s.maxItems {
+		// todo: try to evict expired items
+		return nil, errTooManyItems
 	}
 
 	newEdge := newEdge(k, s.ttl)
@@ -101,7 +113,7 @@ func (s *store) upsertEdge(k string, cb storeCallback) *edge {
 	s.m[k] = ele
 	cb(newEdge)
 
-	return newEdge
+	return newEdge, nil
 }
 
 // expire evicts all expired items in the store.

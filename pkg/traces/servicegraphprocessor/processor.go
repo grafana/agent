@@ -144,7 +144,7 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 
 func (p *processor) Start(ctx context.Context, _ component.Host) error {
 	// initialize store
-	p.store = newStore(p.wait, p.collectEdge)
+	p.store = newStore(p.wait, p.maxItems, p.collectEdge)
 
 	reg, ok := ctx.Value(contextkeys.PrometheusRegisterer).(prometheus.Registerer)
 	if !ok || reg == nil {
@@ -186,7 +186,7 @@ func (p *processor) registerMetrics() error {
 		Namespace: "traces",
 		Name:      "service_graph_dropped_spans_total",
 		Help:      "Total count of dropped spans",
-	}, []string{"service"})
+	}, []string{"client", "server"})
 
 	cs := []prometheus.Collector{
 		p.serviceGraphRequestTotal,
@@ -280,28 +280,27 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 			for k := 0; k < ils.Spans().Len(); k++ {
 
-				// Check if the store can process the remaining spans
-				if p.store.len() >= p.maxItems {
-					// todo: try to evict expired items before dropping more
-					droppedSpans := ils.Spans().Len() - k
-					totalDroppedSpans += droppedSpans
-
-					p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal()).Add(float64(droppedSpans))
-
-					continue
-				}
-
 				span := ils.Spans().At(k)
 
 				switch span.Kind() {
 				case pdata.SpanKindClient:
 					k := key(span.TraceID().HexString(), span.SpanID().HexString())
 
-					edge := p.store.upsertEdge(k, func(e *edge) {
+					edge, err := p.store.upsertEdge(k, func(e *edge) {
 						e.clientService = svc.StringVal()
 						e.clientLatency = spanDuration(span)
 						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
+
+					if err != nil {
+						// upsertEdge will only return this errTooManyItems
+						if errors.Is(err, errTooManyItems) {
+							totalDroppedSpans++
+							p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal(), "").Inc()
+							continue
+						}
+						return err
+					}
 
 					if edge.isCompleted() {
 						p.collectCh <- k
@@ -310,11 +309,21 @@ func (p *processor) consume(trace pdata.Traces) error {
 				case pdata.SpanKindServer:
 					k := key(span.TraceID().HexString(), span.ParentSpanID().HexString())
 
-					edge := p.store.upsertEdge(k, func(e *edge) {
+					edge, err := p.store.upsertEdge(k, func(e *edge) {
 						e.serverService = svc.StringVal()
 						e.serverLatency = spanDuration(span)
 						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
+
+					if err != nil {
+						// upsertEdge will only return this errTooManyItems
+						if errors.Is(err, errTooManyItems) {
+							totalDroppedSpans++
+							p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.StringVal()).Inc()
+							continue
+						}
+						return err
+					}
 
 					if edge.isCompleted() {
 						p.collectCh <- k
