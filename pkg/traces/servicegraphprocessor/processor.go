@@ -292,13 +292,13 @@ func (p *processor) consume(trace pdata.Traces) error {
 						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
 
+					if errors.Is(err, errTooManyItems) {
+						totalDroppedSpans++
+						p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal(), "").Inc()
+						continue
+					}
+					// upsertEdge will only return this errTooManyItems
 					if err != nil {
-						// upsertEdge will only return this errTooManyItems
-						if errors.Is(err, errTooManyItems) {
-							totalDroppedSpans++
-							p.serviceGraphDroppedSpansTotal.WithLabelValues(svc.StringVal(), "").Inc()
-							continue
-						}
 						return err
 					}
 
@@ -315,13 +315,13 @@ func (p *processor) consume(trace pdata.Traces) error {
 						e.failed = e.failed || p.spanFailed(span) // keep request as failed if any span is failed
 					})
 
+					if errors.Is(err, errTooManyItems) {
+						totalDroppedSpans++
+						p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.StringVal()).Inc()
+						continue
+					}
+					// upsertEdge will only return this errTooManyItems
 					if err != nil {
-						// upsertEdge will only return this errTooManyItems
-						if errors.Is(err, errTooManyItems) {
-							totalDroppedSpans++
-							p.serviceGraphDroppedSpansTotal.WithLabelValues("", svc.StringVal()).Inc()
-							continue
-						}
 						return err
 					}
 
