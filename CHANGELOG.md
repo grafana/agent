@@ -12,6 +12,8 @@
 
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
+- [CHANGE] Changed service graphs store implementation to improve CPU performance (@mapno)
+
 # v0.20.0 (2021-10-28)
 
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
@@ -69,8 +71,6 @@
 - [CHANGE] The windows_exporter now disables the textfile collector by default. (@rfratto)
 
 - [CHANGE] **Breaking change** push_config is no longer supported in trace's config (@mapno)
-
-- [CHANGE] Changed service graphs store implementation to improve CPU performance (@mapno)
 
 # v0.19.0 (2021-09-29)
 
