@@ -1,5 +1,6 @@
 // These tests depend on test assets from controller-runtime which don't work on Windows.
 
+//go:build !windows && has_network
 // +build !windows,has_network
 
 package operator

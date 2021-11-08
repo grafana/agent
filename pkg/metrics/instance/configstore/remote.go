@@ -14,11 +14,11 @@ import (
 
 	"github.com/hashicorp/consul/api"
 
-	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/kv"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -103,7 +103,7 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 		return nil
 	}
 
-	cli, err := kv.NewClient(cfg, GetCodec(), kv.RegistererWithKVName(r.reg, "agent_configs"))
+	cli, err := kv.NewClient(cfg, GetCodec(), kv.RegistererWithKVName(r.reg, "agent_configs"), r.log)
 	// This is a hack to get a consul client, the client above has it embedded but its not exposed
 	var consulClient *api.Client
 	if cfg.Store == "consul" {
