@@ -93,11 +93,7 @@ require (
 replace (
 	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
 	k8s.io/klog => github.com/simonpasquier/klog-gokit v0.3.0
-
-	// k8s.io/client-go requires the api added in my PR to be compatible:
-	// https://github.com/simonpasquier/klog-gokit/pull/23
-	// once this is merged we should be able to remove this replace
-	k8s.io/klog/v2 => github.com/rlankfo/klog-gokit/v3 v3.0.1-0.20211103030435-2602604e10dd
+	k8s.io/klog/v2 => github.com/simonpasquier/klog-gokit/v3 v3.1.0
 )
 
 // Replace directives from Cortex
@@ -124,7 +120,7 @@ replace (
 	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20211004193725-8712c75623e6
 	github.com/infinityworks/github-exporter => github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a
-	github.com/percona/exporter_shared => github.com/rlankfo/exporter_shared v0.7.4-0.20211028185902-ab40c12bd34a
+	github.com/percona/exporter_shared => github.com/percona/exporter_shared v0.7.4-0.20211108113423-8555cdbac68b
 	github.com/percona/mongodb_exporter => github.com/grafana/mongodb_exporter v0.20.8-0.20211006135645-bef0f0239601
 	github.com/percona/percona-toolkit => github.com/rlankfo/percona-toolkit v0.0.0-20211028191359-7aada1bf148f
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520

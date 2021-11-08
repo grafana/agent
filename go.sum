@@ -1795,6 +1795,8 @@ github.com/pelletier/go-toml v1.8.1/go.mod h1:T2/BmBdy8dvIRq1a/8aqjN41wvWlN4lrap
 github.com/pelletier/go-toml v1.9.3/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=
 github.com/pelletier/go-toml v1.9.4 h1:tjENF6MfZAg8e4ZmZTeWaWiT2vXtsoO6+iuOjFhECwM=
 github.com/pelletier/go-toml v1.9.4/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=
+github.com/percona/exporter_shared v0.7.4-0.20211108113423-8555cdbac68b h1:tPnodYuNto6iPkeBCKJKw2HLeEYCiRmN2cpcMzTs8W4=
+github.com/percona/exporter_shared v0.7.4-0.20211108113423-8555cdbac68b/go.mod h1:bweWrCdYX+iAONTNUNIIkXGDjGg8dbFL0VBxuUv0wus=
 github.com/percona/go-mysql v0.0.0-20190903141930-197f4ad8db8d/go.mod h1:/SGLf9OMxlnK6jq4mkFiImBcJXXk5jwD+lDrwDaGXcw=
 github.com/performancecopilot/speed v3.0.0+incompatible/go.mod h1:/CLtqpZ5gBg1M9iaPbIdPPGyKcA8hKdoy6hAWba7Yac=
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
@@ -1955,10 +1957,6 @@ github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8/go.mod h1:6
 github.com/rhnvrm/simples3 v0.6.1/go.mod h1:Y+3vYm2V7Y4VijFoJHHTrja6OgPrJ2cBti8dPGkC3sA=
 github.com/rivo/tview v0.0.0-20200219210816-cd38d7432498/go.mod h1:6lkG1x+13OShEf0EaOCaTQYyB7d5nSbb181KtjlS+84=
 github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
-github.com/rlankfo/exporter_shared v0.7.4-0.20211028185902-ab40c12bd34a h1:ThTo/WY1CfmzE9P7y7SfQU63G0FLZ6U75czyFsUo/3s=
-github.com/rlankfo/exporter_shared v0.7.4-0.20211028185902-ab40c12bd34a/go.mod h1:bweWrCdYX+iAONTNUNIIkXGDjGg8dbFL0VBxuUv0wus=
-github.com/rlankfo/klog-gokit/v3 v3.0.1-0.20211103030435-2602604e10dd h1:7qTUktWfX1eEqFLbpfkrS11SNmze48Ghd4MK3+VKBZI=
-github.com/rlankfo/klog-gokit/v3 v3.0.1-0.20211103030435-2602604e10dd/go.mod h1:xfi2laZC8X3QCauErQa4YkznzRpyA8fVxI5PQffhiFM=
 github.com/rlankfo/percona-toolkit v0.0.0-20211028191359-7aada1bf148f h1:rmF1x0fYpkVM5UsjL0RCGBUpfE2lS9vAGWbyAdDvXGY=
 github.com/rlankfo/percona-toolkit v0.0.0-20211028191359-7aada1bf148f/go.mod h1:rfOuOPhJETQRkJGQ68P6KBGlQzC4/L69S9f5JCHlk8E=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
@@ -2025,6 +2023,8 @@ github.com/siebenmann/go-kstat v0.0.0-20200303194639-4e8294f9e9d5 h1:rRF7gJ7t0E1
 github.com/siebenmann/go-kstat v0.0.0-20200303194639-4e8294f9e9d5/go.mod h1:G81aIFAMS9ECrwBYR9YxhlPjWgrItd+Kje78O6+uqm8=
 github.com/simonpasquier/klog-gokit v0.3.0 h1:TkFK21cbwDRS+CiystjqbAiq5ubJcVTk9hLUck5Ntcs=
 github.com/simonpasquier/klog-gokit v0.3.0/go.mod h1:+SUlDQNrhVtGt2FieaqNftzzk8P72zpWlACateWxA9k=
+github.com/simonpasquier/klog-gokit/v3 v3.1.0 h1:xQGqjZdgo1lFA4eZ9PcGnKKXgIPz9t+jc25q/fXooIE=
+github.com/simonpasquier/klog-gokit/v3 v3.1.0/go.mod h1:+WRhGy707Lp2Q4r727m9Oc7FxazOHgW76FIyCr23nus=
 github.com/sirupsen/logrus v1.0.4-0.20170822132746-89742aefa4b2/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.0.5/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.0.6/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
