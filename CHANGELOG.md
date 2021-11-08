@@ -1,5 +1,11 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
+
+- [ENHANCEMENT] Update Loki dependency to v2.1.0-656-g0ae0d4da1. (@rlankfo)
+
+- [ENHANCEMENT] Update Prometheus dependency to v2.31.0 (@rlankfo)
+
 - [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
 
 - [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)

@@ -843,7 +843,10 @@ func newScrapeManager(logger log.Logger, app storage.Appendable) *scrape.Manager
 	// data race of modifying that global, we lock a mutex here briefly.
 	managerMtx.Lock()
 	defer managerMtx.Unlock()
-	return scrape.NewManager(logger, app)
+	options := &scrape.Options{
+		ExtraMetrics: false,
+	}
+	return scrape.NewManager(options, logger, app)
 }
 
 type runGroupContext struct {
