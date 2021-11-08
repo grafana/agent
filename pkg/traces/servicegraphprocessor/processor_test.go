@@ -59,13 +59,13 @@ func TestConsumeMetrics(t *testing.T) {
 			cfg: &Config{
 				Wait:     -time.Millisecond,
 				MaxItems: 1, // Configure max number of items in storeMap to 1. Only one edge will be processed.
-				Workers:  0, // Don't collect any edges, leave that to the test.
 			},
 			expectedMetrics: droppedSpansCaseMetrics,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			p := newProcessor(&mockConsumer{}, tc.cfg)
+			close(p.closeCh) // Don't collect any edges, leave that to the test.
 
 			reg := prometheus.NewRegistry()
 			ctx := context.WithValue(context.Background(), contextkeys.PrometheusRegisterer, reg)
