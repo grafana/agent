@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var noopUpsertCb storeCallback = func(e *edge) {}
@@ -14,12 +15,13 @@ func TestStore_upsertEdge(t *testing.T) {
 	const keyStr = "key"
 
 	var cbCallCount int
-	s := newStore(time.Hour, 100, func(e *edge) {
+	s := newStore(time.Hour, 1, func(e *edge) {
 		cbCallCount++
 	})
 	assert.Equal(t, 0, s.len())
 
-	s.upsertEdge(keyStr, func(e *edge) {})
+	_, err := s.upsertEdge(keyStr, func(e *edge) {})
+	require.NoError(t, err)
 	assert.Equal(t, 1, s.len())
 	assert.False(t, s.shouldEvictHead()) // ttl is set to 1h
 	assert.Equal(t, 0, cbCallCount)
@@ -28,11 +30,15 @@ func TestStore_upsertEdge(t *testing.T) {
 	assert.NotNil(t, e)
 	assert.Equal(t, keyStr, e.key)
 
-	s.upsertEdge(keyStr, func(e *edge) {
+	_, err = s.upsertEdge(keyStr+keyStr, func(e *edge) {})
+	assert.Error(t, err)
+
+	_, err = s.upsertEdge(keyStr, func(e *edge) {
 		e.clientService = "client"
 		e.serverService = "server"
 		e.expiration = 0 // expire immediately
 	})
+	require.NoError(t, err)
 	assert.Equal(t, 0, cbCallCount)
 
 	e = getEdge(s, keyStr)
@@ -58,7 +64,8 @@ func TestStore_expire(t *testing.T) {
 	})
 
 	for key := range keys {
-		s.upsertEdge(key, noopUpsertCb)
+		_, err := s.upsertEdge(key, noopUpsertCb)
+		require.NoError(t, err)
 	}
 
 	s.expire()
