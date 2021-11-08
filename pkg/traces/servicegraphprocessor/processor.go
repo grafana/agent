@@ -49,7 +49,7 @@ func newEdge(key string, ttl time.Duration) *edge {
 	}
 }
 
-// completed returns true if the corresponding client and server
+// isCompleted returns true if the corresponding client and server
 // pair spans have been processed for the given edge
 func (e *edge) isCompleted() bool {
 	return len(e.clientService) != 0 && len(e.serverService) != 0
@@ -270,7 +270,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 		rSpan := rSpansSlice.At(i)
 
 		svc, ok := rSpan.Resource().Attributes().Get(semconv.AttributeServiceName)
-		if !ok {
+		if !ok || svc.StringVal() == ""{
 			continue
 		}
 
