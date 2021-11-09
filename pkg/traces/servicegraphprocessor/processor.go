@@ -349,7 +349,7 @@ func (p *processor) spanFailed(span pdata.Span) bool {
 	// Request considered failed if status is not 2XX or added as a successful status code
 	if statusCode, ok := span.Attributes().Get("http.status_code"); ok {
 		sc := int(statusCode.IntVal())
-		if _, ok := p.httpSuccessCode[sc]; !ok || sc/100 != 2 {
+		if _, ok := p.httpSuccessCode[sc]; !ok && sc/100 != 2 {
 			return true
 		}
 	}
@@ -357,7 +357,7 @@ func (p *processor) spanFailed(span pdata.Span) bool {
 	// Request considered failed if status is not OK or added as a successful status code
 	if statusCode, ok := span.Attributes().Get("grpc.status_code"); ok {
 		sc := int(statusCode.IntVal())
-		if _, ok := p.grpcSuccessCode[sc]; !ok || sc != int(codes.OK) {
+		if _, ok := p.grpcSuccessCode[sc]; !ok && sc != int(codes.OK) {
 			return true
 		}
 	}
