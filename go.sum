@@ -1118,8 +1118,8 @@ github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnF
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a h1:JUnP/laSl2GylHT0+fqAqOZY+7XkLh1mLefLN0n8Mmk=
 github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a/go.mod h1:RMjrx3Qn8l2pgCD27g45xbko4UDpVVuHC8Cd2YXPtWA=
-github.com/grafana/prometheus v1.8.2-0.20211103031328-89bb32ee4ae7 h1:GnWgl4SXkEENFeRp33PG2DGqONZf596zS5N6MJMuwUc=
-github.com/grafana/prometheus v1.8.2-0.20211103031328-89bb32ee4ae7/go.mod h1:ZJuc8Ryf9icwMGB68aSEfw2YVSWuY3Ljrl/WCVqXeYc=
+github.com/grafana/prometheus v1.8.2-0.20211109163053-9c127431b579 h1:70lblV8/6qiwKmHFFjnhCX+hs7RHAjFLy/fgABgwv/s=
+github.com/grafana/prometheus v1.8.2-0.20211109163053-9c127431b579/go.mod h1:ZJuc8Ryf9icwMGB68aSEfw2YVSWuY3Ljrl/WCVqXeYc=
 github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03 h1:fGgFrAraMB0BaPfYumu+iulfDXwHm+GFyHA4xEtBqI8=
 github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03/go.mod h1:GIMXMPB/lRAllP5rVDvcGif87ryO2hgD7tCtHMdHrho=
 github.com/grafana/tempo v1.0.1 h1:8M4u1D/noVASoYmFlDNY9LNerMbVZ+8zPep7Qs0ldfA=
