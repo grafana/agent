@@ -16,7 +16,7 @@ You'll then deploy the following custom resources (CRs):
 
 To learn more about the custom resources Operator provides, please consult [Operator architecture]({{< relref "./architecture.md" >}}).
 
-> **Note:** Agent Operator is currently in beta and its custom resources are subject to change as the project evolves. It current supports the metrics and logs subsystems of Grafana Agent. Integrations and traces support is coming soon.
+> **Note:** Agent Operator is currently in beta and its custom resources are subject to change as the project evolves. It currently supports the metrics and logs subsystems of Grafana Agent. Integrations and traces support is coming soon.
 
 By the end of this guide, you'll have deloyed Agent Operator into your cluster and will be scraping and shipping cAdvisor and kubelet metrics to a Prometheus-compatible metrics endpoint. You'll also be collecting and shipping your Pods' container logs to a Loki-compatible logs endpoint.
 
