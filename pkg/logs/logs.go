@@ -36,8 +36,6 @@ type Logs struct {
 
 // New creates and starts Loki log collection.
 func New(reg prometheus.Registerer, c *Config, l log.Logger) (*Logs, error) {
-	l = log.With(l, "component", "logs")
-
 	logs := &Logs{
 		instances: make(map[string]*Instance),
 		reg:       reg,
