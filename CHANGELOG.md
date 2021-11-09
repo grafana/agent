@@ -6,6 +6,8 @@
 
 - [ENHANCEMENT] Update Prometheus dependency to v2.31.0 (@rlankfo)
 
+- [ENHANCEMENT] Add Agent Operator Helm quickstart guide (@hjet)
+
 - [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
 
 - [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)
