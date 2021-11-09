@@ -373,7 +373,7 @@ stringData:
   password: 'your_password_here'
 ```
 
-If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org ). You may wish to base64-encode these values. In this case, please use `data` instead of `stringData`. 
+If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org). You may wish to base64-encode these values. In this case, please use `data` instead of `stringData`. 
 
 Finally, we'll roll out a PodLogs resource to define our logging targets. Under the hood, Agent Operator will turn this into Agent config for the logs subsystem, and roll it out to the DaemonSet of logging agents.
 
