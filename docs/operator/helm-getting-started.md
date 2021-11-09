@@ -14,7 +14,7 @@ You'll then deploy the following custom resources (CRs):
 - A `LogsInstance` resource that defines where to ship collected logs. Under the hood, this rolls out a Grafana Agent DaemonSet that will tail log files on your cluster nodes.
 - A `PodLogs` resource to collect container logs from Kubernetes Pods. Under the hood, this configures the`LogsInstance` / Agent DaemonSet.
 
-To learn more about the custom resources Operator provides, please consult [Operator architecture]({{< relref "./architecture.md" >}}).
+To learn more about the custom resources Operator provides and their hierarchy, please consult [Operator architecture]({{< relref "./architecture.md" >}}).
 
 > **Note:** Agent Operator is currently in beta and its custom resources are subject to change as the project evolves. It currently supports the metrics and logs subsystems of Grafana Agent. Integrations and traces support is coming soon.
 
@@ -75,6 +75,8 @@ With Agent Operator up and running, you can move on to setting up a `GrafanaAgen
 ## Step 2: Deploy GrafanaAgent resource
 
 In this step you'll roll out a `GrafanaAgent` resource. A `GrafanaAgent` resource discovers `MetricsInstance` and `LogsInstance` resources and defines the Grafana Agent image, Pod requests, limits, affinities, and tolerations. Pod attributes can only be defined at the GrafanaAgent level and are propagated to `MetricsInstance` and `LogsInstance` Pods. To learn more, please see the GrafanaAgent [Custom Resource Definition](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_grafanaagents.yaml).
+
+> **Note:** Due to the variety of possible deployment architectures, the official Agent Operator Helm chart does not provide built-in templates for the custom resources described in this quickstart. These must be configured and deployed manually. However, you are encouraged to template and add the following manifests to your own in-house Helm charts and GitOps flows.
 
 Roll out the following manifests in your cluster:
 
@@ -162,6 +164,16 @@ subjects:
 
 This creates a ServiceAccount, ClusterRole, and ClusterRoleBinding for the GrafanaAgent resource. It also creates a GrafanaAgent resource and specifies an Agent image version. Finally, the GrafanaAgent resource specifies `MetricsInstance` and `LogsInstance` selectors. These search for MetricsInstances and LogsInstances in the same namespace with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively. It also sets a `cluster: cloud` label for all metrics shipped your Prometheus-compatible endpoint. You should change this label to your desired cluster name.
 
+The full hierarchy of custom resources is as follows:
+
+- `GrafanaAgent`
+	- `MetricsInstance`
+		- `PodMonitor`
+		- `Probe`
+		- `ServiceMonitor`
+	- `LogsInstance`
+		- `PodLogs`
+
 Deploying a GrafanaAgent resource on its own will not spin up any Agent Pods. Agent Operator will create Agent Pods once MetricsInstance and LogsIntance resources have been created. In the next step, you'll roll out a `MetricsInstance` resource to scrape cAdvisor and Kubelet metrics and ship these to your Prometheus-compatible metrics endpoint.
 
 ## Step 3: Deploy a MetricsInstance resource
@@ -194,21 +206,21 @@ spec:
         key: password
 
   # Supply an empty namespace selector to look in all namespaces. Remove
-  # this to only look in the same namespace.
+  # this to only look in the same namespace as the MetricsInstance CR
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector:
     matchLabels:
       instance: primary
 
   # Supply an empty namespace selector to look in all namespaces. Remove
-  # this to only look in the same namespace.
+  # this to only look in the same namespace as the MetricsInstance CR.
   podMonitorNamespaceSelector: {}
   podMonitorSelector:
     matchLabels:
       instance: primary
 
   # Supply an empty namespace selector to look in all namespaces. Remove
-  # this to only look in the same namespace.
+  # this to only look in the same namespace as the MetricsInstance CR.
   probeNamespaceSelector: {}
   probeSelector:
     matchLabels:
@@ -230,7 +242,7 @@ stringData:
   password: 'your_cloud_prometheus_API_key'
 ```
 
-If you're using Grafana Cloud, you can find your hosted Prometheus endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org ). You may wish to base64-encode these values. In this case, please use `data` instead of `stringData`. 
+If you're using Grafana Cloud, you can find your hosted Prometheus endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org ). You may wish to base64-encode these values yourself. In this case, please use `data` instead of `stringData`. 
 
 Once you've rolled out the `MetricsInstance` and its Secret, you can confirm that the MetricsInstance Agent is up and running with `kubectl get pod`. Since we haven't defined any monitors yet, this Agent will not have any scrape targets defined. In the next step, we'll create scrape targets for the cAdvisor and kubelet endpoints exposed by the `kubelet` service in the cluster.
 
@@ -349,7 +361,8 @@ spec:
         name: primary-credentials-logs
         key: password
 
-  # Supply an empty namespace selector to look in all namespaces.
+  # Supply an empty namespace selector to look in all namespaces. Remove
+  # this to only look in the same namespace as the LogsInstance CR
   podLogsNamespaceSelector: {}
   podLogsSelector:
     matchLabels:
@@ -373,7 +386,7 @@ stringData:
   password: 'your_password_here'
 ```
 
-If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org). You may wish to base64-encode these values. In this case, please use `data` instead of `stringData`. 
+If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org). You may wish to base64-encode these values yourself. In this case, please use `data` instead of `stringData`. 
 
 Finally, we'll roll out a PodLogs resource to define our logging targets. Under the hood, Agent Operator will turn this into Agent config for the logs subsystem, and roll it out to the DaemonSet of logging agents.
 
@@ -399,68 +412,18 @@ spec:
 
 This tails container logs for all Pods in the `default` Namespace. You can restrict the set of Pods matched by using the `matchLabels` selector. You can also set additional `pipelineStages` and create `relabelings` to add or modify log line labels. To learn more about the PodLogs spec and available resource fields, please see the [PodLogs CRD](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_podlogs.yaml).
 
-Under the hood, the above PodLogs resource will generate the following Agent logs `scrape_configs`:
+Under the hood, the above PodLogs resource will add the following labels to log lines:
 
-```
-    scrape_configs:
-    - job_name: podLogs/default/kubernetes-pods
-      pipeline_stages:
-      - docker: {}
-      relabel_configs:
-      - source_labels: [job]
-        separator: ;
-        regex: (.*)
-        target_label: __tmp_prometheus_job_name
-        replacement: $1
-        action: replace
-      - source_labels: [__meta_kubernetes_namespace]
-        separator: ;
-        regex: (.*)
-        target_label: namespace
-        replacement: $1
-        action: replace
-      - source_labels: [__meta_kubernetes_service_name]
-        separator: ;
-        regex: (.*)
-        target_label: service
-        replacement: $1
-        action: replace
-      - source_labels: [__meta_kubernetes_pod_name]
-        separator: ;
-        regex: (.*)
-        target_label: pod
-        replacement: $1
-        action: replace
-      - source_labels: [__meta_kubernetes_pod_container_name]
-        separator: ;
-        regex: (.*)
-        target_label: container
-        replacement: $1
-        action: replace
-      - separator: ;
-        regex: (.*)
-        target_label: job
-        replacement: default/kubernetes-pods
-        action: replace
-      - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
-        separator: /
-        regex: (.*)
-        target_label: __path__
-        replacement: /var/log/pods/*$1/*.log
-        action: replace
-      static_configs: []
-      kubernetes_sd_configs:
-      - role: pod
-        follow_redirects: true
-        namespaces:
-          names:
-          - default
-        selectors:
-        - role: pod
-          field: spec.nodeName=node0
-```
+- `namespace`
+- `service`
+- `pod`
+- `container`
+- `job` 
+  - Set to `PodLogs_namespace/PodLogs_name`
+- `__path__` (the path to log files)
+  - Set to `/var/log/pods/*$1/*.log` where `$1` is `__meta_kubernetes_pod_uid/__meta_kubernetes_pod_container_name`
 
-This sets some default `job`, `container`, `pod`, etc. labels and also defines the log file path (`/var/log/pods/*$1/*.log`). To learn more about this config format, please see the [Promtail Scraping](https://grafana.com/docs/loki/latest/clients/promtail/scraping/#promtail-scraping-service-discovery) reference documentation. Agent Operator will load this config into the LogsInstance agents automatically.
+To learn more about this config format and other available labels, please see the [Promtail Scraping](https://grafana.com/docs/loki/latest/clients/promtail/scraping/#promtail-scraping-service-discovery) reference documentation. Agent Operator will load this config into the LogsInstance agents automatically.
 
 At this point the DaemonSet of logging agents should be tailing your container logs, applying some default labels to the log lines, and shipping them to your remote Loki endpoint.
 
