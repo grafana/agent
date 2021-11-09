@@ -379,7 +379,7 @@ Finally, we'll roll out a PodLogs resource to define our logging targets. Under 
 
 The following is a minimal working example which you should adapt to your production needs:
 
-```
+```yaml
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: PodLogs
 metadata:
