@@ -63,14 +63,14 @@ func TestConsumeMetrics(t *testing.T) {
 			expectedMetrics: droppedSpansCaseMetrics,
 		},
 		{
-			name: `success codes`,
+			name:           `success codes`,
 			sampleDataPath: traceSamplePath,
 			cfg: &Config{
-                Wait:     -time.Millisecond,
+				Wait: -time.Millisecond,
 				SuccessCodes: &successCodes{
 					http: []int64{302},
 				},
-            },
+			},
 			expectedMetrics: successCodesCaseMetrics,
 		},
 	} {

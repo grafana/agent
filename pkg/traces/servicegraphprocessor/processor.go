@@ -117,8 +117,8 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		nextConsumer: nextConsumer,
 		logger:       logger,
 
-		wait:     cfg.Wait,
-		maxItems: cfg.MaxItems,
+		wait:            cfg.Wait,
+		maxItems:        cfg.MaxItems,
 		httpSuccessCode: httpSuccessCode,
 		grpcSuccessCode: grpcSuccessCode,
 
