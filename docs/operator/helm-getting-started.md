@@ -362,7 +362,7 @@ Also note that we are using the `agent: grafana-agent-logs` label here, which wi
 
 Create the Secret for the LogsInstance resource:
 
-```
+```yaml
 apiVersion: v1
 kind: Secret
 metadata:
