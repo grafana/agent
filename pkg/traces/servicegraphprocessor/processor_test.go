@@ -68,7 +68,7 @@ func TestConsumeMetrics(t *testing.T) {
 			cfg: &Config{
 				Wait: -time.Millisecond,
 				SuccessCodes: &successCodes{
-					http: []int64{302},
+					http: []int64{404},
 				},
 			},
 			expectedMetrics: successCodesCaseMetrics,
@@ -172,8 +172,7 @@ const (
 		traces_service_graph_request_client_seconds_count{client="lb",server="app"} 3
 		# HELP traces_service_graph_request_failed_total Total count of failed requests between two nodes
 		# TYPE traces_service_graph_request_failed_total counter
-		traces_service_graph_request_failed_total{client="app",server="db"} 3
-		traces_service_graph_request_failed_total{client="lb",server="app"} 3
+		traces_service_graph_request_failed_total{client="lb",server="app"} 2
 		# HELP traces_service_graph_request_server_seconds Time for a request between two nodes as seen from the server
 		# TYPE traces_service_graph_request_server_seconds histogram
 		traces_service_graph_request_server_seconds_bucket{client="app",server="db",le="0.01"} 0
@@ -259,7 +258,7 @@ const (
         # TYPE traces_service_graph_request_total counter
         traces_service_graph_request_total{client="lb",server="app"} 1
 `
-	// has only one failed span instead of 6
+	// has only one failed span instead of 2
 	successCodesCaseMetrics = `
         # HELP traces_service_graph_request_client_seconds Time for a request between two nodes as seen from the client
         # TYPE traces_service_graph_request_client_seconds histogram

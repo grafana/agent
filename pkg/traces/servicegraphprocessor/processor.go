@@ -349,6 +349,7 @@ func (p *processor) spanFailed(span pdata.Span) bool {
 	// Request considered failed if status is not 2XX or added as a successful status code
 	if statusCode, ok := span.Attributes().Get("http.status_code"); ok {
 		sc := int(statusCode.IntVal())
+		fmt.Println(sc, p.httpSuccessCode)
 		if _, ok := p.httpSuccessCode[sc]; !ok && sc/100 != 2 {
 			return true
 		}

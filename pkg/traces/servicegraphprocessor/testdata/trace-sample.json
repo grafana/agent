@@ -300,7 +300,7 @@
                 {
                   "key":"http.status_code",
                   "value":{
-                    "intValue":"200"
+                    "intValue":"404"
                   }
                 },
                 {
