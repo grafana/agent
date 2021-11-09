@@ -320,7 +320,7 @@ spec:
       app.kubernetes.io/name: kubelet
 ```
 
-These two ServiceMonitors configure Agent to scrape all the kubelet and cAdvisor endpoints in your Kubernetes cluster (one of each per Node). In addition, it defines a `job` label which you may change (it is preset here for compatibility with Grafana Cloud's Kubernetes integration), and allowlists a core set of Kubernetes metrics to reduce remote metrics usage. If you don't need this allowlist, you may omit it, however note that your metrics usage will increase significantly. 
+These two ServiceMonitors configure Agent to scrape all the Kubelet and cAdvisor endpoints in your Kubernetes cluster (one of each per Node). In addition, it defines a `job` label which you may change (it is preset here for compatibility with Grafana Cloud's Kubernetes integration), and allowlists a core set of Kubernetes metrics to reduce remote metrics usage. If you don't need this allowlist, you may omit it, however note that your metrics usage will increase significantly. 
 
  When you're done, Agent should now be shipping Kubelet and cAdvisor metrics to your remote Prometheus endpoint.
 
