@@ -16,9 +16,11 @@
 
 - [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
 
+- [BUGFIX] Traces: Fix `success_logic` code in service graphs processor (@mapno)
+
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
-- [CHANGE] Changed service graphs store implementation to improve CPU performance (@mapno)
+- [CHANGE] Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
 
 # v0.20.0 (2021-10-28)
 
