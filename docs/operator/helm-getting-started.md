@@ -475,8 +475,3 @@ At this point you've rolled out the following into your cluster:
 - A `PodLogs` resource to collect container logs from Kubernetes Pods. 
 
 You can verify that everything is working correctly by navigating to your Grafana instance and querying your Loki and Prometheus datasources. Operator support for Tempo and traces is coming soon.
-
-
-
-
-
