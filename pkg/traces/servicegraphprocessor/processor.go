@@ -88,7 +88,7 @@ type processor struct {
 }
 
 func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
-	logger := log.With(util.Logger, "component", "tempo service graphs")
+	logger := log.With(util.Logger, "component", "service graphs")
 
 	if cfg.Wait == 0 {
 		cfg.Wait = DefaultWait
@@ -119,6 +119,8 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 
 		wait:     cfg.Wait,
 		maxItems: cfg.MaxItems,
+		httpSuccessCode: httpSuccessCode,
+		grpcSuccessCode: grpcSuccessCode,
 
 		collectCh: make(chan string, cfg.Workers),
 
