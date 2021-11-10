@@ -81,7 +81,6 @@ main() {
   fi
   kill %%
   rm -rf "$t"
-  cat /etc/grafana-agent.yaml
 
   log '--- Enabling and starting grafana-agent.service'
   sudo systemctl enable grafana-agent.service
