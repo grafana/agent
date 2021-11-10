@@ -76,8 +76,12 @@ main() {
   # The named pipe "$t/config" is created below so we can tee the stdout of
   # retrieve_config to /etc/grafana-agent.yaml with sudo privileges.
   # This is a POSIX-compliant work around for dash not having pipefail shellopt.
-  local t=$(mktemp -d)
+  local t
+  t=$(mktemp -d)
   mkfifo "$t/config"
+  # SC2024 can be safely ignored as we want to redirect using the current user's
+  # permissions. See https://github.com/koalaman/shellcheck/issues/2070
+  # shellcheck disable=SC2024
   sudo tee /etc/grafana-agent.yaml < "$t/config"  &
   if ! retrieve_config 2>/dev/null 1>"$t/config"; then
     fatal 'Failed to retrieve config'
