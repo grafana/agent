@@ -16,7 +16,7 @@ var DefaultConfig Config = Config{
 	StoreContainerLabels: true,
 	ResctrlInterval:      0,
 	// Matching the default disabled set from cadvisor - https://github.com/google/cadvisor/blob/3c6e3093c5ca65c57368845ddaea2b4ca6bc0da8/cmd/cadvisor.go#L78-L93
-	DisabledMetricsSet: container.MetricSet{
+	disabledMetricsSet: container.MetricSet{
 		container.MemoryNumaMetrics:              struct{}{},
 		container.NetworkTcpUsageMetrics:         struct{}{},
 		container.NetworkUdpUsageMetrics:         struct{}{},
@@ -29,7 +29,7 @@ var DefaultConfig Config = Config{
 		container.ResctrlMetrics:                 struct{}{},
 		container.CPUSetMetrics:                  struct{}{},
 	},
-	EnabledMetricsSet: container.MetricSet{},
+	enabledMetricsSet: container.MetricSet{},
 
 	// Containerd config defaults
 	Containerd:          "/run/containerd/containerd.sock",
@@ -62,14 +62,14 @@ type Config struct {
 	// DisableMetrics list of `metrics` to be disabled.
 	DisabledMetrics []string `yaml:"disabled_metrics,omitempty"`
 
-	// DisabledMetricsSet list of `metrics` to be disabled, in the form required by the cadvisor collector(s)
-	DisabledMetricsSet container.MetricSet
+	// disabledMetricsSet list of `metrics` to be disabled, in the form required by the cadvisor collector(s)
+	disabledMetricsSet container.MetricSet
 
 	// EnableMetrics list of `metrics` to be enabled. If set, overrides 'disable_metrics'.
 	EnabledMetrics []string `yaml:"enabled_metrics,omitempty"`
 
-	// EnabledMetricsSet list of `metrics` to be enabled, in the form required by the cadvisor collector(s)
-	EnabledMetricsSet container.MetricSet
+	// enabledMetricsSet list of `metrics` to be enabled, in the form required by the cadvisor collector(s)
+	enabledMetricsSet container.MetricSet
 
 	// Containerd config options
 	// Containerd containerd endpoint
@@ -87,16 +87,16 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	err := unmarshal((*plain)(c))
 	// Clear default disabled metrics if explicit disabled metrics are configured
 	if len(c.DisabledMetrics) > 0 {
-		c.DisabledMetricsSet = container.MetricSet{}
+		c.disabledMetricsSet = container.MetricSet{}
 	}
 	for _, d := range c.DisabledMetrics {
-		if err := c.DisabledMetricsSet.Set(d); err != nil {
+		if err := c.disabledMetricsSet.Set(d); err != nil {
 			return fmt.Errorf("failed to set disabled metric: %w", err)
 		}
 	}
 
 	for _, e := range c.EnabledMetrics {
-		if err := c.EnabledMetricsSet.Set(e); err != nil {
+		if err := c.enabledMetricsSet.Set(e); err != nil {
 			return fmt.Errorf("failed to set enabled metric: %w", err)
 		}
 	}
@@ -128,6 +128,7 @@ func init() {
 	integrations.RegisterIntegration(&Config{})
 }
 
+// New creates a new cadvisor integration
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	return nil, nil
 }
