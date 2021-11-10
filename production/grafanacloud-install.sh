@@ -13,6 +13,8 @@
 # PACKAGE_SYSTEM can be passed as an environment variable with either rpm or
 # deb.
 set -eu
+trap "exit 1" TERM
+MY_PID=$$
 
 log() {
   echo "$@" >&2
@@ -20,7 +22,7 @@ log() {
 
 fatal() {
   log "$@"
-  exit 1
+  kill -s TERM "$MY_PID"
 }
 
 #
@@ -73,21 +75,7 @@ main() {
   esac
 
   log '--- Retrieving config and placing in /etc/grafana-agent.yaml'
-  # The named pipe "$t/config" is created below so we can tee the stdout of
-  # retrieve_config to /etc/grafana-agent.yaml with sudo privileges.
-  # This is a POSIX-compliant work around for dash not having pipefail shellopt.
-  local t
-  t=$(mktemp -d)
-  mkfifo "$t/config"
-  # SC2024 can be safely ignored as we want to redirect using the current user's
-  # permissions. See https://github.com/koalaman/shellcheck/issues/2070
-  # shellcheck disable=SC2024
-  sudo tee /etc/grafana-agent.yaml < "$t/config"  &
-  if ! retrieve_config 2>/dev/null 1>"$t/config"; then
-    fatal 'Failed to retrieve config'
-  fi
-  kill %%
-  rm -rf "$t"
+  retrieve_config | sudo tee /etc/grafana-agent.yaml
 
   log '--- Enabling and starting grafana-agent.service'
   sudo systemctl enable grafana-agent.service
@@ -133,10 +121,9 @@ install_rpm() {
 # retrieve_config downloads the config file for the Agent and prints out its
 # contents to stdout.
 retrieve_config() {
-  if grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}"; then
-    return
+  if ! grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}"; then
+    fatal "Failed to retrieve config"
   fi
-  return 1
 }
 
 main
