@@ -73,6 +73,9 @@ main() {
   esac
 
   log '--- Retrieving config and placing in /etc/grafana-agent.yaml'
+  # The named pipe "$t/config" is created below so we can tee the stdout of
+  # retrieve_config to /etc/grafana-agent.yaml with sudo privileges.
+  # This is a POSIX-compliant work around for dash not having pipefail shellopt.
   local t=$(mktemp -d)
   mkfifo "$t/config"
   sudo tee /etc/grafana-agent.yaml < "$t/config"  &
