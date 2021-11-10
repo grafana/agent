@@ -73,7 +73,15 @@ main() {
   esac
 
   log '--- Retrieving config and placing in /etc/grafana-agent.yaml'
-  retrieve_config | sudo tee /etc/grafana-agent.yaml
+  local t=$(mktemp -d)
+  mkfifo "$t/config"
+  sudo tee /etc/grafana-agent.yaml < "$t/config"  &
+  if ! retrieve_config 2>/dev/null 1>"$t/config"; then
+    fatal 'Failed to retrieve confing'
+  fi
+  kill %%
+  rm -rf "$t"
+  cat /etc/grafana-agent.yaml
 
   log '--- Enabling and starting grafana-agent.service'
   sudo systemctl enable grafana-agent.service
@@ -119,7 +127,10 @@ install_rpm() {
 # retrieve_config downloads the config file for the Agent and prints out its
 # contents to stdout.
 retrieve_config() {
-  grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}" || fatal 'Failed to retrieve config'
+  if grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}"; then
+    return
+  fi
+  return 1
 }
 
 main
