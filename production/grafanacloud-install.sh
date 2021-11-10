@@ -77,7 +77,7 @@ main() {
   mkfifo "$t/config"
   sudo tee /etc/grafana-agent.yaml < "$t/config"  &
   if ! retrieve_config 2>/dev/null 1>"$t/config"; then
-    fatal 'Failed to retrieve confing'
+    fatal 'Failed to retrieve config'
   fi
   kill %%
   rm -rf "$t"
