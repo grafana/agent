@@ -13,6 +13,8 @@
 # PACKAGE_SYSTEM can be passed as an environment variable with either rpm or
 # deb.
 set -eu
+trap "exit 1" TERM
+MY_PID=$$
 
 log() {
   echo "$@" >&2
@@ -20,7 +22,7 @@ log() {
 
 fatal() {
   log "$@"
-  exit 1
+  kill -s TERM "$MY_PID"
 }
 
 #
@@ -119,7 +121,9 @@ install_rpm() {
 # retrieve_config downloads the config file for the Agent and prints out its
 # contents to stdout.
 retrieve_config() {
-  grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}" || fatal 'Failed to retrieve config'
+  if ! grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}" 2>/dev/null; then
+    fatal "Failed to retrieve config"
+  fi
 }
 
 main
