@@ -233,8 +233,6 @@ func (p *processor) Capabilities() consumer.Capabilities {
 }
 
 func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
-	level.Debug(p.logger).Log("msg", "consuming traces")
-
 	// Evict expired edges
 	p.store.expire()
 
