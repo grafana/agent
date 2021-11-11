@@ -125,7 +125,10 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	if c.ListenUDP == "" && c.ListenTCP == "" && c.ListenUnixgram == "" {
 		return nil, fmt.Errorf("at least one of UDP/TCP/Unixgram listeners must be used")
 	}
-	statsdMapper := &mapper.MetricMapper{MappingsCount: m.MappingsCount}
+	statsdMapper := &mapper.MetricMapper{
+		MappingsCount: m.MappingsCount,
+		Logger:        log,
+	}
 
 	if c.MappingConfig != nil {
 		cfgBytes, err := yaml.Marshal(c.MappingConfig)
