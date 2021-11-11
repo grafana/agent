@@ -18,6 +18,8 @@
 
 - [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
 
+- [BUGFIX] Fix issue where logging level was not being honored (@mattdurham)
+
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
 - [CHANGE] Changed service graphs store implementation to improve CPU performance (@mapno)
