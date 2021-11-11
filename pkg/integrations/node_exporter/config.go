@@ -11,7 +11,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
-	"github.com/prometheus/procfs/sysfs"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -20,7 +19,7 @@ var (
 	// unmarshaled from YAML.
 	DefaultConfig = Config{
 		ProcFSPath: procfs.DefaultMountPoint,
-		SysFSPath:  sysfs.DefaultMountPoint,
+		SysFSPath:  "/sys",
 		RootFSPath: "/",
 
 		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
