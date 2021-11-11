@@ -2,7 +2,7 @@
 package dnsmasq_exporter //nolint:golint
 
 import (
-	"github.com/go-kit/log"
+	"github.com/go-kit/kit/log"
 	"github.com/google/dnsmasq_exporter/collector"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"

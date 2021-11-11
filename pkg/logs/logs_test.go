@@ -16,7 +16,7 @@ import (
 
 	"github.com/grafana/loki/pkg/loghttp/push"
 
-	"github.com/go-kit/log"
+	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/log"
+	"github.com/go-kit/kit/log"
 )
 
 // TestLogger generates a logger for a test.

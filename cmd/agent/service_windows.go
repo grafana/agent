@@ -9,7 +9,7 @@ import (
 	"os"
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/log/level"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/weaveworks/common/logging"

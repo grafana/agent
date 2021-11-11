@@ -5,7 +5,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	kafka_exporter "github.com/davidmparrott/kafka_exporter/v2/exporter"
-	"github.com/go-kit/log"
+	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 )

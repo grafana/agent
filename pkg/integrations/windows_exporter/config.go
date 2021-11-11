@@ -1,6 +1,6 @@
 package windows_exporter //nolint:golint
 import (
-	"github.com/go-kit/log"
+	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 )

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-kit/log"
+	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/prometheus-community/windows_exporter/collector"
 	"github.com/prometheus/statsd_exporter/pkg/level"

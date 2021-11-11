@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/go-kit/log"
+	"github.com/go-kit/kit/log"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/prometheus/pkg/textparse"
 	"github.com/stretchr/testify/require"

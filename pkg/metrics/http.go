@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/go-kit/log/level"
+	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
 	"github.com/prometheus/common/model"

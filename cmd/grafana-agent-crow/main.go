@@ -11,7 +11,7 @@ import (
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
 
-	"github.com/go-kit/log/level"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/pkg/crow"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
