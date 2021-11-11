@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
