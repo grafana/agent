@@ -62,4 +62,4 @@ You should see an Agent Operator Pod in `RUNNING` state, and a `kubelet` Service
 
 ## Conclusion
 
-With Agent Operator up and running, you can move on to setting up a `GrafanaAgent` custom resource. This will discover `MetricsInstance` and `LogsInstance` custom resources and endow them with Pod attributes (like requests and limits) defined in the `GrafanaAgent` spec. To learn how to do this, please see [Custom Resource Quickstart]({{< relref "./custom-resource-quickstart.md" >}}.
+With Agent Operator up and running, you can move on to setting up a `GrafanaAgent` custom resource. This will discover `MetricsInstance` and `LogsInstance` custom resources and endow them with Pod attributes (like requests and limits) defined in the `GrafanaAgent` spec. To learn how to do this, please see [Custom Resource Quickstart]({{< relref "./custom-resource-quickstart.md" >}}).
