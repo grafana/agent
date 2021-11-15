@@ -53,7 +53,7 @@ type node struct {
 // newNode creates a new node and registers it to the ring.
 func newNode(reg prometheus.Registerer, log log.Logger, cfg Config, s pb.ScrapingServiceServer) (*node, error) {
 	n := &node{
-		reg: util.WrapWithUnregisterer(prometheus.WrapRegistererWithPrefix("cortex_", reg)),
+		reg: util.WrapWithUnregisterer(reg),
 		srv: s,
 		log: log,
 
@@ -120,7 +120,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	}
 	n.ring = r
 
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.log, n.reg)
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.log, prometheus.WrapRegistererWithPrefix("cortex_", n.reg))
 	if err != nil {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
@@ -152,7 +152,7 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer, log l
 	if err != nil {
 		return nil, err
 	}
-	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy(), reg, log)
+	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy(), prometheus.WrapRegistererWithPrefix("cortex_", reg), log)
 }
 
 // run waits for connection to the ring and kickstarts the join process.

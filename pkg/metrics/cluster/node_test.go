@@ -171,7 +171,7 @@ func startNode(t *testing.T, srv agentproto.ScrapingServiceServer, logger log.Lo
 	lcConfig.Addr = l.Addr().(*net.TCPAddr).IP.String()
 	lcConfig.Port = l.Addr().(*net.TCPAddr).Port
 
-	lc, err := ring.NewLifecycler(lcConfig, ring.NewNoopFlushTransferer(), "agent", "agent", false, logger, prometheus.NewRegistry())
+	lc, err := ring.NewLifecycler(lcConfig, ring.NewNoopFlushTransferer(), "agent", "agent", false, logger, prometheus.WrapRegistererWithPrefix("cortex_", prometheus.NewRegistry()))
 	require.NoError(t, err)
 
 	err = services.StartAndAwaitRunning(context.Background(), lc)
