@@ -29,7 +29,7 @@ will fail if it can't find the custom resource definitions of objects it is
 looking to use.
 
 The current set of CustomResourceDefinitions can be found in
-[production/operator/crds](../../production/operator/crds). Apply them from the
+[production/operator/crds](https://github.com/grafana/agent/tree/main/production/operator/crds). Apply them from the
 root of this repository using:
 
 ```
@@ -155,4 +155,4 @@ go run ./cmd/agent-operator
 
 ## Conclusion
 
-With Agent Operator up and running, you can move on to setting up a `GrafanaAgent` custom resource. This will discover `MetricsInstance` and `LogsInstance` custom resources and endow them with Pod attributes (like requests and limits) defined in the `GrafanaAgent` spec. To learn how to do this, please see [Custom Resource Quickstart]({{< relref "./custom-resource-quickstart.md" >}}.
+With Agent Operator up and running, you can move on to setting up a `GrafanaAgent` custom resource. This will discover `MetricsInstance` and `LogsInstance` custom resources and endow them with Pod attributes (like requests and limits) defined in the `GrafanaAgent` spec. To learn how to do this, please see [Custom Resource Quickstart]({{< relref "./custom-resource-quickstart.md" >}}).
