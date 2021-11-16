@@ -295,6 +295,24 @@ service_graphs:
   # a higher max number of items increases the max throughput of processed spans
   # with a higher memory consumption.
   [ max_items: <integer> | default = 10_000 ]
+  
+  # configures the number of workers that will process completed edges concurrently.
+  # as edges are completed, they get queued to be collected as metrics for the graph.
+  [ workers: <integer> | default = 10]
+
+  # configures what status codes are considered as successful (e.g. HTTP 404).
+  #
+  # by default, a request is considered failed in the following cases:
+  #   1. HTTP status is not 2XX
+  #   1. gRPC status code is not OK
+  #   1. span status is Error
+  success_codes:
+    # http status codes not to be considered as failure
+    http:
+      [ - <int> ... ]
+    # grpc status codes not to be considered as failure
+    grpc:
+      [ - <int> ... ]
 ```
 
 > **Note:** More information on the following types can be found on the
