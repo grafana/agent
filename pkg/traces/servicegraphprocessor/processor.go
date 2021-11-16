@@ -80,15 +80,15 @@ type processor struct {
 	serviceGraphUnpairedSpansTotal     *prometheus.CounterVec
 	serviceGraphDroppedSpansTotal      *prometheus.CounterVec
 
-	httpSuccessCode map[int]struct{}
-	grpcSuccessCode map[int]struct{}
+	httpSuccessCodeMap map[int]struct{}
+	grpcSuccessCodeMap map[int]struct{}
 
 	logger  log.Logger
 	closeCh chan struct{}
 }
 
 func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
-	logger := log.With(util.Logger, "component", "tempo service graphs")
+	logger := log.With(util.Logger, "component", "service graphs")
 
 	if cfg.Wait == 0 {
 		cfg.Wait = DefaultWait
@@ -101,15 +101,15 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 	}
 
 	var (
-		httpSuccessCode = make(map[int]struct{})
-		grpcSuccessCode = make(map[int]struct{})
+		httpSuccessCodeMap = make(map[int]struct{})
+		grpcSuccessCodeMap = make(map[int]struct{})
 	)
 	if cfg.SuccessCodes != nil {
 		for _, sc := range cfg.SuccessCodes.http {
-			httpSuccessCode[int(sc)] = struct{}{}
+			httpSuccessCodeMap[int(sc)] = struct{}{}
 		}
 		for _, sc := range cfg.SuccessCodes.grpc {
-			grpcSuccessCode[int(sc)] = struct{}{}
+			grpcSuccessCodeMap[int(sc)] = struct{}{}
 		}
 	}
 
@@ -117,8 +117,10 @@ func newProcessor(nextConsumer consumer.Traces, cfg *Config) *processor {
 		nextConsumer: nextConsumer,
 		logger:       logger,
 
-		wait:     cfg.Wait,
-		maxItems: cfg.MaxItems,
+		wait:               cfg.Wait,
+		maxItems:           cfg.MaxItems,
+		httpSuccessCodeMap: httpSuccessCodeMap,
+		grpcSuccessCodeMap: grpcSuccessCodeMap,
 
 		collectCh: make(chan string, cfg.Workers),
 
@@ -231,8 +233,6 @@ func (p *processor) Capabilities() consumer.Capabilities {
 }
 
 func (p *processor) ConsumeTraces(ctx context.Context, td pdata.Traces) error {
-	level.Debug(p.logger).Log("msg", "consuming traces")
-
 	// Evict expired edges
 	p.store.expire()
 
@@ -347,7 +347,7 @@ func (p *processor) spanFailed(span pdata.Span) bool {
 	// Request considered failed if status is not 2XX or added as a successful status code
 	if statusCode, ok := span.Attributes().Get("http.status_code"); ok {
 		sc := int(statusCode.IntVal())
-		if _, ok := p.httpSuccessCode[sc]; !ok || sc/100 != 2 {
+		if _, ok := p.httpSuccessCodeMap[sc]; !ok && sc/100 != 2 {
 			return true
 		}
 	}
@@ -355,7 +355,7 @@ func (p *processor) spanFailed(span pdata.Span) bool {
 	// Request considered failed if status is not OK or added as a successful status code
 	if statusCode, ok := span.Attributes().Get("grpc.status_code"); ok {
 		sc := int(statusCode.IntVal())
-		if _, ok := p.grpcSuccessCode[sc]; !ok || sc != int(codes.OK) {
+		if _, ok := p.grpcSuccessCodeMap[sc]; !ok && sc != int(codes.OK) {
 			return true
 		}
 	}
