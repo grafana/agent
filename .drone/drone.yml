@@ -129,6 +129,32 @@ volumes:
 ---
 kind: pipeline
 type: docker
+name: Deploy-To-Deployment-Tools 
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  ref:
+    - refs/heads/main
+
+steps:
+  - name: Update Deployment Tools 
+    image: us.gcr.io/kubernetes-dev/drone/plugins/updater
+    settings:
+      config_json: "{\r\n  \"destination_branch\": \"master\",\r\n  \"pull_request_branch_prefix\": \"cd-agent-\",\r\n  \"pull_request_enabled\": true,\r\n  \"pull_request_existing_strategy\": \"fail\",\r\n  \"pull_request_message\": \"Created by Drone build https:\/\/drone.grafana.net\/api\/repos\/grafana\/agent\/builds\/${DRONE_BUILD_NUMBER}\\n\\nBuild commit: ${DRONE_COMMIT_LINK}\\n\",\r\n  \"pull_request_team_reviewers\": [\r\n    \"agent-squad\"\r\n  ],\r\n  \"repo_name\": \"agent\",\r\n  \"update_jsonnet_attribute_configs\": [\r\n    {\r\n      \"file_path\": \"ksonnet\/environments\/platform-observability\/images.libsonnet\",\r\n      \"jsonnet_key\": \"agent\",\r\n      \"jsonnet_value\": \"grafana\/agent:$DRONE_TAG\"\r\n    }\r\n  ]\r\n}"
+      github_token:
+        from_secret: gh_token
+ 
+depends_on:
+  - Containerize
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+---
+kind: pipeline
+type: docker
 name: Release
 platform:
   os: linux
