@@ -56,7 +56,6 @@ An example config for `process_exporter_config` that tracks all processes is the
 following:
 
 ```
-enabled: true
 process_names:
 - name: "{{.Comm}}"
   cmdline:
@@ -68,7 +67,11 @@ Full reference of options:
 ```yaml
   # Enables the process_exporter integration, allowing the Agent to automatically
   # collect system metrics from the host UNIX system.
-  [enabled: <boolean> | default = false]
+  #
+  # Enabled is DEPRECATED and will be removed in a future release. To disable
+  # an integration, comment it out or remove it from your config instead of
+  # setting `enabled: false`.
+  [enabled: <boolean> | default = true]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.

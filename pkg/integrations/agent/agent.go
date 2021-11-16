@@ -15,7 +15,7 @@ import (
 
 // Config controls the Agent integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
+	config.Common `yaml:",inline"`
 }
 
 // Name returns the name of the integration that this config represents.

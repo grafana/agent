@@ -1,10 +1,19 @@
 # Main (unreleased)
 
+BREAKING CHANGE: Integrations have changed in this release.
+Please review the [migration guide](./docs/migration-guide.md) for details.
+
 - [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
 
 - [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)
 
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
+
+- [CHANGE] Integrations present in the `integrations:` map will now default to
+  being enabled. (@rfratto)
+
+- [DEPRECATION] Integrations: The `enabled` field is now deprecated and will be
+  removed in a future release. (@rfratto)
 
 # v0.20.0 (2021-10-28)
 

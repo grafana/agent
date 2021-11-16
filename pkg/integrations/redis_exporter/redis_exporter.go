@@ -19,6 +19,7 @@ import (
 // DefaultConfig holds non-zero default options for the Config when it is
 // unmarshaled from YAML.
 var DefaultConfig = Config{
+	Common:                  config.DefaultCommon,
 	Namespace:               "redis",
 	ConfigCommand:           "CONFIG",
 	ConnectionTimeout:       (15 * time.Second),

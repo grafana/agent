@@ -11,6 +11,7 @@ import (
 
 // DefaultConfig holds the default settings for the process_exporter integration.
 var DefaultConfig = Config{
+	Common:     config.DefaultCommon,
 	ProcFSPath: "/proc",
 	Children:   true,
 	Threads:    true,

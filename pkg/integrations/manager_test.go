@@ -85,8 +85,7 @@ test:
 
 func TestConfig_AddressRelabels(t *testing.T) {
 	cfgText := `
-agent:
-  enabled: true
+agent: {}
 `
 
 	var (

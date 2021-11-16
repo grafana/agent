@@ -30,49 +30,26 @@ func RegisterIntegration(cfg Config) {
 	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
 
-// Configs is a list of integrations.
+// RegisteredIntegrations all Configs that were passed to RegisterIntegration.
+// Each call will generate a new set of pointers.
+func RegisteredIntegrations() []Config {
+	res := make([]Config, 0, len(registeredIntegrations))
+	for _, in := range registeredIntegrations {
+		res = append(res, cloneIntegration(in))
+	}
+	return res
+}
+
+func cloneIntegration(c Config) Config {
+	return reflect.New(reflect.TypeOf(c).Elem()).Interface().(Config)
+}
+
+// Configs is a list of integrations. Note that Configs does not implement
+// yaml.Unmarshaler or yaml.Marshaler. Use the UnmarshalYAML or MarshalYAML
+// methods to deal with integrations defined from YAML.
 type Configs []Config
 
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *Configs) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return c.unmarshalWithIntegrations(registeredIntegrations, unmarshal)
-}
-
-func (c *Configs) unmarshalWithIntegrations(integrations []Config, unmarshal func(interface{}) error) error {
-	// Create a dynamic struct type full of our registered integrations and
-	// unmarshal to it.
-	var fields []reflect.StructField
-	for _, cfg := range integrations {
-		fields = append(fields, reflect.StructField{
-			Name: "Config_" + cfg.Name(),
-			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s"`, cfg.Name())),
-			Type: reflect.TypeOf(cfg),
-		})
-	}
-
-	var (
-		structType = reflect.StructOf(fields)
-		structVal  = reflect.New(structType)
-	)
-	if err := unmarshal(structVal.Interface()); err != nil {
-		return err
-	}
-
-	// Go over all non-nil fields in structVal and append them to c.
-	structVal = structVal.Elem()
-	for i := 0; i < structVal.NumField(); i++ {
-		if structVal.Field(i).IsNil() {
-			continue
-		}
-
-		val := structVal.Field(i).Interface().(Config)
-		*c = append(*c, val)
-	}
-
-	return nil
-}
-
-// MarshalYAML helps implement yaml.Marshaller for structs that have a Configs
+// MarshalYAML helps implement yaml.Marshaler for structs that have a Configs
 // field that should be inlined in the YAML string.
 func MarshalYAML(v interface{}) (interface{}, error) {
 	inVal := reflect.ValueOf(v)

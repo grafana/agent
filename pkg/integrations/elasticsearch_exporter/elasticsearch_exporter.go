@@ -22,6 +22,7 @@ import (
 // DefaultConfig holds the default settings for the elasticsearch_exporter
 // integration.
 var DefaultConfig = Config{
+	Common:                    config.DefaultCommon,
 	Address:                   "http://localhost:9200",
 	Timeout:                   5 * time.Second,
 	Node:                      "_local",

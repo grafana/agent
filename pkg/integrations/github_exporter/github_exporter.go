@@ -14,6 +14,7 @@ import (
 
 // DefaultConfig holds the default settings for the github_exporter integration
 var DefaultConfig Config = Config{
+	Common: config.DefaultCommon,
 	APIURL: "https://api.github.com",
 }
 

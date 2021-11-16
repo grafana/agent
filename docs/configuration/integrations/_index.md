@@ -14,7 +14,11 @@ manually write `scrape_configs`:
 agent:
   # Enables the Agent integration, allowing the Agent to automatically
   # collect and send metrics about itself.
-  [enabled: <boolean> | default = false]
+  #
+  # Enabled is DEPRECATED and will be removed in a future release. To disable
+  # an integration, comment it out or remove it from your config instead of
+  # setting `enabled: false`.
+  [enabled: <boolean> | default = true]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.
@@ -54,6 +58,39 @@ agent:
 #  (Client Auth Type = RequireAndVerifyClientCert || RequireAnyClientCert).
 http_tls_config: <tls_config>
 
+# Automatically collect metrics from enabled integrations. If disabled,
+# integrations will be run but not scraped and thus not remote_written. Metrics
+# for integrations will be exposed at /integrations/<integration_key>/metrics
+# and can be scraped by an external process.
+[scrape_integrations: <boolean> | default = true]
+
+# Extra labels to add to all samples coming from integrations.
+labels:
+  { <string>: <string> }
+
+# The period to wait before restarting an integration that exits with an
+# error.
+[integration_restart_backoff: <duration> | default = "5s"]
+
+# A list of remote_write targets. Defaults to global_config.remote_write.
+# If provided, overrides the global defaults.
+prometheus_remote_write:
+  - [<remote_write>]
+
+#
+# List of integrations.
+#
+# Integrations will not run unless they are defined inside of the
+# `integrations` block. Once they are defined, they will run unless
+# explicitly disabled. For example, this config will run ONLY the
+# node_exporter integration:
+#
+# ```
+# integrations:
+#   node_exporter: {}
+# ```
+#
+
 # Controls the node_exporter integration
 node_exporter: <node_exporter_config>
 
@@ -92,25 +129,8 @@ kafka_exporter: <kafka_exporter_config>
 
 # Controls the mongodb_exporter integration
 mongodb_exporter: <mongodb_exporter_config>
+
 # Controls the github_exporter integration
 github_exporter: <github_exporter_config>
 
-# Automatically collect metrics from enabled integrations. If disabled,
-# integrations will be run but not scraped and thus not remote_written. Metrics
-# for integrations will be exposed at /integrations/<integration_key>/metrics
-# and can be scraped by an external process.
-[scrape_integrations: <boolean> | default = true]
-
-# Extra labels to add to all samples coming from integrations.
-labels:
-  { <string>: <string> }
-
-# The period to wait before restarting an integration that exits with an
-# error.
-[integration_restart_backoff: <duration> | default = "5s"]
-
-# A list of remote_write targets. Defaults to global_config.remote_write.
-# If provided, overrides the global defaults.
-prometheus_remote_write:
-  - [<remote_write>]
 ```

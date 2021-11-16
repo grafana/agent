@@ -12,6 +12,36 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+### Integrations: Defined integrations are enabled by default (Breaking change)
+
+Integrations which are defined inside of `integrations` will now run by default
+and must be explicitly disabled. Previously, integrations had to be explicitly
+enabled, even if they were present in the config file.
+
+This change makes it easier to define many integrations without repeating
+`enabled: true`. Example old config:
+
+```yaml
+integrations:
+  # Previously, not defining `enabled` meant that it would be disabled by default.
+  memcached_exporter:
+    memcached_addresss: localhost:11211
+```
+
+Example new config:
+
+```yaml
+integrations:
+  memcached_exporter:
+    # `enabled: false` must now be given to explicitly disable an integration.
+    # If `enabled` is not present, `enabled: true` is inferred.
+    enabled: false
+    memcached_addresss: localhost:11211
+```
+
+No change is necessary for configs that are not listed inside of `integrations:`.
+For example, as `node_exporter` is not defined, it will not be run.
+
 ### Integrations: Change in how instance labels are handled (Breaking change)
 
 Integrations will now use a SUO-specific `instance` label value. Integrations
@@ -36,6 +66,12 @@ Both `use_hostname_label` and `replace_instance_label` are now both deprecated
 and ignored from the YAML file, permanently treated as true. A future release
 will fully remove these fields, causing YAML errors on load instead of being
 silently ignored.
+
+### Integrations: Deprecation of `enabled` field (Deprecation)
+
+`enabled` is now deprecated and will be removed in a future release. To disable
+an integration, it is recommended to either fully remove it from the YAML, or
+comment it out.
 
 ## v0.20.0
 

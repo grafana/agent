@@ -32,6 +32,7 @@ import (
 
 // DefaultConfig holds the default settings for the statsd_exporter integration.
 var DefaultConfig = Config{
+	Common:         config.DefaultCommon,
 	ListenUDP:      ":9125",
 	ListenTCP:      ":9125",
 	UnixSocketMode: "755",
