@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+# v0.21.0 (2021-11-17)
+
 - [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
 
 - [ENHANCEMENT] Update Loki dependency to v2.1.0-656-g0ae0d4da1. (@rlankfo)

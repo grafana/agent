@@ -37,7 +37,7 @@ and ignored from the YAML file, permanently treated as true. A future release
 will fully remove these fields, causing YAML errors on load instead of being
 silently ignored.
 
-## v0.20.0
+## v0.21.0
 
 ### Traces: Changes to receiver's TLS config (Breaking change).
 
