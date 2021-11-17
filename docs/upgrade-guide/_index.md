@@ -12,6 +12,8 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.21.0
+
 ### Integrations: Change in how instance labels are handled (Breaking change)
 
 Integrations will now use a SUO-specific `instance` label value. Integrations
@@ -37,7 +39,7 @@ and ignored from the YAML file, permanently treated as true. A future release
 will fully remove these fields, causing YAML errors on load instead of being
 silently ignored.
 
-## v0.21.0
+## v0.20.0
 
 ### Traces: Changes to receiver's TLS config (Breaking change).
 
