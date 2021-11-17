@@ -141,7 +141,27 @@ steps:
   - name: Update Deployment Tools 
     image: us.gcr.io/kubernetes-dev/drone/plugins/updater
     settings:
-      config_json: "{\r\n  \"destination_branch\": \"master\",\r\n  \"pull_request_branch_prefix\": \"cd-agent-\",\r\n  \"pull_request_enabled\": true,\r\n  \"pull_request_existing_strategy\": \"fail\",\r\n  \"pull_request_message\": \"Created by Drone build https:\/\/drone.grafana.net\/api\/repos\/grafana\/agent\/builds\/${DRONE_BUILD_NUMBER}\\n\\nBuild commit: ${DRONE_COMMIT_LINK}\\n\",\r\n  \"pull_request_team_reviewers\": [\r\n    \"agent-squad\"\r\n  ],\r\n  \"repo_name\": \"agent\",\r\n  \"update_jsonnet_attribute_configs\": [\r\n    {\r\n      \"file_path\": \"ksonnet\/environments\/platform-observability\/images.libsonnet\",\r\n      \"jsonnet_key\": \"agent\",\r\n      \"jsonnet_value\": \"grafana\/agent:$DRONE_TAG\"\r\n    }\r\n  ]\r\n}"
+      config_json: |- 
+        {
+          "destination_branch": "master",
+          "pull_request_branch_prefix": "cd-agent",
+          "pull_request_enabled": true,
+          "pull_request_existing_strategy": "fail",
+          "pull_request_message": "Created by Drone build https://drone.grafana.net/api/repos/grafana/agent/builds/${DRONE_BUILD_NUMBER}\n\nBuild commit: ${DRONE_COMMIT_LINK}\n",
+          "pull_request_team_reviewers": [
+            "rfratto",
+            "mattdurham",
+            "gouthamve"
+          ],
+          "repo_name": "deployment_tools",
+          "update_jsonnet_attribute_configs": [
+            {
+              "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
+              "jsonnet_key": "dev_canary",
+              "jsonnet_value": "grafana/agent:$DRONE_TAG"
+            }
+          ]
+        }
       github_token:
         from_secret: gh_token
  
@@ -200,6 +220,6 @@ volumes:
       path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 1cab98e575942179c9a157058799b9d44119b1d6c170feefbeefe303eb44823d
+hmac: 4a6148a31002cae1d4932abe18cb0a3ca1ba309d822aedb9bc38e058291b01fd
 
 ...
