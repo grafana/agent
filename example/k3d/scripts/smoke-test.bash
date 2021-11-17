@@ -35,15 +35,16 @@ set -euo pipefail
 # Constants
 ROOT=$(git rev-parse --show-toplevel)
 K3D_CLUSTER_NAME="agent-smoke-test"
-MUTATION_FREQUENCY="5m"
-CHAOS_FREQUENCY="30m"
+MUTATION_FREQUENCY="300"
+CHAOS_FREQUENCY="1800"
 
 # Variables
 
 # Which function will be called
 ENTRYPOINT="run"
-TEST_DURATION="3h"
+TEST_DURATION="10800"
 IMPORT_IMAGES=""
+SKIP_CREATE=""
 
 while getopts "dt:ish" opt; do
   case $opt in
@@ -72,12 +73,12 @@ run() {
       --kubeconfig-update-default=true \
       --kubeconfig-switch-context=true \
       --wait >/dev/null
-  fi
 
-  # Give the cluster a little bit of time to settle before
-  # applying the environment
-  echo "--- Waiting for cluster to warm up"
-  sleep 10
+    # Give the cluster a little bit of time to settle before
+    # applying the environment
+    echo "--- Waiting for cluster to warm up"
+    sleep 10
+  fi
 
   if [[ ! -z "$IMPORT_IMAGES" ]]; then
     echo "--- Importing local images"

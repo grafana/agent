@@ -7,9 +7,9 @@ local node_exporter = import 'node-exporter/main.libsonnet';
 local prometheus = import 'prometheus/main.libsonnet';
 
 local namespace = k.core.v1.namespace;
-local ingress = k.networking.v1beta1.ingress;
-local rule = k.networking.v1beta1.ingressRule;
-local path = k.networking.v1beta1.httpIngressPath;
+local ingress = k.networking.v1.ingress;
+local rule = k.networking.v1.ingressRule;
+local path = k.networking.v1.httpIngressPath;
 
 local prometheus_monitoring = import './prometheus_monitoring.libsonnet';
 
@@ -40,8 +40,9 @@ local prometheus_monitoring = import './prometheus_monitoring.libsonnet';
         rule.withHost('prometheus.k3d.localhost') +
         rule.http.withPaths([
           path.withPath('/') +
-          path.backend.withServiceName('prometheus') +
-          path.backend.withServicePort(9090),
+          path.withPathType('Prefix') +
+          path.backend.service.withName('prometheus') +
+          path.backend.service.port.withNumber(9090),
         ]),
       ]),
 
@@ -52,8 +53,9 @@ local prometheus_monitoring = import './prometheus_monitoring.libsonnet';
         rule.withHost('grafana.k3d.localhost') +
         rule.http.withPaths([
           path.withPath('/') +
-          path.backend.withServiceName('grafana') +
-          path.backend.withServicePort(80),
+          path.withPathType('Prefix') +
+          path.backend.service.withName('grafana') +
+          path.backend.service.port.withNumber(80),
         ]),
       ]),
   },

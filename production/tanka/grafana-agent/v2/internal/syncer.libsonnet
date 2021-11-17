@@ -1,6 +1,6 @@
 local k = import 'ksonnet-util/kausal.libsonnet';
 
-local cronJob = k.batch.v1beta1.cronJob;
+local cronJob = k.batch.v1.cronJob;
 local configMap = k.core.v1.configMap;
 local container = k.core.v1.container;
 local deployment = k.apps.v1.deployment;
@@ -46,13 +46,16 @@ function(
     container.withVolumeMounts(volumeMount.new(name, '/etc/configs')),
 
   job:
-    cronJob.new(name, _config.schedule, this.container) +
+    cronJob.new(name) +
     cronJob.mixin.metadata.withNamespace(namespace) +
+    cronJob.mixin.spec.withSchedule(_config.schedule) +
     cronJob.mixin.spec.withSuccessfulJobsHistoryLimit(1) +
     cronJob.mixin.spec.withFailedJobsHistoryLimit(3) +
+    cronJob.mixin.spec.jobTemplate.spec.withTtlSecondsAfterFinished(120) +
+    cronJob.mixin.spec.jobTemplate.spec.template.metadata.withLabels({ name: name }) +
+    cronJob.mixin.spec.jobTemplate.spec.template.spec.withContainers(this.container) +
     cronJob.mixin.spec.jobTemplate.spec.template.spec.withRestartPolicy('OnFailure') +
     cronJob.mixin.spec.jobTemplate.spec.template.spec.withActiveDeadlineSeconds(600) +
-    cronJob.mixin.spec.jobTemplate.spec.withTtlSecondsAfterFinished(120) +
     cronJob.mixin.spec.jobTemplate.spec.template.spec.withVolumes([
       volume.fromConfigMap(
         name=name,
