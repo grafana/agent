@@ -36,8 +36,8 @@ identify which agents need to be updated with an override for `instance`.
 
 Both `use_hostname_label` and `replace_instance_label` are now both deprecated
 and ignored from the YAML file, permanently treated as true. A future release
-will fully remove these fields, causing YAML errors on load instead of being
-silently ignored.
+will remove these fields, causing YAML errors on load instead of being silently
+ignored.
 
 ## v0.20.0
 
@@ -231,8 +231,9 @@ change is to make it clearer when referring to Prometheus or another
 Prometheus-like database, and configuration of Grafana Agent to send metrics to
 one of those systems.
 
-Old configs will continue to work until it is fully deprecated. To migrate your
-config, change the `prometheus` key to `metrics`.
+Old configs will continue to work for now, but support for the old format will
+eventually be removed. To migrate your config, change the `prometheus` key to
+`metrics`.
 
 Example old config:
 
@@ -300,8 +301,8 @@ The term `loki` in the config has been deprecated of favor of `logs`. This
 change is to make it clearer when referring to Grafana Loki, and
 configuration of Grafana Agent to send logs to Grafana Loki.
 
-Old configs will continue to work until it is fully deprecated. To migrate your
-config, change the `loki` key to `logs`.
+Old configs will continue to work for now, but support for the old format will
+eventually be removed. To migrate your config, change the `loki` key to `logs`.
 
 Example old config:
 
@@ -345,7 +346,8 @@ As part of the `loki` to `logs` rename, parts of the automatic_logging component
 in Tempo have been updated to refer to `logs_instance` instead.
 
 Old configurations using `loki_name`, `loki_tag`, or `backend: loki` will
-continue to work until the `loki` terminology is fully deprecated.
+continue to work as of this version, but support for the old config format
+will eventually be removed.
 
 Example old config:
 
@@ -387,7 +389,7 @@ Tempo `remote_write` now supports configuring TLS settings in the trace
 exporter's client. `insecure_skip_verify` is moved into this setting's block.
 
 Old configurations with `insecure_skip_verify` outside `tls_config` will continue
-to work until it's fully deprecated.
+to work as of this version, but support will eventually be removed.
 If both `insecure_skip_verify` and `tls_config.insecure_skip_verify` are used,
 then the latter take precedence.
 
