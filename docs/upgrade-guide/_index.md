@@ -12,6 +12,8 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.21.0
+
 ### Integrations: Change in how instance labels are handled (Breaking change)
 
 Integrations will now use a SUO-specific `instance` label value. Integrations

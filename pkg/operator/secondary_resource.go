@@ -1,7 +1,7 @@
 package operator
 
 import (
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

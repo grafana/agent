@@ -1,6 +1,10 @@
 # Main (unreleased)
 
+- [BUGFIX] Fix panic when using postgres_exporter (@saputradharma)
+
 - [BUGFIX] Statsd Integration: Adding logger instance to the statsd mapper instantiation. (@gaantunes)
+
+# v0.21.0 (2021-11-17)
 
 - [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
 
@@ -9,6 +13,8 @@
 - [ENHANCEMENT] Update Prometheus dependency to v2.31.0 (@rlankfo)
 
 - [ENHANCEMENT] Add Agent Operator Helm quickstart guide (@hjet)
+
+- [ENHANCEMENT] Reorg Agent Operator quickstart guides (@hjet)
 
 - [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
 
@@ -20,9 +26,11 @@
 
 - [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
 
+- [BUGFIX] Traces: Fix `success_logic` code in service graphs processor (@mapno)
+
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
-- [CHANGE] Changed service graphs store implementation to improve CPU performance (@mapno)
+- [CHANGE] Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
 
 # v0.20.0 (2021-10-28)
 

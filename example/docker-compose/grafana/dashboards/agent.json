@@ -7,7 +7,7 @@
    "graphTooltip": 0,
    "hideControls": false,
    "links": [ ],
-   "refresh": "1m",
+   "refresh": "30s",
    "rows": [
       {
          "collapse": false,
