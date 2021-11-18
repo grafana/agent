@@ -27,7 +27,7 @@ the Grafana Agent. The `node_exporter` integration will collect metrics from the
 Linux machine that the Grafana Agent is running on.
 
 ```yaml
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     remote_write:
@@ -71,7 +71,7 @@ template and copy and paste subsections from your existing Prometheus config
 into it:
 
 ```yaml
-prometheus:
+metrics:
   global:
   # PASTE PROMETHEUS global SECTION HERE
   configs:
@@ -90,9 +90,9 @@ server:
   log_level: info
   http_listen_port: 12345
 
-prometheus:
+metrics:
   global:
-    scrape_interval: 5s
+    scrape_interval: 1m
   configs:
     - name: agent
       scrape_configs:
@@ -117,10 +117,10 @@ their existing Promtail config with the following exceptions:
 
 To migrate from an existing Promtail config, make sure you are using `clients`
 instead of `client` and remove the `server` block if present. Then paste your
-Promtail config into the Agent config file inside of a `loki` section:
+Promtail config into the Agent config file inside of a `logs` section:
 
 ```yaml
-loki:
+logs:
   configs:
   - name: default
     # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
@@ -136,9 +136,9 @@ server:
   log_level: info
   http_listen_port: 12345
 
-prometheus:
+metrics:
   global:
-    scrape_interval: 5s
+    scrape_interval: 1m
     remote_write:
       - url: http://localhost:9009/api/prom/push
   configs:
@@ -148,7 +148,7 @@ prometheus:
           static_configs:
             - targets: ['127.0.0.1:12345']
 
-loki:
+logs:
   configs:
   - name: default
     positions:

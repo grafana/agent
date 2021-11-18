@@ -101,21 +101,14 @@ local template = grafana.template;
           legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
-      local timestampComparisonRate =
+      local remoteSendLatency =
         graphPanel.new(
-          'Rate[5m]',
+          'P99 Latency [1m]',
           datasource='$datasource',
           span=6,
         )
         .addTarget(prometheus.target(
-          |||
-            (
-              rate(prometheus_remote_storage_highest_timestamp_in_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
-              -
-              ignoring(url, remote_name) group_right(pod)
-              rate(prometheus_remote_storage_queue_highest_sent_timestamp_seconds{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
-            )
-          |||,
+          'histogram_quantile(0.99, rate(prometheus_remote_storage_sent_batch_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[1m]))',
           legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
@@ -341,7 +334,7 @@ local template = grafana.template;
       .addRow(
         row.new('Timestamps')
         .addPanel(timestampComparison)
-        .addPanel(timestampComparisonRate)
+        .addPanel(remoteSendLatency)
       )
       .addRow(
         row.new('Samples')

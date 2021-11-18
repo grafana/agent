@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -41,15 +41,15 @@ func NewAPI(l log.Logger, store Store, v Validator) *API {
 		validator: v,
 
 		totalCreatedConfigs: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "agent_prometheus_ha_configs_created_total",
+			Name: "agent_metrics_ha_configs_created_total",
 			Help: "Total number of created scraping service configs",
 		}),
 		totalUpdatedConfigs: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "agent_prometheus_ha_configs_updated_total",
+			Name: "agent_metrics_ha_configs_updated_total",
 			Help: "Total number of updated scraping service configs",
 		}),
 		totalDeletedConfigs: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "agent_prometheus_ha_configs_deleted_total",
+			Name: "agent_metrics_ha_configs_deleted_total",
 			Help: "Total number of deleted scraping service configs",
 		}),
 	}
@@ -122,7 +122,7 @@ func (api *API) GetConfiguration(rw http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, ErrNotConnected):
 		api.writeError(rw, http.StatusNotFound, err)
 	case errors.As(err, &NotExistError{}):
-		api.writeError(rw, http.StatusBadRequest, err)
+		api.writeError(rw, http.StatusNotFound, err)
 	case err != nil:
 		api.writeError(rw, http.StatusInternalServerError, err)
 	case err == nil:
@@ -218,7 +218,7 @@ func (api *API) DeleteConfiguration(rw http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, ErrNotConnected):
 		api.writeError(rw, http.StatusNotFound, err)
 	case errors.As(err, &NotExistError{}):
-		api.writeError(rw, http.StatusBadRequest, err)
+		api.writeError(rw, http.StatusNotFound, err)
 	case err != nil:
 		api.writeError(rw, http.StatusInternalServerError, err)
 	default:

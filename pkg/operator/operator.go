@@ -3,8 +3,9 @@ package operator
 import (
 	"flag"
 	"fmt"
+	"strings"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/weaveworks/common/logging"
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"
@@ -28,11 +29,12 @@ import (
 
 // Config controls the configuration of the Operator.
 type Config struct {
-	LogLevel      logging.Level
-	LogFormat     logging.Format
-	Labels        promop.Labels
-	Controller    controller.Options
-	AgentSelector string
+	LogLevel            logging.Level
+	LogFormat           logging.Format
+	Labels              promop.Labels
+	Controller          controller.Options
+	AgentSelector       string
+	KubelsetServiceName string
 
 	// TODO(rfratto): extra settings from Prometheus Operator:
 	//
@@ -67,6 +69,8 @@ func (c *Config) registerFlags(f *flag.FlagSet) error {
 	f.IntVar(&c.Controller.Port, "listen-port", 9443, "Port to listen on.")
 	f.StringVar(&c.Controller.MetricsBindAddress, "metrics-listen-address", ":8080", "Address to expose Operator metrics on")
 	f.StringVar(&c.Controller.HealthProbeBindAddress, "health-listen-address", "", "Address to expose Operator health probes on")
+
+	f.StringVar(&c.KubelsetServiceName, "kubelet-service", "", "Service and Endpoints objects to write kubelets into. Allows for monitoring Kubelet and cAdvisor metrics using a ServiceMonitor. Must be in format \"namespace/name\". If empty, nothing will be created.")
 
 	// Custom initial values for the endpoint names.
 	c.Controller.ReadinessEndpointName = "/-/ready"
@@ -117,6 +121,29 @@ func New(l log.Logger, c *Config, m manager.Manager) error {
 		agentPredicates = append(agentPredicates, selPredicate)
 	}
 
+	if c.KubelsetServiceName != "" {
+		parts := strings.Split(c.KubelsetServiceName, "/")
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid format for kubelet-service %q, must be formatted as \"namespace/name\"", c.KubelsetServiceName)
+		}
+		kubeletNamespace := parts[0]
+		kubeletName := parts[1]
+
+		err := controller.NewControllerManagedBy(m).
+			For(applyGVK(&core_v1.Node{})).
+			Owns(applyGVK(&core_v1.Service{})).
+			Owns(applyGVK(&core_v1.Endpoints{})).
+			Complete(&kubeletReconciler{
+				Client: m.GetClient(),
+
+				kubeletNamespace: kubeletNamespace,
+				kubeletName:      kubeletName,
+			})
+		if err != nil {
+			return fmt.Errorf("failed to create kubelet controller: %w", err)
+		}
+	}
+
 	err := controller.NewControllerManagedBy(m).
 		For(applyGVK(&grafana_v1alpha1.GrafanaAgent{}), builder.WithPredicates(agentPredicates...)).
 		Owns(applyGVK(&apps_v1.StatefulSet{})).
@@ -139,7 +166,7 @@ func New(l log.Logger, c *Config, m manager.Manager) error {
 			config:        c,
 		})
 	if err != nil {
-		return fmt.Errorf("failed to create controller: %w", err)
+		return fmt.Errorf("failed to create GrafanaAgent controller: %w", err)
 	}
 
 	return nil

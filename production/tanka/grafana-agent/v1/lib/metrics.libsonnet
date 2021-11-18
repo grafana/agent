@@ -1,15 +1,15 @@
 local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
 
 {
-  // defaultPrometheusConfig holds the default Prometheus Config with all
+  // defaultMetricsConfig holds the default Metrics Config with all
   // options that the Agent supports. It is better to use this object as a
   // reference rather than extending it; since all fields are defined here, if
   // the Agent changes a default value in the future, the default change will
   // be overridden by the values here.
   //
   // Required fields will be marked as REQUIRED.
-  defaultPrometheusConfig:: {
-    // Settings that apply to all launched Prometheus instances by default.
+  defaultMetricsConfig:: {
+    // Settings that apply to all launched Metrics instances by default.
     // These settings may be overridden on a per-instance basis.
     global: {
       // How frequently to scrape for metrics.
@@ -37,12 +37,12 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
     instance_mode: 'shared',
   },
 
-  // withPrometheusConfig controls the Prometheus engine settings for the Agent.
-  // defaultPrometheusConfig explicitly defines all supported values that can be
+  // withMetricsConfig controls the Metrics engine settings for the Agent.
+  // defaultMetricsConfig explicitly defines all supported values that can be
   // provided within config.
-  withPrometheusConfig(config):: { _prometheus_config:: config },
+  withMetricsConfig(config):: { _metrics_config:: config },
 
-  // withPrometheusInstances controls the Prometheus instances the Agent will
+  // withMetricsInstances controls the Metrics instances the Agent will
   // launch. Instances may be a single object or an array of objects. Each
   // object must have a name key that is unique to that object.
   //
@@ -51,7 +51,7 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
   // values for scrape configs and remote_write. For detailed information on
   // instance config settings, consult the Agent documentation:
   //
-  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#prometheus_instance_config
+  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#metrics_instance_config
   //
   // host_filter does not need to be applied here; the library will apply it
   // automatically based on how the Agent is being deployed.
@@ -59,9 +59,9 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
   // remote_write rules may be defined in the instance object. Optionally,
   // remove_write rules may be applied to every instance object by using the
   // withRemoteWrite function.
-  withPrometheusInstances(instances):: {
+  withMetricsInstances(instances):: {
     assert std.objectHasAll(self, '_mode') : |||
-      withPrometheusInstances must be merged with the result of calling new,
+      withMetricsInstances must be merged with the result of calling new,
       newDeployment, or newScrapingService.
     |||,
 
@@ -73,7 +73,7 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
     local host_filter = super._mode == 'daemonset',
 
     // Apply host_filtering over our list of instances.
-    _prometheus_instances:: std.map(function(inst) inst {
+    _metrics_instances:: std.map(function(inst) inst {
       host_filter: host_filter,
 
       // Make sure remote_write is an empty array if it doesn't exist.
@@ -85,7 +85,7 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
   },
 
   // withRemoteWrite overwrites all the remote_write configs provided in
-  // withPrometheusInstances with the specified remote_writes. This is
+  // withMetricsInstances with the specified remote_writes. This is
   // useful when there are multiple instances and you just want everything
   // to remote_write to the same place.
   //
@@ -93,12 +93,12 @@ local scrape_k8s = import '../internal/kubernetes_instance.libsonnet';
   //   https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#remote_write
   withRemoteWrite(remote_writes):: {
     assert std.objectHasAll(self, '_mode') : |||
-      withPrometheusInstances must be merged with the result of calling new,
+      withMetricsInstances must be merged with the result of calling new,
       newDeployment, or newScrapingService.
     |||,
 
     local list = if std.isArray(remote_writes) then remote_writes else [remote_writes],
-    _prometheus_config+:: { global+: { remote_write: list } },
+    _metrics_config+:: { global+: { remote_write: list } },
   },
 
   // scrapeInstanceKubernetes defines an instance config Grafana Labs uses to

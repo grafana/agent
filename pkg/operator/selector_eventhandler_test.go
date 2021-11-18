@@ -1,5 +1,6 @@
 // These tests depend on test assets from controller-runtime which don't work on Windows.
 
+//go:build !windows && has_network
 // +build !windows,has_network
 
 package operator
@@ -12,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/hashicorp/go-getter"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"

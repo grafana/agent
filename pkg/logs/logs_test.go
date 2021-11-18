@@ -1,4 +1,5 @@
-//+build !race
+//go:build !race
+// +build !race
 
 package logs
 
@@ -13,10 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/grafana/loki/pkg/loghttp/push"
+
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
-	loki_util "github.com/grafana/loki/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -58,7 +60,7 @@ func TestLogs(t *testing.T) {
 	})
 	go func() {
 		_ = http.Serve(lis, http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			req, err := loki_util.ParseRequest(log.NewNopLogger(), "user_id", r)
+			req, err := push.ParseRequest(log.NewNopLogger(), "user_id", r, nil)
 			require.NoError(t, err)
 
 			pushes <- req

@@ -4,19 +4,19 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 local container = k.core.v1.container;
 
 {
-  // withLokiConfig adds a Loki config to collect logs.
+  // withLogsConfig adds a Logs config to collect logs.
   //
   // For the full list of options, refer to the configuration reference:
-  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#loki_config
-  withLokiConfig(config):: {
+  // https://grafana.com/docs/agent/latest/configuration/logs-config/
+  withLogsConfig(config):: {
     assert std.objectHasAll(self, '_mode') : |||
-      withLokiConfig must be merged with the result of calling new.
+      withLogsConfig must be merged with the result of calling new.
     |||,
-    _loki_config:: config,
+    _logs_config:: config,
   },
 
-  // newLokiClient creates a new client object. Results from this can be passed into
-  // withLokiClients.
+  // newLogsClient creates a new client object. Results from this can be passed into
+  // withLogsClients.
   //
   // client_config should be an object of the following shape:
   //
@@ -27,7 +27,7 @@ local container = k.core.v1.container;
   //   password: '', // OPTIONAL password for Loki API connection
   //   external_labels: {}, // OPTIONAL labels to set for connection
   // }
-  newLokiClient(client_config)::
+  newLogsClient(client_config)::
     {
       url: (
         if std.objectHasAll(client_config, 'username') then
@@ -41,27 +41,27 @@ local container = k.core.v1.container;
       else {}
     ),
 
-  // withLokiClients adds clients to send logs to. At least one client must be
-  // present. Clients can be created by calling newLokiClient or by creating
+  // withLogsClients adds clients to send logs to. At least one client must be
+  // present. Clients can be created by calling newLogsClient or by creating
   // an object that conforms to the Promtail client_config schema specified
   // here:
   //
   // https://grafana.com/docs/loki/latest/clients/promtail/configuration/#client_config
   //
-  // withLokiClients should be merged with the result of withLokiConfig.
-  withLokiClients(clients):: {
-    assert std.objectHasAll(self, '_loki_config') : |||
-      withLokiClients must be merged with the result of calling withLokiConfig.
+  // withLogsClients should be merged with the result of withLogsConfig.
+  withLogsClients(clients):: {
+    assert std.objectHasAll(self, '_logs_config') : |||
+      withLogsClients must be merged with the result of calling withLogsConfig.
     |||,
 
-    _loki_config+:: {
+    _logs_config+:: {
       clients: if std.isArray(clients) then clients else [clients],
     },
   },
 
-  // lokiPermissionsMixin mutates the container and deployment to work with
+  // logsPermissionsMixin mutates the container and deployment to work with
   // reading Docker container logs.
-  lokiPermissionsMixin:: {
+  logsPermissionsMixin:: {
     container+::
       container.mixin.securityContext.withPrivileged(true) +
       container.mixin.securityContext.withRunAsUser(0),
@@ -76,7 +76,7 @@ local container = k.core.v1.container;
       k.util.hostVolumeMount('etcmachineid', '/etc/machine-id', '/etc/machine-id', readOnly=true),
   },
 
-  // scrapeKubernetesLogs defines a Loki config that can collect logs from
+  // scrapeKubernetesLogs defines a Logs config that can collect logs from
   // Kubernetes pods.
   scrapeKubernetesLogs: scrape_k8s_logs.newKubernetesLogsCollector(),
 }

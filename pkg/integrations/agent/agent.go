@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -26,6 +26,11 @@ func (c *Config) Name() string {
 // CommonConfig returns the common settings shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
+}
+
+// InstanceKey returns the hostname of the machine.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
 }
 
 // NewIntegration converts this config into an instance of an integration.

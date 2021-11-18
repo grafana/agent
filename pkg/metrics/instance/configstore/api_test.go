@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/client"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
@@ -65,7 +65,7 @@ func TestAPI_GetConfiguration_Invalid(t *testing.T) {
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/does-not-exist")
 	require.NoError(t, err)
-	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 
 	expect := `{
 		"status": "error",
@@ -229,6 +229,30 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 		cli := client.New(env.srv.URL)
 		err := cli.DeleteConfiguration(context.Background(), "deleteme")
 		require.NoError(t, err)
+	})
+}
+
+func TestServer_DeleteConfiguration_Invalid(t *testing.T) {
+	s := &Mock{
+		DeleteFunc: func(ctx context.Context, key string) error {
+			assert.Equal(t, "deleteme", key)
+			return NotExistError{Key: key}
+		},
+	}
+
+	api := NewAPI(log.NewNopLogger(), s, nil)
+	env := newAPITestEnvironment(t, api)
+
+	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/config/deleteme", nil)
+	require.NoError(t, err)
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+	t.Run("With Client", func(t *testing.T) {
+		cli := client.New(env.srv.URL)
+		err := cli.DeleteConfiguration(context.Background(), "deleteme")
+		require.Error(t, err)
 	})
 }
 

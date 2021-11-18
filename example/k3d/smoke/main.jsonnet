@@ -34,9 +34,11 @@ local smoke = {
   avalanche: avalanche.new(replicas=3, namespace='smoke', config={
     // We're going to be running a lot of these and we're not trying to test
     // for load, so reduce the cardinality and churn rate.
-    metric_count: 50,
-    series_interval: 300,
-    metric_interval: 600,
+      avalanche: avalanche.new(replicas=3, namespace='smoke', config={
+        metric_count: 1000,
+        series_interval: 300,
+        metric_interval: 600,
+      }),
   }),
 
   crows: [
@@ -113,7 +115,7 @@ local smoke = {
 
       prometheus: {
         global: {
-          scrape_interval: '15s',
+          scrape_interval: '1m',
           external_labels: {
             cluster: 'grafana-agent',
           },
@@ -142,7 +144,7 @@ local smoke = {
 
       prometheus: {
         global: {
-          scrape_interval: '15s',
+          scrape_interval: '1m',
           external_labels: {
             cluster: 'grafana-agent-cluster',
           },

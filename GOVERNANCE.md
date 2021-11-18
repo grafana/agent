@@ -50,6 +50,7 @@ The current team members are:
 - Joe Elliott - [joe-elliott](https://github.com/joe-elliott) ([Grafana Labs](https://grafana.com))
 - Robert Fratto - [rfratto](https://github.com/rfratto) ([Grafana Labs](https://grafana.com))
 - Richard Hartmann - [RichiH](https://github.com/RichiH) ([Grafana Labs](https://grafana.com))
+- Hanif Jetha - [hjet](https://github.com/hjet) ([Grafana Labs](https://grafana.com))
 - Mario Rodriguez - [mapno](https://github.com/mapno) ([Grafana Labs](https://grafana.com))
 
 ### Maintainers

@@ -16,6 +16,13 @@ Full reference of options:
   # collect system metrics from the configured statsd server address
   [enabled: <boolean> | default = false]
 
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the agent hostname
+  # and HTTP listen port, delimited by a colon.
+  [instance: <string>]
+
   # Automatically collect metrics from this integration. If disabled,
   # the statsd_exporter integration will be run but not scraped and thus not
   # remote-written. Metrics for the integration will be exposed at

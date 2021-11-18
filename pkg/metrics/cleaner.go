@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/client_golang/prometheus"
@@ -24,7 +24,7 @@ const (
 var (
 	discoveryError = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "agent_prometheus_cleaner_storage_error_total",
+			Name: "agent_metrics_cleaner_storage_error_total",
 			Help: "Errors encountered discovering local storage paths",
 		},
 		[]string{"storage"},
@@ -32,7 +32,7 @@ var (
 
 	segmentError = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "agent_prometheus_cleaner_segment_error_total",
+			Name: "agent_metrics_cleaner_segment_error_total",
 			Help: "Errors encountered finding most recent WAL segments",
 		},
 		[]string{"storage"},
@@ -40,35 +40,35 @@ var (
 
 	managedStorage = promauto.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "agent_prometheus_cleaner_managed_storage",
+			Name: "agent_metrics_cleaner_managed_storage",
 			Help: "Number of storage directories associated with managed instances",
 		},
 	)
 
 	abandonedStorage = promauto.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "agent_prometheus_cleaner_abandoned_storage",
+			Name: "agent_metrics_cleaner_abandoned_storage",
 			Help: "Number of storage directories not associated with any managed instance",
 		},
 	)
 
 	cleanupRunsSuccess = promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "agent_prometheus_cleaner_success_total",
+			Name: "agent_metrics_cleaner_success_total",
 			Help: "Number of successfully removed abandoned WALs",
 		},
 	)
 
 	cleanupRunsErrors = promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "agent_prometheus_cleaner_errors_total",
+			Name: "agent_metrics_cleaner_errors_total",
 			Help: "Number of errors removing abandoned WALs",
 		},
 	)
 
 	cleanupTimes = promauto.NewHistogram(
 		prometheus.HistogramOpts{
-			Name: "agent_prometheus_cleaner_cleanup_seconds",
+			Name: "agent_metrics_cleaner_cleanup_seconds",
 			Help: "Time spent performing each periodic WAL cleanup",
 		},
 	)

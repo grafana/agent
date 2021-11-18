@@ -40,6 +40,10 @@ name: <string>
 
 remote_write:
   # host:port to send traces to
+  # Here must be the port of gRPC receiver, not the Tempo default port.
+  # Example for cloud instances:  `tempo-us-central1.grafana.net:443`
+  # For local / on-premises instances: `localhost:55680` or `tempo.example.com:14250`
+  # Note: for non-encrypted connections you must also set `insecure: true`
   - endpoint: <string>
 
     # Custom HTTP headers to be sent along with each remote write request.
@@ -112,6 +116,9 @@ automatic_logging:
   # They need to be span or process attributes logged in the log line
   #
   # This feature only applies when `backend = logs_instance`
+  #
+  # Loki only accepts alphanumeric and "_" as valid characters for labels.
+  # Labels are sanitized by replacing invalid characters with underscores.
   [ labels: <string array> ]
   overrides:
     [ logs_instance_tag: <string> | default = "traces" ]
@@ -123,6 +130,7 @@ automatic_logging:
 
 # Receiver configurations are mapped directly into the OpenTelemetry receivers
 # block. At least one receiver is required.
+# The Agent uses OpenTelemetry v0.36.0. Refer to the corresponding receiver's config.
 #
 # Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 receivers: <receivers>
@@ -132,6 +140,11 @@ receivers: <receivers>
 # match is found then relabeling rules are applied.
 scrape_configs:
   - [<scrape_config>]
+# Defines what method is used when adding k/v to spans.
+# Options are `update`, `insert` and `upsert`.
+# `update` only modifies an existing k/v and `insert` only appends if the k/v
+# is not present. `upsert` does both.
+[ prom_sd_operation_type: <string> | default = "upsert" ]
 
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
 # from span data.
@@ -183,7 +196,7 @@ spanmetrics:
 # a complete trace. This is achieved by waiting a given time for all the spans
 # before evaluating the trace.
 #
-# Tail sampling also supports multiple agent deployments, allowing to group all
+# Tail sampling also supports multi agent deployments, allowing to group all
 # spans of a trace in the same agent by load balancing the spans by trace ID
 # between the instances.
 # * To make use of this feature, check load_balancing below *
@@ -243,17 +256,79 @@ load_balancing:
       [ username: <string> ]
       [ password: <secret> ]
       [ password_file: <string> ]
+
+# service_graphs configures processing of traces for building service graphs in
+# the form of prometheus metrics. The generated metrics represent edges between
+# nodes in the graph. Nodes are represented by `client` and `server` labels.
+#
+#  e.g. tempo_service_graph_request_total{client="app", server="db"} 20
+#
+# Service graphs works by inspecting spans and looking for the tag `span.kind`.
+# If it finds the span kind to be client or server, it stores the request in a
+# local in-memory store.
+#
+# That request waits until its corresponding client or server pair span is
+# processed or until the maximum waiting time has passed.
+# When either of those conditions is reached, the request is processed and
+# removed from the local store. If the request is complete by that time, it'll
+# be recorded as an edge in the graph.
+#
+# Service graphs supports multi-agent deployments, allowing to group all spans
+# of a trace in the same agent by load balancing the spans by trace ID between
+# the instances.
+# * To make use of this feature, check load_balancing above *
+service_graphs:
+  [ enabled: <bool> | default = false ]
+
+  # configures the time the processor will wait since a span is consumed until
+  # it's considered expired if its paired has not been processed.
+  #
+  # increasing the waiting time will increase the percentage of paired spans.
+  # retaining unpaired spans for longer will make reaching max_items more likely.
+  [ wait: <duration> | default = "10s"]
+
+  # configures the max amount of edges that will be stored in memory.
+  #
+  # spans that arrive to the processor that do not pair with an already
+  # processed span are dropped.
+  #
+  # a higher max number of items increases the max throughput of processed spans
+  # with a higher memory consumption.
+  [ max_items: <integer> | default = 10_000 ]
+  
+  # configures the number of workers that will process completed edges concurrently.
+  # as edges are completed, they get queued to be collected as metrics for the graph.
+  [ workers: <integer> | default = 10]
+
+  # configures what status codes are considered as successful (e.g. HTTP 404).
+  #
+  # by default, a request is considered failed in the following cases:
+  #   1. HTTP status is not 2XX
+  #   1. gRPC status code is not OK
+  #   1. span status is Error
+  success_codes:
+    # http status codes not to be considered as failure
+    http:
+      [ - <int> ... ]
+    # grpc status codes not to be considered as failure
+    grpc:
+      [ - <int> ... ]
 ```
 
 > **Note:** More information on the following types can be found on the
 > documentation for their respective projects:
 >
-> * [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor)
-> * [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor)
-> * [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter)
-> * [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/otlpexporter)
-> * [`receivers`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md)
-> * [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.27/configuration/configuration/#scrape_config)
-> * [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47)
-> * [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.21.0/processor/spanmetricsprocessor/config.go#L38-L47)
-> * [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor)
+* [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/attributesprocessor)
+* [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/processor/batchprocessor)
+* [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/exporter/otlpexporter)
+* [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/exporter/otlpexporter)
+* `receivers`:
+  * [`jaegerreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/jaegerreceiver)
+  * [`kafkareceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/kafkareceiver)
+  * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/receiver/otlpreceiver)
+  * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/opencensusreceiver)
+  * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/zipkinreceiver)
+* [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.27/configuration/configuration/#scrape_config)
+* [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/spanmetricsprocessor/config.go#L38-L47)
+* [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/spanmetricsprocessor/config.go#L38-L47)
+* [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/tailsamplingprocessor)

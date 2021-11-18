@@ -73,7 +73,7 @@ func validateDiscoveryNoFiles(disc discovery.Config) error {
 	case *azure.SDConfig:
 		// no-op
 	case *consul.SDConfig:
-		if err := validateHTTPNoFiles(&config.HTTPClientConfig{TLSConfig: d.TLSConfig}); err != nil {
+		if err := validateHTTPNoFiles(&config.HTTPClientConfig{TLSConfig: d.HTTPClientConfig.TLSConfig}); err != nil {
 			return err
 		}
 	case *digitalocean.SDConfig:

@@ -2,9 +2,9 @@ server:
   log_level: debug
   http_listen_port: 12345
 
-prometheus:
+metrics:
   global:
-    scrape_interval: 30s
+    scrape_interval: 1m
   configs:
     - name: test
       host_filter: false
@@ -23,7 +23,7 @@ prometheus:
 
         - job_name: local_scrape
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ['127.0.0.1:12345', '127.0.0.1:8889']
               labels:
                 cluster: 'docker_compose'
                 container: 'agent'
@@ -56,7 +56,7 @@ prometheus:
       remote_write:
         - url: http://cortex:9009/api/prom/push
 
-loki:
+logs:
   configs:
   - name: default
     positions:
@@ -91,10 +91,12 @@ traces:
       timeout: 5s
       send_batch_size: 100
     automatic_logging:
-      backend: loki
-      loki_name: default
+      backend: logs_instance
+      logs_instance_name: default
       spans: true
       processes: true
       roots: true
     spanmetrics:
-      metrics_instance: test
+      handler_endpoint: 0.0.0.0:8889
+    service_graphs:
+      enabled: true

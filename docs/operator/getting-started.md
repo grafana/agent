@@ -1,14 +1,24 @@
 +++
-title = "Get started with Grafana Agent Operator"
+title = "Installing Grafana Agent Operator"
 weight = 100
 +++
 
-# Get started with Grafana Agent Operator
+# Installing Grafana Agent Operator
 
-An official Helm chart is planned to make it really easy to deploy the Grafana Agent
-Operator on Kubernetes. For now, things must be done a little manually.
+In this guide you'll learn how to deploy the [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster. This guide does *not* use Helm. To learn how to deploy Agent Operator using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator), please see [Installing Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}).
 
-## Deploy CustomResourceDefinitions
+> **Note:** Agent Operator is currently in beta and its custom resources are subject to change as the project evolves. It currently supports the metrics and logs subsystems of Grafana Agent. Integrations and traces support is coming soon.
+
+By the end of this guide, you'll have deloyed Agent Operator into your cluster.
+
+## Prerequisites
+
+Before you begin, make sure that you have the following available to you:
+
+- A Kubernetes cluster
+- The `kubectl` command-line client installed and configured on your machine
+
+## Step 1: Deploy CustomResourceDefinitions
 
 Before you can write custom resources to describe a Grafana Agent deployment,
 you _must_ deploy the
@@ -19,7 +29,7 @@ will fail if it can't find the custom resource definitions of objects it is
 looking to use.
 
 The current set of CustomResourceDefinitions can be found in
-[production/operator/crds](../../production/operator/crds). Apply them from the
+[production/operator/crds](https://github.com/grafana/agent/tree/main/production/operator/crds). Apply them from the
 root of this repository using:
 
 ```
@@ -37,7 +47,7 @@ the documentation for each resource. For example, `kubectl explain GrafanaAgent`
 will describe the GrafanaAgent CRD, and `kubectl explain GrafanaAgent.spec` will
 give you information on its spec field.
 
-## Install Agent Operator on Kubernetes
+## Step 2: Install Agent Operator
 
 Use the following deployment to run the Operator, changing values as desired:
 
@@ -62,7 +72,9 @@ spec:
       serviceAccountName: grafana-agent-operator
       containers:
       - name: operator
-        image: grafana/agent-operator:v0.18.4
+        image: grafana/agent-operator:v0.21.1
+        args:
+        - --kubelet-service=default/kubelet
 ---
 
 apiVersion: v1
@@ -94,12 +106,14 @@ rules:
 - apiGroups: [""]
   resources:
   - namespaces
+  - nodes
   verbs: [get, list, watch]
 - apiGroups: [""]
   resources:
   - secrets
   - services
   - configmaps
+  - endpoints
   verbs: [get, list, watch, create, update, patch, delete]
 - apiGroups: ["apps"]
   resources:
@@ -123,7 +137,7 @@ subjects:
   namespace: default
 ```
 
-## Run Operator locally
+### Run Operator locally
 
 Before running locally, _make sure your kubectl context is correct!_
 Running locally uses your current kubectl context, and you probably don't want
@@ -139,170 +153,6 @@ Afterwards, you can run the operator using `go run`:
 go run ./cmd/agent-operator
 ```
 
-## Deploy GrafanaAgent
+## Conclusion
 
-Now that the Operator is running, you can create a deployment of the
-Grafana Agent. The first step is to create a GrafanaAgent resource. This
-resource will discover a set of MetricsInstance resources. You can use
-this example, which creates a GrafanaAgent and the appropriate ServiceAccount
-for you:
-
-```yaml
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: GrafanaAgent
-metadata:
-  name: grafana-agent
-  namespace: default
-  labels:
-    app: grafana-agent
-spec:
-  image: grafana/agent:v0.18.4
-  logLevel: info
-  serviceAccountName: grafana-agent
-  metrics:
-    instanceSelector:
-      matchLabels:
-        agent: grafana-agent
-
----
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: grafana-agent
-  namespace: default
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: grafana-agent
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - nodes
-  - nodes/proxy
-  - nodes/metrics
-  - services
-  - endpoints
-  - pods
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - networking.k8s.io
-  resources:
-  - ingresses
-  verbs:
-  - get
-  - list
-  - watch
-- nonResourceURLs:
-  - /metrics
-  - /metrics/cadvisor
-  verbs:
-  - get
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: grafana-agent
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: grafana-agent
-subjects:
-- kind: ServiceAccount
-  name: grafana-agent
-  namespace: default
-```
-
-Note that this searches for MetricsInstances in the same namespace with the
-label matching `agent: grafana-agent`. A MetricsInstance is a custom resource
-that describes where to write collected metrics. Use this one as an example:
-
-```yaml
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: MetricsInstance
-metadata:
-  name: primary
-  namespace: default
-  labels:
-    agent: grafana-agent
-spec:
-  remoteWrite:
-  - url: https://prometheus-us-central1.grafana.net/api/prom/push
-    basicAuth:
-      username:
-        name: primary-credentials
-        key: username
-      password:
-        name: primary-credentials
-        key: password
-
-  # Supply an empty namespace selector to look in all namespaces. Remove
-  # this to only look in the same namespace.
-  serviceMonitorNamespaceSelector: {}
-  serviceMonitorSelector:
-    matchLabels:
-      instance: primary
-
-  # Supply an empty namespace selector to look in all namespaces. Remove
-  # this to only look in the same namespace.
-  podMonitorNamespaceSelector: {}
-  podMonitorSelector:
-    matchLabels:
-      instance: primary
-
-  # Supply an empty namespace selector to look in all namespaces. Remove
-  # this to only look in the same namespace.
-  probeNamespaceSelector: {}
-  probeSelector:
-    matchLabels:
-      instance: primary
-```
-
-Replace the remoteWrite URL to match your vendor. If your vendor doesn't need
-credentials, you may remove the `basicAuth` section. Otherwise, configure a
-secret with the base64-encoded values of the username and password:
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: primary-credentials
-  namespace: default
-data:
-  username: BASE64_ENCODED_USERNAME
-  password: BASE64_ENCODED_PASSWORD
-```
-
-The above configuration of MetricsInstance will discover all
-[PodMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#podmonitor),
-[Probes](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#probe),
-and [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitor)
-with a label matching `instance: primary`. Create resources as appropriate for
-your environment.
-
-As an example, here is a ServiceMonitor that can collect metrics from `kube-dns`:
-
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: kube-dns
-  namespace: kube-system
-  labels:
-    instance: primary
-spec:
-  selector:
-    matchLabels:
-      k8s-app: kube-dns
-  endpoints:
-  - port: metrics
-```
+With Agent Operator up and running, you can move on to setting up a `GrafanaAgent` custom resource. This will discover `MetricsInstance` and `LogsInstance` custom resources and endow them with Pod attributes (like requests and limits) defined in the `GrafanaAgent` spec. To learn how to do this, please see [Custom Resource Quickstart]({{< relref "./custom-resource-quickstart.md" >}}).

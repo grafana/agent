@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore"
 	"github.com/grafana/agent/pkg/util"
@@ -17,7 +17,7 @@ import (
 
 var (
 	reshardDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "agent_prometheus_scraping_service_reshard_duration",
+		Name: "agent_metrics_scraping_service_reshard_duration",
 		Help: "How long it took for resharding to run.",
 	}, []string{"success"})
 )
@@ -99,7 +99,7 @@ func (w *configWatcher) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-w.nextReshard(lastReshard):
-			level.Info(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
+			level.Debug(w.log).Log("msg", "reshard timer ticked, scheduling refresh")
 			w.RequestRefresh()
 			lastReshard = time.Now()
 		case <-w.refreshCh:

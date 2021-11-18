@@ -175,9 +175,11 @@ func TestHostFilter_PatchSD(t *testing.T) {
 	follow_redirects: true
 	kubernetes_sd_configs:
 		- role: service
+		  kubeconfig_file: ""
 		  follow_redirects: true
 		- role: pod
 			follow_redirects: true
+			kubeconfig_file: ""
 			selectors:
 			- role: pod
 			  field: spec.nodeName=myhost

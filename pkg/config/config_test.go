@@ -20,7 +20,7 @@ import (
 // when parsing the config.
 func TestConfig_FlagDefaults(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: 33s`
@@ -38,7 +38,7 @@ prometheus:
 
 func TestConfig_OverrideDefaultsOnLoad(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: 33s`
@@ -60,7 +60,7 @@ prometheus:
 
 func TestConfig_OverrideByEnvironmentOnLoad(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: ${SCRAPE_TIMEOUT}`
@@ -83,7 +83,7 @@ prometheus:
 
 func TestConfig_OverrideByEnvironmentOnLoad_NoDigits(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     external_labels:
@@ -100,14 +100,14 @@ prometheus:
 
 func TestConfig_FlagsAreAccepted(t *testing.T) {
 	cfg := `
-prometheus:
+metrics:
   global:
     scrape_timeout: 33s`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	args := []string{
 		"-config.file", "test",
-		"-prometheus.wal-directory", "/tmp/wal",
+		"-metrics.wal-directory", "/tmp/wal",
 		"-config.expand-env",
 	}
 
@@ -121,7 +121,7 @@ prometheus:
 func TestConfig_StrictYamlParsing(t *testing.T) {
 	t.Run("duplicate key", func(t *testing.T) {
 		cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
     scrape_timeout: 10s
@@ -133,7 +133,7 @@ prometheus:
 
 	t.Run("non existing key", func(t *testing.T) {
 		cfg := `
-prometheus:
+metrics:
   wal_directory: /tmp/wal
   global:
   scrape_timeout: 10s`
@@ -232,7 +232,7 @@ func TestConfig_PrometheusNonNil(t *testing.T) {
 		},
 		{
 			name:  "null",
-			input: `prometheus: null`,
+			input: `metrics: null`,
 		},
 	}
 
@@ -335,4 +335,27 @@ tempo:
       spans: true`)
 	var cfg Config
 	require.EqualError(t, LoadBytes([]byte(input), false, &cfg), "at most one of tempo and traces should be specified")
+}
+
+func TestConfig_ExpandEnvRegex(t *testing.T) {
+	cfg := `
+logs:
+  configs:
+  - name: default
+    positions:
+      filename: /tmp/positions.yaml
+    scrape_configs:
+      - job_name: test
+        pipeline_stages:
+        - regex:
+          source: filename
+          expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'`
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	myCfg, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(cfg), true, c)
+	})
+	require.NoError(t, err)
+	pipelineStages := myCfg.Logs.Configs[0].ScrapeConfig[0].PipelineStages[0].(map[interface{}]interface{})
+	expected := `\\temp\\Logs\\(?P<log_app>.+?)\\`
+	require.Equal(t, expected, pipelineStages["expression"].(string))
 }
