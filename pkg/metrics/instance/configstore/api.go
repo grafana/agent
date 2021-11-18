@@ -126,7 +126,7 @@ func (api *API) GetConfiguration(rw http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		api.writeError(rw, http.StatusInternalServerError, err)
 	case err == nil:
-		bb, err := instance.MarshalConfig(&cfg, false)
+		bb, err := instance.MarshalConfig(&cfg, true)
 		if err != nil {
 			api.writeError(rw, http.StatusInternalServerError, fmt.Errorf("could not marshal config for response: %w", err))
 			return

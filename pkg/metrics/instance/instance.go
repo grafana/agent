@@ -90,7 +90,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 	// We want users to be able to marshal instance.Configs directly without
 	// *needing* to call instance.MarshalConfig, so we call it internally
 	// here and return a map.
-	bb, err := MarshalConfig(&c, false)
+	bb, err := MarshalConfig(&c, true)
 	if err != nil {
 		return nil, err
 	}
