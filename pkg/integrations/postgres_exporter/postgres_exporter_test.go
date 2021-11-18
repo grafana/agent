@@ -1,8 +1,9 @@
-package postgres_exporter
+package postgres_exporter //nolint:golint
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_ParsePostgresURL(t *testing.T) {
@@ -16,9 +17,8 @@ func Test_ParsePostgresURL(t *testing.T) {
 		"user":     "linus",
 	}
 
-	actual, _ := parsePostgresURL(dsn)
-	if !reflect.DeepEqual(actual, expected) {
-		t.Errorf("parsePortgresURL failed, actual: %v, expected: %v", actual, expected)
-	}
+	actual, err := parsePostgresURL(dsn)
+	require.NoError(t, err)
+	require.Equal(t, actual, expected)
 
 }
