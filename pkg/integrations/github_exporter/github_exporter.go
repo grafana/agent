@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 	gh_config "github.com/infinityworks/github-exporter/config"
 	"github.com/infinityworks/github-exporter/exporter"
+	config_util "github.com/prometheus/common/config"
 )
 
 // DefaultConfig holds the default settings for the github_exporter integration
@@ -34,7 +35,7 @@ type Config struct {
 	Users []string `yaml:"users,omitempty"`
 
 	// A github authentication token that allows the API to be queried more often.
-	APIToken string `yaml:"api_token,omitempty"`
+	APIToken config_util.Secret `yaml:"api_token,omitempty"`
 
 	// A path to a file containing a github authentication token that allows the API to be queried more often. If supplied, this supercedes `api_token`
 	APITokenFile string `yaml:"api_token_file,omitempty"`
@@ -90,7 +91,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	conf.SetOrganisations(c.Organizations)
 	conf.SetUsers(c.Users)
 	if c.APIToken != "" {
-		conf.SetAPIToken(c.APIToken)
+		conf.SetAPIToken(string(c.APIToken))
 	}
 	if c.APITokenFile != "" {
 		err = conf.SetAPITokenFromFile(c.APITokenFile)

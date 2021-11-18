@@ -3,6 +3,7 @@ package postgres_exporter //nolint:golint
 
 import (
 	"fmt"
+	config_util "github.com/prometheus/common/config"
 	"os"
 	"strings"
 
@@ -18,7 +19,7 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DataSourceNames to use to connect to Postgres.
-	DataSourceNames []string `yaml:"data_source_names,omitempty"`
+	DataSourceNames []config_util.Secret `yaml:"data_source_names,omitempty"`
 
 	DisableSettingsMetrics bool     `yaml:"disable_settings_metrics,omitempty"`
 	AutodiscoverDatabases  bool     `yaml:"autodiscover_databases,omitempty"`
@@ -46,7 +47,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 // InstanceKey returns a simplified DSN of the first postgresql DSN, or an error if
 // not exactly one DSN is provided.
-func (c *Config) InstanceKey(agentKey string) (string, error) {
+func (c *Config) InstanceKey(_ string) (string, error) {
 	dsn, err := c.getDataSourceNames()
 	if err != nil {
 		return "", err
@@ -111,13 +112,18 @@ func parsePostgresURL(url string) (map[string]string, error) {
 // environment, if set.
 func (c *Config) getDataSourceNames() ([]string, error) {
 	dsn := c.DataSourceNames
+	var stringDsn []string
 	if len(dsn) == 0 {
-		dsn = strings.Split(os.Getenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME"), ",")
+		stringDsn = append(stringDsn, strings.Split(os.Getenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME"), ",")...)
+	} else {
+		for _, d := range dsn {
+			stringDsn = append(stringDsn, string(d))
+		}
 	}
 	if len(dsn) == 0 {
 		return nil, fmt.Errorf("cannot create postgres_exporter; neither postgres_exporter.data_source_name or $POSTGRES_EXPORTER_DATA_SOURCE_NAME is set")
 	}
-	return dsn, nil
+	return stringDsn, nil
 }
 
 func init() {
