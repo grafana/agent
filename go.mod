@@ -116,7 +116,7 @@ replace (
 
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
-	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20211004193725-8712c75623e6
+	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9
 	github.com/infinityworks/github-exporter => github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a
 	github.com/percona/exporter_shared => github.com/percona/exporter_shared v0.7.4-0.20211108113423-8555cdbac68b
