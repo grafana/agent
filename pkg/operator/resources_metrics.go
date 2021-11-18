@@ -216,7 +216,11 @@ func generateMetricsStatefulSetSpec(
 
 	terminationGracePeriodSeconds := int64(4800)
 
-	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, d.Agent.Spec.Version)
+	useVersion := d.Agent.Spec.Version
+	if useVersion == "" {
+		useVersion = DefaultAgentVersion
+	}
+	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, useVersion)
 	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
 		imagePath = *d.Agent.Spec.Image
 	}
