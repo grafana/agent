@@ -28,15 +28,15 @@ func TestTraces(t *testing.T) {
 configs:
 - name: default
   receivers:
-		jaeger:
-			protocols:
-				thrift_compact:
-	push_config:
-		endpoint: %s
-		insecure: true
-		batch:
-			timeout: 100ms
-			send_batch_size: 1
+    jaeger:
+      protocols:
+        thrift_compact:
+  remote_write:
+  	- endpoint: %s
+      insecure: true
+  batch:
+    timeout: 100ms
+    send_batch_size: 1
 	`, tracesAddr))
 
 	var cfg Config
@@ -75,16 +75,18 @@ func TestTrace_ApplyConfig(t *testing.T) {
 configs:
 - name: default
   receivers:
-		jaeger:
-			protocols:
-				thrift_compact:
-	push_config:
-		endpoint: 127.0.0.1:80 # deliberately the wrong endpoint
-		insecure: true
-		batch:
-			timeout: 100ms
-			send_batch_size: 1
-	`)
+    jaeger:
+      protocols:
+        thrift_compact:
+  remote_write:
+  	- endpoint: 127.0.0.1:80 # deliberately the wrong endpoint
+  	  insecure: true
+  batch:
+    timeout: 100ms
+    send_batch_size: 1
+  service_graphs:
+    enabled: true
+`)
 
 	var cfg Config
 	dec := yaml.NewDecoder(strings.NewReader(tracesCfgText))
@@ -101,15 +103,15 @@ configs:
 configs:
 - name: default
   receivers:
-		jaeger:
-			protocols:
-				thrift_compact:
-	push_config:
-		endpoint: %s
-		insecure: true
-		batch:
-			timeout: 100ms
-			send_batch_size: 1
+    jaeger:
+      protocols:
+        thrift_compact:
+  remote_write:
+  	- endpoint: %s
+  	  insecure: true
+  batch:
+    timeout: 100ms
+    send_batch_size: 1
 	`, tracesAddr))
 
 	var fixedConfig Config

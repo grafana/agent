@@ -9,22 +9,36 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configloader"
 	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"gopkg.in/yaml.v2"
 )
+
+func tmpFile(t *testing.T, content string) (*os.File, func()) {
+	f, err := ioutil.TempFile("", "")
+	require.NoError(t, err)
+
+	_, err = f.Write([]byte(content))
+	require.NoError(t, err)
+
+	err = f.Close()
+	require.NoError(t, err)
+
+	return f, func() {
+		os.Remove(f.Name())
+	}
+}
 
 func TestOTelConfig(t *testing.T) {
 	// create a password file to test the password file logic
 	password := "password_in_file"
-	tmpfile, err := ioutil.TempFile("", "")
-	require.NoError(t, err)
-	defer os.Remove(tmpfile.Name())
+	passwordFile, teardown := tmpFile(t, password)
+	defer teardown()
 
-	_, err = tmpfile.Write([]byte(password))
-	require.NoError(t, err)
-	err = tmpfile.Close()
-	require.NoError(t, err)
+	// Extra linefeed in password_file. Spaces, tabs line feeds should be
+	// stripped when reading it
+	passwordFileExtraNewline, teardown := tmpFile(t, password+"\n")
+	defer teardown()
 
 	// tests!
 	tt := []struct {
@@ -58,8 +72,8 @@ receivers:
 			cfg: `
 receivers:
   jaeger:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 `,
 			expectedError: true,
 		},
@@ -70,8 +84,8 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 `,
 			expectedConfig: `
 receivers:
@@ -79,7 +93,7 @@ receivers:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -87,44 +101,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
-      processors: []
-      receivers: ["jaeger"]
-`,
-		},
-		{
-			name: "push_config options",
-			cfg: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-push_config:
-  insecure: true
-  endpoint: example.com:12345
-  basic_auth:
-    username: test
-    password: blerg
-`,
-			expectedConfig: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-exporters:
-  otlp:
-    endpoint: example.com:12345
-    compression: gzip
-    insecure: true
-    headers:
-      authorization: Basic dGVzdDpibGVyZw==
-    retry_on_failure:
-      enabled: true
-      max_elapsed_time: 60s
-service:
-  pipelines:
-    traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -141,15 +118,15 @@ attributes:
   - key: montgomery
     value: forever
     action: update
-push_config:
-  endpoint: example.com:12345
-  batch:
-    timeout: 5s
-    send_batch_size: 100
-  retry_on_failure:
-    initial_interval: 10s
-  sending_queue:
-    num_consumers: 15
+batch:
+  timeout: 5s
+  send_batch_size: 100
+remote_write:
+  - endpoint: example.com:12345
+    retry_on_failure:
+      initial_interval: 10s
+    sending_queue:
+      num_consumers: 15
 `,
 			expectedConfig: `
 receivers:
@@ -157,7 +134,7 @@ receivers:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -177,34 +154,35 @@ processors:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: ["attributes", "batch"]
       receivers: ["jaeger"]
 `,
 		},
 		{
-			name: "push_config password in file",
+			name: "password in file",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure: true
-  endpoint: example.com:12345
-  basic_auth:
-    username: test
-    password_file: ` + tmpfile.Name(),
+remote_write:
+  - insecure: true
+    endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password_file: ` + passwordFile.Name(),
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
-    insecure: true
+    tls:
+      insecure: true
     headers:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
     retry_on_failure:
@@ -212,7 +190,43 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "password in file with extra newline",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - insecure: true
+    endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password_file: ` + passwordFileExtraNewline.Name(),
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    tls:
+      insecure: true
+    headers:
+      authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -224,25 +238,26 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure_skip_verify: true
-  endpoint: example.com:12345`,
+remote_write:
+  - insecure_skip_verify: true
+    endpoint: example.com:12345`,
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
-    insecure_skip_verify: true
+    tls:
+      insecure_skip_verify: true
     retry_on_failure:
       max_elapsed_time: 60s
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -254,25 +269,67 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure_skip_verify: true
-  endpoint: example.com:12345
-  compression: none`,
+remote_write:
+  - insecure_skip_verify: true
+    endpoint: example.com:12345
+    compression: none`,
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
-    insecure_skip_verify: true
+    tls:
+      insecure_skip_verify: true
     retry_on_failure:
       max_elapsed_time: 60s
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "jaeger receiver remote_sampling TLS config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+    remote_sampling:
+      strategy_file: file_path
+      tls:
+        insecure: true
+        insecure_skip_verify: true
+        server_name_override: hostname
+remote_write:
+  - endpoint: example.com:12345
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+    remote_sampling:
+      strategy_file: file_path
+      tls:
+        insecure: true
+        insecure_skip_verify: true
+        server_name_override: hostname
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -358,7 +415,7 @@ remote_write:
     insecure_skip_verify: true
     basic_auth:
       username: test
-      password_file: ` + tmpfile.Name() + `
+      password_file: ` + passwordFile.Name() + `
     retry_on_failure:
       initial_interval: 10s
     sending_queue:
@@ -379,8 +436,9 @@ exporters:
       max_elapsed_time: 60s
   otlp/1:
     endpoint: anotherexample.com:12345
-    insecure: false
-    insecure_skip_verify: true
+    tls:
+      insecure: false
+      insecure_skip_verify: true
     headers:
       authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
     retry_on_failure:
@@ -551,11 +609,25 @@ remote_write:
 tail_sampling:
   policies:
     - always_sample:
+    - latency:
+        threshold_ms: 5000
+    - numeric_attribute:
+        key: key1
+        min_value: 50
+        max_value: 100
+    - probabilistic:
+        sampling_percentage: 10
+    - status_code:
+        status_codes:
+          - ERROR
+          - UNSET
     - string_attribute:
         key: key
         values:
           - value1
           - value2
+    - rate_limiting:
+        spans_per_second: 35
 `,
 			expectedConfig: `
 receivers:
@@ -574,13 +646,37 @@ processors:
     policies:
       - name: always_sample/0
         type: always_sample
-      - name: string_attribute/1
+      - name: latency/1
+        type: latency
+        latency:
+          threshold_ms: 5000
+      - name: numeric_attribute/2
+        type: numeric_attribute
+        numeric_attribute:
+          key: key1
+          min_value: 50
+          max_value: 100
+      - name: probabilistic/3
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+      - name: status_code/4
+        type: status_code
+        status_code:
+          status_codes:
+            - ERROR
+            - UNSET
+      - name: string_attribute/5
         type: string_attribute
         string_attribute:
           key: key
           values:
             - value1
             - value2
+      - name: rate_limiting/6
+        type: rate_limiting
+        rate_limiting:
+          spans_per_second: 35
 service:
   pipelines:
     traces:
@@ -633,7 +729,8 @@ exporters:
   loadbalancing:
     protocol:
       otlp:
-        insecure: true
+        tls:
+          insecure: true
         endpoint: noop
         retry_on_failure:
           max_elapsed_time: 60s
@@ -673,8 +770,8 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 automatic_logging:
   spans: true
 `,
@@ -688,7 +785,7 @@ processors:
     automatic_logging:
       spans: true
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -696,7 +793,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: ["automatic_logging"]
       receivers: ["jaeger"]
       `,
@@ -724,10 +821,11 @@ receivers:
 exporters:
   otlp/0:
     endpoint: example.com:12345
-    insecure: false
-    ca_file: server.crt
-    cert_file: client.crt
-    key_file: client.key
+    tls:
+      insecure: false
+      ca_file: server.crt
+      cert_file: client.crt
+      key_file: client.key
     compression: gzip
     retry_on_failure:
       max_elapsed_time: 60s
@@ -776,6 +874,77 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "prom SD config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: grpc
+scrape_configs:
+  - im_a_scrape_config
+prom_sd_operation_type: update
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  prom_sd_processor:
+    scrape_configs:
+      - im_a_scrape_config
+    operation_type: update
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["prom_sd_processor"]
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "service graphs",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+service_graphs:
+  enabled: true
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+processors:
+  service_graphs:
+service:
+  pipelines:
+    traces:
+      exporters: ["otlp/0"]
+      processors: ["service_graphs"]
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
@@ -800,8 +969,9 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			p := configparser.NewParserFromStringMap(otelMapStructure)
-			expectedConfig, err := configloader.Load(p, factories)
+			configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
+			cfgUnmarshaler := configunmarshaler.NewDefault()
+			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
 
 			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
@@ -872,11 +1042,14 @@ tail_sampling:
         values:
           - value1
           - value2
+service_graphs:
+  enabled: true
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces": {
 					config.NewID("attributes"),
 					config.NewID("spanmetrics"),
+					config.NewID("service_graphs"),
 					config.NewID("tail_sampling"),
 					config.NewID("automatic_logging"),
 					config.NewID("batch"),
@@ -922,11 +1095,14 @@ tail_sampling:
           - value2
 load_balancing:
   exporter:
-    insecure: true
+    tls:
+      insecure: true
   resolver:
     dns:
       hostname: agent
       port: 4318
+service_graphs:
+  enabled: true
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
@@ -934,6 +1110,7 @@ load_balancing:
 					config.NewID("spanmetrics"),
 				},
 				"traces/1": {
+					config.NewID("service_graphs"),
 					config.NewID("tail_sampling"),
 					config.NewID("automatic_logging"),
 					config.NewID("batch"),
@@ -971,7 +1148,8 @@ batch:
   send_batch_size: 100
 load_balancing:
   exporter:
-    insecure: true
+    tls:
+      insecure: true
   resolver:
     dns:
       hostname: agent

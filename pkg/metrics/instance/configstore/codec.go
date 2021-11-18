@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/cortexproject/cortex/pkg/ring/kv/codec"
+	"github.com/grafana/dskit/kv/codec"
 )
 
 // GetCodec returns the codec for encoding and decoding instance.Configs

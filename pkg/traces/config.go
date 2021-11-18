@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/pkg/logs"
@@ -14,25 +15,27 @@ import (
 	"github.com/grafana/agent/pkg/traces/noopreceiver"
 	"github.com/grafana/agent/pkg/traces/promsdprocessor"
 	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
+	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/common/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configloader"
+	"go.opentelemetry.io/collector/config/configcheck"
 	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
-	"go.opentelemetry.io/collector/exporter/prometheusexporter"
-	"go.opentelemetry.io/collector/processor/attributesprocessor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
-	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
-	"go.opentelemetry.io/collector/receiver/kafkareceiver"
-	"go.opentelemetry.io/collector/receiver/opencensusreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/receiver/zipkinreceiver"
 )
 
 const (
@@ -48,12 +51,7 @@ const (
 	staticTagName = "static"
 
 	// sampling policies
-	alwaysSamplePolicy     = "always_sample"
-	stringAttributePolicy  = "string_attribute"
-	numericAttributePolicy = "numeric_attribute"
-	rateLimitingPolicy     = "rate_limiting"
-	latencyPolicy          = "latency"
-	statusCodePolicy       = "status_code"
+	alwaysSamplePolicy = "always_sample"
 )
 
 // Config controls the configuration of Traces trace pipelines.
@@ -99,9 +97,6 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 type InstanceConfig struct {
 	Name string `yaml:"name"`
 
-	// Deprecated in favor of RemoteWrite and Batch.
-	PushConfig PushConfig `yaml:"push_config,omitempty"`
-
 	// RemoteWrite defines one or multiple backends that can receive the pipeline's traffic.
 	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
@@ -114,8 +109,9 @@ type InstanceConfig struct {
 	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor/config.go#L30
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
-	// prom service discovery
+	// prom service discovery config
 	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
+	OperationType string        `yaml:"prom_sd_operation_type,omitempty"`
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
@@ -124,10 +120,13 @@ type InstanceConfig struct {
 	AutomaticLogging *automaticloggingprocessor.AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 
 	// TailSampling defines a sampling strategy for the pipeline
-	TailSampling *tailSamplingConfig `yaml:"tail_sampling"`
+	TailSampling *tailSamplingConfig `yaml:"tail_sampling,omitempty"`
 
 	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
 	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
+
+	// ServiceGraphs
+	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
 }
 
 const (
@@ -137,39 +136,7 @@ const (
 	protocolHTTP    = "http"
 )
 
-// DefaultPushConfig holds the default settings for a PushConfig.
-var DefaultPushConfig = PushConfig{
-	Compression: compressionGzip,
-}
-
-// PushConfig controls the configuration of exporting to Grafana Cloud
-type PushConfig struct {
-	Endpoint           string                 `yaml:"endpoint,omitempty"`
-	Compression        string                 `yaml:"compression,omitempty"`
-	Insecure           bool                   `yaml:"insecure,omitempty"`
-	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
-	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty,omitempty"`
-	Batch              map[string]interface{} `yaml:"batch,omitempty"`            // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
-	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
-	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *PushConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultPushConfig
-
-	type plain PushConfig
-	if err := unmarshal((*plain)(c)); err != nil {
-		return err
-	}
-
-	if c.Compression != compressionGzip && c.Compression != compressionNone {
-		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
-	}
-	return nil
-}
-
-// DefaultRemoteWriteConfig holds the default settings for a PushConfig.
+// DefaultRemoteWriteConfig holds the default setting	s for a PushConfig.
 var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Compression: compressionGzip,
 	Protocol:    protocolGRPC,
@@ -245,6 +212,12 @@ type exporterConfig struct {
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
 }
 
+type serviceGraphsConfig struct {
+	Enabled  bool          `yaml:"enabled,omitempty"`
+	Wait     time.Duration `yaml:"wait,omitempty"`
+	MaxItems int           `yaml:"max_items,omitempty"`
+}
+
 // exporter builds an OTel exporter from RemoteWriteConfig
 func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 	if len(rwCfg.Endpoint) == 0 {
@@ -264,7 +237,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unable to load password file %s: %w", rwCfg.BasicAuth.PasswordFile, err)
 			}
-			password = string(buff)
+			password = strings.TrimSpace(string(buff))
 		}
 
 		encodedAuth := base64.StdEncoding.EncodeToString([]byte(rwCfg.BasicAuth.Username + ":" + password))
@@ -280,23 +253,26 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 		"endpoint":         rwCfg.Endpoint,
 		"compression":      compression,
 		"headers":          headers,
-		"insecure":         rwCfg.Insecure,
 		"sending_queue":    rwCfg.SendingQueue,
 		"retry_on_failure": rwCfg.RetryOnFailure,
 	}
 
+	tlsConfig := map[string]interface{}{
+		"insecure": rwCfg.Insecure,
+	}
 	if !rwCfg.Insecure {
 		// If there is a TLSConfig use it
 		if rwCfg.TLSConfig != nil {
-			otlpExporter["ca_file"] = rwCfg.TLSConfig.CAFile
-			otlpExporter["cert_file"] = rwCfg.TLSConfig.CertFile
-			otlpExporter["key_file"] = rwCfg.TLSConfig.KeyFile
-			otlpExporter["insecure_skip_verify"] = rwCfg.TLSConfig.InsecureSkipVerify
+			tlsConfig["ca_file"] = rwCfg.TLSConfig.CAFile
+			tlsConfig["cert_file"] = rwCfg.TLSConfig.CertFile
+			tlsConfig["key_file"] = rwCfg.TLSConfig.KeyFile
+			tlsConfig["insecure_skip_verify"] = rwCfg.TLSConfig.InsecureSkipVerify
 		} else {
 			// If not, set whatever value is specified in the old config.
-			otlpExporter["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
+			tlsConfig["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
 		}
 	}
+	otlpExporter["tls"] = tlsConfig
 
 	// Apply some sane defaults to the exporter. The
 	// sending_queue.retry_on_failure default is 300s which prevents any
@@ -314,25 +290,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 }
 
 // exporters builds one or multiple exporters from a remote_write block.
-// It also supports building an exporter from push_config.
 func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
-	if len(c.RemoteWrite) == 0 {
-		otlpExporter, err := exporter(RemoteWriteConfig{
-			Endpoint:    c.PushConfig.Endpoint,
-			Compression: c.PushConfig.Compression,
-			Insecure:    c.PushConfig.Insecure,
-			TLSConfig: &prom_config.TLSConfig{
-				InsecureSkipVerify: c.PushConfig.InsecureSkipVerify,
-			},
-			BasicAuth:      c.PushConfig.BasicAuth,
-			SendingQueue:   c.PushConfig.SendingQueue,
-			RetryOnFailure: c.PushConfig.RetryOnFailure,
-		})
-		return map[string]interface{}{
-			"otlp": otlpExporter,
-		}, err
-	}
-
 	exporters := map[string]interface{}{}
 	for i, remoteWriteConfig := range c.RemoteWrite {
 		exporter, err := exporter(remoteWriteConfig)
@@ -392,7 +350,7 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 }
 
 // formatPolicies creates sampling policies (i.e. rules) compatible with OTel's tail sampling processor
-// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.21.0/processor/tailsamplingprocessor
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.36.0/processor/tailsamplingprocessor
 func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, error) {
 	policies := make([]map[string]interface{}, 0, len(cfg))
 	for i, policy := range cfg {
@@ -406,14 +364,12 @@ func formatPolicies(cfg []map[string]interface{}) ([]map[string]interface{}, err
 					"name": fmt.Sprintf("%s/%d", typ, i),
 					"type": typ,
 				})
-			case stringAttributePolicy, rateLimitingPolicy, numericAttributePolicy, latencyPolicy, statusCodePolicy:
+			default:
 				policies = append(policies, map[string]interface{}{
 					"name": fmt.Sprintf("%s/%d", typ, i),
 					"type": typ,
 					typ:    rules,
 				})
-			default:
-				return nil, fmt.Errorf("unsupported policy type %s", typ)
 			}
 		}
 	}
@@ -425,14 +381,6 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 
 	if len(c.Receivers) == 0 {
 		return nil, errors.New("must have at least one configured receiver")
-	}
-
-	if len(c.RemoteWrite) != 0 && len(c.PushConfig.Endpoint) != 0 {
-		return nil, errors.New("must not configure push_config and remote_write. push_config is deprecated in favor of remote_write")
-	}
-
-	if c.Batch != nil && c.PushConfig.Batch != nil {
-		return nil, errors.New("must not configure push_config.batch and batch. push_config.batch is deprecated in favor of batch")
 	}
 
 	exporters, err := c.exporters()
@@ -448,9 +396,14 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	processors := map[string]interface{}{}
 	processorNames := []string{}
 	if c.ScrapeConfigs != nil {
+		opType := promsdprocessor.OperationTypeUpsert
+		if c.OperationType != "" {
+			opType = c.OperationType
+		}
 		processorNames = append(processorNames, promsdprocessor.TypeStr)
 		processors[promsdprocessor.TypeStr] = map[string]interface{}{
 			"scrape_configs": c.ScrapeConfigs,
+			"operation_type": opType,
 		}
 	}
 
@@ -468,9 +421,6 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 
 	if c.Batch != nil {
 		processors["batch"] = c.Batch
-		processorNames = append(processorNames, "batch")
-	} else if c.PushConfig.Batch != nil {
-		processors["batch"] = c.PushConfig.Batch
 		processorNames = append(processorNames, "batch")
 	}
 
@@ -560,6 +510,14 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 	}
 
+	if c.ServiceGraphs != nil && c.ServiceGraphs.Enabled {
+		processors[servicegraphprocessor.TypeStr] = map[string]interface{}{
+			"wait":      c.ServiceGraphs.Wait,
+			"max_items": c.ServiceGraphs.MaxItems,
+		}
+		processorNames = append(processorNames, servicegraphprocessor.TypeStr)
+	}
+
 	// Build Pipelines
 	splitPipeline := c.LoadBalancing != nil
 	orderedSplitProcessors := orderProcessors(processorNames, splitPipeline)
@@ -604,8 +562,13 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
 
-	parser := configparser.NewParserFromStringMap(otelMapStructure)
-	otelCfg, err := configloader.Load(parser, factories)
+	if err := configcheck.ValidateConfigFromFactories(factories); err != nil {
+		return nil, fmt.Errorf("failed to validate factories: %w", err)
+	}
+
+	configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
+	cfgUnmarshaler := configunmarshaler.NewDefault()
+	otelCfg, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
@@ -651,6 +614,7 @@ func tracingFactories() (component.Factories, error) {
 		spanmetricsprocessor.NewFactory(),
 		automaticloggingprocessor.NewFactory(),
 		tailsamplingprocessor.NewFactory(),
+		servicegraphprocessor.NewFactory(),
 	)
 	if err != nil {
 		return component.Factories{}, err
@@ -671,9 +635,10 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	order := map[string]int{
 		"attributes":        0,
 		"spanmetrics":       1,
-		"tail_sampling":     2,
-		"automatic_logging": 3,
-		"batch":             4,
+		"service_graphs":    2,
+		"tail_sampling":     3,
+		"automatic_logging": 4,
+		"batch":             5,
 	}
 
 	sort.Slice(processors, func(i, j int) bool {
@@ -695,7 +660,8 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	for i, processor := range processors {
 		if processor == "batch" ||
 			processor == "tail_sampling" ||
-			processor == "automatic_logging" {
+			processor == "automatic_logging" ||
+			processor == "service_graphs" {
 			foundAt = i
 			break
 		}

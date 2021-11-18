@@ -12,17 +12,17 @@ import (
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	governingServiceName = "grafana-agent-operated"
-	defaultPortName      = "http-metrics"
+	defaultPortName = "http-metrics"
 )
 
 var (
 	minShards                   int32 = 1
 	minReplicas                 int32 = 1
-	managedByOperatorLabel            = "managed-by"
+	managedByOperatorLabel            = "app.kubernetes.io/managed-by"
 	managedByOperatorLabelValue       = "grafana-agent-operator"
 	managedByOperatorLabels           = map[string]string{
 		managedByOperatorLabel: managedByOperatorLabelValue,
@@ -32,6 +32,17 @@ var (
 	agentTypeLabel            = "operator.agent.grafana.com/type"
 	probeTimeoutSeconds int32 = 3
 )
+
+// isManagedResource returns true if the given object has a managed-by
+// grafana-agent-operator label.
+func isManagedResource(obj client.Object) bool {
+	labelValue := obj.GetLabels()[managedByOperatorLabel]
+	return labelValue == managedByOperatorLabelValue
+}
+
+func governingServiceName(agentName string) string {
+	return fmt.Sprintf("%s-operated", agentName)
+}
 
 func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
 	d = *d.DeepCopy()
@@ -44,7 +55,7 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 
 	return &v1.Service{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name:      governingServiceName,
+			Name:      governingServiceName(d.Agent.Name),
 			Namespace: d.Agent.ObjectMeta.Namespace,
 			OwnerReferences: []meta_v1.OwnerReference{{
 				APIVersion:         d.Agent.APIVersion,
@@ -55,18 +66,21 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 				UID:                d.Agent.UID,
 			}},
 			Labels: cfg.Labels.Merge(map[string]string{
-				"operated-agent": "true",
+				managedByOperatorLabel: managedByOperatorLabelValue,
+				agentNameLabelName:     d.Agent.Name,
+				"operated-agent":       "true",
 			}),
 		},
 		Spec: v1.ServiceSpec{
 			ClusterIP: "None",
 			Ports: []v1.ServicePort{{
 				Name:       d.Agent.Spec.PortName,
-				Port:       9090,
+				Port:       8080,
 				TargetPort: intstr.FromString(d.Agent.Spec.PortName),
 			}},
 			Selector: map[string]string{
 				"app.kubernetes.io/name": "grafana-agent",
+				agentNameLabelName:       d.Agent.Name,
 			},
 		},
 	}
@@ -120,6 +134,7 @@ func generateMetricsStatefulSet(
 	}
 	labels[agentNameLabelName] = d.Agent.Name
 	labels[agentTypeLabel] = "metrics"
+	labels[managedByOperatorLabel] = managedByOperatorLabelValue
 
 	boolTrue := true
 
@@ -201,7 +216,11 @@ func generateMetricsStatefulSetSpec(
 
 	terminationGracePeriodSeconds := int64(4800)
 
-	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, d.Agent.Spec.Version)
+	useVersion := d.Agent.Spec.Version
+	if useVersion == "" {
+		useVersion = DefaultAgentVersion
+	}
+	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, useVersion)
 	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
 		imagePath = *d.Agent.Spec.Image
 	}
@@ -314,14 +333,14 @@ func generateMetricsStatefulSetSpec(
 	podAnnotations := map[string]string{}
 	podLabels := map[string]string{}
 	podSelectorLabels := map[string]string{
-		"app.kubernetes.io/name":       "grafana-agent",
-		"app.kubernetes.io/version":    build.Version,
-		"app.kubernetes.io/managed-by": "grafana-agent-operator",
-		"app.kubernetes.io/instance":   d.Agent.Name,
-		"grafana-agent":                d.Agent.Name,
-		shardLabelName:                 fmt.Sprintf("%d", shard),
-		agentNameLabelName:             d.Agent.Name,
-		agentTypeLabel:                 "metrics",
+		"app.kubernetes.io/name":     "grafana-agent",
+		"app.kubernetes.io/version":  build.Version,
+		"app.kubernetes.io/instance": d.Agent.Name,
+		"grafana-agent":              d.Agent.Name,
+		managedByOperatorLabel:       managedByOperatorLabelValue,
+		shardLabelName:               fmt.Sprintf("%d", shard),
+		agentNameLabelName:           d.Agent.Name,
+		agentTypeLabel:               "metrics",
 	}
 	if d.Agent.Spec.PodMetadata != nil {
 		for k, v := range d.Agent.Spec.PodMetadata.Labels {
@@ -406,7 +425,7 @@ func generateMetricsStatefulSetSpec(
 	}
 
 	return &apps_v1.StatefulSetSpec{
-		ServiceName:         governingServiceName,
+		ServiceName:         governingServiceName(d.Agent.Name),
 		Replicas:            d.Agent.Spec.Metrics.Replicas,
 		PodManagementPolicy: apps_v1.ParallelPodManagement,
 		UpdateStrategy: apps_v1.StatefulSetUpdateStrategy{

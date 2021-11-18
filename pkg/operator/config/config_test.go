@@ -47,7 +47,7 @@ func TestBuildConfigMetrics(t *testing.T) {
 					http_listen_port: 8080
 					log_level: debug
 
-				prometheus:
+				metrics:
 					wal_directory: /var/lib/grafana-agent/data
 					global:
 						scrape_interval: 15s
@@ -101,7 +101,7 @@ func TestBuildConfigMetrics(t *testing.T) {
 						http_listen_port: 8080
 						log_level: debug
 
-					prometheus:
+					metrics:
 						wal_directory: /var/lib/grafana-agent/data
 						global:
 							scrape_interval: 15s
@@ -190,7 +190,7 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 server:
   http_listen_port: 8080
 
-prometheus:
+metrics:
   wal_directory: /var/lib/grafana-agent/data
   global:
     external_labels:

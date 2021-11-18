@@ -4,9 +4,9 @@ server:
   http_listen_address: '127.0.0.1'
   http_listen_port: 9090
 
-prometheus:
+metrics:
   global:
-    scrape_interval: 15s
+    scrape_interval: 1m
   wal_directory: '/var/lib/grafana-agent'
   configs:
     # Example Prometheus scrape configuration to scrape the agent itself for metrics.

@@ -14,20 +14,30 @@ The second one is mongodb_cluster, which is the name of your mongodb cluster, an
 Here`s an example:
 
 ```yaml
-relabel_configs:        
+relabel_configs:
     - source_labels: [__address__]
       target_label: service_name
-      replacement: 'replicaset1-node1'   
+      replacement: 'replicaset1-node1'
     - source_labels: [__address__]
       target_label: mongodb_cluster
-      replacement: 'prod-cluster'  
+      replacement: 'prod-cluster'
 ```
+
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
+security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/percona/mongodb_exporter#permissions).
 
 Besides that, there's not much to configure. Please refer to the full reference of options:
 
 ```yaml
   # Enables the mongodb_exporter integration
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the hostname
+  # portion of the mongodb_uri field.
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the mongodb_exporter integration will be run but not scraped and thus not
@@ -37,11 +47,11 @@ Besides that, there's not much to configure. Please refer to the full reference 
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
   # How often should the metrics be collected? Defaults to
-  # prometheus.global.scrape_interval.
+  # metrics.global.scrape_interval.
   [scrape_interval: <duration> | default = <global_config.scrape_interval>]
 
   # The timeout before considering the scrape a failure. Defaults to
-  # prometheus.global.scrape_timeout.
+  # metrics.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
   # Allows for relabeling labels on the target.

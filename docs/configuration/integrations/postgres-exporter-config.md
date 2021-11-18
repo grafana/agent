@@ -6,8 +6,11 @@ title = "postgres_exporter_config"
 
 The `postgres_exporter_config` block configures the `postgres_exporter`
 integration, which is an embedded version of
-[`postgres_exporter`](https://github.com/wrouesnel/postgres_exporter). This
+[`postgres_exporter`](https://github.com/prometheus-community/postgres_exporter). This
 allows for the collection of metrics from Postgres servers.
+
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
+security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/prometheus-community/postgres_exporter#running-as-non-superuser).
 
 Full reference of options:
 
@@ -15,6 +18,18 @@ Full reference of options:
   # Enables the postgres_exporter integration, allowing the Agent to automatically
   # collect system metrics from the configured postgres server address
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from a truncated version of
+  # the first DSN in data_source_names. The truncated DSN includes the hostname
+  # and database name (if used) of the server, but does not include any user
+  # information.
+  #
+  # If data_source_names contains more than one entry, the integration will fail to
+  # load and a value for instance must be manually provided.
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the postgres_exporter integration will be run but not scraped and thus not

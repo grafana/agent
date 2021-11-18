@@ -8,10 +8,11 @@ import (
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
@@ -20,7 +21,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
 	"go.uber.org/atomic"
 )
 
@@ -109,7 +110,7 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 		ilsLen := rs.InstrumentationLibrarySpans().Len()
 
 		var svc string
-		svcAtt, ok := rs.Resource().Attributes().Get(conventions.AttributeServiceName)
+		svcAtt, ok := rs.Resource().Attributes().Get(semconv.AttributeServiceName)
 		if ok {
 			svc = svcAtt.StringVal()
 		}
@@ -166,6 +167,10 @@ func (p *automaticLoggingProcessor) spanLabels(keyValues []interface{}) model.La
 			v = fmt.Sprintf("%v", keyValues[i+1])
 		}
 		if _, ok := p.labels[k]; ok {
+			// Loki does not accept "." as a valid character for labels
+			// Dots . are replaced by underscores _
+			k = config.SanitizeLabelName(k)
+
 			ls[model.LabelName(k)] = model.LabelValue(v)
 		}
 	}

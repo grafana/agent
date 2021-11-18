@@ -9,13 +9,11 @@ import (
 	"testing"
 	"unicode"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/weaveworks/common/server"
 
-	"github.com/drone/envsubst"
+	"github.com/drone/envsubst/v2"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"

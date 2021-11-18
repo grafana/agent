@@ -9,24 +9,24 @@ local service = k.core.v1.service;
 // Merge all of our libraries to create the final exposed library.
 (import './lib/deployment.libsonnet') +
 (import './lib/integrations.libsonnet') +
-(import './lib/prometheus.libsonnet') +
+(import './lib/metrics.libsonnet') +
 (import './lib/scraping_service.libsonnet') +
-(import './lib/loki.libsonnet') +
+(import './lib/logs.libsonnet') +
 (import './lib/traces.libsonnet') +
 {
   _images:: {
-    agent: 'grafana/agent:v0.18.4',
-    agentctl: 'grafana/agentctl:v0.18.4',
+    agent: 'grafana/agent:v0.21.1',
+    agentctl: 'grafana/agentctl:v0.21.1',
   },
 
   // new creates a new DaemonSet deployment of the grafana-agent. By default,
   // the deployment will do no collection. You must merge the result of this
   // function with one or more of the following:
   //
-  // - withPrometheusConfig, withPrometheusInstances (and optionally withRemoteWrite)
-  // - withLokiConfig
+  // - withMetricsConfig, withMetricsInstances (and optionally withRemoteWrite)
+  // - withLogsConfig
   //
-  // When using withPrometheusInstances, a [name]-etc deployment
+  // When using withMetricsInstances, a [name]-etc deployment
   // with one replica will be created alongside the DaemonSet. This deployment
   // is responsible for handling scrape configs that will not work on the host
   // machine.
@@ -36,7 +36,7 @@ local service = k.core.v1.service;
   // on any node in the cluster.
   //
   // scrapeInstanceKubernetes provides the default
-  // PrometheusInstanceConfig Grafana Labs uses in production.
+  // MetricsInstanceConfig Grafana Labs uses in production.
   new(name='grafana-agent', namespace='default'):: {
     local this = self,
 
@@ -44,17 +44,17 @@ local service = k.core.v1.service;
     _images:: $._images,
     _config_hash:: true,
 
-    local has_loki_config = std.objectHasAll(self, '_loki_config'),
+    local has_logs_config = std.objectHasAll(self, '_logs_config'),
     local has_trace_config = std.objectHasAll(self, '_trace_config'),
-    local has_prometheus_config = std.objectHasAll(self, '_prometheus_config'),
-    local has_prometheus_instances = std.objectHasAll(self, '_prometheus_instances'),
+    local has_metrics_config = std.objectHasAll(self, '_metrics_config'),
+    local has_metrics_instances = std.objectHasAll(self, '_metrics_instances'),
     local has_integrations = std.objectHasAll(self, '_integrations'),
     local has_sampling_strategies = std.objectHasAll(self, '_traces_sampling_strategies'),
 
-    local prometheus_instances =
-      if has_prometheus_instances then this._prometheus_instances else [],
-    local host_filter_instances = utils.transformInstances(prometheus_instances, true),
-    local etc_instances = utils.transformInstances(prometheus_instances, false),
+    local metrics_instances =
+      if has_metrics_instances then this._metrics_instances else [],
+    local host_filter_instances = utils.transformInstances(metrics_instances, true),
+    local etc_instances = utils.transformInstances(metrics_instances, false),
 
     config:: {
       server: {
@@ -62,14 +62,14 @@ local service = k.core.v1.service;
         http_listen_port: 8080,
       },
     } + (
-      if has_prometheus_config
-      then { prometheus: this._prometheus_config { configs: host_filter_instances } }
+      if has_metrics_config
+      then { metrics: this._metrics_config { configs: host_filter_instances } }
       else {}
     ) + (
-      if has_loki_config then {
-        loki: {
+      if has_logs_config then {
+        logs: {
           positions_directory: '/tmp/positions',
-          configs: [this._loki_config {
+          configs: [this._logs_config {
             name: 'default',
           }],
         },
@@ -87,13 +87,13 @@ local service = k.core.v1.service;
       if has_integrations then { integrations: this._integrations } else {}
     ),
 
-    etc_config:: if has_prometheus_config then this.config {
-      // Hide loki and integrations from our extra configs, we just want the
+    etc_config:: if has_metrics_config then this.config {
+      // Hide logs and integrations from our extra configs, we just want the
       // scrape configs that wouldn't work for the DaemonSet.
-      prometheus+: {
+      metrics+: {
         configs: std.map(function(cfg) cfg { host_filter: false }, etc_instances),
       },
-      loki:: {},
+      logs:: {},
       traces:: {},
       integrations:: {},
     },
@@ -117,7 +117,7 @@ local service = k.core.v1.service;
           then k.util.serviceFor(self.agent) + service.mixin.metadata.withNamespace(namespace)
           else {},
       } + (
-        if has_loki_config then $.lokiPermissionsMixin else {}
+        if has_logs_config then $.logsPermissionsMixin else {}
       ) + (
         if has_integrations && std.objectHas(this._integrations, 'node_exporter') then $.integrationsMixin else {}
       ),

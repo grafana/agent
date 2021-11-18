@@ -40,16 +40,16 @@ local images = {
 
     grafana_agent.new('grafana-agent', 'default') +
     grafana_agent.withImages(images) +
-    grafana_agent.withPrometheusConfig({
+    grafana_agent.withMetricsConfig({
       wal_directory: '/var/lib/agent/data',
       global: {
-        scrape_interval: '15s',
+        scrape_interval: '1m',
         external_labels: {
           cluster: cluster_label,
         },
       },
     }) +
-    grafana_agent.withPrometheusInstances(grafana_agent.scrapeInstanceKubernetes {
+    grafana_agent.withMetricsInstances(grafana_agent.scrapeInstanceKubernetes {
       // We want our cluster and label to remain static for this deployment, so
       // if they are overwritten by a metric we will change them to the values
       // set by external_labels.
@@ -63,8 +63,8 @@ local images = {
     grafana_agent.withRemoteWrite([{
       url: 'http://cortex.default.svc.cluster.local/api/prom/push',
     }]) +
-    grafana_agent.withLokiConfig(loki_config) +
-    grafana_agent.withLokiClients(grafana_agent.newLokiClient({
+    grafana_agent.withLogsConfig(loki_config) +
+    grafana_agent.withLogsClients(grafana_agent.newLogsClient({
       scheme: 'http',
       hostname: 'loki.default.svc.cluster.local',
       external_labels: { cluster: cluster_label },
@@ -136,7 +136,7 @@ local images = {
 
       local cluster_label = 'k3d-agent/cluster',
       agent_config+: {
-        prometheus+: {
+        metrics+: {
           global+: {
             external_labels+: {
               cluster: cluster_label,

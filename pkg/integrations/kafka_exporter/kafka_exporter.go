@@ -7,7 +7,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	kafka_exporter "github.com/davidmparrott/kafka_exporter/v2/exporter"
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 )
@@ -110,6 +110,17 @@ func (c *Config) Name() string {
 // integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
+}
+
+// InstanceKey returns the hostname:port of the first Kafka node, if any. If
+// there is not exactly one Kafka node, the user must manually provide
+// their own value for instance key in the common config.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	if len(c.KafkaURIs) != 1 {
+		return "", fmt.Errorf("an automatic value for `instance` cannot be determined from %d kafka servers, manually provide one for this integration", len(c.KafkaURIs))
+	}
+
+	return c.KafkaURIs[0], nil
 }
 
 // NewIntegration creates a new elasticsearch_exporter

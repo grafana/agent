@@ -7,6 +7,7 @@ Here are some resources to help you run the Grafana Agent:
 - [Run the Agent locally](#running-the-agent-locally)
 - [Use the example Kubernetes configs](#use-the-example-kubernetes-configs)
 - [Grafana Cloud Kubernetes Quickstart Guides](#grafana-cloud-kubernetes-quickstart-guides)
+- [Agent Operator Helm Quickstart](#agent-operator-helm-quickstart-guide)
 - [Build the Agent from Source](#build-the-agent-from-source)
 - [Use our production Tanka configs](#use-our-production-tanka-configs)
 
@@ -26,7 +27,7 @@ directory on your host that you want the agent to store its WAL.
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.18.4
+  grafana/agent:v0.21.1
 ```
 
 ## Running the Agent locally
@@ -43,6 +44,19 @@ You can find sample deployment manifests in the [Kubernetes](./kubernetes) direc
 These guides help you get up and running with the Agent and Grafana Cloud, and include sample ConfigMaps.
 
 You can find them in the [Grafana Cloud documentation](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/)
+
+## Agent Operator Helm quickstart guide
+
+This guide will show you how to deploy the [Grafana Agent Operator](https://grafana.com/docs/agent/latest/operator/) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator).
+
+You'll also deploy the following custom resources (CRs):
+- A `GrafanaAgent` resource, which discovers one or more `MetricsInstance` and `LogsInstances` resources.
+- A `MetricsInstance` resource that defines where to ship collected metrics.
+- A `ServiceMonitor` resource to collect cAdvisor and kubelet metrics.
+- A `LogsInstance` resource that defines where to ship collected logs.
+- A `PodLogs` resource to collect container logs from Kubernetes Pods.
+
+You can find the guide [here](https://grafana.com/docs/agent/latest/operator/helm-getting-started/).
 
 ## Build the Agent from source
 

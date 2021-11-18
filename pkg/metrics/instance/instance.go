@@ -16,8 +16,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/grafana/agent/pkg/util"
@@ -843,7 +843,10 @@ func newScrapeManager(logger log.Logger, app storage.Appendable) *scrape.Manager
 	// data race of modifying that global, we lock a mutex here briefly.
 	managerMtx.Lock()
 	defer managerMtx.Unlock()
-	return scrape.NewManager(logger, app)
+	options := &scrape.Options{
+		ExtraMetrics: false,
+	}
+	return scrape.NewManager(options, logger, app)
 }
 
 type runGroupContext struct {

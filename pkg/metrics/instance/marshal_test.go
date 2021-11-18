@@ -60,6 +60,7 @@ remote_write:
     max_backoff: 100ms
   follow_redirects: true
   metadata_config:
+    max_samples_per_send: 500
     send: true
     send_interval: 1m
 wal_truncate_frequency: 1m0s
@@ -131,6 +132,7 @@ remote_write:
     max_backoff: 100ms
   follow_redirects: true
   metadata_config:
+    max_samples_per_send: 500
     send: true
     send_interval: 1m
 wal_truncate_frequency: 1m0s

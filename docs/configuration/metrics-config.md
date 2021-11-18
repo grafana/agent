@@ -1,12 +1,14 @@
 +++
-title = "prometheus_config"
+title = "metrics_config"
 weight = 200
+aliases = ["/docs/agent/latest/configuration/prometheus-config/"]
 +++
 
-# prometheus_config
+# metrics_config
 
-The `prometheus_config` block is used to define a collection of Prometheus
-Instances, each of which is its own mini-Agent. Most users will only need to
+The `metrics_config` block is used to define a collection of metrics
+instances. Each instance defines a collection of Prometheus-compatible
+scrape_configs and remote_write rules. Most users will only need to
 define one instance.
 
 ```yaml
@@ -37,7 +39,7 @@ define one instance.
 
 # The list of Prometheus instances to launch with the agent.
 configs:
-  [- <prometheus_instance_config>]
+  [- <metrics_instance_config>]
 
 # If an instance crashes abnormally, how long should we wait before trying
 # to restart it. 0s disables the backoff period and restarts the agent
@@ -68,7 +70,7 @@ agents distribute discovery and scrape load between nodes.
 # events are not sent by an agent.
 [reshard_interval: <duration> | default = "1m"]
 
-# The timeout for configuration refreshes. This can occur on cluster events or 
+# The timeout for configuration refreshes. This can occur on cluster events or
 # on the reshard interval. A timeout of 0 indicates no timeout.
 [reshard_timeout: <duration> | default = "30s"]
 
@@ -248,10 +250,11 @@ remote_write:
 
 > **Note:** For more informaton on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.27/configuration/configuration/#remote_write)
 
-## prometheus_instance_config
+## metrics_instance_config
 
-The `prometheus_instance_config` block configures an individual Prometheus
-instance, which acts as its own mini Prometheus agent.
+The `metrics_instance_config` block configures an individual metrics
+instance, which acts as its own mini Prometheus-compatible agent, though
+without support for the TSDB.
 
 ```yaml
 # Name of the instance. Must be present. Will be added as a label to agent

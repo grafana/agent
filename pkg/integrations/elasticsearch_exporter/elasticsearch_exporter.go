@@ -1,4 +1,4 @@
-// Package elasticsearch_exporter instantiates the exporter from github.com/justwatchcom/elasticsearch_exporter
+// Package elasticsearch_exporter instantiates the exporter from github.com/justwatchcom/elasticsearch_exporter - replaced for github.com/prometheus-community/elasticsearch_exporter
 // Using the YAML config provided by the agent
 package elasticsearch_exporter //nolint:golint
 
@@ -9,14 +9,14 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/justwatchcom/elasticsearch_exporter/collector"
-	"github.com/justwatchcom/elasticsearch_exporter/pkg/clusterinfo"
+	"github.com/prometheus-community/elasticsearch_exporter/collector"
+	"github.com/prometheus-community/elasticsearch_exporter/pkg/clusterinfo"
 )
 
 // DefaultConfig holds the default settings for the elasticsearch_exporter
@@ -81,6 +81,15 @@ func (c *Config) Name() string {
 // integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
+}
+
+// InstanceKey returns the hostname:port of the elasticsearch node being queried.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	u, err := url.Parse(c.Address)
+	if err != nil {
+		return "", fmt.Errorf("could not parse url: %w", err)
+	}
+	return u.Host, nil
 }
 
 // NewIntegration creates a new elasticsearch_exporter

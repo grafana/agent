@@ -7,15 +7,17 @@ weight = 400
 
 The API is divided into several parts:
 
-- [Config Management API](#config-management-api)
+- [Config Management API](#config-management-api)  
 - [Agent API](#agent-api)
 - [Ready/Healthy API](#ready--health-api)
 
 ## Config management API
 
-Grafana Agent exposes a REST API for managing instance configurations when
-it is running in [scraping service mode]({{< relref "../scraping-service" >}}). The following
-endpoints are exposed:
+Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../scraping-service" >}}). 
+
+(Note that scraping service mode is a requirement for the config management API, however this is not a pre-req for the Agent API or Ready/Healthy API) 
+
+The following endpoints are exposed:
 
 - List configs: [`GET /agent/api/v1/configs`](#list-configs)
 - Get config: [`GET /agent/api/v1/configs/{name}`](#get-config)
@@ -108,7 +110,7 @@ URL-encoded names are stored in decoded form. e.g., `hello%2Fworld` will
 represent the config named `hello/world`.
 
 The request body passed to this endpoint must match the format of
-[prometheus_instance_config]({{< relref "../configuration/prometheus-config" >}})
+[metrics_instance_config]({{< relref "../configuration/metrics-config" >}})
 defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.

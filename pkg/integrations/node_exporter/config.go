@@ -6,21 +6,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/util/flagext"
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
-	"github.com/prometheus/procfs/sysfs"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
 	// DefaultConfig holds non-zero default options for the Config when it is
 	// unmarshaled from YAML.
+	//
+	// DefaultConfig's defaults are populated from init functions in this package.
+	// See the init function here and in node_exporter_linux.go.
 	DefaultConfig = Config{
 		ProcFSPath: procfs.DefaultMountPoint,
-		SysFSPath:  sysfs.DefaultMountPoint,
 		RootFSPath: "/",
 
 		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
@@ -126,6 +127,11 @@ func (c *Config) Name() string {
 // CommonConfig returns the common configs that are shared across all integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
+}
+
+// InstanceKey returns the hostname:port of the agent process.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
 }
 
 // NewIntegration converts this config into an instance of an integration.

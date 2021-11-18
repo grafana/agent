@@ -44,6 +44,7 @@ func generateLogsDaemonSet(
 	}
 	labels[agentNameLabelName] = d.Agent.Name
 	labels[agentTypeLabel] = "logs"
+	labels[managedByOperatorLabel] = managedByOperatorLabelValue
 
 	boolTrue := true
 	ds := &apps_v1.DaemonSet{
@@ -83,7 +84,11 @@ func generateLogsDaemonSetSpec(
 	d config.Deployment,
 ) (*apps_v1.DaemonSetSpec, error) {
 
-	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, d.Agent.Spec.Version)
+	useVersion := d.Agent.Spec.Version
+	if useVersion == "" {
+		useVersion = DefaultAgentVersion
+	}
+	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, useVersion)
 	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
 		imagePath = *d.Agent.Spec.Image
 	}

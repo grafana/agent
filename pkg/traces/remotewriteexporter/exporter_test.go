@@ -23,11 +23,11 @@ const (
 
 func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	var (
-		countValue     uint64 = 20
-		sumValue       int64  = 100
-		bucketCounts          = []uint64{1, 2, 3, 4, 5, 6}
-		explicitBounds        = []float64{1, 2.5, 5, 7.5, 10}
-		ts                    = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
+		countValue     uint64  = 20
+		sumValue       float64 = 100
+		bucketCounts           = []uint64{1, 2, 3, 4, 5, 6}
+		explicitBounds         = []float64{1, 2.5, 5, 7.5, 10}
+		ts                     = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
 	)
 
 	manager := &mockManager{}
@@ -40,9 +40,9 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	app := instance.Appender(context.TODO())
 
 	// Build data point
-	dps := pdata.NewIntHistogramDataPointSlice()
+	dps := pdata.NewHistogramDataPointSlice()
 	dp := dps.AppendEmpty()
-	dp.SetTimestamp(pdata.TimestampFromTime(ts.UTC()))
+	dp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
 	dp.SetBucketCounts(bucketCounts)
 	dp.SetExplicitBounds(explicitBounds)
 	dp.SetCount(countValue)
@@ -54,7 +54,7 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	// Verify _sum
 	sum := manager.instance.GetAppended(sumMetric)
 	require.Equal(t, len(sum), 1)
-	require.Equal(t, sum[0].v, float64(sumValue))
+	require.Equal(t, sum[0].v, sumValue)
 	require.Equal(t, sum[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + sumSuffix}})
 
 	// Check _count

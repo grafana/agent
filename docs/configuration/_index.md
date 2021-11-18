@@ -7,11 +7,11 @@ weight = 300
 
 The Grafana Agent is configured in a YAML file (usually called
 `agent.yaml`) which contains information on the Grafana Agent and its
-Prometheus instances.
+metrics instances.
 
 - [server_config]({{< relref "./server-config" >}})
-- [prometheus_config]({{< relref "./prometheus-config" >}})
-- [loki_config]({{< relref "./loki-config" >}})
+- [metrics_config]({{< relref "./metrics-config" >}})
+- [logs_config]({{< relref "./logs-config.md" >}})
 - [traces_config]({{< relref "./traces-config" >}})
 - [integrations_config]({{< relref "./integrations/_index.md" >}})
 
@@ -100,13 +100,16 @@ Support contents and default values of `agent.yaml`:
 # Configures the server of the Agent used to enable self-scraping.
 [server: <server_config>]
 
-# Configures Prometheus instances.
-[prometheus: <prometheus_config>]
+# Configures metric collection.
+# In previous versions of the agent, this field was called "prometheus".
+[metrics: <metrics_config>]
 
-# Configures Loki log collection.
-[loki: <loki_config>]
+# Configures log collection.
+# In previous versions of the agent, this field was called "loki".
+[logs: <logs_config>]
 
 # Configures Traces trace collection.
+# In previous versions of the agent, this field was called "tempo".
 [traces: <traces_config>]
 
 # Configures integrations for the Agent.

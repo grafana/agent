@@ -1,9 +1,9 @@
-local agent_prometheus = import 'grafana-agent/v1/lib/prometheus.libsonnet';
+local agent_prometheus = import 'grafana-agent/v1/lib/metrics.libsonnet';
 
 {
   config: {
     global: {
-      scrape_interval: '15s',
+      scrape_interval: '1m',
     },
     scrape_configs: agent_prometheus.scrapeInstanceKubernetes.scrape_configs,
   },
