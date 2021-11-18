@@ -27,7 +27,7 @@ directory on your host that you want the agent to store its WAL.
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.21.0
+  grafana/agent:v0.21.1
 ```
 
 ## Running the Agent locally
@@ -47,12 +47,12 @@ You can find them in the [Grafana Cloud documentation](https://grafana.com/docs/
 
 ## Agent Operator Helm quickstart guide
 
-This guide will show you how to deploy the [Grafana Agent Operator](https://grafana.com/docs/agent/latest/operator/) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator). 
+This guide will show you how to deploy the [Grafana Agent Operator](https://grafana.com/docs/agent/latest/operator/) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator).
 
 You'll also deploy the following custom resources (CRs):
 - A `GrafanaAgent` resource, which discovers one or more `MetricsInstance` and `LogsInstances` resources.
-- A `MetricsInstance` resource that defines where to ship collected metrics. 
-- A `ServiceMonitor` resource to collect cAdvisor and kubelet metrics. 
+- A `MetricsInstance` resource that defines where to ship collected metrics.
+- A `ServiceMonitor` resource to collect cAdvisor and kubelet metrics.
 - A `LogsInstance` resource that defines where to ship collected logs.
 - A `PodLogs` resource to collect container logs from Kubernetes Pods.
 
