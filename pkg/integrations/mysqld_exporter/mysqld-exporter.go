@@ -4,8 +4,8 @@ package mysqld_exporter //nolint:golint
 import (
 	"context"
 	"fmt"
-	"os"
 	config_util "github.com/prometheus/common/config"
+	"os"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -87,8 +87,8 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // InstanceKey returns network(hostname:port)/dbname of the MySQL server.
-func (c *Config) InstanceKey(agentKey string) (string, error) {
-	m, err := mysql.ParseDSN(c.DataSourceName.(string))
+func (c *Config) InstanceKey(_ string) (string, error) {
+	m, err := mysql.ParseDSN(string(c.DataSourceName))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse DSN: %w", err)
 	}
