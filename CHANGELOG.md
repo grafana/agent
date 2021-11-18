@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [BUGFIX] Fix panic when using postgres_exporter (@saputradharma)
+
 # v0.21.0 (2021-11-17)
 
 - [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
@@ -23,8 +25,6 @@
 - [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
 
 - [BUGFIX] Traces: Fix `success_logic` code in service graphs processor (@mapno)
-
-- [BUGFIX] Fix panic when using postgres_exporter (@saputradharma)
 
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
