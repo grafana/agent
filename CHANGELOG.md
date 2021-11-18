@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+# v0.21.1 (2021-11-18)
+
 - [BUGFIX] Fix panic when using postgres_exporter integration (@saputradharma)
 
 - [BUGFIX] Fix panic when dnsamsq_exporter integration tried to log a warning (@rfratto)

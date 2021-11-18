@@ -43,7 +43,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.21.0
+  image: grafana/agent:v0.21.1
   logLevel: info
   serviceAccountName: grafana-agent
   metrics:
@@ -121,12 +121,12 @@ This creates a ServiceAccount, ClusterRole, and ClusterRoleBinding for the Grafa
 The full hierarchy of custom resources is as follows:
 
 - `GrafanaAgent`
-	- `MetricsInstance`
-		- `PodMonitor`
-		- `Probe`
-		- `ServiceMonitor`
-	- `LogsInstance`
-		- `PodLogs`
+  - `MetricsInstance`
+    - `PodMonitor`
+    - `Probe`
+    - `ServiceMonitor`
+  - `LogsInstance`
+    - `PodLogs`
 
 Deploying a GrafanaAgent resource on its own will not spin up any Agent Pods. Agent Operator will create Agent Pods once MetricsInstance and LogsIntance resources have been created. In the next step, you'll roll out a `MetricsInstance` resource to scrape cAdvisor and Kubelet metrics and ship these to your Prometheus-compatible metrics endpoint.
 
@@ -196,13 +196,13 @@ stringData:
   password: 'your_cloud_prometheus_API_key'
 ```
 
-If you're using Grafana Cloud, you can find your hosted Prometheus endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org ). You may wish to base64-encode these values yourself. In this case, please use `data` instead of `stringData`. 
+If you're using Grafana Cloud, you can find your hosted Prometheus endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org ). You may wish to base64-encode these values yourself. In this case, please use `data` instead of `stringData`.
 
 Once you've rolled out the `MetricsInstance` and its Secret, you can confirm that the MetricsInstance Agent is up and running with `kubectl get pod`. Since we haven't defined any monitors yet, this Agent will not have any scrape targets defined. In the next step, we'll create scrape targets for the cAdvisor and kubelet endpoints exposed by the `kubelet` service in the cluster.
 
 ## Step 3: Create ServiceMonitors for kubelet and cAdvisor endpoints
 
-In this step, you'll create ServiceMonitors for kubelet and cAdvisor metrics exposed by the `kubelet` Service. Every node in your cluster exposes kubelet and cadvisor metrics at `/metrics` and `/metrics/cadvisor` respectively. Agent Operator creates a `kubelet` service that exposes these Node endpoints so that they can be scraped using ServiceMonitors. 
+In this step, you'll create ServiceMonitors for kubelet and cAdvisor metrics exposed by the `kubelet` Service. Every node in your cluster exposes kubelet and cadvisor metrics at `/metrics` and `/metrics/cadvisor` respectively. Agent Operator creates a `kubelet` service that exposes these Node endpoints so that they can be scraped using ServiceMonitors.
 
 To scrape these two endpoints, roll out the following two ServiceMonitors in your cluster:
 
@@ -286,7 +286,7 @@ spec:
       app.kubernetes.io/name: kubelet
 ```
 
-These two ServiceMonitors configure Agent to scrape all the Kubelet and cAdvisor endpoints in your Kubernetes cluster (one of each per Node). In addition, it defines a `job` label which you may change (it is preset here for compatibility with Grafana Cloud's Kubernetes integration), and allowlists a core set of Kubernetes metrics to reduce remote metrics usage. If you don't need this allowlist, you may omit it, however note that your metrics usage will increase significantly. 
+These two ServiceMonitors configure Agent to scrape all the Kubelet and cAdvisor endpoints in your Kubernetes cluster (one of each per Node). In addition, it defines a `job` label which you may change (it is preset here for compatibility with Grafana Cloud's Kubernetes integration), and allowlists a core set of Kubernetes metrics to reduce remote metrics usage. If you don't need this allowlist, you may omit it, however note that your metrics usage will increase significantly.
 
  When you're done, Agent should now be shipping Kubelet and cAdvisor metrics to your remote Prometheus endpoint.
 
@@ -323,9 +323,9 @@ spec:
       instance: primary
 ```
 
-This LogsInstance will pick up PodLogs resources with the `instance: primary` label. Be sure to set the Loki URL to the correct push endpoint (for Grafana Cloud, this will be something like `logs-prod-us-central1.grafana.net/loki/api/v1/push`, however you should check the Cloud Portal to confirm). 
+This LogsInstance will pick up PodLogs resources with the `instance: primary` label. Be sure to set the Loki URL to the correct push endpoint (for Grafana Cloud, this will be something like `logs-prod-us-central1.grafana.net/loki/api/v1/push`, however you should check the Cloud Portal to confirm).
 
-Also note that we are using the `agent: grafana-agent-logs` label here, which will associate this LogsInstance with the GrafanaAgent resource defined in Step 1. This means that it will inherit requests, limits, affinities and other properties defined in the GrafanaAgent custom resource. 
+Also note that we are using the `agent: grafana-agent-logs` label here, which will associate this LogsInstance with the GrafanaAgent resource defined in Step 1. This means that it will inherit requests, limits, affinities and other properties defined in the GrafanaAgent custom resource.
 
 Create the Secret for the LogsInstance resource:
 
@@ -340,7 +340,7 @@ stringData:
   password: 'your_password_here'
 ```
 
-If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org). You may wish to base64-encode these values yourself. In this case, please use `data` instead of `stringData`. 
+If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password in the [Grafana Cloud Portal](https://grafana.com/profile/org). You may wish to base64-encode these values yourself. In this case, please use `data` instead of `stringData`.
 
 Finally, we'll roll out a PodLogs resource to define our logging targets. Under the hood, Agent Operator will turn this into Agent config for the logs subsystem, and roll it out to the DaemonSet of logging agents.
 
@@ -372,7 +372,7 @@ Under the hood, the above PodLogs resource will add the following labels to log 
 - `service`
 - `pod`
 - `container`
-- `job` 
+- `job`
   - Set to `PodLogs_namespace/PodLogs_name`
 - `__path__` (the path to log files)
   - Set to `/var/log/pods/*$1/*.log` where `$1` is `__meta_kubernetes_pod_uid/__meta_kubernetes_pod_container_name`
@@ -389,6 +389,6 @@ At this point you've rolled out the following into your cluster:
 - A `MetricsInstance`  resource that defines where to ship collected metrics.
 - A `ServiceMonitor` resource to collect cAdvisor and kubelet metrics.
 - A `LogsInstance` resource that defines where to ship collected logs.
-- A `PodLogs` resource to collect container logs from Kubernetes Pods. 
+- A `PodLogs` resource to collect container logs from Kubernetes Pods.
 
 You can verify that everything is working correctly by navigating to your Grafana instance and querying your Loki and Prometheus datasources. Operator support for Tempo and traces is coming soon.
