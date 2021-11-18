@@ -1109,8 +1109,8 @@ github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoA
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
-github.com/grafana/dnsmasq_exporter v0.2.1-0.20211004193725-8712c75623e6 h1:+eSifULGGpUY6G6iGHjPC9t5yU9EoEgp6v3OudPdCAQ=
-github.com/grafana/dnsmasq_exporter v0.2.1-0.20211004193725-8712c75623e6/go.mod h1:Jj5TSVVJE6t8Brq/ZkUbQ1n260dilriL0tWNaHjVDUs=
+github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9 h1:/ovWD85B27b/xytKaxhP/LvXF8fxWIhEwE55mFpCQsE=
+github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9/go.mod h1:Jj5TSVVJE6t8Brq/ZkUbQ1n260dilriL0tWNaHjVDUs=
 github.com/grafana/dskit v0.0.0-20211011144203-3a88ec0b675f h1:FvvSVEbnGeM2bUivGmsiXTi8URJyBU7TcFEEoRe5wWI=
 github.com/grafana/dskit v0.0.0-20211011144203-3a88ec0b675f/go.mod h1:uPG2nyK4CtgNDmWv7qyzYcdI+S90kHHRWvHnBtEMBXM=
 github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85/go.mod h1:crI9WX6p0IhrqB+DqIUHulRW853PaNFf7o4UprV//3I=
