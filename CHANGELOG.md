@@ -24,6 +24,8 @@
 
 - [BUGFIX] Traces: Fix `success_logic` code in service graphs processor (@mapno)
 
+- [BUGFIX] Fix panic when using postgres_exporter (@saputradharma)
+
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
 - [CHANGE] Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
