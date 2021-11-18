@@ -85,7 +85,7 @@ func parsePostgresURL(url string) (map[string]string, error) {
 	res := map[string]string{}
 
 	for _, keypair := range strings.Split(raw, " ") {
-		parts := strings.SplitN(keypair, "=", 1)
+		parts := strings.Split(keypair, "=")
 		if len(parts) != 2 {
 			panic(fmt.Sprintf("unexpected keypair %s from pq", keypair))
 		}
