@@ -4,6 +4,8 @@
 
 - [BUGFIX] Statsd Integration: Adding logger instance to the statsd mapper instantiation. (@gaantunes)
 
+- [BUGFIX] Statsd Integration: Fix issue where mapped metrics weren't exposed to the integration. (@mattdurham)
+
 # v0.21.0 (2021-11-17)
 
 - [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
