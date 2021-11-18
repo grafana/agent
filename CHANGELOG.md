@@ -1,8 +1,5 @@
 # Main (unreleased)
 
-- [BUGFIX] Hide integration credentials at /-/config endpoint (@mattdurham)
-
-
 # v0.21.1 (2021-11-18)
 
 - [BUGFIX] Fix panic when using postgres_exporter integration (@saputradharma)
