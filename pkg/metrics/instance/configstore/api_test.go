@@ -166,7 +166,6 @@ remote_write:
   metadata_config:
     send: true
     send_interval: 1m
-    max_samples_per_send: 500
 wal_truncate_frequency: 1m0s
 min_wal_time: 5m0s
 max_wal_time: 4h0m0s
