@@ -10,6 +10,8 @@
 
 - [BUGFIX] Operator: fix bug where version was a required field (@rfratto)
 
+- [BUGFIX] Metrics: Only run WAL cleaner when metrics are being used and a WAL is configured. (@rfratto)
+
 # v0.21.0 (2021-11-17)
 
 - [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)

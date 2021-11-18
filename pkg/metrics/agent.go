@@ -233,14 +233,17 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 
 	if a.cleaner != nil {
 		a.cleaner.Stop()
+		a.cleaner = nil
 	}
-	a.cleaner = NewWALCleaner(
-		a.logger,
-		a.mm,
-		cfg.WALDir,
-		cfg.WALCleanupAge,
-		cfg.WALCleanupPeriod,
-	)
+	if cfg.WALDir != "" {
+		a.cleaner = NewWALCleaner(
+			a.logger,
+			a.mm,
+			cfg.WALDir,
+			cfg.WALCleanupAge,
+			cfg.WALCleanupPeriod,
+		)
+	}
 
 	a.bm.UpdateManagerConfig(instance.BasicManagerConfig{
 		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
