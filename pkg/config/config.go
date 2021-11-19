@@ -47,7 +47,7 @@ type Config struct {
 	// Deprecated fields user has used. Generated during UnmarshalYAML.
 	Deprecations []string `yaml:"-"`
 
-	// Toggle for config endpoint
+	// Toggle for config endpoint(s)
 	EnableEndpoint bool `yaml:"-"`
 }
 
@@ -141,6 +141,8 @@ func (c *Config) ApplyDefaults() error {
 		return err
 	}
 
+	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableEndpoint
+
 	return nil
 }
 
@@ -220,7 +222,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
-	fs.BoolVar(&cfg.EnableEndpoint, "config.enable-endpoint", false, "Enables the /-/config endpoint. Be aware that secrets could be exposed by enabling this!")
+	fs.BoolVar(&cfg.EnableEndpoint, "config.enable-endpoint", false, "Enables the global /-/config endpoint and the scraping service's /agent/api/v1/configs/{name} endpoint. Be aware that secrets could be exposed by enabling these endpoints!")
 	cfg.RegisterFlags(fs)
 
 	if err := fs.Parse(args); err != nil {
