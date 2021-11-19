@@ -9,7 +9,6 @@ import (
 	"unicode"
 
 	"github.com/cortexproject/cortex/pkg/ring/kv/consul"
-	"github.com/cortexproject/cortex/pkg/ring/kv/etcd"
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -111,9 +110,6 @@ func (c *Config) MarshalYAML() (interface{}, error) {
 	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
 		// Obscure the password fields for known types that do not obscure passwords.
 		switch v := in.(type) {
-		case etcd.Config:
-			v.Password = "<secret>"
-			return true, v, nil
 		case consul.Config:
 			v.ACLToken = "<secret>"
 			return true, v, nil
