@@ -130,7 +130,6 @@ func (c *Config) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-
 	// Use a yaml.MapSlice rather than a map[string]interface{} so
 	// order of keys is retained compared to just calling MarshalConfig.
 	var m yaml.MapSlice
