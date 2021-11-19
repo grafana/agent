@@ -2,6 +2,7 @@ package redis_exporter //nolint:golint
 
 import (
 	"bytes"
+	"github.com/grafana/agent/pkg/config"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -151,6 +152,18 @@ func TestRedisCases(t *testing.T) {
 		})
 
 	}
+}
+
+func TestConfig_SecretRedisPassword(t *testing.T) {
+	stringCfg := `
+prometheus:
+  wal_directory: /tmp/agent
+integrations:
+  redis_exporter:
+    enabled: true
+    redis_password: secret_password
+`
+	config.CheckSecret(t, stringCfg, "secret_password")
 }
 
 func matchMetricNames(names map[string]bool, p textparse.Parser) {
