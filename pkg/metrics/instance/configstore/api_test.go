@@ -183,7 +183,7 @@ remote_flush_deadline: 1m0s
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
