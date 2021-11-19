@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/percona/mongodb_exporter/exporter"
+	config_util "github.com/prometheus/common/config"
 )
 
 // Config controls mongodb_exporter
@@ -14,7 +15,7 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
-	URI string `yaml:"mongodb_uri"`
+	URI config_util.Secret `yaml:"mongodb_uri"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -49,7 +50,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	logrusLogger := NewLogger(logger)
 
 	exp, err := exporter.New(&exporter.Opts{
-		URI:                    c.URI,
+		URI:                    string(c.URI),
 		Logger:                 logrusLogger,
 		DisableDefaultRegistry: true,
 

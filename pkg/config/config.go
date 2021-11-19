@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
+	"strings"
+	"testing"
 	"unicode"
 
 	"github.com/cortexproject/cortex/pkg/ring/kv/consul"
@@ -283,4 +286,16 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	}
 
 	return &cfg, nil
+}
+
+// CheckSecret is a helper function to ensure the original value is overwritten with <secret>
+func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
+	var cfg = &Config{}
+	err := LoadBytes([]byte(rawCfg), false, cfg)
+	require.NoError(t, err)
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	scrubbedCfg := string(bb)
+	require.True(t, strings.Contains(scrubbedCfg, "<secret>"))
+	require.False(t, strings.Contains(scrubbedCfg, originalValue))
 }
