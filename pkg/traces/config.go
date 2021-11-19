@@ -54,10 +54,6 @@ const (
 	alwaysSamplePolicy = "always_sample"
 )
 
-var scrubbedMap = map[string]interface{}{
-	"***receivers_scrubbed***": nil,
-}
-
 // Config controls the configuration of Traces trace pipelines.
 type Config struct {
 	Configs []InstanceConfig `yaml:"configs,omitempty"`
@@ -105,7 +101,7 @@ type InstanceConfig struct {
 	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
-	Receivers map[string]interface{} `yaml:"receivers,omitempty"`
+	Receivers ReceiverMap `yaml:"receivers,omitempty"`
 
 	// Batch: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 	Batch map[string]interface{} `yaml:"batch,omitempty"`
@@ -133,10 +129,10 @@ type InstanceConfig struct {
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
 }
 
-// MarshalYAML scrubs out any secrets that may be contained within the receivers
-func (c InstanceConfig) MarshalYAML() (interface{}, error) {
-	c.Receivers = scrubbedMap
-	return c, nil
+type ReceiverMap map[string]interface{}
+
+func (r ReceiverMap) MarshalYAML() (interface{}, error) {
+	return "<secret>", nil
 }
 
 const (
