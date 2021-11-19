@@ -108,7 +108,7 @@ replace (
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
 	github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03
 	github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20211103031328-89bb32ee4ae7
-	gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
+	gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 	k8s.io/api => k8s.io/api v0.21.0
 	k8s.io/apimachinery => k8s.io/apimachinery v0.21.0
 	k8s.io/client-go => k8s.io/client-go v0.21.0

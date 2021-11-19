@@ -1,27 +1,29 @@
 package config
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 	"unicode"
 
+	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/weaveworks/common/server"
-
-	"github.com/drone/envsubst/v2"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/kv/consul"
+	"github.com/grafana/dskit/kv/etcd"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
+	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
@@ -102,6 +104,39 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	*c = Config(fc.baseConfig)
 	return nil
+}
+
+// MarshalYAML implements yaml.Marshaler.
+func (c *Config) MarshalYAML() (interface{}, error) {
+	var buf bytes.Buffer
+
+	enc := yaml.NewEncoder(&buf)
+	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
+		// Obscure the password fields for known types that do not obscure passwords.
+		switch v := in.(type) {
+		case etcd.Config:
+			v.Password = "<secret>"
+			return true, v, nil
+		case consul.Config:
+			v.ACLToken = "<secret>"
+			return true, v, nil
+		default:
+			return false, nil, nil
+		}
+	})
+
+	type config Config
+	if err := enc.Encode((*config)(c)); err != nil {
+		return nil, err
+	}
+
+	// Use a yaml.MapSlice rather than a map[string]interface{} so
+	// order of keys is retained compared to just calling MarshalConfig.
+	var m yaml.MapSlice
+	if err := yaml.Unmarshal(buf.Bytes(), &m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // LogDeprecations will log use of any deprecated fields to l as warn-level
