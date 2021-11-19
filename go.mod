@@ -115,7 +115,7 @@ replace (
 
 replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20210608193638-7b78de4ccffc
 
-replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
+replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
