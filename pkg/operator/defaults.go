@@ -15,6 +15,7 @@ var (
 		"v0.18.4",
 		"v0.19.0",
 		"v0.20.0",
+		"v0.20.1",
 
 		// NOTE(rfratto): when performing an upgrade, add the newest version above instead of changing the existing reference.
 	}
