@@ -138,6 +138,10 @@ trigger:
     - refs/heads/main
 
 steps:
+  - name: put image tag in a file
+    image: alpine
+    commands:
+      - echo grafana/agent:$(shell ./tools/image-tag) > .image-tag
   - name: Update Deployment Tools 
     image: us.gcr.io/kubernetes-dev/drone/plugins/updater
     settings:
@@ -149,16 +153,14 @@ steps:
           "pull_request_existing_strategy": "fail",
           "pull_request_message": "Created by Drone build https://drone.grafana.net/api/repos/grafana/agent/builds/${DRONE_BUILD_NUMBER}\n\nBuild commit: ${DRONE_COMMIT_LINK}\n",
           "pull_request_team_reviewers": [
-            "rfratto",
-            "mattdurham",
-            "gouthamve"
+            "agent-squad"
           ],
           "repo_name": "deployment_tools",
           "update_jsonnet_attribute_configs": [
             {
               "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
               "jsonnet_key": "dev_canary",
-              "jsonnet_value": "grafana/agent:$DRONE_TAG"
+              "jsonnet_value_file": ".image-tag"
             }
           ]
         }
@@ -220,6 +222,6 @@ volumes:
       path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 4a6148a31002cae1d4932abe18cb0a3ca1ba309d822aedb9bc38e058291b01fd
+hmac: f3d9528f8900aa0f42fb6fcc4de354b9ed5b85901561e3b7130e1df48657a51e
 
 ...
