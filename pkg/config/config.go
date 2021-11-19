@@ -155,6 +155,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
+	f.BoolVar(&c.EnableEndpoint, "config.enable-read-api", false, "Enables the /-/config and /agent/api/v1/configs/{name} APIs. Be aware that secrets could be exposed by enabling these endpoints!")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -222,7 +223,6 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
-	fs.BoolVar(&cfg.EnableEndpoint, "config.enable-endpoint", false, "Enables the global /-/config endpoint and the scraping service's /agent/api/v1/configs/{name} endpoint. Be aware that secrets could be exposed by enabling these endpoints!")
 	cfg.RegisterFlags(fs)
 
 	if err := fs.Parse(args); err != nil {
