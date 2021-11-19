@@ -54,6 +54,10 @@ const (
 	alwaysSamplePolicy = "always_sample"
 )
 
+var scrubbedMap = map[string]interface{}{
+	"***receivers_scrubbed***": nil,
+}
+
 // Config controls the configuration of Traces trace pipelines.
 type Config struct {
 	Configs []InstanceConfig `yaml:"configs,omitempty"`
@@ -127,6 +131,12 @@ type InstanceConfig struct {
 
 	// ServiceGraphs
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
+}
+
+// MarshalYAML scrubs out any secrets that may be contained within the receivers
+func (c InstanceConfig) MarshalYAML() (interface{}, error) {
+	c.Receivers = scrubbedMap
+	return c, nil
 }
 
 const (
