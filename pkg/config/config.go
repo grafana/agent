@@ -111,7 +111,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // MarshalYAML implements yaml.Marshaler.
-func (c *Config) MarshalYAML() (interface{}, error) {
+func (c Config) MarshalYAML() (interface{}, error) {
 	var buf bytes.Buffer
 
 	enc := yaml.NewEncoder(&buf)
@@ -130,7 +130,7 @@ func (c *Config) MarshalYAML() (interface{}, error) {
 	})
 
 	type config Config
-	if err := enc.Encode((*config)(c)); err != nil {
+	if err := enc.Encode((config)(c)); err != nil {
 		return nil, err
 	}
 
