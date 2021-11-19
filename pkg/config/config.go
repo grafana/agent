@@ -25,8 +25,9 @@ import (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Metrics:      metrics.DefaultConfig,
-	Integrations: integrations.DefaultManagerConfig,
+	Metrics:        metrics.DefaultConfig,
+	Integrations:   integrations.DefaultManagerConfig,
+	EnableEndpoint: false,
 }
 
 // Config contains underlying configurations for the agent
@@ -45,6 +46,9 @@ type Config struct {
 
 	// Deprecated fields user has used. Generated during UnmarshalYAML.
 	Deprecations []string `yaml:"-"`
+
+	// Toggle for config endpoint
+	EnableEndpoint bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -216,6 +220,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
+	fs.BoolVar(&cfg.EnableEndpoint, "config.enable-endpoint", false, "Enables the /-/config endpoint. Be aware that secrets could be exposed by enabling this!")
 	cfg.RegisterFlags(fs)
 
 	if err := fs.Parse(args); err != nil {
