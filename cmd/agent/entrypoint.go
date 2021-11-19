@@ -167,17 +167,24 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 		fmt.Fprintf(w, "Agent is Ready.\n")
 	})
 
-	mux.HandleFunc("/-/config", func(rw http.ResponseWriter, r *http.Request) {
-		ep.mut.Lock()
-		bb, err := yaml.Marshal(ep.cfg)
-		ep.mut.Unlock()
+	configHandler := func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusNotFound)
+		_, _ = rw.Write([]byte("404 - config endpoint is disabled"))
+	}
+	if ep.cfg.EnableEndpoint {
+		configHandler = func(rw http.ResponseWriter, r *http.Request) {
+			ep.mut.Lock()
+			bb, err := yaml.Marshal(ep.cfg)
+			ep.mut.Unlock()
 
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
-		} else {
-			_, _ = rw.Write(bb)
+			if err != nil {
+				http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
+			} else {
+				_, _ = rw.Write(bb)
+			}
 		}
-	})
+	}
+	mux.HandleFunc("/-/config", configHandler)
 
 	mux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
 }

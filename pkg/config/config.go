@@ -30,8 +30,9 @@ import (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Metrics:      metrics.DefaultConfig,
-	Integrations: integrations.DefaultManagerConfig,
+	Metrics:        metrics.DefaultConfig,
+	Integrations:   integrations.DefaultManagerConfig,
+	EnableEndpoint: false,
 }
 
 // Config contains underlying configurations for the agent
@@ -50,6 +51,9 @@ type Config struct {
 
 	// Deprecated fields user has used. Generated during UnmarshalYAML.
 	Deprecations []string `yaml:"-"`
+
+	// Toggle for config endpoint(s)
+	EnableEndpoint bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -175,6 +179,8 @@ func (c *Config) ApplyDefaults() error {
 		return err
 	}
 
+	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableEndpoint
+
 	return nil
 }
 
@@ -187,6 +193,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
+	f.BoolVar(&c.EnableEndpoint, "config.enable-read-api", false, "Enables the /-/config and /agent/api/v1/configs/{name} APIs. Be aware that secrets could be exposed by enabling these endpoints!")
 }
 
 // LoadFile reads a file and passes the contents to Load
