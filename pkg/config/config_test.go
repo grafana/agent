@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 // TestConfig_FlagDefaults makes sure that default values of flags are kept
@@ -383,4 +385,39 @@ logs:
 	pipelineStages := myCfg.Logs.Configs[0].ScrapeConfig[0].PipelineStages[0].(map[interface{}]interface{})
 	expected := `\\temp\\Logs\\(?P<log_app>.+?)\\`
 	require.Equal(t, expected, pipelineStages["expression"].(string))
+}
+
+func TestConfig_ObscureSecrets(t *testing.T) {
+	cfgText := `
+metrics:
+  wal_directory: /tmp
+  scraping_service:
+    enabled: true
+    kvstore:
+      store: consul
+      consul:
+        acl_token: verysecret
+    lifecycler:
+      ring:
+        kvstore:
+          store: consul
+          consul:
+            acl_token: verysecret
+`
+
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(cfgText), false, &cfg))
+
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
+
+	bb, err := yaml.Marshal(&cfg)
+	require.NoError(t, err)
+
+	require.False(t, strings.Contains(string(bb), "verysecret"), "secrets did not get obscured")
+	require.True(t, strings.Contains(string(bb), "<secret>"), "secrets did not get obscured properly")
+
+	// Re-validate that the config object has not changed
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
 }
