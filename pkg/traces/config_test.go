@@ -1316,8 +1316,7 @@ receivers:
 	assert.Nil(t, err)
 	data, err := yaml.Marshal(cfg)
 	assert.Nil(t, err)
-	scrubbedString := string(data)
-	assert.True(t, strings.Index(scrubbedString, "receivers_scrubbed") > 0)
+	assert.True(t, strings.Contains(string(data), "receivers_scrubbed"))
 }
 
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters
