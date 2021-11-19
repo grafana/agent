@@ -36,6 +36,31 @@ metrics:
 	require.True(t, c.Server.RegisterInstrumentation)
 }
 
+// TestConfig_ConfigAPIFlag makes sure that the read API flag is passed
+// when parsing the config.
+func TestConfig_ConfigAPIFlag(t *testing.T) {
+	t.Run("Disabled", func(t *testing.T) {
+		cfg := `{}`
+		fs := flag.NewFlagSet("test", flag.ExitOnError)
+		c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+			return LoadBytes([]byte(cfg), false, c)
+		})
+		require.NoError(t, err)
+		require.False(t, c.EnableEndpoint)
+		require.False(t, c.Metrics.ServiceConfig.APIEnableGetConfiguration)
+	})
+	t.Run("Enabled", func(t *testing.T) {
+		cfg := `{}`
+		fs := flag.NewFlagSet("test", flag.ExitOnError)
+		c, err := load(fs, []string{"-config.file", "test", "-config.enable-read-api"}, func(_ string, _ bool, c *Config) error {
+			return LoadBytes([]byte(cfg), false, c)
+		})
+		require.NoError(t, err)
+		require.True(t, c.EnableEndpoint)
+		require.True(t, c.Metrics.ServiceConfig.APIEnableGetConfiguration)
+	})
+}
+
 func TestConfig_OverrideDefaultsOnLoad(t *testing.T) {
 	cfg := `
 metrics:

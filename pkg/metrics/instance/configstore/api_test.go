@@ -29,7 +29,7 @@ func TestAPI_ListConfigurations(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs")
@@ -63,7 +63,7 @@ func TestAPI_GetConfiguration_Invalid(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/does-not-exist")
@@ -99,7 +99,7 @@ func TestAPI_GetConfiguration(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
@@ -183,7 +183,7 @@ remote_flush_deadline: 1m0s
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
@@ -217,10 +217,21 @@ remote_flush_deadline: 1m0s
 	})
 }
 
+func TestServer_GetConfiguration_Disabled(t *testing.T) {
+	api := NewAPI(log.NewNopLogger(), nil, nil, false)
+	env := newAPITestEnvironment(t, api)
+	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, []byte("404 - config endpoint is disabled"), body)
+}
+
 func TestServer_PutConfiguration(t *testing.T) {
 	var s Mock
 
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(log.NewNopLogger(), &s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	cfg := instance.Config{Name: "newconfig"}
@@ -255,7 +266,7 @@ func TestServer_PutConfiguration_Invalid(t *testing.T) {
 
 	api := NewAPI(log.NewNopLogger(), &s, func(c *instance.Config) error {
 		return fmt.Errorf("custom validation error")
-	})
+	}, true)
 	env := newAPITestEnvironment(t, api)
 
 	cfg := instance.Config{Name: "newconfig"}
@@ -279,7 +290,7 @@ func TestServer_PutConfiguration_Invalid(t *testing.T) {
 
 func TestServer_PutConfiguration_WithClient(t *testing.T) {
 	var s Mock
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(log.NewNopLogger(), &s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	cfg := instance.DefaultConfig
@@ -305,7 +316,7 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/config/deleteme", nil)
@@ -329,7 +340,7 @@ func TestServer_DeleteConfiguration_Invalid(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/config/deleteme", nil)
@@ -348,7 +359,7 @@ func TestServer_DeleteConfiguration_Invalid(t *testing.T) {
 func TestServer_URLEncoded(t *testing.T) {
 	var s Mock
 
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(log.NewNopLogger(), &s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	var cfg instance.Config
