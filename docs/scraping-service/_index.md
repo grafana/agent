@@ -40,7 +40,7 @@ remote_write:
 
 The full set of supported options for an instance configuration file is
 available in the
-[`prometheus-config.md` file]({{< relref "../configuration/logs-config" >}}).
+[`metrics-config.md` file]({{< relref "../configuration/metrics-config" >}}).
 
 Having multiple instance configuration files is necessary for sharding; each
 config file is distributed to a particular agent on the cluster based on the
