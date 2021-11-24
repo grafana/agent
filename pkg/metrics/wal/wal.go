@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"os"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -132,6 +133,11 @@ type Storage struct {
 
 // NewStorage makes a new Storage.
 func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
+	// First clear the WAL directory. See: https://github.com/prometheus/prometheus/issues/9848
+	if err := os.RemoveAll(path); err != nil {
+		return nil, err
+	}
+
 	w, err := wal.NewSize(logger, registerer, SubDirectory(path), wal.DefaultSegmentSize, true)
 	if err != nil {
 		return nil, err
