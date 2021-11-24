@@ -128,6 +128,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	time.Sleep(time.Millisecond * 150)
 
 	// Create a new storage, write the other half of samples.
+	// Note that the existing data will be deleted.
 	s, err = NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
 	defer func() {
@@ -136,9 +137,12 @@ func TestStorage_ExistingWAL(t *testing.T) {
 
 	// Verify that the storage picked up existing series when it
 	// replayed the WAL.
-	for series := range s.series.iterator().Channel() {
-		require.Greater(t, series.lastTs, int64(0), "series timestamp not updated")
+	i := 0
+	for range s.series.iterator().Channel() {
+		i++
+		// require.Greater(t, series.lastTs, int64(0), "series timestamp not updated")
 	}
+	require.Equal(t, 0, i)
 
 	app = s.Appender(context.Background())
 
@@ -156,14 +160,15 @@ func TestStorage_ExistingWAL(t *testing.T) {
 	for _, series := range collector.series {
 		names = append(names, series.Labels.Get("__name__"))
 	}
-	require.Equal(t, payload.SeriesNames(), names)
+	payloadSeries := payload.SeriesNames()
+	require.Equal(t, payloadSeries[len(payloadSeries)/2:], names)
 
-	expectedSamples := payload.ExpectedSamples()
+	expectedSamples := payload[len(payload)/2:].ExpectedSamples()
 	actualSamples := collector.samples
 	sort.Sort(byRefSample(actualSamples))
 	require.Equal(t, expectedSamples, actualSamples)
 
-	expectedExemplars := payload.ExpectedExemplars()
+	expectedExemplars := payload[len(payload)/2:].ExpectedExemplars()
 	actualExemplars := collector.exemplars
 	sort.Sort(byRefExemplar(actualExemplars))
 	require.Equal(t, expectedExemplars, actualExemplars)
@@ -197,7 +202,7 @@ func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	require.NoError(t, err)
 	defer require.NoError(t, s.Close())
 
-	require.Equal(t, uint64(len(payload)), s.ref.Load(), "cached ref ID should be equal to the number of series written")
+	require.Equal(t, uint64(0), s.ref.Load(), "cached ref ID should be 0 because the WAL needs to be empty")
 }
 
 func TestStorage_Truncate(t *testing.T) {
