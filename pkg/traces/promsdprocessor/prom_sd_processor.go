@@ -26,7 +26,7 @@ import (
 
 const (
 	ipTagName    = "ip"
-	k8sIPTagName = "k8s.host.ip"
+	k8sIPTagName = "k8s.pod.ip"
 )
 
 type promServiceDiscoProcessor struct {
