@@ -2,6 +2,8 @@ package promsdprocessor
 
 import (
 	"context"
+	"net"
+	"net/http"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -10,9 +12,11 @@ import (
 	"github.com/prometheus/prometheus/pkg/relabel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/model/pdata"
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
+	"google.golang.org/grpc/peer"
 )
 
 func TestSyncGroups(t *testing.T) {
@@ -201,6 +205,118 @@ func TestOperationType(t *testing.T) {
 
 			actualAttrValue, _ := attrMap.Get(attrKey)
 			assert.Equal(t, tc.expectedValue, actualAttrValue.StringVal())
+		})
+	}
+}
+
+func TestPodAssociation(t *testing.T) {
+	const ipStr = "1.1.1.1"
+
+	testCases := []struct {
+		name       string
+		ctxFn      func(t *testing.T) context.Context
+		attrMapFn  func(t *testing.T) pdata.AttributeMap
+		expectedIP string
+	}{
+		{
+			name: "HTTP connection IP",
+			ctxFn: func(t *testing.T) context.Context {
+				r := &http.Request{RemoteAddr: ipStr}
+				c, ok := client.FromHTTP(r)
+				require.True(t, ok)
+				return client.NewContext(context.Background(), c)
+			},
+			attrMapFn:  func(*testing.T) pdata.AttributeMap { return pdata.NewAttributeMap() },
+			expectedIP: ipStr,
+		},
+		{
+			name: "gRPC connection IP",
+			ctxFn: func(t *testing.T) context.Context {
+				grpcCtx := peer.NewContext(context.Background(), &peer.Peer{
+					Addr: &net.TCPAddr{
+						IP:   net.ParseIP(ipStr),
+						Port: 80,
+					},
+				})
+				c, ok := client.FromGRPC(grpcCtx)
+				require.True(t, ok)
+				return client.NewContext(context.Background(), c)
+			},
+			attrMapFn:  func(*testing.T) pdata.AttributeMap { return pdata.NewAttributeMap() },
+			expectedIP: ipStr,
+		},
+		{
+			name:  "ip attribute",
+			ctxFn: func(t *testing.T) context.Context { return context.Background() },
+			attrMapFn: func(*testing.T) pdata.AttributeMap {
+				attrMap := pdata.NewAttributeMap()
+				attrMap.Insert(ipTagName, pdata.NewAttributeValueString(ipStr))
+				return attrMap
+			},
+			expectedIP: ipStr,
+		},
+		{
+			name:  "net.host.ip attribute",
+			ctxFn: func(t *testing.T) context.Context { return context.Background() },
+			attrMapFn: func(*testing.T) pdata.AttributeMap {
+				attrMap := pdata.NewAttributeMap()
+				attrMap.Insert(semconv.AttributeNetHostIP, pdata.NewAttributeValueString(ipStr))
+				return attrMap
+			},
+			expectedIP: ipStr,
+		},
+		{
+			name:  "k8s ip attribute",
+			ctxFn: func(t *testing.T) context.Context { return context.Background() },
+			attrMapFn: func(*testing.T) pdata.AttributeMap {
+				attrMap := pdata.NewAttributeMap()
+				attrMap.Insert(k8sIPTagName, pdata.NewAttributeValueString(ipStr))
+				return attrMap
+			},
+			expectedIP: ipStr,
+		},
+		{
+			name:  "ip from hostname",
+			ctxFn: func(t *testing.T) context.Context { return context.Background() },
+			attrMapFn: func(*testing.T) pdata.AttributeMap {
+				attrMap := pdata.NewAttributeMap()
+				attrMap.Insert(semconv.AttributeHostName, pdata.NewAttributeValueString(ipStr))
+				return attrMap
+			},
+			expectedIP: ipStr,
+		},
+		{
+			name: "uses attr before context",
+			ctxFn: func(t *testing.T) context.Context {
+				r := &http.Request{RemoteAddr: "2.2.2.2"}
+				c, ok := client.FromHTTP(r)
+				require.True(t, ok)
+				return client.NewContext(context.Background(), c)
+			},
+			attrMapFn: func(*testing.T) pdata.AttributeMap {
+				attrMap := pdata.NewAttributeMap()
+				attrMap.Insert(semconv.AttributeNetHostIP, pdata.NewAttributeValueString(ipStr))
+				return attrMap
+			},
+			expectedIP: ipStr,
+		},
+		{
+			name:  "uses attr before hostname",
+			ctxFn: func(t *testing.T) context.Context { return context.Background() },
+			attrMapFn: func(*testing.T) pdata.AttributeMap {
+				attrMap := pdata.NewAttributeMap()
+				attrMap.Insert(semconv.AttributeNetHostIP, pdata.NewAttributeValueString(ipStr))
+				attrMap.Insert(semconv.AttributeHostName, pdata.NewAttributeValueString("3.3.3.3"))
+				return attrMap
+			},
+			expectedIP: ipStr,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ip := getPodIP(tc.ctxFn(t), tc.attrMapFn(t))
+			assert.Equal(t, tc.expectedIP, ip)
 		})
 	}
 }

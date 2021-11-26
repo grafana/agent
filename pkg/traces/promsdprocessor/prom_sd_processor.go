@@ -115,7 +115,7 @@ func getConnectionIP(ctx context.Context) string {
 	return ""
 }
 
-func getPODIP(ctx context.Context, attrs pdata.AttributeMap) string {
+func getPodIP(ctx context.Context, attrs pdata.AttributeMap) string {
 	// find the ip
 	ipTagNames := []string{
 		ipTagName,                  // jaeger/opentracing? default
@@ -139,7 +139,7 @@ func getPODIP(ctx context.Context, attrs pdata.AttributeMap) string {
 }
 
 func (p *promServiceDiscoProcessor) processAttributes(ctx context.Context, attrs pdata.AttributeMap) {
-	ip := getPODIP(ctx, attrs)
+	ip := getPodIP(ctx, attrs)
 	// have to have an ip for labels lookup
 	if ip == "" {
 		level.Debug(p.logger).Log("msg", "unable to find ip in span attributes, skipping attribute addition")
