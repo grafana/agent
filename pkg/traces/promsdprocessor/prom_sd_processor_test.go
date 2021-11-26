@@ -287,7 +287,7 @@ func TestPodAssociation(t *testing.T) {
 			expectedIP: ipStr,
 		},
 		{
-			name: "uses attr before context",
+			name: "uses attr before context (default associations)",
 			ctxFn: func(t *testing.T) context.Context {
 				r := &http.Request{RemoteAddr: "2.2.2.2"}
 				c, ok := client.FromHTTP(r)
@@ -302,12 +302,35 @@ func TestPodAssociation(t *testing.T) {
 			expectedIP: ipStr,
 		},
 		{
-			name:  "uses attr before hostname",
+			name:  "uses attr before hostname (default associations)",
 			ctxFn: func(t *testing.T) context.Context { return context.Background() },
 			attrMapFn: func(*testing.T) pdata.AttributeMap {
 				attrMap := pdata.NewAttributeMap()
 				attrMap.Insert(semconv.AttributeNetHostIP, pdata.NewAttributeValueString(ipStr))
 				attrMap.Insert(semconv.AttributeHostName, pdata.NewAttributeValueString("3.3.3.3"))
+				return attrMap
+			},
+			expectedIP: ipStr,
+		},
+		{
+			name:            "ip attribute but not as pod association",
+			podAssociations: []string{PodAssociationk8sIPLabel},
+			ctxFn:           func(t *testing.T) context.Context { return context.Background() },
+			attrMapFn: func(*testing.T) pdata.AttributeMap {
+				attrMap := pdata.NewAttributeMap()
+				attrMap.Insert(ipTagName, pdata.NewAttributeValueString(ipStr))
+				return attrMap
+			},
+			expectedIP: "",
+		},
+		{
+			name:            "uses hostname before attribute (reverse order from default)",
+			podAssociations: []string{PodAssociationHostnameLabel, PodAssociationOTelIPLabel},
+			ctxFn:           func(t *testing.T) context.Context { return context.Background() },
+			attrMapFn: func(*testing.T) pdata.AttributeMap {
+				attrMap := pdata.NewAttributeMap()
+				attrMap.Insert(semconv.AttributeNetHostIP, pdata.NewAttributeValueString("3.3.3.3"))
+				attrMap.Insert(semconv.AttributeHostName, pdata.NewAttributeValueString(ipStr))
 				return attrMap
 			},
 			expectedIP: ipStr,
