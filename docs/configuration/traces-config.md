@@ -145,6 +145,9 @@ scrape_configs:
 # `update` only modifies an existing k/v and `insert` only appends if the k/v
 # is not present. `upsert` does both.
 [ prom_sd_operation_type: <string> | default = "upsert" ]
+# Configures something
+prom_sd_pod_association: 
+  - [ <string>... ]
 
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
 # from span data.

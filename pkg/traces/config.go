@@ -110,8 +110,9 @@ type InstanceConfig struct {
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
 	// prom service discovery config
-	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
-	OperationType string        `yaml:"prom_sd_operation_type,omitempty"`
+	ScrapeConfigs   []interface{} `yaml:"scrape_configs,omitempty"`
+	OperationType   string        `yaml:"prom_sd_operation_type,omitempty"`
+	PodAssociations []string      `yaml:"prom_sd_pod_associations,omitempty"`
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
@@ -402,8 +403,9 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 		processorNames = append(processorNames, promsdprocessor.TypeStr)
 		processors[promsdprocessor.TypeStr] = map[string]interface{}{
-			"scrape_configs": c.ScrapeConfigs,
-			"operation_type": opType,
+			"scrape_configs":   c.ScrapeConfigs,
+			"operation_type":   opType,
+			"pod_associations": c.PodAssociations,
 		}
 	}
 

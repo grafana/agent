@@ -183,7 +183,7 @@ func TestOperationType(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockProcessor := new(consumertest.TracesSink)
-			p, err := newTraceProcessor(mockProcessor, tc.operationType, nil)
+			p, err := newTraceProcessor(mockProcessor, tc.operationType, nil, nil)
 			require.NoError(t, err)
 
 			attrValue := pdata.NewAttributeValueString("old-value")
@@ -213,10 +213,11 @@ func TestPodAssociation(t *testing.T) {
 	const ipStr = "1.1.1.1"
 
 	testCases := []struct {
-		name       string
-		ctxFn      func(t *testing.T) context.Context
-		attrMapFn  func(t *testing.T) pdata.AttributeMap
-		expectedIP string
+		name            string
+		podAssociations []string
+		ctxFn           func(t *testing.T) context.Context
+		attrMapFn       func(t *testing.T) pdata.AttributeMap
+		expectedIP      string
 	}{
 		{
 			name: "HTTP connection IP",
@@ -315,7 +316,11 @@ func TestPodAssociation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ip := getPodIP(tc.ctxFn(t), tc.attrMapFn(t))
+			mockProcessor := new(consumertest.TracesSink)
+			p, err := newTraceProcessor(mockProcessor, "", tc.podAssociations, nil)
+			require.NoError(t, err)
+
+			ip := p.(*promServiceDiscoProcessor).getPodIP(tc.ctxFn(t), tc.attrMapFn(t))
 			assert.Equal(t, tc.expectedIP, ip)
 		})
 	}
