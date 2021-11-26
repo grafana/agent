@@ -145,7 +145,17 @@ scrape_configs:
 # `update` only modifies an existing k/v and `insert` only appends if the k/v
 # is not present. `upsert` does both.
 [ prom_sd_operation_type: <string> | default = "upsert" ]
-# Configures something
+# Configures what methods to use to do association between spans and pods.
+# PromSD processor matches the IP address of the metadata labels from the k8s API
+# with the IP address obtained from the specified pod association method.
+# If a match is found then the span is labeled.
+#
+# Options are `ip`, `net.host.ip`, `k8s.pod.ip`, `hostname` and `connection`.
+#   - `ip`, `net.host.ip` and `k8s.pod.ip`, `hostname` match spans tags.
+#   - `connection` inspects the context from the incoming requests (gRPC and HTTP).
+#
+# By default, all methods are enabled, and evaluated in the order specified above.
+# Order of evaluation is honored when multiple methods are enabled.
 prom_sd_pod_association: 
   - [ <string>... ]
 
