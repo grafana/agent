@@ -1,6 +1,7 @@
 package promsdprocessor
 
 import (
+	"context"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -196,7 +197,7 @@ func TestOperationType(t *testing.T) {
 				},
 			}
 			p.(*promServiceDiscoProcessor).hostLabels = hostLabels
-			p.(*promServiceDiscoProcessor).processAttributes(attrMap)
+			p.(*promServiceDiscoProcessor).processAttributes(context.TODO(), attrMap)
 
 			actualAttrValue, _ := attrMap.Get(attrKey)
 			assert.Equal(t, tc.expectedValue, actualAttrValue.StringVal())

@@ -16,11 +16,17 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/relabel"
+	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
+)
+
+const (
+	ipTagName    = "ip"
+	k8sIPTagName = "k8s.host.ip"
 )
 
 type promServiceDiscoProcessor struct {
@@ -87,30 +93,53 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	for i := 0; i < rss.Len(); i++ {
 		rs := rss.At(i)
 
-		p.processAttributes(rs.Resource().Attributes())
+		p.processAttributes(ctx, rs.Resource().Attributes())
 	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) {
+func stringAttributeFromMap(attrs pdata.AttributeMap, key string) string {
+	if attr, ok := attrs.Get(key); ok {
+		if attr.Type() == pdata.AttributeValueTypeString {
+			return attr.StringVal()
+		}
+	}
+	return ""
+}
+
+func getConnectionIP(ctx context.Context) string {
+	if c, ok := client.FromContext(ctx); ok {
+		return c.IP
+	}
+	return ""
+}
+
+func getPODIP(ctx context.Context, attrs pdata.AttributeMap) string {
 	// find the ip
 	ipTagNames := []string{
-		"ip",                       // jaeger/opentracing? default
+		ipTagName,                  // jaeger/opentracing? default
 		semconv.AttributeNetHostIP, // otel semantics for host ip
+		k8sIPTagName,               // k8s semantics for host ip
 	}
 
-	var ip string
 	for _, name := range ipTagNames {
-		val, ok := attrs.Get(name)
-		if !ok {
-			continue
+		ip := stringAttributeFromMap(attrs, name)
+		if ip != "" {
+			return ip
 		}
-
-		ip = val.StringVal()
-		break
 	}
 
+	hostname := stringAttributeFromMap(attrs, semconv.AttributeHostName)
+	if net.ParseIP(hostname) != nil {
+		return hostname
+	}
+
+	return getConnectionIP(ctx)
+}
+
+func (p *promServiceDiscoProcessor) processAttributes(ctx context.Context, attrs pdata.AttributeMap) {
+	ip := getPODIP(ctx, attrs)
 	// have to have an ip for labels lookup
 	if ip == "" {
 		level.Debug(p.logger).Log("msg", "unable to find ip in span attributes, skipping attribute addition")
