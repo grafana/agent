@@ -36,8 +36,8 @@ use_hostname_label: true
 `
 	var (
 		cfg        ManagerConfig
-		listenPort int    = 12345
-		listenHost string = "127.0.0.1"
+		listenPort = 12345
+		listenHost = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -57,18 +57,55 @@ use_hostname_label: true
 func TestConfig_Remarshal(t *testing.T) {
 	RegisterIntegration(&testIntegrationA{})
 	cfgText := `
-scrape_integrations: true
-replace_instance_label: true
-integration_restart_backoff: 5s
-use_hostname_label: true
 test:
   text: Hello, world!
   truth: true
 `
+	expect := `
+scrape_integrations: true
+replace_instance_label: true
+integration_restart_backoff: 5s
+use_hostname_label: true
+test_configs:
+  - text: Hello, world!
+    truth: true
+  `
+
 	var (
 		cfg        ManagerConfig
-		listenPort int    = 12345
-		listenHost string = "127.0.0.1"
+		listenPort = 12345
+		listenHost = "127.0.0.1"
+	)
+	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
+
+	// Listen port must be set before applying defaults. Normally applied by the
+	// config package.
+	cfg.ListenPort = listenPort
+	cfg.ListenHost = listenHost
+
+	outBytes, err := yaml.Marshal(cfg)
+	require.NoError(t, err, "Failed creating integration")
+	fmt.Println(string(outBytes))
+	require.YAMLEq(t, expect, string(outBytes))
+}
+
+// Test that marshaling works for *_configs integrations.
+func TestConfig_Remarshal_ConfigsSlice(t *testing.T) {
+	setRegisteredIntegrations([]Config{&testIntegrationA{}})
+	cfgText := `
+scrape_integrations: true
+replace_instance_label: true
+integration_restart_backoff: 5s
+use_hostname_label: true
+test_configs:
+  - text: Hello, world!
+    truth: true
+  - text: Hello again!
+    truth: true`
+	var (
+		cfg        ManagerConfig
+		listenPort = 12345
+		listenHost = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -90,8 +127,8 @@ agent: {}
 
 	var (
 		cfg        ManagerConfig
-		listenPort int    = 12345
-		listenHost string = "127.0.0.1"
+		listenPort = 12345
+		listenHost = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
