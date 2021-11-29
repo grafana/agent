@@ -314,7 +314,7 @@ func TestPodAssociation(t *testing.T) {
 		},
 		{
 			name:            "ip attribute but not as pod association",
-			podAssociations: []string{PodAssociationk8sIPLabel},
+			podAssociations: []string{podAssociationk8sIPLabel},
 			ctxFn:           func(t *testing.T) context.Context { return context.Background() },
 			attrMapFn: func(*testing.T) pdata.AttributeMap {
 				attrMap := pdata.NewAttributeMap()
@@ -325,7 +325,7 @@ func TestPodAssociation(t *testing.T) {
 		},
 		{
 			name:            "uses hostname before attribute (reverse order from default)",
-			podAssociations: []string{PodAssociationHostnameLabel, PodAssociationOTelIPLabel},
+			podAssociations: []string{podAssociationHostnameLabel, podAssociationOTelIPLabel},
 			ctxFn:           func(t *testing.T) context.Context { return context.Background() },
 			attrMapFn: func(*testing.T) pdata.AttributeMap {
 				attrMap := pdata.NewAttributeMap()

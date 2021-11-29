@@ -75,7 +75,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 
 	for _, podAssociation := range podAssociations {
 		switch podAssociation {
-		case PodAssociationIPLabel, PodAssociationOTelIPLabel, PodAssociationk8sIPLabel, PodAssociationHostnameLabel, PodAssociationConnectionIP:
+		case podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel, podAssociationHostnameLabel, podAssociationConnectionIP:
 		default:
 			cancel()
 			return nil, fmt.Errorf("unknown pod association %s", podAssociation)
@@ -83,7 +83,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 	}
 
 	if len(podAssociations) == 0 {
-		podAssociations = []string{PodAssociationIPLabel, PodAssociationOTelIPLabel, PodAssociationk8sIPLabel, PodAssociationHostnameLabel, PodAssociationConnectionIP}
+		podAssociations = []string{podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel, podAssociationHostnameLabel, podAssociationConnectionIP}
 	}
 
 	if nextConsumer == nil {
@@ -133,18 +133,17 @@ func getConnectionIP(ctx context.Context) string {
 func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pdata.AttributeMap) string {
 	for _, podAssociation := range p.podAssociations {
 		switch podAssociation {
-		case PodAssociationIPLabel, PodAssociationOTelIPLabel, PodAssociationk8sIPLabel:
-			fmt.Println(podAssociation)
+		case podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel:
 			ip := stringAttributeFromMap(attrs, podAssociation)
 			if ip != "" {
 				return ip
 			}
-		case PodAssociationHostnameLabel:
+		case podAssociationHostnameLabel:
 			hostname := stringAttributeFromMap(attrs, semconv.AttributeHostName)
 			if net.ParseIP(hostname) != nil {
 				return hostname
 			}
-		case PodAssociationConnectionIP:
+		case podAssociationConnectionIP:
 			ip := getConnectionIP(ctx)
 			if ip != "" {
 				return ip

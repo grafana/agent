@@ -23,11 +23,11 @@ const (
 	// OperationTypeUpsert does both of above
 	OperationTypeUpsert = "upsert"
 
-	PodAssociationIPLabel       = "ip"
-	PodAssociationOTelIPLabel   = "net.host.ip"
-	PodAssociationk8sIPLabel    = "k8s.pod.ip"
-	PodAssociationHostnameLabel = "hostname"
-	PodAssociationConnectionIP  = "connection"
+	podAssociationIPLabel       = "ip"
+	podAssociationOTelIPLabel   = "net.host.ip"
+	podAssociationk8sIPLabel    = "k8s.pod.ip"
+	podAssociationHostnameLabel = "hostname"
+	podAssociationConnectionIP  = "connection"
 )
 
 // Config holds the configuration for the Prometheus SD processor.
