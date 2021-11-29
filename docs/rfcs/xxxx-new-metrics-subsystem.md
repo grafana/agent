@@ -13,10 +13,10 @@ weight: xxxx
 There are several open issues discussing major changes to the metrics
 subsystem:
 
-* #872: Per-target sharding
-* #873: Reduce operational modes
-* #875: Introduce agent-wide clustering mechanism
-* #888: Remove internal instance manager system
+* [#872][#872]: Per-target sharding
+* [#873][#873]: Reduce operational modes
+* [#875][#875]: Introduce agent-wide clustering mechanism
+* [#888][#888]: Remove internal instance manager system
 
 These are significant changes to the code base. With the exception of #872, all
 of the changes are mainly to reduce technical debt. The implementation effort
@@ -300,6 +300,10 @@ also enable alerting on config desync.
 
 Per-target sharding was prototyped in July 2021 in [rfratto/agent][prototype].
 
+[#872]: https://github.com/grafana/agent/issues/872
+[#873]: https://github.com/grafana/agent/issues/873
+[#875]: https://github.com/grafana/agent/issues/875
+[#888]: https://github.com/grafana/agent/issues/888
 [per-target sharding]: https://docs.google.com/document/d/1JI804iaut6bKvZprOydes3Gb5Awo_J0sX-3ORlyc5l0
 [ckit]: https://github.com/rfratto/ckit
 [go-discover]: https://github.com/hashicorp/go-discover
