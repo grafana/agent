@@ -1,8 +1,8 @@
 # Main (unreleased)
 
-# v0.21.1 (2021-11-18)
-
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
+
+# v0.21.1 (2021-11-18)
 
 - [BUGFIX] Fix panic when using postgres_exporter integration (@saputradharma)
 
