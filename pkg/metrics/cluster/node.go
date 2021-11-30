@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -17,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/kv"
+	"github.com/grafana/dskit/ring"
 	"github.com/grafana/dskit/services"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/user"
@@ -53,12 +53,13 @@ type node struct {
 // newNode creates a new node and registers it to the ring.
 func newNode(reg prometheus.Registerer, log log.Logger, cfg Config, s pb.ScrapingServiceServer) (*node, error) {
 	n := &node{
-		reg: util.WrapWithUnregisterer(reg),
+		reg: util.WrapWithUnregisterer(prometheus.WrapRegistererWithPrefix("cortex_", reg)),
 		srv: s,
 		log: log,
 
 		reload: make(chan struct{}, 1),
 	}
+
 	if err := n.ApplyConfig(cfg); err != nil {
 		return nil, err
 	}
@@ -114,15 +115,12 @@ func (n *node) ApplyConfig(cfg Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to create ring: %w", err)
 	}
-	if err := n.reg.Register(r); err != nil {
-		return fmt.Errorf("failed to register ring metrics: %w", err)
-	}
 	if err := services.StartAndAwaitRunning(context.Background(), r); err != nil {
 		return fmt.Errorf("failed to start ring: %w", err)
 	}
 	n.ring = r
 
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.reg)
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.log, n.reg)
 	if err != nil {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
@@ -150,10 +148,11 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer, log l
 		kv.RegistererWithKVName(reg, name+"-ring"),
 		log,
 	)
+
 	if err != nil {
 		return nil, err
 	}
-	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy())
+	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy(), reg, log)
 }
 
 // run waits for connection to the ring and kickstarts the join process.

@@ -4,10 +4,10 @@ import (
 	"flag"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	flagutil "github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv"
+	"github.com/grafana/dskit/ring"
 )
 
 // DefaultConfig provides default values for the config

@@ -6,11 +6,10 @@ require (
 	cloud.google.com/go/pubsub v1.5.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Shopify/sarama v1.30.0
-	github.com/cortexproject/cortex v1.10.1-0.20211014125347-85c378182d0d
+	github.com/cortexproject/cortex v1.10.1-0.20211104100946-3f329a21cad4
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
 	github.com/fatih/structs v1.1.0
-	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.0
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/go-logr/logr v1.0.0
@@ -20,8 +19,8 @@ require (
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-jsonnet v0.17.0
 	github.com/gorilla/mux v1.8.0
-	github.com/grafana/dskit v0.0.0-20211011144203-3a88ec0b675f
-	github.com/grafana/loki v1.6.2-0.20211021114919-0ae0d4da122d
+	github.com/grafana/dskit v0.0.0-20211021180445-3bd016e9d7f1
+	github.com/grafana/loki v1.6.2-0.20211108122114-f61a4d2612d8
 	github.com/grafana/tempo v1.0.1
 	github.com/hashicorp/consul/api v1.11.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
