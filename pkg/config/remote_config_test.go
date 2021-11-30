@@ -41,7 +41,7 @@ metrics:
 		}
 	}))
 
-	tempDir := os.TempDir()
+	tempDir := t.TempDir()
 	err = os.WriteFile(fmt.Sprintf("%s/password-file.txt", tempDir), []byte("bar"), 0644)
 	if err != nil {
 		t.Error(err.Error())
