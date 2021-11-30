@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path"
 	"sync"
 	"sync/atomic"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/gorilla/mux"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -19,13 +21,12 @@ import (
 // all known extension interfaces. Controller may be used inside other
 // integrations to implement integration multiplexing.
 type Controller struct {
-	mut          sync.Mutex
-	copts        ControllerOptions
-	iopts        IntegrationOptions
-	integrations []*controlledIntegration // Running integrations
+	mut   sync.Mutex
+	copts ControllerOptions
+	iopts IntegrationOptions
 
-	// integrationsCh is used to update the set of running integrations.
-	integrationsCh chan []*controlledIntegration
+	integrations       []*controlledIntegration // Integrations to run
+	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
 
 	// Next generation value to use for an integration.
 	gen uint64
@@ -42,7 +43,7 @@ func NewController(copts ControllerOptions, iopts IntegrationOptions) (*Controll
 		copts: copts,
 		iopts: iopts,
 
-		integrationsCh: make(chan []*controlledIntegration, 1),
+		reloadIntegrations: make(chan struct{}, 1),
 	}
 	if err := c.ApplyConfig(&copts); err != nil {
 		return nil, err
@@ -63,14 +64,20 @@ func (c *Controller) Run(ctx context.Context) error {
 		}
 	}()
 
-	updateIntegrations := func(newIntegrations []*controlledIntegration) {
+	var currentIntegrations []*controlledIntegration
+
+	updateIntegrations := func() {
+		// Lock the mutex to prevent another set of integrations from being
+		// loaded in.
 		c.mut.Lock()
 		defer c.mut.Unlock()
+
+		newIntegrations := c.integrations
 
 		// Shut down all old integrations. If the integration exists in
 		// newIntegrations but has a different gen number, then there's a new
 		// instance to launch.
-		for _, exist := range c.integrations {
+		for _, exist := range currentIntegrations {
 			var found bool
 			for _, current := range newIntegrations {
 				if exist.id == current.id && current.gen == exist.gen {
@@ -92,7 +99,7 @@ func (c *Controller) Run(ctx context.Context) error {
 		}
 
 		// Finally, store the current list of contolled integrations.
-		c.integrations = newIntegrations
+		currentIntegrations = newIntegrations
 	}
 
 	for {
@@ -100,9 +107,9 @@ func (c *Controller) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			level.Debug(c.iopts.Logger).Log("msg", "controller exiting")
 			return nil
-		case integrations := <-c.integrationsCh:
+		case <-c.reloadIntegrations:
 			level.Debug(c.iopts.Logger).Log("msg", "updating running integrations")
-			updateIntegrations(integrations)
+			updateIntegrations()
 
 			if c.onUpdateDone != nil {
 				c.onUpdateDone()
@@ -270,20 +277,27 @@ NextConfig:
 		// Handle extensions
 		//
 
-		if integration, ok := integration.(HTTPIntegration); ok {
-			// TODO(rfratto): wire?
-			_ = integration
-		}
 		if integration, ok := integration.(MetricsIntegration); ok {
 			// TODO(rfratto): handle?
 			_ = integration
 		}
 	}
 
+	// Recalculate HTTP paths to use for integrations.
+	for _, integration := range integrations {
+		integration, ok := integration.i.(HTTPIntegration)
+		if !ok {
+			continue
+		}
+
+		_ = integration
+	}
+
 	// TODO(rfratto): handle removing extensions for configs that have gone away
 
-	// Pass new set of integrations to .Run
-	c.integrationsCh <- integrations
+	// Update integrations and inform
+	c.integrations = integrations
+	c.reloadIntegrations <- struct{}{}
 
 	c.copts = copts
 	c.iopts = iopts
@@ -305,8 +319,66 @@ func (c *Controller) ApplyConfig(cfg Config) error {
 
 // Handler implements HTTPIntegration. Handler will pass through requests to
 // other running integrations.
+//
+// Handler is expensive to compute and should only be done after reloading the
+// config.
 func (c *Controller) Handler(prefix string) (http.Handler, error) {
-	panic("NYI")
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	r := mux.NewRouter()
+
+	// Pre-populate a mapping of integration name -> identifier. If there are
+	// two instances of the same integration, we want to ensure unique routing.
+	//
+	// This special logic is done for backwards compatibility with the original
+	// design of integrations.
+	identifiersMap := map[string][]string{}
+	for _, i := range c.integrations {
+		identifiersMap[i.id.Name] = append(identifiersMap[i.id.Name], i.id.Identifier)
+	}
+
+	usedPrefixes := map[string]struct{}{}
+
+	for _, i := range c.integrations {
+		id := i.id
+		multipleInstances := len(identifiersMap[id.Name]) > 1
+
+		i, ok := i.i.(HTTPIntegration)
+		if !ok {
+			continue
+		}
+
+		var integrationPrefix string
+		if multipleInstances {
+			// i.e., /integrations/mysqld_exporter/server-a
+			integrationPrefix = path.Join(prefix, id.Name, id.Identifier)
+		} else {
+			// i.e., /integrations/node_exporter
+			integrationPrefix = path.Join(prefix, id.Name)
+		}
+
+		handler, err := i.Handler(integrationPrefix + "/")
+		if errors.Is(err, ErrDisabled) {
+			continue
+		} else if err != nil {
+			return nil, fmt.Errorf("could not generate HTTP handler for %s integration %q: %w", id.Name, id.Identifier, err)
+		} else if handler == nil {
+			continue
+		}
+
+		if _, exist := usedPrefixes[integrationPrefix]; exist {
+			return nil, fmt.Errorf("BUG: duplicate integration prefix %q", integrationPrefix)
+		}
+		usedPrefixes[integrationPrefix] = struct{}{}
+
+		// Anything that matches the integrationPrefix should be passed to the handler.
+		r.PathPrefix(integrationPrefix).Handler(handler)
+	}
+
+	// TODO(rfratto): navigation page for exact prefix match
+
+	return r, nil
 }
 
 // Targets implements MetricsIntegration. Targets will return a channel that

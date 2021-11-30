@@ -157,7 +157,8 @@ type HTTPIntegration interface {
 	Integration
 
 	// Handler returns an http.Handler. Handler will be invoked for any endpoint
-	// under prefix. If Handler returns nil, nothing will be called.
+	// under prefix. If Handler returns nil, nothing will be called. Handler
+	// may be called multiple times.
 	//
 	// prefix will not be removed from the HTTP request by default.
 	Handler(prefix string) (http.Handler, error)
@@ -176,7 +177,7 @@ type MetricsIntegration interface {
 	// can be used to create a __metrics_path__ label for targets that
 	// exist from an HTTPIntegration.
 	//
-	// Targets will only be called once whenever a config is loaded.
+	// Targets will be called once per config load.
 	Targets(prefix string) chan<- []*targetgroup.Group
 
 	// ScrapeConfigs configures automatic scraping of targets. ScrapeConfigs
@@ -185,6 +186,6 @@ type MetricsIntegration interface {
 	// Use the provided discovery.Configs to discover the targets exposed by this
 	// integration.
 	//
-	// ScrapeConfigs will only be called once whenever a config is loaded.
+	// ScrapeConfigs will be called once per config load.
 	ScrapeConfigs(discovery.Configs) []*prom_config.ScrapeConfig
 }
