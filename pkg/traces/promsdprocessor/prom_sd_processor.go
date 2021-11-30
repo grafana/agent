@@ -24,11 +24,6 @@ import (
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
 )
 
-const (
-	ipTagName    = "ip"
-	k8sIPTagName = "k8s.pod.ip"
-)
-
 type promServiceDiscoProcessor struct {
 	nextConsumer     consumer.Traces
 	discoveryMgr     *discovery.Manager

@@ -251,7 +251,7 @@ func TestPodAssociation(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context { return context.Background() },
 			attrMapFn: func(*testing.T) pdata.AttributeMap {
 				attrMap := pdata.NewAttributeMap()
-				attrMap.Insert(ipTagName, pdata.NewAttributeValueString(ipStr))
+				attrMap.Insert(podAssociationIPLabel, pdata.NewAttributeValueString(ipStr))
 				return attrMap
 			},
 			expectedIP: ipStr,
@@ -271,7 +271,7 @@ func TestPodAssociation(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context { return context.Background() },
 			attrMapFn: func(*testing.T) pdata.AttributeMap {
 				attrMap := pdata.NewAttributeMap()
-				attrMap.Insert(k8sIPTagName, pdata.NewAttributeValueString(ipStr))
+				attrMap.Insert(podAssociationk8sIPLabel, pdata.NewAttributeValueString(ipStr))
 				return attrMap
 			},
 			expectedIP: ipStr,
@@ -318,7 +318,7 @@ func TestPodAssociation(t *testing.T) {
 			ctxFn:           func(t *testing.T) context.Context { return context.Background() },
 			attrMapFn: func(*testing.T) pdata.AttributeMap {
 				attrMap := pdata.NewAttributeMap()
-				attrMap.Insert(ipTagName, pdata.NewAttributeValueString(ipStr))
+				attrMap.Insert(podAssociationIPLabel, pdata.NewAttributeValueString(ipStr))
 				return attrMap
 			},
 			expectedIP: "",
