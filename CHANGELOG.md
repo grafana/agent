@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] Update Loki dependency to v2.4.1 (@rlankfo)
+
 # v0.21.1 (2021-11-18)
 
 - [BUGFIX] Fix panic when using postgres_exporter integration (@saputradharma)
@@ -18,7 +20,7 @@
 
 - [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
 
-- [ENHANCEMENT] Update Loki dependency to v2.4.1 (@rlankfo)
+- [ENHANCEMENT] Update Loki dependency to v2.1.0-656-g0ae0d4da1. (@rlankfo)
 
 - [ENHANCEMENT] Update Prometheus dependency to v2.31.0 (@rlankfo)
 
