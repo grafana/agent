@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/prometheus/common/config"
@@ -88,21 +87,20 @@ func (p httpP) Retrieve() (*Config, error) {
 		request   *http.Request
 		response  *http.Response
 		basicAuth *config.BasicAuth
+		client    *http.Client
 
 		result = &Config{}
-		client = &http.Client{}
 	)
 
+	client, err = config.NewClientFromConfig(*p.httpClientConfig, "remote-config", nil)
+	if err != nil {
+		return nil, err
+	}
 	if p.httpClientConfig != nil {
 		err = p.httpClientConfig.Validate()
 		if err != nil {
 			return nil, err
 		}
-		dir, err := os.Getwd()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get current working directory: %s", err.Error())
-		}
-		p.httpClientConfig.SetDirectory(dir)
 		if p.httpClientConfig.BasicAuth != nil {
 			basicAuth = p.httpClientConfig.BasicAuth
 		}

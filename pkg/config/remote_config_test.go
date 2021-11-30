@@ -47,6 +47,18 @@ metrics:
 		t.Error(err.Error())
 		t.FailNow()
 	}
+	passwdFileCfg := &config.HTTPClientConfig{
+		BasicAuth: &config.BasicAuth{
+			Username:     "foo",
+			PasswordFile: fmt.Sprintf("%s/password-file.txt", tempDir),
+		},
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Error(err.Error())
+		t.FailNow()
+	}
+	passwdFileCfg.SetDirectory(dir)
 
 	type args struct {
 		rawURL string
@@ -87,12 +99,7 @@ metrics:
 			args: args{
 				rawURL: fmt.Sprintf("%s/agent.yml", svrWithBasicAuth.URL),
 				opts: &RemoteOpts{
-					HTTPClientConfig: &config.HTTPClientConfig{
-						BasicAuth: &config.BasicAuth{
-							Username:     "foo",
-							PasswordFile: fmt.Sprintf("%s/password-file.txt", tempDir),
-						},
-					},
+					HTTPClientConfig: passwdFileCfg,
 				},
 			},
 			want:    wantCfg,
