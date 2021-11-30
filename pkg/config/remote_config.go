@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/prometheus/common/config"
 )
@@ -84,39 +83,27 @@ func (p httpP) Retrieve() (*Config, error) {
 		bb  []byte
 		err error
 
-		request   *http.Request
-		response  *http.Response
-		basicAuth *config.BasicAuth
-		client    *http.Client
+		request  *http.Request
+		response *http.Response
+		client   *http.Client
 
 		result = &Config{}
 	)
 
-	client, err = config.NewClientFromConfig(*p.httpClientConfig, "remote-config", nil)
-	if err != nil {
-		return nil, err
-	}
 	if p.httpClientConfig != nil {
 		err = p.httpClientConfig.Validate()
 		if err != nil {
 			return nil, err
 		}
-		if p.httpClientConfig.BasicAuth != nil {
-			basicAuth = p.httpClientConfig.BasicAuth
-		}
+	} else {
+		p.httpClientConfig = &config.HTTPClientConfig{}
+	}
+	client, err = config.NewClientFromConfig(*p.httpClientConfig, "remote-config")
+	if err != nil {
+		return nil, err
 	}
 
 	request, err = http.NewRequest(http.MethodGet, p.myURL.String(), nil)
-	if basicAuth != nil {
-		if basicAuth.PasswordFile != "" {
-			bs, err := ioutil.ReadFile(basicAuth.PasswordFile)
-			if err != nil {
-				return nil, fmt.Errorf("unable to read basic auth password file %s: %s", basicAuth.PasswordFile, err)
-			}
-			basicAuth.Password = config.Secret(strings.TrimSpace(string(bs)))
-		}
-		request.SetBasicAuth(basicAuth.Username, string(basicAuth.Password))
-	}
 	if err != nil {
 		return nil, err
 	}
