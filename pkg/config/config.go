@@ -105,7 +105,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // messages.
 func (c *Config) LogDeprecations(l log.Logger) {
 	for _, d := range c.Deprecations {
-		level.Warn(l).Log("msg", fmt.Sprintf("DEPRECATION NOTICE: %s", d))
+		_ = level.Warn(l).Log("msg", fmt.Sprintf("DEPRECATION NOTICE: %s", d))
 	}
 }
 
@@ -160,6 +160,24 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
+// LoadRemote reads a config from url
+func LoadRemote(url string, expandEnvVars bool, c *Config) error {
+	rc, err := NewRemoteConfig(url, nil)
+	if err != nil {
+		return errors.Wrap(err, "error reading remote config")
+	}
+	// fall back to file if no scheme is passed
+	if rc == nil {
+		return LoadFile(url, expandEnvVars, c)
+	}
+	config, err := rc.Retrieve()
+	if err != nil {
+		return errors.Wrap(err, "error retrieving remote config")
+	}
+	*c = *config
+	return nil
+}
+
 // LoadBytes unmarshals a config from a buffer. Defaults are not
 // applied to the file and must be done manually if LoadBytes
 // is called directly.
@@ -199,7 +217,7 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, LoadFile)
+	return load(fs, args, LoadRemote)
 }
 
 // load allows for tests to inject a function for retrieving the config file that
