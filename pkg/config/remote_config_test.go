@@ -47,12 +47,6 @@ metrics:
 		t.Error(err.Error())
 		t.FailNow()
 	}
-	defer func(path string) {
-		err := os.RemoveAll(path)
-		if err != nil {
-			t.Logf("failed to remove temp dir: %s\n", tempDir)
-		}
-	}(tempDir)
 
 	type args struct {
 		rawURL string
