@@ -20,15 +20,25 @@ package integrations
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
+	"github.com/grafana/agent/pkg/util"
+	common_config "github.com/prometheus/common/config"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+)
+
+var (
+	// ErrDisabled may be returned by NewIntegration to indicate that an
+	// integration should not run.
+	ErrDisabled = fmt.Errorf("integration disabled")
 )
 
 // Config provides a configuration and constructor for an integration.
@@ -48,9 +58,20 @@ type Config interface {
 	// NewIntegration should return a new Integration using the provided
 	// IntegrationOptions to help initialize the Integration.
 	//
-	// NewIntegration should do any initialization of an Integration, but it
-	// should not be run until Integration.Run is invoked.
+	// NewIntegration must be idempotent for a Config. Use Integration.Run to do
+	// anything with side effects, such as opening a port.
+	//
+	// NewIntegration may return ErrDisabled if the integration should not be
+	// run.
 	NewIntegration(IntegrationOptions) (Integration, error)
+}
+
+// ComparableConfig extends Config with an ConfigEquals method.
+type ComparableConfig interface {
+	Config
+
+	// ConfigEquals should return true if c is equal to the ComparableConfig.
+	ConfigEquals(c Config) bool
 }
 
 // IntegrationOptions are used to pass around subsystems that empower
@@ -74,6 +95,32 @@ type IntegrationOptions struct {
 	Metrics *metrics.Agent // Metrics subsystem
 	Logs    *logs.Logs     // Logs subsystem
 	Tracing *traces.Traces // Traces subsystem
+
+	// BaseURL to use to invoke methods against the embedded HTTP server.
+	AgentBaseURL *url.URL
+	// HTTP config to invoke methods against the embedded HTTP server.
+	AgentHTTPClientConfig common_config.HTTPClientConfig
+}
+
+// Equals returns true if io equals other. Logger isn't checked.
+func (io IntegrationOptions) Equals(other IntegrationOptions) bool {
+	return io.AgentIdentifier == other.AgentIdentifier &&
+		io.Metrics == other.Metrics &&
+		io.Logs == other.Logs &&
+		io.Tracing == other.Tracing &&
+		urlCompare(io.AgentBaseURL, other.AgentBaseURL) &&
+		util.CompareYAML(io.AgentHTTPClientConfig, other.AgentHTTPClientConfig)
+}
+
+func urlCompare(a, b *url.URL) bool {
+	switch {
+	case a == b:
+		return true
+	case a != nil && b != nil:
+		return a.String() == b.String()
+	default:
+		return false
+	}
 }
 
 // An Integration integrates some external system with Grafana Agent's existing
@@ -96,6 +143,8 @@ type UpdateIntegration interface {
 
 	// ApplyConfig should apply the config c to the integration. An error can be
 	// returned if the Config is invalid.
+	//
+	// If ApplyConfig returns ErrDisabled, the integration will be stopped.
 	ApplyConfig(c Config) error
 }
 
