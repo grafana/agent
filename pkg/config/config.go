@@ -47,8 +47,9 @@ type Config struct {
 	Deprecations []string `yaml:"-"`
 
 	// Remote config options
-	BasicAuthUser     string `yaml:"-"`
-	BasicAuthPassFile string `yaml:"-"`
+	ExperimentalConfigURLs bool   `yaml:"-"`
+	BasicAuthUser          string `yaml:"-"`
+	BasicAuthPassFile      string `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -155,6 +156,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
 	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "", "basic auth username for fetching remote config.")
 	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "", "path to file containing basic auth password for fetching remote config.")
+	f.BoolVar(&c.ExperimentalConfigURLs, "experiment.config-urls.enable", false, "enable experimental remote config URLs feature")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -240,7 +242,7 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, LoadRemote)
+	return load(fs, args, LoadFile)
 }
 
 // load allows for tests to inject a function for retrieving the config file that
@@ -266,6 +268,10 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if printVersion {
 		fmt.Println(version.Print("agent"))
 		os.Exit(0)
+	}
+
+	if cfg.ExperimentalConfigURLs {
+		loader = LoadRemote
 	}
 
 	if file == "" {
