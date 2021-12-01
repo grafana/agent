@@ -17,13 +17,29 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
+// ControllerConfig implements Config and manages a set of integrations.
+type ControllerConfig []Config
+
+// Name implements Config. Returns "controller".
+func (c ControllerConfig) Name() string { return "controller" }
+
+// Identifier implements Config. Returns "controller".
+func (c ControllerConfig) Identifier(IntegrationOptions) (string, error) {
+	return "controller", nil
+}
+
+// NewIntegration implements Config. Returns a Controller.
+func (c ControllerConfig) NewIntegration(opts IntegrationOptions) (Integration, error) {
+	return NewController(c, opts)
+}
+
 // Controller runs a set of integrations. Controller implements Integration and
 // all known extension interfaces. Controller may be used inside other
 // integrations to implement integration multiplexing.
 type Controller struct {
-	mut   sync.Mutex
-	copts ControllerOptions
-	iopts IntegrationOptions
+	mut  sync.Mutex
+	cfg  ControllerConfig
+	opts IntegrationOptions
 
 	integrations       []*controlledIntegration // Integrations to run
 	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
@@ -38,14 +54,14 @@ type Controller struct {
 
 // NewController creates a new Controller. Controller implements Integration
 // and integrations will not run until Controller.Run is invoked.
-func NewController(copts ControllerOptions, iopts IntegrationOptions) (*Controller, error) {
+func NewController(cfg ControllerConfig, opts IntegrationOptions) (*Controller, error) {
 	c := &Controller{
-		copts: copts,
-		iopts: iopts,
+		cfg:  cfg,
+		opts: opts,
 
 		reloadIntegrations: make(chan struct{}, 1),
 	}
-	if err := c.ApplyConfig(&copts); err != nil {
+	if err := c.ApplyConfig(cfg); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -54,7 +70,7 @@ func NewController(copts ControllerOptions, iopts IntegrationOptions) (*Controll
 // Run implements Integration. Run will run all integrations.
 func (c *Controller) Run(ctx context.Context) error {
 	defer func() {
-		level.Debug(c.iopts.Logger).Log("msg", "stopping all integrations")
+		level.Debug(c.opts.Logger).Log("msg", "stopping all integrations")
 
 		c.mut.Lock()
 		defer c.mut.Unlock()
@@ -105,10 +121,10 @@ func (c *Controller) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			level.Debug(c.iopts.Logger).Log("msg", "controller exiting")
+			level.Debug(c.opts.Logger).Log("msg", "controller exiting")
 			return nil
 		case <-c.reloadIntegrations:
-			level.Debug(c.iopts.Logger).Log("msg", "updating running integrations")
+			level.Debug(c.opts.Logger).Log("msg", "updating running integrations")
 			updateIntegrations()
 
 			if c.onUpdateDone != nil {
@@ -170,36 +186,35 @@ type integrationID struct {
 
 // UpdateController updates the Controller with new Controller and
 // IntegrationOptions.
-func (c *Controller) UpdateController(copts ControllerOptions, iopts IntegrationOptions) error {
+func (c *Controller) UpdateController(cfg ControllerConfig, opts IntegrationOptions) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	return c.updateController(copts, iopts)
+	return c.updateController(cfg, opts)
 }
 
-func (c *Controller) updateController(copts ControllerOptions, iopts IntegrationOptions) error {
+func (c *Controller) updateController(cfg ControllerConfig, opts IntegrationOptions) error {
 	// If iops has changed between calls, then we need to consider all
 	// integrations as updated.
 	//
-	// NOTE(rfratto): while we _could_ pass the new iopts to UpdateIntegration
+	// NOTE(rfratto): while we _could_ pass the new opts to UpdateIntegration
 	// and only restart everything else, I don't think it's worth it. The things
-	// that could eventually update in iopts will eventually be made static for the
+	// that could eventually update in opts will eventually be made static for the
 	// process lifetime: https://github.com/grafana/agent/issues/581
-	forceUpdate := !iopts.Equals(c.iopts)
+	forceUpdate := !opts.Equals(c.opts)
 
 	integrationIDMap := map[integrationID]struct{}{}
 
-	integrations := make([]*controlledIntegration, 0, len(copts.Configs))
+	integrations := make([]*controlledIntegration, 0, len(cfg))
 
 NextConfig:
-	for _, ic := range copts.Configs {
+	for _, ic := range cfg {
 		name := ic.Name()
 
 		// Create a new set of integration options for each integration. This includes
 		// a temporary logger for the next few calls. A final logger will be configured
 		// before calling NewIntegration.
-		icOpts := iopts
-		icOpts.AgentHTTPClientConfig = copts.ClientConfig
-		icOpts.Logger = log.With(iopts.Logger, "integration", name)
+		icOpts := opts
+		icOpts.Logger = log.With(opts.Logger, "integration", name)
 
 		identifier, err := ic.Identifier(icOpts)
 		if err != nil {
@@ -253,9 +268,9 @@ NextConfig:
 		//
 		// https://github.com/go-kit/log/issues/16 may make this easier.
 		if _, ok := ic.(ControllerConfig); ok {
-			icOpts.Logger = iopts.Logger
+			icOpts.Logger = opts.Logger
 		} else {
-			icOpts.Logger = log.With(iopts.Logger, "integration", name, "identifier", identifier)
+			icOpts.Logger = log.With(opts.Logger, "integration", name, "identifier", identifier)
 		}
 		integration, err := ic.NewIntegration(icOpts)
 		if errors.Is(err, ErrDisabled) {
@@ -299,8 +314,8 @@ NextConfig:
 	c.integrations = integrations
 	c.reloadIntegrations <- struct{}{}
 
-	c.copts = copts
-	c.iopts = iopts
+	c.cfg = cfg
+	c.opts = opts
 	return nil
 }
 
@@ -314,7 +329,7 @@ func (c *Controller) ApplyConfig(cfg Config) error {
 
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	return c.updateController(controllerConfig.ControllerOptions(), c.iopts)
+	return c.updateController(controllerConfig, c.opts)
 }
 
 // Handler implements HTTPIntegration. Handler will pass through requests to

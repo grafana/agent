@@ -42,11 +42,11 @@ func TestController_HTTPIntegration_Prefixes(t *testing.T) {
 		var prefixes []string
 
 		ctrl, err := NewController(
-			ControllerOptions{Configs: []Config{
+			ControllerConfig{
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "fizz", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
-			}},
+			},
 			IntegrationOptions{Logger: util.TestLogger(t)},
 		)
 		require.NoError(t, err)
@@ -66,11 +66,11 @@ func TestController_HTTPIntegration_Prefixes(t *testing.T) {
 		var prefixes []string
 
 		ctrl, err := NewController(
-			ControllerOptions{Configs: []Config{
+			ControllerConfig{
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "foo", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
-			}},
+			},
 			IntegrationOptions{Logger: util.TestLogger(t)},
 		)
 		require.NoError(t, err)
@@ -110,11 +110,11 @@ func TestController_HTTPIntegration_Routing(t *testing.T) {
 	}
 
 	ctrl, err := NewController(
-		ControllerOptions{Configs: []Config{
+		ControllerConfig{
 			httpConfigFromID(t, "foo", "bar"),
 			httpConfigFromID(t, "foo", "buzz"),
 			httpConfigFromID(t, "hello", "world"),
-		}},
+		},
 		IntegrationOptions{Logger: util.TestLogger(t)},
 	)
 	require.NoError(t, err)
@@ -174,7 +174,7 @@ func TestController_HTTPIntegration_NestedRouting(t *testing.T) {
 	}
 
 	ctrl, err := NewController(
-		ControllerOptions{Configs: []Config{cfg}},
+		ControllerConfig{cfg},
 		IntegrationOptions{Logger: util.TestLogger(t)},
 	)
 	require.NoError(t, err)

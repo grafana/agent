@@ -35,23 +35,21 @@ func TestController_UpdateIntegration(t *testing.T) {
 		},
 	}
 
-	opts := ControllerOptions{
-		Configs: []Config{
-			mockConfig{
-				NameFunc:         func() string { return "mock" },
-				ConfigEqualsFunc: func(Config) bool { return false },
-				IdentifierFunc: func(IntegrationOptions) (string, error) {
-					return "mock", nil
-				},
-				NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
-					integrationStartWg.Add(1)
-					return mockIntegration, nil
-				},
+	cfg := ControllerConfig{
+		mockConfig{
+			NameFunc:         func() string { return "mock" },
+			ConfigEqualsFunc: func(Config) bool { return false },
+			IdentifierFunc: func(IntegrationOptions) (string, error) {
+				return "mock", nil
+			},
+			NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
+				integrationStartWg.Add(1)
+				return mockIntegration, nil
 			},
 		},
 	}
 
-	ctrl, err := NewController(opts, IntegrationOptions{Logger: util.TestLogger(t)})
+	ctrl, err := NewController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := newSyncController(t, ctrl)
@@ -60,7 +58,7 @@ func TestController_UpdateIntegration(t *testing.T) {
 	integrationStartWg.Wait()
 
 	// Try to apply again.
-	require.NoError(t, sc.ApplyConfig(&opts), "failed to re-apply config")
+	require.NoError(t, sc.ApplyConfig(cfg), "failed to re-apply config")
 	integrationStartWg.Wait()
 
 	sc.Stop()
@@ -88,24 +86,22 @@ func TestController_UpdateIntegration_Disabled(t *testing.T) {
 		},
 	}
 
-	opts := ControllerOptions{
-		Configs: []Config{
-			mockConfig{
-				NameFunc:         func() string { return "mock" },
-				ConfigEqualsFunc: func(Config) bool { return false },
-				IdentifierFunc: func(IntegrationOptions) (string, error) {
-					return "mock", nil
-				},
-				NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
-					startWg.Add(1)
-					stopWg.Add(1)
-					return mockIntegration, nil
-				},
+	cfg := ControllerConfig{
+		mockConfig{
+			NameFunc:         func() string { return "mock" },
+			ConfigEqualsFunc: func(Config) bool { return false },
+			IdentifierFunc: func(IntegrationOptions) (string, error) {
+				return "mock", nil
+			},
+			NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
+				startWg.Add(1)
+				stopWg.Add(1)
+				return mockIntegration, nil
 			},
 		},
 	}
 
-	ctrl, err := NewController(opts, IntegrationOptions{Logger: util.TestLogger(t)})
+	ctrl, err := NewController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := newSyncController(t, ctrl)
@@ -115,7 +111,7 @@ func TestController_UpdateIntegration_Disabled(t *testing.T) {
 
 	// Try to apply again. This should pick up the ErrDisabled on apply and force
 	// our itnegration to stop.
-	require.NoError(t, sc.ApplyConfig(&opts), "failed to re-apply config")
+	require.NoError(t, sc.ApplyConfig(cfg), "failed to re-apply config")
 	stopWg.Wait()
 
 	sc.Stop()

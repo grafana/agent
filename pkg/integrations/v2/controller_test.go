@@ -20,7 +20,7 @@ func TestController_UniqueIdentifier(t *testing.T) {
 	controllerFromConfigs := func(t *testing.T, cc []Config) (*Controller, error) {
 		t.Helper()
 		return NewController(
-			ControllerOptions{Configs: cc},
+			ControllerConfig(cc),
 			IntegrationOptions{Logger: util.TestLogger(t)},
 		)
 	}
@@ -59,15 +59,13 @@ func TestController_RunsIntegration(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	ctrl, err := NewController(
-		ControllerOptions{
-			Configs: []Config{
-				mockConfigForIntegration(t, FuncIntegration(func(ctx context.Context) error {
-					defer wg.Done()
-					cancel()
-					<-ctx.Done()
-					return nil
-				})),
-			},
+		ControllerConfig{
+			mockConfigForIntegration(t, FuncIntegration(func(ctx context.Context) error {
+				defer wg.Done()
+				cancel()
+				<-ctx.Done()
+				return nil
+			})),
 		},
 		IntegrationOptions{Logger: util.TestLogger(t)},
 	)
@@ -97,27 +95,25 @@ func TestController_ConfigChanges(t *testing.T) {
 			return nil
 		})
 
-		opts := ControllerOptions{
-			Configs: []Config{
-				mockConfig{
-					NameFunc:         func() string { return "mock" },
-					ConfigEqualsFunc: func(Config) bool { return !changed },
-					IdentifierFunc: func(IntegrationOptions) (string, error) {
-						return "mock", nil
-					},
-					NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
-						integrationsWg.Add(1)
-						return mockIntegration, nil
-					},
+		cfg := ControllerConfig{
+			mockConfig{
+				NameFunc:         func() string { return "mock" },
+				ConfigEqualsFunc: func(Config) bool { return !changed },
+				IdentifierFunc: func(IntegrationOptions) (string, error) {
+					return "mock", nil
+				},
+				NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
+					integrationsWg.Add(1)
+					return mockIntegration, nil
 				},
 			},
 		}
 
-		ctrl, err := NewController(opts, IntegrationOptions{Logger: util.TestLogger(t)})
+		ctrl, err := NewController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
 		require.NoError(t, err, "failed to create controller")
 
 		sc := newSyncController(t, ctrl)
-		require.NoError(t, sc.ApplyConfig(&opts), "failed to re-apply config")
+		require.NoError(t, sc.ApplyConfig(cfg), "failed to re-apply config")
 
 		// Wait for our integrations to have been started
 		integrationsWg.Wait()
@@ -195,22 +191,20 @@ func (sc *syncController) Stop() {
 // TestController_IgnoresDisabledIntegration ensures that disabled integrations
 // do not get run.
 func TestController_IgnoredDisabledIntegration(t *testing.T) {
-	opts := ControllerOptions{
-		Configs: []Config{
-			mockConfig{
-				NameFunc:         func() string { return "mock" },
-				ConfigEqualsFunc: func(Config) bool { return false },
-				IdentifierFunc: func(IntegrationOptions) (string, error) {
-					return "mock", nil
-				},
-				NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
-					return nil, fmt.Errorf("won't run integration: %w", ErrDisabled)
-				},
+	cfg := ControllerConfig{
+		mockConfig{
+			NameFunc:         func() string { return "mock" },
+			ConfigEqualsFunc: func(Config) bool { return false },
+			IdentifierFunc: func(IntegrationOptions) (string, error) {
+				return "mock", nil
+			},
+			NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
+				return nil, fmt.Errorf("won't run integration: %w", ErrDisabled)
 			},
 		},
 	}
 
-	_, err := NewController(opts, IntegrationOptions{Logger: util.TestLogger(t)})
+	_, err := NewController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "error from NewIntegration should have been ignored")
 }
 
