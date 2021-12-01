@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/prometheus/common/config"
-	"gopkg.in/yaml.v2"
 )
 
 func TestRemoteConfigHTTP(t *testing.T) {
@@ -17,12 +16,6 @@ metrics:
   global:
     scrape_timeout: 33s
 `
-	wantCfg := &Config{}
-	err := LoadBytes([]byte(testCfg), false, wantCfg)
-	if err != nil {
-		t.Error(err.Error())
-		t.FailNow()
-	}
 
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/agent.yml" {
@@ -42,7 +35,7 @@ metrics:
 	}))
 
 	tempDir := t.TempDir()
-	err = os.WriteFile(fmt.Sprintf("%s/password-file.txt", tempDir), []byte("bar"), 0644)
+	err := os.WriteFile(fmt.Sprintf("%s/password-file.txt", tempDir), []byte("bar"), 0644)
 	if err != nil {
 		t.Error(err.Error())
 		t.FailNow()
@@ -67,7 +60,7 @@ metrics:
 	tests := []struct {
 		name    string
 		args    args
-		want    *Config
+		want    []byte
 		wantErr bool
 	}{
 		{
@@ -75,7 +68,7 @@ metrics:
 			args: args{
 				rawURL: fmt.Sprintf("%s/agent.yml", svr.URL),
 			},
-			want:    wantCfg,
+			want:    []byte(testCfg),
 			wantErr: false,
 		},
 		{
@@ -91,7 +84,7 @@ metrics:
 					},
 				},
 			},
-			want:    wantCfg,
+			want:    []byte(testCfg),
 			wantErr: false,
 		},
 		{
@@ -102,7 +95,7 @@ metrics:
 					HTTPClientConfig: passwdFileCfg,
 				},
 			},
-			want:    wantCfg,
+			want:    []byte(testCfg),
 			wantErr: false,
 		},
 	}
@@ -114,15 +107,13 @@ metrics:
 				t.Errorf("RemoteConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			cfg, err := rc.Retrieve()
+			bb, err := rc.Retrieve()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Retrieve() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			actual, _ := yaml.Marshal(cfg)
-			expected, _ := yaml.Marshal(tt.want)
-			if string(actual) != string(expected) {
-				t.Errorf("Retrieve() cfg =\n %v\n, want\n %v", string(actual), string(expected))
+			if string(bb) != string(tt.want) {
+				t.Errorf("Retrieve() cfg =\n %v\n, want\n %v", string(bb), string(tt.want))
 			}
 		})
 	}

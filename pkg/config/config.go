@@ -153,8 +153,8 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
-	f.StringVar(&c.BasicAuthUser, "basic-auth-user", "", "basic auth username for fetching remote config.")
-	f.StringVar(&c.BasicAuthPassFile, "basic-auth-password-file", "", "path to file containing basic auth password for fetching remote config.")
+	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "", "basic auth username for fetching remote config.")
+	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "", "path to file containing basic auth password for fetching remote config.")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -168,9 +168,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 
 // LoadRemote reads a config from url
 func LoadRemote(url string, expandEnvVars bool, c *Config) error {
-	remoteOpts := &RemoteOpts{
-		ExpandEnv: expandEnvVars,
-	}
+	remoteOpts := &RemoteOpts{}
 	if c.BasicAuthUser != "" || c.BasicAuthPassFile != "" {
 		remoteOpts.HTTPClientConfig = &config.HTTPClientConfig{
 			BasicAuth: &config.BasicAuth{
@@ -178,7 +176,6 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 				PasswordFile: c.BasicAuthPassFile,
 			},
 		}
-
 	}
 
 	if remoteOpts.HTTPClientConfig != nil {
@@ -191,18 +188,17 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 
 	rc, err := NewRemoteConfig(url, remoteOpts)
 	if err != nil {
-		return errors.Wrap(err, "error reading remote config")
+		return errors.Errorf("error reading remote config: %s", err.Error())
 	}
 	// fall back to file if no scheme is passed
 	if rc == nil {
 		return LoadFile(url, expandEnvVars, c)
 	}
-	config, err := rc.Retrieve()
+	bb, err := rc.Retrieve()
 	if err != nil {
-		return errors.Wrap(err, "error retrieving remote config")
+		return errors.Errorf("error retrieving remote config: %s", err.Error())
 	}
-	*c = *config
-	return nil
+	return LoadBytes(bb, expandEnvVars, c)
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
