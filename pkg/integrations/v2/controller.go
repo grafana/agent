@@ -248,7 +248,7 @@ NextConfig:
 		// because the fields would be duplicated in the logs.
 		//
 		// https://github.com/go-kit/log/issues/16 may make this easier.
-		if _, ok := ic.(*multiplexConfig); ok {
+		if _, ok := ic.(MultiplexConfig); ok {
 			icOpts.Logger = opts.Logger
 		} else {
 			icOpts.Logger = log.With(opts.Logger, "integration", name, "identifier", identifier)

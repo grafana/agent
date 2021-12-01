@@ -66,6 +66,15 @@ type Config interface {
 	NewIntegration(IntegrationOptions) (Integration, error)
 }
 
+// MultiplexConfig is a Config that embeds a Controller.
+type MultiplexConfig interface {
+	Config
+
+	// MultiplexConfig marks a struct as multiplexed. It should do nothing when
+	// called.
+	Multiplexed()
+}
+
 // ComparableConfig extends Config with an ConfigEquals method.
 type ComparableConfig interface {
 	Config

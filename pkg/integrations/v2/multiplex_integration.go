@@ -6,68 +6,20 @@ import (
 	"reflect"
 )
 
-// NewMultiplexConfig will return a Config that generates a multiplexing
-// integration. The integration will handle multiple instances of inner.
-//
-// name must be different from inner.Name or NewMultiplexConfig will panic.
-func NewMultiplexConfig(name string, inner Config) Config {
-	if name == inner.Name() {
-		panic("bug: multiplex integration name must be different than integration name. e.g., add _configs as a suffix")
-	}
-
-	return &multiplexConfig{name: name, reference: inner}
-}
-
-// TODO(rfratto): verify that registered integrations don't reset the value of
-// the registered Config when unmarshaling, otherwise this will break
-
-type multiplexConfig struct {
-	name      string
-	reference Config
-
-	// Unmarshaled configs of type reference.
-	configs []Config
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler and will unmarshal a slice of
-// mt.reference, filling mt.configs.
-func (mt *multiplexConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	sliceTy := reflect.SliceOf(reflect.TypeOf(mt.reference))
-	slicePtr := reflect.New(sliceTy)
-
-	if err := unmarshal(slicePtr.Interface()); err != nil {
-		return err
-	}
-
-	mt.configs = mt.configs[:0]
-	slice := slicePtr.Elem()
-	for i := 0; i < slice.Len(); i++ {
-		val := slice.Index(i).Interface().(Config)
-		mt.configs = append(mt.configs, val)
-	}
-	return nil
-}
-
-// UnmarshalYAML implements yaml.Marshaler and will marshal the slice of mt.configs.
-func (mt *multiplexConfig) MarshalYAML() (interface{}, error) {
-	return mt.configs, nil
-}
-
-func (mt *multiplexConfig) Name() string {
-	return mt.name
-}
-
-func (mt *multiplexConfig) Identifier(IntegrationOptions) (string, error) {
-	return mt.name, nil
-}
-
-func (mt *multiplexConfig) NewIntegration(opts IntegrationOptions) (Integration, error) {
-	ctrl, err := NewController(ControllerConfig(mt.configs), opts)
+func NewMultiplexIntegration(config MultiplexConfig, opts IntegrationOptions) (Integration, error) {
+	var mux multiplexIntegration
+	cc, err := mux.getControllerConfig(config)
 	if err != nil {
 		return nil, err
 	}
 
-	return &multiplexIntegration{Controller: ctrl}, nil
+	ctrl, err := NewController(cc, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	mux.Controller = ctrl
+	return &mux, nil
 }
 
 // multiplexIntegration implements Integration and all known extensions using a
@@ -89,9 +41,36 @@ func (mi *multiplexIntegration) RunIntegration(ctx context.Context) error {
 }
 
 func (mi *multiplexIntegration) ApplyConfig(c Config) error {
-	mc, ok := c.(*multiplexConfig)
+	mc, ok := c.(MultiplexConfig)
 	if !ok {
-		return fmt.Errorf("unvalid config type %T", c)
+		return fmt.Errorf("invalid type %T", c)
 	}
-	return mi.UpdateController(mc.configs, mi.opts)
+	cc, err := mi.getControllerConfig(mc)
+	if err != nil {
+		return err
+	}
+	return mi.UpdateController(cc, mi.opts)
+}
+
+func (mu *multiplexIntegration) getControllerConfig(c MultiplexConfig) (ControllerConfig, error) {
+	val := reflect.ValueOf(c)
+
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("invalid config type %T: must be slice of Config", c)
+	}
+
+	cc := make(ControllerConfig, 0, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		v := val.Index(i).Interface()
+		item, ok := v.(Config)
+		if !ok {
+			return nil, fmt.Errorf("invlaid config type %T: slice element %T does not implement Config", c, v)
+		}
+		cc = append(cc, item)
+	}
+
+	return cc, nil
 }
