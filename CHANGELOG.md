@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [FEATURE] (beta) Enable experimental config urls for fetching remote configs over http(s). (@rlankfo)
+
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
 # v0.21.1 (2021-11-18)
