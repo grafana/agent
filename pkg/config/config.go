@@ -105,7 +105,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // messages.
 func (c *Config) LogDeprecations(l log.Logger) {
 	for _, d := range c.Deprecations {
-		_ = level.Warn(l).Log("msg", fmt.Sprintf("DEPRECATION NOTICE: %s", d))
+		level.Warn(l).Log("msg", fmt.Sprintf("DEPRECATION NOTICE: %s", d))
 	}
 }
 
