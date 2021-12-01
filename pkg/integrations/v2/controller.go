@@ -243,8 +243,16 @@ NextConfig:
 		}
 
 	CreateIntegration:
-		// TODO(rfratto): figure out how to avoid nesting here in integrations that embed controller
-		icOpts.Logger = log.With(opts.Logger, "integration", name, "identifier", identifier)
+		// Figure out what logger to give to the integration. Integrations that are
+		// multiplexConfigs shouldn't have the integration/identifier logs set
+		// because the fields would be duplicated in the logs.
+		//
+		// https://github.com/go-kit/log/issues/16 may make this easier.
+		if _, ok := ic.(*multiplexConfig); ok {
+			icOpts.Logger = opts.Logger
+		} else {
+			icOpts.Logger = log.With(opts.Logger, "integration", name, "identifier", identifier)
+		}
 		integration, err := ic.NewIntegration(icOpts)
 		if errors.Is(err, ErrDisabled) {
 			continue
@@ -358,7 +366,7 @@ func (c *Controller) Handler(prefix string) (http.Handler, error) {
 
 // Targets returns a channel that emits the set of target groups across all
 // running integrations that implement MetricsIntegration.
-func (c *Controller) Targets(prefix string) <-chan []*targetgroup.Group {
+func (c *Controller) Targets(prefix string) chan<- []*targetgroup.Group {
 	panic("NYI")
 }
 
