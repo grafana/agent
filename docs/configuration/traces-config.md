@@ -145,6 +145,26 @@ scrape_configs:
 # `update` only modifies an existing k/v and `insert` only appends if the k/v
 # is not present. `upsert` does both.
 [ prom_sd_operation_type: <string> | default = "upsert" ]
+# Configures what methods to use to do association between spans and pods.
+# PromSD processor matches the IP address of the metadata labels from the k8s API
+# with the IP address obtained from the specified pod association method.
+# If a match is found then the span is labeled.
+#
+# Options are `ip`, `net.host.ip`, `k8s.pod.ip`, `hostname` and `connection`.
+#   - `ip`, `net.host.ip` and `k8s.pod.ip`, `hostname` match spans tags.
+#   - `connection` inspects the context from the incoming requests (gRPC and HTTP).
+#
+# Tracing instrumentation is commonly the responsible for tagging spans
+# with IP address to the labels mentioned above.
+# If running on kubernetes, `k8s.pod.ip` can be automatically attached via the
+# downward API. For example, if you're using OTel instrumentation libraries, set 
+# OTEL_RESOURCE_ATTRIBUTES=k8s.pod.ip=$(POD_IP) to inject spans with the sender
+# pod's IP.
+#
+# By default, all methods are enabled, and evaluated in the order specified above.
+# Order of evaluation is honored when multiple methods are enabled.
+prom_sd_pod_association: 
+  - [ <string>... ]
 
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
 # from span data.
