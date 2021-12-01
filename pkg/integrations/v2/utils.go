@@ -10,7 +10,7 @@ import (
 type FuncIntegration func(ctx context.Context) error
 
 // Run implements Integration.
-func (fi FuncIntegration) Run(ctx context.Context) error { return fi(ctx) }
+func (fi FuncIntegration) RunIntegration(ctx context.Context) error { return fi(ctx) }
 
 // NoOpIntegration is an Integration that does nothing.
 var NoOpIntegration = FuncIntegration(func(ctx context.Context) error {

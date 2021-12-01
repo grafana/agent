@@ -109,11 +109,12 @@ func TestController_ConfigChanges(t *testing.T) {
 			},
 		}
 
-		ctrl, err := NewController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
+		iopts := IntegrationOptions{Logger: util.TestLogger(t)}
+		ctrl, err := NewController(cfg, iopts)
 		require.NoError(t, err, "failed to create controller")
 
 		sc := newSyncController(t, ctrl)
-		require.NoError(t, sc.ApplyConfig(cfg), "failed to re-apply config")
+		require.NoError(t, sc.UpdateController(cfg, iopts), "failed to re-apply config")
 
 		// Wait for our integrations to have been started
 		integrationsWg.Wait()
@@ -171,10 +172,10 @@ func newSyncController(t *testing.T, inner *Controller) *syncController {
 	return sc
 }
 
-func (sc *syncController) ApplyConfig(c Config) error {
+func (sc *syncController) UpdateController(c ControllerConfig, opts IntegrationOptions) error {
 	sc.applyWg.Add(1)
 
-	if err := sc.inner.ApplyConfig(c); err != nil {
+	if err := sc.inner.UpdateController(c, opts); err != nil {
 		sc.applyWg.Done() // The wg won't ever be finished now
 		return err
 	}

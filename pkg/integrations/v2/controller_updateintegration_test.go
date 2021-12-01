@@ -58,7 +58,7 @@ func TestController_UpdateIntegration(t *testing.T) {
 	integrationStartWg.Wait()
 
 	// Try to apply again.
-	require.NoError(t, sc.ApplyConfig(cfg), "failed to re-apply config")
+	require.NoError(t, sc.UpdateController(cfg, ctrl.opts), "failed to re-apply config")
 	integrationStartWg.Wait()
 
 	sc.Stop()
@@ -111,7 +111,7 @@ func TestController_UpdateIntegration_Disabled(t *testing.T) {
 
 	// Try to apply again. This should pick up the ErrDisabled on apply and force
 	// our itnegration to stop.
-	require.NoError(t, sc.ApplyConfig(cfg), "failed to re-apply config")
+	require.NoError(t, sc.UpdateController(cfg, ctrl.opts), "failed to re-apply config")
 	stopWg.Wait()
 
 	sc.Stop()

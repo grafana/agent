@@ -132,7 +132,7 @@ func urlCompare(a, b *url.URL) bool {
 type Integration interface {
 	// Run starts the integration and performs background tasks. Run must not
 	// return until ctx is canceled, even if there is no work to do.
-	Run(ctx context.Context) error
+	RunIntegration(ctx context.Context) error
 }
 
 // ConfigurableIntegration is an Integration whose config can be updated

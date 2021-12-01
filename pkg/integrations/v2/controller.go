@@ -17,25 +17,11 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
-// ControllerConfig implements Config and manages a set of integrations.
+// ControllerConfig holds a set of integration configs.
 type ControllerConfig []Config
 
-// Name implements Config. Returns "controller".
-func (c ControllerConfig) Name() string { return "controller" }
-
-// Identifier implements Config. Returns "controller".
-func (c ControllerConfig) Identifier(IntegrationOptions) (string, error) {
-	return "controller", nil
-}
-
-// NewIntegration implements Config. Returns a Controller.
-func (c ControllerConfig) NewIntegration(opts IntegrationOptions) (Integration, error) {
-	return NewController(c, opts)
-}
-
-// Controller runs a set of integrations. Controller implements Integration and
-// all known extension interfaces. Controller may be used inside other
-// integrations to implement integration multiplexing.
+// Controller manages a set of integrations. Controller is intended to be
+// embedded inside of integrations that multiplex running other integrations.
 type Controller struct {
 	mut  sync.Mutex
 	cfg  ControllerConfig
@@ -52,22 +38,20 @@ type Controller struct {
 	onUpdateDone func()
 }
 
-// NewController creates a new Controller. Controller implements Integration
-// and integrations will not run until Controller.Run is invoked.
+// NewController creates a new Controller. Controller is intended to be
+// embedded inside of integrations that may want to multiplex other
+// integrations.
 func NewController(cfg ControllerConfig, opts IntegrationOptions) (*Controller, error) {
 	c := &Controller{
-		cfg:  cfg,
-		opts: opts,
-
 		reloadIntegrations: make(chan struct{}, 1),
 	}
-	if err := c.ApplyConfig(cfg); err != nil {
+	if err := c.UpdateController(cfg, opts); err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
-// Run implements Integration. Run will run all integrations.
+// Run starts the controller and blocks until ctx is canceled.
 func (c *Controller) Run(ctx context.Context) error {
 	defer func() {
 		level.Debug(c.opts.Logger).Log("msg", "stopping all integrations")
@@ -167,7 +151,7 @@ func (ci *controlledIntegration) Run(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return nil
 	}
-	return ci.i.Run(ctx)
+	return ci.i.RunIntegration(ctx)
 }
 
 func (ci *controlledIntegration) Stop() {
@@ -189,10 +173,7 @@ type integrationID struct {
 func (c *Controller) UpdateController(cfg ControllerConfig, opts IntegrationOptions) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	return c.updateController(cfg, opts)
-}
 
-func (c *Controller) updateController(cfg ControllerConfig, opts IntegrationOptions) error {
 	// If iops has changed between calls, then we need to consider all
 	// integrations as updated.
 	//
@@ -262,16 +243,8 @@ NextConfig:
 		}
 
 	CreateIntegration:
-		// Figure out what logger to give to the integration. Integrations that are
-		// controllers shouldn't have the integration/identifier logs set because
-		// the fields would be duplicated in the logs.
-		//
-		// https://github.com/go-kit/log/issues/16 may make this easier.
-		if _, ok := ic.(ControllerConfig); ok {
-			icOpts.Logger = opts.Logger
-		} else {
-			icOpts.Logger = log.With(opts.Logger, "integration", name, "identifier", identifier)
-		}
+		// TODO(rfratto): figure out how to avoid nesting here in integrations that embed controller
+		icOpts.Logger = log.With(opts.Logger, "integration", name, "identifier", identifier)
 		integration, err := ic.NewIntegration(icOpts)
 		if errors.Is(err, ErrDisabled) {
 			continue
@@ -319,21 +292,8 @@ NextConfig:
 	return nil
 }
 
-// ApplyConfig implements UpdateIntegration. ApplyConfig will update the
-// Controller and all running integrations. c MUST implement controllerConfig.
-func (c *Controller) ApplyConfig(cfg Config) error {
-	controllerConfig, ok := cfg.(ControllerConfig)
-	if !ok {
-		return fmt.Errorf("invalid type %T passed to Controller.ApplyConfig", cfg)
-	}
-
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	return c.updateController(controllerConfig, c.opts)
-}
-
-// Handler implements HTTPIntegration. Handler will pass through requests to
-// other running integrations.
+// Handler returns an HTTP handler for the controller and its integrations.
+// Handler will pass through requests to other running integrations.
 //
 // Handler is expensive to compute and should only be done after reloading the
 // config.
@@ -396,15 +356,13 @@ func (c *Controller) Handler(prefix string) (http.Handler, error) {
 	return r, nil
 }
 
-// Targets implements MetricsIntegration. Targets will return a channel that
-// emits the set of target groups across all running integrations that also
-// implement MetricsIntegration.
+// Targets returns a channel that emits the set of target groups across all
+// running integrations that implement MetricsIntegration.
 func (c *Controller) Targets(prefix string) <-chan []*targetgroup.Group {
 	panic("NYI")
 }
 
-// ScrapeConfigs implements MetricsIntegration. ScrapeConfigs will return a set
-// of scrape configs to use for self-scraping.
+// ScrapeConfigs returns a set of scrape configs to use for self-scraping.
 func (c *Controller) ScrapeConfigs(d discovery.Configs) []*prom_config.ScrapeConfig {
 	panic("NYI")
 }
