@@ -242,7 +242,12 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, LoadFile)
+	return load(fs, args, func(url string, expand bool, c *Config) error {
+		if c.ExperimentalConfigURLs {
+			return LoadRemote(url, expand, c)
+		}
+		return LoadFile(url, expand, c)
+	})
 }
 
 // load allows for tests to inject a function for retrieving the config file that
@@ -268,10 +273,6 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if printVersion {
 		fmt.Println(version.Print("agent"))
 		os.Exit(0)
-	}
-
-	if cfg.ExperimentalConfigURLs {
-		loader = LoadRemote
 	}
 
 	if file == "" {
