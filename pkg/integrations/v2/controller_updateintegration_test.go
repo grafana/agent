@@ -39,17 +39,17 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
-			IdentifierFunc: func(IntegrationOptions) (string, error) {
+			IdentifierFunc: func(Options) (string, error) {
 				return "mock", nil
 			},
-			NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
+			NewIntegrationFunc: func(Options) (Integration, error) {
 				integrationStartWg.Add(1)
 				return mockIntegration, nil
 			},
 		},
 	}
 
-	ctrl, err := newController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
+	ctrl, err := newController(cfg, Options{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := newSyncController(t, ctrl)
@@ -90,10 +90,10 @@ func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
-			IdentifierFunc: func(IntegrationOptions) (string, error) {
+			IdentifierFunc: func(Options) (string, error) {
 				return "mock", nil
 			},
-			NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
+			NewIntegrationFunc: func(Options) (Integration, error) {
 				startWg.Add(1)
 				stopWg.Add(1)
 				return mockIntegration, nil
@@ -101,7 +101,7 @@ func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 		},
 	}
 
-	ctrl, err := newController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
+	ctrl, err := newController(cfg, Options{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := newSyncController(t, ctrl)

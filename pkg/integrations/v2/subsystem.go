@@ -62,7 +62,7 @@ type Subsystem struct {
 
 	mut        sync.RWMutex
 	sopts      SubsystemOptions
-	iopts      IntegrationOptions
+	iopts      Options
 	apiHandler http.Handler // generated from controller
 
 	ctrl             *controller
@@ -72,7 +72,7 @@ type Subsystem struct {
 
 // NewSubsystem creates and starts a new integrations Subsystem. Every field in
 // IntegrationOptions must be filled out.
-func NewSubsystem(sopts SubsystemOptions, iopts IntegrationOptions) (*Subsystem, error) {
+func NewSubsystem(sopts SubsystemOptions, iopts Options) (*Subsystem, error) {
 	ctrl, err := newController(sopts.Configs, iopts)
 	if err != nil {
 		return nil, err
@@ -105,13 +105,13 @@ func NewSubsystem(sopts SubsystemOptions, iopts IntegrationOptions) (*Subsystem,
 
 // ApplyConfig updates the configuration of the integrations Subsystem and
 // options to pass to integrations.
-func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, iopts IntegrationOptions) error {
+func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, opts Options) error {
 	const prefix = "/integrations/"
 
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	if err := s.ctrl.UpdateController(sopts.Configs, iopts); err != nil {
+	if err := s.ctrl.UpdateController(sopts.Configs, opts); err != nil {
 		return fmt.Errorf("error applying integrations: %w", err)
 	}
 
@@ -144,34 +144,34 @@ func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, iopts IntegrationOptions
 	// Set up self-scraping
 	{
 		httpSDConfig := http_sd.DefaultSDConfig
-		httpSDConfig.HTTPClientConfig = iopts.AgentHTTPClientConfig
+		httpSDConfig.HTTPClientConfig = opts.AgentHTTPClientConfig
 		httpSDConfig.RefreshInterval = model.Duration(time.Second * 5) // TODO(rfratto): make configurable?
 
-		apiURL := iopts.CloneAgentBaseURL()
+		apiURL := opts.CloneAgentBaseURL()
 		apiURL.Path = IntegrationsSDEndpoint
 		httpSDConfig.URL = apiURL.String()
 
-		scrapeConfigs := s.ctrl.ScrapeConfigs(&httpSDConfig)
-		if len(scrapeConfigs) == 0 || !sopts.ScrapeIntegrations {
+		scrapeConfigs := s.ctrl.ScrapeConfigs(prefix, &httpSDConfig)
+		if len(scrapeConfigs) == 0 {
 			// We're not going to self scrape if there are no configs. Try to delete
 			// the previous instance for self-scraping if one was running.
-			_ = iopts.Metrics.InstanceManager().DeleteConfig("integrations")
+			_ = opts.Metrics.InstanceManager().DeleteConfig("integrations")
 		} else {
 			instanceCfg := instance.DefaultConfig
 			instanceCfg.Name = "integrations"
 			instanceCfg.ScrapeConfigs = scrapeConfigs
 			instanceCfg.RemoteWrite = sopts.PrometheusRemoteWrite
 
-			if err := iopts.Metrics.Validate(&instanceCfg); err != nil {
+			if err := opts.Metrics.Validate(&instanceCfg); err != nil {
 				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: validation: %w", err))
-			} else if err := iopts.Metrics.InstanceManager().ApplyConfig(instanceCfg); err != nil {
+			} else if err := opts.Metrics.InstanceManager().ApplyConfig(instanceCfg); err != nil {
 				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: %w", err))
 			}
 		}
 	}
 
 	s.sopts = sopts
-	s.iopts = iopts
+	s.iopts = opts
 	return firstErr
 }
 

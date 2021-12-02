@@ -18,7 +18,7 @@ import (
 // will expose a /metrics endpoint for h.
 func NewMetricsHandlerIntegration(
 	c integrations.Config, common CommonConfig,
-	opts integrations.IntegrationOptions,
+	opts integrations.Options,
 	h http.Handler,
 ) (integrations.MetricsIntegration, error) {
 	if !common.Enabled {
@@ -41,7 +41,7 @@ type metricsHandlerIntegration struct {
 	integrationName, instanceID string
 
 	common  CommonConfig
-	iopts   integrations.IntegrationOptions
+	iopts   integrations.Options
 	handler http.Handler
 }
 
@@ -78,9 +78,26 @@ func (i *metricsHandlerIntegration) Targets(prefix string) []*targetgroup.Group 
 			model.InstanceLabel: model.LabelValue(i.instanceID),
 			model.JobLabel:      integrationNameValue,
 			"agent_hostname":    model.LabelValue(i.iopts.AgentIdentifier),
+
+			// Meta labels that can be used during SD.
+			// __meta_agent_integration_selfscrape
+			"__meta_agent_integration_name":       model.LabelValue(i.integrationName),
+			"__meta_agent_integration_instance":   model.LabelValue(i.instanceID),
+			"__meta_agent_integration_selfscrape": model.LabelValue(boolToString(i.common.ScrapeIntegration, "")),
 		},
 		Source: i.integrationName,
 	}}
+}
+
+func boolToString(b *bool, def string) string {
+	switch {
+	case b == nil:
+		return def
+	case *b:
+		return "1"
+	default:
+		return "0"
+	}
 }
 
 // ScrapeConfigs implements MetricsIntegration.

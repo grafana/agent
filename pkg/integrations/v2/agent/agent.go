@@ -18,7 +18,7 @@ type Config struct {
 func (c *Config) Name() string { return "agent" }
 
 // Identifier uniquely identifies this instance of Config.
-func (c *Config) Identifier(opts integrations.IntegrationOptions) (string, error) {
+func (c *Config) Identifier(opts integrations.Options) (string, error) {
 	if c.Common.InstanceKey != nil {
 		return *c.Common.InstanceKey, nil
 	}
@@ -26,7 +26,7 @@ func (c *Config) Identifier(opts integrations.IntegrationOptions) (string, error
 }
 
 // NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(opts integrations.IntegrationOptions) (integrations.Integration, error) {
+func (c *Config) NewIntegration(opts integrations.Options) (integrations.Integration, error) {
 	return metricsutils.NewMetricsHandlerIntegration(c, c.Common, opts, promhttp.Handler())
 }
 

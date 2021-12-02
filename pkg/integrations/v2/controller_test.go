@@ -21,7 +21,7 @@ func Test_controller_UniqueIdentifier(t *testing.T) {
 		t.Helper()
 		return newController(
 			controllerConfig(cc),
-			IntegrationOptions{Logger: util.TestLogger(t)},
+			Options{Logger: util.TestLogger(t)},
 		)
 	}
 
@@ -67,7 +67,7 @@ func Test_controller_RunsIntegration(t *testing.T) {
 				return nil
 			})),
 		},
-		IntegrationOptions{Logger: util.TestLogger(t)},
+		Options{Logger: util.TestLogger(t)},
 	)
 	require.NoError(t, err, "failed to create controller")
 
@@ -99,17 +99,17 @@ func Test_controller_ConfigChanges(t *testing.T) {
 			mockConfig{
 				NameFunc:         func() string { return "mock" },
 				ConfigEqualsFunc: func(Config) bool { return !changed },
-				IdentifierFunc: func(IntegrationOptions) (string, error) {
+				IdentifierFunc: func(Options) (string, error) {
 					return "mock", nil
 				},
-				NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
+				NewIntegrationFunc: func(Options) (Integration, error) {
 					integrationsWg.Add(1)
 					return mockIntegration, nil
 				},
 			},
 		}
 
-		iopts := IntegrationOptions{Logger: util.TestLogger(t)}
+		iopts := Options{Logger: util.TestLogger(t)}
 		ctrl, err := newController(cfg, iopts)
 		require.NoError(t, err, "failed to create controller")
 
@@ -171,7 +171,7 @@ func newSyncController(t *testing.T, inner *controller) *syncController {
 	return sc
 }
 
-func (sc *syncController) UpdateController(c controllerConfig, opts IntegrationOptions) error {
+func (sc *syncController) UpdateController(c controllerConfig, opts Options) error {
 	sc.applyWg.Add(1)
 
 	if err := sc.inner.UpdateController(c, opts); err != nil {
@@ -195,24 +195,24 @@ func Test_controller_IgnoredDisabledIntegration(t *testing.T) {
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
-			IdentifierFunc: func(IntegrationOptions) (string, error) {
+			IdentifierFunc: func(Options) (string, error) {
 				return "mock", nil
 			},
-			NewIntegrationFunc: func(IntegrationOptions) (Integration, error) {
+			NewIntegrationFunc: func(Options) (Integration, error) {
 				return nil, fmt.Errorf("won't run integration: %w", ErrDisabled)
 			},
 		},
 	}
 
-	_, err := newController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
+	_, err := newController(cfg, Options{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "error from NewIntegration should have been ignored")
 }
 
 type mockConfig struct {
 	NameFunc           func() string
 	ConfigEqualsFunc   func(Config) bool
-	IdentifierFunc     func(IntegrationOptions) (string, error)
-	NewIntegrationFunc func(IntegrationOptions) (Integration, error)
+	IdentifierFunc     func(Options) (string, error)
+	NewIntegrationFunc func(Options) (Integration, error)
 }
 
 func (mc mockConfig) Name() string {
@@ -226,11 +226,11 @@ func (mc mockConfig) ConfigEquals(o Config) bool {
 	return false
 }
 
-func (mc mockConfig) Identifier(o IntegrationOptions) (string, error) {
+func (mc mockConfig) Identifier(o Options) (string, error) {
 	return mc.IdentifierFunc(o)
 }
 
-func (mc mockConfig) NewIntegration(o IntegrationOptions) (Integration, error) {
+func (mc mockConfig) NewIntegration(o Options) (Integration, error) {
 	return mc.NewIntegrationFunc(o)
 }
 
@@ -239,8 +239,8 @@ func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 
 	return mockConfig{
 		NameFunc:       func() string { return name },
-		IdentifierFunc: func(_ IntegrationOptions) (string, error) { return id, nil },
-		NewIntegrationFunc: func(_ IntegrationOptions) (Integration, error) {
+		IdentifierFunc: func(_ Options) (string, error) { return id, nil },
+		NewIntegrationFunc: func(_ Options) (Integration, error) {
 			return NoOpIntegration, nil
 		},
 	}
@@ -252,10 +252,10 @@ func mockConfigForIntegration(t *testing.T, i Integration) mockConfig {
 
 	return mockConfig{
 		NameFunc: func() string { return "mock" },
-		IdentifierFunc: func(io IntegrationOptions) (string, error) {
+		IdentifierFunc: func(io Options) (string, error) {
 			return "mock", nil
 		},
-		NewIntegrationFunc: func(io IntegrationOptions) (Integration, error) {
+		NewIntegrationFunc: func(io Options) (Integration, error) {
 			return i, nil
 		},
 	}

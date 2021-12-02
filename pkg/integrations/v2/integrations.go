@@ -53,7 +53,7 @@ type Config interface {
 	//
 	// If there is no reasonable identifier to use for an integration,
 	// IntegrationOptions.AgentIdentifier may be used by default.
-	Identifier(IntegrationOptions) (string, error)
+	Identifier(Options) (string, error)
 
 	// NewIntegration should return a new Integration using the provided
 	// IntegrationOptions to help initialize the Integration.
@@ -63,7 +63,7 @@ type Config interface {
 	//
 	// NewIntegration may return ErrDisabled if the integration should not be
 	// run.
-	NewIntegration(IntegrationOptions) (Integration, error)
+	NewIntegration(Options) (Integration, error)
 }
 
 // MultiplexConfig is a Config that embeds a Controller.
@@ -83,9 +83,8 @@ type ComparableConfig interface {
 	ConfigEquals(c Config) bool
 }
 
-// IntegrationOptions are used to pass around subsystems that empower
-// integrations.
-type IntegrationOptions struct {
+// Options are used to pass around subsystems that empower integrations.
+type Options struct {
 	// Logger to use for logging. Logs sent to the logger will inject
 	// a field for integration name and instance key.
 	Logger log.Logger
@@ -112,7 +111,7 @@ type IntegrationOptions struct {
 }
 
 // CloneAgentBaseURL returns a copy of AgentBaseURL that can be modified.
-func (io IntegrationOptions) CloneAgentBaseURL() *url.URL {
+func (io Options) CloneAgentBaseURL() *url.URL {
 	if io.AgentBaseURL == nil {
 		return nil
 	}
@@ -126,7 +125,7 @@ func (io IntegrationOptions) CloneAgentBaseURL() *url.URL {
 }
 
 // Equals returns true if io equals other. Logger isn't checked.
-func (io IntegrationOptions) Equals(other IntegrationOptions) bool {
+func (io Options) Equals(other Options) bool {
 	return io.AgentIdentifier == other.AgentIdentifier &&
 		io.Metrics == other.Metrics &&
 		io.Logs == other.Logs &&

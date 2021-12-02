@@ -24,7 +24,7 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 		t.Helper()
 
 		cfg := mockConfigNameTuple(t, name, identifier)
-		cfg.NewIntegrationFunc = func(IntegrationOptions) (Integration, error) {
+		cfg.NewIntegrationFunc = func(Options) (Integration, error) {
 			i := mockHTTPIntegration{
 				Integration: NoOpIntegration,
 				HandlerFunc: func(prefix string) (http.Handler, error) {
@@ -47,7 +47,7 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 				httpConfigFromID(t, &prefixes, "fizz", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
 			},
-			IntegrationOptions{Logger: util.TestLogger(t)},
+			Options{Logger: util.TestLogger(t)},
 		)
 		require.NoError(t, err)
 		_ = newSyncController(t, ctrl)
@@ -72,7 +72,7 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 				httpConfigFromID(t, &prefixes, "foo", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
 			},
-			IntegrationOptions{Logger: util.TestLogger(t)},
+			Options{Logger: util.TestLogger(t)},
 		)
 		require.NoError(t, err)
 		_ = newSyncController(t, ctrl)
@@ -96,7 +96,7 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 		t.Helper()
 
 		cfg := mockConfigNameTuple(t, name, identifier)
-		cfg.NewIntegrationFunc = func(IntegrationOptions) (Integration, error) {
+		cfg.NewIntegrationFunc = func(Options) (Integration, error) {
 			i := mockHTTPIntegration{
 				Integration: NoOpIntegration,
 				HandlerFunc: func(prefix string) (http.Handler, error) {
@@ -117,7 +117,7 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 			httpConfigFromID(t, "foo", "buzz"),
 			httpConfigFromID(t, "hello", "world"),
 		},
-		IntegrationOptions{Logger: util.TestLogger(t)},
+		Options{Logger: util.TestLogger(t)},
 	)
 	require.NoError(t, err)
 	_ = newSyncController(t, ctrl)
@@ -156,7 +156,7 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 // will work with nested routers.
 func Test_controller_HTTPIntegration_NestedRouting(t *testing.T) {
 	cfg := mockConfigNameTuple(t, "test", "test")
-	cfg.NewIntegrationFunc = func(IntegrationOptions) (Integration, error) {
+	cfg.NewIntegrationFunc = func(Options) (Integration, error) {
 		i := mockHTTPIntegration{
 			Integration: NoOpIntegration,
 			HandlerFunc: func(prefix string) (http.Handler, error) {
@@ -178,7 +178,7 @@ func Test_controller_HTTPIntegration_NestedRouting(t *testing.T) {
 
 	ctrl, err := newController(
 		controllerConfig{cfg},
-		IntegrationOptions{Logger: util.TestLogger(t)},
+		Options{Logger: util.TestLogger(t)},
 	)
 	require.NoError(t, err)
 	_ = newSyncController(t, ctrl)

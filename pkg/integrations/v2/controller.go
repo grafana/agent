@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
+	"sort"
 	"sync"
 	"sync/atomic"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	prom_config "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/discovery"
 	http_sd "github.com/prometheus/prometheus/discovery/http"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
@@ -25,7 +28,7 @@ type controllerConfig []Config
 type controller struct {
 	mut  sync.Mutex
 	cfg  controllerConfig
-	opts IntegrationOptions
+	opts Options
 
 	integrations       []*controlledIntegration // Integrations to run
 	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
@@ -41,7 +44,7 @@ type controller struct {
 // newController creates a new Controller. Controller is intended to be
 // embedded inside of integrations that may want to multiplex other
 // integrations.
-func newController(cfg controllerConfig, opts IntegrationOptions) (*controller, error) {
+func newController(cfg controllerConfig, opts Options) (*controller, error) {
 	c := &controller{
 		reloadIntegrations: make(chan struct{}, 1),
 	}
@@ -172,7 +175,7 @@ type integrationID struct {
 //
 // UpdateController updates running integrations. Extensions can be
 // recalculated by calling relevant methods like Handler or Targets.
-func (c *controller) UpdateController(cfg controllerConfig, opts IntegrationOptions) error {
+func (c *controller) UpdateController(cfg controllerConfig, opts Options) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -310,79 +313,155 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 
 	r := mux.NewRouter()
 
-	// Pre-populate a mapping of integration name -> identifier. If there are
-	// two instances of the same integration, we want to ensure unique routing.
-	//
-	// This special logic is done for backwards compatibility with the original
-	// design of integrations.
-	identifiersMap := map[string][]string{}
-	for _, i := range c.integrations {
-		identifiersMap[i.id.Name] = append(identifiersMap[i.id.Name], i.id.Identifier)
-	}
-
-	usedPrefixes := map[string]struct{}{}
-
-	for _, ci := range c.integrations {
+	forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
 		id := ci.id
-		multipleInstances := len(identifiersMap[id.Name]) > 1
 
 		i, ok := ci.i.(HTTPIntegration)
 		if !ok {
-			continue
+			return
 		}
 
-		var integrationPrefix string
-		if multipleInstances {
-			// i.e., /integrations/mysqld_exporter/server-a
-			integrationPrefix = path.Join(prefix, id.Name, id.Identifier)
-		} else {
-			// i.e., /integrations/node_exporter
-			integrationPrefix = path.Join(prefix, id.Name)
-		}
-
-		handler, err := i.Handler(integrationPrefix + "/")
+		handler, err := i.Handler(iprefix + "/")
 		if errors.Is(err, ErrDisabled) {
-			continue
+			return
 		} else if err != nil {
 			saveFirstErr(fmt.Errorf("could not generate HTTP handler for %s integration %q: %w", id.Name, id.Identifier, err))
-			continue
+			return
 		} else if handler == nil {
-			continue
+			return
 		}
-
-		if _, exist := usedPrefixes[integrationPrefix]; exist {
-			return nil, fmt.Errorf("BUG: duplicate integration prefix %q", integrationPrefix)
-		}
-		usedPrefixes[integrationPrefix] = struct{}{}
 
 		// Anything that matches the integrationPrefix should be passed to the handler.
-		r.PathPrefix(integrationPrefix).HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		r.PathPrefix(iprefix).HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			if !ci.Running() {
 				http.Error(rw, fmt.Sprintf("%s integration intance %q not running", id.Name, id.Identifier), http.StatusServiceUnavailable)
 				return
 			}
 			handler.ServeHTTP(rw, r)
 		})
-	}
+	})
 
 	// TODO(rfratto): navigation page for exact prefix match
 
 	return r, firstErr
 }
 
+// forEachIntegration calculates the prefix for each integration and calls f.
+// prefix will not end in /.
+func forEachIntegration(set []*controlledIntegration, basePrefix string, f func(ci *controlledIntegration, iprefix string)) error {
+	// Pre-populate a mapping of integration name -> identifier. If there are
+	// two instances of the same integration, we want to ensure unique routing.
+	//
+	// This special logic is done for backwards compatibility with the original
+	// design of integrations.
+	identifiersMap := map[string][]string{}
+	for _, i := range set {
+		identifiersMap[i.id.Name] = append(identifiersMap[i.id.Name], i.id.Identifier)
+	}
+
+	usedPrefixes := map[string]struct{}{}
+
+	for _, ci := range set {
+		id := ci.id
+		multipleInstances := len(identifiersMap[id.Name]) > 1
+
+		var integrationPrefix string
+		if multipleInstances {
+			// i.e., /integrations/mysqld_exporter/server-a
+			integrationPrefix = path.Join(basePrefix, id.Name, id.Identifier)
+		} else {
+			// i.e., /integrations/node_exporter
+			integrationPrefix = path.Join(basePrefix, id.Name)
+		}
+
+		f(ci, integrationPrefix)
+
+		if _, exist := usedPrefixes[integrationPrefix]; exist {
+			return fmt.Errorf("BUG: duplicate integration prefix %q", integrationPrefix)
+		}
+		usedPrefixes[integrationPrefix] = struct{}{}
+	}
+	return nil
+}
+
 // Targets returns a channel that emits the set of target groups across all
 // running integrations that implement MetricsIntegration.
-func (c *controller) Targets(prefix string) chan<- []*targetgroup.Group {
-	// TODO(rfratto): NYI
-	// TODO(rfratto): how does this ever get closed?
-	return nil
+func (c *controller) Targets(prefix string) []*targetgroup.Group {
+	// Grab the integrations as fast as possible. We don't want to spend too much
+	// time holding the mutex.
+	type prefixedMetricsIntegration struct {
+		i      MetricsIntegration
+		prefix string
+	}
+	var mm []prefixedMetricsIntegration
+
+	c.mut.Lock()
+	forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+		// Best effort liveness check. They might stop running when we request
+		// their targets, which is fine, but we should save as much work as we
+		// can.
+		if !ci.Running() {
+			return
+		}
+		if mi, ok := ci.i.(MetricsIntegration); ok {
+			mm = append(mm, prefixedMetricsIntegration{i: mi, prefix: iprefix})
+		}
+	})
+	c.mut.Unlock()
+
+	var tgs []*targetgroup.Group
+	for _, mi := range mm {
+		tgs = append(tgs, mi.i.Targets(mi.prefix)...)
+	}
+	sort.Slice(tgs, func(i, j int) bool {
+		return tgs[i].Source < tgs[j].Source
+	})
+	return tgs
 }
 
 // ScrapeConfigs returns a set of scrape configs to use for self-scraping.
 // sdConfig should contain the full URL where the integrations SD API is
 // exposed. ScrapeConfigs will inject unique query parameters per integration
 // to limit what will be discovered.
-func (c *controller) ScrapeConfigs(sdConfig *http_sd.SDConfig) []*prom_config.ScrapeConfig {
-	// TODO(rfratto): NYI
-	return nil
+func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []*prom_config.ScrapeConfig {
+	// Grab the integrations as fast as possible. We don't want to spend too much
+	// time holding the mutex.
+	type prefixedMetricsIntegration struct {
+		id     integrationID
+		i      MetricsIntegration
+		prefix string
+	}
+	var mm []prefixedMetricsIntegration
+
+	c.mut.Lock()
+	forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+		// Best effort liveness check. They might stop running when we request
+		// their targets, which is fine, but we should save as much work as we
+		// can.
+		if !ci.Running() {
+			return
+		}
+		if mi, ok := ci.i.(MetricsIntegration); ok {
+			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
+		}
+	})
+	c.mut.Unlock()
+
+	var cfgs []*prom_config.ScrapeConfig
+	for _, mi := range mm {
+		// sdConfig will be pointing to the targets API. We want to use the query
+		// parmaeters to inform the API to only return specific targets.
+		var queryParams url.Values
+		queryParams.Set("integration", mi.id.Name)
+		queryParams.Set("identifier", mi.id.Identifier)
+
+		integrationSDConfig := *sdConfig
+		integrationSDConfig.URL = sdConfig.URL + "?" + queryParams.Encode()
+		sds := discovery.Configs{&integrationSDConfig}
+		cfgs = append(cfgs, mi.i.ScrapeConfigs(sds)...)
+	}
+	sort.Slice(cfgs, func(i, j int) bool {
+		return cfgs[i].JobName < cfgs[j].JobName
+	})
+	return cfgs
 }

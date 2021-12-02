@@ -78,9 +78,9 @@ type testIntegrationA struct {
 	Truth bool   `yaml:"truth"`
 }
 
-func (i *testIntegrationA) Name() string                                  { return "test" }
-func (i *testIntegrationA) Identifier(IntegrationOptions) (string, error) { return "integrationA", nil }
-func (i *testIntegrationA) NewIntegration(IntegrationOptions) (Integration, error) {
+func (i *testIntegrationA) Name() string                       { return "test" }
+func (i *testIntegrationA) Identifier(Options) (string, error) { return "integrationA", nil }
+func (i *testIntegrationA) NewIntegration(Options) (Integration, error) {
 	return NoOpIntegration, nil
 }
 
@@ -94,9 +94,9 @@ type testIntegrationB struct {
 	Text string `yaml:"text"`
 }
 
-func (*testIntegrationB) Name() string                                  { return "shouldnotbefound" }
-func (*testIntegrationB) Identifier(IntegrationOptions) (string, error) { return "integrationB", nil }
-func (*testIntegrationB) NewIntegration(IntegrationOptions) (Integration, error) {
+func (*testIntegrationB) Name() string                       { return "shouldnotbefound" }
+func (*testIntegrationB) Identifier(Options) (string, error) { return "integrationB", nil }
+func (*testIntegrationB) NewIntegration(Options) (Integration, error) {
 	return NoOpIntegration, nil
 }
 
