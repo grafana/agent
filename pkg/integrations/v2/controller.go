@@ -243,23 +243,13 @@ NextConfig:
 			return fmt.Errorf("failed to construct %s integration %q: %w", name, identifier, err)
 		}
 
-		// Create a new conrolled integration.
+		// Create a new controlled integration.
 		integrations = append(integrations, &controlledIntegration{
 			id:  id,
 			gen: atomic.AddUint64(&c.gen, 1),
 			i:   integration,
 			c:   ic,
 		})
-	}
-
-	// Recalculate HTTP paths to use for integrations.
-	for _, integration := range integrations {
-		integration, ok := integration.i.(HTTPIntegration)
-		if !ok {
-			continue
-		}
-
-		_ = integration
 	}
 
 	// Update integrations and inform
