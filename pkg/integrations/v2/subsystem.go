@@ -2,6 +2,7 @@ package integrations
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -131,14 +132,6 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 		}
 	}
 
-	// Set up integrations SD
-	{
-		// TODO(rfratto): cache results?
-		// TODO(rfratto): track active targetsCh?
-		targetsCh := s.ctrl.Targets(prefix)
-		_ = targetsCh
-	}
-
 	// Set up self-scraping
 	{
 		httpSDConfig := http_sd.DefaultSDConfig
@@ -174,7 +167,8 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 
 // WireAPI hooks up integration endpoints to r.
 func (s *Subsystem) WireAPI(r *mux.Router) {
-	r.PathPrefix("/integrations").HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+	const prefix = "/integrations"
+	r.PathPrefix(prefix).HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		s.mut.RLock()
 		handler := s.apiHandler
 		s.mut.RUnlock()
@@ -187,7 +181,17 @@ func (s *Subsystem) WireAPI(r *mux.Router) {
 		handler.ServeHTTP(rw, r)
 	})
 
-	// TODO(rfratto): SD API
+	r.HandleFunc(IntegrationsSDEndpoint, func(rw http.ResponseWriter, r *http.Request) {
+		targetOptions, err := TargetOptionsFromParams(r.URL.Query())
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("invalid query parameters: %s", err), http.StatusBadRequest)
+			return
+		}
+
+		tgs := s.ctrl.Targets(prefix, targetOptions)
+		enc := json.NewEncoder(rw)
+		_ = enc.Encode(tgs)
+	})
 }
 
 // Stop stops the manager and all running integrations. Blocks until all

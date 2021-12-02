@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path"
 	"sort"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -351,12 +352,13 @@ func forEachIntegration(set []*controlledIntegration, basePrefix string, f func(
 	return nil
 }
 
-// Targets returns a channel that emits the set of target groups across all
-// running integrations that implement MetricsIntegration.
-func (c *controller) Targets(prefix string) []*targetgroup.Group {
+// Targets returns the current set of targets across all integrations. Use opts
+// to customize which targets are returned.
+func (c *controller) Targets(prefix string, opts TargetOptions) []*targetgroup.Group {
 	// Grab the integrations as fast as possible. We don't want to spend too much
 	// time holding the mutex.
 	type prefixedMetricsIntegration struct {
+		id     integrationID
 		i      MetricsIntegration
 		prefix string
 	}
@@ -371,19 +373,84 @@ func (c *controller) Targets(prefix string) []*targetgroup.Group {
 			return
 		}
 		if mi, ok := ci.i.(MetricsIntegration); ok {
-			mm = append(mm, prefixedMetricsIntegration{i: mi, prefix: iprefix})
+			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
 		}
 	})
 	c.mut.Unlock()
 
 	var tgs []*targetgroup.Group
 	for _, mi := range mm {
+		// If we're looking for a subset of integrations, filter out anything that doesn't match.
+		if len(opts.Integrations) > 0 && !stringSliceContains(opts.Integrations, mi.id.Name) {
+			continue
+		}
+		// If we're looking for a specific instance, filter out anything that doesn't match.
+		if opts.Instance != "" && mi.id.Identifier != opts.Instance {
+			continue
+		}
+
 		tgs = append(tgs, mi.i.Targets(mi.prefix)...)
 	}
 	sort.Slice(tgs, func(i, j int) bool {
 		return tgs[i].Source < tgs[j].Source
 	})
 	return tgs
+}
+
+func stringSliceContains(ss []string, s string) bool {
+	for _, check := range ss {
+		if check == s {
+			return true
+		}
+	}
+	return false
+}
+
+// TargetOptions controls which targets should be returned by the subsystem.
+type TargetOptions struct {
+	// Integrations is the set of integrations to return. An empty slice will
+	// default to returning all integrations.
+	Integrations []string
+	// Instance matches a specific instance from all integrations. An empty
+	// string will match any instance.
+	Instance string
+}
+
+// TargetOptionsFromParams creates TargetOptions from parsed URL query parameters.
+func TargetOptionsFromParams(u url.Values) (TargetOptions, error) {
+	var to TargetOptions
+
+	rawIntegrations := u.Get("integrations")
+	if rawIntegrations != "" {
+		rawIntegrations, err := url.QueryUnescape(rawIntegrations)
+		if err != nil {
+			return to, fmt.Errorf("invalid value for integrations: %w", err)
+		}
+		to.Integrations = strings.Split(rawIntegrations, ",")
+	}
+
+	rawInstance := u.Get("instance")
+	if rawInstance != "" {
+		rawInstance, err := url.QueryUnescape(rawInstance)
+		if err != nil {
+			return to, fmt.Errorf("invalid value for instance: %w", err)
+		}
+		to.Instance = rawInstance
+	}
+
+	return to, nil
+}
+
+// ToParams will convert to into URL query parameters.
+func (to TargetOptions) ToParams() url.Values {
+	var p url.Values
+	if len(to.Integrations) != 0 {
+		p.Set("integrations", url.QueryEscape(strings.Join(to.Integrations, ",")))
+	}
+	if to.Instance != "" {
+		p.Set("instance", url.QueryEscape(to.Instance))
+	}
+	return p
 }
 
 // ScrapeConfigs returns a set of scrape configs to use for self-scraping.
@@ -416,14 +483,16 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 
 	var cfgs []*prom_config.ScrapeConfig
 	for _, mi := range mm {
-		// sdConfig will be pointing to the targets API. We want to use the query
-		// parmaeters to inform the API to only return specific targets.
-		var queryParams url.Values
-		queryParams.Set("integration", mi.id.Name)
-		queryParams.Set("identifier", mi.id.Identifier)
+		// sdConfig will be pointing to the targets API. By default, this returns absolutely everything.
+		// We want to use the query parmaeters to inform the API to only return
+		// specific targets.
+		opts := TargetOptions{
+			Integrations: []string{mi.id.Name},
+			Instance:     mi.id.Identifier,
+		}
 
 		integrationSDConfig := *sdConfig
-		integrationSDConfig.URL = sdConfig.URL + "?" + queryParams.Encode()
+		integrationSDConfig.URL = sdConfig.URL + "?" + opts.ToParams().Encode()
 		sds := discovery.Configs{&integrationSDConfig}
 		cfgs = append(cfgs, mi.i.ScrapeConfigs(sds)...)
 	}
