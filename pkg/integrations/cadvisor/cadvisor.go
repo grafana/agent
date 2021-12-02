@@ -34,6 +34,16 @@ var DefaultConfig Config = Config{
 	// Containerd config defaults
 	Containerd:          "/run/containerd/containerd.sock",
 	ContainerdNamespace: "k8s.io",
+
+	// Docker config defaults
+	Docker:        "unix:///var/run/docker.sock",
+	DockerTls:     false,
+	DockerTlsCert: "cert.pem",
+	DockerTlsKey:  "key.pem",
+	DockerTlsCA:   "ca.pem",
+
+	// Raw config defaults
+	DockerOnly: false,
 }
 
 // Config controls cadvisor
@@ -77,6 +87,26 @@ type Config struct {
 
 	// ContainerdNamespace containerd namespace
 	ContainerdNamespace string `yaml:"containerd_namespace,omitempty"`
+
+	// Docker config options
+	// Docker docker endpoint
+	Docker string `yaml:"docker,omitempty"`
+
+	// DockerTls use TLS to connect to docker
+	DockerTls bool `yaml:"docker_tls,omitempty"`
+
+	// DockerTlsCert path to client certificate
+	DockerTlsCert string `yaml:"docker_tls_cert,omitempty"`
+
+	// DockerTlsKey path to private key
+	DockerTlsKey string `yaml:"docker_tls_key,omitempty"`
+
+	// DockerTlsCA path to trusted CA
+	DockerTlsCA string `yaml:"docker_tls_ca,omitempty"`
+
+	// Raw config options
+	// DockerOnly only report docker containers in addition to root stats
+	DockerOnly bool `yaml:"docker_only,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -100,6 +130,9 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			return fmt.Errorf("failed to set enabled metric: %w", err)
 		}
 	}
+
+	// TODO: Reproduce this logic, possibly/probably when instantiating the integration
+	// https://github.com/google/cadvisor/blob/master/cmd/cadvisor.go#L118-L123
 	return err
 }
 
