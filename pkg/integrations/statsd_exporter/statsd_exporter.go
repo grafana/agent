@@ -14,8 +14,8 @@ import (
 
 	"github.com/prometheus/statsd_exporter/pkg/mappercache/lru"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
@@ -126,7 +126,11 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	if c.ListenUDP == "" && c.ListenTCP == "" && c.ListenUnixgram == "" {
 		return nil, fmt.Errorf("at least one of UDP/TCP/Unixgram listeners must be used")
 	}
-	statsdMapper := &mapper.MetricMapper{MappingsCount: m.MappingsCount}
+	statsdMapper := &mapper.MetricMapper{
+		Registerer:    reg,
+		MappingsCount: m.MappingsCount,
+		Logger:        log,
+	}
 
 	if c.MappingConfig != nil {
 		cfgBytes, err := yaml.Marshal(c.MappingConfig)
@@ -139,14 +143,17 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 			return nil, fmt.Errorf("failed to load mapping config: %w", err)
 		}
 	}
+
 	var cache mapper.MetricMapperCache
-	if c.CacheType == "lru" {
-		cache, err = lru.NewMetricMapperLRUCache(reg, c.CacheSize)
-		if err != nil {
-			return nil, err
+	if c.CacheSize != 0 {
+		switch c.CacheType {
+		case "lru":
+			cache, err = lru.NewMetricMapperLRUCache(statsdMapper.Registerer, c.CacheSize)
+		case "random":
+			cache, err = randomreplacement.NewMetricMapperRRCache(statsdMapper.Registerer, c.CacheSize)
+		default:
+			err = fmt.Errorf("unsupported cache type %q", c.CacheType)
 		}
-	} else if c.CacheType == "random" {
-		cache, err = randomreplacement.NewMetricMapperRRCache(reg, c.CacheSize)
 		if err != nil {
 			return nil, err
 		}

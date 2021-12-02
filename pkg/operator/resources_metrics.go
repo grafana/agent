@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	governingServiceName = "grafana-agent-operated"
-	defaultPortName      = "http-metrics"
+	defaultPortName = "http-metrics"
 )
 
 var (
@@ -41,6 +40,10 @@ func isManagedResource(obj client.Object) bool {
 	return labelValue == managedByOperatorLabelValue
 }
 
+func governingServiceName(agentName string) string {
+	return fmt.Sprintf("%s-operated", agentName)
+}
+
 func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
 	d = *d.DeepCopy()
 
@@ -52,7 +55,7 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 
 	return &v1.Service{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name:      governingServiceName,
+			Name:      governingServiceName(d.Agent.Name),
 			Namespace: d.Agent.ObjectMeta.Namespace,
 			OwnerReferences: []meta_v1.OwnerReference{{
 				APIVersion:         d.Agent.APIVersion,
@@ -64,6 +67,7 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 			}},
 			Labels: cfg.Labels.Merge(map[string]string{
 				managedByOperatorLabel: managedByOperatorLabelValue,
+				agentNameLabelName:     d.Agent.Name,
 				"operated-agent":       "true",
 			}),
 		},
@@ -71,11 +75,12 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 			ClusterIP: "None",
 			Ports: []v1.ServicePort{{
 				Name:       d.Agent.Spec.PortName,
-				Port:       9090,
+				Port:       8080,
 				TargetPort: intstr.FromString(d.Agent.Spec.PortName),
 			}},
 			Selector: map[string]string{
 				"app.kubernetes.io/name": "grafana-agent",
+				agentNameLabelName:       d.Agent.Name,
 			},
 		},
 	}
@@ -211,7 +216,11 @@ func generateMetricsStatefulSetSpec(
 
 	terminationGracePeriodSeconds := int64(4800)
 
-	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, d.Agent.Spec.Version)
+	useVersion := d.Agent.Spec.Version
+	if useVersion == "" {
+		useVersion = DefaultAgentVersion
+	}
+	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, useVersion)
 	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
 		imagePath = *d.Agent.Spec.Image
 	}
@@ -416,7 +425,7 @@ func generateMetricsStatefulSetSpec(
 	}
 
 	return &apps_v1.StatefulSetSpec{
-		ServiceName:         governingServiceName,
+		ServiceName:         governingServiceName(d.Agent.Name),
 		Replicas:            d.Agent.Spec.Metrics.Replicas,
 		PodManagementPolicy: apps_v1.ParallelPodManagement,
 		UpdateStrategy: apps_v1.StatefulSetUpdateStrategy{

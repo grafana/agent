@@ -129,6 +129,56 @@ volumes:
 ---
 kind: pipeline
 type: docker
+name: Deploy-To-Deployment-Tools 
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  ref:
+    - refs/heads/main
+
+image_pull_secrets:
+  - dockerconfigjson
+
+steps:
+  - name: put image tag in a file
+    image: alpine
+    commands:
+      - apk update && apk add git
+      - echo "grafana/agent:$(sh ./tools/image-tag)" > .image-tag
+  - name: Update Deployment Tools 
+    image: us.gcr.io/kubernetes-dev/drone/plugins/updater
+    settings:
+      config_json: |- 
+        {
+          "destination_branch": "master",
+          "pull_request_branch_prefix": "cd-agent",
+          "pull_request_enabled": false,
+          "pull_request_team_reviewers": [
+            "agent-squad"
+          ],
+          "repo_name": "deployment_tools",
+          "update_jsonnet_attribute_configs": [
+            {
+              "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
+              "jsonnet_key": "dev_canary",
+              "jsonnet_value_file": ".image-tag"
+            }
+          ]
+        }
+      github_token:
+        from_secret: gh_token
+ 
+depends_on:
+  - Containerize 
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+---
+kind: pipeline
+type: docker
 name: Release
 platform:
   os: linux
@@ -172,8 +222,24 @@ volumes:
   - name: docker
     host:
       path: /var/run/docker.sock
+
+---
+kind: secret
+name: dockerconfigjson
+
+get:
+  path: secret/data/common/gcr
+  name: .dockerconfigjson
+
+---
+kind: secret
+name: gh_token
+
+get:
+  path: infra/data/ci/github/grafanabot
+  name: pat
 ---
 kind: signature
-hmac: 1cab98e575942179c9a157058799b9d44119b1d6c170feefbeefe303eb44823d
+hmac: 53e9986dcd0fdbb78e1c09b6ba363ebcb94bc0801796510923f647b5c7d4ec46
 
 ...
