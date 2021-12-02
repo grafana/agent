@@ -6,9 +6,9 @@ import (
 
 	"github.com/weaveworks/common/logging"
 
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log/level"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/weaveworks/common/server"
 	el "golang.org/x/sys/windows/svc/eventlog"
 )

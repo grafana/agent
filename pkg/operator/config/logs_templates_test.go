@@ -474,6 +474,17 @@ func TestPodLogsConfig(t *testing.T) {
 						Namespace: "operator",
 						Name:      "podlogs",
 					},
+					Spec: gragent.PodLogsSpec{
+						RelabelConfigs: []*prom_v1.RelabelConfig{{
+							SourceLabels: []string{"input_a", "input_b"},
+							Separator:    ";",
+							TargetLabel:  "target_a",
+							Regex:        "regex",
+							Modulus:      1234,
+							Replacement:  "foobar",
+							Action:       "replace",
+						}},
+					},
 				},
 				"apiServer":                prom_v1.APIServerConfig{},
 				"ignoreNamespaceSelectors": false,
@@ -502,6 +513,13 @@ func TestPodLogsConfig(t *testing.T) {
 					target_label: __path__
 					separator: /
 					replacement: /var/log/pods/*$1/*.log
+				- source_labels: ["input_a", "input_b"]
+					separator: ";"
+					target_label: "target_a"
+					regex: regex
+					modulus: 1234
+					replacement: foobar
+					action: replace
 			`),
 		},
 	}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/weaveworks/common/logging"
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"

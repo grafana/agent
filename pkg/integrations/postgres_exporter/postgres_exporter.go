@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/lib/pq"
@@ -84,13 +84,24 @@ func parsePostgresURL(url string) (map[string]string, error) {
 
 	res := map[string]string{}
 
+	unescaper := strings.NewReplacer(`\'`, `'`, `\\`, `\`)
+
 	for _, keypair := range strings.Split(raw, " ") {
-		parts := strings.SplitN(keypair, "=", 1)
+		parts := strings.SplitN(keypair, "=", 2)
 		if len(parts) != 2 {
 			panic(fmt.Sprintf("unexpected keypair %s from pq", keypair))
 		}
 
-		res[parts[0]] = parts[1]
+		key := parts[0]
+		value := parts[1]
+
+		// Undo all the transformations ParseURL did: remove wrapping
+		// quotes and then unescape the escaped characters.
+		value = strings.TrimPrefix(value, "'")
+		value = strings.TrimSuffix(value, "'")
+		value = unescaper.Replace(value)
+
+		res[key] = value
 	}
 
 	return res, nil

@@ -4,7 +4,7 @@ package memcached_exporter //nolint:golint
 import (
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/memcached_exporter/pkg/exporter"

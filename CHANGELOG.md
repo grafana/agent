@@ -3,17 +3,53 @@
 BREAKING CHANGE: Integrations have changed in this release.
 Please review the [migration guide](./docs/migration-guide.md) for details.
 
-- [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
-
-- [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)
-
-- [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
-
 - [CHANGE] Integrations present in the `integrations:` map will now default to
   being enabled. (@rfratto)
 
 - [DEPRECATION] Integrations: The `enabled` field is now deprecated and will be
   removed in a future release. (@rfratto)
+
+# v0.21.1 (2021-11-18)
+
+- [BUGFIX] Fix panic when using postgres_exporter integration (@saputradharma)
+
+- [BUGFIX] Fix panic when dnsamsq_exporter integration tried to log a warning (@rfratto)
+
+- [BUGFIX] Statsd Integration: Adding logger instance to the statsd mapper instantiation. (@gaantunes)
+
+- [BUGFIX] Statsd Integration: Fix issue where mapped metrics weren't exposed to the integration. (@mattdurham)
+
+- [BUGFIX] Operator: fix bug where version was a required field (@rfratto)
+
+- [BUGFIX] Metrics: Only run WAL cleaner when metrics are being used and a WAL is configured. (@rfratto)
+
+# v0.21.0 (2021-11-17)
+
+- [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
+
+- [ENHANCEMENT] Update Loki dependency to v2.1.0-656-g0ae0d4da1. (@rlankfo)
+
+- [ENHANCEMENT] Update Prometheus dependency to v2.31.0 (@rlankfo)
+
+- [ENHANCEMENT] Add Agent Operator Helm quickstart guide (@hjet)
+
+- [ENHANCEMENT] Reorg Agent Operator quickstart guides (@hjet)
+
+- [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
+
+- [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)
+
+- [BUGFIX] Operator: Fix MetricsInstance Service port (@hjet)
+
+- [BUGFIX] Operator: Create govern service per Grafana Agent (@shturman)
+
+- [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
+
+- [BUGFIX] Traces: Fix `success_logic` code in service graphs processor (@mapno)
+
+- [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
+
+- [CHANGE] Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
 
 # v0.20.0 (2021-10-28)
 
