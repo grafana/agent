@@ -1,0 +1,107 @@
+package metricsutils
+
+import (
+	"context"
+	"net/http"
+	"path"
+
+	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/discovery"
+	"github.com/prometheus/prometheus/discovery/targetgroup"
+)
+
+// NewMetricsHandlerIntegration returns a integrations.MetricsIntegration which
+// will expose a /metrics endpoint for h.
+func NewMetricsHandlerIntegration(
+	c integrations.Config, common CommonConfig,
+	opts integrations.IntegrationOptions,
+	h http.Handler,
+) (integrations.MetricsIntegration, error) {
+	if !common.Enabled {
+		return nil, integrations.ErrDisabled
+	}
+	id, err := c.Identifier(opts)
+	if err != nil {
+		return nil, err
+	}
+	return &metricsHandlerIntegration{
+		integrationName: c.Name(),
+		instanceID:      id,
+		common:          common,
+		iopts:           opts,
+		handler:         h,
+	}, nil
+}
+
+type metricsHandlerIntegration struct {
+	integrationName, instanceID string
+
+	common  CommonConfig
+	iopts   integrations.IntegrationOptions
+	handler http.Handler
+}
+
+// Static typecheck tests
+var (
+	_ integrations.Integration        = (*metricsHandlerIntegration)(nil)
+	_ integrations.HTTPIntegration    = (*metricsHandlerIntegration)(nil)
+	_ integrations.MetricsIntegration = (*metricsHandlerIntegration)(nil)
+)
+
+// RunIntegration implements Integration.
+func (i *metricsHandlerIntegration) RunIntegration(ctx context.Context) error {
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+// Handler implements HTTPIntegration.
+func (i *metricsHandlerIntegration) Handler(prefix string) (http.Handler, error) {
+	r := mux.NewRouter()
+	r.Handle(path.Join(prefix, "metrics"), promhttp.Handler())
+	return r, nil
+}
+
+// Targets implements MetricsIntegration.
+func (i *metricsHandlerIntegration) Targets(prefix string) []*targetgroup.Group {
+	integrationNameValue := model.LabelValue("integrations/" + i.integrationName)
+
+	return []*targetgroup.Group{{
+		Targets: []model.LabelSet{{
+			model.AddressLabel:     model.LabelValue(i.iopts.AgentBaseURL.Host),
+			model.MetricsPathLabel: model.LabelValue(path.Join(prefix, "metrics")),
+		}},
+		Labels: model.LabelSet{
+			model.InstanceLabel: model.LabelValue(i.instanceID),
+			model.JobLabel:      integrationNameValue,
+			"agent_hostname":    model.LabelValue(i.iopts.AgentIdentifier),
+		},
+		Source: i.integrationName,
+	}}
+}
+
+// ScrapeConfigs implements MetricsIntegration.
+func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*config.ScrapeConfig {
+	if i.common.ScrapeIntegration != nil && !*i.common.ScrapeIntegration {
+		return nil
+	}
+
+	cfg := config.DefaultScrapeConfig
+	cfg.JobName = i.integrationName
+	cfg.Scheme = i.iopts.AgentBaseURL.Scheme
+	cfg.HTTPClientConfig = i.iopts.AgentHTTPClientConfig
+	cfg.ServiceDiscoveryConfigs = sd
+	if i.common.ScrapeInterval != 0 {
+		cfg.ScrapeInterval = model.Duration(i.common.ScrapeInterval)
+	}
+	if i.common.ScrapeTimeout != 0 {
+		cfg.ScrapeTimeout = model.Duration(i.common.ScrapeTimeout)
+	}
+	cfg.RelabelConfigs = i.common.RelabelConfigs
+	cfg.MetricRelabelConfigs = i.common.MetricRelabelConfigs
+
+	return []*config.ScrapeConfig{&cfg}
+}

@@ -195,20 +195,19 @@ type HTTPIntegration interface {
 type MetricsIntegration interface {
 	Integration
 
-	// Targets should return a channel that emits the full set of targets
-	// whenever the targets exposed by an integration changes. prefix
-	// can be used to create a __metrics_path__ label for targets that
-	// exist from an HTTPIntegration.
+	// Targets should return the current set of active targets exposed by this
+	// integration. Targets may be called multiple times throughout the lifecycle
+	// of the integration.
 	//
-	// Targets will be called once per config load.
-	Targets(prefix string) chan<- []*targetgroup.Group
+	// prefix will be the same prefixed passed to HTTPIntegration.Handler and
+	// can be used to update __metrics_path__ for targets.
+	Targets(prefix string) []*targetgroup.Group
 
 	// ScrapeConfigs configures automatic scraping of targets. ScrapeConfigs
 	// is optional if an integration should not scrape itself.
 	//
-	// Use the provided discovery.Configs to discover the targets exposed by this
+	// Unlike Targets, ScrapeConfigs is only called once per config load. Use the
+	// provided discovery.Configs to discover the targets exposed by this
 	// integration.
-	//
-	// ScrapeConfigs will be called once per config load.
 	ScrapeConfigs(discovery.Configs) []*prom_config.ScrapeConfig
 }

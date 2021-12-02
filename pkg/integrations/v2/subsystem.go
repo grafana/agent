@@ -43,6 +43,19 @@ type SubsystemOptions struct {
 	ClientConfig common_config.HTTPClientConfig `yaml:"client_config,omitempty"`
 }
 
+// MarshalYAML implements yaml.Marshaler for SubsystemOptions. Integrations
+// will be marshaled inline.
+func (o *SubsystemOptions) MarshalYAML() (interface{}, error) {
+	return MarshalYAML(o)
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for SubsystemOptions. Inline
+// integrations will be unmarshaled into o.Configs.
+func (o *SubsystemOptions) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*o = DefaultSubsystemOptions
+	return UnmarshalYAML(o, unmarshal)
+}
+
 // Subsystem runs the integrations subsystem, managing a set of integrations.
 type Subsystem struct {
 	logger log.Logger
@@ -149,8 +162,9 @@ func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, iopts IntegrationOptions
 			instanceCfg.ScrapeConfigs = scrapeConfigs
 			instanceCfg.RemoteWrite = sopts.PrometheusRemoteWrite
 
-			err := iopts.Metrics.InstanceManager().ApplyConfig(instanceCfg)
-			if err != nil {
+			if err := iopts.Metrics.Validate(&instanceCfg); err != nil {
+				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: validation: %w", err))
+			} else if err := iopts.Metrics.InstanceManager().ApplyConfig(instanceCfg); err != nil {
 				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: %w", err))
 			}
 		}
