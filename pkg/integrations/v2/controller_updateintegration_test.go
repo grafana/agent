@@ -11,12 +11,12 @@ import (
 )
 
 //
-// Tests for Controller's utilization of the UpdateIntegration interface.
+// Tests for controller's utilization of the UpdateIntegration interface.
 //
 
-// TestController_UpdateIntegration ensures that the controller will call
+// Test_controller_UpdateIntegration ensures that the controller will call
 // UpdateIntegration for integrations that support it.
-func TestController_UpdateIntegration(t *testing.T) {
+func Test_controller_UpdateIntegration(t *testing.T) {
 	var (
 		integrationStartWg sync.WaitGroup
 		applies, starts    atomic.Uint64
@@ -35,7 +35,7 @@ func TestController_UpdateIntegration(t *testing.T) {
 		},
 	}
 
-	cfg := ControllerConfig{
+	cfg := controllerConfig{
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
@@ -49,7 +49,7 @@ func TestController_UpdateIntegration(t *testing.T) {
 		},
 	}
 
-	ctrl, err := NewController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
+	ctrl, err := newController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := newSyncController(t, ctrl)
@@ -67,9 +67,9 @@ func TestController_UpdateIntegration(t *testing.T) {
 	require.Equal(t, uint64(1), starts.Load(), "restart should not have occured")
 }
 
-// TestController_UpdateIntegration ensures that the controller will remove
+// Test_controller_UpdateIntegration ensures that the controller will remove
 // integrations after an Update disables it.
-func TestController_UpdateIntegration_Disabled(t *testing.T) {
+func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 	var (
 		startWg, stopWg sync.WaitGroup
 	)
@@ -86,7 +86,7 @@ func TestController_UpdateIntegration_Disabled(t *testing.T) {
 		},
 	}
 
-	cfg := ControllerConfig{
+	cfg := controllerConfig{
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
@@ -101,7 +101,7 @@ func TestController_UpdateIntegration_Disabled(t *testing.T) {
 		},
 	}
 
-	ctrl, err := NewController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
+	ctrl, err := newController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := newSyncController(t, ctrl)

@@ -15,12 +15,12 @@ import (
 // Tests for Controller's utilization of the core Integration interface.
 //
 
-// TestController_UniqueIdentifer ensures that integrations must not share a (name, id) tuple.
-func TestController_UniqueIdentifier(t *testing.T) {
-	controllerFromConfigs := func(t *testing.T, cc []Config) (*Controller, error) {
+// Test_controller_UniqueIdentifer ensures that integrations must not share a (name, id) tuple.
+func Test_controller_UniqueIdentifier(t *testing.T) {
+	controllerFromConfigs := func(t *testing.T, cc []Config) (*controller, error) {
 		t.Helper()
-		return NewController(
-			ControllerConfig(cc),
+		return newController(
+			controllerConfig(cc),
 			IntegrationOptions{Logger: util.TestLogger(t)},
 		)
 	}
@@ -50,16 +50,16 @@ func TestController_UniqueIdentifier(t *testing.T) {
 	})
 }
 
-// TestController_RunsIntegration ensures that integrations
+// Test_controller_RunsIntegration ensures that integrations
 // run.
-func TestController_RunsIntegration(t *testing.T) {
+func Test_controller_RunsIntegration(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	ctrl, err := NewController(
-		ControllerConfig{
+	ctrl, err := newController(
+		controllerConfig{
 			mockConfigForIntegration(t, FuncIntegration(func(ctx context.Context) error {
 				defer wg.Done()
 				cancel()
@@ -73,15 +73,15 @@ func TestController_RunsIntegration(t *testing.T) {
 
 	// Run the controller. The controller should immediately run our fake integration
 	// which will cancel ctx and cause ctrl to exit.
-	ctrl.Run(ctx)
+	ctrl.run(ctx)
 
 	// Make sure that our integration exited too.
 	wg.Wait()
 }
 
-// TestController_ConfigChanges ensures that integrations only get restarted
+// Test_controller_ConfigChanges ensures that integrations only get restarted
 // when configs are no longer equal.
-func TestController_ConfigChanges(t *testing.T) {
+func Test_controller_ConfigChanges(t *testing.T) {
 	tc := func(t *testing.T, changed bool) (timesRan uint64) {
 		t.Helper()
 
@@ -95,7 +95,7 @@ func TestController_ConfigChanges(t *testing.T) {
 			return nil
 		})
 
-		cfg := ControllerConfig{
+		cfg := controllerConfig{
 			mockConfig{
 				NameFunc:         func() string { return "mock" },
 				ConfigEqualsFunc: func(Config) bool { return !changed },
@@ -110,7 +110,7 @@ func TestController_ConfigChanges(t *testing.T) {
 		}
 
 		iopts := IntegrationOptions{Logger: util.TestLogger(t)}
-		ctrl, err := NewController(cfg, iopts)
+		ctrl, err := newController(cfg, iopts)
 		require.NoError(t, err, "failed to create controller")
 
 		sc := newSyncController(t, ctrl)
@@ -135,7 +135,7 @@ func TestController_ConfigChanges(t *testing.T) {
 }
 
 type syncController struct {
-	inner   *Controller
+	inner   *controller
 	applyWg sync.WaitGroup
 
 	stop     context.CancelFunc
@@ -143,8 +143,8 @@ type syncController struct {
 }
 
 // newSyncController makes calls to Controller synchronous. newSyncController
-// will start running the inner controller.
-func newSyncController(t *testing.T, inner *Controller) *syncController {
+// will start running the inner controller and wait for it to update.
+func newSyncController(t *testing.T, inner *controller) *syncController {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -163,8 +163,7 @@ func newSyncController(t *testing.T, inner *Controller) *syncController {
 	sc.applyWg.Add(1)
 
 	go func() {
-		err := inner.Run(ctx)
-		require.NoError(t, err)
+		inner.run(ctx)
 		close(sc.exitedCh)
 	}()
 
@@ -172,7 +171,7 @@ func newSyncController(t *testing.T, inner *Controller) *syncController {
 	return sc
 }
 
-func (sc *syncController) UpdateController(c ControllerConfig, opts IntegrationOptions) error {
+func (sc *syncController) UpdateController(c controllerConfig, opts IntegrationOptions) error {
 	sc.applyWg.Add(1)
 
 	if err := sc.inner.UpdateController(c, opts); err != nil {
@@ -189,10 +188,10 @@ func (sc *syncController) Stop() {
 	<-sc.exitedCh
 }
 
-// TestController_IgnoresDisabledIntegration ensures that disabled integrations
+// Test_controller_IgnoresDisabledIntegration ensures that disabled integrations
 // do not get run.
-func TestController_IgnoredDisabledIntegration(t *testing.T) {
-	cfg := ControllerConfig{
+func Test_controller_IgnoredDisabledIntegration(t *testing.T) {
+	cfg := controllerConfig{
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
@@ -205,7 +204,7 @@ func TestController_IgnoredDisabledIntegration(t *testing.T) {
 		},
 	}
 
-	_, err := NewController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
+	_, err := newController(cfg, IntegrationOptions{Logger: util.TestLogger(t)})
 	require.NoError(t, err, "error from NewIntegration should have been ignored")
 }
 

@@ -111,6 +111,20 @@ type IntegrationOptions struct {
 	AgentHTTPClientConfig common_config.HTTPClientConfig
 }
 
+// CloneAgentBaseURL returns a copy of AgentBaseURL that can be modified.
+func (io IntegrationOptions) CloneAgentBaseURL() *url.URL {
+	if io.AgentBaseURL == nil {
+		return nil
+	}
+	rawUrl := io.AgentBaseURL.String()
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		// The URL shouldn't be invalid at this point
+		panic(err)
+	}
+	return u
+}
+
 // Equals returns true if io equals other. Logger isn't checked.
 func (io IntegrationOptions) Equals(other IntegrationOptions) bool {
 	return io.AgentIdentifier == other.AgentIdentifier &&

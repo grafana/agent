@@ -14,12 +14,12 @@ import (
 )
 
 //
-// Tests for Controller's utilization of the HTTPIntegration interface.
+// Tests for controller's utilization of the HTTPIntegration interface.
 //
 
-// TestController_HTTPIntegration_Prefixes ensures that the controller will assign
+// Test_controller_HTTPIntegration_Prefixes ensures that the controller will assign
 // appropriate prefixes to HTTPIntegrations.
-func TestController_HTTPIntegration_Prefixes(t *testing.T) {
+func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 	httpConfigFromID := func(t *testing.T, prefixes *[]string, name, identifier string) Config {
 		t.Helper()
 
@@ -41,8 +41,8 @@ func TestController_HTTPIntegration_Prefixes(t *testing.T) {
 	t.Run("fully unique", func(t *testing.T) {
 		var prefixes []string
 
-		ctrl, err := NewController(
-			ControllerConfig{
+		ctrl, err := newController(
+			controllerConfig{
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "fizz", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
@@ -50,6 +50,7 @@ func TestController_HTTPIntegration_Prefixes(t *testing.T) {
 			IntegrationOptions{Logger: util.TestLogger(t)},
 		)
 		require.NoError(t, err)
+		_ = newSyncController(t, ctrl)
 
 		_, err = ctrl.Handler("/integrations/")
 		require.NoError(t, err)
@@ -65,8 +66,8 @@ func TestController_HTTPIntegration_Prefixes(t *testing.T) {
 	t.Run("multiple instances", func(t *testing.T) {
 		var prefixes []string
 
-		ctrl, err := NewController(
-			ControllerConfig{
+		ctrl, err := newController(
+			controllerConfig{
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "foo", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
@@ -74,6 +75,7 @@ func TestController_HTTPIntegration_Prefixes(t *testing.T) {
 			IntegrationOptions{Logger: util.TestLogger(t)},
 		)
 		require.NoError(t, err)
+		_ = newSyncController(t, ctrl)
 
 		_, err = ctrl.Handler("/integrations/")
 		require.NoError(t, err)
@@ -87,9 +89,9 @@ func TestController_HTTPIntegration_Prefixes(t *testing.T) {
 	})
 }
 
-// TestController_HTTPIntegration_Routing ensures that the controller will route
+// Test_controller_HTTPIntegration_Routing ensures that the controller will route
 // requests to the appropriate integration.
-func TestController_HTTPIntegration_Routing(t *testing.T) {
+func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 	httpConfigFromID := func(t *testing.T, name, identifier string) Config {
 		t.Helper()
 
@@ -109,8 +111,8 @@ func TestController_HTTPIntegration_Routing(t *testing.T) {
 		return cfg
 	}
 
-	ctrl, err := NewController(
-		ControllerConfig{
+	ctrl, err := newController(
+		controllerConfig{
 			httpConfigFromID(t, "foo", "bar"),
 			httpConfigFromID(t, "foo", "buzz"),
 			httpConfigFromID(t, "hello", "world"),
@@ -118,6 +120,7 @@ func TestController_HTTPIntegration_Routing(t *testing.T) {
 		IntegrationOptions{Logger: util.TestLogger(t)},
 	)
 	require.NoError(t, err)
+	_ = newSyncController(t, ctrl)
 
 	handler, err := ctrl.Handler("/integrations/")
 	require.NoError(t, err)
@@ -149,9 +152,9 @@ func TestController_HTTPIntegration_Routing(t *testing.T) {
 	}
 }
 
-// TestController_HTTPIntegration_NestedRouting ensures that the controller
+// Test_controller_HTTPIntegration_NestedRouting ensures that the controller
 // will work with nested routers.
-func TestController_HTTPIntegration_NestedRouting(t *testing.T) {
+func Test_controller_HTTPIntegration_NestedRouting(t *testing.T) {
 	cfg := mockConfigNameTuple(t, "test", "test")
 	cfg.NewIntegrationFunc = func(IntegrationOptions) (Integration, error) {
 		i := mockHTTPIntegration{
@@ -173,11 +176,12 @@ func TestController_HTTPIntegration_NestedRouting(t *testing.T) {
 		return i, nil
 	}
 
-	ctrl, err := NewController(
-		ControllerConfig{cfg},
+	ctrl, err := newController(
+		controllerConfig{cfg},
 		IntegrationOptions{Logger: util.TestLogger(t)},
 	)
 	require.NoError(t, err)
+	_ = newSyncController(t, ctrl)
 
 	handler, err := ctrl.Handler("/integrations/")
 	require.NoError(t, err)

@@ -13,18 +13,18 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	prom_config "github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/discovery"
+	http_sd "github.com/prometheus/prometheus/discovery/http"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
-// ControllerConfig holds a set of integration configs.
-type ControllerConfig []Config
+// controllerConfig holds a set of integration configs.
+type controllerConfig []Config
 
-// Controller manages a set of integrations. Controller is intended to be
+// controller manages a set of integrations. controller is intended to be
 // embedded inside of integrations that multiplex running other integrations.
-type Controller struct {
+type controller struct {
 	mut  sync.Mutex
-	cfg  ControllerConfig
+	cfg  controllerConfig
 	opts IntegrationOptions
 
 	integrations       []*controlledIntegration // Integrations to run
@@ -38,11 +38,11 @@ type Controller struct {
 	onUpdateDone func()
 }
 
-// NewController creates a new Controller. Controller is intended to be
+// newController creates a new Controller. Controller is intended to be
 // embedded inside of integrations that may want to multiplex other
 // integrations.
-func NewController(cfg ControllerConfig, opts IntegrationOptions) (*Controller, error) {
-	c := &Controller{
+func newController(cfg controllerConfig, opts IntegrationOptions) (*controller, error) {
+	c := &controller{
 		reloadIntegrations: make(chan struct{}, 1),
 	}
 	if err := c.UpdateController(cfg, opts); err != nil {
@@ -51,8 +51,8 @@ func NewController(cfg ControllerConfig, opts IntegrationOptions) (*Controller, 
 	return c, nil
 }
 
-// Run starts the controller and blocks until ctx is canceled.
-func (c *Controller) Run(ctx context.Context) error {
+// run starts the controller and blocks until ctx is canceled.
+func (c *controller) run(ctx context.Context) {
 	defer func() {
 		level.Debug(c.opts.Logger).Log("msg", "stopping all integrations")
 
@@ -72,6 +72,7 @@ func (c *Controller) Run(ctx context.Context) error {
 		c.mut.Lock()
 		defer c.mut.Unlock()
 
+		level.Debug(c.opts.Logger).Log("msg", "updating running integrations")
 		newIntegrations := c.integrations
 
 		// Shut down all old integrations. If the integration exists in
@@ -106,11 +107,9 @@ func (c *Controller) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			level.Debug(c.opts.Logger).Log("msg", "controller exiting")
-			return nil
+			return
 		case <-c.reloadIntegrations:
-			level.Debug(c.opts.Logger).Log("msg", "updating running integrations")
 			updateIntegrations()
-
 			if c.onUpdateDone != nil {
 				c.onUpdateDone()
 			}
@@ -170,7 +169,10 @@ type integrationID struct {
 
 // UpdateController updates the Controller with new Controller and
 // IntegrationOptions.
-func (c *Controller) UpdateController(cfg ControllerConfig, opts IntegrationOptions) error {
+//
+// UpdateController updates running integrations. Extensions can be
+// recalculated by calling relevant methods like Handler or Targets.
+func (c *controller) UpdateController(cfg controllerConfig, opts IntegrationOptions) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -268,15 +270,6 @@ NextConfig:
 			i:   integration,
 			c:   ic,
 		})
-
-		//
-		// Handle extensions
-		//
-
-		if integration, ok := integration.(MetricsIntegration); ok {
-			// TODO(rfratto): handle?
-			_ = integration
-		}
 	}
 
 	// Recalculate HTTP paths to use for integrations.
@@ -289,8 +282,6 @@ NextConfig:
 		_ = integration
 	}
 
-	// TODO(rfratto): handle removing extensions for configs that have gone away
-
 	// Update integrations and inform
 	c.integrations = integrations
 	c.reloadIntegrations <- struct{}{}
@@ -301,13 +292,21 @@ NextConfig:
 }
 
 // Handler returns an HTTP handler for the controller and its integrations.
-// Handler will pass through requests to other running integrations.
+// Handler will pass through requests to other running integrations. Handler
+// may return a partial handler with an error.
 //
 // Handler is expensive to compute and should only be done after reloading the
 // config.
-func (c *Controller) Handler(prefix string) (http.Handler, error) {
+func (c *controller) Handler(prefix string) (http.Handler, error) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
+
+	var firstErr error
+	saveFirstErr := func(err error) {
+		if firstErr == nil {
+			firstErr = err
+		}
+	}
 
 	r := mux.NewRouter()
 
@@ -323,11 +322,11 @@ func (c *Controller) Handler(prefix string) (http.Handler, error) {
 
 	usedPrefixes := map[string]struct{}{}
 
-	for _, i := range c.integrations {
-		id := i.id
+	for _, ci := range c.integrations {
+		id := ci.id
 		multipleInstances := len(identifiersMap[id.Name]) > 1
 
-		i, ok := i.i.(HTTPIntegration)
+		i, ok := ci.i.(HTTPIntegration)
 		if !ok {
 			continue
 		}
@@ -345,7 +344,8 @@ func (c *Controller) Handler(prefix string) (http.Handler, error) {
 		if errors.Is(err, ErrDisabled) {
 			continue
 		} else if err != nil {
-			return nil, fmt.Errorf("could not generate HTTP handler for %s integration %q: %w", id.Name, id.Identifier, err)
+			saveFirstErr(fmt.Errorf("could not generate HTTP handler for %s integration %q: %w", id.Name, id.Identifier, err))
+			continue
 		} else if handler == nil {
 			continue
 		}
@@ -356,21 +356,33 @@ func (c *Controller) Handler(prefix string) (http.Handler, error) {
 		usedPrefixes[integrationPrefix] = struct{}{}
 
 		// Anything that matches the integrationPrefix should be passed to the handler.
-		r.PathPrefix(integrationPrefix).Handler(handler)
+		r.PathPrefix(integrationPrefix).HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			if !ci.Running() {
+				http.Error(rw, fmt.Sprintf("%s integration intance %q not running", id.Name, id.Identifier), http.StatusServiceUnavailable)
+				return
+			}
+			handler.ServeHTTP(rw, r)
+		})
 	}
 
 	// TODO(rfratto): navigation page for exact prefix match
 
-	return r, nil
+	return r, firstErr
 }
 
 // Targets returns a channel that emits the set of target groups across all
 // running integrations that implement MetricsIntegration.
-func (c *Controller) Targets(prefix string) chan<- []*targetgroup.Group {
-	panic("NYI")
+func (c *controller) Targets(prefix string) chan<- []*targetgroup.Group {
+	// TODO(rfratto): NYI
+	// TODO(rfratto): how does this ever get closed?
+	return nil
 }
 
 // ScrapeConfigs returns a set of scrape configs to use for self-scraping.
-func (c *Controller) ScrapeConfigs(d discovery.Configs) []*prom_config.ScrapeConfig {
-	panic("NYI")
+// sdConfig should contain the full URL where the integrations SD API is
+// exposed. ScrapeConfigs will inject unique query parameters per integration
+// to limit what will be discovered.
+func (c *controller) ScrapeConfigs(sdConfig *http_sd.SDConfig) []*prom_config.ScrapeConfig {
+	// TODO(rfratto): NYI
+	return nil
 }
