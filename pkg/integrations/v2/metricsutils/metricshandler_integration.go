@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -17,14 +18,15 @@ import (
 // NewMetricsHandlerIntegration returns a integrations.MetricsIntegration which
 // will expose a /metrics endpoint for h.
 func NewMetricsHandlerIntegration(
+	_ log.Logger,
 	c integrations.Config, common CommonConfig,
-	opts integrations.Options,
+	globals integrations.Globals,
 	h http.Handler,
 ) (integrations.MetricsIntegration, error) {
 	if !common.Enabled {
 		return nil, integrations.ErrDisabled
 	}
-	id, err := c.Identifier(opts)
+	id, err := c.Identifier(globals)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +34,7 @@ func NewMetricsHandlerIntegration(
 		integrationName: c.Name(),
 		instanceID:      id,
 		common:          common,
-		iopts:           opts,
+		globals:         globals,
 		handler:         h,
 	}, nil
 }
@@ -41,7 +43,7 @@ type metricsHandlerIntegration struct {
 	integrationName, instanceID string
 
 	common  CommonConfig
-	iopts   integrations.Options
+	globals integrations.Globals
 	handler http.Handler
 }
 
@@ -71,13 +73,13 @@ func (i *metricsHandlerIntegration) Targets(prefix string) []*targetgroup.Group 
 
 	return []*targetgroup.Group{{
 		Targets: []model.LabelSet{{
-			model.AddressLabel:     model.LabelValue(i.iopts.AgentBaseURL.Host),
+			model.AddressLabel:     model.LabelValue(i.globals.AgentBaseURL.Host),
 			model.MetricsPathLabel: model.LabelValue(path.Join(prefix, "metrics")),
 		}},
 		Labels: model.LabelSet{
 			model.InstanceLabel: model.LabelValue(i.instanceID),
 			model.JobLabel:      integrationNameValue,
-			"agent_hostname":    model.LabelValue(i.iopts.AgentIdentifier),
+			"agent_hostname":    model.LabelValue(i.globals.AgentIdentifier),
 
 			// Meta labels that can be used during SD.
 			// __meta_agent_integration_selfscrape
@@ -108,8 +110,8 @@ func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*confi
 
 	cfg := config.DefaultScrapeConfig
 	cfg.JobName = i.integrationName
-	cfg.Scheme = i.iopts.AgentBaseURL.Scheme
-	cfg.HTTPClientConfig = i.iopts.AgentHTTPClientConfig
+	cfg.Scheme = i.globals.AgentBaseURL.Scheme
+	cfg.HTTPClientConfig = i.globals.AgentHTTPClientConfig
 	cfg.ServiceDiscoveryConfigs = sd
 	if i.common.ScrapeInterval != 0 {
 		cfg.ScrapeInterval = model.Duration(i.common.ScrapeInterval)

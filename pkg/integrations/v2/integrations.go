@@ -28,7 +28,6 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
-	"github.com/grafana/agent/pkg/util"
 	common_config "github.com/prometheus/common/config"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
@@ -39,6 +38,9 @@ var (
 	// ErrDisabled may be returned by NewIntegration to indicate that an
 	// integration should not run.
 	ErrDisabled = fmt.Errorf("integration disabled")
+	// ErrInvalidUpdate is returned by ApplyConfig when the config cannot
+	// be dynamically applied.
+	ErrInvalidUpdate = fmt.Errorf("invalid dynamic update")
 )
 
 // Config provides a configuration and constructor for an integration.
@@ -47,32 +49,23 @@ type Config interface {
 	// when unmarshaling the Config from YAML.
 	Name() string
 
-	// Identifier returns a string to uniquely identify this Integration.
-	// Identifier must be unique for each integration that shares the same
-	// Name.
+	// Identifier returns a string to uniquely identify the integration created
+	// by this Config. Identifier must be unique for each integration that shares
+	// the same Name.
 	//
 	// If there is no reasonable identifier to use for an integration,
-	// IntegrationOptions.AgentIdentifier may be used by default.
-	Identifier(Options) (string, error)
+	// Globals.AgentIdentifier may be used by default.
+	Identifier(Globals) (string, error)
 
 	// NewIntegration should return a new Integration using the provided
-	// IntegrationOptions to help initialize the Integration.
+	// Globals to help initialize the Integration.
 	//
 	// NewIntegration must be idempotent for a Config. Use Integration.Run to do
 	// anything with side effects, such as opening a port.
 	//
 	// NewIntegration may return ErrDisabled if the integration should not be
 	// run.
-	NewIntegration(Options) (Integration, error)
-}
-
-// MultiplexConfig is a Config that embeds a Controller.
-type MultiplexConfig interface {
-	Config
-
-	// MultiplexConfig marks a struct as multiplexed. It should do nothing when
-	// called.
-	Multiplexed()
+	NewIntegration(log.Logger, Globals) (Integration, error)
 }
 
 // ComparableConfig extends Config with an ConfigEquals method.
@@ -83,12 +76,9 @@ type ComparableConfig interface {
 	ConfigEquals(c Config) bool
 }
 
-// Options are used to pass around subsystems that empower integrations.
-type Options struct {
-	// Logger to use for logging. Logs sent to the logger will inject
-	// a field for integration name and instance key.
-	Logger log.Logger
-
+// Globals are used to pass around subsystem-wide settings that integrations
+// can take advantage of.
+type Globals struct {
 	// AgentIdentifier provides an identifier for the running agent. This can
 	// be used for labelling whenever appropriate.
 	//
@@ -111,38 +101,17 @@ type Options struct {
 }
 
 // CloneAgentBaseURL returns a copy of AgentBaseURL that can be modified.
-func (io Options) CloneAgentBaseURL() *url.URL {
-	if io.AgentBaseURL == nil {
+func (g Globals) CloneAgentBaseURL() *url.URL {
+	if g.AgentBaseURL == nil {
 		return nil
 	}
-	rawUrl := io.AgentBaseURL.String()
+	rawUrl := g.AgentBaseURL.String()
 	u, err := url.Parse(rawUrl)
 	if err != nil {
 		// The URL shouldn't be invalid at this point
 		panic(err)
 	}
 	return u
-}
-
-// Equals returns true if io equals other. Logger isn't checked.
-func (io Options) Equals(other Options) bool {
-	return io.AgentIdentifier == other.AgentIdentifier &&
-		io.Metrics == other.Metrics &&
-		io.Logs == other.Logs &&
-		io.Tracing == other.Tracing &&
-		urlCompare(io.AgentBaseURL, other.AgentBaseURL) &&
-		util.CompareYAML(io.AgentHTTPClientConfig, other.AgentHTTPClientConfig)
-}
-
-func urlCompare(a, b *url.URL) bool {
-	switch {
-	case a == b:
-		return true
-	case a != nil && b != nil:
-		return a.String() == b.String()
-	default:
-		return false
-	}
 }
 
 // An Integration integrates some external system with Grafana Agent's existing
@@ -164,10 +133,12 @@ type UpdateIntegration interface {
 	Integration
 
 	// ApplyConfig should apply the config c to the integration. An error can be
-	// returned if the Config is invalid.
+	// returned if the Config is invalid. When this happens, the old config will
+	// continue to run.
 	//
 	// If ApplyConfig returns ErrDisabled, the integration will be stopped.
-	ApplyConfig(c Config) error
+	// If ApplyConfig returns ErrInvalidUpdate, the integration will be recreatd.
+	ApplyConfig(c Config, g Globals) error
 }
 
 // HTTPIntegration is an integration that exposes an HTTP handler.

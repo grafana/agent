@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -19,10 +20,7 @@ import (
 func Test_controller_UniqueIdentifier(t *testing.T) {
 	controllerFromConfigs := func(t *testing.T, cc []Config) (*controller, error) {
 		t.Helper()
-		return newController(
-			controllerConfig(cc),
-			Options{Logger: util.TestLogger(t)},
-		)
+		return newController(util.TestLogger(t), controllerConfig(cc), Globals{})
 	}
 
 	t.Run("different name, identifier", func(t *testing.T) {
@@ -59,6 +57,7 @@ func Test_controller_RunsIntegration(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	ctrl, err := newController(
+		util.TestLogger(t),
 		controllerConfig{
 			mockConfigForIntegration(t, FuncIntegration(func(ctx context.Context) error {
 				defer wg.Done()
@@ -67,7 +66,7 @@ func Test_controller_RunsIntegration(t *testing.T) {
 				return nil
 			})),
 		},
-		Options{Logger: util.TestLogger(t)},
+		Globals{},
 	)
 	require.NoError(t, err, "failed to create controller")
 
@@ -99,22 +98,22 @@ func Test_controller_ConfigChanges(t *testing.T) {
 			mockConfig{
 				NameFunc:         func() string { return "mock" },
 				ConfigEqualsFunc: func(Config) bool { return !changed },
-				IdentifierFunc: func(Options) (string, error) {
+				IdentifierFunc: func(Globals) (string, error) {
 					return "mock", nil
 				},
-				NewIntegrationFunc: func(Options) (Integration, error) {
+				NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 					integrationsWg.Add(1)
 					return mockIntegration, nil
 				},
 			},
 		}
 
-		iopts := Options{Logger: util.TestLogger(t)}
-		ctrl, err := newController(cfg, iopts)
+		globals := Globals{}
+		ctrl, err := newController(util.TestLogger(t), cfg, globals)
 		require.NoError(t, err, "failed to create controller")
 
 		sc := newSyncController(t, ctrl)
-		require.NoError(t, sc.UpdateController(cfg, iopts), "failed to re-apply config")
+		require.NoError(t, sc.UpdateController(cfg, globals), "failed to re-apply config")
 
 		// Wait for our integrations to have been started
 		integrationsWg.Wait()
@@ -171,10 +170,10 @@ func newSyncController(t *testing.T, inner *controller) *syncController {
 	return sc
 }
 
-func (sc *syncController) UpdateController(c controllerConfig, opts Options) error {
+func (sc *syncController) UpdateController(c controllerConfig, g Globals) error {
 	sc.applyWg.Add(1)
 
-	if err := sc.inner.UpdateController(c, opts); err != nil {
+	if err := sc.inner.UpdateController(c, g); err != nil {
 		sc.applyWg.Done() // The wg won't ever be finished now
 		return err
 	}
@@ -195,43 +194,43 @@ func Test_controller_IgnoredDisabledIntegration(t *testing.T) {
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
-			IdentifierFunc: func(Options) (string, error) {
+			IdentifierFunc: func(Globals) (string, error) {
 				return "mock", nil
 			},
-			NewIntegrationFunc: func(Options) (Integration, error) {
+			NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 				return nil, fmt.Errorf("won't run integration: %w", ErrDisabled)
 			},
 		},
 	}
 
-	_, err := newController(cfg, Options{Logger: util.TestLogger(t)})
+	_, err := newController(util.TestLogger(t), cfg, Globals{})
 	require.NoError(t, err, "error from NewIntegration should have been ignored")
 }
 
 type mockConfig struct {
 	NameFunc           func() string
 	ConfigEqualsFunc   func(Config) bool
-	IdentifierFunc     func(Options) (string, error)
-	NewIntegrationFunc func(Options) (Integration, error)
+	IdentifierFunc     func(Globals) (string, error)
+	NewIntegrationFunc func(log.Logger, Globals) (Integration, error)
 }
 
 func (mc mockConfig) Name() string {
 	return mc.NameFunc()
 }
 
-func (mc mockConfig) ConfigEquals(o Config) bool {
+func (mc mockConfig) ConfigEquals(c Config) bool {
 	if mc.ConfigEqualsFunc != nil {
-		return mc.ConfigEqualsFunc(o)
+		return mc.ConfigEqualsFunc(c)
 	}
 	return false
 }
 
-func (mc mockConfig) Identifier(o Options) (string, error) {
-	return mc.IdentifierFunc(o)
+func (mc mockConfig) Identifier(g Globals) (string, error) {
+	return mc.IdentifierFunc(g)
 }
 
-func (mc mockConfig) NewIntegration(o Options) (Integration, error) {
-	return mc.NewIntegrationFunc(o)
+func (mc mockConfig) NewIntegration(l log.Logger, g Globals) (Integration, error) {
+	return mc.NewIntegrationFunc(l, g)
 }
 
 func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
@@ -239,8 +238,8 @@ func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 
 	return mockConfig{
 		NameFunc:       func() string { return name },
-		IdentifierFunc: func(_ Options) (string, error) { return id, nil },
-		NewIntegrationFunc: func(_ Options) (Integration, error) {
+		IdentifierFunc: func(_ Globals) (string, error) { return id, nil },
+		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 			return NoOpIntegration, nil
 		},
 	}
@@ -252,10 +251,10 @@ func mockConfigForIntegration(t *testing.T, i Integration) mockConfig {
 
 	return mockConfig{
 		NameFunc: func() string { return "mock" },
-		IdentifierFunc: func(io Options) (string, error) {
+		IdentifierFunc: func(Globals) (string, error) {
 			return "mock", nil
 		},
-		NewIntegrationFunc: func(io Options) (Integration, error) {
+		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 			return i, nil
 		},
 	}

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -79,8 +80,8 @@ type testIntegrationA struct {
 }
 
 func (i *testIntegrationA) Name() string                       { return "test" }
-func (i *testIntegrationA) Identifier(Options) (string, error) { return "integrationA", nil }
-func (i *testIntegrationA) NewIntegration(Options) (Integration, error) {
+func (i *testIntegrationA) Identifier(Globals) (string, error) { return "integrationA", nil }
+func (i *testIntegrationA) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
 }
 
@@ -95,8 +96,8 @@ type testIntegrationB struct {
 }
 
 func (*testIntegrationB) Name() string                       { return "shouldnotbefound" }
-func (*testIntegrationB) Identifier(Options) (string, error) { return "integrationB", nil }
-func (*testIntegrationB) NewIntegration(Options) (Integration, error) {
+func (*testIntegrationB) Identifier(Globals) (string, error) { return "integrationB", nil }
+func (*testIntegrationB) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
 }
 

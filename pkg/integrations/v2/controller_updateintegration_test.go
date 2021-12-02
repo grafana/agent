@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -29,7 +30,7 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}),
-		ApplyConfigFunc: func(Config) error {
+		ApplyConfigFunc: func(Config, Globals) error {
 			applies.Inc()
 			return nil
 		},
@@ -39,17 +40,17 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
-			IdentifierFunc: func(Options) (string, error) {
+			IdentifierFunc: func(Globals) (string, error) {
 				return "mock", nil
 			},
-			NewIntegrationFunc: func(Options) (Integration, error) {
+			NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 				integrationStartWg.Add(1)
 				return mockIntegration, nil
 			},
 		},
 	}
 
-	ctrl, err := newController(cfg, Options{Logger: util.TestLogger(t)})
+	ctrl, err := newController(util.TestLogger(t), cfg, Globals{})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := newSyncController(t, ctrl)
@@ -58,7 +59,7 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 	integrationStartWg.Wait()
 
 	// Try to apply again.
-	require.NoError(t, sc.UpdateController(cfg, ctrl.opts), "failed to re-apply config")
+	require.NoError(t, sc.UpdateController(cfg, ctrl.globals), "failed to re-apply config")
 	integrationStartWg.Wait()
 
 	sc.Stop()
@@ -81,7 +82,7 @@ func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}),
-		ApplyConfigFunc: func(Config) error {
+		ApplyConfigFunc: func(Config, Globals) error {
 			return ErrDisabled
 		},
 	}
@@ -90,10 +91,10 @@ func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 		mockConfig{
 			NameFunc:         func() string { return "mock" },
 			ConfigEqualsFunc: func(Config) bool { return false },
-			IdentifierFunc: func(Options) (string, error) {
+			IdentifierFunc: func(Globals) (string, error) {
 				return "mock", nil
 			},
-			NewIntegrationFunc: func(Options) (Integration, error) {
+			NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 				startWg.Add(1)
 				stopWg.Add(1)
 				return mockIntegration, nil
@@ -101,7 +102,7 @@ func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 		},
 	}
 
-	ctrl, err := newController(cfg, Options{Logger: util.TestLogger(t)})
+	ctrl, err := newController(util.TestLogger(t), cfg, Globals{})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := newSyncController(t, ctrl)
@@ -111,7 +112,7 @@ func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 
 	// Try to apply again. This should pick up the ErrDisabled on apply and force
 	// our itnegration to stop.
-	require.NoError(t, sc.UpdateController(cfg, ctrl.opts), "failed to re-apply config")
+	require.NoError(t, sc.UpdateController(cfg, ctrl.globals), "failed to re-apply config")
 	stopWg.Wait()
 
 	sc.Stop()
@@ -119,9 +120,9 @@ func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 
 type mockUpdateIntegration struct {
 	Integration
-	ApplyConfigFunc func(c Config) error
+	ApplyConfigFunc func(Config, Globals) error
 }
 
-func (m mockUpdateIntegration) ApplyConfig(c Config) error {
-	return m.ApplyConfigFunc(c)
+func (m mockUpdateIntegration) ApplyConfig(c Config, g Globals) error {
+	return m.ApplyConfigFunc(c, g)
 }

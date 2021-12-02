@@ -22,13 +22,14 @@ const IntegrationsSDEndpoint = "/agent/api/v1/metrics/integrations/sd"
 
 // DefaultSubsystemOptions holds the default settings for a Controller.
 var DefaultSubsystemOptions = SubsystemOptions{
-	ScrapeIntegrations: true,
+	ScrapeIntegrationsDefault: true,
 }
 
 // SubsystemOptions controls how the integrations subsystem behaves.
 type SubsystemOptions struct {
-	// When true, scrapes metrics from integrations.
-	ScrapeIntegrations bool `yaml:"scrape_integrations,omitempty"`
+	// The default value for self-scraping integrations if they don't override
+	// the default.
+	ScrapeIntegrationsDefault bool `yaml:"scrape_integrations,omitempty"`
 	// Prometheus RW configs to use for self-scraping integrations.
 	PrometheusRemoteWrite []*prom_config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
 
@@ -62,7 +63,7 @@ type Subsystem struct {
 
 	mut        sync.RWMutex
 	sopts      SubsystemOptions
-	iopts      Options
+	globals    Globals
 	apiHandler http.Handler // generated from controller
 
 	ctrl             *controller
@@ -72,8 +73,8 @@ type Subsystem struct {
 
 // NewSubsystem creates and starts a new integrations Subsystem. Every field in
 // IntegrationOptions must be filled out.
-func NewSubsystem(sopts SubsystemOptions, iopts Options) (*Subsystem, error) {
-	ctrl, err := newController(sopts.Configs, iopts)
+func NewSubsystem(l log.Logger, sopts SubsystemOptions, globals Globals) (*Subsystem, error) {
+	ctrl, err := newController(l, sopts.Configs, globals)
 	if err != nil {
 		return nil, err
 	}
@@ -87,16 +88,16 @@ func NewSubsystem(sopts SubsystemOptions, iopts Options) (*Subsystem, error) {
 	}()
 
 	s := &Subsystem{
-		logger: iopts.Logger,
+		logger: l,
 
-		sopts: sopts,
-		iopts: iopts,
+		sopts:   sopts,
+		globals: globals,
 
 		ctrl:             ctrl,
 		stopController:   cancel,
 		controllerExited: ctrlExited,
 	}
-	if err := s.ApplyConfig(sopts, iopts); err != nil {
+	if err := s.ApplyConfig(sopts, globals); err != nil {
 		cancel()
 		return nil, err
 	}
@@ -105,13 +106,13 @@ func NewSubsystem(sopts SubsystemOptions, iopts Options) (*Subsystem, error) {
 
 // ApplyConfig updates the configuration of the integrations Subsystem and
 // options to pass to integrations.
-func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, opts Options) error {
+func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, globals Globals) error {
 	const prefix = "/integrations/"
 
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	if err := s.ctrl.UpdateController(sopts.Configs, opts); err != nil {
+	if err := s.ctrl.UpdateController(sopts.Configs, globals); err != nil {
 		return fmt.Errorf("error applying integrations: %w", err)
 	}
 
@@ -144,10 +145,10 @@ func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, opts Options) error {
 	// Set up self-scraping
 	{
 		httpSDConfig := http_sd.DefaultSDConfig
-		httpSDConfig.HTTPClientConfig = opts.AgentHTTPClientConfig
+		httpSDConfig.HTTPClientConfig = globals.AgentHTTPClientConfig
 		httpSDConfig.RefreshInterval = model.Duration(time.Second * 5) // TODO(rfratto): make configurable?
 
-		apiURL := opts.CloneAgentBaseURL()
+		apiURL := globals.CloneAgentBaseURL()
 		apiURL.Path = IntegrationsSDEndpoint
 		httpSDConfig.URL = apiURL.String()
 
@@ -155,23 +156,23 @@ func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, opts Options) error {
 		if len(scrapeConfigs) == 0 {
 			// We're not going to self scrape if there are no configs. Try to delete
 			// the previous instance for self-scraping if one was running.
-			_ = opts.Metrics.InstanceManager().DeleteConfig("integrations")
+			_ = globals.Metrics.InstanceManager().DeleteConfig("integrations")
 		} else {
 			instanceCfg := instance.DefaultConfig
 			instanceCfg.Name = "integrations"
 			instanceCfg.ScrapeConfigs = scrapeConfigs
 			instanceCfg.RemoteWrite = sopts.PrometheusRemoteWrite
 
-			if err := opts.Metrics.Validate(&instanceCfg); err != nil {
+			if err := globals.Metrics.Validate(&instanceCfg); err != nil {
 				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: validation: %w", err))
-			} else if err := opts.Metrics.InstanceManager().ApplyConfig(instanceCfg); err != nil {
+			} else if err := globals.Metrics.InstanceManager().ApplyConfig(instanceCfg); err != nil {
 				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: %w", err))
 			}
 		}
 	}
 
 	s.sopts = sopts
-	s.iopts = opts
+	s.globals = globals
 	return firstErr
 }
 

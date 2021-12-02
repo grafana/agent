@@ -26,9 +26,10 @@ type controllerConfig []Config
 // controller manages a set of integrations. controller is intended to be
 // embedded inside of integrations that multiplex running other integrations.
 type controller struct {
-	mut  sync.Mutex
-	cfg  controllerConfig
-	opts Options
+	logger  log.Logger
+	mut     sync.Mutex
+	cfg     controllerConfig
+	globals Globals
 
 	integrations       []*controlledIntegration // Integrations to run
 	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
@@ -44,11 +45,12 @@ type controller struct {
 // newController creates a new Controller. Controller is intended to be
 // embedded inside of integrations that may want to multiplex other
 // integrations.
-func newController(cfg controllerConfig, opts Options) (*controller, error) {
+func newController(l log.Logger, cfg controllerConfig, globals Globals) (*controller, error) {
 	c := &controller{
+		logger:             l,
 		reloadIntegrations: make(chan struct{}, 1),
 	}
-	if err := c.UpdateController(cfg, opts); err != nil {
+	if err := c.UpdateController(cfg, globals); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -57,7 +59,7 @@ func newController(cfg controllerConfig, opts Options) (*controller, error) {
 // run starts the controller and blocks until ctx is canceled.
 func (c *controller) run(ctx context.Context) {
 	defer func() {
-		level.Debug(c.opts.Logger).Log("msg", "stopping all integrations")
+		level.Debug(c.logger).Log("msg", "stopping all integrations")
 
 		c.mut.Lock()
 		defer c.mut.Unlock()
@@ -74,8 +76,8 @@ func (c *controller) run(ctx context.Context) {
 		// loaded in.
 		c.mut.Lock()
 		defer c.mut.Unlock()
+		level.Debug(c.logger).Log("msg", "updating running integrations", "prev_count", len(currentIntegrations), "new_count", len(c.integrations))
 
-		level.Debug(c.opts.Logger).Log("msg", "updating running integrations")
 		newIntegrations := c.integrations
 
 		// Shut down all old integrations. If the integration exists in
@@ -109,7 +111,7 @@ func (c *controller) run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			level.Debug(c.opts.Logger).Log("msg", "controller exiting")
+			level.Debug(c.logger).Log("msg", "controller exiting")
 			return
 		case <-c.reloadIntegrations:
 			updateIntegrations()
@@ -175,18 +177,9 @@ type integrationID struct {
 //
 // UpdateController updates running integrations. Extensions can be
 // recalculated by calling relevant methods like Handler or Targets.
-func (c *controller) UpdateController(cfg controllerConfig, opts Options) error {
+func (c *controller) UpdateController(cfg controllerConfig, globals Globals) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-
-	// If iops has changed between calls, then we need to consider all
-	// integrations as updated.
-	//
-	// NOTE(rfratto): while we _could_ pass the new opts to UpdateIntegration
-	// and only restart everything else, I don't think it's worth it. The things
-	// that could eventually update in opts will eventually be made static for the
-	// process lifetime: https://github.com/grafana/agent/issues/581
-	forceUpdate := !opts.Equals(c.opts)
 
 	integrationIDMap := map[integrationID]struct{}{}
 
@@ -196,13 +189,7 @@ NextConfig:
 	for _, ic := range cfg {
 		name := ic.Name()
 
-		// Create a new set of integration options for each integration. This includes
-		// a temporary logger for the next few calls. A final logger will be configured
-		// before calling NewIntegration.
-		icOpts := opts
-		icOpts.Logger = log.With(opts.Logger, "integration", name)
-
-		identifier, err := ic.Identifier(icOpts)
+		identifier, err := ic.Identifier(globals)
 		if err != nil {
 			return fmt.Errorf("could not build identifier for integration %q: %w", name, err)
 		}
@@ -215,12 +202,6 @@ NextConfig:
 
 		// Now that we know the ID for an integration, we can check to see if it's
 		// running and can be dynamically updated.
-		if forceUpdate {
-			// forceUpdate is true when something changed in the environment that cannot
-			// be dynamically updated in configs. When this happens, we want to just
-			// recreate everything.
-			goto CreateIntegration
-		}
 		for _, ci := range c.integrations {
 			if ci.id != id {
 				continue
@@ -233,32 +214,28 @@ NextConfig:
 			}
 
 			if ui, ok := ci.i.(UpdateIntegration); ok {
-				if err := ui.ApplyConfig(ic); errors.Is(err, ErrDisabled) {
+				if err := ui.ApplyConfig(ic, globals); errors.Is(err, ErrDisabled) {
 					// Ignore integration; treat it as removed.
 					continue NextConfig
+				} else if errors.Is(err, ErrInvalidUpdate) {
+					level.Warn(c.logger).Log("msg", "failed to dyanmically update integration; will recreate", "integration", name, "instance", identifier, "err', err")
+					break
 				} else if err != nil {
 					return fmt.Errorf("failed to update %s integration %q: %w", name, identifier, err)
+				} else {
+					// Update succeded; re-use the running one and go to the next
+					// integration to process.
+					integrations = append(integrations, ci)
+					continue NextConfig
 				}
-				// Re-use the existing controlled integration.
-				integrations = append(integrations, ci)
-				continue NextConfig
 			}
 
+			// We found the integration to update: we can stop this loop now.
 			break
 		}
 
-	CreateIntegration:
-		// Figure out what logger to give to the integration. Integrations that are
-		// multiplexConfigs shouldn't have the integration/identifier logs set
-		// because the fields would be duplicated in the logs.
-		//
-		// https://github.com/go-kit/log/issues/16 may make this easier.
-		if _, ok := ic.(MultiplexConfig); ok {
-			icOpts.Logger = opts.Logger
-		} else {
-			icOpts.Logger = log.With(opts.Logger, "integration", name, "identifier", identifier)
-		}
-		integration, err := ic.NewIntegration(icOpts)
+		logger := log.With(c.logger, "integration", name, "instance", identifier)
+		integration, err := ic.NewIntegration(logger, globals)
 		if errors.Is(err, ErrDisabled) {
 			continue
 		}
@@ -290,7 +267,7 @@ NextConfig:
 	c.reloadIntegrations <- struct{}{}
 
 	c.cfg = cfg
-	c.opts = opts
+	c.globals = globals
 	return nil
 }
 
