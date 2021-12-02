@@ -8,7 +8,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
@@ -19,11 +18,11 @@ import (
 // will expose a /metrics endpoint for h.
 func NewMetricsHandlerIntegration(
 	_ log.Logger,
-	c integrations.Config, common CommonConfig,
+	c MetricsConfig,
 	globals integrations.Globals,
 	h http.Handler,
 ) (integrations.MetricsIntegration, error) {
-	if !common.Enabled {
+	if !c.MetricsConfig().Enabled {
 		return nil, integrations.ErrDisabled
 	}
 	id, err := c.Identifier(globals)
@@ -33,7 +32,7 @@ func NewMetricsHandlerIntegration(
 	return &metricsHandlerIntegration{
 		integrationName: c.Name(),
 		instanceID:      id,
-		common:          common,
+		common:          c.MetricsConfig(),
 		globals:         globals,
 		handler:         h,
 	}, nil
@@ -63,7 +62,7 @@ func (i *metricsHandlerIntegration) RunIntegration(ctx context.Context) error {
 // Handler implements HTTPIntegration.
 func (i *metricsHandlerIntegration) Handler(prefix string) (http.Handler, error) {
 	r := mux.NewRouter()
-	r.Handle(path.Join(prefix, "metrics"), promhttp.Handler())
+	r.Handle(path.Join(prefix, "metrics"), i.handler)
 	return r, nil
 }
 
@@ -82,20 +81,26 @@ func (i *metricsHandlerIntegration) Targets(prefix string) []*targetgroup.Group 
 			"agent_hostname":    model.LabelValue(i.globals.AgentIdentifier),
 
 			// Meta labels that can be used during SD.
-			// __meta_agent_integration_selfscrape
 			"__meta_agent_integration_name":       model.LabelValue(i.integrationName),
 			"__meta_agent_integration_instance":   model.LabelValue(i.instanceID),
-			"__meta_agent_integration_selfscrape": model.LabelValue(boolToString(i.common.ScrapeIntegration, "")),
+			"__meta_agent_integration_selfscrape": model.LabelValue(boolToString(i.shouldSelfScrape())),
 		},
 		Source: i.integrationName,
 	}}
 }
 
-func boolToString(b *bool, def string) string {
-	switch {
-	case b == nil:
-		return def
-	case *b:
+// shouldSelfScrape returns true if the integration is self-scraping.
+func (i *metricsHandlerIntegration) shouldSelfScrape() bool {
+	selfScrape := i.globals.SubsystemOpts.ScrapeIntegrationsDefault
+	if i.common.ScrapeIntegration != nil {
+		selfScrape = *i.common.ScrapeIntegration
+	}
+	return selfScrape
+}
+
+func boolToString(b bool) string {
+	switch b {
+	case true:
 		return "1"
 	default:
 		return "0"
@@ -104,7 +109,7 @@ func boolToString(b *bool, def string) string {
 
 // ScrapeConfigs implements MetricsIntegration.
 func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*config.ScrapeConfig {
-	if i.common.ScrapeIntegration != nil && !*i.common.ScrapeIntegration {
+	if !i.shouldSelfScrape() {
 		return nil
 	}
 

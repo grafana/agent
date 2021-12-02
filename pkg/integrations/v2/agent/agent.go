@@ -26,9 +26,12 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 	return globals.AgentIdentifier, nil
 }
 
+// MetricsConfig implements metricsutils.MetricsConfig.
+func (c *Config) MetricsConfig() metricsutils.CommonConfig { return c.Common }
+
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	return metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.Handler())
+	return metricsutils.NewMetricsHandlerIntegration(l, c, globals, promhttp.Handler())
 }
 
 func init() {

@@ -4,6 +4,7 @@ package metricsutils
 import (
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
@@ -41,4 +42,11 @@ func (c *CommonConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type commonConfig CommonConfig
 	return unmarshal((*commonConfig)(c))
+}
+
+// MetricsConfig is an extension of integrations.Config that also embeds
+// CommonConfig.
+type MetricsConfig interface {
+	integrations.Config
+	MetricsConfig() CommonConfig
 }
