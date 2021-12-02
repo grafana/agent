@@ -62,7 +62,6 @@ type Subsystem struct {
 	logger log.Logger
 
 	mut        sync.RWMutex
-	sopts      SubsystemOptions
 	globals    Globals
 	apiHandler http.Handler // generated from controller
 
@@ -73,8 +72,8 @@ type Subsystem struct {
 
 // NewSubsystem creates and starts a new integrations Subsystem. Every field in
 // IntegrationOptions must be filled out.
-func NewSubsystem(l log.Logger, sopts SubsystemOptions, globals Globals) (*Subsystem, error) {
-	ctrl, err := newController(l, sopts.Configs, globals)
+func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
+	ctrl, err := newController(l, globals.SubsystemOpts.Configs, globals)
 	if err != nil {
 		return nil, err
 	}
@@ -90,29 +89,27 @@ func NewSubsystem(l log.Logger, sopts SubsystemOptions, globals Globals) (*Subsy
 	s := &Subsystem{
 		logger: l,
 
-		sopts:   sopts,
 		globals: globals,
 
 		ctrl:             ctrl,
 		stopController:   cancel,
 		controllerExited: ctrlExited,
 	}
-	if err := s.ApplyConfig(sopts, globals); err != nil {
+	if err := s.ApplyConfig(globals); err != nil {
 		cancel()
 		return nil, err
 	}
 	return s, nil
 }
 
-// ApplyConfig updates the configuration of the integrations Subsystem and
-// options to pass to integrations.
-func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, globals Globals) error {
+// ApplyConfig updates the configuration of the integrations subsystem.
+func (s *Subsystem) ApplyConfig(globals Globals) error {
 	const prefix = "/integrations/"
 
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	if err := s.ctrl.UpdateController(sopts.Configs, globals); err != nil {
+	if err := s.ctrl.UpdateController(globals.SubsystemOpts.Configs, globals); err != nil {
 		return fmt.Errorf("error applying integrations: %w", err)
 	}
 
@@ -161,7 +158,7 @@ func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, globals Globals) error {
 			instanceCfg := instance.DefaultConfig
 			instanceCfg.Name = "integrations"
 			instanceCfg.ScrapeConfigs = scrapeConfigs
-			instanceCfg.RemoteWrite = sopts.PrometheusRemoteWrite
+			instanceCfg.RemoteWrite = globals.SubsystemOpts.PrometheusRemoteWrite
 
 			if err := globals.Metrics.Validate(&instanceCfg); err != nil {
 				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: validation: %w", err))
@@ -171,7 +168,6 @@ func (s *Subsystem) ApplyConfig(sopts SubsystemOptions, globals Globals) error {
 		}
 	}
 
-	s.sopts = sopts
 	s.globals = globals
 	return firstErr
 }

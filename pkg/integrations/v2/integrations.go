@@ -94,6 +94,8 @@ type Globals struct {
 	Logs    *logs.Logs     // Logs subsystem
 	Tracing *traces.Traces // Traces subsystem
 
+	// Options the integations subsystem is using.
+	SubsystemOpts SubsystemOptions
 	// BaseURL to use to invoke methods against the embedded HTTP server.
 	AgentBaseURL *url.URL
 	// HTTP config to invoke methods against the embedded HTTP server.
