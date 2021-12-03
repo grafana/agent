@@ -36,7 +36,7 @@ type SubsystemOptions struct {
 
 	// Configs are configurations of integration to create. Unmarshaled through
 	// the custom UnmarshalYAML method of Controller.
-	Configs []Config `yaml:"-"`
+	Configs Configs `yaml:"-"`
 
 	// Extra labels to add for all integration telemetry.
 	Labels model.LabelSet `yaml:"labels,omitempty"`
@@ -47,7 +47,7 @@ type SubsystemOptions struct {
 
 // MarshalYAML implements yaml.Marshaler for SubsystemOptions. Integrations
 // will be marshaled inline.
-func (o *SubsystemOptions) MarshalYAML() (interface{}, error) {
+func (o SubsystemOptions) MarshalYAML() (interface{}, error) {
 	return MarshalYAML(o)
 }
 
@@ -74,7 +74,9 @@ type Subsystem struct {
 // NewSubsystem creates and starts a new integrations Subsystem. Every field in
 // IntegrationOptions must be filled out.
 func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
-	ctrl, err := newController(l, globals.SubsystemOpts.Configs, globals)
+	l = log.With(l, "component", "integrations")
+
+	ctrl, err := newController(l, controllerConfig(globals.SubsystemOpts.Configs), globals)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +112,7 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	if err := s.ctrl.UpdateController(globals.SubsystemOpts.Configs, globals); err != nil {
+	if err := s.ctrl.UpdateController(controllerConfig(globals.SubsystemOpts.Configs), globals); err != nil {
 		return fmt.Errorf("error applying integrations: %w", err)
 	}
 
@@ -135,7 +137,7 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 	// Set up self-scraping
 	{
 		httpSDConfig := http_sd.DefaultSDConfig
-		httpSDConfig.HTTPClientConfig = globals.AgentHTTPClientConfig
+		httpSDConfig.HTTPClientConfig = globals.SubsystemOpts.ClientConfig
 		httpSDConfig.RefreshInterval = model.Duration(time.Second * 5) // TODO(rfratto): make configurable?
 
 		apiURL := globals.CloneAgentBaseURL()
@@ -188,7 +190,15 @@ func (s *Subsystem) WireAPI(r *mux.Router) {
 			return
 		}
 
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+
 		tgs := s.ctrl.Targets(prefix, targetOptions)
+		if tgs == nil {
+			// Make sure it's never nil so it will always marshal as an array.
+			tgs = []*targetGroup{}
+		}
+
 		enc := json.NewEncoder(rw)
 		_ = enc.Encode(tgs)
 	})

@@ -116,7 +116,7 @@ func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*confi
 	cfg := config.DefaultScrapeConfig
 	cfg.JobName = i.integrationName
 	cfg.Scheme = i.globals.AgentBaseURL.Scheme
-	cfg.HTTPClientConfig = i.globals.AgentHTTPClientConfig
+	cfg.HTTPClientConfig = i.globals.SubsystemOpts.ClientConfig
 	cfg.ServiceDiscoveryConfigs = sd
 	if i.common.ScrapeInterval != 0 {
 		cfg.ScrapeInterval = model.Duration(i.common.ScrapeInterval)

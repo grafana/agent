@@ -18,7 +18,6 @@ import (
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	http_sd "github.com/prometheus/prometheus/discovery/http"
-	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
 // controllerConfig holds a set of integration configs.
@@ -354,7 +353,7 @@ func forEachIntegration(set []*controlledIntegration, basePrefix string, f func(
 
 // Targets returns the current set of targets across all integrations. Use opts
 // to customize which targets are returned.
-func (c *controller) Targets(prefix string, opts TargetOptions) []*targetgroup.Group {
+func (c *controller) Targets(prefix string, opts TargetOptions) []*targetGroup {
 	// Grab the integrations as fast as possible. We don't want to spend too much
 	// time holding the mutex.
 	type prefixedMetricsIntegration struct {
@@ -378,7 +377,7 @@ func (c *controller) Targets(prefix string, opts TargetOptions) []*targetgroup.G
 	})
 	c.mut.Unlock()
 
-	var tgs []*targetgroup.Group
+	var tgs []*targetGroup
 	for _, mi := range mm {
 		// If we're looking for a subset of integrations, filter out anything that doesn't match.
 		if len(opts.Integrations) > 0 && !stringSliceContains(opts.Integrations, mi.id.Name) {
@@ -389,7 +388,9 @@ func (c *controller) Targets(prefix string, opts TargetOptions) []*targetgroup.G
 			continue
 		}
 
-		tgs = append(tgs, mi.i.Targets(mi.prefix)...)
+		for _, tgt := range mi.i.Targets(mi.prefix) {
+			tgs = append(tgs, (*targetGroup)(tgt))
+		}
 	}
 	sort.Slice(tgs, func(i, j int) bool {
 		return tgs[i].Source < tgs[j].Source
@@ -443,7 +444,7 @@ func TargetOptionsFromParams(u url.Values) (TargetOptions, error) {
 
 // ToParams will convert to into URL query parameters.
 func (to TargetOptions) ToParams() url.Values {
-	var p url.Values
+	p := make(url.Values)
 	if len(to.Integrations) != 0 {
 		p.Set("integrations", url.QueryEscape(strings.Join(to.Integrations, ",")))
 	}

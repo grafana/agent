@@ -12,7 +12,7 @@ import (
 
 // Config controls the Agent integration.
 type Config struct {
-	Common metricsutils.CommonConfig `yaml:",inline"`
+	metricsutils.CommonConfig `yaml:",inline"`
 }
 
 // Name returns the name of the integration that this config represents.
@@ -20,14 +20,14 @@ func (c *Config) Name() string { return "agent" }
 
 // Identifier uniquely identifies this instance of Config.
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
-	if c.Common.InstanceKey != nil {
-		return *c.Common.InstanceKey, nil
+	if c.InstanceKey != nil {
+		return *c.InstanceKey, nil
 	}
 	return globals.AgentIdentifier, nil
 }
 
 // MetricsConfig implements metricsutils.MetricsConfig.
-func (c *Config) MetricsConfig() metricsutils.CommonConfig { return c.Common }
+func (c *Config) MetricsConfig() metricsutils.CommonConfig { return c.CommonConfig }
 
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {

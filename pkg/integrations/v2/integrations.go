@@ -28,7 +28,6 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
-	common_config "github.com/prometheus/common/config"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -98,8 +97,6 @@ type Globals struct {
 	SubsystemOpts SubsystemOptions
 	// BaseURL to use to invoke methods against the embedded HTTP server.
 	AgentBaseURL *url.URL
-	// HTTP config to invoke methods against the embedded HTTP server.
-	AgentHTTPClientConfig common_config.HTTPClientConfig
 }
 
 // CloneAgentBaseURL returns a copy of AgentBaseURL that can be modified.
