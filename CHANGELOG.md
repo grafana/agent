@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
+   only HTTP/S is supported. Use `-experiment.config-urls.enable` flag to turn this on. (@rlankfo)
+
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
 # v0.21.1 (2021-11-18)
