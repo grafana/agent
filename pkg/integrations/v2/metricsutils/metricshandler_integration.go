@@ -56,7 +56,7 @@ var (
 // RunIntegration implements Integration.
 func (i *metricsHandlerIntegration) RunIntegration(ctx context.Context) error {
 	<-ctx.Done()
-	return ctx.Err()
+	return nil
 }
 
 // Handler implements HTTPIntegration.
