@@ -225,7 +225,7 @@ NextConfig:
 					// Ignore integration; treat it as removed.
 					continue NextConfig
 				} else if errors.Is(err, ErrInvalidUpdate) {
-					level.Warn(c.logger).Log("msg", "failed to dyanmically update integration; will recreate", "integration", name, "instance", identifier, "err', err")
+					level.Warn(c.logger).Log("msg", "failed to dynamically update integration; will recreate", "integration", name, "instance", identifier, "err', err")
 					break
 				} else if err != nil {
 					return fmt.Errorf("failed to update %s integration %q: %w", name, identifier, err)
