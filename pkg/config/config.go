@@ -7,18 +7,18 @@ import (
 	"os"
 	"unicode"
 
+	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/weaveworks/common/server"
-
-	"github.com/drone/envsubst/v2"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/pkg/errors"
+	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
+	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
@@ -45,6 +45,11 @@ type Config struct {
 
 	// Deprecated fields user has used. Generated during UnmarshalYAML.
 	Deprecations []string `yaml:"-"`
+
+	// Remote config options
+	ExperimentalConfigURLs bool   `yaml:"-"`
+	BasicAuthUser          string `yaml:"-"`
+	BasicAuthPassFile      string `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -149,6 +154,11 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
+	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
+		"basic auth username for fetching remote config. (requires config-urls experiment to be enabled")
+	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "",
+		"path to file containing basic auth password for fetching remote config. (requires config-urls experiment to be enabled")
+	f.BoolVar(&c.ExperimentalConfigURLs, "experiment.config-urls.enable", false, "enable experimental remote config URLs feature")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -158,6 +168,41 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 		return errors.Wrap(err, "error reading config file")
 	}
 	return LoadBytes(buf, expandEnvVars, c)
+}
+
+// LoadRemote reads a config from url
+func LoadRemote(url string, expandEnvVars bool, c *Config) error {
+	remoteOpts := &remoteOpts{}
+	if c.BasicAuthUser != "" && c.BasicAuthPassFile != "" {
+		remoteOpts.HTTPClientConfig = &config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     c.BasicAuthUser,
+				PasswordFile: c.BasicAuthPassFile,
+			},
+		}
+	}
+
+	if remoteOpts.HTTPClientConfig != nil {
+		dir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %w", err)
+		}
+		remoteOpts.HTTPClientConfig.SetDirectory(dir)
+	}
+
+	rc, err := newRemoteConfig(url, remoteOpts)
+	if err != nil {
+		return fmt.Errorf("error reading remote config: %w", err)
+	}
+	// fall back to file if no scheme is passed
+	if rc == nil {
+		return LoadFile(url, expandEnvVars, c)
+	}
+	bb, err := rc.retrieve()
+	if err != nil {
+		return fmt.Errorf("error retrieving remote config: %w", err)
+	}
+	return LoadBytes(bb, expandEnvVars, c)
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
@@ -199,7 +244,12 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, LoadFile)
+	return load(fs, args, func(url string, expand bool, c *Config) error {
+		if c.ExperimentalConfigURLs {
+			return LoadRemote(url, expand, c)
+		}
+		return LoadFile(url, expand, c)
+	})
 }
 
 // load allows for tests to inject a function for retrieving the config file that
