@@ -193,13 +193,30 @@ func (s *Subsystem) WireAPI(r *mux.Router) {
 		rw.WriteHeader(http.StatusOK)
 
 		tgs := s.ctrl.Targets(prefix, targetOptions)
-		if tgs == nil {
-			// Make sure it's never nil so it will always marshal as an array.
-			tgs = []*targetGroup{}
+
+		// Normalize targets. We may have targets in the group with non-address
+		// labels. These need to be retained, so we'll just split everything up
+		// into multiple groups.
+		//
+		// TODO(rfratto): optimize to remove redundant groups
+		finalTgs := []*targetGroup{}
+		for _, group := range tgs {
+			for _, target := range group.Targets {
+				// Create the final labels for the group. This will be everything from
+				// the group and the target (except for model.AddressLabel). Labels
+				// from target take precedence labels from over group.
+				groupLabels := group.Labels.Merge(target)
+				delete(groupLabels, model.AddressLabel)
+
+				finalTgs = append(finalTgs, &targetGroup{
+					Targets: []model.LabelSet{{model.AddressLabel: target[model.AddressLabel]}},
+					Labels:  groupLabels,
+				})
+			}
 		}
 
 		enc := json.NewEncoder(rw)
-		_ = enc.Encode(tgs)
+		_ = enc.Encode(finalTgs)
 	})
 }
 
