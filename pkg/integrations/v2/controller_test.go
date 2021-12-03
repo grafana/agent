@@ -96,10 +96,10 @@ func Test_controller_ConfigChanges(t *testing.T) {
 
 		cfg := controllerConfig{
 			mockConfig{
-				NameFunc:         func() string { return "mock" },
+				NameFunc:         func() string { return mockIntegrationName },
 				ConfigEqualsFunc: func(Config) bool { return !changed },
 				IdentifierFunc: func(Globals) (string, error) {
-					return "mock", nil
+					return mockIntegrationName, nil
 				},
 				NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 					integrationsWg.Add(1)
@@ -158,7 +158,7 @@ func newSyncController(t *testing.T, inner *controller) *syncController {
 	}
 	inner.onUpdateDone = sc.applyWg.Done // Inform WG whenever an apply finishes
 
-	// There's always immediately ony applied queued from any succesfully created controller.
+	// There's always immediately ony applied queued from any successfully created controller.
 	sc.applyWg.Add(1)
 
 	go func() {
@@ -192,10 +192,10 @@ func (sc *syncController) Stop() {
 func Test_controller_IgnoredDisabledIntegration(t *testing.T) {
 	cfg := controllerConfig{
 		mockConfig{
-			NameFunc:         func() string { return "mock" },
+			NameFunc:         func() string { return mockIntegrationName },
 			ConfigEqualsFunc: func(Config) bool { return false },
 			IdentifierFunc: func(Globals) (string, error) {
-				return "mock", nil
+				return mockIntegrationName, nil
 			},
 			NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 				return nil, fmt.Errorf("won't run integration: %w", ErrDisabled)
@@ -206,6 +206,8 @@ func Test_controller_IgnoredDisabledIntegration(t *testing.T) {
 	_, err := newController(util.TestLogger(t), cfg, Globals{})
 	require.NoError(t, err, "error from NewIntegration should have been ignored")
 }
+
+const mockIntegrationName = "mock"
 
 type mockConfig struct {
 	NameFunc           func() string
@@ -250,9 +252,9 @@ func mockConfigForIntegration(t *testing.T, i Integration) mockConfig {
 	t.Helper()
 
 	return mockConfig{
-		NameFunc: func() string { return "mock" },
+		NameFunc: func() string { return mockIntegrationName },
 		IdentifierFunc: func(Globals) (string, error) {
-			return "mock", nil
+			return mockIntegrationName, nil
 		},
 		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 			return i, nil

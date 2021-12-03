@@ -101,7 +101,10 @@ func (c *controller) run(ctx context.Context) {
 			if current.Running() {
 				continue
 			}
-			go current.Run(ctx)
+			go func(current *controlledIntegration) {
+				err := current.Run(ctx)
+				level.Warn(c.logger).Log("msg", "integration exited with error", "instance", current.id, "err", err)
+			}(current)
 		}
 
 		// Finally, store the current list of contolled integrations.
@@ -172,6 +175,10 @@ type integrationID struct {
 	Name, Identifier string
 }
 
+func (id integrationID) String() string {
+	return fmt.Sprintf("%s/%s", id.Name, id.Identifier)
+}
+
 // UpdateController updates the Controller with new Controller and
 // IntegrationOptions.
 //
@@ -223,7 +230,7 @@ NextConfig:
 				} else if err != nil {
 					return fmt.Errorf("failed to update %s integration %q: %w", name, identifier, err)
 				} else {
-					// Update succeded; re-use the running one and go to the next
+					// Update succeeded; re-use the running one and go to the next
 					// integration to process.
 					integrations = append(integrations, ci)
 					continue NextConfig
@@ -263,7 +270,7 @@ NextConfig:
 
 // Handler returns an HTTP handler for the controller and its integrations.
 // Handler will pass through requests to other running integrations. Handler
-// may return a partial handler with an error.
+// always returns an http.Handler regardless of error.
 //
 // Handler is expensive to compute and should only be done after reloading the
 // config.
@@ -280,7 +287,7 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 
 	r := mux.NewRouter()
 
-	forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
 		id := ci.id
 
 		i, ok := ci.i.(HTTPIntegration)
@@ -307,6 +314,9 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 			handler.ServeHTTP(rw, r)
 		})
 	})
+	if err != nil {
+		level.Warn(c.logger).Log("msg", "error when iterating over integrations to build HTTP handlers", "err", err)
+	}
 
 	// TODO(rfratto): navigation page for exact prefix match
 
@@ -364,7 +374,7 @@ func (c *controller) Targets(prefix string, opts TargetOptions) []*targetGroup {
 	var mm []prefixedMetricsIntegration
 
 	c.mut.Lock()
-	forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
 		// Best effort liveness check. They might stop running when we request
 		// their targets, which is fine, but we should save as much work as we
 		// can.
@@ -375,6 +385,9 @@ func (c *controller) Targets(prefix string, opts TargetOptions) []*targetGroup {
 			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
 		}
 	})
+	if err != nil {
+		level.Warn(c.logger).Log("msg", "error when iterating over integrations to get targets", "err", err)
+	}
 	c.mut.Unlock()
 
 	var tgs []*targetGroup
@@ -469,7 +482,7 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 	var mm []prefixedMetricsIntegration
 
 	c.mut.Lock()
-	forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
 		// Best effort liveness check. They might stop running when we request
 		// their targets, which is fine, but we should save as much work as we
 		// can.
@@ -480,6 +493,9 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
 		}
 	})
+	if err != nil {
+		level.Warn(c.logger).Log("msg", "error when iterating over integrations to get scrape configs", "err", err)
+	}
 	c.mut.Unlock()
 
 	var cfgs []*prom_config.ScrapeConfig

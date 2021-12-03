@@ -17,8 +17,9 @@ import (
 	http_sd "github.com/prometheus/prometheus/discovery/http"
 )
 
-// The endpoint to use for HTTP SD. The API uses query parameters to customize
-// what gets returned by discovery.
+// IntegrationsSDEndpoint is the API endpoint where the integration HTTP SD API
+// is exposed. The API uses query parameters to customize what gets returned by
+// discovery.
 const IntegrationsSDEndpoint = "/agent/api/v1/metrics/integrations/sd"
 
 // DefaultSubsystemOptions holds the default settings for a Controller.
@@ -129,9 +130,7 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 		if err != nil {
 			saveFirstErr(fmt.Errorf("HTTP handler update failed: %w", err))
 		}
-		if handler != nil {
-			s.apiHandler = handler
-		}
+		s.apiHandler = handler
 	}
 
 	// Set up self-scraping

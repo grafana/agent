@@ -38,10 +38,10 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 
 	cfg := controllerConfig{
 		mockConfig{
-			NameFunc:         func() string { return "mock" },
+			NameFunc:         func() string { return mockIntegrationName },
 			ConfigEqualsFunc: func(Config) bool { return false },
 			IdentifierFunc: func(Globals) (string, error) {
-				return "mock", nil
+				return mockIntegrationName, nil
 			},
 			NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 				integrationStartWg.Add(1)
@@ -64,8 +64,8 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 
 	sc.Stop()
 
-	require.Equal(t, uint64(1), applies.Load(), "dynamic reload should have occured")
-	require.Equal(t, uint64(1), starts.Load(), "restart should not have occured")
+	require.Equal(t, uint64(1), applies.Load(), "dynamic reload should have occurred")
+	require.Equal(t, uint64(1), starts.Load(), "restart should not have occurred")
 }
 
 // Test_controller_UpdateIntegration ensures that the controller will remove
@@ -89,10 +89,10 @@ func Test_controller_UpdateIntegration_Disabled(t *testing.T) {
 
 	cfg := controllerConfig{
 		mockConfig{
-			NameFunc:         func() string { return "mock" },
+			NameFunc:         func() string { return mockIntegrationName },
 			ConfigEqualsFunc: func(Config) bool { return false },
 			IdentifierFunc: func(Globals) (string, error) {
-				return "mock", nil
+				return mockIntegrationName, nil
 			},
 			NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 				startWg.Add(1)

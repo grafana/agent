@@ -104,8 +104,8 @@ func (g Globals) CloneAgentBaseURL() *url.URL {
 	if g.AgentBaseURL == nil {
 		return nil
 	}
-	rawUrl := g.AgentBaseURL.String()
-	u, err := url.Parse(rawUrl)
+	rawURL := g.AgentBaseURL.String()
+	u, err := url.Parse(rawURL)
 	if err != nil {
 		// The URL shouldn't be invalid at this point
 		panic(err)
@@ -125,7 +125,7 @@ type Integration interface {
 	RunIntegration(ctx context.Context) error
 }
 
-// ConfigurableIntegration is an Integration whose config can be updated
+// UpdateIntegration is an Integration whose config can be updated
 // dynamically. Integrations that do not implement this interface will be shut
 // down and re-instantiated with the new Config.
 type UpdateIntegration interface {

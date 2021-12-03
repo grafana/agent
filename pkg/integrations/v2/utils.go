@@ -9,7 +9,7 @@ import (
 // FuncIntegration is a function that implements Integration.
 type FuncIntegration func(ctx context.Context) error
 
-// Run implements Integration.
+// RunIntegration implements Integration.
 func (fi FuncIntegration) RunIntegration(ctx context.Context) error { return fi(ctx) }
 
 // NoOpIntegration is an Integration that does nothing.
