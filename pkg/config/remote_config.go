@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 
 	"github.com/prometheus/common/config"
@@ -10,42 +11,42 @@ import (
 
 // supported remote config provider schemes
 const (
-	HTTP  = "http"
-	HTTPS = "https"
-	// TODO: add s3, gcs, blob, and git providers backed by go-fsimpl
+	httpScheme  = "http"
+	httpsScheme = "https"
 )
 
-// RemoteOpts struct contains agent remote config options
-type RemoteOpts struct {
-	URL              *url.URL
+// remoteOpts struct contains agent remote config options
+type remoteOpts struct {
+	url              *url.URL
 	HTTPClientConfig *config.HTTPClientConfig
 }
 
-// RemoteProvider ...
-type RemoteProvider interface {
-	Retrieve() ([]byte, error)
+// remoteProvider interface should be implemented by config providers
+type remoteProvider interface {
+	retrieve() ([]byte, error)
 }
 
-// NewRemoteConfig ...
-func NewRemoteConfig(rawURL string, opts *RemoteOpts) (RemoteProvider, error) {
+// newRemoteConfig constructs a new remote configuration provider. The rawURL is parsed
+// and a provider is constructed based on the URL's scheme.
+func newRemoteConfig(rawURL string, opts *remoteOpts) (remoteProvider, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error parsing rawURL %s: %w", rawURL, err)
 	}
 	if opts == nil {
 		// Default provider opts
-		opts = &RemoteOpts{}
+		opts = &remoteOpts{}
 	}
-	opts.URL = u
+	opts.url = u
 
 	switch u.Scheme {
 	case "":
 		// if no scheme, assume local file path, return nil and let caller handle.
 		return nil, nil
-	case HTTP, HTTPS:
+	case httpScheme, httpsScheme:
 		httpP, err := newHTTPProvider(opts)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error constructing httpProvider: %w", err)
 		}
 		return httpP, nil
 	default:
@@ -56,11 +57,12 @@ func NewRemoteConfig(rawURL string, opts *RemoteOpts) (RemoteProvider, error) {
 // Remote Config Providers
 // httpProvider - http/https provider
 type httpProvider struct {
-	myURL            url.URL
-	httpClientConfig config.HTTPClientConfig
+	myURL      *url.URL
+	httpClient *http.Client
 }
 
-func newHTTPProvider(opts *RemoteOpts) (*httpProvider, error) {
+// newHTTPProvider constructs an new httpProvider
+func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	httpClientConfig := config.HTTPClientConfig{}
 	if opts.HTTPClientConfig != nil {
 		err := opts.HTTPClientConfig.Validate()
@@ -69,23 +71,21 @@ func newHTTPProvider(opts *RemoteOpts) (*httpProvider, error) {
 		}
 		httpClientConfig = *opts.HTTPClientConfig
 	}
-	return &httpProvider{
-		myURL:            *opts.URL,
-		httpClientConfig: httpClientConfig,
-	}, nil
-}
-
-// Retrieve implements RemoteProvider and fetches the config
-// TODO: token auth, oauth2, etc.
-func (p httpProvider) Retrieve() ([]byte, error) {
-	client, err := config.NewClientFromConfig(p.httpClientConfig, "remote-config")
+	httpClient, err := config.NewClientFromConfig(httpClientConfig, "remote-config")
 	if err != nil {
 		return nil, err
 	}
+	return &httpProvider{
+		myURL:      opts.url,
+		httpClient: httpClient,
+	}, nil
+}
 
-	response, err := client.Get(p.myURL.String())
+// retrieve implements remoteProvider and fetches the config
+func (p httpProvider) retrieve() ([]byte, error) {
+	response, err := p.httpClient.Get(p.myURL.String())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("request failed: %w", err)
 	}
 	defer response.Body.Close()
 

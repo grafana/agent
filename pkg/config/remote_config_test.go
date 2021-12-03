@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/prometheus/common/config"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRemoteConfigHTTP(t *testing.T) {
@@ -36,10 +38,8 @@ metrics:
 
 	tempDir := t.TempDir()
 	err := os.WriteFile(fmt.Sprintf("%s/password-file.txt", tempDir), []byte("bar"), 0644)
-	if err != nil {
-		t.Error(err.Error())
-		t.FailNow()
-	}
+	require.NoError(t, err)
+
 	passwdFileCfg := &config.HTTPClientConfig{
 		BasicAuth: &config.BasicAuth{
 			Username:     "foo",
@@ -47,15 +47,12 @@ metrics:
 		},
 	}
 	dir, err := os.Getwd()
-	if err != nil {
-		t.Error(err.Error())
-		t.FailNow()
-	}
+	require.NoError(t, err)
 	passwdFileCfg.SetDirectory(dir)
 
 	type args struct {
 		rawURL string
-		opts   *RemoteOpts
+		opts   *remoteOpts
 	}
 	tests := []struct {
 		name    string
@@ -64,7 +61,7 @@ metrics:
 		wantErr bool
 	}{
 		{
-			name: "HTTP config",
+			name: "httpScheme config",
 			args: args{
 				rawURL: fmt.Sprintf("%s/agent.yml", svr.URL),
 			},
@@ -72,10 +69,10 @@ metrics:
 			wantErr: false,
 		},
 		{
-			name: "HTTP config with basic auth",
+			name: "httpScheme config with basic auth",
 			args: args{
 				rawURL: fmt.Sprintf("%s/agent.yml", svrWithBasicAuth.URL),
-				opts: &RemoteOpts{
+				opts: &remoteOpts{
 					HTTPClientConfig: &config.HTTPClientConfig{
 						BasicAuth: &config.BasicAuth{
 							Username: "foo",
@@ -88,33 +85,45 @@ metrics:
 			wantErr: false,
 		},
 		{
-			name: "HTTP config with basic auth password file",
+			name: "httpScheme config with basic auth password file",
 			args: args{
 				rawURL: fmt.Sprintf("%s/agent.yml", svrWithBasicAuth.URL),
-				opts: &RemoteOpts{
+				opts: &remoteOpts{
 					HTTPClientConfig: passwdFileCfg,
 				},
 			},
 			want:    []byte(testCfg),
 			wantErr: false,
 		},
+		{
+			name: "unsupported scheme throws error",
+			args: args{
+				rawURL: "ssh://unsupported/scheme",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "invalid url throws error",
+			args: args{
+				rawURL: "://invalid/url",
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rc, err := NewRemoteConfig(tt.args.rawURL, tt.args.opts)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RemoteConfig() error = %v, wantErr %v", err, tt.wantErr)
+			rc, err := newRemoteConfig(tt.args.rawURL, tt.args.opts)
+			if tt.wantErr {
+				assert.Error(t, err)
 				return
 			}
-			bb, err := rc.Retrieve()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Retrieve() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if string(bb) != string(tt.want) {
-				t.Errorf("Retrieve() cfg =\n %v\n, want\n %v", string(bb), string(tt.want))
-			}
+			assert.NoError(t, err)
+			bb, err := rc.retrieve()
+			assert.NoError(t, err)
+			assert.Equal(t, string(tt.want), string(bb))
 		})
 	}
 }

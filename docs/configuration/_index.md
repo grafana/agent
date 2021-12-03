@@ -120,11 +120,9 @@ Support contents and default values of `agent.yaml`:
 
 An experimental feature for fetching remote configuration files over HTTP/S can be
 enabled by passing the `-experiment.config-urls.enable` flag at the command line.
-When this feature is enabled, you may pass an HTTP/S URL to the `-config.file` flag.
+With this feature enabled, you may pass an HTTP/S URL to the `-config.file` flag.
 
-As configurations may contain sensitive information, we suggest protecting your HTTP/S
-configurations using basic auth. The following flags will configure basic auth for requests
-made to your remote config URLs:
+The following flags will configure basic auth for requests made to HTTP/S remote config URLs:
 - `-config.url.basic-auth-user <user>`: the basic auth username
 - `-config.url.basic-auth-password-file <file>`: path to a file containing the basic auth password
 

@@ -154,8 +154,10 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
-	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "", "basic auth username for fetching remote config.")
-	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "", "path to file containing basic auth password for fetching remote config.")
+	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
+		"basic auth username for fetching remote config. (requires config-urls experiment to be enabled")
+	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "",
+		"path to file containing basic auth password for fetching remote config. (requires config-urls experiment to be enabled")
 	f.BoolVar(&c.ExperimentalConfigURLs, "experiment.config-urls.enable", false, "enable experimental remote config URLs feature")
 }
 
@@ -170,8 +172,8 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 
 // LoadRemote reads a config from url
 func LoadRemote(url string, expandEnvVars bool, c *Config) error {
-	remoteOpts := &RemoteOpts{}
-	if c.BasicAuthUser != "" || c.BasicAuthPassFile != "" {
+	remoteOpts := &remoteOpts{}
+	if c.BasicAuthUser != "" && c.BasicAuthPassFile != "" {
 		remoteOpts.HTTPClientConfig = &config.HTTPClientConfig{
 			BasicAuth: &config.BasicAuth{
 				Username:     c.BasicAuthUser,
@@ -183,22 +185,22 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	if remoteOpts.HTTPClientConfig != nil {
 		dir, err := os.Getwd()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get current working directory: %w", err)
 		}
 		remoteOpts.HTTPClientConfig.SetDirectory(dir)
 	}
 
-	rc, err := NewRemoteConfig(url, remoteOpts)
+	rc, err := newRemoteConfig(url, remoteOpts)
 	if err != nil {
-		return errors.Errorf("error reading remote config: %s", err.Error())
+		return fmt.Errorf("error reading remote config: %w", err)
 	}
 	// fall back to file if no scheme is passed
 	if rc == nil {
 		return LoadFile(url, expandEnvVars, c)
 	}
-	bb, err := rc.Retrieve()
+	bb, err := rc.retrieve()
 	if err != nil {
-		return errors.Errorf("error retrieving remote config: %s", err.Error())
+		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
 	return LoadBytes(bb, expandEnvVars, c)
 }
