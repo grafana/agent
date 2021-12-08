@@ -12,7 +12,7 @@ trigger:
   ref:
     - refs/heads/main
     - refs/pull/*/head
-    - refs/tags/**
+    #- refs/tags/**
 
 steps:
   - name: lint
@@ -36,7 +36,7 @@ trigger:
   ref:
     - refs/heads/main
     - refs/pull/*/head
-    - refs/tags/**
+    #- refs/tags/**
 
 steps:
   - name: test
@@ -77,8 +77,8 @@ steps:
       - rm go1.16.5.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make DRONE=true BUILD_IN_CONTAINER=false dist
-depends_on:
-  - Test
+#depends_on:
+  #- Test
 ---
 kind: pipeline
 type: docker
@@ -119,8 +119,8 @@ steps:
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
       - docker buildx rm multiarch
 
-depends_on:
-  - Test
+#depends_on:
+  #- Test
 
 volumes:
   - name: docker
@@ -174,6 +174,6 @@ volumes:
       path: /var/run/docker.sock
 ---
 kind: signature
-hmac: 1cab98e575942179c9a157058799b9d44119b1d6c170feefbeefe303eb44823d
+hmac: a8269f4aa2710ba52347e8e60e46b3f7ff45446f550177edee0d67a2dd142dfd
 
 ...
