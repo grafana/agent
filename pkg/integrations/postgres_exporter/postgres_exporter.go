@@ -3,9 +3,10 @@ package postgres_exporter //nolint:golint
 
 import (
 	"fmt"
-	config_util "github.com/prometheus/common/config"
 	"os"
 	"strings"
+
+	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"

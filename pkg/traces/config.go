@@ -130,8 +130,12 @@ type InstanceConfig struct {
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
 }
 
+// ReceiverMap stores a set of receivers. Because receivers may be configured
+// with an unknown set of sensitive information, ReceiverMap will marshal as
+// YAML to the text "<secret>".
 type ReceiverMap map[string]interface{}
 
+// MarshalYAML implements yaml.Marshaler.
 func (r ReceiverMap) MarshalYAML() (interface{}, error) {
 	return "<secret>", nil
 }

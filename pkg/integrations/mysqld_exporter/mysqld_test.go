@@ -1,4 +1,4 @@
-package mysqld_exporter
+package mysqld_exporter //nolint:golint
 
 import (
 	"testing"

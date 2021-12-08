@@ -4,8 +4,9 @@ package mysqld_exporter //nolint:golint
 import (
 	"context"
 	"fmt"
-	config_util "github.com/prometheus/common/config"
 	"os"
+
+	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"

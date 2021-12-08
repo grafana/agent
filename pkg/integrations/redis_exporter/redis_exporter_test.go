@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
 	"github.com/grafana/agent/pkg/config"
 
 	"github.com/go-kit/log"

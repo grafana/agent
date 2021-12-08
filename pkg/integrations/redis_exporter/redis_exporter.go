@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"time"
-	config_util "github.com/prometheus/common/config"
-
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
-
-	re "github.com/oliver006/redis_exporter/exporter"
 
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+	re "github.com/oliver006/redis_exporter/exporter"
+	config_util "github.com/prometheus/common/config"
 )
 
 // DefaultConfig holds non-zero default options for the Config when it is
