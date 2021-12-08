@@ -5,6 +5,16 @@
 
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
+# v0.21.2 (2021-12-08)
+
+- [SECURITY] This release contains a fix for
+  [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh).
+
+- [CHANGE] This release disables the existing `/-/config` and
+  `/agent/api/v1/configs/{name}` endpoitns by default. Pass the
+  `--config.enable-read-api` flag at the command line to opt in to these
+  endpoints.
+
 # v0.21.1 (2021-11-18)
 
 - [BUGFIX] Fix panic when using postgres_exporter integration (@saputradharma)
@@ -46,6 +56,18 @@
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
 - [CHANGE] Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
+
+# v0.20.1 (2021-12-08)
+
+*NOTE*: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
+
+- [SECURITY] This release contains a fix for
+  [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh).
+
+- [CHANGE] This release disables the existing `/-/config` and
+  `/agent/api/v1/configs/{name}` endpoitns by default. Pass the
+  `--config.enable-read-api` flag at the command line to opt in to these
+  endpoints.
 
 # v0.20.0 (2021-10-28)
 
