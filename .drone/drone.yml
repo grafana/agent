@@ -129,7 +129,7 @@ volumes:
 ---
 kind: pipeline
 type: docker
-name: Deploy-To-Deployment-Tools 
+name: Deploy-To-Deployment-Tools
 platform:
   os: linux
   arch: amd64
@@ -146,10 +146,10 @@ steps:
     commands:
       - apk update && apk add git
       - echo "grafana/agent:$(sh ./tools/image-tag)" > .image-tag
-  - name: Update Deployment Tools 
+  - name: Update Deployment Tools
     image: us.gcr.io/kubernetes-dev/drone/plugins/updater
     settings:
-      config_json: |- 
+      config_json: |-
         {
           "destination_branch": "master",
           "pull_request_branch_prefix": "cd-agent",
@@ -168,9 +168,9 @@ steps:
         }
       github_token:
         from_secret: gh_token
- 
+
 depends_on:
-  - Containerize 
+  - Containerize
 
 volumes:
   - name: docker
@@ -240,6 +240,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 53e9986dcd0fdbb78e1c09b6ba363ebcb94bc0801796510923f647b5c7d4ec46
+hmac: c32fd61018bef3703edb694acd0c7312be8cb07898c2cb42eb0e84fee84efb67
 
 ...

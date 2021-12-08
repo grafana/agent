@@ -1,10 +1,13 @@
 package config
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
+	"testing"
 	"unicode"
 
 	"github.com/drone/envsubst/v2"
@@ -15,9 +18,12 @@ import (
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/kv/consul"
+	"github.com/grafana/dskit/kv/etcd"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
+	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
@@ -25,8 +31,9 @@ import (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Metrics:      metrics.DefaultConfig,
-	Integrations: integrations.DefaultManagerConfig,
+	Metrics:               metrics.DefaultConfig,
+	Integrations:          integrations.DefaultManagerConfig,
+	EnableConfigEndpoints: false,
 }
 
 // Config contains underlying configurations for the agent
@@ -50,6 +57,9 @@ type Config struct {
 	ExperimentalConfigURLs bool   `yaml:"-"`
 	BasicAuthUser          string `yaml:"-"`
 	BasicAuthPassFile      string `yaml:"-"`
+
+	// Toggle for config endpoint(s)
+	EnableConfigEndpoints bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -106,6 +116,39 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// MarshalYAML implements yaml.Marshaler.
+func (c Config) MarshalYAML() (interface{}, error) {
+	var buf bytes.Buffer
+
+	enc := yaml.NewEncoder(&buf)
+	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
+		// Obscure the password fields for known types that do not obscure passwords.
+		switch v := in.(type) {
+		case etcd.Config:
+			v.Password = "<secret>"
+			return true, v, nil
+		case consul.Config:
+			v.ACLToken = "<secret>"
+			return true, v, nil
+		default:
+			return false, nil, nil
+		}
+	})
+
+	type config Config
+	if err := enc.Encode((config)(c)); err != nil {
+		return nil, err
+	}
+
+	// Use a yaml.MapSlice rather than a map[string]interface{} so
+	// order of keys is retained compared to just calling MarshalConfig.
+	var m yaml.MapSlice
+	if err := yaml.Unmarshal(buf.Bytes(), &m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // LogDeprecations will log use of any deprecated fields to l as warn-level
 // messages.
 func (c *Config) LogDeprecations(l log.Logger) {
@@ -142,6 +185,8 @@ func (c *Config) ApplyDefaults() error {
 		return err
 	}
 
+	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
+
 	return nil
 }
 
@@ -154,11 +199,14 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
+
 	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
 		"basic auth username for fetching remote config. (requires config-urls experiment to be enabled")
 	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "",
 		"path to file containing basic auth password for fetching remote config. (requires config-urls experiment to be enabled")
 	f.BoolVar(&c.ExperimentalConfigURLs, "experiment.config-urls.enable", false, "enable experimental remote config URLs feature")
+
+	f.BoolVar(&c.EnableConfigEndpoints, "config.enable-read-api", false, "Enables the /-/config and /agent/api/v1/configs/{name} APIs. Be aware that secrets could be exposed by enabling these endpoints!")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -295,4 +343,16 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	}
 
 	return &cfg, nil
+}
+
+// CheckSecret is a helper function to ensure the original value is overwritten with <secret>
+func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
+	var cfg = &Config{}
+	err := LoadBytes([]byte(rawCfg), false, cfg)
+	require.NoError(t, err)
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	scrubbedCfg := string(bb)
+	require.True(t, strings.Contains(scrubbedCfg, "<secret>"))
+	require.False(t, strings.Contains(scrubbedCfg, originalValue))
 }
