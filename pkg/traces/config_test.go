@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1302,6 +1303,20 @@ func TestOrderProcessors(t *testing.T) {
 		actual := orderProcessors(tc.processors, tc.splitPipelines)
 		assert.Equal(t, tc.expected, actual)
 	}
+}
+
+func TestScrubbedReceivers(t *testing.T) {
+	test := `
+receivers:
+  jaeger:
+    protocols:
+      grpc:`
+	var cfg InstanceConfig
+	err := yaml.Unmarshal([]byte(test), &cfg)
+	assert.Nil(t, err)
+	data, err := yaml.Marshal(cfg)
+	assert.Nil(t, err)
+	assert.True(t, strings.Contains(string(data), "<secret>"))
 }
 
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters

@@ -101,7 +101,7 @@ type InstanceConfig struct {
 	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
-	Receivers map[string]interface{} `yaml:"receivers,omitempty"`
+	Receivers ReceiverMap `yaml:"receivers,omitempty"`
 
 	// Batch: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 	Batch map[string]interface{} `yaml:"batch,omitempty"`
@@ -128,6 +128,12 @@ type InstanceConfig struct {
 
 	// ServiceGraphs
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
+}
+
+type ReceiverMap map[string]interface{}
+
+func (r ReceiverMap) MarshalYAML() (interface{}, error) {
+	return "<secret>", nil
 }
 
 const (
