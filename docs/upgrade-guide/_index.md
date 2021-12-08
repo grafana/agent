@@ -12,6 +12,16 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.21.2, v0.20.1
+
+### Disabling of config retrieval enpoints
+
+These two patch releases, as part of a fix for
+[CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh),
+disable the `/-/config` and `/agent/api/v1/configs/{name}` endpoints by
+default. Pass the `--config.enable-read-api` flag at the command line to
+re-enable them.
+
 ## v0.21.0
 
 ### Integrations: Change in how instance labels are handled (Breaking change)
