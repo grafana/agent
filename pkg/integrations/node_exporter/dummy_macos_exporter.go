@@ -15,23 +15,29 @@ import (
 
 func init() {
 	// Register macos_exporter
-	integrations.RegisterIntegration(&DarwinConfig{})
+	integrations.RegisterIntegration(&DummyDarwinConfig{})
 }
 
-// DarwinConfig extends the Config struct and overrides the name of
+// DummyDarwinConfig extends the Config struct and overrides the name of
 // the integration to avoid conflicts with node_exporter integration.
-type DarwinConfig struct {
-	Config
+type DummyDarwinConfig struct{}
+
+func (*DummyDarwinConfig) CommonConfig() config.Common {
+	return config.Common{}
+}
+
+func (*DummyDarwinConfig) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
 }
 
 // Name returns the name of the integration that this config represents.
-func (*DarwinConfig) Name() string {
+func (*DummyDarwinConfig) Name() string {
 	return "macos_exporter"
 }
 
 // NewIntegration converts this config into an instance of an integration.
-func (c *DarwinConfig) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	level.Warn(logger).Log("msg", "the macos_exporter only works on Darwin; enabling it otherwise will do nothing")
+func (c *DummyDarwinConfig) NewIntegration(l log.Logger) (integrations.Integration, error) {
+	level.Warn(l).Log("msg", "the macos_exporter only works on Darwin; enabling it otherwise will do nothing")
 	return DarwinIntegration{}, nil
 }
 
