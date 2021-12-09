@@ -1,7 +1,7 @@
 //go:build !darwin
 // +build !darwin
 
-package node_exporter
+package node_exporter //nolint:golint
 
 import (
 	"context"
@@ -22,10 +22,12 @@ func init() {
 // the integration to avoid conflicts with node_exporter integration.
 type DummyDarwinConfig struct{}
 
+// CommonConfig satisfies integrations.Config
 func (*DummyDarwinConfig) CommonConfig() config.Common {
 	return config.Common{}
 }
 
+// InstanceKey satisfies integrations.Config
 func (*DummyDarwinConfig) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
