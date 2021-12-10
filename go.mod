@@ -61,7 +61,7 @@ require (
 	github.com/prometheus/memcached_exporter v0.9.0
 	github.com/prometheus/mysqld_exporter v0.13.0
 	github.com/prometheus/node_exporter v1.0.1
-	github.com/prometheus/procfs v0.7.3
+	github.com/prometheus/procfs v0.7.4-0.20211011103944-1a7a2bd3279f
 	github.com/prometheus/prometheus v1.8.2-0.20211102100715-d4c83da6d252
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/sirupsen/logrus v1.8.1
@@ -76,7 +76,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.0.0-RC3
 	go.uber.org/atomic v1.9.0
 	go.uber.org/zap v1.19.1
-	golang.org/x/sys v0.0.0-20211020174200-9d6173849985
+	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1
 	google.golang.org/grpc v1.41.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
@@ -125,7 +125,9 @@ replace (
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20211019183116-592dfa92f9fd
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
+	github.com/prometheus/node_exporter => github.com/rlankfo/node_exporter v1.3.1-0.20211206215613-f7298b8ec50b
 	github.com/prometheus/statsd_exporter => github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b
+	github.com/weaveworks/common => github.com/rlankfo/weaveworks-common v0.0.0-20211210175110-f54256c8f634
 )
 
 // Required for redis_exporter, which is incompatible with v2.0.0+incompatible.
