@@ -9,7 +9,7 @@
 
   exporters: {
     logging: {
-      loglevel: "info",
+      loglevel: 'info',
     },
   },
 
@@ -17,10 +17,10 @@
     pipelines: {
       traces: {
         receivers: [
-          "otlp",
+          'otlp',
         ],
         exporters: [
-          "logging",
+          'logging',
         ],
       },
     },
