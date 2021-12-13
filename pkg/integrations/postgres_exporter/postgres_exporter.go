@@ -121,7 +121,7 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 			stringDsn = append(stringDsn, string(d))
 		}
 	}
-	if len(dsn) == 0 {
+	if len(stringDsn) == 0 {
 		return nil, fmt.Errorf("cannot create postgres_exporter; neither postgres_exporter.data_source_name or $POSTGRES_EXPORTER_DATA_SOURCE_NAME is set")
 	}
 	return stringDsn, nil

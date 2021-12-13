@@ -5,6 +5,8 @@
 
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
+- [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
+
 # v0.21.2 (2021-12-08)
 
 - [SECURITY] This release contains a fix for
