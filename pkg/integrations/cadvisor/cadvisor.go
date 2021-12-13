@@ -1,5 +1,5 @@
-//go:build !linux
-// +build !linux
+//go:build linux
+// +build linux
 
 package cadvisor //nolint:golint
 
@@ -181,12 +181,12 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
-// InstanceKey returns the hostname:port of the GitHub API server.
+// InstanceKey returns the hostname:port of the cadvisor API server.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
 
-// NewIntegration creates a new github_exporter
+// NewIntegration creates a new cadvisor integration
 func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
 	return New(logger, c)
 }
