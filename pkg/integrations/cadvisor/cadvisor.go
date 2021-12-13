@@ -22,12 +22,12 @@ import (
 
 	// Register container providers
 	"github.com/google/cadvisor/container/containerd"
-	_ "github.com/google/cadvisor/container/containerd/install"
-	_ "github.com/google/cadvisor/container/crio/install"
+	_ "github.com/google/cadvisor/container/containerd/install" // register containerd container plugin
+	_ "github.com/google/cadvisor/container/crio/install"       // register crio container plugin
 	"github.com/google/cadvisor/container/docker"
-	_ "github.com/google/cadvisor/container/docker/install"
+	_ "github.com/google/cadvisor/container/docker/install" // register docker container plugin
 	"github.com/google/cadvisor/container/raw"
-	_ "github.com/google/cadvisor/container/systemd/install"
+	_ "github.com/google/cadvisor/container/systemd/install" // register systemd container plugin
 )
 
 // DefaultConfig holds the default settings for the cadvisor integration
@@ -59,10 +59,10 @@ var DefaultConfig Config = Config{
 
 	// Docker config defaults
 	Docker:        "unix:///var/run/docker.sock",
-	DockerTls:     false,
-	DockerTlsCert: "cert.pem",
-	DockerTlsKey:  "key.pem",
-	DockerTlsCA:   "ca.pem",
+	DockerTLS:     false,
+	DockerTLSCert: "cert.pem",
+	DockerTLSKey:  "key.pem",
+	DockerTLSCA:   "ca.pem",
 
 	// Raw config defaults
 	DockerOnly: false,
@@ -120,17 +120,17 @@ type Config struct {
 	// Docker docker endpoint
 	Docker string `yaml:"docker,omitempty"`
 
-	// DockerTls use TLS to connect to docker
-	DockerTls bool `yaml:"docker_tls,omitempty"`
+	// DockerTLS use TLS to connect to docker
+	DockerTLS bool `yaml:"docker_tls,omitempty"`
 
-	// DockerTlsCert path to client certificate
-	DockerTlsCert string `yaml:"docker_tls_cert,omitempty"`
+	// DockerTLSCert path to client certificate
+	DockerTLSCert string `yaml:"docker_tls_cert,omitempty"`
 
-	// DockerTlsKey path to private key
-	DockerTlsKey string `yaml:"docker_tls_key,omitempty"`
+	// DockerTLSKey path to private key
+	DockerTLSKey string `yaml:"docker_tls_key,omitempty"`
 
-	// DockerTlsCA path to trusted CA
-	DockerTlsCA string `yaml:"docker_tls_ca,omitempty"`
+	// DockerTLSCA path to trusted CA
+	DockerTLSCA string `yaml:"docker_tls_ca,omitempty"`
 
 	// Raw config options
 	// DockerOnly only report docker containers in addition to root stats
@@ -204,10 +204,10 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	// Docker
 	docker.ArgDockerEndpoint = &c.Docker
-	docker.ArgDockerTLS = &c.DockerTls
-	docker.ArgDockerCert = &c.DockerTlsCert
-	docker.ArgDockerKey = &c.DockerTlsKey
-	docker.ArgDockerCA = &c.DockerTlsCA
+	docker.ArgDockerTLS = &c.DockerTLS
+	docker.ArgDockerCert = &c.DockerTLSCert
+	docker.ArgDockerKey = &c.DockerTLSKey
+	docker.ArgDockerCA = &c.DockerTLSCA
 
 	// Raw
 	raw.DockerOnly = &c.DockerOnly
