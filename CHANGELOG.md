@@ -1,11 +1,11 @@
 # Main (unreleased)
 
-- [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
-
 - [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
    only HTTP/S is supported. Use `-experiment.config-urls.enable` flag to turn this on. (@rlankfo)
 
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
+
+- [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 # v0.21.2 (2021-12-08)
 
