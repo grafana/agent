@@ -2,12 +2,32 @@ package cadvisor //nolint:golint
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/google/cadvisor/cache/memory"
 	"github.com/google/cadvisor/container"
+	v2 "github.com/google/cadvisor/info/v2"
+	"github.com/google/cadvisor/manager"
+	"github.com/google/cadvisor/metrics"
+	"github.com/google/cadvisor/storage"
+	"github.com/google/cadvisor/utils/sysfs"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"k8s.io/klog/v2"
+	"k8s.io/utils/clock"
 
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+
+	// Register container providers
+	"github.com/google/cadvisor/container/containerd"
+	_ "github.com/google/cadvisor/container/containerd/install"
+	_ "github.com/google/cadvisor/container/crio/install"
+	"github.com/google/cadvisor/container/docker"
+	_ "github.com/google/cadvisor/container/docker/install"
+	"github.com/google/cadvisor/container/raw"
+	_ "github.com/google/cadvisor/container/systemd/install"
 )
 
 // DefaultConfig holds the default settings for the cadvisor integration
@@ -30,6 +50,8 @@ var DefaultConfig Config = Config{
 		container.CPUSetMetrics:                  struct{}{},
 	},
 	enabledMetricsSet: container.MetricSet{},
+
+	StorageDuration: 2 * time.Minute,
 
 	// Containerd config defaults
 	Containerd:          "/run/containerd/containerd.sock",
@@ -81,6 +103,12 @@ type Config struct {
 	// enabledMetricsSet list of `metrics` to be enabled, in the form required by the cadvisor collector(s)
 	enabledMetricsSet container.MetricSet
 
+	// includedMetrics is the final calculated set of metrics which will be scraped for containers
+	includedMetrics container.MetricSet
+
+	// StorageDuration length of time to keep data stored in memory (Default: 2m)
+	StorageDuration time.Duration `yaml:"storage_duration,omitempty"`
+
 	// Containerd config options
 	// Containerd containerd endpoint
 	Containerd string `yaml:"containerd,omitempty"`
@@ -131,8 +159,11 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		}
 	}
 
-	// TODO: Reproduce this logic, possibly/probably when instantiating the integration
-	// https://github.com/google/cadvisor/blob/master/cmd/cadvisor.go#L118-L123
+	if len(c.enabledMetricsSet) > 0 {
+		c.includedMetrics = c.enabledMetricsSet
+	} else {
+		c.includedMetrics = container.AllMetrics.Difference(c.disabledMetricsSet)
+	}
 	return err
 }
 
@@ -163,5 +194,59 @@ func init() {
 
 // New creates a new cadvisor integration
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	return nil, nil
+	klog.SetLogger(logger)
+
+	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
+	// per host.
+	// Containerd
+	containerd.ArgContainerdEndpoint = &c.Containerd
+	containerd.ArgContainerdNamespace = &c.ContainerdNamespace
+
+	// Docker
+	docker.ArgDockerEndpoint = &c.Docker
+	docker.ArgDockerTLS = &c.DockerTls
+	docker.ArgDockerCert = &c.DockerTlsCert
+	docker.ArgDockerKey = &c.DockerTlsKey
+	docker.ArgDockerCA = &c.DockerTlsCA
+
+	// Raw
+	raw.DockerOnly = &c.DockerOnly
+
+	// Only using in-memory storage, with no backup storage for cadvisor stats
+	memoryStorage := memory.New(c.StorageDuration, []storage.StorageDriver{})
+
+	sysFs := sysfs.NewRealSysFs()
+
+	collectorHTTPClient := http.Client{}
+
+	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, c.includedMetrics, &collectorHTTPClient, c.RawCgroupPrefixWhitelist, c.EnvMetadataWhitelist, c.PerfEventsConfig, time.Duration(c.ResctrlInterval))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a manager: %w", err)
+	}
+
+	if err := rm.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start manager: %w", err)
+	}
+
+	containerLabelFunc := metrics.DefaultContainerLabels
+	if !c.StoreContainerLabels {
+		containerLabelFunc = metrics.BaseContainerLabels(c.WhitelistedContainerLabels)
+	}
+
+	goCol := collectors.NewGoCollector()                                         // This is already emitted by the agent, but not with the integration job name.
+	procCol := collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}) // Same as above
+	machCol := metrics.NewPrometheusMachineCollector(rm, c.includedMetrics)
+	// This is really just a concatenation of the defaults found at;
+	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/api/versions.go#L536-L540
+	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/http/handlers.go#L109-L110
+	// AFAIK all we are ever doing is the "default" metrics request, and we don't need to support the "docker" request type.
+	reqOpts := v2.RequestOptions{
+		IdType:    v2.TypeName,
+		Count:     1,
+		Recursive: true,
+	}
+	contCol := metrics.NewPrometheusCollector(rm, containerLabelFunc, c.includedMetrics, clock.RealClock{}, reqOpts)
+
+	integration := integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(goCol, procCol, machCol, contCol))
+	return integration, nil
 }
