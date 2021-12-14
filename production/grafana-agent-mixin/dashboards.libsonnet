@@ -498,7 +498,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           |||
-            traces_loadbalancer_num_backends{cluster=~"$cluster",namespace=~"$namespace",success="true",container=~"$container",pod=~"$pod"}
+            traces_loadbalancer_num_backends{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"}
           |||,
           legendFormat='{{ pod }}',
         ));
