@@ -17,7 +17,6 @@ import (
 	"github.com/google/cadvisor/metrics"
 	"github.com/google/cadvisor/storage"
 	"github.com/google/cadvisor/utils/sysfs"
-	"github.com/prometheus/client_golang/prometheus/collectors"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
 
@@ -78,8 +77,6 @@ func (i *CadvisorIntegration) Run(ctx context.Context) error {
 		containerLabelFunc = metrics.BaseContainerLabels(i.c.WhitelistedContainerLabels)
 	}
 
-	goCol := collectors.NewGoCollector()                                         // This is already emitted by the agent, but not with the integration job name.
-	procCol := collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}) // Same as above
 	machCol := metrics.NewPrometheusMachineCollector(rm, i.c.includedMetrics)
 	// This is really just a concatenation of the defaults found at;
 	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/api/versions.go#L536-L540
@@ -91,7 +88,7 @@ func (i *CadvisorIntegration) Run(ctx context.Context) error {
 		Recursive: true,
 	}
 	contCol := metrics.NewPrometheusCollector(rm, containerLabelFunc, i.c.includedMetrics, clock.RealClock{}, reqOpts)
-	integrations.WithCollectors(goCol, procCol, machCol, contCol)(i.i)
+	integrations.WithCollectors(machCol, contCol)(i.i)
 
 	<-ctx.Done()
 
