@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/traces/promsdprocessor"
 	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
 	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
@@ -147,10 +148,16 @@ const (
 	protocolHTTP    = "http"
 )
 
-// DefaultRemoteWriteConfig holds the default setting	s for a PushConfig.
+const (
+	formatOtlp   = "otlp"
+	formatJaeger = "jaeger"
+)
+
+// DefaultRemoteWriteConfig holds the default settings for a PushConfig.
 var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Compression: compressionGzip,
 	Protocol:    protocolGRPC,
+	Format:      formatOtlp,
 }
 
 // RemoteWriteConfig controls the configuration of an exporter
@@ -159,6 +166,7 @@ type RemoteWriteConfig struct {
 	Compression string `yaml:"compression,omitempty"`
 	Protocol    string `yaml:"protocol,omitempty"`
 	Insecure    bool   `yaml:"insecure,omitempty"`
+	Format      string `yaml:"format,omitempty"`
 	// Deprecated
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
 	TLSConfig          *prom_config.TLSConfig `yaml:"tls_config,omitempty"`
@@ -179,6 +187,10 @@ func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) err
 
 	if c.Compression != compressionGzip && c.Compression != compressionNone {
 		return fmt.Errorf("unsupported compression '%s', expected 'gzip' or 'none'", c.Compression)
+	}
+
+	if c.Format != formatOtlp && c.Format != formatJaeger {
+		return fmt.Errorf("unsupported format '%s', expected 'otlp' or 'jaeger'", c.Format)
 	}
 	return nil
 }
@@ -221,6 +233,7 @@ type exporterConfig struct {
 	Insecure           bool                   `yaml:"insecure,omitempty"`
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
+	Format             string                 `yaml:"format,omitempty"`
 }
 
 type serviceGraphsConfig struct {
@@ -260,7 +273,12 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 		compression = ""
 	}
 
-	otlpExporter := map[string]interface{}{
+	// Default OTLP exporter config awaits an empty headers map. Other exporters
+	// (e.g. Jaeger) may expect a nil value instead
+	if len(headers) == 0 && rwCfg.Format == formatJaeger {
+		headers = nil
+	}
+	exporter := map[string]interface{}{
 		"endpoint":         rwCfg.Endpoint,
 		"compression":      compression,
 		"headers":          headers,
@@ -283,21 +301,44 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 			tlsConfig["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
 		}
 	}
-	otlpExporter["tls"] = tlsConfig
+	exporter["tls"] = tlsConfig
 
 	// Apply some sane defaults to the exporter. The
 	// sending_queue.retry_on_failure default is 300s which prevents any
 	// sending-related errors to not be logged for 5 minutes. We'll lower that
 	// to 60s.
-	if retryConfig := otlpExporter["retry_on_failure"].(map[string]interface{}); retryConfig == nil {
-		otlpExporter["retry_on_failure"] = map[string]interface{}{
+	if retryConfig := exporter["retry_on_failure"].(map[string]interface{}); retryConfig == nil {
+		exporter["retry_on_failure"] = map[string]interface{}{
 			"max_elapsed_time": "60s",
 		}
 	} else if retryConfig["max_elapsed_time"] == nil {
 		retryConfig["max_elapsed_time"] = "60s"
 	}
 
-	return otlpExporter, nil
+	return exporter, nil
+}
+
+func getExporterName(protocol string, format string) (string, error) {
+	switch format {
+	case formatOtlp:
+		switch protocol {
+		case protocolGRPC:
+			return "otlp", nil
+		case protocolHTTP:
+			return "otlphttp", nil
+		default:
+			return "", errors.New("unknown protocol, expected either 'http' or 'grpc'")
+		}
+	case formatJaeger:
+		switch protocol {
+		case protocolGRPC:
+			return "jaeger", nil
+		default:
+			return "", errors.New("unknown protocol, expected 'grpc'")
+		}
+	default:
+		return "", errors.New("unknown format, expected either 'otlp' or 'jaeger'")
+	}
 }
 
 // exporters builds one or multiple exporters from a remote_write block.
@@ -308,13 +349,11 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		var exporterName string
-		switch remoteWriteConfig.Protocol {
-		case protocolGRPC:
-			exporterName = fmt.Sprintf("otlp/%d", i)
-		case protocolHTTP:
-			exporterName = fmt.Sprintf("otlphttp/%d", i)
+		exporterName, err := getExporterName(remoteWriteConfig.Protocol, remoteWriteConfig.Format)
+		if err != nil {
+			return nil, err
 		}
+		exporterName = fmt.Sprintf("%s/%d", exporterName, i)
 		exporters[exporterName] = exporter
 	}
 	return exporters, nil
@@ -344,6 +383,8 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 		Insecure:    c.LoadBalancing.Exporter.Insecure,
 		TLSConfig:   &prom_config.TLSConfig{InsecureSkipVerify: c.LoadBalancing.Exporter.InsecureSkipVerify},
 		BasicAuth:   c.LoadBalancing.Exporter.BasicAuth,
+		Format:      c.LoadBalancing.Exporter.Format,
+		Headers:     map[string]string{},
 	})
 	if err != nil {
 		return nil, err
@@ -612,6 +653,7 @@ func tracingFactories() (component.Factories, error) {
 	exporters, err := component.MakeExporterFactoryMap(
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
+		jaegerexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		prometheusexporter.NewFactory(),
 		remotewriteexporter.NewFactory(),
