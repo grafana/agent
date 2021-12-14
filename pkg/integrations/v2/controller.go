@@ -96,16 +96,21 @@ func (c *controller) run(ctx context.Context) {
 			}
 		}
 
-		// Now all non-running integrations can be launched.
+		var wg sync.WaitGroup
+		wg.Add(len(newIntegrations))
+
+		// Now all integrations can be launched.
 		for _, current := range newIntegrations {
-			if current.Running() {
-				continue
-			}
 			go func(current *controlledIntegration) {
-				err := current.Run(ctx)
-				level.Warn(c.logger).Log("msg", "integration exited with error", "instance", current.id, "err", err)
+				err := current.Run(ctx, func() { wg.Done() })
+				if err != nil && !errors.Is(err, errIntegrationRunning) {
+					level.Warn(c.logger).Log("msg", "integration exited with error", "instance", current.id, "err", err)
+				}
 			}(current)
 		}
+
+		// Wait for all integration goroutines to have been scheduled at least once.
+		wg.Wait()
 
 		// Finally, store the current list of contolled integrations.
 		currentIntegrations = newIntegrations
@@ -144,9 +149,12 @@ func (ci *controlledIntegration) Running() bool {
 	return atomic.LoadUint64(&ci.running) == 1
 }
 
-func (ci *controlledIntegration) Run(ctx context.Context) error {
-	if !atomic.CompareAndSwapUint64(&ci.running, 0, 1) {
-		return fmt.Errorf("already running")
+func (ci *controlledIntegration) Run(ctx context.Context, started func()) error {
+	swapped := atomic.CompareAndSwapUint64(&ci.running, 0, 1)
+	started()
+
+	if !swapped {
+		return errIntegrationRunning
 	}
 	defer atomic.StoreUint64(&ci.running, 0)
 
@@ -160,6 +168,8 @@ func (ci *controlledIntegration) Run(ctx context.Context) error {
 	}
 	return ci.i.RunIntegration(ctx)
 }
+
+var errIntegrationRunning = fmt.Errorf("already running")
 
 func (ci *controlledIntegration) Stop() {
 	ci.mut.Lock()

@@ -235,6 +235,15 @@ func (mc mockConfig) NewIntegration(l log.Logger, g Globals) (Integration, error
 	return mc.NewIntegrationFunc(l, g)
 }
 
+func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integration, error)) mockConfig {
+	return mockConfig{
+		NameFunc:           mc.NameFunc,
+		ConfigEqualsFunc:   mc.ConfigEqualsFunc,
+		IdentifierFunc:     mc.IdentifierFunc,
+		NewIntegrationFunc: f,
+	}
+}
+
 func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 	t.Helper()
 
