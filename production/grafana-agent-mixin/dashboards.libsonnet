@@ -485,7 +485,7 @@ local template = grafana.template;
             rate(traces_loadbalancer_backend_outcome{cluster=~"$cluster",namespace=~"$namespace",success="true",container=~"$container",pod=~"$pod"}[$__rate_interval])
           |||,
           legendFormat='{{ pod }}',
-        ))
+        ));
 
       local peersNum =
         graphPanel.new(

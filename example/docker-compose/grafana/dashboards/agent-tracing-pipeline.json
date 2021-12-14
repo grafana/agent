@@ -570,22 +570,15 @@
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 3,
-               "stack": false,
+               "stack": true,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum(rate(traces_loadbalancer_backend_outcome{cluster=~\"$cluster\",namespace=~\"$namespace\",success=\"true\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n",
+                     "expr": "rate(traces_loadbalancer_backend_outcome{cluster=~\"$cluster\",namespace=~\"$namespace\",success=\"true\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval])\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "Sent",
+                     "legendFormat": "{{ pod }}",
                      "refId": "A"
-                  },
-                  {
-                     "expr": "sum(rate(traces_loadbalancer_backend_outcome{cluster=~\"$cluster\",namespace=~\"$namespace\",success=\"true\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "Failed",
-                     "refId": "B"
                   }
                ],
                "thresholds": [ ],
