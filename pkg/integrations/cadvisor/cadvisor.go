@@ -52,7 +52,6 @@ var DefaultConfig Config = Config{
 		container.ResctrlMetrics:                 struct{}{},
 		container.CPUSetMetrics:                  struct{}{},
 	},
-	enabledMetricsSet: container.MetricSet{},
 
 	StorageDuration: 2 * time.Minute,
 
