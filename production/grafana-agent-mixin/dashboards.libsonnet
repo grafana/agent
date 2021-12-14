@@ -378,7 +378,7 @@ local template = grafana.template;
           |||
             rate(traces_receiver_accepted_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",receiver!="otlp/lb"}[$__rate_interval])
           |||,
-          legendFormat='{{ pod }} - {{ receiver }}',
+          legendFormat='{{ pod }} - {{ receiver }}/{{ transport }}',
         ));
 
       local refusedSpans =
@@ -394,7 +394,7 @@ local template = grafana.template;
           |||
             rate(traces_receiver_refused_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",receiver!="otlp/lb"}[$__rate_interval])
           |||,
-          legendFormat='{{ pod }} - {{ receiver }}',
+          legendFormat='{{ pod }} - {{ receiver }}/{{ transport }}',
         ));
 
       local sentSpans =
