@@ -4,6 +4,7 @@
 package cadvisor //nolint:golint
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -24,6 +25,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 
 	// Register container providers
+
 	"github.com/google/cadvisor/container/containerd"
 	_ "github.com/google/cadvisor/container/containerd/install" // register containerd container plugin
 	_ "github.com/google/cadvisor/container/crio/install"       // register crio container plugin
@@ -32,6 +34,72 @@ import (
 	"github.com/google/cadvisor/container/raw"
 	_ "github.com/google/cadvisor/container/systemd/install" // register systemd container plugin
 )
+
+type CadvisorIntegration struct {
+	c *Config
+	i *integrations.CollectorIntegration
+}
+
+func (i *CadvisorIntegration) Run(ctx context.Context) error {
+	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
+	// per host.
+	// Containerd
+	containerd.ArgContainerdEndpoint = &i.c.Containerd
+	containerd.ArgContainerdNamespace = &i.c.ContainerdNamespace
+
+	// Docker
+	docker.ArgDockerEndpoint = &i.c.Docker
+	docker.ArgDockerTLS = &i.c.DockerTLS
+	docker.ArgDockerCert = &i.c.DockerTLSCert
+	docker.ArgDockerKey = &i.c.DockerTLSKey
+	docker.ArgDockerCA = &i.c.DockerTLSCA
+
+	// Raw
+	raw.DockerOnly = &i.c.DockerOnly
+
+	// Only using in-memory storage, with no backup storage for cadvisor stats
+	memoryStorage := memory.New(i.c.StorageDuration, []storage.StorageDriver{})
+
+	sysFs := sysfs.NewRealSysFs()
+
+	collectorHTTPClient := http.Client{}
+
+	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, i.c.includedMetrics, &collectorHTTPClient, i.c.RawCgroupPrefixWhitelist, i.c.EnvMetadataWhitelist, i.c.PerfEventsConfig, time.Duration(i.c.ResctrlInterval))
+	if err != nil {
+		return fmt.Errorf("failed to create a manager: %w", err)
+	}
+
+	if err := rm.Start(); err != nil {
+		return fmt.Errorf("failed to start manager: %w", err)
+	}
+
+	containerLabelFunc := metrics.DefaultContainerLabels
+	if !i.c.StoreContainerLabels {
+		containerLabelFunc = metrics.BaseContainerLabels(i.c.WhitelistedContainerLabels)
+	}
+
+	goCol := collectors.NewGoCollector()                                         // This is already emitted by the agent, but not with the integration job name.
+	procCol := collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}) // Same as above
+	machCol := metrics.NewPrometheusMachineCollector(rm, i.c.includedMetrics)
+	// This is really just a concatenation of the defaults found at;
+	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/api/versions.go#L536-L540
+	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/http/handlers.go#L109-L110
+	// AFAIK all we are ever doing is the "default" metrics request, and we don't need to support the "docker" request type.
+	reqOpts := v2.RequestOptions{
+		IdType:    v2.TypeName,
+		Count:     1,
+		Recursive: true,
+	}
+	contCol := metrics.NewPrometheusCollector(rm, containerLabelFunc, i.c.includedMetrics, clock.RealClock{}, reqOpts)
+	integrations.WithCollectors(goCol, procCol, machCol, contCol)(i.i)
+
+	<-ctx.Done()
+
+	if err := rm.Stop(); err != nil {
+		return fmt.Errorf("failed to stop manager: %w", err)
+	}
+	return ctx.Err()
+}
 
 // DefaultConfig holds the default settings for the cadvisor integration
 var DefaultConfig Config = Config{
@@ -198,57 +266,11 @@ func init() {
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	klog.SetLogger(logger)
 
-	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
-	// per host.
-	// Containerd
-	containerd.ArgContainerdEndpoint = &c.Containerd
-	containerd.ArgContainerdNamespace = &c.ContainerdNamespace
-
-	// Docker
-	docker.ArgDockerEndpoint = &c.Docker
-	docker.ArgDockerTLS = &c.DockerTLS
-	docker.ArgDockerCert = &c.DockerTLSCert
-	docker.ArgDockerKey = &c.DockerTLSKey
-	docker.ArgDockerCA = &c.DockerTLSCA
-
-	// Raw
-	raw.DockerOnly = &c.DockerOnly
-
-	// Only using in-memory storage, with no backup storage for cadvisor stats
-	memoryStorage := memory.New(c.StorageDuration, []storage.StorageDriver{})
-
-	sysFs := sysfs.NewRealSysFs()
-
-	collectorHTTPClient := http.Client{}
-
-	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, c.includedMetrics, &collectorHTTPClient, c.RawCgroupPrefixWhitelist, c.EnvMetadataWhitelist, c.PerfEventsConfig, time.Duration(c.ResctrlInterval))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create a manager: %w", err)
+	ci := integrations.NewCollectorIntegration(c.Name())
+	integration := CadvisorIntegration{
+		c: c,
+		i: ci,
 	}
-
-	if err := rm.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start manager: %w", err)
-	}
-
-	containerLabelFunc := metrics.DefaultContainerLabels
-	if !c.StoreContainerLabels {
-		containerLabelFunc = metrics.BaseContainerLabels(c.WhitelistedContainerLabels)
-	}
-
-	goCol := collectors.NewGoCollector()                                         // This is already emitted by the agent, but not with the integration job name.
-	procCol := collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}) // Same as above
-	machCol := metrics.NewPrometheusMachineCollector(rm, c.includedMetrics)
-	// This is really just a concatenation of the defaults found at;
-	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/api/versions.go#L536-L540
-	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/http/handlers.go#L109-L110
-	// AFAIK all we are ever doing is the "default" metrics request, and we don't need to support the "docker" request type.
-	reqOpts := v2.RequestOptions{
-		IdType:    v2.TypeName,
-		Count:     1,
-		Recursive: true,
-	}
-	contCol := metrics.NewPrometheusCollector(rm, containerLabelFunc, c.includedMetrics, clock.RealClock{}, reqOpts)
-
-	integration := integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(goCol, procCol, machCol, contCol))
-	return integration, nil
+	integrations.WithRunner(integration.Run)(ci)
+	return ci, nil
 }
