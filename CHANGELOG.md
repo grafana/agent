@@ -5,6 +5,8 @@
 
 - [FEATURE] Added [cAdvisor](https://github.com/google/cadvisor) integration. (@rgeyer)
 
+- [FEATURE] Traces: Add `Agent Tracing Pipeline` dashboard (@mapno)
+
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
