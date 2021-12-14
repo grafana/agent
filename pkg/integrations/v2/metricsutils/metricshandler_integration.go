@@ -85,8 +85,8 @@ func (i *metricsHandlerIntegration) Targets(prefix string) []*targetgroup.Group 
 			"__meta_agent_integration_name":       model.LabelValue(i.integrationName),
 			"__meta_agent_integration_instance":   model.LabelValue(i.instanceID),
 			"__meta_agent_integration_selfscrape": model.LabelValue(boolToString(i.shouldSelfScrape())),
-		},
-		Source: i.integrationName,
+		}.Merge(i.globals.SubsystemOpts.Labels),
+		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
 	}}
 }
 
