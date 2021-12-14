@@ -5,7 +5,7 @@
 
 - [FEATURE] Added [cAdvisor](https://github.com/google/cadvisor) integration. (@rgeyer)
 
-- [FEATURE] Traces: Add `Agent Tracing Pipeline` dashboard (@mapno)
+- [FEATURE] Traces: Add `Agent Tracing Pipeline` dashboard and alerts (@mapno)
 
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
