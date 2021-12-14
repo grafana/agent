@@ -39,6 +39,7 @@ type CadvisorIntegration struct {
 	i *integrations.CollectorIntegration
 }
 
+// Run holds all the configuration logic for globals, as well as starting the resource manager and registering the collectors with the collector integration
 func (i *CadvisorIntegration) Run(ctx context.Context) error {
 	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
 	// per host.
