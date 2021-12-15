@@ -21,7 +21,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	integrationWithTarget := func(targetName string) Integration {
 		return mockMetricsIntegration{
 			Integration: NoOpIntegration,
-			TargetsFunc: func(prefix string) []*targetgroup.Group {
+			TargetsFunc: func(Endpoint) []*targetgroup.Group {
 				return []*targetgroup.Group{{
 					Targets: []model.LabelSet{{model.AddressLabel: model.LabelValue(targetName)}},
 				}}
@@ -48,7 +48,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 		require.NoError(t, err)
 		_ = newSyncController(t, ctrl)
 
-		result := ctrl.Targets("/", TargetOptions{})
+		result := ctrl.Targets(Endpoint{Prefix: "/"}, TargetOptions{})
 		expect := []*targetGroup{
 			{Targets: []model.LabelSet{{model.AddressLabel: "a"}}},
 			{Targets: []model.LabelSet{{model.AddressLabel: "b"}}},
@@ -65,7 +65,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 		require.NoError(t, err)
 		_ = newSyncController(t, ctrl)
 
-		result := ctrl.Targets("/", TargetOptions{
+		result := ctrl.Targets(Endpoint{Prefix: "/"}, TargetOptions{
 			Integrations: []string{"a", "b"},
 		})
 		expect := []*targetGroup{
@@ -84,7 +84,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 		require.NoError(t, err)
 		_ = newSyncController(t, ctrl)
 
-		result := ctrl.Targets("/", TargetOptions{
+		result := ctrl.Targets(Endpoint{Prefix: "/"}, TargetOptions{
 			Integrations: []string{"a"},
 		})
 		expect := []*targetGroup{
@@ -135,12 +135,12 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 
 type mockMetricsIntegration struct {
 	Integration
-	TargetsFunc       func(prefix string) []*targetgroup.Group
+	TargetsFunc       func(ep Endpoint) []*targetgroup.Group
 	ScrapeConfigsFunc func(discovery.Configs) []*prom_config.ScrapeConfig
 }
 
-func (m mockMetricsIntegration) Targets(prefix string) []*targetgroup.Group {
-	return m.TargetsFunc(prefix)
+func (m mockMetricsIntegration) Targets(ep Endpoint) []*targetgroup.Group {
+	return m.TargetsFunc(ep)
 }
 
 func (m mockMetricsIntegration) ScrapeConfigs(cfgs discovery.Configs) []*prom_config.ScrapeConfig {
