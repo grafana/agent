@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	loki "github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/tempo"
+	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
 	"github.com/oklog/run"
@@ -25,7 +25,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/signals"
 
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log/level"
 )
 
 // Entrypoint is the entrypoint of the application that starts all subsystems.
@@ -40,7 +40,7 @@ type Entrypoint struct {
 	srv         *server.Server
 	promMetrics *metrics.Agent
 	lokiLogs    *loki.Logs
-	tempoTraces *tempo.Tempo
+	tempoTraces *traces.Traces
 	manager     *integrations.Manager
 
 	reloadListener net.Listener
@@ -75,7 +75,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 
-	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Prometheus, logger)
+	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.tempoTraces, err = tempo.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Tempo, cfg.Server.LogLevel.Logrus)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Traces, cfg.Server.LogLevel.Logrus)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 	}
 
 	// Go through each component and update it.
-	if err := ep.promMetrics.ApplyConfig(cfg.Prometheus); err != nil {
+	if err := ep.promMetrics.ApplyConfig(cfg.Metrics); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update prometheus", "err", err)
 		failed = true
 	}
@@ -131,8 +131,8 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Tempo, cfg.Server.LogLevel.Logrus); err != nil {
-		level.Error(ep.log).Log("msg", "failed to update tempo", "err", err)
+	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces, cfg.Server.LogLevel.Logrus); err != nil {
+		level.Error(ep.log).Log("msg", "failed to update traces", "err", err)
 		failed = true
 	}
 
@@ -169,13 +169,19 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 
 	mux.HandleFunc("/-/config", func(rw http.ResponseWriter, r *http.Request) {
 		ep.mut.Lock()
-		bb, err := yaml.Marshal(ep.cfg)
+		cfg := ep.cfg
 		ep.mut.Unlock()
 
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
+		if cfg.EnableConfigEndpoints {
+			bb, err := yaml.Marshal(cfg)
+			if err != nil {
+				http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
+			} else {
+				_, _ = rw.Write(bb)
+			}
 		} else {
-			_, _ = rw.Write(bb)
+			rw.WriteHeader(http.StatusNotFound)
+			_, _ = rw.Write([]byte("404 - config endpoint is disabled"))
 		}
 	})
 

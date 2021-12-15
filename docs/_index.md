@@ -1,11 +1,11 @@
 +++
-title = "Grafana Agent Documentation"
+title = "Grafana Agent documentation"
 weight = 1
 +++
 
 # Grafana Agent
 
-Grafana Agent is an telemetry collector for sending metrics, logs,
+Grafana Agent is a telemetry collector for sending metrics, logs,
 and trace data to the opinionated Grafana observability stack. It works best
 with:
 
@@ -94,9 +94,9 @@ developer team.
 ## Traces
 
 Grafana Agent supports collecting traces and sending them to Tempo using its
-`tempo` subsystem. This is done using the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
+`traces` subsystem. This is done using the upstream [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
 Agent can ingest OpenTelemetry, OpenCensus, Jaeger, Zipkin, or Kafka spans.
-See documentation on how to configure [receivers]({{< relref "./configuration/tempo-config.md" >}}).
+See documentation on how to configure [receivers]({{< relref "./configuration/traces-config.md" >}}).
 The agent is capable of exporting to any OpenTelemetry GRPC compatible system.
 
 ## Comparison to alternatives

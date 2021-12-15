@@ -2,20 +2,18 @@
 package redis_exporter //nolint:golint
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
-
-	re "github.com/oliver006/redis_exporter/exporter"
-
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+	re "github.com/oliver006/redis_exporter/exporter"
+	config_util "github.com/prometheus/common/config"
 )
 
 // DefaultConfig holds non-zero default options for the Config when it is
@@ -23,7 +21,7 @@ import (
 var DefaultConfig = Config{
 	Namespace:               "redis",
 	ConfigCommand:           "CONFIG",
-	ConnectionTimeout:       (15 * time.Second),
+	ConnectionTimeout:       15 * time.Second,
 	SetClientName:           true,
 	CheckKeyGroupsBatchSize: 10000,
 	MaxDistinctKeyGroups:    100,
@@ -39,33 +37,33 @@ type Config struct {
 	//
 	// The exporter binary config differs to this, but these
 	// are the only fields that are relevant to the exporter struct.
-	RedisAddr               string        `yaml:"redis_addr,omitempty"`
-	RedisUser               string        `yaml:"redis_user,omitempty"`
-	RedisPassword           string        `yaml:"redis_password,omitempty"`
-	RedisPasswordFile       string        `yaml:"redis_password_file,omitempty"`
-	Namespace               string        `yaml:"namespace,omitempty"`
-	ConfigCommand           string        `yaml:"config_command,omitempty"`
-	CheckKeys               string        `yaml:"check_keys,omitempty"`
-	CheckKeyGroups          string        `yaml:"check_key_groups,omitempty"`
-	CheckKeyGroupsBatchSize int64         `yaml:"check_key_groups_batch_size,omitempty"`
-	MaxDistinctKeyGroups    int64         `yaml:"max_distinct_key_groups,omitempty"`
-	CheckSingleKeys         string        `yaml:"check_single_keys,omitempty"`
-	CheckStreams            string        `yaml:"check_streams,omitempty"`
-	CheckSingleStreams      string        `yaml:"check_single_streams,omitempty"`
-	CountKeys               string        `yaml:"count_keys,omitempty"`
-	ScriptPath              string        `yaml:"script_path,omitempty"`
-	ConnectionTimeout       time.Duration `yaml:"connection_timeout,omitempty"`
-	TLSClientKeyFile        string        `yaml:"tls_client_key_file,omitempty"`
-	TLSClientCertFile       string        `yaml:"tls_client_cert_file,omitempty"`
-	TLSCaCertFile           string        `yaml:"tls_ca_cert_file,omitempty"`
-	SetClientName           bool          `yaml:"set_client_name,omitempty"`
-	IsTile38                bool          `yaml:"is_tile38,omitempty"`
-	ExportClientList        bool          `yaml:"export_client_list,omitempty"`
-	ExportClientPort        bool          `yaml:"export_client_port,omitempty"`
-	RedisMetricsOnly        bool          `yaml:"redis_metrics_only,omitempty"`
-	PingOnConnect           bool          `yaml:"ping_on_connect,omitempty"`
-	InclSystemMetrics       bool          `yaml:"incl_system_metrics,omitempty"`
-	SkipTLSVerification     bool          `yaml:"skip_tls_verification,omitempty"`
+	RedisAddr               string             `yaml:"redis_addr,omitempty"`
+	RedisUser               string             `yaml:"redis_user,omitempty"`
+	RedisPassword           config_util.Secret `yaml:"redis_password,omitempty"`
+	RedisPasswordFile       string             `yaml:"redis_password_file,omitempty"`
+	Namespace               string             `yaml:"namespace,omitempty"`
+	ConfigCommand           string             `yaml:"config_command,omitempty"`
+	CheckKeys               string             `yaml:"check_keys,omitempty"`
+	CheckKeyGroups          string             `yaml:"check_key_groups,omitempty"`
+	CheckKeyGroupsBatchSize int64              `yaml:"check_key_groups_batch_size,omitempty"`
+	MaxDistinctKeyGroups    int64              `yaml:"max_distinct_key_groups,omitempty"`
+	CheckSingleKeys         string             `yaml:"check_single_keys,omitempty"`
+	CheckStreams            string             `yaml:"check_streams,omitempty"`
+	CheckSingleStreams      string             `yaml:"check_single_streams,omitempty"`
+	CountKeys               string             `yaml:"count_keys,omitempty"`
+	ScriptPath              string             `yaml:"script_path,omitempty"`
+	ConnectionTimeout       time.Duration      `yaml:"connection_timeout,omitempty"`
+	TLSClientKeyFile        string             `yaml:"tls_client_key_file,omitempty"`
+	TLSClientCertFile       string             `yaml:"tls_client_cert_file,omitempty"`
+	TLSCaCertFile           string             `yaml:"tls_ca_cert_file,omitempty"`
+	SetClientName           bool               `yaml:"set_client_name,omitempty"`
+	IsTile38                bool               `yaml:"is_tile38,omitempty"`
+	ExportClientList        bool               `yaml:"export_client_list,omitempty"`
+	ExportClientPort        bool               `yaml:"export_client_port,omitempty"`
+	RedisMetricsOnly        bool               `yaml:"redis_metrics_only,omitempty"`
+	PingOnConnect           bool               `yaml:"ping_on_connect,omitempty"`
+	InclSystemMetrics       bool               `yaml:"incl_system_metrics,omitempty"`
+	SkipTLSVerification     bool               `yaml:"skip_tls_verification,omitempty"`
 }
 
 // GetExporterOptions returns relevant Config properties as a redis_exporter
@@ -73,26 +71,26 @@ type Config struct {
 // we marshal the yaml into Config and then create the re.Options from that.
 func (c Config) GetExporterOptions() re.Options {
 	return re.Options{
-		User:                    c.RedisUser,
-		Password:                c.RedisPassword,
-		Namespace:               c.Namespace,
-		ConfigCommandName:       c.ConfigCommand,
-		CheckKeys:               c.CheckKeys,
-		CheckKeyGroups:          c.CheckKeyGroups,
-		CheckKeyGroupsBatchSize: c.CheckKeyGroupsBatchSize,
-		CheckSingleKeys:         c.CheckSingleKeys,
-		CheckStreams:            c.CheckStreams,
-		CheckSingleStreams:      c.CheckSingleStreams,
-		CountKeys:               c.CountKeys,
-		InclSystemMetrics:       c.InclSystemMetrics,
-		SkipTLSVerification:     c.SkipTLSVerification,
-		SetClientName:           c.SetClientName,
-		IsTile38:                c.IsTile38,
-		ExportClientList:        c.ExportClientList,
-		ExportClientsInclPort:   c.ExportClientPort,
-		ConnectionTimeouts:      c.ConnectionTimeout,
-		RedisMetricsOnly:        c.RedisMetricsOnly,
-		PingOnConnect:           c.PingOnConnect,
+		User:                  c.RedisUser,
+		Password:              string(c.RedisPassword),
+		Namespace:             c.Namespace,
+		ConfigCommandName:     c.ConfigCommand,
+		CheckKeys:             c.CheckKeys,
+		CheckKeysBatchSize:    c.CheckKeyGroupsBatchSize,
+		CheckKeyGroups:        c.CheckKeyGroups,
+		CheckSingleKeys:       c.CheckSingleKeys,
+		CheckStreams:          c.CheckStreams,
+		CheckSingleStreams:    c.CheckSingleStreams,
+		CountKeys:             c.CountKeys,
+		InclSystemMetrics:     c.InclSystemMetrics,
+		SkipTLSVerification:   c.SkipTLSVerification,
+		SetClientName:         c.SetClientName,
+		IsTile38:              c.IsTile38,
+		ExportClientList:      c.ExportClientList,
+		ExportClientsInclPort: c.ExportClientPort,
+		ConnectionTimeouts:    c.ConnectionTimeout,
+		RedisMetricsOnly:      c.RedisMetricsOnly,
+		PingOnConnect:         c.PingOnConnect,
 	}
 }
 
@@ -113,6 +111,11 @@ func (c *Config) Name() string {
 // for integrations.
 func (c *Config) CommonConfig() config.Common {
 	return c.Common
+}
+
+// InstanceKey returns the addr of the redis server.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return c.RedisAddr, nil
 }
 
 // NewIntegration converts the config into an integration instance.
@@ -143,30 +146,20 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		exporterConfig.LuaScript = ls
 	}
 
-	var tlsClientCertificates []tls.Certificate
+	//new version of the exporter takes the file paths directly, for hot-reloading support (https://github.com/oliver006/redis_exporter/pull/526)
+
 	if (c.TLSClientKeyFile != "") != (c.TLSClientCertFile != "") {
 		return nil, errors.New("TLS client key file and cert file should both be present")
 	}
 	if c.TLSClientKeyFile != "" && c.TLSClientCertFile != "" {
-		cert, err := tls.LoadX509KeyPair(c.TLSClientCertFile, c.TLSClientKeyFile)
-		if err != nil {
 
-			return nil, fmt.Errorf("couldn't load TLS client key pair: %w", err)
-		}
-		tlsClientCertificates = append(tlsClientCertificates, cert)
+		exporterConfig.ClientKeyFile = c.TLSClientKeyFile
+		exporterConfig.ClientCertFile = c.TLSClientCertFile
 	}
-	exporterConfig.ClientCertificates = tlsClientCertificates
 
-	var tlsCaCertificates *x509.CertPool
 	if c.TLSCaCertFile != "" {
-		caCert, err := ioutil.ReadFile(c.TLSCaCertFile)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't load TLS Ca certificate: %w", err)
-		}
-		tlsCaCertificates = x509.NewCertPool()
-		tlsCaCertificates.AppendCertsFromPEM(caCert)
+		exporterConfig.CaCertFile = c.TLSCaCertFile
 	}
-	exporterConfig.CaCertificates = tlsCaCertificates
 
 	// optional password file to take precedence over password property
 	if c.RedisPasswordFile != "" {

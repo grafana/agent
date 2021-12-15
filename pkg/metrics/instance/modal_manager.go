@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -50,6 +50,7 @@ type ModalManager struct {
 	mode    Mode
 	configs map[string]Config
 
+	changedConfigs       *prometheus.GaugeVec
 	currentActiveConfigs prometheus.Gauge
 
 	log log.Logger
@@ -69,14 +70,19 @@ type ModalManager struct {
 
 // NewModalManager creates a new ModalManager.
 func NewModalManager(reg prometheus.Registerer, l log.Logger, next Manager, mode Mode) (*ModalManager, error) {
+	changedConfigs := promauto.With(reg).NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_metrics_configs_changed_total",
+		Help: "Total number of dynamically updated configs",
+	}, []string{"event"})
 	currentActiveConfigs := promauto.With(reg).NewGauge(prometheus.GaugeOpts{
-		Name: "agent_prometheus_active_configs",
+		Name: "agent_metrics_active_configs",
 		Help: "Current number of active configs being used by the agent.",
 	})
 
 	mm := ModalManager{
 		wrapped:              next,
 		log:                  l,
+		changedConfigs:       changedConfigs,
 		currentActiveConfigs: currentActiveConfigs,
 		configs:              make(map[string]Config),
 	}
@@ -171,7 +177,11 @@ func (m *ModalManager) ApplyConfig(c Config) error {
 
 	if _, existingConfig := m.configs[c.Name]; !existingConfig {
 		m.currentActiveConfigs.Inc()
+		m.changedConfigs.WithLabelValues("created").Inc()
+	} else {
+		m.changedConfigs.WithLabelValues("updated").Inc()
 	}
+
 	m.configs[c.Name] = c
 
 	return nil
@@ -190,6 +200,8 @@ func (m *ModalManager) DeleteConfig(name string) error {
 		m.currentActiveConfigs.Dec()
 		delete(m.configs, name)
 	}
+
+	m.changedConfigs.WithLabelValues("deleted").Inc()
 	return nil
 }
 

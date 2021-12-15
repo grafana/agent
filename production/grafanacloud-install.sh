@@ -13,6 +13,8 @@
 # PACKAGE_SYSTEM can be passed as an environment variable with either rpm or
 # deb.
 set -eu
+trap "exit 1" TERM
+MY_PID=$$
 
 log() {
   echo "$@" >&2
@@ -20,14 +22,15 @@ log() {
 
 fatal() {
   log "$@"
-  exit 1
+  kill -s TERM "$MY_PID"
 }
 
 #
 # REQUIRED environment variables.
 #
 GCLOUD_STACK_ID=${GCLOUD_STACK_ID:=} # Stack ID where integrations are installed
-GCLOUD_API_KEY=${GCLOUD_API_KEY:=}   # API key to communicate to the integrations API
+GCLOUD_API_KEY=${GCLOUD_API_KEY:=}   # API key to authenticate against Grafana Cloud's API with
+GCLOUD_API_URL=${GCLOUD_API_URL:=}   # Grafana Cloud's API url
 
 [ -z "$GCLOUD_STACK_ID" ] && fatal "Required environment variable \$GCLOUD_STACK_ID not set."
 [ -z "$GCLOUD_API_KEY" ]  && fatal "Required environment variable \$GCLOUD_API_KEY not set."
@@ -47,7 +50,7 @@ PACKAGE_SYSTEM=${PACKAGE_SYSTEM:=}
 #
 # Global constants.
 #
-RELEASE_VERSION="0.18.2"
+RELEASE_VERSION="0.21.2"
 
 RELEASE_URL="https://github.com/grafana/agent/releases/download/v${RELEASE_VERSION}"
 DEB_URL="${RELEASE_URL}/grafana-agent-${RELEASE_VERSION}-1.${ARCH}.deb"
@@ -118,7 +121,9 @@ install_rpm() {
 # retrieve_config downloads the config file for the Agent and prints out its
 # contents to stdout.
 retrieve_config() {
-  grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" || fatal 'Failed to retrieve config'
+  if ! grafana-agentctl cloud-config -u "${GCLOUD_STACK_ID}" -p "${GCLOUD_API_KEY}" -e "${GCLOUD_API_URL}" 2>/dev/null; then
+    fatal "Failed to retrieve config"
+  fi
 }
 
 main

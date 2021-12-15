@@ -3,7 +3,7 @@ package util
 import (
 	"sync"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 
@@ -59,7 +59,8 @@ func defaultLogger(cfg *server.Config) (log.Logger, error) {
 		return nil, err
 	}
 
-	return l, nil
+	// There are two wrappers on the log so skip two extra stacks vs default
+	return log.With(l, "caller", log.Caller(5)), nil
 }
 
 // Log logs a log line.
@@ -69,10 +70,7 @@ func (l *Logger) Log(kvps ...interface{}) error {
 	return l.l.Log(kvps...)
 }
 
-// GoKitLogger creates a logging.Interface from a log.Logger. A "caller" label will
-// be added.
+// GoKitLogger creates a logging.Interface from a log.Logger.
 func GoKitLogger(l log.Logger) logging.Interface {
-	// logging.GoKit wraps the log function, so we need to skip one extra stack
-	// from than the default caller to get the caller information.
-	return logging.GoKit(log.With(l, "caller", log.Caller(4)))
+	return logging.GoKit(l)
 }

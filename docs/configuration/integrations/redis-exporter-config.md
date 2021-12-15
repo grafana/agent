@@ -18,11 +18,21 @@ redis_exporter:
     replacement: redis-2
 ```
 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
+security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/oliver006/redis_exporter#authenticating-with-redis).
+
 Full reference of options:
 ```yaml
   # Enables the redis_exporter integration, allowing the Agent to automatically
   # collect system metrics from the configured redis address
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the hostname
+  # portion of redis_addr.
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the redis_exporter integration will be run but not scraped and thus not
@@ -82,7 +92,7 @@ Full reference of options:
   # groups will be made.
   [check_key_groups: <string>]
 
-  # Check key groups batch size hint for the underlying SCAN.
+  # Check key or key groups batch size hint for the underlying SCAN. Keeping the same name for backwards compatibility, but this applies to both key and key groups batch size configuration.
   [check_key_groups_batch_size: <int> | default = 10000]
 
   # The maximum number of distinct key groups with the most memory utilization

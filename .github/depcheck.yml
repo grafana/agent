@@ -3,12 +3,13 @@
 go_modules:
   - github.com/cortexproject/cortex
   - github.com/grafana/loki
-  - github.com/justwatchcom/elasticsearch_exporter
+  - github.com/prometheus-community/elasticsearch_exporter
   - github.com/oliver006/redis_exporter
   - github.com/prometheus/consul_exporter
   - github.com/prometheus/memcached_exporter
   - github.com/prometheus/statsd_exporter
   - github.com/weaveworks/common
+  - github.com/drone/envsubst/v2
   - go.opentelemetry.io/collector
   - sigs.k8s.io/controller-runtime
 
@@ -21,8 +22,10 @@ go_modules:
 github_repos:
   - github.com/google/dnsmasq_exporter v0.2.0
   - github.com/ncabatoff/process-exporter v0.7.5
-  - github.com/prometheus/mysqld_exporter v0.12.1
-  - github.com/wrouesnel/postgres_exporter v0.8.0
+  - github.com/prometheus/mysqld_exporter v0.13.0
+  - github.com/prometheus-community/postgres_exporter v0.10.0
+  - github.com/prometheus-community/windows_exporter v0.16.0
+  - github.com/percona/mongodb_exporter v0.20.7
   - project: github.com/prometheus/prometheus
     version: v2.27.0
     # Ignore release candidates

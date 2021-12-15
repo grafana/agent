@@ -1,7 +1,7 @@
 This is release `${RELEASE_TAG}` of the Grafana Agent.
 
 ### Upgrading
-Read the [migration guide](https://github.com/grafana/agent/blob/${RELEASE_TAG}/docs/migration-guide.md) for specific instructions on upgrading from older versions.
+Read the [migration guide](https://github.com/grafana/agent/blob/${RELEASE_TAG}/docs/upgrade-guide/_index.md) for specific instructions on upgrading from older versions.
 
 ### Notable changes:
 :warning: **ADD RELEASE NOTES HERE** :warning:
@@ -10,15 +10,9 @@ Read the [migration guide](https://github.com/grafana/agent/blob/${RELEASE_TAG}/
 ### Installation:
 Grafana Agent is currently distributed in plain binary form, Docker container images, a Windows installer, and a Kubernetes install script. Choose whichever fits your use-case best.
 
-#### Kubernetes Install Script
+#### Kubernetes 
 
-The following scripts will download and install two Kubernetes manifests for the Agent. The first manifest collects metrics, the second collects logs, and the final collects traces. You will be prompted for input for each manifest. The script requires curl and envsubst (GNU gettext).
-
-```
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-loki.sh)" | kubectl apply -f -
-NAMESPACE="default" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/${RELEASE_TAG}/production/kubernetes/install-tempo.sh)" | kubectl apply -f -
-```
+Install directions [here.](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/)
 
 #### Docker container:
 

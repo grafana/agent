@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"

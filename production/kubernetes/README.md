@@ -6,7 +6,7 @@ Manifests:
 
 - Metric collection (Deployment): [`agent-bare.yaml`](./agent-bare.yaml)
 - Log collection (DaemonSet): [`agent-loki.yaml`](./agent-loki.yaml)
-- Trace collection (Deployment): [`agent-tempo.yaml`](./agent-tempo.yaml)
+- Trace collection (Deployment): [`agent-traces.yaml`](./agent-traces.yaml)
 
 ⚠️  **These manifests do not include the Agent's configuration (ConfigMaps)**,
 which are necessary to run the Agent.
@@ -28,7 +28,7 @@ applying out of the box and you will have to manually perform the following step
 
 3. Apply the modified manifest file: `kubectl -ndefault apply -f manifest.yaml`.
 
-This directory also conains an `install-bare.sh` script that is used inside of
+This directory also contains an `install-bare.sh` script that is used inside of
 Grafana Cloud instructions. If using the Grafana Agent outside of Grafana Cloud,
 it is recommended to follow the steps above instead of calling this script
 directly.

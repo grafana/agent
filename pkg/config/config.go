@@ -1,108 +1,191 @@
 package config
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
+	"testing"
 	"unicode"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
-	"github.com/weaveworks/common/server"
-
-	"github.com/drone/envsubst"
+	"github.com/drone/envsubst/v2"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/tempo"
+	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/kv/consul"
+	"github.com/grafana/dskit/kv/etcd"
 	"github.com/pkg/errors"
+	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
+	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Prometheus:   metrics.DefaultConfig,
-	Integrations: integrations.DefaultManagerConfig,
+	Metrics:               metrics.DefaultConfig,
+	Integrations:          integrations.DefaultManagerConfig,
+	EnableConfigEndpoints: false,
 }
 
 // Config contains underlying configurations for the agent
 type Config struct {
 	Server       server.Config              `yaml:"server,omitempty"`
-	Prometheus   metrics.Config             `yaml:"prometheus,omitempty"`
+	Metrics      metrics.Config             `yaml:"metrics,omitempty"`
 	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
-	Tempo        tempo.Config               `yaml:"tempo,omitempty"`
-
-	Logs               *logs.Config `yaml:"logs,omitempty"`
-	Loki               *logs.Config `yaml:"loki,omitempty"` // Deprecated: use Logs instead
-	UsedDeprecatedLoki bool         `yaml:"-"`
+	Traces       traces.Config              `yaml:"traces,omitempty"`
+	Logs         *logs.Config               `yaml:"logs,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
 	// to restart.
 	ReloadAddress string `yaml:"-"`
 	ReloadPort    int    `yaml:"-"`
+
+	// Deprecated fields user has used. Generated during UnmarshalYAML.
+	Deprecations []string `yaml:"-"`
+
+	// Remote config options
+	ExperimentalConfigURLs bool   `yaml:"-"`
+	BasicAuthUser          string `yaml:"-"`
+	BasicAuthPassFile      string `yaml:"-"`
+
+	// Toggle for config endpoint(s)
+	EnableConfigEndpoints bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Apply defaults to the config from our struct and any defaults inherited
-	// from flags.
+	// from flags before unmarshaling.
 	*c = DefaultConfig
 	util.DefaultConfigFromFlags(c)
 
+	type baseConfig Config
+
+	type config struct {
+		baseConfig `yaml:",inline"`
+
+		// Deprecated field names:
+		Prometheus *metrics.Config `yaml:"prometheus,omitempty"`
+		Loki       *logs.Config    `yaml:"loki,omitempty"`
+		Tempo      *traces.Config  `yaml:"tempo,omitempty"`
+	}
+
+	var fc config
+	fc.baseConfig = baseConfig(*c)
+
+	if err := unmarshal(&fc); err != nil {
+		return err
+	}
+
+	// Migrate old fields to the new name
+	if fc.Prometheus != nil && fc.Metrics.Unmarshaled && fc.Prometheus.Unmarshaled {
+		return fmt.Errorf("at most one of prometheus and metrics should be specified")
+	} else if fc.Prometheus != nil && fc.Prometheus.Unmarshaled {
+		fc.Deprecations = append(fc.Deprecations, "`prometheus` has been deprecated in favor of `metrics`")
+		fc.Metrics = *fc.Prometheus
+		fc.Prometheus = nil
+	}
+
+	if fc.Logs != nil && fc.Loki != nil {
+		return fmt.Errorf("at most one of loki and logs should be specified")
+	} else if fc.Logs == nil && fc.Loki != nil {
+		fc.Deprecations = append(fc.Deprecations, "`loki` has been deprecated in favor of `logs`")
+		fc.Logs = fc.Loki
+		fc.Loki = nil
+	}
+
+	if fc.Tempo != nil && fc.Traces.Unmarshaled {
+		return fmt.Errorf("at most one of tempo and traces should be specified")
+	} else if fc.Tempo != nil && fc.Tempo.Unmarshaled {
+		fc.Deprecations = append(fc.Deprecations, "`tempo` has been deprecated in favor of `traces`")
+		fc.Traces = *fc.Tempo
+		fc.Tempo = nil
+	}
+
+	*c = Config(fc.baseConfig)
+	return nil
+}
+
+// MarshalYAML implements yaml.Marshaler.
+func (c Config) MarshalYAML() (interface{}, error) {
+	var buf bytes.Buffer
+
+	enc := yaml.NewEncoder(&buf)
+	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
+		// Obscure the password fields for known types that do not obscure passwords.
+		switch v := in.(type) {
+		case etcd.Config:
+			v.Password = "<secret>"
+			return true, v, nil
+		case consul.Config:
+			v.ACLToken = "<secret>"
+			return true, v, nil
+		default:
+			return false, nil, nil
+		}
+	})
+
 	type config Config
-	return unmarshal((*config)(c))
+	if err := enc.Encode((config)(c)); err != nil {
+		return nil, err
+	}
+
+	// Use a yaml.MapSlice rather than a map[string]interface{} so
+	// order of keys is retained compared to just calling MarshalConfig.
+	var m yaml.MapSlice
+	if err := yaml.Unmarshal(buf.Bytes(), &m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // LogDeprecations will log use of any deprecated fields to l as warn-level
 // messages.
 func (c *Config) LogDeprecations(l log.Logger) {
-	if c.UsedDeprecatedLoki {
-		level.Warn(l).Log("msg", "DEPRECATION NOTICE: `loki` is deprecated in favor of `logs`")
+	for _, d := range c.Deprecations {
+		level.Warn(l).Log("msg", fmt.Sprintf("DEPRECATION NOTICE: %s", d))
 	}
 }
 
 // ApplyDefaults sets default values in the config
 func (c *Config) ApplyDefaults() error {
-	if err := c.Prometheus.ApplyDefaults(); err != nil {
+	if err := c.Metrics.ApplyDefaults(); err != nil {
 		return err
 	}
 
-	if c.Logs != nil && c.Loki != nil {
-		return fmt.Errorf("at most one of loki and logs should be specified")
-	}
-
-	if c.Logs == nil && c.Loki != nil {
-		c.Logs = c.Loki
-		c.Loki = nil
-		c.UsedDeprecatedLoki = true
-	}
-
-	if err := c.Integrations.ApplyDefaults(&c.Prometheus); err != nil {
+	if err := c.Integrations.ApplyDefaults(&c.Metrics); err != nil {
 		return err
 	}
 
-	c.Prometheus.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
 	c.Integrations.ListenPort = c.Server.HTTPListenPort
 	c.Integrations.ListenHost = c.Server.HTTPListenAddress
 
 	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
 
 	if len(c.Integrations.PrometheusRemoteWrite) == 0 {
-		c.Integrations.PrometheusRemoteWrite = c.Prometheus.Global.RemoteWrite
+		c.Integrations.PrometheusRemoteWrite = c.Metrics.Global.RemoteWrite
 	}
 
-	c.Integrations.PrometheusGlobalConfig = c.Prometheus.Global.Prometheus
+	c.Integrations.PrometheusGlobalConfig = c.Metrics.Global.Prometheus
 
-	// since the Tempo config might rely on an existing Loki config
+	// since the Traces config might rely on an existing Loki config
 	// this check is made here to look for cross config issues before we attempt to load
-	if err := c.Tempo.Validate(c.Logs); err != nil {
+	if err := c.Traces.Validate(c.Logs); err != nil {
 		return err
 	}
+
+	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
 
 	return nil
 }
@@ -111,11 +194,19 @@ func (c *Config) ApplyDefaults() error {
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.MetricsNamespace = "agent"
 	c.Server.RegisterInstrumentation = true
-	c.Prometheus.RegisterFlags(f)
+	c.Metrics.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
+
+	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
+		"basic auth username for fetching remote config. (requires config-urls experiment to be enabled")
+	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "",
+		"path to file containing basic auth password for fetching remote config. (requires config-urls experiment to be enabled")
+	f.BoolVar(&c.ExperimentalConfigURLs, "experiment.config-urls.enable", false, "enable experimental remote config URLs feature")
+
+	f.BoolVar(&c.EnableConfigEndpoints, "config.enable-read-api", false, "Enables the /-/config and /agent/api/v1/configs/{name} APIs. Be aware that secrets could be exposed by enabling these endpoints!")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -125,6 +216,41 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 		return errors.Wrap(err, "error reading config file")
 	}
 	return LoadBytes(buf, expandEnvVars, c)
+}
+
+// LoadRemote reads a config from url
+func LoadRemote(url string, expandEnvVars bool, c *Config) error {
+	remoteOpts := &remoteOpts{}
+	if c.BasicAuthUser != "" && c.BasicAuthPassFile != "" {
+		remoteOpts.HTTPClientConfig = &config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     c.BasicAuthUser,
+				PasswordFile: c.BasicAuthPassFile,
+			},
+		}
+	}
+
+	if remoteOpts.HTTPClientConfig != nil {
+		dir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %w", err)
+		}
+		remoteOpts.HTTPClientConfig.SetDirectory(dir)
+	}
+
+	rc, err := newRemoteConfig(url, remoteOpts)
+	if err != nil {
+		return fmt.Errorf("error reading remote config: %w", err)
+	}
+	// fall back to file if no scheme is passed
+	if rc == nil {
+		return LoadFile(url, expandEnvVars, c)
+	}
+	bb, err := rc.retrieve()
+	if err != nil {
+		return fmt.Errorf("error retrieving remote config: %w", err)
+	}
+	return LoadBytes(bb, expandEnvVars, c)
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
@@ -166,7 +292,12 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, LoadFile)
+	return load(fs, args, func(url string, expand bool, c *Config) error {
+		if c.ExperimentalConfigURLs {
+			return LoadRemote(url, expand, c)
+		}
+		return LoadFile(url, expand, c)
+	})
 }
 
 // load allows for tests to inject a function for retrieving the config file that
@@ -212,4 +343,16 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	}
 
 	return &cfg, nil
+}
+
+// CheckSecret is a helper function to ensure the original value is overwritten with <secret>
+func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
+	var cfg = &Config{}
+	err := LoadBytes([]byte(rawCfg), false, cfg)
+	require.NoError(t, err)
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	scrubbedCfg := string(bb)
+	require.True(t, strings.Contains(scrubbedCfg, "<secret>"))
+	require.False(t, strings.Contains(scrubbedCfg, originalValue))
 }

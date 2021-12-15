@@ -7,12 +7,12 @@ weight = 300
 
 The Grafana Agent is configured in a YAML file (usually called
 `agent.yaml`) which contains information on the Grafana Agent and its
-Prometheus instances.
+metrics instances.
 
 - [server_config]({{< relref "./server-config" >}})
-- [prometheus_config]({{< relref "./prometheus-config" >}})
-- [loki_config]({{< relref "./loki-config" >}})
-- [tempo_config]({{< relref "./tempo-config" >}})
+- [metrics_config]({{< relref "./metrics-config" >}})
+- [logs_config]({{< relref "./logs-config.md" >}})
+- [traces_config]({{< relref "./traces-config" >}})
 - [integrations_config]({{< relref "./integrations/_index.md" >}})
 
 ## Variable substitution
@@ -100,15 +100,30 @@ Support contents and default values of `agent.yaml`:
 # Configures the server of the Agent used to enable self-scraping.
 [server: <server_config>]
 
-# Configures Prometheus instances.
-[prometheus: <prometheus_config>]
+# Configures metric collection.
+# In previous versions of the agent, this field was called "prometheus".
+[metrics: <metrics_config>]
 
-# Configures Loki log collection.
-[loki: <loki_config>]
+# Configures log collection.
+# In previous versions of the agent, this field was called "loki".
+[logs: <logs_config>]
 
-# Configures Tempo trace collection.
-[tempo: <tempo_config>]
+# Configures Traces trace collection.
+# In previous versions of the agent, this field was called "tempo".
+[traces: <traces_config>]
 
 # Configures integrations for the Agent.
 [integrations: <integrations_config>]
 ```
+
+## Remote Configuration (Beta)
+
+An experimental feature for fetching remote configuration files over HTTP/S can be
+enabled by passing the `-experiment.config-urls.enable` flag at the command line.
+With this feature enabled, you may pass an HTTP/S URL to the `-config.file` flag.
+
+The following flags will configure basic auth for requests made to HTTP/S remote config URLs:
+- `-config.url.basic-auth-user <user>`: the basic auth username
+- `-config.url.basic-auth-password-file <file>`: path to a file containing the basic auth password
+
+Note that this beta feature is subject to change in future releases.

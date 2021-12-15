@@ -14,7 +14,7 @@
 local marshal = import 'ext/marshal.libsonnet';
 local optionals = import 'ext/optionals.libsonnet';
 
-local new_prometheus_instance = import './prometheus.libsonnet';
+local new_metrics_instance = import './metrics.libsonnet';
 local new_external_labels = import 'component/metrics/external_labels.libsonnet';
 local new_remote_write = import 'component/metrics/remote_write.libsonnet';
 
@@ -35,7 +35,7 @@ function(ctx) marshal.YAML(optionals.trim({
     log_format: optionals.string(spec.LogFormat),
   },
 
-  prometheus: {
+  metrics: {
     wal_directory: '/var/lib/grafana-agent/data',
     global: {
       external_labels: optionals.object(new_external_labels(ctx)),
@@ -47,7 +47,7 @@ function(ctx) marshal.YAML(optionals.trim({
       )),
     },
     configs: optionals.array(std.map(
-      function(inst) new_prometheus_instance(
+      function(inst) new_metrics_instance(
         agentNamespace=ctx.Agent.ObjectMeta.Namespace,
         instance=inst,
         apiServer=spec.APIServerConfig,

@@ -1,0 +1,146 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-agent-traces
+  namespace: YOUR_NAMESPACE
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent-traces
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-agent-traces
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-agent-traces
+subjects:
+- kind: ServiceAccount
+  name: grafana-agent-traces
+  namespace: YOUR_NAMESPACE
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: grafana-agent-traces
+  name: grafana-agent-traces
+  namespace: YOUR_NAMESPACE
+spec:
+  ports:
+  - name: agent-http-metrics
+    port: 8080
+    targetPort: 8080
+  - name: agent-thrift-compact
+    port: 6831
+    protocol: UDP
+    targetPort: 6831
+  - name: agent-thrift-binary
+    port: 6832
+    protocol: UDP
+    targetPort: 6832
+  - name: agent-thrift-http
+    port: 14268
+    protocol: TCP
+    targetPort: 14268
+  - name: agent-thrift-grpc
+    port: 14250
+    protocol: TCP
+    targetPort: 14250
+  - name: agent-zipkin
+    port: 9411
+    protocol: TCP
+    targetPort: 9411
+  - name: agent-otlp
+    port: 55680
+    protocol: TCP
+    targetPort: 55680
+  - name: agent-opencensus
+    port: 55678
+    protocol: TCP
+    targetPort: 55678
+  selector:
+    name: grafana-agent-traces
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-agent-traces
+  namespace: YOUR_NAMESPACE
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: grafana-agent-traces
+  template:
+    metadata:
+      labels:
+        name: grafana-agent-traces
+    spec:
+      containers:
+      - args:
+        - -config.file=/etc/agent/agent.yaml
+        command:
+        - /bin/agent
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        image: grafana/agent:v0.21.2
+        imagePullPolicy: IfNotPresent
+        name: agent
+        ports:
+        - containerPort: 8080
+          name: http-metrics
+        - containerPort: 6831
+          name: thrift-compact
+          protocol: UDP
+        - containerPort: 6832
+          name: thrift-binary
+          protocol: UDP
+        - containerPort: 14268
+          name: thrift-http
+          protocol: TCP
+        - containerPort: 14250
+          name: thrift-grpc
+          protocol: TCP
+        - containerPort: 9411
+          name: zipkin
+          protocol: TCP
+        - containerPort: 55680
+          name: otlp
+          protocol: TCP
+        - containerPort: 55678
+          name: opencensus
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/agent
+          name: grafana-agent-traces
+      serviceAccount: grafana-agent-traces
+      volumes:
+      - configMap:
+          name: grafana-agent-traces
+        name: grafana-agent-traces

@@ -1,7 +1,8 @@
 Robert Fratto (<robert.fratto@grafana.com> / @rfratto) is the main/default maintainer, some parts of the codebase have other maintainers:
 
 * `pkg`
-  * `tempo`: Joe Elliott (<joe.elliott@grafana.com> / @joe-elliott), Mario Rodriguez (<mario.rodriguez@grafana.com>/ @mapno)
+  * `traces`: Joe Elliott (<joe.elliott@grafana.com> / @joe-elliott), Mario Rodriguez (<mario.rodriguez@grafana.com>/ @mapno)
+  * `integrations`: Gabriel Antunes (<gabriel.antunes@grafana.com> / @gaantunes), Ryan Geyer (<ryan.geyer@grafana.com> / @rgeyer)
 
 For the sake of brevity, not all subtrees are explicitly listed. Due to the
 size of this repository, the natural changes in focus of maintainers over time,

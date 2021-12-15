@@ -14,12 +14,13 @@ import (
 
 	"github.com/hashicorp/consul/api"
 
-	"github.com/cortexproject/cortex/pkg/ring/kv"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/kv"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 /***********************************************************************************************************************
@@ -28,12 +29,10 @@ consul. See issue https://github.com/grafana/agent/issues/789. The long term met
 the cortex code so other stores can also benefit from this. @mattdurham
 ***********************************************************************************************************************/
 
-// This is copied from cortex code so that stats stay the same
-var consulRequestDuration = instrument.NewHistogramCollector(prometheus.NewHistogramVec(prometheus.HistogramOpts{
-	Namespace: "cortex",
-	Name:      "consul_request_duration_seconds",
-	Help:      "Time spent on consul requests.",
-	Buckets:   prometheus.DefBuckets,
+var consulRequestDuration = instrument.NewHistogramCollector(promauto.NewHistogramVec(prometheus.HistogramOpts{
+	Name:    "agent_configstore_consul_request_duration_seconds",
+	Help:    "Time spent on consul requests when listing configs.",
+	Buckets: prometheus.DefBuckets,
 }, []string{"operation", "status_code"}))
 
 // Remote loads instance files from a remote KV store. The KV store
@@ -104,7 +103,7 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 		return nil
 	}
 
-	cli, err := kv.NewClient(cfg, GetCodec(), kv.RegistererWithKVName(r.reg, "agent_configs"))
+	cli, err := kv.NewClient(cfg, GetCodec(), kv.RegistererWithKVName(r.reg, "agent_configs"), r.log)
 	// This is a hack to get a consul client, the client above has it embedded but its not exposed
 	var consulClient *api.Client
 	if cfg.Store == "consul" {

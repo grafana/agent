@@ -90,6 +90,7 @@ trigger:
   ref:
     - refs/heads/main
     - refs/tags/v*
+    - refs/heads/dev.*
 
 steps:
   - name: Build Containers
@@ -128,6 +129,56 @@ volumes:
 ---
 kind: pipeline
 type: docker
+name: Deploy-To-Deployment-Tools
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  ref:
+    - refs/heads/main
+
+image_pull_secrets:
+  - dockerconfigjson
+
+steps:
+  - name: put image tag in a file
+    image: alpine
+    commands:
+      - apk update && apk add git
+      - echo "grafana/agent:$(sh ./tools/image-tag)" > .image-tag
+  - name: Update Deployment Tools
+    image: us.gcr.io/kubernetes-dev/drone/plugins/updater
+    settings:
+      config_json: |-
+        {
+          "destination_branch": "master",
+          "pull_request_branch_prefix": "cd-agent",
+          "pull_request_enabled": false,
+          "pull_request_team_reviewers": [
+            "agent-squad"
+          ],
+          "repo_name": "deployment_tools",
+          "update_jsonnet_attribute_configs": [
+            {
+              "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
+              "jsonnet_key": "dev_canary",
+              "jsonnet_value_file": ".image-tag"
+            }
+          ]
+        }
+      github_token:
+        from_secret: gh_token
+
+depends_on:
+  - Containerize
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+---
+kind: pipeline
+type: docker
 name: Release
 platform:
   os: linux
@@ -153,7 +204,7 @@ steps:
       - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable"
-      - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io
+      - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
       - mkdir -p /usr/local/go/bin
@@ -171,8 +222,24 @@ volumes:
   - name: docker
     host:
       path: /var/run/docker.sock
+
+---
+kind: secret
+name: dockerconfigjson
+
+get:
+  path: secret/data/common/gcr
+  name: .dockerconfigjson
+
+---
+kind: secret
+name: gh_token
+
+get:
+  path: infra/data/ci/github/grafanabot
+  name: pat
 ---
 kind: signature
-hmac: 45dd2046cb9f7392b2dfac3ace3c88966d48a9cce9828e64e39ddefb477b4dfb
+hmac: c32fd61018bef3703edb694acd0c7312be8cb07898c2cb42eb0e84fee84efb67
 
 ...

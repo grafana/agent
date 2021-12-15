@@ -10,24 +10,28 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const integrationsAPIURL = "https://integrations-api.grafana.net"
+const defaultAPIURL = "https://integrations-api.grafana.net"
 
 // Client is a grafanacloud API client.
 type Client struct {
 	c      *http.Client
 	apiKey string
+	apiURL string
 }
 
 // NewClient creates a new Grafana Cloud client. All requests made will be
 // performed using the provided http.Client c. If c is nil, the default
 // http client will be used instead.
 //
-// apiKey will be used to authenticate against the API.
-func NewClient(c *http.Client, apiKey string) *Client {
+// apiKey will be used to authenticate against the apiURL.
+func NewClient(c *http.Client, apiKey, apiURL string) *Client {
 	if c == nil {
 		c = http.DefaultClient
 	}
-	return &Client{c: c, apiKey: apiKey}
+	if apiURL == "" {
+		apiURL = defaultAPIURL
+	}
+	return &Client{c: c, apiKey: apiKey, apiURL: apiURL}
 }
 
 // AgentConfig generates a Grafana Agent config from the given stack.
@@ -35,7 +39,7 @@ func NewClient(c *http.Client, apiKey string) *Client {
 func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error) {
 	req, err := http.NewRequestWithContext(
 		ctx, "GET",
-		fmt.Sprintf("%s/stacks/%s/agent_config", integrationsAPIURL, stackID),
+		fmt.Sprintf("%s/stacks/%s/agent_config", c.apiURL, stackID),
 		nil,
 	)
 	if err != nil {

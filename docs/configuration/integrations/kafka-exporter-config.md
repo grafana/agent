@@ -8,12 +8,24 @@ The `kafka_exporter_config` block configures the `kafka_exporter`
 integration, which is an embedded version of [`kafka_exporter`](https://github.com/davidmparrott/kafka_exporter).
 This allows for the collection of Kafka Lag metrics and exposing them as Prometheus metrics.
 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
+security privileges necessary for monitoring your node, as per the [documentation](https://github.com/lightbend/kafka-lag-exporter#required-permissions-for-kafka-acl).
+
 Full reference of options:
 
 ```yaml
   # Enables the kafka_exporter integration, allowing the Agent to automatically
   # collect system metrics from the configured dnsmasq server address
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the hostname
+  # portion of the first kafka_uri value. If there is more than one string
+  # in kafka_uri, the integration will fail to load and an instance value
+  # must be manually provided.
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the dnsmasq_exporter integration will be run but not scraped and thus not
@@ -44,7 +56,7 @@ Full reference of options:
 
   # Monitor the exporter itself and include those metrics in the results.
   [include_exporter_metrics: <bool> | default = false]
-    
+
   # Address array (host:port) of Kafka server
   [kafka_uris: <[]string>]
 
@@ -53,7 +65,7 @@ Full reference of options:
 
   # Only set this to false if using a non-Kafka SASL proxy
   [use_sasl_handshake: <bool> | default = true]
-  
+
   # SASL user name
   [sasl_username: <string>]
 
@@ -90,7 +102,7 @@ Full reference of options:
   # Kafka cluster name
   [kafka_cluster_name: <string>]
 
-  # Metadata refresh interval  
+  # Metadata refresh interval
   [metadata_refresh_interval: <duration> | default = "1m"]
 
   # If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters

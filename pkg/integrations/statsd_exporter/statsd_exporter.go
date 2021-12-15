@@ -10,8 +10,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/prometheus/statsd_exporter/pkg/mappercache/randomreplacement"
+
+	"github.com/prometheus/statsd_exporter/pkg/mappercache/lru"
+
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
@@ -85,6 +89,11 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
+// InstanceKey returns the hostname:port of the agent.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
+}
+
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
@@ -113,28 +122,46 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, fmt.Errorf("failed to create metrics for network listeners: %w", err)
 	}
 
-	cacheOption := mapper.WithCacheType(c.CacheType)
-
 	if c.ListenUDP == "" && c.ListenTCP == "" && c.ListenUnixgram == "" {
 		return nil, fmt.Errorf("at least one of UDP/TCP/Unixgram listeners must be used")
 	}
+	statsdMapper := &mapper.MetricMapper{
+		Registerer:    reg,
+		MappingsCount: m.MappingsCount,
+		Logger:        log,
+	}
 
-	mapper := &mapper.MetricMapper{MappingsCount: m.MappingsCount}
 	if c.MappingConfig != nil {
 		cfgBytes, err := yaml.Marshal(c.MappingConfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to serialize mapping config: %w", err)
 		}
 
-		err = mapper.InitFromYAMLString(string(cfgBytes), c.CacheSize, cacheOption)
+		err = statsdMapper.InitFromYAMLString(string(cfgBytes))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load mapping config: %w", err)
 		}
-	} else {
-		mapper.InitCache(c.CacheSize, cacheOption)
 	}
 
-	e := exporter.NewExporter(reg, mapper, log, m.EventsActions, m.EventsUnmapped, m.ErrorEventStats, m.EventStats, m.ConflictingEventStats, m.MetricsCount)
+	var cache mapper.MetricMapperCache
+	if c.CacheSize != 0 {
+		switch c.CacheType {
+		case "lru":
+			cache, err = lru.NewMetricMapperLRUCache(statsdMapper.Registerer, c.CacheSize)
+		case "random":
+			cache, err = randomreplacement.NewMetricMapperRRCache(statsdMapper.Registerer, c.CacheSize)
+		default:
+			err = fmt.Errorf("unsupported cache type %q", c.CacheType)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	if cache != nil {
+		statsdMapper.UseCache(cache)
+	}
+
+	e := exporter.NewExporter(reg, statsdMapper, log, m.EventsActions, m.EventsUnmapped, m.ErrorEventStats, m.EventStats, m.ConflictingEventStats, m.MetricsCount)
 
 	if err := reg.Register(version.NewCollector("statsd_exporter")); err != nil {
 		return nil, fmt.Errorf("couldn't register version metrics: %w", err)
