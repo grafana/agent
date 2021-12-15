@@ -34,7 +34,9 @@ type Common struct {
 	ScrapeTimeout        time.Duration     `yaml:"scrape_timeout,omitempty"`
 	RelabelConfigs       []*relabel.Config `yaml:"relabel_configs,omitempty"`
 	MetricRelabelConfigs []*relabel.Config `yaml:"metric_relabel_configs,omitempty"`
-	WALTruncateFrequency time.Duration     `yaml:"wal_truncate_frequency,omitempty"`
+
+	// TODO(rfratto): remove this field.
+	WALTruncateFrequency time.Duration `yaml:"wal_truncate_frequency,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.

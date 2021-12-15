@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
@@ -149,7 +149,7 @@ func TestConfig_Defaults(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, metrics.DefaultConfig, c.Metrics)
-	require.Equal(t, integrations.DefaultManagerConfig, c.Integrations)
+	require.Equal(t, integrations.DefaultSubsystemOptions, c.Integrations)
 }
 
 func TestConfig_TracesLokiValidates(t *testing.T) {

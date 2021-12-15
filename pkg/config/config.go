@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/common/server"
 
 	"github.com/drone/envsubst/v2"
-	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
@@ -26,16 +26,16 @@ import (
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
 	Metrics:      metrics.DefaultConfig,
-	Integrations: integrations.DefaultManagerConfig,
+	Integrations: integrations.DefaultSubsystemOptions,
 }
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config              `yaml:"server,omitempty"`
-	Metrics      metrics.Config             `yaml:"metrics,omitempty"`
-	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
-	Traces       traces.Config              `yaml:"traces,omitempty"`
-	Logs         *logs.Config               `yaml:"logs,omitempty"`
+	Server       server.Config                 `yaml:"server,omitempty"`
+	Metrics      metrics.Config                `yaml:"metrics,omitempty"`
+	Integrations integrations.SubsystemOptions `yaml:"integrations,omitempty"`
+	Traces       traces.Config                 `yaml:"traces,omitempty"`
+	Logs         *logs.Config                  `yaml:"logs,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
@@ -115,21 +115,11 @@ func (c *Config) ApplyDefaults() error {
 		return err
 	}
 
-	if err := c.Integrations.ApplyDefaults(&c.Metrics); err != nil {
-		return err
-	}
-
 	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
-	c.Integrations.ListenPort = c.Server.HTTPListenPort
-	c.Integrations.ListenHost = c.Server.HTTPListenAddress
-
-	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
 
 	if len(c.Integrations.PrometheusRemoteWrite) == 0 {
 		c.Integrations.PrometheusRemoteWrite = c.Metrics.Global.RemoteWrite
 	}
-
-	c.Integrations.PrometheusGlobalConfig = c.Metrics.Global.Prometheus
 
 	// since the Traces config might rely on an existing Loki config
 	// this check is made here to look for cross config issues before we attempt to load
