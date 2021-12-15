@@ -79,7 +79,7 @@ func Validate(fs *flag.FlagSet, deps []Dependency) error {
 
 	for _, dep := range deps {
 		if fs.Lookup(dep.Flag) == nil {
-			panic(fmt.Sprintf("flag %q does not eixst in fs", dep.Flag))
+			panic(fmt.Sprintf("flag %q does not exist in fs", dep.Flag))
 		}
 		depLookup[dep.Flag] = dep
 
