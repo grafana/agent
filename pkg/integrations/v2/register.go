@@ -10,10 +10,15 @@ import (
 )
 
 var (
-	registeredIntegrations = []Config{}
+	integrationNames = make(map[string]struct{})     // Cache of field names for uniqueness checking.
+	configFieldNames = make(map[reflect.Type]string) // Map of registered type to field name
+	integrationTypes = make(map[reflect.Type]Type)   // Map of registered type to Type
 
-	configFieldNames = make(map[reflect.Type]string)
-	integrationTypes = make(map[reflect.Type]Type)
+	// Registered integrations. Registered integrations may be any type. If they
+	// do not implement Config, then they must have a mutator to wrap them into
+	// a Config.
+	registered = []interface{}{}
+	mutators   = make(map[reflect.Type]WrapperFunc)
 
 	emptyStructType = reflect.TypeOf(struct{}{})
 	configsType     = reflect.TypeOf(Configs{})
@@ -28,18 +33,52 @@ var (
 //
 // Register panics if cfg is not a pointer.
 func Register(cfg Config, ty Type) {
-	if reflect.TypeOf(cfg).Kind() != reflect.Ptr {
-		panic(fmt.Sprintf("Register must be given a pointer, got %T", cfg))
-	}
-	if _, exist := configFieldNames[reflect.TypeOf(cfg)]; exist {
-		panic(fmt.Sprintf("Integration %T registered twice", cfg))
-	}
+	// Special case: we don't need a transformer because cfg is already a Config.
+	RegisterDynamic(cfg, cfg.Name(), ty, nil)
+}
 
-	registeredIntegrations = append(registeredIntegrations, cfg)
+// RegisterDynamic registers a dynamic integration v which does not implement
+// Config directly. The transform function will be invoked to create a wrapper
+// implementation of Config. transform will be invoked after unmarshaling v from
+// YAML, and the result will be unwrapped back to the original form at marshal
+// time.
+//
+// RegisterDynamic is only useful in niche instances. When possible, use
+// Register instead.
+//
+// name is the name of the integration used for unmarshaling from YAML. Must be
+// unique across all integrations.
+func RegisterDynamic(v interface{}, name string, ty Type, transform WrapperFunc) {
+	if _, isConfig := v.(Config); !isConfig && transform == nil {
+		panic(fmt.Sprintf("transform must not be nil; %T does not implement Config", v))
+	}
+	if reflect.TypeOf(v).Kind() != reflect.Ptr {
+		panic(fmt.Sprintf("RegisterDynamic must be given a pointer, got %T", v))
+	}
+	if _, exist := integrationNames[name]; exist {
+		panic(fmt.Sprintf("Integration %q registered twice", name))
+	}
+	integrationNames[name] = struct{}{}
 
-	configTy := reflect.TypeOf(cfg)
+	registered = append(registered, v)
+
+	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
-	configFieldNames[configTy] = cfg.Name()
+	configFieldNames[configTy] = name
+	mutators[configTy] = transform
+}
+
+// WrapperFunc wraps in in a WrappedConfig container.
+type WrapperFunc func(in interface{}) WrappedConfig
+
+// WrappedConfig represents a Config which is a container for some data. This
+// is used when registering integrations through RegisterDynamic.
+type WrappedConfig interface {
+	Config
+
+	// UnwrapConfig returns the inner data. The inner data is used for YAML
+	// marshaling and unmarshaling.
+	UnwrapConfig() interface{}
 }
 
 // Type determines a specific type of integration.
@@ -67,9 +106,11 @@ const (
 // setRegistered must not be used with parallelized tests.
 func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear := func() {
-		registeredIntegrations = registeredIntegrations[:0]
+		integrationNames = make(map[string]struct{})
 		integrationTypes = make(map[reflect.Type]Type)
 		configFieldNames = make(map[reflect.Type]string)
+		registered = registered[:0]
+		mutators = make(map[reflect.Type]WrapperFunc)
 	}
 
 	t.Cleanup(clear)
@@ -80,18 +121,31 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 	}
 }
 
-// Registered all Configs that were passed to Register.
-// Each call will generate a new set of configs.
+// Registered all Configs that were passed to Register or RegisterDynamic. Each
+// call will generate a new set of configs.
 func Registered() []Config {
-	res := make([]Config, 0, len(registeredIntegrations))
-	for _, in := range registeredIntegrations {
-		res = append(res, cloneIntegration(in))
+	res := make([]Config, 0, len(registered))
+	for _, dyn := range registered {
+		switch v := dyn.(type) {
+		case Config:
+			res = append(res, cloneDynamic(v).(Config))
+		default:
+			mut, ok := mutators[reflect.TypeOf(dyn)]
+			if !ok || mut == nil {
+				panic(fmt.Sprintf("Could not find transformer for dynamic integration %T", dyn))
+			}
+			res = append(res, mut(cloneDynamic(dyn)))
+		}
 	}
 	return res
 }
 
 func cloneIntegration(c Config) Config {
-	return reflect.New(reflect.TypeOf(c).Elem()).Interface().(Config)
+	return cloneDynamic(c).(Config)
+}
+
+func cloneDynamic(in interface{}) interface{} {
+	return reflect.New(reflect.TypeOf(in).Elem()).Interface()
 }
 
 // Configs is a list of integrations. Note that Configs does not implement
@@ -139,19 +193,25 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 	}
 
 	for _, c := range configs {
-		fieldName, ok := configFieldNames[reflect.TypeOf(c)]
-		if !ok {
-			return nil, fmt.Errorf("integrations: cannot marshal unregistered Config type: %T", c)
+		fieldName := c.Name()
+
+		var data interface{} = c
+		if wc, ok := c.(WrappedConfig); ok {
+			data = wc.UnwrapConfig()
 		}
 
-		integrationType := integrationTypes[reflect.TypeOf(c)]
+		integrationType, ok := integrationTypes[reflect.TypeOf(data)]
+		if !ok {
+			panic(fmt.Sprintf("config not registered: %T", data))
+		}
+
 		switch integrationType {
 		case TypeSingleton:
 			field := outVal.FieldByName("XXX_Config_" + fieldName)
-			field.Set(reflect.ValueOf(c))
+			field.Set(reflect.ValueOf(data))
 		case TypeMultiplex, TypeEither:
 			field := outVal.FieldByName("XXX_Configs_" + fieldName)
-			field.Set(reflect.Append(field, reflect.ValueOf(c)))
+			field.Set(reflect.Append(field, reflect.ValueOf(data)))
 		}
 	}
 
@@ -229,11 +289,11 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 		switch field.Kind() {
 		case reflect.Slice:
 			for i := 0; i < field.Len(); i++ {
-				val := field.Index(i).Interface().(Config)
+				val := getConfig(field.Index(i).Interface())
 				*configs = append(*configs, val)
 			}
 		default:
-			val := field.Interface().(Config)
+			val := getConfig(field.Interface())
 			*configs = append(*configs, val)
 		}
 	}
@@ -241,8 +301,26 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// getConfig returns a v2 config from an input.
+func getConfig(in interface{}) Config {
+	switch c := in.(type) {
+	case Config:
+		return c
+	default:
+		mut, ok := mutators[reflect.TypeOf(in)]
+		if !ok {
+			panic(fmt.Sprintf("unexpected type %T", c))
+		}
+		return mut(in)
+	}
+}
+
 // getConfigTypeForIntegrations returns a dynamic struct type that has all of
 // the same fields as out including the fields for the provided integrations.
+//
+// If marshal is true, interface{} will be used for integration types. This
+// must be true when marshaling dynamic integrations, where their type will
+// have changed.
 func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 	// Initial exported fields map one-to-one.
 	var fields []reflect.StructField
@@ -259,22 +337,23 @@ func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 		}
 	}
 
-	for _, cfg := range registeredIntegrations {
+	for _, dyn := range registered {
 		// Fields use a prefix that's unlikely to collide with anything else.
-		configTy := reflect.TypeOf(cfg)
+		configTy := reflect.TypeOf(dyn)
 		integrationType := integrationTypes[configTy]
+		fieldName := configFieldNames[configTy]
 
 		if integrationType == TypeSingleton || integrationType == TypeEither {
 			fields = append(fields, reflect.StructField{
-				Name: "XXX_Config_" + cfg.Name(),
-				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
+				Name: "XXX_Config_" + fieldName,
+				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, fieldName)),
 				Type: configTy,
 			})
 		}
 		if integrationType == TypeMultiplex || integrationType == TypeEither {
 			fields = append(fields, reflect.StructField{
-				Name: "XXX_Configs_" + cfg.Name(),
-				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, cfg.Name())),
+				Name: "XXX_Configs_" + fieldName,
+				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, fieldName)),
 				Type: reflect.SliceOf(configTy),
 			})
 		}

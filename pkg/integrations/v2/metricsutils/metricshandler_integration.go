@@ -33,9 +33,12 @@ func NewMetricsHandlerIntegration(
 	return &metricsHandlerIntegration{
 		integrationName: c.Name(),
 		instanceID:      id,
-		common:          c.MetricsConfig(),
-		globals:         globals,
-		handler:         h,
+
+		common:  c.MetricsConfig(),
+		globals: globals,
+		handler: h,
+
+		targets: []handlerTarget{{MetricsPath: "metrics"}},
 	}, nil
 }
 
@@ -45,6 +48,17 @@ type metricsHandlerIntegration struct {
 	common  CommonConfig
 	globals integrations.Globals
 	handler http.Handler
+	targets []handlerTarget
+
+	runFunc func(ctx context.Context) error
+}
+
+type handlerTarget struct {
+	// Path relative to Handler prefix where metrics are available.
+	MetricsPath string
+	// Extra labels to inject into the target. Labels here that take precedence
+	// over labels with the same name from the generated target group.
+	Labels model.LabelSet
 }
 
 // Static typecheck tests
@@ -56,6 +70,12 @@ var (
 
 // RunIntegration implements Integration.
 func (i *metricsHandlerIntegration) RunIntegration(ctx context.Context) error {
+	// Call our runFunc if defined (used from integrationShim), otherwise
+	// fallback to no-op.
+	if i.runFunc != nil {
+		return i.runFunc(ctx)
+	}
+
 	<-ctx.Done()
 	return nil
 }
@@ -71,11 +91,7 @@ func (i *metricsHandlerIntegration) Handler(prefix string) (http.Handler, error)
 func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 	integrationNameValue := model.LabelValue("integrations/" + i.integrationName)
 
-	return []*targetgroup.Group{{
-		Targets: []model.LabelSet{{
-			model.AddressLabel:     model.LabelValue(ep.Host),
-			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "metrics")),
-		}},
+	group := &targetgroup.Group{
 		Labels: model.LabelSet{
 			model.InstanceLabel: model.LabelValue(i.instanceID),
 			model.JobLabel:      integrationNameValue,
@@ -85,9 +101,18 @@ func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetg
 			"__meta_agent_integration_name":       model.LabelValue(i.integrationName),
 			"__meta_agent_integration_instance":   model.LabelValue(i.instanceID),
 			"__meta_agent_integration_selfscrape": model.LabelValue(boolToString(i.shouldSelfScrape())),
-		}.Merge(i.globals.SubsystemOpts.Labels),
+		},
 		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
-	}}
+	}
+
+	for _, t := range i.targets {
+		group.Targets = append(group.Targets, model.LabelSet{
+			model.AddressLabel:     model.LabelValue(ep.Host),
+			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, t.MetricsPath)),
+		}.Merge(t.Labels))
+	}
+
+	return []*targetgroup.Group{group}
 }
 
 // shouldSelfScrape returns true if the integration is self-scraping.

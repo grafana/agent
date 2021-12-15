@@ -74,6 +74,47 @@ test_configs:
 	require.Equal(t, expect, fullCfg)
 }
 
+func TestIntegrationRegistration_Dynamic(t *testing.T) {
+	setRegistered(t, nil)
+
+	type raw struct {
+		Name string `yaml:"name"`
+	}
+
+	RegisterDynamic(&raw{}, "dyn", TypeSingleton, func(in interface{}) WrappedConfig {
+		return &dynamicShim{IntegrationName: "dyn", Data: in}
+	})
+
+	var cfgToParse = `
+name: John Doe
+duration: 500ms
+dyn:
+  name: Hello, world!`
+
+	var fullCfg testFullConfig
+	err := yaml.UnmarshalStrict([]byte(cfgToParse), &fullCfg)
+	require.NoError(t, err)
+
+	require.Len(t, fullCfg.Configs, 1)
+	require.IsType(t, &dynamicShim{}, fullCfg.Configs[0])
+
+	dynShim := fullCfg.Configs[0].(*dynamicShim)
+	require.IsType(t, &raw{}, dynShim.Data)
+	require.Equal(t, &raw{Name: "Hello, world!"}, dynShim.Data)
+}
+
+type dynamicShim struct {
+	IntegrationName string
+	Data            interface{}
+}
+
+func (s *dynamicShim) UnwrapConfig() interface{}            { return s.Data }
+func (s *dynamicShim) Name() string                         { return s.IntegrationName }
+func (s *dynamicShim) Identifier(g Globals) (string, error) { return g.AgentIdentifier, nil }
+func (s *dynamicShim) NewIntegration(log.Logger, Globals) (Integration, error) {
+	return NoOpIntegration, nil
+}
+
 type testIntegrationA struct {
 	Text  string `yaml:"text"`
 	Truth bool   `yaml:"truth"`
