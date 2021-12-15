@@ -5,6 +5,7 @@ package cadvisor //nolint:golint
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net/http"
 	"time"
@@ -34,19 +35,7 @@ import (
 )
 
 // Matching the default disabled set from cadvisor - https://github.com/google/cadvisor/blob/3c6e3093c5ca65c57368845ddaea2b4ca6bc0da8/cmd/cadvisor.go#L78-L93
-var disabledMetricsSet container.MetricSet = container.MetricSet{
-	container.MemoryNumaMetrics:              struct{}{},
-	container.NetworkTcpUsageMetrics:         struct{}{},
-	container.NetworkUdpUsageMetrics:         struct{}{},
-	container.NetworkAdvancedTcpUsageMetrics: struct{}{},
-	container.ProcessSchedulerMetrics:        struct{}{},
-	container.ProcessMetrics:                 struct{}{},
-	container.HugetlbUsageMetrics:            struct{}{},
-	container.ReferencedMemoryMetrics:        struct{}{},
-	container.CPUTopologyMetrics:             struct{}{},
-	container.ResctrlMetrics:                 struct{}{},
-	container.CPUSetMetrics:                  struct{}{},
-}
+var disabledMetricsSet = *flag.Lookup("disable_metrics").Value.(*container.MetricSet)
 
 // GetIncludedMetrics applies some logic to determine the final set of metrics to be scraped and returned by the cAdvisor integration
 func (c *Config) GetIncludedMetrics() (container.MetricSet, error) {
@@ -110,14 +99,14 @@ func (i *Integration) Run(ctx context.Context) error {
 
 	sysFs := sysfs.NewRealSysFs()
 
-	collectorHTTPClient := http.Client{}
+	var collectorHTTPClient http.Client
 
 	includedMetrics, err := i.c.GetIncludedMetrics()
 	if err != nil {
 		return fmt.Errorf("unable to determine included metrics: %w", err)
 	}
 
-	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, i.c.RawCgroupPrefixWhitelist, i.c.EnvMetadataWhitelist, i.c.PerfEventsConfig, time.Duration(i.c.ResctrlInterval))
+	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, i.c.RawCgroupPrefixAllowlist, i.c.EnvMetadataAllowlist, i.c.PerfEventsConfig, time.Duration(i.c.ResctrlInterval))
 	if err != nil {
 		return fmt.Errorf("failed to create a manager: %w", err)
 	}
@@ -128,7 +117,7 @@ func (i *Integration) Run(ctx context.Context) error {
 
 	containerLabelFunc := metrics.DefaultContainerLabels
 	if !i.c.StoreContainerLabels {
-		containerLabelFunc = metrics.BaseContainerLabels(i.c.WhitelistedContainerLabels)
+		containerLabelFunc = metrics.BaseContainerLabels(i.c.AllowlistedContainerLabels)
 	}
 
 	machCol := metrics.NewPrometheusMachineCollector(rm, includedMetrics)
