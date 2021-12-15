@@ -34,6 +34,7 @@ import (
 	_ "github.com/google/cadvisor/container/systemd/install" // register systemd container plugin
 )
 
+// CadvisorIntegration implements the cadvisor integration
 type CadvisorIntegration struct {
 	c *Config
 	i *integrations.CollectorIntegration
@@ -237,7 +238,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
-	return "cadvisor"
+	return name
 }
 
 // CommonConfig returns the common settings shared across all configs for
