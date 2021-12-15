@@ -3,6 +3,8 @@
 - [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
    only HTTP/S is supported. Use `-experiment.config-urls.enable` flag to turn this on. (@rlankfo)
 
+- [FEATURE] Added [cAdvisor](https://github.com/google/cadvisor) integration. (@rgeyer)
+
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
