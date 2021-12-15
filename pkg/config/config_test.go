@@ -241,7 +241,7 @@ loki:
 `)
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
-	require.NoError(t, cfg.ApplyDefaults())
+	require.NoError(t, cfg.Validate(nil))
 
 	require.NotNil(t, cfg.Logs)
 	require.Equal(t, "foo", cfg.Logs.Configs[0].Name)
@@ -267,7 +267,7 @@ func TestConfig_PrometheusNonNil(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var cfg Config
 			require.NoError(t, LoadBytes([]byte(tc.input), false, &cfg))
-			require.NoError(t, cfg.ApplyDefaults())
+			require.NoError(t, cfg.Validate(nil))
 
 			require.NotNil(t, cfg.Metrics)
 		})
@@ -283,7 +283,7 @@ prometheus:
 `)
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
-	require.NoError(t, cfg.ApplyDefaults())
+	require.NoError(t, cfg.Validate(nil))
 
 	require.Equal(t, "default", cfg.Metrics.Configs[0].Name)
 	require.Equal(t, "/tmp", cfg.Metrics.WALDir)
@@ -336,7 +336,7 @@ tempo:
       spans: true`)
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
-	require.NoError(t, cfg.ApplyDefaults())
+	require.NoError(t, cfg.Validate(nil))
 
 	require.NotNil(t, cfg.Traces)
 
