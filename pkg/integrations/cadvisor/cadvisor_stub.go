@@ -3,8 +3,15 @@
 
 package cadvisor //nolint:golint
 
-import "github.com/grafana/agent/pkg/integrations"
+import (
+	"github.com/grafana/agent/pkg/integrations"
 
-func init() {
-	integrations.RegisterIntegration(integrations.NewStubConfig(name, "the cadvisor integration only works on linux; enabling it on other platforms will do nothing"))
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+)
+
+// NewIntegration creates a new cadvisor integration
+func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+	level.Warn(logger).Log("msg", "the cadvisor integration only works on linux; enabling it on other platforms will do nothing")
+	return &integrations.StubIntegration{}, nil
 }
