@@ -5,7 +5,6 @@ package cadvisor //nolint:golint
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"net/http"
 	"time"
@@ -35,7 +34,21 @@ import (
 )
 
 // Matching the default disabled set from cadvisor - https://github.com/google/cadvisor/blob/3c6e3093c5ca65c57368845ddaea2b4ca6bc0da8/cmd/cadvisor.go#L78-L93
-var disabledMetricsSet = *flag.Lookup("disable_metrics").Value.(*container.MetricSet)
+// Note: This *could* be kept in sync with upstream by using the following. However, that would require importing the github.com/google/cadvisor/cmd package, which introduces some dependency conflicts that weren't worth the hassle IMHO.
+// var disabledMetricsSet = *flag.Lookup("disable_metrics").Value.(*container.MetricSet)
+var disabledMetricsSet = container.MetricSet{
+	container.MemoryNumaMetrics:              struct{}{},
+	container.NetworkTcpUsageMetrics:         struct{}{},
+	container.NetworkUdpUsageMetrics:         struct{}{},
+	container.NetworkAdvancedTcpUsageMetrics: struct{}{},
+	container.ProcessSchedulerMetrics:        struct{}{},
+	container.ProcessMetrics:                 struct{}{},
+	container.HugetlbUsageMetrics:            struct{}{},
+	container.ReferencedMemoryMetrics:        struct{}{},
+	container.CPUTopologyMetrics:             struct{}{},
+	container.ResctrlMetrics:                 struct{}{},
+	container.CPUSetMetrics:                  struct{}{},
+}
 
 // GetIncludedMetrics applies some logic to determine the final set of metrics to be scraped and returned by the cAdvisor integration
 func (c *Config) GetIncludedMetrics() (container.MetricSet, error) {
