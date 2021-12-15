@@ -34,14 +34,14 @@ import (
 	_ "github.com/google/cadvisor/container/systemd/install" // register systemd container plugin
 )
 
-// CadvisorIntegration implements the cadvisor integration
-type CadvisorIntegration struct {
+// Integration implements the cadvisor integration
+type Integration struct {
 	c *Config
 	i *integrations.CollectorIntegration
 }
 
 // Run holds all the configuration logic for globals, as well as starting the resource manager and registering the collectors with the collector integration
-func (i *CadvisorIntegration) Run(ctx context.Context) error {
+func (i *Integration) Run(ctx context.Context) error {
 	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
 	// per host.
 	// Containerd
@@ -266,7 +266,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	klog.SetLogger(logger)
 
 	ci := integrations.NewCollectorIntegration(c.Name())
-	integration := CadvisorIntegration{
+	integration := Integration{
 		c: c,
 		i: ci,
 	}
