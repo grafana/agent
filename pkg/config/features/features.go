@@ -1,4 +1,4 @@
-// Package features enables a way to encode enabled enabled features in a
+// Package features enables a way to encode enabled features in a
 // flag.FlagSet.
 package features
 
