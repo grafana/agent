@@ -48,6 +48,7 @@ var disabledMetricsSet container.MetricSet = container.MetricSet{
 	container.CPUSetMetrics:                  struct{}{},
 }
 
+// GetIncludedMetrics applies some logic to determine the final set of metrics to be scraped and returned by the cAdvisor integration
 func (c *Config) GetIncludedMetrics() (container.MetricSet, error) {
 	var enabledMetrics, includeMetrics container.MetricSet
 	// Clear default disabled metrics if explicit disabled metrics are configured
