@@ -21,10 +21,7 @@ Full reference of options:
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.
-  #
-  # The default value for this integration is inferred from the hostname portion
-  # of api_url.
-  [instance: <string>]
+  [instance: <string> | default = <integrations_config.instance>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the cadvisor integration will be run but not scraped and thus not
@@ -61,7 +58,7 @@ Full reference of options:
   [store_container_labels: <boolean> | default = true]
 
   # List of container labels to be converted to labels on prometheus metrics for each container. store_container_labels must be set to false for this to take effect.
-  white_listed_container_labels:
+  whitelisted_container_labels:
     [ - <string> ]
 
   # List of environment variable keys matched with specified prefix that needs to be collected for containers, only support containerd and docker runtime for now.

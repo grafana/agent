@@ -112,7 +112,7 @@ func (c *Config) CommonConfig() config.Common {
 	return c.Common
 }
 
-// InstanceKey returns the hostname:port of the cadvisor API server.
+// InstanceKey returns the agentKey
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
