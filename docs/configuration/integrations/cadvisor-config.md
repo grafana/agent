@@ -58,15 +58,15 @@ Full reference of options:
   [store_container_labels: <boolean> | default = true]
 
   # List of container labels to be converted to labels on prometheus metrics for each container. store_container_labels must be set to false for this to take effect.
-  whitelisted_container_labels:
+  allowlisted_container_labels:
     [ - <string> ]
 
   # List of environment variable keys matched with specified prefix that needs to be collected for containers, only support containerd and docker runtime for now.
-  env_metadata_whitelist:
+  env_metadata_allowlist:
     [ - <string> ]
 
   # List of cgroup path prefix that needs to be collected even when docker_only is specified.
-  raw_cgroup_prefix_whitelist:
+  raw_cgroup_prefix_allowlist:
     [ - <string> ]
 
   # Path to a JSON file containing configuration of perf events to measure. Empty value disabled perf events measuring.

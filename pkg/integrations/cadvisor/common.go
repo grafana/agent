@@ -40,14 +40,14 @@ type Config struct {
 	// StoreContainerLabels converts container labels and environment variables into labels on prometheus metrics for each container. If false, then only metrics exported are container name, first alias, and image name.
 	StoreContainerLabels bool `yaml:"store_container_labels,omitempty"`
 
-	// WhitelistedContainerLabels list of container labels to be converted to labels on prometheus metrics for each container. store_container_labels must be set to false for this to take effect.
-	WhitelistedContainerLabels []string `yaml:"whitelisted_container_labels,omitempty"`
+	// AllowlistedContainerLabels list of container labels to be converted to labels on prometheus metrics for each container. store_container_labels must be set to false for this to take effect.
+	AllowlistedContainerLabels []string `yaml:"allowlisted_container_labels,omitempty"`
 
-	// EnvMetadataWhitelist list of environment variable keys matched with specified prefix that needs to be collected for containers, only support containerd and docker runtime for now.
-	EnvMetadataWhitelist []string `yaml:"env_metadata_whitelist,omitempty"`
+	// EnvMetadataAllowlist list of environment variable keys matched with specified prefix that needs to be collected for containers, only support containerd and docker runtime for now.
+	EnvMetadataAllowlist []string `yaml:"env_metadata_allowlist,omitempty"`
 
-	// RawCgroupPrefixWhitelist list of cgroup path prefix that needs to be collected even when -docker_only is specified.
-	RawCgroupPrefixWhitelist []string `yaml:"raw_cgroup_prefix_whitelist,omitempty"`
+	// RawCgroupPrefixAllowlist list of cgroup path prefix that needs to be collected even when -docker_only is specified.
+	RawCgroupPrefixAllowlist []string `yaml:"raw_cgroup_prefix_allowlist,omitempty"`
 
 	// PerfEventsConfig path to a JSON file containing configuration of perf events to measure. Empty value disabled perf events measuring.
 	PerfEventsConfig string `yaml:"perf_events_config,omitempty"`
