@@ -5,7 +5,7 @@ local _config = config._config;
   prometheusAlerts+:: {
     groups+: [
       {
-        name: 'agent-tracing',
+        name: 'grafana-agent-tracing',
         rules: [
           {
             alert: 'AgentTracingReceiverErrors',
