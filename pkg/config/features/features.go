@@ -12,7 +12,7 @@ import (
 // Feature is an experimental feature. Features are case-insensitive.
 type Feature string
 
-const setFlagName = "enabled-features"
+const setFlagName = "enable-features"
 
 // Register sets a flag in fs to track enabled features. The list of possible
 // features is enumerated by ff. ff must contain a unique set of case-insensitive

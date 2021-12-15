@@ -33,7 +33,7 @@ func Example() {
 	} else {
 		fmt.Println("Everything is valid!")
 	}
-	// Output: flag "protected" requires feature "test-feature" to be provided in --enabled-features
+	// Output: flag "protected" requires feature "test-feature" to be provided in --enable-features
 }
 
 var (
@@ -86,12 +86,12 @@ func TestValidate(t *testing.T) {
 			name:    "Not enabled but provided",
 			input:   []string{"--example-value", "foo"},
 			enabled: false,
-			expect:  fmt.Errorf(`flag "example-value" requires feature "test-feature" to be provided in --enabled-features`),
+			expect:  fmt.Errorf(`flag "example-value" requires feature "test-feature" to be provided in --enable-features`),
 		},
 		{
 			name: "Enabled and provided",
 			input: []string{
-				"--enabled-features=test-feature",
+				"--enable-features=test-feature",
 				"--example-value", "foo",
 			},
 			enabled: true,
@@ -100,7 +100,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "Enabled and not provided",
 			input: []string{
-				"--enabled-features=test-feature",
+				"--enable-features=test-feature",
 			},
 			enabled: true,
 			expect:  nil,
