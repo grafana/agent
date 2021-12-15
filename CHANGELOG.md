@@ -7,6 +7,8 @@
 
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
+- [FEATURE] Added [cAdvisor](https://github.com/google/cadvisor) integration. (@rgeyer)
+
 # v0.21.2 (2021-12-08)
 
 - [SECURITY] This release contains a fix for
