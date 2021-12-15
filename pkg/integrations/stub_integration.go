@@ -8,8 +8,7 @@ import (
 )
 
 // StubIntegration implements a no-op integration for use on platforms not supported by an integration
-type StubIntegration struct {
-}
+type StubIntegration struct{}
 
 // MetricsHandler returns an http.NotFoundHandler to satisfy the Integration interface
 func (i *StubIntegration) MetricsHandler() (http.Handler, error) {
