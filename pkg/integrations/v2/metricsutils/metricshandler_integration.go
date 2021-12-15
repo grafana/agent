@@ -68,13 +68,13 @@ func (i *metricsHandlerIntegration) Handler(prefix string) (http.Handler, error)
 }
 
 // Targets implements MetricsIntegration.
-func (i *metricsHandlerIntegration) Targets(prefix string) []*targetgroup.Group {
+func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 	integrationNameValue := model.LabelValue("integrations/" + i.integrationName)
 
 	return []*targetgroup.Group{{
 		Targets: []model.LabelSet{{
-			model.AddressLabel:     model.LabelValue(i.globals.AgentBaseURL.Host),
-			model.MetricsPathLabel: model.LabelValue(path.Join(prefix, "metrics")),
+			model.AddressLabel:     model.LabelValue(ep.Host),
+			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "metrics")),
 		}},
 		Labels: model.LabelSet{
 			model.InstanceLabel: model.LabelValue(i.instanceID),

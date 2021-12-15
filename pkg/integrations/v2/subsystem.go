@@ -192,7 +192,10 @@ func (s *Subsystem) WireAPI(r *mux.Router) {
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusOK)
 
-		tgs := s.ctrl.Targets(prefix, targetOptions)
+		tgs := s.ctrl.Targets(Endpoint{
+			Host:   r.Host,
+			Prefix: prefix,
+		}, targetOptions)
 
 		// Normalize targets. We may have targets in the group with non-address
 		// labels. These need to be retained, so we'll just split everything up

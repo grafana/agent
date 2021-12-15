@@ -170,7 +170,7 @@ type MetricsIntegration interface {
 	//
 	// prefix will be the same prefixed passed to HTTPIntegration.Handler and
 	// can be used to update __metrics_path__ for targets.
-	Targets(prefix string) []*targetgroup.Group
+	Targets(ep Endpoint) []*targetgroup.Group
 
 	// ScrapeConfigs configures automatic scraping of targets. ScrapeConfigs
 	// is optional if an integration should not scrape itself.
@@ -179,4 +179,12 @@ type MetricsIntegration interface {
 	// provided discovery.Configs to discover the targets exposed by this
 	// integration.
 	ScrapeConfigs(discovery.Configs) []*prom_config.ScrapeConfig
+}
+
+// Endpoint is a location where something is exposed.
+type Endpoint struct {
+	// Hostname (and optional port) where endpoint is exposed.
+	Host string
+	// Base prefix of the endpoint.
+	Prefix string
 }

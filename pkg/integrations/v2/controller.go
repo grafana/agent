@@ -373,18 +373,18 @@ func forEachIntegration(set []*controlledIntegration, basePrefix string, f func(
 
 // Targets returns the current set of targets across all integrations. Use opts
 // to customize which targets are returned.
-func (c *controller) Targets(prefix string, opts TargetOptions) []*targetGroup {
+func (c *controller) Targets(ep Endpoint, opts TargetOptions) []*targetGroup {
 	// Grab the integrations as fast as possible. We don't want to spend too much
 	// time holding the mutex.
 	type prefixedMetricsIntegration struct {
-		id     integrationID
-		i      MetricsIntegration
-		prefix string
+		id integrationID
+		i  MetricsIntegration
+		ep Endpoint
 	}
 	var mm []prefixedMetricsIntegration
 
 	c.mut.Lock()
-	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+	err := forEachIntegration(c.integrations, ep.Prefix, func(ci *controlledIntegration, iprefix string) {
 		// Best effort liveness check. They might stop running when we request
 		// their targets, which is fine, but we should save as much work as we
 		// can.
@@ -392,7 +392,8 @@ func (c *controller) Targets(prefix string, opts TargetOptions) []*targetGroup {
 			return
 		}
 		if mi, ok := ci.i.(MetricsIntegration); ok {
-			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
+			ep := Endpoint{Host: ep.Host, Prefix: iprefix}
+			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, ep: ep})
 		}
 	})
 	if err != nil {
@@ -411,7 +412,7 @@ func (c *controller) Targets(prefix string, opts TargetOptions) []*targetGroup {
 			continue
 		}
 
-		for _, tgt := range mi.i.Targets(mi.prefix) {
+		for _, tgt := range mi.i.Targets(mi.ep) {
 			tgs = append(tgs, (*targetGroup)(tgt))
 		}
 	}
