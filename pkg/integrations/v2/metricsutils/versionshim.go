@@ -15,7 +15,7 @@ import (
 
 // CreateShim creates a shim between the v1.Config and v2.Config. The resulting
 // config is NOT registered.
-func CreateShim(before v1.Config) (after v2.WrappedConfig) {
+func CreateShim(before v1.Config) (after v2.UpgradedConfig) {
 	return &configShim{Orig: before}
 }
 
@@ -24,12 +24,12 @@ type configShim struct {
 }
 
 var (
-	_ v2.Config        = (*configShim)(nil)
-	_ v2.WrappedConfig = (*configShim)(nil)
+	_ v2.Config         = (*configShim)(nil)
+	_ v2.UpgradedConfig = (*configShim)(nil)
 )
 
-// UnwrapConfig implements v2.WrappedConfig.
-func (s *configShim) UnwrapConfig() interface{} { return s.Orig }
+// LegacyConfig implements v2.UpgradedConfig.
+func (s *configShim) LegacyConfig() v1.Config { return s.Orig }
 
 func (s *configShim) Name() string { return s.Orig.Name() }
 func (s *configShim) Identifier(g v2.Globals) (string, error) {

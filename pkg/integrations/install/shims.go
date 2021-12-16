@@ -24,8 +24,8 @@ func init() {
 			}
 		}
 		if !found {
-			v2.RegisterDynamic(v1Integration, v1Integration.Name(), v2.TypeSingleton, func(in interface{}) v2.WrappedConfig {
-				return metricsutils.CreateShim(in.(v1.Config))
+			v2.RegisterLegacy(v1Integration, v2.TypeSingleton, func(cfg v1.Config) v2.UpgradedConfig {
+				return metricsutils.CreateShim(cfg)
 			})
 		}
 	}

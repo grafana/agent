@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	v1 "github.com/grafana/agent/pkg/integrations"
+	agent_v1 "github.com/grafana/agent/pkg/integrations/agent"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -74,44 +76,40 @@ test_configs:
 	require.Equal(t, expect, fullCfg)
 }
 
-func TestIntegrationRegistration_Dynamic(t *testing.T) {
+func TestIntegrationRegistration_Legacy(t *testing.T) {
 	setRegistered(t, nil)
 
-	type raw struct {
-		Name string `yaml:"name"`
-	}
-
-	RegisterDynamic(&raw{}, "dyn", TypeSingleton, func(in interface{}) WrappedConfig {
-		return &dynamicShim{IntegrationName: "dyn", Data: in}
+	RegisterLegacy(&agent_v1.Config{}, TypeSingleton, func(in v1.Config) UpgradedConfig {
+		return &legacyShim{Data: in}
 	})
 
 	var cfgToParse = `
 name: John Doe
 duration: 500ms
-dyn:
-  name: Hello, world!`
+agent:
+  instance: foo`
 
 	var fullCfg testFullConfig
 	err := yaml.UnmarshalStrict([]byte(cfgToParse), &fullCfg)
 	require.NoError(t, err)
 
 	require.Len(t, fullCfg.Configs, 1)
-	require.IsType(t, &dynamicShim{}, fullCfg.Configs[0])
+	require.IsType(t, &legacyShim{}, fullCfg.Configs[0])
 
-	dynShim := fullCfg.Configs[0].(*dynamicShim)
-	require.IsType(t, &raw{}, dynShim.Data)
-	require.Equal(t, &raw{Name: "Hello, world!"}, dynShim.Data)
+	shim := fullCfg.Configs[0].(*legacyShim)
+	require.IsType(t, &agent_v1.Config{}, shim.Data)
+
+	agentConfig := shim.Data.(*agent_v1.Config)
+	require.Equal(t, "foo", *agentConfig.Common.InstanceKey)
+	require.Equal(t, true, agentConfig.Enabled)
 }
 
-type dynamicShim struct {
-	IntegrationName string
-	Data            interface{}
-}
+type legacyShim struct{ Data v1.Config }
 
-func (s *dynamicShim) UnwrapConfig() interface{}            { return s.Data }
-func (s *dynamicShim) Name() string                         { return s.IntegrationName }
-func (s *dynamicShim) Identifier(g Globals) (string, error) { return g.AgentIdentifier, nil }
-func (s *dynamicShim) NewIntegration(log.Logger, Globals) (Integration, error) {
+func (s *legacyShim) LegacyConfig() v1.Config              { return s.Data }
+func (s *legacyShim) Name() string                         { return s.Data.Name() }
+func (s *legacyShim) Identifier(g Globals) (string, error) { return g.AgentIdentifier, nil }
+func (s *legacyShim) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
 }
 

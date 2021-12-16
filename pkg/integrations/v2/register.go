@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"gopkg.in/yaml.v2"
+
+	v1 "github.com/grafana/agent/pkg/integrations"
 )
 
 var (
@@ -14,11 +16,10 @@ var (
 	configFieldNames = make(map[reflect.Type]string) // Map of registered type to field name
 	integrationTypes = make(map[reflect.Type]Type)   // Map of registered type to Type
 
-	// Registered integrations. Registered integrations may be any type. If they
-	// do not implement Config, then they must have a mutator to wrap them into
-	// a Config.
+	// Registered integrations. Registered integrations may be either a Config or
+	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
 	registered = []interface{}{}
-	mutators   = make(map[reflect.Type]WrapperFunc)
+	upgraders  = make(map[reflect.Type]UpgradeFunc)
 
 	emptyStructType = reflect.TypeOf(struct{}{})
 	configsType     = reflect.TypeOf(Configs{})
@@ -33,27 +34,12 @@ var (
 //
 // Register panics if cfg is not a pointer.
 func Register(cfg Config, ty Type) {
-	// Special case: we don't need a transformer because cfg is already a Config.
-	RegisterDynamic(cfg, cfg.Name(), ty, nil)
+	registerIntegration(cfg, cfg.Name(), ty, nil)
 }
 
-// RegisterDynamic registers a dynamic integration v which does not implement
-// Config directly. The transform function will be invoked to create a wrapper
-// implementation of Config. transform will be invoked after unmarshaling v from
-// YAML, and the result will be unwrapped back to the original form at marshal
-// time.
-//
-// RegisterDynamic is only useful in niche instances. When possible, use
-// Register instead.
-//
-// name is the name of the integration used for unmarshaling from YAML. Must be
-// unique across all integrations.
-func RegisterDynamic(v interface{}, name string, ty Type, transform WrapperFunc) {
-	if _, isConfig := v.(Config); !isConfig && transform == nil {
-		panic(fmt.Sprintf("transform must not be nil; %T does not implement Config", v))
-	}
+func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFunc) {
 	if reflect.TypeOf(v).Kind() != reflect.Ptr {
-		panic(fmt.Sprintf("RegisterDynamic must be given a pointer, got %T", v))
+		panic(fmt.Sprintf("Register must be given a pointer, got %T", v))
 	}
 	if _, exist := integrationNames[name]; exist {
 		panic(fmt.Sprintf("Integration %q registered twice", name))
@@ -65,20 +51,31 @@ func RegisterDynamic(v interface{}, name string, ty Type, transform WrapperFunc)
 	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
 	configFieldNames[configTy] = name
-	mutators[configTy] = transform
+	upgraders[configTy] = upgrader
 }
 
-// WrapperFunc wraps in in a WrappedConfig container.
-type WrapperFunc func(in interface{}) WrappedConfig
+// RegisterLegacy registers a v1.Config. upgrader will be used to upgrade it.
+// upgrader will only be invoked after unmarshaling cfg from YAML, and the
+// upgraded Config will be unwrapped again when marshaling back to YAML.
+//
+// Deprecated: RegisterLegacy only exists for the transition period where the v2
+// integrations subsystem is an experiment. RegisterLegacy will be removed at a
+// later date.
+func RegisterLegacy(cfg v1.Config, ty Type, upgrader UpgradeFunc) {
+	registerIntegration(cfg, cfg.Name(), ty, upgrader)
+}
 
-// WrappedConfig represents a Config which is a container for some data. This
-// is used when registering integrations through RegisterDynamic.
-type WrappedConfig interface {
+// UpgradeFunc upgrades cfg to a UpgradedConfig.
+type UpgradeFunc func(cfg v1.Config) UpgradedConfig
+
+// UpgradedConfig is a v2 Config that was constructed through a legacy
+// v1.Config. It allows unwrapping to retrieve the original config for
+// the purposes of marshaling or unmarshaling.
+type UpgradedConfig interface {
 	Config
 
-	// UnwrapConfig returns the inner data. The inner data is used for YAML
-	// marshaling and unmarshaling.
-	UnwrapConfig() interface{}
+	// LegacyConfig returns the old v1.Config.
+	LegacyConfig() v1.Config
 }
 
 // Type determines a specific type of integration.
@@ -110,7 +107,7 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 		integrationTypes = make(map[reflect.Type]Type)
 		configFieldNames = make(map[reflect.Type]string)
 		registered = registered[:0]
-		mutators = make(map[reflect.Type]WrapperFunc)
+		upgraders = make(map[reflect.Type]UpgradeFunc)
 	}
 
 	t.Cleanup(clear)
@@ -121,26 +118,28 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 	}
 }
 
-// Registered all Configs that were passed to Register or RegisterDynamic. Each
+// Registered all Configs that were passed to Register or RegisterLegacy. Each
 // call will generate a new set of configs.
 func Registered() []Config {
 	res := make([]Config, 0, len(registered))
-	for _, dyn := range registered {
-		switch v := dyn.(type) {
+	for _, r := range registered {
+		switch v := r.(type) {
 		case Config:
-			res = append(res, cloneDynamic(v).(Config))
-		default:
-			mut, ok := mutators[reflect.TypeOf(dyn)]
+			res = append(res, cloneValue(v).(Config))
+		case v1.Config:
+			mut, ok := upgraders[reflect.TypeOf(r)]
 			if !ok || mut == nil {
-				panic(fmt.Sprintf("Could not find transformer for dynamic integration %T", dyn))
+				panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
 			}
-			res = append(res, mut(cloneDynamic(dyn)))
+			res = append(res, mut(cloneValue(r).(v1.Config)))
+		default:
+			panic(fmt.Sprintf("unexpected type %T", r))
 		}
 	}
 	return res
 }
 
-func cloneDynamic(in interface{}) interface{} {
+func cloneValue(in interface{}) interface{} {
 	return reflect.New(reflect.TypeOf(in).Elem()).Interface()
 }
 
@@ -192,8 +191,8 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 		fieldName := c.Name()
 
 		var data interface{} = c
-		if wc, ok := c.(WrappedConfig); ok {
-			data = wc.UnwrapConfig()
+		if wc, ok := c.(UpgradedConfig); ok {
+			data = wc.LegacyConfig()
 		}
 
 		integrationType, ok := integrationTypes[reflect.TypeOf(data)]
@@ -302,21 +301,19 @@ func getConfig(in interface{}) Config {
 	switch c := in.(type) {
 	case Config:
 		return c
-	default:
-		mut, ok := mutators[reflect.TypeOf(in)]
+	case v1.Config:
+		mut, ok := upgraders[reflect.TypeOf(in)]
 		if !ok {
 			panic(fmt.Sprintf("unexpected type %T", c))
 		}
-		return mut(in)
+		return mut(c)
+	default:
+		panic(fmt.Sprintf("unexpected type %T", c))
 	}
 }
 
 // getConfigTypeForIntegrations returns a dynamic struct type that has all of
 // the same fields as out including the fields for the provided integrations.
-//
-// If marshal is true, interface{} will be used for integration types. This
-// must be true when marshaling dynamic integrations, where their type will
-// have changed.
 func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 	// Initial exported fields map one-to-one.
 	var fields []reflect.StructField
@@ -333,9 +330,9 @@ func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 		}
 	}
 
-	for _, dyn := range registered {
+	for _, reg := range registered {
 		// Fields use a prefix that's unlikely to collide with anything else.
-		configTy := reflect.TypeOf(dyn)
+		configTy := reflect.TypeOf(reg)
 		integrationType := integrationTypes[configTy]
 		fieldName := configFieldNames[configTy]
 
