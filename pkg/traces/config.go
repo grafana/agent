@@ -29,11 +29,13 @@ import (
 	prom_config "github.com/prometheus/common/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.uber.org/multierr"
 )
 
 const (
@@ -573,10 +575,10 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
-	//
-	// if err := configtest.CheckConfigStruct(factories); err != nil {
-	// 	return nil, fmt.Errorf("failed to validate factories: %w", err)
-	// }
+
+	if err := validateConfigFromFactories(factories); err != nil {
+		return nil, fmt.Errorf("failed to validate factories: %w", err)
+	}
 
 	configMap := config.NewMapFromStringMap(otelMapStructure)
 	otelCfg, err := configunmarshaler.NewDefault().Unmarshal(configMap, factories)
@@ -682,4 +684,25 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 		processors[:foundAt],
 		processors[foundAt:],
 	}
+}
+
+// Code taken from OTel's service/configcheck.go
+// https://github.com/grafana/opentelemetry-collector/blob/0.40-grafana/service/configcheck.go#L26-L43
+func validateConfigFromFactories(factories component.Factories) error {
+	var errs error
+
+	for _, factory := range factories.Receivers {
+		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+	}
+	for _, factory := range factories.Processors {
+		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+	}
+	for _, factory := range factories.Exporters {
+		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+	}
+	for _, factory := range factories.Extensions {
+		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+	}
+
+	return errs
 }
