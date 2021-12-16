@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/mux"
 	integrations "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/logs"
-	loki "github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces"
@@ -41,7 +40,7 @@ type Entrypoint struct {
 
 	srv          *server.Server
 	promMetrics  *metrics.Agent
-	lokiLogs     *loki.Logs
+	lokiLogs     *logs.Logs
 	tempoTraces  *traces.Traces
 	integrations *integrations.Subsystem
 

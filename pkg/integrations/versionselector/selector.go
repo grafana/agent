@@ -1,0 +1,87 @@
+// Package integrations exposes the integrations subsystem. It will select
+// between v1 and v2 based on a field.
+package integrations
+
+import (
+	"github.com/go-kit/log"
+	"github.com/gorilla/mux"
+	v1 "github.com/grafana/agent/pkg/integrations"
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/metrics"
+	"github.com/weaveworks/common/server"
+)
+
+// Config abstracts the subsystem configs for integrations v1 and v2.
+type Config struct {
+	// UseV2 should be true if the newer v2 package should be used. This MUST be
+	// set prior to unmarshaling.
+	UseV2 bool
+
+	configV1 *v1.ManagerConfig
+	configV2 *v2.SubsystemOptions
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	if !c.UseV2 {
+		return unmarshal(c.configV1)
+	}
+	return unmarshal(c.configV2)
+}
+
+// MarshalYAML implements yaml.Marshaler.
+func (c *Config) MarshalYAML() (interface{}, error) {
+	if !c.UseV2 {
+		return c.configV1, nil
+	}
+	return c.configV2, nil
+}
+
+// ApplyDefaults applies defaults to the subsystem based on globals. Only
+// needed when UseV2 is false.
+func (c *Config) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
+	if !c.UseV2 {
+		return c.configV1.ApplyDefaults(scfg, mcfg)
+	}
+	return nil
+}
+
+// Subsystem is an abstraction over both the v1 and v2 systems.
+type Subsystem interface {
+	ApplyConfig(*Config, v2.Globals) error
+	WireAPI(*mux.Router)
+	Stop()
+}
+
+// NewSubsystem creates a new subsystem. globals should be provided regardless
+// of useV2. globals.SubsystemOptions will be automatically set if useV2 is
+// true.
+func NewSubsystem(logger log.Logger, cfg *Config, globals v2.Globals, useV2 bool) (Subsystem, error) {
+	if !useV2 {
+		instance, err := v1.NewManager(*cfg.configV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
+		if err != nil {
+			return nil, err
+		}
+		return &v1Subsystem{Manager: instance}, nil
+	}
+
+	globals.SubsystemOpts = *cfg.configV2
+	instance, err := v2.NewSubsystem(logger, globals)
+	if err != nil {
+		return nil, err
+	}
+	return &v2Subsystem{Subsystem: instance}, nil
+}
+
+type v1Subsystem struct{ *v1.Manager }
+
+func (s *v1Subsystem) ApplyConfig(cfg *Config, globals v2.Globals) error {
+	return s.Manager.ApplyConfig(*cfg.configV1)
+}
+
+type v2Subsystem struct{ *v2.Subsystem }
+
+func (s *v2Subsystem) ApplyConfig(cfg *Config, globals v2.Globals) error {
+	globals.SubsystemOpts = *cfg.configV2
+	return s.Subsystem.ApplyConfig(globals)
+}
