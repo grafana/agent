@@ -42,30 +42,6 @@ test:
 	require.Equal(t, expect, fullCfg)
 }
 
-func TestIntegrationRegistration_Multiple(t *testing.T) {
-	var cfgToParse = `
-name: John Doe
-duration: 500ms
-test_configs:
-  - text: Hello, world!
-  - text: Hello again!`
-
-	var fullCfg testFullConfig
-	err := yaml.UnmarshalStrict([]byte(cfgToParse), &fullCfg)
-	require.NoError(t, err)
-
-	expect := testFullConfig{
-		Name:     "John Doe",
-		Duration: 500 * time.Millisecond,
-		Default:  12345,
-		Configs: []Config{
-			&testIntegrationA{Text: "Hello, world!", Truth: true},
-			&testIntegrationA{Text: "Hello again!", Truth: true},
-		},
-	}
-	require.Equal(t, expect, fullCfg)
-}
-
 type testIntegrationA struct {
 	Text  string `yaml:"text"`
 	Truth bool   `yaml:"truth"`
