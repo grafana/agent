@@ -177,7 +177,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	settings := component.TelemetrySettings{
 		Logger:         i.logger,
 		TracerProvider: trace.NewNoopTracerProvider(),
-		MeterProvider:  metric.NoopMeterProvider{},
+		MeterProvider:  metric.NewNoopMeterProvider(),
 	}
 
 	// start exporter

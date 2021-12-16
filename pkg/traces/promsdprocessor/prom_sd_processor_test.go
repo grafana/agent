@@ -222,7 +222,9 @@ func TestPodAssociation(t *testing.T) {
 		{
 			name: "HTTP connection IP",
 			ctxFn: func(t *testing.T) context.Context {
-				r := &http.Request{RemoteAddr: ipStr}
+				r := &http.Request{
+					RemoteAddr: ipStr,
+				}
 				c, ok := client.FromHTTP(r)
 				require.True(t, ok)
 				return client.NewContext(context.Background(), c)
