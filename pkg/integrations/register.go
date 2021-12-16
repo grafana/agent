@@ -30,17 +30,6 @@ func RegisterIntegration(cfg Config) {
 	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
 
-// setRegisteredIntegrations clears the set of registered integrations and
-// overrides it with cc. Used by tests.
-func setRegisteredIntegrations(cc []Config) {
-	registeredIntegrations = registeredIntegrations[:0]
-	configFieldNames = make(map[reflect.Type]string)
-
-	for _, c := range cc {
-		RegisterIntegration(c)
-	}
-}
-
 // RegisteredIntegrations all Configs that were passed to RegisterIntegration.
 // Each call will generate a new set of pointers.
 func RegisteredIntegrations() []Config {
@@ -100,14 +89,12 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 	}
 
 	for _, c := range configs {
-		// TODO(rfratto): check to see if integration is a singleton only
-
 		fieldName, ok := configFieldNames[reflect.TypeOf(c)]
 		if !ok {
 			return nil, fmt.Errorf("integrations: cannot marshal unregistered Config type: %T", c)
 		}
-		field := cfgVal.FieldByName("XXX_Configs_" + fieldName)
-		field.Set(reflect.Append(field, reflect.ValueOf(c)))
+		field := cfgVal.FieldByName("XXX_Config_" + fieldName)
+		field.Set(reflect.ValueOf(c))
 	}
 
 	return cfgPointer.Interface(), nil
@@ -178,25 +165,16 @@ func unmarshalIntegrationsWithList(integrations []Config, out interface{}, unmar
 		outVal.Field(i).Set(cfgVal.Field(i))
 	}
 
-	// Iterate through the remainder of our fields, which should all be
-	// either a Config or a slice of types that implement Config.
+	// Iterate through the remainder of our fields, which should all be of
+	// type Config.
 	for i := outVal.NumField(); i < cfgVal.NumField(); i++ {
 		field := cfgVal.Field(i)
 
 		if field.IsNil() {
 			continue
 		}
-
-		switch field.Kind() {
-		case reflect.Slice:
-			for i := 0; i < field.Len(); i++ {
-				val := field.Index(i).Interface().(Config)
-				*configs = append(*configs, val)
-			}
-		default:
-			val := field.Interface().(Config)
-			*configs = append(*configs, val)
-		}
+		val := cfgVal.Field(i).Interface().(Config)
+		*configs = append(*configs, val)
 	}
 
 	return nil
@@ -219,18 +197,13 @@ func getConfigTypeForIntegrations(integrations []Config, out reflect.Type) refle
 			})
 		}
 	}
-
 	for _, cfg := range integrations {
-		// Fields use a prefix that's unlikely to collide with anything else.
+		// Use a prefix that's unlikely to collide with anything else.
+		fieldName := "XXX_Config_" + cfg.Name()
 		fields = append(fields, reflect.StructField{
-			Name: "XXX_Config_" + cfg.Name(),
+			Name: fieldName,
 			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
 			Type: reflect.TypeOf(cfg),
-		})
-		fields = append(fields, reflect.StructField{
-			Name: "XXX_Configs_" + cfg.Name(),
-			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, cfg.Name())),
-			Type: reflect.SliceOf(reflect.TypeOf(cfg)),
 		})
 	}
 	return reflect.StructOf(fields)

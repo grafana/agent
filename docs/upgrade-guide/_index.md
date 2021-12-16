@@ -42,6 +42,29 @@ integrations:
 No change is necessary for configs that are not listed inside of `integrations:`.
 For example, as `node_exporter` is not defined, it will not be run.
 
+### Integrations: Removal of `wal_truncate_frequency` (Breaking change)
+
+Integrations will no longer support `wal_truncate_frequency` being supplied.
+Supporting this field required integrations to run as separate metrics instances,
+which has a significant performance penalty over running a single instance.
+Removing support for the field enables integrations to share an instance and
+have better performance.
+
+Example old config:
+
+```yaml
+integrations:
+  agent:
+    wal_truncate_frequency: 60m
+```
+
+Example new config:
+
+```yaml
+integrations:
+  agent: {}
+```
+
 ## v0.21.0
 
 ### Integrations: Change in how instance labels are handled (Breaking change)
