@@ -58,7 +58,7 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 // upgrader will only be invoked after unmarshaling cfg from YAML, and the
 // upgraded Config will be unwrapped again when marshaling back to YAML.
 //
-// Deprecated: RegisterLegacy only exists for the transition period where the v2
+// RegisterLegacy only exists for the transition period where the v2
 // integrations subsystem is an experiment. RegisterLegacy will be removed at a
 // later date.
 func RegisterLegacy(cfg v1.Config, ty Type, upgrader UpgradeFunc) {
