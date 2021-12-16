@@ -30,17 +30,6 @@ func RegisterIntegration(cfg Config) {
 	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
 
-// setRegisteredIntegrations clears the set of registered integrations and
-// overrides it with cc. Used by tests.
-func setRegisteredIntegrations(cc []Config) {
-	registeredIntegrations = registeredIntegrations[:0]
-	configFieldNames = make(map[reflect.Type]string)
-
-	for _, c := range cc {
-		RegisterIntegration(c)
-	}
-}
-
 // RegisteredIntegrations all Configs that were passed to RegisterIntegration.
 // Each call will generate a new set of pointers.
 func RegisteredIntegrations() []Config {
