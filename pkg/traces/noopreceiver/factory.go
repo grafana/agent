@@ -29,7 +29,7 @@ type Config struct {
 }
 
 func createDefaultConfig() config.Receiver {
-	s := config.NewReceiverSettings(config.NewIDWithName(TypeStr, TypeStr))
+	s := config.NewReceiverSettings(config.NewComponentIDWithName(TypeStr, TypeStr))
 	return &s
 }
 

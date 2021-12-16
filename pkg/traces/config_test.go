@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"gopkg.in/yaml.v2"
 )
@@ -960,7 +959,7 @@ service:
 				assert.Error(t, err)
 				return
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			// convert actual config to otel config
 			otelMapStructure := map[string]interface{}{}
@@ -970,7 +969,7 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
+			configMap := config.NewMapFromStringMap(otelMapStructure)
 			cfgUnmarshaler := configunmarshaler.NewDefault()
 			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
@@ -1048,14 +1047,14 @@ service_graphs:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces": {
-					config.NewID("attributes"),
-					config.NewID("spanmetrics"),
-					config.NewID("service_graphs"),
-					config.NewID("tail_sampling"),
-					config.NewID("automatic_logging"),
-					config.NewID("batch"),
+					config.NewComponentID("attributes"),
+					config.NewComponentID("spanmetrics"),
+					config.NewComponentID("service_graphs"),
+					config.NewComponentID("tail_sampling"),
+					config.NewComponentID("automatic_logging"),
+					config.NewComponentID("batch"),
 				},
-				"metrics/spanmetrics": nil,
+				spanMetricsPipelineName: nil,
 			},
 		},
 		{
@@ -1107,16 +1106,16 @@ service_graphs:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
-					config.NewID("attributes"),
-					config.NewID("spanmetrics"),
+					config.NewComponentID("attributes"),
+					config.NewComponentID("spanmetrics"),
 				},
 				"traces/1": {
-					config.NewID("service_graphs"),
-					config.NewID("tail_sampling"),
-					config.NewID("automatic_logging"),
-					config.NewID("batch"),
+					config.NewComponentID("service_graphs"),
+					config.NewComponentID("tail_sampling"),
+					config.NewComponentID("automatic_logging"),
+					config.NewComponentID("batch"),
 				},
-				"metrics/spanmetrics": nil,
+				spanMetricsPipelineName: nil,
 			},
 		},
 		{
@@ -1158,14 +1157,14 @@ load_balancing:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
-					config.NewID("attributes"),
-					config.NewID("spanmetrics"),
+					config.NewComponentID("attributes"),
+					config.NewComponentID("spanmetrics"),
 				},
 				"traces/1": {
-					config.NewID("automatic_logging"),
-					config.NewID("batch"),
+					config.NewComponentID("automatic_logging"),
+					config.NewComponentID("batch"),
 				},
-				"metrics/spanmetrics": nil,
+				spanMetricsPipelineName: nil,
 			},
 		},
 	}
@@ -1182,7 +1181,12 @@ load_balancing:
 
 			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
 			for k := range tc.expectedProcessors {
-				assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[k].Processors)
+				if len(tc.expectedProcessors[k]) > 0 {
+					componentID, err := config.NewComponentIDFromString(k)
+					require.NoError(t, err)
+
+					assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[componentID].Processors)
+				}
 			}
 		})
 	}
@@ -1321,7 +1325,7 @@ receivers:
 
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters
 func sortPipelines(cfg *config.Config) {
-	tracePipeline := cfg.Pipelines[string(config.TracesDataType)]
+	tracePipeline := cfg.Pipelines[config.NewComponentID(config.TracesDataType)]
 	if tracePipeline == nil {
 		return
 	}

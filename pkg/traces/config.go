@@ -29,8 +29,6 @@ import (
 	prom_config "github.com/prometheus/common/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configcheck"
-	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
@@ -560,9 +558,11 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		c.Receivers[noopreceiver.TypeStr] = nil
 	}
 
+	receiversMap := map[string]interface{}(c.Receivers)
+
 	otelMapStructure["exporters"] = exporters
 	otelMapStructure["processors"] = processors
-	otelMapStructure["receivers"] = c.Receivers
+	otelMapStructure["receivers"] = receiversMap
 
 	// pipelines
 	otelMapStructure["service"] = map[string]interface{}{
@@ -573,14 +573,13 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
+	//
+	// if err := configtest.CheckConfigStruct(factories); err != nil {
+	// 	return nil, fmt.Errorf("failed to validate factories: %w", err)
+	// }
 
-	if err := configcheck.ValidateConfigFromFactories(factories); err != nil {
-		return nil, fmt.Errorf("failed to validate factories: %w", err)
-	}
-
-	configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
-	cfgUnmarshaler := configunmarshaler.NewDefault()
-	otelCfg, err := cfgUnmarshaler.Unmarshal(configMap, factories)
+	configMap := config.NewMapFromStringMap(otelMapStructure)
+	otelCfg, err := configunmarshaler.NewDefault().Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
