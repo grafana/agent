@@ -76,6 +76,7 @@ require (
 	go.opentelemetry.io/otel/metric v0.25.0
 	go.opentelemetry.io/otel/trace v1.2.0
 	go.uber.org/atomic v1.9.0
+	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/sys v0.0.0-20211020174200-9d6173849985
 	google.golang.org/grpc v1.42.0
