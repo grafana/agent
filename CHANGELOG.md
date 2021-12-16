@@ -7,6 +7,8 @@
 
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
+- [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 # v0.21.2 (2021-12-08)
