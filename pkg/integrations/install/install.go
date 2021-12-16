@@ -2,6 +2,10 @@
 package install
 
 import (
+	//
+	// v1 integrations
+	//
+
 	_ "github.com/grafana/agent/pkg/integrations/agent"                  // register agent
 	_ "github.com/grafana/agent/pkg/integrations/consul_exporter"        // register consul_exporter
 	_ "github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"       // register dnsmasq_exporter
@@ -17,6 +21,10 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/redis_exporter"         // register redis_exporter
 	_ "github.com/grafana/agent/pkg/integrations/statsd_exporter"        // register statsd_exporter
 	_ "github.com/grafana/agent/pkg/integrations/windows_exporter"       // register windows_exporter
+
+	//
+	// v2 integrations
+	//
 
 	_ "github.com/grafana/agent/pkg/integrations/v2/agent" // register agent
 )
