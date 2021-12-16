@@ -9,6 +9,8 @@
 
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
+- [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
+
 # v0.21.2 (2021-12-08)
 
 - [SECURITY] This release contains a fix for
