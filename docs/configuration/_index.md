@@ -119,7 +119,7 @@ Support contents and default values of `agent.yaml`:
 ## Remote Configuration (Beta)
 
 An experimental feature for fetching remote configuration files over HTTP/S can be
-enabled by passing the `-experiment.config-urls.enable` flag at the command line.
+enabled by passing the `-enable-features=remote-configs` flag at the command line.
 With this feature enabled, you may pass an HTTP/S URL to the `-config.file` flag.
 
 The following flags will configure basic auth for requests made to HTTP/S remote config URLs:

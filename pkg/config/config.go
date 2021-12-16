@@ -13,6 +13,7 @@ import (
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -26,6 +27,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	featRemoteConfigs = features.Feature("remote-configs")
+
+	allFeatures = []features.Feature{
+		featRemoteConfigs,
+	}
 )
 
 // DefaultConfig holds default settings for all the subsystems.
@@ -54,9 +63,8 @@ type Config struct {
 	Deprecations []string `yaml:"-"`
 
 	// Remote config options
-	ExperimentalConfigURLs bool   `yaml:"-"`
-	BasicAuthUser          string `yaml:"-"`
-	BasicAuthPassFile      string `yaml:"-"`
+	BasicAuthUser     string `yaml:"-"`
+	BasicAuthPassFile string `yaml:"-"`
 
 	// Toggle for config endpoint(s)
 	EnableConfigEndpoints bool `yaml:"-"`
@@ -157,8 +165,8 @@ func (c *Config) LogDeprecations(l log.Logger) {
 	}
 }
 
-// ApplyDefaults sets default values in the config
-func (c *Config) ApplyDefaults() error {
+// Validate validates the config, flags, and sets default values.
+func (c *Config) Validate(fs *flag.FlagSet) error {
 	if err := c.Metrics.ApplyDefaults(); err != nil {
 		return err
 	}
@@ -187,7 +195,15 @@ func (c *Config) ApplyDefaults() error {
 
 	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
 
-	return nil
+	// Don't validate flags if there's no FlagSet. Used for testing.
+	if fs == nil {
+		return nil
+	}
+	deps := []features.Dependency{
+		{Flag: "config.url.basic-auth-user", Feature: featRemoteConfigs},
+		{Flag: "config.url.basic-auth-password-file", Feature: featRemoteConfigs},
+	}
+	return features.Validate(fs, deps)
 }
 
 // RegisterFlags registers flags in underlying configs
@@ -201,10 +217,9 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
 
 	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
-		"basic auth username for fetching remote config. (requires config-urls experiment to be enabled")
+		"basic auth username for fetching remote config. (requires remote-configs experiment to be enabled")
 	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "",
-		"path to file containing basic auth password for fetching remote config. (requires config-urls experiment to be enabled")
-	f.BoolVar(&c.ExperimentalConfigURLs, "experiment.config-urls.enable", false, "enable experimental remote config URLs feature")
+		"path to file containing basic auth password for fetching remote config. (requires remote-configs experiment to be enabled")
 
 	f.BoolVar(&c.EnableConfigEndpoints, "config.enable-read-api", false, "Enables the /-/config and /agent/api/v1/configs/{name} APIs. Be aware that secrets could be exposed by enabling these endpoints!")
 }
@@ -293,7 +308,7 @@ func getenv(name string) string {
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 	return load(fs, args, func(url string, expand bool, c *Config) error {
-		if c.ExperimentalConfigURLs {
+		if features.Enabled(fs, featRemoteConfigs) {
 			return LoadRemote(url, expand, c)
 		}
 		return LoadFile(url, expand, c)
@@ -315,6 +330,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	cfg.RegisterFlags(fs)
+	features.Register(fs, allFeatures)
 
 	if err := fs.Parse(args); err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
@@ -332,16 +348,14 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	}
 
 	// Parse the flags again to override any YAML values with command line flag
-	// values
+	// values.
 	if err := fs.Parse(args); err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
 
-	// Finally, apply defaults to config that wasn't specified by file or flag
-	if err := cfg.ApplyDefaults(); err != nil {
+	if err := cfg.Validate(fs); err != nil {
 		return nil, fmt.Errorf("error in config file: %w", err)
 	}
-
 	return &cfg, nil
 }
 
