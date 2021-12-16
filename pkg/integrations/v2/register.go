@@ -140,10 +140,6 @@ func Registered() []Config {
 	return res
 }
 
-func cloneIntegration(c Config) Config {
-	return cloneDynamic(c).(Config)
-}
-
 func cloneDynamic(in interface{}) interface{} {
 	return reflect.New(reflect.TypeOf(in).Elem()).Interface()
 }
