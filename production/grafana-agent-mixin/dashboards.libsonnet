@@ -1,5 +1,5 @@
-local g = import 'grafana-builder/grafana.libsonnet';
 local utils = import './utils.libsonnet';
+local g = import 'grafana-builder/grafana.libsonnet';
 local grafana = import 'grafonnet/grafana.libsonnet';
 
 local dashboard = grafana.dashboard;
@@ -362,6 +362,231 @@ local template = grafana.template;
       .addRow(
         row.new('Misc. Rates')
         .addPanel(enqueueRetries)
+      ),
+
+    'agent-tracing-pipeline.json':
+      local acceptedSpans =
+        graphPanel.new(
+          'Accepted spans',
+          datasource='$datasource',
+          interval='1m',
+          span=3,
+          legend_show=false,
+          fill=0,
+        )
+        .addTarget(prometheus.target(
+          |||
+            rate(traces_receiver_accepted_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",receiver!="otlp/lb"}[$__rate_interval])
+          |||,
+          legendFormat='{{ pod }} - {{ receiver }}/{{ transport }}',
+        ));
+
+      local refusedSpans =
+        graphPanel.new(
+          'Refused spans',
+          datasource='$datasource',
+          interval='1m',
+          span=3,
+          legend_show=false,
+          fill=0,
+        )
+        .addTarget(prometheus.target(
+          |||
+            rate(traces_receiver_refused_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",receiver!="otlp/lb"}[$__rate_interval])
+          |||,
+          legendFormat='{{ pod }} - {{ receiver }}/{{ transport }}',
+        ));
+
+      local sentSpans =
+        graphPanel.new(
+          'Exported spans',
+          datasource='$datasource',
+          interval='1m',
+          span=3,
+          legend_show=false,
+          fill=0,
+        )
+        .addTarget(prometheus.target(
+          |||
+            rate(traces_exporter_sent_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",exporter!="otlp"}[$__rate_interval])
+          |||,
+          legendFormat='{{ pod }} - {{ exporter }}',
+        ));
+
+      local exportedFailedSpans =
+        graphPanel.new(
+          'Exported failed spans',
+          datasource='$datasource',
+          interval='1m',
+          span=3,
+          legend_show=false,
+          fill=0,
+        )
+        .addTarget(prometheus.target(
+          |||
+            rate(traces_exporter_send_failed_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",exporter!="otlp"}[$__rate_interval])
+          |||,
+          legendFormat='{{ pod }} - {{ exporter }}',
+        ));
+
+      local receivedSpans(receiverFilter, width) =
+        graphPanel.new(
+          'Received spans',
+          datasource='$datasource',
+          interval='1m',
+          span=width,
+          fill=1,
+        )
+        .addTarget(prometheus.target(
+          |||
+            sum(rate(traces_receiver_accepted_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
+          ||| % receiverFilter,
+          legendFormat='Accepted',
+        ))
+        .addTarget(prometheus.target(
+          |||
+            sum(rate(traces_receiver_refused_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
+          ||| % receiverFilter,
+          legendFormat='Refused',
+        ));
+
+      local exportedSpans(exporterFilter, width) =
+        graphPanel.new(
+          'Exported spans',
+          datasource='$datasource',
+          interval='1m',
+          span=width,
+          fill=1,
+        )
+        .addTarget(prometheus.target(
+          |||
+            sum(rate(traces_exporter_sent_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
+          ||| % exporterFilter,
+          legendFormat='Sent',
+        ))
+        .addTarget(prometheus.target(
+          |||
+            sum(rate(traces_exporter_send_failed_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
+          ||| % exporterFilter,
+          legendFormat='Send failed',
+        ));
+
+      local loadBalancedSpans =
+        graphPanel.new(
+          'Load-balanced spans',
+          datasource='$datasource',
+          interval='1m',
+          span=3,
+          fill=1,
+          stack=true,
+        )
+        .addTarget(prometheus.target(
+          |||
+            rate(traces_loadbalancer_backend_outcome{cluster=~"$cluster",namespace=~"$namespace",success="true",container=~"$container",pod=~"$pod"}[$__rate_interval])
+          |||,
+          legendFormat='{{ pod }}',
+        ));
+
+      local peersNum =
+        graphPanel.new(
+          'Number of peers',
+          datasource='$datasource',
+          interval='1m',
+          span=3,
+          legend_show=false,
+          fill=0,
+        )
+        .addTarget(prometheus.target(
+          |||
+            traces_loadbalancer_num_backends{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"}
+          |||,
+          legendFormat='{{ pod }}',
+        ));
+
+      dashboard.new('Agent Tracing Pipeline', tags=['grafana-agent-mixin'], editable=true, refresh='30s', time_from='now-1h')
+      .addTemplate(
+        {
+          hide: 0,
+          label: null,
+          name: 'datasource',
+          options: [],
+          query: 'prometheus',
+          refresh: 1,
+          regex: '',
+          type: 'datasource',
+        },
+      )
+      .addTemplate(
+        template.new(
+          'cluster',
+          '$datasource',
+          'label_values(agent_build_info, cluster)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
+          'namespace',
+          '$datasource',
+          'label_values(agent_build_info, namespace)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
+          'container',
+          '$datasource',
+          'label_values(agent_build_info, container)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
+          'pod',
+          '$datasource',
+          'label_values(agent_build_info{container=~"$container"}, pod)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addRow(
+        row.new('Write / Read')
+        .addPanel(acceptedSpans)
+        .addPanel(refusedSpans)
+        .addPanel(sentSpans)
+        .addPanel(exportedFailedSpans)
+        .addPanel(receivedSpans('receiver!="otlp/lb"', 6))
+        .addPanel(exportedSpans('exporter!="otlp"', 6))
+      )
+      .addRow(
+        row.new('Load balancing')
+        .addPanel(loadBalancedSpans)
+        .addPanel(peersNum)
+        .addPanel(receivedSpans('receiver="otlp/lb"', 3))
+        .addPanel(exportedSpans('exporter="otlp"', 3))
       ),
   },
 }

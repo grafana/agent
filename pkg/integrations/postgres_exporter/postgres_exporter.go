@@ -10,15 +10,12 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/lib/pq"
 	"github.com/prometheus-community/postgres_exporter/exporter"
 )
 
 // Config controls the postgres_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// DataSourceNames to use to connect to Postgres.
 	DataSourceNames []config_util.Secret `yaml:"data_source_names,omitempty"`
 
@@ -33,12 +30,6 @@ type Config struct {
 // Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "postgres_exporter"
-}
-
-// CommonConfig returns the common set of options shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // NewIntegration converts this config into an instance of a configuration.

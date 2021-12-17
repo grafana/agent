@@ -50,8 +50,6 @@ var DefaultConfig = Config{
 
 // Config controls the statsd_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	ListenUDP      string               `yaml:"listen_udp,omitempty"`
 	ListenTCP      string               `yaml:"listen_tcp,omitempty"`
 	ListenUnixgram string               `yaml:"listen_unixgram,omitempty"`
@@ -82,11 +80,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "statsd_exporter"
-}
-
-// CommonConfig returns the common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the hostname:port of the agent.

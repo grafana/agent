@@ -18,7 +18,7 @@ k + config {
       policyRule.withNonResourceUrls('/metrics') +
       policyRule.withVerbs(['get']),
     ]) {
-      service_account+: 
+      service_account+:
         serviceAccount.mixin.metadata.withNamespace($._config.namespace),
     },
 

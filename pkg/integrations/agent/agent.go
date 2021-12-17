@@ -14,18 +14,11 @@ import (
 )
 
 // Config controls the Agent integration.
-type Config struct {
-	Common config.Common `yaml:",inline"`
-}
+type Config struct{}
 
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "agent"
-}
-
-// CommonConfig returns the common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the hostname of the machine.
