@@ -29,10 +29,12 @@ import (
 )
 
 var (
-	featRemoteConfigs = features.Feature("remote-configs")
+	featRemoteConfigs    = features.Feature("remote-configs")
+	featIntegrationsNext = features.Feature("integrations-next")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
+		featIntegrationsNext,
 	}
 )
 
@@ -310,16 +312,14 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	var (
 		cfg = DefaultConfig
 
-		printVersion      bool
-		file              string
-		configExpandEnv   bool
-		useIntegrationsV2 bool
+		printVersion    bool
+		file            string
+		configExpandEnv bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
-	fs.BoolVar(&useIntegrationsV2, "experiment.integrations-next.enable", false, "Enable next-gen integrations.")
 	cfg.RegisterFlags(fs)
 	features.Register(fs, allFeatures)
 
@@ -347,7 +347,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	// Complete unmarshaling integrations using the version from the flag. This
 	// MUST be called before ApplyDefaults.
 	version := integrationsVersion1
-	if useIntegrationsV2 {
+	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
 	if err := cfg.Integrations.setVersion(version); err != nil {
