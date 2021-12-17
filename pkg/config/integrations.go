@@ -99,24 +99,18 @@ func (c *VersionedIntegrations) completeUnmarshal() error {
 		return nil
 	}
 
-	var out interface{}
-
 	switch c.version {
 	case integrationsVersion1:
 		cfg := v1.DefaultManagerConfig
 		c.configV1 = &cfg
-
-		out = c.configV1
+		return yaml.UnmarshalStrict(c.raw, c.configV1)
 	case integrationsVersion2:
 		cfg := v2.DefaultSubsystemOptions
 		c.configV2 = &cfg
-
-		out = c.configV2
+		return yaml.UnmarshalStrict(c.raw, c.configV2)
 	default:
 		panic(fmt.Sprintf("unknown integrations version %d", c.version))
 	}
-
-	return yaml.UnmarshalStrict(c.raw, out)
 }
 
 // IntegrationsGlobals is a global struct shared across integrations.
