@@ -29,7 +29,9 @@ var DefaultVersionedIntegrations = VersionedIntegrations{
 	}(),
 }
 
-// VersionedIntegrations abstracts the subsystem configs for integrations v1 and v2.
+// VersionedIntegrations abstracts the subsystem configs for integrations v1
+// and v2. The version can only be set when calling Load through command line
+// flags.
 type VersionedIntegrations struct {
 	version integrationsVersion
 
@@ -42,7 +44,8 @@ var (
 	_ yaml.Marshaler   = (*VersionedIntegrations)(nil)
 )
 
-// UnmarshalYAML implements yaml.Unmarshaler.
+// UnmarshalYAML implements yaml.Unmarshaler. Unmarshals to the enabled
+// integrations subsystem version.
 func (c *VersionedIntegrations) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.configV1 = nil
 	c.configV2 = nil
@@ -54,7 +57,8 @@ func (c *VersionedIntegrations) UnmarshalYAML(unmarshal func(interface{}) error)
 	return unmarshal(&c.configV2)
 }
 
-// MarshalYAML implements yaml.Marshaler.
+// MarshalYAML implements yaml.Marshaler. Marshals the enabled integrations
+// subsystem version.
 func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
 	if c.version != integrationsVersion2 {
 		return c.configV1, nil
@@ -79,12 +83,7 @@ func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics
 	if c.version != integrationsVersion2 {
 		return c.configV1.ApplyDefaults(scfg, mcfg)
 	}
-
-	if len(c.configV2.PrometheusRemoteWrite) == 0 {
-		c.configV2.PrometheusRemoteWrite = mcfg.Global.RemoteWrite
-	}
-
-	return nil
+	return c.configV2.ApplyDefaults(mcfg)
 }
 
 // IntegrationsGlobals is a global struct shared across integrations.
