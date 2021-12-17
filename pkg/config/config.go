@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/common/server"
 
 	"github.com/drone/envsubst/v2"
-	"github.com/grafana/agent/pkg/integrations/v2"
+	integrations "github.com/grafana/agent/pkg/integrations/versionselector"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
@@ -25,17 +25,16 @@ import (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Metrics:      metrics.DefaultConfig,
-	Integrations: integrations.DefaultSubsystemOptions,
+	Metrics: metrics.DefaultConfig,
 }
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config                 `yaml:"server,omitempty"`
-	Metrics      metrics.Config                `yaml:"metrics,omitempty"`
-	Integrations integrations.SubsystemOptions `yaml:"integrations,omitempty"`
-	Traces       traces.Config                 `yaml:"traces,omitempty"`
-	Logs         *logs.Config                  `yaml:"logs,omitempty"`
+	Server       server.Config       `yaml:"server,omitempty"`
+	Metrics      metrics.Config      `yaml:"metrics,omitempty"`
+	Integrations integrations.Config `yaml:"integrations,omitempty"`
+	Traces       traces.Config       `yaml:"traces,omitempty"`
+	Logs         *logs.Config        `yaml:"logs,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
@@ -49,10 +48,20 @@ type Config struct {
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// NOTE(rfratto): We must temporarily save the version used for integrations
+	// before setting everything to default values. The c.Integrations.Version
+	// field is set based on a flag, and we do not want to override it.
+	//
+	// This is gross, but necessary for now.
+	integrationsVersion := c.Integrations.Version
+
 	// Apply defaults to the config from our struct and any defaults inherited
 	// from flags before unmarshaling.
 	*c = DefaultConfig
 	util.DefaultConfigFromFlags(c)
+
+	// Restore fields we don't want to override from defaults.
+	c.Integrations.Version = integrationsVersion
 
 	type baseConfig Config
 
@@ -117,8 +126,8 @@ func (c *Config) ApplyDefaults() error {
 
 	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
 
-	if len(c.Integrations.PrometheusRemoteWrite) == 0 {
-		c.Integrations.PrometheusRemoteWrite = c.Metrics.Global.RemoteWrite
+	if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics); err != nil {
+		return err
 	}
 
 	// since the Traces config might rely on an existing Loki config
@@ -198,14 +207,16 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	var (
 		cfg = DefaultConfig
 
-		printVersion    bool
-		file            string
-		configExpandEnv bool
+		printVersion      bool
+		file              string
+		configExpandEnv   bool
+		useIntegrationsV2 bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
+	fs.BoolVar(&useIntegrationsV2, "experiment.integrations-next.enable", false, "Enable next-gen integrations.")
 	cfg.RegisterFlags(fs)
 
 	if err := fs.Parse(args); err != nil {
@@ -215,6 +226,13 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if printVersion {
 		fmt.Println(version.Print("agent"))
 		os.Exit(0)
+	}
+
+	// Save the loaded integrations version before unmarshaling from YAML.
+	if useIntegrationsV2 {
+		cfg.Integrations.Version = integrations.Version2
+	} else {
+		cfg.Integrations.Version = integrations.Version1
 	}
 
 	if file == "" {

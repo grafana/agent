@@ -11,7 +11,7 @@ import (
 	"syscall"
 
 	"github.com/gorilla/mux"
-	integrations "github.com/grafana/agent/pkg/integrations/v2"
+	integrations "github.com/grafana/agent/pkg/integrations/versionselector"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -42,7 +42,7 @@ type Entrypoint struct {
 	promMetrics  *metrics.Agent
 	lokiLogs     *logs.Logs
 	tempoTraces  *traces.Traces
-	integrations *integrations.Subsystem
+	integrations integrations.Subsystem
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
@@ -95,7 +95,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	if err != nil {
 		return nil, err
 	}
-	ep.integrations, err = integrations.NewSubsystem(logger, integrationGlobals)
+	ep.integrations, err = integrations.NewSubsystem(logger, &cfg.Integrations, integrationGlobals)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (integration
 		Metrics:         ep.promMetrics,
 		Logs:            ep.lokiLogs,
 		Tracing:         ep.tempoTraces,
-		SubsystemOpts:   cfg.Integrations,
+		// TODO(rfratto): set SubsystemOptions here when v1 is removed.
 		AgentBaseURL: &url.URL{
 			Scheme: scheme,
 			Host:   fmt.Sprintf("127.0.0.1:%d", cfg.Server.HTTPListenPort),
@@ -170,7 +170,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
 		failed = true
-	} else if err := ep.integrations.ApplyConfig(integrationGlobals); err != nil {
+	} else if err := ep.integrations.ApplyConfig(&cfg.Integrations, integrationGlobals); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
 		failed = true
 	}
