@@ -4,12 +4,12 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"gopkg.in/yaml.v2"
 )
@@ -959,7 +959,7 @@ service:
 				assert.Error(t, err)
 				return
 			}
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			// convert actual config to otel config
 			otelMapStructure := map[string]interface{}{}
@@ -969,7 +969,7 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			configMap := config.NewMapFromStringMap(otelMapStructure)
+			configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
 			cfgUnmarshaler := configunmarshaler.NewDefault()
 			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
@@ -1047,14 +1047,14 @@ service_graphs:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
-					config.NewComponentID("service_graphs"),
-					config.NewComponentID("tail_sampling"),
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+					config.NewID("attributes"),
+					config.NewID("spanmetrics"),
+					config.NewID("service_graphs"),
+					config.NewID("tail_sampling"),
+					config.NewID("automatic_logging"),
+					config.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				"metrics/spanmetrics": nil,
 			},
 		},
 		{
@@ -1106,16 +1106,16 @@ service_graphs:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
+					config.NewID("attributes"),
+					config.NewID("spanmetrics"),
 				},
 				"traces/1": {
-					config.NewComponentID("service_graphs"),
-					config.NewComponentID("tail_sampling"),
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+					config.NewID("service_graphs"),
+					config.NewID("tail_sampling"),
+					config.NewID("automatic_logging"),
+					config.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				"metrics/spanmetrics": nil,
 			},
 		},
 		{
@@ -1157,14 +1157,14 @@ load_balancing:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
+					config.NewID("attributes"),
+					config.NewID("spanmetrics"),
 				},
 				"traces/1": {
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+					config.NewID("automatic_logging"),
+					config.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				"metrics/spanmetrics": nil,
 			},
 		},
 	}
@@ -1181,12 +1181,7 @@ load_balancing:
 
 			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
 			for k := range tc.expectedProcessors {
-				if len(tc.expectedProcessors[k]) > 0 {
-					componentID, err := config.NewComponentIDFromString(k)
-					require.NoError(t, err)
-
-					assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[componentID].Processors)
-				}
+				assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[k].Processors)
 			}
 		})
 	}
@@ -1309,23 +1304,9 @@ func TestOrderProcessors(t *testing.T) {
 	}
 }
 
-func TestScrubbedReceivers(t *testing.T) {
-	test := `
-receivers:
-  jaeger:
-    protocols:
-      grpc:`
-	var cfg InstanceConfig
-	err := yaml.Unmarshal([]byte(test), &cfg)
-	assert.Nil(t, err)
-	data, err := yaml.Marshal(cfg)
-	assert.Nil(t, err)
-	assert.True(t, strings.Contains(string(data), "<secret>"))
-}
-
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters
 func sortPipelines(cfg *config.Config) {
-	tracePipeline := cfg.Pipelines[config.NewComponentID(config.TracesDataType)]
+	tracePipeline := cfg.Pipelines[string(config.TracesDataType)]
 	if tracePipeline == nil {
 		return
 	}

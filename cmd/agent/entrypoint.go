@@ -202,19 +202,13 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 
 	mux.HandleFunc("/-/config", func(rw http.ResponseWriter, r *http.Request) {
 		ep.mut.Lock()
-		cfg := ep.cfg
+		bb, err := yaml.Marshal(ep.cfg)
 		ep.mut.Unlock()
 
-		if cfg.EnableConfigEndpoints {
-			bb, err := yaml.Marshal(cfg)
-			if err != nil {
-				http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
-			} else {
-				_, _ = rw.Write(bb)
-			}
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
 		} else {
-			rw.WriteHeader(http.StatusNotFound)
-			_, _ = rw.Write([]byte("404 - config endpoint is disabled"))
+			_, _ = rw.Write(bb)
 		}
 	})
 

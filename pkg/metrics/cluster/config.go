@@ -25,8 +25,7 @@ type Config struct {
 	DangerousAllowReadingFiles bool `yaml:"dangerous_allow_reading_files"`
 
 	// TODO(rfratto): deprecate scraping_service_client in Agent and replace with this.
-	Client                    client.Config `yaml:"-"`
-	APIEnableGetConfiguration bool          `yaml:"-"`
+	Client client.Config `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.

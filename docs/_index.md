@@ -1,11 +1,11 @@
 +++
-title = "Grafana Agent documentation"
+title = "Grafana Agent Documentation"
 weight = 1
 +++
 
 # Grafana Agent
 
-Grafana Agent is a telemetry collector for sending metrics, logs,
+Grafana Agent is an telemetry collector for sending metrics, logs,
 and trace data to the opinionated Grafana observability stack. It works best
 with:
 

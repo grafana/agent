@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/percona/mongodb_exporter/exporter"
-	config_util "github.com/prometheus/common/config"
 )
 
 // Config controls mongodb_exporter
@@ -16,7 +15,7 @@ type Config struct {
 	config.Common `yaml:",inline"`
 
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
-	URI config_util.Secret `yaml:"mongodb_uri"`
+	URI string `yaml:"mongodb_uri"`
 }
 
 // Name returns the name of the integration that this config represents.
@@ -31,8 +30,8 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // InstanceKey returns the address:port of the mongodb server being queried.
-func (c *Config) InstanceKey(_ string) (string, error) {
-	u, err := url.Parse(string(c.URI))
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	u, err := url.Parse(c.URI)
 	if err != nil {
 		return "", fmt.Errorf("could not parse url: %w", err)
 	}
@@ -53,7 +52,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	logrusLogger := NewLogger(logger)
 
 	exp, err := exporter.New(&exporter.Opts{
-		URI:                    string(c.URI),
+		URI:                    c.URI,
 		Logger:                 logrusLogger,
 		DisableDefaultRegistry: true,
 

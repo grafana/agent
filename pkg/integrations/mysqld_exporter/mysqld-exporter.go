@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	config_util "github.com/prometheus/common/config"
-
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-sql-driver/mysql"
@@ -40,7 +38,7 @@ type Config struct {
 	Common config.Common `yaml:",inline"`
 
 	// DataSourceName to use to connect to MySQL.
-	DataSourceName config_util.Secret `yaml:"data_source_name,omitempty"`
+	DataSourceName string `yaml:"data_source_name,omitempty"`
 
 	// Collectors to mark as enabled in addition to the default.
 	EnableCollectors []string `yaml:"enable_collectors,omitempty"`
@@ -89,8 +87,8 @@ func (c *Config) CommonConfig() config.Common {
 }
 
 // InstanceKey returns network(hostname:port)/dbname of the MySQL server.
-func (c *Config) InstanceKey(_ string) (string, error) {
-	m, err := mysql.ParseDSN(string(c.DataSourceName))
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	m, err := mysql.ParseDSN(c.DataSourceName)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse DSN: %w", err)
 	}
@@ -119,14 +117,14 @@ func init() {
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	dsn := c.DataSourceName
 	if len(dsn) == 0 {
-		dsn = config_util.Secret(os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME"))
+		dsn = os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME")
 	}
 	if len(dsn) == 0 {
 		return nil, fmt.Errorf("cannot create mysqld_exporter; neither mysqld_exporter.data_source_name or $MYSQLD_EXPORTER_DATA_SOURCE_NAME is set")
 	}
 
 	scrapers := GetScrapers(c)
-	exporter := collector.New(context.Background(), string(dsn), collector.NewMetrics(), scrapers, log, collector.Config{
+	exporter := collector.New(context.Background(), dsn, collector.NewMetrics(), scrapers, log, collector.Config{
 		LockTimeout:   c.LockWaitTimeout,
 		SlowLogFilter: c.LogSlowFilter,
 	})

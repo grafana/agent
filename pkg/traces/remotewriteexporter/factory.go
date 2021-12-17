@@ -40,7 +40,7 @@ func NewFactory() component.ExporterFactory {
 
 func createDefaultConfig() config.Exporter {
 	return &Config{
-		ExporterSettings: config.NewExporterSettings(config.NewComponentIDWithName(TypeStr, TypeStr)),
+		ExporterSettings: config.NewExporterSettings(config.NewIDWithName(TypeStr, TypeStr)),
 	}
 }
 

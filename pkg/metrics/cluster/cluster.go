@@ -74,7 +74,7 @@ func New(
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize configstore: %w", err)
 	}
-	c.storeAPI = configstore.NewAPI(l, c.store, c.storeValidate, cfg.APIEnableGetConfiguration)
+	c.storeAPI = configstore.NewAPI(l, c.store, c.storeValidate)
 	reg.MustRegister(c.storeAPI)
 
 	c.watcher, err = newConfigWatcher(l, cfg, c.store, im, c.node.Owns, validate)

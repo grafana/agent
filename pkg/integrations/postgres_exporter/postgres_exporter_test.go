@@ -1,11 +1,9 @@
 package postgres_exporter //nolint:golint
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 )
 
 func Test_ParsePostgresURL(t *testing.T) {
@@ -22,56 +20,5 @@ func Test_ParsePostgresURL(t *testing.T) {
 	actual, err := parsePostgresURL(dsn)
 	require.NoError(t, err)
 	require.Equal(t, actual, expected)
-}
 
-func Test_getDataSourceNames(t *testing.T) {
-	tt := []struct {
-		name   string
-		config string
-		env    string
-		expect []string
-	}{
-		{
-			name:   "env",
-			config: "{}",
-			env:    "foo",
-			expect: []string{"foo"},
-		},
-		{
-			name:   "multi-env",
-			config: "{}",
-			env:    "foo,bar",
-			expect: []string{"foo", "bar"},
-		},
-		{
-			name:   "config",
-			config: `data_source_names: [foo]`,
-			env:    "",
-			expect: []string{"foo"},
-		},
-		{
-			name:   "config and env",
-			config: `data_source_names: [foo]`,
-			env:    "bar",
-			expect: []string{"foo"},
-		},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			orig := os.Getenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME")
-			t.Cleanup(func() {
-				os.Setenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME", orig)
-			})
-			os.Setenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME", tc.env)
-
-			var cfg Config
-			err := yaml.UnmarshalStrict([]byte(tc.config), &cfg)
-			require.NoError(t, err)
-
-			res, err := cfg.getDataSourceNames()
-			require.NoError(t, err)
-			require.Equal(t, tc.expect, res)
-		})
-	}
 }
