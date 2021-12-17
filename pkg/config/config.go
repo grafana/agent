@@ -30,10 +30,6 @@ var DefaultConfig = Config{
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	// Custom defaults to use. When non-nil, defaultConfig must be recursive and
-	// contain a pointer to itself at defaultConfig.defaultConfig.
-	defaultConfig *Config
-
 	Server       server.Config         `yaml:"server,omitempty"`
 	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
 	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
