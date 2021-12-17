@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 // TestConfig_FlagDefaults makes sure that default values of flags are kept
@@ -33,6 +35,31 @@ metrics:
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.NumTokens)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.HeartbeatPeriod)
 	require.True(t, c.Server.RegisterInstrumentation)
+}
+
+// TestConfig_ConfigAPIFlag makes sure that the read API flag is passed
+// when parsing the config.
+func TestConfig_ConfigAPIFlag(t *testing.T) {
+	t.Run("Disabled", func(t *testing.T) {
+		cfg := `{}`
+		fs := flag.NewFlagSet("test", flag.ExitOnError)
+		c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+			return LoadBytes([]byte(cfg), false, c)
+		})
+		require.NoError(t, err)
+		require.False(t, c.EnableConfigEndpoints)
+		require.False(t, c.Metrics.ServiceConfig.APIEnableGetConfiguration)
+	})
+	t.Run("Enabled", func(t *testing.T) {
+		cfg := `{}`
+		fs := flag.NewFlagSet("test", flag.ExitOnError)
+		c, err := load(fs, []string{"-config.file", "test", "-config.enable-read-api"}, func(_ string, _ bool, c *Config) error {
+			return LoadBytes([]byte(cfg), false, c)
+		})
+		require.NoError(t, err)
+		require.True(t, c.EnableConfigEndpoints)
+		require.True(t, c.Metrics.ServiceConfig.APIEnableGetConfiguration)
+	})
 }
 
 func TestConfig_OverrideDefaultsOnLoad(t *testing.T) {
@@ -213,7 +240,7 @@ loki:
 `)
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
-	require.NoError(t, cfg.ApplyDefaults())
+	require.NoError(t, cfg.Validate(nil))
 
 	require.NotNil(t, cfg.Logs)
 	require.Equal(t, "foo", cfg.Logs.Configs[0].Name)
@@ -239,7 +266,7 @@ func TestConfig_PrometheusNonNil(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var cfg Config
 			require.NoError(t, LoadBytes([]byte(tc.input), false, &cfg))
-			require.NoError(t, cfg.ApplyDefaults())
+			require.NoError(t, cfg.Validate(nil))
 
 			require.NotNil(t, cfg.Metrics)
 		})
@@ -255,7 +282,7 @@ prometheus:
 `)
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
-	require.NoError(t, cfg.ApplyDefaults())
+	require.NoError(t, cfg.Validate(nil))
 
 	require.Equal(t, "default", cfg.Metrics.Configs[0].Name)
 	require.Equal(t, "/tmp", cfg.Metrics.WALDir)
@@ -308,7 +335,7 @@ tempo:
       spans: true`)
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
-	require.NoError(t, cfg.ApplyDefaults())
+	require.NoError(t, cfg.Validate(nil))
 
 	require.NotNil(t, cfg.Traces)
 
@@ -357,4 +384,47 @@ logs:
 	pipelineStages := myCfg.Logs.Configs[0].ScrapeConfig[0].PipelineStages[0].(map[interface{}]interface{})
 	expected := `\\temp\\Logs\\(?P<log_app>.+?)\\`
 	require.Equal(t, expected, pipelineStages["expression"].(string))
+}
+
+func TestConfig_ObscureSecrets(t *testing.T) {
+	cfgText := `
+metrics:
+  wal_directory: /tmp
+  scraping_service:
+    enabled: true
+    kvstore:
+      store: consul
+      consul:
+        acl_token: verysecret
+      etcd:
+        password: verysecret
+    lifecycler:
+      ring:
+        kvstore:
+          store: consul
+          consul:
+            acl_token: verysecret
+          etcd:
+            password: verysecret
+`
+
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(cfgText), false, &cfg))
+
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
+
+	bb, err := yaml.Marshal(&cfg)
+	require.NoError(t, err)
+
+	require.False(t, strings.Contains(string(bb), "verysecret"), "secrets did not get obscured")
+	require.True(t, strings.Contains(string(bb), "<secret>"), "secrets did not get obscured properly")
+
+	// Re-validate that the config object has not changed
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
 }
