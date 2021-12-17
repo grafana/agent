@@ -27,6 +27,8 @@ type API struct {
 	totalCreatedConfigs prometheus.Counter
 	totalUpdatedConfigs prometheus.Counter
 	totalDeletedConfigs prometheus.Counter
+
+	enableGet bool
 }
 
 // Validator valides a config before putting it into the store.
@@ -34,7 +36,7 @@ type API struct {
 type Validator = func(c *instance.Config) error
 
 // NewAPI creates a new API. Store can be applied later with SetStore.
-func NewAPI(l log.Logger, store Store, v Validator) *API {
+func NewAPI(l log.Logger, store Store, v Validator, enableGet bool) *API {
 	return &API{
 		log:       l,
 		store:     store,
@@ -52,6 +54,7 @@ func NewAPI(l log.Logger, store Store, v Validator) *API {
 			Name: "agent_metrics_ha_configs_deleted_total",
 			Help: "Total number of deleted scraping service configs",
 		}),
+		enableGet: enableGet,
 	}
 }
 
@@ -63,7 +66,11 @@ func (api *API) WireAPI(r *mux.Router) {
 	r = r.UseEncodedPath()
 
 	r.HandleFunc("/agent/api/v1/configs", api.ListConfigurations).Methods("GET")
-	r.HandleFunc("/agent/api/v1/configs/{name}", api.GetConfiguration).Methods("GET")
+	getConfigHandler := messageHandlerFunc(http.StatusNotFound, "404 - config endpoint is disabled")
+	if api.enableGet {
+		getConfigHandler = api.GetConfiguration
+	}
+	r.HandleFunc("/agent/api/v1/configs/{name}", getConfigHandler).Methods("GET")
 	r.HandleFunc("/agent/api/v1/config/{name}", api.PutConfiguration).Methods("PUT", "POST")
 	r.HandleFunc("/agent/api/v1/config/{name}", api.DeleteConfiguration).Methods("DELETE")
 }
@@ -126,7 +133,7 @@ func (api *API) GetConfiguration(rw http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		api.writeError(rw, http.StatusInternalServerError, err)
 	case err == nil:
-		bb, err := instance.MarshalConfig(&cfg, false)
+		bb, err := instance.MarshalConfig(&cfg, true)
 		if err != nil {
 			api.writeError(rw, http.StatusInternalServerError, fmt.Errorf("could not marshal config for response: %w", err))
 			return
@@ -251,4 +258,11 @@ func getConfigName(r *http.Request) (string, error) {
 		return "", fmt.Errorf("could not decode config name: %w", err)
 	}
 	return name, nil
+}
+
+func messageHandlerFunc(statusCode int, msg string) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(statusCode)
+		_, _ = rw.Write([]byte(msg))
+	}
 }

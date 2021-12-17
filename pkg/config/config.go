@@ -1,31 +1,49 @@
 package config
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
+	"testing"
 	"unicode"
 
+	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/weaveworks/common/server"
-
-	"github.com/drone/envsubst/v2"
+	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/kv/consul"
+	"github.com/grafana/dskit/kv/etcd"
 	"github.com/pkg/errors"
+	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
+	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	featRemoteConfigs    = features.Feature("remote-configs")
+	featIntegrationsNext = features.Feature("integrations-next")
+
+	allFeatures = []features.Feature{
+		featRemoteConfigs,
+		featIntegrationsNext,
+	}
 )
 
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Metrics:      metrics.DefaultConfig,
-	Integrations: DefaultVersionedIntegrations,
+	Metrics:               metrics.DefaultConfig,
+	Integrations:          DefaultVersionedIntegrations,
+	EnableConfigEndpoints: false,
 }
 
 // Config contains underlying configurations for the agent
@@ -44,6 +62,13 @@ type Config struct {
 
 	// Deprecated fields user has used. Generated during UnmarshalYAML.
 	Deprecations []string `yaml:"-"`
+
+	// Remote config options
+	BasicAuthUser     string `yaml:"-"`
+	BasicAuthPassFile string `yaml:"-"`
+
+	// Toggle for config endpoint(s)
+	EnableConfigEndpoints bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -100,6 +125,39 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// MarshalYAML implements yaml.Marshaler.
+func (c Config) MarshalYAML() (interface{}, error) {
+	var buf bytes.Buffer
+
+	enc := yaml.NewEncoder(&buf)
+	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
+		// Obscure the password fields for known types that do not obscure passwords.
+		switch v := in.(type) {
+		case etcd.Config:
+			v.Password = "<secret>"
+			return true, v, nil
+		case consul.Config:
+			v.ACLToken = "<secret>"
+			return true, v, nil
+		default:
+			return false, nil, nil
+		}
+	})
+
+	type config Config
+	if err := enc.Encode((config)(c)); err != nil {
+		return nil, err
+	}
+
+	// Use a yaml.MapSlice rather than a map[string]interface{} so
+	// order of keys is retained compared to just calling MarshalConfig.
+	var m yaml.MapSlice
+	if err := yaml.Unmarshal(buf.Bytes(), &m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // LogDeprecations will log use of any deprecated fields to l as warn-level
 // messages.
 func (c *Config) LogDeprecations(l log.Logger) {
@@ -108,8 +166,8 @@ func (c *Config) LogDeprecations(l log.Logger) {
 	}
 }
 
-// ApplyDefaults sets default values in the config
-func (c *Config) ApplyDefaults() error {
+// Validate validates the config, flags, and sets default values.
+func (c *Config) Validate(fs *flag.FlagSet) error {
 	if err := c.Metrics.ApplyDefaults(); err != nil {
 		return err
 	}
@@ -126,7 +184,17 @@ func (c *Config) ApplyDefaults() error {
 		return err
 	}
 
-	return nil
+	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
+
+	// Don't validate flags if there's no FlagSet. Used for testing.
+	if fs == nil {
+		return nil
+	}
+	deps := []features.Dependency{
+		{Flag: "config.url.basic-auth-user", Feature: featRemoteConfigs},
+		{Flag: "config.url.basic-auth-password-file", Feature: featRemoteConfigs},
+	}
+	return features.Validate(fs, deps)
 }
 
 // RegisterFlags registers flags in underlying configs
@@ -138,6 +206,13 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
+
+	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
+		"basic auth username for fetching remote config. (requires remote-configs experiment to be enabled")
+	f.StringVar(&c.BasicAuthPassFile, "config.url.basic-auth-password-file", "",
+		"path to file containing basic auth password for fetching remote config. (requires remote-configs experiment to be enabled")
+
+	f.BoolVar(&c.EnableConfigEndpoints, "config.enable-read-api", false, "Enables the /-/config and /agent/api/v1/configs/{name} APIs. Be aware that secrets could be exposed by enabling these endpoints!")
 }
 
 // LoadFile reads a file and passes the contents to Load
@@ -147,6 +222,41 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 		return errors.Wrap(err, "error reading config file")
 	}
 	return LoadBytes(buf, expandEnvVars, c)
+}
+
+// LoadRemote reads a config from url
+func LoadRemote(url string, expandEnvVars bool, c *Config) error {
+	remoteOpts := &remoteOpts{}
+	if c.BasicAuthUser != "" && c.BasicAuthPassFile != "" {
+		remoteOpts.HTTPClientConfig = &config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     c.BasicAuthUser,
+				PasswordFile: c.BasicAuthPassFile,
+			},
+		}
+	}
+
+	if remoteOpts.HTTPClientConfig != nil {
+		dir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %w", err)
+		}
+		remoteOpts.HTTPClientConfig.SetDirectory(dir)
+	}
+
+	rc, err := newRemoteConfig(url, remoteOpts)
+	if err != nil {
+		return fmt.Errorf("error reading remote config: %w", err)
+	}
+	// fall back to file if no scheme is passed
+	if rc == nil {
+		return LoadFile(url, expandEnvVars, c)
+	}
+	bb, err := rc.retrieve()
+	if err != nil {
+		return fmt.Errorf("error retrieving remote config: %w", err)
+	}
+	return LoadBytes(bb, expandEnvVars, c)
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
@@ -188,7 +298,12 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, LoadFile)
+	return load(fs, args, func(url string, expand bool, c *Config) error {
+		if features.Enabled(fs, featRemoteConfigs) {
+			return LoadRemote(url, expand, c)
+		}
+		return LoadFile(url, expand, c)
+	})
 }
 
 // load allows for tests to inject a function for retrieving the config file that
@@ -197,17 +312,16 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	var (
 		cfg = DefaultConfig
 
-		printVersion      bool
-		file              string
-		configExpandEnv   bool
-		useIntegrationsV2 bool
+		printVersion    bool
+		file            string
+		configExpandEnv bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
-	fs.BoolVar(&useIntegrationsV2, "experiment.integrations-next.enable", false, "Enable next-gen integrations.")
 	cfg.RegisterFlags(fs)
+	features.Register(fs, allFeatures)
 
 	if err := fs.Parse(args); err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
@@ -225,7 +339,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	}
 
 	// Parse the flags again to override any YAML values with command line flag
-	// values
+	// values.
 	if err := fs.Parse(args); err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
@@ -233,7 +347,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	// Complete unmarshaling integrations using the version from the flag. This
 	// MUST be called before ApplyDefaults.
 	version := integrationsVersion1
-	if useIntegrationsV2 {
+	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
 	if err := cfg.Integrations.setVersion(version); err != nil {
@@ -241,8 +355,20 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag
-	if err := cfg.ApplyDefaults(); err != nil {
+	if err := cfg.Validate(fs); err != nil {
 		return nil, fmt.Errorf("error in config file: %w", err)
 	}
 	return &cfg, nil
+}
+
+// CheckSecret is a helper function to ensure the original value is overwritten with <secret>
+func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
+	var cfg = &Config{}
+	err := LoadBytes([]byte(rawCfg), false, cfg)
+	require.NoError(t, err)
+	bb, err := yaml.Marshal(cfg)
+	require.NoError(t, err)
+	scrubbedCfg := string(bb)
+	require.True(t, strings.Contains(scrubbedCfg, "<secret>"))
+	require.False(t, strings.Contains(scrubbedCfg, originalValue))
 }
