@@ -48,7 +48,6 @@ use_hostname_label: true
 
 	outBytes, err := yaml.Marshal(cfg)
 	require.NoError(t, err, "Failed creating integration")
-	fmt.Println(string(outBytes))
 	require.YAMLEq(t, cfgText, string(outBytes))
 }
 
@@ -79,7 +78,6 @@ test:
 
 	outBytes, err := yaml.Marshal(cfg)
 	require.NoError(t, err, "Failed creating integration")
-	fmt.Println(string(outBytes))
 	require.YAMLEq(t, cfgText, string(outBytes))
 }
 
@@ -120,12 +118,16 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 	require.NoError(t, err)
 	defer m.Stop()
 
-	p := &integrationProcess{instanceKey: "key", cfg: icfg, i: mock}
+	p := &integrationProcess{instanceKey: "key", cfg: makeUnmarshaledConfig(icfg, true), i: mock}
 	cfg := m.instanceConfigForIntegration(p, mockManagerConfig())
 
 	// Validate that the generated MetricsPath is a valid URL path
 	require.Len(t, cfg.ScrapeConfigs, 1)
 	require.Equal(t, "/integrations/mock/metrics", cfg.ScrapeConfigs[0].MetricsPath)
+}
+
+func makeUnmarshaledConfig(cfg Config, enabled bool) UnmarshaledConfig {
+	return UnmarshaledConfig{Config: cfg, Common: config.Common{Enabled: enabled}}
 }
 
 // TestManager_NoIntegrationsScrape ensures that configs don't get generates
@@ -138,7 +140,7 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 
 	cfg := mockManagerConfig()
 	cfg.ScrapeIntegrations = false
-	cfg.Integrations = append(cfg.Integrations, &icfg)
+	cfg.Integrations = append(cfg.Integrations, makeUnmarshaledConfig(&icfg, true))
 
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
@@ -156,14 +158,15 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 func TestManager_NoIntegrationScrape(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{Integration: mock}
-
 	noScrape := false
-	mock.CommonCfg.ScrapeIntegration = &noScrape
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 
 	cfg := mockManagerConfig()
-	cfg.Integrations = append(cfg.Integrations, icfg)
+	cfg.Integrations = append(cfg.Integrations, UnmarshaledConfig{
+		Config: icfg,
+		Common: config.Common{ScrapeIntegration: &noScrape},
+	})
 
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
@@ -180,7 +183,7 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	icfg := mockConfig{Integration: mock}
 
 	cfg := mockManagerConfig()
-	cfg.Integrations = append(cfg.Integrations, icfg)
+	cfg.Integrations = append(cfg.Integrations, makeUnmarshaledConfig(icfg, true))
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
@@ -202,7 +205,7 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 	icfg := mockConfig{Integration: mock}
 
 	cfg := mockManagerConfig()
-	cfg.Integrations = append(cfg.Integrations, icfg)
+	cfg.Integrations = append(cfg.Integrations, makeUnmarshaledConfig(icfg, true))
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
@@ -221,7 +224,7 @@ func TestManager_GracefulStop(t *testing.T) {
 	icfg := mockConfig{Integration: mock}
 
 	cfg := mockManagerConfig()
-	cfg.Integrations = append(cfg.Integrations, icfg)
+	cfg.Integrations = append(cfg.Integrations, makeUnmarshaledConfig(icfg, true))
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
@@ -245,7 +248,7 @@ func TestManager_IntegrationEnabledToDisabledReload(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{Integration: mock}
 	cfg := mockManagerConfig()
-	cfg.Integrations = append(cfg.Integrations, icfg)
+	cfg.Integrations = append(cfg.Integrations, makeUnmarshaledConfig(icfg, true))
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
@@ -267,11 +270,13 @@ func TestManager_IntegrationEnabledToDisabledReload(t *testing.T) {
 
 func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
 	mock := newMockIntegration()
-	mock.CommonCfg.Enabled = false
 	icfg := mockConfig{Integration: mock}
 
 	cfg := mockManagerConfig()
-	cfg.Integrations = append(cfg.Integrations, icfg)
+	cfg.Integrations = append(cfg.Integrations, UnmarshaledConfig{
+		Config: icfg,
+		Common: config.Common{Enabled: false},
+	})
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
@@ -305,7 +310,7 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 	icfg := mockConfig{Integration: mock}
 
 	cfg := mockManagerConfig()
-	cfg.Integrations = append(cfg.Integrations, icfg)
+	cfg.Integrations = append(cfg.Integrations, makeUnmarshaledConfig(icfg, true))
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
 
@@ -343,10 +348,12 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 
 func generateMockConfigWithEnabledFlag(enabled bool) ManagerConfig {
 	enabledMock := newMockIntegration()
-	enabledMock.CommonCfg.Enabled = enabled
 	enabledConfig := mockConfig{Integration: enabledMock}
 	enabledManagerConfig := mockManagerConfig()
-	enabledManagerConfig.Integrations = append(enabledManagerConfig.Integrations, enabledConfig)
+	enabledManagerConfig.Integrations = append(
+		enabledManagerConfig.Integrations,
+		makeUnmarshaledConfig(enabledConfig, enabled),
+	)
 	return enabledManagerConfig
 }
 
@@ -358,7 +365,6 @@ type mockConfig struct {
 func (c mockConfig) Equal(other mockConfig) bool { return c.Integration == other.Integration }
 
 func (c mockConfig) Name() string                                { return "mock" }
-func (c mockConfig) CommonConfig() config.Common                 { return c.Integration.CommonCfg }
 func (c mockConfig) InstanceKey(agentKey string) (string, error) { return agentKey, nil }
 
 func (c mockConfig) NewIntegration(_ log.Logger) (Integration, error) {
@@ -366,7 +372,6 @@ func (c mockConfig) NewIntegration(_ log.Logger) (Integration, error) {
 }
 
 type mockIntegration struct {
-	CommonCfg    config.Common `yaml:",inline"`
 	startedCount *atomic.Uint32
 	running      *atomic.Bool
 	err          chan error
@@ -377,7 +382,6 @@ func newMockIntegration() *mockIntegration {
 		running:      atomic.NewBool(true),
 		startedCount: atomic.NewUint32(0),
 		err:          make(chan error),
-		CommonCfg:    config.Common{Enabled: true},
 	}
 }
 

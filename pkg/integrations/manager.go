@@ -117,12 +117,12 @@ func (c *ManagerConfig) DefaultRelabelConfigs(instanceKey string) []*relabel.Con
 // Prometheus configuration must have a WAL directory configured.
 func (c *ManagerConfig) ApplyDefaults(cfg *metrics.Config) error {
 	for _, ic := range c.Integrations {
-		if !ic.CommonConfig().Enabled {
+		if !ic.Common.Enabled {
 			continue
 		}
 
 		scrapeIntegration := c.ScrapeIntegrations
-		if common := ic.CommonConfig(); common.ScrapeIntegration != nil {
+		if common := ic.Common; common.ScrapeIntegration != nil {
 			scrapeIntegration = *common.ScrapeIntegration
 		}
 
@@ -213,7 +213,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
 	for _, ic := range cfg.Integrations {
-		if !ic.CommonConfig().Enabled {
+		if !ic.Common.Enabled {
 			continue
 		}
 		// Key is used to identify the instance of this integration within the
@@ -245,7 +245,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 		// Find what instance label should be used to represent this integration.
 		var instanceKey string
-		if kp := ic.CommonConfig().InstanceKey; kp != nil {
+		if kp := ic.Common.InstanceKey; kp != nil {
 			// Common config takes precedence.
 			instanceKey = strings.TrimSpace(*kp)
 		} else {
@@ -286,7 +286,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		for _, ic := range cfg.Integrations {
 			if integrationKey(ic.Name()) == key {
 				// If this is disabled then we should delete from integrations
-				if !ic.CommonConfig().Enabled {
+				if !ic.Common.Enabled {
 					break
 				}
 				foundConfig = true
@@ -307,7 +307,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// if the configs for the integration didn't.
 	for key, p := range m.integrations {
 		shouldCollect := cfg.ScrapeIntegrations
-		if common := p.cfg.CommonConfig(); common.ScrapeIntegration != nil {
+		if common := p.cfg.Common; common.ScrapeIntegration != nil {
 			shouldCollect = *common.ScrapeIntegration
 		}
 
@@ -345,7 +345,7 @@ type integrationProcess struct {
 	log         log.Logger
 	ctx         context.Context
 	stop        context.CancelFunc
-	cfg         Config
+	cfg         UnmarshaledConfig
 	instanceKey string // Value for the `instance` label
 	i           Integration
 
@@ -386,7 +386,7 @@ func (m *Manager) instanceBackoff(cfg Config, err error) {
 }
 
 func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg ManagerConfig) instance.Config {
-	common := p.cfg.CommonConfig()
+	common := p.cfg.Common
 	relabelConfigs := append(cfg.DefaultRelabelConfigs(p.instanceKey), common.RelabelConfigs...)
 
 	schema := "http"

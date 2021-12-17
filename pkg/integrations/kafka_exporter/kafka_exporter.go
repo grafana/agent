@@ -9,7 +9,6 @@ import (
 	kafka_exporter "github.com/davidmparrott/kafka_exporter/v2/exporter"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 )
 
 // DefaultConfig holds the default settings for the kafka_lag_exporter
@@ -27,8 +26,6 @@ var DefaultConfig = Config{
 
 // Config controls kafka_exporter
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// Address array (host:port) of Kafka server
 	KafkaURIs []string `yaml:"kafka_uris,omitempty"`
 
@@ -104,12 +101,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "kafka_exporter"
-}
-
-// CommonConfig returns the common settings shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the hostname:port of the first Kafka node, if any. If
