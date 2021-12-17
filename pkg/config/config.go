@@ -52,15 +52,9 @@ type Config struct {
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// The root config has an unfortunate quirk: flags may change defaults, such
-	// as when enabling the feature flag to use the new implementation of
-	// integrations. We don't want to have flags affect globals, so we cache
-	// custom defaults in a field instead.
-	if c.defaultConfig != nil {
-		*c = *c.defaultConfig
-	} else {
-		*c = DefaultConfig
-	}
+	// Apply defaults to the config from our struct and any defaults inherited
+	// from flags before unmarshaling.
+	*c = DefaultConfig
 	util.DefaultConfigFromFlags(c)
 
 	type baseConfig Config
@@ -228,20 +222,6 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		os.Exit(0)
 	}
 
-	// Give our cfg a custom set of defaults that can safely be modified locally.
-	// The defaults are self-recursive in case Unmarshal is called multiple
-	// times.
-	configDefaults := DefaultConfig
-	configDefaults.defaultConfig = &configDefaults
-	cfg.defaultConfig = &configDefaults
-
-	// Save the loaded integrations version before unmarshaling from YAML.
-	if useIntegrationsV2 {
-		configDefaults.Integrations.version = integrationsVersion2
-	} else {
-		configDefaults.Integrations.version = integrationsVersion1
-	}
-
 	if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
 	} else if err := loader(file, configExpandEnv, &cfg); err != nil {
@@ -252,6 +232,14 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	// values
 	if err := fs.Parse(args); err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
+	}
+
+	// Pass the used integrations version to our config. This MUST be done before
+	// ApplyDefaults, which will perform deferred unmarshaling.
+	if useIntegrationsV2 {
+		cfg.Integrations.version = integrationsVersion2
+	} else {
+		cfg.Integrations.version = integrationsVersion1
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag

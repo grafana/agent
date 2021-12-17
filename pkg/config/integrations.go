@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/go-kit/log"
@@ -8,6 +9,7 @@ import (
 	v1 "github.com/grafana/agent/pkg/integrations"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/statsd_exporter/pkg/level"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
@@ -23,9 +25,12 @@ const (
 // DefaultVersionedIntegrations is the default config for integrations.
 var DefaultVersionedIntegrations = VersionedIntegrations{
 	version: integrationsVersion1,
-	configV1: func() *v1.ManagerConfig {
-		cfg := v1.DefaultManagerConfig
-		return &cfg
+	raw: func() []byte {
+		bb, err := yaml.Marshal(&v1.DefaultManagerConfig)
+		if err != nil {
+			panic(err)
+		}
+		return bb
 	}(),
 }
 
@@ -34,6 +39,7 @@ var DefaultVersionedIntegrations = VersionedIntegrations{
 // flags.
 type VersionedIntegrations struct {
 	version integrationsVersion
+	raw     util.RawYAML
 
 	configV1 *v1.ManagerConfig
 	configV2 *v2.SubsystemOptions
@@ -44,26 +50,23 @@ var (
 	_ yaml.Marshaler   = (*VersionedIntegrations)(nil)
 )
 
-// UnmarshalYAML implements yaml.Unmarshaler. Unmarshals to the enabled
-// integrations subsystem version.
+// UnmarshalYAML implements yaml.Unmarshaler.
 func (c *VersionedIntegrations) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.configV1 = nil
 	c.configV2 = nil
-
-	if c.version != integrationsVersion2 {
-		return unmarshal(&c.configV1)
-	}
-
-	return unmarshal(&c.configV2)
+	return unmarshal(&c.raw)
 }
 
-// MarshalYAML implements yaml.Marshaler. Marshals the enabled integrations
-// subsystem version.
+// MarshalYAML implements yaml.Marshaler.
 func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
-	if c.version != integrationsVersion2 {
+	switch {
+	case c.configV1 != nil:
 		return c.configV1, nil
+	case c.configV2 != nil:
+		return c.configV2, nil
+	default:
+		return c.raw, nil
 	}
-	return c.configV2, nil
 }
 
 // IsZero implements yaml.IsZeroer.
@@ -74,16 +77,46 @@ func (c VersionedIntegrations) IsZero() bool {
 	case c.configV2 != nil:
 		return reflect.ValueOf(*c.configV2).IsZero()
 	default:
-		return true
+		return len(c.raw) == 0
 	}
 }
 
 // ApplyDefaults applies defaults to the subsystem based on globals.
 func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
+	if err := c.completeUnmarshal(); err != nil {
+		return err
+	}
 	if c.version != integrationsVersion2 {
 		return c.configV1.ApplyDefaults(scfg, mcfg)
 	}
 	return c.configV2.ApplyDefaults(mcfg)
+}
+
+// completeUnmarshal will unmarshal the raw config based on c.version. No-op if
+// previously called successfully.
+func (c *VersionedIntegrations) completeUnmarshal() error {
+	if c.configV1 != nil || c.configV2 != nil {
+		return nil
+	}
+
+	var out interface{}
+
+	switch c.version {
+	case integrationsVersion1:
+		cfg := v1.DefaultManagerConfig
+		c.configV1 = &cfg
+
+		out = c.configV1
+	case integrationsVersion2:
+		cfg := v2.DefaultSubsystemOptions
+		c.configV2 = &cfg
+
+		out = c.configV2
+	default:
+		panic(fmt.Sprintf("unknown integrations version %d", c.version))
+	}
+
+	return yaml.UnmarshalStrict(c.raw, out)
 }
 
 // IntegrationsGlobals is a global struct shared across integrations.
@@ -100,6 +133,10 @@ type Integrations interface {
 // of useV2. globals.SubsystemOptions will be automatically set if cfg.Version
 // is set to IntegrationsVersion2.
 func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals IntegrationsGlobals) (Integrations, error) {
+	if err := cfg.completeUnmarshal(); err != nil {
+		return nil, err
+	}
+
 	if cfg.version != integrationsVersion2 {
 		instance, err := v1.NewManager(*cfg.configV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
 		if err != nil {
