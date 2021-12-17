@@ -7,7 +7,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	gh_config "github.com/infinityworks/github-exporter/config"
 	"github.com/infinityworks/github-exporter/exporter"
 	config_util "github.com/prometheus/common/config"
@@ -20,8 +19,6 @@ var DefaultConfig Config = Config{
 
 // Config controls github_exporter
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// URL for the github API
 	APIURL string `yaml:"api_url,omitempty"`
 
@@ -52,12 +49,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "github_exporter"
-}
-
-// CommonConfig returns the common settings shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the hostname:port of the GitHub API server.

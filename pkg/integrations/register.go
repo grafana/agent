@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -30,46 +32,18 @@ func RegisterIntegration(cfg Config) {
 	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
 
-// Configs is a list of integrations.
-type Configs []Config
-
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *Configs) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return c.unmarshalWithIntegrations(registeredIntegrations, unmarshal)
+func cloneIntegration(c Config) Config {
+	return reflect.New(reflect.TypeOf(c).Elem()).Interface().(Config)
 }
 
-func (c *Configs) unmarshalWithIntegrations(integrations []Config, unmarshal func(interface{}) error) error {
-	// Create a dynamic struct type full of our registered integrations and
-	// unmarshal to it.
-	var fields []reflect.StructField
-	for _, cfg := range integrations {
-		fields = append(fields, reflect.StructField{
-			Name: "Config_" + cfg.Name(),
-			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s"`, cfg.Name())),
-			Type: reflect.TypeOf(cfg),
-		})
-	}
+// Configs is a list of UnmarshaledConfig. Configs for integrations which are
+// unmarshaled from YAML are combined with common settings.
+type Configs []UnmarshaledConfig
 
-	var (
-		structType = reflect.StructOf(fields)
-		structVal  = reflect.New(structType)
-	)
-	if err := unmarshal(structVal.Interface()); err != nil {
-		return err
-	}
-
-	// Go over all non-nil fields in structVal and append them to c.
-	structVal = structVal.Elem()
-	for i := 0; i < structVal.NumField(); i++ {
-		if structVal.Field(i).IsNil() {
-			continue
-		}
-
-		val := structVal.Field(i).Interface().(Config)
-		*c = append(*c, val)
-	}
-
-	return nil
+// UnmarshaledConfig combines an integration's config with common settings.
+type UnmarshaledConfig struct {
+	Config
+	Common config.Common
 }
 
 // MarshalYAML helps implement yaml.Marshaller for structs that have a Configs
@@ -112,15 +86,30 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 	}
 
 	for _, c := range configs {
-		fieldName, ok := configFieldNames[reflect.TypeOf(c)]
+		fieldName, ok := configFieldNames[reflect.TypeOf(c.Config)]
 		if !ok {
 			return nil, fmt.Errorf("integrations: cannot marshal unregistered Config type: %T", c)
 		}
 		field := cfgVal.FieldByName("XXX_Config_" + fieldName)
-		field.Set(reflect.ValueOf(c))
+		rawConfig, err := getRawIntegrationConfig(c)
+		if err != nil {
+			return nil, fmt.Errorf("integrations: cannot marshal integration %q: %w", c.Name(), err)
+		}
+		field.Set(rawConfig)
 	}
 
 	return cfgPointer.Interface(), nil
+}
+
+// getRawIntegrationConfig turns an UnmarshaledConfig into the *util.RawYAML
+// used to represent it in configs.
+func getRawIntegrationConfig(uc UnmarshaledConfig) (v reflect.Value, err error) {
+	bb, err := util.MarshalYAMLMerged(uc.Common, uc.Config)
+	if err != nil {
+		return v, err
+	}
+	raw := util.RawYAML(bb)
+	return reflect.ValueOf(&raw), nil
 }
 
 // UnmarshalYAML helps implement yaml.Unmarshaller for structs that have a
@@ -188,16 +177,29 @@ func unmarshalIntegrationsWithList(integrations []Config, out interface{}, unmar
 		outVal.Field(i).Set(cfgVal.Field(i))
 	}
 
-	// Iterate through the remainder of our fields, which should all be of
-	// type Config.
+	// Iterate through the remainder of our fields, which should all be dynamic
+	// structs where the first field is a config.Common and the second field is
+	// a Config.
+	integrationLookup := buildIntegrationsMap(integrations)
 	for i := outVal.NumField(); i < cfgVal.NumField(); i++ {
+		// Our integrations are unmarshaled as *util.RawYAML. If it's nil, we treat
+		// it as not defined.
+		fieldType := cfgVal.Type().Field(i)
 		field := cfgVal.Field(i)
-
 		if field.IsNil() {
 			continue
 		}
-		val := cfgVal.Field(i).Interface().(Config)
-		*configs = append(*configs, val)
+
+		configName := strings.TrimPrefix(fieldType.Name, "XXX_Config_")
+		configReference, ok := integrationLookup[configName]
+		if !ok {
+			return fmt.Errorf("integration %q not registered", configName)
+		}
+		uc, err := buildUnmarshaledConfig(field.Interface().(*util.RawYAML), configReference)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal integration %q: %w", configName, err)
+		}
+		*configs = append(*configs, uc)
 	}
 
 	return nil
@@ -205,6 +207,8 @@ func unmarshalIntegrationsWithList(integrations []Config, out interface{}, unmar
 
 // getConfigTypeForIntegrations returns a dynamic struct type that has all of
 // the same fields as out including the fields for the provided integrations.
+//
+// integrations are unmarshaled to *util.RawYAML for deferred unmarshaling.
 func getConfigTypeForIntegrations(integrations []Config, out reflect.Type) reflect.Type {
 	// Initial exported fields map one-to-one.
 	var fields []reflect.StructField
@@ -226,10 +230,29 @@ func getConfigTypeForIntegrations(integrations []Config, out reflect.Type) refle
 		fields = append(fields, reflect.StructField{
 			Name: fieldName,
 			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
-			Type: reflect.TypeOf(cfg),
+			Type: reflect.PtrTo(reflect.TypeOf(util.RawYAML{})),
 		})
 	}
 	return reflect.StructOf(fields)
+}
+
+func buildIntegrationsMap(in []Config) map[string]Config {
+	m := make(map[string]Config, len(in))
+	for _, i := range in {
+		m[i.Name()] = i
+	}
+	return m
+}
+
+// buildUnmarshaledConfig converts raw YAML into an UnmarshaledConfig where the
+// config type is the same as ref.
+func buildUnmarshaledConfig(raw *util.RawYAML, ref Config) (uc UnmarshaledConfig, err error) {
+	// Initialize uc.Config so it can be unmarshaled properly as an interface.
+	uc = UnmarshaledConfig{
+		Config: cloneIntegration(ref),
+	}
+	err = util.UnmarshalYAMLMerged(*raw, &uc.Common, uc.Config)
+	return
 }
 
 func replaceYAMLTypeError(err error, oldTyp, newTyp reflect.Type) error {
@@ -237,7 +260,7 @@ func replaceYAMLTypeError(err error, oldTyp, newTyp reflect.Type) error {
 		oldStr := oldTyp.String()
 		newStr := newTyp.String()
 		for i, s := range e.Errors {
-			e.Errors[i] = strings.Replace(s, oldStr, newStr, -1)
+			e.Errors[i] = strings.ReplaceAll(s, oldStr, newStr)
 		}
 	}
 	return err

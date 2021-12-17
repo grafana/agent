@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/memcached_exporter/pkg/exporter"
 )
 
@@ -18,8 +17,6 @@ var DefaultConfig Config = Config{
 
 // Config controls the memcached_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// MemcachedAddress is the address of the memcached server (host:port).
 	MemcachedAddress string `yaml:"memcached_address,omitempty"`
 
@@ -38,11 +35,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "memcached_exporter"
-}
-
-// CommonConfig returns the common settings shared across all integratons.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the address:port of the memcached server.
