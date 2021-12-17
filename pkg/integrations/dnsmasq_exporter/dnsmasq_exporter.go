@@ -5,7 +5,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/google/dnsmasq_exporter/collector"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/miekg/dns"
 )
 
@@ -17,8 +16,6 @@ var DefaultConfig Config = Config{
 
 // Config controls the dnsmasq_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// DnsmasqAddress is the address of the dnsmasq server (host:port).
 	DnsmasqAddress string `yaml:"dnsmasq_address,omitempty"`
 
@@ -29,11 +26,6 @@ type Config struct {
 // Name returns the name of the integration that this config is for.
 func (c *Config) Name() string {
 	return "dnsmasq_exporter"
-}
-
-// CommonConfig returns the set of common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the address of the dnsmasq server.

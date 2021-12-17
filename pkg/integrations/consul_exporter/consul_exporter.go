@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	consul_api "github.com/hashicorp/consul/api"
 	"github.com/prometheus/consul_exporter/pkg/exporter"
 )
@@ -24,8 +23,6 @@ var DefaultConfig = Config{
 
 // Config controls the consul_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	Server             string        `yaml:"server,omitempty"`
 	CAFile             string        `yaml:"ca_file,omitempty"`
 	CertFile           string        `yaml:"cert_file,omitempty"`
@@ -53,11 +50,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration.
 func (c *Config) Name() string {
 	return "consul_exporter"
-}
-
-// CommonConfig returns the common set of settings for this integration.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the hostname:port of the Consul server.

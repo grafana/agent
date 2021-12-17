@@ -4,7 +4,6 @@ package process_exporter //nolint:golint
 import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 
 	exporter_config "github.com/ncabatoff/process-exporter/config"
 )
@@ -20,7 +19,6 @@ var DefaultConfig = Config{
 
 // Config controls the process_exporter integration.
 type Config struct {
-	Common          config.Common                `yaml:",inline"`
 	ProcessExporter exporter_config.MatcherRules `yaml:"process_names,omitempty"`
 
 	ProcFSPath string `yaml:"procfs_path,omitempty"`
@@ -41,11 +39,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "process_exporter"
-}
-
-// CommonConfig returns the set of common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the hostname of the machine.

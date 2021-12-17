@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 )
 
 const name = "cadvisor"
@@ -34,8 +33,6 @@ var DefaultConfig Config = Config{
 
 // Config controls cadvisor
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// Common cadvisor config options
 	// StoreContainerLabels converts container labels and environment variables into labels on prometheus metrics for each container. If false, then only metrics exported are container name, first alias, and image name.
 	StoreContainerLabels bool `yaml:"store_container_labels,omitempty"`
@@ -104,12 +101,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return name
-}
-
-// CommonConfig returns the common settings shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the agentKey

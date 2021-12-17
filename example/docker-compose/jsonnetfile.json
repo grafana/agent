@@ -1,9 +1,10 @@
 {
+  "version": 1,
   "dependencies": [
     {
       "source": {
         "local": {
-          "directory": "../production/grafana-agent-mixin"
+          "directory": "../../production/grafana-agent-mixin"
         }
       },
       "version": ""
