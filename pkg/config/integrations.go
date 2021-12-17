@@ -21,28 +21,20 @@ const (
 	integrationsVersion2
 )
 
+var DefaultVersionedIntegrations = VersionedIntegrations{
+	version: integrationsVersion1,
+	configV1: func() *v1.ManagerConfig {
+		cfg := v1.DefaultManagerConfig
+		return &cfg
+	}(),
+}
+
 // VersionedIntegrations abstracts the subsystem configs for integrations v1 and v2.
 type VersionedIntegrations struct {
 	version integrationsVersion
 
 	configV1 *v1.ManagerConfig
 	configV2 *v2.SubsystemOptions
-}
-
-// init will initialize the inner config based on the set version.
-func (c *VersionedIntegrations) init() {
-	switch c.version {
-	case integrationsVersionDefault, integrationsVersion1:
-		if c.configV1 == nil {
-			val := v1.DefaultManagerConfig
-			c.configV1 = &val
-		}
-	case integrationsVersion2:
-		if c.configV2 == nil {
-			val := v2.DefaultSubsystemOptions
-			c.configV2 = &val
-		}
-	}
 }
 
 var (
@@ -52,18 +44,18 @@ var (
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *VersionedIntegrations) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	c.init()
+	c.configV1 = nil
+	c.configV2 = nil
 
 	if c.version != integrationsVersion2 {
 		return unmarshal(&c.configV1)
 	}
+
 	return unmarshal(&c.configV2)
 }
 
 // MarshalYAML implements yaml.Marshaler.
 func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
-	c.init()
-
 	if c.version != integrationsVersion2 {
 		return c.configV1, nil
 	}
@@ -84,8 +76,6 @@ func (c VersionedIntegrations) IsZero() bool {
 
 // ApplyDefaults applies defaults to the subsystem based on globals.
 func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
-	c.init()
-
 	if c.version != integrationsVersion2 {
 		return c.configV1.ApplyDefaults(scfg, mcfg)
 	}
@@ -111,8 +101,6 @@ type Integrations interface {
 // of useV2. globals.SubsystemOptions will be automatically set if cfg.Version
 // is set to IntegrationsVersion2.
 func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals IntegrationsGlobals) (Integrations, error) {
-	cfg.init()
-
 	if cfg.version != integrationsVersion2 {
 		instance, err := v1.NewManager(*cfg.configV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
 		if err != nil {

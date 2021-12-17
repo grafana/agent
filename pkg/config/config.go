@@ -24,7 +24,8 @@ import (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Metrics: metrics.DefaultConfig,
+	Metrics:      metrics.DefaultConfig,
+	Integrations: DefaultVersionedIntegrations,
 }
 
 // Config contains underlying configurations for the agent
