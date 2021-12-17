@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -44,6 +45,15 @@ type SubsystemOptions struct {
 
 	// Override settings to self-communicate with agent.
 	ClientConfig common_config.HTTPClientConfig `yaml:"client_config,omitempty"`
+}
+
+// ApplyDefaults will apply defaults to o.
+func (o *SubsystemOptions) ApplyDefaults(mcfg *metrics.Config) error {
+	if len(o.PrometheusRemoteWrite) == 0 {
+		o.PrometheusRemoteWrite = mcfg.Global.RemoteWrite
+	}
+
+	return nil
 }
 
 // MarshalYAML implements yaml.Marshaler for SubsystemOptions. Integrations

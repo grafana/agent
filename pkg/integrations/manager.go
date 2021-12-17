@@ -24,6 +24,7 @@ import (
 	promConfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/relabel"
+	"github.com/weaveworks/common/server"
 )
 
 var (
@@ -115,7 +116,17 @@ func (c *ManagerConfig) DefaultRelabelConfigs(instanceKey string) []*relabel.Con
 //
 // If any integrations are enabled and are configured to be scraped, the
 // Prometheus configuration must have a WAL directory configured.
-func (c *ManagerConfig) ApplyDefaults(cfg *metrics.Config) error {
+func (c *ManagerConfig) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
+	c.ListenPort = scfg.HTTPListenPort
+	c.ListenHost = scfg.HTTPListenAddress
+
+	c.ServerUsingTLS = scfg.HTTPTLSConfig.TLSKeyPath != "" && scfg.HTTPTLSConfig.TLSCertPath != ""
+
+	if len(c.PrometheusRemoteWrite) == 0 {
+		c.PrometheusRemoteWrite = mcfg.Global.RemoteWrite
+	}
+	c.PrometheusGlobalConfig = mcfg.Global.Prometheus
+
 	for _, ic := range c.Integrations {
 		if !ic.CommonConfig().Enabled {
 			continue
@@ -127,7 +138,7 @@ func (c *ManagerConfig) ApplyDefaults(cfg *metrics.Config) error {
 		}
 
 		// WAL must be configured if an integration is going to be scraped.
-		if scrapeIntegration && cfg.WALDir == "" {
+		if scrapeIntegration && mcfg.WALDir == "" {
 			return fmt.Errorf("no wal_directory configured")
 		}
 	}
