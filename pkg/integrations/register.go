@@ -247,7 +247,7 @@ func buildIntegrationsMap(in []Config) map[string]Config {
 // buildUnmarshaledConfig converts raw YAML into an UnmarshaledConfig where the
 // config type is the same as ref.
 func buildUnmarshaledConfig(raw *util.RawYAML, ref Config) (uc UnmarshaledConfig, err error) {
-	// Initalize uc.Config so it can be unmarshaled properly as an interface.
+	// Initialize uc.Config so it can be unmarshaled properly as an interface.
 	uc = UnmarshaledConfig{
 		Config: cloneIntegration(ref),
 	}

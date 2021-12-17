@@ -30,6 +30,7 @@ func (r RawYAML) MarshalYAML() (interface{}, error) {
 	return r.Map()
 }
 
+// Map converts the raw YAML into a yaml.MapSlice.
 func (r RawYAML) Map() (yaml.MapSlice, error) {
 	var ms yaml.MapSlice
 	if err := yaml.Unmarshal(r, &ms); err != nil {
