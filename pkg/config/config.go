@@ -30,6 +30,10 @@ var DefaultConfig = Config{
 
 // Config contains underlying configurations for the agent
 type Config struct {
+	// Custom defaults to use. When non-nil, defaultConfig must be recursive and
+	// contain a pointer to itself at defaultConfig.defaultConfig.
+	defaultConfig *Config
+
 	Server       server.Config         `yaml:"server,omitempty"`
 	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
 	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
@@ -48,20 +52,16 @@ type Config struct {
 
 // UnmarshalYAML implements yaml.Unmarshaler.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// NOTE(rfratto): We must temporarily save the version used for integrations
-	// before setting everything to default values. The c.Integrations.Version
-	// field is set based on a flag, and we do not want to override it.
-	//
-	// This is gross, but necessary for now.
-	integrationsVersion := c.Integrations.version
-
-	// Apply defaults to the config from our struct and any defaults inherited
-	// from flags before unmarshaling.
-	*c = DefaultConfig
+	// The root config has an unfortunate quirk: flags may change defaults, such
+	// as when enabling the feature flag to use the new implementation of
+	// integrations. We don't want to have flags affect globals, so we cache
+	// custom defaults in a field instead.
+	if c.defaultConfig != nil {
+		*c = *c.defaultConfig
+	} else {
+		*c = DefaultConfig
+	}
 	util.DefaultConfigFromFlags(c)
-
-	// Restore fields we don't want to override from defaults.
-	c.Integrations.version = integrationsVersion
 
 	type baseConfig Config
 
@@ -228,11 +228,18 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		os.Exit(0)
 	}
 
+	// Give our cfg a custom set of defaults that can safely be modified locally.
+	// The defaults are self-recursive in case Unmarshal is called multiple
+	// times.
+	configDefaults := DefaultConfig
+	configDefaults.defaultConfig = &configDefaults
+	cfg.defaultConfig = &configDefaults
+
 	// Save the loaded integrations version before unmarshaling from YAML.
 	if useIntegrationsV2 {
-		cfg.Integrations.version = integrationsVersion2
+		configDefaults.Integrations.version = integrationsVersion2
 	} else {
-		cfg.Integrations.version = integrationsVersion1
+		configDefaults.Integrations.version = integrationsVersion1
 	}
 
 	if file == "" {

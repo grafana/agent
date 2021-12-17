@@ -8,6 +8,7 @@ import (
 	v1 "github.com/grafana/agent/pkg/integrations"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/metrics"
+	"github.com/prometheus/statsd_exporter/pkg/level"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
@@ -108,6 +109,8 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 		}
 		return &v1Integrations{Manager: instance}, nil
 	}
+
+	level.Warn(logger).Log("msg", "integrations-next is enabled. integrations-next is subject to change")
 
 	globals.SubsystemOpts = *cfg.configV2
 	instance, err := v2.NewSubsystem(logger, globals)
