@@ -17,11 +17,7 @@ Full reference of options:
 ```yaml
   # Enables the cadvisor integration, allowing the Agent to automatically
   # collect metrics for the specified github objects.
-  #
-  # Enabled is DEPRECATED and will be removed in a future release. To disable
-  # an integration, comment it out or remove it from your config instead of
-  # setting `enabled: false`.
-  [enabled: <boolean> | default = true]
+  [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.
@@ -86,7 +82,7 @@ Full reference of options:
   # List of `metrics` to be enabled. If set, overrides disabled_metrics
   enabled_metrics:
     [ - <string> ]
-
+  
   # Length of time to keep data stored in memory
   [storage_duration: <duration> | default = "2m"]
 

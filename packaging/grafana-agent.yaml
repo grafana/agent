@@ -19,8 +19,10 @@ metrics:
     #         - targets: ['127.0.0.1:9090']
 
 integrations:
-  agent: {}
+  agent:
+    enabled: true
   node_exporter:
+    enabled: true
     include_exporter_metrics: true
     disable_collectors:
       - "mdadm"

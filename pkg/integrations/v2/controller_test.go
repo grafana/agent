@@ -2,7 +2,6 @@ package integrations
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"testing"
 
@@ -185,26 +184,6 @@ func (sc *syncController) UpdateController(c controllerConfig, g Globals) error 
 func (sc *syncController) Stop() {
 	sc.stop()
 	<-sc.exitedCh
-}
-
-// Test_controller_IgnoresDisabledIntegration ensures that disabled integrations
-// do not get run.
-func Test_controller_IgnoredDisabledIntegration(t *testing.T) {
-	cfg := controllerConfig{
-		mockConfig{
-			NameFunc:         func() string { return mockIntegrationName },
-			ConfigEqualsFunc: func(Config) bool { return false },
-			IdentifierFunc: func(Globals) (string, error) {
-				return mockIntegrationName, nil
-			},
-			NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
-				return nil, fmt.Errorf("won't run integration: %w", ErrDisabled)
-			},
-		},
-	}
-
-	_, err := newController(util.TestLogger(t), cfg, Globals{})
-	require.NoError(t, err, "error from NewIntegration should have been ignored")
 }
 
 const mockIntegrationName = "mock"

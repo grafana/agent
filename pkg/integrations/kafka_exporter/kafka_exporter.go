@@ -15,7 +15,6 @@ import (
 // DefaultConfig holds the default settings for the kafka_lag_exporter
 // integration.
 var DefaultConfig = Config{
-	Common:                  config.DefaultCommon,
 	UseSASLHandshake:        true,
 	KafkaVersion:            sarama.V2_0_0_0.String(),
 	MetadataRefreshInterval: "1m",

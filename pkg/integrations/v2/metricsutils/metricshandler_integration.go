@@ -23,9 +23,6 @@ func NewMetricsHandlerIntegration(
 	globals integrations.Globals,
 	h http.Handler,
 ) (integrations.MetricsIntegration, error) {
-	if !c.MetricsConfig().Enabled {
-		return nil, integrations.ErrDisabled
-	}
 	id, err := c.Identifier(globals)
 	if err != nil {
 		return nil, err

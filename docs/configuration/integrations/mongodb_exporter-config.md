@@ -29,12 +29,8 @@ security privileges necessary for monitoring your node, as per the [official doc
 Besides that, there's not much to configure. Please refer to the full reference of options:
 
 ```yaml
-  # Enables the mongodb_exporter integration.
-  #
-  # Enabled is DEPRECATED and will be removed in a future release. To disable
-  # an integration, comment it out or remove it from your config instead of
-  # setting `enabled: false`.
-  [enabled: <boolean> | default = true]
+  # Enables the mongodb_exporter integration
+  [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.

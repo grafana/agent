@@ -432,6 +432,9 @@ func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg Manage
 	instanceCfg.Name = integrationKey(p.cfg.Name())
 	instanceCfg.ScrapeConfigs = scrapeConfigs
 	instanceCfg.RemoteWrite = cfg.PrometheusRemoteWrite
+	if common.WALTruncateFrequency > 0 {
+		instanceCfg.WALTruncateFrequency = common.WALTruncateFrequency
+	}
 	return instanceCfg
 }
 

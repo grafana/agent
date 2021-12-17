@@ -101,7 +101,6 @@ agent:
 
 	agentConfig := shim.Data.(*agent_v1.Config)
 	require.Equal(t, "foo", *agentConfig.Common.InstanceKey)
-	require.Equal(t, true, agentConfig.Enabled)
 }
 
 type legacyShim struct{ Data v1.Config }

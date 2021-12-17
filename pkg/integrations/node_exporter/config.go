@@ -14,37 +14,38 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-// DefaultConfig holds non-zero default options for the Config when it is
-// unmarshaled from YAML.
-//
-// DefaultConfig's defaults are populated from init functions in this package.
-// See the init function here and in node_exporter_linux.go.
-var DefaultConfig = Config{
-	Common:     config.DefaultCommon,
-	ProcFSPath: procfs.DefaultMountPoint,
-	RootFSPath: "/",
+var (
+	// DefaultConfig holds non-zero default options for the Config when it is
+	// unmarshaled from YAML.
+	//
+	// DefaultConfig's defaults are populated from init functions in this package.
+	// See the init function here and in node_exporter_linux.go.
+	DefaultConfig = Config{
+		ProcFSPath: procfs.DefaultMountPoint,
+		RootFSPath: "/",
 
-	DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
+		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 
-	NetclassIgnoredDevices: "^$",
-	NetstatFields:          "^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans)|Tcp_(ActiveOpens|InSegs|OutSegs|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$",
+		NetclassIgnoredDevices: "^$",
+		NetstatFields:          "^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans)|Tcp_(ActiveOpens|InSegs|OutSegs|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$",
 
-	NTPServer:               "127.0.0.1",
-	NTPProtocolVersion:      4,
-	NTPIPTTL:                1,
-	NTPMaxDistance:          time.Microsecond * 3466080,
-	NTPLocalOffsetTolerance: time.Millisecond,
+		NTPServer:               "127.0.0.1",
+		NTPProtocolVersion:      4,
+		NTPIPTTL:                1,
+		NTPMaxDistance:          time.Microsecond * 3466080,
+		NTPLocalOffsetTolerance: time.Millisecond,
 
-	PowersupplyIgnoredSupplies: "^$",
+		PowersupplyIgnoredSupplies: "^$",
 
-	RunitServiceDir: "/etc/service",
+		RunitServiceDir: "/etc/service",
 
-	SupervisordURL: "http://localhost:9001/RPC2",
+		SupervisordURL: "http://localhost:9001/RPC2",
 
-	SystemdUnitWhitelist: ".+",
-	SystemdUnitBlacklist: ".+\\.(automount|device|mount|scope|slice)",
-	VMStatFields:         "^(oom_kill|pgpg|pswp|pg.*fault).*",
-}
+		SystemdUnitWhitelist: ".+",
+		SystemdUnitBlacklist: ".+\\.(automount|device|mount|scope|slice)",
+		VMStatFields:         "^(oom_kill|pgpg|pswp|pg.*fault).*",
+	}
+)
 
 func init() {
 	// The default values for the filesystem collector are to ignore everything,

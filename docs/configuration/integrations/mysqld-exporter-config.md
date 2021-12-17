@@ -16,6 +16,7 @@ servers:
 
 ```yaml
 mysqld_exporter:
+  enabled: true
   data_source_name: root@(server-a:3306)/
   relabel_configs:
   - source_labels: [__address__]
@@ -31,11 +32,7 @@ Full reference of options:
 ```yaml
   # Enables the mysqld_exporter integration, allowing the Agent to collect
   # metrics from a MySQL server.
-  #
-  # Enabled is DEPRECATED and will be removed in a future release. To disable
-  # an integration, comment it out or remove it from your config instead of
-  # setting `enabled: false`.
-  [enabled: <boolean> | default = true]
+  [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.

@@ -15,7 +15,6 @@ import (
 
 // DefaultConfig holds the default settings for the consul_exporter integration.
 var DefaultConfig = Config{
-	Common:        config.DefaultCommon,
 	Server:        "http://localhost:8500",
 	Timeout:       500 * time.Millisecond,
 	AllowStale:    true,

@@ -34,7 +34,8 @@ metrics:
       - url: http://localhost:9009/api/prom/push
 
 integrations:
-  agent: {}
+  agent:
+    enabled: true
 ```
 
 In this example, we first must configure the `wal_directory` which is used to
@@ -179,5 +180,6 @@ traces:
       send_batch_size: 100
 
 integrations:
-  node_exporter: {}
+  node_exporter:
+    enabled: true
 ```

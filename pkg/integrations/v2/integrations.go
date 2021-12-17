@@ -34,9 +34,6 @@ import (
 )
 
 var (
-	// ErrDisabled may be returned by NewIntegration to indicate that an
-	// integration should not run.
-	ErrDisabled = fmt.Errorf("integration disabled")
 	// ErrInvalidUpdate is returned by ApplyConfig when the config cannot
 	// be dynamically applied.
 	ErrInvalidUpdate = fmt.Errorf("invalid dynamic update")

@@ -44,14 +44,22 @@ func Test_getDataSourceNames(t *testing.T) {
 			expect: []string{"foo", "bar"},
 		},
 		{
-			name:   "config",
-			config: `data_source_names: [foo]`,
+			name: "config",
+			config: `{
+        "data_source_names": [
+          "foo"
+        ]
+      }`,
 			env:    "",
 			expect: []string{"foo"},
 		},
 		{
-			name:   "config and env",
-			config: `data_source_names: [foo]`,
+			name: "config and env",
+			config: `{
+        "data_source_names": [
+          "foo"
+        ]
+      }`,
 			env:    "bar",
 			expect: []string{"foo"},
 		},
@@ -66,7 +74,7 @@ func Test_getDataSourceNames(t *testing.T) {
 			os.Setenv("POSTGRES_EXPORTER_DATA_SOURCE_NAME", tc.env)
 
 			var cfg Config
-			err := yaml.UnmarshalStrict([]byte(tc.config), &cfg)
+			err := yaml.Unmarshal([]byte(tc.config), &cfg)
 			require.NoError(t, err)
 
 			res, err := cfg.getDataSourceNames()

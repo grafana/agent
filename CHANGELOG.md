@@ -1,8 +1,5 @@
 # Main (unreleased)
 
-BREAKING CHANGE: Integrations have changed in this release.
-Please review the [migration guide](./docs/migration-guide.md) for details.
-
 - [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
    only HTTP/S is supported. Pass the `-enable-features=remote-configs` flag to turn this on. (@rlankfo)
 
@@ -15,16 +12,6 @@ Please review the [migration guide](./docs/migration-guide.md) for details.
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 - [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
-
-- [CHANGE] Integrations present in the `integrations:` map will now default to
-  being enabled. (@rfratto)
-
-- [CHANGE] The `wal_truncate_frequency` field in integrations has been removed
-  and will fail to load when defined. This change is to improve the future
-  performance of running many integrations. (@rfratto)
-
-- [DEPRECATION] Integrations: The `enabled` field is now deprecated and will be
-  removed in a future release. (@rfratto)
 
 # v0.21.2 (2021-12-08)
 
