@@ -31,6 +31,6 @@
       scrape_configs: std.filter(
         function(cfg) $.isOnlyK8sPodDiscovery(cfg) == host_filter_compatible,
         super.scrape_configs,
-      )
+      ),
     }, instances),
 }

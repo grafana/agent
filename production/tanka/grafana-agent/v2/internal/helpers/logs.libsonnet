@@ -17,5 +17,5 @@ local container = k.core.v1.container;
     container+::
       container.mixin.securityContext.withPrivileged(true) +
       container.mixin.securityContext.withRunAsUser(0),
-  }
+  },
 }
