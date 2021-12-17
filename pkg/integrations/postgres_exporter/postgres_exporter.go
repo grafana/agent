@@ -17,7 +17,7 @@ import (
 
 // Config controls the postgres_exporter integration.
 type Config struct {
-	config.Common `yaml:",inline"`
+	Common config.Common `yaml:",inline"`
 
 	// DataSourceNames to use to connect to Postgres.
 	DataSourceNames []config_util.Secret `yaml:"data_source_names,omitempty"`
@@ -28,6 +28,13 @@ type Config struct {
 	IncludeDatabases       []string `yaml:"include_databases,omitempty"`
 	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics,omitempty"`
 	QueryPath              string   `yaml:"query_path,omitempty"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler.
+func (c *Config) UnmarshalYAML(f func(interface{}) error) error {
+	c.Common = config.DefaultCommon
+	type config Config
+	return f((*config)(c))
 }
 
 // Name returns the name of the integration this config is for.
