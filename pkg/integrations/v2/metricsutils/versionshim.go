@@ -10,17 +10,19 @@ import (
 	"github.com/prometheus/common/model"
 
 	v1 "github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/config"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 )
 
 // CreateShim creates a shim between the v1.Config and v2.Config. The resulting
 // config is NOT registered.
-func CreateShim(before v1.Config) (after v2.UpgradedConfig) {
-	return &configShim{Orig: before}
+func CreateShim(before v1.Config, common config.Common) (after v2.UpgradedConfig) {
+	return &configShim{orig: before, common: common}
 }
 
 type configShim struct {
-	Orig v1.Config
+	orig   v1.Config
+	common config.Common
 }
 
 var (
@@ -29,15 +31,15 @@ var (
 )
 
 // LegacyConfig implements v2.UpgradedConfig.
-func (s *configShim) LegacyConfig() v1.Config { return s.Orig }
+func (s *configShim) LegacyConfig() (v1.Config, config.Common) { return s.orig, s.common }
 
-func (s *configShim) Name() string { return s.Orig.Name() }
+func (s *configShim) Name() string { return s.orig.Name() }
 func (s *configShim) Identifier(g v2.Globals) (string, error) {
-	return s.Orig.InstanceKey(g.AgentIdentifier)
+	return s.orig.InstanceKey(g.AgentIdentifier)
 }
 
 func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration, error) {
-	v1Integration, err := s.Orig.NewIntegration(l)
+	v1Integration, err := s.orig.NewIntegration(l)
 	if err != nil {
 		return nil, err
 	}
@@ -47,21 +49,18 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 		return nil, err
 	}
 
-	// Map from the original CommonConfig to the new settings. This is a 1:1
-	// mapping, minus the loss of WALTruncateFrequency.
-	origCommon := s.Orig.CommonConfig()
-
-	if !origCommon.Enabled {
+	// Map from the original s.common to the new common settings.
+	if !s.common.Enabled {
 		return nil, fmt.Errorf("disabled integrations cannot be used in integrations-next")
 	}
 
 	newCommon := CommonConfig{
-		InstanceKey:          origCommon.InstanceKey,
-		ScrapeIntegration:    origCommon.ScrapeIntegration,
-		ScrapeInterval:       origCommon.ScrapeInterval,
-		ScrapeTimeout:        origCommon.ScrapeTimeout,
-		RelabelConfigs:       origCommon.RelabelConfigs,
-		MetricRelabelConfigs: origCommon.MetricRelabelConfigs,
+		InstanceKey:          s.common.InstanceKey,
+		ScrapeIntegration:    s.common.ScrapeIntegration,
+		ScrapeInterval:       s.common.ScrapeInterval,
+		ScrapeTimeout:        s.common.ScrapeTimeout,
+		RelabelConfigs:       s.common.RelabelConfigs,
+		MetricRelabelConfigs: s.common.MetricRelabelConfigs,
 	}
 
 	// Generate our handler. Original integrations didn't accept a prefix, and
@@ -110,7 +109,7 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 
 	// Aggregate our converted settings into a v2 integration.
 	return &metricsHandlerIntegration{
-		integrationName: s.Orig.Name(),
+		integrationName: s.orig.Name(),
 		instanceID:      id,
 
 		common:  newCommon,

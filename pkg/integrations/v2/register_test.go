@@ -6,7 +6,8 @@ import (
 
 	"github.com/go-kit/log"
 	v1 "github.com/grafana/agent/pkg/integrations"
-	agent_v1 "github.com/grafana/agent/pkg/integrations/agent"
+	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/github_exporter"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -79,15 +80,15 @@ test_configs:
 func TestIntegrationRegistration_Legacy(t *testing.T) {
 	setRegistered(t, nil)
 
-	RegisterLegacy(&agent_v1.Config{}, TypeSingleton, func(in v1.Config) UpgradedConfig {
-		return &legacyShim{Data: in}
+	RegisterLegacy(&github_exporter.Config{}, TypeSingleton, func(in v1.Config, common config.Common) UpgradedConfig {
+		return &legacyShim{Data: in, Common: common}
 	})
 
 	var cfgToParse = `
 name: John Doe
 duration: 500ms
-agent:
-  instance: foo`
+github_exporter:
+  api_url: nowhere`
 
 	var fullCfg testFullConfig
 	err := yaml.UnmarshalStrict([]byte(cfgToParse), &fullCfg)
@@ -97,17 +98,20 @@ agent:
 	require.IsType(t, &legacyShim{}, fullCfg.Configs[0])
 
 	shim := fullCfg.Configs[0].(*legacyShim)
-	require.IsType(t, &agent_v1.Config{}, shim.Data)
+	require.IsType(t, &github_exporter.Config{}, shim.Data)
 
-	agentConfig := shim.Data.(*agent_v1.Config)
-	require.Equal(t, "foo", *agentConfig.Common.InstanceKey)
+	v1Config := shim.Data.(*github_exporter.Config)
+	require.Equal(t, "nowhere", v1Config.APIURL)
 }
 
-type legacyShim struct{ Data v1.Config }
+type legacyShim struct {
+	Data   v1.Config
+	Common config.Common
+}
 
-func (s *legacyShim) LegacyConfig() v1.Config              { return s.Data }
-func (s *legacyShim) Name() string                         { return s.Data.Name() }
-func (s *legacyShim) Identifier(g Globals) (string, error) { return g.AgentIdentifier, nil }
+func (s *legacyShim) LegacyConfig() (v1.Config, config.Common) { return s.Data, s.Common }
+func (s *legacyShim) Name() string                             { return s.Data.Name() }
+func (s *legacyShim) Identifier(g Globals) (string, error)     { return g.AgentIdentifier, nil }
 func (s *legacyShim) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
 }
