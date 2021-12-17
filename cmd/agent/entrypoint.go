@@ -11,7 +11,6 @@ import (
 	"syscall"
 
 	"github.com/gorilla/mux"
-	integrations "github.com/grafana/agent/pkg/integrations/versionselector"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -42,7 +41,7 @@ type Entrypoint struct {
 	promMetrics  *metrics.Agent
 	lokiLogs     *logs.Logs
 	tempoTraces  *traces.Traces
-	integrations integrations.Subsystem
+	integrations config.Integrations
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
@@ -95,7 +94,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	if err != nil {
 		return nil, err
 	}
-	ep.integrations, err = integrations.NewSubsystem(logger, &cfg.Integrations, integrationGlobals)
+	ep.integrations, err = config.NewIntegrations(logger, &cfg.Integrations, integrationGlobals)
 	if err != nil {
 		return nil, err
 	}
@@ -108,10 +107,10 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	return ep, nil
 }
 
-func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (integrations.Globals, error) {
+func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (config.IntegrationsGlobals, error) {
 	hostname, err := instance.Hostname()
 	if err != nil {
-		return integrations.Globals{}, fmt.Errorf("getting hostname: %w", err)
+		return config.IntegrationsGlobals{}, fmt.Errorf("getting hostname: %w", err)
 	}
 
 	usingTLS := len(cfg.Server.HTTPTLSConfig.TLSCertPath) > 0 && len(cfg.Server.HTTPTLSConfig.TLSKeyPath) > 0
@@ -120,7 +119,7 @@ func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (integration
 		scheme = "https"
 	}
 
-	return integrations.Globals{
+	return config.IntegrationsGlobals{
 		AgentIdentifier: fmt.Sprintf("%s:%d", hostname, cfg.Server.HTTPListenPort),
 		Metrics:         ep.promMetrics,
 		Logs:            ep.lokiLogs,

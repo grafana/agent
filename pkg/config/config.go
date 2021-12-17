@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/common/server"
 
 	"github.com/drone/envsubst/v2"
-	integrations "github.com/grafana/agent/pkg/integrations/versionselector"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
@@ -30,11 +29,11 @@ var DefaultConfig = Config{
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config       `yaml:"server,omitempty"`
-	Metrics      metrics.Config      `yaml:"metrics,omitempty"`
-	Integrations integrations.Config `yaml:"integrations,omitempty"`
-	Traces       traces.Config       `yaml:"traces,omitempty"`
-	Logs         *logs.Config        `yaml:"logs,omitempty"`
+	Server       server.Config         `yaml:"server,omitempty"`
+	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
+	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
+	Traces       traces.Config         `yaml:"traces,omitempty"`
+	Logs         *logs.Config          `yaml:"logs,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
@@ -53,7 +52,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// field is set based on a flag, and we do not want to override it.
 	//
 	// This is gross, but necessary for now.
-	integrationsVersion := c.Integrations.Version
+	integrationsVersion := c.Integrations.version
 
 	// Apply defaults to the config from our struct and any defaults inherited
 	// from flags before unmarshaling.
@@ -61,7 +60,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	util.DefaultConfigFromFlags(c)
 
 	// Restore fields we don't want to override from defaults.
-	c.Integrations.Version = integrationsVersion
+	c.Integrations.version = integrationsVersion
 
 	type baseConfig Config
 
@@ -230,9 +229,9 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 
 	// Save the loaded integrations version before unmarshaling from YAML.
 	if useIntegrationsV2 {
-		cfg.Integrations.Version = integrations.Version2
+		cfg.Integrations.version = integrationsVersion2
 	} else {
-		cfg.Integrations.Version = integrations.Version1
+		cfg.Integrations.version = integrationsVersion1
 	}
 
 	if file == "" {
