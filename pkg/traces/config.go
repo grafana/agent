@@ -29,13 +29,13 @@ import (
 	prom_config "github.com/prometheus/common/config"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configcheck"
-	"go.opentelemetry.io/collector/config/configparser"
+	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+	"go.uber.org/multierr"
 )
 
 const (
@@ -101,7 +101,7 @@ type InstanceConfig struct {
 	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// Receivers: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/receiver/README.md
-	Receivers map[string]interface{} `yaml:"receivers,omitempty"`
+	Receivers ReceiverMap `yaml:"receivers,omitempty"`
 
 	// Batch: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/batchprocessor/config.go#L24
 	Batch map[string]interface{} `yaml:"batch,omitempty"`
@@ -110,8 +110,9 @@ type InstanceConfig struct {
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
 	// prom service discovery config
-	ScrapeConfigs []interface{} `yaml:"scrape_configs,omitempty"`
-	OperationType string        `yaml:"prom_sd_operation_type,omitempty"`
+	ScrapeConfigs   []interface{} `yaml:"scrape_configs,omitempty"`
+	OperationType   string        `yaml:"prom_sd_operation_type,omitempty"`
+	PodAssociations []string      `yaml:"prom_sd_pod_associations,omitempty"`
 
 	// SpanMetricsProcessor: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/spanmetricsprocessor/README.md
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
@@ -127,6 +128,16 @@ type InstanceConfig struct {
 
 	// ServiceGraphs
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
+}
+
+// ReceiverMap stores a set of receivers. Because receivers may be configured
+// with an unknown set of sensitive information, ReceiverMap will marshal as
+// YAML to the text "<secret>".
+type ReceiverMap map[string]interface{}
+
+// MarshalYAML implements yaml.Marshaler.
+func (r ReceiverMap) MarshalYAML() (interface{}, error) {
+	return "<secret>", nil
 }
 
 const (
@@ -402,8 +413,9 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 		processorNames = append(processorNames, promsdprocessor.TypeStr)
 		processors[promsdprocessor.TypeStr] = map[string]interface{}{
-			"scrape_configs": c.ScrapeConfigs,
-			"operation_type": opType,
+			"scrape_configs":   c.ScrapeConfigs,
+			"operation_type":   opType,
+			"pod_associations": c.PodAssociations,
 		}
 	}
 
@@ -548,9 +560,11 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		c.Receivers[noopreceiver.TypeStr] = nil
 	}
 
+	receiversMap := map[string]interface{}(c.Receivers)
+
 	otelMapStructure["exporters"] = exporters
 	otelMapStructure["processors"] = processors
-	otelMapStructure["receivers"] = c.Receivers
+	otelMapStructure["receivers"] = receiversMap
 
 	// pipelines
 	otelMapStructure["service"] = map[string]interface{}{
@@ -562,13 +576,12 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		return nil, fmt.Errorf("failed to create factories: %w", err)
 	}
 
-	if err := configcheck.ValidateConfigFromFactories(factories); err != nil {
+	if err := validateConfigFromFactories(factories); err != nil {
 		return nil, fmt.Errorf("failed to validate factories: %w", err)
 	}
 
-	configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
-	cfgUnmarshaler := configunmarshaler.NewDefault()
-	otelCfg, err := cfgUnmarshaler.Unmarshal(configMap, factories)
+	configMap := config.NewMapFromStringMap(otelMapStructure)
+	otelCfg, err := configunmarshaler.NewDefault().Unmarshal(configMap, factories)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
@@ -671,4 +684,25 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 		processors[:foundAt],
 		processors[foundAt:],
 	}
+}
+
+// Code taken from OTel's service/configcheck.go
+// https://github.com/grafana/opentelemetry-collector/blob/0.40-grafana/service/configcheck.go#L26-L43
+func validateConfigFromFactories(factories component.Factories) error {
+	var errs error
+
+	for _, factory := range factories.Receivers {
+		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+	}
+	for _, factory := range factories.Processors {
+		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+	}
+	for _, factory := range factories.Exporters {
+		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+	}
+	for _, factory := range factories.Extensions {
+		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+	}
+
+	return errs
 }

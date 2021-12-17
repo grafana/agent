@@ -3,6 +3,8 @@ package kafka_exporter //nolint:golint
 import (
 	"fmt"
 
+	config_util "github.com/prometheus/common/config"
+
 	"github.com/Shopify/sarama"
 	kafka_exporter "github.com/davidmparrott/kafka_exporter/v2/exporter"
 	"github.com/go-kit/log"
@@ -41,7 +43,7 @@ type Config struct {
 	SASLUsername string `yaml:"sasl_username,omitempty"`
 
 	// SASL user password
-	SASLPassword string `yaml:"sasl_password,omitempty"`
+	SASLPassword config_util.Secret `yaml:"sasl_password,omitempty"`
 
 	// The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
 	SASLMechanism string `yaml:"sasl_mechanism,omitempty"`
@@ -151,7 +153,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		UseSASL:                  c.UseSASL,
 		UseSASLHandshake:         c.UseSASLHandshake,
 		SaslUsername:             c.SASLUsername,
-		SaslPassword:             c.SASLPassword,
+		SaslPassword:             string(c.SASLPassword),
 		SaslMechanism:            c.SASLMechanism,
 		UseTLS:                   c.UseTLS,
 		TlsCAFile:                c.CAFile,
