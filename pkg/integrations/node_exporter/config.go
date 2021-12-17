@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -64,8 +63,6 @@ func init() {
 
 // Config controls the node_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty"`
 
 	ProcFSPath string `yaml:"procfs_path,omitempty"`
@@ -122,11 +119,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "node_exporter"
-}
-
-// CommonConfig returns the common configs that are shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the hostname:port of the agent process.

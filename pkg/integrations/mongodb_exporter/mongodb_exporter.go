@@ -6,15 +6,12 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/percona/mongodb_exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 )
 
 // Config controls mongodb_exporter
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
 	URI config_util.Secret `yaml:"mongodb_uri"`
 }
@@ -29,12 +26,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "mongodb_exporter"
-}
-
-// CommonConfig returns the common settings shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the address:port of the mongodb server being queried.

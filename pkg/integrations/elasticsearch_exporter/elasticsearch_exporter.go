@@ -12,7 +12,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/prometheus-community/elasticsearch_exporter/collector"
@@ -30,10 +29,6 @@ var DefaultConfig = Config{
 
 // Config controls the elasticsearch_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
-	// Exporter configuration
-
 	// HTTP API address of an Elasticsearch node.
 	Address string `yaml:"address,omitempty"`
 	// Timeout for trying to get stats from Elasticsearch.
@@ -75,12 +70,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "elasticsearch_exporter"
-}
-
-// CommonConfig returns the common settings shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the hostname:port of the elasticsearch node being queried.

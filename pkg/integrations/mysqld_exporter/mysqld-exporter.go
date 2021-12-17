@@ -12,7 +12,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/go-sql-driver/mysql"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/mysqld_exporter/collector"
 )
 
@@ -36,8 +35,6 @@ var DefaultConfig = Config{
 
 // Config controls the mysqld_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// DataSourceName to use to connect to MySQL.
 	DataSourceName config_util.Secret `yaml:"data_source_name,omitempty"`
 
@@ -80,11 +77,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "mysqld_exporter"
-}
-
-// CommonConfig returns the common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns network(hostname:port)/dbname of the MySQL server.

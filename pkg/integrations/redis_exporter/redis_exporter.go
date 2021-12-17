@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -29,8 +28,6 @@ var DefaultConfig = Config{
 
 // Config controls the redis_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 
 	// exporter-specific config.
@@ -105,12 +102,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "redis_exporter"
-}
-
-// CommonConfig returns the common set of settings shared across all configs
-// for integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
 }
 
 // InstanceKey returns the addr of the redis server.
