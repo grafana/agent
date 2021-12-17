@@ -16,12 +16,11 @@ import (
 type integrationsVersion int
 
 const (
-	integrationsVersionDefault integrationsVersion = 0
-
 	integrationsVersion1 integrationsVersion = iota
 	integrationsVersion2
 )
 
+// DefaultVersionedIntegrations is the default config for integrations.
 var DefaultVersionedIntegrations = VersionedIntegrations{
 	version: integrationsVersion1,
 	configV1: func() *v1.ManagerConfig {
