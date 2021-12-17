@@ -117,5 +117,5 @@
       withTracesConfig.
     |||,
     _trace_config+:: { load_balancing: load_balancing },
-  }
+  },
 }

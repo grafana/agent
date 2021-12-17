@@ -9,6 +9,11 @@
       name: 'Annotations & Alerts',
       type: 'dashboard',
     },
+
+  /**
+   * @name annotation.datasource
+   */
+
   datasource(
     name,
     datasource,
