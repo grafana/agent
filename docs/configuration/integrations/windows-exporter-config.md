@@ -57,10 +57,13 @@ Full reference of options:
   # Exporter-specific configuration options
   #
 
-  # List of collectors to enable
+  # List of collectors to enable. Any non-experimental collector from the
+  # embeded version of windows_exporter can be enabeld here.
   [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system,textfile"]
 
-  # The following settings are only used if they are enabled by specifying them in enabled_collectors
+  # Settings for collectors which accept configuration. Settings specified here
+  # are only used if the corresponding collector is enabled in
+  # enabled_collectors.
 
   # Configuration for Exchange Mail Server
   exchange:
