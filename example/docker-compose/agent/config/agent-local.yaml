@@ -72,8 +72,3 @@ integrations:
     - source_labels: [__address__]
       target_label: mongodb_cluster
       replacement: 'mongodb-cluster'
-  cadvisor:
-    disabled_metrics:
-    - disk
-    enabled_metrics:
-    - percpu

@@ -302,7 +302,7 @@ func attributeValue(att pdata.AttributeValue) interface{} {
 	case pdata.AttributeValueTypeMap:
 		return att.MapVal()
 	case pdata.AttributeValueTypeArray:
-		return att.SliceVal()
+		return att.ArrayVal()
 	}
 	return nil
 }

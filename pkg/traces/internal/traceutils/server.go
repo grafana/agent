@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/model/pdata"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -84,14 +84,12 @@ receivers:
 		protocols:
 			grpc:
 				endpoint: %s
-exporters:
-  noop:
 service:
 	pipelines:
 		traces:
 			receivers: [otlp]
 			processors: [func_processor]
-			exporters: [noop]
+			exporters: []
 	`, addr))
 
 	var cfg map[string]interface{}
@@ -109,7 +107,7 @@ service:
 		return nil, fmt.Errorf("failed to make receiver factory map: %w", err)
 	}
 
-	exportersFactory, err := component.MakeExporterFactoryMap(newNoopExporterFactory())
+	exportersFactory, err := component.MakeExporterFactoryMap()
 	if err != nil {
 		return nil, fmt.Errorf("failed to make exporter factory map: %w", err)
 	}
@@ -128,7 +126,7 @@ service:
 		Exporters:  exportersFactory,
 	}
 
-	configMap := config.NewMapFromStringMap(cfg)
+	configMap := configparser.NewConfigMapFromStringMap(cfg)
 	cfgUnmarshaler := configunmarshaler.NewDefault()
 	otelCfg, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 	if err != nil {
@@ -143,7 +141,7 @@ service:
 	settings := component.TelemetrySettings{
 		Logger:         logger,
 		TracerProvider: trace.NewNoopTracerProvider(),
-		MeterProvider:  metric.NewNoopMeterProvider(),
+		MeterProvider:  metric.NoopMeterProvider{},
 	}
 
 	exporters, err := builder.BuildExporters(settings, startInfo, otelCfg, factories.Exporters)
@@ -205,7 +203,7 @@ func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFac
 	return processorhelper.NewFactory(
 		"func_processor",
 		func() config.Processor {
-			processorSettings := config.NewProcessorSettings(config.NewComponentIDWithName("func_processor", "func_processor"))
+			processorSettings := config.NewProcessorSettings(config.NewIDWithName("func_processor", "func_processor"))
 			return &processorSettings
 		},
 		processorhelper.WithTraces(func(
@@ -240,31 +238,3 @@ func (p *funcProcessor) Capabilities() consumer.Capabilities {
 
 func (p *funcProcessor) Start(context.Context, component.Host) error { return nil }
 func (p *funcProcessor) Shutdown(context.Context) error              { return nil }
-
-func newNoopExporterFactory() component.ExporterFactory {
-	return exporterhelper.NewFactory(
-		"noop",
-		func() config.Exporter {
-			exporterSettings := config.NewExporterSettings(config.NewComponentIDWithName("noop", "noop"))
-			return &exporterSettings
-		},
-		exporterhelper.WithTraces(func(
-			context.Context,
-			component.ExporterCreateSettings,
-			config.Exporter) (
-			component.TracesExporter,
-			error) {
-			return &noopExporter{}, nil
-		}),
-	)
-}
-
-type noopExporter struct{}
-
-func (n noopExporter) Start(context.Context, component.Host) error { return nil }
-
-func (n noopExporter) Shutdown(context.Context) error { return nil }
-
-func (n noopExporter) Capabilities() consumer.Capabilities { return consumer.Capabilities{} }
-
-func (n noopExporter) ConsumeTraces(context.Context, pdata.Traces) error { return nil }

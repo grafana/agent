@@ -3,19 +3,6 @@
 BREAKING CHANGE: Integrations have changed in this release.
 Please review the [migration guide](./docs/migration-guide.md) for details.
 
-- [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
-   only HTTP/S is supported. Pass the `-enable-features=remote-configs` flag to turn this on. (@rlankfo)
-
-- [FEATURE] Added [cAdvisor](https://github.com/google/cadvisor) integration. (@rgeyer)
-
-- [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
-
-- [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
-
-- [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
-
-- [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
-
 - [CHANGE] Integrations present in the `integrations:` map will now default to
   being enabled. (@rfratto)
 
@@ -25,16 +12,6 @@ Please review the [migration guide](./docs/migration-guide.md) for details.
 
 - [DEPRECATION] Integrations: The `enabled` field is now deprecated and will be
   removed in a future release. (@rfratto)
-
-# v0.21.2 (2021-12-08)
-
-- [SECURITY] This release contains a fix for
-  [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh).
-
-- [CHANGE] This release disables the existing `/-/config` and
-  `/agent/api/v1/configs/{name}` endpoitns by default. Pass the
-  `--config.enable-read-api` flag at the command line to opt in to these
-  endpoints.
 
 # v0.21.1 (2021-11-18)
 
@@ -77,18 +54,6 @@ Please review the [migration guide](./docs/migration-guide.md) for details.
 - [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
 
 - [CHANGE] Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
-
-# v0.20.1 (2021-12-08)
-
-*NOTE*: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
-
-- [SECURITY] This release contains a fix for
-  [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh).
-
-- [CHANGE] This release disables the existing `/-/config` and
-  `/agent/api/v1/configs/{name}` endpoitns by default. Pass the
-  `--config.enable-read-api` flag at the command line to opt in to these
-  endpoints.
 
 # v0.20.0 (2021-10-28)
 

@@ -16,7 +16,6 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/relabel"
-	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
@@ -34,13 +33,12 @@ type promServiceDiscoProcessor struct {
 	hostLabels     map[string]model.LabelSet
 	mtx            sync.Mutex
 
-	operationType   string
-	podAssociations []string
+	operationType string
 
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAssociations []string, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.Traces, operationType string, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	logger := log.With(util.Logger, "component", "traces service disco")
@@ -68,19 +66,6 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 		return nil, fmt.Errorf("unknown operation type %s", operationType)
 	}
 
-	for _, podAssociation := range podAssociations {
-		switch podAssociation {
-		case podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel, podAssociationHostnameLabel, podAssociationConnectionIP:
-		default:
-			cancel()
-			return nil, fmt.Errorf("unknown pod association %s", podAssociation)
-		}
-	}
-
-	if len(podAssociations) == 0 {
-		podAssociations = []string{podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel, podAssociationHostnameLabel, podAssociationConnectionIP}
-	}
-
 	if nextConsumer == nil {
 		cancel()
 		return nil, componenterror.ErrNilNextConsumer
@@ -94,7 +79,6 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 		hostLabels:       make(map[string]model.LabelSet),
 		logger:           logger,
 		operationType:    operationType,
-		podAssociations:  podAssociations,
 	}, nil
 }
 
@@ -103,50 +87,30 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	for i := 0; i < rss.Len(); i++ {
 		rs := rss.At(i)
 
-		p.processAttributes(ctx, rs.Resource().Attributes())
+		p.processAttributes(rs.Resource().Attributes())
 	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func stringAttributeFromMap(attrs pdata.AttributeMap, key string) string {
-	if attr, ok := attrs.Get(key); ok {
-		if attr.Type() == pdata.AttributeValueTypeString {
-			return attr.StringVal()
-		}
+func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) {
+	// find the ip
+	ipTagNames := []string{
+		"ip",                       // jaeger/opentracing? default
+		semconv.AttributeNetHostIP, // otel semantics for host ip
 	}
-	return ""
-}
 
-func getConnectionIP(ctx context.Context) string {
-	return client.FromContext(ctx).Addr.String()
-}
-
-func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pdata.AttributeMap) string {
-	for _, podAssociation := range p.podAssociations {
-		switch podAssociation {
-		case podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel:
-			ip := stringAttributeFromMap(attrs, podAssociation)
-			if ip != "" {
-				return ip
-			}
-		case podAssociationHostnameLabel:
-			hostname := stringAttributeFromMap(attrs, semconv.AttributeHostName)
-			if net.ParseIP(hostname) != nil {
-				return hostname
-			}
-		case podAssociationConnectionIP:
-			ip := getConnectionIP(ctx)
-			if ip != "" {
-				return ip
-			}
+	var ip string
+	for _, name := range ipTagNames {
+		val, ok := attrs.Get(name)
+		if !ok {
+			continue
 		}
-	}
-	return ""
-}
 
-func (p *promServiceDiscoProcessor) processAttributes(ctx context.Context, attrs pdata.AttributeMap) {
-	ip := p.getPodIP(ctx, attrs)
+		ip = val.StringVal()
+		break
+	}
+
 	// have to have an ip for labels lookup
 	if ip == "" {
 		level.Debug(p.logger).Log("msg", "unable to find ip in span attributes, skipping attribute addition")
