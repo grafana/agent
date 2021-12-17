@@ -12,59 +12,6 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
-### Integrations: Defined integrations are enabled by default (Breaking change)
-
-Integrations which are defined inside of `integrations` will now run by default
-and must be explicitly disabled. Previously, integrations had to be explicitly
-enabled, even if they were present in the config file.
-
-This change makes it easier to define many integrations without repeating
-`enabled: true`. Example old config:
-
-```yaml
-integrations:
-  # Previously, not defining `enabled` meant that it would be disabled by default.
-  memcached_exporter:
-    memcached_addresss: localhost:11211
-```
-
-Example new config:
-
-```yaml
-integrations:
-  memcached_exporter:
-    # `enabled: false` must now be given to explicitly disable an integration.
-    # If `enabled` is not present, `enabled: true` is inferred.
-    enabled: false
-    memcached_addresss: localhost:11211
-```
-
-No change is necessary for configs that are not listed inside of `integrations:`.
-For example, as `node_exporter` is not defined, it will not be run.
-
-### Integrations: Removal of `wal_truncate_frequency` (Breaking change)
-
-Integrations will no longer support `wal_truncate_frequency` being supplied.
-Supporting this field required integrations to run as separate metrics instances,
-which has a significant performance penalty over running a single instance.
-Removing support for the field enables integrations to share an instance and
-have better performance.
-
-Example old config:
-
-```yaml
-integrations:
-  agent:
-    wal_truncate_frequency: 60m
-```
-
-Example new config:
-
-```yaml
-integrations:
-  agent: {}
-```
-
 ## v0.21.2, v0.20.1
 
 ### Disabling of config retrieval enpoints
@@ -101,12 +48,6 @@ Both `use_hostname_label` and `replace_instance_label` are now both deprecated
 and ignored from the YAML file, permanently treated as true. A future release
 will remove these fields, causing YAML errors on load instead of being silently
 ignored.
-
-### Integrations: Deprecation of `enabled` field (Deprecation)
-
-`enabled` is now deprecated and will be removed in a future release. To disable
-an integration, it is recommended to either fully remove it from the YAML, or
-comment it out.
 
 ## v0.20.0
 

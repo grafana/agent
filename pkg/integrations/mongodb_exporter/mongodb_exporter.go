@@ -13,10 +13,17 @@ import (
 
 // Config controls mongodb_exporter
 type Config struct {
-	config.Common `yaml:",inline"`
+	Common config.Common `yaml:",inline"`
 
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
 	URI config_util.Secret `yaml:"mongodb_uri"`
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for Config
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+
+	type plain Config
+	return unmarshal((*plain)(c))
 }
 
 // Name returns the name of the integration that this config represents.

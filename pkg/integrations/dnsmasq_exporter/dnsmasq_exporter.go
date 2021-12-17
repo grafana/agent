@@ -11,7 +11,6 @@ import (
 
 // DefaultConfig is the default config for dnsmasq_exporter.
 var DefaultConfig Config = Config{
-	Common:         config.DefaultCommon,
 	DnsmasqAddress: "localhost:53",
 	LeasesPath:     "/var/lib/misc/dnsmasq.leases",
 }

@@ -231,10 +231,7 @@ NextConfig:
 			}
 
 			if ui, ok := ci.i.(UpdateIntegration); ok {
-				if err := ui.ApplyConfig(ic, globals); errors.Is(err, ErrDisabled) {
-					// Ignore integration; treat it as removed.
-					continue NextConfig
-				} else if errors.Is(err, ErrInvalidUpdate) {
+				if err := ui.ApplyConfig(ic, globals); errors.Is(err, ErrInvalidUpdate) {
 					level.Warn(c.logger).Log("msg", "failed to dynamically update integration; will recreate", "integration", name, "instance", identifier, "err', err")
 					break
 				} else if err != nil {
@@ -253,9 +250,6 @@ NextConfig:
 
 		logger := log.With(c.logger, "integration", name, "instance", identifier)
 		integration, err := ic.NewIntegration(logger, globals)
-		if errors.Is(err, ErrDisabled) {
-			continue
-		}
 		if err != nil {
 			return fmt.Errorf("failed to construct %s integration %q: %w", name, identifier, err)
 		}
@@ -306,9 +300,7 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 		}
 
 		handler, err := i.Handler(iprefix + "/")
-		if errors.Is(err, ErrDisabled) {
-			return
-		} else if err != nil {
+		if err != nil {
 			saveFirstErr(fmt.Errorf("could not generate HTTP handler for %s integration %q: %w", id.Name, id.Identifier, err))
 			return
 		} else if handler == nil {

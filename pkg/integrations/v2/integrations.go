@@ -34,9 +34,6 @@ import (
 )
 
 var (
-	// ErrDisabled may be returned by NewIntegration to indicate that an
-	// integration should not run.
-	ErrDisabled = fmt.Errorf("integration disabled")
 	// ErrInvalidUpdate is returned by ApplyConfig when the config cannot
 	// be dynamically applied.
 	ErrInvalidUpdate = fmt.Errorf("invalid dynamic update")
@@ -61,9 +58,6 @@ type Config interface {
 	//
 	// NewIntegration must be idempotent for a Config. Use Integration.Run to do
 	// anything with side effects, such as opening a port.
-	//
-	// NewIntegration may return ErrDisabled if the integration should not be
-	// run.
 	NewIntegration(log.Logger, Globals) (Integration, error)
 }
 
@@ -135,8 +129,8 @@ type UpdateIntegration interface {
 	// returned if the Config is invalid. When this happens, the old config will
 	// continue to run.
 	//
-	// If ApplyConfig returns ErrDisabled, the integration will be stopped.
-	// If ApplyConfig returns ErrInvalidUpdate, the integration will be recreatd.
+	// If ApplyConfig returns ErrInvalidUpdate, the integration will be
+	// recreated.
 	ApplyConfig(c Config, g Globals) error
 }
 

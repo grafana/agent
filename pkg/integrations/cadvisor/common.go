@@ -11,8 +11,6 @@ const name = "cadvisor"
 
 // DefaultConfig holds the default settings for the cadvisor integration
 var DefaultConfig Config = Config{
-	Common: config.DefaultCommon,
-
 	// Common cadvisor config defaults
 	StoreContainerLabels: true,
 	ResctrlInterval:      0,

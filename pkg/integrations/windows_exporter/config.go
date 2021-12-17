@@ -7,7 +7,6 @@ import (
 
 // DefaultConfig holds the default settings for the windows_exporter integration.
 var DefaultConfig = Config{
-	Common:            config.DefaultCommon,
 	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
 
 	// NOTE(rfratto): there is an init function in config_windows.go that

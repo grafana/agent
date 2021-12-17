@@ -50,8 +50,12 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 	// Map from the original CommonConfig to the new settings. This is a 1:1
 	// mapping, minus the loss of WALTruncateFrequency.
 	origCommon := s.Orig.CommonConfig()
+
+	if !origCommon.Enabled {
+		return nil, fmt.Errorf("disabled integrations cannot be used in integrations-next")
+	}
+
 	newCommon := CommonConfig{
-		Enabled:              origCommon.Enabled,
 		InstanceKey:          origCommon.InstanceKey,
 		ScrapeIntegration:    origCommon.ScrapeIntegration,
 		ScrapeInterval:       origCommon.ScrapeInterval,

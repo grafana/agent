@@ -30,13 +30,6 @@ type Config struct {
 	QueryPath              string   `yaml:"query_path,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *Config) UnmarshalYAML(f func(interface{}) error) error {
-	c.Common = config.DefaultCommon
-	type config Config
-	return f((*config)(c))
-}
-
 // Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "postgres_exporter"

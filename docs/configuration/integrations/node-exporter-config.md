@@ -50,6 +50,7 @@ metrics:
 
 integrations:
   node_exporter:
+    enabled: true
     rootfs_path: /host/root
     sysfs_path: /host/sys
     procfs_path: /host/proc
@@ -171,11 +172,7 @@ the Agent is running on is a no-op.
 ```yaml
   # Enables the node_exporter integration, allowing the Agent to automatically
   # collect system metrics from the host UNIX system.
-  #
-  # Enabled is DEPRECATED and will be removed in a future release. To disable
-  # an integration, comment it out or remove it from your config instead of
-  # setting `enabled: false`.
-  [enabled: <boolean> | default = true]
+  [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
   # self-scraped. Overrides inferred values.

@@ -36,8 +36,8 @@ use_hostname_label: true
 `
 	var (
 		cfg        ManagerConfig
-		listenPort = 12345
-		listenHost = "127.0.0.1"
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -57,23 +57,18 @@ use_hostname_label: true
 func TestConfig_Remarshal(t *testing.T) {
 	RegisterIntegration(&testIntegrationA{})
 	cfgText := `
-test:
-  text: Hello, world!
-  truth: true
-`
-	expect := `
 scrape_integrations: true
 replace_instance_label: true
 integration_restart_backoff: 5s
 use_hostname_label: true
 test:
   text: Hello, world!
-  truth: true`
-
+  truth: true
+`
 	var (
 		cfg        ManagerConfig
-		listenPort = 12345
-		listenHost = "127.0.0.1"
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -85,18 +80,19 @@ test:
 	outBytes, err := yaml.Marshal(cfg)
 	require.NoError(t, err, "Failed creating integration")
 	fmt.Println(string(outBytes))
-	require.YAMLEq(t, expect, string(outBytes))
+	require.YAMLEq(t, cfgText, string(outBytes))
 }
 
 func TestConfig_AddressRelabels(t *testing.T) {
 	cfgText := `
-agent: {}
+agent:
+  enabled: true
 `
 
 	var (
 		cfg        ManagerConfig
-		listenPort = 12345
-		listenHost = "127.0.0.1"
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
