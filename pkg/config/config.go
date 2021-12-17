@@ -230,18 +230,19 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
 
-	// Pass the used integrations version to our config. This MUST be done before
-	// ApplyDefaults, which will perform deferred unmarshaling.
+	// Complete unmarshaling integrations using the version from the flag. This
+	// MUST be called before ApplyDefaults.
+	version := integrationsVersion1
 	if useIntegrationsV2 {
-		cfg.Integrations.version = integrationsVersion2
-	} else {
-		cfg.Integrations.version = integrationsVersion1
+		version = integrationsVersion2
+	}
+	if err := cfg.Integrations.setVersion(version); err != nil {
+		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag
 	if err := cfg.ApplyDefaults(); err != nil {
 		return nil, fmt.Errorf("error in config file: %w", err)
 	}
-
 	return &cfg, nil
 }

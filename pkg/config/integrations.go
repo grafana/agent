@@ -24,19 +24,12 @@ const (
 
 // DefaultVersionedIntegrations is the default config for integrations.
 var DefaultVersionedIntegrations = VersionedIntegrations{
-	version: integrationsVersion1,
-	raw: func() []byte {
-		bb, err := yaml.Marshal(&v1.DefaultManagerConfig)
-		if err != nil {
-			panic(err)
-		}
-		return bb
-	}(),
+	version:  integrationsVersion1,
+	configV1: &v1.DefaultManagerConfig,
 }
 
 // VersionedIntegrations abstracts the subsystem configs for integrations v1
-// and v2. The version can only be set when calling Load through command line
-// flags.
+// and v2. VersionedIntegrations can only be unmarshaled as part of Load.
 type VersionedIntegrations struct {
 	version integrationsVersion
 	raw     util.RawYAML
@@ -50,7 +43,8 @@ var (
 	_ yaml.Marshaler   = (*VersionedIntegrations)(nil)
 )
 
-// UnmarshalYAML implements yaml.Unmarshaler.
+// UnmarshalYAML implements yaml.Unmarshaler. Full unmarshaling is deferred until
+// setVersion is invoked.
 func (c *VersionedIntegrations) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.configV1 = nil
 	c.configV2 = nil
@@ -83,21 +77,16 @@ func (c VersionedIntegrations) IsZero() bool {
 
 // ApplyDefaults applies defaults to the subsystem based on globals.
 func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
-	if err := c.completeUnmarshal(); err != nil {
-		return err
-	}
 	if c.version != integrationsVersion2 {
 		return c.configV1.ApplyDefaults(scfg, mcfg)
 	}
 	return c.configV2.ApplyDefaults(mcfg)
 }
 
-// completeUnmarshal will unmarshal the raw config based on c.version. No-op if
-// previously called successfully.
-func (c *VersionedIntegrations) completeUnmarshal() error {
-	if c.configV1 != nil || c.configV2 != nil {
-		return nil
-	}
+// setVersion completes the deferred unmarshal and unmarshals the raw YAML into
+// the subsystem config for version v.
+func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
+	c.version = v
 
 	switch c.version {
 	case integrationsVersion1:
@@ -127,10 +116,6 @@ type Integrations interface {
 // of useV2. globals.SubsystemOptions will be automatically set if cfg.Version
 // is set to IntegrationsVersion2.
 func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals IntegrationsGlobals) (Integrations, error) {
-	if err := cfg.completeUnmarshal(); err != nil {
-		return nil, err
-	}
-
 	if cfg.version != integrationsVersion2 {
 		instance, err := v1.NewManager(*cfg.configV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
 		if err != nil {
