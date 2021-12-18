@@ -10,30 +10,45 @@ import (
 	"github.com/prometheus/common/model"
 
 	v1 "github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
+	"github.com/grafana/agent/pkg/util"
 )
 
 // CreateShim creates a shim between the v1.Config and v2.Config. The resulting
 // config is NOT registered.
-func CreateShim(before v1.Config, common config.Common) (after v2.UpgradedConfig) {
+func CreateShim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
 	return &configShim{orig: before, common: common}
 }
 
 type configShim struct {
 	orig   v1.Config
-	common config.Common
+	common common.MetricsConfig
 }
 
 var (
-	_ v2.Config         = (*configShim)(nil)
-	_ v2.UpgradedConfig = (*configShim)(nil)
+	_ v2.Config           = (*configShim)(nil)
+	_ v2.UpgradedConfig   = (*configShim)(nil)
+	_ v2.ComparableConfig = (*configShim)(nil)
 )
 
-// LegacyConfig implements v2.UpgradedConfig.
-func (s *configShim) LegacyConfig() (v1.Config, config.Common) { return s.orig, s.common }
+func (s *configShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.orig, s.common }
 
 func (s *configShim) Name() string { return s.orig.Name() }
+
+func (s *configShim) ApplyDefaults(g v2.Globals) error {
+	s.common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
+	return nil
+}
+
+func (s *configShim) ConfigEquals(c v2.Config) bool {
+	o, ok := c.(*configShim)
+	if !ok {
+		return false
+	}
+	return util.CompareYAML(s.orig, o.orig) && util.CompareYAML(s.common, o.common)
+}
+
 func (s *configShim) Identifier(g v2.Globals) (string, error) {
 	return s.orig.InstanceKey(g.AgentIdentifier)
 }
@@ -47,20 +62,6 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 	id, err := s.Identifier(g)
 	if err != nil {
 		return nil, err
-	}
-
-	// Map from the original s.common to the new common settings.
-	if !s.common.Enabled {
-		return nil, fmt.Errorf("disabled integrations cannot be used in integrations-next")
-	}
-
-	newCommon := CommonConfig{
-		InstanceKey:          s.common.InstanceKey,
-		ScrapeIntegration:    s.common.ScrapeIntegration,
-		ScrapeInterval:       s.common.ScrapeInterval,
-		ScrapeTimeout:        s.common.ScrapeTimeout,
-		RelabelConfigs:       s.common.RelabelConfigs,
-		MetricRelabelConfigs: s.common.MetricRelabelConfigs,
 	}
 
 	// Generate our handler. Original integrations didn't accept a prefix, and
@@ -112,7 +113,7 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 		integrationName: s.orig.Name(),
 		instanceID:      id,
 
-		common:  newCommon,
+		common:  s.common,
 		globals: g,
 		handler: handler,
 		targets: targets,

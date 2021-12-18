@@ -6,32 +6,36 @@ package agent
 import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Config controls the Agent integration.
 type Config struct {
-	metricsutils.CommonConfig `yaml:",inline"`
+	Common common.MetricsConfig `yaml:",inline"`
 }
 
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string { return "agent" }
 
+// ApplyDefaults applies runtime-specific defaults to c.
+func (c *Config) ApplyDefaults(globals integrations.Globals) error {
+	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+	return nil
+}
+
 // Identifier uniquely identifies this instance of Config.
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
-	if c.InstanceKey != nil {
-		return *c.InstanceKey, nil
+	if c.Common.InstanceKey != nil {
+		return *c.Common.InstanceKey, nil
 	}
 	return globals.AgentIdentifier, nil
 }
 
-// MetricsConfig implements metricsutils.MetricsConfig.
-func (c *Config) MetricsConfig() metricsutils.CommonConfig { return c.CommonConfig }
-
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	return metricsutils.NewMetricsHandlerIntegration(l, c, globals, promhttp.Handler())
+	return metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.Handler())
 }
 
 func init() {

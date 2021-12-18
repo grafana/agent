@@ -10,47 +10,59 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/metrics/instance"
 	common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
-	prom_config "github.com/prometheus/prometheus/config"
 	http_sd "github.com/prometheus/prometheus/discovery/http"
 )
 
-// IntegrationsSDEndpoint is the API endpoint where the integration HTTP SD API
-// is exposed. The API uses query parameters to customize what gets returned by
-// discovery.
-const IntegrationsSDEndpoint = "/agent/api/v1/metrics/integrations/sd"
+const (
+	// IntegrationsSDEndpoint is the API endpoint where the integration HTTP SD
+	// API is exposed. The API uses query parameters to customize what gets
+	// returned by discovery.
+	IntegrationsSDEndpoint = "/agent/api/v1/metrics/integrations/sd"
+
+	// IntegrationsAutoscrapeTargetsEndpoint is the API endpoint where autoscrape
+	// integrations targets are exposed.
+	IntegrationsAutoscrapeTargetsEndpoint = "/agent/api/v1/metrics/integrations/targets"
+)
 
 // DefaultSubsystemOptions holds the default settings for a Controller.
-var DefaultSubsystemOptions = SubsystemOptions{
-	ScrapeIntegrationsDefault: true,
-}
+var (
+	DefaultSubsystemOptions = SubsystemOptions{
+		Metrics: DefaultMetricsSubsystemOptions,
+	}
+
+	DefaultMetricsSubsystemOptions = MetricsSubsystemOptions{
+		Autoscrape: autoscrape.DefaultGlobal,
+	}
+)
 
 // SubsystemOptions controls how the integrations subsystem behaves.
 type SubsystemOptions struct {
-	// The default value for self-scraping integrations if they don't override
-	// the default.
-	ScrapeIntegrationsDefault bool `yaml:"scrape_integrations,omitempty"`
-	// Prometheus RW configs to use for self-scraping integrations.
-	PrometheusRemoteWrite []*prom_config.RemoteWriteConfig `yaml:"prometheus_remote_write,omitempty"`
+	Metrics MetricsSubsystemOptions `yaml:"metrics,omitempty"`
 
 	// Configs are configurations of integration to create. Unmarshaled through
 	// the custom UnmarshalYAML method of Controller.
 	Configs Configs `yaml:"-"`
 
-	// Extra labels to add for all integration telemetry.
-	Labels model.LabelSet `yaml:"labels,omitempty"`
-
 	// Override settings to self-communicate with agent.
 	ClientConfig common_config.HTTPClientConfig `yaml:"client_config,omitempty"`
 }
 
+// MetricsSubsystemOptions controls how metrics integrations behave.
+type MetricsSubsystemOptions struct {
+	Autoscrape autoscrape.Global `yaml:"autoscrape,omitempty"`
+}
+
 // ApplyDefaults will apply defaults to o.
 func (o *SubsystemOptions) ApplyDefaults(mcfg *metrics.Config) error {
-	if len(o.PrometheusRemoteWrite) == 0 {
-		o.PrometheusRemoteWrite = mcfg.Global.RemoteWrite
+	if o.Metrics.Autoscrape.ScrapeInterval == 0 {
+		o.Metrics.Autoscrape.ScrapeInterval = mcfg.Global.Prometheus.ScrapeInterval
+	}
+	if o.Metrics.Autoscrape.ScrapeTimeout == 0 {
+		o.Metrics.Autoscrape.ScrapeTimeout = mcfg.Global.Prometheus.ScrapeTimeout
 	}
 
 	return nil
@@ -73,9 +85,10 @@ func (o *SubsystemOptions) UnmarshalYAML(unmarshal func(interface{}) error) erro
 type Subsystem struct {
 	logger log.Logger
 
-	mut        sync.RWMutex
-	globals    Globals
-	apiHandler http.Handler // generated from controller
+	mut         sync.RWMutex
+	globals     Globals
+	apiHandler  http.Handler // generated from controller
+	autoscraper *autoscrape.Scraper
 
 	ctrl             *controller
 	stopController   context.CancelFunc
@@ -85,10 +98,13 @@ type Subsystem struct {
 // NewSubsystem creates and starts a new integrations Subsystem. Every field in
 // IntegrationOptions must be filled out.
 func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
+	autoscraper := autoscrape.NewScraper(l, globals.Metrics.InstanceManager())
+
 	l = log.With(l, "component", "integrations")
 
 	ctrl, err := newController(l, controllerConfig(globals.SubsystemOpts.Configs), globals)
 	if err != nil {
+		autoscraper.Stop()
 		return nil, err
 	}
 
@@ -103,7 +119,8 @@ func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
 	s := &Subsystem{
 		logger: l,
 
-		globals: globals,
+		globals:     globals,
+		autoscraper: autoscraper,
 
 		ctrl:             ctrl,
 		stopController:   cancel,
@@ -111,6 +128,7 @@ func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
 	}
 	if err := s.ApplyConfig(globals); err != nil {
 		cancel()
+		autoscraper.Stop()
 		return nil, err
 	}
 	return s, nil
@@ -154,21 +172,8 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 		httpSDConfig.URL = apiURL.String()
 
 		scrapeConfigs := s.ctrl.ScrapeConfigs(prefix, &httpSDConfig)
-		if len(scrapeConfigs) == 0 {
-			// We're not going to self scrape if there are no configs. Try to delete
-			// the previous instance for self-scraping if one was running.
-			_ = globals.Metrics.InstanceManager().DeleteConfig("integrations")
-		} else {
-			instanceCfg := instance.DefaultConfig
-			instanceCfg.Name = "integrations"
-			instanceCfg.ScrapeConfigs = scrapeConfigs
-			instanceCfg.RemoteWrite = globals.SubsystemOpts.PrometheusRemoteWrite
-
-			if err := globals.Metrics.Validate(&instanceCfg); err != nil {
-				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: validation: %w", err))
-			} else if err := globals.Metrics.InstanceManager().ApplyConfig(instanceCfg); err != nil {
-				saveFirstErr(fmt.Errorf("failed to apply self-scraping configs: %w", err))
-			}
+		if err := s.autoscraper.ApplyConfig(scrapeConfigs); err != nil {
+			saveFirstErr(fmt.Errorf("configuring autoscraper failed: %w", err))
 		}
 	}
 
@@ -231,11 +236,17 @@ func (s *Subsystem) WireAPI(r *mux.Router) {
 		enc := json.NewEncoder(rw)
 		_ = enc.Encode(finalTgs)
 	})
+
+	r.HandleFunc(IntegrationsAutoscrapeTargetsEndpoint, func(rw http.ResponseWriter, r *http.Request) {
+		allTargets := s.autoscraper.TargetsActive()
+		metrics.ListTargetsHandler(allTargets).ServeHTTP(rw, r)
+	})
 }
 
 // Stop stops the manager and all running integrations. Blocks until all
 // running integrations exit.
 func (s *Subsystem) Stop() {
+	s.autoscraper.Stop()
 	s.stopController()
 	<-s.controllerExited
 }

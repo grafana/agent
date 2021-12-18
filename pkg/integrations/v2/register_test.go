@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-kit/log"
 	v1 "github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/github_exporter"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -80,8 +80,8 @@ test_configs:
 func TestIntegrationRegistration_Legacy(t *testing.T) {
 	setRegistered(t, nil)
 
-	RegisterLegacy(&github_exporter.Config{}, TypeSingleton, func(in v1.Config, common config.Common) UpgradedConfig {
-		return &legacyShim{Data: in, Common: common}
+	RegisterLegacy(&github_exporter.Config{}, TypeSingleton, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
+		return &legacyShim{Data: in, Common: mc}
 	})
 
 	var cfgToParse = `
@@ -106,12 +106,16 @@ github_exporter:
 
 type legacyShim struct {
 	Data   v1.Config
-	Common config.Common
+	Common common.MetricsConfig
 }
 
-func (s *legacyShim) LegacyConfig() (v1.Config, config.Common) { return s.Data, s.Common }
-func (s *legacyShim) Name() string                             { return s.Data.Name() }
-func (s *legacyShim) Identifier(g Globals) (string, error)     { return g.AgentIdentifier, nil }
+func (s *legacyShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.Data, s.Common }
+func (s *legacyShim) Name() string                                    { return s.Data.Name() }
+func (s *legacyShim) ApplyDefaults(g Globals) error {
+	s.Common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
+	return nil
+}
+func (s *legacyShim) Identifier(g Globals) (string, error) { return g.AgentIdentifier, nil }
 func (s *legacyShim) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
 }
@@ -122,6 +126,7 @@ type testIntegrationA struct {
 }
 
 func (i *testIntegrationA) Name() string                       { return "test" }
+func (i *testIntegrationA) ApplyDefaults(Globals) error        { return nil }
 func (i *testIntegrationA) Identifier(Globals) (string, error) { return "integrationA", nil }
 func (i *testIntegrationA) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
@@ -138,6 +143,7 @@ type testIntegrationB struct {
 }
 
 func (*testIntegrationB) Name() string                       { return "shouldnotbefound" }
+func (*testIntegrationB) ApplyDefaults(Globals) error        { return nil }
 func (*testIntegrationB) Identifier(Globals) (string, error) { return "integrationB", nil }
 func (*testIntegrationB) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil

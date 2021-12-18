@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -26,7 +27,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 					Targets: []model.LabelSet{{model.AddressLabel: model.LabelValue(targetName)}},
 				}}
 			},
-			ScrapeConfigsFunc: func(c discovery.Configs) []*prom_config.ScrapeConfig { return nil },
+			ScrapeConfigsFunc: func(c discovery.Configs) []*autoscrape.ScrapeConfig { return nil },
 		}
 	}
 
@@ -98,8 +99,11 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 	integrationWithTarget := func(targetName string) Integration {
 		return mockMetricsIntegration{
 			Integration: NoOpIntegration,
-			ScrapeConfigsFunc: func(c discovery.Configs) []*prom_config.ScrapeConfig {
-				return []*prom_config.ScrapeConfig{{JobName: targetName}}
+			ScrapeConfigsFunc: func(c discovery.Configs) []*autoscrape.ScrapeConfig {
+				return []*autoscrape.ScrapeConfig{{
+					Instance: "default",
+					Config:   prom_config.ScrapeConfig{JobName: targetName},
+				}}
 			},
 		}
 	}
@@ -119,12 +123,14 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 		Globals{},
 	)
 	require.NoError(t, err)
-	_ = newSyncController(t, ctrl)
+	// NOTE(rfratto): we explicitly don't run the controller here because
+	// ScrapeConfigs should return the list of scrape targets even when the
+	// integration isn't running.
 
 	result := ctrl.ScrapeConfigs("/", &http.DefaultSDConfig)
-	expect := []*prom_config.ScrapeConfig{
-		{JobName: "a"},
-		{JobName: "b"},
+	expect := []*autoscrape.ScrapeConfig{
+		{Instance: "default", Config: prom_config.ScrapeConfig{JobName: "a"}},
+		{Instance: "default", Config: prom_config.ScrapeConfig{JobName: "b"}},
 	}
 	require.Equal(t, expect, result)
 }
@@ -136,13 +142,13 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 type mockMetricsIntegration struct {
 	Integration
 	TargetsFunc       func(ep Endpoint) []*targetgroup.Group
-	ScrapeConfigsFunc func(discovery.Configs) []*prom_config.ScrapeConfig
+	ScrapeConfigsFunc func(discovery.Configs) []*autoscrape.ScrapeConfig
 }
 
 func (m mockMetricsIntegration) Targets(ep Endpoint) []*targetgroup.Group {
 	return m.TargetsFunc(ep)
 }
 
-func (m mockMetricsIntegration) ScrapeConfigs(cfgs discovery.Configs) []*prom_config.ScrapeConfig {
+func (m mockMetricsIntegration) ScrapeConfigs(cfgs discovery.Configs) []*autoscrape.ScrapeConfig {
 	return m.ScrapeConfigsFunc(cfgs)
 }
