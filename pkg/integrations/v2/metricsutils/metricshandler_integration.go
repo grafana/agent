@@ -100,7 +100,7 @@ func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetg
 			// Meta labels that can be used during SD.
 			"__meta_agent_integration_name":       model.LabelValue(i.integrationName),
 			"__meta_agent_integration_instance":   model.LabelValue(i.instanceID),
-			"__meta_agent_integration_selfscrape": model.LabelValue(boolToString(*i.common.Autoscrape.Enable)),
+			"__meta_agent_integration_autoscrape": model.LabelValue(boolToString(*i.common.Autoscrape.Enable)),
 		},
 		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
 	}

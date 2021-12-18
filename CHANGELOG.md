@@ -7,6 +7,11 @@
 
 - [FEATURE] Traces: Add `Agent Tracing Pipeline` dashboard and alerts (@mapno)
 
+- [FEATURE] (beta) Enable an experimental integrations subsystem revamp. Pass
+  `integrations-next` to `-enable-features` to turn this on. Reading the
+  documentation for the revamp is recommended; enabling it causes breaking
+  config changes. (@rfratto)
+
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
 - [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
