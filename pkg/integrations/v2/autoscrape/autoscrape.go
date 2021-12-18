@@ -17,6 +17,7 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
+// DefaultGlobal holds default values for Global.
 var DefaultGlobal Global = Global{
 	Enable:          true,
 	MetricsInstance: "default",
@@ -191,8 +192,8 @@ func newInstanceScraper(
 		im:   im,
 	})
 
-	go sd.Run()
-	go sm.Run(sd.SyncCh())
+	go func() { _ = sd.Run() }()
+	go func() { _ = sm.Run(sd.SyncCh()) }()
 
 	return &instanceScraper{
 		cancel: cancel,
