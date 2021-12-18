@@ -15,7 +15,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
-	prom_config "github.com/prometheus/prometheus/config"
+	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/prometheus/prometheus/discovery"
 	http_sd "github.com/prometheus/prometheus/discovery/http"
 )
@@ -209,6 +209,10 @@ NextConfig:
 		identifier, err := ic.Identifier(globals)
 		if err != nil {
 			return fmt.Errorf("could not build identifier for integration %q: %w", name, err)
+		}
+
+		if err := ic.ApplyDefaults(globals); err != nil {
+			return fmt.Errorf("failed to apply defaults for %s/%s: %w", name, identifier, err)
 		}
 
 		id := integrationID{Name: name, Identifier: identifier}
@@ -474,7 +478,7 @@ func (to TargetOptions) ToParams() url.Values {
 // sdConfig should contain the full URL where the integrations SD API is
 // exposed. ScrapeConfigs will inject unique query parameters per integration
 // to limit what will be discovered.
-func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []*prom_config.ScrapeConfig {
+func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []*autoscrape.ScrapeConfig {
 	// Grab the integrations as fast as possible. We don't want to spend too much
 	// time holding the mutex.
 	type prefixedMetricsIntegration struct {
@@ -486,12 +490,6 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 
 	c.mut.Lock()
 	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
-		// Best effort liveness check. They might stop running when we request
-		// their targets, which is fine, but we should save as much work as we
-		// can.
-		if !ci.Running() {
-			return
-		}
 		if mi, ok := ci.i.(MetricsIntegration); ok {
 			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
 		}
@@ -501,7 +499,7 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 	}
 	c.mut.Unlock()
 
-	var cfgs []*prom_config.ScrapeConfig
+	var cfgs []*autoscrape.ScrapeConfig
 	for _, mi := range mm {
 		// sdConfig will be pointing to the targets API. By default, this returns absolutely everything.
 		// We want to use the query parmaeters to inform the API to only return
@@ -517,7 +515,7 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 		cfgs = append(cfgs, mi.i.ScrapeConfigs(sds)...)
 	}
 	sort.Slice(cfgs, func(i, j int) bool {
-		return cfgs[i].JobName < cfgs[j].JobName
+		return cfgs[i].Config.JobName < cfgs[j].Config.JobName
 	})
 	return cfgs
 }

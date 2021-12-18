@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	v1 "github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/util"
 )
 
@@ -68,7 +68,7 @@ func RegisterLegacy(cfg v1.Config, ty Type, upgrader UpgradeFunc) {
 }
 
 // UpgradeFunc upgrades cfg to a UpgradedConfig.
-type UpgradeFunc func(cfg v1.Config, common config.Common) UpgradedConfig
+type UpgradeFunc func(cfg v1.Config, common common.MetricsConfig) UpgradedConfig
 
 // UpgradedConfig is a v2 Config that was constructed through a legacy
 // v1.Config. It allows unwrapping to retrieve the original config for
@@ -77,7 +77,7 @@ type UpgradedConfig interface {
 	Config
 
 	// LegacyConfig returns the old v1.Config.
-	LegacyConfig() (v1.Config, config.Common)
+	LegacyConfig() (v1.Config, common.MetricsConfig)
 }
 
 // Type determines a specific type of integration.
@@ -133,7 +133,7 @@ func Registered() []Config {
 			if !ok || mut == nil {
 				panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
 			}
-			res = append(res, mut(cloneValue(r).(v1.Config), config.Common{}))
+			res = append(res, mut(cloneValue(r).(v1.Config), common.MetricsConfig{}))
 		default:
 			panic(fmt.Sprintf("unexpected type %T", r))
 		}
@@ -210,7 +210,7 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 		switch v := c.(type) {
 		case UpgradedConfig:
 			inner, common := v.LegacyConfig()
-			bb, err = util.MarshalYAMLMerged(inner, common)
+			bb, err = util.MarshalYAMLMerged(common, inner)
 		default:
 			bb, err = yaml.Marshal(v)
 		}
@@ -353,7 +353,7 @@ func deferredConfigUnmarshal(raw util.RawYAML, ref interface{}) (Config, error) 
 			panic(fmt.Sprintf("unexpected type %T", ref))
 		}
 		var (
-			common config.Common
+			common common.MetricsConfig
 			out    = cloneValue(ref).(v1.Config)
 		)
 		err := util.UnmarshalYAMLMerged(raw, &common, out)

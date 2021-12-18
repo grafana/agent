@@ -38,8 +38,9 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 
 	cfg := controllerConfig{
 		mockConfig{
-			NameFunc:         func() string { return mockIntegrationName },
-			ConfigEqualsFunc: func(Config) bool { return false },
+			NameFunc:          func() string { return mockIntegrationName },
+			ConfigEqualsFunc:  func(Config) bool { return false },
+			ApplyDefaultsFunc: func(g Globals) error { return nil },
 			IdentifierFunc: func(Globals) (string, error) {
 				return mockIntegrationName, nil
 			},

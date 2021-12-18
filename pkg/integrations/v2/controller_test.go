@@ -95,8 +95,9 @@ func Test_controller_ConfigChanges(t *testing.T) {
 
 		cfg := controllerConfig{
 			mockConfig{
-				NameFunc:         func() string { return mockIntegrationName },
-				ConfigEqualsFunc: func(Config) bool { return !changed },
+				NameFunc:          func() string { return mockIntegrationName },
+				ConfigEqualsFunc:  func(Config) bool { return !changed },
+				ApplyDefaultsFunc: func(g Globals) error { return nil },
 				IdentifierFunc: func(Globals) (string, error) {
 					return mockIntegrationName, nil
 				},
@@ -190,6 +191,7 @@ const mockIntegrationName = "mock"
 
 type mockConfig struct {
 	NameFunc           func() string
+	ApplyDefaultsFunc  func(Globals) error
 	ConfigEqualsFunc   func(Config) bool
 	IdentifierFunc     func(Globals) (string, error)
 	NewIntegrationFunc func(log.Logger, Globals) (Integration, error)
@@ -206,6 +208,10 @@ func (mc mockConfig) ConfigEquals(c Config) bool {
 	return false
 }
 
+func (mc mockConfig) ApplyDefaults(g Globals) error {
+	return mc.ApplyDefaultsFunc(g)
+}
+
 func (mc mockConfig) Identifier(g Globals) (string, error) {
 	return mc.IdentifierFunc(g)
 }
@@ -217,6 +223,7 @@ func (mc mockConfig) NewIntegration(l log.Logger, g Globals) (Integration, error
 func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integration, error)) mockConfig {
 	return mockConfig{
 		NameFunc:           mc.NameFunc,
+		ApplyDefaultsFunc:  mc.ApplyDefaultsFunc,
 		ConfigEqualsFunc:   mc.ConfigEqualsFunc,
 		IdentifierFunc:     mc.IdentifierFunc,
 		NewIntegrationFunc: f,
@@ -227,8 +234,9 @@ func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 	t.Helper()
 
 	return mockConfig{
-		NameFunc:       func() string { return name },
-		IdentifierFunc: func(_ Globals) (string, error) { return id, nil },
+		NameFunc:          func() string { return name },
+		IdentifierFunc:    func(_ Globals) (string, error) { return id, nil },
+		ApplyDefaultsFunc: func(g Globals) error { return nil },
 		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 			return NoOpIntegration, nil
 		},
@@ -240,7 +248,8 @@ func mockConfigForIntegration(t *testing.T, i Integration) mockConfig {
 	t.Helper()
 
 	return mockConfig{
-		NameFunc: func() string { return mockIntegrationName },
+		NameFunc:          func() string { return mockIntegrationName },
+		ApplyDefaultsFunc: func(g Globals) error { return nil },
 		IdentifierFunc: func(Globals) (string, error) {
 			return mockIntegrationName, nil
 		},

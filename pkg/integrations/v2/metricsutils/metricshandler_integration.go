@@ -9,6 +9,8 @@ import (
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
@@ -19,7 +21,8 @@ import (
 // will expose a /metrics endpoint for h.
 func NewMetricsHandlerIntegration(
 	_ log.Logger,
-	c MetricsConfig,
+	c integrations.Config,
+	mc common.MetricsConfig,
 	globals integrations.Globals,
 	h http.Handler,
 ) (integrations.MetricsIntegration, error) {
@@ -31,7 +34,7 @@ func NewMetricsHandlerIntegration(
 		integrationName: c.Name(),
 		instanceID:      id,
 
-		common:  c.MetricsConfig(),
+		common:  mc,
 		globals: globals,
 		handler: h,
 
@@ -42,7 +45,7 @@ func NewMetricsHandlerIntegration(
 type metricsHandlerIntegration struct {
 	integrationName, instanceID string
 
-	common  CommonConfig
+	common  common.MetricsConfig
 	globals integrations.Globals
 	handler http.Handler
 	targets []handlerTarget
@@ -97,7 +100,7 @@ func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetg
 			// Meta labels that can be used during SD.
 			"__meta_agent_integration_name":       model.LabelValue(i.integrationName),
 			"__meta_agent_integration_instance":   model.LabelValue(i.instanceID),
-			"__meta_agent_integration_selfscrape": model.LabelValue(boolToString(i.shouldSelfScrape())),
+			"__meta_agent_integration_selfscrape": model.LabelValue(boolToString(*i.common.Autoscrape.Enable)),
 		},
 		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
 	}
@@ -112,15 +115,6 @@ func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetg
 	return []*targetgroup.Group{group}
 }
 
-// shouldSelfScrape returns true if the integration is self-scraping.
-func (i *metricsHandlerIntegration) shouldSelfScrape() bool {
-	selfScrape := i.globals.SubsystemOpts.ScrapeIntegrationsDefault
-	if i.common.ScrapeIntegration != nil {
-		selfScrape = *i.common.ScrapeIntegration
-	}
-	return selfScrape
-}
-
 func boolToString(b bool) string {
 	switch b {
 	case true:
@@ -131,8 +125,8 @@ func boolToString(b bool) string {
 }
 
 // ScrapeConfigs implements MetricsIntegration.
-func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*config.ScrapeConfig {
-	if !i.shouldSelfScrape() {
+func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeConfig {
+	if !*i.common.Autoscrape.Enable {
 		return nil
 	}
 
@@ -141,14 +135,13 @@ func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*confi
 	cfg.Scheme = i.globals.AgentBaseURL.Scheme
 	cfg.HTTPClientConfig = i.globals.SubsystemOpts.ClientConfig
 	cfg.ServiceDiscoveryConfigs = sd
-	if i.common.ScrapeInterval != 0 {
-		cfg.ScrapeInterval = model.Duration(i.common.ScrapeInterval)
-	}
-	if i.common.ScrapeTimeout != 0 {
-		cfg.ScrapeTimeout = model.Duration(i.common.ScrapeTimeout)
-	}
-	cfg.RelabelConfigs = i.common.RelabelConfigs
-	cfg.MetricRelabelConfigs = i.common.MetricRelabelConfigs
+	cfg.ScrapeInterval = i.common.Autoscrape.ScrapeInterval
+	cfg.ScrapeTimeout = i.common.Autoscrape.ScrapeTimeout
+	cfg.RelabelConfigs = i.common.Autoscrape.RelabelConfigs
+	cfg.MetricRelabelConfigs = i.common.Autoscrape.MetricRelabelConfigs
 
-	return []*config.ScrapeConfig{&cfg}
+	return []*autoscrape.ScrapeConfig{{
+		Instance: i.common.Autoscrape.MetricsInstance,
+		Config:   cfg,
+	}}
 }

@@ -25,10 +25,10 @@ import (
 	"net/url"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
-	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
@@ -44,6 +44,9 @@ type Config interface {
 	// Name returns the YAML field name of the integration. Name is used
 	// when unmarshaling the Config from YAML.
 	Name() string
+
+	// ApplyDefaults should apply default settings to Config.
+	ApplyDefaults(Globals) error
 
 	// Identifier returns a string to uniquely identify the integration created
 	// by this Config. Identifier must be unique for each integration that shares
@@ -160,7 +163,8 @@ type MetricsIntegration interface {
 
 	// Targets should return the current set of active targets exposed by this
 	// integration. Targets may be called multiple times throughout the lifecycle
-	// of the integration.
+	// of the integration. Targets will not be called when the integration is not
+	// running.
 	//
 	// prefix will be the same prefixed passed to HTTPIntegration.Handler and
 	// can be used to update __metrics_path__ for targets.
@@ -169,10 +173,10 @@ type MetricsIntegration interface {
 	// ScrapeConfigs configures automatic scraping of targets. ScrapeConfigs
 	// is optional if an integration should not scrape itself.
 	//
-	// Unlike Targets, ScrapeConfigs is only called once per config load. Use the
-	// provided discovery.Configs to discover the targets exposed by this
-	// integration.
-	ScrapeConfigs(discovery.Configs) []*prom_config.ScrapeConfig
+	// Unlike Targets, ScrapeConfigs is only called once per config load, and may be
+	// called before the integration runs. Use the provided discovery.Configs to
+	// discover the targets exposed by this integration.
+	ScrapeConfigs(discovery.Configs) []*autoscrape.ScrapeConfig
 }
 
 // Endpoint is a location where something is exposed.
