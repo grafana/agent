@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-kit/log"
 	v1 "github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/github_exporter"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -80,15 +79,15 @@ test_configs:
 func TestIntegrationRegistration_Legacy(t *testing.T) {
 	setRegistered(t, nil)
 
-	RegisterLegacy(&github_exporter.Config{}, TypeSingleton, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
+	RegisterLegacy(&legacyConfig{}, TypeSingleton, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
 		return &legacyShim{Data: in, Common: mc}
 	})
 
 	var cfgToParse = `
 name: John Doe
 duration: 500ms
-github_exporter:
-  api_url: nowhere`
+legacy:
+  text: hello`
 
 	var fullCfg testFullConfig
 	err := yaml.UnmarshalStrict([]byte(cfgToParse), &fullCfg)
@@ -98,11 +97,50 @@ github_exporter:
 	require.IsType(t, &legacyShim{}, fullCfg.Configs[0])
 
 	shim := fullCfg.Configs[0].(*legacyShim)
-	require.IsType(t, &github_exporter.Config{}, shim.Data)
+	require.IsType(t, &legacyConfig{}, shim.Data)
 
-	v1Config := shim.Data.(*github_exporter.Config)
-	require.Equal(t, "nowhere", v1Config.APIURL)
+	v1Config := shim.Data.(*legacyConfig)
+	require.Equal(t, "hello", v1Config.Text)
 }
+
+func TestIntegrationRegistration_Legacy_Multiplex(t *testing.T) {
+	setRegistered(t, nil)
+
+	RegisterLegacy(&legacyConfig{}, TypeMultiplex, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
+		return &legacyShim{Data: in, Common: mc}
+	})
+
+	var cfgToParse = `
+name: John Doe
+duration: 500ms
+legacy_configs:
+  - text: hello
+  - text: world`
+
+	var fullCfg testFullConfig
+	err := yaml.UnmarshalStrict([]byte(cfgToParse), &fullCfg)
+	require.NoError(t, err)
+
+	require.Len(t, fullCfg.Configs, 2)
+	require.IsType(t, &legacyShim{}, fullCfg.Configs[0])
+	require.IsType(t, &legacyShim{}, fullCfg.Configs[1])
+
+	shim := fullCfg.Configs[0].(*legacyShim)
+	require.IsType(t, &legacyConfig{}, shim.Data)
+	require.Equal(t, "hello", shim.Data.(*legacyConfig).Text)
+
+	shim = fullCfg.Configs[1].(*legacyShim)
+	require.IsType(t, &legacyConfig{}, shim.Data)
+	require.Equal(t, "world", shim.Data.(*legacyConfig).Text)
+}
+
+type legacyConfig struct {
+	Text string `yaml:"text"`
+}
+
+func (lc *legacyConfig) Name() string                                        { return "legacy" }
+func (lc *legacyConfig) InstanceKey(agentKey string) (string, error)         { return agentKey, nil }
+func (lc *legacyConfig) NewIntegration(l log.Logger) (v1.Integration, error) { return nil, nil }
 
 type legacyShim struct {
 	Data   v1.Config

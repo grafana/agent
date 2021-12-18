@@ -22,6 +22,9 @@ func (c *Config) Name() string { return "agent" }
 // ApplyDefaults applies runtime-specific defaults to c.
 func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+	if id, err := c.Identifier(globals); err == nil {
+		c.Common.InstanceKey = &id
+	}
 	return nil
 }
 

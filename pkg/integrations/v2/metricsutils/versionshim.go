@@ -38,6 +38,9 @@ func (s *configShim) Name() string { return s.orig.Name() }
 
 func (s *configShim) ApplyDefaults(g v2.Globals) error {
 	s.common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
+	if id, err := s.Identifier(g); err == nil {
+		s.common.InstanceKey = &id
+	}
 	return nil
 }
 
@@ -50,6 +53,9 @@ func (s *configShim) ConfigEquals(c v2.Config) bool {
 }
 
 func (s *configShim) Identifier(g v2.Globals) (string, error) {
+	if s.common.InstanceKey != nil {
+		return *s.common.InstanceKey, nil
+	}
 	return s.orig.InstanceKey(g.AgentIdentifier)
 }
 

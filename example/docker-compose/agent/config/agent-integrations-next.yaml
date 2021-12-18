@@ -1,0 +1,23 @@
+# agent-integrations-next.yaml is intended to be used with
+# docker-compose.integrations-next.yaml. It demonstrates a config with
+# --enable-features=integrations-next and --config.expand-env, but does not
+# test absolutely all integrations.
+server:
+  log_level: info
+  http_listen_port: 12345
+
+metrics:
+  wal_directory: /tmp/agent
+  global:
+    scrape_interval: 1m
+    remote_write:
+      - url: http://${REMOTE_WRITE:-localhost:9009}/api/prom/push
+  configs:
+    - name: default
+
+integrations:
+  agent: {}
+  node_exporter: {}
+  redis_exporter_configs:
+  - redis_addr: ${REDIS_1:-localhost:6379}
+  - redis_addr: ${REDIS_2:-localhost:6380}
