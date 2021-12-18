@@ -31,7 +31,7 @@ All Config Management API endpoints will return responses in the following
 form, unless an internal service error prevents the server from responding
 properly:
 
-```json
+```
 {
   "status": "success" | "error",
   "data": {}
@@ -309,7 +309,7 @@ may also be provided to the URL:
 Status code: 200 if successful.
 Response on success:
 
-```json
+```
 [
   {
     "targets": [ "<host>", ... ],
@@ -333,7 +333,7 @@ response is identical to [`/agent/api/v1/targets`](#list-current-scrape-targets)
 Status code: 200 on success.
 Response on success:
 
-```json
+```
 {
   "status": "success",
   "data": [
