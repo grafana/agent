@@ -7,15 +7,16 @@ weight = 400
 
 The API is divided into several parts:
 
-- [Config Management API](#config-management-api)  
+- [Config Management API](#config-management-api)
 - [Agent API](#agent-api)
+- [Integrations API](#integrations-api)
 - [Ready/Healthy API](#ready--health-api)
 
 ## Config management API
 
-Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../scraping-service" >}}). 
+Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../scraping-service" >}}).
 
-(Note that scraping service mode is a requirement for the config management API, however this is not a pre-req for the Agent API or Ready/Healthy API) 
+(Note that scraping service mode is a requirement for the config management API, however this is not a pre-req for the Agent API or Ready/Healthy API)
 
 The following endpoints are exposed:
 
@@ -269,6 +270,94 @@ validated successfuly, so the results will not identically match the
 configuration file on disk.
 
 Status code: 200 on success.
+
+## Integrations API
+
+> **WARNING**: This API is currently only available when the experimental
+> [integrations revamp]({{< relref "../configuration/integrations/integrations-next" >}})
+> is enabled. Both the revamp and this API are subject to change while they
+> are still experimental.
+
+### Integrations SD API
+
+```
+GET /agent/api/v1/metrics/integrations/sd
+```
+
+This endpoint returns all running metrics-based integrations. It conforms to
+the Prometheus [http_sd_config
+API](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#http_sd_config).
+Targets include integrations regardless of autoscrape being enabled; this
+allows for manually configuring scrape jobs to collect metrics from an
+integration running on an external agent.
+
+The following labels will be present on all returned targets:
+
+- `instance`: The unique instance ID of the running integration.
+- `job`: `integrations/<__meta_agent_integration_name>`
+- `agent_hostname`: `hostname:port` of the agent running the integration.
+- `__meta_agent_integration_name`: The name of the integration.
+- `__meta_agent_integration_instance`: The unique instance ID for the running integration.
+- `__meta_agent_integration_autoscrape`: `1` if autoscrape is enabled for this integration, `0` otherwise.
+
+To reduce the load on the agent's HTTP server, the following query parameters
+may also be provided to the URL:
+
+- `integrations`: Comma-delimited list of integrations to return. i.e., `agent,node_exporter`.
+- `instance`: Return all integrations matching a specific value for instance.
+
+Status code: 200 if successful.
+Response on success:
+
+```json
+[
+  {
+    "targets": [ "<host>", ... ],
+    "labels": {
+      "<labelname>": "<labelvalue>", ...
+    }
+  },
+  ...
+]
+```
+
+### Integrations autoscrape targets
+
+```
+GET /agent/api/v1/metrics/integrations/targets
+```
+
+This endpoint returns all integrations for which autoscrape is enabled. The
+response is identical to [`/agent/api/v1/targets`](#list-current-scrape-targets).
+
+Status code: 200 on success.
+Response on success:
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "instance": <string, metrics instance where autoscraped metrics are sent>,
+      "target_group": <string, scrape config group name>,
+      "endpoint": <string, URL being scraped>
+      "state": <string, one of up, down, unknown>,
+      "discovered_labels": {
+        "__address__": "<address>",
+        ...
+      },
+      "labels": {
+        "label_a": "value_a",
+        ...
+      },
+      "last_scrape": <string, RFC 3339 timestamp of last scrape>,
+      "scrape_duration_ms": <number, last scrape duration in milliseconds>,
+      "scrape_error": <string, last error. empty if scrape succeeded>
+    },
+    ...
+  ]
+}
+```
 
 ## Ready / health API
 
