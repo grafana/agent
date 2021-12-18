@@ -53,6 +53,9 @@ func (s *configShim) ConfigEquals(c v2.Config) bool {
 }
 
 func (s *configShim) Identifier(g v2.Globals) (string, error) {
+	if s.common.InstanceKey != nil {
+		return *s.common.InstanceKey, nil
+	}
 	return s.orig.InstanceKey(g.AgentIdentifier)
 }
 
