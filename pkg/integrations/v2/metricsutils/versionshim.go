@@ -38,6 +38,9 @@ func (s *configShim) Name() string { return s.orig.Name() }
 
 func (s *configShim) ApplyDefaults(g v2.Globals) error {
 	s.common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
+	if id, err := s.Identifier(g); err == nil {
+		s.common.InstanceKey = &id
+	}
 	return nil
 }
 

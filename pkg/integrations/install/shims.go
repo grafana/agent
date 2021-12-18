@@ -3,7 +3,6 @@ package install
 import (
 	v1 "github.com/grafana/agent/pkg/integrations"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/common"
 	metricsutils "github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
@@ -25,9 +24,7 @@ func init() {
 			}
 		}
 		if !found {
-			v2.RegisterLegacy(v1Integration, v2.TypeSingleton, func(cfg v1.Config, common common.MetricsConfig) v2.UpgradedConfig {
-				return metricsutils.CreateShim(cfg, common)
-			})
+			v2.RegisterLegacy(v1Integration, v2.TypeSingleton, metricsutils.CreateShim)
 		}
 	}
 }
