@@ -13,6 +13,7 @@ import (
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -49,6 +50,7 @@ var DefaultConfig = Config{
 // Config contains underlying configurations for the agent
 type Config struct {
 	Server       server.Config         `yaml:"server,omitempty"`
+	Cluster      cluster.Config        `yaml:"-"`
 	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
 	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
 	Traces       traces.Config         `yaml:"traces,omitempty"`
@@ -203,6 +205,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.Server.RegisterInstrumentation = true
 	c.Metrics.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
+	c.Cluster.RegisterFlags(f)
 
 	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
 	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")

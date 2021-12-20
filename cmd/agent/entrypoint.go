@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 	"syscall"
 
 	"github.com/gorilla/mux"
+
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -38,6 +41,7 @@ type Entrypoint struct {
 	cfg config.Config
 
 	srv          *server.Server
+	cluster      *cluster.Node
 	promMetrics  *metrics.Agent
 	lokiLogs     *logs.Logs
 	tempoTraces  *traces.Traces
@@ -74,6 +78,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	}
 
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
+	ep.cluster = cluster.NewNode(logger, &cfg.Cluster)
 
 	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
 	if err != nil {
@@ -261,6 +266,7 @@ func (ep *Entrypoint) Stop() {
 	ep.lokiLogs.Stop()
 	ep.promMetrics.Stop()
 	ep.tempoTraces.Stop()
+	ep.cluster.Close()
 	ep.srv.Close()
 
 	if ep.reloadServer != nil {
@@ -305,6 +311,22 @@ func (ep *Entrypoint) Start() error {
 	}, func(e error) {
 		ep.srv.Close()
 	})
+
+	// Cluster
+	{
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		g.Add(func() error {
+			if err := ep.cluster.Start(); err != nil {
+				return err
+			}
+			<-ctx.Done()
+			return nil
+		}, func(error) {
+			cancel()
+		})
+	}
 
 	go func() {
 		for range notifier {
