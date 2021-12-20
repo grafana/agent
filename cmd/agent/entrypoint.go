@@ -15,7 +15,6 @@ import (
 
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
@@ -42,7 +41,7 @@ type Entrypoint struct {
 
 	srv          *server.Server
 	cluster      *cluster.Node
-	promMetrics  *metrics.Agent
+	promMetrics  config.Metrics
 	lokiLogs     *logs.Logs
 	tempoTraces  *traces.Traces
 	integrations config.Integrations
@@ -80,7 +79,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 	ep.cluster = cluster.NewNode(logger, &cfg.Cluster)
 
-	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
+	ep.promMetrics, err = config.NewMetrics(logger, prometheus.DefaultRegisterer, &cfg.Metrics, ep.cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +154,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 	}
 
 	// Go through each component and update it.
-	if err := ep.promMetrics.ApplyConfig(cfg.Metrics); err != nil {
+	if err := ep.promMetrics.ApplyConfig(&cfg.Metrics); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update prometheus", "err", err)
 		failed = true
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv/consul"
@@ -32,17 +33,19 @@ import (
 var (
 	featRemoteConfigs    = features.Feature("remote-configs")
 	featIntegrationsNext = features.Feature("integrations-next")
+	featMetricsNext      = features.Feature("metrics-next")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
 		featIntegrationsNext,
+		featMetricsNext,
 	}
 )
 
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
-	Metrics:               metrics.DefaultConfig,
+	Metrics:               DefaultVersionedMetrics,
 	Integrations:          DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
 }
@@ -51,7 +54,7 @@ var DefaultConfig = Config{
 type Config struct {
 	Server       server.Config         `yaml:"server,omitempty"`
 	Cluster      cluster.Config        `yaml:"-"`
-	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
+	Metrics      VersionedMetrics      `yaml:"metrics,omitempty"`
 	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
 	Traces       traces.Config         `yaml:"traces,omitempty"`
 	Logs         *logs.Config          `yaml:"logs,omitempty"`
@@ -86,9 +89,8 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		baseConfig `yaml:",inline"`
 
 		// Deprecated field names:
-		Prometheus *metrics.Config `yaml:"prometheus,omitempty"`
-		Loki       *logs.Config    `yaml:"loki,omitempty"`
-		Tempo      *traces.Config  `yaml:"tempo,omitempty"`
+		Loki  *logs.Config   `yaml:"loki,omitempty"`
+		Tempo *traces.Config `yaml:"tempo,omitempty"`
 	}
 
 	var fc config
@@ -99,14 +101,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	// Migrate old fields to the new name
-	if fc.Prometheus != nil && fc.Metrics.Unmarshaled && fc.Prometheus.Unmarshaled {
-		return fmt.Errorf("at most one of prometheus and metrics should be specified")
-	} else if fc.Prometheus != nil && fc.Prometheus.Unmarshaled {
-		fc.Deprecations = append(fc.Deprecations, "`prometheus` has been deprecated in favor of `metrics`")
-		fc.Metrics = *fc.Prometheus
-		fc.Prometheus = nil
-	}
-
 	if fc.Logs != nil && fc.Loki != nil {
 		return fmt.Errorf("at most one of loki and logs should be specified")
 	} else if fc.Logs == nil && fc.Loki != nil {
@@ -170,14 +164,30 @@ func (c *Config) LogDeprecations(l log.Logger) {
 
 // Validate validates the config, flags, and sets default values.
 func (c *Config) Validate(fs *flag.FlagSet) error {
-	if err := c.Metrics.ApplyDefaults(); err != nil {
+	if err := c.Metrics.Validate(fs); err != nil {
+		return err
+	} else if err := c.Metrics.ApplyDefaults(); err != nil {
 		return err
 	}
 
-	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	switch c.Metrics.version {
+	case metricsVersion1:
+		c.Metrics.configV1.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+		c.Metrics.configV1.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
 
-	if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics); err != nil {
-		return err
+		if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics.configV1); err != nil {
+			return err
+		}
+	case metricsVersion2:
+		// Convert the v2 config to v1 so defaults for integrations can be applied
+		convertedConfig := metrics.DefaultConfig
+		convertedConfig.Global = instance.GlobalConfig(c.Metrics.configV2.Global)
+		convertedConfig.WALDir = c.Metrics.optionsV2.WALDir
+		convertedConfig.Configs = c.Metrics.configV1.Configs
+
+		if err := c.Integrations.ApplyDefaults(&c.Server, &convertedConfig); err != nil {
+			return err
+		}
 	}
 
 	// since the Traces config might rely on an existing Loki config
@@ -185,8 +195,6 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 	if err := c.Traces.Validate(c.Logs); err != nil {
 		return err
 	}
-
-	c.Metrics.ServiceConfig.APIEnableGetConfiguration = c.EnableConfigEndpoints
 
 	// Don't validate flags if there's no FlagSet. Used for testing.
 	if fs == nil {

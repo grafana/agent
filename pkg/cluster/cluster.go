@@ -154,9 +154,10 @@ func NewNode(l log.Logger, c *Config) *Node {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
-	l = log.With(l, "component", "cluster")
 
-	c.Discoverer.Log = l
+	c.Discoverer.Log = log.With(l, "component", "discoverer")
+
+	l = log.With(l, "component", "cluster")
 	n := &Node{cfg: c, log: l}
 
 	if !c.Enable {
