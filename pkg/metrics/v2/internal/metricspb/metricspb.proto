@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package metrics.agent.grafana.v1;
+option go_package = "github.com/grafana/agent/pkg/metrics/v2/internal/metricspb";
+
+// Scrapers scrape a set of targets and store their data in a WAL so it can be
+// written.
+service Scraper {
+  // ScrapeTargets assigns a set of targets to a Scraper. ScrapeTargets may be
+  // called multiple times from multiple distinct callers. See the
+  // doucmentation for ScrapeTargetsRequest for more information.
+  rpc ScrapeTargets(ScrapeTargetsRequest) returns (ScrapeTargetsResponse);
+}
+
+// ScrapeTargetsRequest represents a set of targets owned by a Scraper. Multiple
+// ScrapeTargetsRequests may be provided to a Scraper from multiple callers.
+// Implementations of Scrapers must then merge requests together to form a
+// definitive set.
+//
+// ScrapeTargetsRequests can be merged based on treating the targets found
+// within a (instance_name, targets key) tuple as authoritative for that job.
+// It is the responsibility of the caller to ensure that a Scraper receives the
+// full set of targets it should be scraping for a given job.
+//
+// Callers MUST give an empty TargetSet to a Scraper which should not be
+// scraping anything for a given job. This allows the Scraper to stop any
+// existing work.
+message ScrapeTargetsRequest {
+  // Instance name refers to the metrics instance name where these targets were
+  // discovered.
+  string instance_name = 1;
+
+  // Targets is the set of targets to collect from. Corresponds to
+  // map[string][]*targetgroup.Group from Prometheus.
+  map<string, TargetGroups> targets = 2;
+}
+
+// TargetGroups is a list of target groups. Correponds to []*targetgroup.Group
+// from Prometheus.
+message TargetGroups {
+  repeated TargetGroup groups = 1;
+}
+
+// TargetGroup is a group of targets with a related source. Corresponds to
+// *targetgroup.Group from Prometheus.
+message TargetGroup {
+  repeated LabelSet targets = 1;
+  LabelSet labels = 2;
+  string source = 3;
+}
+
+// LabelSet is a set of labels for a target. Corresponds to model.LabelSet from
+// Prometheus.
+message LabelSet {
+  map<string, string> labels = 1;
+}
+
+message ScrapeTargetsResponse { }

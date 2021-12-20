@@ -6,6 +6,7 @@
 /.vscode
 vendor
 
+agent-data
 /cmd/agent/agent
 /cmd/agentctl/agentctl
 /cmd/agent-operator/agent-operator
