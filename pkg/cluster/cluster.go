@@ -91,11 +91,6 @@ func (c *Config) ApplyDefaults(grpcPort int) error {
 	if len(c.JoinPeers) > 0 && c.DiscoverPeers != "" {
 		return fmt.Errorf("only one of cluster.join-peers and cluster.discover-peers may be set")
 	} else if c.DiscoverPeers != "" {
-		discoverCfg, err := discover.Parse(c.DiscoverPeers)
-		if err != nil {
-			return fmt.Errorf("failed to parse discovery string: %w", err)
-		}
-
 		providers := make(map[string]discover.Provider)
 		for k, v := range discover.Providers {
 			providers[k] = v
@@ -107,7 +102,7 @@ func (c *Config) ApplyDefaults(grpcPort int) error {
 			return fmt.Errorf("failed to bootstrap peer discovery: %w", err)
 		}
 
-		addrs, err := d.Addrs(discoverCfg.String(), stdlog.New(io.Discard, "", 0))
+		addrs, err := d.Addrs(c.DiscoverPeers, stdlog.New(io.Discard, "", 0))
 		if err != nil {
 			return fmt.Errorf("failed to discover peers to join: %w", err)
 		}
