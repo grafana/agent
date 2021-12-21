@@ -164,6 +164,10 @@ func (c *Config) LogDeprecations(l log.Logger) {
 
 // Validate validates the config, flags, and sets default values.
 func (c *Config) Validate(fs *flag.FlagSet) error {
+	if err := c.Cluster.ApplyDefaults(c.Server.GRPCListenPort); err != nil {
+		return err
+	}
+
 	if err := c.Metrics.Validate(fs); err != nil {
 		return err
 	} else if err := c.Metrics.ApplyDefaults(); err != nil {

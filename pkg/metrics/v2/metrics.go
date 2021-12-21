@@ -14,7 +14,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/metrics/v2/internal/metricspb"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rfratto/ckit/chash"
@@ -76,11 +75,6 @@ func (m *Metrics) ApplyConfig(cfg Config) error {
 
 	level.Debug(m.log).Log("msg", "finished applying config to metrics-next")
 	return nil
-}
-
-// WireAPI wires up HTTP API routes for the metrics subsystem.
-func (m *Metrics) WireAPI(r *mux.Router) {
-	// TODO(rfratto): API endpoints?
 }
 
 // WireAPI wires up gRPC handlers for the metrics subsystem.

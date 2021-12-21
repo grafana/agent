@@ -39,8 +39,10 @@ func newHasher(builder func() chash.Hash, node *cluster.Node) *hasher {
 			nodes = make([]string, len(ps))
 		)
 		for i, p := range ps {
-			nodes[i] = p.Name
-			hr.ps[p.Name] = &p
+			func(i int, p ckit.Peer) {
+				nodes[i] = p.Name
+				hr.ps[p.Name] = &p
+			}(i, p)
 		}
 		sort.Strings(nodes)
 		hr.hf.SetNodes(nodes)

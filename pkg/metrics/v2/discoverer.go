@@ -3,12 +3,12 @@ package metrics
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	v1 "github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/v2/internal/metricspb"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"
@@ -124,7 +124,7 @@ func (dm *discovererManager) distributeDiscovery(cfg *Config, hr *hashReader) {
 			disc = newDiscoverer(dm.ctx, ic.Name, dm.log, dm.hasher, dm.self)
 			dm.discovererInstances[ic.Name] = disc
 		}
-		if err := disc.ApplyConfig(dm.getDiscoveryJobs(&ic, hr)); err != nil {
+		if err := disc.ApplyConfig(shardDiscoveryJobs(&ic, hr)); err != nil {
 			level.Error(dm.log).Log("msg", "failed to apply discovery jobs", "instance", ic.Name, "err", err)
 			continue
 		}
@@ -141,7 +141,7 @@ func (dm *discovererManager) distributeDiscovery(cfg *Config, hr *hashReader) {
 	}
 }
 
-func (dm *discovererManager) getDiscoveryJobs(ic *InstanceConfig, hr *hashReader) map[string]discovery.Configs {
+func shardDiscoveryJobs(ic *InstanceConfig, hr *hashReader) map[string]discovery.Configs {
 	res := make(map[string]discovery.Configs, len(ic.ScrapeConfigs)/len(hr.Peers()))
 	for _, sc := range ic.ScrapeConfigs {
 		// Assign the job to ourselves if we can't find the owner or the owner is us.
@@ -153,12 +153,35 @@ func (dm *discovererManager) getDiscoveryJobs(ic *InstanceConfig, hr *hashReader
 	return res
 }
 
-func (dm *discovererManager) TargetsActive() map[string]v1.TargetSet {
+func (dm *discovererManager) getDiscoveryJobs() discoveryJobs {
 	dm.mut.RLock()
 	defer dm.mut.RUnlock()
 
-	res := make(map[string]v1.TargetSet, len(dm.discovererInstances))
+	var jobs discoveryJobs
+	for instance, disc := range dm.discovererInstances {
+		jobs.Instances = append(jobs.Instances, discoveryJobsInstance{
+			Name: instance,
+			Jobs: disc.jobNames,
+		})
+	}
+	return jobs
+}
 
+func (dm *discovererManager) getDiscoveryTargets() discoveryTargets {
+	dm.mut.RLock()
+	defer dm.mut.RUnlock()
+
+	var targets discoveryTargets
+	for instance, disc := range dm.discovererInstances {
+		targets.Instances = append(targets.Instances, discoveryTargetsInstance{
+			Name:   instance,
+			Groups: disc.lastTargets,
+		})
+	}
+	sort.Slice(targets.Instances, func(i, j int) bool {
+		return targets.Instances[i].Name < targets.Instances[j].Name
+	})
+	return targets
 }
 
 // Stop will stop dm and all running discoverers.
@@ -186,6 +209,10 @@ type discoverer struct {
 	name   string
 	self   metricspb.ScraperServer
 
+	mut         sync.Mutex
+	jobNames    []string
+	lastTargets targetGroups
+
 	m            *discovery.Manager
 	cancel       context.CancelFunc
 	exited       chan struct{}
@@ -201,9 +228,7 @@ func newDiscoverer(ctx context.Context, name string, l log.Logger, hasher *hashe
 	l = log.With(l, "component", "metrics.discovery")
 	m := discovery.NewManager(ctx, l, discovery.Name(fmt.Sprintf("metrics.discovery.%s", name)))
 	go func() {
-		level.Debug(l).Log("msg", "running discoverer", "name", name)
-		m.Run()
-		level.Debug(l).Log("msg", "discoverer stopped", "name", name)
+		_ = m.Run()
 	}()
 
 	disc := &discoverer{
@@ -232,6 +257,15 @@ func newDiscoverer(ctx context.Context, name string, l log.Logger, hasher *hashe
 
 // ApplyConfig applies SD jobs to d.
 func (d *discoverer) ApplyConfig(sd map[string]discovery.Configs) error {
+	d.mut.Lock()
+	defer d.mut.Unlock()
+
+	d.jobNames = d.jobNames[:0]
+	for jobName := range sd {
+		d.jobNames = append(d.jobNames, jobName)
+	}
+	sort.Strings(d.jobNames)
+
 	// TODO(rfratto): I'm not confident that ApplyConfig will force a write to
 	// SyncCh.
 	return d.m.ApplyConfig(sd)
@@ -270,9 +304,16 @@ func (d *discoverer) run(ctx context.Context) {
 		case hr = <-d.hashReaderCh:
 			distributeShards()
 		case groups = <-d.m.SyncCh():
+			d.saveGroups(groups)
 			distributeShards()
 		}
 	}
+}
+
+func (d *discoverer) saveGroups(groups targetGroups) {
+	d.mut.Lock()
+	defer d.mut.Unlock()
+	d.lastTargets = groups
 }
 
 func (d *discoverer) shard(set targetGroups, hr *hashReader) map[*ckit.Peer]targetGroups {
@@ -385,7 +426,7 @@ func (d *discoverer) distributeShards(ctx context.Context, shards map[*ckit.Peer
 				_, err = d.self.ScrapeTargets(ctx, req)
 			} else {
 				var cc *grpc.ClientConn
-				cc, err = grpc.Dial(peer.ApplicationAddr)
+				cc, err = grpc.Dial(peer.ApplicationAddr, grpc.WithInsecure())
 				if err != nil {
 					level.Error(d.log).Log("msg", "cannot send targets to peer", "peer", peer.Name, "addr", peer.ApplicationAddr, "err", err)
 					saveError(err)
