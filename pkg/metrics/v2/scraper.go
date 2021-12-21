@@ -13,7 +13,6 @@ import (
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
-	"github.com/prometheus/prometheus/storage"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -126,6 +125,7 @@ func (s *scraperManager) ApplyConfig(cfg *Config) error {
 
 			l := log.With(s.log, "component", "metrics.scraper", "instance", ic.Name)
 			scraper = newScraper(l, app)
+			app.bindScraper(scraper.sm)
 			s.scraperInstances[ic.Name] = scraper
 		}
 
@@ -251,7 +251,7 @@ type scraper struct {
 
 // newScraper constructs a new scraper which will deliver all sent metrics to app.
 // newScraper will run until Stop is called.
-func newScraper(l log.Logger, app storage.Appendable) *scraper {
+func newScraper(l log.Logger, app storage) *scraper {
 	sm := scrape.NewManager(&scrape.Options{}, l, app)
 
 	syncCh := make(chan targetGroups)

@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/scrape"
-	"github.com/prometheus/prometheus/storage"
+	prom_storage "github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
 	"github.com/prometheus/statsd_exporter/pkg/level"
 )
@@ -52,7 +52,15 @@ func newSenderMetrics() *senderMetrics {
 // storageSet abstracts over a series of WALs by name. Returns an error if the
 // provided name isn't known.
 type storageSet interface {
-	Appendable(name string) (storage.Appendable, error)
+	Appendable(name string) (storage, error)
+}
+
+type storage interface {
+	prom_storage.Appendable
+
+	// bindScraper binds the scraper to the storage. This is used for sending
+	// metadata.
+	bindScraper(sm *scrape.Manager)
 }
 
 // senderManager manages a set of senders. It implements storageSet.
@@ -83,7 +91,7 @@ func (sm *senderManager) Collector() prometheus.Collector { return sm.metrics }
 
 // Appendable returns an appenable storage by instance name. Returns an error
 // if the named storage doesn't exist.
-func (sm *senderManager) Appendable(name string) (storage.Appendable, error) {
+func (sm *senderManager) Appendable(name string) (storage, error) {
 	sm.metrics.totalSenderLookups.Inc()
 
 	sm.mut.RLock()
@@ -94,7 +102,16 @@ func (sm *senderManager) Appendable(name string) (storage.Appendable, error) {
 		sm.metrics.failedSenderLookups.Inc()
 		return nil, fmt.Errorf("sender %q not found", name)
 	}
-	return sender.wal, nil
+	return senderStorage{Appendable: sender.wal, sender: sender}, nil
+}
+
+type senderStorage struct {
+	prom_storage.Appendable
+	sender *sender
+}
+
+func (ss senderStorage) bindScraper(sm *scrape.Manager) {
+	ss.sender.dsm.Set(sm)
 }
 
 // ApplyConfig synchronizes the senders with cfg.
@@ -182,7 +199,8 @@ type sender struct {
 
 	wal     *wal.Storage
 	rs      *remote.Storage
-	storage storage.Storage
+	storage prom_storage.Storage
+	dsm     *deferredScrapeManager
 }
 
 // newSender creates a new sender. ApplyConfig must be invoked to configure
@@ -195,8 +213,10 @@ func newSender(l log.Logger, reg prometheus.Registerer, dir string, flushDeadlin
 	if err != nil {
 		return nil, err
 	}
-	rs := remote.NewStorage(l, ureg, w.StartTime, w.Directory(), flushDeadline, noOpScrapeManager{})
-	storage := storage.NewFanout(l, w, rs)
+
+	var dsm deferredScrapeManager
+	rs := remote.NewStorage(l, ureg, w.StartTime, w.Directory(), flushDeadline, &dsm)
+	storage := prom_storage.NewFanout(l, w, rs)
 
 	return &sender{
 		log:     l,
@@ -204,6 +224,7 @@ func newSender(l log.Logger, reg prometheus.Registerer, dir string, flushDeadlin
 		rs:      rs,
 		storage: storage,
 		reg:     ureg,
+		dsm:     &dsm,
 	}, nil
 }
 
@@ -221,6 +242,22 @@ func (s *sender) Close() error {
 	return s.storage.Close()
 }
 
-type noOpScrapeManager struct{}
+type deferredScrapeManager struct {
+	mut sync.Mutex
+	sm  *scrape.Manager
+}
 
-func (noOpScrapeManager) Get() (*scrape.Manager, error) { return nil, nil }
+func (sm *deferredScrapeManager) Get() (*scrape.Manager, error) {
+	sm.mut.Lock()
+	defer sm.mut.Unlock()
+	if sm.sm == nil {
+		return nil, fmt.Errorf("not ready yet")
+	}
+	return sm.sm, nil
+}
+
+func (sm *deferredScrapeManager) Set(m *scrape.Manager) {
+	sm.mut.Lock()
+	defer sm.mut.Unlock()
+	sm.sm = m
+}
