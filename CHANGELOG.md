@@ -15,6 +15,8 @@
 
 - [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
 
+- [BUGFIX] Only stop WAL cleaner when it has been started (@56quarters)
+
 - [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
 
 # v0.21.2 (2021-12-08)

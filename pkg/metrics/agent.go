@@ -12,12 +12,13 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/prometheus/client_golang/prometheus"
+	"google.golang.org/grpc"
+
 	"github.com/grafana/agent/pkg/metrics/cluster"
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/prometheus/client_golang/prometheus"
-	"google.golang.org/grpc"
 )
 
 // DefaultConfig is the default settings for the Prometheus-lite client.
@@ -329,7 +330,9 @@ func (a *Agent) Stop() {
 
 	a.cluster.Stop()
 
-	a.cleaner.Stop()
+	if a.cleaner != nil {
+		a.cleaner.Stop()
+	}
 
 	// Only need to stop the ModalManager, which will passthrough everything to the
 	// BasicManager.
