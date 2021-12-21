@@ -3,13 +3,14 @@ package metrics
 import (
 	"context"
 	"fmt"
-	"sort"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/v2/internal/metricspb"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -22,13 +23,73 @@ import (
 // might be noisier at the traffic level but would be more resilient to network
 // partitions.
 
+type discovererMetrics struct {
+	util.MetricsContainer
+
+	numberDiscoverers        prometheus.Gauge
+	numberDiscoverersReshard prometheus.Counter
+
+	discovererJobs        *prometheus.GaugeVec
+	discovererTargets     *prometheus.GaugeVec
+	discovererReshards    *prometheus.CounterVec
+	discovererDiscoveries *prometheus.CounterVec
+	discovererFailures    *prometheus.CounterVec
+}
+
+func newDiscovererMetrics() *discovererMetrics {
+	var m discovererMetrics
+
+	m.numberDiscoverers = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_metrics_discoverers_count",
+		Help: "Current number of running discoverers",
+	})
+	m.numberDiscoverersReshard = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_metrics_discoverers_reshards_total",
+		Help: "Number of times service discovery jobs have been redistributed",
+	})
+
+	m.discovererJobs = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_metrics_discoverer_jobs_count",
+		Help: "Current number of jobs being discovered by this discoverer",
+	}, []string{"instance"})
+	m.discovererTargets = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_metrics_discoverer_targets_count",
+		Help: "Current number of targets discovered by this discoverer across all jobs",
+	}, []string{"instance"})
+	m.discovererReshards = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "agent_metrics_discoverer_reshards_count",
+		Help: "Total number of times discovered targets have been resharded",
+	}, []string{"instance"})
+	m.discovererDiscoveries = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "agent_metrics_discoverer_discoveries_count",
+		Help: "Total number of times targets have been updated and distributed",
+	}, []string{"instance"})
+	m.discovererFailures = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "agent_metrics_discoverer_failures",
+		Help: "Total number of times a discoverer has failed",
+	}, []string{"instance", "type"})
+
+	m.Add(
+		m.numberDiscoverers,
+		m.numberDiscoverersReshard,
+
+		m.discovererJobs,
+		m.discovererTargets,
+		m.discovererReshards,
+		m.discovererDiscoveries,
+		m.discovererFailures,
+	)
+	return &m
+}
+
 // discovererManager manages a set of discoverers. Discoverers are launched
 // based on cluster ownership: a discoverer will only run Service Discovery for
 // job names that hash to the local node.
 type discovererManager struct {
-	log    log.Logger
-	hasher *hasher
-	self   metricspb.ScraperServer
+	log     log.Logger
+	hasher  *hasher
+	self    metricspb.ScraperServer
+	metrics *discovererMetrics
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -44,9 +105,10 @@ func newDiscovererManager(log log.Logger, hasher *hasher, self metricspb.Scraper
 	ctx, cancel := context.WithCancel(context.Background())
 
 	dm := &discovererManager{
-		log:    log,
-		hasher: hasher,
-		self:   self,
+		log:     log,
+		hasher:  hasher,
+		self:    self,
+		metrics: newDiscovererMetrics(),
 
 		ctx:    ctx,
 		cancel: cancel,
@@ -63,6 +125,9 @@ func newDiscovererManager(log log.Logger, hasher *hasher, self metricspb.Scraper
 	})
 	return dm
 }
+
+// Collector returns Prometheus metrics for the discoverer.
+func (dm *discovererManager) Collector() prometheus.Collector { return dm.metrics }
 
 // ApplyConfig will run a set of discoverers.
 func (dm *discovererManager) ApplyConfig(cfg *Config) error {
@@ -101,6 +166,7 @@ func (dm *discovererManager) run(ctx context.Context) {
 			return
 
 		case hr = <-dm.hashReaderCh:
+			dm.metrics.numberDiscoverersReshard.Inc()
 			distributeDiscovery()
 		case cfg = <-dm.configCh:
 			distributeDiscovery()
@@ -121,7 +187,7 @@ func (dm *discovererManager) distributeDiscovery(cfg *Config, hr *hashReader) {
 
 		disc, ok := dm.discovererInstances[ic.Name]
 		if !ok {
-			disc = newDiscoverer(dm.ctx, ic.Name, dm.log, dm.hasher, dm.self)
+			disc = newDiscoverer(dm.ctx, ic.Name, dm.log, dm.hasher, dm.self, dm.metrics)
 			dm.discovererInstances[ic.Name] = disc
 		}
 		if err := disc.ApplyConfig(shardDiscoveryJobs(&ic, hr)); err != nil {
@@ -137,8 +203,16 @@ func (dm *discovererManager) distributeDiscovery(cfg *Config, hr *hashReader) {
 			level.Info(dm.log).Log("msg", "shutting down stale discoverer", "instance", instance)
 			disc.Stop()
 			delete(dm.discovererInstances, instance)
+
+			dm.metrics.discovererJobs.DeleteLabelValues(instance)
+			dm.metrics.discovererTargets.DeleteLabelValues(instance)
+			dm.metrics.discovererDiscoveries.DeleteLabelValues(instance)
+			dm.metrics.discovererReshards.DeleteLabelValues(instance)
+			dm.metrics.discovererFailures.DeleteLabelValues(instance)
 		}
 	}
+
+	dm.metrics.numberDiscoverers.Set(float64(len(dm.discovererInstances)))
 }
 
 func shardDiscoveryJobs(ic *InstanceConfig, hr *hashReader) map[string]discovery.Configs {
@@ -161,7 +235,7 @@ func (dm *discovererManager) getDiscoveryJobs() []discoveryJob {
 
 	var jobs []discoveryJob
 	for instance, disc := range dm.discovererInstances {
-		for _, job := range disc.jobNames {
+		for _, job := range disc.getJobs() {
 			jobs = append(jobs, discoveryJob{
 				Instance: instance,
 				Name:     job,
@@ -204,14 +278,15 @@ func (dm *discovererManager) Stop() {
 // of targets is found, a discoverer will shard targets amongst scrapers in the
 // cluster.
 type discoverer struct {
-	log    log.Logger
-	hasher *hasher
-	name   string
-	self   metricspb.ScraperServer
+	log     log.Logger
+	hasher  *hasher
+	name    string
+	self    metricspb.ScraperServer
+	metrics *discovererMetrics
 
-	mut         sync.Mutex
+	mut         sync.RWMutex
 	jobNames    []string
-	lastTargets targetGroups
+	lastTargets []discoveryTarget
 
 	m            *discovery.Manager
 	cancel       context.CancelFunc
@@ -222,7 +297,7 @@ type discoverer struct {
 // newDiscoverer creates a new discoverer. Must call ApplyConfig to start
 // discovering targets. Can be stopped by calling Stop. Discovered targets are
 // sharded amongst scrapers using node.
-func newDiscoverer(ctx context.Context, name string, l log.Logger, hasher *hasher, self metricspb.ScraperServer) *discoverer {
+func newDiscoverer(ctx context.Context, name string, l log.Logger, hasher *hasher, self metricspb.ScraperServer, metrics *discovererMetrics) *discoverer {
 	ctx, cancel := context.WithCancel(ctx)
 
 	l = log.With(l, "component", "metrics.discovery")
@@ -232,10 +307,11 @@ func newDiscoverer(ctx context.Context, name string, l log.Logger, hasher *hashe
 	}()
 
 	disc := &discoverer{
-		log:    l,
-		hasher: hasher,
-		name:   name,
-		self:   self,
+		log:     l,
+		hasher:  hasher,
+		name:    name,
+		self:    self,
+		metrics: metrics,
 
 		m:            m,
 		cancel:       cancel,
@@ -257,18 +333,23 @@ func newDiscoverer(ctx context.Context, name string, l log.Logger, hasher *hashe
 
 // ApplyConfig applies SD jobs to d.
 func (d *discoverer) ApplyConfig(sd map[string]discovery.Configs) error {
-	d.mut.Lock()
-	defer d.mut.Unlock()
-
-	d.jobNames = d.jobNames[:0]
+	jobs := make([]string, 0, len(sd))
 	for jobName := range sd {
-		d.jobNames = append(d.jobNames, jobName)
+		jobs = append(jobs, jobName)
 	}
-	sort.Strings(d.jobNames)
+	d.metrics.discovererJobs.WithLabelValues(d.name).Set(float64(len(jobs)))
 
-	// TODO(rfratto): I'm not confident that ApplyConfig will force a write to
-	// SyncCh.
+	d.mut.Lock()
+	d.jobNames = jobs
+	d.mut.Unlock()
+
 	return d.m.ApplyConfig(sd)
+}
+
+func (d *discoverer) getJobs() []string {
+	d.mut.RLock()
+	defer d.mut.RUnlock()
+	return d.jobNames
 }
 
 func (d *discoverer) run(ctx context.Context) {
@@ -293,7 +374,9 @@ func (d *discoverer) run(ctx context.Context) {
 		defer cancel()
 
 		level.Debug(d.log).Log("msg", "distributing targets", "instance", d.name)
-		d.distributeShards(ctx, d.shard(groups, hr))
+		if err := d.distributeShards(ctx, d.shard(groups, hr)); err != nil {
+			d.metrics.discovererFailures.WithLabelValues(d.name, "distribution").Inc()
+		}
 	}
 
 	for {
@@ -302,27 +385,22 @@ func (d *discoverer) run(ctx context.Context) {
 			return
 
 		case hr = <-d.hashReaderCh:
+			d.metrics.discovererReshards.WithLabelValues(d.name).Inc()
+
 			distributeShards()
 		case groups = <-d.m.SyncCh():
-			d.saveGroups(groups)
+			d.metrics.discovererDiscoveries.WithLabelValues(d.name).Inc()
+
+			d.cacheDiscoveryTargets(groups)
 			distributeShards()
 		}
 	}
 }
 
-func (d *discoverer) saveGroups(groups targetGroups) {
-	d.mut.Lock()
-	defer d.mut.Unlock()
-	d.lastTargets = groups
-}
-
-func (d *discoverer) getDiscoveryTargets() []discoveryTarget {
-	d.mut.Lock()
-	defer d.mut.Unlock()
-
+func (d *discoverer) cacheDiscoveryTargets(allGroups targetGroups) {
 	var targets []discoveryTarget
 
-	for groupName, groups := range d.lastTargets {
+	for groupName, groups := range allGroups {
 		for _, group := range groups {
 			for _, target := range group.Targets {
 				targets = append(targets, discoveryTarget{
@@ -334,7 +412,16 @@ func (d *discoverer) getDiscoveryTargets() []discoveryTarget {
 		}
 	}
 
-	return targets
+	d.mut.Lock()
+	defer d.mut.Unlock()
+	d.lastTargets = targets
+	d.metrics.discovererTargets.WithLabelValues(d.name).Set(float64(len(targets)))
+}
+
+func (d *discoverer) getDiscoveryTargets() []discoveryTarget {
+	d.mut.RLock()
+	defer d.mut.RUnlock()
+	return d.lastTargets
 }
 
 func (d *discoverer) shard(set targetGroups, hr *hashReader) map[*ckit.Peer]targetGroups {
@@ -387,6 +474,7 @@ func (d *discoverer) shard(set targetGroups, hr *hashReader) map[*ckit.Peer]targ
 				peer, err := hr.Get(string(address))
 				if err != nil || peer == nil {
 					peer = ourselves
+					d.metrics.discovererFailures.WithLabelValues(d.name, "peer_lookup").Inc()
 				}
 				groupShards[peer].Targets = append(groupShards[peer].Targets, target)
 			}

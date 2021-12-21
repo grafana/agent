@@ -17,6 +17,38 @@ import (
 	"github.com/prometheus/statsd_exporter/pkg/level"
 )
 
+type senderMetrics struct {
+	util.MetricsContainer
+
+	numberSenders       prometheus.Gauge
+	totalSenderLookups  prometheus.Counter
+	failedSenderLookups prometheus.Counter
+}
+
+func newSenderMetrics() *senderMetrics {
+	var m senderMetrics
+
+	m.numberSenders = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_metrics_senders_count",
+		Help: "Current number of running senders",
+	})
+	m.totalSenderLookups = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_metrics_sender_lookups_total",
+		Help: "Total number of sender lookups (successful and failed)",
+	})
+	m.failedSenderLookups = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_metrics_sender_failed_lookups_total",
+		Help: "Total number of failed sender lookups",
+	})
+
+	m.Add(
+		m.numberSenders,
+		m.totalSenderLookups,
+		m.failedSenderLookups,
+	)
+	return &m
+}
+
 // storageSet abstracts over a series of WALs by name. Returns an error if the
 // provided name isn't known.
 type storageSet interface {
@@ -25,9 +57,10 @@ type storageSet interface {
 
 // senderManager manages a set of senders. It implements storageSet.
 type senderManager struct {
-	log log.Logger
-	reg prometheus.Registerer
-	o   Options
+	log     log.Logger
+	reg     prometheus.Registerer
+	o       Options
+	metrics *senderMetrics
 
 	mut             sync.RWMutex
 	senderInstances map[string]*sender
@@ -36,22 +69,29 @@ type senderManager struct {
 // newSenderManager creates a new senderManager. No senders are configured until ApplyConfig is called.
 func newSenderManager(l log.Logger, reg prometheus.Registerer, o Options) *senderManager {
 	return &senderManager{
-		log: l,
-		reg: reg,
-		o:   o,
+		log:     l,
+		reg:     reg,
+		o:       o,
+		metrics: newSenderMetrics(),
 
 		senderInstances: make(map[string]*sender),
 	}
 }
 
+// Collector returns the metrics of the senderManager.
+func (sm *senderManager) Collector() prometheus.Collector { return sm.metrics }
+
 // Appendable returns an appenable storage by instance name. Returns an error
 // if the named storage doesn't exist.
 func (sm *senderManager) Appendable(name string) (storage.Appendable, error) {
+	sm.metrics.totalSenderLookups.Inc()
+
 	sm.mut.RLock()
 	defer sm.mut.RUnlock()
 
 	sender, ok := sm.senderInstances[name]
 	if !ok {
+		sm.metrics.failedSenderLookups.Inc()
 		return nil, fmt.Errorf("sender %q not found", name)
 	}
 	return sender.wal, nil
@@ -108,6 +148,7 @@ func (sm *senderManager) ApplyConfig(cfg *Config) error {
 		}
 	}
 
+	sm.metrics.numberSenders.Set(float64(len(sm.senderInstances)))
 	return firstError
 }
 

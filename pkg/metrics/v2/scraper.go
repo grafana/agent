@@ -8,6 +8,8 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	pb "github.com/grafana/agent/pkg/metrics/v2/internal/metricspb"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
@@ -16,13 +18,61 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type scraperMetrics struct {
+	util.MetricsContainer
+
+	numberScrapers    prometheus.Gauge
+	totalTargetPushes prometheus.Counter
+	totalTargets      prometheus.Counter
+	totalFailedPushes *prometheus.CounterVec
+
+	scraperTargets *prometheus.GaugeVec
+}
+
+func newScraperMetrics() *scraperMetrics {
+	var m scraperMetrics
+
+	m.numberScrapers = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "agent_metrics_scrapers_count",
+		Help: "Current number of running scrapers",
+	})
+	m.totalTargetPushes = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_metrics_scrapers_received_pushes_total",
+		Help: "Number of times this node has received a set of targets from other nodes",
+	})
+	m.totalTargets = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_metrics_scrapers_received_targets_total",
+		Help: "Total number of targets this node has received from other nodes",
+	})
+	m.totalFailedPushes = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "agent_metrics_scrapers_failed_pushes_total",
+		Help: "Number of times scrapers failed to receieve targets",
+	}, []string{"reason"})
+
+	m.scraperTargets = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_metrics_scraper_targets",
+		Help: "Current number of targets for the scraper",
+	}, []string{"instance"})
+
+	m.Add(
+		m.numberScrapers,
+		m.totalTargetPushes,
+		m.totalTargets,
+		m.totalFailedPushes,
+
+		m.scraperTargets,
+	)
+	return &m
+}
+
 // scraperManager implements metricspb.ScraperServer and will manage scrapers
 // based on receieved targets.
 type scraperManager struct {
 	pb.UnimplementedScraperServer
 
-	log log.Logger
-	ss  storageSet
+	log     log.Logger
+	ss      storageSet
+	metrics *scraperMetrics
 
 	mut              sync.RWMutex
 	stopped          bool
@@ -36,8 +86,9 @@ type targetGroups = map[string][]*targetgroup.Group
 // until ApplyConfig is called.
 func newScraperManager(log log.Logger, ss storageSet) *scraperManager {
 	return &scraperManager{
-		log: log,
-		ss:  ss,
+		log:     log,
+		ss:      ss,
+		metrics: newScraperMetrics(),
 
 		instanceGroups:   make(map[string]targetGroups),
 		scraperInstances: make(map[string]*scraper),
@@ -92,11 +143,17 @@ func (s *scraperManager) ApplyConfig(cfg *Config) error {
 			level.Info(s.log).Log("msg", "shutting down stale instance scraper", "instance", instance)
 			inst.Stop()
 			delete(s.scraperInstances, instance)
+
+			s.metrics.scraperTargets.DeleteLabelValues(instance)
 		}
 	}
 
+	s.metrics.numberScrapers.Set(float64(len(s.scraperInstances)))
 	return firstError
 }
+
+// Collector returns metrics for the scraperManager.
+func (s *scraperManager) Collector() prometheus.Collector { return s.metrics }
 
 // Stop stops all of the scrapers.
 func (s *scraperManager) Stop() {
@@ -117,6 +174,13 @@ func (s *scraperManager) ScrapeTargets(ctx context.Context, req *pb.ScrapeTarget
 		return nil, status.Errorf(codes.Unavailable, "scraper is shutting down")
 	}
 
+	s.metrics.totalTargetPushes.Inc()
+	for _, groups := range req.GetTargets() {
+		for _, group := range groups.GetGroups() {
+			s.metrics.totalTargets.Add(float64(len(group.GetTargets())))
+		}
+	}
+
 	// Find the scraper to update. We don't want to bother tracking targets we
 	// can't scrape from, so we use this as an early validation.
 	scraper, ok := s.scraperInstances[req.GetInstanceName()]
@@ -129,6 +193,7 @@ func (s *scraperManager) ScrapeTargets(ctx context.Context, req *pb.ScrapeTarget
 		// they show up eventually. We can garbage collect them if they've been
 		// around too long with nowhere to assign them, though.
 		level.Error(s.log).Log("msg", "unknown instance, can't scrape targets", "instance", req.InstanceName)
+		s.metrics.totalFailedPushes.WithLabelValues("unknown_instance").Inc()
 		return nil, status.Errorf(codes.NotFound, "instance %q not known to scraper", req.InstanceName)
 	}
 
@@ -146,11 +211,22 @@ func (s *scraperManager) ScrapeTargets(ctx context.Context, req *pb.ScrapeTarget
 		outGroupSet[job] = groups
 	}
 
+	// Target calculation. This is done after the merge to accurately track the
+	// new final set of targets.
+	var numTargets int
+	for _, groups := range outGroupSet {
+		for _, group := range groups {
+			numTargets += len(group.Targets)
+		}
+	}
+
 	select {
 	case scraper.syncCh <- outGroupSet:
 		level.Debug(s.log).Log("msg", "passed new targets to instance scraper", "instance", req.InstanceName)
+		s.metrics.scraperTargets.WithLabelValues(req.GetInstanceName()).Set(float64(numTargets))
 	case <-ctx.Done():
 		level.Error(s.log).Log("msg", "context canceled while assigning new targets to instance scraper", "insatnce", req.InstanceName, "err", ctx.Err())
+		s.metrics.totalFailedPushes.WithLabelValues("timeout").Inc()
 	}
 	return &pb.ScrapeTargetsResponse{}, nil
 }

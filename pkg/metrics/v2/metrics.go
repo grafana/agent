@@ -41,6 +41,13 @@ func New(l log.Logger, reg prometheus.Registerer, opts Options) (*Metrics, error
 	hasher := newHasher(chash.Ring(256), opts.Cluster)
 	discoverers := newDiscovererManager(l, hasher, scrapers)
 
+	// Register metrics from our components.
+	reg.MustRegister(
+		senders.Collector(),
+		scrapers.Collector(),
+		discoverers.Collector(),
+	)
+
 	return &Metrics{
 		log:         l,
 		senders:     senders,
