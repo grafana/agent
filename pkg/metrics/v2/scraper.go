@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -23,7 +24,7 @@ type scraperManager struct {
 	log log.Logger
 	ss  storageSet
 
-	mut              sync.Mutex
+	mut              sync.RWMutex
 	stopped          bool
 	instanceGroups   map[string]targetGroups // Map of instance name -> target groups
 	scraperInstances map[string]*scraper     // Running scrapers.
@@ -154,6 +155,18 @@ func (s *scraperManager) ScrapeTargets(ctx context.Context, req *pb.ScrapeTarget
 	return &pb.ScrapeTargetsResponse{}, nil
 }
 
+// getScrapeTargets lists all current scrape targets.
+func (sm *scraperManager) getScrapeTargets() []scrapeTarget {
+	sm.mut.RLock()
+	defer sm.mut.RUnlock()
+
+	var targets []scrapeTarget
+	for instName, inst := range sm.scraperInstances {
+		targets = append(targets, inst.getScrapeTargets(instName)...)
+	}
+	return targets
+}
+
 // scraper manages all of the scraping for a metrics instance.
 type scraper struct {
 	syncCh chan<- targetGroups
@@ -178,6 +191,44 @@ func newScraper(l log.Logger, app storage.Appendable) *scraper {
 // be called before sending it any targets.
 func (s *scraper) ApplyConfig(cc []*prom_config.ScrapeConfig) error {
 	return s.sm.ApplyConfig(&prom_config.Config{ScrapeConfigs: cc})
+}
+
+// getScrapeTargets returns the current scrape targets.
+func (s *scraper) getScrapeTargets(instanceName string) []scrapeTarget {
+	var targets []scrapeTarget
+	activeTargets := s.sm.TargetsActive()
+
+	for groupName, groupedTargets := range activeTargets {
+		for _, target := range groupedTargets {
+			outTarget := scrapeTarget{
+				Instance:    instanceName,
+				TargetGroup: groupName,
+
+				Endpoint:         target.URL().String(),
+				State:            string(target.Health()),
+				Labels:           target.Labels(),
+				DiscoveredLabels: target.DiscoveredLabels(),
+				LastScrape: func() *time.Time {
+					t := target.LastScrape()
+					if t.IsZero() {
+						return nil
+					}
+					return &t
+				}(),
+				ScrapeDuration: target.LastScrapeDuration().Milliseconds(),
+				ScrapeError: func() string {
+					err := target.LastError()
+					if err != nil {
+						return err.Error()
+					}
+					return ""
+				}(),
+			}
+			targets = append(targets, outTarget)
+		}
+	}
+
+	return targets
 }
 
 // Stop stops the scraper and all scrape jobs.

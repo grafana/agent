@@ -7,18 +7,20 @@ metrics:
   configs:
   - name: default
     scrape_configs:
-      - job_name: grafana
-        static_configs:
-        - targets: ['demo.robustperception.io:3000']
-      - job_name: prometheus
-        static_configs:
-        - targets: ['demo.robustperception.io:9090']
-      - job_name: node_exporter
-        static_configs:
-        - targets: ['demo.robustperception.io:9100']
-      - job_name: alertmanager
-        static_configs:
-        - targets: ['demo.robustperception.io:9093']
-      - job_name: pushgateway
-        static_configs:
-        - targets: ['demo.robustperception.io:9091']
+    - job_name: demo.robustperception.io
+      static_configs:
+      - targets: ['demo.robustperception.io:3000']
+        labels:
+          app: grafana
+      - targets: ['demo.robustperception.io:9090']
+        labels:
+          app: prometheus
+      - targets: ['demo.robustperception.io:9100']
+        labels:
+          app: node_exporter
+      - targets: ['demo.robustperception.io:9093']
+        labels:
+          app: alertmanager
+      - targets: ['demo.robustperception.io:9091']
+        labels:
+          app: pushgateway

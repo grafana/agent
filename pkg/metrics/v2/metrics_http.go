@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/cluster/httpclient"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/rfratto/ckit"
 	"github.com/weaveworks/common/httpgrpc"
 	"google.golang.org/grpc"
@@ -18,12 +20,14 @@ import (
 const (
 	discoveryJobsAPIEndpoint    = "/agent/api/v1/metrics/discovery/jobs"
 	discoveryTargetsAPIEndpoint = "/agent/api/v1/metrics/discovery/targets"
+	scrapeTargetsAPIEndpoint    = "/agent/api/v1/metrics/scrape/targets"
 )
 
 // WireAPI wires up HTTP API routes for the metrics subsystem.
 func (m *Metrics) WireAPI(r *mux.Router) {
 	r.HandleFunc(discoveryJobsAPIEndpoint, m.listDiscoveryJobsHandler).Methods(http.MethodGet)
 	r.HandleFunc(discoveryTargetsAPIEndpoint, m.listDiscoveryTargetsHandler).Methods(http.MethodGet)
+	r.HandleFunc(scrapeTargetsAPIEndpoint, m.scrapeTargetsHandler).Methods(http.MethodGet)
 }
 
 type discoveryJob struct {
@@ -150,6 +154,72 @@ func (m *Metrics) listDiscoveryTargetsHandler(w http.ResponseWriter, r *http.Req
 			return targets[i].TargetGroup < targets[j].TargetGroup
 		default:
 			return targets[i].Labels[model.AddressLabel] < targets[j].Labels[model.AddressLabel]
+		}
+	})
+
+	_ = configapi.WriteResponse(w, http.StatusOK, targets)
+}
+
+type scrapeTarget struct {
+	Node        string `json:"node,omitempty"`
+	Instance    string `json:"instance"`
+	TargetGroup string `json:"target_group"`
+
+	Endpoint         string        `json:"endpoint"`
+	State            string        `json:"state"`
+	Labels           labels.Labels `json:"labels"`
+	DiscoveredLabels labels.Labels `json:"discovered_labels"`
+	LastScrape       *time.Time    `json:"last_scrape"`
+	ScrapeDuration   int64         `json:"scrape_duration_ms"`
+	ScrapeError      string        `json:"scrape_error"`
+}
+
+func (m *Metrics) scrapeTargetsHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		peers     = m.node.Peers()
+		localOnly = r.URL.Query().Get("remote") == "0"
+	)
+
+	withNodeName := func(name string, targets []scrapeTarget) []scrapeTarget {
+		for i := range targets {
+			targets[i].Node = name
+		}
+		return targets
+	}
+
+	var targets []scrapeTarget
+
+	for _, p := range peers {
+		if p.Self {
+			targets = append(targets, withNodeName(p.Name, m.scrapers.getScrapeTargets())...)
+			continue
+		}
+		if localOnly {
+			// Skip over remote peers when the query is only for the local node.
+			continue
+		}
+
+		var peerTargets []scrapeTarget
+		err := queryPeer(r.Context(), &p, scrapeTargetsAPIEndpoint+"?remote=0", &peerTargets)
+		if err != nil {
+			configapi.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+		targets = append(targets, peerTargets...)
+	}
+
+	// Sort slice by instance, target group, and job label, and instance label.
+	// Node name is not used for sorting.
+	sort.Slice(targets, func(i, j int) bool {
+		switch {
+		case targets[i].Instance != targets[j].Instance:
+			return targets[i].Instance < targets[j].Instance
+		case targets[i].TargetGroup != targets[j].TargetGroup:
+			return targets[i].TargetGroup < targets[j].TargetGroup
+		case targets[i].Labels.Get(model.JobLabel) != targets[j].Labels.Get(model.JobLabel):
+			return targets[i].Labels.Get(model.JobLabel) < targets[j].Labels.Get(model.JobLabel)
+		default:
+			return targets[i].Labels.Get(model.InstanceLabel) < targets[j].Labels.Get(model.InstanceLabel)
 		}
 	})
 
