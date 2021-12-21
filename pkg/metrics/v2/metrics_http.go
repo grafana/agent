@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
@@ -27,11 +26,24 @@ func (m *Metrics) WireAPI(r *mux.Router) {
 	r.HandleFunc(discoveryTargetsAPIEndpoint, m.listDiscoveryTargetsHandler).Methods(http.MethodGet)
 }
 
+type discoveryJob struct {
+	Node     string `json:"node_name,omitempty"`
+	Instance string `json:"instance_name"`
+	Name     string `json:"job_name"`
+}
+
 func (m *Metrics) listDiscoveryJobsHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		peers     = m.node.Peers()
 		localOnly = r.URL.Query().Get("remote") == "0"
 	)
+
+	withNodeName := func(name string, jobs []discoveryJob) []discoveryJob {
+		for i := range jobs {
+			jobs[i].Node = name
+		}
+		return jobs
+	}
 
 	var jobs []discoveryJob
 
@@ -67,13 +79,6 @@ func (m *Metrics) listDiscoveryJobsHandler(w http.ResponseWriter, r *http.Reques
 	_ = configapi.WriteResponse(w, http.StatusOK, jobs)
 }
 
-func withNodeName(name string, jobs []discoveryJob) []discoveryJob {
-	for i := range jobs {
-		jobs[i].Node = name
-	}
-	return jobs
-}
-
 func queryPeer(ctx context.Context, p *ckit.Peer, endpoint string, v interface{}) error {
 	cc, err := grpc.Dial(p.ApplicationAddr, grpc.WithInsecure())
 	if err != nil {
@@ -94,77 +99,59 @@ func queryPeer(ctx context.Context, p *ckit.Peer, endpoint string, v interface{}
 	return configapi.UnmarshalAPIResponse(resp.Body, v)
 }
 
-type discoveryJob struct {
-	Node     string `json:"node_name"`
-	Instance string `json:"instance_name"`
-	Name     string `json:"job_name"`
+type discoveryTarget struct {
+	Node        string         `json:"node,omitempty"`
+	Instance    string         `json:"instance"`
+	TargetGroup string         `json:"target_group"`
+	Labels      model.LabelSet `json:"labels"`
 }
 
-func (m *Metrics) listDiscoveryTargetsHandler(w http.ResponseWriter, _ *http.Request) {
-	jobs := m.discoverers.getDiscoveryTargets()
-	_ = configapi.WriteResponse(w, http.StatusOK, jobs)
-}
+func (m *Metrics) listDiscoveryTargetsHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		peers     = m.node.Peers()
+		localOnly = r.URL.Query().Get("remote") == "0"
+	)
 
-type discoveryJobs struct {
-	Instances []discoveryJobsInstance `json:"instances"`
-}
-
-type discoveryJobsInstance struct {
-	Name string   `json:"name"`
-	Jobs []string `json:"jobs"`
-}
-
-type discoveryTargets struct {
-	Instances []discoveryTargetsInstance `json:"instances"`
-}
-
-type discoveryTargetsInstance struct {
-	Name   string
-	Groups targetGroups
-}
-
-func (d discoveryTargetsInstance) MarshalJSON() ([]byte, error) {
-	type targetInfo struct {
-		TargetGroup string         `json:"target_group"`
-		Labels      model.LabelSet `json:"labels"`
-	}
-
-	var info []targetInfo
-
-	for groupName, groups := range d.Groups {
-		for _, group := range groups {
-			for _, target := range group.Targets {
-				info = append(info, targetInfo{
-					TargetGroup: groupName,
-					Labels:      group.Labels.Merge(target),
-				})
-			}
+	withNodeName := func(name string, targets []discoveryTarget) []discoveryTarget {
+		for i := range targets {
+			targets[i].Node = name
 		}
+		return targets
 	}
-	sort.Slice(info, func(i, j int) bool {
-		// sort by target group, then address label.
-		var (
-			iGroup   = info[i].TargetGroup
-			iAddress = string(info[i].Labels[model.AddressLabel])
 
-			jGroup   = info[j].TargetGroup
-			jAddress = string(info[j].Labels[model.AddressLabel])
-		)
+	var targets []discoveryTarget
 
+	for _, p := range peers {
+		if p.Self {
+			targets = append(targets, withNodeName(p.Name, m.discoverers.getDiscoveryTargets())...)
+			continue
+		}
+		if localOnly {
+			// Skip over remote peers when the query is only for the local node.
+			continue
+		}
+
+		var peerTargets []discoveryTarget
+		err := queryPeer(r.Context(), &p, discoveryTargetsAPIEndpoint+"?remote=0", &peerTargets)
+		if err != nil {
+			configapi.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+		targets = append(targets, peerTargets...)
+	}
+
+	// Sort slice by instance, target group, and address label. Node is not used
+	// for sorting.
+	sort.Slice(targets, func(i, j int) bool {
 		switch {
-		case iGroup != jGroup:
-			return iGroup < jGroup
+		case targets[i].Instance != targets[j].Instance:
+			return targets[i].Instance < targets[j].Instance
+		case targets[i].TargetGroup != targets[j].TargetGroup:
+			return targets[i].TargetGroup < targets[j].TargetGroup
 		default:
-			return iAddress < jAddress
+			return targets[i].Labels[model.AddressLabel] < targets[j].Labels[model.AddressLabel]
 		}
 	})
 
-	type out struct {
-		Name    string       `json:"name"`
-		Targets []targetInfo `json:"targets"`
-	}
-	return json.Marshal(out{
-		Name:    d.Name,
-		Targets: info,
-	})
+	_ = configapi.WriteResponse(w, http.StatusOK, targets)
 }

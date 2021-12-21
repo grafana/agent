@@ -171,20 +171,16 @@ func (dm *discovererManager) getDiscoveryJobs() []discoveryJob {
 	return jobs
 }
 
-func (dm *discovererManager) getDiscoveryTargets() discoveryTargets {
+// getDiscoveryTargets returns the set of targets known by dm. The node field
+// is left empty.
+func (dm *discovererManager) getDiscoveryTargets() []discoveryTarget {
 	dm.mut.RLock()
 	defer dm.mut.RUnlock()
 
-	var targets discoveryTargets
-	for instance, disc := range dm.discovererInstances {
-		targets.Instances = append(targets.Instances, discoveryTargetsInstance{
-			Name:   instance,
-			Groups: disc.lastTargets,
-		})
+	var targets []discoveryTarget
+	for _, disc := range dm.discovererInstances {
+		targets = append(targets, disc.getDiscoveryTargets()...)
 	}
-	sort.Slice(targets.Instances, func(i, j int) bool {
-		return targets.Instances[i].Name < targets.Instances[j].Name
-	})
 	return targets
 }
 
@@ -318,6 +314,27 @@ func (d *discoverer) saveGroups(groups targetGroups) {
 	d.mut.Lock()
 	defer d.mut.Unlock()
 	d.lastTargets = groups
+}
+
+func (d *discoverer) getDiscoveryTargets() []discoveryTarget {
+	d.mut.Lock()
+	defer d.mut.Unlock()
+
+	var targets []discoveryTarget
+
+	for groupName, groups := range d.lastTargets {
+		for _, group := range groups {
+			for _, target := range group.Targets {
+				targets = append(targets, discoveryTarget{
+					Instance:    d.name,
+					TargetGroup: groupName,
+					Labels:      group.Labels.Merge(target),
+				})
+			}
+		}
+	}
+
+	return targets
 }
 
 func (d *discoverer) shard(set targetGroups, hr *hashReader) map[*ckit.Peer]targetGroups {
