@@ -153,16 +153,20 @@ func shardDiscoveryJobs(ic *InstanceConfig, hr *hashReader) map[string]discovery
 	return res
 }
 
-func (dm *discovererManager) getDiscoveryJobs() discoveryJobs {
+// getDiscoveryJobs returns the set of jobs known by dm. The node field is left
+// empty.
+func (dm *discovererManager) getDiscoveryJobs() []discoveryJob {
 	dm.mut.RLock()
 	defer dm.mut.RUnlock()
 
-	var jobs discoveryJobs
+	var jobs []discoveryJob
 	for instance, disc := range dm.discovererInstances {
-		jobs.Instances = append(jobs.Instances, discoveryJobsInstance{
-			Name: instance,
-			Jobs: disc.jobNames,
-		})
+		for _, job := range disc.jobNames {
+			jobs = append(jobs, discoveryJob{
+				Instance: instance,
+				Name:     job,
+			})
+		}
 	}
 	return jobs
 }

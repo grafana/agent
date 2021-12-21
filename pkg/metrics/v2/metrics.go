@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/metrics/v2/internal/metricspb"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rfratto/ckit/chash"
@@ -26,6 +27,7 @@ type Metrics struct {
 	discoverers *discovererManager
 	senders     *senderManager
 	scrapers    *scraperManager
+	node        *cluster.Node
 }
 
 // New creates a new Metrics subsystem. ApplyConfig must be invoked after
@@ -44,6 +46,7 @@ func New(l log.Logger, reg prometheus.Registerer, opts Options) (*Metrics, error
 		senders:     senders,
 		scrapers:    scrapers,
 		discoverers: discoverers,
+		node:        opts.Cluster,
 	}, nil
 }
 

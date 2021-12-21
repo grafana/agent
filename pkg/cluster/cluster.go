@@ -139,6 +139,9 @@ type Node struct {
 	node *ckit.Node
 	log  log.Logger
 
+	peersMut sync.RWMutex
+	peers    ckit.PeerSet
+
 	watcherMut sync.Mutex
 	watchers   []PeersChangedWatcher
 }
@@ -146,7 +149,7 @@ type Node struct {
 // PeersChangedWatcher is a function that will be invoked whenever
 // peers change in the cluster. Returning true means the watcher
 // should be invoked again next time peers change. Return false
-// for one-shot changes.
+// for one-shot changes. Do not modify the values in ps.
 type PeersChangedWatcher func(ps ckit.PeerSet) (reregister bool)
 
 // NewNode creates a new Node.
@@ -170,6 +173,10 @@ func NewNode(l log.Logger, c *Config) *Node {
 
 func (n *Node) handlePeersChanged(ps ckit.PeerSet) {
 	level.Debug(n.log).Log("msg", "cluster peers changed", "peers", ps)
+
+	n.peersMut.Lock()
+	n.peers = ps
+	n.peersMut.Unlock()
 
 	n.watcherMut.Lock()
 	defer n.watcherMut.Unlock()
@@ -216,6 +223,14 @@ func (n *Node) Start() error {
 	}
 
 	return n.disc.Start(n.cfg.JoinPeers)
+}
+
+// Peers returns the set of current peers. The resulting slice should not be
+// modified.
+func (n *Node) Peers() ckit.PeerSet {
+	n.peersMut.RLock()
+	defer n.peersMut.RUnlock()
+	return n.peers
 }
 
 // Get retrieves the owner for a key.
