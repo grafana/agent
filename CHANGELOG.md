@@ -13,6 +13,8 @@
 
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
+- [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
+
 - [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
 
 # v0.21.2 (2021-12-08)

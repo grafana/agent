@@ -45,6 +45,11 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 		log.Fatalln(err)
 	}
 
+	// Pause is not accepted, we immediately set the service as running and trigger the entrypoint load in the background
+	// this is because the WAL is reloaded and the timeout for a windows service starting is 30 seconds. In this case
+	// the service is running but Agent may still be starting up reading the WAL and doing other operations.
+	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
+
 	// After this point we can start using go-kit logging.
 	logger := util.NewWindowsEventLogger(&cfg.Server)
 	util_log.Logger = logger
@@ -54,18 +59,19 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	cfgLogger = util.GoKitLogger(logger)
 	cfg.Server.Log = cfgLogger
 
-	ep, err := NewEntrypoint(logger, cfg, reloader)
-	if err != nil {
-		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
-		os.Exit(1)
-	}
 	entrypointExit := make(chan error)
+
 	// Kick off the server in the background so that we can respond to status queries
+	var ep *Entrypoint
 	go func() {
+		ep, err = NewEntrypoint(logger, cfg, reloader)
+		if err != nil {
+			level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)
+			os.Exit(1)
+		}
 		entrypointExit <- ep.Start()
 	}()
-	// Pause is not accepted
-	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
+
 loop:
 	for {
 		select {
@@ -74,19 +80,22 @@ loop:
 			case svc.Interrogate:
 				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
-				ep.Stop()
 				break loop
 			case svc.Pause:
 			case svc.Continue:
 			default:
-				ep.Stop()
 				break loop
 			}
 		case err := <-entrypointExit:
 			level.Error(logger).Log("msg", "error while running agent server entrypoint", "err", err)
-			ep.Stop()
 			break loop
 		}
+	}
+	// There is a chance the entrypoint may not be setup yet, in that case we don't want to stop.
+	// Since it is in another go func it may start after this has returned, in either case the program
+	// will exit.
+	if ep != nil {
+		ep.Stop()
 	}
 	changes <- svc.Status{State: svc.StopPending}
 	return
