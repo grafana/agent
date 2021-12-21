@@ -118,13 +118,12 @@ func (c *Config) ApplyDefaults(grpcPort int) error {
 }
 
 func appendDefaultPort(addr string, port int) string {
-	host, _, err := net.SplitHostPort(addr)
+	_, _, err := net.SplitHostPort(addr)
 	if err == nil {
 		// No error means there was a port in the string
 		return addr
 	}
-
-	return fmt.Sprintf("%s:%d", host, port)
+	return fmt.Sprintf("%s:%d", addr, port)
 }
 
 // Node is a node within a cluster.
@@ -217,6 +216,7 @@ func (n *Node) Start() error {
 		}
 	}
 
+	level.Info(n.log).Log("msg", "joining peers", "peers", n.cfg.JoinPeers)
 	return n.disc.Start(n.cfg.JoinPeers)
 }
 

@@ -13,6 +13,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_appendDefaultPort(t *testing.T) {
+	tt := []struct {
+		in     string
+		expect string
+	}{
+		{
+			in:     "127.0.0.1",
+			expect: "127.0.0.1:7935",
+		},
+		{
+			in:     "127.0.0.1:7935",
+			expect: "127.0.0.1:7935",
+		},
+	}
+
+	for _, tc := range tt {
+		actual := appendDefaultPort(tc.in, 7935)
+		require.Equal(t, tc.expect, actual)
+	}
+}
+
 func TestCluster(t *testing.T) {
 	opts := func(v ...string) []string {
 		baseOptions := []string{
