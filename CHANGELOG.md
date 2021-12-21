@@ -11,6 +11,8 @@
 
 - [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
 
+- [ENHANCEMENT] Remote write dashboard: show in and out sample rates (@bboreham)
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 - [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
