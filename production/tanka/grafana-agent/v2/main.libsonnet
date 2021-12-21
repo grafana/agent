@@ -28,15 +28,15 @@ local container = k.core.v1.container;
   },
 
   // Helpers
-  newKubernetesMetrics(config)::
+  newKubernetesMetrics(config={})::
     (import './internal/helpers/k8s.libsonnet').metrics(config),
-  newKubernetesLogs(config)::
+  newKubernetesLogs(config={})::
     (import './internal/helpers/k8s.libsonnet').logs(config),
-  newKubernetesTraces(config)::
+  newKubernetesTraces(config={})::
     (import './internal/helpers/k8s.libsonnet').traces(config),
-  withLogVolumeMounts(config)::
+  withLogVolumeMounts(config={})::
     (import './internal/helpers/logs.libsonnet').volumeMounts(config),
-  withLogPermissions(config)::
+  withLogPermissions(config={})::
     (import './internal/helpers/logs.libsonnet').permissions(config),
   withService(config)::
     (import './internal/helpers/service.libsonnet').service(config),

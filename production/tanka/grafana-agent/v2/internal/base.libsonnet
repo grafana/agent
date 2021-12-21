@@ -44,5 +44,8 @@ function(name='grafana-agent', namespace='') {
     container.withCommand('/bin/agent') +
     container.withArgsMixin(k.util.mapToFlags({
       'config.file': '/etc/agent/agent.yaml',
-    })),
+    })) +
+    container.withEnvMixin([
+      k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
+    ]),
 }
