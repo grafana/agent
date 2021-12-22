@@ -108,6 +108,7 @@ local smoke = {
       ],
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
+    gragent.withService({}) +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 
@@ -137,6 +138,7 @@ local smoke = {
       ],
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-cluster-wal', '/var/lib/agent')]) +
+    gragent.withService({}) +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 
