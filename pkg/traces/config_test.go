@@ -205,6 +205,7 @@ receivers:
 remote_write:
   - insecure: true
     endpoint: example.com:12345
+    format: otlp
     basic_auth:
       username: test
       password_file: ` + passwordFileExtraNewline.Name(),
@@ -942,6 +943,121 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["service_graphs"]
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "jaeger exporter",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - insecure: true
+    format: jaeger
+    endpoint: example.com:12345
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  jaeger/0:
+    endpoint: example.com:12345
+    compression: gzip
+    tls:
+      insecure: true
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["jaeger/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "jaeger exporter with basic auth",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - insecure: true
+    format: jaeger
+    protocol: grpc
+    basic_auth:
+      username: test
+      password_file: ` + passwordFile.Name() + `
+    endpoint: example.com:12345
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  jaeger/0:
+    endpoint: example.com:12345
+    compression: gzip
+    tls:
+      insecure: true
+    headers:
+      authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["jaeger/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "two exporters different format",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - insecure: true
+    format: jaeger
+    endpoint: example.com:12345
+  - insecure: true
+    format: otlp
+    endpoint: something.com:123
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  jaeger/0:
+    endpoint: example.com:12345
+    compression: gzip
+    tls:
+      insecure: true
+    retry_on_failure:
+      max_elapsed_time: 60s
+  otlp/1:
+    endpoint: something.com:123
+    compression: gzip
+    tls:
+      insecure: true
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["jaeger/0", "otlp/1"]
+      processors: []
       receivers: ["jaeger"]
 `,
 		},

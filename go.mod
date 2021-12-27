@@ -37,6 +37,7 @@ require (
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.27.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.40.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.40.0
