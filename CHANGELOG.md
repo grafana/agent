@@ -7,6 +7,8 @@
 
 - [FEATURE] Traces: Add `Agent Tracing Pipeline` dashboard and alerts (@mapno)
 
+- [FEATURE] Traces: Support jaeger/grpc exporter (@nicoche)
+
 - [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
 
 - [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
