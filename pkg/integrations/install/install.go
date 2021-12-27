@@ -27,6 +27,7 @@ import (
 	// v2 integrations
 	//
 
-	_ "github.com/grafana/agent/pkg/integrations/v2/agent" // register agent
-	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
+	_ "github.com/grafana/agent/pkg/integrations/v2/agent"             // register agent
+	_ "github.com/grafana/agent/pkg/integrations/v2/agent"             // register agent
+	_ "github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter" // register app_o11y_exporter
 )
