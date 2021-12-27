@@ -15,6 +15,7 @@ require (
 	github.com/go-kit/log v0.2.0
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/go-logr/logr v1.0.0
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
@@ -67,6 +68,7 @@ require (
 	github.com/prometheus/procfs v0.7.4-0.20211011103944-1a7a2bd3279f
 	github.com/prometheus/prometheus v1.8.2-0.20211102100715-d4c83da6d252
 	github.com/prometheus/statsd_exporter v0.22.2
+	github.com/rs/cors v1.8.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
