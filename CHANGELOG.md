@@ -19,6 +19,8 @@
 
 - [BUGFIX] Only stop WAL cleaner when it has been started (@56quarters)
 
+- [BUGFIX] Fix issue with unquoted install path on Windows, that could allow escalation or running an arbitrary executable (@mattdurham)  
+
 - [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
 
 # v0.21.2 (2021-12-08)
