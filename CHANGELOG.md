@@ -23,6 +23,8 @@
 
 - [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
 
+- [BUGFIX] Fix cAdvisor so it collects all defined metrics instead of the last (@pkoenig10)
+
 # v0.21.2 (2021-12-08)
 
 - [SECURITY] This release contains a fix for
