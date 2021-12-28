@@ -75,14 +75,14 @@ Full reference of options:
   # resctrl mon groups updating interval. Zero value disables updating mon groups.
   [resctrl_interval: <int> | default = 0]
 
-  # List of `metrics` to be disabled.
+  # List of `metrics` to be disabled. If set, overrides the default disabled metrics.
   disabled_metrics:
     [ - <string> ]
 
   # List of `metrics` to be enabled. If set, overrides disabled_metrics
   enabled_metrics:
     [ - <string> ]
-  
+
   # Length of time to keep data stored in memory
   [storage_duration: <duration> | default = "2m"]
 
