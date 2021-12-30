@@ -3,7 +3,7 @@ module github.com/grafana/agent
 go 1.16
 
 require (
-	cloud.google.com/go/pubsub v1.5.0 // indirect
+	cloud.google.com/go/storage v1.18.2 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Shopify/sarama v1.30.0
 	github.com/cortexproject/cortex v1.10.1-0.20211014125347-85c378182d0d
@@ -24,13 +24,14 @@ require (
 	github.com/grafana/dskit v0.0.0-20211011144203-3a88ec0b675f
 	github.com/grafana/loki v1.6.2-0.20211021114919-0ae0d4da122d
 	github.com/grafana/tempo v1.0.1
-	github.com/hashicorp/consul/api v1.11.0
+	github.com/hairyhenderson/go-fsimpl v0.0.0-20211102185733-857ee891b38d
+	github.com/hairyhenderson/gomplate/v3 v3.0.0
+	github.com/hashicorp/consul/api v1.12.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
 	github.com/jsternberg/zap-logfmt v1.2.0
-	github.com/lib/pq v1.10.1
+	github.com/lib/pq v1.10.2
 	github.com/miekg/dns v1.1.43
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/ncabatoff/process-exporter v0.7.5
@@ -154,3 +155,7 @@ replace github.com/jaegertracing/jaeger => github.com/jaegertracing/jaeger v1.27
 
 // Replacement necessary for windows_exporter so that we can use gokit logging and not the old prometheus logging
 replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_exporter v0.1.1-0.20211013152516-e37e14fb8b0a
+
+exclude github.com/hashicorp/vault v0.10.3
+
+replace github.com/hairyhenderson/gomplate/v3 v3.0.0 => /Users/mdurham/source/gomplate
