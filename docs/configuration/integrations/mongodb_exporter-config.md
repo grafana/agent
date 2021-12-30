@@ -8,7 +8,7 @@ The `mongodb_exporter_config` block configures the `mongodb_exporter` integratio
 
 In order for this integration to work properly, you have to connect each node of your mongoDB cluster to an agent instance.
 That's because this exporter does not collect metrics from multiple nodes.
-Additionally, you need to define two custom label for you metrics using relabel_configs.
+Additionally, you need to define two custom label for your metrics using relabel_configs.
 The first one is service_name, which is how you identify this node in your cluster (example: ReplicaSet1-Node1).
 The second one is mongodb_cluster, which is the name of your mongodb cluster, and must be set the same value for all nodes composing the cluster (example: prod-cluster).
 Here`s an example:
