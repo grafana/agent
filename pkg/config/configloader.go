@@ -20,17 +20,11 @@ import (
 	"strings"
 )
 
+// ConfigLoader is used to load configs from a variety of sources and squash them together. Supports templates via gomplate
 type ConfigLoader struct {
 	loader *loader.ConfigLoader
 	mux    fsimpl.FSMux
 	cfg    LoaderConfig
-}
-
-func newFSProvider() fsimpl.FSMux {
-	mux := fsimpl.NewMux()
-	mux.Add(filefs.FS)
-	mux.Add(blobfs.FS)
-	return mux
 }
 
 func NewConfigLoader(cfg LoaderConfig) (*ConfigLoader, error) {
@@ -154,7 +148,7 @@ func (c *ConfigLoader) generateConfigsFromPath(path string, pattern string, conf
 	if err != nil {
 		return nil, err
 	}
-	configs := make([]interface{}, 0)
+	var configs []interface{}
 	for _, f := range files {
 		// We don't recurse into directories
 		if f.IsDir() {
@@ -231,11 +225,18 @@ func (c *ConfigLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func(
 		return nil, err
 	}
 	// TODO there has to be a better way to handle this conversion
-	intConfigs := make([]interface{}, 0)
+	var intConfigs []interface{}
 	for _, i := range cfg {
 		intConfigs = append(intConfigs, i)
 	}
 	return intConfigs, nil
+}
+
+func newFSProvider() fsimpl.FSMux {
+	mux := fsimpl.NewMux()
+	mux.Add(filefs.FS)
+	mux.Add(blobfs.FS)
+	return mux
 }
 
 type LoaderConfig struct {

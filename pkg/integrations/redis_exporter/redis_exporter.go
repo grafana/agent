@@ -115,7 +115,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 }
 
 func init() {
-	integrations.RegisterIntegration(&Config{})
+	integrations.RegisterIntegration(func() integrations.Config { return &Config{} })
 }
 
 // New creates a new redis_exporter integration. The integration queries

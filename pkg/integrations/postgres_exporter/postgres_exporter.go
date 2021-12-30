@@ -119,7 +119,7 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 }
 
 func init() {
-	integrations.RegisterIntegration(&Config{})
+	integrations.RegisterIntegration(func() integrations.Config { return &Config{} })
 }
 
 // New creates a new postgres_exporter integration. The integration scrapes

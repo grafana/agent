@@ -132,7 +132,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 }
 
 func init() {
-	integrations.RegisterIntegration(&Config{})
+	integrations.RegisterIntegration(func() integrations.Config { return &Config{} })
 }
 
 // MapConfigToNodeExporterFlags takes in a node_exporter Config and converts

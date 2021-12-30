@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	registeredIntegrations = []Config{}
+	registeredIntegrations []func() Config
 	configFieldNames       = make(map[reflect.Type]string)
 
 	emptyStructType = reflect.TypeOf(struct{}{})
@@ -24,21 +24,23 @@ var (
 // constructed.
 //
 // RegisterIntegration panics if cfg is not a pointer.
-func RegisterIntegration(cfg Config) {
+func RegisterIntegration(getCfg func() Config) {
+	registeredIntegrations = append(registeredIntegrations, getCfg)
+	cfg := getCfg()
 	if reflect.TypeOf(cfg).Kind() != reflect.Ptr {
 		panic(fmt.Sprintf("RegisterIntegration must be given a pointer, got %T", cfg))
 	}
-	registeredIntegrations = append(registeredIntegrations, cfg)
 	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
 
 func TryUnmarshal(contents string) []Config {
 	unmarshalledConfigs := make([]Config, 0)
 	for _, registeredIntegration := range registeredIntegrations {
+		cfg := registeredIntegration()
 		var fields []reflect.StructField
 		fields = append(fields, reflect.StructField{
-			Name: strings.ToUpper(registeredIntegration.Name()),
-			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, registeredIntegration.Name())),
+			Name: strings.ToUpper(cfg.Name()),
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
 			Type: reflect.TypeOf(util.RawYAML{}),
 		},
 		)
@@ -49,12 +51,12 @@ func TryUnmarshal(contents string) []Config {
 		subContents := instanceElement.Field(0).Interface().(util.RawYAML)
 		if err == nil && instance != nil && subContents != nil {
 			uc := &UnmarshaledConfig{}
+			uc.Config = cfg
 			// TODO I think I should be able to unmarshal this in one go
-			err = yaml.Unmarshal(subContents, registeredIntegration)
+			err = yaml.Unmarshal(subContents, cfg)
 			if err != nil {
 				continue
 			}
-			uc.Config = registeredIntegration
 			common := &config.Common{}
 			err = yaml.Unmarshal(subContents, common)
 			uc.Common = *common
@@ -162,7 +164,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 // Prometheus:
 //
 //   https://github.com/prometheus/prometheus/blob/511511324adfc4f4178f064cc104c2deac3335de/discovery/registry.go#L111
-func unmarshalIntegrationsWithList(integrations []Config, out interface{}, unmarshal func(interface{}) error) error {
+func unmarshalIntegrationsWithList(integrations []func() Config, out interface{}, unmarshal func(interface{}) error) error {
 	outVal := reflect.ValueOf(out)
 	if outVal.Kind() != reflect.Ptr {
 		return fmt.Errorf("integrations: can only unmarshal into a struct pointer, got %T", out)
@@ -248,7 +250,7 @@ func unmarshalIntegrationsWithList(integrations []Config, out interface{}, unmar
 // the same fields as out including the fields for the provided integrations.
 //
 // integrations are unmarshaled to *util.RawYAML for deferred unmarshaling.
-func getConfigTypeForIntegrations(integrations []Config, out reflect.Type) reflect.Type {
+func getConfigTypeForIntegrations(integrations []func() Config, out reflect.Type) reflect.Type {
 	// Initial exported fields map one-to-one.
 	var fields []reflect.StructField
 	for i, n := 0, out.NumField(); i < n; i++ {
@@ -263,7 +265,8 @@ func getConfigTypeForIntegrations(integrations []Config, out reflect.Type) refle
 			})
 		}
 	}
-	for _, cfg := range integrations {
+	for _, getCfg := range integrations {
+		cfg := getCfg()
 		// Use a prefix that's unlikely to collide with anything else.
 		fieldName := "XXX_Config_" + cfg.Name()
 		fields = append(fields, reflect.StructField{
@@ -275,10 +278,11 @@ func getConfigTypeForIntegrations(integrations []Config, out reflect.Type) refle
 	return reflect.StructOf(fields)
 }
 
-func buildIntegrationsMap(in []Config) map[string]Config {
-	m := make(map[string]Config, len(in))
-	for _, i := range in {
-		m[i.Name()] = i
+func buildIntegrationsMap(getCfg []func() Config) map[string]Config {
+	m := make(map[string]Config, len(getCfg))
+	for _, i := range getCfg {
+		cfg := i()
+		m[cfg.Name()] = cfg
 	}
 	return m
 }

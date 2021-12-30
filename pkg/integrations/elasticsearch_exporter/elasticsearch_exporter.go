@@ -87,7 +87,7 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 }
 
 func init() {
-	integrations.RegisterIntegration(&Config{})
+	integrations.RegisterIntegration(func() integrations.Config { return &Config{} })
 }
 
 // New creates a new elasticsearch_exporter

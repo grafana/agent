@@ -30,6 +30,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
+	github.com/johannesboyne/gofakes3 v0.0.0-20210819161434-5c8dfcfe5310
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/lib/pq v1.10.2
 	github.com/miekg/dns v1.1.43
@@ -158,4 +159,4 @@ replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_
 
 exclude github.com/hashicorp/vault v0.10.3
 
-replace github.com/hairyhenderson/gomplate/v3 v3.0.0 => /Users/mdurham/source/gomplate
+replace github.com/hairyhenderson/gomplate/v3 => github.com/mattdurham/gomplate/v3 v3.10.1-0.20211230152033-eae079610d74

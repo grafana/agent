@@ -109,5 +109,5 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 func init() {
-	integrations.RegisterIntegration(&Config{})
+	integrations.RegisterIntegration(func() integrations.Config { return &Config{} })
 }

@@ -13,7 +13,7 @@ var DefaultConfig = Config{
 }
 
 func init() {
-	integrations.RegisterIntegration(&Config{})
+	integrations.RegisterIntegration(func() integrations.Config { return &Config{} })
 }
 
 // Config controls the windows_exporter integration.
