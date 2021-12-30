@@ -49,22 +49,28 @@ func NewConfigLoader(cfg LoaderConfig) (*ConfigLoader, error) {
 
 // ProcessConfigs loads the configurations in a predetermined order to handle functioning correctly. The only section
 // not loaded is Server which is loaded from the passed in configuration. That is considered non-changing.
-func (c *ConfigLoader) ProcessConfigs() (Config, error) {
-	mainCfg := Config{}
+func (c *ConfigLoader) ProcessConfigs(cfg *Config) error {
 	metricConfig, err := c.processMetric()
 	if err != nil {
-		return mainCfg, err
+		return err
 	}
+
 	instancesConfigs, err := c.processMetricInstances()
 	if err != nil {
-		return mainCfg, err
+		return err
 	}
 	metricConfig.Configs = instancesConfigs
-	mainCfg.Metrics = metricConfig
+	cfg.Metrics = metricConfig
 
-	// The configuration for server fields MUST come from the confd style settings
-	mainCfg.Server = c.cfg.Server
-	return mainCfg, nil
+	exporters, err := c.processExporters()
+	if err != nil {
+		return err
+	}
+	cfg.Integrations = integrations.ManagerConfig{}
+	cfg.Integrations.Integrations = exporters
+	// The configuration for server fields MUST come from the config loader settings
+	cfg.Server = c.cfg.Server
+	return nil
 }
 
 // processMetric will return the first metric configuration found, following pattern `metrics-*.yml`

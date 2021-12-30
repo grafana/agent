@@ -107,7 +107,8 @@ func TestConfigMakerWithMetricsAndInstances(t *testing.T) {
 	}
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
-	cfg, err := cmf.ProcessConfigs()
+	cfg := &Config{}
+	err = cmf.ProcessConfigs(cfg)
 	assert.Nil(t, err)
 	assert.Len(t, cfg.Metrics.Configs, 2)
 }

@@ -41,7 +41,7 @@ func normalize(f Feature) Feature {
 	return Feature(strings.ToLower(string(f)))
 }
 
-// Enabled retruns true if a feature is enabled. Enable will panic if fs has
+// Enabled returns true if a feature is enabled. Enable will panic if fs has
 // not been passed to Register or name is an unknown feature.
 func Enabled(fs *flag.FlagSet, name Feature) bool {
 	name = normalize(name)

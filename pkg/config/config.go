@@ -31,9 +31,11 @@ import (
 
 var (
 	featRemoteConfigs = features.Feature("remote-configs")
+	featDynamicConfig = features.Feature("dynamic-config")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
+		featDynamicConfig,
 	}
 )
 
@@ -268,6 +270,24 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
+func LoadDynamicConfiguration(url string, expandVars bool, c *Config) error {
+	buf, err := ioutil.ReadFile(url)
+	if err != nil {
+		return errors.Wrap(err, "error reading config file")
+	}
+	loaderCfg := &LoaderConfig{}
+	err = yaml.Unmarshal(buf, loaderCfg)
+	if err != nil {
+		return errors.Wrap(err, "error unmarshalling config file")
+	}
+	cmf, err := NewConfigLoader(*loaderCfg)
+	err = cmf.ProcessConfigs(c)
+	if err != nil {
+		return errors.Wrap(err, "error processing config templates")
+	}
+	return nil
+}
+
 // LoadBytes unmarshals a config from a buffer. Defaults are not
 // applied to the file and must be done manually if LoadBytes
 // is called directly.
@@ -310,6 +330,9 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 	return load(fs, args, func(url string, expand bool, c *Config) error {
 		if features.Enabled(fs, featRemoteConfigs) {
 			return LoadRemote(url, expand, c)
+		}
+		if features.Enabled(fs, featDynamicConfig) {
+			return LoadDynamicConfiguration(url, expand, c)
 		}
 		return LoadFile(url, expand, c)
 	})
