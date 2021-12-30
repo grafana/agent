@@ -6,7 +6,7 @@ title = "mongodb_exporter_config"
 
 The `mongodb_exporter_config` block configures the `mongodb_exporter` integration, which is an embedded version of percona's [`mongodb_exporter`](https://github.com/percona/mongodb_exporter).
 
-In order for this integration to work prorperly, you have to connect each node of your mongoDB cluster to an agent instance.
+In order for this integration to work properly, you have to connect each node of your mongoDB cluster to an agent instance.
 That's because this exporter does not collect metrics from multiple nodes.
 Additionally, you need to define two custom label for you metrics using relabel_configs.
 The first one is service_name, which is how you identify this node in your cluster (example: ReplicaSet1-Node1).
