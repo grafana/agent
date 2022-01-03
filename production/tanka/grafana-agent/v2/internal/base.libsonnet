@@ -4,7 +4,6 @@ function(name='grafana-agent', namespace='') {
   local container = k.core.v1.container,
   local configMap = k.core.v1.configMap,
   local containerPort = k.core.v1.containerPort,
-  local envVar = k.core.v1.envVar,
   local policyRule = k.rbac.v1.policyRule,
   local serviceAccount = k.core.v1.serviceAccount,
 
@@ -45,9 +44,5 @@ function(name='grafana-agent', namespace='') {
     container.withCommand('/bin/agent') +
     container.withArgsMixin(k.util.mapToFlags({
       'config.file': '/etc/agent/agent.yaml',
-    })) +
-    // `HOSTNAME` is required for promtail otherwise it will silently do nothing
-    container.withEnvMixin([
-      envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
-    ]),
+    })),
 }
