@@ -8,8 +8,8 @@ import (
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/operator/config"
@@ -21,7 +21,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
 	"go.uber.org/atomic"
 )
 
@@ -110,7 +110,7 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td pdata.
 		ilsLen := rs.InstrumentationLibrarySpans().Len()
 
 		var svc string
-		svcAtt, ok := rs.Resource().Attributes().Get(conventions.AttributeServiceName)
+		svcAtt, ok := rs.Resource().Attributes().Get(semconv.AttributeServiceName)
 		if ok {
 			svc = svcAtt.StringVal()
 		}
@@ -302,7 +302,7 @@ func attributeValue(att pdata.AttributeValue) interface{} {
 	case pdata.AttributeValueTypeMap:
 		return att.MapVal()
 	case pdata.AttributeValueTypeArray:
-		return att.ArrayVal()
+		return att.SliceVal()
 	}
 	return nil
 }

@@ -12,12 +12,22 @@ the collection of metrics from ElasticSearch servers.
 Note that currently, an Agent can only collect metrics from a single ElasticSearch server.
 However, the exporter is able to collect the metrics from all nodes through that server configured.
 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
+security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/prometheus-community/elasticsearch_exporter#elasticsearch-7x-security-privileges).
+
 Full reference of options:
 
 ```yaml
   # Enables the elasticsearch_exporter integration, allowing the Agent to automatically
   # collect system metrics from the configured ElasticSearch server address
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the hostname portion
+  # of address.
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the elasticsearch_exporter integration will be run but not scraped and thus not
@@ -54,7 +64,7 @@ Full reference of options:
   #
 
   # HTTP API address of an Elasticsearch node.
-  [ address : <string> | default = "http://localhost:9200" ]
+  [ address: <string> | default = "http://localhost:9200" ]
 
   # Timeout for trying to get stats from Elasticsearch.
   [ timeout: <duration> | default = "5s" ]

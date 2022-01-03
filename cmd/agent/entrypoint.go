@@ -25,7 +25,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/signals"
 
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log/level"
 )
 
 // Entrypoint is the entrypoint of the application that starts all subsystems.
@@ -169,13 +169,19 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 
 	mux.HandleFunc("/-/config", func(rw http.ResponseWriter, r *http.Request) {
 		ep.mut.Lock()
-		bb, err := yaml.Marshal(ep.cfg)
+		cfg := ep.cfg
 		ep.mut.Unlock()
 
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
+		if cfg.EnableConfigEndpoints {
+			bb, err := yaml.Marshal(cfg)
+			if err != nil {
+				http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
+			} else {
+				_, _ = rw.Write(bb)
+			}
 		} else {
-			_, _ = rw.Write(bb)
+			rw.WriteHeader(http.StatusNotFound)
+			_, _ = rw.Write([]byte("404 - config endpoint is disabled"))
 		}
 	})
 

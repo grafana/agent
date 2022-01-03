@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/util/test"
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/scrape"
@@ -113,7 +113,7 @@ configs:
 }
 
 func TestAgent(t *testing.T) {
-	// Lanch two instances
+	// Launch two instances
 	cfg := Config{
 		WALDir: "/tmp/wal",
 		Configs: []instance.Config{
@@ -218,7 +218,7 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 }
 
 func TestAgent_Stop(t *testing.T) {
-	// Lanch two instances
+	// Launch two instances
 	cfg := Config{
 		WALDir: "/tmp/wal",
 		Configs: []instance.Config{

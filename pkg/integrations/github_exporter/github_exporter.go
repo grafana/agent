@@ -1,12 +1,15 @@
 package github_exporter //nolint:golint
 
 import (
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"fmt"
+	"net/url"
+
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	gh_config "github.com/infinityworks/github-exporter/config"
 	"github.com/infinityworks/github-exporter/exporter"
+	config_util "github.com/prometheus/common/config"
 )
 
 // DefaultConfig holds the default settings for the github_exporter integration
@@ -16,8 +19,6 @@ var DefaultConfig Config = Config{
 
 // Config controls github_exporter
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// URL for the github API
 	APIURL string `yaml:"api_url,omitempty"`
 
@@ -31,7 +32,7 @@ type Config struct {
 	Users []string `yaml:"users,omitempty"`
 
 	// A github authentication token that allows the API to be queried more often.
-	APIToken string `yaml:"api_token,omitempty"`
+	APIToken config_util.Secret `yaml:"api_token,omitempty"`
 
 	// A path to a file containing a github authentication token that allows the API to be queried more often. If supplied, this supercedes `api_token`
 	APITokenFile string `yaml:"api_token_file,omitempty"`
@@ -50,10 +51,13 @@ func (c *Config) Name() string {
 	return "github_exporter"
 }
 
-// CommonConfig returns the common settings shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns the hostname:port of the GitHub API server.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	u, err := url.Parse(c.APIURL)
+	if err != nil {
+		return "", fmt.Errorf("could not parse url: %w", err)
+	}
+	return u.Host, nil
 }
 
 // NewIntegration creates a new github_exporter
@@ -78,7 +82,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	conf.SetOrganisations(c.Organizations)
 	conf.SetUsers(c.Users)
 	if c.APIToken != "" {
-		conf.SetAPIToken(c.APIToken)
+		conf.SetAPIToken(string(c.APIToken))
 	}
 	if c.APITokenFile != "" {
 		err = conf.SetAPITokenFromFile(c.APITokenFile)

@@ -8,19 +8,20 @@ import (
 	"sync"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/pkg/relabel"
+	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/conventions"
+	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
 )
 
 type promServiceDiscoProcessor struct {
@@ -33,14 +34,14 @@ type promServiceDiscoProcessor struct {
 	hostLabels     map[string]model.LabelSet
 	mtx            sync.Mutex
 
-	operationType string
+	operationType   string
+	podAssociations []string
 
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.Traces, operationType string, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAssociations []string, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	logger := log.With(util.Logger, "component", "traces service disco")
 	mgr := discovery.NewManager(ctx, logger, discovery.Name("traces service disco"))
@@ -54,6 +55,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, scrap
 
 	err := mgr.ApplyConfig(managerConfig)
 	if err != nil {
+		cancel()
 		return nil, err
 	}
 
@@ -62,7 +64,21 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, scrap
 	case "": // Use Upsert by default
 		operationType = OperationTypeUpsert
 	default:
+		cancel()
 		return nil, fmt.Errorf("unknown operation type %s", operationType)
+	}
+
+	for _, podAssociation := range podAssociations {
+		switch podAssociation {
+		case podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel, podAssociationHostnameLabel, podAssociationConnectionIP:
+		default:
+			cancel()
+			return nil, fmt.Errorf("unknown pod association %s", podAssociation)
+		}
+	}
+
+	if len(podAssociations) == 0 {
+		podAssociations = []string{podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel, podAssociationHostnameLabel, podAssociationConnectionIP}
 	}
 
 	if nextConsumer == nil {
@@ -78,6 +94,7 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, scrap
 		hostLabels:       make(map[string]model.LabelSet),
 		logger:           logger,
 		operationType:    operationType,
+		podAssociations:  podAssociations,
 	}, nil
 }
 
@@ -86,30 +103,50 @@ func (p *promServiceDiscoProcessor) ConsumeTraces(ctx context.Context, td pdata.
 	for i := 0; i < rss.Len(); i++ {
 		rs := rss.At(i)
 
-		p.processAttributes(rs.Resource().Attributes())
+		p.processAttributes(ctx, rs.Resource().Attributes())
 	}
 
 	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func (p *promServiceDiscoProcessor) processAttributes(attrs pdata.AttributeMap) {
-	// find the ip
-	ipTagNames := []string{
-		"ip",                           // jaeger/opentracing? default
-		conventions.AttributeNetHostIP, // otel semantics for host ip
-	}
-
-	var ip string
-	for _, name := range ipTagNames {
-		val, ok := attrs.Get(name)
-		if !ok {
-			continue
+func stringAttributeFromMap(attrs pdata.AttributeMap, key string) string {
+	if attr, ok := attrs.Get(key); ok {
+		if attr.Type() == pdata.AttributeValueTypeString {
+			return attr.StringVal()
 		}
-
-		ip = val.StringVal()
-		break
 	}
+	return ""
+}
 
+func getConnectionIP(ctx context.Context) string {
+	return client.FromContext(ctx).Addr.String()
+}
+
+func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pdata.AttributeMap) string {
+	for _, podAssociation := range p.podAssociations {
+		switch podAssociation {
+		case podAssociationIPLabel, podAssociationOTelIPLabel, podAssociationk8sIPLabel:
+			ip := stringAttributeFromMap(attrs, podAssociation)
+			if ip != "" {
+				return ip
+			}
+		case podAssociationHostnameLabel:
+			hostname := stringAttributeFromMap(attrs, semconv.AttributeHostName)
+			if net.ParseIP(hostname) != nil {
+				return hostname
+			}
+		case podAssociationConnectionIP:
+			ip := getConnectionIP(ctx)
+			if ip != "" {
+				return ip
+			}
+		}
+	}
+	return ""
+}
+
+func (p *promServiceDiscoProcessor) processAttributes(ctx context.Context, attrs pdata.AttributeMap) {
+	ip := p.getPodIP(ctx, attrs)
 	// have to have an ip for labels lookup
 	if ip == "" {
 		level.Debug(p.logger).Log("msg", "unable to find ip in span attributes, skipping attribute addition")

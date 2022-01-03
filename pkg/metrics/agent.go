@@ -10,14 +10,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+	"github.com/prometheus/client_golang/prometheus"
+	"google.golang.org/grpc"
+
 	"github.com/grafana/agent/pkg/metrics/cluster"
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/prometheus/client_golang/prometheus"
-	"google.golang.org/grpc"
 )
 
 // DefaultConfig is the default settings for the Prometheus-lite client.
@@ -233,14 +234,17 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 
 	if a.cleaner != nil {
 		a.cleaner.Stop()
+		a.cleaner = nil
 	}
-	a.cleaner = NewWALCleaner(
-		a.logger,
-		a.mm,
-		cfg.WALDir,
-		cfg.WALCleanupAge,
-		cfg.WALCleanupPeriod,
-	)
+	if cfg.WALDir != "" {
+		a.cleaner = NewWALCleaner(
+			a.logger,
+			a.mm,
+			cfg.WALDir,
+			cfg.WALCleanupAge,
+			cfg.WALCleanupPeriod,
+		)
+	}
 
 	a.bm.UpdateManagerConfig(instance.BasicManagerConfig{
 		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
@@ -326,7 +330,9 @@ func (a *Agent) Stop() {
 
 	a.cluster.Stop()
 
-	a.cleaner.Stop()
+	if a.cleaner != nil {
+		a.cleaner.Stop()
+	}
 
 	// Only need to stop the ModalManager, which will passthrough everything to the
 	// BasicManager.

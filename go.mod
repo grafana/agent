@@ -3,45 +3,54 @@ module github.com/grafana/agent
 go 1.16
 
 require (
-	contrib.go.opencensus.io/exporter/prometheus v0.3.0
-	github.com/Microsoft/hcsshim v0.8.16 // indirect
-	github.com/Shopify/sarama v1.29.1
-	github.com/cortexproject/cortex v1.8.2-0.20210428155238-d382e1d80eaf
+	cloud.google.com/go/pubsub v1.5.0 // indirect
+	cloud.google.com/go/storage v1.15.0 // indirect
+	contrib.go.opencensus.io/exporter/prometheus v0.4.0
+	github.com/Shopify/sarama v1.30.0
+	github.com/cortexproject/cortex v1.10.1-0.20211014125347-85c378182d0d
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
-	github.com/docker/docker v20.10.7+incompatible // indirect
-	github.com/drone/envsubst v1.0.2
+	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
 	github.com/fatih/structs v1.1.0
-	github.com/gaantunes/mongodb_exporter v1.0.2
-	github.com/go-kit/kit v0.11.0
-	github.com/go-kit/log v0.1.0
-	github.com/go-logfmt/logfmt v0.5.0
-	github.com/go-logr/logr v0.4.0
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/go-kit/kit v0.12.0
+	github.com/go-kit/log v0.2.0
+	github.com/go-logfmt/logfmt v0.5.1
+	github.com/go-logr/logr v1.0.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
+	github.com/google/cadvisor v0.43.0
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-jsonnet v0.17.0
 	github.com/gorilla/mux v1.8.0
-	github.com/grafana/loki v1.6.2-0.20210429132126-d88f3996eaa2
-	github.com/hashicorp/consul/api v1.8.1
+	github.com/grafana/dskit v0.0.0-20211011144203-3a88ec0b675f
+	github.com/grafana/loki v1.6.2-0.20211021114919-0ae0d4da122d
+	github.com/hashicorp/consul/api v1.11.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-getter v1.5.3
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
 	github.com/jsternberg/zap-logfmt v1.2.0
-	github.com/klauspost/compress v1.13.1 // indirect
-	github.com/miekg/dns v1.1.41
+	github.com/lib/pq v1.10.1
+	github.com/miekg/dns v1.1.43
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
-	github.com/olekukonko/tablewriter v0.0.2
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.27.1
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.30.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.30.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.30.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.40.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e
 	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
+	github.com/percona/mongodb_exporter v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/elasticsearch_exporter v1.2.1
 	github.com/prometheus-community/postgres_exporter v0.10.0
@@ -49,41 +58,47 @@ require (
 	github.com/prometheus-operator/prometheus-operator v0.47.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
 	github.com/prometheus/client_golang v1.11.0
-	github.com/prometheus/common v0.29.0
+	github.com/prometheus/common v0.32.1
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.9.0
 	github.com/prometheus/mysqld_exporter v0.13.0
 	github.com/prometheus/node_exporter v1.0.1
-	github.com/prometheus/procfs v0.6.1-0.20210313121648-b565fefb1664
-	github.com/prometheus/prometheus v1.8.2-0.20210621150501-ff58416a0b02
+	github.com/prometheus/procfs v0.7.3
+	github.com/prometheus/prometheus v1.8.2-0.20211102100715-d4c83da6d252
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
-	github.com/weaveworks/common v0.0.0-20210419092856-009d1eebd624
-	go.mongodb.org/mongo-driver v1.5.3
+	github.com/weaveworks/common v0.0.0-20211104141906-05b06253aab8
 	go.opencensus.io v0.23.0
-	go.opentelemetry.io/collector v0.30.0
-	go.opentelemetry.io/collector/model v0.30.0
-	go.opentelemetry.io/otel/trace v1.0.0-RC1
-	go.uber.org/atomic v1.8.0
-	go.uber.org/zap v1.18.1
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
-	google.golang.org/grpc v1.39.0
+	go.opentelemetry.io/collector v0.40.0
+	go.opentelemetry.io/collector/model v0.40.0
+	go.opentelemetry.io/otel/metric v0.25.0
+	go.opentelemetry.io/otel/trace v1.2.0
+	go.uber.org/atomic v1.9.0
+	go.uber.org/multierr v1.7.0
+	go.uber.org/zap v1.19.1
+	golang.org/x/sys v0.0.0-20211020174200-9d6173849985
+	google.golang.org/grpc v1.42.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/api v0.21.0
-	k8s.io/apimachinery v0.21.0
+	k8s.io/api v0.22.3
+	k8s.io/apimachinery v0.22.3
 	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/klog/v2 v2.20.0
+	k8s.io/utils v0.0.0-20211116205334-6203023598ed
 	sigs.k8s.io/controller-runtime v0.9.0-beta.5
 	sigs.k8s.io/yaml v1.2.0
 )
 
 // Replace directives from Prometheus
-replace k8s.io/klog => github.com/simonpasquier/klog-gokit v0.1.0
+replace (
+	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
+	k8s.io/klog => github.com/simonpasquier/klog-gokit v0.3.0
+	k8s.io/klog/v2 => github.com/simonpasquier/klog-gokit/v3 v3.1.0
+)
 
 // Replace directives from Cortex
 replace (
@@ -97,22 +112,25 @@ replace (
 	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
 	github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03
+	github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20211103031328-89bb32ee4ae7
+	gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 	k8s.io/api => k8s.io/api v0.21.0
+	k8s.io/apimachinery => k8s.io/apimachinery v0.21.0
 	k8s.io/client-go => k8s.io/client-go v0.21.0
 )
 
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20210608193638-7b78de4ccffc
-
-replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984fc90c8a04
-
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
-	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20201029182940-e5169b835a23
+	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9
 	github.com/infinityworks/github-exporter => github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a
+	github.com/percona/exporter_shared => github.com/percona/exporter_shared v0.7.4-0.20211108113423-8555cdbac68b
+	github.com/percona/mongodb_exporter => github.com/grafana/mongodb_exporter v0.20.8-0.20211006135645-bef0f0239601
+	github.com/percona/percona-toolkit => github.com/rlankfo/percona-toolkit v0.0.0-20211028191359-7aada1bf148f
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
-	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20210325142439-9e8f66d53433
+	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20211019183116-592dfa92f9fd
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
+	github.com/prometheus/statsd_exporter => github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b
 )
 
 // Required for redis_exporter, which is incompatible with v2.0.0+incompatible.
@@ -121,19 +139,18 @@ replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 
-// Used for /-/reload
-replace github.com/weaveworks/common => github.com/rfratto/weaveworks-common v0.0.0-20210326192855-c95210d58ba7
-
 // loadbalancingexporter uses non-fixed version of batchpertrace which fetches latest and causes problems
 replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.30.0
 
 // Replacing for an internal fork that exposes internal folders
 // Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
 // This is a temporary solution while a new configuration design is discussed for the collector (ref: https://github.com/open-telemetry/opentelemetry-collector/issues/3482).
-replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20210723114001-0d0d46edc403
+replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20211201123047-86905635e8f8
 
-// Pin prometheus dependencies
-replace (
-	github.com/prometheus/common => github.com/prometheus/common v0.23.0
-	github.com/prometheus/statsd_exporter => github.com/prometheus/statsd_exporter v0.18.1-0.20201124082027-8b2b4c1a2b49
-)
+// Jaeger v1.16.0 can't be run with go@1.16 (https://github.com/jaegertracing/jaeger/issues/3268)
+// Problem was fixed in https://github.com/jaegertracing/jaeger/issues/3268
+// Replace can't be removed when all dependencies update to >=v1.27
+replace github.com/jaegertracing/jaeger => github.com/jaegertracing/jaeger v1.27.0
+
+// Replacement necessary for windows_exporter so that we can use gokit logging and not the old prometheus logging
+replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_exporter v0.1.1-0.20211013152516-e37e14fb8b0a

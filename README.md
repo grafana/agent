@@ -95,6 +95,7 @@ If you have any questions or feedback regarding the Grafana Agent:
   [Discussions page](https://github.com/grafana/agent/discussions).
 * [File an issue](https://github.com/grafana/agent/issues/new) for bugs, issues
   and feature suggestions.
+* Attend the [Grafana Agent Community Call](https://docs.google.com/document/d/1TqaZD1JPfNadZ4V81OCBPCG_TksDYGlNlGdMnTWUSpo).
   
 ## Contributing
 

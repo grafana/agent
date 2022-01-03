@@ -1,10 +1,107 @@
 # Main (unreleased)
 
+- [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
+   only HTTP/S is supported. Pass the `-enable-features=remote-configs` flag to turn this on. (@rlankfo)
+
+- [FEATURE] Added [cAdvisor](https://github.com/google/cadvisor) integration. (@rgeyer)
+
+- [FEATURE] Traces: Add `Agent Tracing Pipeline` dashboard and alerts (@mapno)
+
+- [FEATURE] Traces: Support jaeger/grpc exporter (@nicoche)
+
+- [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
+
+- [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
+
+- [ENHANCEMENT] Remote write dashboard: show in and out sample rates (@bboreham)
+
+- [ENHANCEMENT] Remote write dashboard: add mean latency (@bboreham)
+
+- [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
+
+- [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
+
+- [BUGFIX] Only stop WAL cleaner when it has been started (@56quarters)
+
+- [BUGFIX] Fix issue with unquoted install path on Windows, that could allow escalation or running an arbitrary executable (@mattdurham)  
+
+- [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
+
+- [BUGFIX] Fix cAdvisor so it collects all defined metrics instead of the last (@pkoenig10)
+
+# v0.21.2 (2021-12-08)
+
+- [SECURITY] This release contains a fix for
+  [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh).
+
+- [CHANGE] This release disables the existing `/-/config` and
+  `/agent/api/v1/configs/{name}` endpoitns by default. Pass the
+  `--config.enable-read-api` flag at the command line to opt in to these
+  endpoints.
+
+# v0.21.1 (2021-11-18)
+
+- [BUGFIX] Fix panic when using postgres_exporter integration (@saputradharma)
+
+- [BUGFIX] Fix panic when dnsamsq_exporter integration tried to log a warning (@rfratto)
+
+- [BUGFIX] Statsd Integration: Adding logger instance to the statsd mapper instantiation. (@gaantunes)
+
+- [BUGFIX] Statsd Integration: Fix issue where mapped metrics weren't exposed to the integration. (@mattdurham)
+
+- [BUGFIX] Operator: fix bug where version was a required field (@rfratto)
+
+- [BUGFIX] Metrics: Only run WAL cleaner when metrics are being used and a WAL is configured. (@rfratto)
+
+# v0.21.0 (2021-11-17)
+
+- [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
+
+- [ENHANCEMENT] Update Loki dependency to v2.1.0-656-g0ae0d4da1. (@rlankfo)
+
+- [ENHANCEMENT] Update Prometheus dependency to v2.31.0 (@rlankfo)
+
+- [ENHANCEMENT] Add Agent Operator Helm quickstart guide (@hjet)
+
+- [ENHANCEMENT] Reorg Agent Operator quickstart guides (@hjet)
+
+- [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
+
+- [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)
+
+- [BUGFIX] Operator: Fix MetricsInstance Service port (@hjet)
+
+- [BUGFIX] Operator: Create govern service per Grafana Agent (@shturman)
+
+- [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
+
+- [BUGFIX] Traces: Fix `success_logic` code in service graphs processor (@mapno)
+
+- [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
+
+- [CHANGE] Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
+
+# v0.20.1 (2021-12-08)
+
+*NOTE*: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
+
+- [SECURITY] This release contains a fix for
+  [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh).
+
+- [CHANGE] This release disables the existing `/-/config` and
+  `/agent/api/v1/configs/{name}` endpoitns by default. Pass the
+  `--config.enable-read-api` flag at the command line to opt in to these
+  endpoints.
+
+# v0.20.0 (2021-10-28)
+
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
   service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
   This requires passing a `--kubelet-service` flag to the Operator in
   `namespace/name` format (like `kube-system/kubelet`). (@rfratto)
-  
+
+- [FEATURE] Service graphs processor (@mapno)
+
 - [ENHANCEMENT] Updated mysqld_exporter to v0.13.0 (@gaantunes)
 
 - [ENHANCEMENT] Updated postgres_exporter to v0.10.0 (@gaantunes)
@@ -17,7 +114,42 @@
 
 - [ENHANCEMENT] Updated elasticsearch_exporter to v1.2.1 (@gaantunes)
 
+- [ENHANCEMENT] Add remote write to silent Windows Installer  (@mattdurham)
+
+- [ENHANCEMENT] Updated mongodb_exporter to v0.20.7 (@rfratto)
+
+- [ENHANCEMENT] Updated OTel to v0.36 (@mapno)
+
+- [ENHANCEMENT] Updated statsd_exporter to v0.22.2 (@mattdurham)
+
+- [ENHANCEMENT] Update windows_exporter to v0.16.0 (@rfratto, @mattdurham)
+
+- [ENHANCEMENT] Add send latency to agent dashboard (@bboreham)
+
+- [BUGFIX] Do not immediately cancel context when creating a new trace
+  processor. This was preventing scrape_configs in traces from
+  functioning. (@lheinlen)
+
 - [BUGFIX] Sanitize autologged Loki labels by replacing invalid characters with underscores (@mapno)
+
+- [BUGFIX] Traces: remove extra line feed/spaces/tabs when reading password_file content (@nicoche)
+
+- [BUGFIX] Updated envsubst to v2.0.0-20210730161058-179042472c46. This version has a fix needed for escaping values
+  outside of variable substitutions. (@rlankfo)
+
+- [BUGFIX] Grafana Agent Operator should no longer delete resources matching
+  the names of the resources it manages. (@rfratto)
+
+- [BUGFIX] Grafana Agent Operator will now appropriately assign an
+  `app.kubernetes.io/managed-by=grafana-agent-operator` to all created
+  resources.
+
+- [CHANGE] Configuration API now returns 404 instead of 400 when attempting to get or delete a config
+  which does not exist. (@kgeckhart)
+
+- [CHANGE] The windows_exporter now disables the textfile collector by default. (@rfratto)
+
+- [CHANGE] **Breaking change** push_config is no longer supported in trace's config (@mapno)
 
 # v0.19.0 (2021-09-29)
 
@@ -39,7 +171,7 @@ for specific instructions.
 
 - [FEATURE] Add `operator-detach` command to agentctl to allow zero-downtime
   upgrades when removing an Operator CRD. (@rfratto)
-  
+
 - [ENHANCEMENT] The Grafana Agent Operator will now default to deploying
   the matching release version of the Grafana Agent instead of v0.14.0.
   (@rfratto)
@@ -97,7 +229,7 @@ for specific instructions.
 
 - [CHANGE] Breaking change: `prom_instance` in the spanmetrics config is now
   named `metrics_instance`. (@rfratto)
-  
+
 - [DEPRECATION] The `loki` key at the root of the config file has been
   deprecated in favor of `logs`. `loki`-named fields in `automatic_logging`
   have been renamed accordinly: `loki_name` is now `logs_instance_name`,

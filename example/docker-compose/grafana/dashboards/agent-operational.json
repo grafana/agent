@@ -7,7 +7,7 @@
    "graphTooltip": 0,
    "hideControls": false,
    "links": [ ],
-   "refresh": "1m",
+   "refresh": "30s",
    "rows": [
       {
          "collapse": false,
@@ -59,7 +59,7 @@
                "title": "GCs",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -135,7 +135,7 @@
                "title": "Go Heap",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -211,7 +211,7 @@
                "title": "Goroutines",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -287,7 +287,7 @@
                "title": "CPU",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -363,7 +363,7 @@
                "title": "WSS",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -439,7 +439,7 @@
                "title": "Bad Words",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -527,7 +527,7 @@
                "title": "RX by Pod",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -603,7 +603,7 @@
                "title": "TX by Pod",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -691,7 +691,7 @@
                "title": "Bytes/Series/Pod",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -767,7 +767,7 @@
                "title": "Bytes/Series",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -843,7 +843,7 @@
                "title": "Series/Pod",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -919,7 +919,7 @@
                "title": "Series/Config",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -995,7 +995,7 @@
                "title": "Series",
                "tooltip": {
                   "shared": true,
-                  "sort": 0,
+                  "sort": 2,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -1047,7 +1047,7 @@
                "value": "default"
             },
             "hide": 0,
-            "label": null,
+            "label": "Data Source",
             "name": "datasource",
             "options": [ ],
             "query": "prometheus",
@@ -1056,7 +1056,7 @@
             "type": "datasource"
          },
          {
-            "allValue": null,
+            "allValue": ".+",
             "current": {
                "selected": true,
                "text": "All",
@@ -1080,7 +1080,7 @@
             "useTags": false
          },
          {
-            "allValue": null,
+            "allValue": ".+",
             "current": {
                "selected": true,
                "text": "All",
@@ -1104,7 +1104,7 @@
             "useTags": false
          },
          {
-            "allValue": null,
+            "allValue": ".+",
             "current": {
                "selected": true,
                "text": "All",

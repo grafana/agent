@@ -3,14 +3,17 @@ package configstore
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/client"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
@@ -26,7 +29,7 @@ func TestAPI_ListConfigurations(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs")
@@ -60,12 +63,12 @@ func TestAPI_GetConfiguration_Invalid(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/does-not-exist")
 	require.NoError(t, err)
-	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 
 	expect := `{
 		"status": "error",
@@ -96,7 +99,7 @@ func TestAPI_GetConfiguration(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
@@ -128,10 +131,108 @@ func TestAPI_GetConfiguration(t *testing.T) {
 	})
 }
 
+func TestAPI_GetConfiguration_ScrubSecrets(t *testing.T) {
+	rawConfig := `name: exists
+scrape_configs:
+- job_name: local_scrape
+  follow_redirects: true
+  honor_timestamps: true
+  metrics_path: /metrics
+  scheme: http
+  static_configs:
+  - targets:
+    - 127.0.0.1:12345
+    labels:
+      cluster: localhost
+  basic_auth:
+    username: admin
+    password: SCRUBME
+remote_write:
+- url: http://localhost:9009/api/prom/push
+  remote_timeout: 30s
+  name: test-d0f32c
+  basic_auth:
+    username: admin
+    password: SCRUBME
+  queue_config:
+    capacity: 500
+    max_shards: 1000
+    min_shards: 1
+    max_samples_per_send: 100
+    batch_send_deadline: 5s
+    min_backoff: 30ms
+    max_backoff: 100ms
+  follow_redirects: true
+  metadata_config:
+    send: true
+    send_interval: 1m
+    max_samples_per_send: 500
+wal_truncate_frequency: 1m0s
+min_wal_time: 5m0s
+max_wal_time: 4h0m0s
+remote_flush_deadline: 1m0s
+`
+	scrubbedConfig := strings.ReplaceAll(rawConfig, "SCRUBME", "<secret>")
+
+	s := &Mock{
+		GetFunc: func(ctx context.Context, key string) (instance.Config, error) {
+			c, err := instance.UnmarshalConfig(strings.NewReader(rawConfig))
+			if err != nil {
+				return instance.Config{}, err
+			}
+			return *c, nil
+		},
+	}
+
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
+	env := newAPITestEnvironment(t, api)
+
+	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	respBytes, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var apiResp struct {
+		Status string `json:"status"`
+		Data   struct {
+			Value string `json:"value"`
+		} `json:"data"`
+	}
+	err = json.Unmarshal(respBytes, &apiResp)
+	require.NoError(t, err)
+	require.Equal(t, "success", apiResp.Status)
+	require.YAMLEq(t, scrubbedConfig, apiResp.Data.Value)
+
+	t.Run("With Client", func(t *testing.T) {
+		cli := client.New(env.srv.URL)
+		actual, err := cli.GetConfiguration(context.Background(), "exists")
+		require.NoError(t, err)
+
+		// Marshal the retrieved config _without_ scrubbing. This means
+		// that if the secrets weren't scrubbed from GetConfiguration, something
+		// bad happened at the API level.
+		actualBytes, err := instance.MarshalConfig(actual, false)
+		require.NoError(t, err)
+		require.YAMLEq(t, scrubbedConfig, string(actualBytes))
+	})
+}
+
+func TestServer_GetConfiguration_Disabled(t *testing.T) {
+	api := NewAPI(log.NewNopLogger(), nil, nil, false)
+	env := newAPITestEnvironment(t, api)
+	resp, err := http.Get(env.srv.URL + "/agent/api/v1/configs/exists")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, []byte("404 - config endpoint is disabled"), body)
+}
+
 func TestServer_PutConfiguration(t *testing.T) {
 	var s Mock
 
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(log.NewNopLogger(), &s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	cfg := instance.Config{Name: "newconfig"}
@@ -166,7 +267,7 @@ func TestServer_PutConfiguration_Invalid(t *testing.T) {
 
 	api := NewAPI(log.NewNopLogger(), &s, func(c *instance.Config) error {
 		return fmt.Errorf("custom validation error")
-	})
+	}, true)
 	env := newAPITestEnvironment(t, api)
 
 	cfg := instance.Config{Name: "newconfig"}
@@ -190,7 +291,7 @@ func TestServer_PutConfiguration_Invalid(t *testing.T) {
 
 func TestServer_PutConfiguration_WithClient(t *testing.T) {
 	var s Mock
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(log.NewNopLogger(), &s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	cfg := instance.DefaultConfig
@@ -216,7 +317,7 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 		},
 	}
 
-	api := NewAPI(log.NewNopLogger(), s, nil)
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/config/deleteme", nil)
@@ -232,10 +333,34 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 	})
 }
 
+func TestServer_DeleteConfiguration_Invalid(t *testing.T) {
+	s := &Mock{
+		DeleteFunc: func(ctx context.Context, key string) error {
+			assert.Equal(t, "deleteme", key)
+			return NotExistError{Key: key}
+		},
+	}
+
+	api := NewAPI(log.NewNopLogger(), s, nil, true)
+	env := newAPITestEnvironment(t, api)
+
+	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/config/deleteme", nil)
+	require.NoError(t, err)
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+	t.Run("With Client", func(t *testing.T) {
+		cli := client.New(env.srv.URL)
+		err := cli.DeleteConfiguration(context.Background(), "deleteme")
+		require.Error(t, err)
+	})
+}
+
 func TestServer_URLEncoded(t *testing.T) {
 	var s Mock
 
-	api := NewAPI(log.NewNopLogger(), &s, nil)
+	api := NewAPI(log.NewNopLogger(), &s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
 	var cfg instance.Config

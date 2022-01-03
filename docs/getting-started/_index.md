@@ -18,13 +18,15 @@ Currently, there are six ways to install the agent:
 - Using Grafana Labs' official Tanka configs (_recommended advanced_)
 - Using the [Windows Installer]({{< relref "./install-agent-on-windows.md" >}})
 
+See the list of [Community Projects](#community-projects) for the community-driven ecosystem around the Grafana Agent.
+
 ## Docker container
 
 ```
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.19.0
+  grafana/agent:v0.21.2
 ```
 
 Replace `/tmp/agent` with the folder you wish to store WAL data in. WAL data is
@@ -47,7 +49,7 @@ container through a bind mount for the flags to work properly.
 
 ## Kubernetes manifests
 
-If you wish to manually modify the Kubernetes manifests before deploying them, you can do so by downloading them from the [`kubernetes` directory](../../production/kubernetes/). Note that these manifests do not include Agent configuration files. For sample configuration, please see the Grafana Cloud Kubernetes quickstarts.
+If you wish to manually modify the Kubernetes manifests before deploying them, you can do so by downloading them from the [`kubernetes` directory](https://github.com/grafana/agent/tree/main/production/kubernetes). Note that these manifests do not include Agent configuration files. For sample configuration, please see the Grafana Cloud Kubernetes quickstarts.
 
 ## Grafana Cloud kubernetes quickstart guides
 
@@ -66,3 +68,17 @@ Red Hat, and Debian.
 
 We provide [Tanka](https://tanka.dev) configurations in our [`production/`](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory.
 
+## Community Projects
+
+Below is a list of community lead projects for working with Grafana Agent. These projects are not maintained or supported by Grafana Labs.
+
+### Helm (Kubernetes Deployment)
+
+A publically available release of a Grafana Agent Helm chart is maintained [here](https://github.com/DandyDeveloper/charts/tree/master/charts/grafana-agent). Contributions and improvements are welcomed. Full details on rolling out and supported options can be found in the [readme](https://github.com/DandyDeveloper/charts/blob/master/charts/grafana-agent/README.md).
+
+This *does not* require the Grafana Agent Operator to rollout / deploy.
+
+### Juju (Charmed Operator)
+
+The [grafana-agent-k8s](https://github.com/canonical/grafana-agent-operator) charmed operator runs with [Juju](https://juju.is) the Grafana Agent on Kubernetes.
+The Grafana Agent charmed operator is designed to work with the [Logs, Metrics and Alerts](https://juju.is/docs/lma2) observability stack.

@@ -1,5 +1,5 @@
-local k = import 'ksonnet-util/kausal.libsonnet',
-local container = k.core.v1.container,
+local k = import 'ksonnet-util/kausal.libsonnet';
+local container = k.core.v1.container;
 
 {
   volumeMounts(config={}):: {
@@ -17,5 +17,5 @@ local container = k.core.v1.container,
     container+::
       container.mixin.securityContext.withPrivileged(true) +
       container.mixin.securityContext.withRunAsUser(0),
-  }
+  },
 }

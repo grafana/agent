@@ -5,8 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -35,9 +34,9 @@ test:
 		Name:     "John Doe",
 		Duration: 500 * time.Millisecond,
 		Default:  12345,
-		Configs: []Config{
-			&testIntegrationA{Text: "Hello, world!", Truth: true},
-		},
+		Configs: []UnmarshaledConfig{{
+			Config: &testIntegrationA{Text: "Hello, world!", Truth: true},
+		}},
 	}
 	require.Equal(t, expect, fullCfg)
 }
@@ -47,8 +46,8 @@ type testIntegrationA struct {
 	Truth bool   `yaml:"truth"`
 }
 
-func (i *testIntegrationA) Name() string                { return "test" }
-func (i *testIntegrationA) CommonConfig() config.Common { return config.Common{} }
+func (i *testIntegrationA) Name() string                         { return "test" }
+func (i *testIntegrationA) InstanceKey(_ string) (string, error) { return "integrationA", nil }
 
 func (i *testIntegrationA) NewIntegration(l log.Logger) (Integration, error) {
 	return nil, fmt.Errorf("not implemented")
@@ -64,8 +63,8 @@ type testIntegrationB struct {
 	Text string `yaml:"text"`
 }
 
-func (*testIntegrationB) Name() string                { return "shouldnotbefound" }
-func (*testIntegrationB) CommonConfig() config.Common { return config.Common{} }
+func (*testIntegrationB) Name() string                         { return "shouldnotbefound" }
+func (*testIntegrationB) InstanceKey(_ string) (string, error) { return "integrationB", nil }
 
 func (*testIntegrationB) NewIntegration(l log.Logger) (Integration, error) {
 	return nil, fmt.Errorf("not implemented")

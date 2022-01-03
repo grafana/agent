@@ -1,9 +1,16 @@
 package windows_exporter //nolint:golint
 import (
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 )
+
+// DefaultConfig holds the default settings for the windows_exporter integration.
+var DefaultConfig = Config{
+	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
+
+	// NOTE(rfratto): there is an init function in config_windows.go that
+	// populates defaults for collectors based on the exporter defaults.
+}
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
@@ -12,8 +19,6 @@ func init() {
 // Config controls the windows_exporter integration.
 // All of these and their child fields are pointers so we can determine if the value was set or not.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	EnabledCollectors string `yaml:"enabled_collectors"`
 
 	Exchange    ExchangeConfig    `yaml:"exchange,omitempty"`
@@ -28,14 +33,22 @@ type Config struct {
 	LogicalDisk LogicalDiskConfig `yaml:"logical_disk,omitempty"`
 }
 
+// UnmarshalYAML implements yaml.Unmarshaler for Config.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
+}
+
 // Name returns the name used, "windows_explorer"
 func (c *Config) Name() string {
 	return "windows_exporter"
 }
 
-// CommonConfig returns the common fields that all integrations have
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns the hostname:port of the agent.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
 }
 
 // NewIntegration creates an integration based on the given configuration

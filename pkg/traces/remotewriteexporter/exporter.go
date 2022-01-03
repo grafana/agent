@@ -8,8 +8,8 @@ import (
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -33,7 +33,7 @@ const (
 )
 
 type dataPoint interface {
-	LabelsMap() pdata.StringMap
+	Attributes() pdata.AttributeMap
 }
 
 type remoteWriteExporter struct {
@@ -50,9 +50,17 @@ type remoteWriteExporter struct {
 func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 	logger := log.With(util.Logger, "component", "traces remote write exporter")
 
+	ls := make(labels.Labels, 0, len(cfg.ConstLabels))
+	for _, constLabel := range cfg.ConstLabels {
+		ls = append(ls, labels.Label{
+			Name:  constLabel.Name,
+			Value: constLabel.Value,
+		})
+	}
+
 	return &remoteWriteExporter{
 		done:         atomic.Bool{},
-		constLabels:  cfg.ConstLabels,
+		constLabels:  ls,
 		namespace:    cfg.Namespace,
 		promInstance: cfg.PromInstance,
 		logger:       logger,
@@ -62,7 +70,7 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 func (e *remoteWriteExporter) Start(ctx context.Context, _ component.Host) error {
 	manager, ok := ctx.Value(contextkeys.Metrics).(instance.Manager)
 	if !ok || manager == nil {
-		return fmt.Errorf("key does not contain a Prometheus instance")
+		return fmt.Errorf("key does not contain a InstanceManager instance")
 	}
 	e.manager = manager
 	return nil
@@ -96,11 +104,11 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 			ms := ilm.At(j).Metrics()
 			for k := 0; k < ms.Len(); k++ {
 				switch m := ms.At(k); m.DataType() {
-				case pdata.MetricDataTypeSum, pdata.MetricDataTypeIntSum, pdata.MetricDataTypeGauge, pdata.MetricDataTypeIntGauge:
+				case pdata.MetricDataTypeSum, pdata.MetricDataTypeGauge:
 					if err := e.processScalarMetric(app, m); err != nil {
 						return fmt.Errorf("failed to process metric %s", err)
 					}
-				case pdata.MetricDataTypeHistogram, pdata.MetricDataTypeIntHistogram:
+				case pdata.MetricDataTypeHistogram:
 					if err := e.processHistogramMetrics(app, m); err != nil {
 						return fmt.Errorf("failed to process metric %s", err)
 					}
@@ -117,22 +125,14 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 }
 
 func (e *remoteWriteExporter) processHistogramMetrics(app storage.Appender, m pdata.Metric) error {
-	switch m.DataType() {
-	case pdata.MetricDataTypeIntHistogram:
-		dps := m.IntHistogram().DataPoints()
-		if err := e.handleHistogramIntDataPoints(app, m.Name(), dps); err != nil {
-			return nil
-		}
-	case pdata.MetricDataTypeHistogram:
-		return fmt.Errorf("unsupported metric data type %s", m.DataType().String())
-	}
-	return nil
+	dps := m.Histogram().DataPoints()
+	return e.handleHistogramIntDataPoints(app, m.Name(), dps)
 }
 
-func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender, name string, dataPoints pdata.IntHistogramDataPointSlice) error {
+func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender, name string, dataPoints pdata.HistogramDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
-		if err := e.appendDataPoint(app, name, sumSuffix, dataPoint, float64(dataPoint.Sum())); err != nil {
+		if err := e.appendDataPoint(app, name, sumSuffix, dataPoint, dataPoint.Sum()); err != nil {
 			return err
 		}
 		if err := e.appendDataPoint(app, name, countSuffix, dataPoint, float64(dataPoint.Count())); err != nil {
@@ -164,44 +164,24 @@ func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender,
 
 func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.Metric) error {
 	switch m.DataType() {
-	case pdata.MetricDataTypeIntSum:
-		dataPoints := m.IntSum().DataPoints()
-		if err := e.handleScalarIntDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
-			return err
-		}
 	case pdata.MetricDataTypeSum:
 		dataPoints := m.Sum().DataPoints()
-		if err := e.handleScalarFloatDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
-			return err
-		}
-	case pdata.MetricDataTypeIntGauge:
-		dataPoints := m.IntGauge().DataPoints()
-		if err := e.handleScalarIntDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
+		if err := e.handleScalarIntDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
 			return err
 		}
 	case pdata.MetricDataTypeGauge:
 		dataPoints := m.Gauge().DataPoints()
-		if err := e.handleScalarFloatDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
+		if err := e.handleScalarIntDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (e *remoteWriteExporter) handleScalarIntDataPoints(app storage.Appender, name, suffix string, dataPoints pdata.IntDataPointSlice) error {
+func (e *remoteWriteExporter) handleScalarIntDataPoints(app storage.Appender, name, suffix string, dataPoints pdata.NumberDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
-		if err := e.appendDataPoint(app, name, suffix, dataPoint, float64(dataPoint.Value())); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (e *remoteWriteExporter) handleScalarFloatDataPoints(app storage.Appender, name, suffix string, dataPoints pdata.DoubleDataPointSlice) error {
-	for ix := 0; ix < dataPoints.Len(); ix++ {
-		dataPoint := dataPoints.At(ix)
-		if err := e.appendDataPoint(app, name, suffix, dataPoint, dataPoint.Value()); err != nil {
+		if err := e.appendDataPoint(app, name, suffix, dataPoint, float64(dataPoint.IntVal())); err != nil {
 			return err
 		}
 	}
@@ -213,7 +193,7 @@ func (e *remoteWriteExporter) appendDataPoint(app storage.Appender, name, suffix
 }
 
 func (e *remoteWriteExporter) appendDataPointWithLabels(app storage.Appender, name, suffix string, dp dataPoint, v float64, customLabels labels.Labels) error {
-	ls := e.createLabelSet(name, suffix, dp.LabelsMap(), customLabels)
+	ls := e.createLabelSet(name, suffix, dp.Attributes(), customLabels)
 	// TODO(mario.rodriguez): Use timestamp from metric
 	// time.Now() is used to avoid out-of-order metrics
 	ts := timestamp.FromTime(time.Now())
@@ -223,13 +203,13 @@ func (e *remoteWriteExporter) appendDataPointWithLabels(app storage.Appender, na
 	return nil
 }
 
-func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata.StringMap, customLabels labels.Labels) labels.Labels {
+func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata.AttributeMap, customLabels labels.Labels) labels.Labels {
 	ls := make(labels.Labels, 0, labelMap.Len()+1+len(e.constLabels)+len(customLabels))
 	// Labels from spanmetrics processor
-	labelMap.Range(func(k string, v string) bool {
+	labelMap.Range(func(k string, v pdata.AttributeValue) bool {
 		ls = append(ls, labels.Label{
 			Name:  strings.Replace(k, ".", "_", -1),
-			Value: v,
+			Value: v.StringVal(),
 		})
 		return true
 	})
