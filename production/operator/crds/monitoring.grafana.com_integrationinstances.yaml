@@ -51,7 +51,13 @@ spec:
                 type: string
               type:
                 default: normal
-                description: Type specifies the type of integration being configured.
+                description: "Type specifies the type of integration being configured.
+                  Supported values: \n daemonset: integrations which run on every
+                  Kubernetes Node. These are integrations which collect machine level
+                  metrics, like node_exporter or cadvisor. \n singleton: integrations
+                  which run once per GrafanaAgent CRD. These are integrations like
+                  statsd_exporter, where you want a single place to send statsd metrics.
+                  \n normal: all other integrations. \n The default value is normal."
                 enum:
                 - daemonset
                 - singleton

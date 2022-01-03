@@ -19,19 +19,7 @@ type IntegrationsSubsystemSpec struct {
 
 // +kubebuilder:validation:Enum=daemonset;singleton;normal
 
-// AgentIntegrationType defines the type of integration. Supported values:
-//
-// daemonset: integrations which run on every Kubernetes Node. These are
-// integrations which collect machine level metrics, like node_exporter or
-// cadvisor.
-//
-// singleton: integrations which run once per GrafanaAgent CRD. These are
-// integrations like statsd_exporter, where you want a single place to send
-// statsd metrics.
-//
-// normal: all other integrations.
-//
-// The default value is normal.
+// AgentIntegrationType defines the type of integration.
 type AgentIntegrationType string
 
 const (
@@ -46,7 +34,7 @@ const (
 	// once per GrafanaAgent. singleton integrations must be unique per
 	// GrafanaAgent deployment.
 	//
-	// Example singleton integrations: stats_exporter.
+	// Example singleton integrations: statsd_exporter.
 	AgentIntegrationModeSingleton AgentIntegrationType = "singleton"
 
 	// AgentIntegrationModeNormal is used for integrations that can be defined
@@ -87,7 +75,19 @@ type MetricsIntegrationInstanceSpec struct {
 	// +kubebuilder:validation:Required
 	// +kubebuilder:default:=normal
 
-	// Type specifies the type of integration being configured.
+	// Type specifies the type of integration being configured. Supported values:
+	//
+	// daemonset: integrations which run on every Kubernetes Node. These are
+	// integrations which collect machine level metrics, like node_exporter or
+	// cadvisor.
+	//
+	// singleton: integrations which run once per GrafanaAgent CRD. These are
+	// integrations like statsd_exporter, where you want a single place to send
+	// statsd metrics.
+	//
+	// normal: all other integrations.
+	//
+	// The default value is normal.
 	Type AgentIntegrationType `json:"type"`
 
 	// +kubebuilder:validation:Required
