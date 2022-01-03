@@ -40,7 +40,7 @@ remote_write:
 
 The full set of supported options for an instance configuration file is
 available in the
-[`prometheus-config.md` file]({{< relref "../configuration/prometheus-config" >}}).
+[`metrics-config.md` file]({{< relref "../configuration/metrics-config" >}}).
 
 Having multiple instance configuration files is necessary for sharding; each
 config file is distributed to a particular agent on the cluster based on the
@@ -131,7 +131,7 @@ server:
   log_level: debug
   http_listen_port: 12345
 
-prometheus:
+metrics:
   global:
     scrape_interval: 1m
   scraping_service:

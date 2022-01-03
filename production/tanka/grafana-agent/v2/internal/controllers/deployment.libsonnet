@@ -4,7 +4,7 @@ function(replicas=1) {
   local name = _config.name,
   local namespace = _config.namespace,
 
-  local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: this._config } },
+  local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: this._config },
 
   local deployment = k.apps.v1.deployment,
 

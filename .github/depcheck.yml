@@ -9,6 +9,7 @@ go_modules:
   - github.com/prometheus/memcached_exporter
   - github.com/prometheus/statsd_exporter
   - github.com/weaveworks/common
+  - github.com/drone/envsubst/v2
   - go.opentelemetry.io/collector
   - sigs.k8s.io/controller-runtime
 
@@ -23,6 +24,8 @@ github_repos:
   - github.com/ncabatoff/process-exporter v0.7.5
   - github.com/prometheus/mysqld_exporter v0.13.0
   - github.com/prometheus-community/postgres_exporter v0.10.0
+  - github.com/prometheus-community/windows_exporter v0.16.0
+  - github.com/percona/mongodb_exporter v0.20.7
   - project: github.com/prometheus/prometheus
     version: v2.27.0
     # Ignore release candidates

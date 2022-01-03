@@ -17,8 +17,8 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/prometheus/common/version"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/agentctl"
 	"github.com/grafana/agent/pkg/client"
 	"github.com/spf13/cobra"

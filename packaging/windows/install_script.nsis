@@ -29,6 +29,9 @@ Var EnableExporterCheck
 Var EnableExporterValue
 Var EnableExporterDialog
 Var PassedInParameters
+Var Url
+Var Username
+Var Password
 
 Page license
 Page directory
@@ -56,6 +59,9 @@ Section "install"
     ThisIsSilent:
         ${GetParameters} $PassedInParameters
         ${GetOptions} $PassedInParameters "/EnableExporter" $EnableExporterValue
+        ${GetOptions} $PassedInParameters "/Url" $Url
+        ${GetOptions} $PassedInParameters "/Username" $Username
+        ${GetOptions} $PassedInParameters "/Password" $Password
         Call Install
         Return
     RunInstaller:
@@ -89,7 +95,7 @@ Function enableWindowsExporterLeave
 FunctionEnd
 
 Function Install
-    # Premptively stop Grafana Agent if it is running
+    # Preemptively stop Grafana Agent if it is running
     nsExec::ExecToLog 'sc stop "Grafana Agent"'
     Pop $0
     # Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
@@ -118,12 +124,12 @@ Function Install
     Call WriteConfig
 
    
-    # Create our batch file, since services cant run with parameters, nsexec is used to surpress console output, instead goes
+    # Create our batch file, since services cant run with parameters, nsexec is used to suppress console output, instead goes
     # to NSIS log window
-    nsExec::ExecToLog 'sc create "Grafana Agent" binpath= "$INSTDIR\agent-windows-amd64.exe"'
+    nsExec::ExecToLog 'sc create "Grafana Agent" binpath= "\"$INSTDIR\agent-windows-amd64.exe\""'
     Pop $0
     # These separate create and config commands are needed, on the config the binpath is required
-    nsExec::ExecToLog 'sc config "Grafana Agent" start= auto binpath= "$INSTDIR\agent-windows-amd64.exe -config.file=\"$INSTDIR\agent-config.yaml\""'
+    nsExec::ExecToLog 'sc config "Grafana Agent" start= auto binpath= "\"$INSTDIR\agent-windows-amd64.exe\" -config.file=\"$INSTDIR\agent-config.yaml\""'
     Pop $0
     nsExec::ExecToLog `sc start "Grafana Agent"`
     Pop $0
@@ -139,10 +145,17 @@ Function WriteConfig
         FileOpen $9 "$INSTDIR\agent-config.yaml" w #Opens a Empty File and fills it
         FileWrite $9 `server:$\n`
         FileWrite $9 `  http_listen_port: 12345$\n`
-        FileWrite $9 `prometheus:$\n`
+        FileWrite $9 `metrics:$\n`
         FileWrite $9 `  wal_directory: $APPDATA\grafana-agent-wal$\n`
         FileWrite $9 `  global:$\n`
         FileWrite $9 `    scrape_interval: 1m$\n`
+        ${If} $Url != ""
+        FileWrite $9 `    remote_write: $\n`
+        FileWrite $9 `    - url: $Url $\n`
+        FileWrite $9 `      basic_auth: $\n`
+        FileWrite $9 `        username: $Username $\n`
+        FileWrite $9 `        password: $Password $\n`
+        ${EndIf}
         FileWrite $9 `  configs:$\n`
         FileWrite $9 `    - name: integrations$\n`
         ${If} $EnableExporterValue == "true"
@@ -162,7 +175,7 @@ Function un.onInit
         Return
     WarnUser:
          #Verify the uninstaller - last chance to back out
-        MessageBox MB_OKCANCEL "Permanantly remove ${APPNAME}? This will remove the WAL and the agent config." IDOK next
+        MessageBox MB_OKCANCEL "Permanently remove ${APPNAME}? This will remove the WAL and the agent config." IDOK next
             Abort
         next:
         !insertmacro VerifyUserIsAdmin

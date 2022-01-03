@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Usage:
-#   smoke-test.bash [-i] [-d] [-t <duration>]
+#   smoke-test.bash [-i] [-d] [-s] [-t <duration>]
 #
 # Dependencies:
 #   k3d >=3.0
@@ -45,17 +45,18 @@ ENTRYPOINT="run"
 TEST_DURATION="3h"
 IMPORT_IMAGES=""
 
-while getopts "dt:ih" opt; do
+while getopts "dt:ish" opt; do
   case $opt in
     d) ENTRYPOINT="cleanup" ;;
     t) TEST_DURATION=$OPTARG ;;
     i) IMPORT_IMAGES="yes" ;;
+    s) SKIP_CREATE="yes" ;;
     h)
-      echo "Usage: $0 [-i] [-d] [-t <duration>]"
+      echo "Usage: $0 [-i] [-d] [-s] [-t <duration>]"
       exit 0
       ;;
     *)
-      echo "Usage: $0 [-i] [-d] [-t <duration>]"
+      echo "Usage: $0 [-i] [-d] [-s] [-t <duration>]"
       exit 1
       ;;
   esac
@@ -63,13 +64,15 @@ done
 
 # Run runs the smoke test for $TEST_DURATION.
 run() {
-  echo "--- Creating k3d cluster $K3D_CLUSTER_NAME"
-  k3d cluster create $K3D_CLUSTER_NAME \
-    --port 50080:80@loadbalancer \
-    --api-port 50443 \
-    --kubeconfig-update-default=true \
-    --kubeconfig-switch-context=true \
-    --wait >/dev/null
+  if [[ -z "$SKIP_CREATE" ]]; then
+    echo "--- Creating k3d cluster $K3D_CLUSTER_NAME"
+    k3d cluster create $K3D_CLUSTER_NAME \
+      --port 50080:80@loadbalancer \
+      --api-port 50443 \
+      --kubeconfig-update-default=true \
+      --kubeconfig-switch-context=true \
+      --wait >/dev/null
+  fi
 
   # Give the cluster a little bit of time to settle before
   # applying the environment

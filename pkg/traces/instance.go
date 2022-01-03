@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -16,6 +17,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service/external/builder"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -43,14 +45,14 @@ func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg Instan
 		return nil, fmt.Errorf("failed to create metric views: %w", err)
 	}
 
-	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, cfg); err != nil {
+	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, reg, cfg); err != nil {
 		return nil, err
 	}
 	return instance, nil
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prometheus.Registerer, cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -63,8 +65,7 @@ func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager ins
 	// Shut down any existing pipeline
 	i.stop()
 
-	createCtx := context.WithValue(context.Background(), contextkeys.Logs, logsSubsystem)
-	err := i.buildAndStartPipeline(createCtx, cfg, promInstanceManager)
+	err := i.buildAndStartPipeline(context.Background(), cfg, logsSubsystem, promInstanceManager, reg)
 	if err != nil {
 		return fmt.Errorf("failed to create pipeline: %w", err)
 	}
@@ -130,14 +131,11 @@ func (i *Instance) stop() {
 	i.exporter = nil
 }
 
-func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, promManager instance.Manager) error {
+func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager, reg prometheus.Registerer) error {
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
 		return fmt.Errorf("failed to load otelConfig from agent traces config: %w", err)
-	}
-	if cfg.PushConfig.Endpoint != "" {
-		i.logger.Warn("Configuring exporter with deprecated push_config. Use remote_write and batch instead")
 	}
 	for _, rw := range cfg.RemoteWrite {
 		if rw.InsecureSkipVerify {
@@ -149,12 +147,20 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.SpanMetrics != nil && len(cfg.SpanMetrics.MetricsInstance) != 0 {
-		ctx = context.WithValue(ctx, contextkeys.Metrics, promManager)
+		ctx = context.WithValue(ctx, contextkeys.Metrics, instManager)
 	}
 
-	if cfg.TailSampling != nil && cfg.LoadBalancing == nil {
-		i.logger.Warn("Configuring tail_sampling without load_balance." +
-			"Load balancing is required for tail sampling to properly work in multi instance deployments")
+	if cfg.LoadBalancing == nil && (cfg.TailSampling != nil || cfg.ServiceGraphs != nil) {
+		i.logger.Warn("Configuring tail_sampling and/or service_graphs without load_balance." +
+			"Load balancing is required for those features to properly work in multi agent deployments")
+	}
+
+	if cfg.AutomaticLogging != nil && cfg.AutomaticLogging.Backend != automaticloggingprocessor.BackendStdout {
+		ctx = context.WithValue(ctx, contextkeys.Logs, logs)
+	}
+
+	if cfg.ServiceGraphs != nil {
+		ctx = context.WithValue(ctx, contextkeys.PrometheusRegisterer, reg)
 	}
 
 	factories, err := tracingFactories()
@@ -168,8 +174,14 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		Version:     build.Version,
 	}
 
+	settings := component.TelemetrySettings{
+		Logger:         i.logger,
+		TracerProvider: trace.NewNoopTracerProvider(),
+		MeterProvider:  metric.NewNoopMeterProvider(),
+	}
+
 	// start exporter
-	i.exporter, err = builder.BuildExporters(i.logger, trace.NewNoopTracerProvider(), appinfo, otelConfig, factories.Exporters)
+	i.exporter, err = builder.BuildExporters(settings, appinfo, otelConfig, factories.Exporters)
 	if err != nil {
 		return fmt.Errorf("failed to create exporters builder: %w", err)
 	}
@@ -180,7 +192,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start pipelines
-	i.pipelines, err = builder.BuildPipelines(i.logger, trace.NewNoopTracerProvider(), appinfo, otelConfig, i.exporter, factories.Processors)
+	i.pipelines, err = builder.BuildPipelines(settings, appinfo, otelConfig, i.exporter, factories.Processors)
 	if err != nil {
 		return fmt.Errorf("failed to create pipelines builder: %w", err)
 	}
@@ -191,7 +203,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	// start receivers
-	i.receivers, err = builder.BuildReceivers(i.logger, trace.NewNoopTracerProvider(), appinfo, otelConfig, i.pipelines, factories.Receivers)
+	i.receivers, err = builder.BuildReceivers(settings, appinfo, otelConfig, i.pipelines, factories.Receivers)
 	if err != nil {
 		return fmt.Errorf("failed to create receivers builder: %w", err)
 	}

@@ -2,10 +2,9 @@
 package dnsmasq_exporter //nolint:golint
 
 import (
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/google/dnsmasq_exporter/collector"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/miekg/dns"
 )
 
@@ -17,8 +16,6 @@ var DefaultConfig Config = Config{
 
 // Config controls the dnsmasq_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// DnsmasqAddress is the address of the dnsmasq server (host:port).
 	DnsmasqAddress string `yaml:"dnsmasq_address,omitempty"`
 
@@ -31,9 +28,9 @@ func (c *Config) Name() string {
 	return "dnsmasq_exporter"
 }
 
-// CommonConfig returns the set of common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns the address of the dnsmasq server.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return c.DnsmasqAddress, nil
 }
 
 // NewIntegration converts this config into an instance of an integration.
@@ -56,7 +53,7 @@ func init() {
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics
 // from a dnsmasq server.
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	exporter := collector.New(&dns.Client{
+	exporter := collector.New(log, &dns.Client{
 		SingleInflight: true,
 	}, c.DnsmasqAddress, c.LeasesPath)
 

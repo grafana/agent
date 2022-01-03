@@ -16,6 +16,13 @@ Full reference of options:
   # collect system metrics from the local windows instance
   [enabled: <boolean> | default = false]
 
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the agent hostname
+  # and HTTP listen port, delimited by a colon.
+  [instance: <string>]
+
   # Automatically collect metrics from this integration. If disabled,
   # the consul_exporter integration will be run but not scraped and thus not
   # remote-written. Metrics for the integration will be exposed at
@@ -50,10 +57,13 @@ Full reference of options:
   # Exporter-specific configuration options
   #
 
-  # List of collectors to enable
+  # List of collectors to enable. Any non-experimental collector from the
+  # embeded version of windows_exporter can be enabeld here.
   [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system,textfile"]
 
-  # The following settings are only used if they are enabled by specifying them in enabled_collectors
+  # Settings for collectors which accept configuration. Settings specified here
+  # are only used if the corresponding collector is enabled in
+  # enabled_collectors.
 
   # Configuration for Exchange Mail Server
   exchange:

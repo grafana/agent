@@ -110,9 +110,9 @@ func TestSpanKeyVals(t *testing.T) {
 
 		span := pdata.NewSpan()
 		span.SetName(tc.spanName)
-		span.Attributes().InitFromMap(tc.spanAttrs).Sort()
-		span.SetStartTimestamp(pdata.TimestampFromTime(tc.spanStart))
-		span.SetEndTimestamp(pdata.TimestampFromTime(tc.spanEnd))
+		pdata.NewAttributeMapFromMap(tc.spanAttrs).Sort().CopyTo(span.Attributes())
+		span.SetStartTimestamp(pdata.NewTimestampFromTime(tc.spanStart))
+		span.SetEndTimestamp(pdata.NewTimestampFromTime(tc.spanEnd))
 		span.Status().SetCode(pdata.StatusCodeOk)
 
 		actual := p.(*automaticLoggingProcessor).spanKeyVals(span)
@@ -161,7 +161,7 @@ func TestProcessKeyVals(t *testing.T) {
 		require.NoError(t, err)
 
 		process := pdata.NewResource()
-		process.Attributes().InitFromMap(tc.processAttrs).Sort()
+		pdata.NewAttributeMapFromMap(tc.processAttrs).Sort().CopyTo(process.Attributes())
 
 		actual := p.(*automaticLoggingProcessor).processKeyVals(process, tc.svc)
 		assert.Equal(t, tc.expected, actual)

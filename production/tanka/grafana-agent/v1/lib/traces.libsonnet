@@ -10,19 +10,6 @@
     _trace_config:: config,
   },
 
-  // Deprecated in favor of withTracesRemoteWrite.
-  // withTracePushConfig configures a location to write traces to.
-  //
-  // Available options can be found in the configuration reference:
-  // https://github.com/grafana/agent/blob/main/docs/configuration-reference.md#traces_config
-  withTracePushConfig(push_config):: {
-    assert std.objectHasAll(self, '_trace_config') : |||
-      withTracePushConfig must be merged with the result of calling
-      withTracesConfig.
-    |||,
-    _trace_config+:: { push_config: push_config },
-  },
-
   // withTracesRemoteWrite configures one or multiple backends to write traces to.
   //
   // Available options can be found in the configuration reference:
@@ -130,5 +117,5 @@
       withTracesConfig.
     |||,
     _trace_config+:: { load_balancing: load_balancing },
-  }
+  },
 }

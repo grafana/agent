@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/cortexproject/cortex/pkg/ring"
-	"github.com/cortexproject/cortex/pkg/ring/kv"
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	flagutil "github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/kv"
 )
 
 // DefaultConfig provides default values for the config
@@ -25,7 +25,8 @@ type Config struct {
 	DangerousAllowReadingFiles bool `yaml:"dangerous_allow_reading_files"`
 
 	// TODO(rfratto): deprecate scraping_service_client in Agent and replace with this.
-	Client client.Config `yaml:"-"`
+	Client                    client.Config `yaml:"-"`
+	APIEnableGetConfiguration bool          `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.

@@ -9,6 +9,7 @@ exemptLabels:
   - keepalive
   - proposal
   - outdated-dependency
+  - dev-branch
 
 # Label to use to identify a stale issue
 staleLabel: stale

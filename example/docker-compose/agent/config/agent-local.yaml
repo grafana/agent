@@ -3,7 +3,7 @@ server:
   log_level: info
   http_listen_port: 12345
 
-prometheus:
+metrics:
   wal_directory: /tmp/agent
   global:
     scrape_interval: 1m
@@ -19,7 +19,7 @@ prometheus:
         static_configs:
           - targets: ['localhost:3100']
 
-loki:
+logs:
   positions_directory: /tmp/loki-positions
   configs:
   - name: default
@@ -85,4 +85,10 @@ integrations:
       replacement: 'mongodb'   
     - source_labels: [__address__]
       target_label: mongodb_cluster
-      replacement: 'mongodb-cluster'  
+      replacement: 'mongodb-cluster'
+  cadvisor:
+    enabled: true
+    disabled_metrics:
+    - disk
+    enabled_metrics:
+    - percpu

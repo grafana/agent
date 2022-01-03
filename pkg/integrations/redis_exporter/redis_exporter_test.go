@@ -8,7 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/config"
+
+	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/prometheus/pkg/textparse"
 	"github.com/stretchr/testify/require"
@@ -151,6 +153,18 @@ func TestRedisCases(t *testing.T) {
 		})
 
 	}
+}
+
+func TestConfig_SecretRedisPassword(t *testing.T) {
+	stringCfg := `
+prometheus:
+  wal_directory: /tmp/agent
+integrations:
+  redis_exporter:
+    enabled: true
+    redis_password: secret_password
+`
+	config.CheckSecret(t, stringCfg, "secret_password")
 }
 
 func matchMetricNames(names map[string]bool, p textparse.Parser) {

@@ -12,6 +12,82 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.21.2, v0.20.1
+
+### Disabling of config retrieval enpoints
+
+These two patch releases, as part of a fix for
+[CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh),
+disable the `/-/config` and `/agent/api/v1/configs/{name}` endpoints by
+default. Pass the `--config.enable-read-api` flag at the command line to
+re-enable them.
+
+## v0.21.0
+
+### Integrations: Change in how instance labels are handled (Breaking change)
+
+Integrations will now use a SUO-specific `instance` label value. Integrations
+that apply to a whole machine or agent will continue to use `<agent machine
+hostname>:<agent listen port>`, but integrations that connect to an external
+system will now infer an appropriate value based on the config for that specific
+integration. Please refer to the documentation for each integration for which
+defaults are used.
+
+*Note:* In some cases, a default value for `instance` cannot be inferred. This
+is the case for mongodb_exporter and postgres_exporter if more than one SUO is
+being connected to. In these cases, the instance value can be manually set by
+configuring the `instance` field on the integration. This can also be useful if
+two agents infer the same value for instance for the same integration.
+
+As part of this change, the `agent_hostname` label is permanently affixed to
+self-scraped integrations and cannot be disabled. This disambigutates multiple
+agents using the same instance label for an integration, and allows users to
+identify which agents need to be updated with an override for `instance`.
+
+Both `use_hostname_label` and `replace_instance_label` are now both deprecated
+and ignored from the YAML file, permanently treated as true. A future release
+will remove these fields, causing YAML errors on load instead of being silently
+ignored.
+
+## v0.20.0
+
+### Traces: Changes to receiver's TLS config (Breaking change).
+
+Upgrading to OpenTelemetry v0.36.0 contains a change in the receivers TLS config.
+TLS params have been changed from being squashed to being in its own block.
+This affect the jaeger receiver's `remote_sampling` config.
+
+Example old config:
+
+```yaml
+receivers:
+  jaeger:
+    protocols:
+      grpc: null,
+    remote_sampling:
+      strategy_file: <file_path>
+      insecure: true
+```
+
+Example new config:
+
+```yaml
+receivers:
+  jaeger:
+    protocols:
+      grpc: null,
+    remote_sampling:
+      strategy_file: <file_path>
+      tls:
+        insecure: true
+```
+
+### Traces: push_config is no longer supported (Breaking change)
+
+`push_config` was deprecated in favor of `remote_write` in v0.14.0, while
+maintaining backwards compatibility.
+Refer to the [deprecation announcement](#tempo-push_config-deprecation) for how to upgrade.
+
 ## v0.19.0
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
@@ -104,6 +180,10 @@ This includes:
 This is a hard breaking change, and all fields must change accordingly for the
 operator to continue working.
 
+Note that old CRDs with the old hyphenated names must be deleted (`kubectl
+delete crds/{grafana-agents,prometheus-instances}`) for ClusterRoles to work
+correctly.
+
 To do a zero-downtime upgrade of the Operator when there is a breaking change,
 refer to the new `agentctl operator-detatch` command: this will iterate through
 all of your objects and remove any OwnerReferences to a CRD, allowing you to
@@ -161,8 +241,9 @@ change is to make it clearer when referring to Prometheus or another
 Prometheus-like database, and configuration of Grafana Agent to send metrics to
 one of those systems.
 
-Old configs will continue to work until it is fully deprecated. To migrate your
-config, change the `prometheus` key to `metrics`.
+Old configs will continue to work for now, but support for the old format will
+eventually be removed. To migrate your config, change the `prometheus` key to
+`metrics`.
 
 Example old config:
 
@@ -230,8 +311,8 @@ The term `loki` in the config has been deprecated of favor of `logs`. This
 change is to make it clearer when referring to Grafana Loki, and
 configuration of Grafana Agent to send logs to Grafana Loki.
 
-Old configs will continue to work until it is fully deprecated. To migrate your
-config, change the `loki` key to `logs`.
+Old configs will continue to work for now, but support for the old format will
+eventually be removed. To migrate your config, change the `loki` key to `logs`.
 
 Example old config:
 
@@ -275,7 +356,8 @@ As part of the `loki` to `logs` rename, parts of the automatic_logging component
 in Tempo have been updated to refer to `logs_instance` instead.
 
 Old configurations using `loki_name`, `loki_tag`, or `backend: loki` will
-continue to work until the `loki` terminology is fully deprecated.
+continue to work as of this version, but support for the old config format
+will eventually be removed.
 
 Example old config:
 
@@ -317,7 +399,7 @@ Tempo `remote_write` now supports configuring TLS settings in the trace
 exporter's client. `insecure_skip_verify` is moved into this setting's block.
 
 Old configurations with `insecure_skip_verify` outside `tls_config` will continue
-to work until it's fully deprecated.
+to work as of this version, but support will eventually be removed.
 If both `insecure_skip_verify` and `tls_config.insecure_skip_verify` are used,
 then the latter take precedence.
 
