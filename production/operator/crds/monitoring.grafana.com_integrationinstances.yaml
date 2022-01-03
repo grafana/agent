@@ -12,8 +12,8 @@ spec:
   names:
     categories:
     - agent-operator
-    kind: IntegrationInstance
-    listKind: IntegrationInstanceList
+    kind: MetricsIntegrationInstance
+    listKind: MetricsIntegrationInstanceList
     plural: integrationinstances
     singular: integrationinstance
   scope: Namespaced
@@ -21,9 +21,9 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: IntegrationInstance defines an integration for the Grafana Agent.
-          The integration, when discovered by a GrafanaAgent, will be run as one or
-          more pods on the cluster.
+        description: MetricsIntegrationInstance defines an integration for the Grafana
+          Agent. The integration, when discovered by a GrafanaAgent, will be run as
+          one or more pods on the cluster.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -44,25 +44,23 @@ spec:
               config:
                 description: Config holds the contents of the config for the integration.
                 type: string
-              mode:
-                default: single
-                description: Mode configures how this integration is run on the cluster.
-                  Integrations that are related to metrics from machines should use
-                  "per-node" so that the integration runs on every single machine.
-                  Otherwise, the default mode of "single" is appropriate.
-                enum:
-                - per-node
-                - single
-                type: string
               name:
                 description: 'Name is the name of the integration this spec configures.
                   Must be an integration available in the GrafanaAgent version used.
                   Examples: node_exporter, agent, mysqld_exporter.'
                 type: string
+              type:
+                default: normal
+                description: Type specifies the type of integration being configured.
+                enum:
+                - daemonset
+                - singleton
+                - normal
+                type: string
             required:
             - config
-            - mode
             - name
+            - type
             type: object
         type: object
     served: true

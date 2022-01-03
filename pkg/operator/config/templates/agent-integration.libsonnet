@@ -29,5 +29,5 @@ function(ctx) marshal.YAML(optionals.trim({
   },
 
   integrations:
-    if ctx.Integration != null then new_integration_instance(ctx.Integration),
+    if ctx.Integration != null then new_integration_instance(ctx.MetricsIntegration),
 }))

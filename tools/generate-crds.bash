@@ -2,6 +2,8 @@
 
 ROOT=$(git rev-parse --show-toplevel)
 
+# Remove existing CRDs before generating the new set
+rm $ROOT/production/operator/crds/*
 
 # Generate objects and controllers for our CRDs
 cd $ROOT/pkg/operator/apis/monitoring/v1alpha1

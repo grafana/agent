@@ -8,32 +8,54 @@ import (
 // IntegrationsSubsystemSpec defines global settings to apply across the logging
 // subsystem.
 type IntegrationsSubsystemSpec struct {
-	// InstanceSelector determines which LogInstances should be selected
-	// for running. Each instance runs its own set of Prometheus components,
-	// including service discovery, scraping, and remote_write.
+	// InstanceSelector determines which integrations should be run based on
+	// labels.
 	InstanceSelector *metav1.LabelSelector `json:"instanceSelector,omitempty"`
 	// InstanceNamespaceSelector are the set of labels to determine which
-	// namespaces to watch for LogInstances. If not provided, only checks own
+	// namespaces to watch for integrations. If not provided, only checks own
 	// namespace.
 	InstanceNamespaceSelector *metav1.LabelSelector `json:"instanceNamespaceSelector,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=per-node;single
+// +kubebuilder:validation:Enum=daemonset;singleton;normal
 
-// AgentIntegrationMode defines how an integration should be run.
-type AgentIntegrationMode string
+// AgentIntegrationType defines the type of integration. Supported values:
+//
+// daemonset: integrations which run on every Kubernetes Node. These are
+// integrations which collect machine level metrics, like node_exporter or
+// cadvisor.
+//
+// singleton: integrations which run once per GrafanaAgent CRD. These are
+// integrations like statsd_exporter, where you want a single place to send
+// statsd metrics.
+//
+// normal: all other integrations.
+//
+// The default value is normal.
+type AgentIntegrationType string
 
 const (
-	// AgentIntegrationModePerNode is used for integrations that should be run on
-	// every node (e.g., like a DaemonSet).
-	AgentIntegrationModePerNode AgentIntegrationMode = "per-node"
+	// AgentIntegrationModeDaemonSet is used for integrations that should be run
+	// on every Kubernetes Node. daemonset integrations must be unique per
+	// GrafanaAgent deployment.
+	//
+	// Example daemonset integrations: node_exporter, cadvisor.
+	AgentIntegrationModeDaemonSet AgentIntegrationType = "daemonset"
 
-	// AgentIntegrationModeSingle is used for integrations that only need one
-	// instance for the whole cluster.
-	AgentIntegrationModeSingle AgentIntegrationMode = "single"
+	// AgentIntegrationModeSingleton is used for integrations that should be run
+	// once per GrafanaAgent. singleton integrations must be unique per
+	// GrafanaAgent deployment.
+	//
+	// Example singleton integrations: stats_exporter.
+	AgentIntegrationModeSingleton AgentIntegrationType = "singleton"
+
+	// AgentIntegrationModeNormal is used for integrations that can be defined
+	// multiple times per GrafanaAgent. Integrations that aren't daemonset or
+	// singleton fall under this category.
+	AgentIntegrationModeNormal AgentIntegrationType = "normal"
 
 	// AgentIntegrationModeDefault holds the default integration mode.
-	AgentIntegrationModeDefault = AgentIntegrationModeSingle
+	AgentIntegrationModeDefault = AgentIntegrationModeNormal
 )
 
 // +kubebuilder:object:root=true
@@ -41,20 +63,20 @@ const (
 // +kubebuilder:resource:singular="integrationinstance"
 // +kubebuilder:resource:categories="agent-operator"
 
-// IntegrationInstance defines an integration for the Grafana Agent. The
+// MetricsIntegrationInstance defines an integration for the Grafana Agent. The
 // integration, when discovered by a GrafanaAgent, will be run as one or more
 // pods on the cluster.
-type IntegrationInstance struct {
+type MetricsIntegrationInstance struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	// Spec holds the specification of the desired behavior for the integration.
-	Spec IntegrationInstanceSpec `json:"spec,omitempty"`
+	Spec MetricsIntegrationInstanceSpec `json:"spec,omitempty"`
 }
 
-// IntegrationInstanceSpec is a specification of the desired behavior for the
+// MetricsIntegrationInstanceSpec is a specification of the desired behavior for the
 // integration.
-type IntegrationInstanceSpec struct {
+type MetricsIntegrationInstanceSpec struct {
 	// +kubebuilder:validation:Required
 
 	// Name is the name of the integration this spec configures.
@@ -63,13 +85,10 @@ type IntegrationInstanceSpec struct {
 	Name string `json:"name"`
 
 	// +kubebuilder:validation:Required
-	// +kubebuilder:default:=single
+	// +kubebuilder:default:=normal
 
-	// Mode configures how this integration is run on the cluster. Integrations that
-	// are related to metrics from machines should use "per-node" so that the integration
-	// runs on every single machine. Otherwise, the default mode of "single" is
-	// appropriate.
-	Mode AgentIntegrationMode `json:"mode"`
+	// Type specifies the type of integration being configured.
+	Type AgentIntegrationType `json:"type"`
 
 	// +kubebuilder:validation:Required
 
@@ -79,32 +98,34 @@ type IntegrationInstanceSpec struct {
 
 // +kubebuilder:object:root=true
 
-// IntegrationInstanceList is a list of IntegrationInstance.
-type IntegrationInstanceList struct {
+// MetricsIntegrationInstanceList is a list of IntegrationInstance.
+type MetricsIntegrationInstanceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items holds the list of IntegrationInstance.
-	Items []*IntegrationInstance `json:"items"`
+	Items []*MetricsIntegrationInstance `json:"items"`
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path="integrationmonitors"
-// +kubebuilder:resource:singular="integrationmonitor"
+// +kubebuilder:resource:path="metricsintegrationmonitors"
+// +kubebuilder:resource:singular="metricsintegrationmonitor"
 // +kubebuilder:resource:categories="agent-operator"
 
-// IntegrationMonitor defines monitoring for a set of IntegrationInstances.
-type IntegrationMonitor struct {
+// MetricsIntegrationMonitor defines monitoring for a metrics-based
+// integration.
+type MetricsIntegrationMonitor struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// Spec controls how IntegrationInstances are discovered by Prometheus for
 	// metrics collection.
-	Spec IntegrationMonitorSpec `json:"spec"`
+	Spec MetricsIntegrationMonitorSpec `json:"spec"`
 }
 
-// IntegrationMonitorSpec contains specification parameters for a ServiceMonitor.
-// The job label is not configurable, as metrics must conform to having a specific
-// job label value of "integrations/<integration name>".
-type IntegrationMonitorSpec struct {
+// MetricsIntegrationMonitorSpec contains specification parameters for an
+// MetricsIntegrationMonitor. The job label is not configurable, as metrics
+// must conform to having a specific job label value of
+// "integrations/<integration name>".
+type MetricsIntegrationMonitorSpec struct {
 	// PodTargetLabels transfers labels on the Kubernetes Pod onto the target.
 	PodTargetLabels []string `json:"podTargetLabels,omitempty"`
 	// Selector to select IntegrationInstance objects.
@@ -136,10 +157,10 @@ type IntegrationMonitorSpec struct {
 
 // +kubebuilder:object:root=true
 
-// IntegrationMonitorList is a list of IntegrationMonitor.
-type IntegrationMonitorList struct {
+// MetricsIntegrationMonitorList is a list of MetricsIntegrationMonitor.
+type MetricsIntegrationMonitorList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items holds the list of IntegrationMonitor.
-	Items []*IntegrationMonitor `json:"items"`
+	Items []*MetricsIntegrationMonitor `json:"items"`
 }

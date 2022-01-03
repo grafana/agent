@@ -6,22 +6,23 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: integrationmonitors.monitoring.grafana.com
+  name: metricsintegrationmonitors.monitoring.grafana.com
 spec:
   group: monitoring.grafana.com
   names:
     categories:
     - agent-operator
-    kind: IntegrationMonitor
-    listKind: IntegrationMonitorList
-    plural: integrationmonitors
-    singular: integrationmonitor
+    kind: MetricsIntegrationMonitor
+    listKind: MetricsIntegrationMonitorList
+    plural: metricsintegrationmonitors
+    singular: metricsintegrationmonitor
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: IntegrationMonitor defines monitoring for a set of IntegrationInstances.
+        description: MetricsIntegrationMonitor defines monitoring for a metrics-based
+          integration.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation

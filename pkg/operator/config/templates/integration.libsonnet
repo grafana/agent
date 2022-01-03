@@ -3,14 +3,14 @@ local optionals = import 'ext/optionals.libsonnet';
 
 // Returns the YAML config for the integration instance.
 //
-// @param {IntegrationInstanceSpec} spec.
+// @param {MetricsIntegrationInstanceSpec} spec.
 local instance_config(spec) =
   local data = marshal.fromYAML(spec.Config);
   if data != null then data else {};
 
 // Generates an integration instance.
 //
-// @param {IntegrationInstance} instance
+// @param {MetricsIntegrationInstance} instance
 function(instance) {
   local spec = instance.Spec,
 

@@ -3371,7 +3371,7 @@ spec:
                 properties:
                   instanceNamespaceSelector:
                     description: InstanceNamespaceSelector are the set of labels to
-                      determine which namespaces to watch for LogInstances. If not
+                      determine which namespaces to watch for integrations. If not
                       provided, only checks own namespace.
                     properties:
                       matchExpressions:
@@ -3416,9 +3416,8 @@ spec:
                         type: object
                     type: object
                   instanceSelector:
-                    description: InstanceSelector determines which LogInstances should
-                      be selected for running. Each instance runs its own set of Prometheus
-                      components, including service discovery, scraping, and remote_write.
+                    description: InstanceSelector determines which integrations should
+                      be run based on labels.
                     properties:
                       matchExpressions:
                         description: matchExpressions is a list of label selector

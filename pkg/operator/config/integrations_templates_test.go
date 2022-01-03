@@ -18,8 +18,8 @@ func TestIntegrationConfig(t *testing.T) {
 		{
 			name: "basic integration",
 			input: map[string]interface{}{
-				"instance": &gragent.IntegrationInstance{
-					Spec: gragent.IntegrationInstanceSpec{
+				"instance": &gragent.MetricsIntegrationInstance{
+					Spec: gragent.MetricsIntegrationInstanceSpec{
 						Name:   "agent",
 						Config: "",
 					},
@@ -34,8 +34,8 @@ func TestIntegrationConfig(t *testing.T) {
 		{
 			name: "explicit enabled",
 			input: map[string]interface{}{
-				"instance": &gragent.IntegrationInstance{
-					Spec: gragent.IntegrationInstanceSpec{
+				"instance": &gragent.MetricsIntegrationInstance{
+					Spec: gragent.MetricsIntegrationInstanceSpec{
 						Name:   "agent",
 						Config: "enabled: true",
 					},
@@ -50,8 +50,8 @@ func TestIntegrationConfig(t *testing.T) {
 		{
 			name: "explicit disabled",
 			input: map[string]interface{}{
-				"instance": &gragent.IntegrationInstance{
-					Spec: gragent.IntegrationInstanceSpec{
+				"instance": &gragent.MetricsIntegrationInstance{
+					Spec: gragent.MetricsIntegrationInstanceSpec{
 						Name:   "agent",
 						Config: "enabled: false",
 					},
@@ -66,8 +66,8 @@ func TestIntegrationConfig(t *testing.T) {
 		{
 			name: "scrape_integration ignored",
 			input: map[string]interface{}{
-				"instance": &gragent.IntegrationInstance{
-					Spec: gragent.IntegrationInstanceSpec{
+				"instance": &gragent.MetricsIntegrationInstance{
+					Spec: gragent.MetricsIntegrationInstanceSpec{
 						Name:   "agent",
 						Config: "scrape_integration: true",
 					},

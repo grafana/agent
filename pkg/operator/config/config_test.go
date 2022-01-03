@@ -273,8 +273,8 @@ func TestBuildConfigIntegration(t *testing.T) {
 				ServiceAccountName: "agent",
 			},
 		},
-		Integration: &grafana.IntegrationInstance{
-			Spec: grafana.IntegrationInstanceSpec{
+		MetricsIntegration: &grafana.MetricsIntegrationInstance{
+			Spec: grafana.MetricsIntegrationInstanceSpec{
 				Name: "node_exporter",
 				Config: util.Untab(`
           enabled: true
@@ -299,7 +299,7 @@ integrations:
     procfs_path: /host/proc
   `)
 
-	result, err := input.BuildConfig(store, IntegrationType)
+	result, err := input.BuildConfig(store, MetricsIntegrationType)
 	require.NoError(t, err)
 
 	if !assert.YAMLEq(t, expect, result) {
