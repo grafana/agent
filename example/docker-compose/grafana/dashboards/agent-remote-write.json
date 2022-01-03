@@ -135,17 +135,24 @@
                "steppedLine": false,
                "targets": [
                   {
+                     "expr": "rate(prometheus_remote_storage_sent_batch_duration_seconds_sum{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m]) / rate(prometheus_remote_storage_sent_batch_duration_seconds_count{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m])",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "mean {{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
+                     "refId": "A"
+                  },
+                  {
                      "expr": "histogram_quantile(0.99, rate(prometheus_remote_storage_sent_batch_duration_seconds_bucket{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
-                     "refId": "A"
+                     "legendFormat": "p99 {{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
+                     "refId": "B"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "P99 Latency [1m]",
+               "title": "Latency [1m]",
                "tooltip": {
                   "shared": true,
                   "sort": 0,

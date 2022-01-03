@@ -327,7 +327,7 @@ local gen_scrape_config(job_name, pod_uid) = {
             source_labels: ['__meta_kubernetes_node_name'],
             regex: '(.+)',
             target_label: '__metrics_path__',
-            replacement: '/api/v1/nodes/${1}/proxy/metrics',
+            replacement: '/api/v1/nodes/$1/proxy/metrics',
           },
         ],
       },
@@ -350,7 +350,7 @@ local gen_scrape_config(job_name, pod_uid) = {
             source_labels: ['__meta_kubernetes_node_name'],
             regex: '(.+)',
             target_label: '__metrics_path__',
-            replacement: '/api/v1/nodes/${1}/proxy/metrics/cadvisor',
+            replacement: '/api/v1/nodes/$1/proxy/metrics/cadvisor',
           },
         ],
 
