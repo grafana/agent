@@ -13,6 +13,8 @@
 
 - [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
 
+- [ENHANCEMENT] Remote write dashboard: add mean latency (@bboreham)
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 - [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
