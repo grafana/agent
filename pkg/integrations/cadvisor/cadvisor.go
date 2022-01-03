@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -35,8 +36,8 @@ import (
 
 // Matching the default disabled set from cadvisor - https://github.com/google/cadvisor/blob/3c6e3093c5ca65c57368845ddaea2b4ca6bc0da8/cmd/cadvisor.go#L78-L93
 // Note: This *could* be kept in sync with upstream by using the following. However, that would require importing the github.com/google/cadvisor/cmd package, which introduces some dependency conflicts that weren't worth the hassle IMHO.
-// var disabledMetricsSet = *flag.Lookup("disable_metrics").Value.(*container.MetricSet)
-var disabledMetricsSet = container.MetricSet{
+// var disabledMetrics = *flag.Lookup("disable_metrics").Value.(*container.MetricSet)
+var disabledMetrics = container.MetricSet{
 	container.MemoryNumaMetrics:              struct{}{},
 	container.NetworkTcpUsageMetrics:         struct{}{},
 	container.NetworkUdpUsageMetrics:         struct{}{},
@@ -52,30 +53,27 @@ var disabledMetricsSet = container.MetricSet{
 
 // GetIncludedMetrics applies some logic to determine the final set of metrics to be scraped and returned by the cAdvisor integration
 func (c *Config) GetIncludedMetrics() (container.MetricSet, error) {
-	var enabledMetrics, includeMetrics container.MetricSet
-	// Clear default disabled metrics if explicit disabled metrics are configured
-	if len(c.DisabledMetrics) > 0 {
-		disabledMetricsSet = container.MetricSet{}
-	}
-	for _, d := range c.DisabledMetrics {
-		if err := disabledMetricsSet.Set(d); err != nil {
-			return includeMetrics, fmt.Errorf("failed to set disabled metric: %w", err)
+	var enabledMetrics, includedMetrics container.MetricSet
+
+	if c.DisabledMetrics != nil {
+		if err := disabledMetrics.Set(strings.Join(c.DisabledMetrics, ",")); err != nil {
+			return includedMetrics, fmt.Errorf("failed to set disabled metrics: %w", err)
 		}
 	}
 
-	for _, e := range c.EnabledMetrics {
-		if err := enabledMetrics.Set(e); err != nil {
-			return includeMetrics, fmt.Errorf("failed to set enabled metric: %w", err)
+	if c.EnabledMetrics != nil {
+		if err := enabledMetrics.Set(strings.Join(c.EnabledMetrics, ",")); err != nil {
+			return includedMetrics, fmt.Errorf("failed to set enabled metrics: %w", err)
 		}
 	}
 
 	if len(enabledMetrics) > 0 {
-		includeMetrics = enabledMetrics
+		includedMetrics = enabledMetrics
 	} else {
-		includeMetrics = container.AllMetrics.Difference(disabledMetricsSet)
+		includedMetrics = container.AllMetrics.Difference(disabledMetrics)
 	}
 
-	return includeMetrics, nil
+	return includedMetrics, nil
 }
 
 // NewIntegration creates a new cadvisor integration

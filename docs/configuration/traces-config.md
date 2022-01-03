@@ -59,6 +59,11 @@ remote_write:
     # Only "grpc" is supported in Grafana Cloud.
     [ protocol: <string> | default = "grpc" | supported = "grpc", "http" ]
 
+    # Controls what format to use when exporting traces, in combination with protocol.
+    # protocol/format supported combinations are grpc/otlp, http/otlp and grpc/jaeger
+    # Only grpc/otlp is supported in Grafana Cloud.
+    [ format: <string> | default = "otlp" | supported = "otlp", "jaeger" ]
+
     # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
     [ insecure: <boolean> | default = false ]
 

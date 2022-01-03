@@ -3,13 +3,11 @@ package servicegraphprocessor
 import (
 	"bytes"
 	"context"
-	"os"
+	"io/ioutil"
 	"testing"
 	"time"
 
-	"github.com/gogo/protobuf/jsonpb"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
-	"github.com/grafana/tempo/pkg/tempopb"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
@@ -101,17 +99,10 @@ func TestConsumeMetrics(t *testing.T) {
 }
 
 func traceSamples(t *testing.T, path string) pdata.Traces {
-	f, err := os.Open(path)
+	b, err := ioutil.ReadFile(path)
 	require.NoError(t, err)
 
-	r := &tempopb.Trace{}
-	err = jsonpb.Unmarshal(f, r)
-	require.NoError(t, err)
-
-	b, err := r.Marshal()
-	require.NoError(t, err)
-
-	traces, err := otlp.NewProtobufTracesUnmarshaler().UnmarshalTraces(b)
+	traces, err := otlp.NewJSONTracesUnmarshaler().UnmarshalTraces(b)
 	require.NoError(t, err)
 
 	return traces

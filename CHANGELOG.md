@@ -7,6 +7,8 @@
 
 - [FEATURE] Traces: Add `Agent Tracing Pipeline` dashboard and alerts (@mapno)
 
+- [FEATURE] Traces: Support jaeger/grpc exporter (@nicoche)
+
 - [FEATURE] (beta) Enable an experimental integrations subsystem revamp. Pass
   `integrations-next` to `-enable-features` to turn this on. Reading the
   documentation for the revamp is recommended; enabling it causes breaking
@@ -16,9 +18,21 @@
 
 - [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
 
+- [ENHANCEMENT] Remote write dashboard: show in and out sample rates (@bboreham)
+
+- [ENHANCEMENT] Remote write dashboard: add mean latency (@bboreham)
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
+- [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
+
+- [BUGFIX] Only stop WAL cleaner when it has been started (@56quarters)
+
+- [BUGFIX] Fix issue with unquoted install path on Windows, that could allow escalation or running an arbitrary executable (@mattdurham)  
+
 - [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
+
+- [BUGFIX] Fix cAdvisor so it collects all defined metrics instead of the last (@pkoenig10)
 
 # v0.21.2 (2021-12-08)
 

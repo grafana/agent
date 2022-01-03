@@ -103,30 +103,38 @@ local template = grafana.template;
 
       local remoteSendLatency =
         graphPanel.new(
-          'P99 Latency [1m]',
+          'Latency [1m]',
           datasource='$datasource',
           span=6,
         )
         .addTarget(prometheus.target(
+          'rate(prometheus_remote_storage_sent_batch_duration_seconds_sum{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[1m]) / rate(prometheus_remote_storage_sent_batch_duration_seconds_count{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[1m])',
+          legendFormat='mean {{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
+        ))
+        .addTarget(prometheus.target(
           'histogram_quantile(0.99, rate(prometheus_remote_storage_sent_batch_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[1m]))',
+          legendFormat='p99 {{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
+        ));
+
+      local samplesInRate =
+        graphPanel.new(
+          'Rate in [5m]',
+          datasource='$datasource',
+          span=6,
+        )
+        .addTarget(prometheus.target(
+          'rate(agent_wal_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
           legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
-      local samplesRate =
+      local samplesOutRate =
         graphPanel.new(
-          'Rate, in vs. succeeded or dropped [5m]',
+          'Rate succeeded [5m]',
           datasource='$datasource',
-          span=12,
+          span=6,
         )
         .addTarget(prometheus.target(
-          |||
-            rate(agent_wal_samples_appended_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])
-            -
-              ignoring(remote_name, url) group_right(pod)
-              (rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]) or rate(prometheus_remote_storage_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))
-            -
-              (rate(prometheus_remote_storage_dropped_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]) or rate(prometheus_remote_storage_samples_dropped_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]))
-          |||,
+          'rate(prometheus_remote_storage_succeeded_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m]) or rate(prometheus_remote_storage_samples_total{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}[5m])',
           legendFormat='{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}',
         ));
 
@@ -338,7 +346,8 @@ local template = grafana.template;
       )
       .addRow(
         row.new('Samples')
-        .addPanel(samplesRate)
+        .addPanel(samplesInRate)
+        .addPanel(samplesOutRate)
         .addPanel(pendingSamples)
         .addPanel(droppedSamples)
         .addPanel(failedSamples)
