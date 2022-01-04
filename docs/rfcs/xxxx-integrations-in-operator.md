@@ -129,7 +129,25 @@ Some integrations may require changes to the deployed Pods to function
 properly. MetricsIntegrations will additionally support declaring `volumes`,
 `volumeMounts`, `secrets` and `configMaps`. These fields will be merged with
 the fields of the same name from the root GrafanaAgent resource when creating
-integration pods.
+integration pods:
+
+> ```yaml
+> apiVersion: monitoring.grafana.com/v1alpha1
+> kind: MetricsIntegration
+> metadata:
+>   name: kafka
+>   namespace: default
+> spec:
+>   name: kafka_exporter
+>   type: normal
+>   config: |
+>     ca_file: /etc/grafana-agent/secrets/kafka-ca-file
+>     # ...
+>   # Same "secrets" field present in GrafanaAgent.spec, where each secret
+>   # is loaded from the same namespace and gets exposed at
+>   # /etc/grafana-agent/secrets/<secret name>
+>   secrets: [kafka-ca-file]
+> ```
 
 **NOTE**: As this functionality depends on [#1198][], integration pods will
 always be deployed with the experimental feature flag
