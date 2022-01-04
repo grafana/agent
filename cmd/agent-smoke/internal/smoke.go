@@ -26,12 +26,12 @@ type Smoke struct {
 // NewSmokeTest is the constructor for a Smoke object.
 func NewSmokeTest(opts ...Option) (*Smoke, error) {
 	s := &Smoke{
+		namespace:         "default",
 		chaosFrequency:    5 * time.Minute,
 		mutationFrequency: 30 * time.Minute,
 	}
 	for _, opt := range opts {
-		err := opt(s)
-		if err != nil {
+		if err := opt(s); err != nil {
 			return nil, err
 		}
 	}

@@ -24,7 +24,7 @@ func main() {
 	flag.BoolVar(&debugLog, "debug", false, "enable debug logging")
 	flag.StringVar(&namespace, "namespace", "agent-smoke-test", "namespace smoke test should run in")
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "absolute path to the kubeconfig file")
-	flag.DurationVar(&withTimeout, "with-timeout", time.Duration(0), "timeout after duration, example 3h")
+	flag.DurationVar(&withTimeout, "duration", time.Duration(0), "timeout after duration, example 3h")
 	flag.DurationVar(&chaosFrequency, "chaos-frequency", 30*time.Minute, "chaos frequency duration")
 	flag.DurationVar(&mutationFrequency, "mutation-frequency", 5*time.Minute, "mutation frequency duration")
 	flag.Parse()

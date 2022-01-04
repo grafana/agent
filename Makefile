@@ -313,14 +313,6 @@ endif
 dist/agent-freebsd-amd64: seego
 	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-#########################
-# BEGIN AGENTSMOKE DIST #
-#########################
-
-dist/agent-smoke-darwin-arm64: seego
-	$(call SetBuildVarsConditional,darwin/arm64) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent-smoke
-
-
 #######################
 # BEGIN AGENTCTL DIST #
 #######################
