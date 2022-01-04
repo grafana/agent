@@ -178,6 +178,7 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 agent-operator: cmd/agent-operator/agent-operator
+agent-smoke: cmd/agent-smoke/agent-smoke
 grafana-agent-crow: cmd/grafana-agent-crow/grafana-agent-crow
 
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
@@ -198,6 +199,10 @@ cmd/grafana-agent-crow/grafana-agent-crow: cmd/grafana-agent-crow/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
+cmd/agent-smoke/agent-smoke: seego cmd/agent-smoke/main.go
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+	$(NETGO_CHECK)
+
 agent-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 agentctl-image:
@@ -206,6 +211,8 @@ agent-operator-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 grafana-agent-crow-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent-crow:latest -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f cmd/grafana-agent-crow/$(DOCKERFILE) .
+agent-smoke-image:
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent-smoke:latest -t $(IMAGE_PREFIX)/agent-smoke:$(IMAGE_TAG) -f cmd/agent-smoke/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
@@ -306,6 +313,13 @@ endif
 
 dist/agent-freebsd-amd64: seego
 	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
+#########################
+# BEGIN AGENTSMOKE DIST #
+#########################
+
+dist/agent-smoke-darwin-arm64: seego
+	$(call SetBuildVarsConditional,darwin/arm64) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent-smoke
 
 
 #######################
