@@ -81,11 +81,11 @@ There are three supported values for `type`:
   `statsd_exporter`.
 
 * `normal`: Declares that the integration may exist any number of times per
-  deployment. Example integration: `mysqld_exporter`. This is the default.
+  deployment. This is the default. Example integration: `mysqld_exporter`.
 
 Users must supply the appropriate `type` value for the integration they are
 deploying. Integrations will be documented with their type to assist users in
-defining MetricsIntegrations. Failure to use the proper `type` value may lead
+defining `MetricsIntegration` resources. Failure to use the proper `type` value may lead
 to failure to start Grafana Agent integration pods.
 
 > Example of a valid integration:
@@ -160,7 +160,7 @@ Prometheus' [`http_sd_config`][http_sd_config] API.
 Note that integration targets returned by this API always have the following
 base labels:
 
-* `instance`: The inferred `instance` key based on integration settigs.
+* `instance`: The inferred `instance` key based on integration settings.
 * `job`: `integrations/<integration name>`
 * `agent_hostname`: Hostname of the agent running the integration. This will be
   the Node name for `daemonset` integrations, otherwise will be the Pod name.
@@ -208,7 +208,7 @@ result in the generation of a integrations-specific scrape job. It is
 configured similarly to a `ServiceMonitor`, though without settings for
 endpoint port and path.
 
-IntegrationsMonitor use `http_sd_config` and the SD endpoint described in the
+IntegrationMonitor use `http_sd_config` and the SD endpoint described in the
 previous section. The full set of returned integrations will be filtered down
 to the set to scrape based on the definition of the IntegrationMonitor and the
 metalabels of the discovered target.
