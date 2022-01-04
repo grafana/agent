@@ -16,7 +16,7 @@ pods. However, logs and metrics are just a subset of the total functionality
 available in Grafana Agent. This document proposes adding support for
 integrations into the Grafana Agent Operator.
 
-This proposal supersedes [#833][], which was the first attempt at designing the
+This proposal supersedes [#883][], which was the first attempt at designing the
 feature. This proposal takes advantage of the lessons we've learned and
 utilizes the upcoming [integrations revamp][#1198] work done in December 2021
 so this functionality can be implemented more easily.
@@ -228,3 +228,7 @@ The combination of cluster, job, and instance should form a unique target. The
 `monitor` and `metrics_instance` labels are used for debugging and integration
 being scraped more than once within Grafana, and are not intended to be used
 for visualization.
+
+[#883]: https://github.com/grafana/agent/issues/883
+[#1198]: https://github.com/grafana/agent/pull/1198
+[http_sd_config]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#http_sd_config
