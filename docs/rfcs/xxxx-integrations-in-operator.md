@@ -13,8 +13,13 @@ weight: xxxx
 At the time of writing, Grafana Agent Operator can be used to collect metrics
 and logs from a Kubernetes cluster by deploying and managing Grafana Agent
 pods. However, logs and metrics are just a subset of the total functionality
-available in Grafana Agent. This document proposes adding support for
-integrations into the Grafana Agent Operator.
+available in Grafana Agent.
+
+Grafana Agent includes support for integrations, which are intended as
+"batteries-included" features to assist with collecting telemetry data. Today,
+all integrations are metrics-based, where each metrics-based integration is an
+embeded Prometheus exporter. This document proposes adding support for
+metrics-based integrations into the Grafana Agent Operator.
 
 This proposal supersedes [#883][], which was the first attempt at designing the
 feature. This proposal takes advantage of the lessons we've learned and
