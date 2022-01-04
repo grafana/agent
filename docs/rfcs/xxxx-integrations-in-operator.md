@@ -108,14 +108,14 @@ GrafanaAgent will be updated to discover MetricsIntegrations as part of its
 resource hierarchy, alongside MetricsInstances and LogsInstances. During
 reconcile, the following Kubernetes objects will be deployed:
 
-* One DaemonSet and Secret for all `daemonset` integrations, if
-  present in the resource hierarchy.
+* One DaemonSet and Secret if there is at least one `daemonset` integration
+  in the GrafanaAgent resource hierarchy.
 
-* One Deployment and Secret for all other integrations, if non-`daemonset`
-  integrations are present in the resource hierarchy.
+* One Deployment and Secret if there is at least one non-`daemonset`
+  integration in the GrafanaAgent resource hierarchy.
 
-* One Service for all integrations, if any integration was present in the
-  resource hierarchy.
+* One Service if there is at least one integration in the GrafanaAgent resource
+  hierarchy of any kind.
 
 Secrets are used for the Grafana Agent config as integration configs may
 contain credentials. Deployed integrations will never self-scrape, and metrics
