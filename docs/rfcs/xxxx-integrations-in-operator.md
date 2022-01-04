@@ -226,7 +226,7 @@ MetricsIntegration CR, and the root GrafanaAgent resource.
 ### Scraping integrations
 
 The other new CRD, IntegrationMonitor, will be used to scrape running
-integrations. IntegrationsMonitors are discovered by a MetricsInstance, and
+integrations. IntegrationMonitors are discovered by a MetricsInstance, and
 result in the generation of a integrations-specific scrape job. It is
 configured similarly to a `ServiceMonitor`, though without settings for
 endpoint port and path.
