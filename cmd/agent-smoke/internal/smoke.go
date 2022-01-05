@@ -75,9 +75,11 @@ func (s *Smoke) Run(ctx context.Context) error {
 	taskFn := func(t Task) func() error {
 		fn, freq := t.Task()
 		return func() error {
+			tick := time.NewTicker(freq)
+			defer tick.Stop()
 			for {
 				select {
-				case <-time.After(freq):
+				case <-tick.C:
 					if err := fn(ctx, s); err != nil {
 						return err
 					}
