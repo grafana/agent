@@ -180,7 +180,7 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 agent-operator: cmd/agent-operator/agent-operator
-agent-smoke: cmd/agent-smoke/agent-smoke
+agent-smoke: tools/smoke/grafana-agent-smoke
 grafana-agent-crow: cmd/grafana-agent-crow/grafana-agent-crow
 
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
@@ -201,7 +201,7 @@ cmd/grafana-agent-crow/grafana-agent-crow: cmd/grafana-agent-crow/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
-cmd/agent-smoke/agent-smoke: seego cmd/agent-smoke/main.go
+tools/smoke/grafana-agent-smoke: seego tools/smoke/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
