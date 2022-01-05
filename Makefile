@@ -17,6 +17,9 @@ IMAGE_TAG ?= $(RELEASE_TAG)
 endif
 DRONE ?= false
 
+# INTERNAL_REGISTRY used for pushing images to grafana internal registry
+INTERNAL_REGISTRY ?= us.gcr.io/kubernetes-dev
+
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
 
@@ -203,6 +206,8 @@ tools/smoke/grafana-agent-smoke: seego tools/smoke/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
+
+
 agent-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 agentctl-image:
@@ -212,7 +217,7 @@ agent-operator-image:
 grafana-agent-crow-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent-crow:latest -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f cmd/grafana-agent-crow/$(DOCKERFILE) .
 agent-smoke-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agent-smoke:latest -t $(IMAGE_PREFIX)/agent-smoke:$(IMAGE_TAG) -f tools/smoke/$(DOCKERFILE) .
+	$(docker-build)  -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-smoke:latest -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-smoke:$(IMAGE_TAG) -f tools/smoke/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
