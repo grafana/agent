@@ -16,7 +16,3 @@ metrics:
                 cluster: 'localhost'
       remote_write:
         - url: http://localhost:9009/api/prom/push
-
-integrations:
-  node_exporter:
-    enabled: true
