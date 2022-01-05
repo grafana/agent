@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/go-kit/log/level"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,7 +30,7 @@ func (t *deletePodTask) Task() (func(context.Context, *Smoke) error, time.Durati
 			GracePeriodSeconds: &_zero,
 		}); err != nil {
 			const msg = "failed to delete %s pod"
-			s.logError("msg", fmt.Sprintf(msg, t.pod), "err", err)
+			level.Error(s.logger).Log("msg", fmt.Sprintf(msg, t.pod), "err", err)
 		}
 		return nil
 	}, t.duration
@@ -47,14 +48,13 @@ func (t *scaleDeploymentTask) Task() (func(context.Context, *Smoke) error, time.
 	return func(ctx context.Context, s *Smoke) error {
 		newReplicas := rand.Intn(t.maxReplicas-t.minReplicas) + t.minReplicas
 		const msg = "scaling %s replicas"
-		s.logDebug("msg", fmt.Sprintf(msg, t.deployment), "replicas", newReplicas)
+		level.Debug(s.logger).Log("msg", fmt.Sprintf(msg, t.deployment), "replicas", newReplicas)
 
 		scale, err := s.clientset.AppsV1().Deployments(t.namespace).
 			GetScale(ctx, t.deployment, metav1.GetOptions{})
 		if err != nil {
 			const msg = "failed to get autoscalingv1.Scale object for %s deployment"
-			s.logError("msg", fmt.Sprintf(msg, t.deployment), "err", err)
-			// TODO: return error here? intermittent failure could cause test to exit
+			level.Error(s.logger).Log("msg", fmt.Sprintf(msg, t.deployment), "err", err)
 		}
 
 		sc := *scale
@@ -63,8 +63,7 @@ func (t *scaleDeploymentTask) Task() (func(context.Context, *Smoke) error, time.
 			UpdateScale(ctx, t.deployment, &sc, metav1.UpdateOptions{})
 		if err != nil {
 			const msg = "failed to scale %s deployment"
-			s.logError("msg", fmt.Sprintf(msg, t.deployment), "err", err)
-			// TODO: same here
+			level.Error(s.logger).Log("msg", fmt.Sprintf(msg, t.deployment), "err", err)
 		}
 		return nil
 	}, t.duration

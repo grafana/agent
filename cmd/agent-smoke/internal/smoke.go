@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/oklog/run"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -34,6 +33,10 @@ func NewSmokeTest(opts ...Option) (*Smoke, error) {
 		if err := opt(s); err != nil {
 			return nil, err
 		}
+	}
+
+	if s.logger == nil {
+		s.logger = log.NewNopLogger()
 	}
 
 	// add default tasks
@@ -97,18 +100,6 @@ func (s *Smoke) Run(ctx context.Context) error {
 		})
 	}
 	return g.Run()
-}
-
-func (s *Smoke) logDebug(keyvals ...interface{}) {
-	if s.logger != nil {
-		level.Debug(s.logger).Log(keyvals...)
-	}
-}
-
-func (s *Smoke) logError(keyvals ...interface{}) {
-	if s.logger != nil {
-		level.Error(s.logger).Log(keyvals...)
-	}
 }
 
 // Option type for constructor option functions.
