@@ -36,6 +36,10 @@ func New(log log.Logger, c *Config) (*Integration, error) {
 	flags, _ := MapConfigToNodeExporterFlags(c)
 	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent config", "flags", strings.Join(flags, " "))
 
+	for _, warn := range c.UnmarshalWarnings {
+		level.Warn(log).Log("msg", warn)
+	}
+
 	_, err := kingpin.CommandLine.Parse(flags)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse flags for generating node_exporter configuration: %w", err)

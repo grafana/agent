@@ -1,5 +1,9 @@
 # Main (unreleased)
 
+This release has deprecations. Please read [DEPRECATION] entries and consult
+the [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
+for detailed information.
+
 - [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
    only HTTP/S is supported. Pass the `-enable-features=remote-configs` flag to turn this on. (@rlankfo)
 
@@ -17,17 +21,44 @@
 
 - [ENHANCEMENT] Remote write dashboard: add mean latency (@bboreham)
 
+- [ENHANCEMENT] Update node_exporter dependency to v1.3.1. (@rfratto)
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 - [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
 
 - [BUGFIX] Only stop WAL cleaner when it has been started (@56quarters)
 
-- [BUGFIX] Fix issue with unquoted install path on Windows, that could allow escalation or running an arbitrary executable (@mattdurham)  
-
-- [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
+- [BUGFIX] Fix issue with unquoted install path on Windows, that could allow escalation or running an arbitrary executable (@mattdurham)
 
 - [BUGFIX] Fix cAdvisor so it collects all defined metrics instead of the last (@pkoenig10)
+
+- [DEPRECATION] The node_exporter integration's `netdev_device_whitelist` field
+  is deprecated in favor of `netdev_device_include`. Support for the old field
+  name will be removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's `netdev_device_blacklist` field
+  is deprecated in favor of `netdev_device_include`. Support for the old field
+  name will be removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's `systemd_unit_whitelist` field
+  is deprecated in favor of `systemd_unit_include`. Support for the old field
+  name will be removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's `systemd_unit_blacklist` field
+  is deprecated in favor of `systemd_unit_exclude`. Support for the old field
+  name will be removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's
+  `filesystem_ignored_mount_points` field is deprecated in favor of
+  `filesystem_mount_points_exclude`. Support for the old field name will be
+  removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's `filesystem_ignored_fs_types`
+  field is deprecated in favor of `filesystem_fs_types_exclude`. Support for
+  the old field name will be removed in a future version. (@rfratto)
+
+- [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
 
 # v0.21.2 (2021-12-08)
 

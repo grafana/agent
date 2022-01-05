@@ -258,10 +258,10 @@ the Agent is running on is a no-op.
   [diskstats_ignored_devices: <string> | default = "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"]
 
   # Regexp of mount points to ignore for filesystem collector.
-  [filesystem_ignored_mount_points: <string> | default = "^/(dev|proc|sys|var/lib/docker/.+)($|/)"]
+  [filesystem_mount_points_exclude: <string> | default = "^/(dev|proc|sys|var/lib/docker/.+)($|/)"]
 
   # Regexp of filesystem types to ignore for filesystem collector.
-  [filesystem_ignored_fs_types: <string> | default = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"]
+  [filesystem_fs_types_exclude: <string> | default = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"]
 
   # NTP server to use for ntp collector
   [ntp_server: <string> | default = "127.0.0.1"]
@@ -284,11 +284,11 @@ the Agent is running on is a no-op.
   # Regexp of net devices to ignore for netclass collector.
   [netclass_ignored_devices: <string> | default = "^$"]
 
-  # Regexp of net devices to blacklist (mutually exclusive with whitelist)
-  [netdev_device_blacklist: <string> | default = ""]
+  # Regexp of net devices to exclude (mutually exclusive with include)
+  [netdev_device_exclude: <string> | default = ""]
 
-  # Regexp of net devices to whitelist (mutually exclusive with blacklist)
-  [netdev_device_whitelist: <string> | default = ""]
+  # Regexp of net devices to include (mutually exclusive with exclude)
+  [netdev_device_include: <string> | default = ""]
 
   # Regexp of fields to return for netstat collector.
   [netstat_fields: <string> | default = "^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans)|Tcp_(ActiveOpens|InSegs|OutSegs|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$"]
@@ -305,13 +305,13 @@ the Agent is running on is a no-op.
   # XML RPC endpoint for the supervisord collector.
   [supervisord_url: <string> | default = "http://localhost:9001/RPC2"]
 
-  # Regexp of systemd units to whitelist. Units must both match whitelist
-  # and not match blacklist to be included.
-  [systemd_unit_whitelist: <string> | default = ".+"]
+  # Regexp of systemd units to include. Units must both match include and not
+  # match exclude to be collected.
+  [systemd_unit_include: <string> | default = ".+"]
 
-  # Regexp of systemd units to blacklist. Units must both match whitelist
-  # and not match blacklist to be included.
-  [systemd_unit_blacklist: <string> | default = ".+\\.(automount|device|mount|scope|slice)"]
+  # Regexp of systemd units to exclude. Units must both match include and not
+  # match exclude to be collected.
+  [systemd_unit_exclude: <string> | default = ".+\\.(automount|device|mount|scope|slice)"]
 
   # Enables service unit tasks metrics unit_tasks_current and unit_tasks_max
   [systemd_enable_task_metrics: <boolean> | default = false]

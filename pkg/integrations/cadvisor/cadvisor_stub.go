@@ -6,8 +6,8 @@ package cadvisor //nolint:golint
 import (
 	"github.com/grafana/agent/pkg/integrations"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 )
 
 // NewIntegration creates a new cadvisor integration

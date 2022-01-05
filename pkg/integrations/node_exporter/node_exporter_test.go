@@ -85,10 +85,17 @@ func TestNodeExporter_IgnoredFlags(t *testing.T) {
 
 	switch runtime.GOOS {
 	case "darwin":
-		expect = []string{"collector.cpu.info", "collector.diskstats.ignored-devices"}
+		expect = []string{
+			"collector.cpu.info",
+			"collector.cpu.guest",
+			"collector.cpu.info.flags-include",
+			"collector.cpu.info.bugs-include",
+			"collector.diskstats.ignored-devices",
+			"collector.filesystem.mount-timeout",
+		}
 	}
 
-	require.Equal(t, expect, ignored)
+	require.ElementsMatch(t, expect, ignored)
 }
 
 // TestFlags makes sure that boolean flags and some known non-boolean flags
