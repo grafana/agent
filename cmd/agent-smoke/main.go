@@ -34,12 +34,13 @@ func main() {
 
 	logger := util.NewLoggerFromLevel(logLevel, logFormat)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := context.Background()
 	if withTimeout > 0 {
-		level.Debug(logger).Log("msg", "starting with timeout", "duration", withTimeout.String())
-		ctx, cancel = context.WithTimeout(context.Background(), withTimeout)
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, withTimeout)
+		defer cancel()
+		level.Debug(logger).Log("msg", "running with duration", "duration", withTimeout.String())
 	}
-	defer cancel()
 
 	opts := []smoke.Option{
 		smoke.WithLogger(logger),
