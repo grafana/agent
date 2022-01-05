@@ -128,6 +128,7 @@ steps:
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
       - docker buildx rm multiarch
 
 depends_on:
