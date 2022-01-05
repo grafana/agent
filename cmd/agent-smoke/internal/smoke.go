@@ -13,10 +13,9 @@ import (
 // Smoke is the top level object for a smoke test.
 type Smoke struct {
 	logger     log.Logger
-	clientset  *kubernetes.Clientset
 	kubeconfig string
 	namespace  string
-	tasks      []Task
+	tasks      []repeatingTask
 
 	chaosFrequency    time.Duration
 	mutationFrequency time.Duration
@@ -39,35 +38,43 @@ func NewSmokeTest(opts ...Option) (*Smoke, error) {
 		s.logger = log.NewNopLogger()
 	}
 
-	// add default tasks
-	chaosLoop := &deletePodTask{
-		namespace: s.namespace,
-		pod:       "grafana-agent-0",
-		duration:  s.chaosFrequency,
-	}
-	// TODO: need to add a deletePodTask for cluster pods,
-	// TODO: currently script generates random number and appends it
-	// TODO: to the pod name. Should do this with a label selector,
-	// TODO: by adding a deletePodByLabelTask or such
-	mutationLoop := &scaleDeploymentTask{
-		namespace:   s.namespace,
-		deployment:  "avalanche",
-		maxReplicas: 11,
-		minReplicas: 2,
-		duration:    s.mutationFrequency,
-	}
-	s.tasks = append(s.tasks, chaosLoop, mutationLoop)
-
 	// use the current context in kubeconfig. this falls back to in-cluster config if kubeconfig is empty
 	config, err := clientcmd.BuildConfigFromFlags("", s.kubeconfig)
 	if err != nil {
 		return nil, err
 	}
 	// creates the clientset
-	s.clientset, err = kubernetes.NewForConfig(config)
+	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
+
+	// add default tasks
+	// TODO: need to add a deletePodTask for cluster pods,
+	// TODO: currently script generates random number and appends it
+	// TODO: to the pod name. Should do this with a label selector,
+	// TODO: by adding a deletePodByLabelTask or such
+	s.tasks = append(s.tasks,
+		repeatingTask{
+			Task: &deletePodTask{
+				logger:    s.logger,
+				clientset: clientset,
+				namespace: s.namespace,
+				pod:       "grafana-agent-0",
+			},
+			frequency: s.chaosFrequency,
+		},
+		repeatingTask{
+			Task: &scaleDeploymentTask{
+				logger:      s.logger,
+				clientset:   clientset,
+				namespace:   s.namespace,
+				deployment:  "avalanche",
+				maxReplicas: 11,
+				minReplicas: 2,
+			},
+			frequency: s.mutationFrequency,
+		})
 
 	return s, nil
 }
@@ -77,15 +84,14 @@ func (s *Smoke) Run(ctx context.Context) error {
 	var g run.Group
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	taskFn := func(t Task) func() error {
-		fn, freq := t.Task()
+	taskFn := func(t repeatingTask) func() error {
 		return func() error {
-			tick := time.NewTicker(freq)
+			tick := time.NewTicker(t.frequency)
 			defer tick.Stop()
 			for {
 				select {
 				case <-tick.C:
-					if err := fn(ctx, s); err != nil {
+					if err := t.Run(ctx); err != nil {
 						return err
 					}
 				case <-ctx.Done():
@@ -142,14 +148,6 @@ func WithMutationFrequency(f time.Duration) Option {
 func WithNamespace(ns string) Option {
 	return func(s *Smoke) error {
 		s.namespace = ns
-		return nil
-	}
-}
-
-// WithTask appends a task to be executed by the smoke test.
-func WithTask(t Task) Option {
-	return func(s *Smoke) error {
-		s.tasks = append(s.tasks, t)
 		return nil
 	}
 }
