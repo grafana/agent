@@ -2,7 +2,6 @@ package smoke
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -35,8 +34,7 @@ func (t *deletePodTask) Run(ctx context.Context) error {
 	if err := t.clientset.CoreV1().Pods(t.namespace).Delete(ctx, t.pod, metav1.DeleteOptions{
 		GracePeriodSeconds: &_zero,
 	}); err != nil {
-		const msg = "failed to delete %s pod"
-		level.Error(t.logger).Log("msg", fmt.Sprintf(msg, t.pod), "err", err)
+		level.Error(t.logger).Log("msg", "failed to delete pod", "err", err)
 	}
 	return nil
 }
@@ -52,14 +50,12 @@ type scaleDeploymentTask struct {
 
 func (t *scaleDeploymentTask) Run(ctx context.Context) error {
 	newReplicas := rand.Intn(t.maxReplicas-t.minReplicas) + t.minReplicas
-	const msg = "scaling %s replicas"
-	level.Debug(t.logger).Log("msg", fmt.Sprintf(msg, t.deployment), "replicas", newReplicas)
+	level.Debug(t.logger).Log("msg", "scaling replicas", "replicas", newReplicas)
 
 	scale, err := t.clientset.AppsV1().Deployments(t.namespace).
 		GetScale(ctx, t.deployment, metav1.GetOptions{})
 	if err != nil {
-		const msg = "failed to get autoscalingv1.Scale object for %s deployment"
-		level.Error(t.logger).Log("msg", fmt.Sprintf(msg, t.deployment), "err", err)
+		level.Error(t.logger).Log("msg", "failed to get autoscalingv1.Scale object", "err", err)
 	}
 
 	sc := *scale
@@ -67,8 +63,7 @@ func (t *scaleDeploymentTask) Run(ctx context.Context) error {
 	_, err = t.clientset.AppsV1().Deployments(t.namespace).
 		UpdateScale(ctx, t.deployment, &sc, metav1.UpdateOptions{})
 	if err != nil {
-		const msg = "failed to scale %s deployment"
-		level.Error(t.logger).Log("msg", fmt.Sprintf(msg, t.deployment), "err", err)
+		level.Error(t.logger).Log("msg", "failed to scale deployment", "err", err)
 	}
 	return nil
 }
