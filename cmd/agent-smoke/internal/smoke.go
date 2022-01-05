@@ -12,26 +12,22 @@ import (
 
 // Smoke is the top level object for a smoke test.
 type Smoke struct {
-	logger     log.Logger
-	kubeconfig string
-	namespace  string
-	tasks      []repeatingTask
+	logger log.Logger
+	tasks  []repeatingTask
+}
 
-	chaosFrequency    time.Duration
-	mutationFrequency time.Duration
+// Options struct to pass configuration to the Smoke constructor.
+type Options struct {
+	Kubeconfig        string
+	Namespace         string
+	ChaosFrequency    time.Duration
+	MutationFrequency time.Duration
 }
 
 // NewSmokeTest is the constructor for a Smoke object.
-func NewSmokeTest(opts ...Option) (*Smoke, error) {
+func NewSmokeTest(logger log.Logger, opts Options) (*Smoke, error) {
 	s := &Smoke{
-		namespace:         "default",
-		chaosFrequency:    5 * time.Minute,
-		mutationFrequency: 30 * time.Minute,
-	}
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			return nil, err
-		}
+		logger: logger,
 	}
 
 	if s.logger == nil {
@@ -39,7 +35,7 @@ func NewSmokeTest(opts ...Option) (*Smoke, error) {
 	}
 
 	// use the current context in kubeconfig. this falls back to in-cluster config if kubeconfig is empty
-	config, err := clientcmd.BuildConfigFromFlags("", s.kubeconfig)
+	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
 	if err != nil {
 		return nil, err
 	}
@@ -59,21 +55,21 @@ func NewSmokeTest(opts ...Option) (*Smoke, error) {
 			Task: &deletePodTask{
 				logger:    s.logger,
 				clientset: clientset,
-				namespace: s.namespace,
+				namespace: opts.Namespace,
 				pod:       "grafana-agent-0",
 			},
-			frequency: s.chaosFrequency,
+			frequency: opts.ChaosFrequency,
 		},
 		repeatingTask{
 			Task: &scaleDeploymentTask{
 				logger:      s.logger,
 				clientset:   clientset,
-				namespace:   s.namespace,
+				namespace:   opts.Namespace,
 				deployment:  "avalanche",
 				maxReplicas: 11,
 				minReplicas: 2,
 			},
-			frequency: s.mutationFrequency,
+			frequency: opts.MutationFrequency,
 		})
 
 	return s, nil
@@ -106,48 +102,4 @@ func (s *Smoke) Run(ctx context.Context) error {
 		})
 	}
 	return g.Run()
-}
-
-// Option type for constructor option functions.
-type Option func(*Smoke) error
-
-// WithKubeConfig option function adds kubeconfig path to smoke test. If this
-// not set, the smoke test will fall back to an in-cluster config.
-func WithKubeConfig(k string) Option {
-	return func(s *Smoke) error {
-		s.kubeconfig = k
-		return nil
-	}
-}
-
-// WithLogger option function adds a logger to the smoke test.
-func WithLogger(l log.Logger) Option {
-	return func(s *Smoke) error {
-		s.logger = l
-		return nil
-	}
-}
-
-// WithChaosFrequency option function sets the duration of the chaos task frequency.
-func WithChaosFrequency(f time.Duration) Option {
-	return func(s *Smoke) error {
-		s.chaosFrequency = f
-		return nil
-	}
-}
-
-// WithMutationFrequency option function sets the duration used for mutation task frequency.
-func WithMutationFrequency(f time.Duration) Option {
-	return func(s *Smoke) error {
-		s.mutationFrequency = f
-		return nil
-	}
-}
-
-// WithNamespace sets the namespace to use for the smoke test.
-func WithNamespace(ns string) Option {
-	return func(s *Smoke) error {
-		s.namespace = ns
-		return nil
-	}
 }
