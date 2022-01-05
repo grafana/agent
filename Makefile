@@ -184,7 +184,7 @@ agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 agent-operator: cmd/agent-operator/agent-operator
 agent-smoke: tools/smoke/grafana-agent-smoke
-grafana-agent-crow: cmd/grafana-agent-crow/grafana-agent-crow
+grafana-agent-crow: tools/crow/grafana-agent-crow
 
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
 
@@ -200,11 +200,11 @@ cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
-cmd/grafana-agent-crow/grafana-agent-crow: cmd/grafana-agent-crow/main.go
+tools/crow/grafana-agent-crow: tools/crow/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
-tools/smoke/grafana-agent-smoke: seego tools/smoke/main.go
+tools/smoke/grafana-agent-smoke: tools/smoke/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
@@ -217,7 +217,7 @@ agentctl-image:
 agent-operator-image:
 	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 grafana-agent-crow-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f cmd/grafana-agent-crow/$(DOCKERFILE) .
+	$(docker-build)  -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-crow:$(IMAGE_BRANCH_TAG) -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f tools/crow/$(DOCKERFILE) .
 agent-smoke-image:
 	$(docker-build)  -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-smoke:$(IMAGE_BRANCH_TAG) -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-smoke:$(IMAGE_TAG) -f tools/smoke/$(DOCKERFILE) .
 
@@ -225,7 +225,8 @@ install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent-operator
-	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/grafana-agent-crow
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./tools/crow
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./tools/smoke
 
 #######################
 # Development targets #

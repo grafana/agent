@@ -53,7 +53,7 @@ steps:
       - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
       - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator cmd/grafana-agent-crow/grafana-agent-crow
+      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
       - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
 depends_on:
   - Lint
@@ -253,6 +253,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 87a9a23731884dac8e0b5c3ee0fa2b5cef9d7fa490fcad649f7783f6ea9d2d32
+hmac: 6c574cddfc9c02e669cd3deaefd055ee41697895e35a774deb9e3ede7f462f56
 
 ...
