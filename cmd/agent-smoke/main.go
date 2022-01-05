@@ -55,10 +55,10 @@ func main() {
 	smokeTest, err := smoke.NewSmokeTest(opts...)
 	if err != nil {
 		level.Error(logger).Log("msg", "error constructing smoke test", "err", err)
-		os.Exit(-1)
+		os.Exit(1)
 	}
 	if err := smokeTest.Run(ctx); err != nil {
 		level.Error(logger).Log("msg", "smoke test run failure", "err", err)
-		os.Exit(-1)
+		os.Exit(1)
 	}
 }
