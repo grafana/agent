@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"golang.org/x/sync/errgroup"
+	"github.com/oklog/run"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -69,9 +69,11 @@ func NewSmokeTest(opts ...Option) (*Smoke, error) {
 	return s, nil
 }
 
-// Run starts the smoke test and runs the tasks in an errgroup Group.
+// Run starts the smoke test and runs the tasks concurrently.
 func (s *Smoke) Run(ctx context.Context) error {
-	g, ctx := errgroup.WithContext(ctx)
+	var g run.Group
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	taskFn := func(t Task) func() error {
 		fn, freq := t.Task()
 		return func() error {
@@ -90,9 +92,11 @@ func (s *Smoke) Run(ctx context.Context) error {
 		}
 	}
 	for _, task := range s.tasks {
-		g.Go(taskFn(task))
+		g.Add(taskFn(task), func(err error) {
+			cancel()
+		})
 	}
-	return g.Wait()
+	return g.Run()
 }
 
 func (s *Smoke) logDebug(keyvals ...interface{}) {
