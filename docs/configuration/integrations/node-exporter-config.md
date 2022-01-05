@@ -258,14 +258,6 @@ the Agent is running on is a no-op.
   # directory.
   [rootfs_path: <string> | default = "/"]
 
-  # Regexp of ARP devices to include (mutually exclusive with
-  # arm_device_exclude).
-  [arp_device_include: <string>]
-
-  # Regexp of ARP devices to exclude (mutually exclusive with
-  # arm_device_include).
-  [arp_device_exclude: <string>]
-
   # Expose expensive bcache priority stats.
   [enable_bcache_priority_stats: <boolean>]
 

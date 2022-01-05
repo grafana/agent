@@ -92,8 +92,6 @@ type Config struct {
 	SetCollectors flagext.StringSlice `yaml:"set_collectors,omitempty"`
 
 	// Collector-specific config options
-	ARPDeviceInclude                 string              `yaml:"arp_device_include,omitempty"`
-	ARPDeviceExclude                 string              `yaml:"arp_device_exclude,omitempty"`
 	BcachePriorityStats              bool                `yaml:"enable_bcache_priority_stats,omitempty"`
 	CPUBugsInclude                   string              `yaml:"cpu_bugs_include,omitempty"`
 	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty"`
@@ -123,7 +121,6 @@ type Config struct {
 	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
 	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
 	RunitServiceDir                  string              `yaml:"runit_servic e_dir,omitempty"`
-	StatSoftIRQ                      bool                `yaml:"stat_export_softirq,omitempty"`
 	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
 	SystemdEnableRestartsMetrics     bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
 	SystemdEnableStartTimeMetrics    bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
@@ -292,13 +289,6 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 		"--path.rootfs", c.RootFSPath,
 	)
 
-	if collectors[CollectorARP] {
-		flags.add(
-			"--collector.arp.device-include", c.ARPDeviceInclude,
-			"--collector.arp.device-exclude", c.ARPDeviceExclude,
-		)
-	}
-
 	if collectors[CollectorBCache] {
 		flags.addBools(map[*bool]string{
 			&c.BcachePriorityStats: "collector.bcache.priorityStats",
@@ -387,12 +377,6 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 
 	if collectors[CollectorRunit] {
 		flags.add("--collector.runit.servicedir", c.RunitServiceDir)
-	}
-
-	if collectors[CollectorStat] {
-		flags.addBools(map[*bool]string{
-			&c.StatSoftIRQ: "collector.stat.softirq",
-		})
 	}
 
 	if collectors[CollectorSupervisord] {
