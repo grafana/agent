@@ -6,22 +6,25 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	smoke "github.com/grafana/agent/cmd/agent-smoke/internal"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/weaveworks/common/logging"
 )
 
 func main() {
 	var (
-		debugLog          bool
 		namespace         string
 		kubeconfig        string
+		logLevel          logging.Level
+		logFormat         logging.Format
 		withTimeout       time.Duration
 		chaosFrequency    time.Duration
 		mutationFrequency time.Duration
 	)
 
-	flag.BoolVar(&debugLog, "debug", false, "enable debug logging")
+	logLevel.RegisterFlags(flag.CommandLine)
+	logFormat.RegisterFlags(flag.CommandLine)
 	flag.StringVar(&namespace, "namespace", "agent-smoke-test", "namespace smoke test should run in")
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "absolute path to the kubeconfig file")
 	flag.DurationVar(&withTimeout, "duration", time.Duration(0), "timeout after duration, example 3h")
@@ -29,14 +32,7 @@ func main() {
 	flag.DurationVar(&mutationFrequency, "mutation-frequency", 5*time.Minute, "mutation frequency duration")
 	flag.Parse()
 
-	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
-	level.AllowInfo()
-	level.Info(logger).Log("msg", "starting agent smoke framework")
-	if debugLog {
-		level.AllowDebug()
-		level.Debug(logger).Log("msg", "debug logging enabled")
-	}
+	logger := util.NewLoggerFromLevel(logLevel, logFormat)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	if withTimeout > 0 {
