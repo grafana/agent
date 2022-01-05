@@ -18,6 +18,6 @@ RUN apt-get update && apt-get install -t buster-backports -qy libsystemd-dev && 
   apt-get install -qy tzdata ca-certificates && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY --from=build /src/agent/cmd/agent-smoke/agent-smoke /bin/agent-smoke
+COPY --from=build /src/agent/tools/smoke/grafana-agent-smoke /bin/grafana-agent-smoke
 
-ENTRYPOINT ["/bin/agent-smoke"]
+ENTRYPOINT ["/bin/grafana-agent-smoke"]

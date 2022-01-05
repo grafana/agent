@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
-	smoke "github.com/grafana/agent/cmd/agent-smoke/internal"
 	"github.com/grafana/agent/pkg/util"
+	smoke "github.com/grafana/agent/tools/smoke/internal"
 	"github.com/weaveworks/common/logging"
 )
 
