@@ -53,7 +53,7 @@ func NewSmokeTest(logger log.Logger, opts Options) (*Smoke, error) {
 	s.tasks = append(s.tasks,
 		repeatingTask{
 			Task: &deletePodTask{
-				logger:    s.logger,
+				logger:    log.With(s.logger, "task", "delete_pod", "pod", "grafana-agent-0"),
 				clientset: clientset,
 				namespace: opts.Namespace,
 				pod:       "grafana-agent-0",
@@ -62,7 +62,7 @@ func NewSmokeTest(logger log.Logger, opts Options) (*Smoke, error) {
 		},
 		repeatingTask{
 			Task: &scaleDeploymentTask{
-				logger:      s.logger,
+				logger:      log.With(s.logger, "task", "scale_deployment", "deployment", "avalanche"),
 				clientset:   clientset,
 				namespace:   opts.Namespace,
 				deployment:  "avalanche",
