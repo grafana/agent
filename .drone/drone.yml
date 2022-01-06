@@ -103,7 +103,11 @@ steps:
         from_secret: DOCKER_LOGIN
       DOCKER_PASSWORD:
         from_secret: DOCKER_PASSWORD
+      GCR_CREDS:
+        from_secret: gcr_admin
     commands:
+      - mkdir -p $HOME/.docker
+      - printenv GCR_CREDS > $HOME/.docker/config.json
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - apk update && apk add make bash wget git qemu
       - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
@@ -234,6 +238,14 @@ get:
 
 ---
 kind: secret
+name: gcr_admin
+
+get:
+  name: .dockerconfigjson
+  path: infra/data/ci/gcr-admin
+
+---
+kind: secret
 name: gh_token
 
 get:
@@ -241,6 +253,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 6c574cddfc9c02e669cd3deaefd055ee41697895e35a774deb9e3ede7f462f56
+hmac: d782f71ed4cf8c00c033403d54b75f28e58f05ea13cd666d560c888b5c18cf72
 
 ...
