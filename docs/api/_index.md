@@ -16,7 +16,8 @@ The API is divided into several parts:
 
 Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../scraping-service" >}}).
 
-(Note that scraping service mode is a requirement for the config management API, however this is not a pre-req for the Agent API or Ready/Healthy API)
+(Note that scraping service mode is a requirement for the config management
+API, however this is not a prerequisite for the Agent API or Ready/Healthy API)
 
 The following endpoints are exposed:
 
