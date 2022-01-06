@@ -93,8 +93,8 @@ integrations:
   dnsmasq_exporter_configs:
     [- <dnsmasq_exporter_config> ...]
 
-  elasticsearch_expoter_configs:
-    [- <elasticsearch_expoter_config> ...]
+  elasticsearch_exporter_configs:
+    [- <elasticsearch_exporter_config> ...]
 
   github_exporter_configs:
     [- <github_exporter_config> ...]
