@@ -39,9 +39,10 @@ spaces for its primary home for future design proposals.
 
 ## Non-Goals
 
-* Enforce that everything must be made public. While all maintainers and
-  contributors will be encouraged to design openly, there may be legal,
-  security, or privacy reasons which prevent something from being made public.
+* Enforce that every change originates from a fully public proposal or
+  discussion. While all maintainers and contributors will be encouraged to
+  design openly, there may be legal, security, privacy, or business reasons
+  that prevent some or all context from being made public.
 
 * Be overly prescriptive: too many rules can hinder adoption of a process. This
   outlines more options than it is requirements.
@@ -122,6 +123,14 @@ is recommended that proposals from Google Docs are eventually converted by the
 author into an RFC proposal to ensure that historical context is recorded,
 though this is still not ideal as it discards comment history.
 
+## Accepting Proposals
+
+All readers are encouraged to engage in reviewing proposals. However, whether a
+proposal is accepted is determined by [rough consensus][] of the Grafana Agent
+governance team. External contributors may eventually be invited to [join the
+governance team][governance] if they have a history of making ongoing
+contributions to the project or community.
+
 ## Considered alternatives
 
 A few existing public proposal processes have been examined for inspiration:
@@ -134,3 +143,6 @@ A few existing public proposal processes have been examined for inspiration:
 
 All of these processes are similar, but in the end, the current objective is to
 start collecting proposals publicly rather than to be prescriptive yet.
+
+[rough consensus]: https://github.com/grafana/agent/blob/main/GOVERNANCE.md#technical-decisions
+[governance]: https://github.com/grafana/agent/blob/main/GOVERNANCE.md#team-members
