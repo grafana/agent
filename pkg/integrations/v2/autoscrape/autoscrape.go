@@ -66,8 +66,14 @@ type Scraper struct {
 	log log.Logger
 	im  instance.Manager
 
-	scrapersMut sync.RWMutex
-	scrapers    map[string]*instanceScraper
+	// Prometheus doesn't pass contextual information at scrape time that could
+	// be used to change the behavior of generating an appender. This means that
+	// it's not yet possible for us to just run a single SD + scrape manager for
+	// all of our integrations, and we instead need to launch a pair of each for
+	// every instance we're writing to.
+
+	iscrapersMut sync.RWMutex
+	iscrapers    map[string]*instanceScraper
 }
 
 // NewScraper creates a new autoscraper. Scraper will run until Stop is called.
@@ -81,9 +87,9 @@ func NewScraper(l log.Logger, im instance.Manager) *Scraper {
 		ctx:    ctx,
 		cancel: cancel,
 
-		log:      l,
-		im:       im,
-		scrapers: map[string]*instanceScraper{},
+		log:       l,
+		im:        im,
+		iscrapers: map[string]*instanceScraper{},
 	}
 	return s
 }
@@ -91,8 +97,8 @@ func NewScraper(l log.Logger, im instance.Manager) *Scraper {
 // ApplyConfig will apply the given jobs. An error will be returned for any
 // jobs that failed to be applied.
 func (s *Scraper) ApplyConfig(jobs []*ScrapeConfig) error {
-	s.scrapersMut.Lock()
-	defer s.scrapersMut.Unlock()
+	s.iscrapersMut.Lock()
+	defer s.iscrapersMut.Unlock()
 
 	var firstError error
 	saveError := func(e error) {
@@ -116,10 +122,10 @@ func (s *Scraper) ApplyConfig(jobs []*ScrapeConfig) error {
 
 	// Then pass the jobs to instanceScraper, creating them if we need to.
 	for instance, jobs := range shardedJobs {
-		is, ok := s.scrapers[instance]
+		is, ok := s.iscrapers[instance]
 		if !ok {
 			is = newInstanceScraper(s.ctx, s.log, s.im, instance)
-			s.scrapers[instance] = is
+			s.iscrapers[instance] = is
 		}
 		if err := is.ApplyConfig(jobs); err != nil {
 			// Not logging here; is.ApplyConfig already logged the errors.
@@ -129,11 +135,11 @@ func (s *Scraper) ApplyConfig(jobs []*ScrapeConfig) error {
 
 	// Garbage collect: if if there's a key in s.scrapers that wasn't in
 	// shardedJobs, stop that unused scraper.
-	for instance, is := range s.scrapers {
+	for instance, is := range s.iscrapers {
 		_, current := shardedJobs[instance]
 		if !current {
 			is.Stop()
-			delete(s.scrapers, instance)
+			delete(s.iscrapers, instance)
 		}
 	}
 
@@ -143,11 +149,11 @@ func (s *Scraper) ApplyConfig(jobs []*ScrapeConfig) error {
 // TargetsActive returns the set of active scrape targets for all target
 // instances.
 func (s *Scraper) TargetsActive() map[string]metrics.TargetSet {
-	s.scrapersMut.RLock()
-	defer s.scrapersMut.RUnlock()
+	s.iscrapersMut.RLock()
+	defer s.iscrapersMut.RUnlock()
 
-	allTargets := make(map[string]metrics.TargetSet, len(s.scrapers))
-	for instance, is := range s.scrapers {
+	allTargets := make(map[string]metrics.TargetSet, len(s.iscrapers))
+	for instance, is := range s.iscrapers {
 		allTargets[instance] = is.sm.TargetsActive()
 	}
 	return allTargets
@@ -155,12 +161,12 @@ func (s *Scraper) TargetsActive() map[string]metrics.TargetSet {
 
 // Stop stops the Scraper.
 func (s *Scraper) Stop() {
-	s.scrapersMut.Lock()
-	defer s.scrapersMut.Unlock()
+	s.iscrapersMut.Lock()
+	defer s.iscrapersMut.Unlock()
 
-	for instance, is := range s.scrapers {
+	for instance, is := range s.iscrapers {
 		is.Stop()
-		delete(s.scrapers, instance)
+		delete(s.iscrapers, instance)
 	}
 
 	s.cancel()
