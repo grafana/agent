@@ -28,38 +28,46 @@ type Collector string
 const (
 	CollectorARP          = "arp"
 	CollectorBCache       = "bcache"
-	CollectorBonding      = "bonding"
-	CollectorBooTtime     = "boottime"
 	CollectorBTRFS        = "btrfs"
+	CollectorBonding      = "bonding"
+	CollectorBootTime     = "boottime"
 	CollectorBuddyInfo    = "buddyinfo"
-	CollectorConntrack    = "conntrack"
 	CollectorCPU          = "cpu"
 	CollectorCPUFreq      = "cpufreq"
+	CollectorConntrack    = "conntrack"
+	CollectorDMI          = "dmi"
+	CollectorDRBD         = "drbd"
+	CollectorDRM          = "drm"
 	CollectorDevstat      = "devstat"
 	CollectorDiskstats    = "diskstats"
-	CollectorDRBD         = "drbd"
 	CollectorEDAC         = "edac"
 	CollectorEntropy      = "entropy"
+	CollectorEthtool      = "ethtool"
 	CollectorExec         = "exec"
+	CollectorFibrechannel = "fibrechannel"
 	CollectorFileFD       = "filefd"
 	CollectorFilesystem   = "filesystem"
 	CollectorHWMon        = "hwmon"
+	CollectorIPVS         = "ipvs"
 	CollectorInfiniband   = "infiniband"
 	CollectorInterrupts   = "interrupts"
-	CollectorIPVS         = "ipvs"
 	CollectorKSMD         = "ksmd"
+	CollectorLnstat       = "lnstat"
 	CollectorLoadAvg      = "loadavg"
 	CollectorLogind       = "logind"
 	CollectorMDADM        = "mdadm"
 	CollectorMeminfo      = "meminfo"
 	CollectorMeminfoNuma  = "meminfo_numa"
 	CollectorMountstats   = "mountstats"
-	CollectorNetclass     = "netclass"
-	CollectorNetdev       = "netdev"
-	CollectorNetstat      = "netstat"
 	CollectorNFS          = "nfs"
 	CollectorNFSD         = "nfsd"
 	CollectorNTP          = "ntp"
+	CollectorNVME         = "nvme"
+	CollectorNetclass     = "netclass"
+	CollectorNetdev       = "netdev"
+	CollectorNetstat      = "netstat"
+	CollectorNetworkRoute = "network_route"
+	CollectorOS           = "os"
 	CollectorPerf         = "perf"
 	CollectorPowersuppply = "powersupplyclass"
 	CollectorPressure     = "pressure"
@@ -74,7 +82,9 @@ const (
 	CollectorSupervisord  = "supervisord"
 	CollectorSystemd      = "systemd"
 	CollectorTCPStat      = "tcpstat"
+	CollectorTapestats    = "tapestats"
 	CollectorTextfile     = "textfile"
+	CollectorThermal      = "thermal"
 	CollectorThermalzone  = "thermal_zone"
 	CollectorTime         = "time"
 	CollectorTimex        = "timex"
@@ -84,6 +94,7 @@ const (
 	CollectorWiFi         = "wifi"
 	CollectorXFS          = "xfs"
 	CollectorZFS          = "zfs"
+	CollectorZoneinfo     = "zoneinfo"
 )
 
 // Collectors holds a map of known collector names to their default
@@ -91,38 +102,46 @@ const (
 var Collectors = map[string]CollectorState{
 	CollectorARP:          CollectorStateEnabled,
 	CollectorBCache:       CollectorStateEnabled,
-	CollectorBonding:      CollectorStateEnabled,
-	CollectorBooTtime:     CollectorStateEnabled,
 	CollectorBTRFS:        CollectorStateEnabled,
+	CollectorBonding:      CollectorStateEnabled,
+	CollectorBootTime:     CollectorStateEnabled,
 	CollectorBuddyInfo:    CollectorStateDisabled,
-	CollectorConntrack:    CollectorStateEnabled,
 	CollectorCPU:          CollectorStateEnabled,
 	CollectorCPUFreq:      CollectorStateEnabled,
+	CollectorConntrack:    CollectorStateEnabled,
+	CollectorDMI:          CollectorStateEnabled,
+	CollectorDRBD:         CollectorStateDisabled,
+	CollectorDRM:          CollectorStateDisabled,
 	CollectorDevstat:      CollectorStateDisabled,
 	CollectorDiskstats:    CollectorStateEnabled,
-	CollectorDRBD:         CollectorStateDisabled,
 	CollectorEDAC:         CollectorStateEnabled,
 	CollectorEntropy:      CollectorStateEnabled,
+	CollectorEthtool:      CollectorStateDisabled,
 	CollectorExec:         CollectorStateEnabled,
+	CollectorFibrechannel: CollectorStateEnabled,
 	CollectorFileFD:       CollectorStateEnabled,
 	CollectorFilesystem:   CollectorStateEnabled,
 	CollectorHWMon:        CollectorStateEnabled,
+	CollectorIPVS:         CollectorStateEnabled,
 	CollectorInfiniband:   CollectorStateEnabled,
 	CollectorInterrupts:   CollectorStateDisabled,
-	CollectorIPVS:         CollectorStateEnabled,
 	CollectorKSMD:         CollectorStateDisabled,
+	CollectorLnstat:       CollectorStateDisabled,
 	CollectorLoadAvg:      CollectorStateEnabled,
 	CollectorLogind:       CollectorStateDisabled,
 	CollectorMDADM:        CollectorStateEnabled,
 	CollectorMeminfo:      CollectorStateEnabled,
 	CollectorMeminfoNuma:  CollectorStateDisabled,
 	CollectorMountstats:   CollectorStateDisabled,
-	CollectorNetclass:     CollectorStateEnabled,
-	CollectorNetdev:       CollectorStateEnabled,
-	CollectorNetstat:      CollectorStateEnabled,
 	CollectorNFS:          CollectorStateEnabled,
 	CollectorNFSD:         CollectorStateEnabled,
 	CollectorNTP:          CollectorStateDisabled,
+	CollectorNVME:         CollectorStateEnabled,
+	CollectorNetclass:     CollectorStateEnabled,
+	CollectorNetdev:       CollectorStateEnabled,
+	CollectorNetstat:      CollectorStateEnabled,
+	CollectorNetworkRoute: CollectorStateDisabled,
+	CollectorOS:           CollectorStateEnabled,
 	CollectorPerf:         CollectorStateDisabled,
 	CollectorPowersuppply: CollectorStateEnabled,
 	CollectorPressure:     CollectorStateEnabled,
@@ -137,7 +156,9 @@ var Collectors = map[string]CollectorState{
 	CollectorSupervisord:  CollectorStateDisabled,
 	CollectorSystemd:      CollectorStateDisabled,
 	CollectorTCPStat:      CollectorStateDisabled,
+	CollectorTapestats:    CollectorStateEnabled,
 	CollectorTextfile:     CollectorStateEnabled,
+	CollectorThermal:      CollectorStateEnabled,
 	CollectorThermalzone:  CollectorStateEnabled,
 	CollectorTime:         CollectorStateEnabled,
 	CollectorTimex:        CollectorStateEnabled,
@@ -147,6 +168,7 @@ var Collectors = map[string]CollectorState{
 	CollectorWiFi:         CollectorStateDisabled,
 	CollectorXFS:          CollectorStateEnabled,
 	CollectorZFS:          CollectorStateEnabled,
+	CollectorZoneinfo:     CollectorStateDisabled,
 }
 
 // MapCollectorsToFlags takes in a map of collector keys and their states and

@@ -14,7 +14,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config/features"
-	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
@@ -30,10 +29,12 @@ import (
 )
 
 var (
-	featRemoteConfigs = features.Feature("remote-configs")
+	featRemoteConfigs    = features.Feature("remote-configs")
+	featIntegrationsNext = features.Feature("integrations-next")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
+		featIntegrationsNext,
 	}
 )
 
@@ -41,17 +42,17 @@ var (
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
 	Metrics:               metrics.DefaultConfig,
-	Integrations:          integrations.DefaultManagerConfig,
+	Integrations:          DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
 }
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config              `yaml:"server,omitempty"`
-	Metrics      metrics.Config             `yaml:"metrics,omitempty"`
-	Integrations integrations.ManagerConfig `yaml:"integrations,omitempty"`
-	Traces       traces.Config              `yaml:"traces,omitempty"`
-	Logs         *logs.Config               `yaml:"logs,omitempty"`
+	Server       server.Config         `yaml:"server,omitempty"`
+	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
+	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
+	Traces       traces.Config         `yaml:"traces,omitempty"`
+	Logs         *logs.Config          `yaml:"logs,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
@@ -171,21 +172,11 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
-	if err := c.Integrations.ApplyDefaults(&c.Metrics); err != nil {
+	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+
+	if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics); err != nil {
 		return err
 	}
-
-	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
-	c.Integrations.ListenPort = c.Server.HTTPListenPort
-	c.Integrations.ListenHost = c.Server.HTTPListenAddress
-
-	c.Integrations.ServerUsingTLS = c.Server.HTTPTLSConfig.TLSKeyPath != "" && c.Server.HTTPTLSConfig.TLSCertPath != ""
-
-	if len(c.Integrations.PrometheusRemoteWrite) == 0 {
-		c.Integrations.PrometheusRemoteWrite = c.Metrics.Global.RemoteWrite
-	}
-
-	c.Integrations.PrometheusGlobalConfig = c.Metrics.Global.Prometheus
 
 	// since the Traces config might rely on an existing Loki config
 	// this check is made here to look for cross config issues before we attempt to load
@@ -353,6 +344,17 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
 
+	// Complete unmarshaling integrations using the version from the flag. This
+	// MUST be called before ApplyDefaults.
+	version := integrationsVersion1
+	if features.Enabled(fs, featIntegrationsNext) {
+		version = integrationsVersion2
+	}
+	if err := cfg.Integrations.setVersion(version); err != nil {
+		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+	}
+
+	// Finally, apply defaults to config that wasn't specified by file or flag
 	if err := cfg.Validate(fs); err != nil {
 		return nil, fmt.Errorf("error in config file: %w", err)
 	}

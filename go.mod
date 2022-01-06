@@ -31,6 +31,7 @@ require (
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/lib/pq v1.10.1
+	github.com/lufia/iostat v1.2.1 // indirect
 	github.com/miekg/dns v1.1.43
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/ncabatoff/process-exporter v0.7.5
@@ -62,15 +63,15 @@ require (
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.9.0
 	github.com/prometheus/mysqld_exporter v0.13.0
-	github.com/prometheus/node_exporter v1.0.1
-	github.com/prometheus/procfs v0.7.3
+	github.com/prometheus/node_exporter v1.3.1
+	github.com/prometheus/procfs v0.7.4-0.20211011103944-1a7a2bd3279f
 	github.com/prometheus/prometheus v1.8.2-0.20211102100715-d4c83da6d252
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
-	github.com/weaveworks/common v0.0.0-20211104141906-05b06253aab8
+	github.com/weaveworks/common v0.0.0-20211222122857-933588f98737
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.40.0
 	go.opentelemetry.io/collector/model v0.40.0
@@ -79,7 +80,7 @@ require (
 	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.19.1
-	golang.org/x/sys v0.0.0-20211020174200-9d6173849985
+	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1
 	google.golang.org/grpc v1.42.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0

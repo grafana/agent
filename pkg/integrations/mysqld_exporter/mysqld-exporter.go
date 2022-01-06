@@ -12,6 +12,8 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/go-sql-driver/mysql"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/mysqld_exporter/collector"
 )
 
@@ -103,6 +105,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new mysqld_exporter integration. The integration scrapes
