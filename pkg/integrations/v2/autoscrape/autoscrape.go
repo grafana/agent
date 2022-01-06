@@ -51,6 +51,13 @@ type Config struct {
 	MetricRelabelConfigs []*relabel.Config `yaml:"metric_relabel_configs,omitempty"` // Relabel individual autoscrape metrics
 }
 
+// InstanceStore is used to find instances to send metrics to. It is a subset
+// of the pkg/metrics/instance.Manager interface.
+type InstanceStore interface {
+	// GetInstance retrieves a ManagedInstance by name.
+	GetInstance(name string) (instance.ManagedInstance, error)
+}
+
 // ScrapeConfig bind a Prometheus scrape config with an instance to send
 // scraped metrics to.
 type ScrapeConfig struct {
@@ -64,7 +71,7 @@ type Scraper struct {
 	cancel context.CancelFunc
 
 	log log.Logger
-	im  instance.Manager
+	is  InstanceStore
 
 	// Prometheus doesn't pass contextual information at scrape time that could
 	// be used to change the behavior of generating an appender. This means that
@@ -78,7 +85,7 @@ type Scraper struct {
 
 // NewScraper creates a new autoscraper. Scraper will run until Stop is called.
 // Instances to send scraped metrics to will be looked up via im.
-func NewScraper(l log.Logger, im instance.Manager) *Scraper {
+func NewScraper(l log.Logger, is InstanceStore) *Scraper {
 	l = log.With(l, "component", "autoscraper")
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -88,7 +95,7 @@ func NewScraper(l log.Logger, im instance.Manager) *Scraper {
 		cancel: cancel,
 
 		log:       l,
-		im:        im,
+		is:        is,
 		iscrapers: map[string]*instanceScraper{},
 	}
 	return s
@@ -110,7 +117,7 @@ func (s *Scraper) ApplyConfig(jobs []*ScrapeConfig) error {
 	// Shard our jobs by target instance.
 	shardedJobs := map[string][]*prom_config.ScrapeConfig{}
 	for _, j := range jobs {
-		_, err := s.im.GetInstance(j.Instance)
+		_, err := s.is.GetInstance(j.Instance)
 		if err != nil {
 			level.Error(s.log).Log("msg", "cannot autoscrape integration", "name", j.Config.JobName, "err", err)
 			saveError(err)
@@ -124,7 +131,7 @@ func (s *Scraper) ApplyConfig(jobs []*ScrapeConfig) error {
 	for instance, jobs := range shardedJobs {
 		is, ok := s.iscrapers[instance]
 		if !ok {
-			is = newInstanceScraper(s.ctx, s.log, s.im, instance)
+			is = newInstanceScraper(s.ctx, s.log, s.is, instance)
 			s.iscrapers[instance] = is
 		}
 		if err := is.ApplyConfig(jobs); err != nil {
@@ -187,7 +194,7 @@ type instanceScraper struct {
 func newInstanceScraper(
 	ctx context.Context,
 	l log.Logger,
-	im instance.Manager,
+	s InstanceStore,
 	instanceName string,
 ) *instanceScraper {
 	ctx, cancel := context.WithCancel(ctx)
@@ -197,7 +204,7 @@ func newInstanceScraper(
 	sd := discovery.NewManager(ctx, l, discovery.Name("autoscraper/"+instanceName))
 	sm := scrape.NewManager(&scrape.Options{}, l, &agentAppender{
 		inst: instanceName,
-		im:   im,
+		is:   s,
 	})
 
 	is := &instanceScraper{
@@ -215,11 +222,11 @@ func newInstanceScraper(
 
 type agentAppender struct {
 	inst string
-	im   instance.Manager
+	is   InstanceStore
 }
 
 func (aa *agentAppender) Appender(ctx context.Context) storage.Appender {
-	mi, err := aa.im.GetInstance(aa.inst)
+	mi, err := aa.is.GetInstance(aa.inst)
 	if err != nil {
 		return &failedAppender{instanceName: aa.inst}
 	}
