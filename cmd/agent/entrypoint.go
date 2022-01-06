@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
-	loki "github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/server"
@@ -37,11 +37,11 @@ type Entrypoint struct {
 	log *util.Logger
 	cfg config.Config
 
-	srv         *server.Server
-	promMetrics *metrics.Agent
-	lokiLogs    *loki.Logs
-	tempoTraces *traces.Traces
-	manager     *integrations.Manager
+	srv          *server.Server
+	promMetrics  *metrics.Agent
+	lokiLogs     *logs.Logs
+	tempoTraces  *traces.Traces
+	integrations config.Integrations
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
@@ -90,7 +90,11 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.manager, err = integrations.NewManager(cfg.Integrations, logger, ep.promMetrics.InstanceManager(), ep.promMetrics.Validate)
+	integrationGlobals, err := ep.createIntegrationsGlobals(cfg)
+	if err != nil {
+		return nil, err
+	}
+	ep.integrations, err = config.NewIntegrations(logger, &cfg.Integrations, integrationGlobals)
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +105,31 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 	return ep, nil
+}
+
+func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (config.IntegrationsGlobals, error) {
+	hostname, err := instance.Hostname()
+	if err != nil {
+		return config.IntegrationsGlobals{}, fmt.Errorf("getting hostname: %w", err)
+	}
+
+	usingTLS := len(cfg.Server.HTTPTLSConfig.TLSCertPath) > 0 && len(cfg.Server.HTTPTLSConfig.TLSKeyPath) > 0
+	scheme := "http"
+	if usingTLS {
+		scheme = "https"
+	}
+
+	return config.IntegrationsGlobals{
+		AgentIdentifier: fmt.Sprintf("%s:%d", hostname, cfg.Server.HTTPListenPort),
+		Metrics:         ep.promMetrics,
+		Logs:            ep.lokiLogs,
+		Tracing:         ep.tempoTraces,
+		// TODO(rfratto): set SubsystemOptions here when v1 is removed.
+		AgentBaseURL: &url.URL{
+			Scheme: scheme,
+			Host:   fmt.Sprintf("127.0.0.1:%d", cfg.Server.HTTPListenPort),
+		},
+	}, nil
 }
 
 // ApplyConfig applies changes to the subsystems of the Agent.
@@ -136,7 +165,11 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.manager.ApplyConfig(cfg.Integrations); err != nil {
+	integrationGlobals, err := ep.createIntegrationsGlobals(&cfg)
+	if err != nil {
+		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
+		failed = true
+	} else if err := ep.integrations.ApplyConfig(&cfg.Integrations, integrationGlobals); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
 		failed = true
 	}
@@ -155,7 +188,7 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	ep.promMetrics.WireAPI(mux)
 	ep.promMetrics.WireGRPC(grpc)
 
-	ep.manager.WireAPI(mux)
+	ep.integrations.WireAPI(mux)
 
 	mux.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -224,7 +257,7 @@ func (ep *Entrypoint) Stop() {
 	ep.mut.Lock()
 	defer ep.mut.Unlock()
 
-	ep.manager.Stop()
+	ep.integrations.Stop()
 	ep.lokiLogs.Stop()
 	ep.promMetrics.Stop()
 	ep.tempoTraces.Stop()

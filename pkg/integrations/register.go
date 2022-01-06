@@ -32,6 +32,16 @@ func RegisterIntegration(cfg Config) {
 	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
 
+// RegisteredIntegrations all Configs that were passed to RegisterIntegration.
+// Each call will generate a new set of pointers.
+func RegisteredIntegrations() []Config {
+	res := make([]Config, 0, len(registeredIntegrations))
+	for _, in := range registeredIntegrations {
+		res = append(res, cloneIntegration(in))
+	}
+	return res
+}
+
 func cloneIntegration(c Config) Config {
 	return reflect.New(reflect.TypeOf(c).Elem()).Interface().(Config)
 }
