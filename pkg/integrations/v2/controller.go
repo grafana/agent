@@ -23,8 +23,7 @@ import (
 // controllerConfig holds a set of integration configs.
 type controllerConfig []Config
 
-// controller manages a set of integrations. controller is intended to be
-// embedded inside of integrations that multiplex running other integrations.
+// controller manages a set of integrations.
 type controller struct {
 	logger  log.Logger
 	mut     sync.Mutex
