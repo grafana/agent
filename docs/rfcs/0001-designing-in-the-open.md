@@ -1,8 +1,3 @@
----
-title: "Designing in the Open"
-weight: 1
----
-
 # Designing in the Open
 
 * Date: 2021-11-02
@@ -11,122 +6,110 @@ weight: 1
 
 ## Summary
 
-Traditionally, design proposals for Grafana Agent tend to be done internally to
-Grafana Labs by default. If the proposals are made public, it generally only
-happens after internal consensus was already reached. This can cause a few
-problems for external contributors:
+Many open source projects start behind closed doors, where it's designed,
+prototyped, and tested before being released publicly. This can be true
+regardless of why the project is being made; even personal side projects likely
+start by someone designing alone.
 
-* Community concerns are less likely to have an impact as core maintainers have
-  already agreed on a solution.
-* Initial design is gated to Grafana Labs employees.
-* Historical design docs with context and discussions become hard to find both
-  internally and even harder publicly.
+Meanwhile, many open source projects might want to create a community of
+developers. Much of the beauty of succesful open source projects originates
+from the varied backgrounds of its contributors: different people with
+different use cases combining together to make a widely useful piece of
+software.
 
-In the spirit of fostering broader community participation, this document
-proposes inverting the design process to best-effort being done in the open.
+However, even with an intent to foster a community of developers, it's natural
+to accidentally build a habit from the closed-door design process. Even when
+once-private proposals are made public, potential external contributors can
+find themselves simply as spectators:
+
+* Initial design is gated to core maintainers, leaving less room for new people
+  to help out.
+* New concerns are less impactful if the proposal already receieved core
+  maintainer consensus.
+* Historical proposals with context and discussions become hard to find.
+
+I believe it takes a deliberate inversion of process to foster community
+participation. This document proposes how Grafana Agent will utilize public
+spaces for its primary home for future design proposals.
 
 ## Goals
 
-* Outline a process to support public-first design documents
-* Lower the barrier to entry to becoming a maintainer that is not employed at
-  Grafana Labs
-* Encourage a community to contribute input to design documents
-* Encourage a community to contribute their own design documents
+* Outline options for proposing changes to Grafana Agent
+* Lower the barrier to entry for interested parties to become maintainers
 
 ## Non-Goals
 
-* Guarantee that everything will be made public. All contributors, regardless
-  of company affiliation, are encouraged to design publicly when possible. We
-  recognize that there will always be situations in which public design cannot
-  happen, including (but not limited to) legal or security reasons.
-* Identify strict rules for when an RFC or issue is appropriate.
+* Enforce that everything must be made public. While all maintainers and
+  contributors will be encouraged to design openly, there may be legal,
+  security, or privacy reasons which prevent something from being made public.
 
-## Terminology
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
-NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in
-[RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+* Be overly prescriptive: too many rules can hinder adoption of a process. This
+  outlines more options than it is requirements.
 
 ## Proposal
 
-Public propsals come in two forms:
+Public proposals may take one of two forms:
 
-* RFCs (i.e., this document) for larger changes
-* Issues proposals for smaller changes
+* Issue proposals
+* RFC PR proposals (e.g., this document)
 
-This document does not prescribe when something is a "larger change" or a
-"smaller change." We don't have enough experience yet to be able to
-strongly define categories, but these guidelines can be used for a gut check:
+### Issues
 
-* Larger changes require proposals that require thought and explore multiple
-  options, OR
-* Larger changes have a lasting effect on the project as a whole, OR
-* Larger changes touch multiple systems throughout the project or dramatic
-  changes to a single system.
-* Smaller changes are the inverse of the above.
+Issues are the quickest path towards proposing a change. Issue proposals must
+be opened at the [grafana/agent issues page](https://github.com/grafana/agent/issues).
 
-### RFCs
+There are no strict set of rules for issue-based proposals, but authors are
+recommended to prefix the issue title with `Proposal:` so it may be found more
+easily.
 
-RFCs MUST be valid markdown composed of at least the following:
+### RFC PRs
 
-1. A title.
-2. A bulletpoint list of metadata that MUST include original authorship date
-   and the author's name. Author name SHOULD include their GitHub username as a
-   parenthethical.
-3. A summary section describing the context for what is being proposed.
-4. A list of goals and non-goals for the proposal.
-5. One or more sections dedicated to the proposal.
+RFC PR proposals must at least:
 
-RFCs MUST be placed into the `docs/rfcs` folder of the Grafana Agent repository.
+* Be placed in the `docs/rfcs` folder of the `grafana/agent` repository
+* Have a lowercase filename in hyphen-case with an `.md` extension
+* Prefix the filename with the RFC ID
+  * ID `xxxx` may be initially used until the final ID is known
+* Contain valid markdown
+* Start with the title of the proposal
+* Contain a bullet point list of metadata of:
+  * The date the proposal was written
+  * The list of authors, with their names and GitHub usernames
+  * The PR where the proposal was posted
 
-RFCs SHOULD have a `Terminology` section following the goals and non goals that
-conform to [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+`0000-template.md` contains a template to use for writing proposals that
+conforms to these rules.
 
-Sections dedicated to the proposal SHOULD include alternatives considered.
-
-#### RFC IDs
-
-The filename of the RFC MUST be prefixed with the ID of the RFC. If an RFC does
-not yet have an ID, the ID MAY be omitted until one is assigned to it.
-
-#### RFC Mutability
-
-Once an RFC is accepted, all non-metadata information MUST remain immutable.
-RFCs MAY be deprecated by further RFCs. If an RFC is deprecated, the older
-RFC's metadata MUST be updated to point to what replaces it, and the newer RFC
-MUST refer back to what it is replacing.
+The remainder of the proposal may be formatted however the author wishes.
 
 #### RFC Review
 
-RFCs SHOULD be announced on the Grafana Agent's
-[issue](https://github.com/grafana/agent/issues) page with a tag of `[RFC]`.
-Review is performed by both maintiners and the public in form of inline code
-review comments against the markdown and GitHub PR comments.
+RFCs should be opened as a PR to grafana/agent, ideally prefixed in the PR
+title with `RFC:` to easily identify it amongst other PRs.
 
-RFC PRs MUST NOT add or modify other files that are unrelated to the proposed
-RFC.
+#### RFC Mutability
 
-### Issue Proposals
+Once an RFC is accepted, it must be treated as immutable. There are two exceptions:
 
-Issue proposals are the second form of proposal, useful for smaller proposals
-that don't warrant an entire RFC.
+* The author's name and username may be changed, as long as authorship is still
+  credited to the same individuals.
 
-Issue proposals are freeform, but SHOULD include:
+* Errata and typos may be fixed as long as it does not change the
+  interpretation of the proposal.
 
-* Background on what is being proposed
-* The proposal itself
-* If relevant, code or configuration examples which compliment the proposal
+### Google Docs Proposals
 
-## Concerns
+It is not recommended to use Google Docs for writing proposals:
 
-Grafana Loki previously tried to do public proposals similar to what is being
-described here. It was found that reviewing RFCs via a Pull Request was clunky
-and hard to manage.
+* Change and comment history may not be available to all viewers.
 
-This is an ongoing concern for this proposal, and while other projects manage it
-successfully, it isn't clear if there are any suggested tools we could use to
-make the review process easier for readers.
+* The file owner may delete the proposal, leading to a gap in historical
+  context.
+
+Google Docs proposals will be permitted if linked to from an issue proposal. It
+is recommended that proposals from Google Docs are eventually converted by the
+author into an RFC proposal to ensure that historical context is recorded,
+though this is still not ideal as it discards comment history.
 
 ## Considered alternatives
 
@@ -138,5 +121,5 @@ A few existing public proposal processes have been examined for inspiration:
 * [OpenTelemetry's OTEPs](https://github.com/open-telemetry/oteps)
 * [Kubernetes Enhancement Proposals (KEPs)](https://github.com/kubernetes/enhancements)
 
-All of these processes are similar, but in the end, a mix of the IETF and Rust
-workflows were used to derive this document.
+All of these processes are similar, but in the end, the current objective is to
+start collecting proposals publicly rather than to be prescriptive yet.
