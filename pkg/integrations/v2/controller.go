@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -18,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/prometheus/prometheus/discovery"
 	http_sd "github.com/prometheus/prometheus/discovery/http"
+	"go.uber.org/atomic"
 )
 
 // controllerConfig holds a set of integration configs.
@@ -34,7 +34,7 @@ type controller struct {
 	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
 
 	// Next generation value to use for an integration.
-	gen uint64
+	gen atomic.Uint64
 
 	// onUpdateDone is used for testing and will be invoked when integrations
 	// finish reloading.
@@ -138,24 +138,25 @@ type controlledIntegration struct {
 	i Integration
 	c Config // Config that generated i. Used for changing to see if a config changed.
 
-	running uint64 // running must only be used atomically
+	running atomic.Bool
 
 	mut  sync.Mutex
 	stop context.CancelFunc
 }
 
 func (ci *controlledIntegration) Running() bool {
-	return atomic.LoadUint64(&ci.running) == 1
+	return ci.running.Load()
 }
 
 func (ci *controlledIntegration) Run(ctx context.Context, started func()) error {
-	swapped := atomic.CompareAndSwapUint64(&ci.running, 0, 1)
+	updatedRunningState := ci.running.CAS(false, true)
 	started()
 
-	if !swapped {
+	if !updatedRunningState {
+		// The CAS will fail if our integration was already running.
 		return errIntegrationRunning
 	}
-	defer atomic.StoreUint64(&ci.running, 0)
+	defer ci.running.Store(false)
 
 	ci.mut.Lock()
 	ctx, ci.stop = context.WithCancel(ctx)
@@ -260,7 +261,7 @@ NextConfig:
 		// Create a new controlled integration.
 		integrations = append(integrations, &controlledIntegration{
 			id:  id,
-			gen: atomic.AddUint64(&c.gen, 1),
+			gen: c.gen.Inc(),
 			i:   integration,
 			c:   ic,
 		})
