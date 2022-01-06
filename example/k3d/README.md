@@ -46,7 +46,7 @@ The smoke test environment is used to validate samples end to end.
 
 Smoke Test environment is invoked via `/scripts/smoke-test.bash`
 
-This tool will spin up cluster of Grafana Agent, Cortex, Avalanche and [Crow](../../cmd/grafana-agent-crow/README.md) instances. The tool will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
+This tool will spin up cluster of Grafana Agent, Cortex, Avalanche and [Crow](../../tools/crow/README.md) instances. The tool will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
 
 ### What to look for?
 
