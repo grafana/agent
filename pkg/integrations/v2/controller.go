@@ -95,13 +95,15 @@ func (c *controller) run(ctx context.Context) {
 			}
 		}
 
-		var wg sync.WaitGroup
-		wg.Add(len(newIntegrations))
+		var waitStarted sync.WaitGroup
+		waitStarted.Add(len(newIntegrations))
 
 		// Now all integrations can be launched.
 		for _, current := range newIntegrations {
 			go func(current *controlledIntegration) {
-				err := current.Run(ctx, func() { wg.Done() })
+				waitStarted.Done()
+
+				err := current.Run(ctx)
 				if err != nil && !errors.Is(err, errIntegrationRunning) {
 					level.Warn(c.logger).Log("msg", "integration exited with error", "instance", current.id, "err", err)
 				}
@@ -109,7 +111,7 @@ func (c *controller) run(ctx context.Context) {
 		}
 
 		// Wait for all integration goroutines to have been scheduled at least once.
-		wg.Wait()
+		waitStarted.Wait()
 
 		// Finally, store the current list of contolled integrations.
 		currentIntegrations = newIntegrations
@@ -148,10 +150,8 @@ func (ci *controlledIntegration) Running() bool {
 	return ci.running.Load()
 }
 
-func (ci *controlledIntegration) Run(ctx context.Context, started func()) error {
+func (ci *controlledIntegration) Run(ctx context.Context) error {
 	updatedRunningState := ci.running.CAS(false, true)
-	started()
-
 	if !updatedRunningState {
 		// The CAS will fail if our integration was already running.
 		return errIntegrationRunning
