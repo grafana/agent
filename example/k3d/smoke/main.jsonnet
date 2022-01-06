@@ -2,6 +2,7 @@ local monitoring = import './monitoring/main.jsonnet';
 local avalanche = import 'avalanche/main.libsonnet';
 local cortex = import 'cortex/main.libsonnet';
 local crow = import 'crow/main.libsonnet';
+local smoke = import 'grafana-agent/smoke/main.libsonnet';
 local etcd = import 'etcd/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
@@ -13,6 +14,7 @@ local volumeMount = k.core.v1.volumeMount;
 local images = {
   agent: 'grafana/agent:main',
   agentctl: 'grafana/agentctl:main',
+  agentsmoke: 'us.gcr.io/kubernetes-dev/grafana/agent-smoke:main',
 };
 
 local new_crow(name, selector) =
@@ -22,6 +24,9 @@ local new_crow(name, selector) =
       'crow.extra-selectors': selector,
     },
   });
+
+local new_smoke(name) = smoke.new(name, namespace='smoke', image=images.agentsmoke);
+
 
 local smoke = {
   ns: namespace.new('smoke'),
@@ -38,6 +43,8 @@ local smoke = {
     series_interval: 300,
     metric_interval: 600,
   }),
+
+  smoke_test: new_smoke('smoke-test'),
 
   crows: [
     new_crow('crow-single', 'cluster="grafana-agent"'),

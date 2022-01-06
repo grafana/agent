@@ -31,6 +31,7 @@ type deletePodTask struct {
 var _zero int64
 
 func (t *deletePodTask) Run(ctx context.Context) error {
+	level.Debug(t.logger).Log("msg", "deleting pod")
 	if err := t.clientset.CoreV1().Pods(t.namespace).Delete(ctx, t.pod, metav1.DeleteOptions{
 		GracePeriodSeconds: &_zero,
 	}); err != nil {
