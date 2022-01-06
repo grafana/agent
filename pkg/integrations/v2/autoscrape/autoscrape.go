@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/oklog/run"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
@@ -167,14 +168,15 @@ func (s *Scraper) Stop() {
 
 // instanceScraper is a Scraper which always sends to the same instance.
 type instanceScraper struct {
-	cancel context.CancelFunc
-	log    log.Logger
+	log log.Logger
 
-	sd *discovery.Manager
-	sm *scrape.Manager
+	sd     *discovery.Manager
+	sm     *scrape.Manager
+	cancel context.CancelFunc
+	exited chan struct{}
 }
 
-// newInstanceScraper returns a new instanceScraper. Must be stopped by calling
+// newInstanceScraper runs a new instanceScraper. Must be stopped by calling
 // Stop.
 func newInstanceScraper(
 	ctx context.Context,
@@ -192,16 +194,17 @@ func newInstanceScraper(
 		im:   im,
 	})
 
-	go func() { _ = sd.Run() }()
-	go func() { _ = sm.Run(sd.SyncCh()) }()
+	is := &instanceScraper{
+		log: l,
 
-	return &instanceScraper{
+		sd:     sd,
+		sm:     sm,
 		cancel: cancel,
-		log:    l,
-
-		sd: sd,
-		sm: sm,
+		exited: make(chan struct{}),
 	}
+
+	go is.run()
+	return is
 }
 
 type agentAppender struct {
@@ -215,6 +218,35 @@ func (aa *agentAppender) Appender(ctx context.Context) storage.Appender {
 		return &failedAppender{instanceName: aa.inst}
 	}
 	return mi.Appender(ctx)
+}
+
+func (is *instanceScraper) run() {
+	defer close(is.exited)
+	var rg run.Group
+
+	rg.Add(func() error {
+		// Service discovery will stop whenever our parent context is canceled or
+		// if is.cancel is called.
+		err := is.sd.Run()
+		if err != nil {
+			level.Error(is.log).Log("msg", "autoscrape service discovery exited with error", "err", err)
+		}
+		return err
+	}, func(_ error) {
+		is.cancel()
+	})
+
+	rg.Add(func() error {
+		err := is.sm.Run(is.sd.SyncCh())
+		if err != nil {
+			level.Error(is.log).Log("msg", "autoscrape scrape manager exited with error", "err", err)
+		}
+		return err
+	}, func(_ error) {
+		is.sm.Stop()
+	})
+
+	_ = rg.Run()
 }
 
 func (is *instanceScraper) ApplyConfig(jobs []*prom_config.ScrapeConfig) error {
@@ -247,5 +279,5 @@ func (is *instanceScraper) ApplyConfig(jobs []*prom_config.ScrapeConfig) error {
 
 func (is *instanceScraper) Stop() {
 	is.cancel()
-	is.sm.Stop()
+	<-is.exited
 }
