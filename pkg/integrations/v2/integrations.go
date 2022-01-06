@@ -59,8 +59,9 @@ type Config interface {
 	// NewIntegration should return a new Integration using the provided
 	// Globals to help initialize the Integration.
 	//
-	// NewIntegration must be idempotent for a Config. Use Integration.Run to do
-	// anything with side effects, such as opening a port.
+	// NewIntegration must be idempotent for a Config. Use
+	// Integration.RunIntegration to do anything with side effects, such as
+	// opening a port.
 	NewIntegration(log.Logger, Globals) (Integration, error)
 }
 
@@ -117,8 +118,8 @@ func (g Globals) CloneAgentBaseURL() *url.URL {
 // can be added by implementing additional *Integration interfaces, such
 // as HTTPIntegration.
 type Integration interface {
-	// Run starts the integration and performs background tasks. Run must not
-	// return until ctx is canceled, even if there is no work to do.
+	// RunIntegration starts the integration and performs background tasks. It
+	// must not return until ctx is canceled, even if there is no work to do.
 	RunIntegration(ctx context.Context) error
 }
 
