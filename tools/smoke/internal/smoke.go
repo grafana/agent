@@ -46,10 +46,6 @@ func NewSmokeTest(logger log.Logger, opts Options) (*Smoke, error) {
 	}
 
 	// add default tasks
-	// TODO: need to add a deletePodTask for cluster pods,
-	// TODO: currently script generates random number and appends it
-	// TODO: to the pod name. Should do this with a label selector,
-	// TODO: by adding a deletePodByLabelTask or such
 	s.tasks = append(s.tasks,
 		repeatingTask{
 			Task: &deletePodTask{
@@ -57,6 +53,15 @@ func NewSmokeTest(logger log.Logger, opts Options) (*Smoke, error) {
 				clientset: clientset,
 				namespace: opts.Namespace,
 				pod:       "grafana-agent-0",
+			},
+			frequency: opts.ChaosFrequency,
+		},
+		repeatingTask{
+			Task: &deletePodBySelectorTask{
+				logger:    log.With(s.logger, "task", "delete_pod_by_selector"),
+				clientset: clientset,
+				namespace: opts.Namespace,
+				selector:  "name=grafana-agent-cluster",
 			},
 			frequency: opts.ChaosFrequency,
 		},
