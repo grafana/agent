@@ -57,6 +57,42 @@ depends_on:
 ---
 kind: pipeline
 type: docker
+name: E2E
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  ref:
+    - refs/heads/main
+    - refs/tags/v*
+    - refs/heads/dev.*
+steps:
+  - name: Test
+    image: docker
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - apk update && apk add make bash wget git qemu
+      - mkdir -p /usr/local/go/bin
+      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+      - rm go1.16.5.linux-amd64.tar.gz
+      - export PATH=$PATH:/usr/local/go/bin
+      - make DRONE=true e2e/lint
+      - make DRONE=true e2e/test
+
+depends_on:
+  - Test
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+---
+kind: pipeline
+type: docker
 name: Dist
 platform:
   os: linux
@@ -240,6 +276,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: c32fd61018bef3703edb694acd0c7312be8cb07898c2cb42eb0e84fee84efb67
+hmac: dc683df4eb908af43b6bdd2a08b9893167e31002ed497679b2bc5a662d463a61
 
 ...
