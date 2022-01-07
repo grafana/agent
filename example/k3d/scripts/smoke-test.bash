@@ -100,14 +100,12 @@ run() {
     create job --from=cronjob/grafana-agent-syncer \
     grafana-agent-syncer-startup
 
-
   echo "Your environment is now running for the next $TEST_DURATION."
   echo "Grafana URL: http://grafana.k3d.localhost:50080"
   echo "Prometheus URL: http://prometheus.k3d.localhost:50080"
-
-  kubectl logs --namespace=smoke -f deployment/smoke-test &
+  echo "Check smoke test logs: "
+  echo "  kubectl logs --namespace=smoke -f deployment/smoke-test"
   sleep $TEST_DURATION
-  kill %%
 
   echo "Smoke tests complete!"
   echo "Grafana URL: http://grafana.k3d.localhost:50080"

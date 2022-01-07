@@ -57,6 +57,7 @@ func (t *scaleDeploymentTask) Run(ctx context.Context) error {
 		GetScale(ctx, t.deployment, metav1.GetOptions{})
 	if err != nil {
 		level.Error(t.logger).Log("msg", "failed to get autoscalingv1.Scale object", "err", err)
+		return nil
 	}
 
 	sc := *scale
@@ -66,5 +67,36 @@ func (t *scaleDeploymentTask) Run(ctx context.Context) error {
 	if err != nil {
 		level.Error(t.logger).Log("msg", "failed to scale deployment", "err", err)
 	}
+	return nil
+}
+
+type deletePodBySelectorTask struct {
+	logger    log.Logger
+	clientset *kubernetes.Clientset
+	namespace string
+	selector  string
+}
+
+func (t *deletePodBySelectorTask) Run(ctx context.Context) error {
+	list, err := t.clientset.CoreV1().Pods(t.namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: t.selector,
+	})
+	if err != nil {
+		level.Error(t.logger).Log("msg", "failed to list pods", "err", err)
+		return nil
+	}
+
+	l := len(list.Items)
+	if l > 0 {
+		i := rand.Intn(l)
+		pod := list.Items[i].Name
+		level.Debug(t.logger).Log("msg", "deleting pod", "pod", pod)
+		if err := t.clientset.CoreV1().Pods(t.namespace).Delete(ctx, pod, metav1.DeleteOptions{
+			GracePeriodSeconds: &_zero,
+		}); err != nil {
+			level.Error(t.logger).Log("msg", "failed to delete pod", "pod", pod, "err", err)
+		}
+	}
+
 	return nil
 }
