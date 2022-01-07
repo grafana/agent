@@ -23,7 +23,7 @@ func main() {
 	cfg.RegisterFlags(flag.CommandLine)
 	logLevel.RegisterFlags(flag.CommandLine)
 	logFormat.RegisterFlags(flag.CommandLine)
-	flag.DurationVar(&withTimeout, "duration", time.Duration(0), "timeout after duration, example 3h")
+	flag.DurationVar(&withTimeout, "duration", time.Duration(0), "test duration")
 	flag.Parse()
 
 	logger := util.NewLoggerFromLevel(logLevel, logFormat)
