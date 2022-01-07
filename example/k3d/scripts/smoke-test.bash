@@ -107,6 +107,8 @@ run() {
   echo "  kubectl logs --namespace=smoke -f deployment/smoke-test"
   sleep $TEST_DURATION
 
+  kubectl scale -n smoke --replicas=0 deployment/smoke-test
+
   echo "Smoke tests complete!"
   echo "Grafana URL: http://grafana.k3d.localhost:50080"
   echo "Prometheus URL: http://prometheus.k3d.localhost:50080"
