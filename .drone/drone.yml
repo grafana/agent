@@ -71,7 +71,12 @@ trigger:
     - refs/pull/*/head
     - refs/tags/**
 steps:
-  - name: Test
+  - name: lint
+    image: golangci/golangci-lint:v1.37.1
+    commands:
+      - apt-get update -y && apt-get install -y libsystemd-dev
+      - make DRONE=true e2e/lint
+  - name: test
     image: docker
     volumes:
       - name: docker
@@ -83,7 +88,6 @@ steps:
       - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
       - rm go1.16.5.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make DRONE=true e2e/lint
       - make DRONE=true e2e/test
 
 depends_on:
@@ -281,6 +285,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 4f2a3e0855f3b9646f00b84fa7748f5856eff60e37c45c04300bc93cf099b206
+hmac: 072250eb1fca020258bc18ad8891bcf46564c8e740a68ee5bd2b0348682dae61
 
 ...
