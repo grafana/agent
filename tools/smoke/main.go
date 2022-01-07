@@ -14,19 +14,16 @@ import (
 
 func main() {
 	var (
-		opts        smoke.Options
+		cfg         smoke.Config
 		logLevel    logging.Level
 		logFormat   logging.Format
 		withTimeout time.Duration
 	)
 
+	cfg.RegisterFlags(flag.CommandLine)
 	logLevel.RegisterFlags(flag.CommandLine)
 	logFormat.RegisterFlags(flag.CommandLine)
-	flag.StringVar(&opts.Namespace, "namespace", "agent-smoke-test", "namespace smoke test should run in")
-	flag.StringVar(&opts.Kubeconfig, "kubeconfig", "", "absolute path to the kubeconfig file")
 	flag.DurationVar(&withTimeout, "duration", time.Duration(0), "timeout after duration, example 3h")
-	flag.DurationVar(&opts.ChaosFrequency, "chaos-frequency", 30*time.Minute, "chaos frequency duration")
-	flag.DurationVar(&opts.MutationFrequency, "mutation-frequency", 5*time.Minute, "mutation frequency duration")
 	flag.Parse()
 
 	logger := util.NewLoggerFromLevel(logLevel, logFormat)
@@ -39,7 +36,7 @@ func main() {
 		level.Debug(logger).Log("msg", "running with duration", "duration", withTimeout.String())
 	}
 
-	smokeTest, err := smoke.NewSmokeTest(logger, opts)
+	smokeTest, err := smoke.New(logger, cfg)
 	if err != nil {
 		level.Error(logger).Log("msg", "error constructing smoke test", "err", err)
 		os.Exit(1)
