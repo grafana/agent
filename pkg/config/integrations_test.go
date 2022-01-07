@@ -34,7 +34,7 @@ metrics:
 integrations:
   agent:
     autoscrape:
-      enabled: false`
+      enable: false`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	c, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
