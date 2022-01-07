@@ -14,6 +14,7 @@ import (
 	config "github.com/rancher/k3d/v5/pkg/config"
 	k3d_cfgtypes "github.com/rancher/k3d/v5/pkg/config/types"
 	k3d_config "github.com/rancher/k3d/v5/pkg/config/v1alpha3"
+	k3d_log "github.com/rancher/k3d/v5/pkg/logger"
 	k3d_runtime "github.com/rancher/k3d/v5/pkg/runtimes"
 	k3d_docker "github.com/rancher/k3d/v5/pkg/runtimes/docker"
 	k3d_types "github.com/rancher/k3d/v5/pkg/types"
@@ -321,6 +322,9 @@ func (c *Cluster) PushImages(images ...string) error {
 
 // Stop shuts down and deletes the cluster. Stop must be called to clean up
 // created Docker resources.
-func (c *Cluster) Stop() error {
-	return k3d_client.ClusterDelete(context.Background(), c.runtime, &c.k3dCluster, k3d_types.ClusterDeleteOpts{})
+func (c *Cluster) Stop() {
+	err := k3d_client.ClusterDelete(context.Background(), c.runtime, &c.k3dCluster, k3d_types.ClusterDeleteOpts{})
+	if err != nil {
+		k3d_log.Log().Errorf("failed to shut down cluster, docker containers may have leaked: %s", err)
+	}
 }
