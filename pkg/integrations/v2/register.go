@@ -345,7 +345,7 @@ func deferredConfigUnmarshal(raw util.RawYAML, ref interface{}) (Config, error) 
 	switch ref := ref.(type) {
 	case Config:
 		out := cloneValue(ref).(Config)
-		err := yaml.Unmarshal(raw, out)
+		err := yaml.UnmarshalStrict(raw, out)
 		return out, err
 	case v1.Config:
 		mut, ok := upgraders[ref.Name()]
