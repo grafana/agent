@@ -23,7 +23,7 @@ type repeatingTask struct {
 
 type deletePodTask struct {
 	logger    log.Logger
-	clientset *kubernetes.Clientset
+	clientset kubernetes.Interface
 	namespace string
 	pod       string
 }
@@ -42,7 +42,7 @@ func (t *deletePodTask) Run(ctx context.Context) error {
 
 type scaleDeploymentTask struct {
 	logger      log.Logger
-	clientset   *kubernetes.Clientset
+	clientset   kubernetes.Interface
 	namespace   string
 	deployment  string
 	maxReplicas int
@@ -72,7 +72,7 @@ func (t *scaleDeploymentTask) Run(ctx context.Context) error {
 
 type deletePodBySelectorTask struct {
 	logger    log.Logger
-	clientset *kubernetes.Clientset
+	clientset kubernetes.Interface
 	namespace string
 	selector  string
 }

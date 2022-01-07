@@ -36,6 +36,7 @@ func main() {
 		level.Debug(logger).Log("msg", "running with duration", "duration", withTimeout.String())
 	}
 
+	level.Info(logger).Log("msg", "starting smoke test")
 	smokeTest, err := smoke.New(logger, cfg)
 	if err != nil {
 		level.Error(logger).Log("msg", "error constructing smoke test", "err", err)
