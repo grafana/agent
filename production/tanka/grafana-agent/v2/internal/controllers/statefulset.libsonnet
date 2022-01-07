@@ -5,9 +5,7 @@ function(replicas=1, volumeClaims=[]) {
   local namespace = _config.namespace,
 
   local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: this._config },
-
   local statefulSet = k.apps.v1.statefulSet,
-  local service = k.core.v1.service,
 
   controller:
     statefulSet.new(name, replicas, [this.container], volumeClaims) +
@@ -22,8 +20,4 @@ function(replicas=1, volumeClaims=[]) {
       else {}
     ) +
     k.util.configVolumeMount(name, '/etc/agent'),
-
-  service:
-    k.util.serviceFor(this.controller) +
-    service.mixin.metadata.withNamespace(namespace),
 }

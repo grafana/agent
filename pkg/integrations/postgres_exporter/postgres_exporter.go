@@ -10,6 +10,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/lib/pq"
 	"github.com/prometheus-community/postgres_exporter/exporter"
 )
@@ -119,7 +121,8 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 }
 
 func init() {
-	integrations.RegisterIntegration(func() integrations.Config { return &Config{} })
+	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new postgres_exporter integration. The integration scrapes

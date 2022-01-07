@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	registeredIntegrations []func() Config
+	registeredIntegrations = []Config{}
 	configFieldNames       = make(map[reflect.Type]string)
 
 	emptyStructType = reflect.TypeOf(struct{}{})
@@ -24,14 +24,15 @@ var (
 // constructed.
 //
 // RegisterIntegration panics if cfg is not a pointer.
-func RegisterIntegration(getCfg func() Config) {
-	registeredIntegrations = append(registeredIntegrations, getCfg)
-	cfg := getCfg()
+func RegisterIntegration(cfg Config) {
 	if reflect.TypeOf(cfg).Kind() != reflect.Ptr {
 		panic(fmt.Sprintf("RegisterIntegration must be given a pointer, got %T", cfg))
 	}
+	registeredIntegrations = append(registeredIntegrations, cfg)
 	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
+
+
 
 func TryUnmarshal(contents string) []Config {
 	unmarshalledConfigs := make([]Config, 0)
@@ -71,6 +72,16 @@ func TryUnmarshal(contents string) []Config {
 
 type TempIntegration struct {
 	IntegrationName string
+}
+
+// RegisteredIntegrations all Configs that were passed to RegisterIntegration.
+// Each call will generate a new set of pointers.
+func RegisteredIntegrations() []Config {
+	res := make([]Config, 0, len(registeredIntegrations))
+	for _, in := range registeredIntegrations {
+		res = append(res, cloneIntegration(in))
+	}
+	return res
 }
 
 func cloneIntegration(c Config) Config {
@@ -164,7 +175,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 // Prometheus:
 //
 //   https://github.com/prometheus/prometheus/blob/511511324adfc4f4178f064cc104c2deac3335de/discovery/registry.go#L111
-func unmarshalIntegrationsWithList(integrations []func() Config, out interface{}, unmarshal func(interface{}) error) error {
+func unmarshalIntegrationsWithList(integrations []Config, out interface{}, unmarshal func(interface{}) error) error {
 	outVal := reflect.ValueOf(out)
 	if outVal.Kind() != reflect.Ptr {
 		return fmt.Errorf("integrations: can only unmarshal into a struct pointer, got %T", out)
@@ -250,7 +261,7 @@ func unmarshalIntegrationsWithList(integrations []func() Config, out interface{}
 // the same fields as out including the fields for the provided integrations.
 //
 // integrations are unmarshaled to *util.RawYAML for deferred unmarshaling.
-func getConfigTypeForIntegrations(integrations []func() Config, out reflect.Type) reflect.Type {
+func getConfigTypeForIntegrations(integrations []Config, out reflect.Type) reflect.Type {
 	// Initial exported fields map one-to-one.
 	var fields []reflect.StructField
 	for i, n := 0, out.NumField(); i < n; i++ {
@@ -265,8 +276,7 @@ func getConfigTypeForIntegrations(integrations []func() Config, out reflect.Type
 			})
 		}
 	}
-	for _, getCfg := range integrations {
-		cfg := getCfg()
+	for _, cfg := range integrations {
 		// Use a prefix that's unlikely to collide with anything else.
 		fieldName := "XXX_Config_" + cfg.Name()
 		fields = append(fields, reflect.StructField{
@@ -278,11 +288,10 @@ func getConfigTypeForIntegrations(integrations []func() Config, out reflect.Type
 	return reflect.StructOf(fields)
 }
 
-func buildIntegrationsMap(getCfg []func() Config) map[string]Config {
-	m := make(map[string]Config, len(getCfg))
-	for _, i := range getCfg {
-		cfg := i()
-		m[cfg.Name()] = cfg
+func buildIntegrationsMap(in []Config) map[string]Config {
+	m := make(map[string]Config, len(in))
+	for _, i := range in {
+		m[i.Name()] = i
 	}
 	return m
 }

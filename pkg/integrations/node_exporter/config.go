@@ -2,6 +2,7 @@ package node_exporter //nolint:golint
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -25,14 +26,18 @@ var (
 
 		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 
-		NetclassIgnoredDevices: "^$",
-		NetstatFields:          "^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans)|Tcp_(ActiveOpens|InSegs|OutSegs|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$",
+		EthtoolMetricsInclude: ".*",
 
-		NTPServer:               "127.0.0.1",
-		NTPProtocolVersion:      4,
+		FilesystemMountTimeout: 5 * time.Second,
+
 		NTPIPTTL:                1,
-		NTPMaxDistance:          time.Microsecond * 3466080,
 		NTPLocalOffsetTolerance: time.Millisecond,
+		NTPMaxDistance:          time.Microsecond * 3466080,
+		NTPProtocolVersion:      4,
+		NTPServer:               "127.0.0.1",
+
+		NetclassIgnoredDevices: "^$",
+		NetstatFields:          "^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans|TCPTimeouts)|Tcp_(ActiveOpens|InSegs|OutSegs|OutRsts|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$",
 
 		PowersupplyIgnoredSupplies: "^$",
 
@@ -40,9 +45,12 @@ var (
 
 		SupervisordURL: "http://localhost:9001/RPC2",
 
-		SystemdUnitWhitelist: ".+",
-		SystemdUnitBlacklist: ".+\\.(automount|device|mount|scope|slice)",
-		VMStatFields:         "^(oom_kill|pgpg|pswp|pg.*fault).*",
+		SystemdUnitExclude: ".+\\.(automount|device|mount|scope|slice)",
+		SystemdUnitInclude: ".+",
+
+		TapestatsIgnoredDevices: "^$",
+
+		VMStatFields: "^(oom_kill|pgpg|pswp|pg.*fault).*",
 	}
 )
 
@@ -53,11 +61,15 @@ func init() {
 	// file.
 	switch runtime.GOOS {
 	case "linux":
-		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev|proc|sys|var/lib/docker/.+)($|/)"
-		DefaultConfig.FilesystemIgnoredFSTypes = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
+		DefaultConfig.FilesystemMountPointsExclude = "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+)($|/)"
+		DefaultConfig.FilesystemFSTypesExclude = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
 	case "freebsd", "netbsd", "openbsd", "darwin":
-		DefaultConfig.FilesystemIgnoredMountPoints = "^/(dev)($|/)"
-		DefaultConfig.FilesystemIgnoredFSTypes = "^devfs$"
+		DefaultConfig.FilesystemMountPointsExclude = "^/(dev)($|/)"
+		DefaultConfig.FilesystemFSTypesExclude = "^devfs$"
+	}
+
+	if url := os.Getenv("SUPERVISORD_URL"); url != "" {
+		DefaultConfig.SupervisordURL = url
 	}
 }
 
@@ -80,40 +92,136 @@ type Config struct {
 	SetCollectors flagext.StringSlice `yaml:"set_collectors,omitempty"`
 
 	// Collector-specific config options
-	CPUEnableCPUInfo              bool                `yaml:"enable_cpu_info_metric,omitempty"`
-	DiskStatsIgnoredDevices       string              `yaml:"diskstats_ignored_devices,omitempty"`
-	FilesystemIgnoredMountPoints  string              `yaml:"filesystem_ignored_mount_points,omitempty"`
-	FilesystemIgnoredFSTypes      string              `yaml:"filesystem_ignored_fs_types,omitempty"`
-	NetclassIgnoredDevices        string              `yaml:"netclass_ignored_devices,omitempty"`
-	NetdevDeviceBlacklist         string              `yaml:"netdev_device_blacklist,omitempty"`
-	NetdevDeviceWhitelist         string              `yaml:"netdev_device_whitelist,omitempty"`
-	NetstatFields                 string              `yaml:"netstat_fields,omitempty"`
-	NTPServer                     string              `yaml:"ntp_server,omitempty"`
-	NTPProtocolVersion            int                 `yaml:"ntp_protocol_version,omitempty"`
-	NTPServerIsLocal              bool                `yaml:"ntp_server_is_local,omitempty"`
-	NTPIPTTL                      int                 `yaml:"ntp_ip_ttl,omitempty"`
-	NTPMaxDistance                time.Duration       `yaml:"ntp_max_distance,omitempty"`
-	NTPLocalOffsetTolerance       time.Duration       `yaml:"ntp_local_offset_tolerance,omitempty"`
-	PerfCPUS                      string              `yaml:"perf_cpus,omitempty"`
-	PerfTracepoint                flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
-	PowersupplyIgnoredSupplies    string              `yaml:"powersupply_ignored_supplies,omitempty"`
-	RunitServiceDir               string              `yaml:"runit_service_dir,omitempty"`
-	SupervisordURL                string              `yaml:"supervisord_url,omitempty"`
-	SystemdUnitWhitelist          string              `yaml:"systemd_unit_whitelist,omitempty"`
-	SystemdUnitBlacklist          string              `yaml:"systemd_unit_blacklist,omitempty"`
-	SystemdEnableTaskMetrics      bool                `yaml:"systemd_enable_task_metrics,omitempty"`
-	SystemdEnableRestartsMetrics  bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
-	SystemdEnableStartTimeMetrics bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
-	VMStatFields                  string              `yaml:"vmstat_fields,omitempty"`
-	TextfileDirectory             string              `yaml:"textfile_directory,omitempty"`
+	BcachePriorityStats              bool                `yaml:"enable_bcache_priority_stats,omitempty"`
+	CPUBugsInclude                   string              `yaml:"cpu_bugs_include,omitempty"`
+	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty"`
+	CPUEnableCPUInfo                 bool                `yaml:"enable_cpu_info_metric,omitempty"`
+	CPUFlagsInclude                  string              `yaml:"cpu_flags_include,omitempty"`
+	DiskStatsIgnoredDevices          string              `yaml:"diskstats_ignored_devices,omitempty"`
+	EthtoolDeviceExclude             string              `yaml:"ethtool_device_exclude,omitempty"`
+	EthtoolDeviceInclude             string              `yaml:"ethtool_device_include,omitempty"`
+	EthtoolMetricsInclude            string              `yaml:"ethtool_metrics_include,omitempty"`
+	FilesystemFSTypesExclude         string              `yaml:"filesystem_fs_types_exclude,omitempty"`
+	FilesystemMountPointsExclude     string              `yaml:"filesystem_mount_points_exclude,omitempty"`
+	FilesystemMountTimeout           time.Duration       `yaml:"filesystem_mount_timeout,omitempty"`
+	IPVSBackendLabels                []string            `yaml:"ipvs_backend_labels,omitempty"`
+	NTPIPTTL                         int                 `yaml:"ntp_ip_ttl,omitempty"`
+	NTPLocalOffsetTolerance          time.Duration       `yaml:"ntp_local_offset_tolerance,omitempty"`
+	NTPMaxDistance                   time.Duration       `yaml:"ntp_max_distance,omitempty"`
+	NTPProtocolVersion               int                 `yaml:"ntp_protocol_version,omitempty"`
+	NTPServer                        string              `yaml:"ntp_server,omitempty"`
+	NTPServerIsLocal                 bool                `yaml:"ntp_server_is_local,omitempty"`
+	NetclassIgnoreInvalidSpeedDevice bool                `yaml:"netclass_ignore_invalid_speed_device,omitempty"`
+	NetclassIgnoredDevices           string              `yaml:"netclass_ignored_devices,omitempty"`
+	NetdevAddressInfo                bool                `yaml:"netdev_address_info,omitempty"`
+	NetdevDeviceExclude              string              `yaml:"netdev_device_exclude,omitempty"`
+	NetdevDeviceInclude              string              `yaml:"netdev_device_include,omitempty"`
+	NetstatFields                    string              `yaml:"netstat_fields,omitempty"`
+	PerfCPUS                         string              `yaml:"perf_cpus,omitempty"`
+	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
+	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
+	RunitServiceDir                  string              `yaml:"runit_servic e_dir,omitempty"`
+	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
+	SystemdEnableRestartsMetrics     bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
+	SystemdEnableStartTimeMetrics    bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
+	SystemdEnableTaskMetrics         bool                `yaml:"systemd_enable_task_metrics,omitempty"`
+	SystemdUnitExclude               string              `yaml:"systemd_unit_exclude,omitempty"`
+	SystemdUnitInclude               string              `yaml:"systemd_unit_include,omitempty"`
+	TapestatsIgnoredDevices          string              `yaml:"tapestats_ignored_devices,omitempty"`
+	TextfileDirectory                string              `yaml:"textfile_directory,omitempty"`
+	VMStatFields                     string              `yaml:"vmstat_fields,omitempty"`
+
+	UnmarshalWarnings []string `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
-	type plain Config
-	return unmarshal((*plain)(c))
+	type baseConfig Config
+	type config struct {
+		baseConfig `yaml:",inline"`
+
+		// Deprecated field names:
+		NetdevDeviceWhitelist        string `yaml:"netdev_device_whitelist,omitempty"`
+		NetdevDeviceBlacklist        string `yaml:"netdev_device_blacklist,omitempty"`
+		SystemdUnitWhitelist         string `yaml:"systemd_unit_whitelist,omitempty"`
+		SystemdUnitBlacklist         string `yaml:"systemd_unit_blacklist,omitempty"`
+		FilesystemIgnoredMountPoints string `yaml:"filesystem_ignored_mount_points,omitempty"`
+		FilesystemIgnoredFSTypes     string `yaml:"filesystem_ignored_fs_types,omitempty"`
+	}
+
+	var fc config // our full config (schema + deprecated names)
+	fc.baseConfig = baseConfig(*c)
+
+	type migratedField struct {
+		OldName, NewName   string
+		OldValue, NewValue *string
+
+		defaultValue string
+	}
+	migratedFields := []*migratedField{
+		{
+			OldName: "netdev_device_whitelist", NewName: "netdev_device_include",
+			OldValue: &fc.NetdevDeviceWhitelist, NewValue: &fc.NetdevDeviceInclude,
+		},
+		{
+			OldName: "netdev_device_blacklist", NewName: "netdev_device_exclude",
+			OldValue: &fc.NetdevDeviceBlacklist, NewValue: &fc.NetdevDeviceExclude,
+		},
+		{
+			OldName: "systemd_unit_whitelist", NewName: "systemd_unit_include",
+			OldValue: &fc.SystemdUnitWhitelist, NewValue: &fc.SystemdUnitInclude,
+		},
+		{
+			OldName: "systemd_unit_blacklist", NewName: "systemd_unit_exclude",
+			OldValue: &fc.SystemdUnitBlacklist, NewValue: &fc.SystemdUnitExclude,
+		},
+		{
+			OldName: "filesystem_ignored_mount_points", NewName: "filesystem_mount_points_exclude",
+			OldValue: &fc.FilesystemIgnoredMountPoints, NewValue: &fc.FilesystemMountPointsExclude,
+		},
+		{
+			OldName: "filesystem_ignored_fs_types", NewName: "filesystem_fs_types_exclude",
+			OldValue: &fc.FilesystemIgnoredFSTypes, NewValue: &fc.FilesystemFSTypesExclude,
+		},
+	}
+
+	// We don't know when fields are unmarshaled unless they have non-zero
+	// values. Defaults stop us from being able to check, so we'll temporarily
+	// cache the default and make sure both the old and new migrated fields are
+	// zero.
+	for _, mf := range migratedFields {
+		mf.defaultValue = *mf.NewValue
+		*mf.NewValue = ""
+	}
+
+	if err := unmarshal(&fc); err != nil {
+		return err
+	}
+
+	for _, mf := range migratedFields {
+		switch {
+		case *mf.OldValue != "" && *mf.NewValue != "": // New set, old set
+			return fmt.Errorf("only one of %q and %q may be specified", mf.OldName, mf.NewName)
+
+		case *mf.NewValue == "" && *mf.OldValue != "": // New unset, old set
+			*mf.NewValue = *mf.OldValue
+
+			warning := fmt.Sprintf("%q is deprecated by %q and will be removed in a future version", mf.OldName, mf.NewName)
+			fc.UnmarshalWarnings = append(fc.UnmarshalWarnings, warning)
+
+		case *mf.NewValue == "" && *mf.OldValue == "": // Neither set.
+			// Copy the default back to mf.NewValue.
+			*mf.NewValue = mf.defaultValue
+
+		case *mf.NewValue != "" && *mf.OldValue == "": // New set, old unset
+			// Nothing to do
+		}
+	}
+
+	*c = (Config)(fc.baseConfig)
+	return nil
 }
 
 // Name returns the name of the integration that this config represents.
@@ -181,31 +289,59 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 		"--path.rootfs", c.RootFSPath,
 	)
 
+	if collectors[CollectorBCache] {
+		flags.addBools(map[*bool]string{
+			&c.BcachePriorityStats: "collector.bcache.priorityStats",
+		})
+	}
+
 	if collectors[CollectorCPU] {
 		flags.addBools(map[*bool]string{
-			&c.CPUEnableCPUInfo: "collector.cpu.info",
+			&c.CPUEnableCPUGuest: "collector.cpu.guest",
+			&c.CPUEnableCPUInfo:  "collector.cpu.info",
 		})
+		flags.add("--collector.cpu.info.flags-include", c.CPUFlagsInclude)
+		flags.add("--collector.cpu.info.bugs-include", c.CPUBugsInclude)
 	}
 
 	if collectors[CollectorDiskstats] {
 		flags.add("--collector.diskstats.ignored-devices", c.DiskStatsIgnoredDevices)
 	}
 
+	if collectors[CollectorEthtool] {
+		flags.add("--collector.ethtool.device-include", c.EthtoolDeviceInclude)
+		flags.add("--collector.ethtool.device-exclude", c.EthtoolDeviceExclude)
+		flags.add("--collector.ethtool.metrics-include", c.EthtoolMetricsInclude)
+	}
+
 	if collectors[CollectorFilesystem] {
 		flags.add(
-			"--collector.filesystem.ignored-mount-points", c.FilesystemIgnoredMountPoints,
-			"--collector.filesystem.ignored-fs-types", c.FilesystemIgnoredFSTypes,
+			"--collector.filesystem.mount-timeout", c.FilesystemMountTimeout.String(),
+			"--collector.filesystem.mount-points-exclude", c.FilesystemMountPointsExclude,
+			"--collector.filesystem.fs-types-exclude", c.FilesystemFSTypesExclude,
 		)
 	}
 
+	if collectors[CollectorIPVS] {
+		flags.add("--collector.ipvs.backend-labels", strings.Join(c.IPVSBackendLabels, ","))
+	}
+
 	if collectors[CollectorNetclass] {
+		flags.addBools(map[*bool]string{
+			&c.NetclassIgnoreInvalidSpeedDevice: "collector.netclass.ignore-invalid-speed",
+		})
+
 		flags.add("--collector.netclass.ignored-devices", c.NetclassIgnoredDevices)
 	}
 
 	if collectors[CollectorNetdev] {
+		flags.addBools(map[*bool]string{
+			&c.NetdevAddressInfo: "collector.netdev.address-info",
+		})
+
 		flags.add(
-			"--collector.netdev.device-blacklist", c.NetdevDeviceBlacklist,
-			"--collector.netdev.device-whitelist", c.NetdevDeviceWhitelist,
+			"--collector.netdev.device-include", c.NetdevDeviceInclude,
+			"--collector.netdev.device-exclude", c.NetdevDeviceExclude,
 		)
 	}
 
@@ -249,8 +385,8 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 
 	if collectors[CollectorSystemd] {
 		flags.add(
-			"--collector.systemd.unit-whitelist", c.SystemdUnitWhitelist,
-			"--collector.systemd.unit-blacklist", c.SystemdUnitBlacklist,
+			"--collector.systemd.unit-include", c.SystemdUnitInclude,
+			"--collector.systemd.unit-exclude", c.SystemdUnitExclude,
 		)
 
 		flags.addBools(map[*bool]string{
@@ -260,12 +396,16 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 		})
 	}
 
-	if collectors[CollectorVMStat] {
-		flags.add("--collector.vmstat.fields", c.VMStatFields)
+	if collectors[CollectorTapestats] {
+		flags.add("--collector.tapestats.ignored-devices", c.TapestatsIgnoredDevices)
 	}
 
 	if collectors[CollectorTextfile] {
 		flags.add("--collector.textfile.directory", c.TextfileDirectory)
+	}
+
+	if collectors[CollectorVMStat] {
+		flags.add("--collector.vmstat.fields", c.VMStatFields)
 	}
 
 	return flags.accepted, flags.ignored

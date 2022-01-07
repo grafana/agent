@@ -135,17 +135,24 @@
                "steppedLine": false,
                "targets": [
                   {
+                     "expr": "rate(prometheus_remote_storage_sent_batch_duration_seconds_sum{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m]) / rate(prometheus_remote_storage_sent_batch_duration_seconds_count{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m])",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "mean {{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
+                     "refId": "A"
+                  },
+                  {
                      "expr": "histogram_quantile(0.99, rate(prometheus_remote_storage_sent_batch_duration_seconds_bucket{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1m]))",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
-                     "refId": "A"
+                     "legendFormat": "p99 {{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
+                     "refId": "B"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "P99 Latency [1m]",
+               "title": "Latency [1m]",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -224,12 +231,12 @@
                "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 12,
+               "span": 6,
                "stack": false,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(agent_wal_samples_appended_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])\n-\n  ignoring(remote_name, url) group_right(pod)\n  (rate(prometheus_remote_storage_succeeded_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]) or rate(prometheus_remote_storage_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]))\n-\n  (rate(prometheus_remote_storage_dropped_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]) or rate(prometheus_remote_storage_samples_dropped_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]))\n",
+                     "expr": "rate(agent_wal_samples_appended_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
@@ -239,7 +246,7 @@
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Rate, in vs. succeeded or dropped [5m]",
+               "title": "Rate in [5m]",
                "tooltip": {
                   "shared": true,
                   "sort": 0,
@@ -282,6 +289,87 @@
                "fillGradient": 0,
                "gridPos": { },
                "id": 5,
+               "legend": {
+                  "alignAsTable": false,
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "sideWidth": null,
+                  "total": false,
+                  "values": false
+               },
+               "lines": true,
+               "linewidth": 1,
+               "links": [ ],
+               "nullPointMode": "null",
+               "percentage": false,
+               "pointradius": 5,
+               "points": false,
+               "renderer": "flot",
+               "repeat": null,
+               "seriesOverrides": [ ],
+               "spaceLength": 10,
+               "span": 6,
+               "stack": false,
+               "steppedLine": false,
+               "targets": [
+                  {
+                     "expr": "rate(prometheus_remote_storage_succeeded_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m]) or rate(prometheus_remote_storage_samples_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[5m])",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "{{cluster}}:{{pod}}-{{instance_group_name}}-{{url}}",
+                     "refId": "A"
+                  }
+               ],
+               "thresholds": [ ],
+               "timeFrom": null,
+               "timeShift": null,
+               "title": "Rate succeeded [5m]",
+               "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+               },
+               "type": "graph",
+               "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": [ ]
+               },
+               "yaxes": [
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  },
+                  {
+                     "format": "short",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  }
+               ]
+            },
+            {
+               "aliasColors": { },
+               "bars": false,
+               "dashLength": 10,
+               "dashes": false,
+               "datasource": "$datasource",
+               "fill": 1,
+               "fillGradient": 0,
+               "gridPos": { },
+               "id": 6,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -362,7 +450,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 6,
+               "id": 7,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -443,7 +531,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 7,
+               "id": 8,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -524,7 +612,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 8,
+               "id": 9,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -618,7 +706,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 9,
+               "id": 10,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -700,7 +788,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 10,
+               "id": 11,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -781,7 +869,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 11,
+               "id": 12,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -862,7 +950,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 12,
+               "id": 13,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -956,7 +1044,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 13,
+               "id": 14,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -1050,7 +1138,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 14,
+               "id": 15,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,
@@ -1144,7 +1232,7 @@
                "fill": 1,
                "fillGradient": 0,
                "gridPos": { },
-               "id": 15,
+               "id": 16,
                "legend": {
                   "alignAsTable": false,
                   "avg": false,

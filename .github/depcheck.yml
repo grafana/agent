@@ -2,14 +2,15 @@
 # obtained from the listing in go.mod.
 go_modules:
   - github.com/cortexproject/cortex
+  - github.com/drone/envsubst/v2
   - github.com/grafana/loki
-  - github.com/prometheus-community/elasticsearch_exporter
   - github.com/oliver006/redis_exporter
+  - github.com/prometheus-community/elasticsearch_exporter
   - github.com/prometheus/consul_exporter
   - github.com/prometheus/memcached_exporter
+  - github.com/prometheus/node_exporter
   - github.com/prometheus/statsd_exporter
   - github.com/weaveworks/common
-  - github.com/drone/envsubst/v2
   - go.opentelemetry.io/collector
   - sigs.k8s.io/controller-runtime
 

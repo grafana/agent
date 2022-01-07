@@ -76,5 +76,7 @@ scraping service config management API.
   logs.
 - `withLogPermissions()`: Runs the container as privileged and as the root user
   so logs can be collected properly.
+- `withService(config)`: Add a service for the deployment, statefulset, or daemonset.
+  Note that this must be called after any ports are added via `withPortsMixin`.
 
 
