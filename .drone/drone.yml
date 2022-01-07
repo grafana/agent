@@ -81,7 +81,7 @@ steps:
       - name: docker
         path: /var/run/docker.sock
     commands:
-      - apk update && apk add make bash wget git qemu
+      - apk update && apk add make gcc bash wget git
       - mkdir -p /usr/local/go/bin
       - wget -q https://golang.org/dl/go1.17.5.linux-amd64.tar.gz
       - tar -C /usr/local -xzf go1.17.5.linux-amd64.tar.gz
@@ -284,6 +284,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: bfde7eecc8fbdebb178c6487fe097951551e089a556da804859a2fc131e2ace9
+hmac: 39394112259e9db7c68b0b045b0c951439478089a8c276be3e0db3e49446ec71
 
 ...
