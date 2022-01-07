@@ -62,10 +62,14 @@ platform:
   os: linux
   arch: amd64
 trigger:
+  event:
+    - push
+    - pull_request
+    - tag
   ref:
     - refs/heads/main
-    - refs/tags/v*
-    - refs/heads/dev.*
+    - refs/pull/*/head
+    - refs/tags/**
 steps:
   - name: Test
     image: docker
@@ -115,6 +119,7 @@ steps:
       - make DRONE=true BUILD_IN_CONTAINER=false dist
 depends_on:
   - Test
+  - E2E
 ---
 kind: pipeline
 type: docker
