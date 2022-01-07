@@ -72,9 +72,8 @@ trigger:
     - refs/tags/**
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.37.1
+    image: golangci/golangci-lint:v1.43.0
     commands:
-      - apt-get update -y && apt-get install -y libsystemd-dev
       - make DRONE=true e2e/lint
   - name: test
     image: docker
@@ -84,9 +83,9 @@ steps:
     commands:
       - apk update && apk add make bash wget git qemu
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.5.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.5.linux-amd64.tar.gz
+      - rm go1.17.5.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make DRONE=true e2e/test
 
@@ -285,6 +284,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 072250eb1fca020258bc18ad8891bcf46564c8e740a68ee5bd2b0348682dae61
+hmac: bfde7eecc8fbdebb178c6487fe097951551e089a556da804859a2fc131e2ace9
 
 ...
