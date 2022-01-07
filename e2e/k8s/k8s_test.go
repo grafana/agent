@@ -14,6 +14,7 @@ func TestCluster(t *testing.T) {
 
 	cluster, err := NewCluster()
 	require.NoError(t, err)
+	defer cluster.Stop()
 
 	cli, err := client.New(cluster.GetConfig(), client.Options{})
 	require.NoError(t, err)

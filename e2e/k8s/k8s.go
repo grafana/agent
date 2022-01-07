@@ -4,6 +4,8 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"os"
+	"sort"
 	"time"
 
 	docker_types "github.com/docker/docker/api/types"
@@ -28,6 +30,12 @@ import (
 // Cluster also runs an NGINX ingress controller which is exposed to the host.
 // Call GetHTTPAddr to get the address for making requests against the server.
 //
+// Set E2E_K8S_USE_DOCKER_NETWORK in your environment variables if you are
+// running tests from inside of a Docker container. This environment variable
+// configures the k3s Docker container to join the same network as the
+// container tests are running in. When this environment variable isn't set,
+// the exposed ports on the Docker host are used for cluster communication.
+//
 // Note that k3s uses containerd as its runtime, which means local Docker
 // images are not immediately available for use. To push local images to a
 // container, call PushImages. It's recommended that tests use image names that
@@ -51,6 +59,10 @@ func NewCluster() (cluster *Cluster, err error) {
 		// We force the Docker runtime so we can create a Docker client for getting
 		// the exposed ports for the API server and NGINX.
 		runtime = k3d_runtime.Docker
+
+		// Running in docker indicates that we should configure k3s to connect to
+		// the same docker network as the current container.
+		runningInDocker = os.Getenv("E2E_K8S_USE_DOCKER_NETWORK") == "1"
 	)
 
 	k3dConfig := k3d_config.SimpleConfig{
@@ -79,6 +91,13 @@ func NewCluster() (cluster *Cluster, err error) {
 			},
 		},
 	}
+	if runningInDocker {
+		err := injectCurrentDockerNetwork(ctx, &k3dConfig)
+		if err != nil {
+			return nil, fmt.Errorf("could not connect k3d to current docker network: %w", err)
+		}
+	}
+
 	clusterConfig, err := config.TransformSimpleToClusterConfig(ctx, runtime, k3dConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate cluster config: %w", err)
@@ -99,9 +118,18 @@ func NewCluster() (cluster *Cluster, err error) {
 		return nil, fmt.Errorf("failed to run cluster: %w", err)
 	}
 
-	// Retrieve the actual local addresses for NGINX and the API server rather
-	// than the 127.0.0.1:0 addresses still present in the cluster config.
-	httpAddr, apiServerAddr, err := loadBalancerAddrs(ctx, clusterConfig.Cluster)
+	var (
+		httpAddr      string
+		apiServerAddr string
+	)
+
+	// If we're currently running inside of Docker, we can connect directly to
+	// our container. Otherwise, we have to find what the bound host IPs are.
+	if runningInDocker {
+		httpAddr, apiServerAddr, err = clusterInternalAddrs(ctx, clusterConfig.Cluster)
+	} else {
+		httpAddr, apiServerAddr, err = loadBalancerExposedAddrs(ctx, clusterConfig.Cluster)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to discover exposed cluster addresses: %w", err)
 	}
@@ -131,11 +159,94 @@ func NewCluster() (cluster *Cluster, err error) {
 	}, nil
 }
 
+// injectCurrentDockerNetwork reconfigures config to join the Docker network of
+// the current container. Fails if the function is not being called from inside
+// of a Docker container.
+func injectCurrentDockerNetwork(ctx context.Context, config *k3d_config.SimpleConfig) error {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("could not get hostname: %w", err)
+	}
+
+	cli, err := k3d_docker.GetDockerClient()
+	if err != nil {
+		return fmt.Errorf("failed to get docker client: %w", err)
+	}
+	info, err := cli.ContainerInspect(ctx, hostname)
+	if err != nil {
+		return fmt.Errorf("failed to find current docker container: %w", err)
+	}
+
+	networks := make([]string, 0, len(info.NetworkSettings.Networks))
+	for nw := range info.NetworkSettings.Networks {
+		networks = append(networks, nw)
+	}
+	sort.Strings(networks)
+
+	if len(networks) == 0 {
+		return fmt.Errorf("no networks")
+	}
+	config.Network = networks[0]
+	return nil
+}
+
 func randomClusterName() string {
 	return "grafana-agent-e2e-" + rand.String(5)
 }
 
-func loadBalancerAddrs(ctx context.Context, cluster k3d_types.Cluster) (httpAddr, apiServerAddr string, err error) {
+func clusterInternalAddrs(ctx context.Context, cluster k3d_types.Cluster) (httpAddr, serverAddr string, err error) {
+	var lb, server *k3d_types.Node
+	for _, n := range cluster.Nodes {
+		switch n.Role {
+		case k3d_types.LoadBalancerRole:
+			if lb == nil {
+				lb = n
+			}
+		case k3d_types.ServerRole:
+			if server == nil {
+				server = n
+			}
+		}
+	}
+	if lb == nil {
+		return "", "", fmt.Errorf("no loadbalancer node")
+	} else if server == nil {
+		return "", "", fmt.Errorf("no server node")
+	}
+
+	cli, err := k3d_docker.GetDockerClient()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get docker client: %w", err)
+	}
+
+	lbInfo, err := cli.ContainerInspect(ctx, lb.Name)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to inspect loadbalancer: %w", err)
+	} else if len(lbInfo.NetworkSettings.Networks) == 0 {
+		return "", "", fmt.Errorf("no http address from loadbalancer")
+	} else {
+		for _, nw := range lbInfo.NetworkSettings.Networks {
+			httpAddr = fmt.Sprintf("%s:80", nw.IPAddress)
+			break
+		}
+	}
+
+	serverInfo, err := cli.ContainerInspect(ctx, server.Name)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to inspect loadbalancer: %w", err)
+	} else if len(serverInfo.NetworkSettings.Networks) == 0 {
+		return "", "", fmt.Errorf("no API server address from worker")
+	} else {
+		for _, nw := range serverInfo.NetworkSettings.Networks {
+			serverAddr = fmt.Sprintf("%s:6443", nw.IPAddress)
+			break
+		}
+	}
+
+	return httpAddr, serverAddr, nil
+}
+
+func loadBalancerExposedAddrs(ctx context.Context, cluster k3d_types.Cluster) (httpAddr, apiServerAddr string, err error) {
 	var lb *k3d_types.Node
 	for _, n := range cluster.Nodes {
 		if n.Role == k3d_types.LoadBalancerRole {

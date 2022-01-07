@@ -87,7 +87,7 @@ steps:
       - tar -C /usr/local -xzf go1.17.5.linux-amd64.tar.gz
       - rm go1.17.5.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make DRONE=true e2e/test
+      - make E2E_K8S_USE_DOCKER_NETWORK=1 DRONE=true e2e/test
 
 depends_on:
   - Test
@@ -284,6 +284,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 247def655ca6f1453b1376f640ca2f3b26d1fe9c40aa1744ad3296a25f49dcdd
+hmac: d78c4fe3269f5e585d410571767e05b225971aeeb8956cef158f8c701ed828f7
 
 ...
