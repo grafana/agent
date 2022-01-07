@@ -183,8 +183,8 @@ func (p *automaticLoggingProcessor) Capabilities() consumer.Capabilities {
 
 // Start is invoked during service startup.
 func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host) error {
-	logs := ctx.Value(contextkeys.Logs).(*logs.Logs)
-	if logs == nil {
+	logs, ok := ctx.Value(contextkeys.Logs).(*logs.Logs)
+	if !ok {
 		return fmt.Errorf("key does not contain a logs instance")
 	}
 
