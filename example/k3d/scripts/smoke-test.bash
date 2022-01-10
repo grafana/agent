@@ -87,7 +87,7 @@ run() {
     k3d image import -c $K3D_CLUSTER_NAME \
       grafana/agent:latest \
       grafana/agentctl:latest \
-      grafana/agent-crow:latest \
+      us.gcr.io/kubernetes-dev/grafana/agent-crow:latest \
       us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
   fi
 
