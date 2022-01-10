@@ -88,7 +88,8 @@ run() {
       grafana/agent:main \
       grafana/agentctl:main \
       grafana/agent-crow:main \
-      us.gcr.io/kubernetes-dev/grafana/agent-smoke:main:
+      us.gcr.io/kubernetes-dev/grafana/agent-smoke:main \
+      us.gcr.io/kubernetes-dev/grafana/agent-smoke:main
   fi
 
   (cd $ROOT/example/k3d && jb install)
