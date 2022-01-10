@@ -223,25 +223,19 @@ func clusterInternalAddrs(ctx context.Context, cluster k3d_types.Cluster) (httpA
 	lbInfo, err := cli.ContainerInspect(ctx, lb.Name)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to inspect loadbalancer: %w", err)
-	} else if len(lbInfo.NetworkSettings.Networks) == 0 {
-		return "", "", fmt.Errorf("no http address from loadbalancer")
+	} else if nw, found := lbInfo.NetworkSettings.Networks[cluster.Network.Name]; !found {
+		return "", "", fmt.Errorf("loadbalancer not connected to expected network %q", cluster.Network.Name)
 	} else {
-		for _, nw := range lbInfo.NetworkSettings.Networks {
-			httpAddr = fmt.Sprintf("%s:80", nw.IPAddress)
-			break
-		}
+		httpAddr = fmt.Sprintf("%s:80", nw.IPAddress)
 	}
 
 	serverInfo, err := cli.ContainerInspect(ctx, server.Name)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to inspect loadbalancer: %w", err)
-	} else if len(serverInfo.NetworkSettings.Networks) == 0 {
-		return "", "", fmt.Errorf("no API server address from worker")
+		return "", "", fmt.Errorf("failed to inspect worker: %w", err)
+	} else if nw, found := serverInfo.NetworkSettings.Networks[cluster.Network.Name]; !found {
+		return "", "", fmt.Errorf("worker not connected to expected network %q", cluster.Network.Name)
 	} else {
-		for _, nw := range serverInfo.NetworkSettings.Networks {
-			serverAddr = fmt.Sprintf("%s:6443", nw.IPAddress)
-			break
-		}
+		serverAddr = fmt.Sprintf("%s:6443", nw.IPAddress)
 	}
 
 	return httpAddr, serverAddr, nil
