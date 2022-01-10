@@ -43,7 +43,7 @@ SKIP_CREATE=""
 
 # Which function will be called
 ENTRYPOINT="run"
-TEST_DURATION="3h"
+TEST_DURATION="10800"
 IMPORT_IMAGES=""
 
 while getopts "dt:ish" opt; do
@@ -83,7 +83,6 @@ run() {
   if [[ ! -z "$IMPORT_IMAGES" ]]; then
     echo "--- Importing local images"
 
-    docker pull us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
     k3d image import -c $K3D_CLUSTER_NAME \
       grafana/agent:latest \
       grafana/agentctl:latest \
