@@ -25,8 +25,10 @@ local new_crow(name, selector) =
     },
   });
 
-local new_smoke(name) = smoke.new(name, namespace='smoke', image=images.agentsmoke);
-
+local chaosFrequency = std.extVar("chaos_frequency");
+local mutationFrequency = std.extVar("mutation_frequency");
+local new_smoke(name) = smoke.new(name, namespace='smoke',
+    mutationFrequency=mutationFrequency, chaosFrequency=chaosFrequency, image=images.agentsmoke);
 
 local smoke = {
   ns: namespace.new('smoke'),

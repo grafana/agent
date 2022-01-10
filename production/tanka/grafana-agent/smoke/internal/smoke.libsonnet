@@ -6,7 +6,7 @@ local container = k.core.v1.container;
 local deployment = k.apps.v1.deployment;
 
 {
-    newSmoke(name='grafana-agent-smoke', namespace='default', image):: {
+    newSmoke(name='grafana-agent-smoke', namespace='default', mutationFrequency='5m', chaosFrequency='30m', image):: {
         local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: { namespace: namespace } },
 
         rbac:
@@ -25,6 +25,8 @@ local deployment = k.apps.v1.deployment;
           container.withArgsMixin(k.util.mapToFlags({
             'log.level': 'debug',
             'namespace': namespace,
+            'mutation-frequency': mutationFrequency,
+            'chaos-frequency': chaosFrequency,
           })),
 
         agentsmoke:

@@ -92,7 +92,7 @@ run() {
   fi
 
   (cd $ROOT/example/k3d && jb install)
-  tk apply $ROOT/example/k3d/smoke --dangerous-auto-approve
+  tk apply $ROOT/example/k3d/smoke --dangerous-auto-approve -V mutation_frequency="$MUTATION_FREQUENCY" -V chaos_frequency="$CHAOS_FREQUENCY"
 
   # Immediately create a job to sync configs so our two Agent deployments
   # are synced up as closely as possible.

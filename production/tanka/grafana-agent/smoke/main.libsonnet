@@ -5,11 +5,9 @@ local smoke = import './internal/smoke.libsonnet';
         agentsmoke: 'us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest',
     },
 
-    new(name='grafana-agent-smoke', namespace='grafana-agent-smoke', image=self._images.agentsmoke):: {
-        local this = self,
-
+    new(name='grafana-agent-smoke', namespace='grafana-agent-smoke', mutationFrequency='5m', chaosFrequency='30m', image=self._images.agentsmoke):: {
         smoke:
-            smoke.newSmoke(name, namespace, image)
+            smoke.newSmoke(name, namespace, mutationFrequency, chaosFrequency, image)
     }
 
 }
