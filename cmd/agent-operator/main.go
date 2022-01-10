@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 
 	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
@@ -32,6 +33,9 @@ func main() {
 		level.Error(logger).Log("msg", "unable to create manager", "err", err)
 		os.Exit(1)
 	}
+
+	m.AddReadyzCheck("running", func(req *http.Request) error { return nil })
+	m.AddHealthzCheck("running", func(req *http.Request) error { return nil })
 
 	if err := operator.New(logger, cfg, m); err != nil {
 		level.Error(logger).Log("msg", "unable to create operator", "err", err)

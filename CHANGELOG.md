@@ -40,6 +40,9 @@ for detailed information.
 
 - [BUGFIX] Fix panic when using 'stdout' in automatic logging (@mapno)
 
+- [BUGFIX] Grafana Agent Operator: The /-/ready and /-/healthy endpoints will
+  no longer always return 404 (@rfratto).
+
 - [DEPRECATION] The node_exporter integration's `netdev_device_whitelist` field
   is deprecated in favor of `netdev_device_include`. Support for the old field
   name will be removed in a future version. (@rfratto)
