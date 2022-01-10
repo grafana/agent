@@ -229,6 +229,12 @@ test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -race -cover -coverprofile=cover.out -p=4 ./...
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
 
+e2e/lint:
+	$(MAKE) -C e2e lint
+
+e2e/test:
+	$(MAKE) -C e2e test
+
 clean:
 	rm -rf cmd/agent/agent
 	go clean ./...
