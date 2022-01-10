@@ -38,6 +38,8 @@ for detailed information.
 
 - [BUGFIX] Fix cAdvisor so it collects all defined metrics instead of the last (@pkoenig10)
 
+- [BUGFIX] Fix panic when using 'stdout' in automatic logging (@mapno)
+
 - [DEPRECATION] The node_exporter integration's `netdev_device_whitelist` field
   is deprecated in favor of `netdev_device_include`. Support for the old field
   name will be removed in a future version. (@rfratto)

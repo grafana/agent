@@ -70,6 +70,17 @@ func UnmarshalYAMLMerged(bb []byte, vv ...interface{}) error {
 		} else if err != nil {
 			return err
 		}
+
+		// It's common for custom yaml.Unmarshaler implementations to use
+		// UnmarshalYAML to apply default values both before and after calling the
+		// unmarshal method passed to them.
+		//
+		// We *must* do a second non-strict unmarshal *after* the strict unmarshal
+		// to ensure that every v was able to complete its unmarshal to completion,
+		// ignoring type errors from unrecognized fields.
+		if err := yaml.Unmarshal(bb, v); err != nil {
+			return err
+		}
 	}
 
 	var (

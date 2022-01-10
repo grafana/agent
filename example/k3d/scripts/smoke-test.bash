@@ -88,6 +88,7 @@ run() {
       grafana/agent-crow:latest
   fi
 
+  (cd $ROOT/example/k3d && jb install)
   tk apply $ROOT/example/k3d/smoke --dangerous-auto-approve
 
   echo "--- Spawning background tasks"
