@@ -150,6 +150,9 @@ type GrafanaAgentSpec struct {
 	// Logs controls the logging subsystem of the Agent and settings unique to
 	// logging-specific pods that are deployed.
 	Logs LogsSubsystemSpec `json:"logs,omitempty"`
+
+	// Args controls command line additional arguments sent to the Agent pod.
+	Args []string `json:"args,omitempty"`
 }
 
 // ObjectSelector is a set of selectors to use for finding an object in the
