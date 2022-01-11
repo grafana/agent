@@ -91,7 +91,8 @@ example sections in the RFC may be:
 * Pros/Cons:
   * Pros: What are the upsides to this proposal?
   * Cons: What are the downsides to this proposal?
-* Considered Alternatives: Why is this proposal the best path forward? What were the alternatives?
+* Considered Alternatives: Why is this proposal the best path forward? What
+  were the alternatives?
 * Open Questions: What questions still need to be answered?
 * Prior Art: What was this proposal based on, if anything?
 
@@ -102,16 +103,18 @@ title with `RFC:` to easily identify it amongst other PRs.
 
 ### Google Docs Proposals
 
-It is not recommended to use Google Docs for writing proposals:
+Google Docs may be useful for early feedback rounds during a proposal. However,
+it is not recommended for the permanent home of a proposal:
 
 * Change and comment history may not be available to all viewers.
 
 * The file owner may delete the proposal, leading to a gap in historical
   context.
 
-Google Docs proposals will be permitted if linked to from an issue proposal. It
-is recommended that proposals from Google Docs are eventually converted by the
-author into an RFC proposal to ensure that historical context is recorded,
+Google Docs proposals will be permitted if linked to from an issue proposal.
+
+It is recommended that proposals from Google Docs are eventually converted by
+the author into an RFC proposal to ensure that historical context is recorded,
 though this is still not ideal as it discards comment history.
 
 ## Accepting Proposals
