@@ -10,6 +10,8 @@ import (
 
 	docker_types "github.com/docker/docker/api/types"
 	docker_nat "github.com/docker/go-connections/nat"
+	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	k3d_client "github.com/rancher/k3d/v5/pkg/client"
 	config "github.com/rancher/k3d/v5/pkg/config"
 	k3d_cfgtypes "github.com/rancher/k3d/v5/pkg/config/types"
@@ -19,9 +21,13 @@ import (
 	k3d_docker "github.com/rancher/k3d/v5/pkg/runtimes/docker"
 	k3d_types "github.com/rancher/k3d/v5/pkg/types"
 	k3d_version "github.com/rancher/k3d/v5/version"
+	apiextensions_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	k8s_clientcmd "k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Cluster is a Kubernetes cluster that runs inside of a k3s Docker container.
@@ -31,8 +37,8 @@ import (
 // Cluster also runs an NGINX ingress controller which is exposed to the host.
 // Call GetHTTPAddr to get the address for making requests against the server.
 //
-// Set K8S_USE_DOCKER_NETWORK in your environment variables if you are running
-// tests from inside of a Docker container. This environment variable
+// Set K8S_USE_DOCKER_NETWORK in your environment variables if you are
+// running tests from inside of a Docker container. This environment variable
 // configures the k3s Docker container to join the same network as the
 // container tests are running in. When this environment variable isn't set,
 // the exposed ports on the Docker host are used for cluster communication.
@@ -49,14 +55,43 @@ type Cluster struct {
 	runtime    k3d_runtime.Runtime
 	k3dCluster k3d_types.Cluster
 	restConfig *rest.Config
+	kubeClient client.Client
 	nginxAddr  string
 }
 
-// NewCluster creates a new Cluster.
-func NewCluster() (cluster *Cluster, err error) {
-	var (
-		ctx = context.Background()
+// Options control creation of a cluster.
+type Options struct {
+	// Scheme is the Kubernetes scheme used for the generated Kubernetes client.
+	// If nil, a generated scheme that contains all known Kubernetes API types
+	// will be generated.
+	Scheme *runtime.Scheme
+}
 
+func (o *Options) applyDefaults() error {
+	if o.Scheme == nil {
+		o.Scheme = runtime.NewScheme()
+
+		for _, add := range []func(*runtime.Scheme) error{
+			scheme.AddToScheme,
+			apiextensions_v1.AddToScheme,
+			grafana_v1alpha1.AddToScheme,
+			promop_v1.AddToScheme,
+		} {
+			if err := add(o.Scheme); err != nil {
+				return fmt.Errorf("unable to register scheme: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+// NewCluster creates a new Cluster. NewCluster won't return with success until
+// the cluster is running, but things like the ingress controller might not be
+// running right away. You should never assume that any resource in the cluster
+// is running and utilize exponential backoffs to allow time for things to spin
+// up.
+func NewCluster(ctx context.Context, o Options) (cluster *Cluster, err error) {
+	var (
 		// We force the Docker runtime so we can create a Docker client for getting
 		// the exposed ports for the API server and NGINX.
 		runtime = k3d_runtime.Docker
@@ -65,6 +100,10 @@ func NewCluster() (cluster *Cluster, err error) {
 		// the same docker network as the current container.
 		runningInDocker = os.Getenv("K8S_USE_DOCKER_NETWORK") == "1"
 	)
+
+	if err := o.applyDefaults(); err != nil {
+		return nil, fmt.Errorf("failed to apply defaults to options: %w", err)
+	}
 
 	k3dConfig := k3d_config.SimpleConfig{
 		TypeMeta: k3d_cfgtypes.TypeMeta{
@@ -152,11 +191,19 @@ func NewCluster() (cluster *Cluster, err error) {
 		return nil, fmt.Errorf("could not generate k8s REST API config: %w", err)
 	}
 
+	kubeClient, err := client.New(restCfg, client.Options{
+		Scheme: o.Scheme,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate client: %w", err)
+	}
+
 	return &Cluster{
 		runtime:    runtime,
 		k3dCluster: clusterConfig.Cluster,
 		restConfig: restCfg,
 		nginxAddr:  httpAddr,
+		kubeClient: kubeClient,
 	}, nil
 }
 
@@ -287,6 +334,13 @@ func hostBinding(containerInfo docker_types.ContainerJSON, containerPort int) (s
 	}
 
 	return "", fmt.Errorf("no container port %d exposed", containerPort)
+}
+
+// Client returns the Kubernetes client for this Cluster. Client is handling
+// objects registered to the Scheme passed to Options when creating the
+// cluster.
+func (c *Cluster) Client() client.Client {
+	return c.kubeClient
 }
 
 // GetConfig returns a *rest.Config that can be used to connect to the
