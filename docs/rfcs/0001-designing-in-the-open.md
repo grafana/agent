@@ -77,6 +77,7 @@ RFC PR proposals must at least:
   * The date the proposal was written
   * The list of authors, with their names and GitHub usernames
   * The PR where the proposal was posted
+  * Which RFCs, if any, the RFC is superseding/deprecating.
 
 `0000-template.md` contains a template to use for writing proposals that
 conforms to these rules.
@@ -107,8 +108,12 @@ Once an RFC is accepted, it must be treated as immutable. There are two exceptio
 * The author's name and username may be changed, as long as authorship is still
   credited to the same individuals.
 
-* Errata and typos may be fixed as long as it does not change the
-  interpretation of the proposal.
+* Errata and typos may be fixed as long as it can not change the interpretation
+  of the proposal.
+
+* Metadata may be added to denote `Superseded by: #<NewRFC>` if an RFC has been
+  superseded. This may only be done if new RFC includes `Supersedes: #<OldRFC>`
+  in its metadata.
 
 ### Google Docs Proposals
 
