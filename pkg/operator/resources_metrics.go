@@ -225,14 +225,6 @@ func generateMetricsStatefulSetSpec(
 		imagePath = *d.Agent.Spec.Image
 	}
 
-	agentArgs := []string{
-		"-config.file=/var/lib/grafana-agent/config/agent.yml",
-		"-config.expand-env=true",
-		"-reload-port=8081",
-	}
-
-	agentArgs = append(agentArgs, d.Agent.Spec.Args...)
-
 	// NOTE(rfratto): the Prometheus Operator supports a ListenLocal to prevent a
 	// service from being created. Given the intent is that Agents can connect to
 	// each other, ListenLocal isn't currently supported and we always create a port.
@@ -402,7 +394,7 @@ func generateMetricsStatefulSetSpec(
 			Name:         "grafana-agent",
 			Image:        imagePath,
 			Ports:        ports,
-			Args:         agentArgs,
+			Args:         d.Agent.Spec.Args,
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			ReadinessProbe: &v1.Probe{
