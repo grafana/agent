@@ -41,6 +41,9 @@ trigger:
 steps:
   - name: test
     image: rfratto/seego
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
       - gem install --no-document fpm
@@ -50,52 +53,9 @@ steps:
       - rm go1.16.5.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator cmd/grafana-agent-crow/grafana-agent-crow
-      - make DRONE=true BUILD_IN_CONTAINER=false test
+      - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
 depends_on:
   - Lint
-
----
-kind: pipeline
-type: docker
-name: E2E
-platform:
-  os: linux
-  arch: amd64
-trigger:
-  event:
-    - push
-    - pull_request
-    - tag
-  ref:
-    - refs/heads/main
-    - refs/pull/*/head
-    - refs/tags/**
-steps:
-  - name: lint
-    image: golangci/golangci-lint:v1.43.0
-    commands:
-      - make DRONE=true e2e/lint
-  - name: test
-    image: docker
-    volumes:
-      - name: docker
-        path: /var/run/docker.sock
-    commands:
-      - apk update && apk add make gcc libc-dev bash wget git
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.5.linux-amd64.tar.gz
-      - rm go1.17.5.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - make E2E_K8S_USE_DOCKER_NETWORK=1 DRONE=true e2e/test
-
-depends_on:
-  - Test
-
-volumes:
-  - name: docker
-    host:
-      path: /var/run/docker.sock
 
 ---
 kind: pipeline
@@ -122,7 +82,6 @@ steps:
       - make DRONE=true BUILD_IN_CONTAINER=false dist
 depends_on:
   - Test
-  - E2E
 ---
 kind: pipeline
 type: docker
@@ -284,6 +243,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: d78c4fe3269f5e585d410571767e05b225971aeeb8956cef158f8c701ed828f7
+hmac: d7f62a30e03019d462a2ab7764db090c6587ac0eed53831d980d1df2e987b6af
 
 ...

@@ -31,8 +31,8 @@ import (
 // Cluster also runs an NGINX ingress controller which is exposed to the host.
 // Call GetHTTPAddr to get the address for making requests against the server.
 //
-// Set E2E_K8S_USE_DOCKER_NETWORK in your environment variables if you are
-// running tests from inside of a Docker container. This environment variable
+// Set K8S_USE_DOCKER_NETWORK in your environment variables if you are running
+// tests from inside of a Docker container. This environment variable
 // configures the k3s Docker container to join the same network as the
 // container tests are running in. When this environment variable isn't set,
 // the exposed ports on the Docker host are used for cluster communication.
@@ -63,7 +63,7 @@ func NewCluster() (cluster *Cluster, err error) {
 
 		// Running in docker indicates that we should configure k3s to connect to
 		// the same docker network as the current container.
-		runningInDocker = os.Getenv("E2E_K8S_USE_DOCKER_NETWORK") == "1"
+		runningInDocker = os.Getenv("K8S_USE_DOCKER_NETWORK") == "1"
 	)
 
 	k3dConfig := k3d_config.SimpleConfig{
