@@ -45,7 +45,7 @@ spaces for its primary home for future design proposals.
   that prevent some or all context from being made public.
 
 * Be overly prescriptive: too many rules can hinder adoption of a process. This
-  outlines more options than it is requirements.
+  document outlines intention, not hard policy.
 
 ## Proposal
 
