@@ -1,5 +1,5 @@
-//go:build !nonetwork && !nodocker
-// +build !nonetwork,!nodocker
+//go:build !nonetwork && !nodocker && !race
+// +build !nonetwork,!nodocker,!race
 
 package k8s
 
@@ -15,7 +15,7 @@ import (
 func TestCluster(t *testing.T) {
 	ctx := context.Background()
 
-	cluster, err := NewCluster()
+	cluster, err := NewCluster(ctx, Options{})
 	require.NoError(t, err)
 	defer cluster.Stop()
 
