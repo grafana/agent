@@ -57,6 +57,11 @@ steps:
 depends_on:
   - Lint
 
+volumes:
+ - name: docker
+   host:
+     path: /var/run/docker.sock
+
 ---
 kind: pipeline
 type: docker
@@ -243,6 +248,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: d7f62a30e03019d462a2ab7764db090c6587ac0eed53831d980d1df2e987b6af
+hmac: 0e94b0b20a914dc23c4e5c6c0bea2c8af21b0179b1a0211e2f6cb76b4cf1c71e
 
 ...
