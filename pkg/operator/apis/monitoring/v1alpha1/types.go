@@ -152,6 +152,7 @@ type GrafanaAgentSpec struct {
 	Logs LogsSubsystemSpec `json:"logs,omitempty"`
 
 	// Args controls command line additional arguments sent to the Agent pod.
+	// +kubebuilder:default={"-config.file=/var/lib/grafana-agent/config/agent.yml","-config.expand-env=true","-reload-port=8081"}
 	Args []string `json:"args,omitempty"`
 }
 
