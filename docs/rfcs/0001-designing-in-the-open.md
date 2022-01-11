@@ -22,7 +22,7 @@ to accidentally build a habit from the closed-door design process. Even when
 once-private proposals are made public, potential external contributors can
 find themselves simply as spectators:
 
-* Initial design is gated to core maintainers, leaving less room for new people
+* Initial design is gated to core maintainers, in particular if they all work for the same company. This leaves less room for new people
   to help out.
 * New concerns are less impactful if the proposal already receieved core
   maintainer consensus.
