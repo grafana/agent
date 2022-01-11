@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
 	"os"
 
 	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
@@ -13,6 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/operator/logutil"
 	"github.com/prometheus/common/version"
 	controller "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	// Needed for clients.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -34,8 +34,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	m.AddReadyzCheck("running", func(req *http.Request) error { return nil })
-	m.AddHealthzCheck("running", func(req *http.Request) error { return nil })
+	if err := m.AddReadyzCheck("running", healthz.Ping); err != nil {
+		level.Warn(logger).Log("msg", "failed to set up 'running' readyz check", "err", err)
+	}
+	if err := m.AddHealthzCheck("running", healthz.Ping); err != nil {
+		level.Warn(logger).Log("msg", "failed to set up 'running' healthz check", "err", err)
+	}
 
 	if err := operator.New(logger, cfg, m); err != nil {
 		level.Error(logger).Log("msg", "unable to create operator", "err", err)
