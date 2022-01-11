@@ -88,8 +88,9 @@ example sections in the RFC may be:
 * Goals: What are the main goals of the proposal?
 * Non-Goals: What _aren't_ the main goals of the proposal?
 * Proposal: What is the proposal?
-* Pros: What are the upsides to this proposal?
-* Cons: What are the downsides to this proposal?
+* Pros/Cons:
+  * Pros: What are the upsides to this proposal?
+  * Cons: What are the downsides to this proposal?
 * Considered Alternatives: Why is this proposal the best path forward? What were the alternatives?
 * Open Questions: What questions still need to be answered?
 * Prior Art: What was this proposal based on, if anything?
