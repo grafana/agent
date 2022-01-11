@@ -16,6 +16,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Build
-      run: GOFLAGS="-tags=netgo,nodocker" make BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
+      run: make GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
     - name: Test
-      run: GOFLAGS="-tags=netgo,nodocker" make BUILD_IN_CONTAINER=false test
+      run: make GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test
