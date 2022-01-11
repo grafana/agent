@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"errors"
-	"github.com/grafana/agent/pkg/integrations"
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/hairyhenderson/go-fsimpl"
@@ -59,15 +59,21 @@ func (c *ConfigLoader) ProcessConfigs(cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	metricConfig.Configs = instancesConfigs
+	for _, i := range instancesConfigs {
+		metricConfig.Configs = append(metricConfig.Configs, i)
+	}
+
 	cfg.Metrics = metricConfig
 
 	exporters, err := c.processExporters()
 	if err != nil {
 		return err
 	}
-	cfg.Integrations = integrations.ManagerConfig{}
-	cfg.Integrations.Integrations = exporters
+	cfg.Integrations = DefaultVersionedIntegrations
+	cfg.Integrations.setVersion(integrationsVersion2)
+	defaultV2 := v2.DefaultSubsystemOptions
+	cfg.Integrations.configV2 = &defaultV2
+	cfg.Integrations.configV2.Configs = exporters
 	// The configuration for server fields MUST come from the config loader settings
 	cfg.Server = c.cfg.Server
 	return nil
@@ -120,19 +126,20 @@ func (c *ConfigLoader) processMetricInstances() ([]instance.Config, error) {
 }
 
 // processExporters will return the exporter configurations, following pattern `exporters-.yml`
-func (c *ConfigLoader) processExporters() ([]integrations.UnmarshaledConfig, error) {
+func (c *ConfigLoader) processExporters() ([]v2.Config, error) {
 	builder := strings.Builder{}
-	configs := make([]integrations.UnmarshaledConfig, 0)
+	configs := make([]v2.Config, 0)
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "exporters-*.yml", func() interface{} {
-			return &integrations.UnmarshaledConfig{}
+			// This can return nil because we do a fancy lookup by the exporter name for the lookup
+			return nil
 		}, c.handleExporterMatch)
 		if err != nil {
 			builder.WriteString(err.Error())
 		}
 		for _, v := range result {
-			cfg := v.(*integrations.UnmarshaledConfig)
-			configs = append(configs, *cfg)
+			cfg := v.(v2.Config)
+			configs = append(configs, cfg)
 		}
 
 	}
@@ -226,7 +233,7 @@ func (c *ConfigLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func(
 	if err != nil {
 		return nil, err
 	}
-	cfg := integrations.TryUnmarshal(processedConfigString)
+	cfg := v2.TryUnmarshal(processedConfigString)
 	if cfg == nil {
 		return nil, err
 	}

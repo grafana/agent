@@ -32,7 +32,7 @@ func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) 
 }
 
 func init() {
-	integrations.RegisterIntegration(func() integrations.Config { return &Config{} })
+	integrations.RegisterIntegration(&Config{})
 }
 
 // Integration is the Agent integration. The Agent integration scrapes the

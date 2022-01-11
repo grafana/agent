@@ -73,6 +73,13 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		level.Info(ep.log).Log("msg", "reload server started", "url", reloadURL)
 	}
 
+	// If there is no default instance and integrations exist then create "default"
+	if len(cfg.Metrics.Configs) == 0 && !cfg.Integrations.IsZero() {
+		if cfg.Metrics.Configs == nil {
+			cfg.Metrics.Configs = make([]instance.Config, 0)
+		}
+		cfg.Metrics.Configs = append(cfg.Metrics.Configs, instance.Config{Name: "default"})
+	}
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 
 	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
@@ -149,7 +156,6 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	// Go through each component and update it.
 	if err := ep.promMetrics.ApplyConfig(cfg.Metrics); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update prometheus", "err", err)
 		failed = true

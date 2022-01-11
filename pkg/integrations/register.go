@@ -32,48 +32,6 @@ func RegisterIntegration(cfg Config) {
 	configFieldNames[reflect.TypeOf(cfg)] = cfg.Name()
 }
 
-
-
-func TryUnmarshal(contents string) []Config {
-	unmarshalledConfigs := make([]Config, 0)
-	for _, registeredIntegration := range registeredIntegrations {
-		cfg := registeredIntegration()
-		var fields []reflect.StructField
-		fields = append(fields, reflect.StructField{
-			Name: strings.ToUpper(cfg.Name()),
-			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
-			Type: reflect.TypeOf(util.RawYAML{}),
-		},
-		)
-		createdType := reflect.StructOf(fields)
-		instanceElement := reflect.New(createdType).Elem()
-		instance := instanceElement.Addr().Interface()
-		err := yaml.Unmarshal([]byte(contents), instance)
-		subContents := instanceElement.Field(0).Interface().(util.RawYAML)
-		if err == nil && instance != nil && subContents != nil {
-			uc := &UnmarshaledConfig{}
-			uc.Config = cfg
-			// TODO I think I should be able to unmarshal this in one go
-			err = yaml.Unmarshal(subContents, cfg)
-			if err != nil {
-				continue
-			}
-			common := &config.Common{}
-			err = yaml.Unmarshal(subContents, common)
-			uc.Common = *common
-			if err != nil {
-				continue
-			}
-			unmarshalledConfigs = append(unmarshalledConfigs, uc)
-		}
-	}
-	return unmarshalledConfigs
-}
-
-type TempIntegration struct {
-	IntegrationName string
-}
-
 // RegisteredIntegrations all Configs that were passed to RegisterIntegration.
 // Each call will generate a new set of pointers.
 func RegisteredIntegrations() []Config {

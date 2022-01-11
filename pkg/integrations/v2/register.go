@@ -419,3 +419,33 @@ func replaceYAMLTypeError(err error, oldTyp, newTyp reflect.Type) error {
 	}
 	return err
 }
+
+func TryUnmarshal(contents string) []Config {
+	unmarshalledConfigs := make([]Config, 0)
+	for _, cfg := range Registered() {
+		var fields []reflect.StructField
+		fields = append(fields, reflect.StructField{
+			Name: strings.ToUpper(cfg.Name()),
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
+			Type: reflect.TypeOf(util.RawYAML{}),
+		},
+		)
+		createdType := reflect.StructOf(fields)
+		instanceElement := reflect.New(createdType).Elem()
+		instance := instanceElement.Addr().Interface()
+		err := yaml.Unmarshal([]byte(contents), instance)
+		subContents := instanceElement.Field(0).Interface().(util.RawYAML)
+		if err == nil && instance != nil && subContents != nil {
+			err = yaml.Unmarshal(subContents, cfg)
+			if err != nil {
+				continue
+			}
+			unmarshalledConfigs = append(unmarshalledConfigs, cfg)
+		}
+	}
+	return unmarshalledConfigs
+}
+
+type MarshallingConfig struct {
+	Config
+}

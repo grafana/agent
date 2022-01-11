@@ -31,7 +31,7 @@ import (
 var (
 	featRemoteConfigs    = features.Feature("remote-configs")
 	featIntegrationsNext = features.Feature("integrations-next")
-	featDynamicConfig = features.Feature("dynamic-config")
+	featDynamicConfig    = features.Feature("dynamic-config")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
@@ -373,8 +373,12 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
-	if err := cfg.Integrations.setVersion(version); err != nil {
-		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+	// This is due to an odd interaction between dynamic loading and this feature, if dynamic loading
+	// is enabled the cfg version is already set and this will actually override it
+	if cfg.Integrations.version != integrationsVersion2 {
+		if err := cfg.Integrations.setVersion(version); err != nil {
+			return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+		}
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag
