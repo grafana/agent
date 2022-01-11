@@ -1,40 +1,22 @@
-// These tests depend on test assets from controller-runtime which don't work on Windows.
-
-//go:build !windows && has_network
-// +build !windows,has_network
+//go:build !nonetwork && !nodocker
+// +build !nonetwork,!nodocker
 
 package operator
 
 import (
 	"context"
-	"fmt"
-	"path/filepath"
-	"runtime"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/hashicorp/go-getter"
+	"github.com/grafana/agent/pkg/util/k8s"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/workqueue"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/event"
-)
-
-var (
-	envTestK8sVersion = "1.19.2"
-
-	envtestToolsURL = fmt.Sprintf(
-		"https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-%s-%s-%s.tar.gz",
-		envTestK8sVersion,
-		runtime.GOOS,
-		runtime.GOARCH,
-	)
 )
 
 // TestEnqueueRequestForSelector creates an example Kubenretes cluster and runs
@@ -45,15 +27,11 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	var env envtest.Environment
-	setupEnvtest(t, &env)
-
-	cfg, err := env.Start()
+	cluster, err := k8s.NewCluster(ctx, k8s.Options{})
 	require.NoError(t, err)
-	t.Cleanup(func() { _ = env.Stop() })
+	defer cluster.Stop()
 
-	cli, err := client.New(cfg, client.Options{})
-	require.NoError(t, err)
+	cli := cluster.Client()
 
 	// Tests will rely on a namespace existing, so let's create a namespace with
 	// some labels.
@@ -163,17 +141,6 @@ func TestEnqueueRequestForSelector(t *testing.T) {
 // buildSelectorSet returns a single multiSelector composed of ss.
 func buildSelectorSet(ss ...resourceSelector) []resourceSelector {
 	return []resourceSelector{&multiSelector{Selectors: ss}}
-}
-
-// setupEnvtest downloads Envtest dependencies to a temporary directory.
-func setupEnvtest(t *testing.T, env *envtest.Environment) {
-	t.Helper()
-	storagePath := t.TempDir()
-
-	err := getter.Get(storagePath, envtestToolsURL)
-	require.NoError(t, err, "failed to download dependencies for envtest")
-
-	env.BinaryAssetsDirectory = filepath.Join(storagePath, "kubebuilder", "bin")
 }
 
 func parseSelector(t *testing.T, selector string) labels.Selector {

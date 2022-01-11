@@ -224,12 +224,9 @@ lint:
 
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
-#
-# Run tests with -tags=has_network to include tests that require network
-# connectivity.
 test:
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -race -cover -coverprofile=cover.out -p=4 ./...
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
 
 e2e/lint:
 	$(MAKE) -C e2e lint
