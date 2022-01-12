@@ -8,6 +8,7 @@ local smoke = import './internal/smoke.libsonnet';
     new(name='grafana-agent-smoke', namespace='grafana-agent-smoke', mutationFrequency='5m', chaosFrequency='30m', image=self._images.agentsmoke):: {
         smoke:
             smoke.newSmoke(name, namespace, mutationFrequency, chaosFrequency, image)
-    }
+    },
 
+    monitoring: (import './prometheus_monitoring.libsonnet'),
 }
