@@ -33,7 +33,7 @@ local policyRule = k.rbac.v1.policyRule;
       agent_ring_kvstore: error 'must configure ring kvstore',
 
       agent_config+: {
-        prometheus+: {
+        metrics+: {
           // No configs are used in the scraping service mode.
           configs:: [],
 
