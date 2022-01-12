@@ -167,22 +167,10 @@ func (ai *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.
 }
 
 func (ai *appo11yIntegration) RunIntegration(ctx context.Context) error {
-	var (
-		host = "0.0.0.0"
-		port = 3029
-	)
-	if ai.conf.Server.Host != "" {
-		host = ai.conf.Server.Host
-	}
-
-	if ai.conf.Server.Port != 0 {
-		port = ai.conf.Server.Port
-	}
-
 	r := mux.NewRouter()
 	r.Handle("/collect", ai.receiver.ReceiverHandler(&ai.logger))
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
+	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", ai.conf.Server.Host, ai.conf.Server.Port))
 
 	if err != nil {
 		return err
