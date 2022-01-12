@@ -20,11 +20,6 @@ type AppReceiver struct {
 	rateLimiter *ratelimiting.RateLimiter
 }
 
-const (
-	DEFAULT_RATE_LIMITING_RPS       = 100
-	DEFAULT_RATE_LIMITING_BURSTINES = 50
-)
-
 func NewAppReceiver(conf config.AppExporterConfig, exporters []exporters.AppReceiverExporter) AppReceiver {
 	var rateLimiter *ratelimiting.RateLimiter
 	if conf.RateLimiting.Enabled {
