@@ -89,7 +89,7 @@ func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 	assert.Nil(t, err)
 	_, err = cmf.processMetric()
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "multiple metrics configuration found")
+	assert.Equal(t, err.Error(), "multiple metric configurations found")
 }
 
 func TestConfigMakerWithMetricsAndInstances(t *testing.T) {
@@ -122,7 +122,7 @@ windows_exporter:
 	tDir, err := os.MkdirTemp("", "")
 	defer os.RemoveAll(tDir)
 	assert.Nil(t, err)
-	writeFile(t, tDir, "exporters-1.yml", configStr)
+	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := fmt.Sprintf("file://%s", tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
@@ -130,7 +130,7 @@ windows_exporter:
 	}
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
-	configs, err := cmf.processExporters()
+	configs, err := cmf.processIntegrations()
 	assert.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 
@@ -148,7 +148,7 @@ windows_exporter:
 	assert.Nil(t, err)
 	writeFile(t, tDir, "vars.yaml", "value: banana")
 	fullpath := filepath.Join(tDir, "vars.yaml")
-	writeFile(t, tDir, "exporters-1.yml", configStr)
+	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := fmt.Sprintf("file://%s", tDir)
 	loaderCfg := LoaderConfig{
 		Sources: []Datasource{{
@@ -159,7 +159,7 @@ windows_exporter:
 	}
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
-	configs, err := cmf.processExporters()
+	configs, err := cmf.processIntegrations()
 	assert.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 	assert.True(t, wincfg.(*windows_exporter.Config).EnabledCollectors == "banana")
@@ -175,7 +175,7 @@ node_exporter:
 `
 	tDir, err := os.MkdirTemp("", "")
 	assert.Nil(t, err)
-	writeFile(t, tDir, "exporters-1.yml", configStr)
+	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := fmt.Sprintf("file://%s", tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
@@ -183,7 +183,7 @@ node_exporter:
 	}
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
-	configs, err := cmf.processExporters()
+	configs, err := cmf.processIntegrations()
 	assert.Len(t, configs, 2)
 	for _, cfg := range configs {
 		switch v := cfg.(type) {
@@ -216,7 +216,7 @@ windows_exporter:
 	t.Cleanup(srv.Close)
 	_, err := backend.PutObject(
 		"mybucket",
-		"exporters-1.yml",
+		"integrations-1.yml",
 		map[string]string{"Content-Type": "application/yaml"},
 		bytes.NewBufferString(configStr),
 		int64(len(configStr)),
@@ -233,7 +233,7 @@ windows_exporter:
 		TemplatePaths: []string{s3Url},
 	}
 	cmf, err := NewConfigLoader(loaderCfg)
-	cfg, err := cmf.processExporters()
+	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
 	oc, _ := cfg[0].(v2.UpgradedConfig).LegacyConfig()
@@ -260,7 +260,7 @@ windows_exporter:
 	t.Cleanup(srv.Close)
 	_, err = backend.PutObject(
 		"mybucket",
-		"exporters-1.yml",
+		"integrations-1.yml",
 		map[string]string{"Content-Type": "application/yaml"},
 		bytes.NewBufferString(configStr),
 		int64(len(configStr)),
@@ -280,7 +280,7 @@ windows_exporter:
 		TemplatePaths: []string{s3Url},
 	}
 	cmf, err := NewConfigLoader(loaderCfg)
-	cfg, err := cmf.processExporters()
+	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
 	oc, _ := cfg[0].(v2.UpgradedConfig).LegacyConfig()
@@ -313,7 +313,7 @@ windows_exporter:
 	t.Cleanup(srv.Close)
 	_, err = backend.PutObject(
 		"mybucket",
-		"exporters-1.yml",
+		"integrations-1.yml",
 		map[string]string{"Content-Type": "application/yaml"},
 		bytes.NewBufferString(configStr),
 		int64(len(configStr)),
@@ -333,7 +333,7 @@ windows_exporter:
 		TemplatePaths: []string{s3Url},
 	}
 	cmf, err := NewConfigLoader(loaderCfg)
-	cfg, err := cmf.processExporters()
+	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
 	oc := cfg[0].(*v2.ConfigShim)
@@ -370,7 +370,7 @@ redis_exporter_configs:
 	tDir, err := os.MkdirTemp("", "")
 	defer os.RemoveAll(tDir)
 	assert.Nil(t, err)
-	writeFile(t, tDir, "exporters-1.yml", configStr)
+	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := fmt.Sprintf("file://%s", tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
@@ -378,7 +378,7 @@ redis_exporter_configs:
 	}
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
-	configs, err := cmf.processExporters()
+	configs, err := cmf.processIntegrations()
 	assert.Nil(t, err)
 	assert.Len(t, configs, 2)
 	found := 0
@@ -395,6 +395,171 @@ redis_exporter_configs:
 	}
 
 	assert.True(t, found == 2)
+}
+
+func TestTraces(t *testing.T) {
+	configStr := `
+configs:
+- name: test_traces
+  automatic_logging:
+    backend: loki
+    loki_name: default
+    spans: true
+`
+	tDir, err := os.MkdirTemp("", "")
+	defer os.RemoveAll(tDir)
+	assert.Nil(t, err)
+	writeFile(t, tDir, "traces-1.yml", configStr)
+	fileFS := fmt.Sprintf("file://%s", tDir)
+	loaderCfg := LoaderConfig{
+		Sources:       nil,
+		TemplatePaths: []string{fileFS},
+	}
+	cmf, err := NewConfigLoader(loaderCfg)
+	assert.Nil(t, err)
+	cfg := &Config{}
+	err = cmf.ProcessConfigs(cfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, cfg.Traces)
+	assert.Len(t, cfg.Traces.Configs, 1)
+	assert.True(t, cfg.Traces.Configs[0].Name == "test_traces")
+}
+
+func TestLogs(t *testing.T) {
+	configStr := `
+configs:
+- name: test_logs
+  positions:
+    filename: /tmp/positions.yaml
+  scrape_configs:
+    - job_name: test
+      pipeline_stages:
+      - regex:
+        source: filename
+        expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'
+`
+	tDir, err := os.MkdirTemp("", "")
+	defer os.RemoveAll(tDir)
+	assert.Nil(t, err)
+	writeFile(t, tDir, "logs-1.yml", configStr)
+	fileFS := fmt.Sprintf("file://%s", tDir)
+	loaderCfg := LoaderConfig{
+		Sources:       nil,
+		TemplatePaths: []string{fileFS},
+	}
+	cmf, err := NewConfigLoader(loaderCfg)
+	assert.Nil(t, err)
+	cfg := &Config{}
+	err = cmf.ProcessConfigs(cfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, cfg.Logs)
+	assert.Len(t, cfg.Logs.Configs, 1)
+	assert.True(t, cfg.Logs.Configs[0].Name == "test_logs")
+}
+
+func TestServer(t *testing.T) {
+	configStr := `
+http_listen_port: 8080
+log_level: debug
+`
+	tDir, err := os.MkdirTemp("", "")
+	defer os.RemoveAll(tDir)
+	assert.Nil(t, err)
+	writeFile(t, tDir, "server-1.yml", configStr)
+	fileFS := fmt.Sprintf("file://%s", tDir)
+	loaderCfg := LoaderConfig{
+		Sources:       nil,
+		TemplatePaths: []string{fileFS},
+	}
+	cmf, err := NewConfigLoader(loaderCfg)
+	assert.Nil(t, err)
+	cfg := &Config{}
+	err = cmf.ProcessConfigs(cfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, cfg.Server)
+	assert.True(t, cfg.Server.HTTPListenPort == 8080)
+	assert.True(t, cfg.Server.LogLevel.String() == "debug")
+}
+
+func TestAgent(t *testing.T) {
+	configStr := `
+server:
+  http_listen_port: 8080
+  log_level: debug
+metrics:
+  wal_directory: /tmp/grafana-agent-normal
+  global:
+    scrape_interval: 60s
+    remote_write:
+    - url: https://www.example.com
+integrations:
+  node_exporter: {}
+`
+	tDir, err := os.MkdirTemp("", "")
+	defer os.RemoveAll(tDir)
+	assert.Nil(t, err)
+	writeFile(t, tDir, "agent-1.yml", configStr)
+	fileFS := fmt.Sprintf("file://%s", tDir)
+	loaderCfg := LoaderConfig{
+		Sources:       nil,
+		TemplatePaths: []string{fileFS},
+	}
+	cmf, err := NewConfigLoader(loaderCfg)
+	assert.Nil(t, err)
+	cfg := &Config{}
+	err = cmf.ProcessConfigs(cfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, cfg.Server)
+	assert.True(t, cfg.Server.HTTPListenPort == 8080)
+	assert.True(t, cfg.Server.LogLevel.String() == "debug")
+	assert.NotNil(t, cfg.Metrics)
+	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
+	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
+	assert.False(t, cfg.Integrations.IsZero())
+	assert.True(t, cfg.Integrations.configV2.Configs[0].Name() == "node_exporter")
+}
+
+func TestAgentOverrideIntegrations(t *testing.T) {
+	configStr := `
+server:
+  http_listen_port: 8080
+  log_level: debug
+metrics:
+  wal_directory: /tmp/grafana-agent-normal
+  global:
+    scrape_interval: 60s
+    remote_write:
+    - url: https://www.example.com
+integrations:
+  node_exporter: {}
+`
+	override := `
+windows_exporter: {}
+`
+	tDir, err := os.MkdirTemp("", "")
+	defer os.RemoveAll(tDir)
+	assert.Nil(t, err)
+	writeFile(t, tDir, "agent-1.yml", configStr)
+	writeFile(t, tDir, "integrations-windows.yml", override)
+	fileFS := fmt.Sprintf("file://%s", tDir)
+	loaderCfg := LoaderConfig{
+		Sources:       nil,
+		TemplatePaths: []string{fileFS},
+	}
+	cmf, err := NewConfigLoader(loaderCfg)
+	assert.Nil(t, err)
+	cfg := &Config{}
+	err = cmf.ProcessConfigs(cfg)
+	assert.NoError(t, err)
+	assert.NotNil(t, cfg.Server)
+	assert.True(t, cfg.Server.HTTPListenPort == 8080)
+	assert.True(t, cfg.Server.LogLevel.String() == "debug")
+	assert.NotNil(t, cfg.Metrics)
+	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
+	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
+	assert.False(t, cfg.Integrations.IsZero())
+	assert.Len(t, cfg.Integrations.configV2.Configs, 1)
+	assert.True(t, cfg.Integrations.configV2.Configs[0].Name() == "windows_exporter")
 }
 
 func writeFile(t *testing.T, directory string, path string, contents string) {

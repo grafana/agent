@@ -376,9 +376,9 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
-	// This is due to an odd interaction between dynamic loading and this feature, if dynamic loading
+	// This is due to an odd interaction between dynamic loading and v2 integrations feature, if dynamic loading
 	// is enabled the cfg version is already set and this will actually override it
-	if cfg.Integrations.version != integrationsVersion2 {
+	if cfg.Integrations.version != integrationsVersion2 && !features.Enabled(fs, featDynamicConfig) {
 		if err := cfg.Integrations.setVersion(version); err != nil {
 			return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 		}

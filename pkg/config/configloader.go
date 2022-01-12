@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/traces"
 	"github.com/hairyhenderson/go-fsimpl"
 	"github.com/hairyhenderson/go-fsimpl/blobfs"
 	"github.com/hairyhenderson/go-fsimpl/filefs"
@@ -50,9 +52,25 @@ func NewConfigLoader(cfg LoaderConfig) (*ConfigLoader, error) {
 // ProcessConfigs loads the configurations in a predetermined order to handle functioning correctly. The only section
 // not loaded is Server which is loaded from the passed in configuration. That is considered non-changing.
 func (c *ConfigLoader) ProcessConfigs(cfg *Config) error {
+
+	err := c.processAgent(cfg)
+	if err != nil {
+		return err
+	}
+	serverConfig, err := c.processServer()
+	if err != nil {
+		return err
+	}
+	if serverConfig != nil {
+		cfg.Server = *serverConfig
+	}
+
 	metricConfig, err := c.processMetric()
 	if err != nil {
 		return err
+	}
+	if metricConfig != nil {
+		cfg.Metrics = *metricConfig
 	}
 
 	instancesConfigs, err := c.processMetricInstances()
@@ -60,44 +78,97 @@ func (c *ConfigLoader) ProcessConfigs(cfg *Config) error {
 		return err
 	}
 	for _, i := range instancesConfigs {
-		metricConfig.Configs = append(metricConfig.Configs, i)
+		cfg.Metrics.Configs = append(cfg.Metrics.Configs, i)
 	}
 
-	cfg.Metrics = metricConfig
-
-	exporters, err := c.processExporters()
+	exporters, err := c.processIntegrations()
 	if err != nil {
 		return err
 	}
-	cfg.Integrations = DefaultVersionedIntegrations
-	cfg.Integrations.setVersion(integrationsVersion2)
-	defaultV2 := v2.DefaultSubsystemOptions
-	cfg.Integrations.configV2 = &defaultV2
-	cfg.Integrations.configV2.Configs = exporters
-	// The configuration for server fields MUST come from the config loader settings
-	cfg.Server = c.cfg.Server
+	if len(exporters) > 0 {
+		cfg.Integrations = DefaultVersionedIntegrations
+		cfg.Integrations.setVersion(integrationsVersion2)
+		defaultV2 := v2.DefaultSubsystemOptions
+		cfg.Integrations.configV2 = &defaultV2
+		cfg.Integrations.configV2.Configs = exporters
+	}
+
+	logs, err := c.processLogs()
+	if err != nil {
+		return err
+	}
+	if logs != nil {
+		cfg.Logs = logs
+	}
+
+	traceConfigs, err := c.processTraces()
+	if err != nil {
+		return err
+	}
+	if traceConfigs != nil {
+		cfg.Traces = *traceConfigs
+	}
 	return nil
 }
 
-// processMetric will return the first metric configuration found, following pattern `metrics-*.yml`
-func (c *ConfigLoader) processMetric() (metrics.Config, error) {
+// processAgent will return the first agent configuration found, following the pattern `agent-*.yml`, sections
+// of this config is overloaded by subsequent process* functions
+func (c *ConfigLoader) processAgent(cfg *Config) error {
+	for _, path := range c.cfg.TemplatePaths {
+		result, err := c.generateConfigsFromPath(path, "agent-*.yml", func() interface{} {
+			return cfg
+		}, c.handleAgentMatch)
+		if err != nil {
+			return err
+		}
+		if len(result) > 1 {
+			return errors.New("multiple agent configurations found")
+		}
+
+	}
+	return nil
+}
+
+// processServer will return the first server configuration found, following the pattern `server-*.yml`
+func (c *ConfigLoader) processServer() (*server.Config, error) {
+	for _, path := range c.cfg.TemplatePaths {
+		result, err := c.generateConfigsFromPath(path, "server-*.yml", func() interface{} {
+			return &server.Config{}
+		}, c.handleMatch)
+		if err != nil {
+			return nil, err
+		}
+		if len(result) > 1 {
+			return nil, errors.New("multiple server configurations found")
+		}
+		if result != nil && len(result) == 1 {
+			for _, cfg := range result {
+				return cfg.(*server.Config), nil
+			}
+		}
+	}
+	return nil, nil
+}
+
+// processMetric will return the first metric configuration found, following the pattern `metrics-*.yml`
+func (c *ConfigLoader) processMetric() (*metrics.Config, error) {
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "metrics-*.yml", func() interface{} {
 			return &metrics.Config{}
 		}, c.handleMatch)
 		if err != nil {
-			return metrics.Config{}, err
+			return nil, err
 		}
 		if len(result) > 1 {
-			return metrics.Config{}, errors.New("multiple metrics configuration found")
+			return nil, errors.New("multiple metric configurations found")
 		}
 		if result != nil && len(result) == 1 {
 			for _, cfg := range result {
-				return *(cfg.(*metrics.Config)), nil
+				return cfg.(*metrics.Config), nil
 			}
 		}
 	}
-	return metrics.Config{}, errors.New("no metrics configurations found")
+	return nil, nil
 }
 
 // processMetricInstances will return the instance configurations used in the metrics section,
@@ -125,12 +196,12 @@ func (c *ConfigLoader) processMetricInstances() ([]instance.Config, error) {
 	return configs, combinedError
 }
 
-// processExporters will return the exporter configurations, following pattern `exporters-.yml`
-func (c *ConfigLoader) processExporters() ([]v2.Config, error) {
+// processIntegrations will return the exporter configurations, following the pattern `integrations-*.yml`
+func (c *ConfigLoader) processIntegrations() ([]v2.Config, error) {
 	builder := strings.Builder{}
 	configs := make([]v2.Config, 0)
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, "exporters-*.yml", func() interface{} {
+		result, err := c.generateConfigsFromPath(path, "integrations-*.yml", func() interface{} {
 			// This can return nil because we do a fancy lookup by the exporter name for the lookup
 			return nil
 		}, c.handleExporterMatch)
@@ -148,6 +219,46 @@ func (c *ConfigLoader) processExporters() ([]v2.Config, error) {
 		combinedError = errors.New(builder.String())
 	}
 	return configs, combinedError
+}
+
+// processLogs will return the logs configuration following the pattern `logs-*.yml`
+func (c *ConfigLoader) processLogs() (*logs.Config, error) {
+	for _, path := range c.cfg.TemplatePaths {
+		result, err := c.generateConfigsFromPath(path, "logs-*.yml", func() interface{} {
+			return &logs.Config{}
+		}, c.handleMatch)
+		if err != nil {
+			return nil, err
+		}
+		if result != nil && len(result) > 1 {
+			return nil, errors.New("multiple log templates found")
+		}
+		if result != nil && len(result) == 1 {
+			return result[0].(*logs.Config), nil
+		}
+
+	}
+	return nil, nil
+}
+
+// processTraces will return the traces configuration following the pattern `traces-*.yml`
+func (c *ConfigLoader) processTraces() (*traces.Config, error) {
+	for _, path := range c.cfg.TemplatePaths {
+		result, err := c.generateConfigsFromPath(path, "traces-*.yml", func() interface{} {
+			return &traces.Config{}
+		}, c.handleMatch)
+		if err != nil {
+			return nil, err
+		}
+		if result != nil && len(result) > 1 {
+			return nil, errors.New("multiple traces templates found")
+		}
+		if result != nil && len(result) == 1 {
+			return result[0].(*traces.Config), nil
+		}
+
+	}
+	return nil, nil
 }
 
 // generateConfigsFromPath creates a series of yaml configs based on the path and a given string pattern.
@@ -179,6 +290,38 @@ func (c *ConfigLoader) generateConfigsFromPath(path string, pattern string, conf
 		}
 	}
 	return configs, nil
+}
+
+func (c *ConfigLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
+	file, err := handler.Open(f.Name())
+	stats, err := f.Info()
+	if err != nil {
+		return nil, err
+	}
+	fBytes := make([]byte, stats.Size())
+	bytesRead, err := file.Read(fBytes)
+	if bytesRead == 0 {
+		return nil, errors.New("no bytes read")
+	}
+
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+	fString := string(fBytes)
+	// Parse the template
+	processedConfigString, err := c.loader.GenerateTemplate("", fString)
+	if err != nil {
+		return nil, err
+	}
+	cfg := configMake()
+
+	err = LoadBytes([]byte(processedConfigString), false, cfg.(*Config))
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+	// setVersion actually does the unmarshalling for integrations
+	cfg.(*Config).Integrations.setVersion(integrationsVersion2)
+	return []interface{}{cfg}, nil
 }
 
 func (c *ConfigLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
@@ -260,9 +403,6 @@ type LoaderConfig struct {
 	// TemplatePaths is the "directory" to look for templates in, they will be found and matched to configs but various
 	// naming conventions. They can be S3/gcp, or file based resources.
 	TemplatePaths []string `yaml:"template_paths"`
-
-	// The server settings MUST be set
-	Server server.Config `yaml:"server"`
 }
 
 type Datasource struct {

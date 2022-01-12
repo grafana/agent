@@ -45,17 +45,57 @@ url: string
 
 ## Templates
 
-NOTE SERVER MUST BE DEFINED IN THE DYNAMIC CONFIGURATION YAML
+Note when adding a template you do NOT need to add the type as the top level yaml field. For instance if using traces:
+
+Incorrect
+
+```yaml
+traces:
+  configs:
+  - name: default
+    automatic_logging:
+      backend: loki
+      loki_name: default
+      spans: true
+```
+
+Correct
+
+```yaml
+configs:
+- name: default
+  automatic_logging:
+    backend: loki
+    loki_name: default
+    spans: true
+```
+
+Configurations are loaded in the order as they are listed below.
+
+### Agent
+
+Agent template is the standard agent configuration file in its entirety. It is defined by the pattern `agent-*.yml`. Only
+one file is supported. This is processed first then any subsequent configurations found REPLACE the values here, it is 
+not additive. 
 
 ### Metrics
 
 Metrics are defined using the pattern `metrics-*.yml`, only ONE metrics file is supported.
 
-### Metrics Instances
+### Metric Instances
 
-Metrics Instances are defined using the pattern `metrics_instances-*.yml`, these support more than one file.
+Metric Instances are defined using the pattern `metrics_instances-*.yml`.
 
-## Exporters/Integrations 
 
-Exporters/Integrations are defined using the patten `exporters-*.yml`, these support more than one file, and multiple 
-exporters can be defined in a file. NOTE that only one of each exporter is currently supported.
+### Integrations 
+
+Integrations are defined using the pattern `integrations-*.yml`, these support more than one file, and multiple 
+integrations can be defined in a file. Do not assume any order of loading for integrations.
+
+### Traces
+
+Traces are defined using the pattern `traces-*.yml`. This supports one file.
+
+### Logs
+
+Logs are defined using the pattern `logs-*.yml`. This supports on file.
