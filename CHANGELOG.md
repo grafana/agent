@@ -28,6 +28,8 @@ for detailed information.
 
 - [ENHANCEMENT] Update node_exporter dependency to v1.3.1. (@rfratto)
 
+- [ENHANCEMENT] Cherry-pick Prometheus PR #10102 into our Prometheus dependency (@rfratto).
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 - [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
