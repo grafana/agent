@@ -21,13 +21,13 @@ import (
 )
 
 const (
-	nameLabelKey  = "__name__"
-	sumSuffix     = "sum"
-	countSuffix   = "count"
-	bucketSuffix  = "bucket"
-	leStr         = "le"
-	infBucket     = "+Inf"
-	noSuffix      = ""
+	nameLabelKey = "__name__"
+	sumSuffix    = "sum"
+	countSuffix  = "count"
+	bucketSuffix = "bucket"
+	leStr        = "le"
+	infBucket    = "+Inf"
+	noSuffix     = ""
 )
 
 type remoteWriteExporter struct {
