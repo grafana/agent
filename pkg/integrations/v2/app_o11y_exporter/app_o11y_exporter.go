@@ -3,7 +3,6 @@ package app_o11y_exporter
 import (
 	"context"
 	"fmt"
-	"net"
 	"net/http"
 	"path"
 
@@ -170,17 +169,20 @@ func (ai *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	r := mux.NewRouter()
 	r.Handle("/collect", ai.receiver.ReceiverHandler(&ai.logger))
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", ai.conf.Server.Host, ai.conf.Server.Port))
-
-	if err != nil {
-		return err
+	srv := &http.Server{
+		Addr: fmt.Sprintf("%s:%d", ai.conf.Server.Host, ai.conf.Server.Port),
 	}
-	err = http.Serve(ln, r)
-	if err != nil {
-		return err
-	}
+	go func() {
+		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+			ai.logger.Log("Error on ListenAndServe(): %v", err)
+		}
+	}()
 
 	<-ctx.Done()
+	if err := srv.Shutdown(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
