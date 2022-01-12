@@ -2,7 +2,6 @@ package app_o11y_exporter
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -65,10 +64,6 @@ var (
 )
 
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	if !c.ExporterConfig.Enabled {
-		return nil, errors.New(fmt.Sprintf("Integration %s is not enabled in the config file", c.Name()))
-	}
-
 	id, err := c.Identifier(globals)
 	if err != nil {
 		return nil, err

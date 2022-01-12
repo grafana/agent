@@ -22,7 +22,6 @@ type Measurement struct {
 }
 
 type AppExporterConfig struct {
-	Enabled               bool            `yaml:"enabled,omitempty"`
 	CORSAllowedOrigins    []string        `yaml:"cors_allowed_origins,omitempty"`
 	RateLimiting          RateLimiting    `yaml:"rate_limiting,omitempty"`
 	MaxAllowedPayloadSize int64           `yaml:"max_allowed_payload_size,omitempty"`
