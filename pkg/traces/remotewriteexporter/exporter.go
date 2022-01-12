@@ -39,6 +39,8 @@ type remoteWriteExporter struct {
 	namespace   string
 
 	logger log.Logger
+
+	sendTimestamps bool
 }
 
 func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
@@ -138,7 +140,7 @@ func (e *remoteWriteExporter) handleNumberDataPoints(app storage.Appender, name 
 }
 
 func (e *remoteWriteExporter) appendNumberDataPoint(app storage.Appender, dataPoint pdata.NumberDataPoint, labels labels.Labels) error {
-	ts := convertTimeStamp(dataPoint.Timestamp())
+	ts := e.timestamp(dataPoint.Timestamp())
 	_, err := app.Append(0, labels, ts, dataPoint.DoubleVal())
 	return err
 }
@@ -146,7 +148,7 @@ func (e *remoteWriteExporter) appendNumberDataPoint(app storage.Appender, dataPo
 func (e *remoteWriteExporter) handleHistogramDataPoints(app storage.Appender, name string, dataPoints pdata.HistogramDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
-		ts := convertTimeStamp(dataPoint.Timestamp())
+		ts := e.timestamp(dataPoint.Timestamp())
 
 		// Append sum value
 		sumLabels := e.createLabelSet(name, sumSuffix, dataPoint.Attributes(), labels.Labels{})
@@ -204,14 +206,21 @@ func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata
 	return ls
 }
 
+func (e *remoteWriteExporter) timestamp(timestamp pdata.Timestamp) int64 {
+	if e.sendTimestamps {
+		return convertTimeStamp(timestamp.AsTime())
+	}
+	return convertTimeStamp(time.Now())
+}
+
+// convertTimeStamp converts OTLP timestamp in ns to timestamp in ms
+func convertTimeStamp(t time.Time) int64 {
+	return int64(time.Nanosecond) * t.UnixNano() / int64(time.Millisecond)
+}
+
 func metricName(namespace, metric, suffix string) string {
 	if len(suffix) != 0 {
 		return fmt.Sprintf("%s_%s_%s", namespace, metric, suffix)
 	}
 	return fmt.Sprintf("%s_%s", namespace, metric)
-}
-
-// convertTimeStamp converts OTLP timestamp in ns to timestamp in ms
-func convertTimeStamp(timestamp pdata.Timestamp) int64 {
-	return int64(time.Nanosecond) * timestamp.AsTime().UnixNano() / int64(time.Millisecond)
 }
