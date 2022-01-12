@@ -30,7 +30,7 @@ func TestNoLimitSet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.ReceiverConfig{}
+	conf := config.AppExporterConfig{}
 
 	req.ContentLength = 89348593894
 
@@ -51,7 +51,7 @@ func TestLargePayload(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.ReceiverConfig{
+	conf := config.AppExporterConfig{
 		MaxAllowedPayloadSize: 10,
 	}
 
