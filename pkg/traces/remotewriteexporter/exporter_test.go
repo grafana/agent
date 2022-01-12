@@ -48,7 +48,7 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	dp.SetCount(countValue)
 	dp.SetSum(sumValue)
 
-	err := exp.handleHistogramIntDataPoints(app, "latency", dps)
+	err := exp.handleHistogramDataPoints(app, "latency", dps)
 	require.NoError(t, err)
 
 	// Verify _sum
@@ -85,7 +85,7 @@ type mockManager struct {
 	instance *mockInstance
 }
 
-func (m *mockManager) GetInstance(name string) (instance.ManagedInstance, error) {
+func (m *mockManager) GetInstance(string) (instance.ManagedInstance, error) {
 	if m.instance == nil {
 		m.instance = &mockInstance{}
 	}
@@ -96,9 +96,9 @@ func (m *mockManager) ListInstances() map[string]instance.ManagedInstance { retu
 
 func (m *mockManager) ListConfigs() map[string]instance.Config { return nil }
 
-func (m *mockManager) ApplyConfig(_ instance.Config) error { return nil }
+func (m *mockManager) ApplyConfig(instance.Config) error { return nil }
 
-func (m *mockManager) DeleteConfig(_ string) error { return nil }
+func (m *mockManager) DeleteConfig(string) error { return nil }
 
 func (m *mockManager) Stop() {}
 
@@ -106,15 +106,15 @@ type mockInstance struct {
 	appender *mockAppender
 }
 
-func (m *mockInstance) Run(_ context.Context) error { return nil }
+func (m *mockInstance) Run(context.Context) error { return nil }
 
-func (m *mockInstance) Update(_ instance.Config) error { return nil }
+func (m *mockInstance) Update(instance.Config) error { return nil }
 
 func (m *mockInstance) TargetsActive() map[string][]*scrape.Target { return nil }
 
 func (m *mockInstance) StorageDirectory() string { return "" }
 
-func (m *mockInstance) Appender(_ context.Context) storage.Appender {
+func (m *mockInstance) Appender(context.Context) storage.Appender {
 	if m.appender == nil {
 		m.appender = &mockAppender{}
 	}
@@ -153,6 +153,6 @@ func (a *mockAppender) Commit() error { return nil }
 
 func (a *mockAppender) Rollback() error { return nil }
 
-func (a *mockAppender) AppendExemplar(_ uint64, _ labels.Labels, _ exemplar.Exemplar) (uint64, error) {
+func (a *mockAppender) AppendExemplar(uint64, labels.Labels, exemplar.Exemplar) (uint64, error) {
 	return 0, nil
 }

@@ -97,6 +97,6 @@ traces:
       processes: true
       roots: true
     spanmetrics:
-      handler_endpoint: 0.0.0.0:8889
+      metrics_instance: test
     service_graphs:
       enabled: true
