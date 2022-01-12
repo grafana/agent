@@ -7,7 +7,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -38,7 +37,7 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	return metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.Handler())
+	return integrations.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.Handler())
 }
 
 func init() {

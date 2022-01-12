@@ -233,11 +233,11 @@ func (c *ConfigLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func(
 	if err != nil {
 		return nil, err
 	}
-	cfg := v2.TryUnmarshal(processedConfigString)
-	if cfg == nil {
+	cfg, err := v2.UnmarshalYamlToExporters(processedConfigString)
+	if cfg == nil || err != nil {
 		return nil, err
 	}
-	// TODO there has to be a better way to handle this conversion
+	// TODO (mattdurham) there has to be a better way to handle this conversion
 	var intConfigs []interface{}
 	for _, i := range cfg {
 		intConfigs = append(intConfigs, i)

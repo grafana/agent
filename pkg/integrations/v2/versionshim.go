@@ -1,4 +1,4 @@
-package metricsutils
+package integrations
 
 import (
 	"context"
@@ -10,57 +10,56 @@ import (
 	"github.com/prometheus/common/model"
 
 	v1 "github.com/grafana/agent/pkg/integrations"
-	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/util"
 )
 
 // CreateShim creates a shim between the v1.Config and v2.Config. The resulting
 // config is NOT registered.
-func CreateShim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
-	return &configShim{orig: before, common: common}
+func CreateShim(before v1.Config, common common.MetricsConfig) (after UpgradedConfig) {
+	return &ConfigShim{Orig: before, Common: common}
 }
 
-type configShim struct {
-	orig   v1.Config
-	common common.MetricsConfig
+type ConfigShim struct {
+	Orig   v1.Config
+	Common common.MetricsConfig
 }
 
 var (
-	_ v2.Config           = (*configShim)(nil)
-	_ v2.UpgradedConfig   = (*configShim)(nil)
-	_ v2.ComparableConfig = (*configShim)(nil)
+	_ Config           = (*ConfigShim)(nil)
+	_ UpgradedConfig   = (*ConfigShim)(nil)
+	_ ComparableConfig = (*ConfigShim)(nil)
 )
 
-func (s *configShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.orig, s.common }
+func (s *ConfigShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.Orig, s.Common }
 
-func (s *configShim) Name() string { return s.orig.Name() }
+func (s *ConfigShim) Name() string { return s.Orig.Name() }
 
-func (s *configShim) ApplyDefaults(g v2.Globals) error {
-	s.common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
+func (s *ConfigShim) ApplyDefaults(g Globals) error {
+	s.Common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
 	if id, err := s.Identifier(g); err == nil {
-		s.common.InstanceKey = &id
+		s.Common.InstanceKey = &id
 	}
 	return nil
 }
 
-func (s *configShim) ConfigEquals(c v2.Config) bool {
-	o, ok := c.(*configShim)
+func (s *ConfigShim) ConfigEquals(c Config) bool {
+	o, ok := c.(*ConfigShim)
 	if !ok {
 		return false
 	}
-	return util.CompareYAML(s.orig, o.orig) && util.CompareYAML(s.common, o.common)
+	return util.CompareYAML(s.Orig, o.Orig) && util.CompareYAML(s.Common, o.Common)
 }
 
-func (s *configShim) Identifier(g v2.Globals) (string, error) {
-	if s.common.InstanceKey != nil {
-		return *s.common.InstanceKey, nil
+func (s *ConfigShim) Identifier(g Globals) (string, error) {
+	if s.Common.InstanceKey != nil {
+		return *s.Common.InstanceKey, nil
 	}
-	return s.orig.InstanceKey(g.AgentIdentifier)
+	return s.Orig.InstanceKey(g.AgentIdentifier)
 }
 
-func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration, error) {
-	v1Integration, err := s.orig.NewIntegration(l)
+func (s *ConfigShim) NewIntegration(l log.Logger, g Globals) (Integration, error) {
+	v1Integration, err := s.Orig.NewIntegration(l)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +81,7 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 	// Generate targets. Original integrations used a static set of targets,
 	// so this mapping can always be generated just once.
 	//
-	// Targets are generated from the result of ScrapeConfigs(), which returns a
+	// targets are generated from the result of ScrapeConfigs(), which returns a
 	// tuple of job name and relative metrics path.
 	//
 	// Job names were prefixed at the subsystem level with integrations/, so we
@@ -115,15 +114,15 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 	}
 
 	// Aggregate our converted settings into a v2 integration.
-	return &metricsHandlerIntegration{
-		integrationName: s.orig.Name(),
-		instanceID:      id,
+	return &MetricsHandlerIntegration{
+		IntegrationName: s.Orig.Name(),
+		InstanceID:      id,
 
-		common:  s.common,
-		globals: g,
+		Common:  s.Common,
+		Globals: g,
 		handler: handler,
 		targets: targets,
 
-		runFunc: runFunc,
+		RunFunc: runFunc,
 	}, nil
 }

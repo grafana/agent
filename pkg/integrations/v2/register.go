@@ -1,6 +1,7 @@
 package integrations
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -17,6 +18,8 @@ var (
 	integrationNames = make(map[string]interface{})  // Cache of field names for uniqueness checking.
 	configFieldNames = make(map[reflect.Type]string) // Map of registered type to field name
 	integrationTypes = make(map[reflect.Type]Type)   // Map of registered type to Type
+	integrationTypesByName = make(map[string]Type)   // Map of name to Type
+
 
 	// Registered integrations. Registered integrations may be either a Config or
 	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
@@ -53,6 +56,7 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
 	configFieldNames[configTy] = name
+	integrationTypesByName[name] = ty
 	upgraders[name] = upgrader
 }
 
@@ -107,6 +111,7 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear := func() {
 		integrationNames = make(map[string]interface{})
 		integrationTypes = make(map[reflect.Type]Type)
+		integrationTypesByName = make(map[string]Type)
 		configFieldNames = make(map[reflect.Type]string)
 		registered = registered[:0]
 		upgraders = make(map[string]UpgradeFunc)
@@ -420,30 +425,67 @@ func replaceYAMLTypeError(err error, oldTyp, newTyp reflect.Type) error {
 	return err
 }
 
-func TryUnmarshal(contents string) []Config {
+
+// UnmarshalYamlToExporters attempts to convert the contents of yaml string into a set of exporters and then return
+// those configurations.
+func UnmarshalYamlToExporters(contents string) ([]Config, error) {
 	unmarshalledConfigs := make([]Config, 0)
+	// Registered returns a cloned version of the config, so we are fine in using it
 	for _, cfg := range Registered() {
+		integrationType := integrationTypesByName[cfg.Name()]
 		var fields []reflect.StructField
-		fields = append(fields, reflect.StructField{
-			Name: strings.ToUpper(cfg.Name()),
-			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
-			Type: reflect.TypeOf(util.RawYAML{}),
-		},
-		)
+		// Integrations can either have multiple copies (multiplex ie redis) or singleton (windows)
+		if integrationType == TypeMultiplex {
+			fields = append(fields, reflect.StructField{
+				Name: strings.ToUpper(cfg.Name()),
+				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, cfg.Name())),
+				Type: reflect.SliceOf(reflect.TypeOf(util.RawYAML{})),
+			})
+		} else {
+			fields = append(fields, reflect.StructField{
+				Name: strings.ToUpper(cfg.Name()),
+				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
+				Type: reflect.TypeOf(util.RawYAML{}),
+			})
+		}
 		createdType := reflect.StructOf(fields)
 		instanceElement := reflect.New(createdType).Elem()
 		instance := instanceElement.Addr().Interface()
+		if instance == nil {
+			return nil, errors.New(fmt.Sprintf("unable to create config of name %s", cfg.Name()))
+		}
 		err := yaml.Unmarshal([]byte(contents), instance)
-		subContents := instanceElement.Field(0).Interface().(util.RawYAML)
-		if err == nil && instance != nil && subContents != nil {
-			err = yaml.Unmarshal(subContents, cfg)
-			if err != nil {
-				continue
+		if err != nil {
+			return nil, err
+		}
+		exportersYaml := make([]util.RawYAML, 0)
+		if integrationType == TypeMultiplex {
+			exportersYaml = append(exportersYaml, instanceElement.Field(0).Interface().([]util.RawYAML)...)
+		} else {
+			exportersYaml = append(exportersYaml, instanceElement.Field(0).Interface().(util.RawYAML))
+		}
+
+		for _, exporterYaml := range exportersYaml {
+			if exporterYaml != nil {
+				shim := &ConfigShim{}
+				v1Cfg, _ := cfg.(UpgradedConfig).LegacyConfig()
+				shim.Orig = v1Cfg
+				// The unmarshal needs to happen twice since passing in just the shim doesn't work due to the yaml tags.
+				// We could probably simplify this by adding tags dynamically but since this is all in memory the speed
+				// is likely acceptable for simplicity
+				err = yaml.Unmarshal(exporterYaml, v1Cfg)
+				if err != nil {
+					return nil, err
+				}
+				err = yaml.Unmarshal(exporterYaml, &shim.Common)
+				if err != nil {
+					return nil, err
+				}
+				unmarshalledConfigs = append(unmarshalledConfigs, shim)
 			}
-			unmarshalledConfigs = append(unmarshalledConfigs, cfg)
 		}
 	}
-	return unmarshalledConfigs
+	return unmarshalledConfigs, nil
 }
 
 type MarshallingConfig struct {

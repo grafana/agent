@@ -578,7 +578,7 @@ func (s *discoveryService) SyncCh() GroupChannel { return s.SyncChFunc() }
 
 // newDiscoveryManager returns an implementation of a runnable service
 // that outputs discovered targets to a channel. The implementation
-// uses the Prometheus Discovery Manager. Targets will be filtered
+// uses the Prometheus Discovery Manager. targets will be filtered
 // if the instance is configured to perform host filtering.
 func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*discoveryService, error) {
 	ctx, cancel := context.WithCancel(ctx)
