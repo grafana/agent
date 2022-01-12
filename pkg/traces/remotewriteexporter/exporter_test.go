@@ -47,7 +47,7 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 	dp.SetCount(countValue)
 	dp.SetSum(sumValue)
 
-	err := exp.handleHistogramIntDataPoints(app, "latency", dps)
+	err := exp.handleHistogramDataPoints(app, "latency", dps)
 	require.NoError(t, err)
 
 	// Verify _sum
@@ -84,7 +84,7 @@ type mockManager struct {
 	instance *mockInstance
 }
 
-func (m *mockManager) GetInstance(name string) (instance.ManagedInstance, error) {
+func (m *mockManager) GetInstance(string) (instance.ManagedInstance, error) {
 	if m.instance == nil {
 		m.instance = &mockInstance{}
 	}
