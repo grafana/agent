@@ -213,5 +213,5 @@ func metricName(namespace, metric, suffix string) string {
 
 // convertTimeStamp converts OTLP timestamp in ns to timestamp in ms
 func convertTimeStamp(timestamp pdata.Timestamp) int64 {
-	return timestamp.AsTime().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
+	return int64(time.Nanosecond) * timestamp.AsTime().UnixNano() / int64(time.Millisecond)
 }
