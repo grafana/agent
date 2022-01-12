@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+- [FEATURE] (beta) Add app o11y integration. This depends on integrations-next being enabled
+   via the `integrations-next` feature flag. Use `-enable-features=integrations-next` to use
+   this integration. (@kpelelis, @domas)
+
 v0.24.0-rc.0 (2022-04-05)
 -------------------------
 
@@ -460,7 +464,7 @@ v0.19.0 (2021-09-29)
 - Reduced verbosity of tracing autologging by not logging `STATUS_CODE_UNSET`
   status codes. (@mapno)
 
-- Operator: rename Prometheus*CRDs to Metrics* and Prometheus*fields to
+- Operator: rename Prometheus_CRDs to Metrics_ and Prometheus*fields to
   Metrics*. (@rfratto)
 
 - Operator: CRDs are no longer referenced using a hyphen in the name to be
