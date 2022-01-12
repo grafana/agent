@@ -13,7 +13,6 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -22,19 +21,14 @@ import (
 )
 
 const (
-	nameLabelKey  = "__name__"
-	sumSuffix     = "sum"
-	countSuffix   = "count"
-	bucketSuffix  = "bucket"
-	leStr         = "le"
-	infBucket     = "+Inf"
-	counterSuffix = "total"
-	noSuffix      = ""
+	nameLabelKey = "__name__"
+	sumSuffix    = "sum"
+	countSuffix  = "count"
+	bucketSuffix = "bucket"
+	leStr        = "le"
+	infBucket    = "+Inf"
+	noSuffix     = ""
 )
-
-type dataPoint interface {
-	Attributes() pdata.AttributeMap
-}
 
 type remoteWriteExporter struct {
 	done         atomic.Bool
@@ -97,25 +91,35 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 	}
 	app := prom.Appender(ctx)
 
-	rm := md.ResourceMetrics()
-	for i := 0; i < rm.Len(); i++ {
-		ilm := rm.At(i).InstrumentationLibraryMetrics()
-		for j := 0; j < ilm.Len(); j++ {
-			ms := ilm.At(j).Metrics()
-			for k := 0; k < ms.Len(); k++ {
-				switch m := ms.At(k); m.DataType() {
-				case pdata.MetricDataTypeSum, pdata.MetricDataTypeGauge:
-					if err := e.processScalarMetric(app, m); err != nil {
-						return fmt.Errorf("failed to process metric %s", err)
-					}
+	resourceMetrics := md.ResourceMetrics()
+	for i := 0; i < resourceMetrics.Len(); i++ {
+		resourceMetric := resourceMetrics.At(i)
+		instrumentationLibraryMetricsSlice := resourceMetric.InstrumentationLibraryMetrics()
+		for j := 0; j < instrumentationLibraryMetricsSlice.Len(); j++ {
+			metricSlice := instrumentationLibraryMetricsSlice.At(j).Metrics()
+			for k := 0; k < metricSlice.Len(); k++ {
+				switch metric := metricSlice.At(k); metric.DataType() {
+				case pdata.MetricDataTypeGauge:
+					dataPoints := metric.Sum().DataPoints()
+					return e.handleNumberDataPoints(app, metric.Name(), dataPoints)
+				case pdata.MetricDataTypeSum:
+					// if metric.Sum().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
+					// 	continue // Only cumulative metrics are supported
+					// }
+					dataPoints := metric.Sum().DataPoints()
+					return e.handleNumberDataPoints(app, metric.Name(), dataPoints)
 				case pdata.MetricDataTypeHistogram:
-					if err := e.processHistogramMetrics(app, m); err != nil {
+					// if metric.Histogram().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
+					// 	continue // Only cumulative metrics are supported
+					// }
+					dataPoints := metric.Histogram().DataPoints()
+					if err := e.handleHistogramDataPoints(app, metric.Name(), dataPoints); err != nil {
 						return fmt.Errorf("failed to process metric %s", err)
 					}
 				case pdata.MetricDataTypeSummary:
-					return fmt.Errorf("%s processing unimplemented", m.DataType())
+					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
 				default:
-					return fmt.Errorf("unsupported m data type %s", m.DataType())
+					return fmt.Errorf("unsupported metric data type %s", metric.DataType())
 				}
 			}
 		}
@@ -124,18 +128,37 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 	return app.Commit()
 }
 
-func (e *remoteWriteExporter) processHistogramMetrics(app storage.Appender, m pdata.Metric) error {
-	dps := m.Histogram().DataPoints()
-	return e.handleHistogramIntDataPoints(app, m.Name(), dps)
-}
-
-func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender, name string, dataPoints pdata.HistogramDataPointSlice) error {
+func (e *remoteWriteExporter) handleNumberDataPoints(app storage.Appender, name string, dataPoints pdata.NumberDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
-		if err := e.appendDataPoint(app, name, sumSuffix, dataPoint, dataPoint.Sum()); err != nil {
+		lbls := e.createLabelSet(name, noSuffix, dataPoint.Attributes(), labels.Labels{})
+		if err := e.appendNumberDataPoint(app, dataPoint, lbls); err != nil {
+			return fmt.Errorf("failed to process metric %s", err)
+		}
+	}
+	return nil
+}
+
+func (e *remoteWriteExporter) appendNumberDataPoint(app storage.Appender, dataPoint pdata.NumberDataPoint, labels labels.Labels) error {
+	ts := convertTimeStamp(dataPoint.Timestamp())
+	_, err := app.Append(0, labels, ts, dataPoint.DoubleVal())
+	return err
+}
+
+func (e *remoteWriteExporter) handleHistogramDataPoints(app storage.Appender, name string, dataPoints pdata.HistogramDataPointSlice) error {
+	for ix := 0; ix < dataPoints.Len(); ix++ {
+		dataPoint := dataPoints.At(ix)
+		ts := convertTimeStamp(dataPoint.Timestamp())
+
+		// Append sum value
+		sumLabels := e.createLabelSet(name, sumSuffix, dataPoint.Attributes(), labels.Labels{})
+		if _, err := app.Append(0, sumLabels, ts, dataPoint.Sum()); err != nil {
 			return err
 		}
-		if err := e.appendDataPoint(app, name, countSuffix, dataPoint, float64(dataPoint.Count())); err != nil {
+
+		// Append count value
+		countLabels := e.createLabelSet(name, countSuffix, dataPoint.Attributes(), labels.Labels{})
+		if _, err := app.Append(0, countLabels, ts, float64(dataPoint.Count())); err != nil {
 			return err
 		}
 
@@ -146,59 +169,17 @@ func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender,
 			}
 			cumulativeCount += dataPoint.BucketCounts()[ix]
 			boundStr := strconv.FormatFloat(eb, 'f', -1, 64)
-			ls := labels.Labels{{Name: leStr, Value: boundStr}}
-			if err := e.appendDataPointWithLabels(app, name, bucketSuffix, dataPoint, float64(cumulativeCount), ls); err != nil {
+			bucketLabels := e.createLabelSet(name, bucketSuffix, dataPoint.Attributes(), labels.Labels{{Name: leStr, Value: boundStr}})
+			if _, err := app.Append(0, bucketLabels, ts, float64(cumulativeCount)); err != nil {
 				return err
 			}
 		}
 		// add le=+Inf bucket
 		cumulativeCount += dataPoint.BucketCounts()[len(dataPoint.BucketCounts())-1]
-		ls := labels.Labels{{Name: leStr, Value: infBucket}}
-		if err := e.appendDataPointWithLabels(app, name, bucketSuffix, dataPoint, float64(cumulativeCount), ls); err != nil {
+		infBucketLabels := e.createLabelSet(name, bucketSuffix, dataPoint.Attributes(), labels.Labels{{Name: leStr, Value: infBucket}})
+		if _, err := app.Append(0, infBucketLabels, ts, float64(cumulativeCount)); err != nil {
 			return err
 		}
-
-	}
-	return nil
-}
-
-func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.Metric) error {
-	switch m.DataType() {
-	case pdata.MetricDataTypeSum:
-		dataPoints := m.Sum().DataPoints()
-		if err := e.handleScalarIntDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
-			return err
-		}
-	case pdata.MetricDataTypeGauge:
-		dataPoints := m.Gauge().DataPoints()
-		if err := e.handleScalarIntDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (e *remoteWriteExporter) handleScalarIntDataPoints(app storage.Appender, name, suffix string, dataPoints pdata.NumberDataPointSlice) error {
-	for ix := 0; ix < dataPoints.Len(); ix++ {
-		dataPoint := dataPoints.At(ix)
-		if err := e.appendDataPoint(app, name, suffix, dataPoint, float64(dataPoint.IntVal())); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (e *remoteWriteExporter) appendDataPoint(app storage.Appender, name, suffix string, dp dataPoint, v float64) error {
-	return e.appendDataPointWithLabels(app, name, suffix, dp, v, labels.Labels{})
-}
-
-func (e *remoteWriteExporter) appendDataPointWithLabels(app storage.Appender, name, suffix string, dp dataPoint, v float64, customLabels labels.Labels) error {
-	ls := e.createLabelSet(name, suffix, dp.Attributes(), customLabels)
-	// TODO(mario.rodriguez): Use timestamp from metric
-	// time.Now() is used to avoid out-of-order metrics
-	ts := timestamp.FromTime(time.Now())
-	if _, err := app.Append(0, ls, ts, v); err != nil {
-		return err
 	}
 	return nil
 }
@@ -230,4 +211,9 @@ func metricName(namespace, metric, suffix string) string {
 		return fmt.Sprintf("%s_%s_%s", namespace, metric, suffix)
 	}
 	return fmt.Sprintf("%s_%s", namespace, metric)
+}
+
+// convertTimeStamp converts OTLP timestamp in ns to timestamp in ms
+func convertTimeStamp(timestamp pdata.Timestamp) int64 {
+	return timestamp.AsTime().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }
