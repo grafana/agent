@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/pkg/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -112,17 +113,21 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 				switch metric := metricSlice.At(k); metric.DataType() {
 				case pdata.MetricDataTypeGauge:
 					dataPoints := metric.Sum().DataPoints()
-					return e.handleNumberDataPoints(app, metric.Name(), dataPoints)
+					if err := e.handleNumberDataPoints(app, metric.Name(), dataPoints); err != nil {
+						return err
+					}
 				case pdata.MetricDataTypeSum:
-					// if metric.Sum().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
-					// 	continue // Only cumulative metrics are supported
-					// }
+					if metric.Sum().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
+						continue // Only cumulative metrics are supported
+					}
 					dataPoints := metric.Sum().DataPoints()
-					return e.handleNumberDataPoints(app, metric.Name(), dataPoints)
+					if err := e.handleNumberDataPoints(app, metric.Name(), dataPoints); err != nil {
+						return err
+					}
 				case pdata.MetricDataTypeHistogram:
-					// if metric.Histogram().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
-					// 	continue // Only cumulative metrics are supported
-					// }
+					if metric.Histogram().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
+						continue // Only cumulative metrics are supported
+					}
 					dataPoints := metric.Histogram().DataPoints()
 					if err := e.handleHistogramDataPoints(app, metric.Name(), dataPoints); err != nil {
 						return fmt.Errorf("failed to process metric %s", err)
@@ -224,9 +229,9 @@ func (e *remoteWriteExporter) timestamp(timestamp pdata.Timestamp) int64 {
 	return convertTimeStamp(time.Now())
 }
 
-// convertTimeStamp converts OTLP timestamp in ns to timestamp in ms
+// convertTimeStamp converts time.Time to timestamp in ms
 func convertTimeStamp(t time.Time) int64 {
-	return int64(time.Nanosecond) * t.UnixNano() / int64(time.Millisecond)
+	return timestamp.FromTime(t)
 }
 
 func metricName(namespace, metric, suffix string) string {

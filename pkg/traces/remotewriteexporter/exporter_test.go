@@ -15,12 +15,13 @@ import (
 )
 
 const (
+	callsMetric  = "traces_spanmetrics_calls_total"
 	sumMetric    = "traces_spanmetrics_latency_sum"
 	countMetric  = "traces_spanmetrics_latency_count"
 	bucketMetric = "traces_spanmetrics_latency_bucket"
 )
 
-func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
+func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 	var (
 		countValue     uint64  = 20
 		sumValue       float64 = 100
@@ -31,35 +32,61 @@ func TestRemoteWriteExporter_handleHistogramIntDataPoints(t *testing.T) {
 
 	manager := &mockManager{}
 	exp := remoteWriteExporter{
-		manager:      manager,
-		namespace:    "traces_spanmetrics",
-		promInstance: "traces",
+		sendTimestamps: true,
+		manager:        manager,
+		namespace:      "traces",
+		promInstance:   "traces",
 	}
-	instance, _ := manager.GetInstance("traces")
-	app := instance.Appender(context.TODO())
 
-	// Build data point
-	dps := pdata.NewHistogramDataPointSlice()
-	dp := dps.AppendEmpty()
-	dp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
-	dp.SetBucketCounts(bucketCounts)
-	dp.SetExplicitBounds(explicitBounds)
-	dp.SetCount(countValue)
-	dp.SetSum(sumValue)
+	metrics := pdata.NewMetrics()
+	ilm := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty()
+	ilm.InstrumentationLibrary().SetName("spanmetrics")
 
-	err := exp.handleHistogramDataPoints(app, "latency", dps)
+	// Append sum metric
+	sm := ilm.Metrics().AppendEmpty()
+	sm.SetDataType(pdata.MetricDataTypeSum)
+	sm.SetName("spanmetrics_calls_total")
+	sm.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+
+	sdp := sm.Sum().DataPoints().AppendEmpty()
+	sdp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
+	sdp.SetDoubleVal(sumValue)
+
+	// Append histogram
+	hm := ilm.Metrics().AppendEmpty()
+	hm.SetDataType(pdata.MetricDataTypeHistogram)
+	hm.SetName("spanmetrics_latency")
+	hm.Histogram().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
+
+	hdp := hm.Histogram().DataPoints().AppendEmpty()
+	hdp.SetTimestamp(pdata.NewTimestampFromTime(ts.UTC()))
+	hdp.SetBucketCounts(bucketCounts)
+	hdp.SetExplicitBounds(explicitBounds)
+	hdp.SetCount(countValue)
+	hdp.SetSum(sumValue)
+
+	err := exp.ConsumeMetrics(context.TODO(), metrics)
 	require.NoError(t, err)
+
+	// Verify calls
+	calls := manager.instance.GetAppended(callsMetric)
+	require.Equal(t, len(calls), 1)
+	require.Equal(t, calls[0].v, sumValue)
+	require.Equal(t, calls[0].t, convertTimeStamp(ts.UTC()))
+	require.Equal(t, calls[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_calls_total"}})
 
 	// Verify _sum
 	sum := manager.instance.GetAppended(sumMetric)
 	require.Equal(t, len(sum), 1)
 	require.Equal(t, sum[0].v, sumValue)
+	require.Equal(t, sum[0].t, convertTimeStamp(ts.UTC()))
 	require.Equal(t, sum[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + sumSuffix}})
 
 	// Check _count
 	count := manager.instance.GetAppended(countMetric)
 	require.Equal(t, len(count), 1)
 	require.Equal(t, count[0].v, float64(countValue))
+	require.Equal(t, count[0].t, convertTimeStamp(ts.UTC()))
 	require.Equal(t, count[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + countSuffix}})
 
 	// Check _bucket
@@ -119,6 +146,7 @@ func (m *mockInstance) GetAppended(n string) []metric {
 
 type metric struct {
 	l labels.Labels
+	t int64
 	v float64
 }
 
@@ -136,8 +164,8 @@ func (a *mockAppender) GetAppended(n string) []metric {
 	return ms
 }
 
-func (a *mockAppender) Append(_ uint64, l labels.Labels, _ int64, v float64) (uint64, error) {
-	a.appendedMetrics = append(a.appendedMetrics, metric{l: l, v: v})
+func (a *mockAppender) Append(_ uint64, l labels.Labels, t int64, v float64) (uint64, error) {
+	a.appendedMetrics = append(a.appendedMetrics, metric{l: l, t: t, v: v})
 	return 0, nil
 }
 
