@@ -83,9 +83,9 @@ run() {
     echo "--- Importing local images"
 
     k3d image import -c $K3D_CLUSTER_NAME \
-      grafana/agent:latest \
-      grafana/agentctl:latest \
-      grafana/agent-crow:latest
+      grafana/agent:main \
+      grafana/agentctl:main \
+      grafana/agent-crow:main
   fi
 
   (cd $ROOT/example/k3d && jb install)
