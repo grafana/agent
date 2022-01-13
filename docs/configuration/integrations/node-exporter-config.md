@@ -148,7 +148,7 @@ the Agent is running on is a no-op.
 | network_route    | Exposes network route statistics. | Linux | no |
 | nfs              | Exposes NFS client statistics from /proc/net/rpc/nfs. This is the same information as nfsstat -c. | Linux | yes |
 | nfsd             | Exposes NFS kernel server statistics from /proc/net/rpc/nfsd. This is the same information as nfsstat -s. | Linux | yes |
-| ntp              | Exposes local NTP daemon helath to check time. | any | no |
+| ntp              | Exposes local NTP daemon health to check time. | any | no |
 | nvme             | Exposes NVMe statistics. | Linux | yes |
 | os               | Exposes os-release information. | Linux | yes |
 | perf             | Exposes perf based metrics (Warning: Metrics are dependent on kernel configuration and settings). | Linux | no |
