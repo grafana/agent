@@ -4,6 +4,7 @@ package process_exporter //nolint:golint
 import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 
 	exporter_config "github.com/ncabatoff/process-exporter/config"
 )
@@ -53,4 +54,6 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(func()interface{}{return &Config{}}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+
 }

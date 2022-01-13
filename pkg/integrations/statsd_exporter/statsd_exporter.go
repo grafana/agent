@@ -4,6 +4,7 @@ package statsd_exporter //nolint:golint
 import (
 	"context"
 	"fmt"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"net"
 	"net/http"
 	"os"
@@ -92,6 +93,8 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(func()interface{}{return &Config{}}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+
 }
 
 // Exporter defines the statsd_exporter integration.

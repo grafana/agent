@@ -104,7 +104,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+	integrations_v2.RegisterLegacy(func() interface{} { return &Config{} }, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
 }
 
 // New creates a new mysqld_exporter integration. The integration scrapes

@@ -85,16 +85,22 @@ func (c *ConfigLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 		cfg.Metrics.Configs = append(cfg.Metrics.Configs, i)
 	}
 
-	exporters, err := c.processIntegrations()
+	integrations, err := c.processIntegrations()
 	if err != nil {
 		return err
 	}
-	cfg.Integrations = DefaultVersionedIntegrations
-	cfg.Integrations.setVersion(integrationsVersion2)
-	defaultV2 := v2.DefaultSubsystemOptions
-	cfg.Integrations.configV2 = &defaultV2
-	if len(exporters) > 0 {
-		cfg.Integrations.configV2.Configs = exporters
+
+	// If integrations havent already been defined then we need to do
+	// some setup
+	if cfg.Integrations.configV2 == nil {
+		cfg.Integrations = DefaultVersionedIntegrations
+		cfg.Integrations.setVersion(integrationsVersion2)
+		defaultV2 := v2.DefaultSubsystemOptions
+		cfg.Integrations.configV2 = &defaultV2
+	}
+
+	if len(integrations) > 0 {
+		cfg.Integrations.configV2.Configs = integrations
 	}
 
 	logs, err := c.processLogs()

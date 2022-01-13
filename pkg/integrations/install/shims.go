@@ -23,7 +23,7 @@ func init() {
 			}
 		}
 		if !found {
-			v2.RegisterLegacy(v1Integration, v2.TypeSingleton, v2.CreateShim)
+			v2.RegisterLegacy(func()interface{}{return v1Integration}, v2.TypeSingleton, v2.CreateShim)
 		}
 	}
 }

@@ -15,15 +15,14 @@ import (
 )
 
 var (
-	integrationNames = make(map[string]interface{})  // Cache of field names for uniqueness checking.
-	configFieldNames = make(map[reflect.Type]string) // Map of registered type to field name
-	integrationTypes = make(map[reflect.Type]Type)   // Map of registered type to Type
-	integrationTypesByName = make(map[string]Type)   // Map of name to Type
-
+	integrationNames       = make(map[string]interface{})  // Cache of field names for uniqueness checking.
+	configFieldNames       = make(map[reflect.Type]string) // Map of registered type to field name
+	integrationTypes       = make(map[reflect.Type]Type)   // Map of registered type to Type
+	integrationTypesByName = make(map[string]Type)         // Map of name to Type
 
 	// Registered integrations. Registered integrations may be either a Config or
 	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
-	registered = []interface{}{}
+	registered = map[string]func() interface{}{}
 	upgraders  = make(map[string]UpgradeFunc)
 
 	emptyStructType = reflect.TypeOf(struct{}{})
@@ -38,22 +37,24 @@ var (
 // ty controls how the integration can be unmarshaled from YAML.
 //
 // Register panics if cfg is not a pointer.
-func Register(cfg Config, ty Type) {
-	registerIntegration(cfg, cfg.Name(), ty, nil)
+func Register(f func() interface{}, ty Type) {
+	cfg := f().(Config)
+	registerIntegration(f, cfg.Name(), ty, nil)
 }
 
-func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFunc) {
-	if reflect.TypeOf(v).Kind() != reflect.Ptr {
-		panic(fmt.Sprintf("Register must be given a pointer, got %T", v))
+func registerIntegration(f func() interface{}, name string, ty Type, upgrader UpgradeFunc) {
+	cfg := f()
+	if reflect.TypeOf(cfg).Kind() != reflect.Ptr {
+		panic(fmt.Sprintf("Register must be given a pointer, got %T", cfg))
 	}
 	if _, exist := integrationNames[name]; exist {
 		panic(fmt.Sprintf("Integration %q registered twice", name))
 	}
-	integrationNames[name] = v
+	integrationNames[name] = name
 
-	registered = append(registered, v)
+	registered[name] = f
 
-	configTy := reflect.TypeOf(v)
+	configTy := reflect.TypeOf(cfg)
 	integrationTypes[configTy] = ty
 	configFieldNames[configTy] = name
 	integrationTypesByName[name] = ty
@@ -67,8 +68,9 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 // RegisterLegacy only exists for the transition period where the v2
 // integrations subsystem is an experiment. RegisterLegacy will be removed at a
 // later date.
-func RegisterLegacy(cfg v1.Config, ty Type, upgrader UpgradeFunc) {
-	registerIntegration(cfg, cfg.Name(), ty, upgrader)
+func RegisterLegacy(f func() interface{}, ty Type, upgrader UpgradeFunc) {
+	cfg := f().(v1.Config)
+	registerIntegration(f, cfg.Name(), ty, upgrader)
 }
 
 // UpgradeFunc upgrades cfg to a UpgradedConfig.
@@ -113,7 +115,7 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 		integrationTypes = make(map[reflect.Type]Type)
 		integrationTypesByName = make(map[string]Type)
 		configFieldNames = make(map[reflect.Type]string)
-		registered = registered[:0]
+		registered = make(map[string]func() interface{})
 		upgraders = make(map[string]UpgradeFunc)
 	}
 
@@ -121,7 +123,7 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear()
 
 	for c, t := range cc {
-		Register(c, t)
+		Register(func() interface{} { return c }, t)
 	}
 }
 
@@ -130,24 +132,25 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 func Registered() []Config {
 	res := make([]Config, 0, len(registered))
 	for _, r := range registered {
-		switch v := r.(type) {
-		case Config:
-			res = append(res, cloneValue(v).(Config))
-		case v1.Config:
-			mut, ok := upgraders[v.Name()]
-			if !ok || mut == nil {
-				panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
-			}
-			res = append(res, mut(cloneValue(r).(v1.Config), common.MetricsConfig{}))
-		default:
-			panic(fmt.Sprintf("unexpected type %T", r))
-		}
+		res = append(res, cloneConfig(r))
 	}
 	return res
 }
 
-func cloneValue(in interface{}) interface{} {
-	return reflect.New(reflect.TypeOf(in).Elem()).Interface()
+func cloneConfig(r func() interface{}) Config {
+	c := r()
+	switch v := c.(type) {
+	case Config:
+		return v
+	case v1.Config:
+		mut, ok := upgraders[v.Name()]
+		if !ok || mut == nil {
+			panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
+		}
+		return mut(v, common.MetricsConfig{})
+	default:
+		panic(fmt.Sprintf("unexpected type %T", r))
+	}
 }
 
 // Configs is a list of integrations. Note that Configs does not implement
@@ -310,11 +313,11 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 		switch field.Kind() {
 		case reflect.Slice:
 			configName := strings.TrimPrefix(fieldType.Name, "XXX_Configs_")
-			configReference, ok := integrationNames[configName]
+			configFunc, ok := registered[configName]
 			if !ok {
 				return fmt.Errorf("integration %q not registered", configName)
 			}
-
+			configReference := configFunc()
 			for i := 0; i < field.Len(); i++ {
 				if field.Index(i).IsNil() {
 					continue
@@ -328,11 +331,16 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 			}
 		default:
 			configName := strings.TrimPrefix(fieldType.Name, "XXX_Config_")
-			configReference, ok := integrationNames[configName]
+			_, ok := integrationNames[configName]
+			if !ok {
+				return fmt.Errorf("integration %q not registered", configName)
+			}
+			configFunc, ok := registered[configName]
 			if !ok {
 				return fmt.Errorf("integration %q not registered", configName)
 			}
 			raw := field.Interface().(*util.RawYAML)
+			configReference := configFunc()
 			c, err := deferredConfigUnmarshal(*raw, configReference)
 			if err != nil {
 				return err
@@ -349,7 +357,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 func deferredConfigUnmarshal(raw util.RawYAML, ref interface{}) (Config, error) {
 	switch ref := ref.(type) {
 	case Config:
-		out := cloneValue(ref).(Config)
+		out := ref
 		err := yaml.Unmarshal(raw, out)
 		return out, err
 	case v1.Config:
@@ -359,7 +367,7 @@ func deferredConfigUnmarshal(raw util.RawYAML, ref interface{}) (Config, error) 
 		}
 		var (
 			common common.MetricsConfig
-			out    = cloneValue(ref).(v1.Config)
+			out    = ref
 		)
 		err := util.UnmarshalYAMLMerged(raw, &common, out)
 		return mut(out, common), err
@@ -390,7 +398,8 @@ func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 
 	for _, reg := range registered {
 		// Fields use a prefix that's unlikely to collide with anything else.
-		configTy := reflect.TypeOf(reg)
+		c := reg()
+		configTy := reflect.TypeOf(c)
 		integrationType := integrationTypes[configTy]
 		fieldName := configFieldNames[configTy]
 
@@ -424,7 +433,6 @@ func replaceYAMLTypeError(err error, oldTyp, newTyp reflect.Type) error {
 	}
 	return err
 }
-
 
 // UnmarshalYamlToExporters attempts to convert the contents of yaml string into a set of exporters and then return
 // those configurations.
@@ -467,13 +475,14 @@ func UnmarshalYamlToExporters(contents string) ([]Config, error) {
 
 		for _, exporterYaml := range exportersYaml {
 			if exporterYaml != nil {
+				f := registered[cfg.Name()]
+				newCfg := f()
 				shim := &ConfigShim{}
-				v1Cfg, _ := cfg.(UpgradedConfig).LegacyConfig()
-				shim.Orig = v1Cfg
+				shim.Orig = newCfg.(v1.Config)
 				// The unmarshal needs to happen twice since passing in just the shim doesn't work due to the yaml tags.
 				// We could probably simplify this by adding tags dynamically but since this is all in memory the speed
 				// is likely acceptable for simplicity
-				err = yaml.Unmarshal(exporterYaml, v1Cfg)
+				err = yaml.Unmarshal(exporterYaml, newCfg)
 				if err != nil {
 					return nil, err
 				}
@@ -483,6 +492,7 @@ func UnmarshalYamlToExporters(contents string) ([]Config, error) {
 				}
 				unmarshalledConfigs = append(unmarshalledConfigs, shim)
 			}
+
 		}
 	}
 	return unmarshalledConfigs, nil
