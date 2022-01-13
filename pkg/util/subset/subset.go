@@ -89,13 +89,6 @@ func canElem(v reflect.Value) bool {
 	return v.Kind() == reflect.Interface || v.Kind() == reflect.Ptr
 }
 
-func tryDeref(v reflect.Value) reflect.Value {
-	if v.Kind() == reflect.Interface || v.Kind() == reflect.Ptr {
-		return v.Elem()
-	}
-	return v
-}
-
 // Error is a subset assertion error.
 type Error struct {
 	Message string // Message of the error
@@ -110,7 +103,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("%s: %s", e.Message, e.Inner)
 }
 
-// Error returns the inner error, if set.
+// Unwrap returns the inner error, if set.
 func (e *Error) Unwrap() error { return e.Inner }
 
 // YAMLAssert is like Assert but accepts YAML bytes as input.

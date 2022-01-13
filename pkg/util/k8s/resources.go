@@ -12,6 +12,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// ResourceSet deploys a set of temporary objects to a k8s test cluster and
+// deletes them when Stop is called.
 type ResourceSet struct {
 	log        log.Logger
 	kubeClient client.Client

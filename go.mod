@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	cloud.google.com/go/pubsub v1.5.0 // indirect
-	cloud.google.com/go/storage v1.15.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Shopify/sarama v1.30.0
 	github.com/cortexproject/cortex v1.10.1-0.20211014125347-85c378182d0d
@@ -28,7 +27,6 @@ require (
 	github.com/grafana/loki v1.6.2-0.20211021114919-0ae0d4da122d
 	github.com/hashicorp/consul/api v1.11.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
-	github.com/hashicorp/go-getter v1.5.3
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/infinityworks/github-exporter v0.0.0-20201016091012-831b72461034
 	github.com/jsternberg/zap-logfmt v1.2.0

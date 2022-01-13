@@ -18,7 +18,6 @@ import (
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8s_yaml "sigs.k8s.io/yaml"
 )
 
 // CreateObjects will create the provided set of objects. If any object
@@ -88,19 +87,6 @@ NextObject:
 	}
 
 	return objects, nil
-}
-
-func UnstructuredTo(us *unstructured.Unstructured, obj client.Object, cli client.Client) error {
-	scheme := cli.Scheme()
-	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(scheme.PrioritizedVersionsAllGroups()...)
-
-	raw, err := k8s_yaml.Marshal(us)
-	if err != nil {
-		return fmt.Errorf("could not marshal unstructured")
-	}
-
-	_, _, err = decoder.Decode(raw, nil, obj)
-	return err
 }
 
 // ReadUnstructuredObjects will read the set of objects from r as unstructured

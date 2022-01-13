@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/operator/logutil"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/k8s"
