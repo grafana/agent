@@ -72,7 +72,7 @@ spec:
       serviceAccountName: grafana-agent-operator
       containers:
       - name: operator
-        image: grafana/agent-operator:v0.21.2
+        image: grafana/agent-operator:v0.22.0
         args:
         - --kubelet-service=default/kubelet
 ---
