@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const MAP_FILE = `{
+const MapFile = `{
   "version": 3,
   "file": "index.bundle.js",
   "mappings": "CAAA,WACE,MAAM,IAAIA,MAAM,SAGlBC",
@@ -27,7 +27,7 @@ const MAP_FILE = `{
 
 func TestStackTraceMapping(t *testing.T) {
 	var stacktrace Stacktrace
-	stacktrace_payload := `
+	stacktracePayload := `
 {
 	"frames": [
 		{
@@ -47,22 +47,22 @@ func TestStackTraceMapping(t *testing.T) {
 	]
 }
 `
-	err := json.Unmarshal([]byte(stacktrace_payload), &stacktrace)
+	err := json.Unmarshal([]byte(stacktracePayload), &stacktrace)
 	assert.NoError(t, err)
 	assert.Len(t, stacktrace.Frames, 2)
 
-	scm, err := sourcemap.Parse("index.bundle.js", []byte(MAP_FILE))
+	scm, err := sourcemap.Parse("index.bundle.js", []byte(MapFile))
 	assert.NoError(t, err)
 
-	new_trace := stacktrace.MapFrames(scm)
-	assert.Equal(t, "boom", new_trace.Frames[1].Function)
-	assert.Equal(t, 5, new_trace.Frames[1].Lineno)
-	assert.Equal(t, 0, new_trace.Frames[1].Colno)
+	newTrace := stacktrace.MapFrames(scm)
+	assert.Equal(t, "boom", newTrace.Frames[1].Function)
+	assert.Equal(t, 5, newTrace.Frames[1].Lineno)
+	assert.Equal(t, 0, newTrace.Frames[1].Colno)
 }
 
 func TestStackTraceMappingFallback(t *testing.T) {
 	var stacktrace Stacktrace
-	stacktrace_payload := `
+	stacktracePayload := `
 {
 	"frames": [
 		{
@@ -75,13 +75,14 @@ func TestStackTraceMappingFallback(t *testing.T) {
 	]
 }
 `
-	json.Unmarshal([]byte(stacktrace_payload), &stacktrace)
-
-	scm, err := sourcemap.Parse("index.bundle.js", []byte(MAP_FILE))
+	err := json.Unmarshal([]byte(stacktracePayload), &stacktrace)
 	assert.NoError(t, err)
 
-	new_trace := stacktrace.MapFrames(scm)
-	assert.Equal(t, "fallback_name", new_trace.Frames[0].Function)
-	assert.Equal(t, 5, new_trace.Frames[0].Lineno)
-	assert.Equal(t, 30, new_trace.Frames[0].Colno)
+	scm, err := sourcemap.Parse("index.bundle.js", []byte(MapFile))
+	assert.NoError(t, err)
+
+	newTrace := stacktrace.MapFrames(scm)
+	assert.Equal(t, "fallback_name", newTrace.Frames[0].Function)
+	assert.Equal(t, 5, newTrace.Frames[0].Lineno)
+	assert.Equal(t, 30, newTrace.Frames[0].Colno)
 }

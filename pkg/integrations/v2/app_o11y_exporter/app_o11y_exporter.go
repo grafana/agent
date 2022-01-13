@@ -1,4 +1,4 @@
-package app_o11y_exporter
+package app_o11y_exporter //nolint:golint
 
 import (
 	"context"
@@ -22,11 +22,14 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
+// Config structs controls the configuration of the app o11y
+// integration
 type Config struct {
 	ExporterConfig config.AppExporterConfig `yaml:",inline"`
 	Common         common.MetricsConfig     `yaml:"metrics,omitempty"`
 }
 
+// ApplyDefaults applies runtime-specific defaults to c.
 func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 	if id, err := c.Identifier(globals); err == nil {
@@ -35,8 +38,10 @@ func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 	return nil
 }
 
+// Name returns the name of the integration that this config represents
 func (c *Config) Name() string { return "app_o11y_exporter" }
 
+// Identifier uniquely identifies the app o11y integration
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 	if c.Common.InstanceKey != nil {
 		return *c.Common.InstanceKey, nil
@@ -45,7 +50,7 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 }
 
 type appo11yIntegration struct {
-	integrationName, instanceId string
+	integrationName, instanceID string
 	globals                     integrations.Globals
 	logger                      log.Logger
 	conf                        config.AppExporterConfig
@@ -62,6 +67,7 @@ var (
 	_ integrations.MetricsIntegration = (*appo11yIntegration)(nil)
 )
 
+// NewIntegration converts this config into an instance of an integratin
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	id, err := c.Identifier(globals)
 	if err != nil {
@@ -98,13 +104,16 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	receiver := receiver.NewAppReceiver(c.ExporterConfig, exp)
 
 	for _, e := range exp {
-		e.Init()
+		err = e.Init()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &appo11yIntegration{
 		logger:          l,
 		integrationName: c.Name(),
-		instanceId:      id,
+		instanceID:      id,
 		common:          c.Common,
 		globals:         globals,
 		conf:            c.ExporterConfig,
@@ -120,20 +129,21 @@ func (i *appo11yIntegration) Handler(prefix string) (http.Handler, error) {
 	return r, nil
 }
 
-func (ai *appo11yIntegration) Targets(ep integrations.Endpoint) []*targetgroup.Group {
-	integrationNameValue := model.LabelValue("integrations/" + ai.integrationName)
+// Targets implements MetricsIntegration
+func (i *appo11yIntegration) Targets(ep integrations.Endpoint) []*targetgroup.Group {
+	integrationNameValue := model.LabelValue("integrations/" + i.integrationName)
 
 	group := &targetgroup.Group{
 		Labels: model.LabelSet{
-			model.InstanceLabel: model.LabelValue(ai.instanceId),
+			model.InstanceLabel: model.LabelValue(i.instanceID),
 			model.JobLabel:      integrationNameValue,
-			"agent_hostname":    model.LabelValue(ai.globals.AgentIdentifier),
+			"agent_hostname":    model.LabelValue(i.globals.AgentIdentifier),
 
 			// Meta labels that can be used during SD.
-			"__meta_agent_integration_name":     model.LabelValue(ai.integrationName),
-			"__meta_agent_integration_instance": model.LabelValue(ai.instanceId),
+			"__meta_agent_integration_name":     model.LabelValue(i.integrationName),
+			"__meta_agent_integration_instance": model.LabelValue(i.instanceID),
 		},
-		Source: fmt.Sprintf("%s/%s", ai.integrationName, ai.instanceId),
+		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
 	}
 
 	group.Targets = append(group.Targets, model.LabelSet{
@@ -144,42 +154,52 @@ func (ai *appo11yIntegration) Targets(ep integrations.Endpoint) []*targetgroup.G
 	return []*targetgroup.Group{group}
 }
 
-func (ai *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeConfig {
-	if !*ai.common.Autoscrape.Enable {
+// ScrapeConfigs implements MetricsIntegration
+func (i *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeConfig {
+	if !*i.common.Autoscrape.Enable {
 		return nil
 	}
 
 	cfg := promConfig.DefaultScrapeConfig
-	cfg.JobName = fmt.Sprintf("%s/%s", ai.integrationName, ai.instanceId)
-	cfg.Scheme = ai.globals.AgentBaseURL.Scheme
-	cfg.HTTPClientConfig = ai.globals.SubsystemOpts.ClientConfig
+	cfg.JobName = fmt.Sprintf("%s/%s", i.integrationName, i.instanceID)
+	cfg.Scheme = i.globals.AgentBaseURL.Scheme
+	cfg.HTTPClientConfig = i.globals.SubsystemOpts.ClientConfig
 	cfg.ServiceDiscoveryConfigs = sd
-	cfg.ScrapeInterval = ai.common.Autoscrape.ScrapeInterval
-	cfg.ScrapeTimeout = ai.common.Autoscrape.ScrapeTimeout
-	cfg.RelabelConfigs = ai.common.Autoscrape.RelabelConfigs
-	cfg.MetricRelabelConfigs = ai.common.Autoscrape.MetricRelabelConfigs
+	cfg.ScrapeInterval = i.common.Autoscrape.ScrapeInterval
+	cfg.ScrapeTimeout = i.common.Autoscrape.ScrapeTimeout
+	cfg.RelabelConfigs = i.common.Autoscrape.RelabelConfigs
+	cfg.MetricRelabelConfigs = i.common.Autoscrape.MetricRelabelConfigs
 
 	return []*autoscrape.ScrapeConfig{{
-		Instance: ai.common.Autoscrape.MetricsInstance,
+		Instance: i.common.Autoscrape.MetricsInstance,
 		Config:   cfg,
 	}}
 }
 
-func (ai *appo11yIntegration) RunIntegration(ctx context.Context) error {
+// RunIntegration implements Integratin
+func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	r := mux.NewRouter()
-	r.Handle("/collect", ai.receiver.ReceiverHandler(&ai.logger))
+	r.Handle("/collect", i.receiver.ReceiverHandler(&i.logger))
 
+	fmt.Printf("********************* %s %d", i.conf.Server.Host, i.conf.Server.Port)
 	srv := &http.Server{
-		Addr: fmt.Sprintf("%s:%d", ai.conf.Server.Host, ai.conf.Server.Port),
+		Addr: fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),
 	}
+	errChan := make(chan error)
+
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-			ai.logger.Log("Error on ListenAndServe(): %v", err)
+			errChan <- err
 		}
 	}()
 
-	<-ctx.Done()
-	if err := srv.Shutdown(ctx); err != nil {
+	select {
+	case <-ctx.Done():
+		if err := srv.Shutdown(ctx); err != nil {
+			return err
+		}
+	case err := <-errChan:
+		close(errChan)
 		return err
 	}
 

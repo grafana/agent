@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const MAP_FILE = `{
+const MapFile = `{
   "version": 3,
   "file": "index.bundle.js",
   "mappings": "CAAA,WACE,MAAM,IAAIA,MAAM,SAGlBC",
@@ -28,7 +28,7 @@ const MAP_FILE = `{
   "sourceRoot": ""
 }`
 
-const V2_MAP_FILE = `{
+const V2MapFile = `{
   "version": 2,
   "file": "index.bundle.js",
   "mappings": "CAAA,WACE,MAAM,IAAIA,MAAM,SAGlBC",
@@ -45,24 +45,24 @@ const V2_MAP_FILE = `{
   "sourceRoot": ""
 }`
 
-func TestHttpMapLoader(t *testing.T) {
-	loader := NewHttpMapLoader()
+func TestHTTPMapLoader(t *testing.T) {
+	loader := NewHTTPMapLoader()
 	assert.NotNil(t, loader)
 }
 
 type MockDoType func(req *http.Request) (*http.Response, error)
 
-type MockHttpClient struct {
+type MockHTTPClient struct {
 	MockDo MockDoType
 }
 
-func (m *MockHttpClient) Do(req *http.Request) (*http.Response, error) {
+func (m *MockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	return m.MockDo(req)
 }
 
-func TestHttpMapLaderLoadSuccess(t *testing.T) {
-	rb := ioutil.NopCloser(bytes.NewReader([]byte(MAP_FILE)))
-	c := MockHttpClient{
+func TestHTTPMapLaderLoadSuccess(t *testing.T) {
+	rb := ioutil.NopCloser(bytes.NewReader([]byte(MapFile)))
+	c := MockHTTPClient{
 		MockDo: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -70,15 +70,15 @@ func TestHttpMapLaderLoadSuccess(t *testing.T) {
 			}, nil
 		},
 	}
-	loader := HttpMapLoader{c: &c}
+	loader := HTTPMappLoader{c: &c}
 	scm, err := loader.Load(config.SourceMapConfig{MapURI: "test.js.map"})
 	assert.Nil(t, err)
 	assert.NotNil(t, scm)
 }
 
-func TestHttpMapLaderLoadNonOKStatus(t *testing.T) {
+func TestHTTPMapLaderLoadNonOKStatus(t *testing.T) {
 	rb := ioutil.NopCloser(bytes.NewReader([]byte("Not found")))
-	c := MockHttpClient{
+	c := MockHTTPClient{
 		MockDo: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusNotFound,
@@ -86,27 +86,27 @@ func TestHttpMapLaderLoadNonOKStatus(t *testing.T) {
 			}, nil
 		},
 	}
-	loader := HttpMapLoader{c: &c}
+	loader := HTTPMappLoader{c: &c}
 	_, err := loader.Load(config.SourceMapConfig{MapURI: "test.js.map"})
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), http.StatusText(http.StatusNotFound))
 }
 
-func TestHttpMapLoaderLoadRequestFail(t *testing.T) {
-	c := MockHttpClient{
+func TestHTTPMapLoaderLoadRequestFail(t *testing.T) {
+	c := MockHTTPClient{
 		MockDo: func(*http.Request) (*http.Response, error) {
 			return nil, fmt.Errorf("Error while executing request")
 		},
 	}
-	loader := HttpMapLoader{c: &c}
+	loader := HTTPMappLoader{c: &c}
 	_, err := loader.Load(config.SourceMapConfig{MapURI: "test.js.map"})
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "Error while executing request")
 }
 
-func TestHttpMapLoaderLoadV2Map(t *testing.T) {
-	rb := ioutil.NopCloser(bytes.NewReader([]byte(V2_MAP_FILE)))
-	c := MockHttpClient{
+func TestHTTPMapLoaderLoadV2Map(t *testing.T) {
+	rb := ioutil.NopCloser(bytes.NewReader([]byte(V2MapFile)))
+	c := MockHTTPClient{
 		MockDo: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -114,15 +114,15 @@ func TestHttpMapLoaderLoadV2Map(t *testing.T) {
 			}, nil
 		},
 	}
-	loader := HttpMapLoader{c: &c}
+	loader := HTTPMappLoader{c: &c}
 	_, err := loader.Load(config.SourceMapConfig{MapURI: "test.js.map"})
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "version=2")
 }
 
-func TestHttpMapLoaderLoadIncrrectPayload(t *testing.T) {
+func TestHTTPMapLoaderLoadIncrrectPayload(t *testing.T) {
 	rb := ioutil.NopCloser(bytes.NewReader([]byte("This is not a map file")))
-	c := MockHttpClient{
+	c := MockHTTPClient{
 		MockDo: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusOK,
@@ -130,7 +130,7 @@ func TestHttpMapLoaderLoadIncrrectPayload(t *testing.T) {
 			}, nil
 		},
 	}
-	loader := HttpMapLoader{c: &c}
+	loader := HTTPMappLoader{c: &c}
 	_, err := loader.Load(config.SourceMapConfig{MapURI: "test.js.map"})
 	assert.NotNil(t, err)
 }
@@ -141,7 +141,7 @@ func TestNewMapLoaderFS(t *testing.T) {
 	assert.IsType(t, &FSMapLoader{}, loader)
 }
 
-func TestNewMapLoaderHttp(t *testing.T) {
+func TestNewMapLoaderHTTP(t *testing.T) {
 	loader, err := NewMapLoader(config.SourceMapConfig{MapURI: "grafana.com/buckets/app/test.js.map"})
 	assert.Nil(t, err)
 	assert.IsType(t, &FSMapLoader{}, loader)

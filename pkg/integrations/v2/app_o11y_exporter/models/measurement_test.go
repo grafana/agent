@@ -65,7 +65,7 @@ func TestMeasureMents(t *testing.T) {
 				"cls": 0.15,
 			},
 			expected: Measurement{
-				Type: MTYPE_WEBVITALS,
+				Type: MTypeWebVitals,
 				Values: map[string]float64{
 					"lcp": 2500.0,
 					"fid": 200.0,

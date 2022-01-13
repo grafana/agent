@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// The RateLimiter interface is responsible for controlling the rate of
+// RateLimiter interface is responsible for controlling the rate of
 // certain process. It implements the token bucket algorithm [1] with rate `r`
 // and burstiness `b`.
 //
@@ -27,6 +27,8 @@ type RateLimiter struct {
 	lastEvent time.Time
 }
 
+// NewRateLimiter creates a new token bucket rate limiter
+// of maximum rate _r_ and bustiness _b_
 func NewRateLimiter(r float64, b int) *RateLimiter {
 	return &RateLimiter{
 		rps: r,
@@ -36,6 +38,8 @@ func NewRateLimiter(r float64, b int) *RateLimiter {
 	}
 }
 
+// IsRateLimited checks whether the action should be rate limited
+// or not
 func (rl *RateLimiter) IsRateLimited() (ok bool) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
@@ -57,7 +61,7 @@ func (rl *RateLimiter) IsRateLimited() (ok bool) {
 		tokens = rl.b
 	}
 
-	tokens -= 1
+	tokens--
 
 	ok = tokens >= 0
 

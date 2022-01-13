@@ -6,7 +6,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var WEB_VITALS = map[string]string{
+// WebVitals is a map of web vital names and their description
+var WebVitals = map[string]string{
 	"lcp":  "Largest Contentful Paint",
 	"fid":  "First Input Delay",
 	"cls":  "Cumulative Layout Shift",
@@ -14,14 +15,18 @@ var WEB_VITALS = map[string]string{
 	"fcp":  "First Contentful Paint",
 }
 
+// PrometheusMetricsExporter holds a map of prometheus.Summary
+// for web vitals metrics and one for custom defined ones
 type PrometheusMetricsExporter struct {
 	wv     map[string]prometheus.Summary
 	custom map[string]prometheus.Summary
 }
 
+// NewPrometheusMetricsExporter creates a new exporter based on the given Registry
+// and configuration
 func NewPrometheusMetricsExporter(reg *prometheus.Registry, metrics []config.Measurement) AppReceiverExporter {
-	wv := make(map[string]prometheus.Summary, len(WEB_VITALS))
-	for k, v := range WEB_VITALS {
+	wv := make(map[string]prometheus.Summary, len(WebVitals))
+	for k, v := range WebVitals {
 		wv[k] = prometheus.NewSummary(prometheus.SummaryOpts{
 			Name: k,
 			Help: v,
@@ -43,10 +48,12 @@ func NewPrometheusMetricsExporter(reg *prometheus.Registry, metrics []config.Mea
 	}
 }
 
+// Init implements the AppReceiverExporter interface
 func (pe *PrometheusMetricsExporter) Init() error {
 	return nil
 }
 
+// Process implements the AppMetricsExporter interface
 func (pe *PrometheusMetricsExporter) Process(payload models.Payload) error {
 	for _, m := range payload.Measurements {
 		err := pe.processMesaurement(m)
@@ -61,13 +68,13 @@ func (pe *PrometheusMetricsExporter) processMesaurement(m models.Measurement) er
 	switch m.Type {
 	default:
 		return nil
-	case models.MTYPE_WEBVITALS:
-		for k := range WEB_VITALS {
+	case models.MTypeWebVitals:
+		for k := range WebVitals {
 			if v, ok := m.Values[k]; ok {
 				pe.wv[k].Observe(v)
 			}
 		}
-	case models.MTYPE_CUSTOM:
+	case models.MTypeCustom:
 		for k := range pe.custom {
 			if v, ok := m.Values[k]; ok {
 				pe.custom[k].Observe(v)
