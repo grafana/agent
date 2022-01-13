@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
@@ -31,6 +32,8 @@ const (
 )
 
 type remoteWriteExporter struct {
+	mtx sync.Mutex
+
 	done         atomic.Bool
 	manager      instance.Manager
 	promInstance string
@@ -53,6 +56,7 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 	}
 
 	return &remoteWriteExporter{
+		mtx:          sync.Mutex{},
 		done:         atomic.Bool{},
 		constLabels:  ls,
 		namespace:    cfg.Namespace,
@@ -83,6 +87,11 @@ func (e *remoteWriteExporter) ConsumeMetrics(ctx context.Context, md pdata.Metri
 	if e.done.Load() {
 		return nil
 	}
+
+	// Lock taken to ensure that only one appender is open at a time.
+	// This prevents parallel writes for metrics with the same labels.
+	e.mtx.Lock()
+	defer e.mtx.Unlock()
 
 	prom, err := e.manager.GetInstance(e.promInstance)
 	if err != nil {

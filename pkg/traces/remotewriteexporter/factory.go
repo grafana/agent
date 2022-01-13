@@ -22,7 +22,7 @@ type Config struct {
 	ConstLabels    prometheus.Labels `mapstructure:"const_labels"`
 	Namespace      string            `mapstructure:"namespace"`
 	PromInstance   string            `mapstructure:"metrics_instance"`
-	SendTimestamps bool              `mapstructur:"send_timestamps"`
+	SendTimestamps bool              `mapstructure:"send_timestamps"`
 }
 
 // NewFactory returns a new factory for the Prometheus remote write processor.
