@@ -70,7 +70,7 @@ If at the end of the test any issues are found they will look similar to the bel
 
 ### How to trigger an alert?
 
-Changing the avalanche setting for label_count to 1000, located [here](./lib/avalanche/main.libsonnet). This will ensure the [GrafanaAgentMemHigh](http://prometheus.k3d.localhost:50080/graph?g0.expr=ALERTS%7Balertname%3D%22GrafanaAgentMemHigh%22%7D&g0.tab=1&g0.stacked=0&g0.show_exemplars=0.g0.range_input=1h.) alert exceeds the limit.
+Changing the avalanche setting for label_count to 1000, located [here](../../production/tanka/grafana-agent/smoke/avalanche/main.libsonnet). This will ensure the [GrafanaAgentMemHigh](http://prometheus.k3d.localhost:50080/graph?g0.expr=ALERTS%7Balertname%3D%22GrafanaAgentMemHigh%22%7D&g0.tab=1&g0.stacked=0&g0.show_exemplars=0.g0.range_input=1h.) alert exceeds the limit.
 
 ![](./assets/trigger_change.png)
 

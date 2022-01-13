@@ -1,9 +1,9 @@
 local monitoring = import './monitoring/main.jsonnet';
-local avalanche = import 'avalanche/main.libsonnet';
+local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local cortex = import 'cortex/main.libsonnet';
-local crow = import 'crow/main.libsonnet';
+local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
 local smoke = import 'grafana-agent/smoke/main.libsonnet';
-local etcd = import 'etcd/main.libsonnet';
+local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
