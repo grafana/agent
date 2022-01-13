@@ -64,7 +64,7 @@ func (m *Metrics) listDiscoveryJobsHandler(w http.ResponseWriter, r *http.Reques
 		var peerJobs []discoveryJob
 		err := queryPeer(r.Context(), &p, discoveryJobsAPIEndpoint+"?remote=0", &peerJobs)
 		if err != nil {
-			configapi.WriteError(w, http.StatusInternalServerError, err)
+			_ = configapi.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		jobs = append(jobs, peerJobs...)
@@ -138,7 +138,7 @@ func (m *Metrics) listDiscoveryTargetsHandler(w http.ResponseWriter, r *http.Req
 		var peerTargets []discoveryTarget
 		err := queryPeer(r.Context(), &p, discoveryTargetsAPIEndpoint+"?remote=0", &peerTargets)
 		if err != nil {
-			configapi.WriteError(w, http.StatusInternalServerError, err)
+			_ = configapi.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		targets = append(targets, peerTargets...)
@@ -202,7 +202,7 @@ func (m *Metrics) scrapeTargetsHandler(w http.ResponseWriter, r *http.Request) {
 		var peerTargets []scrapeTarget
 		err := queryPeer(r.Context(), &p, scrapeTargetsAPIEndpoint+"?remote=0", &peerTargets)
 		if err != nil {
-			configapi.WriteError(w, http.StatusInternalServerError, err)
+			_ = configapi.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
 		targets = append(targets, peerTargets...)

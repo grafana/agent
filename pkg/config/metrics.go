@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"github.com/go-kit/log"
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/features"
 	v1 "github.com/grafana/agent/pkg/metrics"
@@ -14,7 +13,6 @@ import (
 	v2 "github.com/grafana/agent/pkg/metrics/v2"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
-	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 )
 
@@ -42,6 +40,7 @@ type VersionedMetrics struct {
 	optionsV2 v2.Options
 }
 
+// RegisterFlags registers flags for both the v1 and v2 metrics subsystems.
 func (c *VersionedMetrics) RegisterFlags(fs *flag.FlagSet) {
 	// Both of our v1 and v2 subsystems support flags that may overlap. We
 	// register both of them to fake flag sets and merge. We'll defer parsing and
@@ -108,21 +107,21 @@ func (df *deferredFlag) RegisterFlags(fs *flag.FlagSet) {
 }
 
 // Set implements flag.Value.
-func (s *deferredFlag) Set(v string) error {
-	s.raw = v
-	s.set = true
+func (df *deferredFlag) Set(v string) error {
+	df.raw = v
+	df.set = true
 	return nil
 }
 
 // String implements flag.Value.
-func (s *deferredFlag) String() string {
+func (df *deferredFlag) String() string {
 	switch {
-	case s.raw != "":
-		return s.raw
-	case s.v1Flag != nil:
-		return s.v1Flag.Value.String()
-	case s.v2Flag != nil:
-		return s.v2Flag.Value.String()
+	case df.raw != "":
+		return df.raw
+	case df.v1Flag != nil:
+		return df.v1Flag.Value.String()
+	case df.v2Flag != nil:
+		return df.v2Flag.Value.String()
 	default:
 		return ""
 	}
@@ -130,24 +129,24 @@ func (s *deferredFlag) String() string {
 
 // Validate validates the flag and defers the parsing into the underlying flag
 // for v. If the flag was set but isn't valid for v, an error is returned.
-func (s *deferredFlag) Validate(v metricsVersion) error {
+func (df *deferredFlag) Validate(v metricsVersion) error {
 	switch v {
 	case metricsVersion1:
-		if s.v1Flag == nil {
-			if s.set {
-				return fmt.Errorf("flag %q cannot be used with metrics-next feature enabled", s.name)
+		if df.v1Flag == nil {
+			if df.set {
+				return fmt.Errorf("flag %q cannot be used with metrics-next feature enabled", df.name)
 			}
 			return nil
 		}
-		return s.v1Flag.Value.Set(s.raw)
+		return df.v1Flag.Value.Set(df.raw)
 	case metricsVersion2:
-		if s.v2Flag == nil {
-			if s.set {
-				return fmt.Errorf("flag %q cannot be used unless metrics-next feature is enabled", s.name)
+		if df.v2Flag == nil {
+			if df.set {
+				return fmt.Errorf("flag %q cannot be used unless metrics-next feature is enabled", df.name)
 			}
 			return nil
 		}
-		return s.v2Flag.Value.Set(s.raw)
+		return df.v2Flag.Value.Set(df.raw)
 	default:
 		panic("unexpected version")
 	}
@@ -244,12 +243,8 @@ func (c *VersionedMetrics) setVersion(v metricsVersion) error {
 
 // Metrics is an abstraction over both the v1 and v2 systems.
 type Metrics interface {
-	InstanceManager() instance.Manager
-	Validate(*instance.Config) error
+	v1.Subsystem
 	ApplyConfig(*VersionedMetrics) error
-	WireAPI(*mux.Router)
-	WireGRPC(*grpc.Server)
-	Stop()
 }
 
 // NewMetrics creates a new Metrics instance. cfg must have already internally

@@ -46,7 +46,7 @@ func UnmarshalAPIResponse(r io.Reader, v interface{}) error {
 }
 
 // Error is the error returned by UnmarshalAPIResponse when the unmarshal was
-// successful but the API itself indicated an error occured.
+// successful but the API itself indicated an error occurred.
 type Error struct {
 	Message string
 }

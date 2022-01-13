@@ -16,6 +16,7 @@ type RoundTripper struct {
 	Client httpgrpc.HTTPClient
 }
 
+// RoundTrip implements http.RoundTripper.
 func (rt RoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	finalR := r.Clone(r.Context())
 	if finalR.Body == nil {

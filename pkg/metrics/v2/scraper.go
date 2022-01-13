@@ -96,9 +96,9 @@ func newScraperManager(log log.Logger, ss storageSet) *scraperManager {
 
 // ApplyConfig will update the managed set of scrapers. ApplyConfig should not
 // be called util the storageSet is reconfigured first.
-func (s *scraperManager) ApplyConfig(cfg *Config) error {
-	s.mut.Lock()
-	defer s.mut.Unlock()
+func (sm *scraperManager) ApplyConfig(cfg *Config) error {
+	sm.mut.Lock()
+	defer sm.mut.Unlock()
 
 	var firstError error
 	saveError := func(e error) {
@@ -114,76 +114,76 @@ func (s *scraperManager) ApplyConfig(cfg *Config) error {
 		currentConfigs[ic.Name] = struct{}{}
 
 		// Get or create the scraper for this instance config.
-		scraper, ok := s.scraperInstances[ic.Name]
+		scraper, ok := sm.scraperInstances[ic.Name]
 		if !ok {
-			app, err := s.ss.Appendable(ic.Name)
+			app, err := sm.ss.Appendable(ic.Name)
 			if err != nil {
-				level.Error(s.log).Log("msg", "failed to retrieve storage for instance", "instance", ic.Name, "err", err)
+				level.Error(sm.log).Log("msg", "failed to retrieve storage for instance", "instance", ic.Name, "err", err)
 				saveError(err)
 				continue
 			}
 
-			l := log.With(s.log, "component", "metrics.scraper", "instance", ic.Name)
+			l := log.With(sm.log, "component", "metrics.scraper", "instance", ic.Name)
 			scraper = newScraper(l, app)
 			app.bindScraper(scraper.sm)
-			s.scraperInstances[ic.Name] = scraper
+			sm.scraperInstances[ic.Name] = scraper
 		}
 
 		// Then give it its new set of scrape configs.
 		if err := scraper.ApplyConfig(ic.ScrapeConfigs); err != nil {
-			level.Error(s.log).Log("msg", "failed to apply config to scraper", "instance", ic.Name, "err", err)
+			level.Error(sm.log).Log("msg", "failed to apply config to scraper", "instance", ic.Name, "err", err)
 			saveError(err)
 		}
 	}
 
 	// Remove any scrapers that have gone away between reloads.
-	for instance, inst := range s.scraperInstances {
+	for instance, inst := range sm.scraperInstances {
 		_, exist := currentConfigs[instance]
 		if !exist {
-			level.Info(s.log).Log("msg", "shutting down stale instance scraper", "instance", instance)
+			level.Info(sm.log).Log("msg", "shutting down stale instance scraper", "instance", instance)
 			inst.Stop()
-			delete(s.scraperInstances, instance)
+			delete(sm.scraperInstances, instance)
 
-			s.metrics.scraperTargets.DeleteLabelValues(instance)
+			sm.metrics.scraperTargets.DeleteLabelValues(instance)
 		}
 	}
 
-	s.metrics.numberScrapers.Set(float64(len(s.scraperInstances)))
+	sm.metrics.numberScrapers.Set(float64(len(sm.scraperInstances)))
 	return firstError
 }
 
 // Collector returns metrics for the scraperManager.
-func (s *scraperManager) Collector() prometheus.Collector { return s.metrics }
+func (sm *scraperManager) Collector() prometheus.Collector { return sm.metrics }
 
 // Stop stops all of the scrapers.
-func (s *scraperManager) Stop() {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-	s.stopped = true
+func (sm *scraperManager) Stop() {
+	sm.mut.Lock()
+	defer sm.mut.Unlock()
+	sm.stopped = true
 
-	for _, scraper := range s.scraperInstances {
+	for _, scraper := range sm.scraperInstances {
 		scraper.Stop()
 	}
 }
 
-func (s *scraperManager) ScrapeTargets(ctx context.Context, req *pb.ScrapeTargetsRequest) (*pb.ScrapeTargetsResponse, error) {
-	s.mut.Lock()
-	defer s.mut.Unlock()
+func (sm *scraperManager) ScrapeTargets(ctx context.Context, req *pb.ScrapeTargetsRequest) (*pb.ScrapeTargetsResponse, error) {
+	sm.mut.Lock()
+	defer sm.mut.Unlock()
 
-	if s.stopped {
+	if sm.stopped {
 		return nil, status.Errorf(codes.Unavailable, "scraper is shutting down")
 	}
 
-	s.metrics.totalTargetPushes.Inc()
+	sm.metrics.totalTargetPushes.Inc()
 	for _, groups := range req.GetTargets() {
 		for _, group := range groups.GetGroups() {
-			s.metrics.totalTargets.Add(float64(len(group.GetTargets())))
+			sm.metrics.totalTargets.Add(float64(len(group.GetTargets())))
 		}
 	}
 
 	// Find the scraper to update. We don't want to bother tracking targets we
 	// can't scrape from, so we use this as an early validation.
-	scraper, ok := s.scraperInstances[req.GetInstanceName()]
+	scraper, ok := sm.scraperInstances[req.GetInstanceName()]
 	if !ok {
 		// TODO(rfratto): This actually doesn't work that well. It's entirely
 		// possible that a new config is rolled out gradually and scraperServer
@@ -192,17 +192,17 @@ func (s *scraperManager) ScrapeTargets(ctx context.Context, req *pb.ScrapeTarget
 		// Rather, we _should_ keep targets from jobs we don't know about in case
 		// they show up eventually. We can garbage collect them if they've been
 		// around too long with nowhere to assign them, though.
-		level.Error(s.log).Log("msg", "unknown instance, can't scrape targets", "instance", req.InstanceName)
-		s.metrics.totalFailedPushes.WithLabelValues("unknown_instance").Inc()
+		level.Error(sm.log).Log("msg", "unknown instance, can't scrape targets", "instance", req.InstanceName)
+		sm.metrics.totalFailedPushes.WithLabelValues("unknown_instance").Inc()
 		return nil, status.Errorf(codes.NotFound, "instance %q not known to scraper", req.InstanceName)
 	}
 
 	// Merge our instance groups.
 	inGroupSet := pb.PrometheusGroups(req.GetTargets())
-	outGroupSet, ok := s.instanceGroups[req.InstanceName]
+	outGroupSet, ok := sm.instanceGroups[req.InstanceName]
 	if !ok {
 		outGroupSet = make(targetGroups, len(inGroupSet))
-		s.instanceGroups[req.InstanceName] = outGroupSet
+		sm.instanceGroups[req.InstanceName] = outGroupSet
 	}
 
 	// Iterate over our input and override the set of targets for everything in
@@ -222,11 +222,11 @@ func (s *scraperManager) ScrapeTargets(ctx context.Context, req *pb.ScrapeTarget
 
 	select {
 	case scraper.syncCh <- outGroupSet:
-		level.Debug(s.log).Log("msg", "passed new targets to instance scraper", "instance", req.InstanceName)
-		s.metrics.scraperTargets.WithLabelValues(req.GetInstanceName()).Set(float64(numTargets))
+		level.Debug(sm.log).Log("msg", "passed new targets to instance scraper", "instance", req.InstanceName)
+		sm.metrics.scraperTargets.WithLabelValues(req.GetInstanceName()).Set(float64(numTargets))
 	case <-ctx.Done():
-		level.Error(s.log).Log("msg", "context canceled while assigning new targets to instance scraper", "insatnce", req.InstanceName, "err", ctx.Err())
-		s.metrics.totalFailedPushes.WithLabelValues("timeout").Inc()
+		level.Error(sm.log).Log("msg", "context canceled while assigning new targets to instance scraper", "insatnce", req.InstanceName, "err", ctx.Err())
+		sm.metrics.totalFailedPushes.WithLabelValues("timeout").Inc()
 	}
 	return &pb.ScrapeTargetsResponse{}, nil
 }
@@ -255,7 +255,12 @@ func newScraper(l log.Logger, app storage) *scraper {
 	sm := scrape.NewManager(&scrape.Options{}, l, app)
 
 	syncCh := make(chan targetGroups)
-	go sm.Run(syncCh)
+	go func() {
+		err := sm.Run(syncCh)
+		if err != nil {
+			level.Error(l).Log("msg", "scrape manager exited with error", "err", err)
+		}
+	}()
 
 	return &scraper{
 		syncCh: syncCh,

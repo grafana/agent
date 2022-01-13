@@ -87,8 +87,8 @@ func (m *Metrics) ApplyConfig(cfg Config) error {
 	return nil
 }
 
-// WireAPI wires up gRPC handlers for the metrics subsystem.
-func (m *Metrics) WireGRPC(srv *grpc.Server) {
+// WireGRPC wires up gRPC handlers for the metrics subsystem.
+func (m *Metrics) WireGRPC(srv *grpc.Server) { //nolint:interfacer
 	metricspb.RegisterScraperServer(srv, m.scrapers)
 }
 

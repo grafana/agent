@@ -87,9 +87,9 @@ type Globals struct {
 	// implementation if the desired behavior is not supported natively by the
 	// integration manager.
 
-	Metrics *metrics.Agent // Metrics subsystem
-	Logs    *logs.Logs     // Logs subsystem
-	Tracing *traces.Traces // Traces subsystem
+	Metrics metrics.Subsystem // Metrics subsystem
+	Logs    *logs.Logs        // Logs subsystem
+	Tracing *traces.Traces    // Traces subsystem
 
 	// Options the integations subsystem is using.
 	SubsystemOpts SubsystemOptions

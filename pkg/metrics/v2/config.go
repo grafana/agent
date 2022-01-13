@@ -51,6 +51,7 @@ type Options struct {
 	Cluster *cluster.Node
 }
 
+// RegisterFlags registers flags for Options to the provided FlagSet.
 func (o *Options) RegisterFlags(fs *flag.FlagSet) {
 	fs.StringVar(&o.WALDir, "metrics.wal.directory", DefaultOptions.WALDir, "location to store metrics in a WAL")
 	fs.DurationVar(&o.WALTruncateFrequency, "metrics.wal.truncate-frequency", DefaultOptions.WALTruncateFrequency, "frequency to perform GC on WALs")
@@ -124,6 +125,7 @@ type InstanceConfig struct {
 	RemoteWrite   []*prom_config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 }
 
+// ApplyDefaults applies default settings to c and validates it.
 func (c *InstanceConfig) ApplyDefaults(g GlobalInstanceConfig, o Options) error {
 	if c.Name == "" {
 		return fmt.Errorf("missing metrics instance name")

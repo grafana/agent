@@ -31,9 +31,9 @@ metrics:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.NotEmpty(t, c.Metrics.ServiceConfig.Lifecycler.InfNames)
-	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.NumTokens)
-	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.HeartbeatPeriod)
+	require.NotEmpty(t, c.Metrics.configV1.ServiceConfig.Lifecycler.InfNames)
+	require.NotZero(t, c.Metrics.configV1.ServiceConfig.Lifecycler.NumTokens)
+	require.NotZero(t, c.Metrics.configV1.ServiceConfig.Lifecycler.HeartbeatPeriod)
 	require.True(t, c.Server.RegisterInstrumentation)
 }
 
@@ -48,7 +48,7 @@ func TestConfig_ConfigAPIFlag(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.False(t, c.EnableConfigEndpoints)
-		require.False(t, c.Metrics.ServiceConfig.APIEnableGetConfiguration)
+		require.False(t, c.Metrics.configV1.ServiceConfig.APIEnableGetConfiguration)
 	})
 	t.Run("Enabled", func(t *testing.T) {
 		cfg := `{}`
@@ -58,7 +58,7 @@ func TestConfig_ConfigAPIFlag(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.True(t, c.EnableConfigEndpoints)
-		require.True(t, c.Metrics.ServiceConfig.APIEnableGetConfiguration)
+		require.True(t, c.Metrics.configV1.ServiceConfig.APIEnableGetConfiguration)
 	})
 }
 
@@ -81,7 +81,7 @@ metrics:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, expect, c.Metrics.Global)
+	require.Equal(t, expect, c.Metrics.configV1.Global)
 }
 
 func TestConfig_OverrideByEnvironmentOnLoad(t *testing.T) {
@@ -104,7 +104,7 @@ metrics:
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, expect, c.Metrics.Global)
+	require.Equal(t, expect, c.Metrics.configV1.Global)
 }
 
 func TestConfig_OverrideByEnvironmentOnLoad_NoDigits(t *testing.T) {
@@ -121,7 +121,7 @@ metrics:
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, expect, c.Metrics.Global.Prometheus.ExternalLabels)
+	require.Equal(t, expect, c.Metrics.configV1.Global.Prometheus.ExternalLabels)
 }
 
 func TestConfig_FlagsAreAccepted(t *testing.T) {
@@ -141,7 +141,7 @@ metrics:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, "/tmp/wal", c.Metrics.WALDir)
+	require.Equal(t, "/tmp/wal", c.Metrics.configV1.WALDir)
 }
 
 func TestConfig_StrictYamlParsing(t *testing.T) {
@@ -284,8 +284,8 @@ prometheus:
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
 	require.NoError(t, cfg.Validate(nil))
 
-	require.Equal(t, "default", cfg.Metrics.Configs[0].Name)
-	require.Equal(t, "/tmp", cfg.Metrics.WALDir)
+	require.Equal(t, "default", cfg.Metrics.configV1.Configs[0].Name)
+	require.Equal(t, "/tmp", cfg.Metrics.configV1.WALDir)
 	require.Equal(t, []string{"`prometheus` has been deprecated in favor of `metrics`"}, cfg.Deprecations)
 }
 
@@ -411,10 +411,10 @@ metrics:
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(cfgText), false, &cfg))
 
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
+	require.Equal(t, "verysecret", cfg.Metrics.configV1.ServiceConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.configV1.ServiceConfig.KVStore.Etcd.Password)
+	require.Equal(t, "verysecret", cfg.Metrics.configV1.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.configV1.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
 
 	bb, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
@@ -423,8 +423,8 @@ metrics:
 	require.True(t, strings.Contains(string(bb), "<secret>"), "secrets did not get obscured properly")
 
 	// Re-validate that the config object has not changed
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
+	require.Equal(t, "verysecret", cfg.Metrics.configV1.ServiceConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.configV1.ServiceConfig.KVStore.Etcd.Password)
+	require.Equal(t, "verysecret", cfg.Metrics.configV1.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
+	require.Equal(t, "verysecret", cfg.Metrics.configV1.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
 }
