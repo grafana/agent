@@ -100,6 +100,10 @@ func TestConfigMakerWithMetricsAndInstances(t *testing.T) {
 	writeFile(t, tDir, "metrics-1.yml", configStr)
 	writeFile(t, tDir, "metrics_instances-1.yml", "name: t1")
 	writeFile(t, tDir, "metrics_instances-2.yml", "name: t2")
+	writeFile(t, tDir, "server-1.yml", `
+http_listen_port: 12345
+log_level: debug
+`)
 	fileFS := fmt.Sprintf("file://%s", tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
@@ -108,7 +112,7 @@ func TestConfigMakerWithMetricsAndInstances(t *testing.T) {
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg)
+	err = cmf.ProcessConfigs(cfg, nil)
 	assert.Nil(t, err)
 	assert.Len(t, cfg.Metrics.Configs, 2)
 }
@@ -402,7 +406,7 @@ func TestTraces(t *testing.T) {
 configs:
 - name: test_traces
   automatic_logging:
-    backend: loki
+    backend: stdout
     loki_name: default
     spans: true
 `
@@ -418,7 +422,7 @@ configs:
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg)
+	err = cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Traces)
 	assert.Len(t, cfg.Traces.Configs, 1)
@@ -450,7 +454,7 @@ configs:
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg)
+	err = cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Logs)
 	assert.Len(t, cfg.Logs.Configs, 1)
@@ -474,7 +478,7 @@ log_level: debug
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg)
+	err = cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Server)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
@@ -507,7 +511,7 @@ integrations:
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg)
+	err = cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Server)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
@@ -549,7 +553,7 @@ windows_exporter: {}
 	cmf, err := NewConfigLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg)
+	err = cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Server)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)

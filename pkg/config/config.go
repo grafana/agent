@@ -261,7 +261,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
-func LoadDynamicConfiguration(url string, expandVars bool, c *Config) error {
+func LoadDynamicConfiguration(url string, _ bool, c *Config, fs *flag.FlagSet) error {
 	buf, err := ioutil.ReadFile(url)
 	if err != nil {
 		return errors.Wrap(err, "error reading config file")
@@ -272,7 +272,7 @@ func LoadDynamicConfiguration(url string, expandVars bool, c *Config) error {
 		return errors.Wrap(err, "error unmarshalling config file")
 	}
 	cmf, err := NewConfigLoader(*loaderCfg)
-	err = cmf.ProcessConfigs(c)
+	err = cmf.ProcessConfigs(c, fs)
 	if err != nil {
 		return errors.Wrap(err, "error processing config templates")
 	}
@@ -326,7 +326,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 			if !features.Enabled(fs, featIntegrationsNext) {
 				panic("integrations-next must be enabled for dynamic configuration to work")
 			}
-			return LoadDynamicConfiguration(url, expand, c)
+			return LoadDynamicConfiguration(url, expand, c, fs)
 		}
 		return LoadFile(url, expand, c)
 	})

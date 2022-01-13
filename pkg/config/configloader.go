@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"errors"
+	"flag"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -22,13 +23,16 @@ import (
 	"strings"
 )
 
-// ConfigLoader is used to load configs from a variety of sources and squash them together. Supports templates via gomplate
+// ConfigLoader is used to load configs from a variety of sources and squash them together.
+// This is used by the dynamic configuration feature to load configurations from a set of templates and then run them through
+// gomplate producing an end result.
 type ConfigLoader struct {
 	loader *loader.ConfigLoader
 	mux    fsimpl.FSMux
 	cfg    LoaderConfig
 }
 
+// NewConfigLoader instantiates a new ConfigLoader
 func NewConfigLoader(cfg LoaderConfig) (*ConfigLoader, error) {
 	sources := make(map[string]*data.Source)
 	for _, v := range cfg.Sources {
@@ -51,7 +55,7 @@ func NewConfigLoader(cfg LoaderConfig) (*ConfigLoader, error) {
 
 // ProcessConfigs loads the configurations in a predetermined order to handle functioning correctly. The only section
 // not loaded is Server which is loaded from the passed in configuration. That is considered non-changing.
-func (c *ConfigLoader) ProcessConfigs(cfg *Config) error {
+func (c *ConfigLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 
 	err := c.processAgent(cfg)
 	if err != nil {
@@ -85,11 +89,11 @@ func (c *ConfigLoader) ProcessConfigs(cfg *Config) error {
 	if err != nil {
 		return err
 	}
+	cfg.Integrations = DefaultVersionedIntegrations
+	cfg.Integrations.setVersion(integrationsVersion2)
+	defaultV2 := v2.DefaultSubsystemOptions
+	cfg.Integrations.configV2 = &defaultV2
 	if len(exporters) > 0 {
-		cfg.Integrations = DefaultVersionedIntegrations
-		cfg.Integrations.setVersion(integrationsVersion2)
-		defaultV2 := v2.DefaultSubsystemOptions
-		cfg.Integrations.configV2 = &defaultV2
 		cfg.Integrations.configV2.Configs = exporters
 	}
 
@@ -107,6 +111,10 @@ func (c *ConfigLoader) ProcessConfigs(cfg *Config) error {
 	}
 	if traceConfigs != nil {
 		cfg.Traces = *traceConfigs
+	}
+	err = cfg.Validate(fs)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -401,10 +409,11 @@ type LoaderConfig struct {
 	Sources []Datasource `yaml:"sources"`
 
 	// TemplatePaths is the "directory" to look for templates in, they will be found and matched to configs but various
-	// naming conventions. They can be S3/gcp, or file based resources.
+	// naming conventions. They can be S3/gcp, or file based resources. The directory structure is NOT walked.
 	TemplatePaths []string `yaml:"template_paths"`
 }
 
+// Datasource is used for gomplate and can be used for a variety of resources.
 type Datasource struct {
 	Name string `yaml:"name"`
 	URL  string `yaml:"url"`
