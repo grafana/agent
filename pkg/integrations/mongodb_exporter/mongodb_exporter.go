@@ -46,7 +46,7 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
+	integrations_v2.RegisterLegacy(func() interface{} { return &Config{} }, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new mongodb_exporter integration.

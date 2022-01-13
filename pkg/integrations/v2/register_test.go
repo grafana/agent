@@ -12,9 +12,19 @@ import (
 )
 
 func TestIntegrationRegistration(t *testing.T) {
-	setRegistered(t, map[Config]Type{
-		&testIntegrationA{}: TypeEither,
-		&testIntegrationB{}: TypeEither,
+	setRegistered(t, []testRegistration{
+		{
+			T: TypeMultiplex,
+			F: func() interface{} {
+				return &testIntegrationA{}
+			},
+		},
+		{
+			T: TypeMultiplex,
+			F: func() interface{} {
+				return &testIntegrationB{}
+			},
+		},
 	})
 
 	// This test checks for a few things:
@@ -28,8 +38,8 @@ func TestIntegrationRegistration(t *testing.T) {
 	var cfgToParse = `
 name: John Doe
 duration: 500ms
-test:
-  text: Hello, world!
+test_configs:
+- text: Hello, world!
 `
 
 	var fullCfg testFullConfig
@@ -48,9 +58,19 @@ test:
 }
 
 func TestIntegrationRegistration_Multiple(t *testing.T) {
-	setRegistered(t, map[Config]Type{
-		&testIntegrationA{}: TypeEither,
-		&testIntegrationB{}: TypeEither,
+	setRegistered(t, []testRegistration{
+		{
+			T: TypeMultiplex,
+			F: func() interface{} {
+				return &testIntegrationA{}
+			},
+		},
+		{
+			T: TypeMultiplex,
+			F: func() interface{} {
+				return &testIntegrationB{}
+			},
+		},
 	})
 
 	var cfgToParse = `
@@ -79,7 +99,7 @@ test_configs:
 func TestIntegrationRegistration_Legacy(t *testing.T) {
 	setRegistered(t, nil)
 
-	RegisterLegacy(&legacyConfig{}, TypeSingleton, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
+	RegisterLegacy(func() interface{} { return &legacyConfig{} }, TypeSingleton, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
 		return &legacyShim{Data: in, Common: mc}
 	})
 
@@ -106,7 +126,7 @@ legacy:
 func TestIntegrationRegistration_Legacy_Multiplex(t *testing.T) {
 	setRegistered(t, nil)
 
-	RegisterLegacy(&legacyConfig{}, TypeMultiplex, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
+	RegisterLegacy(func() interface{} { return &legacyConfig{} }, TypeMultiplex, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
 		return &legacyShim{Data: in, Common: mc}
 	})
 

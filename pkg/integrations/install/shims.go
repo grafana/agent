@@ -18,13 +18,16 @@ func init() {
 		// Look to see if there's a v2 integration with the same name.
 		var found bool
 		for _, v2Integration := range v2.Registered() {
+
 			if v2Integration.Name() == v1Integration.Name() {
 				found = true
 				break
 			}
 		}
 		if !found {
-			v2.RegisterLegacy(v1Integration, v2.TypeSingleton, metricsutils.CreateShim)
+			v2.RegisterLegacy(func() interface{} {
+				return v1Integration
+			}, v2.TypeSingleton, metricsutils.CreateShim)
 		}
 	}
 }

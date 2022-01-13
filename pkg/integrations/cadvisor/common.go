@@ -3,6 +3,10 @@ package cadvisor
 import (
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+
 	"github.com/grafana/agent/pkg/integrations"
 )
 
@@ -110,4 +114,6 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(func() interface{} { return &Config{} }, integrations_v2.TypeSingleton, metricsutils.CreateShim)
+
 }

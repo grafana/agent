@@ -10,6 +10,9 @@ import (
 	"strconv"
 	"time"
 
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
@@ -92,6 +95,8 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(func() interface{} { return &Config{} }, integrations_v2.TypeSingleton, metricsutils.CreateShim)
+
 }
 
 // Exporter defines the statsd_exporter integration.

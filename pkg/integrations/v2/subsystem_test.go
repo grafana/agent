@@ -10,11 +10,16 @@ import (
 )
 
 func TestSubsystemOptions_Unmarshal(t *testing.T) {
-	setRegistered(t, map[Config]Type{
-		&testIntegrationA{}: TypeSingleton,
+	setRegistered(t, []testRegistration{
+		{
+			T: TypeMultiplex,
+			F: func() interface{} {
+				return &testIntegrationA{}
+			},
+		},
 	})
 
-	RegisterLegacy(&legacyConfig{}, TypeSingleton, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
+	RegisterLegacy(func() interface{} { return &legacyConfig{} }, TypeSingleton, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
 		return &legacyShim{Data: in, Common: mc}
 	})
 
@@ -35,10 +40,11 @@ func TestSubsystemOptions_Unmarshal(t *testing.T) {
 		{
 			name: "invalid field",
 			in: `
-        test:
-          invalidfield: true
+        test_configs:
+          - text: name
+            invalidfield: true
       `,
-			expectError: "line 1: field invalidfield not found in type integrations.plain",
+			expectError: "line 2: field invalidfield not found in type integrations.plain",
 		},
 		{
 			name: "invalid v1 field",
