@@ -8,6 +8,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/dskit/backoff"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -15,15 +17,9 @@ import (
 
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8s_yaml "sigs.k8s.io/yaml"
 )
-
-// MetaFromKey creates object metadata from the namespace and name pair. This
-// is useful for packages to avoid importing
-// k8s.io/apimachinery/pkg/apis/meta/v1
-func MetaFromKey(namespace, name string) meta_v1.ObjectMeta {
-	return meta_v1.ObjectMeta{Namespace: namespace, Name: name}
-}
 
 // CreateObjects will create the provided set of objects. If any object
 // couldn't be created, an error will be returned and created objects will be
@@ -94,6 +90,53 @@ NextObject:
 	return objects, nil
 }
 
+func UnstructuredTo(us *unstructured.Unstructured, obj client.Object, cli client.Client) error {
+	scheme := cli.Scheme()
+	decoder := serializer.NewCodecFactory(scheme).UniversalDecoder(scheme.PrioritizedVersionsAllGroups()...)
+
+	raw, err := k8s_yaml.Marshal(us)
+	if err != nil {
+		return fmt.Errorf("could not marshal unstructured")
+	}
+
+	_, _, err = decoder.Decode(raw, nil, obj)
+	return err
+}
+
+// ReadUnstructuredObjects will read the set of objects from r as unstructured
+// objects.
+func ReadUnstructuredObjects(r io.Reader) ([]*unstructured.Unstructured, error) {
+	var (
+		objects    []*unstructured.Unstructured
+		rawDecoder = yaml.NewYAMLOrJSONDecoder(r, 4096)
+	)
+
+NextObject:
+	for {
+		var raw json.RawMessage
+
+		err := rawDecoder.Decode(&raw)
+		switch {
+		case errors.Is(err, io.EOF):
+			break NextObject
+		case err != nil:
+			return nil, fmt.Errorf("error parsing object: %w", err)
+		case len(raw) == 0:
+			// Skip over empty objects. This can happen when --- is used at the top
+			// of YAML files.
+			continue NextObject
+		}
+
+		var us unstructured.Unstructured
+		if err := json.Unmarshal(raw, &us); err != nil {
+			return nil, fmt.Errorf("failed to decode object: %w", err)
+		}
+		objects = append(objects, &us)
+	}
+
+	return objects, nil
+}
+
 // DefaultBackoff is a default backoff config that retries forever until ctx is
 // canceled.
 var DefaultBackoff = backoff.Config{
@@ -143,5 +186,20 @@ func WaitReady(ctx context.Context, cli client.Client, obj client.Object, bc bac
 		bo.Wait()
 	}
 
+	return bo.Err()
+}
+
+// Wait calls done until ctx is caneled or check returns nil. Returns an error
+// if ctx is canceled.
+func Wait(ctx context.Context, l log.Logger, check func() error) error {
+	bo := backoff.New(ctx, DefaultBackoff)
+	for bo.Ongoing() {
+		err := check()
+		if err == nil {
+			return nil
+		}
+		level.Error(l).Log("msg", "check failed", "err", err)
+		bo.Wait()
+	}
 	return bo.Err()
 }
