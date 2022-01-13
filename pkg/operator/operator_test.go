@@ -152,8 +152,8 @@ func NewTestConfig(t *testing.T, cluster *k8s.Cluster) *Config {
 
 	// Listen on any port for testing purposes
 	cfg.Controller.Port = 0
-	cfg.Controller.MetricsBindAddress = "0:0"
-	cfg.Controller.HealthProbeBindAddress = "0:0"
+	cfg.Controller.MetricsBindAddress = "127.0.0.1:0"
+	cfg.Controller.HealthProbeBindAddress = "127.0.0.1:0"
 
 	return cfg
 }
