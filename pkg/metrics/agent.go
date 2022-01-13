@@ -204,6 +204,10 @@ func (a *Agent) Validate(c *instance.Config) error {
 	a.mut.RLock()
 	defer a.mut.RUnlock()
 
+	if a.cfg.WALDir == "" {
+		return fmt.Errorf("no wal_directory configured")
+	}
+
 	if err := c.ApplyDefaults(a.cfg.Global); err != nil {
 		return fmt.Errorf("failed to apply defaults to %q: %w", c.Name, err)
 	}

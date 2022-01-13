@@ -12,6 +12,7 @@ that implements a full Grafana Agent environment for testing.
 - Docker
 - [Tanka >= v0.9.2](https://github.com/grafana/tanka)
 - [k3d >= v4.0.0](https://github.com/rancher/k3d)
+- [jsonnet-bundler >= v0.4.0](https://github.com/jsonnet-bundler/jsonnet-bundler)
 
 ### Getting Started
 
@@ -27,6 +28,8 @@ Run the following to create your cluster:
 k3d image import -c agent-k3d grafana/agent:latest
 k3d image import -c agent-k3d grafana/agentctl:latest
 
+# Ensure jsonnet is up to date before applying environment
+jb install
 tk apply ./environment
 
 # Navigate to grafana.k3d.localhost:30080 in your browser to view dashboards
@@ -37,17 +40,17 @@ k3d cluster delete agent-k3d
 
 ## Smoke Test Environment
 
-The smoke test environment is used to validate samples end to end. 
+The smoke test environment is used to validate samples end to end.
 
 ### Running
 
 Smoke Test environment is invoked via `/scripts/smoke-test.bash`
 
-This tool will spin up cluster of Grafana Agent, Cortex, Avalanche and [Crow](../../cmd/grafana-agent-crow/README.md) instances. The tool will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing. 
+This tool will spin up cluster of Grafana Agent, Cortex, Avalanche and [Crow](../../cmd/grafana-agent-crow/README.md) instances. The tool will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
 
 ### What to look for?
 
-These alerts are viewable [here](http://prometheus.k3d.localhost:50080/alerts). 
+These alerts are viewable [here](http://prometheus.k3d.localhost:50080/alerts).
 
 Prometheus alerts are triggered:
 - If any Crow instances are not running or Crow samples are not being propagated correctly.
@@ -90,4 +93,4 @@ Crow instance will check to see if the metrics that were scraped shows up in the
 
 ### Avalanche
 
-Avalanche is used to add some additional load on the system and general testing. 
+Avalanche is used to add some additional load on the system and general testing.

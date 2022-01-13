@@ -12,6 +12,27 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.22.0
+
+### `node_exporter` integration deprecated field names
+
+The following field names for the `node_exporter` integration are now deprecated:
+
+* `netdev_device_whitelist` is deprecated in favor of `netdev_device_include`.
+* `netdev_device_blacklist` is deprecated in favor of `netdev_device_exclude`.
+* `systemd_unit_whitelist` is deprecated in favor of `systemd_unit_include`.
+* `systemd_unit_blacklist` is deprecated in favor of `systemd_unit_exclude`.
+* `filesystem_ignored_mount_points` is deprecated in favor of
+  `filesystem_mount_points_exclude`.
+* `filesystem_ignored_fs_types` is deprecated in favor of
+  `filesystem_fs_types_exclude`.
+
+This change aligns with the equivalent flag names also being deprecated in the
+upstream node_exporter.
+
+Support for the old field names will be removed in a future version. A warning
+will be logged if using the old field names when the integration is enabled.
+
 ## v0.21.2, v0.20.1
 
 ### Disabling of config retrieval enpoints

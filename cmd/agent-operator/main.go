@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/operator/logutil"
 	"github.com/prometheus/common/version"
 	controller "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	// Needed for clients.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -31,6 +32,13 @@ func main() {
 	if err != nil {
 		level.Error(logger).Log("msg", "unable to create manager", "err", err)
 		os.Exit(1)
+	}
+
+	if err := m.AddReadyzCheck("running", healthz.Ping); err != nil {
+		level.Warn(logger).Log("msg", "failed to set up 'running' readyz check", "err", err)
+	}
+	if err := m.AddHealthzCheck("running", healthz.Ping); err != nil {
+		level.Warn(logger).Log("msg", "failed to set up 'running' healthz check", "err", err)
 	}
 
 	if err := operator.New(logger, cfg, m); err != nil {

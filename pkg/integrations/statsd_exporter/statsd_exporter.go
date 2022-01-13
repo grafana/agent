@@ -10,10 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/prometheus/statsd_exporter/pkg/mappercache/randomreplacement"
-
-	"github.com/prometheus/statsd_exporter/pkg/mappercache/lru"
-
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
@@ -27,6 +23,8 @@ import (
 	"github.com/prometheus/statsd_exporter/pkg/line"
 	"github.com/prometheus/statsd_exporter/pkg/listener"
 	"github.com/prometheus/statsd_exporter/pkg/mapper"
+	"github.com/prometheus/statsd_exporter/pkg/mappercache/lru"
+	"github.com/prometheus/statsd_exporter/pkg/mappercache/randomreplacement"
 	"gopkg.in/yaml.v2"
 )
 

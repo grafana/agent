@@ -11,8 +11,8 @@ local pvc = k.core.v1.persistentVolumeClaim;
 local volumeMount = k.core.v1.volumeMount;
 
 local images = {
-  agent: 'grafana/agent:latest',
-  agentctl: 'grafana/agentctl:latest',
+  agent: 'grafana/agent:main',
+  agentctl: 'grafana/agentctl:main',
 };
 
 local new_crow(name, selector) =

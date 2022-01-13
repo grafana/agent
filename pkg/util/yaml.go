@@ -62,18 +62,23 @@ func UnmarshalYAMLMerged(bb []byte, vv ...interface{}) error {
 	var typeErrors []yaml.TypeError
 
 	for _, v := range vv {
-		// Perform a non-strict unmarshal first to populate the object completely.
-		if err := yaml.Unmarshal(bb, v); err != nil {
-			return err
-		}
-
-		// Then, perform a strict unmarshal. This is likely to fail with type
-		// errors for missing fields that may have been consumed by another object
-		// in vv.
+		// Perform a strict unmarshal. This is likely to fail with type errors for
+		// missing fields that may have been consumed by another object in vv.
 		var te *yaml.TypeError
 		if err := yaml.UnmarshalStrict(bb, v); errors.As(err, &te) {
 			typeErrors = append(typeErrors, *te)
 		} else if err != nil {
+			return err
+		}
+
+		// It's common for custom yaml.Unmarshaler implementations to use
+		// UnmarshalYAML to apply default values both before and after calling the
+		// unmarshal method passed to them.
+		//
+		// We *must* do a second non-strict unmarshal *after* the strict unmarshal
+		// to ensure that every v was able to complete its unmarshal to completion,
+		// ignoring type errors from unrecognized fields.
+		if err := yaml.Unmarshal(bb, v); err != nil {
 			return err
 		}
 	}
