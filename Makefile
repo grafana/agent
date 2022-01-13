@@ -7,7 +7,7 @@ SHELL = /usr/bin/env bash
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
-IMAGE_BRANCH_TAG ?= "main"
+IMAGE_BRANCH_TAG ?= main
 ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 # If RELEASE_TAG has a valid value it will be the same as IMAGE_TAG
@@ -15,7 +15,7 @@ IMAGE_TAG ?= $(shell ./tools/image-tag)
 RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
-IMAGE_BRANCH_TAG = "latest"
+IMAGE_BRANCH_TAG = latest
 endif
 DRONE ?= false
 
