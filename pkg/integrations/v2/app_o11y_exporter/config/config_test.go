@@ -14,6 +14,8 @@ test-conf: test-val`
 	err := yaml.Unmarshal([]byte(cb), &cfg)
 	assert.Nil(t, err)
 	assert.Equal(t, cfg.CORSAllowedOrigins, []string{"http://localhost:1234"})
+	assert.Equal(t, cfg.Server.Host, "0.0.0.0")
+	assert.Equal(t, cfg.Server.Port, 8080)
 	assert.Equal(t, cfg.SourceMap.Enabled, false)
 	assert.Equal(t, cfg.RateLimiting.Enabled, false)
 }

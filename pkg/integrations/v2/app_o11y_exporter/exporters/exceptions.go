@@ -13,11 +13,15 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 )
 
+// LokiExceptionExporter hold the information for reporting exceptions to Loki
+// as well as tranforming stacktraces with sourcemaps
 type LokiExceptionExporter struct {
 	li  *logs.Instance
 	smc *sourcemap.Consumer
 }
 
+// NewLokiExceptionExporter creates a new LokiExeptionExporter for a specific
+// Loki instance
 func NewLokiExceptionExporter(lokiInstance *logs.Instance, conf config.SourceMapConfig) (AppReceiverExporter, error) {
 	var (
 		smc *sourcemap.Consumer
@@ -47,14 +51,16 @@ func createSourceMapConsumer(conf config.SourceMapConfig) (scm *sourcemap.Consum
 	return scm, nil
 }
 
+// Init implements the AppReceiverExporter interface
 func (le *LokiExceptionExporter) Init() error {
 	return nil
 }
 
-func (ee *LokiExceptionExporter) Export(payload models.Payload) error {
+// Export implements the AppDataExporter interface
+func (le *LokiExceptionExporter) Export(payload models.Payload) error {
 	for _, exception := range payload.Exceptions {
-		if ee.smc != nil {
-			mappedStacktrace := exception.Stacktrace.MapFrames(ee.smc)
+		if le.smc != nil {
+			mappedStacktrace := exception.Stacktrace.MapFrames(le.smc)
 			exception.Stacktrace = &mappedStacktrace
 		}
 		e := api.Entry{
@@ -64,7 +70,7 @@ func (ee *LokiExceptionExporter) Export(payload models.Payload) error {
 				Line:      exception.String(),
 			},
 		}
-		if ee.li.SendEntry(e, time.Duration(1000)) {
+		if le.li.SendEntry(e, time.Duration(1000)) {
 			return errors.New("Error while sending log over to Loki")
 		}
 	}

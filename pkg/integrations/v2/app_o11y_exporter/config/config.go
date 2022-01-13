@@ -1,20 +1,26 @@
 package config
 
 const (
-	DEFAULT_RATE_LIMITING_RPS       = 100
-	DEFAULT_RATE_LIMITING_BURSTINES = 50
-	DEFAULT_MAX_PAYLOAD_SIZE        = 5e6
+	// DefaultRateLimitingRPS is the default value of Requests Per Second
+	// for ratelimiting
+	DefaultRateLimitingRPS = 100
+	// DefaultRateLimitingBurstiness is the default burstiness factor of the
+	// token bucket algorigthm
+	DefaultRateLimitingBurstiness = 50
+	// DefaultMaxPayloadSize is the max paylad size in bytes
+	DefaultMaxPayloadSize = 5e6
 )
 
+// DefaultConfig holds the default configuration of the exporter
 var DefaultConfig = AppExporterConfig{
 	// Default JS agent port
 	CORSAllowedOrigins: []string{"http://localhost:1234"},
-	RateLimiting: RateLimiting{
+	RateLimiting: RateLimitingConfig{
 		Enabled:    false,
-		RPS:        DEFAULT_RATE_LIMITING_RPS,
-		Burstiness: DEFAULT_RATE_LIMITING_BURSTINES,
+		RPS:        DefaultRateLimitingRPS,
+		Burstiness: DefaultRateLimitingBurstiness,
 	},
-	MaxAllowedPayloadSize: DEFAULT_MAX_PAYLOAD_SIZE,
+	MaxAllowedPayloadSize: DefaultRateLimitingRPS,
 	SourceMap: SourceMapConfig{
 		Enabled: false,
 		MapURI:  "",
@@ -27,37 +33,45 @@ var DefaultConfig = AppExporterConfig{
 	Measurements: []Measurement{},
 }
 
+// ServerConfig holds the receiver http server configuration
 type ServerConfig struct {
 	Host string `yaml:"host,omitempty"`
 	Port int    `yaml:"port,omitempty"`
 }
 
-type RateLimiting struct {
+// RateLimitingConfig holds the configuration of the rate limiter
+type RateLimitingConfig struct {
 	Enabled    bool    `yaml:"enabled,omitempty"`
 	RPS        float64 `yaml:"rps,omitempty"`
 	Burstiness int     `yaml:"burstiness,omitempty"`
 }
 
+// SourceMapConfig holds the configuration of the source map
+// module
 type SourceMapConfig struct {
 	Enabled bool   `yaml:"enabled,omitempty"`
 	MapURI  string `yaml:"map_uri,omitempty"`
 }
 
+// Measurement is the definition of a custom measurement
 type Measurement struct {
 	Name        string `yaml:"name"`
 	Description string `yaml:"description,omitempty"`
 }
 
+// AppExporterConfig is the configuration struct of the
+// integration
 type AppExporterConfig struct {
-	CORSAllowedOrigins    []string        `yaml:"cors_allowed_origins,omitempty"`
-	RateLimiting          RateLimiting    `yaml:"rate_limiting,omitempty"`
-	MaxAllowedPayloadSize int64           `yaml:"max_allowed_payload_size,omitempty"`
-	SourceMap             SourceMapConfig `yaml:"source_map,omitempty"`
-	Server                ServerConfig    `yaml:"server,omitempty"`
-	LogsInstance          string          `yaml:"logs_instance"`
-	Measurements          []Measurement   `yaml:"custom_measurements"`
+	CORSAllowedOrigins    []string           `yaml:"cors_allowed_origins,omitempty"`
+	RateLimiting          RateLimitingConfig `yaml:"rate_limiting,omitempty"`
+	MaxAllowedPayloadSize int64              `yaml:"max_allowed_payload_size,omitempty"`
+	SourceMap             SourceMapConfig    `yaml:"source_map,omitempty"`
+	Server                ServerConfig       `yaml:"server,omitempty"`
+	LogsInstance          string             `yaml:"logs_instance"`
+	Measurements          []Measurement      `yaml:"custom_measurements"`
 }
 
+// UnmarshalYAML implements the Unmarshaller interface
 func (c *AppExporterConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 	type cA AppExporterConfig
@@ -67,7 +81,7 @@ func (c *AppExporterConfig) UnmarshalYAML(unmarshal func(interface{}) error) err
 	}
 
 	if c.RateLimiting.Enabled && c.RateLimiting.RPS == 0 {
-		c.RateLimiting.RPS = DEFAULT_RATE_LIMITING_RPS
+		c.RateLimiting.RPS = DefaultRateLimitingRPS
 	}
 
 	return nil
