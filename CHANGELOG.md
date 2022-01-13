@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+# v0.22.0 (2022-01-13)
+
 This release has deprecations. Please read [DEPRECATION] entries and consult
 the [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for detailed information.
