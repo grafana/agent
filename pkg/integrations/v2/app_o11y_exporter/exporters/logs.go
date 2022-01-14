@@ -10,23 +10,29 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 )
 
+// LokiExporterConfig holds the configuration of the Logs exporter
 type LokiExporterConfig struct {
 	SendEntryTimeout int
 }
 
+// LokiExporter is the struct of the logs exporter
 type LokiExporter struct {
 	li   *logs.Instance
 	conf LokiExporterConfig
 }
 
+// Init implements the AppReceiverExporter interface
 func (le *LokiExporter) Init() error {
 	return nil
 }
 
+// NewLokiExporter creates a new Loki logs exporter with the given
+// configuration
 func NewLokiExporter(lokiInstance *logs.Instance, conf LokiExporterConfig) AppReceiverExporter {
 	return &LokiExporter{li: lokiInstance, conf: conf}
 }
 
+// Export implements the AppDataExporter interface
 func (le *LokiExporter) Export(payload models.Payload) error {
 	for _, log := range payload.Logs {
 		e := api.Entry{
