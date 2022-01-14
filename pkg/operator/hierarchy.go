@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/operator/hierarchy"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -198,32 +199,35 @@ func testForArbitraryFSAccess(e prom.Endpoint) error {
 func buildSecrets(ctx context.Context, cli client.Client, deploy config.Deployment) (secrets assets.SecretStore, watchers []hierarchy.Watcher, err error) {
 	secrets = make(assets.SecretStore)
 
+	// KeySelector caches to make sure we don't create duplicate watchers.
+	var (
+		usedSecretSelectors    = map[hierarchy.KeySelector]struct{}{}
+		usedConfigMapSelectors = map[hierarchy.KeySelector]struct{}{}
+	)
+
 	for _, ref := range deploy.AssetReferences() {
 		var (
-			object     client.Object
 			objectList client.ObjectList
-			sel        hierarchy.Selector
+			sel        hierarchy.KeySelector
 		)
 
 		switch {
 		case ref.Reference.Secret != nil:
-			object = &corev1.Secret{}
 			objectList = &corev1.SecretList{}
-			sel = &hierarchy.KeySelector{
+			sel = hierarchy.KeySelector{
 				Namespace: ref.Namespace,
 				Name:      ref.Reference.Secret.Name,
 			}
 		case ref.Reference.ConfigMap != nil:
-			object = &corev1.ConfigMap{}
 			objectList = &corev1.ConfigMapList{}
-			sel = &hierarchy.KeySelector{
+			sel = hierarchy.KeySelector{
 				Namespace: ref.Namespace,
 				Name:      ref.Reference.ConfigMap.Name,
 			}
 		}
 
 		gvk, _ := apiutil.GVKForObject(objectList, cli.Scheme())
-		if err := hierarchy.List(ctx, cli, objectList, sel); err != nil {
+		if err := hierarchy.List(ctx, cli, objectList, &sel); err != nil {
 			return nil, nil, fmt.Errorf("failed to find %q resource: %w", gvk.String(), err)
 		}
 
@@ -252,11 +256,28 @@ func buildSecrets(ctx context.Context, cli client.Client, deploy config.Deployme
 			return nil, nil, fmt.Errorf("failed to iterate over %q list: %w", gvk.String(), err)
 		}
 
-		watchers = append(watchers, hierarchy.Watcher{
-			Object:   object,
-			Owner:    client.ObjectKeyFromObject(deploy.Agent),
-			Selector: sel,
-		})
+		switch {
+		case ref.Reference.Secret != nil:
+			if _, used := usedSecretSelectors[sel]; used {
+				continue
+			}
+			watchers = append(watchers, hierarchy.Watcher{
+				Object:   &v1.Secret{},
+				Owner:    client.ObjectKeyFromObject(deploy.Agent),
+				Selector: &sel,
+			})
+			usedSecretSelectors[sel] = struct{}{}
+		case ref.Reference.ConfigMap != nil:
+			if _, used := usedConfigMapSelectors[sel]; used {
+				continue
+			}
+			watchers = append(watchers, hierarchy.Watcher{
+				Object:   &v1.ConfigMap{},
+				Owner:    client.ObjectKeyFromObject(deploy.Agent),
+				Selector: &sel,
+			})
+			usedConfigMapSelectors[sel] = struct{}{}
+		}
 	}
 
 	return secrets, watchers, nil
