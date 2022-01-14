@@ -13,8 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -222,26 +220,6 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 // Start starts the operator. It will run until ctx is canceled.
 func (o *Operator) Start(ctx context.Context) error {
 	return o.manager.Start(ctx)
-}
-
-// watchType applies the GVK to an object and returns a source to watch it.
-// watchType is a convenience function; without it, the GVK won't show up in
-// logs.
-func watchType(obj client.Object, m manager.Manager) source.Source {
-	applyGVK(obj, m)
-	return &source.Kind{Type: obj}
-}
-
-// applyGVK applies a GVK to an object based on the scheme. applyGVK is a
-// convenience function; without it, the GVK won't show up in logs.
-// nolint: interfacer
-func applyGVK(obj client.Object, m manager.Manager) client.Object {
-	gvk, err := apiutil.GVKForObject(obj, m.GetScheme())
-	if err != nil {
-		panic(err)
-	}
-	obj.GetObjectKind().SetGroupVersionKind(gvk)
-	return obj
 }
 
 type lazyReconciler struct {

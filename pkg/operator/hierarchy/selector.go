@@ -21,56 +21,6 @@ type Selector interface {
 	Matches(context.Context, client.Client, client.Object) (bool, error)
 }
 
-// OrSelector returns a set of objects for which any inner selectors match.
-type OrSelector struct {
-	Selectors []Selector
-}
-
-var _ Selector = (*OrSelector)(nil)
-
-// AndSelector implements Selector.
-func (os *OrSelector) ApplyToList(lo *client.ListOptions) {
-	// no-op: we can't update the list options because our individual selectors
-	// might all have wildly different settings
-}
-
-// Matches implements Selector.
-func (os *OrSelector) Matches(ctx context.Context, cli client.Client, o client.Object) (bool, error) {
-	for _, sel := range os.Selectors {
-		matches, err := sel.Matches(ctx, cli, o)
-		if err != nil {
-			return false, nil
-		} else if matches {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// AndSelector returns a set of objects for which all inner selectors match.
-type AndSelector struct {
-	Selectors []Selector
-}
-
-var _ Selector = (*AndSelector)(nil)
-
-// AndSelector implements Selector.
-func (as *AndSelector) ApplyToList(lo *client.ListOptions) {
-	// no-op: we can't update the list options because our individual selectors
-	// might all have wildly different settings
-}
-
-// Matches implements Selector.
-func (as *AndSelector) Matches(ctx context.Context, cli client.Client, o client.Object) (bool, error) {
-	for _, sel := range as.Selectors {
-		matches, err := sel.Matches(ctx, cli, o)
-		if !matches || err != nil {
-			return matches, err
-		}
-	}
-	return true, nil
-}
-
 // LabelsSelector is used for discovering a set of objects in a hierarchy based
 // on labels.
 type LabelsSelector struct {
