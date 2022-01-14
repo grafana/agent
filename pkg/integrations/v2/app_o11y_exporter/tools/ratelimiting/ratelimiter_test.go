@@ -12,7 +12,7 @@ func TestIsRateLimited(t *testing.T) {
 	const (
 		rps      = 1
 		burst    = 5
-		requests = 15
+		requests = 50
 	)
 
 	var (
@@ -24,7 +24,7 @@ func TestIsRateLimited(t *testing.T) {
 
 	op := func() {
 		defer wg.Done()
-		if ok := rl.IsRateLimited(); ok {
+		if ok := rl.IsRateLimited(); !ok {
 			atomic.AddUint32(&sum, 1)
 		}
 	}
