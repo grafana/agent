@@ -1,3 +1,6 @@
+//go:build !nonetwork && !nodocker && !race
+// +build !nonetwork,!nodocker,!race
+
 package operator
 
 import (
