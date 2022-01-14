@@ -22,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/pkg/operator/hierarchy"
 	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promop "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
@@ -138,12 +139,10 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 	}
 
 	var (
-		events = newResourceEventHandlers(manager.GetClient(), l)
-
-		applyGVK  = func(obj client.Object) client.Object { return applyGVK(obj, manager) }
-		watchType = func(obj client.Object) source.Source { return watchType(obj, manager) }
-
 		agentPredicates []predicate.Predicate
+
+		notifier        = hierarchy.NewNotifier(log.With(l, "component", "hierarchy_notifier"), manager.GetClient())
+		notifierHandler = notifier.EventHandler()
 	)
 
 	// Initialize agentPredicates if an GrafanaAgent selector is configured.
@@ -168,9 +167,9 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 		kubeletName := parts[1]
 
 		err := controller.NewControllerManagedBy(manager).
-			For(applyGVK(&core_v1.Node{})).
-			Owns(applyGVK(&core_v1.Service{})).
-			Owns(applyGVK(&core_v1.Endpoints{})).
+			For(&core_v1.Node{}).
+			Owns(&core_v1.Service{}).
+			Owns(&core_v1.Endpoints{}).
 			Complete(&lazyKubeletReconciler)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create kubelet controller: %w", err)
@@ -185,30 +184,30 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 	}
 
 	err = controller.NewControllerManagedBy(manager).
-		For(applyGVK(&grafana_v1alpha1.GrafanaAgent{}), builder.WithPredicates(agentPredicates...)).
-		Owns(applyGVK(&apps_v1.StatefulSet{})).
-		Owns(applyGVK(&apps_v1.DaemonSet{})).
-		Owns(applyGVK(&core_v1.Secret{})).
-		Owns(applyGVK(&core_v1.Service{})).
-		Watches(watchType(&core_v1.Secret{}), events[resourceSecret]).
-		Watches(watchType(&grafana_v1alpha1.LogsInstance{}), events[resourceLogsInstance]).
-		Watches(watchType(&grafana_v1alpha1.PodLogs{}), events[resourcePodLogs]).
-		Watches(watchType(&grafana_v1alpha1.MetricsInstance{}), events[resourcePromInstance]).
-		Watches(watchType(&promop_v1.PodMonitor{}), events[resourcePodMonitor]).
-		Watches(watchType(&promop_v1.Probe{}), events[resourceProbe]).
-		Watches(watchType(&promop_v1.ServiceMonitor{}), events[resourceServiceMonitor]).
-		Watches(watchType(&core_v1.Secret{}), events[resourceSecret]).
-		Watches(watchType(&core_v1.ConfigMap{}), events[resourceConfigMap]).
+		For(&grafana_v1alpha1.GrafanaAgent{}, builder.WithPredicates(agentPredicates...)).
+		Owns(&apps_v1.StatefulSet{}).
+		Owns(&apps_v1.DaemonSet{}).
+		Owns(&core_v1.Secret{}).
+		Owns(&core_v1.Service{}).
+		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
+		Watches(&source.Kind{Type: &grafana_v1alpha1.LogsInstance{}}, notifierHandler).
+		Watches(&source.Kind{Type: &grafana_v1alpha1.PodLogs{}}, notifierHandler).
+		Watches(&source.Kind{Type: &grafana_v1alpha1.MetricsInstance{}}, notifierHandler).
+		Watches(&source.Kind{Type: &promop_v1.PodMonitor{}}, notifierHandler).
+		Watches(&source.Kind{Type: &promop_v1.Probe{}}, notifierHandler).
+		Watches(&source.Kind{Type: &promop_v1.ServiceMonitor{}}, notifierHandler).
+		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
+		Watches(&source.Kind{Type: &core_v1.ConfigMap{}}, notifierHandler).
 		Complete(&lazyAgentReconciler)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create GrafanaAgent controller: %w", err)
 	}
 
 	lazyAgentReconciler.Set(&reconciler{
-		Client:        manager.GetClient(),
-		scheme:        manager.GetScheme(),
-		eventHandlers: events,
-		config:        c,
+		Client:   manager.GetClient(),
+		scheme:   manager.GetScheme(),
+		notifier: notifier,
+		config:   c,
 	})
 
 	return &Operator{

@@ -57,14 +57,14 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 	// Delete the old Secret if one exists and we have nothing to create.
 	if !shouldCreate {
 		var secret core_v1.Secret
-		err := r.Client.Get(ctx, key, &secret)
+		err := r.Get(ctx, key, &secret)
 		if k8s_errors.IsNotFound(err) || !isManagedResource(&secret) {
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("failed to find stale secret %s: %w", key, err)
 		}
 
-		err = r.Client.Delete(ctx, &secret)
+		err = r.Delete(ctx, &secret)
 		if err != nil {
 			return fmt.Errorf("failed to delete stale secret %s: %w", key, err)
 		}
@@ -124,14 +124,14 @@ func (r *reconciler) createMetricsGoverningService(
 		key := types.NamespacedName{Namespace: svc.Namespace, Name: svc.Name}
 
 		var service core_v1.Service
-		err := r.Client.Get(ctx, key, &service)
+		err := r.Get(ctx, key, &service)
 		if k8s_errors.IsNotFound(err) || !isManagedResource(&service) {
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("failed to find stale Service %s: %w", key, err)
 		}
 
-		err = r.Client.Delete(ctx, &service)
+		err = r.Delete(ctx, &service)
 		if err != nil {
 			return fmt.Errorf("failed to delete stale Service %s: %w", key, err)
 		}
@@ -203,7 +203,7 @@ func (r *reconciler) createMetricsStatefulSets(
 			continue
 		}
 		level.Info(l).Log("msg", "deleting stale statefulset", "name", ss.Name)
-		if err := r.Client.Delete(ctx, &ss); err != nil {
+		if err := r.Delete(ctx, &ss); err != nil {
 			return fmt.Errorf("failed to delete stale statefulset %s: %w", ss.Name, err)
 		}
 	}

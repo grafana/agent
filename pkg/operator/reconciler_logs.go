@@ -42,14 +42,14 @@ func (r *reconciler) createLogsDaemonSet(
 	if len(d.Logs) == 0 {
 
 		var ds apps_v1.DaemonSet
-		err := r.Client.Get(ctx, key, &ds)
+		err := r.Get(ctx, key, &ds)
 		if k8s_errors.IsNotFound(err) || !isManagedResource(&ds) {
 			return nil
 		} else if err != nil {
 			return fmt.Errorf("failed to find stale DaemonSet %s: %w", key, err)
 		}
 
-		err = r.Client.Delete(ctx, &ds)
+		err = r.Delete(ctx, &ds)
 		if err != nil {
 			return fmt.Errorf("failed to delete stale DaemonSet %s: %w", key, err)
 		}

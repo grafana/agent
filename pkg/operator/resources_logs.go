@@ -32,7 +32,7 @@ func generateLogsDaemonSet(
 	// Don't transfer any kubectl annotations to the DaemonSet so it doesn't get
 	// pruned by kubectl.
 	annotations := make(map[string]string)
-	for k, v := range d.Agent.ObjectMeta.Annotations {
+	for k, v := range d.Agent.Annotations {
 		if !strings.HasPrefix(k, "kubectl.kubernetes.io/") {
 			annotations[k] = v
 		}
@@ -261,7 +261,7 @@ func generateLogsDaemonSetSpec(
 	}}
 
 	var (
-		privileged bool  = true
+		privileged       = true
 		runAsUser  int64 = 0
 
 		terminationGracePeriodSeconds = int64(4800)
