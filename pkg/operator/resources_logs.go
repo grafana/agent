@@ -11,6 +11,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/pointer"
 )
 
 func generateLogsDaemonSet(
@@ -46,7 +47,6 @@ func generateLogsDaemonSet(
 	labels[agentTypeLabel] = "logs"
 	labels[managedByOperatorLabel] = managedByOperatorLabelValue
 
-	boolTrue := true
 	ds := &apps_v1.DaemonSet{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:        name,
@@ -56,8 +56,8 @@ func generateLogsDaemonSet(
 			OwnerReferences: []meta_v1.OwnerReference{{
 				APIVersion:         d.Agent.APIVersion,
 				Kind:               d.Agent.Kind,
-				BlockOwnerDeletion: &boolTrue,
-				Controller:         &boolTrue,
+				BlockOwnerDeletion: pointer.Bool(true),
+				Controller:         pointer.Bool(true),
 				Name:               d.Agent.Name,
 				UID:                d.Agent.UID,
 			}},
@@ -260,13 +260,6 @@ func generateLogsDaemonSetSpec(
 		Value: "0",
 	}}
 
-	var (
-		privileged       = true
-		runAsUser  int64 = 0
-
-		terminationGracePeriodSeconds = int64(4800)
-	)
-
 	operatorContainers := []v1.Container{
 		{
 			Name:         "config-reloader",
@@ -274,8 +267,8 @@ func generateLogsDaemonSetSpec(
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &v1.SecurityContext{
-				Privileged: &privileged,
-				RunAsUser:  &runAsUser,
+				Privileged: pointer.Bool(true),
+				RunAsUser:  pointer.Int64(0),
 			},
 			Args: []string{
 				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",
@@ -336,7 +329,7 @@ func generateLogsDaemonSetSpec(
 				ServiceAccountName:            d.Agent.Spec.ServiceAccountName,
 				NodeSelector:                  d.Agent.Spec.NodeSelector,
 				PriorityClassName:             d.Agent.Spec.PriorityClassName,
-				TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
+				TerminationGracePeriodSeconds: pointer.Int64(4800),
 				Volumes:                       volumes,
 				Tolerations:                   d.Agent.Spec.Tolerations,
 				Affinity:                      d.Agent.Spec.Affinity,

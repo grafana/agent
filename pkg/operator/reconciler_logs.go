@@ -10,7 +10,6 @@ import (
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
-	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -40,20 +39,8 @@ func (r *reconciler) createLogsDaemonSet(
 	key := types.NamespacedName{Namespace: ds.Namespace, Name: ds.Name}
 
 	if len(d.Logs) == 0 {
-
 		var ds apps_v1.DaemonSet
-		err := r.Get(ctx, key, &ds)
-		if k8s_errors.IsNotFound(err) || !isManagedResource(&ds) {
-			return nil
-		} else if err != nil {
-			return fmt.Errorf("failed to find stale DaemonSet %s: %w", key, err)
-		}
-
-		err = r.Delete(ctx, &ds)
-		if err != nil {
-			return fmt.Errorf("failed to delete stale DaemonSet %s: %w", key, err)
-		}
-		return nil
+		return deleteManagedResource(ctx, r.Client, key, &ds)
 	}
 
 	level.Info(l).Log("msg", "reconciling logs daemonset", "ds", key)
