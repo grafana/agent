@@ -1,7 +1,6 @@
 server:
   log_level: debug
   http_listen_port: 12345
-  log_format: json
 
 metrics:
   global:
