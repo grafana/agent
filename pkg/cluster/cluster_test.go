@@ -80,7 +80,7 @@ func TestCluster(t *testing.T) {
 	}
 
 	// Wait for the dust to settle before testing anything.
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	// All nodes must have 5 peers.
 	peerMap.Range(func(key, value interface{}) bool {

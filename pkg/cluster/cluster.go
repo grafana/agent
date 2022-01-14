@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/k8s"
 	"github.com/rfratto/ckit"
+	"github.com/rfratto/ckit/advertise"
 	"github.com/rfratto/ckit/chash"
 )
 
@@ -43,7 +44,7 @@ var DefaultConfig = Config{
 	Discoverer: ckit.DiscovererConfig{
 		ListenPort: 7935,
 	},
-	AdvertiseInterfaces: []string{"eth0", "en0"},
+	AdvertiseInterfaces: advertise.DefaultInterfaces,
 }
 
 // RegisterFlags registers flags to the provided flagset.
@@ -76,15 +77,16 @@ func (c *Config) ApplyDefaults(grpcPort int) error {
 	}
 
 	if c.Discoverer.ListenAddr == "" || c.Discoverer.AdvertiseAddr == "" {
-		addr, err := getInstanceAddr("", c.AdvertiseInterfaces, log.NewNopLogger())
+		addr, err := advertise.FirstAddress(c.AdvertiseInterfaces)
 		if err != nil {
 			return fmt.Errorf("failed to get advertise and listen address: %w", err)
 		}
+
 		if c.Discoverer.ListenAddr == "" {
-			c.Discoverer.ListenAddr = addr
+			c.Discoverer.ListenAddr = addr.String()
 		}
 		if c.Discoverer.AdvertiseAddr == "" {
-			c.Discoverer.AdvertiseAddr = addr
+			c.Discoverer.AdvertiseAddr = addr.String()
 		}
 	}
 
