@@ -16,12 +16,15 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/gorilla/mux"
 	"github.com/grafana/dskit/flagext"
 	"github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/k8s"
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/advertise"
 	"github.com/rfratto/ckit/chash"
+	"github.com/rfratto/ckit/httpgrpc"
+	"google.golang.org/grpc"
 )
 
 // ErrClusterDisabled is returned when performing a cluster operation when the
@@ -195,6 +198,12 @@ func (n *Node) OnPeersChanged(w PeersChangedWatcher) {
 	defer n.watcherMut.Unlock()
 
 	n.watchers = append(n.watchers, w)
+}
+
+// Wire connects HTTP and gRPC services.
+func (n *Node) Wire(mux *mux.Router, grpc *grpc.Server) { // nolint:interfacer
+	// Allow nodes to talk to each other over ckit/httpgrpc.
+	httpgrpc.Serve(grpc, mux)
 }
 
 // Start starts the node. If it was configured to join any peers, it will join

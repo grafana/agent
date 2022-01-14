@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/cluster/httpclient"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/rfratto/ckit"
-	"github.com/weaveworks/common/httpgrpc"
+	"github.com/rfratto/ckit/httpgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -89,7 +88,7 @@ func queryPeer(ctx context.Context, p *ckit.Peer, endpoint string, v interface{}
 		return fmt.Errorf("failed to connect to peer %q: %w", p.Name, err)
 	}
 
-	cli := http.Client{Transport: httpclient.RoundTripper{Client: httpgrpc.NewHTTPClient(cc)}}
+	cli := http.Client{Transport: httpgrpc.ClientTransport(cc)}
 	url := fmt.Sprintf("http://%s%s", p.ApplicationAddr, endpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {

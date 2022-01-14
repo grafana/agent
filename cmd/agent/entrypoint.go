@@ -189,6 +189,8 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 // wire is used to hook up API endpoints to components, and is called every
 // time a new Weaveworks server is creatd.
 func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
+	ep.cluster.Wire(mux, grpc)
+
 	ep.promMetrics.WireAPI(mux)
 	ep.promMetrics.WireGRPC(grpc)
 

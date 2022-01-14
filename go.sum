@@ -2050,8 +2050,8 @@ github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qq
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 h1:Wdi9nwnhFNAlseAOekn6B5G/+GMtks9UKbvRU/CMM/o=
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03/go.mod h1:gRAiPF5C5Nd0eyyRdqIu9qTiFSoZzpTq727b5B8fkkU=
 github.com/retailnext/hllpp v1.0.1-0.20180308014038-101a6d2f8b52/go.mod h1:RDpi1RftBQPUCDRw6SmxeaREsAaRKnOclghuzp/WRzc=
-github.com/rfratto/ckit v0.0.0-20220114170145-e8a57aa35a61 h1:DEBpspNdwyo2PQePID1DifS2d8RnTxl/6HhDM7LTAaI=
-github.com/rfratto/ckit v0.0.0-20220114170145-e8a57aa35a61/go.mod h1:+dNhReGTs5VbDKP80jkmXc8vgIXEpN4g22Rc0eBID5I=
+github.com/rfratto/ckit v0.0.0-20220114184126-aeebd522ec88 h1:+vI6UJsZ51V05tz+8rDTm169kDCkH3ukr+eYvY7sRJw=
+github.com/rfratto/ckit v0.0.0-20220114184126-aeebd522ec88/go.mod h1:k96zanEnWkeGCt9KJUNY23aMfUXdWbvMi+7zVNpjzJQ=
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc h1:g196Usc63pWDzWallipxVhsEjDdh/+RLc/Oz7q3ihW4=
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc/go.mod h1:rMzeXFmWpS5JnfDANtpzbklRJY4pqZMJNN9/SJHAXPA=
 github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8 h1:wNuNGrFzFmZlhrtz1Q8EiK1Ob6yWli8lX7D2AGmSGzE=
