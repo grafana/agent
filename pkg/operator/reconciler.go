@@ -31,6 +31,7 @@ type reconciler struct {
 func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (controller.Result, error) {
 	l := logutil.FromContext(ctx)
 	level.Info(l).Log("msg", "reconciling grafana-agent")
+	defer level.Debug(l).Log("msg", "done reconciling grafana-agent")
 
 	var agent grafana_v1alpha1.GrafanaAgent
 	if err := r.Get(ctx, req.NamespacedName, &agent); k8s_errors.IsNotFound(err) {

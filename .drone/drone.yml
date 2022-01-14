@@ -41,6 +41,9 @@ trigger:
 steps:
   - name: test
     image: rfratto/seego
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
       - gem install --no-document fpm
@@ -50,10 +53,14 @@ steps:
       - rm go1.16.5.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator cmd/grafana-agent-crow/grafana-agent-crow
-      - make DRONE=true BUILD_IN_CONTAINER=false test
+      - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
 depends_on:
   - Lint
 
+volumes:
+ - name: docker
+   host:
+     path: /var/run/docker.sock
 
 ---
 kind: pipeline
@@ -242,6 +249,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 11038ae4592a13955388dff643b35bb1f07e53a659cdca946e863c9f2ac77066
+hmac: c980a6def666f0ed942b1603eb75e30750cb9d67403ebd4dfd48e0960cc46a79
 
 ...

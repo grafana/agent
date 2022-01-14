@@ -1,19 +1,24 @@
 package operator
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/weaveworks/common/logging"
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
@@ -25,6 +30,7 @@ import (
 
 	// Needed for clients.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
 )
 
 // Config controls the configuration of the Operator.
@@ -35,6 +41,10 @@ type Config struct {
 	Controller          controller.Options
 	AgentSelector       string
 	KubelsetServiceName string
+
+	// RestConfig used to connect to cluster. One will be generated based on the
+	// environment if not set.
+	RestConfig *rest.Config
 
 	// TODO(rfratto): extra settings from Prometheus Operator:
 	//
@@ -91,19 +101,47 @@ func (c *Config) registerFlags(f *flag.FlagSet) error {
 	return nil
 }
 
-// Manager initializes the controller for this Config.
-func (c *Config) Manager() (manager.Manager, error) {
-	return controller.NewManager(controller.GetConfigOrDie(), c.Controller)
+// Operator is the Grafana Agent Operator.
+type Operator struct {
+	log     log.Logger
+	manager manager.Manager
+
+	// New creates reconcilers to reconcile creating the kubelet service (if
+	// configured) and Grafana Agent deployments. We store them as
+	// lazyReconcilers so tests can update what the underlying reconciler
+	// implementation is.
+
+	kubeletReconciler *lazyReconciler // Unused if kubelet service unconfigured
+	agentReconciler   *lazyReconciler
 }
 
-// New creates a new Operator managed by a specific Manager. Start the Manager
-// to also start the Operator.
-func New(l log.Logger, c *Config, m manager.Manager) error {
+// New creates a new Operator.
+func New(l log.Logger, c *Config) (*Operator, error) {
 	var (
-		events = newResourceEventHandlers(m.GetClient(), l)
+		lazyKubeletReconciler, lazyAgentReconciler lazyReconciler
+	)
 
-		applyGVK  = func(obj client.Object) client.Object { return applyGVK(obj, m) }
-		watchType = func(obj client.Object) source.Source { return watchType(obj, m) }
+	restConfig := c.RestConfig
+	if restConfig == nil {
+		restConfig = controller.GetConfigOrDie()
+	}
+	manager, err := controller.NewManager(restConfig, c.Controller)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create manager: %w", err)
+	}
+
+	if err := manager.AddReadyzCheck("running", healthz.Ping); err != nil {
+		level.Warn(l).Log("msg", "failed to set up 'running' readyz check", "err", err)
+	}
+	if err := manager.AddHealthzCheck("running", healthz.Ping); err != nil {
+		level.Warn(l).Log("msg", "failed to set up 'running' healthz check", "err", err)
+	}
+
+	var (
+		events = newResourceEventHandlers(manager.GetClient(), l)
+
+		applyGVK  = func(obj client.Object) client.Object { return applyGVK(obj, manager) }
+		watchType = func(obj client.Object) source.Source { return watchType(obj, manager) }
 
 		agentPredicates []predicate.Predicate
 	)
@@ -112,11 +150,11 @@ func New(l log.Logger, c *Config, m manager.Manager) error {
 	if c.AgentSelector != "" {
 		sel, err := meta_v1.ParseToLabelSelector(c.AgentSelector)
 		if err != nil {
-			return fmt.Errorf("unable to create predicate for selecting GrafanaAgent CRs: %w", err)
+			return nil, fmt.Errorf("unable to create predicate for selecting GrafanaAgent CRs: %w", err)
 		}
 		selPredicate, err := predicate.LabelSelectorPredicate(*sel)
 		if err != nil {
-			return fmt.Errorf("unable to create predicate for selecting GrafanaAgent CRs: %w", err)
+			return nil, fmt.Errorf("unable to create predicate for selecting GrafanaAgent CRs: %w", err)
 		}
 		agentPredicates = append(agentPredicates, selPredicate)
 	}
@@ -124,27 +162,29 @@ func New(l log.Logger, c *Config, m manager.Manager) error {
 	if c.KubelsetServiceName != "" {
 		parts := strings.Split(c.KubelsetServiceName, "/")
 		if len(parts) != 2 {
-			return fmt.Errorf("invalid format for kubelet-service %q, must be formatted as \"namespace/name\"", c.KubelsetServiceName)
+			return nil, fmt.Errorf("invalid format for kubelet-service %q, must be formatted as \"namespace/name\"", c.KubelsetServiceName)
 		}
 		kubeletNamespace := parts[0]
 		kubeletName := parts[1]
 
-		err := controller.NewControllerManagedBy(m).
+		err := controller.NewControllerManagedBy(manager).
 			For(applyGVK(&core_v1.Node{})).
 			Owns(applyGVK(&core_v1.Service{})).
 			Owns(applyGVK(&core_v1.Endpoints{})).
-			Complete(&kubeletReconciler{
-				Client: m.GetClient(),
-
-				kubeletNamespace: kubeletNamespace,
-				kubeletName:      kubeletName,
-			})
+			Complete(&lazyKubeletReconciler)
 		if err != nil {
-			return fmt.Errorf("failed to create kubelet controller: %w", err)
+			return nil, fmt.Errorf("failed to create kubelet controller: %w", err)
 		}
+
+		lazyKubeletReconciler.Set(&kubeletReconciler{
+			Client: manager.GetClient(),
+
+			kubeletNamespace: kubeletNamespace,
+			kubeletName:      kubeletName,
+		})
 	}
 
-	err := controller.NewControllerManagedBy(m).
+	err = controller.NewControllerManagedBy(manager).
 		For(applyGVK(&grafana_v1alpha1.GrafanaAgent{}), builder.WithPredicates(agentPredicates...)).
 		Owns(applyGVK(&apps_v1.StatefulSet{})).
 		Owns(applyGVK(&apps_v1.DaemonSet{})).
@@ -159,17 +199,30 @@ func New(l log.Logger, c *Config, m manager.Manager) error {
 		Watches(watchType(&promop_v1.ServiceMonitor{}), events[resourceServiceMonitor]).
 		Watches(watchType(&core_v1.Secret{}), events[resourceSecret]).
 		Watches(watchType(&core_v1.ConfigMap{}), events[resourceConfigMap]).
-		Complete(&reconciler{
-			Client:        m.GetClient(),
-			scheme:        m.GetScheme(),
-			eventHandlers: events,
-			config:        c,
-		})
+		Complete(&lazyAgentReconciler)
 	if err != nil {
-		return fmt.Errorf("failed to create GrafanaAgent controller: %w", err)
+		return nil, fmt.Errorf("failed to create GrafanaAgent controller: %w", err)
 	}
 
-	return nil
+	lazyAgentReconciler.Set(&reconciler{
+		Client:        manager.GetClient(),
+		scheme:        manager.GetScheme(),
+		eventHandlers: events,
+		config:        c,
+	})
+
+	return &Operator{
+		log:     l,
+		manager: manager,
+
+		kubeletReconciler: &lazyKubeletReconciler,
+		agentReconciler:   &lazyAgentReconciler,
+	}, nil
+}
+
+// Start starts the operator. It will run until ctx is canceled.
+func (o *Operator) Start(ctx context.Context) error {
+	return o.manager.Start(ctx)
 }
 
 // watchType applies the GVK to an object and returns a source to watch it.
@@ -190,4 +243,40 @@ func applyGVK(obj client.Object, m manager.Manager) client.Object {
 	}
 	obj.GetObjectKind().SetGroupVersionKind(gvk)
 	return obj
+}
+
+type lazyReconciler struct {
+	mut   sync.RWMutex
+	inner reconcile.Reconciler
+}
+
+// Get returns the current reconciler.
+func (lr *lazyReconciler) Get() reconcile.Reconciler {
+	lr.mut.RLock()
+	defer lr.mut.RUnlock()
+	return lr.inner
+}
+
+// Set updates the current reconciler.
+func (lr *lazyReconciler) Set(inner reconcile.Reconciler) {
+	lr.mut.Lock()
+	defer lr.mut.Unlock()
+	lr.inner = inner
+}
+
+// Wrap wraps the current reconciler with a middleware.
+func (lr *lazyReconciler) Wrap(mw func(next reconcile.Reconciler) reconcile.Reconciler) {
+	lr.mut.Lock()
+	defer lr.mut.Unlock()
+	lr.inner = mw(lr.inner)
+}
+
+// Reconcile calls Reconcile against the current reconciler.
+func (lr *lazyReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+	lr.mut.RLock()
+	defer lr.mut.RUnlock()
+	if lr.inner == nil {
+		return reconcile.Result{}, fmt.Errorf("no reconciler")
+	}
+	return lr.inner.Reconcile(ctx, req)
 }
