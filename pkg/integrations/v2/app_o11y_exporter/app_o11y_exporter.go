@@ -123,6 +123,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	}, nil
 }
 
+// Handler is the http endpoint for exposing Prometheus metrics
 func (i *appo11yIntegration) Handler(prefix string) (http.Handler, error) {
 	r := mux.NewRouter()
 	r.Handle(path.Join(prefix, "metrics"), promhttp.HandlerFor(i.reg, promhttp.HandlerOpts{}))
@@ -181,9 +182,9 @@ func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	r := mux.NewRouter()
 	r.Handle("/collect", i.receiver.ReceiverHandler(&i.logger))
 
-	fmt.Printf("********************* %s %d", i.conf.Server.Host, i.conf.Server.Port)
 	srv := &http.Server{
-		Addr: fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),
+		Addr:    fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),
+		Handler: r,
 	}
 	errChan := make(chan error)
 

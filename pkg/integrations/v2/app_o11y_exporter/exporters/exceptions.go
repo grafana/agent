@@ -70,7 +70,7 @@ func (le *LokiExceptionExporter) Export(payload models.Payload) error {
 				Line:      exception.String(),
 			},
 		}
-		if le.li.SendEntry(e, time.Duration(1000)) {
+		if !le.li.SendEntry(e, time.Duration(1000)) {
 			return errors.New("Error while sending log over to Loki")
 		}
 	}
