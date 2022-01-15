@@ -106,7 +106,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 
 // ApplyDefaults applies default configurations to the configuration to all
 // values that have not been changed to their non-zero value. ApplyDefaults
-// also validates the config.
+// also validates the shared.
 //
 // The value for global will saved.
 func (c *Config) ApplyDefaults(global GlobalConfig) error {
@@ -126,7 +126,7 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 	jobNames := map[string]struct{}{}
 	for _, sc := range c.ScrapeConfigs {
 		if sc == nil {
-			return fmt.Errorf("empty or null scrape config section")
+			return fmt.Errorf("empty or null scrape shared section")
 		}
 
 		// First set the correct scrape interval, then check that the timeout
@@ -135,10 +135,10 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 			sc.ScrapeInterval = c.global.Prometheus.ScrapeInterval
 		}
 		if sc.ScrapeTimeout > sc.ScrapeInterval {
-			return fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name %q", sc.JobName)
+			return fmt.Errorf("scrape timeout greater than scrape interval for scrape shared with job name %q", sc.JobName)
 		}
 		if time.Duration(sc.ScrapeInterval) > c.WALTruncateFrequency {
-			return fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape config with job name %q", sc.JobName)
+			return fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape shared with job name %q", sc.JobName)
 		}
 		if sc.ScrapeTimeout == 0 {
 			if c.global.Prometheus.ScrapeTimeout > sc.ScrapeInterval {
@@ -156,17 +156,17 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 
 	rwNames := map[string]struct{}{}
 
-	// If the instance remote write is not filled in, then apply the prometheus write config
+	// If the instance remote write is not filled in, then apply the prometheus write shared
 	if len(c.RemoteWrite) == 0 {
 		c.RemoteWrite = c.global.RemoteWrite
 	}
 	for _, cfg := range c.RemoteWrite {
 		if cfg == nil {
-			return fmt.Errorf("empty or null remote write config section")
+			return fmt.Errorf("empty or null remote write shared section")
 		}
 
 		// Typically Prometheus ignores empty names here, but we need to assign a
-		// unique name to the config so we can pull metrics from it when running
+		// unique name to the shared so we can pull metrics from it when running
 		// an instance.
 		var generatedName bool
 		if cfg.Name == "" {
@@ -194,7 +194,7 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 	return nil
 }
 
-// Clone makes a deep copy of the config along with global settings.
+// Clone makes a deep copy of the shared along with global settings.
 func (c *Config) Clone() (Config, error) {
 	bb, err := MarshalConfig(c, false)
 	if err != nil {
@@ -292,7 +292,7 @@ func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWa
 func (i *Instance) Run(ctx context.Context) error {
 	// i.cfg may change at any point in the middle of this method but not in a way
 	// that affects any of the code below; rather than grabbing a mutex every time
-	// we want to read the config, we'll simplify the access and just grab a copy
+	// we want to read the shared, we'll simplify the access and just grab a copy
 	// now.
 	i.mut.Lock()
 	cfg := i.cfg
@@ -423,7 +423,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 		RemoteWriteConfigs: cfg.RemoteWrite,
 	})
 	if err != nil {
-		return fmt.Errorf("failed applying config to remote storage: %w", err)
+		return fmt.Errorf("failed applying shared to remote storage: %w", err)
 	}
 
 	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore)
@@ -434,7 +434,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 		ScrapeConfigs: cfg.ScrapeConfigs,
 	})
 	if err != nil {
-		return fmt.Errorf("failed applying config to scrape manager: %w", err)
+		return fmt.Errorf("failed applying shared to scrape manager: %w", err)
 	}
 
 	i.readyScrapeManager.Set(scrapeManager)
@@ -481,7 +481,7 @@ func (i *Instance) Update(c Config) (err error) {
 	//
 	// Keep the following order below:
 	//
-	// 1. Local config
+	// 1. Local shared
 	// 2. Remote Store
 	// 3. Scrape Manager
 	// 4. Discovery Manager
@@ -595,8 +595,8 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 	err := manager.ApplyConfig(c)
 	if err != nil {
 		cancel()
-		level.Error(i.logger).Log("msg", "failed applying config to discovery manager", "err", err)
-		return nil, fmt.Errorf("failed applying config to discovery manager: %w", err)
+		level.Error(i.logger).Log("msg", "failed applying shared to discovery manager", "err", err)
+		return nil, fmt.Errorf("failed applying shared to discovery manager: %w", err)
 	}
 
 	rg := runGroupWithContext(ctx)

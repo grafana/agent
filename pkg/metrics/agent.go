@@ -181,7 +181,7 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 	return a, nil
 }
 
-// newInstance creates a new Instance given a config.
+// newInstance creates a new Instance given a shared.
 func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
 	a.mut.RLock()
 	defer a.mut.RUnlock()
@@ -214,7 +214,7 @@ func (a *Agent) Validate(c *instance.Config) error {
 	return nil
 }
 
-// ApplyConfig applies config changes to the Agent.
+// ApplyConfig applies shared changes to the Agent.
 func (a *Agent) ApplyConfig(cfg Config) error {
 	a.mut.Lock()
 	defer a.mut.Unlock()
@@ -259,7 +259,7 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 	}
 
 	if err := a.cluster.ApplyConfig(cfg.ServiceConfig); err != nil {
-		return fmt.Errorf("failed to apply cluster config: %w", err)
+		return fmt.Errorf("failed to apply cluster shared: %w", err)
 	}
 
 	// Queue an actor in the background to sync the instances. This is required
@@ -281,7 +281,7 @@ func (a *Agent) syncInstances(oldConfig, newConfig Config) {
 	// Apply the new configs
 	for _, c := range newConfig.Configs {
 		if err := a.mm.ApplyConfig(c); err != nil {
-			level.Error(a.logger).Log("msg", "failed to apply config", "name", c.Name, "err", err)
+			level.Error(a.logger).Log("msg", "failed to apply shared", "name", c.Name, "err", err)
 		}
 	}
 
@@ -299,7 +299,7 @@ func (a *Agent) syncInstances(oldConfig, newConfig Config) {
 		}
 
 		if err := a.mm.DeleteConfig(oc.Name); err != nil {
-			level.Error(a.logger).Log("msg", "failed to delete old config", "name", oc.Name, "err", err)
+			level.Error(a.logger).Log("msg", "failed to delete old shared", "name", oc.Name, "err", err)
 		}
 	}
 }

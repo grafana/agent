@@ -26,7 +26,7 @@ var (
 		Help: "Current number of active instances being used by the agent.",
 	})
 
-	// DefaultBasicManagerConfig is the default config for the BasicManager.
+	// DefaultBasicManagerConfig is the default shared for the BasicManager.
 	DefaultBasicManagerConfig = BasicManagerConfig{
 		InstanceRestartBackoff: 5 * time.Second,
 	}
@@ -39,10 +39,10 @@ type Manager interface {
 	GetInstance(name string) (ManagedInstance, error)
 
 	// ListInstances returns all currently managed instances running
-	// within the Manager. The key will be the instance name from their config.
+	// within the Manager. The key will be the instance name from their shared.
 	ListInstances() map[string]ManagedInstance
 
-	// ListConfigs returns the config objects associated with a managed
+	// ListConfigs returns the shared objects associated with a managed
 	// instance. The key will be the Name field from Config.
 	ListConfigs() map[string]Config
 
@@ -104,7 +104,7 @@ func (p managedProcess) Stop() {
 	<-p.done
 }
 
-// Factory should return an unstarted instance given some config.
+// Factory should return an unstarted instance given some shared.
 type Factory func(c Config) (ManagedInstance, error)
 
 // NewBasicManager creates a new BasicManager. The launch function will be
@@ -112,7 +112,7 @@ type Factory func(c Config) (ManagedInstance, error)
 //
 // The lifecycle of any ManagedInstance returned by the launch function will
 // be handled by the BasicManager. Instances will be automatically restarted
-// if stopped, updated if the config changes, or removed when the Config is
+// if stopped, updated if the shared changes, or removed when the Config is
 // deleted.
 func NewBasicManager(cfg BasicManagerConfig, logger log.Logger, launch Factory) *BasicManager {
 	return &BasicManager{
@@ -174,7 +174,7 @@ func (m *BasicManager) ApplyConfig(c Config) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	// If the config already exists, we need to update it.
+	// If the shared already exists, we need to update it.
 	proc, ok := m.processes[c.Name]
 	if ok {
 		err := proc.inst.Update(c)
@@ -198,7 +198,7 @@ func (m *BasicManager) ApplyConfig(c Config) error {
 		}
 	}
 
-	// Spawn a new process for the new config.
+	// Spawn a new process for the new shared.
 	err := m.spawnProcess(c)
 	if err != nil {
 		return err
@@ -238,7 +238,7 @@ func (m *BasicManager) spawnProcess(c Config) error {
 		// set it to.
 		//
 		// We only use the instance for comparing (which will never change) because
-		// the instance may have dynamically been given a new config since this
+		// the instance may have dynamically been given a new shared since this
 		// goroutine started.
 		m.mut.Lock()
 		if storedProc, exist := m.processes[c.Name]; exist && storedProc.inst == inst {
@@ -276,14 +276,14 @@ func (m *BasicManager) instanceRestartBackoff() time.Duration {
 	return m.cfg.InstanceRestartBackoff
 }
 
-// DeleteConfig removes a managed instance by its config name. Returns an error
+// DeleteConfig removes a managed instance by its shared name. Returns an error
 // if there is no such managed instance with the given name.
 func (m *BasicManager) DeleteConfig(name string) error {
 	m.mut.Lock()
 	proc, ok := m.processes[name]
 	if !ok {
 		m.mut.Unlock()
-		return errors.New("config does not exist")
+		return errors.New("shared does not exist")
 	}
 	m.mut.Unlock()
 

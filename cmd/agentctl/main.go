@@ -26,9 +26,6 @@ import (
 	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
 
-	// Register integrations
-	_ "github.com/grafana/agent/pkg/integrations/install"
-
 	// Needed for operator-detach
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
@@ -72,15 +69,15 @@ func configSyncCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "config-sync [directory]",
-		Short: "Sync config files from a directory to an Agent's config management API",
-		Long: `config-sync loads all files ending with .yml or .yaml from the specified
-directory and uploads them the the config management API. The name of the config
+		Use:   "shared-sync [directory]",
+		Short: "Sync shared files from a directory to an Agent's shared management API",
+		Long: `shared-sync loads all files ending with .yml or .yaml from the specified
+directory and uploads them the the shared management API. The name of the shared
 uploaded will be the base name of the file (e.g., the name of the file without
 its extension).
 
 The directory is used as the source-of-truth for the entire set of configs that
-should be present in the API. config-sync will delete all existing configs from the API
+should be present in the API. shared-sync will delete all existing configs from the API
 that do not match any of the names of the configs that were uploaded from the
 source-of-truth directory.`,
 		Args: cobra.ExactArgs(1),
@@ -98,14 +95,14 @@ source-of-truth directory.`,
 
 			err := agentctl.ConfigSync(logger, cli.PrometheusClient, directory, dryRun)
 			if err != nil {
-				level.Error(logger).Log("msg", "failed to sync config", "err", err)
+				level.Error(logger).Log("msg", "failed to sync shared", "err", err)
 				os.Exit(1)
 			}
 		},
 	}
 
 	cmd.Flags().StringVarP(&agentAddr, "addr", "a", "http://localhost:12345", "address of the agent to connect to")
-	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "use the dry run option to validate config files without attempting to upload")
+	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "use the dry run option to validate shared files without attempting to upload")
 	return cmd
 }
 
@@ -113,9 +110,9 @@ func configCheckCmd() *cobra.Command {
 	var expandEnv bool
 
 	cmd := &cobra.Command{
-		Use:   "config-check [config file]",
+		Use:   "shared-check [shared file]",
 		Short: "Perform basic validation of the given Agent configuration file",
-		Long: `config-check performs basic syntactic validation of the given Agent configuration
+		Long: `shared-check performs basic syntactic validation of the given Agent configuration
 file. The file is checked to ensure the types match the expected configuration types. Optionally,
 ${var} style substitutions can be expanded based on the values of the environmental variables.
 
@@ -128,15 +125,15 @@ the exit code will be 1.`,
 			cfg := config.Config{}
 			err := config.LoadFile(file, expandEnv, &cfg)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to validate config: %s\n", err)
+				fmt.Fprintf(os.Stderr, "failed to validate shared: %s\n", err)
 				os.Exit(1)
 			} else {
-				fmt.Fprintln(os.Stdout, "config valid")
+				fmt.Fprintln(os.Stdout, "shared valid")
 			}
 		},
 	}
 
-	cmd.Flags().BoolVarP(&expandEnv, "expand-env", "e", false, "expands ${var} in config according to the values of the environment variables")
+	cmd.Flags().BoolVarP(&expandEnv, "expand-env", "e", false, "expands ${var} in shared according to the values of the environment variables")
 	return cmd
 }
 
@@ -432,10 +429,10 @@ func cloudConfigCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "cloud-config",
-		Short: "Retrieves the cloud config for the Grafana Agent",
-		Long: `cloud-config connects to Grafana Cloud and retrieves the generated
-config that may be used with this agent.`,
+		Use:   "cloud-shared",
+		Short: "Retrieves the cloud shared for the Grafana Agent",
+		Long: `cloud-shared connects to Grafana Cloud and retrieves the generated
+shared that may be used with this agent.`,
 		Args: cobra.ExactArgs(0),
 
 		// Hidden, this is only expected to be used by scripts.
@@ -456,7 +453,7 @@ config that may be used with this agent.`,
 
 			cfg, err := cli.AgentConfig(ctx, stackID)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "could not retrieve agent cloud config: %s\n", err)
+				fmt.Fprintf(os.Stderr, "could not retrieve agent cloud shared: %s\n", err)
 				os.Exit(1)
 			}
 
@@ -465,7 +462,7 @@ config that may be used with this agent.`,
 		},
 	}
 
-	cmd.Flags().StringVarP(&stackID, "stack", "u", "", "stack ID to get a config for")
+	cmd.Flags().StringVarP(&stackID, "stack", "u", "", "stack ID to get a shared for")
 	cmd.Flags().StringVarP(&apiKey, "api-key", "p", "", "API key to authenticate against Grafana Cloud's API with")
 	cmd.Flags().StringVarP(&apiURL, "api-url", "e", "", "Grafana Cloud's API url")
 	must(cmd.MarkFlagRequired("stack"))

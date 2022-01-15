@@ -47,7 +47,7 @@ func TestLogsClientConfig(t *testing.T) {
 			`),
 		},
 		{
-			name: "full basic config",
+			name: "full basic shared",
 			input: map[string]interface{}{
 				"agent":     agent,
 				"namespace": "operator",
@@ -87,7 +87,7 @@ func TestLogsClientConfig(t *testing.T) {
 			`),
 		},
 		{
-			name: "tls config",
+			name: "tls shared",
 			input: map[string]interface{}{
 				"agent":     agent,
 				"namespace": "operator",
@@ -311,18 +311,18 @@ func TestLogsStages(t *testing.T) {
 						description: total number of log lines
 						prefix: my_promtail_custom_
 						max_idle_duration: 24h
-						config:
+						shared:
 							match_all: true
 							action: inc
 					queue_elements:
 						type: Gauge
 						description: elements in queue
-						config:
+						shared:
 							action: add
 					http_response_time_seconds:
 						type: Histogram
 						source: response_time
-						config:
+						shared:
 							action: inc
 							buckets: [0.001, 0.0025, 0.050]
 			`),

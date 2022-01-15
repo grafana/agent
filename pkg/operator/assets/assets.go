@@ -10,7 +10,7 @@ import (
 )
 
 // Key is a path-like identifier representing a Secret or ConfigMap value. It is
-// used for looking up values during config generation that cannot be loaded
+// used for looking up values during shared generation that cannot be loaded
 // directly from a file (e.g., BasicAuth Username).
 //
 // The naming convention is either:
@@ -35,7 +35,7 @@ func KeyForSecret(namespace string, sel *v1.SecretKeySelector) Key {
 	return Key(fmt.Sprintf("/secrets/%s/%s/%s", namespace, sel.Name, sel.Key))
 }
 
-// KeyForConfigMap returns the key for a given namespace and a config map
+// KeyForConfigMap returns the key for a given namespace and a shared map
 // key selector.
 func KeyForConfigMap(namespace string, sel *v1.ConfigMapKeySelector) Key {
 	if sel == nil {

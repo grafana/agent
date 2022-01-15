@@ -1,9 +1,11 @@
-package integrations
+package v2
 
 import (
 	"context"
 	"sync"
 	"testing"
+
+	"github.com/grafana/agent/pkg/integrations/shared"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/util"
@@ -36,7 +38,7 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 		},
 	}
 
-	cfg := controllerConfig{
+	cfg := NewMockIntegrationConfigs(
 		mockConfig{
 			NameFunc:          func() string { return mockIntegrationName },
 			ConfigEqualsFunc:  func(Config) bool { return false },
@@ -49,18 +51,18 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 				return mockIntegration, nil
 			},
 		},
-	}
+	)
 
-	ctrl, err := newController(util.TestLogger(t), cfg, Globals{})
+	ctrl, err := NewController(util.TestLogger(t), cfg, Globals{})
 	require.NoError(t, err, "failed to create controller")
 
-	sc := newSyncController(t, ctrl)
+	sc := NewSyncController(t, ctrl)
 
 	// Wait for our integration to start.
 	integrationStartWg.Wait()
 
 	// Try to apply again.
-	require.NoError(t, sc.UpdateController(cfg, ctrl.globals), "failed to re-apply config")
+	require.NoError(t, sc.UpdateController(cfg, ctrl.globals), "failed to re-apply shared")
 	integrationStartWg.Wait()
 
 	sc.Stop()
@@ -70,8 +72,12 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 }
 
 type mockUpdateIntegration struct {
-	Integration
+	shared.Integration
 	ApplyConfigFunc func(Config, Globals) error
+}
+
+func (m mockUpdateIntegration) RunIntegration(ctx context.Context) error {
+	return m.Run(ctx)
 }
 
 func (m mockUpdateIntegration) ApplyConfig(c Config, g Globals) error {

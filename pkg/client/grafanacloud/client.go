@@ -34,8 +34,8 @@ func NewClient(c *http.Client, apiKey, apiURL string) *Client {
 	return &Client{c: c, apiKey: apiKey, apiURL: apiURL}
 }
 
-// AgentConfig generates a Grafana Agent config from the given stack.
-// The config is returned as a string in YAML form.
+// AgentConfig generates a Grafana Agent shared from the given stack.
+// The shared is returned as a string in YAML form.
 func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error) {
 	req, err := http.NewRequestWithContext(
 		ctx, "GET",
@@ -78,7 +78,7 @@ func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error
 	// Convert the data to YAML
 	var sb strings.Builder
 	if err := yaml.NewEncoder(&sb).Encode(payload.Data); err != nil {
-		return "", fmt.Errorf("failed to generate YAML config: %w", err)
+		return "", fmt.Errorf("failed to generate YAML shared: %w", err)
 	}
 
 	return sb.String(), nil

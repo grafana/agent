@@ -8,14 +8,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func TestNodeExporter_Config(t *testing.T) {
-	var c Config
-
-	err := yaml.Unmarshal([]byte("{}"), &c)
-	require.NoError(t, err)
-	require.Equal(t, DefaultConfig, c)
-}
-
 func TestNodeExporter_ConfigMigrate(t *testing.T) {
 	tt := []struct {
 		name           string
@@ -111,13 +103,14 @@ func TestNodeExporter_ConfigMigrate(t *testing.T) {
 			var c Config
 
 			err := yaml.Unmarshal([]byte(tc.in), &c)
+			require.NoError(t, err)
+			err = c.PostProcessing()
 			if tc.expectError != "" {
 				require.EqualError(t, err, tc.expectError)
 				return
 			}
 			require.NoError(t, err)
-
-			require.ElementsMatch(t, tc.expectWarnings, c.UnmarshalWarnings)
+			require.ElementsMatch(t, tc.expectWarnings, c.Warnings)
 			if tc.check != nil {
 				tc.check(t, &c)
 			}

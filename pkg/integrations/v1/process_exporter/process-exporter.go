@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/shared"
 )
 
 // Integration is the process_exporter integration. On non-Linux platforms,
@@ -32,9 +32,9 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
-func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
+func (i *Integration) ScrapeConfigs() []shared.ScrapeConfig {
 	// No-op: nothing to scrape.
-	return []config.ScrapeConfig{}
+	return []shared.ScrapeConfig{}
 }
 
 // Run satisfies Integration.Run.

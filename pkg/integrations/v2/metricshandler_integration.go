@@ -1,12 +1,10 @@
-package metricsutils
+package v2
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 	"path"
-
-	v2 "github.com/grafana/agent/pkg/integrations/v2"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -22,15 +20,17 @@ import (
 // will expose a /metrics endpoint for h.
 func NewMetricsHandlerIntegration(
 	_ log.Logger,
-	c v2.V2Config,
+	c Config,
 	mc common.MetricsConfig,
-	globals v2.Globals,
+	globals Globals,
 	h http.Handler,
-) (v2.MetricsIntegration, error) {
+) (MetricsIntegration, error) {
+
 	id, err := c.Identifier(globals)
 	if err != nil {
 		return nil, err
 	}
+
 	return &metricsHandlerIntegration{
 		integrationName: c.Name(),
 		instanceID:      id,
@@ -47,21 +47,11 @@ type metricsHandlerIntegration struct {
 	integrationName, instanceID string
 
 	common  common.MetricsConfig
-	globals v2.Globals
+	globals Globals
 	handler http.Handler
 	targets []handlerTarget
 
 	runFunc func(ctx context.Context) error
-}
-
-func (i *metricsHandlerIntegration) MetricsHandler() (http.Handler, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *metricsHandlerIntegration) Run(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
 }
 
 type handlerTarget struct {
@@ -74,9 +64,9 @@ type handlerTarget struct {
 
 // Static typecheck tests
 var (
-	_ v2.Integrations = (*metricsHandlerIntegration)(nil)
-	//_ shared.HTTPIntegration    = (*metricsHandlerIntegration)(nil)
-	_ v2.MetricsIntegration = (*metricsHandlerIntegration)(nil)
+	_ Integration        = (*metricsHandlerIntegration)(nil)
+	_ HTTPIntegration    = (*metricsHandlerIntegration)(nil)
+	_ MetricsIntegration = (*metricsHandlerIntegration)(nil)
 )
 
 // RunIntegration implements Integration.
@@ -99,7 +89,7 @@ func (i *metricsHandlerIntegration) Handler(prefix string) (http.Handler, error)
 }
 
 // Targets implements MetricsIntegration.
-func (i *metricsHandlerIntegration) Targets(ep v2.Endpoint) []*targetgroup.Group {
+func (i *metricsHandlerIntegration) Targets(ep Endpoint) []*targetgroup.Group {
 	integrationNameValue := model.LabelValue("integrations/" + i.integrationName)
 
 	group := &targetgroup.Group{

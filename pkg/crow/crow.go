@@ -48,12 +48,12 @@ type Config struct {
 	Log log.Logger
 }
 
-// RegisterFlags registers flags for the config to the given FlagSet.
+// RegisterFlags registers flags for the shared to the given FlagSet.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.RegisterFlagsWithPrefix(f, "")
 }
 
-// RegisterFlagsWithPrefix registers flags for the config to the given FlagSet and
+// RegisterFlagsWithPrefix registers flags for the shared to the given FlagSet and
 // prefixing each flag with the given prefix. prefix, if non-empty, should end
 // in `.`.
 func (c *Config) RegisterFlagsWithPrefix(f *flag.FlagSet, prefix string) {

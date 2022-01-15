@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
@@ -69,8 +69,8 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
-func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{
+func (i *Integration) ScrapeConfigs() []shared.ScrapeConfig {
+	return []shared.ScrapeConfig{{
 		JobName:     i.c.Name(),
 		MetricsPath: "/metrics",
 	}}

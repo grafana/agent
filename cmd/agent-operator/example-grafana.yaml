@@ -26,7 +26,7 @@ spec:
         image: grafana/grafana:8.0.4
         args:
           - --homepath=/usr/share/grafana
-          - --config=/etc/grafana-config/grafana.ini
+          - --shared=/etc/grafana-shared/grafana.ini
         ports:
           - name: http
             containerPort: 8080
@@ -34,13 +34,13 @@ spec:
           - mountPath: /etc/grafana/provisioning/datasources
             name: grafana-datasources
             readOnly: true
-          - mountPath: /etc/grafana-config
-            name: config
+          - mountPath: /etc/grafana-shared
+            name: shared
             readOnly: true
       volumes:
-        - name: config
+        - name: shared
           configMap:
-            name: grafana-config
+            name: grafana-shared
         - name: grafana-datasources
           configMap:
             name: grafana-datasources
@@ -67,7 +67,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-config
+  name: grafana-shared
   namespace: default
   labels:
     app: grafana

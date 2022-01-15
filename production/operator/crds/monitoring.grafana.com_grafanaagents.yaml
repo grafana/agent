@@ -1055,7 +1055,7 @@ spec:
                 - host
                 type: object
               configMaps:
-                description: ConfigMaps is a liset of config maps in the same namespace
+                description: ConfigMaps is a liset of shared maps in the same namespace
                   as the GrafanaAgent object which will be mounted into each running
                   Grafana Agent pod. The ConfigMaps are mounted into /etc/grafana-agent/configmaps/<configmap-name>.
                 items:
@@ -1068,7 +1068,7 @@ spec:
                   the behavior of an operator-generated container. Containers described
                   here modify an operator generated container if they share the same
                   name and modifications are done via a strategic merge patch. The
-                  current container names are: `grafana-agent` and `config-reloader`.
+                  current container names are: `grafana-agent` and `shared-reloader`.
                   Overriding containers is entirely outside the scope of what the
                   Grafana Agent team will support and by doing so, you accept that
                   this behavior may break at any time without notice.'
@@ -1258,7 +1258,7 @@ spec:
                       type: array
                     image:
                       description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images
-                        This field is optional to allow higher level config management
+                        This field is optional to allow higher level shared management
                         to default or override container images in workload controllers
                         like Deployments and StatefulSets.'
                       type: string
@@ -2419,7 +2419,7 @@ spec:
                       type: array
                     image:
                       description: 'Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images
-                        This field is optional to allow higher level config management
+                        This field is optional to allow higher level shared management
                         to default or override container images in workload controllers
                         like Deployments and StatefulSets.'
                       type: string

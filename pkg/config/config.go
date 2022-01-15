@@ -350,7 +350,8 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
-	if err := cfg.Integrations.setVersion(version); err != nil {
+	// Logging isnt initialized yet
+	if err := cfg.Integrations.setVersion(version, log.NewJSONLogger(os.Stdout)); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}
 

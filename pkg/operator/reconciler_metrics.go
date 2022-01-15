@@ -45,10 +45,10 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 
 	switch ty {
 	case config.MetricsType:
-		key.Name = fmt.Sprintf("%s-config", d.Agent.Name)
+		key.Name = fmt.Sprintf("%s-shared", d.Agent.Name)
 		shouldCreate = len(d.Metrics) > 0
 	case config.LogsType:
-		key.Name = fmt.Sprintf("%s-logs-config", d.Agent.Name)
+		key.Name = fmt.Sprintf("%s-logs-shared", d.Agent.Name)
 		shouldCreate = len(d.Logs) > 0
 	default:
 		return fmt.Errorf("unknown telemetry type %s", ty)
@@ -80,7 +80,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 		fmt.Fprintf(os.Stderr, "%s", jsonnetError.Error())
 	}
 	if err != nil {
-		return fmt.Errorf("unable to build config: %w", err)
+		return fmt.Errorf("unable to build shared: %w", err)
 	}
 
 	blockOwnerDeletion := true

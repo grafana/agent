@@ -6,15 +6,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
 	"github.com/prometheus-community/windows_exporter/collector"
 	"github.com/prometheus/statsd_exporter/pkg/level"
 )
 
 // New creates a new windows_exporter integration.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	// Get a list of collector configs and map our local config to it.
+func New(log log.Logger, c *Config) (shared.Integration, error) {
+	// Get a list of collector configs and map our local shared to it.
 	availableConfigs := collector.AllConfigs()
 	c.toExporterConfig(availableConfigs)
 
@@ -31,7 +32,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	sort.Strings(collectorNames)
 	level.Info(log).Log("msg", "enabled windows_exporter collectors", "collectors", collectorNames)
 
-	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(
+	return shared.NewCollectorIntegration(c.Name(), shared.WithCollectors(
 		// Hard-coded 4m timeout to represent the time a series goes stale.
 		// TODO: Make configurable if useful.
 		collector.NewPrometheus(4*time.Minute, collectors),

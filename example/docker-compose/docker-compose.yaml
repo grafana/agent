@@ -3,11 +3,11 @@ services:
   agent:
     image: grafana/agent:latest
     volumes:
-      - ./agent/config:/etc/agent-config
+      - ./agent/shared:/etc/agent-shared
       - /var/log:/var/log
     entrypoint:
       - /bin/agent
-      - -config.file=/etc/agent-config/agent.yaml
+      - -shared.file=/etc/agent-shared/agent.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
     ports:
       - "12345:12345"
@@ -25,16 +25,16 @@ services:
     image: grafana/loki:2.2.1
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -shared.file=/etc/loki/local-shared.yaml
 
   cortex:
     image: cortexproject/cortex:v1.8.1
     volumes:
       - /tmp/cortex:/tmp/cortex
-      - ./cortex/config:/etc/cortex-config
+      - ./cortex/shared:/etc/cortex-shared
     entrypoint:
       - /bin/cortex
-      - -config.file=/etc/cortex-config/cortex.yaml
+      - -shared.file=/etc/cortex-shared/cortex.yaml
     ports:
       - "9009:9009"
 
@@ -66,9 +66,9 @@ services:
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana
-      - --config=/etc/grafana-config/grafana.ini
+      - --shared=/etc/grafana-shared/grafana.ini
     volumes:
-      - ./grafana/config:/etc/grafana-config
+      - ./grafana/shared:/etc/grafana-shared
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
       - ./grafana/dashboards:/var/lib/grafana/dashboards

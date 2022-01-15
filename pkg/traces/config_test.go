@@ -68,7 +68,7 @@ receivers:
 			expectedError: true,
 		},
 		{
-			name: "empty receiver config",
+			name: "empty receiver shared",
 			cfg: `
 receivers:
   jaeger:
@@ -78,7 +78,7 @@ remote_write:
 			expectedError: true,
 		},
 		{
-			name: "basic config",
+			name: "basic shared",
 			cfg: `
 receivers:
   jaeger:
@@ -107,7 +107,7 @@ service:
 `,
 		},
 		{
-			name: "processor config",
+			name: "processor shared",
 			cfg: `
 receivers:
   jaeger:
@@ -295,7 +295,7 @@ service:
 `,
 		},
 		{
-			name: "jaeger receiver remote_sampling TLS config",
+			name: "jaeger receiver remote_sampling TLS shared",
 			cfg: `
 receivers:
   jaeger:
@@ -599,7 +599,7 @@ spanmetrics:
 			expectedError: true,
 		},
 		{
-			name: "tail sampling config",
+			name: "tail sampling shared",
 			cfg: `
 receivers:
   jaeger:
@@ -687,7 +687,7 @@ service:
 `,
 		},
 		{
-			name: "tail sampling config with load balancing",
+			name: "tail sampling shared with load balancing",
 			cfg: `
 receivers:
   jaeger:
@@ -800,7 +800,7 @@ service:
       `,
 		},
 		{
-			name: "tls config",
+			name: "tls shared",
 			cfg: `
 receivers:
   jaeger:
@@ -876,7 +876,7 @@ service:
 `,
 		},
 		{
-			name: "prom SD config",
+			name: "prom SD shared",
 			cfg: `
 receivers:
   jaeger:
@@ -1077,7 +1077,7 @@ service:
 			}
 			require.NoError(t, err)
 
-			// convert actual config to otel config
+			// convert actual shared to otel shared
 			otelMapStructure := map[string]interface{}{}
 			err = yaml.Unmarshal([]byte(tc.expectedConfig), otelMapStructure)
 			require.NoError(t, err)
@@ -1090,7 +1090,7 @@ service:
 			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
 
-			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
+			// Exporters and receivers in the shared's pipelines need to be in the same order for them to be asserted as equal
 			sortPipelines(actualConfig)
 			sortPipelines(expectedConfig)
 

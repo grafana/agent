@@ -101,7 +101,7 @@ type GrafanaAgentSpec struct {
 	// object which will be mounted into each running Grafana Agent pod.
 	// The secrets are mounted into /etc/grafana-agent/secrets/<secret-name>.
 	Secrets []string `json:"secrets,omitempty"`
-	// ConfigMaps is a liset of config maps in the same namespace as the
+	// ConfigMaps is a liset of shared maps in the same namespace as the
 	// GrafanaAgent object which will be mounted into each running Grafana Agent
 	// pod.
 	// The ConfigMaps are mounted into /etc/grafana-agent/configmaps/<configmap-name>.
@@ -121,7 +121,7 @@ type GrafanaAgentSpec struct {
 	// operator-generated container. Containers described here modify an operator
 	// generated container if they share the same name and modifications are done
 	// via a strategic merge patch. The current container names are:
-	// `grafana-agent` and `config-reloader`. Overriding containers is entirely
+	// `grafana-agent` and `shared-reloader`. Overriding containers is entirely
 	// outside the scope of what the Grafana Agent team will support and by doing
 	// so, you accept that this behavior may break at any time without notice.
 	Containers []v1.Container `json:"containers,omitempty"`

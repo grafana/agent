@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/go-kit/kit/log"
 	"github.com/google/cadvisor/cache/memory"
 	"github.com/google/cadvisor/container"
@@ -20,8 +22,6 @@ import (
 	"github.com/google/cadvisor/utils/sysfs"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
-
-	"github.com/grafana/agent/pkg/integrations"
 
 	// Register container providers
 
@@ -77,14 +77,14 @@ func (c *Config) GetIncludedMetrics() (container.MetricSet, error) {
 }
 
 // NewIntegration creates a new cadvisor integration
-func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(logger log.Logger) (shared.Integration, error) {
 	return New(logger, c)
 }
 
 // Integration implements the cadvisor integration
 type Integration struct {
 	c *Config
-	i *integrations.CollectorIntegration
+	i *shared.CollectorIntegration
 }
 
 // Run holds all the configuration logic for globals, as well as starting the resource manager and registering the collectors with the collector integration
@@ -142,7 +142,7 @@ func (i *Integration) Run(ctx context.Context) error {
 		Recursive: true,
 	}
 	contCol := metrics.NewPrometheusCollector(rm, containerLabelFunc, includedMetrics, clock.RealClock{}, reqOpts)
-	integrations.WithCollectors(machCol, contCol)(i.i)
+	shared.WithCollectors(machCol, contCol)(i.i)
 
 	<-ctx.Done()
 
@@ -153,14 +153,14 @@ func (i *Integration) Run(ctx context.Context) error {
 }
 
 // New creates a new cadvisor integration
-func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+func New(logger log.Logger, c *Config) (shared.Integration, error) {
 	klog.SetLogger(logger)
 
-	ci := integrations.NewCollectorIntegration(c.Name())
+	ci := shared.NewCollectorIntegration(c.Name())
 	integration := Integration{
 		c: c,
 		i: ci,
 	}
-	integrations.WithRunner(integration.Run)(ci)
+	shared.WithRunner(integration.Run)(ci)
 	return ci, nil
 }

@@ -25,10 +25,10 @@ func TestRedisCases(t *testing.T) {
 		expectedMetrics        []string
 		expectConstructorError bool
 	}{
-		// Test that default config results in some metrics that can be parsed by
+		// Test that default shared results in some metrics that can be parsed by
 		// prometheus.
 		{
-			name: "Default config",
+			name: "Default shared",
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr
@@ -50,7 +50,7 @@ func TestRedisCases(t *testing.T) {
 				"promhttp_metric_handler_requests_in_flight",
 			},
 		},
-		// Test that some valid pre-constructor config logic doesn't cause errors.
+		// Test that some valid pre-constructor shared logic doesn't cause errors.
 		{
 			name: "Lua script read OK",
 			cfg: (func() Config {
@@ -60,7 +60,7 @@ func TestRedisCases(t *testing.T) {
 				return c
 			})(),
 		},
-		// Test that some invalid pre-constructor config logic causes an error.
+		// Test that some invalid pre-constructor shared logic causes an error.
 		{
 			name: "Lua script read fail",
 			cfg: (func() Config {
@@ -71,7 +71,7 @@ func TestRedisCases(t *testing.T) {
 			})(),
 			expectConstructorError: true,
 		},
-		// Test exporter complains when no address given via env or config.
+		// Test exporter complains when no address given via env or shared.
 		{
 			name:                   "no address given",
 			cfg:                    Config{}, // no address in here

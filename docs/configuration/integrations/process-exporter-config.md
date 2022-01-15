@@ -38,7 +38,7 @@ spec:
   - image: grafana/agent:v0.22.0
     name: agent
     args:
-    - --config.file=/etc/agent-config/agent.yaml
+    - --shared.file=/etc/agent-shared/agent.yaml
     volumeMounts:
     - name: procfs
       mountPath: /proc
@@ -122,7 +122,7 @@ Full reference of options:
   [recheck_on_scrape: <boolean> | default = false]
 
   # A collection of matching rules to use for deciding which processes to
-  # monitor. Each config can match multiple processes to be tracked as a single
+  # monitor. Each shared can match multiple processes to be tracked as a single
   # process "group."
   process_names:
     [- <process_matcher_config>]

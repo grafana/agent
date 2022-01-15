@@ -17,7 +17,7 @@ func Test_validateNoFiles(t *testing.T) {
 		expect error
 	}{
 		{
-			name: "valid config",
+			name: "valid shared",
 			input: util.Untab(`
 			scrape_configs:
 			- job_name: innocent_scrape
@@ -86,7 +86,7 @@ func Test_validateNoFiles(t *testing.T) {
 			expect: nil,
 		},
 		{
-			name: "invalid http client config",
+			name: "invalid http client shared",
 			input: util.Untab(`
 			scrape_configs:
 			- job_name: malicious_scrape

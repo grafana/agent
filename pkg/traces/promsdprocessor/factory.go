@@ -69,7 +69,7 @@ func createTraceProcessor(
 	scrapeConfigs := make([]*prom_config.ScrapeConfig, 0)
 	err = yaml.Unmarshal(out, &scrapeConfigs)
 	if err != nil {
-		return nil, fmt.Errorf("unable to unmarshal bytes to []*config.ScrapeConfig: %w", err)
+		return nil, fmt.Errorf("unable to unmarshal bytes to []*shared.ScrapeConfig: %w", err)
 	}
 
 	return newTraceProcessor(nextConsumer, oCfg.OperationType, oCfg.PodAssociations, scrapeConfigs)

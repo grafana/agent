@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/integrations"
 	gh_config "github.com/infinityworks/github-exporter/config"
 	"github.com/infinityworks/github-exporter/exporter"
 	config_util "github.com/prometheus/common/config"
@@ -38,15 +39,7 @@ type Config struct {
 	APITokenFile string `yaml:"api_token_file,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return "github_exporter"
 }
@@ -61,12 +54,12 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 // NewIntegration creates a new github_exporter
-func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(logger log.Logger) (shared.Integration, error) {
 	return New(logger, c)
 }
 
 // New creates a new github_exporter integration.
-func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+func New(logger log.Logger, c *Config) (shared.Integration, error) {
 
 	conf := gh_config.Config{}
 	err := conf.SetAPIURL(c.APIURL)
@@ -93,8 +86,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		Config:     conf,
 	}
 
-	return integrations.NewCollectorIntegration(
+	return shared.NewCollectorIntegration(
 		c.Name(),
-		integrations.WithCollectors(&ghExporter),
+		shared.WithCollectors(&ghExporter),
 	), nil
 }

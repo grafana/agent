@@ -6,10 +6,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
 	"github.com/lib/pq"
 	"github.com/prometheus-community/postgres_exporter/exporter"
 )
@@ -27,13 +28,13 @@ type Config struct {
 	QueryPath              string   `yaml:"query_path,omitempty"`
 }
 
-// Name returns the name of the integration this config is for.
+// Name returns the name of the integration this shared is for.
 func (c *Config) Name() string {
 	return "postgres_exporter"
 }
 
-// NewIntegration converts this config into an instance of a configuration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+// NewIntegration converts this shared into an instance of a configuration.
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
 
@@ -45,7 +46,7 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 		return "", err
 	}
 	if len(dsn) != 1 {
-		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSN. either use 1 DSN or manually assign a value for `instance` in the integration config", len(dsn))
+		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSN. either use 1 DSN or manually assign a value for `instance` in the integration shared", len(dsn))
 	}
 
 	s, err := parsePostgresURL(dsn[0])
@@ -100,7 +101,7 @@ func parsePostgresURL(url string) (map[string]string, error) {
 	return res, nil
 }
 
-// getDataSourceNames loads data source names from the config or from the
+// getDataSourceNames loads data source names from the shared or from the
 // environment, if set.
 func (c *Config) getDataSourceNames() ([]string, error) {
 	dsn := c.DataSourceNames
@@ -120,7 +121,7 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 
 // New creates a new postgres_exporter integration. The integration scrapes
 // metrics from a postgres process.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
+func New(log log.Logger, c *Config) (shared.Integration, error) {
 	dsn, err := c.getDataSourceNames()
 	if err != nil {
 		return nil, err
@@ -138,5 +139,5 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		exporter.MetricPrefix("pg"),
 	)
 
-	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(e)), nil
+	return shared.NewCollectorIntegration(c.Name(), shared.WithCollectors(e)), nil
 }

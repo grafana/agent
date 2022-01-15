@@ -9,7 +9,7 @@ import (
 
 	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
@@ -42,7 +42,7 @@ use_hostname_label: true
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
-	// config package.
+	// shared package.
 	cfg.ListenPort = listenPort
 	cfg.ListenHost = listenHost
 
@@ -72,7 +72,7 @@ test:
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
-	// config package.
+	// shared package.
 	cfg.ListenPort = listenPort
 	cfg.ListenHost = listenHost
 
@@ -95,7 +95,7 @@ agent:
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
-	// config package.
+	// shared package.
 	cfg.ListenPort = listenPort
 	cfg.ListenHost = listenHost
 
@@ -126,8 +126,8 @@ func TestManager_instanceConfigForIntegration(t *testing.T) {
 	require.Equal(t, "/integrations/mock/metrics", cfg.ScrapeConfigs[0].MetricsPath)
 }
 
-func makeUnmarshaledConfig(cfg Config, enabled bool) UnmarshaledConfig {
-	return UnmarshaledConfig{Config: cfg, Common: config.Common{Enabled: enabled}}
+func makeUnmarshaledConfig(cfg shared.Config, enabled bool) UnmarshaledConfig {
+	return UnmarshaledConfig{shared.Config: cfg, Common: shared.Common{Enabled: enabled}}
 }
 
 // TestManager_NoIntegrationsScrape ensures that configs don't get generates
@@ -164,8 +164,8 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, UnmarshaledConfig{
-		Config: icfg,
-		Common: config.Common{ScrapeIntegration: &noScrape},
+		shared.Config: icfg,
+		Common:        shared.Common{ScrapeIntegration: &noScrape},
 	})
 
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
@@ -177,7 +177,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 }
 
 // TestManager_StartsIntegrations tests that, when given an integration to
-// launch, TestManager applies a config and runs the integration.
+// launch, TestManager applies a shared and runs the integration.
 func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := mockConfig{Integration: mock}
@@ -274,8 +274,8 @@ func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
 
 	cfg := mockManagerConfig()
 	cfg.Integrations = append(cfg.Integrations, UnmarshaledConfig{
-		Config: icfg,
-		Common: config.Common{Enabled: false},
+		shared.Config: icfg,
+		Common:        shared.Common{Enabled: false},
 	})
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
@@ -321,7 +321,7 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 	m, err := NewManager(cfg, log.NewNopLogger(), im, validator.validate)
 	require.NoError(t, err)
 	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
-	//The integration never has the prom config overrides happen so go after the running instance config instead
+	//The integration never has the prom shared overrides happen so go after the running instance shared instead
 	for _, c := range m.im.ListConfigs() {
 		for _, scrape := range c.ScrapeConfigs {
 			require.Equal(t, startingPromConfig.ScrapeInterval, scrape.ScrapeInterval)
@@ -337,7 +337,7 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
-	//The integration never has the prom config overrides happen so go after the running instance config instead
+	//The integration never has the prom shared overrides happen so go after the running instance shared instead
 	for _, c := range m.im.ListConfigs() {
 		for _, scrape := range c.ScrapeConfigs {
 			require.Equal(t, newPromConfig.ScrapeInterval, scrape.ScrapeInterval)
@@ -367,7 +367,7 @@ func (c mockConfig) Equal(other mockConfig) bool { return c.Integration == other
 func (c mockConfig) Name() string                                { return "mock" }
 func (c mockConfig) InstanceKey(agentKey string) (string, error) { return agentKey, nil }
 
-func (c mockConfig) NewIntegration(_ log.Logger) (Integration, error) {
+func (c mockConfig) NewIntegration(_ log.Logger) (shared.Integration, error) {
 	return c.Integration, nil
 }
 
@@ -389,8 +389,8 @@ func (i *mockIntegration) MetricsHandler() (http.Handler, error) {
 	return promhttp.Handler(), nil
 }
 
-func (i *mockIntegration) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{
+func (i *mockIntegration) ScrapeConfigs() []shared.ScrapeConfig {
+	return []shared.ScrapeConfig{{
 		JobName:     "mock",
 		MetricsPath: "/metrics",
 	}}

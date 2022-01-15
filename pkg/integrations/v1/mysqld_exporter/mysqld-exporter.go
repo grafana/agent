@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-sql-driver/mysql"
-	"github.com/grafana/agent/pkg/integrations"
 	"github.com/prometheus/mysqld_exporter/collector"
 )
 
@@ -50,7 +51,7 @@ type Config struct {
 	LockWaitTimeout int  `yaml:"lock_wait_timeout,omitempty"`
 	LogSlowFilter   bool `yaml:"log_slow_filter,omitempty"`
 
-	// Collector-specific config options
+	// Collector-specific shared options
 	InfoSchemaProcessListMinTime         int    `yaml:"info_schema_processlist_min_time,omitempty"`
 	InfoSchemaProcessListProcessesByUser bool   `yaml:"info_schema_processlist_processes_by_user,omitempty"`
 	InfoSchemaProcessListProcessesByHost bool   `yaml:"info_schema_processlist_processes_by_host,omitempty"`
@@ -66,15 +67,7 @@ type Config struct {
 	MySQLUserPrivileges                  bool   `yaml:"mysql_user_privileges,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return "mysqld_exporter"
 }
@@ -96,14 +89,14 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 	return fmt.Sprintf("%s(%s)/%s", m.Net, m.Addr, m.DBName), nil
 }
 
-// NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+// NewIntegration converts this shared into an instance of an integration.
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
 
 // New creates a new mysqld_exporter integration. The integration scrapes
 // metrics from a mysqld process.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
+func New(log log.Logger, c *Config) (shared.Integration, error) {
 	dsn := c.DataSourceName
 	if len(dsn) == 0 {
 		dsn = config_util.Secret(os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME"))
@@ -123,13 +116,13 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		level.Debug(log).Log("scraper", scraper.Name())
 	}
 
-	return integrations.NewCollectorIntegration(
+	return shared.NewCollectorIntegration(
 		c.Name(),
-		integrations.WithCollectors(exporter),
+		shared.WithCollectors(exporter),
 	), nil
 }
 
-// GetScrapers returns the set of *enabled* scrapers from the config.
+// GetScrapers returns the set of *enabled* scrapers from the shared.
 // Configurable scrapers will have their configuration filled out matching the
 // Config's settings.
 func GetScrapers(c *Config) []collector.Scraper {

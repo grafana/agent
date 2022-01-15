@@ -7,9 +7,10 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/integrations"
 	re "github.com/oliver006/redis_exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 )
@@ -29,9 +30,9 @@ var DefaultConfig = Config{
 type Config struct {
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 
-	// exporter-specific config.
+	// exporter-specific shared.
 	//
-	// The exporter binary config differs to this, but these
+	// The exporter binary shared differs to this, but these
 	// are the only fields that are relevant to the exporter struct.
 	RedisAddr               string             `yaml:"redis_addr,omitempty"`
 	RedisUser               string             `yaml:"redis_user,omitempty"`
@@ -90,15 +91,7 @@ func (c Config) GetExporterOptions() re.Options {
 	}
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-// Name returns the name of the integration this config is for.
+// Name returns the name of the integration this shared is for.
 func (c *Config) Name() string {
 	return "redis_exporter"
 }
@@ -108,15 +101,15 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return c.RedisAddr, nil
 }
 
-// NewIntegration converts the config into an integration instance.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+// NewIntegration converts the shared into an integration instance.
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
 
 // New creates a new redis_exporter integration. The integration queries
 // a redis instance's INFO and exposes the results as metrics.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	level.Debug(log).Log("msg", "initializing redis_exporter", "config", c)
+func New(log log.Logger, c *Config) (shared.Integration, error) {
+	level.Debug(log).Log("msg", "initializing redis_exporter", "shared", c)
 
 	exporterConfig := c.GetExporterOptions()
 
@@ -164,9 +157,9 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, fmt.Errorf("failed to create redis exporter: %w", err)
 	}
 
-	return integrations.NewCollectorIntegration(
+	return shared.NewCollectorIntegration(
 		c.Name(),
-		integrations.WithCollectors(exporter),
-		integrations.WithExporterMetricsIncluded(c.IncludeExporterMetrics),
+		shared.WithCollectors(exporter),
+		shared.WithExporterMetricsIncluded(c.IncludeExporterMetrics),
 	), nil
 }

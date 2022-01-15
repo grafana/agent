@@ -73,7 +73,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// Detect if the config changed.
+	// Detect if the shared changed.
 	if util.CompareYAML(n.cfg, cfg) {
 		return nil
 	}
@@ -82,7 +82,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 		return fmt.Errorf("node already exited")
 	}
 
-	level.Info(n.log).Log("msg", "applying config")
+	level.Info(n.log).Log("msg", "applying shared")
 
 	// Shut down old components before re-creating the updated ones.
 	n.reg.UnregisterAll()
@@ -128,7 +128,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	}
 	if err := services.StartAndAwaitRunning(context.Background(), lc); err != nil {
 		if err := services.StopAndAwaitTerminated(ctx, r); err != nil {
-			level.Error(n.log).Log("msg", "failed to stop ring when returning error. next config reload will fail", "err", err)
+			level.Error(n.log).Log("msg", "failed to stop ring when returning error. next shared reload will fail", "err", err)
 		}
 		return fmt.Errorf("failed to start lifecycler: %w", err)
 	}

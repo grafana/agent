@@ -123,7 +123,7 @@ NextObject:
 	return objects, nil
 }
 
-// DefaultBackoff is a default backoff config that retries forever until ctx is
+// DefaultBackoff is a default backoff shared that retries forever until ctx is
 // canceled.
 var DefaultBackoff = backoff.Config{
 	MinBackoff: 100 * time.Millisecond,

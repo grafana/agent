@@ -38,7 +38,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 	im.On("ApplyConfig", mock.Anything).Return(nil)
 	im.On("DeleteConfig", mock.Anything).Return(nil)
 
-	// First: return a "hello" config.
+	// First: return a "hello" shared.
 	store.AllFunc = func(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error) {
 		ch := make(chan instance.Config)
 		go func() {
@@ -51,7 +51,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 	err = w.refresh(context.Background())
 	require.NoError(t, err)
 
-	// Then: return a "new" config.
+	// Then: return a "new" shared.
 	store.AllFunc = func(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error) {
 		ch := make(chan instance.Config, 1)
 		go func() {
@@ -87,7 +87,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 	)
 	cfg.Enabled = true
 
-	t.Run("new owned config", func(t *testing.T) {
+	t.Run("new owned shared", func(t *testing.T) {
 		var (
 			log = util.TestLogger(t)
 			im  mockConfigManager
@@ -106,7 +106,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		im.AssertNumberOfCalls(t, "ApplyConfig", 1)
 	})
 
-	t.Run("updated owned config", func(t *testing.T) {
+	t.Run("updated owned shared", func(t *testing.T) {
 		var (
 			log = util.TestLogger(t)
 			im  mockConfigManager
@@ -129,7 +129,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		im.AssertNumberOfCalls(t, "ApplyConfig", 2)
 	})
 
-	t.Run("new unowned config", func(t *testing.T) {
+	t.Run("new unowned shared", func(t *testing.T) {
 		var (
 			log = util.TestLogger(t)
 			im  mockConfigManager
@@ -170,7 +170,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		err = w.handleEvent(configstore.WatchEvent{Key: "disappear", Config: &instance.Config{}})
 		require.NoError(t, err)
 
-		// Mark the config as unowned. The re-apply should then delete it.
+		// Mark the shared as unowned. The re-apply should then delete it.
 		isOwned = false
 
 		err = w.handleEvent(configstore.WatchEvent{Key: "disappear", Config: &instance.Config{}})
@@ -180,7 +180,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		im.AssertNumberOfCalls(t, "DeleteConfig", 1)
 	})
 
-	t.Run("deleted running config", func(t *testing.T) {
+	t.Run("deleted running shared", func(t *testing.T) {
 		var (
 			log = util.TestLogger(t)
 

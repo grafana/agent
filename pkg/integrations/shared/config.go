@@ -8,12 +8,6 @@ import (
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
-// Common is a set of common options shared by all integrations. It should be
-// utilised by an integration's shared by inlining the common options:
-//
-//   type IntegrationConfig struct {
-//     Common shared.Common `yaml:",inline"`
-//   }
 type Common struct {
 	Enabled              bool              `yaml:"enabled,omitempty"`
 	InstanceKey          *string           `yaml:"instance,omitempty"`
@@ -47,5 +41,24 @@ type V1IntegrationConfig interface {
 }
 
 type V1Integrations interface {
-	ActiveConfigs() []V1IntegrationConfig
+	ActiveConfigs() []Config
 }
+
+// Type determines a specific type of integration.
+type Type int
+
+const (
+	// TypeSingleton is an integration that can only be defined exactly once in
+	// the config, unmarshaled through "<integration name>"
+	TypeSingleton Type = iota
+
+	// TypeMultiplex is an integration that can only be defined through an array,
+	// unmarshaled through "<integration name>_configs"
+	TypeMultiplex
+
+	// TypeEither is an integration that can be unmarshaled either as a singleton
+	// or as an array, but not both.
+	//
+	// Deprecated. Use either TypeSingleton or TypeMultiplex for new integrations.
+	TypeEither
+)

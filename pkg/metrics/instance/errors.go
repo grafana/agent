@@ -5,7 +5,7 @@ import "fmt"
 // ErrInvalidUpdate is returned whenever Update is called against an instance
 // but an invalid field is changed between configs. If ErrInvalidUpdate is
 // returned, the instance must be fully stopped and replaced with a new one
-// with the new config.
+// with the new shared.
 type ErrInvalidUpdate struct {
 	Inner error
 }

@@ -1,7 +1,7 @@
 package windows_exporter //nolint:golint
 import (
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/shared"
 )
 
 // DefaultConfig holds the default settings for the windows_exporter integration.
@@ -29,15 +29,6 @@ type Config struct {
 	LogicalDisk LogicalDiskConfig `yaml:"logical_disk,omitempty"`
 }
 
-/*
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}*/
-
 // Name returns the name used, "windows_explorer"
 func (c *Config) Name() string {
 	return "windows_exporter"
@@ -49,7 +40,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 // NewIntegration creates an integration based on the given configuration
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
 

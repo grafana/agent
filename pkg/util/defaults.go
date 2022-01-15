@@ -8,7 +8,7 @@ import "flag"
 // cfg must implement either PrefixedConfigFlags or ConfigFlags.
 func DefaultConfigFromFlags(cfg interface{}) interface{} {
 	// This function is super ugly but is required for mixing the combination
-	// of mechanisms for providing default for config structs that are used
+	// of mechanisms for providing default for shared structs that are used
 	// across both Prometheus (via UnmarshalYAML and assigning the default object)
 	// and Cortex (via RegisterFlags*).
 	//
@@ -44,7 +44,7 @@ func DefaultConfigFromFlags(cfg interface{}) interface{} {
 	} else if v, ok := cfg.(ConfigFlags); ok {
 		v.RegisterFlags(fs)
 	} else {
-		panic("config does not implement PrefixedConfigFlags or ConfigFlags")
+		panic("shared does not implement PrefixedConfigFlags or ConfigFlags")
 	}
 
 	return cfg

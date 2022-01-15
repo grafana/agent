@@ -1,11 +1,10 @@
-package integrations
+package shared
 
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/integrations/shared"
-
 	"github.com/go-kit/log"
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
@@ -21,10 +20,10 @@ import (
 //
 
 func Test_controller_MetricsIntegration_Targets(t *testing.T) {
-	integrationWithTarget := func(targetName string) shared.Integration {
+	integrationWithTarget := func(targetName string) Integration {
 		return mockMetricsIntegration{
-			Integration: NoOpIntegration,
-			TargetsFunc: func(shared.Endpoint) []*targetgroup.Group {
+			Integration: v2.NoOpIntegration,
+			TargetsFunc: func(v2.Endpoint) []*targetgroup.Group {
 				return []*targetgroup.Group{{
 					Targets: []model.LabelSet{{model.AddressLabel: model.LabelValue(targetName)}},
 				}}
@@ -33,26 +32,26 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 		}
 	}
 
-	integrations := []shared.Config{
-		mockConfigNameTuple(t, "a", "instanceA").WithNewIntegrationFunc(func(l log.Logger, g shared.Globals) (shared.Integration, error) {
+	integrations := []Config{
+		mockConfigNameTuple(t, "a", "instanceA").WithNewIntegrationFunc(func(l log.Logger, g v2.Globals) (Integration, error) {
 			return integrationWithTarget("a"), nil
 		}),
-		mockConfigNameTuple(t, "b", "instanceB").WithNewIntegrationFunc(func(l log.Logger, g shared.Globals) (shared.Integration, error) {
+		mockConfigNameTuple(t, "b", "instanceB").WithNewIntegrationFunc(func(l log.Logger, g v2.Globals) (Integration, error) {
 			return integrationWithTarget("b"), nil
 		}),
 	}
 
 	t.Run("All", func(t *testing.T) {
-		ctrl, err := NewController(
+		ctrl, err := v2.NewController(
 			util.TestLogger(t),
 			controllerConfig(integrations),
-			shared.Globals{},
+			v2.Globals{},
 		)
 		require.NoError(t, err)
-		_ = newSyncController(t, ctrl)
+		_ = v2.NewSyncController(t, ctrl)
 
-		result := ctrl.Targets(shared.Endpoint{Prefix: "/"}, TargetOptions{})
-		expect := []*TargetGroup{
+		result := ctrl.Targets(v2.Endpoint{Prefix: "/"}, v2.TargetOptions{})
+		expect := []*integrations.TargetGroup{
 			{Targets: []model.LabelSet{{model.AddressLabel: "a"}}},
 			{Targets: []model.LabelSet{{model.AddressLabel: "b"}}},
 		}
@@ -60,18 +59,18 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	})
 
 	t.Run("All by Integration", func(t *testing.T) {
-		ctrl, err := NewController(
+		ctrl, err := v2.NewController(
 			util.TestLogger(t),
 			controllerConfig(integrations),
-			shared.Globals{},
+			v2.Globals{},
 		)
 		require.NoError(t, err)
-		_ = newSyncController(t, ctrl)
+		_ = v2.NewSyncController(t, ctrl)
 
-		result := ctrl.Targets(shared.Endpoint{Prefix: "/"}, TargetOptions{
+		result := ctrl.Targets(v2.Endpoint{Prefix: "/"}, v2.TargetOptions{
 			Integrations: []string{"a", "b"},
 		})
-		expect := []*TargetGroup{
+		expect := []*integrations.TargetGroup{
 			{Targets: []model.LabelSet{{model.AddressLabel: "a"}}},
 			{Targets: []model.LabelSet{{model.AddressLabel: "b"}}},
 		}
@@ -79,18 +78,18 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	})
 
 	t.Run("Specific Integration", func(t *testing.T) {
-		ctrl, err := NewController(
+		ctrl, err := v2.NewController(
 			util.TestLogger(t),
 			controllerConfig(integrations),
-			shared.Globals{},
+			v2.Globals{},
 		)
 		require.NoError(t, err)
-		_ = newSyncController(t, ctrl)
+		_ = v2.NewSyncController(t, ctrl)
 
-		result := ctrl.Targets(shared.Endpoint{Prefix: "/"}, TargetOptions{
+		result := ctrl.Targets(v2.Endpoint{Prefix: "/"}, v2.TargetOptions{
 			Integrations: []string{"a"},
 		})
-		expect := []*TargetGroup{
+		expect := []*integrations.TargetGroup{
 			{Targets: []model.LabelSet{{model.AddressLabel: "a"}}},
 		}
 		require.Equal(t, expect, result)
@@ -98,9 +97,9 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 }
 
 func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
-	integrationWithTarget := func(targetName string) shared.Integration {
+	integrationWithTarget := func(targetName string) Integration {
 		return mockMetricsIntegration{
-			Integration: NoOpIntegration,
+			Integration: v2.NoOpIntegration,
 			ScrapeConfigsFunc: func(c discovery.Configs) []*autoscrape.ScrapeConfig {
 				return []*autoscrape.ScrapeConfig{{
 					Instance: "default",
@@ -110,19 +109,19 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 		}
 	}
 
-	integrations := []shared.Config{
-		mockConfigNameTuple(t, "a", "instanceA").WithNewIntegrationFunc(func(l log.Logger, g shared.Globals) (shared.Integration, error) {
+	integrations := []Config{
+		mockConfigNameTuple(t, "a", "instanceA").WithNewIntegrationFunc(func(l log.Logger, g v2.Globals) (Integration, error) {
 			return integrationWithTarget("a"), nil
 		}),
-		mockConfigNameTuple(t, "b", "instanceB").WithNewIntegrationFunc(func(l log.Logger, g shared.Globals) (shared.Integration, error) {
+		mockConfigNameTuple(t, "b", "instanceB").WithNewIntegrationFunc(func(l log.Logger, g v2.Globals) (Integration, error) {
 			return integrationWithTarget("b"), nil
 		}),
 	}
 
-	ctrl, err := NewController(
+	ctrl, err := v2.NewController(
 		util.TestLogger(t),
 		controllerConfig(integrations),
-		shared.Globals{},
+		v2.Globals{},
 	)
 	require.NoError(t, err)
 	// NOTE(rfratto): we explicitly don't run the controller here because
@@ -142,12 +141,12 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 //
 
 type mockMetricsIntegration struct {
-	shared.Integration
-	TargetsFunc       func(ep shared.Endpoint) []*targetgroup.Group
+	Integration
+	TargetsFunc       func(ep v2.Endpoint) []*targetgroup.Group
 	ScrapeConfigsFunc func(discovery.Configs) []*autoscrape.ScrapeConfig
 }
 
-func (m mockMetricsIntegration) Targets(ep shared.Endpoint) []*targetgroup.Group {
+func (m mockMetricsIntegration) Targets(ep v2.Endpoint) []*targetgroup.Group {
 	return m.TargetsFunc(ep)
 }
 

@@ -1,22 +1,13 @@
-package integrations
+package v2
 
 import (
 	"testing"
 
-	v1 "github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
 
 func TestSubsystemOptions_Unmarshal(t *testing.T) {
-	setRegistered(t, map[Config]Type{
-		&testIntegrationA{}: TypeSingleton,
-	})
-
-	RegisterLegacy(&legacyConfig{}, TypeSingleton, func(in v1.Config, mc common.MetricsConfig) UpgradedConfig {
-		return &legacyShim{Data: in, Common: mc}
-	})
 
 	tt := []struct {
 		name        string
@@ -30,7 +21,7 @@ func TestSubsystemOptions_Unmarshal(t *testing.T) {
           autoscrape:
             enabled: true
       `,
-			expectError: "line 2: field invalidintegration not found in type integrations.SubsystemOptions",
+			expectError: "line 2: field invalidintegration not found in type v2.plain",
 		},
 		{
 			name: "invalid field",
@@ -38,15 +29,15 @@ func TestSubsystemOptions_Unmarshal(t *testing.T) {
         test:
           invalidfield: true
       `,
-			expectError: "line 1: field invalidfield not found in type integrations.plain",
+			expectError: "line 2: field test not found in type v2.plain",
 		},
 		{
 			name: "invalid v1 field",
 			in: `
-        legacy:
+        windows_exporter:
           invalidfield: true
       `,
-			expectError: "line 1: field invalidfield not found",
+			expectError: "line 3: field invalidfield not found in type v2.plain",
 		},
 	}
 

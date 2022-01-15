@@ -37,19 +37,19 @@ type PrometheusClient interface {
 	// The following methods are for the scraping service mode
 	// only and will fail when not enabled on the Agent.
 
-	// ListConfigs runs the list of instance configs stored in the config
+	// ListConfigs runs the list of instance configs stored in the shared
 	// management KV store.
 	ListConfigs(ctx context.Context) (*configapi.ListConfigurationsResponse, error)
 
-	// GetConfiguration returns a named configuration from the config
+	// GetConfiguration returns a named configuration from the shared
 	// management KV store.
 	GetConfiguration(ctx context.Context, name string) (*instance.Config, error)
 
 	// PutConfiguration adds or updates a named configuration into the
-	// config management KV store.
+	// shared management KV store.
 	PutConfiguration(ctx context.Context, name string, cfg *instance.Config) error
 
-	// DeleteConfiguration removes a named configuration from the config
+	// DeleteConfiguration removes a named configuration from the shared
 	// management KV store.
 	DeleteConfiguration(ctx context.Context, name string) error
 }
@@ -103,7 +103,7 @@ func (c *prometheusClient) GetConfiguration(ctx context.Context, name string) (*
 }
 
 func (c *prometheusClient) PutConfiguration(ctx context.Context, name string, cfg *instance.Config) error {
-	url := fmt.Sprintf("%s/agent/api/v1/config/%s", c.addr, name)
+	url := fmt.Sprintf("%s/agent/api/v1/shared/%s", c.addr, name)
 
 	bb, err := instance.MarshalConfig(cfg, false)
 	if err != nil {
@@ -119,7 +119,7 @@ func (c *prometheusClient) PutConfiguration(ctx context.Context, name string, cf
 }
 
 func (c *prometheusClient) DeleteConfiguration(ctx context.Context, name string) error {
-	url := fmt.Sprintf("%s/agent/api/v1/config/%s", c.addr, name)
+	url := fmt.Sprintf("%s/agent/api/v1/shared/%s", c.addr, name)
 
 	resp, err := c.doRequest(ctx, "DELETE", url, nil)
 	if err != nil {

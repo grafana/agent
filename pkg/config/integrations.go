@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"reflect"
 
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
+
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	v1 "github.com/grafana/agent/pkg/integrations"
-	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/statsd_exporter/pkg/level"
@@ -22,7 +23,7 @@ const (
 	integrationsVersion2
 )
 
-// DefaultVersionedIntegrations is the default config for integrations.
+// DefaultVersionedIntegrations is the default shared for integrations.
 var DefaultVersionedIntegrations = VersionedIntegrations{
 	version:  integrationsVersion1,
 	configV1: &v1.DefaultManagerConfig,
@@ -84,19 +85,28 @@ func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics
 }
 
 // setVersion completes the deferred unmarshal and unmarshals the raw YAML into
-// the subsystem config for version v.
-func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
+// the subsystem shared for version v.
+func (c *VersionedIntegrations) setVersion(v integrationsVersion, logger log.Logger) error {
 	c.version = v
 
 	switch c.version {
 	case integrationsVersion1:
 		cfg := v1.DefaultManagerConfig
 		c.configV1 = &cfg
-		return yaml.UnmarshalStrict(c.raw, c.configV1)
+		err := yaml.UnmarshalStrict(c.raw, c.configV1)
+		// Node exporter has some post-processing that has to be done for migrations
+		if err != nil {
+			return err
+		}
+		if c.configV1.Integrations.NodeExporter != nil {
+			return c.configV1.Integrations.NodeExporter.Config.PostProcessing()
+		}
+		return nil
 	case integrationsVersion2:
 		cfg := v2.DefaultSubsystemOptions
 		c.configV2 = &cfg
-		return yaml.UnmarshalStrict(c.raw, c.configV2)
+		result := yaml.UnmarshalStrict(c.raw, c.configV2)
+		return result
 	default:
 		panic(fmt.Sprintf("unknown integrations version %d", c.version))
 	}

@@ -78,7 +78,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 
 	// Fill secrets in store
 	if err := r.fillStore(ctx, assetRefs, secrets); err != nil {
-		level.Error(l).Log("msg", "unable to cache secrets for building config", "err", err)
+		level.Error(l).Log("msg", "unable to cache secrets for building shared", "err", err)
 		return controller.Result{}, nil
 	}
 

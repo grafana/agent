@@ -66,8 +66,8 @@ func generateLogsDaemonSet(
 	}
 
 	// TODO(rfratto): Prometheus Operator has an input hash annotation added here,
-	// which combines the hash of the DaemonSet, config to the operator, rule
-	// config map names (unused here), and the previous DaemonSet (if any).
+	// which combines the hash of the DaemonSet, shared to the operator, rule
+	// shared map names (unused here), and the previous DaemonSet (if any).
 	//
 	// This is used to skip re-applying an unchanged Daemonset. Do we need this?
 
@@ -94,8 +94,8 @@ func generateLogsDaemonSetSpec(
 	}
 
 	agentArgs := []string{
-		"-config.file=/var/lib/grafana-agent/config/agent.yml",
-		"-config.expand-env=true",
+		"-shared.file=/var/lib/grafana-agent/shared/agent.yml",
+		"-shared.expand-env=true",
 		"-reload-port=8081",
 	}
 
@@ -110,20 +110,20 @@ func generateLogsDaemonSetSpec(
 
 	volumes := []v1.Volume{
 		{
-			Name: "config",
+			Name: "shared",
 			VolumeSource: v1.VolumeSource{
 				Secret: &v1.SecretVolumeSource{
-					SecretName: fmt.Sprintf("%s-config", name),
+					SecretName: fmt.Sprintf("%s-shared", name),
 				},
 			},
 		},
 		{
-			// We need a separate volume for storing the rendered config with
+			// We need a separate volume for storing the rendered shared with
 			// environment variables replaced. While the Agent supports environment
 			// variable substitution, the value for __replica__ can only be
-			// determined at runtime. We use a dedicated container for both config
+			// determined at runtime. We use a dedicated container for both shared
 			// reloading and rendering.
-			Name: "config-out",
+			Name: "shared-out",
 			VolumeSource: v1.VolumeSource{
 				EmptyDir: &v1.EmptyDirVolumeSource{},
 			},
@@ -160,12 +160,12 @@ func generateLogsDaemonSetSpec(
 	}
 
 	volumeMounts := []v1.VolumeMount{{
-		Name:      "config",
+		Name:      "shared",
 		ReadOnly:  true,
-		MountPath: "/var/lib/grafana-agent/config-in",
+		MountPath: "/var/lib/grafana-agent/shared-in",
 	}, {
-		Name:      "config-out",
-		MountPath: "/var/lib/grafana-agent/config",
+		Name:      "shared-out",
+		MountPath: "/var/lib/grafana-agent/shared",
 	}, {
 		Name:      "secrets",
 		ReadOnly:  true,
@@ -254,7 +254,7 @@ func generateLogsDaemonSetSpec(
 			FieldRef: &v1.ObjectFieldSelector{FieldPath: "spec.nodeName"},
 		},
 	}, {
-		// Not used anywhere for logs but passed to the config-reloader since it
+		// Not used anywhere for logs but passed to the shared-reloader since it
 		// expects everything is coming from a StatefulSet.
 		Name:  "SHARD",
 		Value: "0",
@@ -269,8 +269,8 @@ func generateLogsDaemonSetSpec(
 
 	operatorContainers := []v1.Container{
 		{
-			Name:         "config-reloader",
-			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.47.0",
+			Name:         "shared-reloader",
+			Image:        "quay.io/prometheus-operator/prometheus-shared-reloader:v0.47.0",
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &v1.SecurityContext{
@@ -278,8 +278,8 @@ func generateLogsDaemonSetSpec(
 				RunAsUser:  &runAsUser,
 			},
 			Args: []string{
-				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",
-				"--config-envsubst-file=/var/lib/grafana-agent/config/agent.yml",
+				"--shared-file=/var/lib/grafana-agent/shared-in/agent.yml",
+				"--shared-envsubst-file=/var/lib/grafana-agent/shared/agent.yml",
 
 				"--watch-interval=1m",
 				"--statefulset-ordinal-from-envvar=SHARD",

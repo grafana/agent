@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Config is a server config.
+// Config is a server shared.
 type Config = server.Config
 
 // Server is a Weaveworks server with support for reloading.
@@ -23,7 +23,7 @@ type Server struct {
 	reg *util.Unregisterer
 	log log.Logger
 
-	// Last received config, used for seeing if any changes need to be made.
+	// Last received shared, used for seeing if any changes need to be made.
 	cfg Config
 
 	// The current server is stored for shutting down when closing, but otherwise

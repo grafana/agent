@@ -72,13 +72,13 @@ func (l *Logs) ApplyConfig(c *Config) error {
 
 		inst, err := NewInstance(l.reg, ic, l.l)
 		if err != nil {
-			return fmt.Errorf("unable to apply config for %s: %w", ic.Name, err)
+			return fmt.Errorf("unable to apply shared for %s: %w", ic.Name, err)
 		}
 		newInstances[ic.Name] = inst
 	}
 
 	// Any promtail in l.instances that isn't in newInstances has been removed
-	// from the config. Stop them before replacing the map.
+	// from the shared. Stop them before replacing the map.
 	for key, i := range l.instances {
 		if _, exist := newInstances[key]; exist {
 			continue
@@ -133,7 +133,7 @@ func NewInstance(reg prometheus.Registerer, c *InstanceConfig, l log.Logger) (*I
 	return &inst, nil
 }
 
-// ApplyConfig will apply a new InstanceConfig. If the config hasn't changed,
+// ApplyConfig will apply a new InstanceConfig. If the shared hasn't changed,
 // then nothing will happen, otherwise the old Promtail will be stopped and
 // then replaced with a new one.
 func (i *Instance) ApplyConfig(c *InstanceConfig) error {
@@ -142,7 +142,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 
 	// No-op if the configs haven't changed.
 	if util.CompareYAML(c, i.cfg) {
-		level.Debug(i.log).Log("msg", "instance config hasn't changed, not recreating Promtail")
+		level.Debug(i.log).Log("msg", "instance shared hasn't changed, not recreating Promtail")
 		return nil
 	}
 	i.cfg = c

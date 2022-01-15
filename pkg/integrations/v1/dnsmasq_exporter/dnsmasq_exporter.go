@@ -4,11 +4,11 @@ package dnsmasq_exporter //nolint:golint
 import (
 	"github.com/go-kit/log"
 	"github.com/google/dnsmasq_exporter/collector"
-	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/miekg/dns"
 )
 
-// DefaultConfig is the default config for dnsmasq_exporter.
+// DefaultConfig is the default shared for dnsmasq_exporter.
 var DefaultConfig Config = Config{
 	DnsmasqAddress: "localhost:53",
 	LeasesPath:     "/var/lib/misc/dnsmasq.leases",
@@ -23,7 +23,7 @@ type Config struct {
 	LeasesPath string `yaml:"leases_path,omitempty"`
 }
 
-// Name returns the name of the integration that this config is for.
+// Name returns the name of the integration that this shared is for.
 func (c *Config) Name() string {
 	return "dnsmasq_exporter"
 }
@@ -33,25 +33,17 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return c.DnsmasqAddress, nil
 }
 
-// NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+// NewIntegration converts this shared into an instance of an integration.
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
 }
 
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics
 // from a dnsmasq server.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
+func New(log log.Logger, c *Config) (shared.Integration, error) {
 	exporter := collector.New(log, &dns.Client{
 		SingleInflight: true,
 	}, c.DnsmasqAddress, c.LeasesPath)
 
-	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(exporter)), nil
+	return shared.NewCollectorIntegration(c.Name(), shared.WithCollectors(exporter)), nil
 }

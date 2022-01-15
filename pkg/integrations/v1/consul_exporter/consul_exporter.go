@@ -6,8 +6,9 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
 	consul_api "github.com/hashicorp/consul/api"
 	"github.com/prometheus/consul_exporter/pkg/exporter"
 )
@@ -39,14 +40,6 @@ type Config struct {
 	HealthSummary bool   `yaml:"generate_health_summary,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
 // Name returns the name of the integration.
 func (c *Config) Name() string {
 	return "consul_exporter"
@@ -61,14 +54,14 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return u.Host, nil
 }
 
-// NewIntegration converts the config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+// NewIntegration converts the shared into an instance of an integration.
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
 
 // New creates a new consul_exporter integration. The integration scrapes
 // metrics from a consul process.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
+func New(log log.Logger, c *Config) (shared.Integration, error) {
 	var (
 		consulOpts = exporter.ConsulOpts{
 			CAFile:       c.CAFile,
@@ -91,5 +84,5 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, err
 	}
 
-	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(e)), nil
+	return shared.NewCollectorIntegration(c.Name(), shared.WithCollectors(e)), nil
 }

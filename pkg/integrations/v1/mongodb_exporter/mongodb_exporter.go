@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
 	"github.com/percona/mongodb_exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 )
@@ -16,14 +17,7 @@ type Config struct {
 	URI config_util.Secret `yaml:"mongodb_uri"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return "mongodb_exporter"
 }
@@ -38,12 +32,12 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 }
 
 // NewIntegration creates a new mongodb_exporter
-func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(logger log.Logger) (shared.Integration, error) {
 	return New(logger, c)
 }
 
 // New creates a new mongodb_exporter integration.
-func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+func New(logger log.Logger, c *Config) (shared.Integration, error) {
 	logrusLogger := NewLogger(logger)
 
 	exp, err := exporter.New(&exporter.Opts{
@@ -61,5 +55,5 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, fmt.Errorf("failed to create mongodb_exporter: %w", err)
 	}
 
-	return integrations.NewHandlerIntegration(c.Name(), exp.Handler()), nil
+	return shared.NewHandlerIntegration(c.Name(), exp.Handler()), nil
 }

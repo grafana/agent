@@ -134,7 +134,7 @@ scrape_configs:
 	require.True(t, created)
 
 	_, err = remote.Put(context.Background(), *conflictingBCfg)
-	require.EqualError(t, err, fmt.Sprintf("failed to check uniqueness of config: found multiple scrape configs in config store with job name %q", "foobar"))
+	require.EqualError(t, err, fmt.Sprintf("failed to check uniqueness of shared: found multiple scrape configs in shared store with job name %q", "foobar"))
 }
 
 func TestRemote_Delete(t *testing.T) {
@@ -216,7 +216,7 @@ func TestRemote_Watch(t *testing.T) {
 		require.NotNil(t, cfg.Config)
 		require.Equal(t, "watch", cfg.Config.Name)
 	case <-time.After(3 * time.Second):
-		require.FailNow(t, "failed to watch for config")
+		require.FailNow(t, "failed to watch for shared")
 	}
 
 	// Make sure Watch gets other updates.
@@ -229,7 +229,7 @@ func TestRemote_Watch(t *testing.T) {
 		require.NotNil(t, cfg.Config)
 		require.Equal(t, "watch2", cfg.Config.Name)
 	case <-time.After(3 * time.Second):
-		require.FailNow(t, "failed to watch for config")
+		require.FailNow(t, "failed to watch for shared")
 	}
 }
 
@@ -248,13 +248,13 @@ func TestRemote_ApplyConfig(t *testing.T) {
 		Store:  "inmemory",
 		Prefix: "test-applyconfig2/",
 	}, true)
-	require.NoError(t, err, "failed to apply a new config")
+	require.NoError(t, err, "failed to apply a new shared")
 
 	err = remote.ApplyConfig(kv.Config{
 		Store:  "inmemory",
 		Prefix: "test-applyconfig2/",
 	}, true)
-	require.NoError(t, err, "failed to re-apply the current config")
+	require.NoError(t, err, "failed to re-apply the current shared")
 
 	// Make sure watch still works
 	_, err = remote.Put(context.Background(), instance.Config{Name: "watch"})
@@ -266,6 +266,6 @@ func TestRemote_ApplyConfig(t *testing.T) {
 		require.NotNil(t, cfg.Config)
 		require.Equal(t, "watch", cfg.Config.Name)
 	case <-time.After(3 * time.Second):
-		require.FailNow(t, "failed to watch for config")
+		require.FailNow(t, "failed to watch for shared")
 	}
 }

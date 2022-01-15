@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/dskit/kv"
 )
 
-// DefaultConfig provides default values for the config
+// DefaultConfig provides default values for the shared
 var DefaultConfig = *flagutil.DefaultConfigFromFlags(&Config{}).(*Config)
 
 // Config describes how to instantiate a scraping service Server instance.
@@ -42,20 +42,20 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// RegisterFlags adds the flags required to config the Server to the given
+// RegisterFlags adds the flags required to shared the Server to the given
 // FlagSet.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.RegisterFlagsWithPrefix("", f)
 }
 
-// RegisterFlagsWithPrefix adds the flags required to config this to the given
+// RegisterFlagsWithPrefix adds the flags required to shared this to the given
 // FlagSet with a specified prefix.
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.BoolVar(&c.Enabled, prefix+"enabled", false, "enables the scraping service mode")
 	f.DurationVar(&c.ReshardInterval, prefix+"reshard-interval", time.Minute*1, "how often to manually refresh configuration")
 	f.DurationVar(&c.ReshardTimeout, prefix+"reshard-timeout", time.Second*30, "timeout for refreshing the configuration. Timeout of 0s disables timeout.")
 	f.DurationVar(&c.ClusterReshardEventTimeout, prefix+"cluster-reshard-event-timeout", time.Second*30, "timeout for the cluster reshard. Timeout of 0s disables timeout.")
-	c.KVStore.RegisterFlagsWithPrefix(prefix+"config-store.", "configurations/", f)
+	c.KVStore.RegisterFlagsWithPrefix(prefix+"shared-store.", "configurations/", f)
 	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f)
 	c.Client.GRPCClientConfig.RegisterFlagsWithPrefix(prefix, f)
 }

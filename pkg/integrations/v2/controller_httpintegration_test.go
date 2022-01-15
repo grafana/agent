@@ -1,4 +1,4 @@
-package shared
+package v2
 
 import (
 	"fmt"
@@ -7,8 +7,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	v2 "github.com/grafana/agent/pkg/integrations/v2"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -27,9 +25,9 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 		t.Helper()
 
 		cfg := mockConfigNameTuple(t, name, identifier)
-		cfg.NewIntegrationFunc = func(log.Logger, v2.Globals) (Integration, error) {
+		cfg.NewIntegrationFunc = func(log.Logger, Globals) (Integration, error) {
 			i := mockHTTPIntegration{
-				Integration: v2.NoOpIntegration,
+				Integration: NoOpIntegration,
 				HandlerFunc: func(prefix string) (http.Handler, error) {
 					*prefixes = append(*prefixes, prefix)
 					return http.NotFoundHandler(), nil
@@ -44,14 +42,14 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 	t.Run("fully unique", func(t *testing.T) {
 		var prefixes []string
 
-		ctrl, err := v2.NewController(
+		ctrl, err := NewController(
 			util.TestLogger(t),
-			controllerConfig{
+			NewMockIntegrationConfigs(
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "fizz", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
-			},
-			v2.Globals{},
+			),
+			Globals{},
 		)
 		require.NoError(t, err)
 		_ = NewSyncController(t, ctrl)
@@ -70,14 +68,14 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 	t.Run("multiple instances", func(t *testing.T) {
 		var prefixes []string
 
-		ctrl, err := v2.NewController(
+		ctrl, err := NewController(
 			util.TestLogger(t),
-			controllerConfig{
+			NewMockIntegrationConfigs(
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "foo", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
-			},
-			v2.Globals{},
+			),
+			Globals{},
 		)
 		require.NoError(t, err)
 		_ = NewSyncController(t, ctrl)
@@ -101,9 +99,9 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 		t.Helper()
 
 		cfg := mockConfigNameTuple(t, name, identifier)
-		cfg.NewIntegrationFunc = func(log.Logger, v2.Globals) (Integration, error) {
+		cfg.NewIntegrationFunc = func(log.Logger, Globals) (Integration, error) {
 			i := mockHTTPIntegration{
-				Integration: v2.NoOpIntegration,
+				Integration: NoOpIntegration,
 				HandlerFunc: func(prefix string) (http.Handler, error) {
 					return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 						fmt.Fprintf(rw, "prefix=%s, path=%s", prefix, r.URL.Path)
@@ -116,14 +114,14 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 		return cfg
 	}
 
-	ctrl, err := v2.NewController(
+	ctrl, err := NewController(
 		util.TestLogger(t),
-		controllerConfig{
+		NewMockIntegrationConfigs(
 			httpConfigFromID(t, "foo", "bar"),
 			httpConfigFromID(t, "foo", "buzz"),
 			httpConfigFromID(t, "hello", "world"),
-		},
-		v2.Globals{},
+		),
+		Globals{},
 	)
 	require.NoError(t, err)
 	_ = NewSyncController(t, ctrl)
@@ -162,9 +160,9 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 // will work with nested routers.
 func Test_controller_HTTPIntegration_NestedRouting(t *testing.T) {
 	cfg := mockConfigNameTuple(t, "test", "test")
-	cfg.NewIntegrationFunc = func(log.Logger, v2.Globals) (Integration, error) {
+	cfg.NewIntegrationFunc = func(log.Logger, Globals) (Integration, error) {
 		i := mockHTTPIntegration{
-			Integration: v2.NoOpIntegration,
+			Integration: NoOpIntegration,
 			HandlerFunc: func(prefix string) (http.Handler, error) {
 				r := mux.NewRouter()
 				r.StrictSlash(true)
@@ -182,7 +180,7 @@ func Test_controller_HTTPIntegration_NestedRouting(t *testing.T) {
 		return i, nil
 	}
 
-	ctrl, err := v2.NewController(util.TestLogger(t), controllerConfig{cfg}, v2.Globals{})
+	ctrl, err := NewController(util.TestLogger(t), NewMockIntegrationConfigs(cfg), Globals{})
 	require.NoError(t, err)
 	_ = NewSyncController(t, ctrl)
 
@@ -223,4 +221,20 @@ type mockHTTPIntegration struct {
 
 func (m mockHTTPIntegration) Handler(prefix string) (http.Handler, error) {
 	return m.HandlerFunc(prefix)
+}
+
+func NewMockIntegrationConfigs(c ...Config) *mockIntegrationConfigs {
+	configs := make([]Config, 0)
+	for _, i := range c {
+		configs = append(configs, i)
+	}
+	return &mockIntegrationConfigs{configs: configs}
+}
+
+type mockIntegrationConfigs struct {
+	configs []Config
+}
+
+func (m *mockIntegrationConfigs) ActiveConfigs() []Config {
+	return m.configs
 }

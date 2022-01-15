@@ -140,7 +140,7 @@ func NewCluster(ctx context.Context, o Options) (cluster *Cluster, err error) {
 
 	clusterConfig, err := config.TransformSimpleToClusterConfig(ctx, runtime, k3dConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate cluster config: %w", err)
+		return nil, fmt.Errorf("failed to generate cluster shared: %w", err)
 	}
 
 	err = k3d_client.ClusterRun(ctx, runtime, clusterConfig)
@@ -188,7 +188,7 @@ func NewCluster(ctx context.Context, o Options) (cluster *Cluster, err error) {
 	}
 	restCfg, err := k8s_clientcmd.NewDefaultClientConfig(*kubeconfig, nil).ClientConfig()
 	if err != nil {
-		return nil, fmt.Errorf("could not generate k8s REST API config: %w", err)
+		return nil, fmt.Errorf("could not generate k8s REST API shared: %w", err)
 	}
 
 	kubeClient, err := client.New(restCfg, client.Options{

@@ -9,6 +9,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
+	v1 "github.com/grafana/agent/pkg/integrations/v1"
+
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/log"
@@ -49,9 +53,9 @@ type ManagerConfig struct {
 	// When true, scrapes metrics from integrations.
 	ScrapeIntegrations bool `yaml:"scrape_integrations,omitempty"`
 
-	// The integration configs is merged with the manager config struct so we
+	// The integration configs is merged with the manager shared struct so we
 	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
-	Integrations Configs `yaml:"-"`
+	Integrations v1.V1Integration `yaml:",inline"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels,omitempty"`
@@ -74,7 +78,7 @@ type ManagerConfig struct {
 	// This is set to true if the Server TLSConfig Cert and Key path are set
 	ServerUsingTLS bool `yaml:"-"`
 
-	// We use this config to check if we need to reload integrations or not
+	// We use this shared to check if we need to reload integrations or not
 	// The Integrations Configs don't have prometheus defaults applied which
 	// can cause us skip reload when scrape configs change
 	PrometheusGlobalConfig promConfig.GlobalConfig `yaml:"-"`
@@ -87,15 +91,11 @@ type ManagerConfig struct {
 	UseHostnameLabel     bool `yaml:"use_hostname_label,omitempty"`     // DEPRECATED, unused
 }
 
-// MarshalYAML implements yaml.Marshaler for ManagerConfig.
-func (c ManagerConfig) MarshalYAML() (interface{}, error) {
-	return MarshalYAML(c)
-}
-
 // UnmarshalYAML implements yaml.Unmarshaler for ManagerConfig.
 func (c *ManagerConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultManagerConfig
-	return UnmarshalYAML(c, unmarshal)
+	type plain ManagerConfig
+	return unmarshal((*plain)(c))
 }
 
 // DefaultRelabelConfigs returns the set of relabel configs that should be
@@ -127,13 +127,13 @@ func (c *ManagerConfig) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config)
 	}
 	c.PrometheusGlobalConfig = mcfg.Global.Prometheus
 
-	for _, ic := range c.Integrations {
-		if !ic.Common.Enabled {
+	for _, ic := range c.Integrations.ActiveConfigs() {
+		if !ic.Cmn().Enabled {
 			continue
 		}
 
 		scrapeIntegration := c.ScrapeIntegrations
-		if common := ic.Common; common.ScrapeIntegration != nil {
+		if common := ic.Cmn(); common.ScrapeIntegration != nil {
 			scrapeIntegration = *common.ScrapeIntegration
 		}
 
@@ -181,7 +181,7 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 		im:        im,
 		validator: validate,
 
-		integrations: make(map[string]*integrationProcess, len(cfg.Integrations)),
+		integrations: make(map[string]*integrationProcess, len(cfg.Integrations.ActiveConfigs())),
 	}
 
 	var err error
@@ -191,7 +191,7 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 	}
 
 	if err := m.ApplyConfig(cfg); err != nil {
-		return nil, fmt.Errorf("failed applying config: %w", err)
+		return nil, fmt.Errorf("failed applying shared: %w", err)
 	}
 	return m, nil
 }
@@ -206,13 +206,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	m.integrationsMut.Lock()
 	defer m.integrationsMut.Unlock()
 
-	// The global prometheus config settings don't get applied to integrations until later. This
+	// The global prometheus shared settings don't get applied to integrations until later. This
 	// causes us to skip reload when those settings change.
 	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.cfg.PrometheusGlobalConfig, cfg.PrometheusGlobalConfig) {
-		level.Debug(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
+		level.Debug(m.logger).Log("msg", "Integrations shared is unchanged skipping apply")
 		return nil
 	}
-	level.Debug(m.logger).Log("msg", "Applying integrations config changes")
+	level.Debug(m.logger).Log("msg", "Applying integrations shared changes")
 
 	select {
 	case <-m.ctx.Done():
@@ -223,13 +223,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
-	for _, ic := range cfg.Integrations {
-		if !ic.Common.Enabled {
+	for _, ic := range cfg.Integrations.ActiveConfigs() {
+		if !ic.Cmn().Enabled {
 			continue
 		}
 		// Key is used to identify the instance of this integration within the
 		// instance manager and within our set of running integrations.
-		key := integrationKey(ic.Name())
+		key := integrationKey(ic.Cfg().Name())
 
 		// Look for an existing integration with the same key. If it exists and
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
@@ -242,10 +242,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 			delete(m.integrations, key)
 		}
 
-		l := log.With(m.logger, "integration", ic.Name())
-		i, err := ic.NewIntegration(l)
+		l := log.With(m.logger, "integration", ic.Cfg().Name())
+		i, err := ic.Cfg().NewIntegration(l)
 		if err != nil {
-			level.Error(m.logger).Log("msg", "failed to initialize integration. it will not run or be scraped", "integration", ic.Name(), "err", err)
+			level.Error(m.logger).Log("msg", "failed to initialize integration. it will not run or be scraped", "integration", ic.Cfg().Name(), "err", err)
 			failed = true
 
 			// If this integration was running before, its instance won't be cleaned
@@ -256,13 +256,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 		// Find what instance label should be used to represent this integration.
 		var instanceKey string
-		if kp := ic.Common.InstanceKey; kp != nil {
-			// Common config takes precedence.
+		if kp := ic.Cmn().InstanceKey; kp != nil {
+			// Common shared takes precedence.
 			instanceKey = strings.TrimSpace(*kp)
 		} else {
-			instanceKey, err = ic.InstanceKey(fmt.Sprintf("%s:%d", m.hostname, cfg.ListenPort))
+			instanceKey, err = ic.Cfg().InstanceKey(fmt.Sprintf("%s:%d", m.hostname, cfg.ListenPort))
 			if err != nil {
-				level.Error(m.logger).Log("msg", "failed to get instance key for integration. it will not run or be scraped", "integration", ic.Name(), "err", err)
+				level.Error(m.logger).Log("msg", "failed to get instance key for integration. it will not run or be scraped", "integration", ic.Cfg().Name(), "err", err)
 				failed = true
 
 				// If this integration was running before, its instance won't be cleaned
@@ -294,10 +294,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// ApplyConfig.
 	for key, process := range m.integrations {
 		foundConfig := false
-		for _, ic := range cfg.Integrations {
-			if integrationKey(ic.Name()) == key {
+		for _, ic := range cfg.Integrations.ActiveConfigs() {
+			if integrationKey(ic.Cfg().Name()) == key {
 				// If this is disabled then we should delete from integrations
-				if !ic.Common.Enabled {
+				if !ic.Cmn().Enabled {
 					break
 				}
 				foundConfig = true
@@ -318,7 +318,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// if the configs for the integration didn't.
 	for key, p := range m.integrations {
 		shouldCollect := cfg.ScrapeIntegrations
-		if common := p.cfg.Common; common.ScrapeIntegration != nil {
+		if common := p.cfg.Cmn(); common.ScrapeIntegration != nil {
 			shouldCollect = *common.ScrapeIntegration
 		}
 
@@ -326,17 +326,17 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		case true:
 			instanceConfig := m.instanceConfigForIntegration(p, cfg)
 			if err := m.validator(&instanceConfig); err != nil {
-				level.Error(p.log).Log("msg", "failed to validate generated scrape config for integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
+				level.Error(p.log).Log("msg", "failed to validate generated scrape shared for integration. integration will not be scraped", "err", err, "integration", p.cfg.Cfg().Name())
 				failed = true
 				break
 			}
 
 			if err := m.im.ApplyConfig(instanceConfig); err != nil {
-				level.Error(p.log).Log("msg", "failed to apply integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
+				level.Error(p.log).Log("msg", "failed to apply integration. integration will not be scraped", "err", err, "integration", p.cfg.Cfg().Name())
 				failed = true
 			}
 		case false:
-			// If a previous instance of the config was being scraped, we need to
+			// If a previous instance of the shared was being scraped, we need to
 			// delete it here. Calling DeleteConfig when nothing is running is a safe
 			// operation.
 			_ = m.im.DeleteConfig(key)
@@ -356,12 +356,12 @@ type integrationProcess struct {
 	log         log.Logger
 	ctx         context.Context
 	stop        context.CancelFunc
-	cfg         UnmarshaledConfig
+	cfg         shared.V1IntegrationConfig
 	instanceKey string // Value for the `instance` label
-	i           Integration
+	i           shared.Integration
 
 	wg   *sync.WaitGroup
-	wait func(cfg Config, err error)
+	wait func(cfg shared.Config, err error)
 }
 
 // Run runs the integration until the process is canceled.
@@ -369,7 +369,7 @@ func (p *integrationProcess) Run() {
 	defer func() {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("%v", r)
-			level.Error(p.log).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", p.cfg.Name())
+			level.Error(p.log).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", p.cfg.Cfg().Name())
 		}
 	}()
 
@@ -379,15 +379,15 @@ func (p *integrationProcess) Run() {
 	for {
 		err := p.i.Run(p.ctx)
 		if err != nil && err != context.Canceled {
-			p.wait(p.cfg, err)
+			p.wait(p.cfg.Cfg(), err)
 		} else {
-			level.Info(p.log).Log("msg", "stopped integration", "integration", p.cfg.Name())
+			level.Info(p.log).Log("msg", "stopped integration", "integration", p.cfg.Cfg().Name())
 			break
 		}
 	}
 }
 
-func (m *Manager) instanceBackoff(cfg Config, err error) {
+func (m *Manager) instanceBackoff(cfg shared.Config, err error) {
 	m.cfgMut.RLock()
 	defer m.cfgMut.RUnlock()
 
@@ -397,7 +397,7 @@ func (m *Manager) instanceBackoff(cfg Config, err error) {
 }
 
 func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg ManagerConfig) instance.Config {
-	common := p.cfg.Common
+	common := p.cfg.Cmn()
 	relabelConfigs := append(cfg.DefaultRelabelConfigs(p.instanceKey), common.RelabelConfigs...)
 
 	schema := "http"
@@ -413,7 +413,7 @@ func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg Manage
 	for _, isc := range p.i.ScrapeConfigs() {
 		sc := &promConfig.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
-			MetricsPath:             path.Join("/integrations", p.cfg.Name(), isc.MetricsPath),
+			MetricsPath:             path.Join("/integrations", p.cfg.Cfg().Name(), isc.MetricsPath),
 			Scheme:                  schema,
 			HonorLabels:             false,
 			HonorTimestamps:         true,
@@ -429,7 +429,7 @@ func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg Manage
 	}
 
 	instanceCfg := instance.DefaultConfig
-	instanceCfg.Name = integrationKey(p.cfg.Name())
+	instanceCfg.Name = integrationKey(p.cfg.Cfg().Name())
 	instanceCfg.ScrapeConfigs = scrapeConfigs
 	instanceCfg.RemoteWrite = cfg.PrometheusRemoteWrite
 	if common.WALTruncateFrequency > 0 {
@@ -500,7 +500,7 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		// a handler for it and cache it.
 		handler, err := p.i.MetricsHandler()
 		if err != nil {
-			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Name(), "err", err)
+			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Cfg().Name(), "err", err)
 			return http.HandlerFunc(internalServiceError)
 		}
 

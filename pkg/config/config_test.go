@@ -18,7 +18,7 @@ import (
 )
 
 // TestConfig_FlagDefaults makes sure that default values of flags are kept
-// when parsing the config.
+// when parsing the shared.
 func TestConfig_FlagDefaults(t *testing.T) {
 	cfg := `
 metrics:
@@ -27,7 +27,7 @@ metrics:
     scrape_timeout: 33s`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -38,12 +38,12 @@ metrics:
 }
 
 // TestConfig_ConfigAPIFlag makes sure that the read API flag is passed
-// when parsing the config.
+// when parsing the shared.
 func TestConfig_ConfigAPIFlag(t *testing.T) {
 	t.Run("Disabled", func(t *testing.T) {
 		cfg := `{}`
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		c, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(cfg), false, c)
 		})
 		require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestConfig_ConfigAPIFlag(t *testing.T) {
 	t.Run("Enabled", func(t *testing.T) {
 		cfg := `{}`
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		c, err := load(fs, []string{"-config.file", "test", "-config.enable-read-api"}, func(_ string, _ bool, c *Config) error {
+		c, err := load(fs, []string{"-shared.file", "test", "-shared.enable-read-api"}, func(_ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(cfg), false, c)
 		})
 		require.NoError(t, err)
@@ -77,7 +77,7 @@ metrics:
 	}
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -100,7 +100,7 @@ metrics:
 	_ = os.Setenv("SCRAPE_TIMEOUT", "33s")
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -117,7 +117,7 @@ metrics:
 	expect := labels.Labels{{Name: "foo", Value: "${1}"}}
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -132,9 +132,9 @@ metrics:
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	args := []string{
-		"-config.file", "test",
+		"-shared.file", "test",
 		"-metrics.wal-directory", "/tmp/wal",
-		"-config.expand-env",
+		"-shared.expand-env",
 	}
 
 	c, err := load(fs, args, func(_ string, _ bool, c *Config) error {
@@ -220,7 +220,7 @@ traces:
 
 	for _, tc := range tests {
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		_, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(tc.cfg), false, c)
 		})
 
@@ -310,13 +310,13 @@ traces:
       backend: logs_instance
       logs_instance_name: default
       spans: true`,
-			expectedError: "error in config file: failed to validate automatic_logging for traces config default: specified logs config default not found in agent config",
+			expectedError: "error in shared file: failed to validate automatic_logging for traces shared default: specified logs shared default not found in agent shared",
 		},
 	}
 
 	for _, tc := range tests {
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		_, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(tc.cfg), false, c)
 		})
 
@@ -377,7 +377,7 @@ logs:
           source: filename
           expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'`
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	myCfg, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	myCfg, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -422,7 +422,7 @@ metrics:
 	require.False(t, strings.Contains(string(bb), "verysecret"), "secrets did not get obscured")
 	require.True(t, strings.Contains(string(bb), "<secret>"), "secrets did not get obscured properly")
 
-	// Re-validate that the config object has not changed
+	// Re-validate that the shared object has not changed
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)

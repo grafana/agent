@@ -25,7 +25,7 @@ spec:
       - name: prometheus
         image: prom/prometheus:v2.26.0
         args:
-          - --config.file=/var/lib/prometheus/prometheus.yml
+          - --shared.file=/var/lib/prometheus/prometheus.yml
           - --enable-feature=remote-write-receiver
           - --storage.tsdb.path=/var/lib/data
         ports:
@@ -33,14 +33,14 @@ spec:
             containerPort: 9090
         volumeMounts:
           - mountPath: /var/lib/prometheus
-            name: config
+            name: shared
             readOnly: true
           - mountPath: /var/lib/data
             name: data
       volumes:
-        - name: config
+        - name: shared
           configMap:
-            name: prometheus-config
+            name: prometheus-shared
         - name: data
           emptyDir: {}
 
@@ -49,7 +49,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: prometheus-config
+  name: prometheus-shared
   namespace: default
   labels:
     app: prometheus

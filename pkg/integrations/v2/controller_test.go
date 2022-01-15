@@ -1,17 +1,20 @@
-package shared
+package v2
 
 import (
 	"context"
 	"sync"
 	"testing"
 
+	"github.com/grafana/agent/pkg/util"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
+
 	"github.com/go-kit/log"
-	v2 "github.com/grafana/agent/pkg/integrations/v2"
 )
 
 // Test_controller_RunsIntegration ensures that integrations
 // run.
-/*
+
 func Test_controller_RunsIntegration(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -20,14 +23,14 @@ func Test_controller_RunsIntegration(t *testing.T) {
 
 	ctrl, err := NewController(
 		util.TestLogger(t),
-		controllerConfig{
+		NewMockIntegrationConfigs(
 			mockConfigForIntegration(t, FuncIntegration(func(ctx context.Context) error {
 				defer wg.Done()
 				cancel()
 				<-ctx.Done()
 				return nil
 			})),
-		},
+		),
 		Globals{},
 	)
 	require.NoError(t, err, "failed to create controller")
@@ -40,11 +43,9 @@ func Test_controller_RunsIntegration(t *testing.T) {
 	wg.Wait()
 }
 
-*/
-
 // Test_controller_ConfigChanges ensures that integrations only get restarted
 // when configs are no longer equal.
-/*func Test_controller_ConfigChanges(t *testing.T) {
+func Test_controller_ConfigChanges(t *testing.T) {
 	tc := func(t *testing.T, changed bool) (timesRan uint64) {
 		t.Helper()
 
@@ -58,7 +59,7 @@ func Test_controller_RunsIntegration(t *testing.T) {
 			return nil
 		})
 
-		cfg := controllerConfig{
+		cfg := NewMockIntegrationConfigs(
 			mockConfig{
 				NameFunc:          func() string { return mockIntegrationName },
 				ConfigEqualsFunc:  func(Config) bool { return !changed },
@@ -71,7 +72,7 @@ func Test_controller_RunsIntegration(t *testing.T) {
 					return mockIntegration, nil
 				},
 			},
-		}
+		)
 
 		globals := Globals{}
 		ctrl, err := NewController(util.TestLogger(t), cfg, globals)
@@ -97,10 +98,9 @@ func Test_controller_RunsIntegration(t *testing.T) {
 		require.Equal(t, uint64(2), starts, "integration should have started exactly twice")
 	})
 }
-*/
 
 type SyncController struct {
-	inner   *v2.Controller
+	inner   *Controller
 	applyWg sync.WaitGroup
 
 	stop     context.CancelFunc
@@ -109,7 +109,7 @@ type SyncController struct {
 
 // NewSyncController makes calls to Controller synchronous. NewSyncController
 // will start running the inner Controller and wait for it to update.
-func NewSyncController(t *testing.T, inner *v2.Controller) *SyncController {
+func NewSyncController(t *testing.T, inner *Controller) *SyncController {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -136,7 +136,7 @@ func NewSyncController(t *testing.T, inner *v2.Controller) *SyncController {
 	return sc
 }
 
-func (sc *SyncController) UpdateController(c v2.V2Integrations, g v2.Globals) error {
+func (sc *SyncController) UpdateController(c IntegrationConfigs, g Globals) error {
 	sc.applyWg.Add(1)
 
 	if err := sc.inner.UpdateController(c, g); err != nil {
@@ -157,10 +157,10 @@ const mockIntegrationName = "mock"
 
 type mockConfig struct {
 	NameFunc           func() string
-	ApplyDefaultsFunc  func(v2.Globals) error
+	ApplyDefaultsFunc  func(Globals) error
 	ConfigEqualsFunc   func(Config) bool
-	IdentifierFunc     func(v2.Globals) (string, error)
-	NewIntegrationFunc func(log.Logger, v2.Globals) (Integration, error)
+	IdentifierFunc     func(Globals) (string, error)
+	NewIntegrationFunc func(log.Logger, Globals) (Integration, error)
 }
 
 func (mc mockConfig) Name() string {
@@ -174,19 +174,19 @@ func (mc mockConfig) ConfigEquals(c Config) bool {
 	return false
 }
 
-func (mc mockConfig) ApplyDefaults(g v2.Globals) error {
+func (mc mockConfig) ApplyDefaults(g Globals) error {
 	return mc.ApplyDefaultsFunc(g)
 }
 
-func (mc mockConfig) Identifier(g v2.Globals) (string, error) {
+func (mc mockConfig) Identifier(g Globals) (string, error) {
 	return mc.IdentifierFunc(g)
 }
 
-func (mc mockConfig) NewIntegration(l log.Logger, g v2.Globals) (Integration, error) {
+func (mc mockConfig) NewIntegration(l log.Logger, g Globals) (Integration, error) {
 	return mc.NewIntegrationFunc(l, g)
 }
 
-func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, v2.Globals) (Integration, error)) mockConfig {
+func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integration, error)) mockConfig {
 	return mockConfig{
 		NameFunc:           mc.NameFunc,
 		ApplyDefaultsFunc:  mc.ApplyDefaultsFunc,
@@ -196,7 +196,6 @@ func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, v2.Globals) (Inte
 	}
 }
 
-/*
 func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 	t.Helper()
 
@@ -209,18 +208,18 @@ func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 		},
 	}
 }
-*/
+
 // mockConfigForIntegration returns a Config that will always return i.
 func mockConfigForIntegration(t *testing.T, i Integration) mockConfig {
 	t.Helper()
 
 	return mockConfig{
 		NameFunc:          func() string { return mockIntegrationName },
-		ApplyDefaultsFunc: func(g v2.Globals) error { return nil },
-		IdentifierFunc: func(v2.Globals) (string, error) {
+		ApplyDefaultsFunc: func(g Globals) error { return nil },
+		IdentifierFunc: func(Globals) (string, error) {
 			return mockIntegrationName, nil
 		},
-		NewIntegrationFunc: func(log.Logger, v2.Globals) (Integration, error) {
+		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 			return i, nil
 		},
 	}

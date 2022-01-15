@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations for tests
 )
 
 func TestIntegrations_v1(t *testing.T) {
@@ -19,7 +17,7 @@ integrations:
     enabled: true`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -37,7 +35,7 @@ integrations:
       enable: false`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-shared.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)

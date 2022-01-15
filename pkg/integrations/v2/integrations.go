@@ -1,4 +1,4 @@
-// Package shared provides a way to run and manage Grafana Agent
+// Package v2 provides a way to run and manage Grafana Agent
 // "integrations," which integrate some external system (such as MySQL) to
 // Grafana Agent's existing metrics, logging, and tracing subsystems.
 //
@@ -16,15 +16,13 @@
 // Extension interfaces are used by the integrations subsystem to enable
 // common use cases. New behaviors can be implemented by manually using
 // the other subsystems of the agent provided in IntegrationOptions.
-package shared
+package v2
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 	"net/url"
-
-	v2 "github.com/grafana/agent/pkg/integrations/v2"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
@@ -41,8 +39,8 @@ var (
 	ErrInvalidUpdate = fmt.Errorf("invalid dynamic update")
 )
 
-// V2Config provides a configuration and constructor for an integration.
-type V2Config interface {
+// Config provides a configuration and constructor for an integration.
+type Config interface {
 	// Name returns the YAML field name of the integration. Name is used
 	// when unmarshaling the Config from YAML.
 	Name() string
@@ -64,15 +62,15 @@ type V2Config interface {
 	// NewIntegration must be idempotent for a Config. Use
 	// Integration.RunIntegration to do anything with side effects, such as
 	// opening a port.
-	NewIntegration(log.Logger, Globals) (V2Integration, error)
+	NewIntegration(log.Logger, Globals) (Integration, error)
 }
 
 // ComparableConfig extends Config with an ConfigEquals method.
 type ComparableConfig interface {
-	V2Config
+	Config
 
 	// ConfigEquals should return true if c is equal to the ComparableConfig.
-	ConfigEquals(c V2Config) bool
+	ConfigEquals(c Config) bool
 }
 
 // Globals are used to pass around subsystem-wide settings that integrations
@@ -94,7 +92,7 @@ type Globals struct {
 	Tracing *traces.Traces // Traces subsystem
 
 	// Options the integations subsystem is using.
-	SubsystemOpts v2.SubsystemOptions
+	SubsystemOpts SubsystemOptions
 	// BaseURL to use to invoke methods against the embedded HTTP server.
 	AgentBaseURL *url.URL
 }
@@ -113,13 +111,13 @@ func (g Globals) CloneAgentBaseURL() *url.URL {
 	return u
 }
 
-// V2Integration integrates some external system with Grafana Agent's existing
+// An Integration integrates some external system with Grafana Agent's existing
 // subsystems.
 //
 // All integrations must at least implement this interface. More behaviors
 // can be added by implementing additional *Integration interfaces, such
 // as HTTPIntegration.
-type V2Integration interface {
+type Integration interface {
 	// RunIntegration starts the integration and performs background tasks. It
 	// must not return until ctx is canceled, even if there is no work to do.
 	RunIntegration(ctx context.Context) error
@@ -137,7 +135,7 @@ type UpdateIntegration interface {
 	//
 	// If ApplyConfig returns ErrInvalidUpdate, the integration will be
 	// recreated.
-	ApplyConfig(c V2Config, g Globals) error
+	ApplyConfig(c Config, g Globals) error
 }
 
 // HTTPIntegration is an integration that exposes an HTTP handler.
@@ -162,7 +160,7 @@ type HTTPIntegration interface {
 // to expose metrics. See HTTPIntegration for more information about how
 // HTTP works with integrations.
 type MetricsIntegration interface {
-	V2Integration
+	Integration
 
 	// Targets should return the current set of active targets exposed by this
 	// integration. Targets may be called multiple times throughout the lifecycle

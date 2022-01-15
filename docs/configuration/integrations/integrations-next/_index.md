@@ -55,7 +55,7 @@ integrations:
       [enable: <boolean> | default = true]
 
       # Specifies the metrics instance name to send metrics to. Instance
-      # names are located at metrics.configs[].name from the top-level config.
+      # names are located at metrics.configs[].name from the top-level shared.
       # The instance must exist.
       #
       # As it is common to use the name "default" for your primary instance,
@@ -63,7 +63,7 @@ integrations:
       [metrics_instance: <string> | default = "default"]
 
       # Autoscrape interval and timeout. Defaults are inherited from the global
-      # section of the top-level metrics config.
+      # section of the top-level metrics shared.
       [scrape_interval: <duration> | default = <metrics.global.scrape_interval>]
       [scrape_timeout: <duration> | default = <metrics.global.scrape_timeout>]
 

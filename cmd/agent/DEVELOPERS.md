@@ -59,8 +59,8 @@ To avoid accidentally publishing a tag or commit without signing it, you can run
 the following to ensure all commits and tags are signed:
 
 ```bash
-git config --global commit.gpgSign true
-git config --global tag.gpgSign true
+git shared --global commit.gpgSign true
+git shared --global tag.gpgSign true
 ```
 
 ##### macOS Signing Errors

@@ -5,9 +5,8 @@ package agent
 
 import (
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations/v2"
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -16,11 +15,11 @@ type Config struct {
 	Common common.MetricsConfig `yaml:",inline"`
 }
 
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string { return "agent" }
 
 // ApplyDefaults applies runtime-specific defaults to c.
-func (c *Config) ApplyDefaults(globals integrations.Globals) error {
+func (c *Config) ApplyDefaults(globals v2.Globals) error {
 	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 	if id, err := c.Identifier(globals); err == nil {
 		c.Common.InstanceKey = &id
@@ -29,18 +28,14 @@ func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 }
 
 // Identifier uniquely identifies this instance of Config.
-func (c *Config) Identifier(globals integrations.Globals) (string, error) {
+func (c *Config) Identifier(globals v2.Globals) (string, error) {
 	if c.Common.InstanceKey != nil {
 		return *c.Common.InstanceKey, nil
 	}
 	return globals.AgentIdentifier, nil
 }
 
-// NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	return metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.Handler())
-}
-
-func init() {
-	integrations.Register(&Config{}, integrations.TypeSingleton)
+// NewIntegration converts this shared into an instance of an integration.
+func (c *Config) NewIntegration(l log.Logger, globals v2.Globals) (v2.Integrations, error) {
+	return v2.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.Handler())
 }

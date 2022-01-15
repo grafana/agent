@@ -24,7 +24,7 @@ import (
 //
 // 1. Launching an HTTP server which can be scraped and also mocks the remote_write
 //    endpoint.
-// 2. Creating an instance config with no scrape_configs or remote_write configs.
+// 2. Creating an instance shared with no scrape_configs or remote_write configs.
 // 3. Updates the instance with a scrape_config and remote_write.
 // 4. Validates that after 15 seconds, the scrape endpoint and remote_write
 //    endpoint has been called.
@@ -75,7 +75,7 @@ remote_write: []
 		require.NoError(t, err)
 	}()
 
-	// Update the config with a single scrape_config and remote_write.
+	// Update the shared with a single scrape_config and remote_write.
 	newConfig := loadConfig(t, fmt.Sprintf(`
 name: integration_test
 scrape_configs:
@@ -141,7 +141,7 @@ remote_write: []
 		require.NoError(t, err)
 	}()
 
-	// Create a new config to use for updating
+	// Create a new shared to use for updating
 	newConfig := loadConfig(t, fmt.Sprintf(`
 name: integration_test
 scrape_configs:
@@ -162,14 +162,14 @@ remote_write:
 		return err
 	})
 
-	// Now force an update back to the original config to fail
+	// Now force an update back to the original shared to fail
 	inst.readyScrapeManager.Set(nil)
 	require.NotNil(t, inst.Update(initialConfig), "update should have failed")
-	require.Equal(t, newConfig, inst.cfg, "config did not roll back")
+	require.Equal(t, newConfig, inst.cfg, "shared did not roll back")
 }
 
 // TestInstance_Update_InvalidChanges runs an instance with a blank initial
-// config and performs various unacceptable updates that should return an
+// shared and performs various unacceptable updates that should return an
 // error.
 func TestInstance_Update_InvalidChanges(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))

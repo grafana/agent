@@ -209,7 +209,7 @@ remote_flush_deadline: 1m0s
 		actual, err := cli.GetConfiguration(context.Background(), "exists")
 		require.NoError(t, err)
 
-		// Marshal the retrieved config _without_ scrubbing. This means
+		// Marshal the retrieved shared _without_ scrubbing. This means
 		// that if the secrets weren't scrubbed from GetConfiguration, something
 		// bad happened at the API level.
 		actualBytes, err := instance.MarshalConfig(actual, false)
@@ -226,7 +226,7 @@ func TestServer_GetConfiguration_Disabled(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	body, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
-	require.Equal(t, []byte("404 - config endpoint is disabled"), body)
+	require.Equal(t, []byte("404 - shared endpoint is disabled"), body)
 }
 
 func TestServer_PutConfiguration(t *testing.T) {
@@ -245,7 +245,7 @@ func TestServer_PutConfiguration(t *testing.T) {
 			return true, nil
 		}
 
-		resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/newconfig", "", bytes.NewReader(bb))
+		resp, err := http.Post(env.srv.URL+"/agent/api/v1/shared/newconfig", "", bytes.NewReader(bb))
 		require.NoError(t, err)
 		require.Equal(t, http.StatusCreated, resp.StatusCode)
 	})
@@ -256,7 +256,7 @@ func TestServer_PutConfiguration(t *testing.T) {
 			return false, nil
 		}
 
-		resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/newconfig", "", bytes.NewReader(bb))
+		resp, err := http.Post(env.srv.URL+"/agent/api/v1/shared/newconfig", "", bytes.NewReader(bb))
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -274,14 +274,14 @@ func TestServer_PutConfiguration_Invalid(t *testing.T) {
 	bb, err := instance.MarshalConfig(&cfg, false)
 	require.NoError(t, err)
 
-	resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/newconfig", "", bytes.NewReader(bb))
+	resp, err := http.Post(env.srv.URL+"/agent/api/v1/shared/newconfig", "", bytes.NewReader(bb))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	expect := `{
 		"status": "error",
 		"data": {
-			"error": "failed to validate config: custom validation error"
+			"error": "failed to validate shared: custom validation error"
 		}
 	}`
 	body, err := ioutil.ReadAll(resp.Body)
@@ -320,7 +320,7 @@ func TestServer_DeleteConfiguration(t *testing.T) {
 	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
-	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/config/deleteme", nil)
+	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/shared/deleteme", nil)
 	require.NoError(t, err)
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
@@ -344,7 +344,7 @@ func TestServer_DeleteConfiguration_Invalid(t *testing.T) {
 	api := NewAPI(log.NewNopLogger(), s, nil, true)
 	env := newAPITestEnvironment(t, api)
 
-	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/config/deleteme", nil)
+	req, err := http.NewRequest(http.MethodDelete, env.srv.URL+"/agent/api/v1/shared/deleteme", nil)
 	require.NoError(t, err)
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
@@ -372,7 +372,7 @@ func TestServer_URLEncoded(t *testing.T) {
 		return true, nil
 	}
 
-	resp, err := http.Post(env.srv.URL+"/agent/api/v1/config/url%2Fencoded", "", bytes.NewReader(bb))
+	resp, err := http.Post(env.srv.URL+"/agent/api/v1/shared/url%2Fencoded", "", bytes.NewReader(bb))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
 

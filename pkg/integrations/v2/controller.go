@@ -1,4 +1,4 @@
-package shared
+package v2
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/shared"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -26,8 +26,8 @@ import (
 type Controller struct {
 	logger  log.Logger
 	mut     sync.Mutex
-	cfg     V2Integrations
-	globals v2.Globals
+	cfg     IntegrationConfigs
+	globals Globals
 
 	integrations       []*controlledIntegration // Integrations to Run
 	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
@@ -35,15 +35,15 @@ type Controller struct {
 	// Next generation value to use for an integration.
 	gen atomic.Uint64
 
-	// onUpdateDone is used for testing and will be invoked when integrations
+	// OnUpdateDone is used for testing and will be invoked when integrations
 	// finish reloading.
-	onUpdateDone func()
+	OnUpdateDone func()
 }
 
 // NewController creates a new Controller. Controller is intended to be
 // embedded inside of integrations that may want to multiplex other
 // integrations.
-func NewController(l log.Logger, cfg V2Integrations, globals v2.Globals) (*Controller, error) {
+func NewController(l log.Logger, cfg IntegrationConfigs, globals Globals) (*Controller, error) {
 	c := &Controller{
 		logger:             l,
 		reloadIntegrations: make(chan struct{}, 1),
@@ -123,8 +123,8 @@ func (c *Controller) Run(ctx context.Context) {
 			return
 		case <-c.reloadIntegrations:
 			updateIntegrations()
-			if c.onUpdateDone != nil {
-				c.onUpdateDone()
+			if c.OnUpdateDone != nil {
+				c.OnUpdateDone()
 			}
 		}
 	}
@@ -136,8 +136,8 @@ type controlledIntegration struct {
 	id  integrationID
 	gen uint64
 
-	i v2.Integrations
-	c v2.V2Config // Config that generated i. Used for changing to see if a shared changed.
+	i Integration
+	c Config // Config that generated i. Used for changing to see if a shared changed.
 
 	running atomic.Bool
 
@@ -193,7 +193,7 @@ func (id integrationID) String() string {
 //
 // UpdateController updates running integrations. Extensions can be
 // recalculated by calling relevant methods like Handler or Targets.
-func (c *Controller) UpdateController(cfg V2Integrations, globals v2.Globals) error {
+func (c *Controller) UpdateController(cfg IntegrationConfigs, globals Globals) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -229,13 +229,13 @@ NextConfig:
 
 			// If the configs haven't changed, then we don't need to do anything.
 
-			if v2.CompareConfigs(ci.c, ic) {
+			if CompareConfigs(ci.c, ic) {
 				integrations = append(integrations, ci)
 				continue NextConfig
 			}
 
-			if ui, ok := ci.i.(v2.UpdateIntegration); ok {
-				if err := ui.ApplyConfig(ic, globals); errors.Is(err, v2.ErrInvalidUpdate) {
+			if ui, ok := ci.i.(UpdateIntegration); ok {
+				if err := ui.ApplyConfig(ic, globals); errors.Is(err, ErrInvalidUpdate) {
 					level.Warn(c.logger).Log("msg", "failed to dynamically update integration; will recreate", "integration", name, "instance", identifier, "err', err")
 					break
 				} else if err != nil {
@@ -298,7 +298,7 @@ func (c *Controller) Handler(prefix string) (http.Handler, error) {
 	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
 		id := ci.id
 
-		i, ok := ci.i.(v2.HTTPIntegration)
+		i, ok := ci.i.(HTTPIntegration)
 		if !ok {
 			return
 		}
@@ -369,13 +369,13 @@ func forEachIntegration(set []*controlledIntegration, basePrefix string, f func(
 
 // Targets returns the current set of targets across all integrations. Use opts
 // to customize which targets are returned.
-func (c *Controller) Targets(ep v2.Endpoint, opts TargetOptions) []*TargetGroup {
+func (c *Controller) Targets(ep Endpoint, opts TargetOptions) []*shared.TargetGroup {
 	// Grab the integrations as fast as possible. We don't want to spend too much
 	// time holding the mutex.
 	type prefixedMetricsIntegration struct {
 		id integrationID
-		i  v2.MetricsIntegration
-		ep v2.Endpoint
+		i  MetricsIntegration
+		ep Endpoint
 	}
 	var mm []prefixedMetricsIntegration
 
@@ -387,8 +387,8 @@ func (c *Controller) Targets(ep v2.Endpoint, opts TargetOptions) []*TargetGroup 
 		if !ci.Running() {
 			return
 		}
-		if mi, ok := ci.i.(v2.MetricsIntegration); ok {
-			ep := v2.Endpoint{Host: ep.Host, Prefix: iprefix}
+		if mi, ok := ci.i.(MetricsIntegration); ok {
+			ep := Endpoint{Host: ep.Host, Prefix: iprefix}
 			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, ep: ep})
 		}
 	})
@@ -397,7 +397,7 @@ func (c *Controller) Targets(ep v2.Endpoint, opts TargetOptions) []*TargetGroup 
 	}
 	c.mut.Unlock()
 
-	var tgs []*TargetGroup
+	var tgs []*shared.TargetGroup
 	for _, mi := range mm {
 		// If we're looking for a subset of integrations, filter out anything that doesn't match.
 		if len(opts.Integrations) > 0 && !stringSliceContains(opts.Integrations, mi.id.Name) {
@@ -409,7 +409,7 @@ func (c *Controller) Targets(ep v2.Endpoint, opts TargetOptions) []*TargetGroup 
 		}
 
 		for _, tgt := range mi.i.Targets(mi.ep) {
-			tgs = append(tgs, (*TargetGroup)(tgt))
+			tgs = append(tgs, (*shared.TargetGroup)(tgt))
 		}
 	}
 	sort.Slice(tgs, func(i, j int) bool {
@@ -483,14 +483,14 @@ func (c *Controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 	// time holding the mutex.
 	type prefixedMetricsIntegration struct {
 		id     integrationID
-		i      v2.MetricsIntegration
+		i      MetricsIntegration
 		prefix string
 	}
 	var mm []prefixedMetricsIntegration
 
 	c.mut.Lock()
 	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
-		if mi, ok := ci.i.(v2.MetricsIntegration); ok {
+		if mi, ok := ci.i.(MetricsIntegration); ok {
 			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
 		}
 	})

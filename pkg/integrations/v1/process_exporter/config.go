@@ -3,7 +3,7 @@ package process_exporter //nolint:golint
 
 import (
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/pkg/integrations/shared"
 
 	exporter_config "github.com/ncabatoff/process-exporter/config"
 )
@@ -28,15 +28,7 @@ type Config struct {
 	Recheck    bool   `yaml:"recheck_on_scrape,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *Config) UnmarshalYAML(unmarshal func(v interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return "process_exporter"
 }
@@ -46,7 +38,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
 
-// NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+// NewIntegration converts this shared into an instance of an integration.
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }

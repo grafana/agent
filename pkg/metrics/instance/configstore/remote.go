@@ -79,14 +79,14 @@ func NewRemote(l log.Logger, reg prometheus.Registerer, cfg kv.Config, enable bo
 		configsCh: make(chan WatchEvent),
 	}
 	if err := r.ApplyConfig(cfg, enable); err != nil {
-		return nil, fmt.Errorf("failed to apply config for config store: %w", err)
+		return nil, fmt.Errorf("failed to apply shared for shared store: %w", err)
 	}
 
 	go r.run()
 	return r, nil
 }
 
-// ApplyConfig applies the config for a kv client.
+// ApplyConfig applies the shared for a kv client.
 func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 	r.kvMut.Lock()
 	defer r.kvMut.Unlock()
@@ -195,7 +195,7 @@ func (r *Remote) watchKV(ctx context.Context, client *agentRemoteClient) {
 		default:
 			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
 			if err != nil {
-				level.Error(r.log).Log("msg", "could not unmarshal config from store", "name", key, "err", err)
+				level.Error(r.log).Log("msg", "could not unmarshal shared from store", "name", key, "err", err)
 				break
 			}
 
@@ -249,7 +249,7 @@ func (r *Remote) listConsul(ctx context.Context) (api.KVPairs, error) {
 	return pairs, nil
 }
 
-// Get retrieves an individual config from the KV store.
+// Get retrieves an individual shared from the KV store.
 func (r *Remote) Get(ctx context.Context, key string) (instance.Config, error) {
 	r.kvMut.RLock()
 	defer r.kvMut.RUnlock()
@@ -259,19 +259,19 @@ func (r *Remote) Get(ctx context.Context, key string) (instance.Config, error) {
 
 	v, err := r.kv.Get(ctx, key)
 	if err != nil {
-		return instance.Config{}, fmt.Errorf("failed to get config %s: %w", key, err)
+		return instance.Config{}, fmt.Errorf("failed to get shared %s: %w", key, err)
 	} else if v == nil {
 		return instance.Config{}, NotExistError{Key: key}
 	}
 
 	cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
 	if err != nil {
-		return instance.Config{}, fmt.Errorf("failed to unmarshal config %s: %w", key, err)
+		return instance.Config{}, fmt.Errorf("failed to unmarshal shared %s: %w", key, err)
 	}
 	return *cfg, nil
 }
 
-// Put adds or updates a config in the KV store.
+// Put adds or updates a shared in the KV store.
 func (r *Remote) Put(ctx context.Context, c instance.Config) (bool, error) {
 	// We need to use a write lock here since two Applies can't run concurrently
 	// (given the current need to perform a store-wide validation.)
@@ -283,15 +283,15 @@ func (r *Remote) Put(ctx context.Context, c instance.Config) (bool, error) {
 
 	bb, err := instance.MarshalConfig(&c, false)
 	if err != nil {
-		return false, fmt.Errorf("failed to marshal config: %w", err)
+		return false, fmt.Errorf("failed to marshal shared: %w", err)
 	}
 
 	cfgCh, err := r.all(ctx, nil)
 	if err != nil {
-		return false, fmt.Errorf("failed to check validity of config: %w", err)
+		return false, fmt.Errorf("failed to check validity of shared: %w", err)
 	}
 	if err := checkUnique(cfgCh, &c); err != nil {
-		return false, fmt.Errorf("failed to check uniqueness of config: %w", err)
+		return false, fmt.Errorf("failed to check uniqueness of shared: %w", err)
 	}
 
 	var created bool
@@ -301,13 +301,13 @@ func (r *Remote) Put(ctx context.Context, c instance.Config) (bool, error) {
 		return string(bb), false, nil
 	})
 	if err != nil {
-		return false, fmt.Errorf("failed to put config: %w", err)
+		return false, fmt.Errorf("failed to put shared: %w", err)
 	}
 	return created, nil
 }
 
-// Delete deletes a config from the KV store. It returns NotExistError if
-// the config doesn't exist.
+// Delete deletes a shared from the KV store. It returns NotExistError if
+// the shared doesn't exist.
 func (r *Remote) Delete(ctx context.Context, key string) error {
 	r.kvMut.RLock()
 	defer r.kvMut.RUnlock()
@@ -318,7 +318,7 @@ func (r *Remote) Delete(ctx context.Context, key string) error {
 	// Some KV stores don't return an error if something failed to be
 	// deleted, so we'll try to get it first. This isn't perfect, and
 	// it may fail, so we'll silently ignore any errors here unless
-	// we know for sure the config doesn't exist.
+	// we know for sure the shared doesn't exist.
 	v, err := r.kv.Get(ctx, key)
 	if err != nil {
 		level.Warn(r.log).Log("msg", "error validating key existence for deletion", "err", err)
@@ -381,7 +381,7 @@ func (r *Remote) allConsul(ctx context.Context, keep func(key string) bool) (<-c
 		}
 		value, err := c.Decode(kvp.Value)
 		if err != nil {
-			level.Error(r.log).Log("msg", "failed to decode config from store", "key", kvp.Key, "err", err)
+			level.Error(r.log).Log("msg", "failed to decode shared from store", "key", kvp.Key, "err", err)
 			continue
 		}
 		if value == nil {
@@ -392,7 +392,7 @@ func (r *Remote) allConsul(ctx context.Context, keep func(key string) bool) (<-c
 
 		cfg, err := instance.UnmarshalConfig(strings.NewReader(value.(string)))
 		if err != nil {
-			level.Error(r.log).Log("msg", "failed to unmarshal config from store", "key", kvp.Key, "err", err)
+			level.Error(r.log).Log("msg", "failed to unmarshal shared from store", "key", kvp.Key, "err", err)
 			continue
 		}
 		configs = append(configs, cfg)
@@ -436,7 +436,7 @@ func (r *Remote) allOther(ctx context.Context, keep func(key string) bool) (<-ch
 			// TODO(rfratto): retries might be useful here
 			v, err := r.kv.Get(ctx, key)
 			if err != nil {
-				level.Error(r.log).Log("msg", "failed to get config with key", "key", key, "err", err)
+				level.Error(r.log).Log("msg", "failed to get shared with key", "key", key, "err", err)
 				return
 			} else if v == nil {
 				// Config was deleted since we called list, skip it.
@@ -446,7 +446,7 @@ func (r *Remote) allOther(ctx context.Context, keep func(key string) bool) (<-ch
 
 			cfg, err := instance.UnmarshalConfig(strings.NewReader(v.(string)))
 			if err != nil {
-				level.Error(r.log).Log("msg", "failed to unmarshal config from store", "key", key, "err", err)
+				level.Error(r.log).Log("msg", "failed to unmarshal shared from store", "key", key, "err", err)
 				return
 			}
 			ch <- *cfg

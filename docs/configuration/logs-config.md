@@ -21,7 +21,7 @@ for the supported values for these fields.
 # sources. The positions files will be stored in
 # <positions_directory>/<logs_instance_config.name>.yml.
 #
-# Optional only if every config has a positions.filename manually provided.
+# Optional only if every shared has a positions.filename manually provided.
 #
 # This directory will be automatically created if it doesn't exist.
 [positions_directory: <string>]
@@ -39,8 +39,8 @@ Promtail is configured, except deprecated fields have been removed and the
 `server_config` block is not supported.
 
 ```yaml
-# Name of this config. Required, and must be unique across all Loki configs.
-# The name of the config will be the value of a logs_config label for all
+# Name of this shared. Required, and must be unique across all Loki configs.
+# The name of the shared will be the value of a logs_config label for all
 # Loki Promtail metrics.
 name: <string>
 

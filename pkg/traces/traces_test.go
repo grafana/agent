@@ -98,7 +98,7 @@ configs:
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 
-	// Fix the config and apply it before sending spans.
+	// Fix the shared and apply it before sending spans.
 	tracesCfgText = util.Untab(fmt.Sprintf(`
 configs:
 - name: default

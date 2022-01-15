@@ -3,12 +3,13 @@ package kafka_exporter //nolint:golint
 import (
 	"fmt"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/Shopify/sarama"
 	kafka_exporter "github.com/davidmparrott/kafka_exporter/v2/exporter"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
 )
 
 // DefaultConfig holds the default settings for the kafka_lag_exporter
@@ -98,14 +99,14 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return "kafka_exporter"
 }
 
 // InstanceKey returns the hostname:port of the first Kafka node, if any. If
 // there is not exactly one Kafka node, the user must manually provide
-// their own value for instance key in the common config.
+// their own value for instance key in the common shared.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	if len(c.KafkaURIs) != 1 {
 		return "", fmt.Errorf("an automatic value for `instance` cannot be determined from %d kafka servers, manually provide one for this integration", len(c.KafkaURIs))
@@ -115,12 +116,12 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 // NewIntegration creates a new elasticsearch_exporter
-func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(logger log.Logger) (shared.Integration, error) {
 	return New(logger, c)
 }
 
 // New creates a new kafka_exporter integration.
-func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+func New(logger log.Logger, c *Config) (shared.Integration, error) {
 	if len(c.KafkaURIs) == 0 || c.KafkaURIs[0] == "" {
 		return nil, fmt.Errorf("empty kafka_uris provided")
 	}
@@ -161,8 +162,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, fmt.Errorf("could not instantiate kafka lag exporter: %w", err)
 	}
 
-	return integrations.NewCollectorIntegration(
+	return shared.NewCollectorIntegration(
 		c.Name(),
-		integrations.WithCollectors(newExporter),
+		shared.WithCollectors(newExporter),
 	), nil
 }

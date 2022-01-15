@@ -6,7 +6,7 @@ import "fmt"
 // to the store was active.
 var ErrNotConnected = fmt.Errorf("not connected to store")
 
-// NotExistError is used when a config doesn't exist.
+// NotExistError is used when a shared doesn't exist.
 type NotExistError struct {
 	Key string
 }
@@ -23,5 +23,5 @@ type NotUniqueError struct {
 
 // Error implements error.
 func (e NotUniqueError) Error() string {
-	return fmt.Sprintf("found multiple scrape configs in config store with job name %q", e.ScrapeJob)
+	return fmt.Sprintf("found multiple scrape configs in shared store with job name %q", e.ScrapeJob)
 }

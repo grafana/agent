@@ -12,8 +12,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
@@ -67,15 +66,7 @@ type Config struct {
 	ParseSignalFX  bool `yaml:"parse_signalfx_tags,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return "statsd_exporter"
 }
@@ -85,8 +76,8 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
 
-// NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+// NewIntegration converts this shared into an instance of an integration.
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
 
@@ -101,7 +92,7 @@ type Exporter struct {
 
 // New creates a new statsd_exporter integration. The integration scrapes
 // metrics from a statsd process.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
+func New(log log.Logger, c *Config) (shared.Integration, error) {
 	reg := prometheus.NewRegistry()
 
 	m, err := NewMetrics(reg)
@@ -121,12 +112,12 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	if c.MappingConfig != nil {
 		cfgBytes, err := yaml.Marshal(c.MappingConfig)
 		if err != nil {
-			return nil, fmt.Errorf("failed to serialize mapping config: %w", err)
+			return nil, fmt.Errorf("failed to serialize mapping shared: %w", err)
 		}
 
 		err = statsdMapper.InitFromYAMLString(string(cfgBytes))
 		if err != nil {
-			return nil, fmt.Errorf("failed to load mapping config: %w", err)
+			return nil, fmt.Errorf("failed to load mapping shared: %w", err)
 		}
 	}
 
@@ -171,8 +162,8 @@ func (e *Exporter) MetricsHandler() (http.Handler, error) {
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
-func (e *Exporter) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{JobName: e.cfg.Name(), MetricsPath: "/metrics"}}
+func (e *Exporter) ScrapeConfigs() []shared.ScrapeConfig {
+	return []shared.ScrapeConfig{{JobName: e.cfg.Name(), MetricsPath: "/metrics"}}
 }
 
 // Run satisfies Run.

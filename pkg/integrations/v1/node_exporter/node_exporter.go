@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
@@ -34,9 +34,9 @@ func New(log log.Logger, c *Config) (*Integration, error) {
 	// in a custom kingpin application or expose methods to explicitly enable/disable
 	// collectors that we can use instead of this command line hack.
 	flags, _ := MapConfigToNodeExporterFlags(c)
-	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent config", "flags", strings.Join(flags, " "))
+	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent shared", "flags", strings.Join(flags, " "))
 
-	for _, warn := range c.UnmarshalWarnings {
+	for _, warn := range c.Warnings {
 		level.Warn(log).Log("msg", warn)
 	}
 
@@ -100,8 +100,8 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
-func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{
+func (i *Integration) ScrapeConfigs() []shared.ScrapeConfig {
+	return []shared.ScrapeConfig{{
 		JobName:     i.c.Name(),
 		MetricsPath: "/metrics",
 	}}

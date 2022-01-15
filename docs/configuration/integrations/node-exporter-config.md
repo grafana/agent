@@ -69,7 +69,7 @@ spec:
   - image: grafana/agent:v0.22.0
     name: agent
     args:
-    - --config.file=/etc/agent-config/agent.yaml
+    - --shared.file=/etc/agent-shared/agent.yaml
     securityContext:
       capabilities:
         add: ["SYS_TIME"]

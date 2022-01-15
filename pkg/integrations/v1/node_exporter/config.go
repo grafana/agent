@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -57,7 +58,7 @@ var (
 func init() {
 	// The default values for the filesystem collector are to ignore everything,
 	// but some platforms have specific defaults. We'll fill these in below at
-	// initialization time, but the values can still be overridden via the config
+	// initialization time, but the values can still be overridden via the shared
 	// file.
 	switch runtime.GOOS {
 	case "linux":
@@ -91,7 +92,7 @@ type Config struct {
 	// listed.
 	SetCollectors flagext.StringSlice `yaml:"set_collectors,omitempty"`
 
-	// Collector-specific config options
+	// Collector-specific shared options
 	BcachePriorityStats              bool                `yaml:"enable_bcache_priority_stats,omitempty"`
 	CPUBugsInclude                   string              `yaml:"cpu_bugs_include,omitempty"`
 	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty"`
@@ -131,29 +132,18 @@ type Config struct {
 	TextfileDirectory                string              `yaml:"textfile_directory,omitempty"`
 	VMStatFields                     string              `yaml:"vmstat_fields,omitempty"`
 
-	UnmarshalWarnings []string `yaml:"-"`
+	// Deprecated field names:
+	NetdevDeviceWhitelist        string `yaml:"netdev_device_whitelist,omitempty"`
+	NetdevDeviceBlacklist        string `yaml:"netdev_device_blacklist,omitempty"`
+	SystemdUnitWhitelist         string `yaml:"systemd_unit_whitelist,omitempty"`
+	SystemdUnitBlacklist         string `yaml:"systemd_unit_blacklist,omitempty"`
+	FilesystemIgnoredMountPoints string `yaml:"filesystem_ignored_mount_points,omitempty"`
+	FilesystemIgnoredFSTypes     string `yaml:"filesystem_ignored_fs_types,omitempty"`
+
+	Warnings []string `yaml:"-"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type baseConfig Config
-	type config struct {
-		baseConfig `yaml:",inline"`
-
-		// Deprecated field names:
-		NetdevDeviceWhitelist        string `yaml:"netdev_device_whitelist,omitempty"`
-		NetdevDeviceBlacklist        string `yaml:"netdev_device_blacklist,omitempty"`
-		SystemdUnitWhitelist         string `yaml:"systemd_unit_whitelist,omitempty"`
-		SystemdUnitBlacklist         string `yaml:"systemd_unit_blacklist,omitempty"`
-		FilesystemIgnoredMountPoints string `yaml:"filesystem_ignored_mount_points,omitempty"`
-		FilesystemIgnoredFSTypes     string `yaml:"filesystem_ignored_fs_types,omitempty"`
-	}
-
-	var fc config // our full config (schema + deprecated names)
-	fc.baseConfig = baseConfig(*c)
-
+func (c *Config) PostProcessing() error {
 	type migratedField struct {
 		OldName, NewName   string
 		OldValue, NewValue *string
@@ -163,41 +153,37 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	migratedFields := []*migratedField{
 		{
 			OldName: "netdev_device_whitelist", NewName: "netdev_device_include",
-			OldValue: &fc.NetdevDeviceWhitelist, NewValue: &fc.NetdevDeviceInclude,
+			OldValue: &c.NetdevDeviceWhitelist, NewValue: &c.NetdevDeviceInclude,
 		},
 		{
 			OldName: "netdev_device_blacklist", NewName: "netdev_device_exclude",
-			OldValue: &fc.NetdevDeviceBlacklist, NewValue: &fc.NetdevDeviceExclude,
+			OldValue: &c.NetdevDeviceBlacklist, NewValue: &c.NetdevDeviceExclude,
 		},
 		{
 			OldName: "systemd_unit_whitelist", NewName: "systemd_unit_include",
-			OldValue: &fc.SystemdUnitWhitelist, NewValue: &fc.SystemdUnitInclude,
+			OldValue: &c.SystemdUnitWhitelist, NewValue: &c.SystemdUnitInclude,
 		},
 		{
 			OldName: "systemd_unit_blacklist", NewName: "systemd_unit_exclude",
-			OldValue: &fc.SystemdUnitBlacklist, NewValue: &fc.SystemdUnitExclude,
+			OldValue: &c.SystemdUnitBlacklist, NewValue: &c.SystemdUnitExclude,
 		},
 		{
 			OldName: "filesystem_ignored_mount_points", NewName: "filesystem_mount_points_exclude",
-			OldValue: &fc.FilesystemIgnoredMountPoints, NewValue: &fc.FilesystemMountPointsExclude,
+			OldValue: &c.FilesystemIgnoredMountPoints, NewValue: &c.FilesystemMountPointsExclude,
 		},
 		{
 			OldName: "filesystem_ignored_fs_types", NewName: "filesystem_fs_types_exclude",
-			OldValue: &fc.FilesystemIgnoredFSTypes, NewValue: &fc.FilesystemFSTypesExclude,
+			OldValue: &c.FilesystemIgnoredFSTypes, NewValue: &c.FilesystemFSTypesExclude,
 		},
 	}
 
-	// We don't know when fields are unmarshaled unless they have non-zero
-	// values. Defaults stop us from being able to check, so we'll temporarily
-	// cache the default and make sure both the old and new migrated fields are
-	// zero.
+	// Migrate the fields, if there is an old field and nothing in new field
 	for _, mf := range migratedFields {
-		mf.defaultValue = *mf.NewValue
-		*mf.NewValue = ""
-	}
+		if mf.OldValue != nil && mf.NewValue == nil {
+			mf.NewValue = mf.OldValue
+			*mf.OldValue = ""
 
-	if err := unmarshal(&fc); err != nil {
-		return err
+		}
 	}
 
 	for _, mf := range migratedFields {
@@ -209,7 +195,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			*mf.NewValue = *mf.OldValue
 
 			warning := fmt.Sprintf("%q is deprecated by %q and will be removed in a future version", mf.OldName, mf.NewName)
-			fc.UnmarshalWarnings = append(fc.UnmarshalWarnings, warning)
+			c.Warnings = append(c.Warnings, warning)
 
 		case *mf.NewValue == "" && *mf.OldValue == "": // Neither set.
 			// Copy the default back to mf.NewValue.
@@ -219,12 +205,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			// Nothing to do
 		}
 	}
-
-	*c = (Config)(fc.baseConfig)
 	return nil
 }
 
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return "node_exporter"
 }
@@ -234,8 +218,8 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
 
-// NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
+// NewIntegration converts this shared into an instance of an integration.
+func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
 

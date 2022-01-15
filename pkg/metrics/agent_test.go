@@ -34,7 +34,7 @@ func TestConfig_Validate(t *testing.T) {
 		expect  error
 	}{
 		{
-			name:    "complete config should be valid",
+			name:    "complete shared should be valid",
 			mutator: func(c *Config) {},
 			expect:  nil,
 		},
@@ -49,7 +49,7 @@ func TestConfig_Validate(t *testing.T) {
 			expect:  errors.New("error validating instance at index 0: missing instance name"),
 		},
 		{
-			name: "duplicate config name",
+			name: "duplicate shared name",
 			mutator: func(c *Config) {
 				c.Configs = append(c.Configs,
 					makeInstanceConfig("newinstance"),

@@ -8,30 +8,30 @@ const name = "cadvisor"
 
 // DefaultConfig holds the default settings for the cadvisor integration
 var DefaultConfig Config = Config{
-	// Common cadvisor config defaults
+	// Common cadvisor shared defaults
 	StoreContainerLabels: true,
 	ResctrlInterval:      0,
 
 	StorageDuration: 2 * time.Minute,
 
-	// Containerd config defaults
+	// Containerd shared defaults
 	Containerd:          "/run/containerd/containerd.sock",
 	ContainerdNamespace: "k8s.io",
 
-	// Docker config defaults
+	// Docker shared defaults
 	Docker:        "unix:///var/run/docker.sock",
 	DockerTLS:     false,
 	DockerTLSCert: "cert.pem",
 	DockerTLSKey:  "key.pem",
 	DockerTLSCA:   "ca.pem",
 
-	// Raw config defaults
+	// Raw shared defaults
 	DockerOnly: false,
 }
 
 // Config controls cadvisor
 type Config struct {
-	// Common cadvisor config options
+	// Common cadvisor shared options
 	// StoreContainerLabels converts container labels and environment variables into labels on prometheus metrics for each container. If false, then only metrics exported are container name, first alias, and image name.
 	StoreContainerLabels bool `yaml:"store_container_labels,omitempty"`
 
@@ -59,14 +59,14 @@ type Config struct {
 	// StorageDuration length of time to keep data stored in memory (Default: 2m)
 	StorageDuration time.Duration `yaml:"storage_duration,omitempty"`
 
-	// Containerd config options
+	// Containerd shared options
 	// Containerd containerd endpoint
 	Containerd string `yaml:"containerd,omitempty"`
 
 	// ContainerdNamespace containerd namespace
 	ContainerdNamespace string `yaml:"containerd_namespace,omitempty"`
 
-	// Docker config options
+	// Docker shared options
 	// Docker docker endpoint
 	Docker string `yaml:"docker,omitempty"`
 
@@ -82,21 +82,12 @@ type Config struct {
 	// DockerTLSCA path to trusted CA
 	DockerTLSCA string `yaml:"docker_tls_ca,omitempty"`
 
-	// Raw config options
+	// Raw shared options
 	// DockerOnly only report docker containers in addition to root stats
 	DockerOnly bool `yaml:"docker_only,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	err := unmarshal((*plain)(c))
-	return err
-}
-
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return name
 }

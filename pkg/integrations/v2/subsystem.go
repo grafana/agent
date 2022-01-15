@@ -1,4 +1,4 @@
-package shared
+package v2
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	v2 "github.com/grafana/agent/pkg/integrations/v2/config"
+	"github.com/grafana/agent/pkg/integrations/shared"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -47,7 +47,7 @@ type SubsystemOptions struct {
 
 	// Configs are configurations of integration to create. Unmarshaled through
 	// the custom UnmarshalYAML method of Controller.
-	Configs v2.V2Integration `yaml:",inline"`
+	Configs Integrations `yaml:",inline"`
 
 	// Override settings to self-communicate with agent.
 	ClientConfig common_config.HTTPClientConfig `yaml:"client_config,omitempty"`
@@ -99,7 +99,7 @@ func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
 
 	l = log.With(l, "component", "integrations")
 
-	ctrl, err := NewController(l, globals.SubsystemOpts.Configs, globals)
+	ctrl, err := NewController(l, &globals.SubsystemOpts.Configs, globals)
 	if err != nil {
 		autoscraper.Stop()
 		return nil, err
@@ -138,7 +138,7 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	if err := s.ctrl.UpdateController(globals.SubsystemOpts.Configs, globals); err != nil {
+	if err := s.ctrl.UpdateController(&globals.SubsystemOpts.Configs, globals); err != nil {
 		return fmt.Errorf("error applying integrations: %w", err)
 	}
 
@@ -214,7 +214,7 @@ func (s *Subsystem) WireAPI(r *mux.Router) {
 		// into multiple groups.
 		//
 		// TODO(rfratto): optimize to remove redundant groups
-		finalTgs := []*TargetGroup{}
+		finalTgs := []*shared.TargetGroup{}
 		for _, group := range tgs {
 			for _, target := range group.Targets {
 				// Create the final labels for the group. This will be everything from
@@ -223,7 +223,7 @@ func (s *Subsystem) WireAPI(r *mux.Router) {
 				groupLabels := group.Labels.Merge(target)
 				delete(groupLabels, model.AddressLabel)
 
-				finalTgs = append(finalTgs, &TargetGroup{
+				finalTgs = append(finalTgs, &shared.TargetGroup{
 					Targets: []model.LabelSet{{model.AddressLabel: target[model.AddressLabel]}},
 					Labels:  groupLabels,
 				})

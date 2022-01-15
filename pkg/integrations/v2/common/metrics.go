@@ -5,7 +5,7 @@ import (
 )
 
 // MetricsConfig is a set of common options shared by metrics integrations. It
-// should be utilised by an integration's config by inlining the common
+// should be utilised by an integration's shared by inlining the common
 // options:
 //
 //   type IntegrationConfig struct {

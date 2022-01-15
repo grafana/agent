@@ -127,26 +127,26 @@ func (c *Cluster) ApplyConfig(
 	}
 
 	if err := c.node.ApplyConfig(cfg); err != nil {
-		return fmt.Errorf("failed to apply config to node membership: %w", err)
+		return fmt.Errorf("failed to apply shared to node membership: %w", err)
 	}
 
 	if err := c.store.ApplyConfig(cfg.Lifecycler.RingConfig.KVStore, cfg.Enabled); err != nil {
-		return fmt.Errorf("failed to apply config to config store: %w", err)
+		return fmt.Errorf("failed to apply shared to shared store: %w", err)
 	}
 
 	if err := c.watcher.ApplyConfig(cfg); err != nil {
-		return fmt.Errorf("failed to apply config to watcher: %w", err)
+		return fmt.Errorf("failed to apply shared to watcher: %w", err)
 	}
 
 	c.cfg = cfg
 
 	// Force a refresh so all the configs get updated with new defaults.
-	level.Info(c.log).Log("msg", "cluster config changed, queueing refresh")
+	level.Info(c.log).Log("msg", "cluster shared changed, queueing refresh")
 	c.watcher.RequestRefresh()
 	return nil
 }
 
-// WireAPI injects routes into the provided mux router for the config
+// WireAPI injects routes into the provided mux router for the shared
 // management API.
 func (c *Cluster) WireAPI(r *mux.Router) {
 	c.storeAPI.WireAPI(r)
@@ -168,8 +168,8 @@ func (c *Cluster) Stop() {
 		closer func() error
 	}{
 		{"node", c.node.Stop},
-		{"config store", c.store.Close},
-		{"config watcher", c.watcher.Stop},
+		{"shared store", c.store.Close},
+		{"shared watcher", c.watcher.Stop},
 	}
 	for _, dep := range deps {
 		err := dep.closer()

@@ -77,7 +77,7 @@ remote_write: []
 		require.Equal(t, 1, len(gm.groups))
 		require.Equal(t, 2, len(gm.groupLookup))
 
-		// Check the underlying grouped config and make sure it was updated.
+		// Check the underlying grouped shared and make sure it was updated.
 		expect := testUnmarshalConfig(t, fmt.Sprintf(`
 name: %s
 scrape_configs:
@@ -92,7 +92,7 @@ remote_write: []
 		require.Equal(t, expect, innerConfigs[gm.groupLookup["configA"]])
 	})
 
-	t.Run("updating existing config within group", func(t *testing.T) {
+	t.Run("updating existing shared within group", func(t *testing.T) {
 		inner := newFakeManager()
 		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
@@ -116,7 +116,7 @@ remote_write: []
 		require.Equal(t, 1, len(gm.groups))
 		require.Equal(t, 1, len(gm.groupLookup))
 
-		// Check the underlying grouped config and make sure it was updated.
+		// Check the underlying grouped shared and make sure it was updated.
 		expect := testUnmarshalConfig(t, fmt.Sprintf(`
 name: %s
 scrape_configs:
@@ -129,7 +129,7 @@ remote_write: []
 		require.Equal(t, expect, actual)
 	})
 
-	t.Run("updating existing config to new group", func(t *testing.T) {
+	t.Run("updating existing shared to new group", func(t *testing.T) {
 		inner := newFakeManager()
 		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
@@ -142,7 +142,7 @@ remote_write: []
 		require.Equal(t, 1, len(gm.groupLookup))
 		oldGroup := gm.groupLookup["configA"]
 
-		// Reapply the config but give it a setting change that would
+		// Reapply the shared but give it a setting change that would
 		// force it into a new group. We should still have only one
 		// group and only one entry in the group lookup table.
 		err = gm.ApplyConfig(testUnmarshalConfig(t, `
@@ -156,7 +156,7 @@ remote_write: []
 		require.Equal(t, 1, len(gm.groupLookup))
 		newGroup := gm.groupLookup["configA"]
 
-		// Check the underlying grouped config and make sure it was updated.
+		// Check the underlying grouped shared and make sure it was updated.
 		expect := testUnmarshalConfig(t, fmt.Sprintf(`
 name: %s
 host_filter: true
@@ -187,7 +187,7 @@ remote_write:
 	require.Equal(t, 1, len(gm.groups))
 	require.Equal(t, 1, len(gm.groupLookup))
 
-	// Check the underlying grouped config and make sure the group_name
+	// Check the underlying grouped shared and make sure the group_name
 	// didn't get copied from the remote_name of A.
 	innerConfigs := inner.ListConfigs()
 	require.Equal(t, 1, len(innerConfigs))
@@ -202,7 +202,7 @@ func TestGroupManager_DeleteConfig(t *testing.T) {
 		gm := NewGroupManager(inner)
 
 		// Apply two configs in the same group and then delete one. The group
-		// should still be active with the one config inside of it.
+		// should still be active with the one shared inside of it.
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs:
@@ -243,7 +243,7 @@ remote_write: []`, gm.groupLookup["configB"]))
 		inner := newFakeManager()
 		gm := NewGroupManager(inner)
 
-		// Apply a single config but delete the entire group.
+		// Apply a single shared but delete the entire group.
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
 name: configA
 scrape_configs:

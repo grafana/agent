@@ -1,5 +1,5 @@
 // Package elasticsearch_exporter instantiates the exporter from github.com/justwatchcom/elasticsearch_exporter - replaced for github.com/prometheus-community/elasticsearch_exporter
-// Using the YAML config provided by the agent
+// Using the YAML shared provided by the agent
 package elasticsearch_exporter //nolint:golint
 
 import (
@@ -9,9 +9,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/integrations"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/prometheus-community/elasticsearch_exporter/collector"
@@ -59,15 +60,7 @@ type Config struct {
 	InsecureSkipVerify bool `yaml:"ssl_skip_verify,omitempty"`
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler for Config
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
-}
-
-// Name returns the name of the integration that this config represents.
+// Name returns the name of the integration that this shared represents.
 func (c *Config) Name() string {
 	return "elasticsearch_exporter"
 }
@@ -82,14 +75,14 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 // NewIntegration creates a new elasticsearch_exporter
-func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(logger log.Logger) (shared.Integration, error) {
 	return New(logger, c)
 }
 
 // New creates a new elasticsearch_exporter
 // This function replicates the main() function of github.com/justwatchcom/elasticsearch_exporter
 // but uses yaml configuration instead of kingpin flags.
-func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+func New(logger log.Logger, c *Config) (shared.Integration, error) {
 	if c.Address == "" {
 		return nil, fmt.Errorf("empty elasticsearch_address provided")
 	}
@@ -157,8 +150,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		return ctx.Err()
 	}
 
-	return integrations.NewCollectorIntegration(c.Name(),
-		integrations.WithCollectors(collectors...),
-		integrations.WithRunner(start),
+	return shared.NewCollectorIntegration(c.Name(),
+		shared.WithCollectors(collectors...),
+		shared.WithRunner(start),
 	), nil
 }

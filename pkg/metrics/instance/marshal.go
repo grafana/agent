@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// UnmarshalConfig unmarshals an instance config from a reader based on a
+// UnmarshalConfig unmarshals an instance shared from a reader based on a
 // provided content type.
 func UnmarshalConfig(r io.Reader) (*Config, error) {
 	var cfg Config
@@ -18,18 +18,18 @@ func UnmarshalConfig(r io.Reader) (*Config, error) {
 	return &cfg, err
 }
 
-// MarshalConfig marshals an instance config based on a provided content type.
+// MarshalConfig marshals an instance shared based on a provided content type.
 func MarshalConfig(c *Config, scrubSecrets bool) ([]byte, error) {
 	var buf bytes.Buffer
 	err := MarshalConfigToWriter(c, &buf, scrubSecrets)
 	return buf.Bytes(), err
 }
 
-// MarshalConfigToWriter marshals a config to an io.Writer.
+// MarshalConfigToWriter marshals a shared to an io.Writer.
 func MarshalConfigToWriter(c *Config, w io.Writer, scrubSecrets bool) error {
 	enc := yaml.NewEncoder(w)
 
-	// If we're not sanitizing the marshaled config, we want to add in an
+	// If we're not sanitizing the marshaled shared, we want to add in an
 	// encoding hook to ignore how Secrets marshal (i.e., scrubbing the value
 	// and replacing it with <secret>).
 	if !scrubSecrets {

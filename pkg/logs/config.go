@@ -40,17 +40,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 //
 // Defaults:
 //
-//   1. If a positions config is empty, it will be generated based on
+//   1. If a positions shared is empty, it will be generated based on
 //      the InstanceConfig name and Config.PositionsDirectory.
 func (c *Config) ApplyDefaults() error {
 	var (
 		names     = map[string]struct{}{}
-		positions = map[string]string{} // positions file name -> config using it
+		positions = map[string]string{} // positions file name -> shared using it
 	)
 
 	for idx, ic := range c.Configs {
 		if ic.Name == "" {
-			return fmt.Errorf("Loki config index %d must have a name", idx)
+			return fmt.Errorf("Loki shared index %d must have a name", idx)
 		}
 		if _, ok := names[ic.Name]; ok {
 			return fmt.Errorf("found two Loki configs with name %s", ic.Name)
@@ -72,7 +72,7 @@ func (c *Config) ApplyDefaults() error {
 	return nil
 }
 
-// InstanceConfig is an individual Promtail config.
+// InstanceConfig is an individual Promtail shared.
 type InstanceConfig struct {
 	Name string `yaml:"name,omitempty"`
 

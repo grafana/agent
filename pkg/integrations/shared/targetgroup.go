@@ -1,4 +1,4 @@
-package integrations
+package shared
 
 import (
 	"encoding/json"

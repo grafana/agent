@@ -25,10 +25,10 @@ spec:
   template:
     spec:
       containers:
-      - name: config-reloader
+      - name: shared-reloader
         args:
-        - --config-file=/var/lib/grafana-agent/config-in/agent.yml
-        - --config-envsubst-file=/var/lib/grafana-agent/config/agent.yml
+        - --shared-file=/var/lib/grafana-agent/shared-in/agent.yml
+        - --shared-envsubst-file=/var/lib/grafana-agent/shared/agent.yml
         - --watch-interval=1m
         - --statefulset-ordinal-from-envvar=POD_NAME
         - --reload-url=http://127.0.0.1:8081/-/reload
@@ -43,11 +43,11 @@ spec:
         - name: SHARDS
           value: "1"
         volumeMounts:
-        - mountPath: /var/lib/grafana-agent/config-in
-          name: config
+        - mountPath: /var/lib/grafana-agent/shared-in
+          name: shared
           readOnly: true
-        - mountPath: /var/lib/grafana-agent/config
-          name: config-out
+        - mountPath: /var/lib/grafana-agent/shared
+          name: shared-out
         - mountPath: /var/lib/grafana-agent/data
           name: grafana-agent-example-wal
         - mountPath: /var/lib/grafana-agent/secrets
@@ -55,8 +55,8 @@ spec:
           readOnly: true
       - name: grafana-agent
         args:
-        - -config.file=/var/lib/grafana-agent/config/agent.yml
-        - -config.expand-env=true
+        - -shared.file=/var/lib/grafana-agent/shared/agent.yml
+        - -shared.expand-env=true
         - -reload-port=8081
         env:
         - name: POD_NAME
@@ -78,11 +78,11 @@ spec:
             port: http-metrics
             scheme: HTTP
         volumeMounts:
-        - mountPath: /var/lib/grafana-agent/config-in
-          name: config
+        - mountPath: /var/lib/grafana-agent/shared-in
+          name: shared
           readOnly: true
-        - mountPath: /var/lib/grafana-agent/config
-          name: config-out
+        - mountPath: /var/lib/grafana-agent/shared
+          name: shared-out
         - mountPath: /var/lib/grafana-agent/data
           name: grafana-agent-example-wal
         - mountPath: /var/lib/grafana-agent/secrets
@@ -92,10 +92,10 @@ spec:
       serviceAccountName: grafana-agent
       terminationGracePeriodSeconds: 4800
       volumes:
-      - name: config
+      - name: shared
         secret:
-          secretName: grafana-agent-example-config
-      - name: config-out
+          secretName: grafana-agent-example-shared
+      - name: shared-out
         emptyDir: {}
       - name: secrets
         secret:
@@ -114,7 +114,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: grafana-agent-example-config
+  name: grafana-agent-example-shared
   namespace: default
   labels:
     app.kubernetes.io/managed-by: grafana-agent-operator
@@ -123,7 +123,7 @@ metadata:
     kind: GrafanaAgent
     name: grafana-agent-example
 # We don't test the contents of the secret here; we use unit-level tests for
-# asserting that the generated config is correct.
+# asserting that the generated shared is correct.
 
 ---
 
