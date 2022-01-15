@@ -1,7 +1,9 @@
-package integrations
+package shared
 
 import (
 	"context"
+
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
 
 	"github.com/grafana/agent/pkg/util"
 )
@@ -21,11 +23,11 @@ var NoOpIntegration = FuncIntegration(func(ctx context.Context) error {
 // CompareConfigs will return true if a and b are equal. If neither a or b
 // implement ComparableConfig, then configs are compared by marshaling to YAML
 // and comparing the results.
-func CompareConfigs(a, b Config) bool {
-	if a, ok := a.(ComparableConfig); ok {
+func CompareConfigs(a, b v2.V2Config) bool {
+	if a, ok := a.(v2.ComparableConfig); ok {
 		return a.ConfigEquals(b)
 	}
-	if b, ok := b.(ComparableConfig); ok {
+	if b, ok := b.(v2.ComparableConfig); ok {
 		return b.ConfigEquals(a)
 	}
 	return util.CompareYAML(a, b)

@@ -1,4 +1,4 @@
-package integrations
+package shared
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -25,9 +27,9 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 		t.Helper()
 
 		cfg := mockConfigNameTuple(t, name, identifier)
-		cfg.NewIntegrationFunc = func(log.Logger, Globals) (Integration, error) {
+		cfg.NewIntegrationFunc = func(log.Logger, v2.Globals) (Integration, error) {
 			i := mockHTTPIntegration{
-				Integration: NoOpIntegration,
+				Integration: v2.NoOpIntegration,
 				HandlerFunc: func(prefix string) (http.Handler, error) {
 					*prefixes = append(*prefixes, prefix)
 					return http.NotFoundHandler(), nil
@@ -42,17 +44,17 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 	t.Run("fully unique", func(t *testing.T) {
 		var prefixes []string
 
-		ctrl, err := newController(
+		ctrl, err := v2.NewController(
 			util.TestLogger(t),
 			controllerConfig{
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "fizz", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
 			},
-			Globals{},
+			v2.Globals{},
 		)
 		require.NoError(t, err)
-		_ = newSyncController(t, ctrl)
+		_ = NewSyncController(t, ctrl)
 
 		_, err = ctrl.Handler("/integrations/")
 		require.NoError(t, err)
@@ -68,17 +70,17 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 	t.Run("multiple instances", func(t *testing.T) {
 		var prefixes []string
 
-		ctrl, err := newController(
+		ctrl, err := v2.NewController(
 			util.TestLogger(t),
 			controllerConfig{
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "foo", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
 			},
-			Globals{},
+			v2.Globals{},
 		)
 		require.NoError(t, err)
-		_ = newSyncController(t, ctrl)
+		_ = NewSyncController(t, ctrl)
 
 		_, err = ctrl.Handler("/integrations/")
 		require.NoError(t, err)
@@ -99,9 +101,9 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 		t.Helper()
 
 		cfg := mockConfigNameTuple(t, name, identifier)
-		cfg.NewIntegrationFunc = func(log.Logger, Globals) (Integration, error) {
+		cfg.NewIntegrationFunc = func(log.Logger, v2.Globals) (Integration, error) {
 			i := mockHTTPIntegration{
-				Integration: NoOpIntegration,
+				Integration: v2.NoOpIntegration,
 				HandlerFunc: func(prefix string) (http.Handler, error) {
 					return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 						fmt.Fprintf(rw, "prefix=%s, path=%s", prefix, r.URL.Path)
@@ -114,17 +116,17 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 		return cfg
 	}
 
-	ctrl, err := newController(
+	ctrl, err := v2.NewController(
 		util.TestLogger(t),
 		controllerConfig{
 			httpConfigFromID(t, "foo", "bar"),
 			httpConfigFromID(t, "foo", "buzz"),
 			httpConfigFromID(t, "hello", "world"),
 		},
-		Globals{},
+		v2.Globals{},
 	)
 	require.NoError(t, err)
-	_ = newSyncController(t, ctrl)
+	_ = NewSyncController(t, ctrl)
 
 	handler, err := ctrl.Handler("/integrations/")
 	require.NoError(t, err)
@@ -160,9 +162,9 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 // will work with nested routers.
 func Test_controller_HTTPIntegration_NestedRouting(t *testing.T) {
 	cfg := mockConfigNameTuple(t, "test", "test")
-	cfg.NewIntegrationFunc = func(log.Logger, Globals) (Integration, error) {
+	cfg.NewIntegrationFunc = func(log.Logger, v2.Globals) (Integration, error) {
 		i := mockHTTPIntegration{
-			Integration: NoOpIntegration,
+			Integration: v2.NoOpIntegration,
 			HandlerFunc: func(prefix string) (http.Handler, error) {
 				r := mux.NewRouter()
 				r.StrictSlash(true)
@@ -180,9 +182,9 @@ func Test_controller_HTTPIntegration_NestedRouting(t *testing.T) {
 		return i, nil
 	}
 
-	ctrl, err := newController(util.TestLogger(t), controllerConfig{cfg}, Globals{})
+	ctrl, err := v2.NewController(util.TestLogger(t), controllerConfig{cfg}, v2.Globals{})
 	require.NoError(t, err)
-	_ = newSyncController(t, ctrl)
+	_ = NewSyncController(t, ctrl)
 
 	handler, err := ctrl.Handler("/integrations/")
 	require.NoError(t, err)

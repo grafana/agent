@@ -1,4 +1,4 @@
-package integrations
+package shared
 
 import (
 	"context"
@@ -6,56 +6,19 @@ import (
 	"testing"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/atomic"
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
 )
-
-//
-// Tests for Controller's utilization of the core Integration interface.
-//
-
-// Test_controller_UniqueIdentifer ensures that integrations must not share a (name, id) tuple.
-func Test_controller_UniqueIdentifier(t *testing.T) {
-	controllerFromConfigs := func(t *testing.T, cc []Config) (*controller, error) {
-		t.Helper()
-		return newController(util.TestLogger(t), controllerConfig(cc), Globals{})
-	}
-
-	t.Run("different name, identifier", func(t *testing.T) {
-		_, err := controllerFromConfigs(t, []Config{
-			mockConfigNameTuple(t, "foo", "bar"),
-			mockConfigNameTuple(t, "fizz", "buzz"),
-		})
-		require.NoError(t, err)
-	})
-
-	t.Run("same name, different identifier", func(t *testing.T) {
-		_, err := controllerFromConfigs(t, []Config{
-			mockConfigNameTuple(t, "foo", "bar"),
-			mockConfigNameTuple(t, "foo", "buzz"),
-		})
-		require.NoError(t, err)
-	})
-
-	t.Run("same name, same identifier", func(t *testing.T) {
-		_, err := controllerFromConfigs(t, []Config{
-			mockConfigNameTuple(t, "foo", "bar"),
-			mockConfigNameTuple(t, "foo", "bar"),
-		})
-		require.Error(t, err, `multiple instance names "bar" in integration "foo"`)
-	})
-}
 
 // Test_controller_RunsIntegration ensures that integrations
 // run.
+/*
 func Test_controller_RunsIntegration(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	ctrl, err := newController(
+	ctrl, err := NewController(
 		util.TestLogger(t),
 		controllerConfig{
 			mockConfigForIntegration(t, FuncIntegration(func(ctx context.Context) error {
@@ -71,15 +34,17 @@ func Test_controller_RunsIntegration(t *testing.T) {
 
 	// Run the controller. The controller should immediately run our fake integration
 	// which will cancel ctx and cause ctrl to exit.
-	ctrl.run(ctx)
+	ctrl.Run(ctx)
 
 	// Make sure that our integration exited too.
 	wg.Wait()
 }
 
+*/
+
 // Test_controller_ConfigChanges ensures that integrations only get restarted
 // when configs are no longer equal.
-func Test_controller_ConfigChanges(t *testing.T) {
+/*func Test_controller_ConfigChanges(t *testing.T) {
 	tc := func(t *testing.T, changed bool) (timesRan uint64) {
 		t.Helper()
 
@@ -109,11 +74,11 @@ func Test_controller_ConfigChanges(t *testing.T) {
 		}
 
 		globals := Globals{}
-		ctrl, err := newController(util.TestLogger(t), cfg, globals)
+		ctrl, err := NewController(util.TestLogger(t), cfg, globals)
 		require.NoError(t, err, "failed to create controller")
 
-		sc := newSyncController(t, ctrl)
-		require.NoError(t, sc.UpdateController(cfg, globals), "failed to re-apply config")
+		sc := NewSyncController(t, ctrl)
+		require.NoError(t, sc.UpdateController(cfg, globals), "failed to re-apply shared")
 
 		// Wait for our integrations to have been started
 		integrationsWg.Wait()
@@ -132,18 +97,19 @@ func Test_controller_ConfigChanges(t *testing.T) {
 		require.Equal(t, uint64(2), starts, "integration should have started exactly twice")
 	})
 }
+*/
 
-type syncController struct {
-	inner   *controller
+type SyncController struct {
+	inner   *v2.Controller
 	applyWg sync.WaitGroup
 
 	stop     context.CancelFunc
 	exitedCh chan struct{}
 }
 
-// newSyncController makes calls to Controller synchronous. newSyncController
-// will start running the inner controller and wait for it to update.
-func newSyncController(t *testing.T, inner *controller) *syncController {
+// NewSyncController makes calls to Controller synchronous. NewSyncController
+// will start running the inner Controller and wait for it to update.
+func NewSyncController(t *testing.T, inner *v2.Controller) *SyncController {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -151,18 +117,18 @@ func newSyncController(t *testing.T, inner *controller) *syncController {
 		cancel()
 	})
 
-	sc := &syncController{
+	sc := &SyncController{
 		inner:    inner,
 		stop:     cancel,
 		exitedCh: make(chan struct{}),
 	}
-	inner.onUpdateDone = sc.applyWg.Done // Inform WG whenever an apply finishes
+	inner.OnUpdateDone = sc.applyWg.Done // Inform WG whenever an apply finishes
 
 	// There's always immediately ony applied queued from any successfully created controller.
 	sc.applyWg.Add(1)
 
 	go func() {
-		inner.run(ctx)
+		inner.Run(ctx)
 		close(sc.exitedCh)
 	}()
 
@@ -170,7 +136,7 @@ func newSyncController(t *testing.T, inner *controller) *syncController {
 	return sc
 }
 
-func (sc *syncController) UpdateController(c controllerConfig, g Globals) error {
+func (sc *SyncController) UpdateController(c v2.V2Integrations, g v2.Globals) error {
 	sc.applyWg.Add(1)
 
 	if err := sc.inner.UpdateController(c, g); err != nil {
@@ -182,7 +148,7 @@ func (sc *syncController) UpdateController(c controllerConfig, g Globals) error 
 	return nil
 }
 
-func (sc *syncController) Stop() {
+func (sc *SyncController) Stop() {
 	sc.stop()
 	<-sc.exitedCh
 }
@@ -191,10 +157,10 @@ const mockIntegrationName = "mock"
 
 type mockConfig struct {
 	NameFunc           func() string
-	ApplyDefaultsFunc  func(Globals) error
+	ApplyDefaultsFunc  func(v2.Globals) error
 	ConfigEqualsFunc   func(Config) bool
-	IdentifierFunc     func(Globals) (string, error)
-	NewIntegrationFunc func(log.Logger, Globals) (Integration, error)
+	IdentifierFunc     func(v2.Globals) (string, error)
+	NewIntegrationFunc func(log.Logger, v2.Globals) (Integration, error)
 }
 
 func (mc mockConfig) Name() string {
@@ -208,19 +174,19 @@ func (mc mockConfig) ConfigEquals(c Config) bool {
 	return false
 }
 
-func (mc mockConfig) ApplyDefaults(g Globals) error {
+func (mc mockConfig) ApplyDefaults(g v2.Globals) error {
 	return mc.ApplyDefaultsFunc(g)
 }
 
-func (mc mockConfig) Identifier(g Globals) (string, error) {
+func (mc mockConfig) Identifier(g v2.Globals) (string, error) {
 	return mc.IdentifierFunc(g)
 }
 
-func (mc mockConfig) NewIntegration(l log.Logger, g Globals) (Integration, error) {
+func (mc mockConfig) NewIntegration(l log.Logger, g v2.Globals) (Integration, error) {
 	return mc.NewIntegrationFunc(l, g)
 }
 
-func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integration, error)) mockConfig {
+func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, v2.Globals) (Integration, error)) mockConfig {
 	return mockConfig{
 		NameFunc:           mc.NameFunc,
 		ApplyDefaultsFunc:  mc.ApplyDefaultsFunc,
@@ -230,6 +196,7 @@ func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integra
 	}
 }
 
+/*
 func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 	t.Helper()
 
@@ -242,18 +209,18 @@ func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 		},
 	}
 }
-
+*/
 // mockConfigForIntegration returns a Config that will always return i.
 func mockConfigForIntegration(t *testing.T, i Integration) mockConfig {
 	t.Helper()
 
 	return mockConfig{
 		NameFunc:          func() string { return mockIntegrationName },
-		ApplyDefaultsFunc: func(g Globals) error { return nil },
-		IdentifierFunc: func(Globals) (string, error) {
+		ApplyDefaultsFunc: func(g v2.Globals) error { return nil },
+		IdentifierFunc: func(v2.Globals) (string, error) {
 			return mockIntegrationName, nil
 		},
-		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
+		NewIntegrationFunc: func(log.Logger, v2.Globals) (Integration, error) {
 			return i, nil
 		},
 	}

@@ -1,4 +1,4 @@
-// Package integrations provides a way to run and manage Grafana Agent
+// Package shared provides a way to run and manage Grafana Agent
 // "integrations," which integrate some external system (such as MySQL) to
 // Grafana Agent's existing metrics, logging, and tracing subsystems.
 //
@@ -16,13 +16,15 @@
 // Extension interfaces are used by the integrations subsystem to enable
 // common use cases. New behaviors can be implemented by manually using
 // the other subsystems of the agent provided in IntegrationOptions.
-package integrations
+package shared
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 	"net/url"
+
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
@@ -34,13 +36,13 @@ import (
 )
 
 var (
-	// ErrInvalidUpdate is returned by ApplyConfig when the config cannot
+	// ErrInvalidUpdate is returned by ApplyConfig when the shared cannot
 	// be dynamically applied.
 	ErrInvalidUpdate = fmt.Errorf("invalid dynamic update")
 )
 
-// Config provides a configuration and constructor for an integration.
-type Config interface {
+// V2Config provides a configuration and constructor for an integration.
+type V2Config interface {
 	// Name returns the YAML field name of the integration. Name is used
 	// when unmarshaling the Config from YAML.
 	Name() string
@@ -62,15 +64,15 @@ type Config interface {
 	// NewIntegration must be idempotent for a Config. Use
 	// Integration.RunIntegration to do anything with side effects, such as
 	// opening a port.
-	NewIntegration(log.Logger, Globals) (Integration, error)
+	NewIntegration(log.Logger, Globals) (V2Integration, error)
 }
 
 // ComparableConfig extends Config with an ConfigEquals method.
 type ComparableConfig interface {
-	Config
+	V2Config
 
 	// ConfigEquals should return true if c is equal to the ComparableConfig.
-	ConfigEquals(c Config) bool
+	ConfigEquals(c V2Config) bool
 }
 
 // Globals are used to pass around subsystem-wide settings that integrations
@@ -92,7 +94,7 @@ type Globals struct {
 	Tracing *traces.Traces // Traces subsystem
 
 	// Options the integations subsystem is using.
-	SubsystemOpts SubsystemOptions
+	SubsystemOpts v2.SubsystemOptions
 	// BaseURL to use to invoke methods against the embedded HTTP server.
 	AgentBaseURL *url.URL
 }
@@ -111,31 +113,31 @@ func (g Globals) CloneAgentBaseURL() *url.URL {
 	return u
 }
 
-// An Integration integrates some external system with Grafana Agent's existing
+// V2Integration integrates some external system with Grafana Agent's existing
 // subsystems.
 //
 // All integrations must at least implement this interface. More behaviors
 // can be added by implementing additional *Integration interfaces, such
 // as HTTPIntegration.
-type Integration interface {
+type V2Integration interface {
 	// RunIntegration starts the integration and performs background tasks. It
 	// must not return until ctx is canceled, even if there is no work to do.
 	RunIntegration(ctx context.Context) error
 }
 
-// UpdateIntegration is an Integration whose config can be updated
+// UpdateIntegration is an Integration whose shared can be updated
 // dynamically. Integrations that do not implement this interface will be shut
 // down and re-instantiated with the new Config.
 type UpdateIntegration interface {
 	Integration
 
-	// ApplyConfig should apply the config c to the integration. An error can be
-	// returned if the Config is invalid. When this happens, the old config will
+	// ApplyConfig should apply the shared c to the integration. An error can be
+	// returned if the Config is invalid. When this happens, the old shared will
 	// continue to run.
 	//
 	// If ApplyConfig returns ErrInvalidUpdate, the integration will be
 	// recreated.
-	ApplyConfig(c Config, g Globals) error
+	ApplyConfig(c V2Config, g Globals) error
 }
 
 // HTTPIntegration is an integration that exposes an HTTP handler.
@@ -160,7 +162,7 @@ type HTTPIntegration interface {
 // to expose metrics. See HTTPIntegration for more information about how
 // HTTP works with integrations.
 type MetricsIntegration interface {
-	Integration
+	V2Integration
 
 	// Targets should return the current set of active targets exposed by this
 	// integration. Targets may be called multiple times throughout the lifecycle
@@ -174,7 +176,7 @@ type MetricsIntegration interface {
 	// ScrapeConfigs configures automatic scraping of targets. ScrapeConfigs
 	// is optional if an integration should not scrape itself.
 	//
-	// Unlike Targets, ScrapeConfigs is only called once per config load, and may be
+	// Unlike Targets, ScrapeConfigs is only called once per shared load, and may be
 	// called before the integration runs. Use the provided discovery.Configs to
 	// discover the targets exposed by this integration.
 	ScrapeConfigs(discovery.Configs) []*autoscrape.ScrapeConfig
