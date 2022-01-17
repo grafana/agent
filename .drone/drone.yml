@@ -48,9 +48,9 @@ steps:
       - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
       - gem install --no-document fpm
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator cmd/grafana-agent-crow/grafana-agent-crow
       - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
@@ -80,9 +80,9 @@ steps:
       - apt-get update &&  apt-get install -y rubygems rpm nsis
       - gem install --no-document fpm
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make DRONE=true BUILD_IN_CONTAINER=false dist
 depends_on:
@@ -217,9 +217,9 @@ steps:
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
