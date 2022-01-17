@@ -81,5 +81,6 @@ func newConfigMeta(c interface{}, defaultConfig interface{}, p shared.Type) conf
 		DefaultConfig: dc,
 		PackageName:   packageName,
 		Type:          p,
+		IsNativeV2:    false,
 	}
 }

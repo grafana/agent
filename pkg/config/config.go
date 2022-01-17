@@ -10,6 +10,8 @@ import (
 	"testing"
 	"unicode"
 
+	"github.com/grafana/agent/pkg/integrations"
+
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -42,17 +44,17 @@ var (
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
 	Metrics:               metrics.DefaultConfig,
-	Integrations:          DefaultVersionedIntegrations,
+	Integrations:          integrations.DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
 }
 
 // Config contains underlying configurations for the agent
 type Config struct {
-	Server       server.Config         `yaml:"server,omitempty"`
-	Metrics      metrics.Config        `yaml:"metrics,omitempty"`
-	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
-	Traces       traces.Config         `yaml:"traces,omitempty"`
-	Logs         *logs.Config          `yaml:"logs,omitempty"`
+	Server       server.Config                      `yaml:"server,omitempty"`
+	Metrics      metrics.Config                     `yaml:"metrics,omitempty"`
+	Integrations integrations.VersionedIntegrations `yaml:"integrations,omitempty"`
+	Traces       traces.Config                      `yaml:"traces,omitempty"`
+	Logs         *logs.Config                       `yaml:"logs,omitempty"`
 
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
@@ -179,7 +181,7 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 	}
 
 	// since the Traces config might rely on an existing Loki config
-	// this check is made here to look for cross config issues before we attempt to load
+	// this check is made here to look for cross config issues before we attempt to LoadTest
 	if err := c.Traces.Validate(c.Logs); err != nil {
 		return err
 	}
@@ -298,7 +300,7 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string) (*Config, error) {
-	return load(fs, args, func(url string, expand bool, c *Config) error {
+	return LoadTest(fs, args, func(url string, expand bool, c *Config) error {
 		if features.Enabled(fs, featRemoteConfigs) {
 			return LoadRemote(url, expand, c)
 		}
@@ -306,9 +308,9 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 	})
 }
 
-// load allows for tests to inject a function for retrieving the config file that
+// LoadTest allows for tests to inject a function for retrieving the config file that
 // doesn't require having a literal file on disk.
-func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) error) (*Config, error) {
+func LoadTest(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) error) (*Config, error) {
 	var (
 		cfg = DefaultConfig
 
@@ -317,7 +319,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		configExpandEnv bool
 	)
 
-	fs.StringVar(&file, "config.file", "", "configuration file to load")
+	fs.StringVar(&file, "config.file", "", "configuration file to LoadTest")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	cfg.RegisterFlags(fs)
@@ -346,12 +348,12 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 
 	// Complete unmarshaling integrations using the version from the flag. This
 	// MUST be called before ApplyDefaults.
-	version := integrationsVersion1
+	version := integrations.IntegrationsVersion1
 	if features.Enabled(fs, featIntegrationsNext) {
-		version = integrationsVersion2
+		version = integrations.IntegrationsVersion2
 	}
 	// Logging isnt initialized yet
-	if err := cfg.Integrations.setVersion(version, log.NewJSONLogger(os.Stdout)); err != nil {
+	if err := cfg.Integrations.SetVersion(version, log.NewJSONLogger(os.Stdout)); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}
 

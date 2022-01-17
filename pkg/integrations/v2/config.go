@@ -45,6 +45,7 @@ type Integrations struct {
 	RedisExporterConfigs         []*RedisExporter         `yaml:"redis_exporter_configs,omitempty"`
 	StatsdExporter               *StatsdExporter          `yaml:"statsd_exporter,omitempty"`
 	WindowsExporter              *WindowsExporter         `yaml:"windows_exporter,omitempty"`
+	TestConfigs                  []Config                 `yaml:"-,omitempty"`
 }
 
 func (v *Integrations) ActiveConfigs() []Config {
@@ -96,6 +97,9 @@ func (v *Integrations) ActiveConfigs() []Config {
 	}
 	if v.WindowsExporter != nil {
 		activeConfigs = append(activeConfigs, v.WindowsExporter)
+	}
+	for _, i := range v.TestConfigs {
+		activeConfigs = append(activeConfigs, i)
 	}
 	return activeConfigs
 }

@@ -37,17 +37,22 @@ func (c *{{ .Name }}) UnmarshalYAML(unmarshal func(interface{}) error) error {
 `)
 	v1Template, err := template.New("v1").Parse(`
 type V1Integration struct {
-  {{ range $index, $element := . }}{{ $element.Name }} *{{$element.Name}} ` + "`yaml:\"{{ $element.PackageName }},omitempty\"`\n" +
-		`{{ end }}
+  {{ range $index, $element := . -}}
+	{{ $element.Name }} *{{$element.Name}} ` + "`yaml:\"{{ $element.PackageName }},omitempty\"`\n" +
+		`{{ end -}}
+   TestConfigs []shared.V1IntegrationConfig ` + "`yaml:\"-,omitempty\"`\n" + `
 }
 
 func (v *V1Integration) ActiveConfigs() []shared.V1IntegrationConfig {
     activeConfigs := make([]shared.V1IntegrationConfig,0)
-	{{ range $index, $element := . }}
+	{{ range $index, $element := . -}}
 	if v.{{ $element.Name }} != nil {
         activeConfigs = append(activeConfigs, v.{{ $element.Name}})
     }
-	{{ end }}
+	{{ end -}}
+    for _, i := range v.TestConfigs {
+        activeConfigs = append(activeConfigs, i)
+    }
     return activeConfigs
 }
 `)
@@ -120,6 +125,8 @@ func (c *{{ .Name }}) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 {{ end }}
 
+{{ if eq .IsNativeV2 false -}}
+
 func (c*{{ .Name }}) ApplyDefaults(globals Globals) error {
 	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 	if id, err := c.Identifier(globals); err == nil {
@@ -138,6 +145,24 @@ func (c *{{ .Name }}) Identifier(globals Globals) (string, error) {
 func (c *{{ .Name }}) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
 	return newIntegration(c, logger, globals, c.Config.NewIntegration)
 }
+
+{{ end -}}
+
+{{ if eq .IsNativeV2 true -}}
+
+func (c*{{ .Name }}) ApplyDefaults(globals Globals) error {
+	return c.Config.ApplyDefaults(globals)
+}
+
+func (c *{{ .Name }}) Identifier(globals Globals) (string, error) {
+	return c.Config.Identifier(globals)
+}
+
+func (c *{{ .Name }}) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
+	return c.Config.NewIntegration(logger,globals)
+}
+
+{{ end -}}
 `)
 	// Type: 1 = Singleton, 2 = Multiplex
 	v2template, err := template.New("v1").Parse(`
@@ -150,6 +175,8 @@ type Integrations struct {
        {{ $element.Name }}Configs []*{{$element.Name}} ` + "`yaml:\"{{ $element.PackageName }}_configs,omitempty\"`" + `
     {{ end -}}
     {{ end -}}
+   TestConfigs []Config  ` + "`yaml:\"-,omitempty\"`\n" + `
+
 }
 
 func (v *Integrations) ActiveConfigs() []Config {
@@ -166,22 +193,25 @@ func (v *Integrations) ActiveConfigs() []Config {
 	}
     {{ end -}}
 	{{ end -}}
+    for _, i := range v.TestConfigs {
+        activeConfigs = append(activeConfigs, i)
+    }
     return activeConfigs
 }
 `)
 	if err != nil {
 		panic(err)
 	}
-	v1ConfigBuilder := strings.Builder{}
-	v1ConfigBuilder.WriteString("package v2\n")
-	v1ConfigBuilder.WriteString(`
+	v2ConfigBuilder := strings.Builder{}
+	v2ConfigBuilder.WriteString("package v2\n")
+	v2ConfigBuilder.WriteString(`
 import (
 "context"
 	"errors"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/grafana/agent/pkg/integrations/v1/agent"
-	"github.com/grafana/agent/pkg/integrations/v1/cadvisor"
+    "github.com/grafana/agent/pkg/integrations/v1/cadvisor"
 	"github.com/grafana/agent/pkg/integrations/v1/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/v1/dnsmasq_exporter"
 	"github.com/grafana/agent/pkg/integrations/v1/elasticsearch_exporter"
@@ -196,6 +226,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v1/redis_exporter"
 	"github.com/grafana/agent/pkg/integrations/v1/statsd_exporter"
 	"github.com/grafana/agent/pkg/integrations/v1/windows_exporter"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 )
 `)
 	v1Buffer := bytes.Buffer{}
@@ -204,7 +235,7 @@ import (
 		panic(err)
 	}
 
-	v1ConfigBuilder.WriteString(v1Buffer.String())
+	v2ConfigBuilder.WriteString(v1Buffer.String())
 
 	for _, cfg := range configs {
 		bf := bytes.Buffer{}
@@ -212,10 +243,10 @@ import (
 		if err != nil {
 			panic(err)
 		}
-		v1ConfigBuilder.WriteString(bf.String())
+		v2ConfigBuilder.WriteString(bf.String())
 	}
-	v1ConfigBuilder.WriteString(`
-func newIntegration(c V2IntegrationConfig, logger log.Logger, globals Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
+	v2ConfigBuilder.WriteString(`
+func newIntegration(c IntegrationConfig, logger log.Logger, globals Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
 
 	v1Integration, err := newInt(logger)
 	if err != nil {
@@ -285,7 +316,7 @@ func newIntegration(c V2IntegrationConfig, logger log.Logger, globals Globals, n
 	}, nil
 }
 `)
-	return v1ConfigBuilder.String()
+	return v2ConfigBuilder.String()
 }
 
 type configMeta struct {
@@ -294,4 +325,5 @@ type configMeta struct {
 	DefaultConfig string
 	PackageName   string
 	Type          shared.Type
+	IsNativeV2    bool
 }

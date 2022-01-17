@@ -94,7 +94,7 @@ func generateLogsDaemonSetSpec(
 	}
 
 	agentArgs := []string{
-		"-shared.file=/var/lib/grafana-agent/shared/agent.yml",
+		"-config.file=/var/lib/grafana-agent/shared/agent.yml",
 		"-shared.expand-env=true",
 		"-reload-port=8081",
 	}

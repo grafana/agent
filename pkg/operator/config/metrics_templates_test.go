@@ -661,7 +661,7 @@ func TestSafeTLSConfig(t *testing.T) {
 			name: "configmap",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"shared": prom_v1.SafeTLSConfig{
+				"config": prom_v1.SafeTLSConfig{
 					ServerName:         "server",
 					InsecureSkipVerify: true,
 					CA: prom_v1.SecretOrConfigMap{
@@ -694,7 +694,7 @@ func TestSafeTLSConfig(t *testing.T) {
 			name: "secrets",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"shared": prom_v1.SafeTLSConfig{
+				"config": prom_v1.SafeTLSConfig{
 					ServerName:         "server",
 					InsecureSkipVerify: true,
 					CA: prom_v1.SecretOrConfigMap{
@@ -730,7 +730,7 @@ func TestSafeTLSConfig(t *testing.T) {
 			vm, err := createVM(testStore())
 			require.NoError(t, err)
 
-			args := []string{"namespace", "shared"}
+			args := []string{"namespace", "config"}
 			for _, arg := range args {
 				bb, err := jsonnetMarshal(tc.input[arg])
 				require.NoError(t, err)
@@ -868,7 +868,7 @@ func TestTLSConfig(t *testing.T) {
 			name: "passthrough",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"shared": prom_v1.TLSConfig{
+				"config": prom_v1.TLSConfig{
 					SafeTLSConfig: prom_v1.SafeTLSConfig{
 						ServerName:         "server",
 						InsecureSkipVerify: true,
@@ -903,7 +903,7 @@ func TestTLSConfig(t *testing.T) {
 			name: "overrides",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"shared": prom_v1.TLSConfig{
+				"config": prom_v1.TLSConfig{
 					SafeTLSConfig: prom_v1.SafeTLSConfig{
 						ServerName:         "server",
 						InsecureSkipVerify: true,
@@ -944,7 +944,7 @@ func TestTLSConfig(t *testing.T) {
 			vm, err := createVM(testStore())
 			require.NoError(t, err)
 
-			args := []string{"namespace", "shared"}
+			args := []string{"namespace", "config"}
 			for _, arg := range args {
 				bb, err := jsonnetMarshal(tc.input[arg])
 				require.NoError(t, err)

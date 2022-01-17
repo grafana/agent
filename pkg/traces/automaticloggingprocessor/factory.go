@@ -77,7 +77,7 @@ func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 			}
 		}
 		if !found {
-			return fmt.Errorf("specified logs shared %s not found in agent shared", c.LogsName)
+			return fmt.Errorf("specified logs config %s not found in agent config", c.LogsName)
 		}
 	}
 

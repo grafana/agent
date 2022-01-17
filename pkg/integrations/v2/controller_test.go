@@ -5,6 +5,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
+	"github.com/prometheus/prometheus/discovery"
+	"github.com/prometheus/prometheus/discovery/targetgroup"
+
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -60,7 +64,7 @@ func Test_controller_ConfigChanges(t *testing.T) {
 		})
 
 		cfg := NewMockIntegrationConfigs(
-			mockConfig{
+			&mockConfig{
 				NameFunc:          func() string { return mockIntegrationName },
 				ConfigEqualsFunc:  func(Config) bool { return !changed },
 				ApplyDefaultsFunc: func(g Globals) error { return nil },
@@ -155,6 +159,10 @@ func (sc *SyncController) Stop() {
 
 const mockIntegrationName = "mock"
 
+var (
+	_ MetricsIntegration = (*mockConfig)(nil)
+)
+
 type mockConfig struct {
 	NameFunc           func() string
 	ApplyDefaultsFunc  func(Globals) error
@@ -163,31 +171,51 @@ type mockConfig struct {
 	NewIntegrationFunc func(log.Logger, Globals) (Integration, error)
 }
 
-func (mc mockConfig) Name() string {
+func (mc *mockConfig) RunIntegration(ctx context.Context) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc *mockConfig) Targets(ep Endpoint) []*targetgroup.Group {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc *mockConfig) ScrapeConfigs(configs discovery.Configs) []*autoscrape.ScrapeConfig {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc *mockConfig) InstanceKey(agentKey string) (string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc *mockConfig) Name() string {
 	return mc.NameFunc()
 }
 
-func (mc mockConfig) ConfigEquals(c Config) bool {
+func (mc *mockConfig) ConfigEquals(c Config) bool {
 	if mc.ConfigEqualsFunc != nil {
 		return mc.ConfigEqualsFunc(c)
 	}
 	return false
 }
 
-func (mc mockConfig) ApplyDefaults(g Globals) error {
+func (mc *mockConfig) ApplyDefaults(g Globals) error {
 	return mc.ApplyDefaultsFunc(g)
 }
 
-func (mc mockConfig) Identifier(g Globals) (string, error) {
+func (mc *mockConfig) Identifier(g Globals) (string, error) {
 	return mc.IdentifierFunc(g)
 }
 
-func (mc mockConfig) NewIntegration(l log.Logger, g Globals) (Integration, error) {
+func (mc *mockConfig) NewIntegration(l log.Logger, g Globals) (Integration, error) {
 	return mc.NewIntegrationFunc(l, g)
 }
 
-func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integration, error)) mockConfig {
-	return mockConfig{
+func (mc *mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integration, error)) *mockConfig {
+	return &mockConfig{
 		NameFunc:           mc.NameFunc,
 		ApplyDefaultsFunc:  mc.ApplyDefaultsFunc,
 		ConfigEqualsFunc:   mc.ConfigEqualsFunc,
@@ -196,10 +224,10 @@ func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integra
 	}
 }
 
-func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
+func mockConfigNameTuple(t *testing.T, name, id string) *mockConfig {
 	t.Helper()
 
-	return mockConfig{
+	return &mockConfig{
 		NameFunc:          func() string { return name },
 		IdentifierFunc:    func(_ Globals) (string, error) { return id, nil },
 		ApplyDefaultsFunc: func(g Globals) error { return nil },
@@ -210,10 +238,10 @@ func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 }
 
 // mockConfigForIntegration returns a Config that will always return i.
-func mockConfigForIntegration(t *testing.T, i Integration) mockConfig {
+func mockConfigForIntegration(t *testing.T, i Integration) *mockConfig {
 	t.Helper()
 
-	return mockConfig{
+	return &mockConfig{
 		NameFunc:          func() string { return mockIntegrationName },
 		ApplyDefaultsFunc: func(g Globals) error { return nil },
 		IdentifierFunc: func(Globals) (string, error) {

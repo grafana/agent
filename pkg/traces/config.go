@@ -86,7 +86,7 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 	for _, inst := range c.Configs {
 		if inst.AutomaticLogging != nil {
 			if err := inst.AutomaticLogging.Validate(logsConfig); err != nil {
-				return fmt.Errorf("failed to validate automatic_logging for traces shared %s: %w", inst.Name, err)
+				return fmt.Errorf("failed to validate automatic_logging for traces config %s: %w", inst.Name, err)
 			}
 		}
 	}

@@ -17,11 +17,11 @@ integrations:
     enabled: true`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-shared.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := LoadTest(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.NotNil(t, c.Integrations.configV1)
+	require.NotNil(t, c.Integrations.ConfigV1)
 }
 
 func TestIntegrations_v2(t *testing.T) {
@@ -35,9 +35,9 @@ integrations:
       enable: false`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-shared.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
+	c, err := LoadTest(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.NotNil(t, c.Integrations.configV2)
+	require.NotNil(t, c.Integrations.ConfigV2)
 }

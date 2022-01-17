@@ -37,76 +37,63 @@ ProcessExporter *ProcessExporter `yaml:"process_exporter,omitempty"`
 RedisExporter *RedisExporter `yaml:"redis_exporter,omitempty"`
 StatsdExporter *StatsdExporter `yaml:"statsd_exporter,omitempty"`
 WindowsExporter *WindowsExporter `yaml:"windows_exporter,omitempty"`
+TestConfigs []shared.V1IntegrationConfig `yaml:"-,omitempty"`
 
 }
 
 func (v *V1Integration) ActiveConfigs() []shared.V1IntegrationConfig {
     activeConfigs := make([]shared.V1IntegrationConfig,0)
-	
 	if v.Agent != nil {
         activeConfigs = append(activeConfigs, v.Agent)
     }
-	
 	if v.Cadvisor != nil {
         activeConfigs = append(activeConfigs, v.Cadvisor)
     }
-	
 	if v.ConsulExporter != nil {
         activeConfigs = append(activeConfigs, v.ConsulExporter)
     }
-	
 	if v.DnsmasqExporter != nil {
         activeConfigs = append(activeConfigs, v.DnsmasqExporter)
     }
-	
 	if v.ElasticsearchExporter != nil {
         activeConfigs = append(activeConfigs, v.ElasticsearchExporter)
     }
-	
 	if v.GithubExporter != nil {
         activeConfigs = append(activeConfigs, v.GithubExporter)
     }
-	
 	if v.KafkaExporter != nil {
         activeConfigs = append(activeConfigs, v.KafkaExporter)
     }
-	
 	if v.MemcachedExporter != nil {
         activeConfigs = append(activeConfigs, v.MemcachedExporter)
     }
-	
 	if v.MongodbExporter != nil {
         activeConfigs = append(activeConfigs, v.MongodbExporter)
     }
-	
 	if v.MysqldExporter != nil {
         activeConfigs = append(activeConfigs, v.MysqldExporter)
     }
-	
 	if v.NodeExporter != nil {
         activeConfigs = append(activeConfigs, v.NodeExporter)
     }
-	
 	if v.PostgresExporter != nil {
         activeConfigs = append(activeConfigs, v.PostgresExporter)
     }
-	
 	if v.ProcessExporter != nil {
         activeConfigs = append(activeConfigs, v.ProcessExporter)
     }
-	
 	if v.RedisExporter != nil {
         activeConfigs = append(activeConfigs, v.RedisExporter)
     }
-	
 	if v.StatsdExporter != nil {
         activeConfigs = append(activeConfigs, v.StatsdExporter)
     }
-	
 	if v.WindowsExporter != nil {
         activeConfigs = append(activeConfigs, v.WindowsExporter)
     }
-	
+	for _, i := range v.TestConfigs {
+        activeConfigs = append(activeConfigs, i)
+    }
     return activeConfigs
 }
 
