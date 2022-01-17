@@ -249,7 +249,7 @@ func TestPodAssociation(t *testing.T) {
 			expectedIP: ipStr,
 		},
 		{
-			name: "connection IP is empty",
+			name:            "connection IP is empty",
 			podAssociations: []string{podAssociationConnectionIP},
 			ctxFn: func(t *testing.T) context.Context {
 				c := client.FromContext(context.Background())
