@@ -249,6 +249,16 @@ func TestPodAssociation(t *testing.T) {
 			expectedIP: ipStr,
 		},
 		{
+			name: "connection IP is empty",
+			podAssociations: []string{podAssociationConnectionIP},
+			ctxFn: func(t *testing.T) context.Context {
+				c := client.FromContext(context.Background())
+				return client.NewContext(context.Background(), c)
+			},
+			attrMapFn:  func(*testing.T) pdata.AttributeMap { return pdata.NewAttributeMap() },
+			expectedIP: "",
+		},
+		{
 			name:  "ip attribute",
 			ctxFn: func(t *testing.T) context.Context { return context.Background() },
 			attrMapFn: func(*testing.T) pdata.AttributeMap {
