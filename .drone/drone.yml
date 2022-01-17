@@ -47,6 +47,7 @@ steps:
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
       - gem install --no-document fpm
+      - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
       - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
       - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
@@ -249,6 +250,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 134e23b902857b77e9b594aa0a17e53b72ee33122e4b02d0a0cf1802ea403aab
+hmac: 70d7c1d543da41f51387bfa6bee66a3ba93cb0f6fb858fe4fee552dc9ba27b2c
 
 ...
