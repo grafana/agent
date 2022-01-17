@@ -1,6 +1,6 @@
 module github.com/grafana/agent
 
-go 1.16
+go 1.17
 
 require (
 	cloud.google.com/go/pubsub v1.5.0 // indirect
