@@ -55,6 +55,8 @@ for detailed information.
 - [BUGFIX] Grafana Agent Operator: The /-/ready and /-/healthy endpoints will
   no longer always return 404 (@rfratto).
 
+- [BUGFIX] Fix panic in prom_sd_processor when address is empty (@mapno)
+
 - [DEPRECATION] The node_exporter integration's `netdev_device_whitelist` field
   is deprecated in favor of `netdev_device_include`. Support for the old field
   name will be removed in a future version. (@rfratto)
