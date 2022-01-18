@@ -79,7 +79,7 @@ func (m *GroupManager) GetInstance(name string) (ManagedInstance, error) {
 }
 
 // ListInstances returns all currently grouped managed instances. The key
-// will be the group's hash of config settings.
+// will be the group's hash of shared settings.
 func (m *GroupManager) ListInstances() map[string]ManagedInstance {
 	return m.inner.ListInstances()
 }

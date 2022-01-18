@@ -251,7 +251,7 @@ func testForArbitraryFSAccess(e prom.Endpoint) error {
 	}
 
 	if e.TLSConfig.CAFile != "" || e.TLSConfig.CertFile != "" || e.TLSConfig.KeyFile != "" {
-		return fmt.Errorf("it accesses file system via TLS shared which is disallowed via GrafanaAgent specification")
+		return fmt.Errorf("it accesses file system via TLS config which is disallowed via GrafanaAgent specification")
 	}
 
 	return nil
