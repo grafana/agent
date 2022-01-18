@@ -33,7 +33,7 @@ agent:
   # prometheus.global.scrape_interval.
   [scrape_interval: <duration> | default = <global_config.scrape_interval>]
 
-  # The timtout before considering the scrape a failure. Defaults to
+  # The timeout before considering the scrape a failure. Defaults to
   # prometheus.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
