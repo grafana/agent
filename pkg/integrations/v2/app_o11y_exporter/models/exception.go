@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/utils"
 	loki "github.com/prometheus/common/model"
 )
 
@@ -64,4 +65,15 @@ func (e Exception) LabelSet() loki.LabelSet {
 	labels["value"] = loki.LabelValue(e.Value)
 
 	return labels
+}
+
+// KeyVal representation of the exception object
+func (e Exception) KeyVal() *utils.KeyVal {
+	kv := utils.NewKeyVal()
+	utils.KeyValAdd(kv, "timestamp", e.Timestamp.String())
+	utils.KeyValAdd(kv, "kind", "exception")
+	utils.KeyValAdd(kv, "type", e.Type)
+	utils.KeyValAdd(kv, "value", e.Value)
+	utils.KeyValAdd(kv, "stacktrace", e.String())
+	return kv
 }

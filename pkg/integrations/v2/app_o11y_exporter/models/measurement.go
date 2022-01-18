@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/utils"
 )
 
 // Measurement holds the data for user provided measurements
@@ -41,4 +43,17 @@ func (m *Measurement) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+// KeyVal representation of the exception object
+func (m Measurement) KeyVal() *utils.KeyVal {
+	kv := utils.NewKeyVal()
+
+	utils.KeyValAdd(kv, "timestamp", m.Timestamp.String())
+	utils.KeyValAdd(kv, "kind", "measurement")
+	utils.KeyValAdd(kv, "type", m.Type)
+	for k, v := range m.Values {
+		utils.KeyValAdd(kv, k, fmt.Sprintf("%f", v))
+	}
+	return kv
 }

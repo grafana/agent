@@ -25,8 +25,10 @@ var DefaultConfig = AppExporterConfig{
 		Host: "0.0.0.0",
 		Port: 8080,
 	},
-	LogsInstance: "default",
-	Measurements: []Measurement{},
+	LogsInstance:    "default",
+	Measurements:    []Measurement{},
+	ExtraLokiLabels: map[string]string{},
+	LokiSendTimeout: 2000,
 }
 
 // ServerConfig holds the receiver http server configuration
@@ -57,6 +59,8 @@ type AppExporterConfig struct {
 	Server                ServerConfig       `yaml:"server,omitempty"`
 	LogsInstance          string             `yaml:"logs_instance"`
 	Measurements          []Measurement      `yaml:"custom_measurements"`
+	ExtraLokiLabels       map[string]string  `yaml:"extra_loki_lablels"`
+	LokiSendTimeout       int                `yaml:"loki_send_timeout"`
 }
 
 // UnmarshalYAML implements the Unmarshaller interface

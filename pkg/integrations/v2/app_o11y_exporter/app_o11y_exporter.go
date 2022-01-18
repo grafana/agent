@@ -76,26 +76,24 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 
 	reg := prometheus.NewRegistry()
 
-	lokiExceptionExporter, err := exporters.NewLokiExceptionExporter(
-		globals.Logs.Instance(c.ExporterConfig.LogsInstance),
-	)
-
 	if err != nil {
 		return nil, err
 	}
 
 	lokiExporter := exporters.NewLokiExporter(
-		globals.Logs.Instance(c.ExporterConfig.LogsInstance),
-		exporters.LokiExporterConfig{SendEntryTimeout: 2000},
+		l,
+		exporters.LokiExporterConfig{
+			LokiInstance:     globals.Logs.Instance(c.ExporterConfig.LogsInstance),
+			ExtraLabels:      c.ExporterConfig.ExtraLokiLabels,
+			SendEntryTimeout: int(c.ExporterConfig.LokiSendTimeout),
+		},
 	)
 
 	measurementsPromExporter := exporters.NewPrometheusMetricsExporter(reg, c.ExporterConfig.Measurements)
 
 	var exp = []exporters.AppReceiverExporter{
-		// Logs
+		// Loki
 		lokiExporter,
-		// Exceptions
-		lokiExceptionExporter,
 		// Measurements
 		measurementsPromExporter,
 	}

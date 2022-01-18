@@ -1,10 +1,9 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
-	loki "github.com/prometheus/common/model"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/utils"
 )
 
 // LogLevel is an alias for string
@@ -35,16 +34,13 @@ type Log struct {
 	Timestamp time.Time  `json:"timestamp"`
 }
 
-// LabelSet creates the collection of labels required to export
-// the Log into Loki
-func (l Log) LabelSet() loki.LabelSet {
-	labels := make(loki.LabelSet, len(l.Context)+1)
-
-	for k, v := range l.Context {
-		labels[loki.LabelName(fmt.Sprintf("context_%s", k))] = loki.LabelValue(v)
-	}
-
-	labels["level"] = loki.LabelValue(l.LogLevel)
-	labels["kind"] = "logs"
-	return labels
+// KeyVal representation of a Log object
+func (l Log) KeyVal() *utils.KeyVal {
+	kv := utils.NewKeyVal()
+	utils.KeyValAdd(kv, "timestamp", l.Timestamp.String())
+	utils.KeyValAdd(kv, "kind", "log")
+	utils.KeyValAdd(kv, "message", l.Message)
+	utils.KeyValAdd(kv, "level", string(l.LogLevel))
+	utils.MergeKeyValWithPrefix(kv, utils.KeyValFromMap(l.Context), "context_")
+	return kv
 }
