@@ -27,8 +27,8 @@ func Test_controller_RunsIntegration(t *testing.T) {
 
 	ctrl, err := NewController(
 		util.TestLogger(t),
-		NewMockIntegrationConfigs(
-			mockConfigForIntegration(t, FuncIntegration(func(ctx context.Context) error {
+		newMockIntegrationConfigs(
+			mockConfigForIntegration(t, funcIntegration(func(ctx context.Context) error {
 				defer wg.Done()
 				cancel()
 				<-ctx.Done()
@@ -56,14 +56,14 @@ func Test_controller_ConfigChanges(t *testing.T) {
 		var integrationsWg sync.WaitGroup
 		var starts atomic.Uint64
 
-		mockIntegration := FuncIntegration(func(ctx context.Context) error {
+		mockIntegration := funcIntegration(func(ctx context.Context) error {
 			integrationsWg.Done()
 			starts.Inc()
 			<-ctx.Done()
 			return nil
 		})
 
-		cfg := NewMockIntegrationConfigs(
+		cfg := newMockIntegrationConfigs(
 			&mockConfig{
 				NameFunc:          func() string { return mockIntegrationName },
 				ConfigEqualsFunc:  func(Config) bool { return !changed },

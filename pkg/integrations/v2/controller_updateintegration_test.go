@@ -26,7 +26,7 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 	)
 
 	mockIntegration := mockUpdateIntegration{
-		Integration: FuncIntegration(func(ctx context.Context) error {
+		Integration: funcIntegration(func(ctx context.Context) error {
 			starts.Inc()
 			integrationStartWg.Done()
 			<-ctx.Done()
@@ -38,7 +38,7 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 		},
 	}
 
-	cfg := NewMockIntegrationConfigs(
+	cfg := newMockIntegrationConfigs(
 		&mockConfig{
 			NameFunc:          func() string { return mockIntegrationName },
 			ConfigEqualsFunc:  func(Config) bool { return false },

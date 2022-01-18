@@ -315,7 +315,7 @@ func (c *WindowsExporter) UnmarshalYAML(unmarshal func(interface{}) error) error
 	return unmarshal((*plain)(c))
 }
 
-func newIntegrationFromV1(c IntegrationConfig, logger log.Logger, globals Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
+func newIntegrationFromV1(c integrationConfig, logger log.Logger, globals Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
 
 	v1Integration, err := newInt(logger)
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
@@ -15,38 +14,6 @@ import (
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
-
-type MetricsIntegrationConfig interface {
-	Identifier(Globals) (string, error)
-	Name() string
-}
-
-// NewMetricsHandlerIntegration returns a integrations.MetricsIntegration which
-// will expose a /metrics endpoint for h.
-func NewMetricsHandlerIntegration(
-	_ log.Logger,
-	c MetricsIntegrationConfig,
-	mc common.MetricsConfig,
-	globals Globals,
-	h http.Handler,
-) (MetricsIntegration, error) {
-
-	id, err := c.Identifier(globals)
-	if err != nil {
-		return nil, err
-	}
-
-	return &metricsHandlerIntegration{
-		integrationName: c.Name(),
-		instanceID:      id,
-
-		common:  mc,
-		globals: globals,
-		handler: h,
-
-		targets: []handlerTarget{{MetricsPath: "metrics"}},
-	}, nil
-}
 
 type metricsHandlerIntegration struct {
 	integrationName, instanceID string

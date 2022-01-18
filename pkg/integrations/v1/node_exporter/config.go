@@ -143,6 +143,7 @@ type Config struct {
 	Warnings []string `yaml:"-"`
 }
 
+// PostProcessing is special log that must be done to convert old removed fields to the new ones
 func (c *Config) PostProcessing() error {
 	type migratedField struct {
 		OldName, NewName   string

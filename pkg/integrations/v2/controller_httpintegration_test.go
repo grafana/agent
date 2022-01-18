@@ -44,7 +44,7 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 
 		ctrl, err := NewController(
 			util.TestLogger(t),
-			NewMockIntegrationConfigs(
+			newMockIntegrationConfigs(
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "fizz", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
@@ -70,7 +70,7 @@ func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {
 
 		ctrl, err := NewController(
 			util.TestLogger(t),
-			NewMockIntegrationConfigs(
+			newMockIntegrationConfigs(
 				httpConfigFromID(t, &prefixes, "foo", "bar"),
 				httpConfigFromID(t, &prefixes, "foo", "buzz"),
 				httpConfigFromID(t, &prefixes, "hello", "world"),
@@ -116,7 +116,7 @@ func Test_controller_HTTPIntegration_Routing(t *testing.T) {
 
 	ctrl, err := NewController(
 		util.TestLogger(t),
-		NewMockIntegrationConfigs(
+		newMockIntegrationConfigs(
 			httpConfigFromID(t, "foo", "bar"),
 			httpConfigFromID(t, "foo", "buzz"),
 			httpConfigFromID(t, "hello", "world"),
@@ -180,7 +180,7 @@ func Test_controller_HTTPIntegration_NestedRouting(t *testing.T) {
 		return i, nil
 	}
 
-	ctrl, err := NewController(util.TestLogger(t), NewMockIntegrationConfigs(cfg), Globals{})
+	ctrl, err := NewController(util.TestLogger(t), newMockIntegrationConfigs(cfg), Globals{})
 	require.NoError(t, err)
 	_ = NewSyncController(t, ctrl)
 
@@ -223,11 +223,9 @@ func (m mockHTTPIntegration) Handler(prefix string) (http.Handler, error) {
 	return m.HandlerFunc(prefix)
 }
 
-func NewMockIntegrationConfigs(c ...Config) *mockIntegrationConfigs {
+func newMockIntegrationConfigs(c ...Config) *mockIntegrationConfigs {
 	configs := make([]Config, 0)
-	for _, i := range c {
-		configs = append(configs, i)
-	}
+	configs = append(configs, c...)
 	return &mockIntegrationConfigs{configs: configs}
 }
 

@@ -13,6 +13,7 @@ import (
 // it marshals out to JSON as.
 type TargetGroup targetgroup.Group
 
+// MarshalJSON allows marshalling
 func (tg *TargetGroup) MarshalJSON() ([]byte, error) {
 	g := &struct {
 		Targets []string       `json:"targets"`

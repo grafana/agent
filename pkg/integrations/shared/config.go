@@ -1,4 +1,4 @@
-// Package config provides common configuration structs config among
+// Package shared provides common configuration structs config among
 // implementations of integrations.Integration.
 package shared
 
@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
+// Common is a list of all configurations that integrations support has default
 type Common struct {
 	Enabled              bool              `yaml:"enabled,omitempty"`
 	InstanceKey          *string           `yaml:"instance,omitempty"`
@@ -35,11 +36,13 @@ type ScrapeConfig struct {
 	MetricsPath string
 }
 
+// V1IntegrationConfig is an interface that represents a v1 integration configuration
 type V1IntegrationConfig interface {
 	Config() Config
 	Common() Common
 }
 
+// V1Integrations represents all active v1 configurations
 type V1Integrations interface {
 	ActiveConfigs() []Config
 }
