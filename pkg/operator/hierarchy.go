@@ -29,10 +29,9 @@ func buildHierarchy(ctx context.Context, l log.Logger, cli client.Client, root *
 	// variable.
 	search := func(resources []hierarchyResource) error {
 		for _, res := range resources {
-			gvk, _ := apiutil.GVKForObject(res.List, cli.Scheme())
-
 			sel, err := res.Find(ctx, cli)
 			if err != nil {
+				gvk, _ := apiutil.GVKForObject(res.List, cli.Scheme())
 				return fmt.Errorf("failed to find %q resource: %w", gvk.String(), err)
 			}
 
@@ -73,7 +72,6 @@ func buildHierarchy(ctx context.Context, l log.Logger, cli client.Client, root *
 		if err := search(children); err != nil {
 			return deployment, nil, err
 		}
-		filterServiceMonitors(l, root, &serviceMonitors)
 
 		deployment.Metrics = append(deployment.Metrics, config.MetricsInstance{
 			Instance:        metricsInst,
