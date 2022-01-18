@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult

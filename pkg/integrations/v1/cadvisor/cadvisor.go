@@ -12,7 +12,7 @@ import (
 
 	"github.com/grafana/agent/pkg/integrations/shared"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/google/cadvisor/cache/memory"
 	"github.com/google/cadvisor/container"
 	v2 "github.com/google/cadvisor/info/v2"
