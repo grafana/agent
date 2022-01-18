@@ -58,7 +58,7 @@ spec:
     spec:
       containers:
       - args:
-        - -shared.file=/etc/agent/agent.yaml
+        - -config.file=/etc/agent/agent.yaml
         command:
         - /bin/agent
         env:

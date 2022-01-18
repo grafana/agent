@@ -4,10 +4,10 @@ services:
     image: grafana/agent:latest
     volumes:
       - /tmp/agent-1:/tmp/agent
-      - ./agent/shared:/etc/agent-shared
+      - ./agent/config:/etc/agent-config
     entrypoint:
       - /bin/agent
-      - -shared.file=/etc/agent-shared/agent-scraping-service.yaml
+      - -config.file=/etc/agent-config/agent-scraping-service.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
     ports:
       # Only the first agent needs to be exposed since they're clustered.
@@ -17,10 +17,10 @@ services:
     image: grafana/agent:latest
     volumes:
       - /tmp/agent-2:/tmp/agent
-      - ./agent/shared:/etc/agent-shared
+      - ./agent/config:/etc/agent-config
     entrypoint:
       - /bin/agent
-      - -shared.file=/etc/agent-shared/agent-scraping-service.yaml
+      - -config.file=/etc/agent-config/agent-scraping-service.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
     ports:
       - "12346:12345"
@@ -29,10 +29,10 @@ services:
     image: grafana/agent:latest
     volumes:
       - /tmp/agent-3:/tmp/agent
-      - ./agent/shared:/etc/agent-shared
+      - ./agent/config:/etc/agent-config
     entrypoint:
       - /bin/agent
-      - -shared.file=/etc/agent-shared/agent-scraping-service.yaml
+      - -config.file=/etc/agent-config/agent-scraping-service.yaml
       - -prometheus.wal-directory=/tmp/agent/wal
     ports:
       - "12347:12345"
@@ -49,10 +49,10 @@ services:
     image: cortexproject/cortex:v1.8.1
     volumes:
       - /tmp/cortex:/tmp/cortex
-      - ./cortex/shared:/etc/cortex-shared
+      - ./cortex/config:/etc/cortex-config
     entrypoint:
       - /bin/cortex
-      - -shared.file=/etc/cortex-shared/cortex.yaml
+      - -config.file=/etc/cortex-config/cortex.yaml
     ports:
       - "9009:9009"
 
@@ -61,9 +61,9 @@ services:
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana
-      - --shared=/etc/grafana-shared/grafana.ini
+      - --config=/etc/grafana-config/grafana.ini
     volumes:
-      - ./grafana/shared:/etc/grafana-shared
+      - ./grafana/config:/etc/grafana-config
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
       - ./grafana/dashboards:/var/lib/grafana/dashboards
@@ -98,4 +98,4 @@ services:
     volumes:
       - ./otel-collector:/etc/otel-collector
     command:
-      - --shared=/etc/otel-collector/shared.yaml
+      - --config=/etc/otel-collector/config.yaml

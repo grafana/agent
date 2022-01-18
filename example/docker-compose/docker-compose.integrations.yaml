@@ -5,7 +5,7 @@
 #
 # that enable local testing of all components of the Agent.
 #
-# The agent/shared/agent-local.yaml file holds a shared to
+# The agent/config/agent-local.yaml file holds a config to
 # scrape all of these services.
 version: "2"
 services:
@@ -19,9 +19,9 @@ services:
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana
-      - --shared=/etc/grafana-shared/grafana.ini
+      - --config=/etc/grafana-config/grafana.ini
     volumes:
-      - ./grafana/shared:/etc/grafana-shared
+      - ./grafana/config:/etc/grafana-config
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
       - ./grafana/dashboards:/var/lib/grafana/dashboards
@@ -36,10 +36,10 @@ services:
     image: cortexproject/cortex:v1.8.1
     volumes:
       - /tmp/cortex:/tmp/cortex
-      - ./cortex/shared:/etc/cortex-shared
+      - ./cortex/config:/etc/cortex-config
     entrypoint:
       - /bin/cortex
-      - -shared.file=/etc/cortex-shared/cortex.yaml
+      - -config.file=/etc/cortex-config/cortex.yaml
     ports:
       - "9009:9009"
 
@@ -47,14 +47,14 @@ services:
     image: grafana/loki:1.5.0
     ports:
       - "3100:3100"
-    command: -shared.file=/etc/loki/local-shared.yaml
+    command: -config.file=/etc/loki/local-config.yaml
 
   tracing:
     image: otel/opentelemetry-collector:0.9.0
     volumes:
       - ./otel-collector:/etc/otel-collector
     command:
-      - --shared=/etc/otel-collector/shared.yaml
+      - --config=/etc/otel-collector/config.yaml
 
   #
   # Integrations
