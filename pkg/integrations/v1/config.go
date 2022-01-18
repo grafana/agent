@@ -1,4 +1,4 @@
-package v1
+package v1 //nolint:golint
 
 import (
 	"github.com/grafana/agent/pkg/integrations/shared"
