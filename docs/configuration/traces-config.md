@@ -31,12 +31,12 @@ name: <string>
 # This field allows for the general manipulation of tags on spans that pass
 # through this agent. A common use may be to add an environment or cluster
 # variable.
-[attributes: <attributes.shared>]
+[attributes: <attributes.config>]
 
 # This field allows to configure grouping spans into batches. Batching helps
 # better compress the data and reduce the number of outgoing connections
 # required transmit the data.
-[batch: <batch.shared>]
+[batch: <batch.config>]
 
 remote_write:
   # host:port to send traces to
@@ -100,7 +100,7 @@ remote_write:
 # discovery and building metrics from traces using Loki. It should be considered experimental.
 automatic_logging:
   # Indicates where the stream of log lines should go. Either supports writing
-  # to a logs instance defined in this same shared or to stdout.
+  # to a logs instance defined in this same config or to stdout.
   [ backend: <string> | default = "stdout" | supported "stdout", "logs_instance" ]
   # Indicates the logs instance to write logs to.
   # Required if backend is set to logs_instance.
@@ -135,7 +135,7 @@ automatic_logging:
 
 # Receiver configurations are mapped directly into the OpenTelemetry receivers
 # block. At least one receiver is required.
-# The Agent uses OpenTelemetry v0.36.0. Refer to the corresponding receiver's shared.
+# The Agent uses OpenTelemetry v0.36.0. Refer to the corresponding receiver's config.
 #
 # Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 receivers: <receivers>

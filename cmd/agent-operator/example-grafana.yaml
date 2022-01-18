@@ -116,7 +116,6 @@ data:
       type: loki
       access: proxy
       url: http://loki.default.svc.cluster.local:8080
-      isDefault: true
       isDefault: false
       version: 1
       editable: false
@@ -143,4 +142,3 @@ spec:
               service:
                 name: grafana
                 port: { name: 'http' }
-

@@ -72,13 +72,13 @@ Full reference of options:
   # The permission mode of the unixgram socket, when enabled.
   [unix_socket_mode: <string> | default = "755"]
 
-  # An optional mapping shared that can translate dot-separated StatsD metrics
+  # An optional mapping config that can translate dot-separated StatsD metrics
   # into labeled Prometheus metrics. For full instructions on how to write this
   # object, see the official documentation from the statsd_exporter:
   #
   # https://github.com/prometheus/statsd_exporter#metric-mapping-and-configuration
   #
-  # Note that a SIGHUP will not reload this shared.
+  # Note that a SIGHUP will not reload this config.
   [mapping_config: <statsd_exporter.mapping_config>]
 
   # Size (in bytes) of the operating system's transmit read buffer associated

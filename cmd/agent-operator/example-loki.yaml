@@ -22,20 +22,20 @@ spec:
         app: loki
     spec:
       containers:
-        - name: loki
-          image: grafana/loki:2.2.1
-          args:
-            - --config.file=/etc/loki/config.yml
-            - --server.http-listen-port=8080
-          ports:
-            - name: http-metrics
-              containerPort: 9090
-          volumeMounts:
-            - mountPath: /etc/loki
-              name: config
-              readOnly: true
-            - mountPath: /var/lib/data
-              name: data
+      - name: loki
+        image: grafana/loki:2.2.1
+        args:
+          - --config.file=/etc/loki/config.yml
+          - --server.http-listen-port=8080
+        ports:
+          - name: http-metrics
+            containerPort: 9090
+        volumeMounts:
+          - mountPath: /etc/loki
+            name: config
+            readOnly: true
+          - mountPath: /var/lib/data
+            name: data
       volumes:
         - name: config
           configMap:
@@ -56,9 +56,9 @@ spec:
   selector:
     app: loki
   ports:
-    - name: http-metrics
-      port: 8080
-      targetPort: 8080
+  - name: http-metrics
+    port: 8080
+    targetPort: 8080
 
 ---
 

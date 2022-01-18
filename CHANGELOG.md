@@ -820,11 +820,11 @@ files to the new format.
 - [BUGFIX] Minor corrections and spelling issues have been fixed in the Overview
   documentation. (@amckinley)
 
-- [BUGFIX] The new default of `shared` instances mode broke the metric value for
+- [BUGFIX] The new default of `config` instances mode broke the metric value for
   `agent_prometheus_active_configs`, which was tracking the number of combined
   configs (i.e., number of launched instances). This metric has been fixed and
   a new metric, `agent_prometheus_active_instances`, has been added to track
-  the numbger of launched instances. If instance sharing is not enabled, both
+  the number of launched instances. If instance sharing is not enabled, both
   metrics will share the same value. (@rfratto)
 
 - [BUGFIX] The Configs API will now disallow two instance configs having

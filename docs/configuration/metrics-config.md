@@ -84,7 +84,7 @@ kvstore: <kvstore_config>
 # fields that can read secrets from files.
 #
 # This is disabled by default. When enabled, a malicious user can craft an
-# instance shared that reads arbitrary files on the machine the Agent runs
+# instance config that reads arbitrary files on the machine the Agent runs
 # on and sends its contents to a specically crafted remote_write endpoint.
 #
 # If enabled, ensure that no untrusted users have access to the Agent API.
