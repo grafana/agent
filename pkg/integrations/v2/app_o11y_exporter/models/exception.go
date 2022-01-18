@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-sourcemap/sourcemap"
 	loki "github.com/prometheus/common/model"
 )
 
@@ -37,32 +36,6 @@ type Exception struct {
 	Value      string      `json:"value,omitempty"`
 	Stacktrace *Stacktrace `json:"stacktrace,omitempty"`
 	Timestamp  time.Time   `json:"timestamp"`
-}
-
-// MapFrames converts a stacktrace with obfuscated frame sources, into
-// a real path one using source maps
-func (s Stacktrace) MapFrames(scm *sourcemap.Consumer) Stacktrace {
-	var frames []Frame
-	for _, frame := range s.Frames {
-		file, fn, line, col, ok := scm.Source(frame.Lineno, frame.Colno)
-
-		if ok {
-			newFrame := Frame{
-				Function: fn,
-				Module:   frame.Module,
-				Filename: file,
-				Lineno:   line,
-				Colno:    col,
-			}
-
-			frames = append(frames, newFrame)
-		} else {
-			frames = append(frames, frame)
-		}
-
-	}
-
-	return Stacktrace{Frames: frames}
 }
 
 // Message string is concatenating of the Exception.Type and Exception.Value

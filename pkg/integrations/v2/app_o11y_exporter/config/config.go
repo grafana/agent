@@ -21,10 +21,6 @@ var DefaultConfig = AppExporterConfig{
 		Burstiness: DefaultRateLimitingBurstiness,
 	},
 	MaxAllowedPayloadSize: DefaultRateLimitingRPS,
-	SourceMap: SourceMapConfig{
-		Enabled: false,
-		MapURI:  "",
-	},
 	Server: ServerConfig{
 		Host: "0.0.0.0",
 		Port: 8080,
@@ -46,13 +42,6 @@ type RateLimitingConfig struct {
 	Burstiness int     `yaml:"burstiness,omitempty"`
 }
 
-// SourceMapConfig holds the configuration of the source map
-// module
-type SourceMapConfig struct {
-	Enabled bool   `yaml:"enabled,omitempty"`
-	MapURI  string `yaml:"map_uri,omitempty"`
-}
-
 // Measurement is the definition of a custom measurement
 type Measurement struct {
 	Name        string `yaml:"name"`
@@ -65,7 +54,6 @@ type AppExporterConfig struct {
 	CORSAllowedOrigins    []string           `yaml:"cors_allowed_origins,omitempty"`
 	RateLimiting          RateLimitingConfig `yaml:"rate_limiting,omitempty"`
 	MaxAllowedPayloadSize int64              `yaml:"max_allowed_payload_size,omitempty"`
-	SourceMap             SourceMapConfig    `yaml:"source_map,omitempty"`
 	Server                ServerConfig       `yaml:"server,omitempty"`
 	LogsInstance          string             `yaml:"logs_instance"`
 	Measurements          []Measurement      `yaml:"custom_measurements"`
