@@ -60,7 +60,7 @@ Full reference of options:
   # to receive data from.
   server:
     [host: <string> | default = "0.0.0.0"]
-    [port: <number> | port = 8080]
+    [port: <number> | default = 8080]
 
   # User defined prometheus metrics to be scraped. The sending end of the agent can
   # update this metrics using the specified payload. Since these are performance metrics
@@ -68,5 +68,13 @@ Full reference of options:
   custom_measurements:
     [name: <string>]
     [description: <string>]
+
+  # Extra loki lables to append in each Loki Entry (exceptions logs and measurements)
+  extra_loki_lablels:
+    [- <key>: <string>]
+
+  # Timeout duration when sending an entry to Loki
+  [loki_send_timeout: <number> | default = 2000]
+
 
 ```
