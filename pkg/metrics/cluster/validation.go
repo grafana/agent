@@ -128,7 +128,7 @@ func validateDiscoveryNoFiles(disc discovery.Config) error {
 	case *zookeeper.ServersetSDConfig:
 		// no-op
 	default:
-		return fmt.Errorf("unknown service discovery %s; rejecting shared for safety. set dangerous_allow_reading_files to ignore", d.Name())
+		return fmt.Errorf("unknown service discovery %s; rejecting config for safety. set dangerous_allow_reading_files to ignore", d.Name())
 	}
 
 	return nil

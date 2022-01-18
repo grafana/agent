@@ -128,7 +128,7 @@ func (d *Deployment) BuildConfig(secrets assets.SecretStore, ty Type) (string, e
 	case LogsType:
 		return vm.EvaluateFile("./agent-logs.libsonnet")
 	default:
-		panic(fmt.Sprintf("unexpected shared type %v", ty))
+		panic(fmt.Sprintf("unexpected config type %v", ty))
 	}
 }
 

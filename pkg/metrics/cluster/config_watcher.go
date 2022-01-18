@@ -90,7 +90,7 @@ func (w *configWatcher) ApplyConfig(cfg Config) error {
 }
 
 func (w *configWatcher) run(ctx context.Context) {
-	defer level.Info(w.log).Log("msg", "shared watcher run loop exiting")
+	defer level.Info(w.log).Log("msg", "config watcher run loop exiting")
 
 	lastReshard := time.Now()
 
@@ -108,9 +108,9 @@ func (w *configWatcher) run(ctx context.Context) {
 				level.Error(w.log).Log("msg", "refresh failed", "err", err)
 			}
 		case ev := <-w.store.Watch():
-			level.Debug(w.log).Log("msg", "handling event from shared store")
+			level.Debug(w.log).Log("msg", "handling event from config store")
 			if err := w.handleEvent(ev); err != nil {
-				level.Error(w.log).Log("msg", "failed to handle changed or deleted shared", "key", ev.Key, "err", err)
+				level.Error(w.log).Log("msg", "failed to handle changed or deleted config", "key", ev.Key, "err", err)
 			}
 		}
 	}
@@ -216,7 +216,7 @@ Outer:
 			}
 
 			if err := w.handleEvent(configstore.WatchEvent{Key: cfg.Name, Config: &cfg}); err != nil {
-				level.Error(w.log).Log("msg", "failed to process changed shared", "key", cfg.Name, "err", err)
+				level.Error(w.log).Log("msg", "failed to process changed config", "key", cfg.Name, "err", err)
 				if firstError == nil {
 					firstError = err
 				}
@@ -242,7 +242,7 @@ Outer:
 	// Send a deleted event for any key that has gone away.
 	for _, key := range deleted {
 		if err := w.handleEvent(configstore.WatchEvent{Key: key, Config: nil}); err != nil {
-			level.Error(w.log).Log("msg", "failed to process changed shared", "key", key, "err", err)
+			level.Error(w.log).Log("msg", "failed to process changed config", "key", key, "err", err)
 		}
 	}
 
@@ -262,7 +262,7 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 
 	owned, err := w.owns(ev.Key)
 	if err != nil {
-		level.Error(w.log).Log("msg", "failed to see if shared is owned. instance will be deleted if it is running", "err", err)
+		level.Error(w.log).Log("msg", "failed to see if config is owned. instance will be deleted if it is running", "err", err)
 	}
 
 	var (
@@ -276,9 +276,9 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 	// 2. A config we're running got deleted
 	case (isRunning && !owned) || (isDeleted && isRunning):
 		if isDeleted {
-			level.Info(w.log).Log("msg", "untracking deleted shared", "key", ev.Key)
+			level.Info(w.log).Log("msg", "untracking deleted config", "key", ev.Key)
 		} else {
-			level.Info(w.log).Log("msg", "untracking shared that changed owners", "key", ev.Key)
+			level.Info(w.log).Log("msg", "untracking config that changed owners", "key", ev.Key)
 		}
 
 		err := w.im.DeleteConfig(ev.Key)
@@ -290,17 +290,17 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 	case !isDeleted && owned:
 		if err := w.validate(ev.Config); err != nil {
 			return fmt.Errorf(
-				"failed to validate shared. %[1]s cannot run until the global settings are adjusted or the shared is adjusted to operate within the global constraints. error: %[2]w",
+				"failed to validate config. %[1]s cannot run until the global settings are adjusted or the config is adjusted to operate within the global constraints. error: %[2]w",
 				ev.Key, err,
 			)
 		}
 
 		if _, exist := w.instances[ev.Key]; !exist {
-			level.Info(w.log).Log("msg", "tracking new shared", "key", ev.Key)
+			level.Info(w.log).Log("msg", "tracking new config", "key", ev.Key)
 		}
 
 		if err := w.im.ApplyConfig(*ev.Config); err != nil {
-			return fmt.Errorf("failed to apply shared: %w", err)
+			return fmt.Errorf("failed to apply config: %w", err)
 		}
 		w.instances[ev.Key] = struct{}{}
 	}
@@ -327,7 +327,7 @@ func (w *configWatcher) Stop() error {
 
 	for key := range w.instances {
 		if err := w.im.DeleteConfig(key); err != nil {
-			level.Warn(w.log).Log("msg", "failed deleting shared on shutdown", "key", key, "err", err)
+			level.Warn(w.log).Log("msg", "failed deleting config on shutdown", "key", key, "err", err)
 		}
 	}
 	w.instances = make(map[string]struct{})

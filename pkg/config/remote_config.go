@@ -51,7 +51,7 @@ func newRemoteConfig(rawURL string, opts *remoteOpts) (remoteProvider, error) {
 		}
 		return httpP, nil
 	default:
-		return nil, fmt.Errorf("remote shared scheme not supported: %s", u.Scheme)
+		return nil, fmt.Errorf("remote config scheme not supported: %s", u.Scheme)
 	}
 }
 
@@ -72,7 +72,7 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 		}
 		httpClientConfig = *opts.HTTPClientConfig
 	}
-	httpClient, err := config.NewClientFromConfig(httpClientConfig, "remote-shared")
+	httpClient, err := config.NewClientFromConfig(httpClientConfig, "remote-config")
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (p httpProvider) retrieve() ([]byte, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode/100 != 2 {
-		return nil, fmt.Errorf("error fetching shared: status code: %d", response.StatusCode)
+		return nil, fmt.Errorf("error fetching config: status code: %d", response.StatusCode)
 	}
 	bb, err := ioutil.ReadAll(response.Body)
 	if err != nil {

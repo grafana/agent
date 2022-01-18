@@ -77,7 +77,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 		err      error
 	}{
 		{
-			"valid shared",
+			"valid config",
 			nil,
 			nil,
 		},
@@ -89,7 +89,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 		{
 			"missing scrape",
 			func(c *Config) { c.ScrapeConfigs[0] = nil },
-			fmt.Errorf("empty or null scrape shared section"),
+			fmt.Errorf("empty or null scrape config section"),
 		},
 		{
 			"missing wal truncate frequency",
@@ -104,12 +104,12 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 		{
 			"scrape timeout too high",
 			func(c *Config) { c.ScrapeConfigs[0].ScrapeTimeout = global.Prometheus.ScrapeInterval + 1 },
-			fmt.Errorf("scrape timeout greater than scrape interval for scrape shared with job name \"scrape\""),
+			fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name \"scrape\""),
 		},
 		{
 			"scrape interval greater than truncate frequency",
 			func(c *Config) { c.ScrapeConfigs[0].ScrapeInterval = model.Duration(c.WALTruncateFrequency + 1) },
-			fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape shared with job name \"scrape\""),
+			fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape config with job name \"scrape\""),
 		},
 		{
 			"multiple scrape configs with same name",
@@ -123,7 +123,7 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 		{
 			"empty remote write",
 			func(c *Config) { c.RemoteWrite = append(c.RemoteWrite, nil) },
-			fmt.Errorf("empty or null remote write shared section"),
+			fmt.Errorf("empty or null remote write config section"),
 		},
 		{
 			"multiple remote writes with same name",

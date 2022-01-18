@@ -35,7 +35,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 //   1. No two InstanceConfigs may have the same name.
 //   2. No two InstanceConfigs may have the same positions path.
 //   3. No InstanceConfig may have an empty name.
-//   4. If InstanceConfig positions path is empty, config PositionsDirectory
+//   4. If InstanceConfig positions path is empty, shared PositionsDirectory
 //      must not be empty.
 //
 // Defaults:
@@ -50,7 +50,7 @@ func (c *Config) ApplyDefaults() error {
 
 	for idx, ic := range c.Configs {
 		if ic.Name == "" {
-			return fmt.Errorf("Loki shared index %d must have a name", idx)
+			return fmt.Errorf("Loki config index %d must have a name", idx)
 		}
 		if _, ok := names[ic.Name]; ok {
 			return fmt.Errorf("found two Loki configs with name %s", ic.Name)

@@ -126,7 +126,7 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 	jobNames := map[string]struct{}{}
 	for _, sc := range c.ScrapeConfigs {
 		if sc == nil {
-			return fmt.Errorf("empty or null scrape shared section")
+			return fmt.Errorf("empty or null scrape config section")
 		}
 
 		// First set the correct scrape interval, then check that the timeout
@@ -135,10 +135,10 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 			sc.ScrapeInterval = c.global.Prometheus.ScrapeInterval
 		}
 		if sc.ScrapeTimeout > sc.ScrapeInterval {
-			return fmt.Errorf("scrape timeout greater than scrape interval for scrape shared with job name %q", sc.JobName)
+			return fmt.Errorf("scrape timeout greater than scrape interval for scrape config with job name %q", sc.JobName)
 		}
 		if time.Duration(sc.ScrapeInterval) > c.WALTruncateFrequency {
-			return fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape shared with job name %q", sc.JobName)
+			return fmt.Errorf("scrape interval greater than wal_truncate_frequency for scrape config with job name %q", sc.JobName)
 		}
 		if sc.ScrapeTimeout == 0 {
 			if c.global.Prometheus.ScrapeTimeout > sc.ScrapeInterval {
@@ -162,7 +162,7 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 	}
 	for _, cfg := range c.RemoteWrite {
 		if cfg == nil {
-			return fmt.Errorf("empty or null remote write shared section")
+			return fmt.Errorf("empty or null remote write config section")
 		}
 
 		// Typically Prometheus ignores empty names here, but we need to assign a
@@ -423,7 +423,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 		RemoteWriteConfigs: cfg.RemoteWrite,
 	})
 	if err != nil {
-		return fmt.Errorf("failed applying shared to remote storage: %w", err)
+		return fmt.Errorf("failed applying config to remote storage: %w", err)
 	}
 
 	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore)
@@ -434,7 +434,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 		ScrapeConfigs: cfg.ScrapeConfigs,
 	})
 	if err != nil {
-		return fmt.Errorf("failed applying shared to scrape manager: %w", err)
+		return fmt.Errorf("failed applying config to scrape manager: %w", err)
 	}
 
 	i.readyScrapeManager.Set(scrapeManager)
@@ -595,8 +595,8 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 	err := manager.ApplyConfig(c)
 	if err != nil {
 		cancel()
-		level.Error(i.logger).Log("msg", "failed applying shared to discovery manager", "err", err)
-		return nil, fmt.Errorf("failed applying shared to discovery manager: %w", err)
+		level.Error(i.logger).Log("msg", "failed applying config to discovery manager", "err", err)
+		return nil, fmt.Errorf("failed applying config to discovery manager: %w", err)
 	}
 
 	rg := runGroupWithContext(ctx)

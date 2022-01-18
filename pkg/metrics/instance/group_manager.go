@@ -112,7 +112,7 @@ func (m *GroupManager) ApplyConfig(c Config) error {
 func (m *GroupManager) applyConfig(c Config) (err error) {
 	groupName, err := hashConfig(c)
 	if err != nil {
-		return fmt.Errorf("failed to get group name for shared %s: %w", c.Name, err)
+		return fmt.Errorf("failed to get group name for config %s: %w", c.Name, err)
 	}
 
 	grouped := m.groups[groupName]
@@ -145,12 +145,12 @@ func (m *GroupManager) applyConfig(c Config) (err error) {
 		// internal state has gotten messed up and can't be fixed.
 		oldConfig, ok := m.groups[oldGroup][c.Name]
 		if !ok {
-			panic("failed to properly move shared to new group. THIS IS A BUG!")
+			panic("failed to properly move config to new group. THIS IS A BUG!")
 		}
 
 		err = m.deleteConfig(c.Name)
 		if err != nil {
-			err = fmt.Errorf("cannot apply shared %s because deleting it from the old group failed: %w", c.Name, err)
+			err = fmt.Errorf("cannot apply config %s because deleting it from the old group failed: %w", c.Name, err)
 			return
 		}
 
@@ -172,14 +172,14 @@ func (m *GroupManager) applyConfig(c Config) (err error) {
 			// config.
 			restoreError := m.applyConfig(oldConfig)
 			if restoreError != nil {
-				panic(fmt.Sprintf("failed to properly restore shared. THIS IS A BUG! error: %s", restoreError))
+				panic(fmt.Sprintf("failed to properly restore config. THIS IS A BUG! error: %s", restoreError))
 			}
 		}()
 	}
 
 	err = m.inner.ApplyConfig(mergedConfig)
 	if err != nil {
-		err = fmt.Errorf("failed to apply grouped configs for shared %s: %w", c.Name, err)
+		err = fmt.Errorf("failed to apply grouped configs for config %s: %w", c.Name, err)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (m *GroupManager) DeleteConfig(name string) error {
 func (m *GroupManager) deleteConfig(name string) error {
 	groupName, ok := m.groupLookup[name]
 	if !ok {
-		return fmt.Errorf("shared does not exist")
+		return fmt.Errorf("config does not exist")
 	}
 
 	// Grab a copy of the stored group and delete our entry. We can
@@ -214,7 +214,7 @@ func (m *GroupManager) deleteConfig(name string) error {
 		// We deleted the last remaining config in that group; we can delete it in
 		// its entirety now.
 		if err := m.inner.DeleteConfig(groupName); err != nil {
-			return fmt.Errorf("failed to delete empty group %s after removing shared %s: %w", groupName, name, err)
+			return fmt.Errorf("failed to delete empty group %s after removing config %s: %w", groupName, name, err)
 		}
 	} else {
 		// We deleted the config but there's still more in the group; apply the new

@@ -22,19 +22,19 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			cfg: untab(`
 				positions_directory: /tmp
 				configs:
-				- name: shared-a
-				- name: shared-b
+				- name: config-a
+				- name: config-b
 		  `),
 		},
 		{
 			name: "two configs with same name",
-			err:  fmt.Errorf("found two Loki configs with name shared-a"),
+			err:  fmt.Errorf("found two Loki configs with name config-a"),
 			cfg: untab(`
 				positions_directory: /tmp
 				configs:
-				- name: shared-a
-				- name: shared-b
-				- name: shared-a
+				- name: config-a
+				- name: config-b
+				- name: config-a
 		  `),
 		},
 		{
@@ -42,50 +42,50 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 			err:  nil,
 			cfg: untab(`
 				configs:
-				- name: shared-a
+				- name: config-a
 				  positions:
 					  filename: /tmp/file-a.yml
-				- name: shared-b
+				- name: config-b
 				  positions:
 					  filename: /tmp/file-b.yml
 		  `),
 		},
 		{
 			name: "re-used positions path",
-			err:  fmt.Errorf("Loki configs shared-a and shared-c must have different positions file paths"),
+			err:  fmt.Errorf("Loki configs config-a and config-c must have different positions file paths"),
 			cfg: untab(`
 				configs:
-				- name: shared-a
+				- name: config-a
 				  positions:
 					  filename: /tmp/file-a.yml
-				- name: shared-b
+				- name: config-b
 				  positions:
 					  filename: /tmp/file-b.yml
-				- name: shared-c
+				- name: config-c
 				  positions:
 					  filename: /tmp/file-a.yml
 		  `),
 		},
 		{
 			name: "empty name",
-			err:  fmt.Errorf("Loki shared index 1 must have a name"),
+			err:  fmt.Errorf("Loki config index 1 must have a name"),
 			cfg: untab(`
 				positions_directory: /tmp
 				configs:
-				- name: shared-a
+				- name: config-a
 				- name:
-				- name: shared-a
+				- name: config-a
 		  `),
 		},
 		{
 			name: "generated positions file path without positions_directory",
-			err:  fmt.Errorf("cannot generate Loki positions file path for shared-b because positions_directory is not configured"),
+			err:  fmt.Errorf("cannot generate Loki positions file path for config-b because positions_directory is not configured"),
 			cfg: untab(`
 				configs:
-				- name: shared-a
+				- name: config-a
 				  positions:
-					  filename: /tmp/shared-a.yaml
-				- name: shared-b
+					  filename: /tmp/config-a.yaml
+				- name: config-b
 		  `),
 		},
 	}
@@ -107,10 +107,10 @@ func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
 	cfgText := untab(`
 		positions_directory: /tmp
 		configs:
-		- name: shared-a
+		- name: config-a
 			positions:
-				filename: /shared-a.yml
-		- name: shared-b
+				filename: /config-a.yml
+		- name: config-b
 	`)
 	var cfg Config
 	err := yaml.UnmarshalStrict([]byte(cfgText), &cfg)
@@ -121,8 +121,8 @@ func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
 		pathB = cfg.Configs[1].PositionsConfig.PositionsFile
 	)
 
-	require.Equal(t, "/shared-a.yml", pathA)
-	require.Equal(t, filepath.Join("/tmp", "shared-b.yml"), pathB)
+	require.Equal(t, "/config-a.yml", pathA)
+	require.Equal(t, filepath.Join("/tmp", "config-b.yml"), pathB)
 }
 
 // untab is a utility function to make it easier to write YAML tests, where some editors

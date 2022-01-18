@@ -50,7 +50,7 @@ func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 	}
 
 	if c.LogsName != "" && logsConfig == nil {
-		return fmt.Errorf("logs instance %s is set but no logs shared is provided", c.LogsName)
+		return fmt.Errorf("logs instance %s is set but no logs config is provided", c.LogsName)
 	}
 
 	// Migrate deprecated config to new one

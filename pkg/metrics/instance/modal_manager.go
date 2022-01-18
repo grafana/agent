@@ -135,7 +135,7 @@ func (m *ModalManager) SetMode(newMode Mode) error {
 	for name, cfg := range m.configs {
 		err := m.active.ApplyConfig(cfg)
 		if err != nil {
-			level.Error(m.log).Log("msg", "failed to apply shared when changing modes", "name", name, "prev_mode", prevMode, "new_mode", newMode, "err", err)
+			level.Error(m.log).Log("msg", "failed to apply config when changing modes", "name", name, "prev_mode", prevMode, "new_mode", newMode, "err", err)
 		}
 		if firstError == nil && err != nil {
 			firstError = err

@@ -165,7 +165,7 @@ remote_write:
 	// Now force an update back to the original config to fail
 	inst.readyScrapeManager.Set(nil)
 	require.NotNil(t, inst.Update(initialConfig), "update should have failed")
-	require.Equal(t, newConfig, inst.cfg, "shared did not roll back")
+	require.Equal(t, newConfig, inst.cfg, "config did not roll back")
 }
 
 // TestInstance_Update_InvalidChanges runs an instance with a blank initial

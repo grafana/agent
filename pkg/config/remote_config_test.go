@@ -61,7 +61,7 @@ metrics:
 		wantErr bool
 	}{
 		{
-			name: "httpScheme shared",
+			name: "httpScheme config",
 			args: args{
 				rawURL: fmt.Sprintf("%s/agent.yml", svr.URL),
 			},
@@ -69,7 +69,7 @@ metrics:
 			wantErr: false,
 		},
 		{
-			name: "httpScheme shared with basic auth",
+			name: "httpScheme config with basic auth",
 			args: args{
 				rawURL: fmt.Sprintf("%s/agent.yml", svrWithBasicAuth.URL),
 				opts: &remoteOpts{
@@ -85,7 +85,7 @@ metrics:
 			wantErr: false,
 		},
 		{
-			name: "httpScheme shared with basic auth password file",
+			name: "httpScheme config with basic auth password file",
 			args: args{
 				rawURL: fmt.Sprintf("%s/agent.yml", svrWithBasicAuth.URL),
 				opts: &remoteOpts{

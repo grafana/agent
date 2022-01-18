@@ -144,7 +144,7 @@ func Test_node_ApplyConfig(t *testing.T) {
 	// An ApplyConfig working correctly should re-join the cluster, which can be
 	// detected by local resharding applying twice.
 	nodeConfig.Lifecycler.NumTokens = 1
-	require.NoError(t, n.ApplyConfig(nodeConfig), "failed to apply new shared")
+	require.NoError(t, n.ApplyConfig(nodeConfig), "failed to apply new config")
 	require.NoError(t, n.WaitJoined(context.Background()))
 
 	waitAll(t, localReshard)

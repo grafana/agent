@@ -68,7 +68,7 @@ receivers:
 			expectedError: true,
 		},
 		{
-			name: "empty receiver shared",
+			name: "empty receiver config",
 			cfg: `
 receivers:
   jaeger:
@@ -78,7 +78,7 @@ remote_write:
 			expectedError: true,
 		},
 		{
-			name: "basic shared",
+			name: "basic config",
 			cfg: `
 receivers:
   jaeger:
@@ -107,7 +107,7 @@ service:
 `,
 		},
 		{
-			name: "processor shared",
+			name: "processor config",
 			cfg: `
 receivers:
   jaeger:
@@ -295,7 +295,7 @@ service:
 `,
 		},
 		{
-			name: "jaeger receiver remote_sampling TLS shared",
+			name: "jaeger receiver remote_sampling TLS config",
 			cfg: `
 receivers:
   jaeger:
@@ -599,7 +599,7 @@ spanmetrics:
 			expectedError: true,
 		},
 		{
-			name: "tail sampling shared",
+			name: "tail sampling config",
 			cfg: `
 receivers:
   jaeger:
@@ -687,7 +687,7 @@ service:
 `,
 		},
 		{
-			name: "tail sampling shared with load balancing",
+			name: "tail sampling config with load balancing",
 			cfg: `
 receivers:
   jaeger:
@@ -800,7 +800,7 @@ service:
       `,
 		},
 		{
-			name: "tls shared",
+			name: "tls config",
 			cfg: `
 receivers:
   jaeger:
@@ -876,7 +876,7 @@ service:
 `,
 		},
 		{
-			name: "prom SD shared",
+			name: "prom SD config",
 			cfg: `
 receivers:
   jaeger:

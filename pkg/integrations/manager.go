@@ -191,7 +191,7 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 	}
 
 	if err := m.ApplyConfig(cfg); err != nil {
-		return nil, fmt.Errorf("failed applying shared: %w", err)
+		return nil, fmt.Errorf("failed applying config: %w", err)
 	}
 	return m, nil
 }
@@ -209,10 +209,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// The global prometheus config settings don't get applied to integrations until later. This
 	// causes us to skip reload when those settings change.
 	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.cfg.PrometheusGlobalConfig, cfg.PrometheusGlobalConfig) {
-		level.Debug(m.logger).Log("msg", "Integrations shared is unchanged skipping apply")
+		level.Debug(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
 		return nil
 	}
-	level.Debug(m.logger).Log("msg", "Applying integrations shared changes")
+	level.Debug(m.logger).Log("msg", "Applying integrations config changes")
 
 	select {
 	case <-m.ctx.Done():
@@ -326,7 +326,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		case true:
 			instanceConfig := m.instanceConfigForIntegration(p, cfg)
 			if err := m.validator(&instanceConfig); err != nil {
-				level.Error(p.log).Log("msg", "failed to validate generated scrape shared for integration. integration will not be scraped", "err", err, "integration", p.cfg.Cfg().Name())
+				level.Error(p.log).Log("msg", "failed to validate generated scrape config for integration. integration will not be scraped", "err", err, "integration", p.cfg.Cfg().Name())
 				failed = true
 				break
 			}

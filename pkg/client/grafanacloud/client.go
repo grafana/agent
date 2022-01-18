@@ -78,7 +78,7 @@ func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error
 	// Convert the data to YAML
 	var sb strings.Builder
 	if err := yaml.NewEncoder(&sb).Encode(payload.Data); err != nil {
-		return "", fmt.Errorf("failed to generate YAML shared: %w", err)
+		return "", fmt.Errorf("failed to generate YAML config: %w", err)
 	}
 
 	return sb.String(), nil

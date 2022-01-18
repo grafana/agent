@@ -92,7 +92,7 @@ remote_write: []
 		require.Equal(t, expect, innerConfigs[gm.groupLookup["configA"]])
 	})
 
-	t.Run("updating existing shared within group", func(t *testing.T) {
+	t.Run("updating existing config within group", func(t *testing.T) {
 		inner := newFakeManager()
 		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `
@@ -129,7 +129,7 @@ remote_write: []
 		require.Equal(t, expect, actual)
 	})
 
-	t.Run("updating existing shared to new group", func(t *testing.T) {
+	t.Run("updating existing config to new group", func(t *testing.T) {
 		inner := newFakeManager()
 		gm := NewGroupManager(inner)
 		err := gm.ApplyConfig(testUnmarshalConfig(t, `

@@ -66,13 +66,13 @@ func (api *API) WireAPI(r *mux.Router) {
 	r = r.UseEncodedPath()
 
 	r.HandleFunc("/agent/api/v1/configs", api.ListConfigurations).Methods("GET")
-	getConfigHandler := messageHandlerFunc(http.StatusNotFound, "404 - shared endpoint is disabled")
+	getConfigHandler := messageHandlerFunc(http.StatusNotFound, "404 - config endpoint is disabled")
 	if api.enableGet {
 		getConfigHandler = api.GetConfiguration
 	}
 	r.HandleFunc("/agent/api/v1/configs/{name}", getConfigHandler).Methods("GET")
-	r.HandleFunc("/agent/api/v1/shared/{name}", api.PutConfiguration).Methods("PUT", "POST")
-	r.HandleFunc("/agent/api/v1/shared/{name}", api.DeleteConfiguration).Methods("DELETE")
+	r.HandleFunc("/agent/api/v1/config/{name}", api.PutConfiguration).Methods("PUT", "POST")
+	r.HandleFunc("/agent/api/v1/config/{name}", api.DeleteConfiguration).Methods("DELETE")
 }
 
 // Describe implements prometheus.Collector.
@@ -94,16 +94,16 @@ func (api *API) ListConfigurations(rw http.ResponseWriter, r *http.Request) {
 	api.storeMut.Lock()
 	defer api.storeMut.Unlock()
 	if api.store == nil {
-		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no shared store running"))
+		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no config store running"))
 		return
 	}
 
 	keys, err := api.store.List(r.Context())
 	if errors.Is(err, ErrNotConnected) {
-		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no shared store running"))
+		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no config store running"))
 		return
 	} else if err != nil {
-		api.writeError(rw, http.StatusInternalServerError, fmt.Errorf("failed to write shared: %w", err))
+		api.writeError(rw, http.StatusInternalServerError, fmt.Errorf("failed to write config: %w", err))
 		return
 	}
 	api.writeResponse(rw, http.StatusOK, configapi.ListConfigurationsResponse{Configs: keys})
@@ -114,7 +114,7 @@ func (api *API) GetConfiguration(rw http.ResponseWriter, r *http.Request) {
 	api.storeMut.Lock()
 	defer api.storeMut.Unlock()
 	if api.store == nil {
-		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no shared store running"))
+		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no config store running"))
 		return
 	}
 
@@ -135,7 +135,7 @@ func (api *API) GetConfiguration(rw http.ResponseWriter, r *http.Request) {
 	case err == nil:
 		bb, err := instance.MarshalConfig(&cfg, true)
 		if err != nil {
-			api.writeError(rw, http.StatusInternalServerError, fmt.Errorf("could not marshal shared for response: %w", err))
+			api.writeError(rw, http.StatusInternalServerError, fmt.Errorf("could not marshal config for response: %w", err))
 			return
 		}
 		api.writeResponse(rw, http.StatusOK, &configapi.GetConfigurationResponse{
@@ -149,7 +149,7 @@ func (api *API) PutConfiguration(rw http.ResponseWriter, r *http.Request) {
 	api.storeMut.Lock()
 	defer api.storeMut.Unlock()
 	if api.store == nil {
-		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no shared store running"))
+		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no config store running"))
 		return
 	}
 
@@ -167,7 +167,7 @@ func (api *API) PutConfiguration(rw http.ResponseWriter, r *http.Request) {
 
 	cfg, err := instance.UnmarshalConfig(strings.NewReader(config.String()))
 	if err != nil {
-		api.writeError(rw, http.StatusBadRequest, fmt.Errorf("could not unmarshal shared: %w", err))
+		api.writeError(rw, http.StatusBadRequest, fmt.Errorf("could not unmarshal config: %w", err))
 		return
 	}
 	cfg.Name = configName
@@ -175,13 +175,13 @@ func (api *API) PutConfiguration(rw http.ResponseWriter, r *http.Request) {
 	if api.validator != nil {
 		validateCfg, err := instance.UnmarshalConfig(strings.NewReader(config.String()))
 		if err != nil {
-			api.writeError(rw, http.StatusBadRequest, fmt.Errorf("could not unmarshal shared: %w", err))
+			api.writeError(rw, http.StatusBadRequest, fmt.Errorf("could not unmarshal config: %w", err))
 			return
 		}
 		validateCfg.Name = configName
 
 		if err := api.validator(validateCfg); err != nil {
-			api.writeError(rw, http.StatusBadRequest, fmt.Errorf("failed to validate shared: %w", err))
+			api.writeError(rw, http.StatusBadRequest, fmt.Errorf("failed to validate config: %w", err))
 			return
 		}
 	}
@@ -210,7 +210,7 @@ func (api *API) DeleteConfiguration(rw http.ResponseWriter, r *http.Request) {
 	api.storeMut.Lock()
 	defer api.storeMut.Unlock()
 	if api.store == nil {
-		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no shared store running"))
+		api.writeError(rw, http.StatusNotFound, fmt.Errorf("no config store running"))
 		return
 	}
 
@@ -255,7 +255,7 @@ func getConfigName(r *http.Request) (string, error) {
 	name := vars["name"]
 	name, err := url.PathUnescape(name)
 	if err != nil {
-		return "", fmt.Errorf("could not decode shared name: %w", err)
+		return "", fmt.Errorf("could not decode config name: %w", err)
 	}
 	return name, nil
 }

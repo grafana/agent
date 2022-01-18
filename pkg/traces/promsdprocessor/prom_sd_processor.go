@@ -231,7 +231,7 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 
 	relabelConfig := p.relabelConfigs[jobName]
 	if relabelConfig == nil {
-		level.Warn(p.logger).Log("msg", "relabel shared not found for job. skipping labeling", "jobName", jobName)
+		level.Warn(p.logger).Log("msg", "relabel config not found for job. skipping labeling", "jobName", jobName)
 		return
 	}
 

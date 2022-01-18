@@ -111,7 +111,7 @@ func (c *VersionedIntegrations) SetVersion(v integrationsVersion, logger log.Log
 	}
 }
 
-// IntegrationsGlobals is a global struct config across integrations.
+// IntegrationsGlobals is a global struct shared across integrations.
 type IntegrationsGlobals = v2.Globals
 
 // Integrations is an abstraction over both the v1 and v2 systems.

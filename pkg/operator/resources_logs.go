@@ -94,8 +94,8 @@ func generateLogsDaemonSetSpec(
 	}
 
 	agentArgs := []string{
-		"-config.file=/var/lib/grafana-agent/shared/agent.yml",
-		"-shared.expand-env=true",
+		"-config.file=/var/lib/grafana-agent/config/agent.yml",
+		"-config.expand-env=true",
 		"-reload-port=8081",
 	}
 
@@ -110,10 +110,10 @@ func generateLogsDaemonSetSpec(
 
 	volumes := []v1.Volume{
 		{
-			Name: "shared",
+			Name: "config",
 			VolumeSource: v1.VolumeSource{
 				Secret: &v1.SecretVolumeSource{
-					SecretName: fmt.Sprintf("%s-shared", name),
+					SecretName: fmt.Sprintf("%s-config", name),
 				},
 			},
 		},
@@ -123,7 +123,7 @@ func generateLogsDaemonSetSpec(
 			// variable substitution, the value for __replica__ can only be
 			// determined at runtime. We use a dedicated container for both config
 			// reloading and rendering.
-			Name: "shared-out",
+			Name: "config-out",
 			VolumeSource: v1.VolumeSource{
 				EmptyDir: &v1.EmptyDirVolumeSource{},
 			},
@@ -160,12 +160,12 @@ func generateLogsDaemonSetSpec(
 	}
 
 	volumeMounts := []v1.VolumeMount{{
-		Name:      "shared",
+		Name:      "config",
 		ReadOnly:  true,
-		MountPath: "/var/lib/grafana-agent/shared-in",
+		MountPath: "/var/lib/grafana-agent/config-in",
 	}, {
-		Name:      "shared-out",
-		MountPath: "/var/lib/grafana-agent/shared",
+		Name:      "config-out",
+		MountPath: "/var/lib/grafana-agent/config",
 	}, {
 		Name:      "secrets",
 		ReadOnly:  true,
@@ -269,8 +269,8 @@ func generateLogsDaemonSetSpec(
 
 	operatorContainers := []v1.Container{
 		{
-			Name:         "shared-reloader",
-			Image:        "quay.io/prometheus-operator/prometheus-shared-reloader:v0.47.0",
+			Name:         "config-reloader",
+			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.47.0",
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &v1.SecurityContext{
@@ -278,8 +278,8 @@ func generateLogsDaemonSetSpec(
 				RunAsUser:  &runAsUser,
 			},
 			Args: []string{
-				"--shared-file=/var/lib/grafana-agent/shared-in/agent.yml",
-				"--shared-envsubst-file=/var/lib/grafana-agent/shared/agent.yml",
+				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",
+				"--config-envsubst-file=/var/lib/grafana-agent/config/agent.yml",
 
 				"--watch-interval=1m",
 				"--statefulset-ordinal-from-envvar=SHARD",

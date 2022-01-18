@@ -44,7 +44,7 @@ func DefaultConfigFromFlags(cfg interface{}) interface{} {
 	} else if v, ok := cfg.(ConfigFlags); ok {
 		v.RegisterFlags(fs)
 	} else {
-		panic("shared does not implement PrefixedConfigFlags or ConfigFlags")
+		panic("config does not implement PrefixedConfigFlags or ConfigFlags")
 	}
 
 	return cfg

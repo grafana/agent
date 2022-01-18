@@ -62,7 +62,7 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 	integrationStartWg.Wait()
 
 	// Try to apply again.
-	require.NoError(t, sc.UpdateController(cfg, ctrl.globals), "failed to re-apply shared")
+	require.NoError(t, sc.UpdateController(cfg, ctrl.globals), "failed to re-apply config")
 	integrationStartWg.Wait()
 
 	sc.Stop()

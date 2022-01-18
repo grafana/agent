@@ -135,7 +135,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
-		return fmt.Errorf("failed to load otelConfig from agent traces shared: %w", err)
+		return fmt.Errorf("failed to load otelConfig from agent traces config: %w", err)
 	}
 	for _, rw := range cfg.RemoteWrite {
 		if rw.InsecureSkipVerify {

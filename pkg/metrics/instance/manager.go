@@ -283,7 +283,7 @@ func (m *BasicManager) DeleteConfig(name string) error {
 	proc, ok := m.processes[name]
 	if !ok {
 		m.mut.Unlock()
-		return errors.New("shared does not exist")
+		return errors.New("config does not exist")
 	}
 	m.mut.Unlock()
 

@@ -96,7 +96,7 @@ service:
 
 	var cfg map[string]interface{}
 	if err := yaml.NewDecoder(strings.NewReader(conf)).Decode(&cfg); err != nil {
-		panic("could not decode shared: " + err.Error())
+		panic("could not decode config: " + err.Error())
 	}
 
 	extensionsFactory, err := component.MakeExtensionFactoryMap()
@@ -132,7 +132,7 @@ service:
 	cfgUnmarshaler := configunmarshaler.NewDefault()
 	otelCfg, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 	if err != nil {
-		return nil, fmt.Errorf("failed to make otel shared: %w", err)
+		return nil, fmt.Errorf("failed to make otel config: %w", err)
 	}
 
 	var (

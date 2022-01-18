@@ -72,7 +72,7 @@ func (l *Logs) ApplyConfig(c *Config) error {
 
 		inst, err := NewInstance(l.reg, ic, l.l)
 		if err != nil {
-			return fmt.Errorf("unable to apply shared for %s: %w", ic.Name, err)
+			return fmt.Errorf("unable to apply config for %s: %w", ic.Name, err)
 		}
 		newInstances[ic.Name] = inst
 	}
@@ -142,7 +142,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 
 	// No-op if the configs haven't changed.
 	if util.CompareYAML(c, i.cfg) {
-		level.Debug(i.log).Log("msg", "instance shared hasn't changed, not recreating Promtail")
+		level.Debug(i.log).Log("msg", "instance config hasn't changed, not recreating Promtail")
 		return nil
 	}
 	i.cfg = c

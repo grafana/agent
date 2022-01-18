@@ -75,7 +75,7 @@ func (c *Config) Validate(logsConfig *logs.Config) error {
 	names := make(map[string]struct{}, len(c.Configs))
 	for idx, c := range c.Configs {
 		if c.Name == "" {
-			return fmt.Errorf("traces shared at index %d is missing a name", idx)
+			return fmt.Errorf("traces config at index %d is missing a name", idx)
 		}
 		if _, exist := names[c.Name]; exist {
 			return fmt.Errorf("found multiple traces configs with name %s", c.Name)
@@ -369,7 +369,7 @@ func resolver(config map[string]interface{}) (map[string]interface{}, error) {
 		case dnsTagName, staticTagName:
 			resolverCfg[typ] = cfg
 		default:
-			return nil, fmt.Errorf("unsupported resolver shared type: %s", typ)
+			return nil, fmt.Errorf("unsupported resolver config type: %s", typ)
 		}
 	}
 	return resolverCfg, nil
@@ -624,7 +624,7 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	configMap := config.NewMapFromStringMap(otelMapStructure)
 	otelCfg, err := configunmarshaler.NewDefault().Unmarshal(configMap, factories)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load OTel shared: %w", err)
+		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
 
 	return otelCfg, nil

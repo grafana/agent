@@ -103,7 +103,7 @@ func (c *prometheusClient) GetConfiguration(ctx context.Context, name string) (*
 }
 
 func (c *prometheusClient) PutConfiguration(ctx context.Context, name string, cfg *instance.Config) error {
-	url := fmt.Sprintf("%s/agent/api/v1/shared/%s", c.addr, name)
+	url := fmt.Sprintf("%s/agent/api/v1/config/%s", c.addr, name)
 
 	bb, err := instance.MarshalConfig(cfg, false)
 	if err != nil {
@@ -119,7 +119,7 @@ func (c *prometheusClient) PutConfiguration(ctx context.Context, name string, cf
 }
 
 func (c *prometheusClient) DeleteConfiguration(ctx context.Context, name string) error {
-	url := fmt.Sprintf("%s/agent/api/v1/shared/%s", c.addr, name)
+	url := fmt.Sprintf("%s/agent/api/v1/config/%s", c.addr, name)
 
 	resp, err := c.doRequest(ctx, "DELETE", url, nil)
 	if err != nil {

@@ -87,7 +87,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 	)
 	cfg.Enabled = true
 
-	t.Run("new owned shared", func(t *testing.T) {
+	t.Run("new owned config", func(t *testing.T) {
 		var (
 			log = util.TestLogger(t)
 			im  mockConfigManager
@@ -106,7 +106,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		im.AssertNumberOfCalls(t, "ApplyConfig", 1)
 	})
 
-	t.Run("updated owned shared", func(t *testing.T) {
+	t.Run("updated owned config", func(t *testing.T) {
 		var (
 			log = util.TestLogger(t)
 			im  mockConfigManager
@@ -129,7 +129,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		im.AssertNumberOfCalls(t, "ApplyConfig", 2)
 	})
 
-	t.Run("new unowned shared", func(t *testing.T) {
+	t.Run("new unowned config", func(t *testing.T) {
 		var (
 			log = util.TestLogger(t)
 			im  mockConfigManager
@@ -180,7 +180,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		im.AssertNumberOfCalls(t, "DeleteConfig", 1)
 	})
 
-	t.Run("deleted running shared", func(t *testing.T) {
+	t.Run("deleted running config", func(t *testing.T) {
 		var (
 			log = util.TestLogger(t)
 
