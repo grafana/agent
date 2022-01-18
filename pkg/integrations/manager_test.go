@@ -133,7 +133,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 
 	cfg := mockManagerConfig()
 	cfg.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
-	icfg.Common = shared.Common{ScrapeIntegration: &noScrape}
+	icfg.Cmn = shared.Common{ScrapeIntegration: &noScrape}
 	cfg.Integrations.TestConfigs = append(cfg.Integrations.TestConfigs, &icfg)
 
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
@@ -149,7 +149,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := MockConfig{Integration: mock}
-	icfg.Common = shared.Common{Enabled: true}
+	icfg.Cmn = shared.Common{Enabled: true}
 
 	cfg := mockManagerConfig()
 	cfg.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
@@ -172,7 +172,7 @@ func TestManager_StartsIntegrations(t *testing.T) {
 func TestManager_RestartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := MockConfig{Integration: mock}
-	icfg.Common = shared.Common{Enabled: true}
+	icfg.Cmn = shared.Common{Enabled: true}
 	cfg := mockManagerConfig()
 
 	cfg.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
@@ -192,7 +192,7 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 func TestManager_GracefulStop(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := MockConfig{Integration: mock}
-	icfg.Common = shared.Common{Enabled: true}
+	icfg.Cmn = shared.Common{Enabled: true}
 
 	cfg := mockManagerConfig()
 	cfg.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
@@ -246,7 +246,7 @@ func TestManager_IntegrationDisabledToEnabledReload(t *testing.T) {
 
 	cfg := mockManagerConfig()
 	cfg.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
-	icfg.Common = shared.Common{Enabled: false}
+	icfg.Cmn = shared.Common{Enabled: false}
 	cfg.Integrations.TestConfigs = append(cfg.Integrations.TestConfigs, &icfg)
 
 	im := instance.NewBasicManager(instance.DefaultBasicManagerConfig, log.NewNopLogger(), mockInstanceFactory)
@@ -280,7 +280,7 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := MockConfig{Integration: mock}
 
-	icfg.Common = shared.Common{Enabled: true}
+	icfg.Cmn = shared.Common{Enabled: true}
 	cfg := mockManagerConfig()
 	cfg.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
 	cfg.Integrations.TestConfigs = append(cfg.Integrations.TestConfigs, &icfg)
@@ -321,7 +321,7 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 func generateMockConfigWithEnabledFlag(enabled bool) ManagerConfig {
 	enabledMock := newMockIntegration()
 	enabledConfig := MockConfig{Integration: enabledMock}
-	enabledConfig.Common = shared.Common{Enabled: enabled}
+	enabledConfig.Cmn = shared.Common{Enabled: enabled}
 	enabledManagerConfig := mockManagerConfig()
 	enabledManagerConfig.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
 	enabledManagerConfig.Integrations.TestConfigs = append(enabledManagerConfig.Integrations.TestConfigs, &enabledConfig)
@@ -330,15 +330,19 @@ func generateMockConfigWithEnabledFlag(enabled bool) ManagerConfig {
 
 type MockConfig struct {
 	Integration *mockIntegration `yaml:"mock"`
-	Common      shared.Common
+	Cmn         shared.Common
+}
+
+func (c MockConfig) Config() shared.Config {
+	return c
+}
+
+func (c MockConfig) Common() shared.Common {
+	return c.Cmn
 }
 
 func (c MockConfig) Cfg() shared.Config {
 	return c
-}
-
-func (c MockConfig) Cmn() shared.Common {
-	return c.Common
 }
 
 // Equal is used for cmp.Equal, since otherwise MockConfig can't be compared to itself.

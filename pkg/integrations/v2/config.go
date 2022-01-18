@@ -8,6 +8,9 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/shared"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
+	"github.com/prometheus/common/model"
+
 	"github.com/grafana/agent/pkg/integrations/v1/agent"
 	"github.com/grafana/agent/pkg/integrations/v1/cadvisor"
 	"github.com/grafana/agent/pkg/integrations/v1/consul_exporter"
@@ -24,8 +27,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v1/redis_exporter"
 	"github.com/grafana/agent/pkg/integrations/v1/statsd_exporter"
 	"github.com/grafana/agent/pkg/integrations/v1/windows_exporter"
-	"github.com/grafana/agent/pkg/integrations/v2/common"
-	"github.com/prometheus/common/model"
 )
 
 type Integrations struct {
@@ -51,52 +52,52 @@ type Integrations struct {
 func (v *Integrations) ActiveConfigs() []Config {
 	activeConfigs := make([]Config, 0)
 	if v.Agent != nil {
-		activeConfigs = append(activeConfigs, v.Agent)
+		activeConfigs = append(activeConfigs, newConfigWrapper(v.Agent, v.Agent.Cmn, v.Agent.NewIntegration, v.Agent.InstanceKey))
 	}
 	if v.Cadvisor != nil {
-		activeConfigs = append(activeConfigs, v.Cadvisor)
+		activeConfigs = append(activeConfigs, newConfigWrapper(v.Cadvisor, v.Cadvisor.Cmn, v.Cadvisor.NewIntegration, v.Cadvisor.InstanceKey))
 	}
 	for _, i := range v.ConsulExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	for _, i := range v.DnsmasqExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	for _, i := range v.ElasticsearchExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	for _, i := range v.GithubExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	for _, i := range v.KafkaExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	for _, i := range v.MemcachedExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	for _, i := range v.MongodbExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	for _, i := range v.MysqldExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	if v.NodeExporter != nil {
-		activeConfigs = append(activeConfigs, v.NodeExporter)
+		activeConfigs = append(activeConfigs, newConfigWrapper(v.NodeExporter, v.NodeExporter.Cmn, v.NodeExporter.NewIntegration, v.NodeExporter.InstanceKey))
 	}
 	for _, i := range v.PostgresExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	if v.ProcessExporter != nil {
-		activeConfigs = append(activeConfigs, v.ProcessExporter)
+		activeConfigs = append(activeConfigs, newConfigWrapper(v.ProcessExporter, v.ProcessExporter.Cmn, v.ProcessExporter.NewIntegration, v.ProcessExporter.InstanceKey))
 	}
 	for _, i := range v.RedisExporterConfigs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
 	if v.StatsdExporter != nil {
-		activeConfigs = append(activeConfigs, v.StatsdExporter)
+		activeConfigs = append(activeConfigs, newConfigWrapper(v.StatsdExporter, v.StatsdExporter.Cmn, v.StatsdExporter.NewIntegration, v.StatsdExporter.InstanceKey))
 	}
 	if v.WindowsExporter != nil {
-		activeConfigs = append(activeConfigs, v.WindowsExporter)
+		activeConfigs = append(activeConfigs, newConfigWrapper(v.WindowsExporter, v.WindowsExporter.Cmn, v.WindowsExporter.NewIntegration, v.WindowsExporter.InstanceKey))
 	}
 	for _, i := range v.TestConfigs {
 		activeConfigs = append(activeConfigs, i)
@@ -104,49 +105,65 @@ func (v *Integrations) ActiveConfigs() []Config {
 	return activeConfigs
 }
 
+type configWrapper struct {
+	cfg                shared.Config
+	cmn                common.MetricsConfig
+	configInstanceFunc configInstance
+	newInstanceFunc    newIntegration
+}
+
+func (c *configWrapper) ApplyDefaults(globals Globals) error {
+	c.cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+	if id, err := c.Identifier(globals); err == nil {
+		c.cmn.InstanceKey = &id
+	}
+	return nil
+}
+
+func (c *configWrapper) Identifier(globals Globals) (string, error) {
+	if c.cmn.InstanceKey != nil {
+		return *c.cmn.InstanceKey, nil
+	}
+	return c.configInstanceFunc(globals.AgentIdentifier)
+}
+
+func (c *configWrapper) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
+	return newIntegrationFromV1(c, logger, globals, c.newInstanceFunc)
+}
+
+func (c *configWrapper) Cfg() Config {
+	return c
+}
+
+func (c *configWrapper) Name() string {
+	return c.cfg.Name()
+}
+
+func (c *configWrapper) Common() common.MetricsConfig {
+	return c.cmn
+}
+
+type newIntegration func(l log.Logger) (shared.Integration, error)
+
+type configInstance func(agentKey string) (string, error)
+
+func newConfigWrapper(cfg shared.Config, cmn common.MetricsConfig, ni newIntegration, ci configInstance) *configWrapper {
+	return &configWrapper{
+		cfg:                cfg,
+		cmn:                cmn,
+		configInstanceFunc: ci,
+		newInstanceFunc:    ni,
+	}
+}
+
 type Agent struct {
 	agent.Config `yaml:",omitempty,inline"`
 	Cmn          common.MetricsConfig `yaml:",inline"`
 }
 
-func (c *Agent) Cfg() Config {
-	return c
-}
-
-func (c *Agent) Common() common.MetricsConfig {
-	return c.Cmn
-}
-
-func (c *Agent) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *Agent) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *Agent) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type Cadvisor struct {
 	cadvisor.Config `yaml:",omitempty,inline"`
 	Cmn             common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *Cadvisor) Cfg() Config {
-	return c
-}
-
-func (c *Cadvisor) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *Cadvisor) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -155,36 +172,9 @@ func (c *Cadvisor) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *Cadvisor) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *Cadvisor) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *Cadvisor) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type ConsulExporter struct {
 	consul_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                    common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *ConsulExporter) Cfg() Config {
-	return c
-}
-
-func (c *ConsulExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *ConsulExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -193,36 +183,9 @@ func (c *ConsulExporter) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return unmarshal((*plain)(c))
 }
 
-func (c *ConsulExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *ConsulExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *ConsulExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type DnsmasqExporter struct {
 	dnsmasq_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                     common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *DnsmasqExporter) Cfg() Config {
-	return c
-}
-
-func (c *DnsmasqExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *DnsmasqExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -231,36 +194,9 @@ func (c *DnsmasqExporter) UnmarshalYAML(unmarshal func(interface{}) error) error
 	return unmarshal((*plain)(c))
 }
 
-func (c *DnsmasqExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *DnsmasqExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *DnsmasqExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type ElasticsearchExporter struct {
 	elasticsearch_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                           common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *ElasticsearchExporter) Cfg() Config {
-	return c
-}
-
-func (c *ElasticsearchExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *ElasticsearchExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -269,36 +205,9 @@ func (c *ElasticsearchExporter) UnmarshalYAML(unmarshal func(interface{}) error)
 	return unmarshal((*plain)(c))
 }
 
-func (c *ElasticsearchExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *ElasticsearchExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *ElasticsearchExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type GithubExporter struct {
 	github_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                    common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *GithubExporter) Cfg() Config {
-	return c
-}
-
-func (c *GithubExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *GithubExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -307,36 +216,9 @@ func (c *GithubExporter) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return unmarshal((*plain)(c))
 }
 
-func (c *GithubExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *GithubExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *GithubExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type KafkaExporter struct {
 	kafka_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                   common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *KafkaExporter) Cfg() Config {
-	return c
-}
-
-func (c *KafkaExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *KafkaExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -345,36 +227,9 @@ func (c *KafkaExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *KafkaExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *KafkaExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *KafkaExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type MemcachedExporter struct {
 	memcached_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                       common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *MemcachedExporter) Cfg() Config {
-	return c
-}
-
-func (c *MemcachedExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *MemcachedExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -383,68 +238,14 @@ func (c *MemcachedExporter) UnmarshalYAML(unmarshal func(interface{}) error) err
 	return unmarshal((*plain)(c))
 }
 
-func (c *MemcachedExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *MemcachedExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *MemcachedExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type MongodbExporter struct {
 	mongodb_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                     common.MetricsConfig `yaml:",inline"`
 }
 
-func (c *MongodbExporter) Cfg() Config {
-	return c
-}
-
-func (c *MongodbExporter) Common() common.MetricsConfig {
-	return c.Cmn
-}
-
-func (c *MongodbExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *MongodbExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *MongodbExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type MysqldExporter struct {
 	mysqld_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                    common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *MysqldExporter) Cfg() Config {
-	return c
-}
-
-func (c *MysqldExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *MysqldExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -453,36 +254,9 @@ func (c *MysqldExporter) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return unmarshal((*plain)(c))
 }
 
-func (c *MysqldExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *MysqldExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *MysqldExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type NodeExporter struct {
 	node_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                  common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *NodeExporter) Cfg() Config {
-	return c
-}
-
-func (c *NodeExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *NodeExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -491,68 +265,14 @@ func (c *NodeExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *NodeExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *NodeExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *NodeExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type PostgresExporter struct {
 	postgres_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                      common.MetricsConfig `yaml:",inline"`
 }
 
-func (c *PostgresExporter) Cfg() Config {
-	return c
-}
-
-func (c *PostgresExporter) Common() common.MetricsConfig {
-	return c.Cmn
-}
-
-func (c *PostgresExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *PostgresExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *PostgresExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type ProcessExporter struct {
 	process_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                     common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *ProcessExporter) Cfg() Config {
-	return c
-}
-
-func (c *ProcessExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *ProcessExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -561,36 +281,9 @@ func (c *ProcessExporter) UnmarshalYAML(unmarshal func(interface{}) error) error
 	return unmarshal((*plain)(c))
 }
 
-func (c *ProcessExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *ProcessExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *ProcessExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type RedisExporter struct {
 	redis_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                   common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *RedisExporter) Cfg() Config {
-	return c
-}
-
-func (c *RedisExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *RedisExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -599,36 +292,9 @@ func (c *RedisExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-func (c *RedisExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *RedisExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *RedisExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type StatsdExporter struct {
 	statsd_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                    common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *StatsdExporter) Cfg() Config {
-	return c
-}
-
-func (c *StatsdExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *StatsdExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -637,36 +303,9 @@ func (c *StatsdExporter) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return unmarshal((*plain)(c))
 }
 
-func (c *StatsdExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *StatsdExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *StatsdExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 type WindowsExporter struct {
 	windows_exporter.Config `yaml:",omitempty,inline"`
 	Cmn                     common.MetricsConfig `yaml:",inline"`
-}
-
-func (c *WindowsExporter) Cfg() Config {
-	return c
-}
-
-func (c *WindowsExporter) Common() common.MetricsConfig {
-	return c.Cmn
 }
 
 func (c *WindowsExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -675,26 +314,7 @@ func (c *WindowsExporter) UnmarshalYAML(unmarshal func(interface{}) error) error
 	return unmarshal((*plain)(c))
 }
 
-func (c *WindowsExporter) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *WindowsExporter) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *WindowsExporter) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
-func newIntegration(c IntegrationConfig, logger log.Logger, globals Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
+func newIntegrationFromV1(c IntegrationConfig, logger log.Logger, globals Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
 
 	v1Integration, err := newInt(logger)
 	if err != nil {

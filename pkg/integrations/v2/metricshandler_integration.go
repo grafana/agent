@@ -16,7 +16,7 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
-type MetricsConfig interface {
+type MetricsIntegrationConfig interface {
 	Identifier(Globals) (string, error)
 	Name() string
 }
@@ -25,7 +25,7 @@ type MetricsConfig interface {
 // will expose a /metrics endpoint for h.
 func NewMetricsHandlerIntegration(
 	_ log.Logger,
-	c MetricsConfig,
+	c MetricsIntegrationConfig,
 	mc common.MetricsConfig,
 	globals Globals,
 	h http.Handler,

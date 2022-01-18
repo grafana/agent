@@ -21,112 +21,110 @@ import (
 )
 
 type V1Integration struct {
-  Agent *Agent `yaml:"agent,omitempty"`
-Cadvisor *Cadvisor `yaml:"cadvisor,omitempty"`
-ConsulExporter *ConsulExporter `yaml:"consul_exporter,omitempty"`
-DnsmasqExporter *DnsmasqExporter `yaml:"dnsmasq_exporter,omitempty"`
-ElasticsearchExporter *ElasticsearchExporter `yaml:"elasticsearch_exporter,omitempty"`
-GithubExporter *GithubExporter `yaml:"github_exporter,omitempty"`
-KafkaExporter *KafkaExporter `yaml:"kafka_exporter,omitempty"`
-MemcachedExporter *MemcachedExporter `yaml:"memcached_exporter,omitempty"`
-MongodbExporter *MongodbExporter `yaml:"mongodb_exporter,omitempty"`
-MysqldExporter *MysqldExporter `yaml:"mysqld_exporter,omitempty"`
-NodeExporter *NodeExporter `yaml:"node_exporter,omitempty"`
-PostgresExporter *PostgresExporter `yaml:"postgres_exporter,omitempty"`
-ProcessExporter *ProcessExporter `yaml:"process_exporter,omitempty"`
-RedisExporter *RedisExporter `yaml:"redis_exporter,omitempty"`
-StatsdExporter *StatsdExporter `yaml:"statsd_exporter,omitempty"`
-WindowsExporter *WindowsExporter `yaml:"windows_exporter,omitempty"`
-TestConfigs []shared.V1IntegrationConfig `yaml:"-,omitempty"`
-
+	Agent                 *Agent                       `yaml:"agent,omitempty"`
+	Cadvisor              *Cadvisor                    `yaml:"cadvisor,omitempty"`
+	ConsulExporter        *ConsulExporter              `yaml:"consul_exporter,omitempty"`
+	DnsmasqExporter       *DnsmasqExporter             `yaml:"dnsmasq_exporter,omitempty"`
+	ElasticsearchExporter *ElasticsearchExporter       `yaml:"elasticsearch_exporter,omitempty"`
+	GithubExporter        *GithubExporter              `yaml:"github_exporter,omitempty"`
+	KafkaExporter         *KafkaExporter               `yaml:"kafka_exporter,omitempty"`
+	MemcachedExporter     *MemcachedExporter           `yaml:"memcached_exporter,omitempty"`
+	MongodbExporter       *MongodbExporter             `yaml:"mongodb_exporter,omitempty"`
+	MysqldExporter        *MysqldExporter              `yaml:"mysqld_exporter,omitempty"`
+	NodeExporter          *NodeExporter                `yaml:"node_exporter,omitempty"`
+	PostgresExporter      *PostgresExporter            `yaml:"postgres_exporter,omitempty"`
+	ProcessExporter       *ProcessExporter             `yaml:"process_exporter,omitempty"`
+	RedisExporter         *RedisExporter               `yaml:"redis_exporter,omitempty"`
+	StatsdExporter        *StatsdExporter              `yaml:"statsd_exporter,omitempty"`
+	WindowsExporter       *WindowsExporter             `yaml:"windows_exporter,omitempty"`
+	TestConfigs           []shared.V1IntegrationConfig `yaml:"-,omitempty"`
 }
 
 func (v *V1Integration) ActiveConfigs() []shared.V1IntegrationConfig {
-    activeConfigs := make([]shared.V1IntegrationConfig,0)
+	activeConfigs := make([]shared.V1IntegrationConfig, 0)
 	if v.Agent != nil {
-        activeConfigs = append(activeConfigs, v.Agent)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.Agent.Config, v.Agent.Common))
+	}
 	if v.Cadvisor != nil {
-        activeConfigs = append(activeConfigs, v.Cadvisor)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.Cadvisor.Config, v.Cadvisor.Common))
+	}
 	if v.ConsulExporter != nil {
-        activeConfigs = append(activeConfigs, v.ConsulExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.ConsulExporter.Config, v.ConsulExporter.Common))
+	}
 	if v.DnsmasqExporter != nil {
-        activeConfigs = append(activeConfigs, v.DnsmasqExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.DnsmasqExporter.Config, v.DnsmasqExporter.Common))
+	}
 	if v.ElasticsearchExporter != nil {
-        activeConfigs = append(activeConfigs, v.ElasticsearchExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.ElasticsearchExporter.Config, v.ElasticsearchExporter.Common))
+	}
 	if v.GithubExporter != nil {
-        activeConfigs = append(activeConfigs, v.GithubExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.GithubExporter.Config, v.GithubExporter.Common))
+	}
 	if v.KafkaExporter != nil {
-        activeConfigs = append(activeConfigs, v.KafkaExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.KafkaExporter.Config, v.KafkaExporter.Common))
+	}
 	if v.MemcachedExporter != nil {
-        activeConfigs = append(activeConfigs, v.MemcachedExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.MemcachedExporter.Config, v.MemcachedExporter.Common))
+	}
 	if v.MongodbExporter != nil {
-        activeConfigs = append(activeConfigs, v.MongodbExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.MongodbExporter.Config, v.MongodbExporter.Common))
+	}
 	if v.MysqldExporter != nil {
-        activeConfigs = append(activeConfigs, v.MysqldExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.MysqldExporter.Config, v.MysqldExporter.Common))
+	}
 	if v.NodeExporter != nil {
-        activeConfigs = append(activeConfigs, v.NodeExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.NodeExporter.Config, v.NodeExporter.Common))
+	}
 	if v.PostgresExporter != nil {
-        activeConfigs = append(activeConfigs, v.PostgresExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.PostgresExporter.Config, v.PostgresExporter.Common))
+	}
 	if v.ProcessExporter != nil {
-        activeConfigs = append(activeConfigs, v.ProcessExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.ProcessExporter.Config, v.ProcessExporter.Common))
+	}
 	if v.RedisExporter != nil {
-        activeConfigs = append(activeConfigs, v.RedisExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.RedisExporter.Config, v.RedisExporter.Common))
+	}
 	if v.StatsdExporter != nil {
-        activeConfigs = append(activeConfigs, v.StatsdExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.StatsdExporter.Config, v.StatsdExporter.Common))
+	}
 	if v.WindowsExporter != nil {
-        activeConfigs = append(activeConfigs, v.WindowsExporter)
-    }
+		activeConfigs = append(activeConfigs, newConfigWrapper(&v.WindowsExporter.Config, v.WindowsExporter.Common))
+	}
 	for _, i := range v.TestConfigs {
-        activeConfigs = append(activeConfigs, i)
-    }
-    return activeConfigs
+		activeConfigs = append(activeConfigs, i)
+	}
+	return activeConfigs
 }
 
+type ConfigWrapper struct {
+	cfg shared.Config
+	cmn shared.Common
+}
+
+func (c *ConfigWrapper) Common() shared.Common {
+	return c.cmn
+}
+
+func (c *ConfigWrapper) Config() shared.Config {
+	return c.cfg
+}
+
+func newConfigWrapper(cfg shared.Config, cmn shared.Common) *ConfigWrapper {
+	return &ConfigWrapper{
+		cfg: cfg,
+		cmn: cmn,
+	}
+}
 
 type Agent struct {
-  agent.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	agent.Config  `yaml:",omitempty,inline"`
+	shared.Common `yaml:",omitempty,inline"`
 }
-
-func (c *Agent) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *Agent) Cmn() shared.Common {
-	return c.Common
-}
-
-
-
 
 type Cadvisor struct {
-  cadvisor.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	cadvisor.Config `yaml:",omitempty,inline"`
+	shared.Common   `yaml:",omitempty,inline"`
 }
-
-func (c *Cadvisor) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *Cadvisor) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *Cadvisor) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = cadvisor.DefaultConfig
@@ -134,21 +132,10 @@ func (c *Cadvisor) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-
-
 type ConsulExporter struct {
-  consul_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	consul_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common          `yaml:",omitempty,inline"`
 }
-
-func (c *ConsulExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *ConsulExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *ConsulExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = consul_exporter.DefaultConfig
@@ -156,21 +143,10 @@ func (c *ConsulExporter) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return unmarshal((*plain)(c))
 }
 
-
-
 type DnsmasqExporter struct {
-  dnsmasq_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	dnsmasq_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common           `yaml:",omitempty,inline"`
 }
-
-func (c *DnsmasqExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *DnsmasqExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *DnsmasqExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = dnsmasq_exporter.DefaultConfig
@@ -178,21 +154,10 @@ func (c *DnsmasqExporter) UnmarshalYAML(unmarshal func(interface{}) error) error
 	return unmarshal((*plain)(c))
 }
 
-
-
 type ElasticsearchExporter struct {
-  elasticsearch_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	elasticsearch_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common                 `yaml:",omitempty,inline"`
 }
-
-func (c *ElasticsearchExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *ElasticsearchExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *ElasticsearchExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = elasticsearch_exporter.DefaultConfig
@@ -200,21 +165,10 @@ func (c *ElasticsearchExporter) UnmarshalYAML(unmarshal func(interface{}) error)
 	return unmarshal((*plain)(c))
 }
 
-
-
 type GithubExporter struct {
-  github_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	github_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common          `yaml:",omitempty,inline"`
 }
-
-func (c *GithubExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *GithubExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *GithubExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = github_exporter.DefaultConfig
@@ -222,21 +176,10 @@ func (c *GithubExporter) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return unmarshal((*plain)(c))
 }
 
-
-
 type KafkaExporter struct {
-  kafka_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	kafka_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common         `yaml:",omitempty,inline"`
 }
-
-func (c *KafkaExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *KafkaExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *KafkaExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = kafka_exporter.DefaultConfig
@@ -244,21 +187,10 @@ func (c *KafkaExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-
-
 type MemcachedExporter struct {
-  memcached_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	memcached_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common             `yaml:",omitempty,inline"`
 }
-
-func (c *MemcachedExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *MemcachedExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *MemcachedExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = memcached_exporter.DefaultConfig
@@ -266,37 +198,15 @@ func (c *MemcachedExporter) UnmarshalYAML(unmarshal func(interface{}) error) err
 	return unmarshal((*plain)(c))
 }
 
-
-
 type MongodbExporter struct {
-  mongodb_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	mongodb_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common           `yaml:",omitempty,inline"`
 }
-
-func (c *MongodbExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *MongodbExporter) Cmn() shared.Common {
-	return c.Common
-}
-
-
-
 
 type MysqldExporter struct {
-  mysqld_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	mysqld_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common          `yaml:",omitempty,inline"`
 }
-
-func (c *MysqldExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *MysqldExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *MysqldExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = mysqld_exporter.DefaultConfig
@@ -304,21 +214,10 @@ func (c *MysqldExporter) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return unmarshal((*plain)(c))
 }
 
-
-
 type NodeExporter struct {
-  node_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	node_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common        `yaml:",omitempty,inline"`
 }
-
-func (c *NodeExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *NodeExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *NodeExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = node_exporter.DefaultConfig
@@ -326,37 +225,15 @@ func (c *NodeExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-
-
 type PostgresExporter struct {
-  postgres_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	postgres_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common            `yaml:",omitempty,inline"`
 }
-
-func (c *PostgresExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *PostgresExporter) Cmn() shared.Common {
-	return c.Common
-}
-
-
-
 
 type ProcessExporter struct {
-  process_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	process_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common           `yaml:",omitempty,inline"`
 }
-
-func (c *ProcessExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *ProcessExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *ProcessExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = process_exporter.DefaultConfig
@@ -364,21 +241,10 @@ func (c *ProcessExporter) UnmarshalYAML(unmarshal func(interface{}) error) error
 	return unmarshal((*plain)(c))
 }
 
-
-
 type RedisExporter struct {
-  redis_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	redis_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common         `yaml:",omitempty,inline"`
 }
-
-func (c *RedisExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *RedisExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *RedisExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = redis_exporter.DefaultConfig
@@ -386,21 +252,10 @@ func (c *RedisExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-
-
 type StatsdExporter struct {
-  statsd_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	statsd_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common          `yaml:",omitempty,inline"`
 }
-
-func (c *StatsdExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *StatsdExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *StatsdExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = statsd_exporter.DefaultConfig
@@ -408,25 +263,13 @@ func (c *StatsdExporter) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	return unmarshal((*plain)(c))
 }
 
-
-
 type WindowsExporter struct {
-  windows_exporter.Config `yaml:",omitempty,inline"`
-  shared.Common `yaml:",omitempty,inline"`
+	windows_exporter.Config `yaml:",omitempty,inline"`
+	shared.Common           `yaml:",omitempty,inline"`
 }
-
-func (c *WindowsExporter) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *WindowsExporter) Cmn() shared.Common {
-	return c.Common
-}
-
 
 func (c *WindowsExporter) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = windows_exporter.DefaultConfig
 	type plain WindowsExporter
 	return unmarshal((*plain)(c))
 }
-

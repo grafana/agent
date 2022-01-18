@@ -2,8 +2,12 @@ package main
 
 import (
 	"bytes"
+	"fmt"
+	"reflect"
 	"strings"
 	"text/template"
+
+	v1 "github.com/grafana/agent/pkg/integrations/v1"
 
 	"github.com/grafana/agent/pkg/integrations/shared"
 )
@@ -11,7 +15,16 @@ import (
 type codeGen struct {
 }
 
-func (c *codeGen) createV1Config(configs []configMeta) string {
+func (c *codeGen) generateConfigMeta() []configMeta {
+	configMetas := make([]configMeta, 0)
+	for _, i := range v1.Configs {
+		configMetas = append(configMetas, newConfigMeta(i.Config, i.DefaultConfig, i.Type))
+	}
+	return configMetas
+}
+
+func (c *codeGen) createV1Config() string {
+	configs := c.generateConfigMeta()
 	integrationTemplate, err := template.New("shared").Parse(`
 
 type {{.Name}} struct {
@@ -19,21 +32,14 @@ type {{.Name}} struct {
   shared.Common ` + "`yaml:\",omitempty,inline\"`" + `
 }
 
-func (c *{{ .Name }}) Cfg() shared.Config {
-	return &c.Config
-}
-
-func (c *{{ .Name }}) Cmn() shared.Common {
-	return c.Common
-}
-
-{{ if .DefaultConfig }}
+{{ if .DefaultConfig -}}
 func (c *{{ .Name }}) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = {{ .PackageName }}.DefaultConfig
 	type plain {{ .Name }}
 	return unmarshal((*plain)(c))
 }
-{{ end }}
+{{ end -}}
+
 `)
 	v1Template, err := template.New("v1").Parse(`
 type V1Integration struct {
@@ -47,13 +53,34 @@ func (v *V1Integration) ActiveConfigs() []shared.V1IntegrationConfig {
     activeConfigs := make([]shared.V1IntegrationConfig,0)
 	{{ range $index, $element := . -}}
 	if v.{{ $element.Name }} != nil {
-        activeConfigs = append(activeConfigs, v.{{ $element.Name}})
+        activeConfigs = append(activeConfigs, newConfigWrapper(&v.{{ $element.Name}}.Config, v.{{ $element.Name}}.Common))
     }
 	{{ end -}}
     for _, i := range v.TestConfigs {
         activeConfigs = append(activeConfigs, i)
     }
     return activeConfigs
+}
+
+
+type ConfigWrapper struct {
+	cfg shared.Config
+	cmn shared.Common
+}
+
+func (c *ConfigWrapper) Common() shared.Common {
+	return c.cmn
+}
+
+func (c *ConfigWrapper) Config() shared.Config {
+	return c.cfg
+}
+
+func newConfigWrapper(cfg shared.Config, cmn shared.Common) *ConfigWrapper {
+	return &ConfigWrapper{
+		cfg: cfg,
+		cmn: cmn,
+	}
 }
 `)
 	if err != nil {
@@ -63,25 +90,12 @@ func (v *V1Integration) ActiveConfigs() []shared.V1IntegrationConfig {
 	v1ConfigBuilder.WriteString("package v1\n")
 	v1ConfigBuilder.WriteString(`
 import (
-	"github.com/grafana/agent/pkg/integrations/shared"
-	"github.com/grafana/agent/pkg/integrations/v1/agent"
-	"github.com/grafana/agent/pkg/integrations/v1/cadvisor"
-	"github.com/grafana/agent/pkg/integrations/v1/consul_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/dnsmasq_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/elasticsearch_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/github_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/kafka_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/memcached_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/mongodb_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/mysqld_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/node_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/postgres_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/process_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/redis_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/statsd_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/windows_exporter"
-)
+"github.com/grafana/agent/pkg/integrations/shared"
 `)
+	for _, i := range configs {
+		v1ConfigBuilder.WriteString(fmt.Sprintf("\"%s\"\n", i.PackagePath))
+	}
+	v1ConfigBuilder.WriteString(")\n")
 	v1Buffer := bytes.Buffer{}
 	err = v1Template.Execute(&v1Buffer, configs)
 	if err != nil {
@@ -101,7 +115,9 @@ import (
 	return v1ConfigBuilder.String()
 }
 
-func (c *codeGen) createV2Config(configs []configMeta) string {
+func (c *codeGen) createV2Config() string {
+	configs := c.generateConfigMeta()
+
 	integrationTemplate, err := template.New("shared").Parse(`
 
 type {{.Name}} struct {
@@ -109,60 +125,14 @@ type {{.Name}} struct {
   Cmn common.MetricsConfig  ` + "`yaml:\",inline\"`" + `
 }
 
-func (c *{{ .Name }}) Cfg() Config {
-	return c
-}
-
-func (c *{{ .Name }}) Common() common.MetricsConfig {
-	return c.Cmn
-}
-
-{{ if .DefaultConfig }}
+{{ if .DefaultConfig -}}
 func (c *{{ .Name }}) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	c.Config = {{ .PackageName }}.DefaultConfig
 	type plain {{ .Name }}
 	return unmarshal((*plain)(c))
 }
-{{ end }}
-
-{{ if eq .IsNativeV2 false -}}
-
-func (c*{{ .Name }}) ApplyDefaults(globals Globals) error {
-	c.Cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Cmn.InstanceKey = &id
-	}
-	return nil
-}
-
-func (c *{{ .Name }}) Identifier(globals Globals) (string, error) {
-	if c.Cmn.InstanceKey != nil {
-		return *c.Cmn.InstanceKey, nil
-	}
-	return c.Config.InstanceKey(globals.AgentIdentifier)
-}
-
-func (c *{{ .Name }}) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return newIntegration(c, logger, globals, c.Config.NewIntegration)
-}
-
 {{ end -}}
 
-{{ if eq .IsNativeV2 true -}}
-
-func (c*{{ .Name }}) ApplyDefaults(globals Globals) error {
-	return c.Config.ApplyDefaults(globals)
-}
-
-func (c *{{ .Name }}) Identifier(globals Globals) (string, error) {
-	return c.Config.Identifier(globals)
-}
-
-func (c *{{ .Name }}) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
-	return c.Config.NewIntegration(logger,globals)
-}
-
-{{ end -}}
 `)
 	// Type: 1 = Singleton, 2 = Multiplex
 	v2template, err := template.New("v1").Parse(`
@@ -184,12 +154,12 @@ func (v *Integrations) ActiveConfigs() []Config {
 	{{ range $index, $element := . -}}
     {{ if eq .Type  0 -}}
 	if v.{{ $element.Name }} != nil {
-        activeConfigs = append(activeConfigs, v.{{ $element.Name}})
+        activeConfigs = append(activeConfigs, newConfigWrapper(v.{{ $element.Name}}, v.{{ $element.Name}}.Cmn, v.{{ $element.Name}}.NewIntegration, v.{{ $element.Name}}.InstanceKey))
     }
     {{ end -}}
 	{{ if eq .Type  1 -}}
 	for _, i := range v.{{ $element.Name}}Configs {
-		activeConfigs = append(activeConfigs, i)
+		activeConfigs = append(activeConfigs, newConfigWrapper(i, i.Cmn, i.NewIntegration, i.InstanceKey))
 	}
     {{ end -}}
 	{{ end -}}
@@ -197,6 +167,57 @@ func (v *Integrations) ActiveConfigs() []Config {
         activeConfigs = append(activeConfigs, i)
     }
     return activeConfigs
+}
+
+type configWrapper struct {
+	cfg                shared.Config
+	cmn                common.MetricsConfig
+	configInstanceFunc configInstance
+	newInstanceFunc    newIntegration
+}
+
+func (c *configWrapper) ApplyDefaults(globals Globals) error {
+	c.cmn.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+	if id, err := c.Identifier(globals); err == nil {
+		c.cmn.InstanceKey = &id
+	}
+	return nil
+}
+
+func (c *configWrapper) Identifier(globals Globals) (string, error) {
+	if c.cmn.InstanceKey != nil {
+		return *c.cmn.InstanceKey, nil
+	}
+	return c.configInstanceFunc(globals.AgentIdentifier)
+}
+
+func (c *configWrapper) NewIntegration(logger log.Logger, globals Globals) (Integration, error) {
+	return newIntegrationFromV1(c, logger, globals, c.newInstanceFunc)
+}
+
+func (c *configWrapper) Cfg() Config {
+	return c
+}
+
+func (c *configWrapper) Name() string {
+	return c.cfg.Name()
+}
+
+func (c *configWrapper) Common() common.MetricsConfig {
+	return c.cmn
+}
+
+type newIntegration func(l log.Logger) (shared.Integration, error)
+
+type configInstance func(agentKey string) (string, error)
+
+func newConfigWrapper(cfg shared.Config, cmn common.MetricsConfig, ni newIntegration, ci configInstance) *configWrapper {
+	return &configWrapper{
+		cfg:                cfg,
+		cmn:                cmn,
+		configInstanceFunc: ci,
+		newInstanceFunc:    ni,
+	}
 }
 `)
 	if err != nil {
@@ -209,26 +230,14 @@ import (
 "context"
 	"errors"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations/shared"
-	"github.com/grafana/agent/pkg/integrations/v1/agent"
-    "github.com/grafana/agent/pkg/integrations/v1/cadvisor"
-	"github.com/grafana/agent/pkg/integrations/v1/consul_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/dnsmasq_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/elasticsearch_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/github_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/kafka_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/memcached_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/mongodb_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/mysqld_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/node_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/postgres_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/process_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/redis_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/statsd_exporter"
-	"github.com/grafana/agent/pkg/integrations/v1/windows_exporter"
+"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
-)
+
 `)
+	for _, i := range configs {
+		v2ConfigBuilder.WriteString(fmt.Sprintf("\"%s\"\n", i.PackagePath))
+	}
+	v2ConfigBuilder.WriteString(")\n")
 	v1Buffer := bytes.Buffer{}
 	err = v2template.Execute(&v1Buffer, configs)
 	if err != nil {
@@ -246,7 +255,7 @@ import (
 		v2ConfigBuilder.WriteString(bf.String())
 	}
 	v2ConfigBuilder.WriteString(`
-func newIntegration(c IntegrationConfig, logger log.Logger, globals Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
+func newIntegrationFromV1(c IntegrationConfig, logger log.Logger, globals Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
 
 	v1Integration, err := newInt(logger)
 	if err != nil {
@@ -326,4 +335,29 @@ type configMeta struct {
 	PackageName   string
 	Type          shared.Type
 	IsNativeV2    bool
+	PackagePath   string
+}
+
+func newConfigMeta(c interface{}, defaultConfig interface{}, p shared.Type) configMeta {
+	path := reflect.TypeOf(c).PkgPath()
+	configType := fmt.Sprintf("%T", c)
+	packageName := strings.ReplaceAll(configType, ".Config", "")
+	name := strings.ReplaceAll(configType, ".Config", "")
+	name = strings.ReplaceAll(name, "_", " ")
+	name = strings.Title(name)
+	name = strings.ReplaceAll(name, " ", "")
+	var dc string
+	if defaultConfig != nil {
+		dc = fmt.Sprintf("%T", defaultConfig)
+	}
+
+	return configMeta{
+		Name:          name,
+		ConfigStruct:  configType,
+		DefaultConfig: dc,
+		PackageName:   packageName,
+		Type:          p,
+		IsNativeV2:    false,
+		PackagePath:   path,
+	}
 }

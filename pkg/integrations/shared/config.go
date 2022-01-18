@@ -36,8 +36,8 @@ type ScrapeConfig struct {
 }
 
 type V1IntegrationConfig interface {
-	Cfg() Config
-	Cmn() Common
+	Config() Config
+	Common() Common
 }
 
 type V1Integrations interface {

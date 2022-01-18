@@ -128,12 +128,12 @@ func (c *ManagerConfig) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config)
 	c.PrometheusGlobalConfig = mcfg.Global.Prometheus
 
 	for _, ic := range c.Integrations.ActiveConfigs() {
-		if !ic.Cmn().Enabled {
+		if !ic.Common().Enabled {
 			continue
 		}
 
 		scrapeIntegration := c.ScrapeIntegrations
-		if common := ic.Cmn(); common.ScrapeIntegration != nil {
+		if common := ic.Common(); common.ScrapeIntegration != nil {
 			scrapeIntegration = *common.ScrapeIntegration
 		}
 
@@ -224,12 +224,12 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
 	for _, ic := range cfg.Integrations.ActiveConfigs() {
-		if !ic.Cmn().Enabled {
+		if !ic.Common().Enabled {
 			continue
 		}
 		// Key is used to identify the instance of this integration within the
 		// instance manager and within our set of running integrations.
-		key := integrationKey(ic.Cfg().Name())
+		key := integrationKey(ic.Config().Name())
 
 		// Look for an existing integration with the same key. If it exists and
 		// is unchanged, we have nothing to do. Otherwise, we're going to recreate
@@ -242,10 +242,10 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 			delete(m.integrations, key)
 		}
 
-		l := log.With(m.logger, "integration", ic.Cfg().Name())
-		i, err := ic.Cfg().NewIntegration(l)
+		l := log.With(m.logger, "integration", ic.Config().Name())
+		i, err := ic.Config().NewIntegration(l)
 		if err != nil {
-			level.Error(m.logger).Log("msg", "failed to initialize integration. it will not run or be scraped", "integration", ic.Cfg().Name(), "err", err)
+			level.Error(m.logger).Log("msg", "failed to initialize integration. it will not run or be scraped", "integration", ic.Config().Name(), "err", err)
 			failed = true
 
 			// If this integration was running before, its instance won't be cleaned
@@ -256,13 +256,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 		// Find what instance label should be used to represent this integration.
 		var instanceKey string
-		if kp := ic.Cmn().InstanceKey; kp != nil {
+		if kp := ic.Common().InstanceKey; kp != nil {
 			// Common config takes precedence.
 			instanceKey = strings.TrimSpace(*kp)
 		} else {
-			instanceKey, err = ic.Cfg().InstanceKey(fmt.Sprintf("%s:%d", m.hostname, cfg.ListenPort))
+			instanceKey, err = ic.Config().InstanceKey(fmt.Sprintf("%s:%d", m.hostname, cfg.ListenPort))
 			if err != nil {
-				level.Error(m.logger).Log("msg", "failed to get instance key for integration. it will not run or be scraped", "integration", ic.Cfg().Name(), "err", err)
+				level.Error(m.logger).Log("msg", "failed to get instance key for integration. it will not run or be scraped", "integration", ic.Config().Name(), "err", err)
 				failed = true
 
 				// If this integration was running before, its instance won't be cleaned
@@ -295,9 +295,9 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	for key, process := range m.integrations {
 		foundConfig := false
 		for _, ic := range cfg.Integrations.ActiveConfigs() {
-			if integrationKey(ic.Cfg().Name()) == key {
+			if integrationKey(ic.Config().Name()) == key {
 				// If this is disabled then we should delete from integrations
-				if !ic.Cmn().Enabled {
+				if !ic.Common().Enabled {
 					break
 				}
 				foundConfig = true
@@ -318,7 +318,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// if the configs for the integration didn't.
 	for key, p := range m.integrations {
 		shouldCollect := cfg.ScrapeIntegrations
-		if common := p.cfg.Cmn(); common.ScrapeIntegration != nil {
+		if common := p.cfg.Common(); common.ScrapeIntegration != nil {
 			shouldCollect = *common.ScrapeIntegration
 		}
 
@@ -326,13 +326,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		case true:
 			instanceConfig := m.instanceConfigForIntegration(p, cfg)
 			if err := m.validator(&instanceConfig); err != nil {
-				level.Error(p.log).Log("msg", "failed to validate generated scrape config for integration. integration will not be scraped", "err", err, "integration", p.cfg.Cfg().Name())
+				level.Error(p.log).Log("msg", "failed to validate generated scrape config for integration. integration will not be scraped", "err", err, "integration", p.cfg.Config().Name())
 				failed = true
 				break
 			}
 
 			if err := m.im.ApplyConfig(instanceConfig); err != nil {
-				level.Error(p.log).Log("msg", "failed to apply integration. integration will not be scraped", "err", err, "integration", p.cfg.Cfg().Name())
+				level.Error(p.log).Log("msg", "failed to apply integration. integration will not be scraped", "err", err, "integration", p.cfg.Config().Name())
 				failed = true
 			}
 		case false:
@@ -369,7 +369,7 @@ func (p *integrationProcess) Run() {
 	defer func() {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("%v", r)
-			level.Error(p.log).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", p.cfg.Cfg().Name())
+			level.Error(p.log).Log("msg", "integration has panicked. THIS IS A BUG!", "err", err, "integration", p.cfg.Config().Name())
 		}
 	}()
 
@@ -379,9 +379,9 @@ func (p *integrationProcess) Run() {
 	for {
 		err := p.i.Run(p.ctx)
 		if err != nil && err != context.Canceled {
-			p.wait(p.cfg.Cfg(), err)
+			p.wait(p.cfg.Config(), err)
 		} else {
-			level.Info(p.log).Log("msg", "stopped integration", "integration", p.cfg.Cfg().Name())
+			level.Info(p.log).Log("msg", "stopped integration", "integration", p.cfg.Config().Name())
 			break
 		}
 	}
@@ -397,7 +397,7 @@ func (m *Manager) instanceBackoff(cfg shared.Config, err error) {
 }
 
 func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg ManagerConfig) instance.Config {
-	common := p.cfg.Cmn()
+	common := p.cfg.Common()
 	relabelConfigs := append(cfg.DefaultRelabelConfigs(p.instanceKey), common.RelabelConfigs...)
 
 	schema := "http"
@@ -413,7 +413,7 @@ func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg Manage
 	for _, isc := range p.i.ScrapeConfigs() {
 		sc := &promConfig.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
-			MetricsPath:             path.Join("/integrations", p.cfg.Cfg().Name(), isc.MetricsPath),
+			MetricsPath:             path.Join("/integrations", p.cfg.Config().Name(), isc.MetricsPath),
 			Scheme:                  schema,
 			HonorLabels:             false,
 			HonorTimestamps:         true,
@@ -429,7 +429,7 @@ func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg Manage
 	}
 
 	instanceCfg := instance.DefaultConfig
-	instanceCfg.Name = integrationKey(p.cfg.Cfg().Name())
+	instanceCfg.Name = integrationKey(p.cfg.Config().Name())
 	instanceCfg.ScrapeConfigs = scrapeConfigs
 	instanceCfg.RemoteWrite = cfg.PrometheusRemoteWrite
 	if common.WALTruncateFrequency > 0 {
@@ -500,7 +500,7 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		// a handler for it and cache it.
 		handler, err := p.i.MetricsHandler()
 		if err != nil {
-			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Cfg().Name(), "err", err)
+			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Config().Name(), "err", err)
 			return http.HandlerFunc(internalServiceError)
 		}
 
