@@ -20,28 +20,29 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v1/windows_exporter"
 )
 
+// Configs is a registry of all integration configurations
 var Configs = make([]ConfigurationTemplate, 0)
 
 func init() {
-	AddIntegrationConfig(agent.Config{}, nil, shared.TypeSingleton)
-	AddIntegrationConfig(cadvisor.Config{}, cadvisor.DefaultConfig, shared.TypeSingleton)
-	AddIntegrationConfig(consul_exporter.Config{}, consul_exporter.DefaultConfig, shared.TypeMultiplex)
-	AddIntegrationConfig(dnsmasq_exporter.Config{}, dnsmasq_exporter.DefaultConfig, shared.TypeMultiplex)
-	AddIntegrationConfig(elasticsearch_exporter.Config{}, elasticsearch_exporter.DefaultConfig, shared.TypeMultiplex)
-	AddIntegrationConfig(github_exporter.Config{}, github_exporter.DefaultConfig, shared.TypeMultiplex)
-	AddIntegrationConfig(kafka_exporter.Config{}, kafka_exporter.DefaultConfig, shared.TypeMultiplex)
-	AddIntegrationConfig(memcached_exporter.Config{}, memcached_exporter.DefaultConfig, shared.TypeMultiplex)
-	AddIntegrationConfig(mongodb_exporter.Config{}, nil, shared.TypeMultiplex)
-	AddIntegrationConfig(mysqld_exporter.Config{}, mysqld_exporter.DefaultConfig, shared.TypeMultiplex)
-	AddIntegrationConfig(node_exporter.Config{}, node_exporter.DefaultConfig, shared.TypeSingleton)
-	AddIntegrationConfig(postgres_exporter.Config{}, nil, shared.TypeMultiplex)
-	AddIntegrationConfig(process_exporter.Config{}, process_exporter.DefaultConfig, shared.TypeSingleton)
-	AddIntegrationConfig(redis_exporter.Config{}, redis_exporter.DefaultConfig, shared.TypeMultiplex)
-	AddIntegrationConfig(statsd_exporter.Config{}, statsd_exporter.DefaultConfig, shared.TypeSingleton)
-	AddIntegrationConfig(windows_exporter.Config{}, windows_exporter.DefaultConfig, shared.TypeSingleton)
+	addIntegrationConfig(agent.Config{}, nil, shared.TypeSingleton)
+	addIntegrationConfig(cadvisor.Config{}, cadvisor.DefaultConfig, shared.TypeSingleton)
+	addIntegrationConfig(consul_exporter.Config{}, consul_exporter.DefaultConfig, shared.TypeMultiplex)
+	addIntegrationConfig(dnsmasq_exporter.Config{}, dnsmasq_exporter.DefaultConfig, shared.TypeMultiplex)
+	addIntegrationConfig(elasticsearch_exporter.Config{}, elasticsearch_exporter.DefaultConfig, shared.TypeMultiplex)
+	addIntegrationConfig(github_exporter.Config{}, github_exporter.DefaultConfig, shared.TypeMultiplex)
+	addIntegrationConfig(kafka_exporter.Config{}, kafka_exporter.DefaultConfig, shared.TypeMultiplex)
+	addIntegrationConfig(memcached_exporter.Config{}, memcached_exporter.DefaultConfig, shared.TypeMultiplex)
+	addIntegrationConfig(mongodb_exporter.Config{}, nil, shared.TypeMultiplex)
+	addIntegrationConfig(mysqld_exporter.Config{}, mysqld_exporter.DefaultConfig, shared.TypeMultiplex)
+	addIntegrationConfig(node_exporter.Config{}, node_exporter.DefaultConfig, shared.TypeSingleton)
+	addIntegrationConfig(postgres_exporter.Config{}, nil, shared.TypeMultiplex)
+	addIntegrationConfig(process_exporter.Config{}, process_exporter.DefaultConfig, shared.TypeSingleton)
+	addIntegrationConfig(redis_exporter.Config{}, redis_exporter.DefaultConfig, shared.TypeMultiplex)
+	addIntegrationConfig(statsd_exporter.Config{}, statsd_exporter.DefaultConfig, shared.TypeSingleton)
+	addIntegrationConfig(windows_exporter.Config{}, windows_exporter.DefaultConfig, shared.TypeSingleton)
 }
 
-func AddIntegrationConfig(config interface{}, defaultConfig interface{}, t shared.Type) {
+func addIntegrationConfig(config interface{}, defaultConfig interface{}, t shared.Type) {
 	Configs = append(Configs, ConfigurationTemplate{
 		Config:        config,
 		DefaultConfig: defaultConfig,
@@ -50,6 +51,7 @@ func AddIntegrationConfig(config interface{}, defaultConfig interface{}, t share
 
 }
 
+// ConfigurationTemplate is used for the code generator to generate the config
 type ConfigurationTemplate struct {
 	Config        interface{}
 	DefaultConfig interface{}

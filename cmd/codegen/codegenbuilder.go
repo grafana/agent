@@ -87,7 +87,7 @@ func newConfigWrapper(cfg shared.Config, cmn shared.Common) *ConfigWrapper {
 		panic(err)
 	}
 	v1ConfigBuilder := strings.Builder{}
-	v1ConfigBuilder.WriteString("package v1 \n //nolint\n")
+	v1ConfigBuilder.WriteString("//nolint\npackage v1 \n")
 	v1ConfigBuilder.WriteString(`
 import (
 "github.com/grafana/agent/pkg/integrations/shared"
@@ -224,7 +224,7 @@ func newConfigWrapper(cfg shared.Config, cmn common.MetricsConfig, ni newIntegra
 		panic(err)
 	}
 	v2ConfigBuilder := strings.Builder{}
-	v2ConfigBuilder.WriteString("package v2 \n //nolint\n")
+	v2ConfigBuilder.WriteString("//nolint\npackage v2")
 	v2ConfigBuilder.WriteString(`
 import (
 "context"
