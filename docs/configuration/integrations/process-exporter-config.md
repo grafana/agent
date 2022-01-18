@@ -38,7 +38,7 @@ spec:
   - image: grafana/agent:v0.22.0
     name: agent
     args:
-    - --config.file=/etc/agent-shared/agent.yaml
+    - --config.file=/etc/agent-config/agent.yaml
     volumeMounts:
     - name: procfs
       mountPath: /proc

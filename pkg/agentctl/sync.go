@@ -36,7 +36,7 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string, dryR
 	}
 
 	if dryRun {
-		level.Info(logger).Log("msg", "shared files validated successfully")
+		level.Info(logger).Log("msg", "config files validated successfully")
 		return nil
 	}
 
@@ -44,10 +44,10 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string, dryR
 	var hadErrors bool
 
 	for _, cfg := range cfgs {
-		level.Info(logger).Log("msg", "uploading shared", "name", cfg.Name)
+		level.Info(logger).Log("msg", "uploading config", "name", cfg.Name)
 		err := cli.PutConfiguration(ctx, cfg.Name, cfg)
 		if err != nil {
-			level.Error(logger).Log("msg", "failed to upload shared", "name", cfg.Name, "err", err)
+			level.Error(logger).Log("msg", "failed to upload config", "name", cfg.Name, "err", err)
 			hadErrors = true
 		}
 		uploaded[cfg.Name] = struct{}{}
@@ -61,10 +61,10 @@ func ConfigSync(logger log.Logger, cli client.PrometheusClient, dir string, dryR
 	// Delete configs from the existing API list that we didn't upload.
 	for _, existing := range existing.Configs {
 		if _, existsLocally := uploaded[existing]; !existsLocally {
-			level.Info(logger).Log("msg", "deleting shared", "name", existing)
+			level.Info(logger).Log("msg", "deleting config", "name", existing)
 			err := cli.DeleteConfiguration(ctx, existing)
 			if err != nil {
-				level.Error(logger).Log("msg", "failed to delete outdated shared", "name", existing, "err", err)
+				level.Error(logger).Log("msg", "failed to delete outdated config", "name", existing, "err", err)
 				hadErrors = true
 			}
 		}

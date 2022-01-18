@@ -22,21 +22,21 @@ spec:
         app: grafana
     spec:
       containers:
-        - name: grafana
-          image: grafana/grafana:8.0.4
-          args:
-            - --homepath=/usr/share/grafana
-            - --config=/etc/grafana-config/grafana.ini
-          ports:
-            - name: http
-              containerPort: 8080
-          volumeMounts:
-            - mountPath: /etc/grafana/provisioning/datasources
-              name: grafana-datasources
-              readOnly: true
-            - mountPath: /etc/grafana-config
-              name: config
-              readOnly: true
+      - name: grafana
+        image: grafana/grafana:8.0.4
+        args:
+          - --homepath=/usr/share/grafana
+          - --config=/etc/grafana-config/grafana.ini
+        ports:
+          - name: http
+            containerPort: 8080
+        volumeMounts:
+          - mountPath: /etc/grafana/provisioning/datasources
+            name: grafana-datasources
+            readOnly: true
+          - mountPath: /etc/grafana-config
+            name: config
+            readOnly: true
       volumes:
         - name: config
           configMap:
@@ -58,9 +58,9 @@ spec:
   selector:
     app: grafana
   ports:
-    - name: http
-      port: 8080
-      targetPort: 8080
+  - name: http
+    port: 8080
+    targetPort: 8080
 
 ---
 
@@ -133,12 +133,12 @@ metadata:
     app: grafana
 spec:
   rules:
-    - host: grafana.k3d.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: grafana
-                port: { name: 'http' }
+  - host: grafana.k3d.localhost
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: grafana
+              port: { name: 'http' }
