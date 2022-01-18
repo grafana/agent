@@ -25,7 +25,7 @@ func (c *codeGen) generateConfigMeta() []configMeta {
 
 func (c *codeGen) createV1Config() string {
 	configs := c.generateConfigMeta()
-	integrationTemplate, err := template.New("shared").Parse(`
+	integrationTemplate, _ := template.New("shared").Parse(`
 
 type {{.Name}} struct {
   {{.ConfigStruct}} ` + "`yaml:\",omitempty,inline\"`" + `
@@ -87,7 +87,7 @@ func newConfigWrapper(cfg shared.Config, cmn shared.Common) *ConfigWrapper {
 		panic(err)
 	}
 	v1ConfigBuilder := strings.Builder{}
-	v1ConfigBuilder.WriteString("package v1 //nolint:golint\n")
+	v1ConfigBuilder.WriteString("package v1 \n //nolint\n")
 	v1ConfigBuilder.WriteString(`
 import (
 "github.com/grafana/agent/pkg/integrations/shared"
@@ -118,7 +118,7 @@ import (
 func (c *codeGen) createV2Config() string {
 	configs := c.generateConfigMeta()
 
-	integrationTemplate, err := template.New("shared").Parse(`
+	integrationTemplate, _ := template.New("shared").Parse(`
 
 type {{.Name}} struct {
   {{.ConfigStruct}} ` + "`yaml:\",omitempty,inline\"`" + `
@@ -224,7 +224,7 @@ func newConfigWrapper(cfg shared.Config, cmn common.MetricsConfig, ni newIntegra
 		panic(err)
 	}
 	v2ConfigBuilder := strings.Builder{}
-	v2ConfigBuilder.WriteString("package v2 //nolint:golint\n")
+	v2ConfigBuilder.WriteString("package v2 \n //nolint\n")
 	v2ConfigBuilder.WriteString(`
 import (
 "context"
