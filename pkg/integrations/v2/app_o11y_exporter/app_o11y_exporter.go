@@ -78,7 +78,6 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 
 	lokiExceptionExporter, err := exporters.NewLokiExceptionExporter(
 		globals.Logs.Instance(c.ExporterConfig.LogsInstance),
-		c.ExporterConfig.SourceMap,
 	)
 
 	if err != nil {
