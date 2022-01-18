@@ -26,3 +26,7 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	return newEventHandler(l, c, globals)
 }
+
+func init() {
+	integrations.Register(&Config{}, integrations.TypeSingleton)
+}

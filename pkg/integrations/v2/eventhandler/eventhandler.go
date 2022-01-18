@@ -377,20 +377,27 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	defer eh.writeOutLastEvent()
 
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	// do we need this?
 	defer cancel()
 
+	// todo: is it worht even doing this?
+	go func() {
+		level.Info(eh.Log).Log("msg", "Waiting for cache to sync (inital List() of events)")
+		isSynced := cache.WaitForCacheSync(ctx.Done(), eh.EventInformer.HasSynced)
+		if !isSynced {
+			level.Error(eh.Log).Log("msg", "Failed to sync informer cache")
+			// todo.. do we want to bail here?
+			return
+		}
+		level.Info(eh.Log).Log("msg", "Informer cache synced")
+	}()
+
 	// start the informer
+	// technically we should prob use the factory here, but since we
+	// only have one informer, don't think this really matters...
 	eh.EventInformer.Run(ctx.Done())
 
-	// die if caches don't sync properly
-	isSynced := cache.WaitForCacheSync(ctx.Done(), eh.EventInformer.HasSynced)
-	if !isSynced {
-		level.Error(eh.Log).Log("msg", "Failed to sync informer cache")
-		cancel()
-	}
-
 	<-ctx.Done()
+
 	//todo: double check shutdown order of ops...
 	// esp wrt:
 	// loki client and draining channel
