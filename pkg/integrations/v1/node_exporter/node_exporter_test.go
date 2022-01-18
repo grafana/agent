@@ -1,14 +1,15 @@
-package node_exporter
+package node_exporter //nolint:golint
 
 import (
-	"github.com/go-kit/log"
-	"github.com/gorilla/mux"
-	"github.com/prometheus/prometheus/pkg/textparse"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-kit/log"
+	"github.com/gorilla/mux"
+	"github.com/prometheus/prometheus/pkg/textparse"
 
 	"github.com/stretchr/testify/require"
 )

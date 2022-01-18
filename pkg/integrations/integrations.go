@@ -18,7 +18,9 @@ import (
 type integrationsVersion int
 
 const (
+	// IntegrationsVersion1 is used when using non-array integrations
 	IntegrationsVersion1 integrationsVersion = iota
+	// IntegrationsVersion2 is used when using array aware integrations
 	IntegrationsVersion2
 )
 
@@ -112,7 +114,7 @@ func (c *VersionedIntegrations) SetVersion(v integrationsVersion, logger log.Log
 }
 
 // IntegrationsGlobals is a global struct shared across integrations.
-type IntegrationsGlobals = v2.Globals
+type IntegrationsGlobals = v2.Globals //nolint:golint
 
 // Integrations is an abstraction over both the v1 and v2 systems.
 type Integrations interface {
