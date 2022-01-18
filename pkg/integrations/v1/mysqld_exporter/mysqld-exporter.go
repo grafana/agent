@@ -51,7 +51,7 @@ type Config struct {
 	LockWaitTimeout int  `yaml:"lock_wait_timeout,omitempty"`
 	LogSlowFilter   bool `yaml:"log_slow_filter,omitempty"`
 
-	// Collector-specific shared options
+	// Collector-specific config options
 	InfoSchemaProcessListMinTime         int    `yaml:"info_schema_processlist_min_time,omitempty"`
 	InfoSchemaProcessListProcessesByUser bool   `yaml:"info_schema_processlist_processes_by_user,omitempty"`
 	InfoSchemaProcessListProcessesByHost bool   `yaml:"info_schema_processlist_processes_by_host,omitempty"`
@@ -67,7 +67,7 @@ type Config struct {
 	MySQLUserPrivileges                  bool   `yaml:"mysql_user_privileges,omitempty"`
 }
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "mysqld_exporter"
 }
@@ -89,7 +89,7 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 	return fmt.Sprintf("%s(%s)/%s", m.Net, m.Addr, m.DBName), nil
 }
 
-// NewIntegration converts this shared into an instance of an integration.
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
@@ -122,7 +122,7 @@ func New(log log.Logger, c *Config) (shared.Integration, error) {
 	), nil
 }
 
-// GetScrapers returns the set of *enabled* scrapers from the shared.
+// GetScrapers returns the set of *enabled* scrapers from the config.
 // Configurable scrapers will have their configuration filled out matching the
 // Config's settings.
 func GetScrapers(c *Config) []collector.Scraper {

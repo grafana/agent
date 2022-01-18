@@ -35,17 +35,17 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 //   1. No two InstanceConfigs may have the same name.
 //   2. No two InstanceConfigs may have the same positions path.
 //   3. No InstanceConfig may have an empty name.
-//   4. If InstanceConfig positions path is empty, shared PositionsDirectory
+//   4. If InstanceConfig positions path is empty, config PositionsDirectory
 //      must not be empty.
 //
 // Defaults:
 //
-//   1. If a positions shared is empty, it will be generated based on
+//   1. If a positions config is empty, it will be generated based on
 //      the InstanceConfig name and Config.PositionsDirectory.
 func (c *Config) ApplyDefaults() error {
 	var (
 		names     = map[string]struct{}{}
-		positions = map[string]string{} // positions file name -> shared using it
+		positions = map[string]string{} // positions file name -> config using it
 	)
 
 	for idx, ic := range c.Configs {
@@ -72,7 +72,7 @@ func (c *Config) ApplyDefaults() error {
 	return nil
 }
 
-// InstanceConfig is an individual Promtail shared.
+// InstanceConfig is an individual Promtail config.
 type InstanceConfig struct {
 	Name string `yaml:"name,omitempty"`
 

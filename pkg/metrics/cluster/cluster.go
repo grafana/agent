@@ -146,7 +146,7 @@ func (c *Cluster) ApplyConfig(
 	return nil
 }
 
-// WireAPI injects routes into the provided mux router for the shared
+// WireAPI injects routes into the provided mux router for the config
 // management API.
 func (c *Cluster) WireAPI(r *mux.Router) {
 	c.storeAPI.WireAPI(r)

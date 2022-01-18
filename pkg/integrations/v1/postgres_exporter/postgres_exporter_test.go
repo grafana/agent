@@ -44,7 +44,7 @@ func Test_getDataSourceNames(t *testing.T) {
 			expect: []string{"foo", "bar"},
 		},
 		{
-			name: "shared",
+			name: "config",
 			config: `{
         "data_source_names": [
           "foo"
@@ -54,7 +54,7 @@ func Test_getDataSourceNames(t *testing.T) {
 			expect: []string{"foo"},
 		},
 		{
-			name: "shared and env",
+			name: "config and env",
 			config: `{
         "data_source_names": [
           "foo"

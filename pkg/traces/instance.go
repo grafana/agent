@@ -57,7 +57,7 @@ func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager ins
 	defer i.mut.Unlock()
 
 	if util.CompareYAML(cfg, i.cfg) {
-		// No shared change
+		// No config change
 		return nil
 	}
 	i.cfg = cfg

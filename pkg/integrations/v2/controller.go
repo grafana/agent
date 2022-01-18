@@ -137,7 +137,7 @@ type controlledIntegration struct {
 	gen uint64
 
 	i Integration
-	c Config // Config that generated i. Used for changing to see if a shared changed.
+	c Config // Config that generated i. Used for changing to see if a config changed.
 
 	running atomic.Bool
 
@@ -281,7 +281,7 @@ NextConfig:
 // always returns an http.Handler regardless of error.
 //
 // Handler is expensive to compute and should only be done after reloading the
-// shared.
+// config.
 func (c *Controller) Handler(prefix string) (http.Handler, error) {
 	c.mut.Lock()
 	defer c.mut.Unlock()

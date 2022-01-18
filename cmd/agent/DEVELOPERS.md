@@ -5,8 +5,8 @@ Agent.
 
 ## Branching Strategy
 
-The Grafana Agent's branching strategy is to have main always releasable. 
-This allows us to better control  the release cadence and ensure that the project has regular releases. 
+The Grafana Agent's branching strategy is to have main always releasable.
+This allows us to better control  the release cadence and ensure that the project has regular releases.
 
 For any small change, those can be made with a direct PR.
 
@@ -34,6 +34,7 @@ before releasing the Grafana Agent.
 
 #### Prerelease testing
 
+For testing a release, run the [K3d example](../example/k3d/README.md) locally.
 For testing a release, run the [K3d example](../../example/k3d/README.md) locally.
 Let it run for about 90 minutes, keeping an occasional eye on the Agent
 Operational dashboard (noting that metrics from the scraping service will take
@@ -59,8 +60,8 @@ To avoid accidentally publishing a tag or commit without signing it, you can run
 the following to ensure all commits and tags are signed:
 
 ```bash
-git shared --global commit.gpgSign true
-git shared --global tag.gpgSign true
+git config --global commit.gpgSign true
+git config --global tag.gpgSign true
 ```
 
 ##### macOS Signing Errors
@@ -92,18 +93,18 @@ If you are performing a release for a release candidate, skip straight to step
    for updating the release notes.
 7. Merge the changelog PR.
 8. Create a new tag for the release.
-    1. After following step 2, the CI will be triggered to create release
-       artifacts and publish them to a draft release. The tag will be made
-       publicly available immediately.
-    2. Run the following to create the tag:
+   1. After following step 2, the CI will be triggered to create release
+      artifacts and publish them to a draft release. The tag will be made
+      publicly available immediately.
+   2. Run the following to create the tag:
 
-       ```bash
-       RELEASE=v1.2.3 # UPDATE ME to reference new release
-       git checkout main # If not already on main
-       git pull
-       git tag -s $RELEASE -m "release $RELEASE"
-       git push origin $RELEASE
-       ```
+      ```bash
+      RELEASE=v1.2.3 # UPDATE ME to reference new release
+      git checkout main # If not already on main
+      git pull
+      git tag -s $RELEASE -m "release $RELEASE"
+      git push origin $RELEASE
+      ```
 9. Watch GitHub Actions and wait for all the jobs to finish running.
 
 ## Publishing the Release Draft
@@ -254,3 +255,4 @@ If two feature branches depend on one another, a combined feature branch
 (like an "epic" branch) should be created where development of interrelated
 features go. All features within this category go directly to the combined
 "epic" branch rather than individual branches.
+

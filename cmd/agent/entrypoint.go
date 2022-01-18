@@ -49,7 +49,7 @@ type Entrypoint struct {
 	reloadServer   *http.Server
 }
 
-// Reloader is any function that returns a new shared.
+// Reloader is any function that returns a new config.
 type Reloader = func() (*config.Config, error)
 
 // NewEntrypoint creates a new Entrypoint.
@@ -202,7 +202,7 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 		fmt.Fprintf(w, "Agent is Ready.\n")
 	})
 
-	mux.HandleFunc("/-/shared", func(rw http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/-/config", func(rw http.ResponseWriter, r *http.Request) {
 		ep.mut.Lock()
 		cfg := ep.cfg
 		ep.mut.Unlock()
@@ -210,13 +210,13 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 		if cfg.EnableConfigEndpoints {
 			bb, err := yaml.Marshal(cfg)
 			if err != nil {
-				http.Error(rw, fmt.Sprintf("failed to marshal shared: %s", err), http.StatusInternalServerError)
+				http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
 			} else {
 				_, _ = rw.Write(bb)
 			}
 		} else {
 			rw.WriteHeader(http.StatusNotFound)
-			_, _ = rw.Write([]byte("404 - shared endpoint is disabled"))
+			_, _ = rw.Write([]byte("404 - config endpoint is disabled"))
 		}
 	})
 
@@ -232,22 +232,22 @@ func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TriggerReload will cause the Entrypoint to re-request the shared file and
-// apply the latest shared. TriggerReload returns true if the reload was
+// TriggerReload will cause the Entrypoint to re-request the config file and
+// apply the latest config. TriggerReload returns true if the reload was
 // successful.
 func (ep *Entrypoint) TriggerReload() bool {
-	level.Info(ep.log).Log("msg", "reload of shared file requested")
+	level.Info(ep.log).Log("msg", "reload of config file requested")
 
 	cfg, err := ep.reloader()
 	if err != nil {
-		level.Error(ep.log).Log("msg", "failed to reload shared file", "err", err)
+		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
 	cfg.LogDeprecations(ep.log)
 
 	err = ep.ApplyConfig(*cfg)
 	if err != nil {
-		level.Error(ep.log).Log("msg", "failed to reload shared file", "err", err)
+		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
 	}
 

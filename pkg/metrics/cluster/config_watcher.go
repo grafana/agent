@@ -45,10 +45,10 @@ type configWatcher struct {
 // OwnershipFunc should determine if a given keep is owned by the caller.
 type OwnershipFunc = func(key string) (bool, error)
 
-// ValidationFunc should validate a shared.
+// ValidationFunc should validate a config.
 type ValidationFunc = func(*instance.Config) error
 
-// newConfigWatcher watches store for changes and checks for each shared against
+// newConfigWatcher watches store for changes and checks for each config against
 // owns. It will also poll the configstore at a configurable interval.
 func newConfigWatcher(log log.Logger, cfg Config, store configstore.Store, im instance.Manager, owns OwnershipFunc, validate ValidationFunc) (*configWatcher, error) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -226,7 +226,7 @@ Outer:
 		}
 	}
 
-	// Any shared we used to be running that disappeared from this most recent
+	// Any config we used to be running that disappeared from this most recent
 	// iteration should be deleted. We hold the lock just for the duration of
 	// populating deleted because handleEvent also grabs a hold on the lock.
 	var deleted []string
@@ -272,8 +272,8 @@ func (w *configWatcher) handleEvent(ev configstore.WatchEvent) error {
 
 	switch {
 	// Two deletion scenarios:
-	// 1. A shared we're running got moved to a new owner.
-	// 2. A shared we're running got deleted
+	// 1. A config we're running got moved to a new owner.
+	// 2. A config we're running got deleted
 	case (isRunning && !owned) || (isDeleted && isRunning):
 		if isDeleted {
 			level.Info(w.log).Log("msg", "untracking deleted shared", "key", ev.Key)

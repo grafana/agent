@@ -15,7 +15,7 @@ import (
 
 // New creates a new windows_exporter integration.
 func New(log log.Logger, c *Config) (shared.Integration, error) {
-	// Get a list of collector configs and map our local shared to it.
+	// Get a list of collector configs and map our local config to it.
 	availableConfigs := collector.AllConfigs()
 	c.toExporterConfig(availableConfigs)
 

@@ -17,7 +17,7 @@ type Config struct {
 	URI config_util.Secret `yaml:"mongodb_uri"`
 }
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "mongodb_exporter"
 }

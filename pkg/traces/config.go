@@ -110,7 +110,7 @@ type InstanceConfig struct {
 	// Attributes: https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/processor/attributesprocessor/config.go#L30
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
-	// prom service discovery shared
+	// prom service discovery config
 	ScrapeConfigs   []interface{} `yaml:"scrape_configs,omitempty"`
 	OperationType   string        `yaml:"prom_sd_operation_type,omitempty"`
 	PodAssociations []string      `yaml:"prom_sd_pod_associations,omitempty"`
@@ -219,7 +219,7 @@ type tailSamplingConfig struct {
 }
 
 // loadBalancingConfig defines the configuration for load balancing spans between agent instances
-// loadBalancingConfig is an OTel exporter's shared with extra resolver shared
+// loadBalancingConfig is an OTel exporter's config with extra resolver config
 type loadBalancingConfig struct {
 	Exporter exporterConfig         `yaml:"exporter"`
 	Resolver map[string]interface{} `yaml:"resolver"`
@@ -227,7 +227,7 @@ type loadBalancingConfig struct {
 	ReceiverPort string `yaml:"receiver_port"`
 }
 
-// exporterConfig defined the shared for a otlp exporter for load balancing
+// exporterConfig defined the config for a otlp exporter for load balancing
 type exporterConfig struct {
 	Compression        string                 `yaml:"compression,omitempty"`
 	Insecure           bool                   `yaml:"insecure,omitempty"`
@@ -273,7 +273,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 		compression = ""
 	}
 
-	// Default OTLP exporter shared awaits an empty headers map. Other exporters
+	// Default OTLP exporter config awaits an empty headers map. Other exporters
 	// (e.g. Jaeger) may expect a nil value instead
 	if len(headers) == 0 && rwCfg.Format == formatJaeger {
 		headers = nil
@@ -297,7 +297,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 			tlsConfig["key_file"] = rwCfg.TLSConfig.KeyFile
 			tlsConfig["insecure_skip_verify"] = rwCfg.TLSConfig.InsecureSkipVerify
 		} else {
-			// If not, set whatever value is specified in the old shared.
+			// If not, set whatever value is specified in the old config.
 			tlsConfig["insecure_skip_verify"] = rwCfg.InsecureSkipVerify
 		}
 	}

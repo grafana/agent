@@ -58,7 +58,7 @@ var (
 func init() {
 	// The default values for the filesystem collector are to ignore everything,
 	// but some platforms have specific defaults. We'll fill these in below at
-	// initialization time, but the values can still be overridden via the shared
+	// initialization time, but the values can still be overridden via the config
 	// file.
 	switch runtime.GOOS {
 	case "linux":
@@ -92,7 +92,7 @@ type Config struct {
 	// listed.
 	SetCollectors flagext.StringSlice `yaml:"set_collectors,omitempty"`
 
-	// Collector-specific shared options
+	// Collector-specific config options
 	BcachePriorityStats              bool                `yaml:"enable_bcache_priority_stats,omitempty"`
 	CPUBugsInclude                   string              `yaml:"cpu_bugs_include,omitempty"`
 	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty"`
@@ -208,7 +208,7 @@ func (c *Config) PostProcessing() error {
 	return nil
 }
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "node_exporter"
 }
@@ -218,7 +218,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
 
-// NewIntegration converts this shared into an instance of an integration.
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }

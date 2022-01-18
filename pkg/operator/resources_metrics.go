@@ -157,8 +157,8 @@ func generateMetricsStatefulSet(
 	}
 
 	// TODO(rfratto): Prometheus Operator has an input hash annotation added here,
-	// which combines the hash of the statefulset, shared to the operator, rule
-	// shared map names (unused here), and the previous statefulset (if any).
+	// which combines the hash of the statefulset, config to the operator, rule
+	// config map names (unused here), and the previous statefulset (if any).
 	//
 	// This is used to skip re-applying an unchanged statefulset. Do we need this?
 
@@ -250,10 +250,10 @@ func generateMetricsStatefulSetSpec(
 			},
 		},
 		{
-			// We need a separate volume for storing the rendered shared with
+			// We need a separate volume for storing the rendered config with
 			// environment variables replaced. While the Agent supports environment
 			// variable substitution, the value for __replica__ can only be
-			// determined at runtime. We use a dedicated container for both shared
+			// determined at runtime. We use a dedicated container for both config
 			// reloading and rendering.
 			Name: "shared-out",
 			VolumeSource: v1.VolumeSource{

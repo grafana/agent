@@ -34,8 +34,8 @@ func NewClient(c *http.Client, apiKey, apiURL string) *Client {
 	return &Client{c: c, apiKey: apiKey, apiURL: apiURL}
 }
 
-// AgentConfig generates a Grafana Agent shared from the given stack.
-// The shared is returned as a string in YAML form.
+// AgentConfig generates a Grafana Agent config from the given stack.
+// The config is returned as a string in YAML form.
 func (c *Client) AgentConfig(ctx context.Context, stackID string) (string, error) {
 	req, err := http.NewRequestWithContext(
 		ctx, "GET",

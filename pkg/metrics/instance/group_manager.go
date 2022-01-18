@@ -23,7 +23,7 @@ import (
 // instance having its own service discovery, WAL, and remote_write can be
 // significant.
 //
-// The shared names of instances within the group will be represented by
+// The config names of instances within the group will be represented by
 // that group's hash of settings.
 type GroupManager struct {
 	inner Manager
@@ -33,13 +33,13 @@ type GroupManager struct {
 	// groups is a map of group name to the grouped configs.
 	groups map[string]groupedConfigs
 
-	// groupLookup is a map of shared name to group name.
+	// groupLookup is a map of config name to group name.
 	groupLookup map[string]string
 }
 
-// groupedConfigs holds a set of grouped configs, keyed by the shared name.
+// groupedConfigs holds a set of grouped configs, keyed by the config name.
 // They are stored in a map rather than a slice to make overriding an existing
-// shared within the group less error prone.
+// config within the group less error prone.
 type groupedConfigs map[string]Config
 
 // Copy returns a shallow copy of the groupedConfigs.
@@ -79,7 +79,7 @@ func (m *GroupManager) GetInstance(name string) (ManagedInstance, error) {
 }
 
 // ListInstances returns all currently grouped managed instances. The key
-// will be the group's hash of shared settings.
+// will be the group's hash of config settings.
 func (m *GroupManager) ListInstances() map[string]ManagedInstance {
 	return m.inner.ListInstances()
 }
@@ -122,7 +122,7 @@ func (m *GroupManager) applyConfig(c Config) (err error) {
 		grouped = grouped.Copy()
 	}
 
-	// Add the shared to the group. If the shared already exists within this
+	// Add the config to the group. If the config already exists within this
 	// group, it'll be overwritten.
 	grouped[c.Name] = c
 	mergedConfig, err := groupConfigs(groupName, grouped)
@@ -131,7 +131,7 @@ func (m *GroupManager) applyConfig(c Config) (err error) {
 		return
 	}
 
-	// If this shared already exists in another group, we have to delete it.
+	// If this config already exists in another group, we have to delete it.
 	// If we can't delete it from the old group, we also can't apply it.
 	if oldGroup, ok := m.groupLookup[c.Name]; ok && oldGroup != groupName {
 		// There's a few cases here where if something fails, it's safer to crash
@@ -139,9 +139,9 @@ func (m *GroupManager) applyConfig(c Config) (err error) {
 		// normal. The panics here are for truly exceptional cases, otherwise if
 		// something is recoverable, we'll return an error like normal.
 
-		// If we can't find the old shared, something got messed up when applying
-		// the shared. But it also means that we're not going to be able to restore
-		// the shared if something fails. Preemptively we should panic, since the
+		// If we can't find the old config, something got messed up when applying
+		// the config. But it also means that we're not going to be able to restore
+		// the config if something fails. Preemptively we should panic, since the
 		// internal state has gotten messed up and can't be fixed.
 		oldConfig, ok := m.groups[oldGroup][c.Name]
 		if !ok {
@@ -154,22 +154,22 @@ func (m *GroupManager) applyConfig(c Config) (err error) {
 			return
 		}
 
-		// Now that the shared is deleted, we need to restore it in case applying
+		// Now that the config is deleted, we need to restore it in case applying
 		// the new one happens to fail.
 		defer func() {
 			if err == nil {
 				return
 			}
 
-			// If restoring a shared fails, we've left the Agent in a really bad
-			// state: the new shared can't be applied and the old shared can't be
+			// If restoring a config fails, we've left the Agent in a really bad
+			// state: the new config can't be applied and the old config can't be
 			// brought back. Just crash and let the Agent start fresh.
 			//
-			// Restoring the shared _shouldn't_ fail here since applies only fail
-			// if the shared is invalid. Since the shared was running before, it
+			// Restoring the config _shouldn't_ fail here since applies only fail
+			// if the config is invalid. Since the config was running before, it
 			// should already be valid. If it does happen to fail, though, the
 			// internal state is left corrupted since we've completely lost a
-			// shared.
+			// config.
 			restoreError := m.applyConfig(oldConfig)
 			if restoreError != nil {
 				panic(fmt.Sprintf("failed to properly restore shared. THIS IS A BUG! error: %s", restoreError))
@@ -206,18 +206,18 @@ func (m *GroupManager) deleteConfig(name string) error {
 	}
 
 	// Grab a copy of the stored group and delete our entry. We can
-	// persist it after we successfully remove the shared.
+	// persist it after we successfully remove the config.
 	group := m.groups[groupName].Copy()
 	delete(group, name)
 
 	if len(group) == 0 {
-		// We deleted the last remaining shared in that group; we can delete it in
+		// We deleted the last remaining config in that group; we can delete it in
 		// its entirety now.
 		if err := m.inner.DeleteConfig(groupName); err != nil {
 			return fmt.Errorf("failed to delete empty group %s after removing shared %s: %w", groupName, name, err)
 		}
 	} else {
-		// We deleted the shared but there's still more in the group; apply the new
+		// We deleted the config but there's still more in the group; apply the new
 		// group that holds the remainder of the configs (minus the one we just
 		// deleted).
 		mergedConfig, err := groupConfigs(groupName, group)
@@ -274,7 +274,7 @@ func hashConfig(c Config) (string, error) {
 		if cfg != nil {
 			// We don't care if the names are different, just that the other settings
 			// are the same. Blank out the name here before hashing the remote
-			// write shared.
+			// write config.
 			cfg.Name = ""
 
 			hash, err := getHash(cfg)
@@ -306,7 +306,7 @@ func hashConfig(c Config) (string, error) {
 }
 
 // groupConfig creates a grouped Config where all fields are copied from
-// the first shared except for scrape_configs, which are appended together.
+// the first config except for scrape_configs, which are appended together.
 func groupConfigs(groupName string, grouped groupedConfigs) (Config, error) {
 	if len(grouped) == 0 {
 		return Config{}, fmt.Errorf("no configs")
@@ -329,7 +329,7 @@ func groupConfigs(groupName string, grouped groupedConfigs) (Config, error) {
 
 	// Assign all remote_write configs in the group a consistent set of remote_names.
 	// If the grouped configs are coming from the scraping service, defaults will have
-	// been applied and the remote names will be prefixed with the old instance shared name.
+	// been applied and the remote names will be prefixed with the old instance config name.
 	for _, rwc := range combined.RemoteWrite {
 		// Blank out the existing name before getting the hash so it is doesn't take into
 		// account any existing name.
@@ -346,10 +346,10 @@ func groupConfigs(groupName string, grouped groupedConfigs) (Config, error) {
 	// Combine all the scrape configs. It's possible that two different ungrouped
 	// configs had a matching job name, but this will be detected and rejected
 	// (as it should be) when the underlying Manager eventually validates the
-	// combined shared.
+	// combined config.
 	//
 	// TODO(rfratto): should we prepend job names with the name of the original
-	// shared? (e.g., job_name = "config_name/job_name").
+	// config? (e.g., job_name = "config_name/job_name").
 	for _, cfg := range cfgs {
 		combined.ScrapeConfigs = append(combined.ScrapeConfigs, cfg.ScrapeConfigs...)
 	}

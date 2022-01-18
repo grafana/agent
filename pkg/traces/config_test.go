@@ -1077,7 +1077,7 @@ service:
 			}
 			require.NoError(t, err)
 
-			// convert actual shared to otel shared
+			// convert actual config to otel config
 			otelMapStructure := map[string]interface{}{}
 			err = yaml.Unmarshal([]byte(tc.expectedConfig), otelMapStructure)
 			require.NoError(t, err)
@@ -1090,7 +1090,7 @@ service:
 			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
 
-			// Exporters and receivers in the shared's pipelines need to be in the same order for them to be asserted as equal
+			// Exporters and receivers in the config's pipelines need to be in the same order for them to be asserted as equal
 			sortPipelines(actualConfig)
 			sortPipelines(expectedConfig)
 

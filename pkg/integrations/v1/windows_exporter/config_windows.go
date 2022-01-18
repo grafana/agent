@@ -20,7 +20,7 @@ func init() {
 		panic(err)
 	}
 
-	// Map the configs with defaults applied to our default shared.
+	// Map the configs with defaults applied to our default config.
 	DefaultConfig.fromExporterConfig(configs)
 }
 

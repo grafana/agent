@@ -38,7 +38,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 	im.On("ApplyConfig", mock.Anything).Return(nil)
 	im.On("DeleteConfig", mock.Anything).Return(nil)
 
-	// First: return a "hello" shared.
+	// First: return a "hello" config.
 	store.AllFunc = func(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error) {
 		ch := make(chan instance.Config)
 		go func() {
@@ -51,7 +51,7 @@ func Test_configWatcher_Refresh(t *testing.T) {
 	err = w.refresh(context.Background())
 	require.NoError(t, err)
 
-	// Then: return a "new" shared.
+	// Then: return a "new" config.
 	store.AllFunc = func(ctx context.Context, keep func(key string) bool) (<-chan instance.Config, error) {
 		ch := make(chan instance.Config, 1)
 		go func() {
@@ -170,7 +170,7 @@ func Test_configWatcher_handleEvent(t *testing.T) {
 		err = w.handleEvent(configstore.WatchEvent{Key: "disappear", Config: &instance.Config{}})
 		require.NoError(t, err)
 
-		// Mark the shared as unowned. The re-apply should then delete it.
+		// Mark the config as unowned. The re-apply should then delete it.
 		isOwned = false
 
 		err = w.handleEvent(configstore.WatchEvent{Key: "disappear", Config: &instance.Config{}})

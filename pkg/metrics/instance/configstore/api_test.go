@@ -209,7 +209,7 @@ remote_flush_deadline: 1m0s
 		actual, err := cli.GetConfiguration(context.Background(), "exists")
 		require.NoError(t, err)
 
-		// Marshal the retrieved shared _without_ scrubbing. This means
+		// Marshal the retrieved config _without_ scrubbing. This means
 		// that if the secrets weren't scrubbed from GetConfiguration, something
 		// bad happened at the API level.
 		actualBytes, err := instance.MarshalConfig(actual, false)

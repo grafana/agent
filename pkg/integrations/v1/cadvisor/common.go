@@ -8,30 +8,30 @@ const name = "cadvisor"
 
 // DefaultConfig holds the default settings for the cadvisor integration
 var DefaultConfig Config = Config{
-	// Common cadvisor shared defaults
+	// Common cadvisor config defaults
 	StoreContainerLabels: true,
 	ResctrlInterval:      0,
 
 	StorageDuration: 2 * time.Minute,
 
-	// Containerd shared defaults
+	// Containerd config defaults
 	Containerd:          "/run/containerd/containerd.sock",
 	ContainerdNamespace: "k8s.io",
 
-	// Docker shared defaults
+	// Docker config defaults
 	Docker:        "unix:///var/run/docker.sock",
 	DockerTLS:     false,
 	DockerTLSCert: "cert.pem",
 	DockerTLSKey:  "key.pem",
 	DockerTLSCA:   "ca.pem",
 
-	// Raw shared defaults
+	// Raw config defaults
 	DockerOnly: false,
 }
 
 // Config controls cadvisor
 type Config struct {
-	// Common cadvisor shared options
+	// Common cadvisor config options
 	// StoreContainerLabels converts container labels and environment variables into labels on prometheus metrics for each container. If false, then only metrics exported are container name, first alias, and image name.
 	StoreContainerLabels bool `yaml:"store_container_labels,omitempty"`
 
@@ -59,14 +59,14 @@ type Config struct {
 	// StorageDuration length of time to keep data stored in memory (Default: 2m)
 	StorageDuration time.Duration `yaml:"storage_duration,omitempty"`
 
-	// Containerd shared options
+	// Containerd config options
 	// Containerd containerd endpoint
 	Containerd string `yaml:"containerd,omitempty"`
 
 	// ContainerdNamespace containerd namespace
 	ContainerdNamespace string `yaml:"containerd_namespace,omitempty"`
 
-	// Docker shared options
+	// Docker config options
 	// Docker docker endpoint
 	Docker string `yaml:"docker,omitempty"`
 
@@ -82,12 +82,12 @@ type Config struct {
 	// DockerTLSCA path to trusted CA
 	DockerTLSCA string `yaml:"docker_tls_ca,omitempty"`
 
-	// Raw shared options
+	// Raw config options
 	// DockerOnly only report docker containers in addition to root stats
 	DockerOnly bool `yaml:"docker_only,omitempty"`
 }
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return name
 }

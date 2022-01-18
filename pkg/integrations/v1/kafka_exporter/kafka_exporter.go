@@ -99,14 +99,14 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return unmarshal((*plain)(c))
 }
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "kafka_exporter"
 }
 
 // InstanceKey returns the hostname:port of the first Kafka node, if any. If
 // there is not exactly one Kafka node, the user must manually provide
-// their own value for instance key in the common shared.
+// their own value for instance key in the common config.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	if len(c.KafkaURIs) != 1 {
 		return "", fmt.Errorf("an automatic value for `instance` cannot be determined from %d kafka servers, manually provide one for this integration", len(c.KafkaURIs))

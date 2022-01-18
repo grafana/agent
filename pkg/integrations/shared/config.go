@@ -1,4 +1,4 @@
-// Package shared provides common configuration structs shared among
+// Package config provides common configuration structs config among
 // implementations of integrations.Integration.
 package shared
 

@@ -6,7 +6,7 @@ import "fmt"
 // to the store was active.
 var ErrNotConnected = fmt.Errorf("not connected to store")
 
-// NotExistError is used when a shared doesn't exist.
+// NotExistError is used when a config doesn't exist.
 type NotExistError struct {
 	Key string
 }

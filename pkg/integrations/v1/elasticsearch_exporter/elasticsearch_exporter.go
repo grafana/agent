@@ -1,5 +1,5 @@
 // Package elasticsearch_exporter instantiates the exporter from github.com/justwatchcom/elasticsearch_exporter - replaced for github.com/prometheus-community/elasticsearch_exporter
-// Using the YAML shared provided by the agent
+// Using the YAML config provided by the agent
 package elasticsearch_exporter //nolint:golint
 
 import (
@@ -60,7 +60,7 @@ type Config struct {
 	InsecureSkipVerify bool `yaml:"ssl_skip_verify,omitempty"`
 }
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "elasticsearch_exporter"
 }

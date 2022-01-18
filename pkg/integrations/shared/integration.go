@@ -10,10 +10,10 @@ import (
 // Config provides the configuration and constructor for an integration.
 type Config interface {
 	// Name returns the name of the integration and the key that will be used to
-	// pull the configuration from the Agent shared YAML.
+	// pull the configuration from the Agent config YAML.
 	Name() string
 
-	// InstanceKey should return the key the reprsents the shared, which will be
+	// InstanceKey should return the key the represents the config, which will be
 	// used to populate the value of the `instance` label for metrics.
 	//
 	// InstanceKey is given an agentKey that represents the agent process. This

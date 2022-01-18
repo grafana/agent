@@ -181,7 +181,7 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 	return a, nil
 }
 
-// newInstance creates a new Instance given a shared.
+// newInstance creates a new Instance given a config.
 func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error) {
 	a.mut.RLock()
 	defer a.mut.RUnlock()
@@ -214,7 +214,7 @@ func (a *Agent) Validate(c *instance.Config) error {
 	return nil
 }
 
-// ApplyConfig applies shared changes to the Agent.
+// ApplyConfig applies config changes to the Agent.
 func (a *Agent) ApplyConfig(cfg Config) error {
 	a.mut.Lock()
 	defer a.mut.Unlock()

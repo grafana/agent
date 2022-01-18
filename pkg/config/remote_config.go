@@ -9,19 +9,20 @@ import (
 	"github.com/prometheus/common/config"
 )
 
-// supported remote shared provider schemes
+// supported remote config provider schemes
 const (
 	httpScheme  = "http"
 	httpsScheme = "https"
 )
 
-// remoteOpts struct contains agent remote shared options
+// remoteOpts struct contains agent remote config options
 type remoteOpts struct {
 	url              *url.URL
 	HTTPClientConfig *config.HTTPClientConfig
 }
 
-// remoteProvider interface should be implemented by shared providers
+// remoteProvider interface should be implemented by config providers
+// remoteProvider interface should be implemented by config providers
 type remoteProvider interface {
 	retrieve() ([]byte, error)
 }
@@ -81,7 +82,7 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	}, nil
 }
 
-// retrieve implements remoteProvider and fetches the shared
+// retrieve implements remoteProvider and fetches the config
 func (p httpProvider) retrieve() ([]byte, error) {
 	response, err := p.httpClient.Get(p.myURL.String())
 	if err != nil {

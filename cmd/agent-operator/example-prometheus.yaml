@@ -22,25 +22,25 @@ spec:
         app: prometheus
     spec:
       containers:
-      - name: prometheus
-        image: prom/prometheus:v2.26.0
-        args:
-          - --shared.file=/var/lib/prometheus/prometheus.yml
-          - --enable-feature=remote-write-receiver
-          - --storage.tsdb.path=/var/lib/data
-        ports:
-          - name: http-metrics
-            containerPort: 9090
-        volumeMounts:
-          - mountPath: /var/lib/prometheus
-            name: shared
-            readOnly: true
-          - mountPath: /var/lib/data
-            name: data
+        - name: prometheus
+          image: prom/prometheus:v2.26.0
+          args:
+            - --config.file=/var/lib/prometheus/prometheus.yml
+            - --enable-feature=remote-write-receiver
+            - --storage.tsdb.path=/var/lib/data
+          ports:
+            - name: http-metrics
+              containerPort: 9090
+          volumeMounts:
+            - mountPath: /var/lib/prometheus
+              name: config
+              readOnly: true
+            - mountPath: /var/lib/data
+              name: data
       volumes:
-        - name: shared
+        - name: config
           configMap:
-            name: prometheus-shared
+            name: prometheus-config
         - name: data
           emptyDir: {}
 
@@ -49,7 +49,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: prometheus-shared
+  name: prometheus-config
   namespace: default
   labels:
     app: prometheus
@@ -70,9 +70,9 @@ spec:
   selector:
     app: prometheus
   ports:
-  - name: http-metrics
-    port: 9090
-    targetPort: 9090
+    - name: http-metrics
+      port: 9090
+      targetPort: 9090
 
 ---
 
@@ -85,12 +85,12 @@ metadata:
     app: prometheus
 spec:
   rules:
-  - host: prometheus.k3d.localhost
-    http:
-      paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: prometheus
-              port: { name: 'http-metrics' }
+    - host: prometheus.k3d.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus
+                port: { name: 'http-metrics' }

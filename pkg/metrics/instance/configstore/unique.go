@@ -19,7 +19,7 @@ func checkUnique(all <-chan instance.Config, cfg *instance.Config) error {
 	}
 
 	for otherConfig := range all {
-		// If the other shared is the one we're validating, skip it.
+		// If the other config is the one we're validating, skip it.
 		if otherConfig.Name == cfg.Name {
 			continue
 		}

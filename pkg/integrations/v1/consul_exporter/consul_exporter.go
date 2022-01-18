@@ -54,7 +54,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return u.Host, nil
 }
 
-// NewIntegration converts the shared into an instance of an integration.
+// NewIntegration converts the config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }

@@ -28,12 +28,12 @@ type Config struct {
 	QueryPath              string   `yaml:"query_path,omitempty"`
 }
 
-// Name returns the name of the integration this shared is for.
+// Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "postgres_exporter"
 }
 
-// NewIntegration converts this shared into an instance of a configuration.
+// NewIntegration converts this config into an instance of a configuration.
 func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }
@@ -46,7 +46,7 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 		return "", err
 	}
 	if len(dsn) != 1 {
-		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSN. either use 1 DSN or manually assign a value for `instance` in the integration shared", len(dsn))
+		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSN. either use 1 DSN or manually assign a value for `instance` in the integration config", len(dsn))
 	}
 
 	s, err := parsePostgresURL(dsn[0])
@@ -101,7 +101,7 @@ func parsePostgresURL(url string) (map[string]string, error) {
 	return res, nil
 }
 
-// getDataSourceNames loads data source names from the shared or from the
+// getDataSourceNames loads data source names from the config or from the
 // environment, if set.
 func (c *Config) getDataSourceNames() ([]string, error) {
 	dsn := c.DataSourceNames

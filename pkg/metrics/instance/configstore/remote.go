@@ -86,7 +86,7 @@ func NewRemote(l log.Logger, reg prometheus.Registerer, cfg kv.Config, enable bo
 	return r, nil
 }
 
-// ApplyConfig applies the shared for a kv client.
+// ApplyConfig applies the config for a kv client.
 func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 	r.kvMut.Lock()
 	defer r.kvMut.Unlock()
@@ -249,7 +249,7 @@ func (r *Remote) listConsul(ctx context.Context) (api.KVPairs, error) {
 	return pairs, nil
 }
 
-// Get retrieves an individual shared from the KV store.
+// Get retrieves an individual config from the KV store.
 func (r *Remote) Get(ctx context.Context, key string) (instance.Config, error) {
 	r.kvMut.RLock()
 	defer r.kvMut.RUnlock()
@@ -271,7 +271,7 @@ func (r *Remote) Get(ctx context.Context, key string) (instance.Config, error) {
 	return *cfg, nil
 }
 
-// Put adds or updates a shared in the KV store.
+// Put adds or updates a config in the KV store.
 func (r *Remote) Put(ctx context.Context, c instance.Config) (bool, error) {
 	// We need to use a write lock here since two Applies can't run concurrently
 	// (given the current need to perform a store-wide validation.)
@@ -306,8 +306,8 @@ func (r *Remote) Put(ctx context.Context, c instance.Config) (bool, error) {
 	return created, nil
 }
 
-// Delete deletes a shared from the KV store. It returns NotExistError if
-// the shared doesn't exist.
+// Delete deletes a config from the KV store. It returns NotExistError if
+// the config doesn't exist.
 func (r *Remote) Delete(ctx context.Context, key string) error {
 	r.kvMut.RLock()
 	defer r.kvMut.RUnlock()
@@ -318,7 +318,7 @@ func (r *Remote) Delete(ctx context.Context, key string) error {
 	// Some KV stores don't return an error if something failed to be
 	// deleted, so we'll try to get it first. This isn't perfect, and
 	// it may fail, so we'll silently ignore any errors here unless
-	// we know for sure the shared doesn't exist.
+	// we know for sure the config doesn't exist.
 	v, err := r.kv.Get(ctx, key)
 	if err != nil {
 		level.Warn(r.log).Log("msg", "error validating key existence for deletion", "err", err)

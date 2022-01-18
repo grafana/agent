@@ -83,7 +83,7 @@ func Test_controller_ConfigChanges(t *testing.T) {
 		require.NoError(t, err, "failed to create controller")
 
 		sc := NewSyncController(t, ctrl)
-		require.NoError(t, sc.UpdateController(cfg, globals), "failed to re-apply shared")
+		require.NoError(t, sc.UpdateController(cfg, globals), "failed to re-apply config")
 
 		// Wait for our integrations to have been started
 		integrationsWg.Wait()

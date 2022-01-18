@@ -22,7 +22,7 @@ type Config struct {
 	LoggingConfig *AutomaticLoggingConfig `mapstructure:"automatic_logging"`
 }
 
-// AutomaticLoggingConfig holds shared information for automatic logging
+// AutomaticLoggingConfig holds config information for automatic logging
 type AutomaticLoggingConfig struct {
 	Backend           string         `mapstructure:"backend" yaml:"backend,omitempty"`
 	LogsName          string         `mapstructure:"logs_instance_name" yaml:"logs_instance_name,omitempty"`
@@ -53,7 +53,7 @@ func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 		return fmt.Errorf("logs instance %s is set but no logs shared is provided", c.LogsName)
 	}
 
-	// Migrate deprecated shared to new one
+	// Migrate deprecated config to new one
 	if c.LogsName == "" && c.LokiName != "" {
 		c.LogsName, c.LokiName = c.LokiName, ""
 	}
@@ -62,7 +62,7 @@ func (c *AutomaticLoggingConfig) Validate(logsConfig *logs.Config) error {
 		return fmt.Errorf("must configure at most one of overrides.logs_instance_tag and overrides.loki_tag. loki_tag is deprecated in favor of logs_instance_tag")
 	}
 
-	// Migrate deprecated shared to new one
+	// Migrate deprecated config to new one
 	if c.Overrides.LogsTag == "" && c.Overrides.LokiTag != "" {
 		c.Overrides.LogsTag, c.Overrides.LokiTag = c.Overrides.LokiTag, ""
 	}
@@ -98,11 +98,11 @@ type OverrideConfig struct {
 }
 
 const (
-	// BackendLogs is the backend shared for sending logs to a Loki pipeline
+	// BackendLogs is the backend config for sending logs to a Loki pipeline
 	BackendLogs = "logs_instance"
 	// BackendLoki is an alias to BackendLogs. DEPRECATED.
 	BackendLoki = "loki"
-	// BackendStdout is the backend shared value for sending logs to stdout
+	// BackendStdout is the backend config value for sending logs to stdout
 	BackendStdout = "stdout"
 )
 

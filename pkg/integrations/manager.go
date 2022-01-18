@@ -53,7 +53,7 @@ type ManagerConfig struct {
 	// When true, scrapes metrics from integrations.
 	ScrapeIntegrations bool `yaml:"scrape_integrations,omitempty"`
 
-	// The integration configs is merged with the manager shared struct so we
+	// The integration configs is merged with the manager config struct so we
 	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
 	Integrations v1.V1Integration `yaml:",inline"`
 
@@ -78,7 +78,7 @@ type ManagerConfig struct {
 	// This is set to true if the Server TLSConfig Cert and Key path are set
 	ServerUsingTLS bool `yaml:"-"`
 
-	// We use this shared to check if we need to reload integrations or not
+	// We use this config to check if we need to reload integrations or not
 	// The Integrations Configs don't have prometheus defaults applied which
 	// can cause us skip reload when scrape configs change
 	PrometheusGlobalConfig promConfig.GlobalConfig `yaml:"-"`
@@ -206,7 +206,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	m.integrationsMut.Lock()
 	defer m.integrationsMut.Unlock()
 
-	// The global prometheus shared settings don't get applied to integrations until later. This
+	// The global prometheus config settings don't get applied to integrations until later. This
 	// causes us to skip reload when those settings change.
 	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.cfg.PrometheusGlobalConfig, cfg.PrometheusGlobalConfig) {
 		level.Debug(m.logger).Log("msg", "Integrations shared is unchanged skipping apply")
@@ -257,7 +257,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		// Find what instance label should be used to represent this integration.
 		var instanceKey string
 		if kp := ic.Cmn().InstanceKey; kp != nil {
-			// Common shared takes precedence.
+			// Common config takes precedence.
 			instanceKey = strings.TrimSpace(*kp)
 		} else {
 			instanceKey, err = ic.Cfg().InstanceKey(fmt.Sprintf("%s:%d", m.hostname, cfg.ListenPort))
@@ -336,7 +336,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 				failed = true
 			}
 		case false:
-			// If a previous instance of the shared was being scraped, we need to
+			// If a previous instance of the config was being scraped, we need to
 			// delete it here. Calling DeleteConfig when nothing is running is a safe
 			// operation.
 			_ = m.im.DeleteConfig(key)

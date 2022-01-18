@@ -58,7 +58,7 @@ type InstanceStore interface {
 	GetInstance(name string) (instance.ManagedInstance, error)
 }
 
-// ScrapeConfig bind a Prometheus scrape shared with an instance to send
+// ScrapeConfig bind a Prometheus scrape config with an instance to send
 // scraped metrics to.
 type ScrapeConfig struct {
 	Instance string

@@ -15,7 +15,7 @@ import (
 // Config controls the Agent integration.
 type Config struct{}
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "agent"
 }
@@ -25,7 +25,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
 
-// NewIntegration converts this shared into an instance of an integration.
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(_ log.Logger) (shared.Integration, error) {
 	return New(c), nil
 }

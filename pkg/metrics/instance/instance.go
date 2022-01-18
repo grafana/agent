@@ -106,7 +106,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 
 // ApplyDefaults applies default configurations to the configuration to all
 // values that have not been changed to their non-zero value. ApplyDefaults
-// also validates the shared.
+// also validates the config.
 //
 // The value for global will saved.
 func (c *Config) ApplyDefaults(global GlobalConfig) error {
@@ -156,7 +156,7 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 
 	rwNames := map[string]struct{}{}
 
-	// If the instance remote write is not filled in, then apply the prometheus write shared
+	// If the instance remote write is not filled in, then apply the prometheus write config
 	if len(c.RemoteWrite) == 0 {
 		c.RemoteWrite = c.global.RemoteWrite
 	}
@@ -166,7 +166,7 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 		}
 
 		// Typically Prometheus ignores empty names here, but we need to assign a
-		// unique name to the shared so we can pull metrics from it when running
+		// unique name to the config so we can pull metrics from it when running
 		// an instance.
 		var generatedName bool
 		if cfg.Name == "" {
@@ -194,7 +194,7 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 	return nil
 }
 
-// Clone makes a deep copy of the shared along with global settings.
+// Clone makes a deep copy of the config along with global settings.
 func (c *Config) Clone() (Config, error) {
 	bb, err := MarshalConfig(c, false)
 	if err != nil {
@@ -292,7 +292,7 @@ func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWa
 func (i *Instance) Run(ctx context.Context) error {
 	// i.cfg may change at any point in the middle of this method but not in a way
 	// that affects any of the code below; rather than grabbing a mutex every time
-	// we want to read the shared, we'll simplify the access and just grab a copy
+	// we want to read the config, we'll simplify the access and just grab a copy
 	// now.
 	i.mut.Lock()
 	cfg := i.cfg
@@ -481,7 +481,7 @@ func (i *Instance) Update(c Config) (err error) {
 	//
 	// Keep the following order below:
 	//
-	// 1. Local shared
+	// 1. Local config
 	// 2. Remote Store
 	// 3. Scrape Manager
 	// 4. Discovery Manager

@@ -110,7 +110,7 @@ configs:
 	}
 
 	//
-	// Apply a new shared and write a new line.
+	// Apply a new config and write a new line.
 	//
 	cfgText = util.Untab(fmt.Sprintf(`
 positions_directory: %s
@@ -145,7 +145,7 @@ configs:
 	}
 
 	t.Run("update to nil", func(t *testing.T) {
-		// Applying a nil shared should remove all instances.
+		// Applying a nil config should remove all instances.
 		err := l.ApplyConfig(nil)
 		require.NoError(t, err)
 		require.Len(t, l.instances, 0)

@@ -19,7 +19,7 @@ import (
 // must be valid.
 //
 // The base name of the YAML file (i.e., without the file extension)
-// is used as the shared name.
+// is used as the config name.
 //
 // ConfigSync will completely overwrite the set of active configs
 // present in the provided PrometheusClient - configs present in the

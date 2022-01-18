@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/memcached_exporter/pkg/exporter"
 )
 
-// DefaultConfig is the default shared for memcached_exporter.
+// DefaultConfig is the default config for memcached_exporter.
 var DefaultConfig Config = Config{
 	MemcachedAddress: "localhost:11211",
 	Timeout:          time.Second,
@@ -25,7 +25,7 @@ type Config struct {
 	Timeout time.Duration `yaml:"timeout,omitempty"`
 }
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "memcached_exporter"
 }
@@ -35,7 +35,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return c.MemcachedAddress, nil
 }
 
-// NewIntegration converts this shared into an instance of an integration.
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }

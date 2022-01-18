@@ -39,7 +39,7 @@ type Config struct {
 	APITokenFile string `yaml:"api_token_file,omitempty"`
 }
 
-// Name returns the name of the integration that this shared represents.
+// Name returns the name of the integration that this config represents.
 func (c *Config) Name() string {
 	return "github_exporter"
 }

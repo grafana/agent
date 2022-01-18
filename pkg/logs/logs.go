@@ -78,7 +78,7 @@ func (l *Logs) ApplyConfig(c *Config) error {
 	}
 
 	// Any promtail in l.instances that isn't in newInstances has been removed
-	// from the shared. Stop them before replacing the map.
+	// from the config. Stop them before replacing the map.
 	for key, i := range l.instances {
 		if _, exist := newInstances[key]; exist {
 			continue
@@ -133,7 +133,7 @@ func NewInstance(reg prometheus.Registerer, c *InstanceConfig, l log.Logger) (*I
 	return &inst, nil
 }
 
-// ApplyConfig will apply a new InstanceConfig. If the shared hasn't changed,
+// ApplyConfig will apply a new InstanceConfig. If the config hasn't changed,
 // then nothing will happen, otherwise the old Promtail will be stopped and
 // then replaced with a new one.
 func (i *Instance) ApplyConfig(c *InstanceConfig) error {

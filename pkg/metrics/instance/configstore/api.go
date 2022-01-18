@@ -31,8 +31,8 @@ type API struct {
 	enableGet bool
 }
 
-// Validator valides a shared before putting it into the store.
-// Validator is allowed to mutate the shared and will only be given a copy.
+// Validator valides a config before putting it into the store.
+// Validator is allowed to mutate the config and will only be given a copy.
 type Validator = func(c *instance.Config) error
 
 // NewAPI creates a new API. Store can be applied later with SetStore.
@@ -58,10 +58,10 @@ func NewAPI(l log.Logger, store Store, v Validator, enableGet bool) *API {
 	}
 }
 
-// WireAPI injects routes into the provided mux router for the shared
+// WireAPI injects routes into the provided mux router for the config
 // store API.
 func (api *API) WireAPI(r *mux.Router) {
-	// Support URL-encoded shared names. The handlers will need to decode the
+	// Support URL-encoded config names. The handlers will need to decode the
 	// name when reading the path variable.
 	r = r.UseEncodedPath()
 

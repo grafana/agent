@@ -37,19 +37,19 @@ type PrometheusClient interface {
 	// The following methods are for the scraping service mode
 	// only and will fail when not enabled on the Agent.
 
-	// ListConfigs runs the list of instance configs stored in the shared
+	// ListConfigs runs the list of instance configs stored in the config
 	// management KV store.
 	ListConfigs(ctx context.Context) (*configapi.ListConfigurationsResponse, error)
 
-	// GetConfiguration returns a named configuration from the shared
+	// GetConfiguration returns a named configuration from the config
 	// management KV store.
 	GetConfiguration(ctx context.Context, name string) (*instance.Config, error)
 
 	// PutConfiguration adds or updates a named configuration into the
-	// shared management KV store.
+	// config management KV store.
 	PutConfiguration(ctx context.Context, name string, cfg *instance.Config) error
 
-	// DeleteConfiguration removes a named configuration from the shared
+	// DeleteConfiguration removes a named configuration from the config
 	// management KV store.
 	DeleteConfiguration(ctx context.Context, name string) error
 }

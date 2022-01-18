@@ -22,25 +22,25 @@ spec:
         app: grafana
     spec:
       containers:
-      - name: grafana
-        image: grafana/grafana:8.0.4
-        args:
-          - --homepath=/usr/share/grafana
-          - --shared=/etc/grafana-shared/grafana.ini
-        ports:
-          - name: http
-            containerPort: 8080
-        volumeMounts:
-          - mountPath: /etc/grafana/provisioning/datasources
-            name: grafana-datasources
-            readOnly: true
-          - mountPath: /etc/grafana-shared
-            name: shared
-            readOnly: true
+        - name: grafana
+          image: grafana/grafana:8.0.4
+          args:
+            - --homepath=/usr/share/grafana
+            - --config=/etc/grafana-config/grafana.ini
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grafana-datasources
+              readOnly: true
+            - mountPath: /etc/grafana-config
+              name: config
+              readOnly: true
       volumes:
-        - name: shared
+        - name: config
           configMap:
-            name: grafana-shared
+            name: grafana-config
         - name: grafana-datasources
           configMap:
             name: grafana-datasources
@@ -58,16 +58,16 @@ spec:
   selector:
     app: grafana
   ports:
-  - name: http
-    port: 8080
-    targetPort: 8080
+    - name: http
+      port: 8080
+      targetPort: 8080
 
 ---
 
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-shared
+  name: grafana-config
   namespace: default
   labels:
     app: grafana
@@ -116,6 +116,7 @@ data:
       type: loki
       access: proxy
       url: http://loki.default.svc.cluster.local:8080
+      isDefault: true
       isDefault: false
       version: 1
       editable: false
@@ -133,12 +134,13 @@ metadata:
     app: grafana
 spec:
   rules:
-  - host: grafana.k3d.localhost
-    http:
-      paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: grafana
-              port: { name: 'http' }
+    - host: grafana.k3d.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port: { name: 'http' }
+

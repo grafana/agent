@@ -44,7 +44,7 @@ use_hostname_label: true
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
-	// shared package.
+	// config package.
 	cfg.ListenPort = listenPort
 	cfg.ListenHost = listenHost
 
@@ -67,7 +67,7 @@ agent:
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
 	// Listen port must be set before applying defaults. Normally applied by the
-	// shared package.
+	// config package.
 	cfg.ListenPort = listenPort
 	cfg.ListenHost = listenHost
 
@@ -145,7 +145,7 @@ func TestManager_NoIntegrationScrape(t *testing.T) {
 }
 
 // TestManager_StartsIntegrations tests that, when given an integration to
-// launch, TestManager applies a shared and runs the integration.
+// launch, TestManager applies a config and runs the integration.
 func TestManager_StartsIntegrations(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := MockConfig{Integration: mock}
@@ -192,6 +192,7 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 func TestManager_GracefulStop(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := MockConfig{Integration: mock}
+	icfg.Common = shared.Common{Enabled: true}
 
 	cfg := mockManagerConfig()
 	cfg.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
@@ -279,6 +280,7 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 	mock := newMockIntegration()
 	icfg := MockConfig{Integration: mock}
 
+	icfg.Common = shared.Common{Enabled: true}
 	cfg := mockManagerConfig()
 	cfg.Integrations.TestConfigs = make([]shared.V1IntegrationConfig, 0)
 	cfg.Integrations.TestConfigs = append(cfg.Integrations.TestConfigs, &icfg)
@@ -291,7 +293,7 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 	m, err := NewManager(cfg, log.NewNopLogger(), im, validator.validate)
 	require.NoError(t, err)
 	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
-	//The integration never has the prom shared overrides happen so go after the running instance shared instead
+	//The integration never has the prom config overrides happen so go after the running instance config instead
 	for _, c := range m.im.ListConfigs() {
 		for _, scrape := range c.ScrapeConfigs {
 			require.Equal(t, startingPromConfig.ScrapeInterval, scrape.ScrapeInterval)
@@ -307,7 +309,7 @@ func TestManager_PromConfigChangeReloads(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, m.im.ListConfigs(), 1, "Integration was enabled so should be here")
-	//The integration never has the prom shared overrides happen so go after the running instance shared instead
+	//The integration never has the prom config overrides happen so go after the running instance config instead
 	for _, c := range m.im.ListConfigs() {
 		for _, scrape := range c.ScrapeConfigs {
 			require.Equal(t, newPromConfig.ScrapeInterval, scrape.ScrapeInterval)

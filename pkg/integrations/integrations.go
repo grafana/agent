@@ -22,7 +22,7 @@ const (
 	IntegrationsVersion2
 )
 
-// DefaultVersionedIntegrations is the default shared for integrations.
+// DefaultVersionedIntegrations is the default config for integrations.
 var DefaultVersionedIntegrations = VersionedIntegrations{
 	version:  IntegrationsVersion1,
 	ConfigV1: &DefaultManagerConfig,
@@ -84,7 +84,7 @@ func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics
 }
 
 // SetVersion completes the deferred unmarshal and unmarshals the raw YAML into
-// the subsystem shared for version v.
+// the subsystem config for version v.
 func (c *VersionedIntegrations) SetVersion(v integrationsVersion, logger log.Logger) error {
 	c.version = v
 
@@ -111,7 +111,7 @@ func (c *VersionedIntegrations) SetVersion(v integrationsVersion, logger log.Log
 	}
 }
 
-// IntegrationsGlobals is a global struct shared across integrations.
+// IntegrationsGlobals is a global struct config across integrations.
 type IntegrationsGlobals = v2.Globals
 
 // Integrations is an abstraction over both the v1 and v2 systems.

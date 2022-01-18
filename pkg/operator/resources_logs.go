@@ -66,8 +66,8 @@ func generateLogsDaemonSet(
 	}
 
 	// TODO(rfratto): Prometheus Operator has an input hash annotation added here,
-	// which combines the hash of the DaemonSet, shared to the operator, rule
-	// shared map names (unused here), and the previous DaemonSet (if any).
+	// which combines the hash of the DaemonSet, config to the operator, rule
+	// config map names (unused here), and the previous DaemonSet (if any).
 	//
 	// This is used to skip re-applying an unchanged Daemonset. Do we need this?
 
@@ -118,10 +118,10 @@ func generateLogsDaemonSetSpec(
 			},
 		},
 		{
-			// We need a separate volume for storing the rendered shared with
+			// We need a separate volume for storing the rendered config with
 			// environment variables replaced. While the Agent supports environment
 			// variable substitution, the value for __replica__ can only be
-			// determined at runtime. We use a dedicated container for both shared
+			// determined at runtime. We use a dedicated container for both config
 			// reloading and rendering.
 			Name: "shared-out",
 			VolumeSource: v1.VolumeSource{
@@ -254,7 +254,7 @@ func generateLogsDaemonSetSpec(
 			FieldRef: &v1.ObjectFieldSelector{FieldPath: "spec.nodeName"},
 		},
 	}, {
-		// Not used anywhere for logs but passed to the shared-reloader since it
+		// Not used anywhere for logs but passed to the config-reloader since it
 		// expects everything is coming from a StatefulSet.
 		Name:  "SHARD",
 		Value: "0",

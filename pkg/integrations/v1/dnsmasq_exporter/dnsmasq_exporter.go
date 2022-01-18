@@ -8,7 +8,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-// DefaultConfig is the default shared for dnsmasq_exporter.
+// DefaultConfig is the default config for dnsmasq_exporter.
 var DefaultConfig Config = Config{
 	DnsmasqAddress: "localhost:53",
 	LeasesPath:     "/var/lib/misc/dnsmasq.leases",
@@ -23,7 +23,7 @@ type Config struct {
 	LeasesPath string `yaml:"leases_path,omitempty"`
 }
 
-// Name returns the name of the integration that this shared is for.
+// Name returns the name of the integration that this config is for.
 func (c *Config) Name() string {
 	return "dnsmasq_exporter"
 }
@@ -33,7 +33,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return c.DnsmasqAddress, nil
 }
 
-// NewIntegration converts this shared into an instance of an integration.
+// NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }

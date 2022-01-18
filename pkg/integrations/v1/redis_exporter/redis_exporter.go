@@ -30,9 +30,9 @@ var DefaultConfig = Config{
 type Config struct {
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics"`
 
-	// exporter-specific shared.
+	// exporter-specific config.
 	//
-	// The exporter binary shared differs to this, but these
+	// The exporter binary config differs to this, but these
 	// are the only fields that are relevant to the exporter struct.
 	RedisAddr               string             `yaml:"redis_addr,omitempty"`
 	RedisUser               string             `yaml:"redis_user,omitempty"`
@@ -91,7 +91,7 @@ func (c Config) GetExporterOptions() re.Options {
 	}
 }
 
-// Name returns the name of the integration this shared is for.
+// Name returns the name of the integration this config is for.
 func (c *Config) Name() string {
 	return "redis_exporter"
 }
@@ -101,7 +101,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return c.RedisAddr, nil
 }
 
-// NewIntegration converts the shared into an integration instance.
+// NewIntegration converts the config into an integration instance.
 func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 	return New(l, c)
 }

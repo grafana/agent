@@ -34,7 +34,7 @@ import (
 )
 
 var (
-	// ErrInvalidUpdate is returned by ApplyConfig when the shared cannot
+	// ErrInvalidUpdate is returned by ApplyConfig when the config cannot
 	// be dynamically applied.
 	ErrInvalidUpdate = fmt.Errorf("invalid dynamic update")
 )
@@ -123,14 +123,14 @@ type Integration interface {
 	RunIntegration(ctx context.Context) error
 }
 
-// UpdateIntegration is an Integration whose shared can be updated
+// UpdateIntegration is an Integration whose config can be updated
 // dynamically. Integrations that do not implement this interface will be shut
 // down and re-instantiated with the new Config.
 type UpdateIntegration interface {
 	Integration
 
-	// ApplyConfig should apply the shared c to the integration. An error can be
-	// returned if the Config is invalid. When this happens, the old shared will
+	// ApplyConfig should apply the config c to the integration. An error can be
+	// returned if the Config is invalid. When this happens, the old config will
 	// continue to run.
 	//
 	// If ApplyConfig returns ErrInvalidUpdate, the integration will be
@@ -174,7 +174,7 @@ type MetricsIntegration interface {
 	// ScrapeConfigs configures automatic scraping of targets. ScrapeConfigs
 	// is optional if an integration should not scrape itself.
 	//
-	// Unlike Targets, ScrapeConfigs is only called once per shared load, and may be
+	// Unlike Targets, ScrapeConfigs is only called once per config load, and may be
 	// called before the integration runs. Use the provided discovery.Configs to
 	// discover the targets exposed by this integration.
 	ScrapeConfigs(discovery.Configs) []*autoscrape.ScrapeConfig

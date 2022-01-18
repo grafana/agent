@@ -87,7 +87,7 @@ func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager insta
 	}
 
 	// Any instance in l.instances that isn't in newInstances has been removed
-	// from the shared. Stop them before replacing the map.
+	// from the config. Stop them before replacing the map.
 	for key, i := range t.instances {
 		if _, exist := newInstances[key]; exist {
 			continue

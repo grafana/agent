@@ -73,7 +73,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// Detect if the shared changed.
+	// Detect if the config changed.
 	if util.CompareYAML(n.cfg, cfg) {
 		return nil
 	}

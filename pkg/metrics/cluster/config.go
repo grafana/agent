@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/dskit/kv"
 )
 
-// DefaultConfig provides default values for the shared
+// DefaultConfig provides default values for the config
 var DefaultConfig = *flagutil.DefaultConfigFromFlags(&Config{}).(*Config)
 
 // Config describes how to instantiate a scraping service Server instance.
@@ -42,13 +42,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// RegisterFlags adds the flags required to shared the Server to the given
+// RegisterFlags adds the flags required to config the Server to the given
 // FlagSet.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.RegisterFlagsWithPrefix("", f)
 }
 
-// RegisterFlagsWithPrefix adds the flags required to shared this to the given
+// RegisterFlagsWithPrefix adds the flags required to config this to the given
 // FlagSet with a specified prefix.
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.BoolVar(&c.Enabled, prefix+"enabled", false, "enables the scraping service mode")
