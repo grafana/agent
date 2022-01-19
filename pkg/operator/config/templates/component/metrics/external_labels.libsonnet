@@ -2,7 +2,7 @@
 // user-provided labels as well as the injected cluster and
 // replica labels.
 //
-// @param {config.Deployment} ctx
+// @param {Hierarchy} ctx
 function(ctx) (
   local meta = ctx.Agent.ObjectMeta;
   local metrics = ctx.Agent.Spec.Metrics;

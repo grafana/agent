@@ -42,6 +42,16 @@ func (a *GrafanaAgent) LogsInstanceSelector() ObjectSelector {
 	}
 }
 
+// MetricsIntegrationSelector returns a selector to find MetricsIntegrations.
+func (a *GrafanaAgent) MetricsIntegrationSelector() ObjectSelector {
+	return ObjectSelector{
+		ObjectType:        &MetricsIntegration{},
+		ParentNamespace:   a.Namespace,
+		NamespaceSelector: a.Spec.Integrations.NamespaceSelector,
+		Labels:            a.Spec.Integrations.Selector,
+	}
+}
+
 // +kubebuilder:object:root=true
 
 // GrafanaAgentList is a list of GrafanaAgents.
@@ -150,7 +160,13 @@ type GrafanaAgentSpec struct {
 	// Logs controls the logging subsystem of the Agent and settings unique to
 	// logging-specific pods that are deployed.
 	Logs LogsSubsystemSpec `json:"logs,omitempty"`
+
+	// Integrations controls the integrations subsystem of the Agent and settings
+	// unique to integration-specific pods that are deployed.
+	Integrations IntegrationsSubsystemSpec `json:"integrations,omitempty"`
 }
+
+// +kubebuilder:object:generate=false
 
 // ObjectSelector is a set of selectors to use for finding an object in the
 // resource hierarchy. When NamespaceSelector is nil, objects should be

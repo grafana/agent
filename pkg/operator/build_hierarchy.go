@@ -12,7 +12,6 @@ import (
 	"github.com/grafana/agent/pkg/operator/hierarchy"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,8 +20,8 @@ import (
 )
 
 // buildHierarchy constructs a resource hierarchy starting from root.
-func buildHierarchy(ctx context.Context, l log.Logger, cli client.Client, root *grafana.GrafanaAgent) (deployment config.Deployment, watchers []hierarchy.Watcher, err error) {
-	deployment.Agent = root
+func buildHierarchy(ctx context.Context, l log.Logger, cli client.Client, root *grafana.GrafanaAgent) (h grafana.Hierarchy, watchers []hierarchy.Watcher, err error) {
+	h.Agent = root
 
 	// search is used throughout BuildHierarchy, where it will perform a list for
 	// a set of objects in the hierarchy and populate the watchers return
@@ -46,38 +45,43 @@ func buildHierarchy(ctx context.Context, l log.Logger, cli client.Client, root *
 
 	// Root resources
 	var (
-		metricInstances grafana.MetricsInstanceList
-		logsInstances   grafana.LogsInstanceList
+		metricInstances     grafana.MetricsInstanceList
+		logsInstances       grafana.LogsInstanceList
+		metricsIntegrations grafana.MetricsIntegrationList
 	)
 	var roots = []hierarchyResource{
 		{List: &metricInstances, Selector: root.MetricsInstanceSelector()},
 		{List: &logsInstances, Selector: root.LogsInstanceSelector()},
+		{List: &metricsIntegrations, Selector: root.MetricsIntegrationSelector()},
 	}
 	if err := search(roots); err != nil {
-		return deployment, nil, err
+		return h, nil, err
 	}
 
 	// Metrics resources
 	for _, metricsInst := range metricInstances.Items {
 		var (
-			serviceMonitors prom.ServiceMonitorList
-			podMonitors     prom.PodMonitorList
-			probes          prom.ProbeList
+			serviceMonitors     prom.ServiceMonitorList
+			podMonitors         prom.PodMonitorList
+			probes              prom.ProbeList
+			integrationMonitors grafana.IntegrationMonitorList
 		)
 		var children = []hierarchyResource{
 			{List: &serviceMonitors, Selector: metricsInst.ServiceMonitorSelector()},
 			{List: &podMonitors, Selector: metricsInst.PodMonitorSelector()},
 			{List: &probes, Selector: metricsInst.ProbeSelector()},
+			{List: &integrationMonitors, Selector: metricsInst.IntegrationMonitorSelector()},
 		}
 		if err := search(children); err != nil {
-			return deployment, nil, err
+			return h, nil, err
 		}
 
-		deployment.Metrics = append(deployment.Metrics, config.MetricsInstance{
-			Instance:        metricsInst,
-			ServiceMonitors: filterServiceMonitors(l, root, &serviceMonitors).Items,
-			PodMonitors:     podMonitors.Items,
-			Probes:          probes.Items,
+		h.Metrics = append(h.Metrics, grafana.MetricsHierarchy{
+			Instance:            metricsInst,
+			ServiceMonitors:     filterServiceMonitors(l, root, &serviceMonitors).Items,
+			PodMonitors:         podMonitors.Items,
+			Probes:              probes.Items,
+			IntegrationMonitors: integrationMonitors.Items,
 		})
 	}
 
@@ -90,24 +94,27 @@ func buildHierarchy(ctx context.Context, l log.Logger, cli client.Client, root *
 			{List: &podLogs, Selector: logsInst.PodLogsSelector()},
 		}
 		if err := search(children); err != nil {
-			return deployment, nil, err
+			return h, nil, err
 		}
 
-		deployment.Logs = append(deployment.Logs, config.LogInstance{
+		h.Logs = append(h.Logs, grafana.LogsHierarchy{
 			Instance: logsInst,
 			PodLogs:  podLogs.Items,
 		})
 	}
 
+	// Integrations resources
+	h.Integrations = append(h.Integrations, metricsIntegrations.Items...)
+
 	// Finally, find all referenced secrets
-	secrets, secretWatchers, err := buildSecrets(ctx, cli, deployment)
+	secrets, secretWatchers, err := buildSecrets(ctx, cli, h)
 	if err != nil {
-		return deployment, nil, fmt.Errorf("failed to discover secrets: %w", err)
+		return h, nil, fmt.Errorf("failed to discover secrets: %w", err)
 	}
-	deployment.Secrets = secrets
+	h.Secrets = secrets
 	watchers = append(watchers, secretWatchers...)
 
-	return deployment, watchers, nil
+	return h, watchers, nil
 }
 
 type hierarchyResource struct {
@@ -194,7 +201,7 @@ func testForArbitraryFSAccess(e prom.Endpoint) error {
 	return nil
 }
 
-func buildSecrets(ctx context.Context, cli client.Client, deploy config.Deployment) (secrets assets.SecretStore, watchers []hierarchy.Watcher, err error) {
+func buildSecrets(ctx context.Context, cli client.Client, h grafana.Hierarchy) (secrets assets.SecretStore, watchers []hierarchy.Watcher, err error) {
 	secrets = make(assets.SecretStore)
 
 	// KeySelector caches to make sure we don't create duplicate watchers.
@@ -203,7 +210,7 @@ func buildSecrets(ctx context.Context, cli client.Client, deploy config.Deployme
 		usedConfigMapSelectors = map[hierarchy.KeySelector]struct{}{}
 	)
 
-	for _, ref := range deploy.AssetReferences() {
+	for _, ref := range config.AssetReferences(h) {
 		var (
 			objectList client.ObjectList
 			sel        hierarchy.KeySelector
@@ -260,8 +267,8 @@ func buildSecrets(ctx context.Context, cli client.Client, deploy config.Deployme
 				continue
 			}
 			watchers = append(watchers, hierarchy.Watcher{
-				Object:   &v1.Secret{},
-				Owner:    client.ObjectKeyFromObject(deploy.Agent),
+				Object:   &corev1.Secret{},
+				Owner:    client.ObjectKeyFromObject(h.Agent),
 				Selector: &sel,
 			})
 			usedSecretSelectors[sel] = struct{}{}
@@ -270,8 +277,8 @@ func buildSecrets(ctx context.Context, cli client.Client, deploy config.Deployme
 				continue
 			}
 			watchers = append(watchers, hierarchy.Watcher{
-				Object:   &v1.ConfigMap{},
-				Owner:    client.ObjectKeyFromObject(deploy.Agent),
+				Object:   &corev1.ConfigMap{},
+				Owner:    client.ObjectKeyFromObject(h.Agent),
 				Selector: &sel,
 			})
 			usedConfigMapSelectors[sel] = struct{}{}

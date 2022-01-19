@@ -16,7 +16,7 @@ local optionals = import 'ext/optionals.libsonnet';
 
 local new_logs_instance = import './logs.libsonnet';
 
-// @param {config.Deployment} ctx
+// @param {Hierarchy} ctx
 function(ctx) marshal.YAML(optionals.trim({
   local spec = ctx.Agent.Spec,
   local logs = spec.Logs,

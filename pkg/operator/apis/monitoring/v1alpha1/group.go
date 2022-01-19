@@ -26,8 +26,12 @@ func init() {
 		&GrafanaAgentList{},
 		&MetricsInstance{},
 		&MetricsInstanceList{},
+		&IntegrationMonitor{},
+		&IntegrationMonitorList{},
 		&LogsInstance{},
 		&LogsInstanceList{},
+		&MetricsIntegration{},
+		&MetricsIntegrationList{},
 		&PodLogs{},
 		&PodLogsList{},
 	)

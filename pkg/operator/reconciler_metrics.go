@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/google/go-jsonnet"
-	"github.com/grafana/agent/pkg/operator/assets"
+	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
@@ -26,30 +26,28 @@ import (
 func (r *reconciler) createMetricsConfigurationSecret(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	h grafana_v1alpha1.Hierarchy,
 ) error {
-	return r.createTelemetryConfigurationSecret(ctx, l, d, s, config.MetricsType)
+	return r.createTelemetryConfigurationSecret(ctx, l, h, config.MetricsType)
 }
 
 func (r *reconciler) createTelemetryConfigurationSecret(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	h grafana_v1alpha1.Hierarchy,
 	ty config.Type,
 ) error {
 
 	var shouldCreate bool
-	key := types.NamespacedName{Namespace: d.Agent.Namespace}
+	key := types.NamespacedName{Namespace: h.Agent.Namespace}
 
 	switch ty {
 	case config.MetricsType:
-		key.Name = fmt.Sprintf("%s-config", d.Agent.Name)
-		shouldCreate = len(d.Metrics) > 0
+		key.Name = fmt.Sprintf("%s-config", h.Agent.Name)
+		shouldCreate = len(h.Metrics) > 0
 	case config.LogsType:
-		key.Name = fmt.Sprintf("%s-logs-config", d.Agent.Name)
-		shouldCreate = len(d.Logs) > 0
+		key.Name = fmt.Sprintf("%s-logs-config", h.Agent.Name)
+		shouldCreate = len(h.Logs) > 0
 	default:
 		return fmt.Errorf("unknown telemetry type %s", ty)
 	}
@@ -60,7 +58,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 		return deleteManagedResource(ctx, r.Client, key, &secret)
 	}
 
-	rawConfig, err := d.BuildConfig(s, ty)
+	rawConfig, err := config.BuildConfig(h, ty)
 
 	var jsonnetError jsonnet.RuntimeError
 	if errors.As(err, &jsonnetError) {
@@ -78,11 +76,11 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 			Name:      key.Name,
 			Labels:    r.config.Labels.Merge(managedByOperatorLabels),
 			OwnerReferences: []v1.OwnerReference{{
-				APIVersion:         d.Agent.APIVersion,
+				APIVersion:         h.Agent.APIVersion,
 				BlockOwnerDeletion: pointer.Bool(true),
-				Kind:               d.Agent.Kind,
-				Name:               d.Agent.Name,
-				UID:                d.Agent.UID,
+				Kind:               h.Agent.Kind,
+				Name:               h.Agent.Name,
+				UID:                h.Agent.UID,
 			}},
 		},
 		Data: map[string][]byte{"agent.yml": []byte(rawConfig)},
@@ -101,13 +99,12 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 func (r *reconciler) createMetricsGoverningService(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	h grafana_v1alpha1.Hierarchy,
 ) error {
-	svc := generateMetricsStatefulSetService(r.config, d)
+	svc := generateMetricsStatefulSetService(r.config, h)
 
 	// Delete the old Secret if one exists and we have no prometheus instances.
-	if len(d.Metrics) == 0 {
+	if len(h.Metrics) == 0 {
 		var service core_v1.Service
 		key := types.NamespacedName{Namespace: svc.Namespace, Name: svc.Name}
 		return deleteManagedResource(ctx, r.Client, key, &service)
@@ -125,12 +122,11 @@ func (r *reconciler) createMetricsGoverningService(
 func (r *reconciler) createMetricsStatefulSets(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	h grafana_v1alpha1.Hierarchy,
 ) error {
 
 	shards := minShards
-	if reqShards := d.Agent.Spec.Metrics.Shards; reqShards != nil && *reqShards > 1 {
+	if reqShards := h.Agent.Spec.Metrics.Shards; reqShards != nil && *reqShards > 1 {
 		shards = *reqShards
 	}
 
@@ -140,16 +136,16 @@ func (r *reconciler) createMetricsStatefulSets(
 
 	for shard := int32(0); shard < shards; shard++ {
 		// Don't generate anything if there weren't any instances.
-		if len(d.Metrics) == 0 {
+		if len(h.Metrics) == 0 {
 			continue
 		}
 
-		name := d.Agent.Name
+		name := h.Agent.Name
 		if shard > 0 {
 			name = fmt.Sprintf("%s-shard-%d", name, shard)
 		}
 
-		ss, err := generateMetricsStatefulSet(r.config, name, d, shard)
+		ss, err := generateMetricsStatefulSet(r.config, name, h, shard)
 		if err != nil {
 			return fmt.Errorf("failed to generate statefulset for shard: %w", err)
 		}
@@ -167,7 +163,7 @@ func (r *reconciler) createMetricsStatefulSets(
 	err := r.List(ctx, &statefulSets, &client.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labels.Set{
 			managedByOperatorLabel: managedByOperatorLabelValue,
-			agentNameLabelName:     d.Agent.Name,
+			agentNameLabelName:     h.Agent.Name,
 		}),
 	})
 	if err != nil {

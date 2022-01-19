@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +12,7 @@ import (
 )
 
 func TestDeployment_AssetReferences(t *testing.T) {
-	deployment := Deployment{
+	hierarchy := grafana.Hierarchy{
 		Agent: &v1alpha1.GrafanaAgent{
 			ObjectMeta: v1.ObjectMeta{
 				Namespace: "agent",
@@ -29,7 +30,7 @@ func TestDeployment_AssetReferences(t *testing.T) {
 				},
 			},
 		},
-		Metrics: []MetricsInstance{{
+		Metrics: []grafana.MetricsHierarchy{{
 			Instance: &v1alpha1.MetricsInstance{
 				ObjectMeta: v1.ObjectMeta{Namespace: "metrics-instance"},
 			},
@@ -80,5 +81,5 @@ func TestDeployment_AssetReferences(t *testing.T) {
 				},
 			},
 		},
-	}, deployment.AssetReferences())
+	}, AssetReferences(hierarchy))
 }

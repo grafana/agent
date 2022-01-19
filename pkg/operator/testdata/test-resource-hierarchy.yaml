@@ -16,6 +16,10 @@ spec:
     instanceSelector:
       matchLabels:
         agent: grafana-agent-example
+  integrations:
+    selector:
+      matchLabels:
+        agent: grafana-agent-example
 
 ---
 
@@ -39,6 +43,11 @@ spec:
   # Supply an empty namespace selector to look in all namespaces.
   podMonitorNamespaceSelector: {}
   podMonitorSelector:
+    matchLabels:
+      instance: primary
+  # Supply an empty namespace selector to look in all namespaces.
+  integrationMonitorNamespaceSelector: {}
+  integrationMonitorSelector:
     matchLabels:
       instance: primary
   # Supply an empty namespace selector to look in all namespaces.
@@ -68,6 +77,40 @@ spec:
 
 ---
 
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: MetricsIntegration
+metadata:
+  name: node-exporter
+  namespace: default
+  labels:
+    agent: grafana-agent-example
+spec:
+  name: node_exporter
+  type: daemonset
+  config:
+    rootfs_path: /host/root
+    sysfs_path: /host/sys
+    procfs_path: /host/proc
+  volumeMounts:
+    - mountPath: /host/proc
+      name: proc
+    - mountPath: /host/sys
+      name: sys
+    - mountPath: /rootfs
+      name: root
+  volumes:
+    - hostPath:
+        path: /proc
+      name: proc
+    - hostPath:
+        path: /sys
+      name: sys
+    - hostPath:
+        path: /
+      name: root
+
+---
+
 # Have the Agent monitor itself.
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
@@ -82,6 +125,19 @@ spec:
       app.kubernetes.io/name: grafana-agent
   podMetricsEndpoints:
     - port: http-metrics
+
+---
+
+# Have the Agent monitor integrations.
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: IntegrationMonitor
+metadata:
+  name: primary
+  namespace: default
+  labels:
+    instance: primary
+spec:
+  selector: {}
 
 ---
 

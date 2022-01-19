@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/operator/assets"
+	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
@@ -18,27 +18,25 @@ import (
 func (r *reconciler) createLogsConfigurationSecret(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	h grafana_v1alpha1.Hierarchy,
 ) error {
-	return r.createTelemetryConfigurationSecret(ctx, l, d, s, config.LogsType)
+	return r.createTelemetryConfigurationSecret(ctx, l, h, config.LogsType)
 }
 
 // createLogsDaemonSet creates a DaemonSet for logs.
 func (r *reconciler) createLogsDaemonSet(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	h grafana_v1alpha1.Hierarchy,
 ) error {
-	name := fmt.Sprintf("%s-logs", d.Agent.Name)
-	ds, err := generateLogsDaemonSet(r.config, name, d)
+	name := fmt.Sprintf("%s-logs", h.Agent.Name)
+	ds, err := generateLogsDaemonSet(r.config, name, h)
 	if err != nil {
 		return fmt.Errorf("failed to generate DaemonSet: %w", err)
 	}
 	key := types.NamespacedName{Namespace: ds.Namespace, Name: ds.Name}
 
-	if len(d.Logs) == 0 {
+	if len(h.Logs) == 0 {
 		var ds apps_v1.DaemonSet
 		return deleteManagedResource(ctx, r.Client, key, &ds)
 	}

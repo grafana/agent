@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/build"
+	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
-	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,15 +17,15 @@ import (
 func generateLogsDaemonSet(
 	cfg *Config,
 	name string,
-	d config.Deployment,
+	h grafana_v1alpha1.Hierarchy,
 ) (*apps_v1.DaemonSet, error) {
-	d = *d.DeepCopy()
+	h = *h.DeepCopy()
 
-	if d.Agent.Spec.PortName == "" {
-		d.Agent.Spec.PortName = defaultPortName
+	if h.Agent.Spec.PortName == "" {
+		h.Agent.Spec.PortName = defaultPortName
 	}
 
-	spec, err := generateLogsDaemonSetSpec(cfg, name, d)
+	spec, err := generateLogsDaemonSetSpec(cfg, name, h)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func generateLogsDaemonSet(
 	// Don't transfer any kubectl annotations to the DaemonSet so it doesn't get
 	// pruned by kubectl.
 	annotations := make(map[string]string)
-	for k, v := range d.Agent.Annotations {
+	for k, v := range h.Agent.Annotations {
 		if !strings.HasPrefix(k, "kubectl.kubernetes.io/") {
 			annotations[k] = v
 		}
@@ -43,23 +43,23 @@ func generateLogsDaemonSet(
 	for k, v := range spec.Template.Labels {
 		labels[k] = v
 	}
-	labels[agentNameLabelName] = d.Agent.Name
+	labels[agentNameLabelName] = h.Agent.Name
 	labels[agentTypeLabel] = "logs"
 	labels[managedByOperatorLabel] = managedByOperatorLabelValue
 
 	ds := &apps_v1.DaemonSet{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:        name,
-			Namespace:   d.Agent.Namespace,
+			Namespace:   h.Agent.Namespace,
 			Labels:      labels,
 			Annotations: annotations,
 			OwnerReferences: []meta_v1.OwnerReference{{
-				APIVersion:         d.Agent.APIVersion,
-				Kind:               d.Agent.Kind,
+				APIVersion:         h.Agent.APIVersion,
+				Kind:               h.Agent.Kind,
 				BlockOwnerDeletion: pointer.Bool(true),
 				Controller:         pointer.Bool(true),
-				Name:               d.Agent.Name,
-				UID:                d.Agent.UID,
+				Name:               h.Agent.Name,
+				UID:                h.Agent.UID,
 			}},
 		},
 		Spec: *spec,
@@ -71,8 +71,8 @@ func generateLogsDaemonSet(
 	//
 	// This is used to skip re-applying an unchanged Daemonset. Do we need this?
 
-	if len(d.Agent.Spec.ImagePullSecrets) > 0 {
-		ds.Spec.Template.Spec.ImagePullSecrets = d.Agent.Spec.ImagePullSecrets
+	if len(h.Agent.Spec.ImagePullSecrets) > 0 {
+		ds.Spec.Template.Spec.ImagePullSecrets = h.Agent.Spec.ImagePullSecrets
 	}
 
 	return ds, nil
@@ -81,16 +81,16 @@ func generateLogsDaemonSet(
 func generateLogsDaemonSetSpec(
 	cfg *Config,
 	name string,
-	d config.Deployment,
+	h grafana_v1alpha1.Hierarchy,
 ) (*apps_v1.DaemonSetSpec, error) {
 
-	useVersion := d.Agent.Spec.Version
+	useVersion := h.Agent.Spec.Version
 	if useVersion == "" {
 		useVersion = DefaultAgentVersion
 	}
 	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, useVersion)
-	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
-		imagePath = *d.Agent.Spec.Image
+	if h.Agent.Spec.Image != nil && *h.Agent.Spec.Image != "" {
+		imagePath = *h.Agent.Spec.Image
 	}
 
 	agentArgs := []string{
@@ -103,7 +103,7 @@ func generateLogsDaemonSetSpec(
 	// service from being created. Given the intent is that Agents can connect to
 	// each other, ListenLocal isn't currently supported and we always create a port.
 	ports := []v1.ContainerPort{{
-		Name:          d.Agent.Spec.PortName,
+		Name:          h.Agent.Spec.PortName,
 		ContainerPort: 8080,
 		Protocol:      v1.ProtocolTCP,
 	}}
@@ -132,7 +132,7 @@ func generateLogsDaemonSetSpec(
 			Name: "secrets",
 			VolumeSource: v1.VolumeSource{
 				Secret: &v1.SecretVolumeSource{
-					SecretName: fmt.Sprintf("%s-secrets", d.Agent.Name),
+					SecretName: fmt.Sprintf("%s-secrets", h.Agent.Name),
 				},
 			},
 		},
@@ -182,9 +182,9 @@ func generateLogsDaemonSetSpec(
 		Name:      "data",
 		MountPath: "/var/lib/grafana-agent/data",
 	}}
-	volumeMounts = append(volumeMounts, d.Agent.Spec.VolumeMounts...)
+	volumeMounts = append(volumeMounts, h.Agent.Spec.VolumeMounts...)
 
-	for _, s := range d.Agent.Spec.Secrets {
+	for _, s := range h.Agent.Spec.Secrets {
 		volumes = append(volumes, v1.Volume{
 			Name: clientutil.SanitizeVolumeName("secret-" + s),
 			VolumeSource: v1.VolumeSource{
@@ -197,7 +197,7 @@ func generateLogsDaemonSetSpec(
 			MountPath: "/var/lib/grafana-agent/secrets",
 		})
 	}
-	for _, c := range d.Agent.Spec.ConfigMaps {
+	for _, c := range h.Agent.Spec.ConfigMaps {
 		volumes = append(volumes, v1.Volume{
 			Name: clientutil.SanitizeVolumeName("configmap-" + c),
 			VolumeSource: v1.VolumeSource{
@@ -219,16 +219,16 @@ func generateLogsDaemonSetSpec(
 		"app.kubernetes.io/name":       "grafana-agent",
 		"app.kubernetes.io/version":    build.Version,
 		"app.kubernetes.io/managed-by": "grafana-agent-operator",
-		"app.kubernetes.io/instance":   d.Agent.Name,
-		"grafana-agent":                d.Agent.Name,
-		agentNameLabelName:             d.Agent.Name,
+		"app.kubernetes.io/instance":   h.Agent.Name,
+		"grafana-agent":                h.Agent.Name,
+		agentNameLabelName:             h.Agent.Name,
 		agentTypeLabel:                 "logs",
 	}
-	if d.Agent.Spec.PodMetadata != nil {
-		for k, v := range d.Agent.Spec.PodMetadata.Labels {
+	if h.Agent.Spec.PodMetadata != nil {
+		for k, v := range h.Agent.Spec.PodMetadata.Labels {
 			podLabels[k] = v
 		}
-		for k, v := range d.Agent.Spec.PodMetadata.Annotations {
+		for k, v := range h.Agent.Spec.PodMetadata.Annotations {
 			podAnnotations[k] = v
 		}
 	}
@@ -293,19 +293,19 @@ func generateLogsDaemonSetSpec(
 				Handler: v1.Handler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path: "/-/ready",
-						Port: intstr.FromString(d.Agent.Spec.PortName),
+						Port: intstr.FromString(h.Agent.Spec.PortName),
 					},
 				},
 				InitialDelaySeconds: 10,
 				TimeoutSeconds:      probeTimeoutSeconds,
 				PeriodSeconds:       5,
 			},
-			Resources:                d.Agent.Spec.Resources,
+			Resources:                h.Agent.Spec.Resources,
 			TerminationMessagePolicy: v1.TerminationMessageFallbackToLogsOnError,
 		},
 	}
 
-	containers, err := clientutil.MergePatchContainers(operatorContainers, d.Agent.Spec.Containers)
+	containers, err := clientutil.MergePatchContainers(operatorContainers, h.Agent.Spec.Containers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to merge containers spec: %w", err)
 	}
@@ -324,16 +324,16 @@ func generateLogsDaemonSetSpec(
 			},
 			Spec: v1.PodSpec{
 				Containers:                    containers,
-				InitContainers:                d.Agent.Spec.InitContainers,
-				SecurityContext:               d.Agent.Spec.SecurityContext,
-				ServiceAccountName:            d.Agent.Spec.ServiceAccountName,
-				NodeSelector:                  d.Agent.Spec.NodeSelector,
-				PriorityClassName:             d.Agent.Spec.PriorityClassName,
+				InitContainers:                h.Agent.Spec.InitContainers,
+				SecurityContext:               h.Agent.Spec.SecurityContext,
+				ServiceAccountName:            h.Agent.Spec.ServiceAccountName,
+				NodeSelector:                  h.Agent.Spec.NodeSelector,
+				PriorityClassName:             h.Agent.Spec.PriorityClassName,
 				TerminationGracePeriodSeconds: pointer.Int64(4800),
 				Volumes:                       volumes,
-				Tolerations:                   d.Agent.Spec.Tolerations,
-				Affinity:                      d.Agent.Spec.Affinity,
-				TopologySpreadConstraints:     d.Agent.Spec.TopologySpreadConstraints,
+				Tolerations:                   h.Agent.Spec.Tolerations,
+				Affinity:                      h.Agent.Spec.Affinity,
+				TopologySpreadConstraints:     h.Agent.Spec.TopologySpreadConstraints,
 			},
 		},
 	}, nil

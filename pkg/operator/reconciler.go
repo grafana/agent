@@ -7,7 +7,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/operator/hierarchy"
@@ -49,7 +48,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		return controller.Result{}, nil
 	}
 
-	deployment, watchers, err := buildHierarchy(ctx, l, r.Client, &agent)
+	h, watchers, err := buildHierarchy(ctx, l, r.Client, &agent)
 	if err != nil {
 		level.Error(l).Log("msg", "unable to build hierarchy", "err", err)
 		return controller.Result{}, nil
@@ -59,7 +58,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		return controller.Result{}, nil
 	}
 
-	type reconcileFunc func(context.Context, log.Logger, config.Deployment, assets.SecretStore) error
+	type reconcileFunc func(context.Context, log.Logger, grafana_v1alpha1.Hierarchy) error
 	actors := []reconcileFunc{
 		// Operator-wide resources
 		r.createSecrets,
@@ -74,7 +73,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		r.createLogsDaemonSet,
 	}
 	for _, actor := range actors {
-		err := actor(ctx, l, deployment, deployment.Secrets)
+		err := actor(ctx, l, h)
 		if err != nil {
 			level.Error(l).Log("msg", "error during reconciling", "err", err)
 			return controller.Result{Requeue: true}, nil
@@ -88,27 +87,26 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 func (r *reconciler) createSecrets(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	h grafana_v1alpha1.Hierarchy,
 ) error {
 
 	blockOwnerDeletion := true
 
 	data := make(map[string][]byte)
-	for k, value := range s {
+	for k, value := range h.Secrets {
 		data[config.SanitizeLabelName(string(k))] = []byte(value)
 	}
 
 	secret := core_v1.Secret{
 		ObjectMeta: v1.ObjectMeta{
-			Namespace: d.Agent.Namespace,
-			Name:      fmt.Sprintf("%s-secrets", d.Agent.Name),
+			Namespace: h.Agent.Namespace,
+			Name:      fmt.Sprintf("%s-secrets", h.Agent.Name),
 			OwnerReferences: []v1.OwnerReference{{
-				APIVersion:         d.Agent.APIVersion,
+				APIVersion:         h.Agent.APIVersion,
 				BlockOwnerDeletion: &blockOwnerDeletion,
-				Kind:               d.Agent.Kind,
-				Name:               d.Agent.Name,
-				UID:                d.Agent.UID,
+				Kind:               h.Agent.Kind,
+				Name:               h.Agent.Name,
+				UID:                h.Agent.UID,
 			}},
 			Labels: map[string]string{
 				managedByOperatorLabel: managedByOperatorLabelValue,

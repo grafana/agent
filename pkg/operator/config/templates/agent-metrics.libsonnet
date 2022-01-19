@@ -23,7 +23,7 @@ local calculateShards(requested) =
   else if requested > 1 then requested
   else 1;
 
-// @param {config.Deployment} ctx
+// @param {Hierarchy} ctx
 function(ctx) marshal.YAML(optionals.trim({
   local spec = ctx.Agent.Spec,
   local prometheus = spec.Metrics,
