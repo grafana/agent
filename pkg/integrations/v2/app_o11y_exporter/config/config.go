@@ -28,7 +28,7 @@ var DefaultConfig = AppExporterConfig{
 	LogsInstance:    "default",
 	Measurements:    []Measurement{},
 	ExtraLokiLabels: map[string]string{},
-	LokiSendTimeout: 2000,
+	LogsSendTimeout: 2000,
 }
 
 // ServerConfig holds the receiver http server configuration
