@@ -70,7 +70,7 @@ Full reference of options:
     [description: <string>]
 
   # Extra loki lables to append in each Loki Entry (exceptions logs and measurements)
-  extra_loki_lablels:
+  extra_logs_labels:
     [- <key>: <string>]
 
   # Timeout duration when sending an entry to Loki
