@@ -45,13 +45,6 @@ Full reference of options:
   # Content-Length header is used to make this check
   [max_allowed_payload_size: <number> | default = 0]
 
-  # Configure source map support. The app observability integration can do a basic
-  # deobfuscation of JavaScript stacktraces using a user defined map file. The map_uri
-  # can be either a filesystem path or a URL to download the file from
-  source_map:
-    [enabled: <boolean> | default = false]
-    [map_uri: <string> | default = ""]
-
   # Loki instance to send logs and exceptions to. This assumes that you have a logs
   # config with the instance defined
   [logs_instance: <string> | default = "default"]

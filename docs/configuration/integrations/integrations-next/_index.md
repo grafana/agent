@@ -117,8 +117,8 @@ integrations:
   redis_exporter_configs:
     [- <redis_exporter_config> ...]
 
-  app_o11y_config:
-    [<app_o11y_config>]
+  app_o11y_exporter_configs:
+    [- <app_o11y_exporter_config>]
 ```
 
 ## Integrations changes
