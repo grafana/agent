@@ -188,14 +188,14 @@ func (eh *EventHandler) writeOutLastEvent() error {
 	return nil
 }
 
-// TODO: deprecate this in favor of just using promtail config on a JSON blob...TBD
+// TODO: ship JSON blobs and allow users to configure using pipelines
 func handleEvent(event *v1.Event) (model.LabelSet, string, error) {
 	var msg strings.Builder
 	labels := make(model.LabelSet)
 	obj := event.InvolvedObject
 
 	//todo: config
-	labels[model.LabelName("eventhandler")] = model.LabelValue("ehtest0")
+	labels[model.LabelName("eventhandler")] = model.LabelValue("agenttest1")
 
 	if obj.Name == "" {
 		return nil, "", fmt.Errorf("no involved object")
@@ -212,7 +212,7 @@ func handleEvent(event *v1.Event) (model.LabelSet, string, error) {
 	labels[model.LabelName("namespace")] = model.LabelValue(obj.Namespace)
 
 	// we add these fields to the log line to reduce cardinality
-	// TODO: is there a better way to do this?
+	// TODO: is there a better way to do this code-wise
 	if event.Action != "" {
 		msg.WriteString(fmt.Sprintf("action=%s ", event.Type))
 	}

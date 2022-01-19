@@ -7,6 +7,7 @@ import (
 
 // Config controls the EventHandler integration.
 type Config struct {
+	Test string `yaml:"test,omitempty"`
 }
 
 // Name returns the name of the integration that this config represents.
