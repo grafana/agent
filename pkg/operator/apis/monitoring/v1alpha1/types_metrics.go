@@ -182,6 +182,7 @@ type MetricsInstance struct {
 // ServiceMonitorSelector returns a selector to find ServiceMonitors.
 func (p *MetricsInstance) ServiceMonitorSelector() ObjectSelector {
 	return ObjectSelector{
+		ObjectType:        &prom_v1.ServiceMonitor{},
 		ParentNamespace:   p.Namespace,
 		NamespaceSelector: p.Spec.ServiceMonitorNamespaceSelector,
 		Labels:            p.Spec.ServiceMonitorSelector,
@@ -191,6 +192,7 @@ func (p *MetricsInstance) ServiceMonitorSelector() ObjectSelector {
 // PodMonitorSelector returns a selector to find PodMonitors.
 func (p *MetricsInstance) PodMonitorSelector() ObjectSelector {
 	return ObjectSelector{
+		ObjectType:        &prom_v1.PodMonitor{},
 		ParentNamespace:   p.Namespace,
 		NamespaceSelector: p.Spec.PodMonitorNamespaceSelector,
 		Labels:            p.Spec.PodMonitorSelector,
@@ -200,6 +202,7 @@ func (p *MetricsInstance) PodMonitorSelector() ObjectSelector {
 // ProbeSelector returns a selector to find Probes.
 func (p *MetricsInstance) ProbeSelector() ObjectSelector {
 	return ObjectSelector{
+		ObjectType:        &prom_v1.Probe{},
 		ParentNamespace:   p.Namespace,
 		NamespaceSelector: p.Spec.ProbeNamespaceSelector,
 		Labels:            p.Spec.ProbeSelector,
