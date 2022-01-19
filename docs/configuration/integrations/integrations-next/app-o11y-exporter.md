@@ -74,7 +74,7 @@ Full reference of options:
     [- <key>: <string>]
 
   # Timeout duration when sending an entry to Loki
-  [loki_send_timeout: <number> | default = 2000]
+  [logs_send_timeout: <number> | default = 2000]
 
 
 ```
