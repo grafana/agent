@@ -27,7 +27,7 @@ var DefaultConfig = AppExporterConfig{
 	},
 	LogsInstance:    "default",
 	Measurements:    []Measurement{},
-	ExtraLokiLabels: map[string]string{},
+	LogsLabels: map[string]string{},
 	LogsSendTimeout: 2000,
 }
 
