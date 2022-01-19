@@ -35,8 +35,6 @@ set -euo pipefail
 # Constants
 ROOT=$(git rev-parse --show-toplevel)
 K3D_CLUSTER_NAME="agent-smoke-test"
-MUTATION_FREQUENCY="5m"
-CHAOS_FREQUENCY="30m"
 SKIP_CREATE=""
 
 # Variables
@@ -91,7 +89,7 @@ run() {
   fi
 
   (cd $ROOT/example/k3d && jb install)
-  tk apply $ROOT/example/k3d/smoke --dangerous-auto-approve -V mutation_frequency="$MUTATION_FREQUENCY" -V chaos_frequency="$CHAOS_FREQUENCY"
+  tk apply $ROOT/example/k3d/smoke --dangerous-auto-approve
 
   # Immediately create a job to sync configs so our two Agent deployments
   # are synced up as closely as possible.
