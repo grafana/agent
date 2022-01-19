@@ -59,7 +59,7 @@ type AppExporterConfig struct {
 	Server                ServerConfig       `yaml:"server,omitempty"`
 	LogsInstance          string             `yaml:"logs_instance"`
 	Measurements          []Measurement      `yaml:"custom_measurements"`
-	ExtraLokiLabels       map[string]string  `yaml:"extra_loki_lablels"`
+	ExtraLogsLabels       map[string]string  `yaml:"extra_loki_lablels"`
 	LokiSendTimeout       int                `yaml:"loki_send_timeout"`
 }
 
