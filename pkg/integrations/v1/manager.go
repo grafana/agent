@@ -1,4 +1,4 @@
-package integrations
+package v1
 
 import (
 	"context"
@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations/shared"
-
-	v1 "github.com/grafana/agent/pkg/integrations/v1"
 
 	config_util "github.com/prometheus/common/config"
 
@@ -55,7 +53,7 @@ type ManagerConfig struct {
 
 	// The integration configs is merged with the manager config struct so we
 	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
-	Integrations v1.V1Integration `yaml:",inline"`
+	Integrations V1Integration `yaml:",inline"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels,omitempty"`

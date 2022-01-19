@@ -1,4 +1,4 @@
-package integrations
+package v1
 
 import (
 	"context"

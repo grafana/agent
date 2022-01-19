@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	v1 "github.com/grafana/agent/pkg/integrations/v1"
+
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 
 	"github.com/go-kit/log"
@@ -27,7 +29,7 @@ const (
 // DefaultVersionedIntegrations is the default config for integrations.
 var DefaultVersionedIntegrations = VersionedIntegrations{
 	version:  IntegrationsVersion1,
-	ConfigV1: &DefaultManagerConfig,
+	ConfigV1: &v1.DefaultManagerConfig,
 }
 
 // VersionedIntegrations abstracts the subsystem configs for integrations v1
@@ -36,7 +38,7 @@ type VersionedIntegrations struct {
 	version integrationsVersion
 	raw     util.RawYAML
 
-	ConfigV1 *ManagerConfig
+	ConfigV1 *v1.ManagerConfig
 	ConfigV2 *v2.SubsystemOptions
 }
 
@@ -92,7 +94,7 @@ func (c *VersionedIntegrations) SetVersion(v integrationsVersion, logger log.Log
 
 	switch c.version {
 	case IntegrationsVersion1:
-		cfg := DefaultManagerConfig
+		cfg := v1.DefaultManagerConfig
 		c.ConfigV1 = &cfg
 		err := yaml.UnmarshalStrict(c.raw, c.ConfigV1)
 		// Node exporter has some post-processing that has to be done for migrations
@@ -128,7 +130,7 @@ type Integrations interface {
 // is set to IntegrationsVersion2.
 func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals IntegrationsGlobals) (Integrations, error) {
 	if cfg.version != IntegrationsVersion2 {
-		instance, err := NewManager(*cfg.ConfigV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
+		instance, err := v1.NewManager(*cfg.ConfigV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +147,7 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 	return &v2Integrations{Subsystem: instance}, nil
 }
 
-type v1Integrations struct{ *Manager }
+type v1Integrations struct{ *v1.Manager }
 
 func (s *v1Integrations) ApplyConfig(cfg *VersionedIntegrations, globals IntegrationsGlobals) error {
 	return s.Manager.ApplyConfig(*cfg.ConfigV1)
