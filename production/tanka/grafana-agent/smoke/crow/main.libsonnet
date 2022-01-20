@@ -14,7 +14,7 @@ local volume = k.core.v1.volume;
     local this = self,
 
     _config+:: {
-      image: 'grafana/agent-crow:latest',
+      image: 'us.gcr.io/kubernetes-dev/grafana/agent-crow:main',
       args: {},
     } + config,
 
