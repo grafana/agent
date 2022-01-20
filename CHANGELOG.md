@@ -34,6 +34,8 @@ for detailed information.
 
 - [ENHANCEMENT] Cherry-pick Prometheus PR #10102 into our Prometheus dependency (@rfratto).
 
+- [ENHANCEMENT] Use code generator to generator integration configuration instead of reflection (@mattdurham)
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 - [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
