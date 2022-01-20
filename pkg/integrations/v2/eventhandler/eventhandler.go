@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -33,9 +34,12 @@ type EventHandler struct {
 	LokiClient    *logs.Instance
 	Log           log.Logger
 	CacheFile     *os.File
+	CachePath     string
 	LastEvent     *ShippedEvents
 	InitEvent     *ShippedEvents
 	EventInformer cache.SharedIndexInformer
+	ClusterLabel  string
+	SendTimeout   time.Duration
 	sync.Mutex
 }
 
@@ -74,14 +78,13 @@ func (eh *EventHandler) addEvent(obj interface{}) {
 		}
 	}
 
-	labels, msg, err := handleEvent(e)
+	labels, msg, err := eh.handleEvent(e)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Error processing event", "err", err, "event", e)
 	}
 
 	entry := newEntry(msg, eventTs, labels)
-	// todo: config duration properly...
-	if ok := eh.LokiClient.SendEntry(entry, time.Second); !ok {
+	if ok := eh.LokiClient.SendEntry(entry, eh.SendTimeout); !ok {
 		level.Error(eh.Log).Log("msg", "Error shipping event", "event", e)
 		//todo: retry logic??
 		return
@@ -125,14 +128,13 @@ func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
 		}
 	}
 
-	labels, msg, err := handleEvent(eNew)
+	labels, msg, err := eh.handleEvent(eNew)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Error processing event", "err", err, "event", eNew)
 	}
 
 	entry := newEntry(msg, eventTs, labels)
-	// todo: config duration properly...
-	if ok := eh.LokiClient.SendEntry(entry, time.Second); !ok {
+	if ok := eh.LokiClient.SendEntry(entry, eh.SendTimeout); !ok {
 		level.Error(eh.Log).Log("msg", "Error shipping event", "event", eNew)
 		//todo: retry logic??
 		return
@@ -189,13 +191,13 @@ func (eh *EventHandler) writeOutLastEvent() error {
 }
 
 // TODO: ship JSON blobs and allow users to configure using pipelines
-func handleEvent(event *v1.Event) (model.LabelSet, string, error) {
+func (eh *EventHandler) handleEvent(event *v1.Event) (model.LabelSet, string, error) {
 	var msg strings.Builder
 	labels := make(model.LabelSet)
 	obj := event.InvolvedObject
 
-	//todo: config
-	labels[model.LabelName("eventhandler")] = model.LabelValue("agenttest1")
+	labels[model.LabelName("source")] = model.LabelValue("eventhandler")
+	labels[model.LabelName("cluster")] = model.LabelValue(eh.ClusterLabel)
 
 	if obj.Name == "" {
 		return nil, "", fmt.Errorf("no involved object")
@@ -307,16 +309,23 @@ func readInitEvent(file *os.File, logger log.Logger) (*ShippedEvents, error) {
 	return initEvent, nil
 }
 
-func loadConfig(logger log.Logger) (*kubernetes.Clientset, error) {
-	//todo: config
-	kubeconfig := "/Users/coachjetha/.kube/config"
+func newEventHandler(
+	l log.Logger,
+	globals integrations.Globals,
+	logsInstance string,
+	cachePath string,
+	kubeConfigPath string,
+	inCluster bool,
+	clusterLabel string,
+	sendTimeout int,
+) (integrations.Integration, error) {
 	var config *rest.Config
 	var err error
 
-	if len(kubeconfig) > 0 {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-	} else {
+	if inCluster {
 		config, err = rest.InClusterConfig()
+	} else {
+		config, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	}
 	if err != nil {
 		return nil, err
@@ -327,41 +336,16 @@ func loadConfig(logger log.Logger) (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 
-	return clientset, nil
-}
-
-func newEventHandler(l log.Logger, c integrations.Config, globals integrations.Globals) (integrations.Integration, error) {
-	// cache file to store events shipped (prevents double shipping on restart)
-	// todo: config
-	cachePath := "latest.out"
-	cacheFile, err := os.OpenFile(cachePath, os.O_RDWR|os.O_CREATE, 0666)
-	if err != nil {
-		level.Error(l).Log("msg", "Failed to open or create cache file", "err", err)
-		os.Exit(1)
-	}
-
-	// attempt to read last event from cache file into the lastEvent struct
-	initEvent, err := readInitEvent(cacheFile, l)
-	if err != nil {
-		level.Error(l).Log("msg", "Failed to read last event from cache file", "err", err)
-		os.Exit(1)
-	}
-
-	clientset, err := loadConfig(l)
-	if err != nil {
-		level.Error(l).Log("msg", "Failed to load clientset", "err", err)
-		os.Exit(1)
-	}
-
 	factory := informers.NewSharedInformerFactory(clientset, 2*time.Minute)
 	eventInformer := factory.Core().V1().Events().Informer()
 
 	eh := &EventHandler{
-		LokiClient:    globals.Logs.Instance("default"),
+		LokiClient:    globals.Logs.Instance(logsInstance),
 		Log:           l,
-		CacheFile:     cacheFile,
-		InitEvent:     initEvent,
+		CachePath:     cachePath,
 		EventInformer: eventInformer,
+		ClusterLabel:  clusterLabel,
+		SendTimeout:   time.Duration(sendTimeout * 1000000),
 	}
 	eh.initInformer(eventInformer)
 
@@ -369,15 +353,37 @@ func newEventHandler(l log.Logger, c integrations.Config, globals integrations.G
 }
 
 func (eh *EventHandler) RunIntegration(ctx context.Context) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
+	cacheDir := filepath.Dir(eh.CachePath)
+	if err := os.MkdirAll(cacheDir, 0777); err != nil {
+		level.Error(eh.Log).Log("msg", "Failed to create cache dir", "err", err)
+		cancel()
+	}
+
+	// cache file to store events shipped (prevents double shipping on restart)
+	cacheFile, err := os.OpenFile(eh.CachePath, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		level.Error(eh.Log).Log("msg", "Failed to open or create cache file", "err", err)
+		cancel()
+	}
+	eh.CacheFile = cacheFile
+
+	// attempt to read last event from cache file into the lastEvent struct
+	initEvent, err := readInitEvent(eh.CacheFile, eh.Log)
+	if err != nil {
+		level.Error(eh.Log).Log("msg", "Failed to read last event from cache file", "err", err)
+		cancel()
+	}
+	eh.InitEvent = initEvent
+
 	// last op: sync & close cache file
 	defer eh.CacheFile.Close()
 	//todo do we need this?
 	defer eh.CacheFile.Sync()
 	// write out LastEvent struct to cache file
 	defer eh.writeOutLastEvent()
-
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
 
 	// todo: is it worht even doing this?
 	go func() {
