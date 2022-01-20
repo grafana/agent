@@ -1,6 +1,7 @@
 package exporters
 
 import (
+	"fmt"
 	"time"
 
 	kitlog "github.com/go-kit/kit/log"
@@ -98,10 +99,15 @@ func (le *LokiExporter) sendKeyValsTolokiPipeline(kv *utils.KeyVal) {
 func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 	set := make(prommodel.LabelSet)
 
-	for pair := kv.Oldest(); pair != nil; pair = pair.Next() {
-		set[prommodel.LabelName(pair.Key.(string))] = prommodel.LabelValue(pair.Value.(string))
+	for k, v := range le.extraLabels {
+		if len(v) > 0 {
+			set[prommodel.LabelName(k)] = prommodel.LabelValue(v)
+		} else {
+			if val, ok := kv.Get(k); ok {
+				set[prommodel.LabelName(k)] = prommodel.LabelValue(fmt.Sprint(val))
+			}
+		}
 	}
-	set.Merge(le.extraLabels)
 
 	return set
 }
