@@ -53,7 +53,7 @@ use_hostname_label: true
 
 // Test that embedded integration fields in the struct can be unmarshaled and
 // remarshaled back out to text.
-func TestConfig_Remarshal(t *testing.T) {
+func TestConfig(t *testing.T) {
 	RegisterIntegration(&testIntegrationA{})
 	cfgText := `
 scrape_integrations: true
@@ -66,8 +66,8 @@ test:
 `
 	var (
 		cfg        ManagerConfig
-		listenPort int    = 12345
-		listenHost string = "127.0.0.1"
+		listenPort = 12345
+		listenHost = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -76,37 +76,22 @@ test:
 	cfg.ListenPort = listenPort
 	cfg.ListenHost = listenHost
 
-	outBytes, err := yaml.Marshal(cfg)
-	require.NoError(t, err, "Failed creating integration")
-	require.YAMLEq(t, cfgText, string(outBytes))
-}
+	t.Run("Remarshal", func(t *testing.T) {
+		outBytes, err := yaml.Marshal(cfg)
+		require.NoError(t, err, "Failed creating integration")
+		require.YAMLEq(t, cfgText, string(outBytes))
+	})
 
-func TestConfig_AddressRelabels(t *testing.T) {
-	cfgText := `
-agent:
-  enabled: true
-`
+	t.Run("AddressRelabels", func(t *testing.T) {
+		expectHostname, _ := instance.Hostname()
+		relabels := cfg.DefaultRelabelConfigs(expectHostname + ":12345")
 
-	var (
-		cfg        ManagerConfig
-		listenPort int    = 12345
-		listenHost string = "127.0.0.1"
-	)
-	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
+		// Ensure that the relabel configs are functional
+		require.Len(t, relabels, 1)
+		result := relabel.Process(labels.FromStrings("__address__", "127.0.0.1"), relabels...)
 
-	// Listen port must be set before applying defaults. Normally applied by the
-	// config package.
-	cfg.ListenPort = listenPort
-	cfg.ListenHost = listenHost
-
-	expectHostname, _ := instance.Hostname()
-	relabels := cfg.DefaultRelabelConfigs(expectHostname + ":12345")
-
-	// Ensure that the relabel configs are functional
-	require.Len(t, relabels, 1)
-	result := relabel.Process(labels.FromStrings("__address__", "127.0.0.1"), relabels...)
-
-	require.Equal(t, result.Get("instance"), expectHostname+":12345")
+		require.Equal(t, result.Get("instance"), expectHostname+":12345")
+	})
 }
 
 func TestManager_instanceConfigForIntegration(t *testing.T) {

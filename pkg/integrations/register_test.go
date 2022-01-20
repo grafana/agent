@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -83,10 +84,20 @@ func (c *testFullConfig) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	// This default value should not change.
 	c.Default = 12345
 
-	// Mock out registered integrations.
-	registered := []Config{
+	var raw util.RawYAML
+	if err := unmarshal(&raw); err != nil {
+		return err
+	}
+
+	type fullConfig testFullConfig
+
+	dyn := dynamicConfigs{Registered: []Config{
 		&testIntegrationA{},
 		&testIntegrationB{},
+	}}
+	if err := util.UnmarshalYAMLMerged(raw, (*fullConfig)(c), &dyn); err != nil {
+		return err
 	}
-	return unmarshalIntegrationsWithList(registered, c, unmarshal)
+	c.Configs = dyn.Loaded
+	return nil
 }

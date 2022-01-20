@@ -89,13 +89,46 @@ type ManagerConfig struct {
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
 func (c ManagerConfig) MarshalYAML() (interface{}, error) {
-	return MarshalYAML(c)
+	type managerConfig ManagerConfig
+
+	bb, err := util.MarshalYAMLMerged(managerConfig(c), c.Integrations)
+	if err != nil {
+		return nil, err
+	}
+	return util.RawYAML(bb).Map()
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for ManagerConfig.
 func (c *ManagerConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultManagerConfig
-	return UnmarshalYAML(c, unmarshal)
+
+	var raw util.RawYAML
+	if err := unmarshal(&raw); err != nil {
+		return err
+	}
+
+	type managerConfig ManagerConfig
+	dyn := dynamicConfigs{Registered: registeredIntegrations}
+
+	if err := util.UnmarshalYAMLMerged(raw, (*managerConfig)(c), &dyn); err != nil {
+		return err
+	}
+	c.Integrations = dyn.Loaded
+	return nil
+}
+
+type dynamicConfigs struct {
+	Registered []Config
+	Loaded     Configs
+}
+
+func (dc *dynamicConfigs) UnmarshalYAML(f func(interface{}) error) error {
+	cc, err := UnmarshalIntegrations(f, dc.Registered)
+	if err != nil {
+		return err
+	}
+	dc.Loaded = cc
+	return nil
 }
 
 // DefaultRelabelConfigs returns the set of relabel configs that should be
