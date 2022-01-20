@@ -265,6 +265,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: d782f71ed4cf8c00c033403d54b75f28e58f05ea13cd666d560c888b5c18cf72
+hmac: f59c8b25058782d021a2d6bdc1fc59a049f3b352fb41de6a14c28fd05f578073
 
 ...
