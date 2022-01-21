@@ -109,7 +109,7 @@ func (m mockInstance) Run(ctx context.Context) error {
 	if m.RunFunc != nil {
 		return m.RunFunc(ctx)
 	}
-	panic("RunFunc not provided")
+	panic("runFunc not provided")
 }
 
 func (m mockInstance) Update(c Config) error {

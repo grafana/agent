@@ -471,3 +471,7 @@ publish: dist
 drone:
 	drone lint .drone/drone.yml --trusted
 	drone --server https://drone.grafana.net sign --save grafana/agent .drone/drone.yml
+
+# Generates any go code, most importantly the integration v1/config.go and v2/config.go
+generate:
+	go generate ./...

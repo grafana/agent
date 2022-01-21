@@ -32,7 +32,7 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 			<-ctx.Done()
 			return nil
 		}),
-		ApplyConfigFunc: func(Config, Globals) error {
+		ApplyConfigFunc: func(Config, shared.Globals) error {
 			applies.Inc()
 			return nil
 		},
@@ -42,18 +42,18 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 		&mockConfig{
 			NameFunc:          func() string { return mockIntegrationName },
 			ConfigEqualsFunc:  func(Config) bool { return false },
-			ApplyDefaultsFunc: func(g Globals) error { return nil },
-			IdentifierFunc: func(Globals) (string, error) {
+			ApplyDefaultsFunc: func(g shared.Globals) error { return nil },
+			IdentifierFunc: func(shared.Globals) (string, error) {
 				return mockIntegrationName, nil
 			},
-			NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
+			NewIntegrationFunc: func(log.Logger, shared.Globals) (Integration, error) {
 				integrationStartWg.Add(1)
 				return mockIntegration, nil
 			},
 		},
 	)
 
-	ctrl, err := NewController(util.TestLogger(t), cfg, Globals{})
+	ctrl, err := NewController(util.TestLogger(t), cfg, shared.Globals{})
 	require.NoError(t, err, "failed to create controller")
 
 	sc := NewSyncController(t, ctrl)
@@ -73,13 +73,13 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 
 type mockUpdateIntegration struct {
 	shared.Integration
-	ApplyConfigFunc func(Config, Globals) error
+	ApplyConfigFunc func(Config, shared.Globals) error
 }
 
 func (m mockUpdateIntegration) RunIntegration(ctx context.Context) error {
 	return m.Run(ctx)
 }
 
-func (m mockUpdateIntegration) ApplyConfig(c Config, g Globals) error {
+func (m mockUpdateIntegration) ApplyConfig(c Config, g shared.Globals) error {
 	return m.ApplyConfigFunc(c, g)
 }

@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
+	"github.com/go-kit/log"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
@@ -19,7 +23,7 @@ type metricsHandlerIntegration struct {
 	integrationName, instanceID string
 
 	common  common.MetricsConfig
-	globals Globals
+	globals shared.Globals
 	handler http.Handler
 	targets []handlerTarget
 
@@ -106,7 +110,7 @@ func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*autos
 	cfg := config.DefaultScrapeConfig
 	cfg.JobName = fmt.Sprintf("%s/%s", i.integrationName, i.instanceID)
 	cfg.Scheme = i.globals.AgentBaseURL.Scheme
-	cfg.HTTPClientConfig = i.globals.SubsystemOpts.ClientConfig
+	cfg.HTTPClientConfig = i.globals.ClientConfig
 	cfg.ServiceDiscoveryConfigs = sd
 	cfg.ScrapeInterval = i.common.Autoscrape.ScrapeInterval
 	cfg.ScrapeTimeout = i.common.Autoscrape.ScrapeTimeout
@@ -117,4 +121,29 @@ func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*autos
 		Instance: i.common.Autoscrape.MetricsInstance,
 		Config:   cfg,
 	}}
+}
+
+// NewMetricsHandlerIntegration returns a integrations.MetricsIntegration which
+// will expose a /metrics endpoint for h.
+func NewMetricsHandlerIntegration(
+	_ log.Logger,
+	c Config,
+	mc common.MetricsConfig,
+	globals shared.Globals,
+	h http.Handler,
+) (MetricsIntegration, error) {
+	id, err := c.Identifier(globals)
+	if err != nil {
+		return nil, err
+	}
+	return &metricsHandlerIntegration{
+		integrationName: c.Name(),
+		instanceID:      id,
+
+		common:  mc,
+		globals: globals,
+		handler: h,
+
+		targets: []handlerTarget{{MetricsPath: "metrics"}},
+	}, nil
 }

@@ -5,6 +5,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -35,7 +37,7 @@ func Test_controller_RunsIntegration(t *testing.T) {
 				return nil
 			})),
 		),
-		Globals{},
+		shared.Globals{},
 	)
 	require.NoError(t, err, "failed to create controller")
 
@@ -67,18 +69,18 @@ func Test_controller_ConfigChanges(t *testing.T) {
 			&mockConfig{
 				NameFunc:          func() string { return mockIntegrationName },
 				ConfigEqualsFunc:  func(Config) bool { return !changed },
-				ApplyDefaultsFunc: func(g Globals) error { return nil },
-				IdentifierFunc: func(Globals) (string, error) {
+				ApplyDefaultsFunc: func(g shared.Globals) error { return nil },
+				IdentifierFunc: func(shared.Globals) (string, error) {
 					return mockIntegrationName, nil
 				},
-				NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
+				NewIntegrationFunc: func(log.Logger, shared.Globals) (Integration, error) {
 					integrationsWg.Add(1)
 					return mockIntegration, nil
 				},
 			},
 		)
 
-		globals := Globals{}
+		globals := shared.Globals{}
 		ctrl, err := NewController(util.TestLogger(t), cfg, globals)
 		require.NoError(t, err, "failed to create controller")
 
@@ -140,7 +142,7 @@ func NewSyncController(t *testing.T, inner *Controller) *SyncController {
 	return sc
 }
 
-func (sc *SyncController) UpdateController(c IntegrationConfigs, g Globals) error {
+func (sc *SyncController) UpdateController(c []Config, g shared.Globals) error {
 	sc.applyWg.Add(1)
 
 	if err := sc.inner.UpdateController(c, g); err != nil {
@@ -165,10 +167,10 @@ var (
 
 type mockConfig struct {
 	NameFunc           func() string
-	ApplyDefaultsFunc  func(Globals) error
+	ApplyDefaultsFunc  func(shared.Globals) error
 	ConfigEqualsFunc   func(Config) bool
-	IdentifierFunc     func(Globals) (string, error)
-	NewIntegrationFunc func(log.Logger, Globals) (Integration, error)
+	IdentifierFunc     func(shared.Globals) (string, error)
+	NewIntegrationFunc func(log.Logger, shared.Globals) (Integration, error)
 }
 
 func (mc *mockConfig) RunIntegration(ctx context.Context) error {
@@ -202,19 +204,19 @@ func (mc *mockConfig) ConfigEquals(c Config) bool {
 	return false
 }
 
-func (mc *mockConfig) ApplyDefaults(g Globals) error {
+func (mc *mockConfig) ApplyDefaults(g shared.Globals) error {
 	return mc.ApplyDefaultsFunc(g)
 }
 
-func (mc *mockConfig) Identifier(g Globals) (string, error) {
+func (mc *mockConfig) Identifier(g shared.Globals) (string, error) {
 	return mc.IdentifierFunc(g)
 }
 
-func (mc *mockConfig) NewIntegration(l log.Logger, g Globals) (Integration, error) {
+func (mc *mockConfig) NewIntegration(l log.Logger, g shared.Globals) (Integration, error) {
 	return mc.NewIntegrationFunc(l, g)
 }
 
-func (mc *mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integration, error)) *mockConfig {
+func (mc *mockConfig) WithNewIntegrationFunc(f func(log.Logger, shared.Globals) (Integration, error)) *mockConfig {
 	return &mockConfig{
 		NameFunc:           mc.NameFunc,
 		ApplyDefaultsFunc:  mc.ApplyDefaultsFunc,
@@ -229,9 +231,9 @@ func mockConfigNameTuple(t *testing.T, name, id string) *mockConfig {
 
 	return &mockConfig{
 		NameFunc:          func() string { return name },
-		IdentifierFunc:    func(_ Globals) (string, error) { return id, nil },
-		ApplyDefaultsFunc: func(g Globals) error { return nil },
-		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
+		IdentifierFunc:    func(_ shared.Globals) (string, error) { return id, nil },
+		ApplyDefaultsFunc: func(g shared.Globals) error { return nil },
+		NewIntegrationFunc: func(log.Logger, shared.Globals) (Integration, error) {
 			return NoOpIntegration, nil
 		},
 	}
@@ -243,11 +245,11 @@ func mockConfigForIntegration(t *testing.T, i Integration) *mockConfig {
 
 	return &mockConfig{
 		NameFunc:          func() string { return mockIntegrationName },
-		ApplyDefaultsFunc: func(g Globals) error { return nil },
-		IdentifierFunc: func(Globals) (string, error) {
+		ApplyDefaultsFunc: func(g shared.Globals) error { return nil },
+		IdentifierFunc: func(shared.Globals) (string, error) {
 			return mockIntegrationName, nil
 		},
-		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
+		NewIntegrationFunc: func(log.Logger, shared.Globals) (Integration, error) {
 			return i, nil
 		},
 	}

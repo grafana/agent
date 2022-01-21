@@ -34,20 +34,19 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	}
 
 	integrations := []Config{
-		mockConfigNameTuple(t, "a", "instanceA").WithNewIntegrationFunc(func(l log.Logger, g Globals) (Integration, error) {
+		mockConfigNameTuple(t, "a", "instanceA").WithNewIntegrationFunc(func(l log.Logger, g shared.Globals) (Integration, error) {
 			return integrationWithTarget("a"), nil
 		}),
-		mockConfigNameTuple(t, "b", "instanceB").WithNewIntegrationFunc(func(l log.Logger, g Globals) (Integration, error) {
+		mockConfigNameTuple(t, "b", "instanceB").WithNewIntegrationFunc(func(l log.Logger, g shared.Globals) (Integration, error) {
 			return integrationWithTarget("b"), nil
 		}),
 	}
-	mockConfigs := &mockIntegrationConfigs{configs: integrations}
 
 	t.Run("All", func(t *testing.T) {
 		ctrl, err := NewController(
 			util.TestLogger(t),
-			mockConfigs,
-			Globals{},
+			integrations,
+			shared.Globals{},
 		)
 		require.NoError(t, err)
 		_ = NewSyncController(t, ctrl)
@@ -63,8 +62,8 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	t.Run("All by Integration", func(t *testing.T) {
 		ctrl, err := NewController(
 			util.TestLogger(t),
-			mockConfigs,
-			Globals{},
+			integrations,
+			shared.Globals{},
 		)
 		require.NoError(t, err)
 		_ = NewSyncController(t, ctrl)
@@ -82,8 +81,8 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	t.Run("Specific Integration", func(t *testing.T) {
 		ctrl, err := NewController(
 			util.TestLogger(t),
-			mockConfigs,
-			Globals{},
+			integrations,
+			shared.Globals{},
 		)
 		require.NoError(t, err)
 		_ = NewSyncController(t, ctrl)
@@ -112,20 +111,18 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 	}
 
 	integrations := []Config{
-		mockConfigNameTuple(t, "a", "instanceA").WithNewIntegrationFunc(func(l log.Logger, g Globals) (Integration, error) {
+		mockConfigNameTuple(t, "a", "instanceA").WithNewIntegrationFunc(func(l log.Logger, g shared.Globals) (Integration, error) {
 			return integrationWithTarget("a"), nil
 		}),
-		mockConfigNameTuple(t, "b", "instanceB").WithNewIntegrationFunc(func(l log.Logger, g Globals) (Integration, error) {
+		mockConfigNameTuple(t, "b", "instanceB").WithNewIntegrationFunc(func(l log.Logger, g shared.Globals) (Integration, error) {
 			return integrationWithTarget("b"), nil
 		}),
 	}
 
-	mockConfigs := &mockIntegrationConfigs{configs: integrations}
-
 	ctrl, err := NewController(
 		util.TestLogger(t),
-		mockConfigs,
-		Globals{},
+		integrations,
+		shared.Globals{},
 	)
 	require.NoError(t, err)
 	// NOTE(rfratto): we explicitly don't run the controller here because

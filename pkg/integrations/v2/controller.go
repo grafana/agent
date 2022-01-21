@@ -26,8 +26,8 @@ import (
 type Controller struct {
 	logger  log.Logger
 	mut     sync.Mutex
-	cfg     IntegrationConfigs
-	globals Globals
+	cfg     []Config
+	globals shared.Globals
 
 	integrations       []*controlledIntegration // Integrations to Run
 	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
@@ -43,7 +43,7 @@ type Controller struct {
 // NewController creates a new Controller. Controller is intended to be
 // embedded inside of integrations that may want to multiplex other
 // integrations.
-func NewController(l log.Logger, cfg IntegrationConfigs, globals Globals) (*Controller, error) {
+func NewController(l log.Logger, cfg []Config, globals shared.Globals) (*Controller, error) {
 	c := &Controller{
 		logger:             l,
 		reloadIntegrations: make(chan struct{}, 1),
@@ -193,16 +193,16 @@ func (id integrationID) String() string {
 //
 // UpdateController updates running integrations. Extensions can be
 // recalculated by calling relevant methods like Handler or Targets.
-func (c *Controller) UpdateController(cfg IntegrationConfigs, globals Globals) error {
+func (c *Controller) UpdateController(configs []Config, globals shared.Globals) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
 	integrationIDMap := map[integrationID]struct{}{}
 
-	integrations := make([]*controlledIntegration, 0, len(cfg.ActiveConfigs()))
+	integrations := make([]*controlledIntegration, 0, len(configs))
 
 NextConfig:
-	for _, ic := range cfg.ActiveConfigs() {
+	for _, ic := range configs {
 		name := ic.Name()
 
 		identifier, err := ic.Identifier(globals)
@@ -271,7 +271,7 @@ NextConfig:
 	c.integrations = integrations
 	c.reloadIntegrations <- struct{}{}
 
-	c.cfg = cfg
+	c.cfg = configs
 	c.globals = globals
 	return nil
 }

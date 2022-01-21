@@ -48,7 +48,7 @@ func CompareConfigs(a, b Config) bool {
 	return util.CompareYAML(a, b)
 }
 
-type integrationConfig interface {
+type IntegrationConfig interface {
 	Cfg() Config
 	Common() common.MetricsConfig
 }

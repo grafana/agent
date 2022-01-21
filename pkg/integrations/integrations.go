@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/grafana/agent/pkg/integrations/shared"
+
 	v1 "github.com/grafana/agent/pkg/integrations/v1"
 
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
@@ -116,7 +118,7 @@ func (c *VersionedIntegrations) SetVersion(v integrationsVersion, logger log.Log
 }
 
 // IntegrationsGlobals is a global struct shared across integrations.
-type IntegrationsGlobals = v2.Globals //nolint:golint
+type IntegrationsGlobals = shared.Globals //nolint:golint
 
 // Integrations is an abstraction over both the v1 and v2 systems.
 type Integrations interface {
@@ -139,8 +141,9 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 
 	level.Warn(logger).Log("msg", "integrations-next is enabled. integrations-next is subject to change")
 
-	globals.SubsystemOpts = *cfg.ConfigV2
-	instance, err := v2.NewSubsystem(logger, globals)
+	globals.ClientConfig = cfg.ConfigV2.ClientConfig
+	globals.Autoscrape = cfg.ConfigV2.Metrics.Autoscrape
+	instance, err := v2.NewSubsystem(logger, globals, cfg.ConfigV2.Configs.ActiveConfigs())
 	if err != nil {
 		return nil, err
 	}
@@ -156,6 +159,7 @@ func (s *v1Integrations) ApplyConfig(cfg *VersionedIntegrations, globals Integra
 type v2Integrations struct{ *v2.Subsystem }
 
 func (s *v2Integrations) ApplyConfig(cfg *VersionedIntegrations, globals IntegrationsGlobals) error {
-	globals.SubsystemOpts = *cfg.ConfigV2
-	return s.Subsystem.ApplyConfig(globals)
+	globals.ClientConfig = cfg.ConfigV2.ClientConfig
+	globals.Autoscrape = cfg.ConfigV2.Metrics.Autoscrape
+	return s.Subsystem.ApplyConfig(cfg.ConfigV2.Configs.ActiveConfigs(), globals)
 }

@@ -83,7 +83,7 @@ type Subsystem struct {
 	logger log.Logger
 
 	mut         sync.RWMutex
-	globals     Globals
+	globals     shared.Globals
 	apiHandler  http.Handler // generated from controller
 	autoscraper *autoscrape.Scraper
 
@@ -94,12 +94,12 @@ type Subsystem struct {
 
 // NewSubsystem creates and starts a new integrations Subsystem. Every field in
 // IntegrationOptions must be filled out.
-func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
+func NewSubsystem(l log.Logger, globals shared.Globals, configs []Config) (*Subsystem, error) {
 	autoscraper := autoscrape.NewScraper(l, globals.Metrics.InstanceManager())
 
 	l = log.With(l, "component", "integrations")
 
-	ctrl, err := NewController(l, &globals.SubsystemOpts.Configs, globals)
+	ctrl, err := NewController(l, configs, globals)
 	if err != nil {
 		autoscraper.Stop()
 		return nil, err
@@ -123,7 +123,7 @@ func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
 		stopController:   cancel,
 		controllerExited: ctrlExited,
 	}
-	if err := s.ApplyConfig(globals); err != nil {
+	if err := s.ApplyConfig(configs, globals); err != nil {
 		cancel()
 		autoscraper.Stop()
 		return nil, err
@@ -132,13 +132,13 @@ func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
 }
 
 // ApplyConfig updates the configuration of the integrations subsystem.
-func (s *Subsystem) ApplyConfig(globals Globals) error {
+func (s *Subsystem) ApplyConfig(configs []Config, globals shared.Globals) error {
 	const prefix = "/integrations/"
 
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	if err := s.ctrl.UpdateController(&globals.SubsystemOpts.Configs, globals); err != nil {
+	if err := s.ctrl.UpdateController(configs, globals); err != nil {
 		return fmt.Errorf("error applying integrations: %w", err)
 	}
 
@@ -161,7 +161,7 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 	// Set up self-scraping
 	{
 		httpSDConfig := http_sd.DefaultSDConfig
-		httpSDConfig.HTTPClientConfig = globals.SubsystemOpts.ClientConfig
+		httpSDConfig.HTTPClientConfig = globals.ClientConfig
 		httpSDConfig.RefreshInterval = model.Duration(time.Second * 5) // TODO(rfratto): make configurable?
 
 		apiURL := globals.CloneAgentBaseURL()

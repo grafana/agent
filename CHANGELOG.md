@@ -1,6 +1,8 @@
 # Main (unreleased)
 
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
+- 
+- [ENHANCEMENT] Use code generator to generator integration configuration instead of reflection (@mattdurham)
 
 # v0.22.0 (2022-01-13)
 
@@ -33,8 +35,6 @@ for detailed information.
 - [ENHANCEMENT] Update node_exporter dependency to v1.3.1. (@rfratto)
 
 - [ENHANCEMENT] Cherry-pick Prometheus PR #10102 into our Prometheus dependency (@rfratto).
-
-- [ENHANCEMENT] Use code generator to generator integration configuration instead of reflection (@mattdurham)
 
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 

@@ -22,13 +22,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
-	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/traces"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
@@ -46,7 +43,7 @@ type Config interface {
 	Name() string
 
 	// ApplyDefaults should apply default settings to Config.
-	ApplyDefaults(Globals) error
+	ApplyDefaults(shared.Globals) error
 
 	// Identifier returns a string to uniquely identify the integration created
 	// by this Config. Identifier must be unique for each integration that shares
@@ -54,7 +51,7 @@ type Config interface {
 	//
 	// If there is no reasonable identifier to use for an integration,
 	// Globals.AgentIdentifier may be used by default.
-	Identifier(Globals) (string, error)
+	Identifier(shared.Globals) (string, error)
 
 	// NewIntegration should return a new Integration using the provided
 	// Globals to help initialize the Integration.
@@ -62,7 +59,7 @@ type Config interface {
 	// NewIntegration must be idempotent for a Config. Use
 	// Integration.RunIntegration to do anything with side effects, such as
 	// opening a port.
-	NewIntegration(log.Logger, Globals) (Integration, error)
+	NewIntegration(log.Logger, shared.Globals) (Integration, error)
 }
 
 // ComparableConfig extends Config with an ConfigEquals method.
@@ -71,44 +68,6 @@ type ComparableConfig interface {
 
 	// ConfigEquals should return true if c is equal to the ComparableConfig.
 	ConfigEquals(c Config) bool
-}
-
-// Globals are used to pass around subsystem-wide settings that integrations
-// can take advantage of.
-type Globals struct {
-	// AgentIdentifier provides an identifier for the running agent. This can
-	// be used for labelling whenever appropriate.
-	//
-	// AgentIdentifier will be set to the hostname:port of the running agent.
-	// TODO(rfratto): flag to override identifier at agent level?
-	AgentIdentifier string
-
-	// Some integrations may wish to interact with various subsystems for their
-	// implementation if the desired behavior is not supported natively by the
-	// integration manager.
-
-	Metrics *metrics.Agent // Metrics subsystem
-	Logs    *logs.Logs     // Logs subsystem
-	Tracing *traces.Traces // Traces subsystem
-
-	// Options the integations subsystem is using.
-	SubsystemOpts SubsystemOptions
-	// BaseURL to use to invoke methods against the embedded HTTP server.
-	AgentBaseURL *url.URL
-}
-
-// CloneAgentBaseURL returns a copy of AgentBaseURL that can be modified.
-func (g Globals) CloneAgentBaseURL() *url.URL {
-	if g.AgentBaseURL == nil {
-		return nil
-	}
-	rawURL := g.AgentBaseURL.String()
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		// The URL shouldn't be invalid at this point
-		panic(err)
-	}
-	return u
 }
 
 // An Integration integrates some external system with Grafana Agent's existing
@@ -135,7 +94,7 @@ type UpdateIntegration interface {
 	//
 	// If ApplyConfig returns ErrInvalidUpdate, the integration will be
 	// recreated.
-	ApplyConfig(c Config, g Globals) error
+	ApplyConfig(c Config, g shared.Globals) error
 }
 
 // HTTPIntegration is an integration that exposes an HTTP handler.
