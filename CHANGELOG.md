@@ -8,6 +8,9 @@
 
 - [BUGFIX] Fix panic in prom_sd_processor when address is empty (@mapno)
 
+- [BUGFIX] Operator: Add missing proxy_url field from generated remote_write
+  configs. (@rfratto)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult

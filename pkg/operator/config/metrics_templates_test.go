@@ -630,6 +630,20 @@ func TestRemoteWrite(t *testing.T) {
 					send_interval: 5m
 			`),
 		},
+		{
+			name: "proxy_url",
+			input: map[string]interface{}{
+				"namespace": "operator",
+				"rw": v1alpha1.RemoteWriteSpec{
+					URL:      "http://cortex/api/prom/push",
+					ProxyURL: "http://proxy",
+				},
+			},
+			expect: util.Untab(`
+				url: http://cortex/api/prom/push
+        proxy_url: http://proxy
+			`),
+		},
 	}
 
 	for _, tc := range tt {
