@@ -27,7 +27,7 @@ var DefaultConfig = AppExporterConfig{
 	},
 	LogsInstance:    "default",
 	Measurements:    []Measurement{},
-	LogsLabels: map[string]string{},
+	LogsLabels:      map[string]string{},
 	LogsSendTimeout: 2000,
 }
 
@@ -59,8 +59,8 @@ type AppExporterConfig struct {
 	Server                ServerConfig       `yaml:"server,omitempty"`
 	LogsInstance          string             `yaml:"logs_instance"`
 	Measurements          []Measurement      `yaml:"custom_measurements"`
-	ExtraLogsLabels       map[string]string  `yaml:"extra_loki_lablels"`
-	LokiSendTimeout       int                `yaml:"loki_send_timeout"`
+	LogsLabels            map[string]string  `yaml:"extra_loki_lablels"`
+	LogsSendTimeout       int                `yaml:"loki_send_timeout"`
 }
 
 // UnmarshalYAML implements the Unmarshaller interface
