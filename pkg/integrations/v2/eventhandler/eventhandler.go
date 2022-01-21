@@ -1,5 +1,5 @@
-// Package eventhandler watches for Kubernetes Event objects and ships them to
-// a Loki sink
+// Package eventhandler watches for Kubernetes Event objects and hands them off to
+// Agent's Logs subsystem (embedded promtail)
 package eventhandler
 
 import (
@@ -21,6 +21,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 
+	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations/v2"
@@ -40,13 +41,18 @@ type EventHandler struct {
 	EventInformer cache.SharedIndexInformer
 	ClusterLabel  string
 	SendTimeout   time.Duration
+	MaxBackoff    time.Duration
+	// used to stop eventhandler from within handler funcs
+	StopChan chan struct{}
 	sync.Mutex
 }
 
 type ShippedEvents struct {
-	// last event's timestamp
+	// last shipped event's timestamp
 	Timestamp time.Time `json:"ts"`
-	// map of event RVs already "shipped" (handed off) for last timestamp
+	// map of event RVs already "shipped" (handed off) for this timestamp
+	// this is to handle the case of a timestamp having multiple events,
+	// which happens quite frequently
 	RvMap map[string]struct{} `json:"resourceVersion"`
 }
 
@@ -84,10 +90,22 @@ func (eh *EventHandler) addEvent(obj interface{}) {
 	}
 
 	entry := newEntry(msg, eventTs, labels)
-	if ok := eh.LokiClient.SendEntry(entry, eh.SendTimeout); !ok {
-		level.Error(eh.Log).Log("msg", "Error shipping event", "event", e)
-		//todo: retry logic??
-		return
+	// could probably use another goroutine & queue
+	// to drain events instead of handling them in these functions.
+	// but for now, keep it simple with a backoff
+	retryFunc := func() error {
+		err := eh.sendEntry(entry)
+		if err != nil {
+			level.Error(eh.Log).Log("msg", "Retrying using backoff", "err", err, "entry", entry)
+		}
+		return err
+	}
+	expBackoff := backoff.NewExponentialBackOff()
+	expBackoff.MaxElapsedTime = eh.MaxBackoff
+	err = backoff.Retry(retryFunc, expBackoff)
+	if err != nil {
+		level.Error(eh.Log).Log("msg", "Backoff failed, aborting", "err", err)
+		close(eh.StopChan)
 	}
 	level.Info(eh.Log).Log("msg", "Shipped entry", "eventRV", e.ResourceVersion, "eventMsg", e.Message)
 
@@ -95,6 +113,13 @@ func (eh *EventHandler) addEvent(obj interface{}) {
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Could not write latest event to cache", "err", err)
 	}
+}
+
+func (eh *EventHandler) sendEntry(entry api.Entry) error {
+	if ok := eh.LokiClient.SendEntry(entry, eh.SendTimeout); !ok {
+		return fmt.Errorf("error handing entry off to promtail, retrying")
+	}
+	return nil
 }
 
 func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
@@ -134,10 +159,22 @@ func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
 	}
 
 	entry := newEntry(msg, eventTs, labels)
-	if ok := eh.LokiClient.SendEntry(entry, eh.SendTimeout); !ok {
-		level.Error(eh.Log).Log("msg", "Error shipping event", "event", eNew)
-		//todo: retry logic??
-		return
+	// could probably use another goroutine & queue
+	// to drain events instead of handling them in these functions.
+	// but for now, keep it simple with a backoff
+	retryFunc := func() error {
+		err := eh.sendEntry(entry)
+		if err != nil {
+			level.Error(eh.Log).Log("msg", "Retrying using backoff", "err", err, "entry", entry)
+		}
+		return err
+	}
+	expBackoff := backoff.NewExponentialBackOff()
+	expBackoff.MaxElapsedTime = eh.MaxBackoff
+	err = backoff.Retry(retryFunc, expBackoff)
+	if err != nil {
+		level.Error(eh.Log).Log("msg", "Backoff failed, aborting", "err", err)
+		close(eh.StopChan)
 	}
 	level.Info(eh.Log).Log("msg", "Shipped entry", "event", eNew.ResourceVersion, "eventMsg", eNew.Message)
 
@@ -248,6 +285,9 @@ func (eh *EventHandler) handleEvent(event *v1.Event) (model.LabelSet, string, er
 	if event.Type != "" {
 		msg.WriteString(fmt.Sprintf("type=%s ", event.Type))
 	}
+	if event.Count != 0 {
+		msg.WriteString(fmt.Sprintf("count=%d ", event.Count))
+	}
 
 	msg.WriteString(fmt.Sprintf("msg=%q", event.Message))
 
@@ -309,23 +349,16 @@ func readInitEvent(file *os.File, logger log.Logger) (*ShippedEvents, error) {
 	return initEvent, nil
 }
 
-func newEventHandler(
-	l log.Logger,
-	globals integrations.Globals,
-	logsInstance string,
-	cachePath string,
-	kubeConfigPath string,
-	inCluster bool,
-	clusterLabel string,
-	sendTimeout int,
-) (integrations.Integration, error) {
-	var config *rest.Config
-	var err error
+func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (integrations.Integration, error) {
+	var (
+		config *rest.Config
+		err    error
+	)
 
-	if inCluster {
+	if c.InCluster {
 		config, err = rest.InClusterConfig()
 	} else {
-		config, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+		config, err = clientcmd.BuildConfigFromFlags("", c.KubeconfigPath)
 	}
 	if err != nil {
 		return nil, err
@@ -336,16 +369,17 @@ func newEventHandler(
 		return nil, err
 	}
 
-	factory := informers.NewSharedInformerFactory(clientset, 2*time.Minute)
+	factory := informers.NewSharedInformerFactory(clientset, time.Duration(c.InformerResync)*time.Second)
 	eventInformer := factory.Core().V1().Events().Informer()
 
 	eh := &EventHandler{
-		LokiClient:    globals.Logs.Instance(logsInstance),
+		LokiClient:    globals.Logs.Instance(c.LogsInstance),
 		Log:           l,
-		CachePath:     cachePath,
+		CachePath:     c.CachePath,
 		EventInformer: eventInformer,
-		ClusterLabel:  clusterLabel,
-		SendTimeout:   time.Duration(sendTimeout * 1000000),
+		ClusterLabel:  c.ClusterName,
+		SendTimeout:   time.Duration(c.SendTimeout) * time.Second,
+		MaxBackoff:    time.Duration(c.MaxBackoff) * time.Second,
 	}
 	eh.initInformer(eventInformer)
 
@@ -357,12 +391,14 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	defer cancel()
 
 	cacheDir := filepath.Dir(eh.CachePath)
+	// todo: correct perms here?
 	if err := os.MkdirAll(cacheDir, 0777); err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to create cache dir", "err", err)
 		cancel()
 	}
 
 	// cache file to store events shipped (prevents double shipping on restart)
+	// todo: correct perms here?
 	cacheFile, err := os.OpenFile(eh.CachePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to open or create cache file", "err", err)
@@ -378,20 +414,20 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	}
 	eh.InitEvent = initEvent
 
-	// last op: sync & close cache file
+	// sync & close cache file
 	defer eh.CacheFile.Close()
-	//todo do we need this?
+	//todo: do we need this?
 	defer eh.CacheFile.Sync()
 	// write out LastEvent struct to cache file
 	defer eh.writeOutLastEvent()
 
-	// todo: is it worht even doing this?
+	// todo: is it worth even doing this?
 	go func() {
 		level.Info(eh.Log).Log("msg", "Waiting for cache to sync (inital List() of events)")
 		isSynced := cache.WaitForCacheSync(ctx.Done(), eh.EventInformer.HasSynced)
 		if !isSynced {
 			level.Error(eh.Log).Log("msg", "Failed to sync informer cache")
-			// todo.. do we want to bail here?
+			// todo: do we want to bail here?
 			return
 		}
 		level.Info(eh.Log).Log("msg", "Informer cache synced")
@@ -399,10 +435,13 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 
 	// start the informer
 	// technically we should prob use the factory here, but since we
-	// only have one informer, don't think this really matters...
+	// only have one informer atm, this likely doesn't matter
 	eh.EventInformer.Run(ctx.Done())
 
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-eh.StopChan:
+	}
 
 	//todo: double check shutdown order of ops...
 	// esp wrt:

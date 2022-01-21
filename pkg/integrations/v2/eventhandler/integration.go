@@ -10,26 +10,28 @@ import (
 )
 
 var DefaultConfig = Config{
-	SendTimeout:  500,
-	ClusterName:  "cloud",
-	CachePath:    "./cache/eventhandler.cache",
-	LogsInstance: "default",
-	InCluster:    false,
+	SendTimeout:    1,
+	ClusterName:    "cloud",
+	CachePath:      "./cache/eventhandler.cache",
+	LogsInstance:   "default",
+	InCluster:      false,
+	InformerResync: 120,
+	MaxBackoff:     30,
 }
 
 // Config controls the EventHandler integration.
 type Config struct {
-	// todo: what should this be set to? check it out when investigating queueing, etc.
-	SendTimeout    int    `yaml:"send_timeout,omitempty"` // milliseconds
+	SendTimeout    int    `yaml:"send_timeout,omitempty"` // seconds
 	ClusterName    string `yaml:"cluster_name,omitempty"`
 	KubeconfigPath string `yaml:"kubeconfig_path,omitempty"`
 	CachePath      string `yaml:"cache_path,omitempty"`
 	LogsInstance   string `yaml:"logs_instance,omitempty"`
 	InCluster      bool   `yaml:"in_cluster,omitempty"`
+	InformerResync int    `yaml:"informer_resync,omitempty"` // seconds
+	MaxBackoff     int    `yaml:"max_backoff,omitempty"`     // seconds
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
-// TODO: understand & test
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
@@ -42,14 +44,14 @@ func (c *Config) Name() string { return "eventhandler" }
 
 // ApplyDefaults applies runtime-specific defaults to c.
 func (c *Config) ApplyDefaults(globals integrations.Globals) error {
-	// not in cluster and KC path not set,
+	// if not in cluster and KC path not set,
 	// try to use default kubeconfig path
 	if !c.InCluster && c.KubeconfigPath == "" {
 		if home := homedir.HomeDir(); home != "" {
 			c.KubeconfigPath = filepath.Join(home, ".kube", "config")
 		} else {
-			// unable to find KC
-			return fmt.Errorf("could not locate a kubeconfig. please set the kubeconfig_path in your agent config")
+			// unable to find a KC
+			return fmt.Errorf("could not locate a kubeconfig. please set kubeconfig_path in your agent config")
 		}
 	}
 	return nil
@@ -62,16 +64,7 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	return newEventHandler(
-		l,
-		globals,
-		c.LogsInstance,
-		c.CachePath,
-		c.KubeconfigPath,
-		c.InCluster,
-		c.ClusterName,
-		c.SendTimeout,
-	)
+	return newEventHandler(l, globals, c)
 }
 
 func init() {

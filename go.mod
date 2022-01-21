@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/pubsub v1.5.0 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Shopify/sarama v1.30.0
+	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/cortexproject/cortex v1.10.1-0.20211014125347-85c378182d0d
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/docker/docker v20.10.10+incompatible
