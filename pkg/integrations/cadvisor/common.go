@@ -12,6 +12,9 @@ const name = "cadvisor"
 var DefaultConfig Config = Config{
 	// Common cadvisor config defaults
 	StoreContainerLabels: true,
+	AllowlistedContainerLabels: []string{},
+	EnvMetadataAllowlist: []string{},
+	RawCgroupPrefixAllowlist: []string{"",},
 	ResctrlInterval:      0,
 
 	StorageDuration: 2 * time.Minute,
