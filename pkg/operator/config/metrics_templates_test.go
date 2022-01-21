@@ -640,7 +640,7 @@ func TestRemoteWrite(t *testing.T) {
 				},
 			},
 			expect: util.Untab(`
-				url: http://cortex/api/prom/push
+        url: http://cortex/api/prom/push
         proxy_url: http://proxy
 			`),
 		},
