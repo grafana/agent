@@ -14,7 +14,7 @@ var DefaultConfig Config = Config{
 	StoreContainerLabels: true,
 	AllowlistedContainerLabels: []string{},
 	EnvMetadataAllowlist: []string{},
-	RawCgroupPrefixAllowlist: []string{"",},
+	RawCgroupPrefixAllowlist: []string{""},
 	ResctrlInterval:      0,
 
 	StorageDuration: 2 * time.Minute,
