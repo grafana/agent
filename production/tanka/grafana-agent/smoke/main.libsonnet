@@ -26,6 +26,9 @@ local deployment = k.apps.v1.deployment;
                 policyRule.withApiGroups(['apps']) +
                 policyRule.withResources(['deployments/scale']) +
                 policyRule.withVerbs(['get', 'update']),
+                policyRule.withApiGroups(['']) +
+                policyRule.withResources(['pods']) +
+                policyRule.withVerbs(['list', 'delete']),
             ]) {
                 service_account+:
                   serviceAccount.mixin.metadata.withNamespace(namespace),
