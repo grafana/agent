@@ -85,7 +85,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		exporters.LokiExporterConfig{
 			LokiInstance:     globals.Logs.Instance(c.ExporterConfig.LogsInstance),
 			ExtraLabels:      c.ExporterConfig.LogsLabels,
-			SendEntryTimeout: int(c.ExporterConfig.LogsSendTimeout),
+			SendEntryTimeout: c.ExporterConfig.LogsSendTimeout,
 		},
 	)
 

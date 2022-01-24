@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	kitlog "github.com/go-kit/kit/log"
+	kitlog "github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/models"
@@ -90,7 +90,7 @@ func (le *LokiExporter) sendKeyValsTolokiPipeline(kv *utils.KeyVal) {
 			Timestamp: time.Now(),
 			Line:      string(line),
 		},
-	}, time.Duration(le.seTimeout))
+	}, le.seTimeout)
 	if !sent {
 		level.Warn(le.logger).Log("msg", "failed to log frontend log event to loki pipeline")
 	}
@@ -101,10 +101,10 @@ func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 
 	for k, v := range le.extraLabels {
 		if len(v) > 0 {
-			set[prommodel.LabelName(k)] = prommodel.LabelValue(v)
+			set[k] = v
 		} else {
 			if val, ok := kv.Get(k); ok {
-				set[prommodel.LabelName(k)] = prommodel.LabelValue(fmt.Sprint(val))
+				set[k] = prommodel.LabelValue(fmt.Sprint(val))
 			}
 		}
 	}
