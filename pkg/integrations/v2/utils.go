@@ -6,8 +6,6 @@ import (
 
 	"github.com/grafana/agent/pkg/integrations/shared"
 
-	"github.com/grafana/agent/pkg/integrations/v2/common"
-
 	"github.com/grafana/agent/pkg/util"
 )
 
@@ -46,11 +44,6 @@ func CompareConfigs(a, b Config) bool {
 		return b.ConfigEquals(a)
 	}
 	return util.CompareYAML(a, b)
-}
-
-type IntegrationConfig interface {
-	Cfg() Config
-	Common() common.MetricsConfig
 }
 
 // IntegrationConfigs is an interface that allows access to any actively running configs

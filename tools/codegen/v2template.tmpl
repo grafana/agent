@@ -144,7 +144,7 @@ func newConfigWrapper(cfg shared.Config, cmn common.MetricsConfig, ni newIntegra
     }
 }
 
-func newIntegrationFromV1(c IntegrationConfig, logger log.Logger, globals shared.Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
+func newIntegrationFromV1(c integrationConfig, logger log.Logger, globals shared.Globals, newInt func(l log.Logger) (shared.Integration, error)) (Integration, error) {
 
     v1Integration, err := newInt(logger)
     if err != nil {
@@ -220,4 +220,9 @@ func implementsMarshaller(i interface{}) error {
       return errors.New(fmt.Sprintf("%T cannot implement custom unmarshaler", i))
     }
     return nil
+}
+
+type integrationConfig interface {
+    Cfg() Config
+    Common() common.MetricsConfig
 }
