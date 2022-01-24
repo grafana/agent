@@ -5042,7 +5042,7 @@ spec:
                             "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.
                           type: string
                         kind:
-                          description: 'Expected values shared: multiple blob disks
+                          description: 'Expected values Shared: multiple blob disks
                             per storage account  Dedicated: single blob disk per storage
                             account  Managed: azure managed data disk (only in managed
                             availability set). defaults to shared'

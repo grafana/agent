@@ -26,7 +26,7 @@ func TestRedisCases(t *testing.T) {
 		// Test that default config results in some metrics that can be parsed by
 		// prometheus.
 		{
-			name: "Default shared",
+			name: "Default config",
 			cfg: (func() Config {
 				c := DefaultConfig
 				c.RedisAddr = addr

@@ -21,7 +21,7 @@ integrations:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.NotNil(t, c.Integrations.ConfigV1)
+	require.False(t, c.Integrations.IsZero())
 }
 
 func TestIntegrations_v2(t *testing.T) {
@@ -39,5 +39,5 @@ integrations:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.NotNil(t, c.Integrations.ConfigV2)
+	require.False(t, c.Integrations.IsZero())
 }

@@ -181,7 +181,7 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 	}
 
 	// since the Traces config might rely on an existing Loki config
-	// this check is made here to look for cross config issues before we attempt to LoadTest
+	// this check is made here to look for cross config issues before we attempt to load
 	if err := c.Traces.Validate(c.Logs); err != nil {
 		return err
 	}
@@ -319,7 +319,7 @@ func LoadTest(fs *flag.FlagSet, args []string, loader func(string, bool, *Config
 		configExpandEnv bool
 	)
 
-	fs.StringVar(&file, "config.file", "", "configuration file to LoadTest")
+	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	cfg.RegisterFlags(fs)

@@ -31,7 +31,7 @@ const (
 // DefaultVersionedIntegrations is the default config for integrations.
 var DefaultVersionedIntegrations = VersionedIntegrations{
 	version:  IntegrationsVersion1,
-	ConfigV1: &v1.DefaultManagerConfig,
+	configV1: &v1.DefaultManagerConfig,
 }
 
 // VersionedIntegrations abstracts the subsystem configs for integrations v1
@@ -40,8 +40,8 @@ type VersionedIntegrations struct {
 	version integrationsVersion
 	raw     util.RawYAML
 
-	ConfigV1 *v1.ManagerConfig
-	ConfigV2 *v2.SubsystemOptions
+	configV1 *v1.ManagerConfig
+	configV2 *v2.SubsystemOptions
 }
 
 var (
@@ -52,18 +52,18 @@ var (
 // UnmarshalYAML implements yaml.Unmarshaler. Full unmarshaling is deferred until
 // setVersion is invoked.
 func (c *VersionedIntegrations) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	c.ConfigV1 = nil
-	c.ConfigV2 = nil
+	c.configV1 = nil
+	c.configV2 = nil
 	return unmarshal(&c.raw)
 }
 
 // MarshalYAML implements yaml.Marshaler.
 func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
 	switch {
-	case c.ConfigV1 != nil:
-		return c.ConfigV1, nil
-	case c.ConfigV2 != nil:
-		return c.ConfigV2, nil
+	case c.configV1 != nil:
+		return c.configV1, nil
+	case c.configV2 != nil:
+		return c.configV2, nil
 	default:
 		return c.raw, nil
 	}
@@ -72,10 +72,10 @@ func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
 // IsZero implements yaml.IsZeroer.
 func (c VersionedIntegrations) IsZero() bool {
 	switch {
-	case c.ConfigV1 != nil:
-		return reflect.ValueOf(*c.ConfigV1).IsZero()
-	case c.ConfigV2 != nil:
-		return reflect.ValueOf(*c.ConfigV2).IsZero()
+	case c.configV1 != nil:
+		return reflect.ValueOf(*c.configV1).IsZero()
+	case c.configV2 != nil:
+		return reflect.ValueOf(*c.configV2).IsZero()
 	default:
 		return len(c.raw) == 0
 	}
@@ -84,9 +84,9 @@ func (c VersionedIntegrations) IsZero() bool {
 // ApplyDefaults applies defaults to the subsystem based on globals.
 func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
 	if c.version != IntegrationsVersion2 {
-		return c.ConfigV1.ApplyDefaults(scfg, mcfg)
+		return c.configV1.ApplyDefaults(scfg, mcfg)
 	}
-	return c.ConfigV2.ApplyDefaults(mcfg)
+	return c.configV2.ApplyDefaults(mcfg)
 }
 
 // SetVersion completes the deferred unmarshal and unmarshals the raw YAML into
@@ -97,20 +97,20 @@ func (c *VersionedIntegrations) SetVersion(v integrationsVersion, logger log.Log
 	switch c.version {
 	case IntegrationsVersion1:
 		cfg := v1.DefaultManagerConfig
-		c.ConfigV1 = &cfg
-		err := yaml.UnmarshalStrict(c.raw, c.ConfigV1)
+		c.configV1 = &cfg
+		err := yaml.UnmarshalStrict(c.raw, c.configV1)
 		// Node exporter has some post-processing that has to be done for migrations
 		if err != nil {
 			return err
 		}
-		if c.ConfigV1.Integrations.NodeExporter != nil {
-			return c.ConfigV1.Integrations.NodeExporter.Config.PostProcessing()
+		if c.configV1.Integrations.NodeExporter != nil {
+			return c.configV1.Integrations.NodeExporter.Config.PostProcessing()
 		}
 		return nil
 	case IntegrationsVersion2:
 		cfg := v2.DefaultSubsystemOptions
-		c.ConfigV2 = &cfg
-		result := yaml.UnmarshalStrict(c.raw, c.ConfigV2)
+		c.configV2 = &cfg
+		result := yaml.UnmarshalStrict(c.raw, c.configV2)
 		return result
 	default:
 		panic(fmt.Sprintf("unknown integrations version %d", c.version))
@@ -118,7 +118,7 @@ func (c *VersionedIntegrations) SetVersion(v integrationsVersion, logger log.Log
 }
 
 // IntegrationsGlobals is a global struct shared across integrations.
-type IntegrationsGlobals = shared.Globals //nolint:golint
+type IntegrationsGlobals = shared.Globals
 
 // Integrations is an abstraction over both the v1 and v2 systems.
 type Integrations interface {
@@ -132,7 +132,7 @@ type Integrations interface {
 // is set to IntegrationsVersion2.
 func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals IntegrationsGlobals) (Integrations, error) {
 	if cfg.version != IntegrationsVersion2 {
-		instance, err := v1.NewManager(*cfg.ConfigV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
+		instance, err := v1.NewManager(*cfg.configV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
 		if err != nil {
 			return nil, err
 		}
@@ -141,9 +141,9 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 
 	level.Warn(logger).Log("msg", "integrations-next is enabled. integrations-next is subject to change")
 
-	globals.ClientConfig = cfg.ConfigV2.ClientConfig
-	globals.Autoscrape = cfg.ConfigV2.Metrics.Autoscrape
-	instance, err := v2.NewSubsystem(logger, globals, cfg.ConfigV2.Configs.ActiveConfigs())
+	globals.ClientConfig = cfg.configV2.ClientConfig
+	globals.Autoscrape = cfg.configV2.Metrics.Autoscrape
+	instance, err := v2.NewSubsystem(logger, globals, cfg.configV2.Configs.ActiveConfigs())
 	if err != nil {
 		return nil, err
 	}
@@ -153,13 +153,13 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 type v1Integrations struct{ *v1.Manager }
 
 func (s *v1Integrations) ApplyConfig(cfg *VersionedIntegrations, globals IntegrationsGlobals) error {
-	return s.Manager.ApplyConfig(*cfg.ConfigV1)
+	return s.Manager.ApplyConfig(*cfg.configV1)
 }
 
 type v2Integrations struct{ *v2.Subsystem }
 
 func (s *v2Integrations) ApplyConfig(cfg *VersionedIntegrations, globals IntegrationsGlobals) error {
-	globals.ClientConfig = cfg.ConfigV2.ClientConfig
-	globals.Autoscrape = cfg.ConfigV2.Metrics.Autoscrape
-	return s.Subsystem.ApplyConfig(cfg.ConfigV2.Configs.ActiveConfigs(), globals)
+	globals.ClientConfig = cfg.configV2.ClientConfig
+	globals.Autoscrape = cfg.configV2.Metrics.Autoscrape
+	return s.Subsystem.ApplyConfig(cfg.configV2.Configs.ActiveConfigs(), globals)
 }

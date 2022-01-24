@@ -109,7 +109,7 @@ func (c *Config) NewIntegration(l log.Logger) (shared.Integration, error) {
 // New creates a new redis_exporter integration. The integration queries
 // a redis instance's INFO and exposes the results as metrics.
 func New(log log.Logger, c *Config) (shared.Integration, error) {
-	level.Debug(log).Log("msg", "initializing redis_exporter", "shared", c)
+	level.Debug(log).Log("msg", "initializing redis_exporter", "config", c)
 
 	exporterConfig := c.GetExporterOptions()
 

@@ -112,12 +112,12 @@ func New(log log.Logger, c *Config) (shared.Integration, error) {
 	if c.MappingConfig != nil {
 		cfgBytes, err := yaml.Marshal(c.MappingConfig)
 		if err != nil {
-			return nil, fmt.Errorf("failed to serialize mapping shared: %w", err)
+			return nil, fmt.Errorf("failed to serialize mapping config: %w", err)
 		}
 
 		err = statsdMapper.InitFromYAMLString(string(cfgBytes))
 		if err != nil {
-			return nil, fmt.Errorf("failed to load mapping shared: %w", err)
+			return nil, fmt.Errorf("failed to load mapping config: %w", err)
 		}
 	}
 

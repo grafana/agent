@@ -1,4 +1,4 @@
-// Package shared provides common configuration structs config among
+// Package shared provides common configuration structs shared among
 // implementations of integrations.Integration.
 package shared
 
@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
 
-// Common is a list of all configurations that integrations support has default
+// Common is a list of all configurations that integrations support by default
 type Common struct {
 	Enabled              bool              `yaml:"enabled,omitempty"`
 	InstanceKey          *string           `yaml:"instance,omitempty"`

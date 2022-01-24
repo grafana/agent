@@ -29,7 +29,7 @@ type Controller struct {
 	cfg     []Config
 	globals shared.Globals
 
-	integrations       []*controlledIntegration // Integrations to Run
+	integrations       []*controlledIntegration // Integrations to run
 	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
 
 	// Next generation value to use for an integration.
