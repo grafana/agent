@@ -16,7 +16,7 @@ trigger:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.37.1
+    image: golangci/golangci-lint:v1.43
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
       - make lint
@@ -41,19 +41,27 @@ trigger:
 steps:
   - name: test
     image: rfratto/seego
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
       - gem install --no-document fpm
+      - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator cmd/grafana-agent-crow/grafana-agent-crow
-      - make DRONE=true BUILD_IN_CONTAINER=false test
+      - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
 depends_on:
   - Lint
 
+volumes:
+ - name: docker
+   host:
+     path: /var/run/docker.sock
 
 ---
 kind: pipeline
@@ -72,10 +80,11 @@ steps:
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis
       - gem install --no-document fpm
+      - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make DRONE=true BUILD_IN_CONTAINER=false dist
 depends_on:
@@ -209,10 +218,11 @@ steps:
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
+      - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
@@ -242,6 +252,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 11038ae4592a13955388dff643b35bb1f07e53a659cdca946e863c9f2ac77066
+hmac: 87a9a23731884dac8e0b5c3ee0fa2b5cef9d7fa490fcad649f7783f6ea9d2d32
 
 ...

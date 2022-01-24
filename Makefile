@@ -51,7 +51,7 @@ CROSS_BUILD ?= false
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.12.0
+BUILD_IMAGE_VERSION := 0.13.0
 BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
@@ -69,14 +69,14 @@ DONT_FIND := -name tools -prune -o -name vendor -prune -o -name .git -prune -o -
 # Build flags
 VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build"
-DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build"
+GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(GOFLAGS)
+DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build" $(GOFLAGS)
 DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAGE_TAG=$(IMAGE_TAG) --build-arg DRONE=$(DRONE)
 
 # We need a separate set of flags for CGO, where building with -static can
 # cause problems with some C libraries.
-CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
-DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
+CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(GOFLAGS)
+DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(GOFLAGS)
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
 GO_FLAGS = $(DEBUG_GO_FLAGS)
@@ -224,18 +224,9 @@ lint:
 
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
-#
-# Run tests with -tags=has_network to include tests that require network
-# connectivity.
 test:
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -race -cover -coverprofile=cover.out -p=4 ./...
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
-
-e2e/lint:
-	$(MAKE) -C e2e lint
-
-e2e/test:
-	$(MAKE) -C e2e test
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
 
 clean:
 	rm -rf cmd/agent/agent
