@@ -144,7 +144,7 @@ Running locally uses your current kubectl context, and you probably don't want
 to accidentally deploy a new Grafana Agent to prod.
 
 CRDs should be installed on the cluster prior to running locally. If you haven't
-done this yet, follow [deploying CustomResourceDefinitions](#deploying-customresourcedefinitions)
+done this yet, follow [deploying CustomResourceDefinitions](#step-1-deploy-customresourcedefinitions)
 first.
 
 Afterwards, you can run the operator using `go run`:
