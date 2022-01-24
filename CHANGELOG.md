@@ -11,6 +11,8 @@
 - [BUGFIX] Operator: Add missing proxy_url field from generated remote_write
   configs. (@rfratto)
 
+- [BUGFIX] Honor the specified log format in the traces subsystem (@mapno)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
@@ -57,8 +59,6 @@ for detailed information.
 
 - [BUGFIX] Grafana Agent Operator: The /-/ready and /-/healthy endpoints will
   no longer always return 404 (@rfratto).
-
-- [BUGFIX] Honor the specified log format in the traces subsystem (@mapno)
 
 - [DEPRECATION] The node_exporter integration's `netdev_device_whitelist` field
   is deprecated in favor of `netdev_device_include`. Support for the old field
