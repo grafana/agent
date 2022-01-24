@@ -15,12 +15,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 )
 
-// CreateShim creates a shim between the v1.Config and v2.Config. The resulting
-// config is NOT registered.
-func CreateShim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
-	return &configShim{orig: before, common: common}
-}
-
 type configShim struct {
 	orig   v1.Config
 	common common.MetricsConfig
@@ -28,7 +22,6 @@ type configShim struct {
 
 var (
 	_ v2.Config           = (*configShim)(nil)
-	_ v2.UpgradedConfig   = (*configShim)(nil)
 	_ v2.ComparableConfig = (*configShim)(nil)
 )
 

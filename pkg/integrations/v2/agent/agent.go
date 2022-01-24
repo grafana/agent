@@ -40,7 +40,3 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	return metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.Handler())
 }
-
-func init() {
-	integrations.Register(&Config{}, integrations.TypeSingleton)
-}

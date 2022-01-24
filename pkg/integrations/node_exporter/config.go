@@ -239,10 +239,6 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	return New(l, c)
 }
 
-func init() {
-	integrations.RegisterIntegration(&Config{})
-}
-
 // MapConfigToNodeExporterFlags takes in a node_exporter Config and converts
 // it to the set of flags that node_exporter usually expects when running as a
 // separate binary.

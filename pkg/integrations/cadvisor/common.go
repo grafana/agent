@@ -2,8 +2,6 @@ package cadvisor
 
 import (
 	"time"
-
-	"github.com/grafana/agent/pkg/integrations"
 )
 
 const name = "cadvisor"
@@ -106,8 +104,4 @@ func (c *Config) Name() string {
 // InstanceKey returns the agentKey
 func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
 }

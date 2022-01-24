@@ -68,17 +68,12 @@ func (o *SubsystemOptions) ApplyDefaults(mcfg *metrics.Config) error {
 	return nil
 }
 
-// MarshalYAML implements yaml.Marshaler for SubsystemOptions. Integrations
-// will be marshaled inline.
-func (o SubsystemOptions) MarshalYAML() (interface{}, error) {
-	return MarshalYAML(o)
-}
-
 // UnmarshalYAML implements yaml.Unmarshaler for SubsystemOptions. Inline
 // integrations will be unmarshaled into o.Configs.
 func (o *SubsystemOptions) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*o = DefaultSubsystemOptions
-	return UnmarshalYAML(o, unmarshal)
+	type plain SubsystemOptions
+	return unmarshal((*plain)(o))
 }
 
 // Subsystem runs the integrations subsystem, managing a set of integrations.

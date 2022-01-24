@@ -90,10 +90,6 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	return New(l, c)
 }
 
-func init() {
-	integrations.RegisterIntegration(&Config{})
-}
-
 // Exporter defines the statsd_exporter integration.
 type Exporter struct {
 	cfg      *Config
