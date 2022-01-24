@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/config"
@@ -89,13 +90,9 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		},
 	)
 
-	measurementsPromExporter := exporters.NewPrometheusMetricsExporter(reg, c.ExporterConfig.Measurements)
-
 	var exp = []exporters.AppReceiverExporter{
 		// Loki
 		lokiExporter,
-		// Measurements
-		measurementsPromExporter,
 	}
 
 	receiver := receiver.NewAppReceiver(c.ExporterConfig, exp)
@@ -177,7 +174,7 @@ func (i *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.S
 // RunIntegration implements Integratin
 func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	r := mux.NewRouter()
-	r.Handle("/collect", i.receiver.ReceiverHandler(&i.logger))
+	r.Handle("/collect", i.receiver.ReceiverHandler(i.logger))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),
@@ -186,6 +183,7 @@ func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	errChan := make(chan error)
 
 	go func() {
+		level.Info(i.logger).Log("msg", "starting app o11y receiver", "host", i.conf.Server.Host, "port", i.conf.Server.Port)
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			errChan <- err
 		}
