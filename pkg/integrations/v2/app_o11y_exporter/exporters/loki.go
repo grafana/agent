@@ -51,6 +51,11 @@ func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig) AppReceiverE
 	}
 }
 
+// Name of the exporter, for logging purposes
+func (le *LokiExporter) Name() string {
+	return "loki exporter"
+}
+
 // Export implements the AppDataExporter interface
 func (le *LokiExporter) Export(payload models.Payload) error {
 	meta := payload.Meta.KeyVal()
@@ -115,5 +120,4 @@ func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 // Static typecheck tests
 var (
 	_ AppReceiverExporter = (*LokiExporter)(nil)
-	_ AppDataExporter     = (*LokiExporter)(nil)
 )

@@ -6,19 +6,7 @@ import (
 
 // AppReceiverExporter is the base interface
 type AppReceiverExporter interface {
+	Name() string
 	Init() error
-}
-
-// AppDataExporter  an interface for exporters
-// that are forwarding data to a different service
-type AppDataExporter interface {
-	AppReceiverExporter
 	Export(payload models.Payload) error
-}
-
-// AppMetricsExporter is an interface for exporters
-// that are exporting metrics into prometheus
-type AppMetricsExporter interface {
-	AppReceiverExporter
-	Process(payload models.Payload) error
 }

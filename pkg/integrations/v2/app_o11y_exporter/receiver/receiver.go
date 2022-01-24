@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/config"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/exporters"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/models"
@@ -50,7 +51,7 @@ func NewAppReceiver(conf config.AppExporterConfig, exporters []exporters.AppRece
 // 2. Verify that the payload size is within limits
 // 3. Start two go routines for exporters processing and exporting data respectively
 // 4. Respond with 202 once all the work is done
-func (ar *AppReceiver) ReceiverHandler(logger *log.Logger) http.Handler {
+func (ar *AppReceiver) ReceiverHandler(logger log.Logger) http.Handler {
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check rate limiting state
 		if ar.config.RateLimiting.Enabled && ar.rateLimiter.IsRateLimited() {
@@ -76,25 +77,12 @@ func (ar *AppReceiver) ReceiverHandler(logger *log.Logger) http.Handler {
 		errChan := make(chan error)
 
 		for _, exporter := range ar.exporters {
-			wg.Add(2)
+			wg.Add(1)
 			go func(exp exporters.AppReceiverExporter) {
 				defer wg.Done()
-				// Metrics exporters run asynchronously when the self scrapping
-				// collects data
-				if de, ok := exp.(exporters.AppMetricsExporter); ok {
-					if err = de.Process(p); err != nil {
-						errChan <- err
-					}
-				}
-			}(exporter)
-
-			go func(exp exporters.AppReceiverExporter) {
-				defer wg.Done()
-				// Data exporters, export in sync with the user request
-				if de, ok := exp.(exporters.AppDataExporter); ok {
-					if err = de.Export(p); err != nil {
-						errChan <- err
-					}
+				if err = exp.Export(p); err != nil {
+					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err.Error())
+					errChan <- err
 				}
 			}(exporter)
 		}
