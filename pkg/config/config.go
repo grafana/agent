@@ -261,6 +261,8 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
+// LoadDynamicConfiguration is used to load configuration from a variety of sources using
+// ConfigLoader, this is a templated approach
 func LoadDynamicConfiguration(url string, _ bool, c *Config, fs *flag.FlagSet) error {
 	// will be filled in by future pr
 	return nil
