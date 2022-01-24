@@ -20,9 +20,6 @@ Location of the dynamic configuration is used via the feature flag `dynamic-conf
 load the configuration for dynamic configuration.
 
 ```yaml
-# Configures the server of the Agent used to enable self-scraping.
-[server: <server_config>]
-
 # Sources to pull template values 
 [sources: <sources_config>]
 
@@ -77,6 +74,10 @@ Configurations are loaded in the order as they are listed below.
 Agent template is the standard agent configuration file in its entirety. It is defined by the pattern `agent-*.yml`. Only
 one file is supported. This is processed first then any subsequent configurations found REPLACE the values here, it is
 not additive.
+
+### Server
+
+Serve is dedfined using the pattern `server-*.yml`, only ONE server file is supported.
 
 ### Metrics
 
