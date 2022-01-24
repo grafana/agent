@@ -53,7 +53,7 @@ type ManagerConfig struct {
 
 	// The integration configs is merged with the manager config struct so we
 	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
-	Integrations V1Integration `yaml:",inline"`
+	Integrations Integrations `yaml:",inline"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels,omitempty"`
