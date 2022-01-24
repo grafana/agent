@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/model"
 	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/pkg/integrations/v1/cadvisor"

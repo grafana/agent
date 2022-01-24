@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/pkg/integrations/shared"
+	"gopkg.in/yaml.v2"
+
 	"github.com/grafana/agent/pkg/integrations/v1/agent"
 	"github.com/grafana/agent/pkg/integrations/v1/cadvisor"
 	"github.com/grafana/agent/pkg/integrations/v1/consul_exporter"
@@ -23,7 +25,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v1/redis_exporter"
 	"github.com/grafana/agent/pkg/integrations/v1/statsd_exporter"
 	"github.com/grafana/agent/pkg/integrations/v1/windows_exporter"
-	"gopkg.in/yaml.v2"
 )
 
 type Integrations struct {
