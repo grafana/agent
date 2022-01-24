@@ -187,15 +187,17 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 		Owns(&apps_v1.DaemonSet{}).
 		Owns(&core_v1.Secret{}).
 		Owns(&core_v1.Service{}).
+		Watches(&source.Kind{Type: &core_v1.ConfigMap{}}, notifierHandler).
 		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
+		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
+		Watches(&source.Kind{Type: &grafana_v1alpha1.IntegrationMonitor{}}, notifierHandler).
 		Watches(&source.Kind{Type: &grafana_v1alpha1.LogsInstance{}}, notifierHandler).
-		Watches(&source.Kind{Type: &grafana_v1alpha1.PodLogs{}}, notifierHandler).
 		Watches(&source.Kind{Type: &grafana_v1alpha1.MetricsInstance{}}, notifierHandler).
+		Watches(&source.Kind{Type: &grafana_v1alpha1.MetricsIntegration{}}, notifierHandler).
+		Watches(&source.Kind{Type: &grafana_v1alpha1.PodLogs{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.PodMonitor{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.Probe{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.ServiceMonitor{}}, notifierHandler).
-		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
-		Watches(&source.Kind{Type: &core_v1.ConfigMap{}}, notifierHandler).
 		Complete(&lazyAgentReconciler)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create GrafanaAgent controller: %w", err)

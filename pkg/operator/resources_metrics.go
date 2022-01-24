@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/build"
+	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
-	"github.com/grafana/agent/pkg/operator/config"
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -63,41 +63,41 @@ func governingServiceName(agentName string) string {
 	return fmt.Sprintf("%s-operated", agentName)
 }
 
-func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
-	d = *d.DeepCopy()
+func generateMetricsStatefulSetService(cfg *Config, h grafana_v1alpha1.Hierarchy) *v1.Service {
+	h = *h.DeepCopy()
 
-	if d.Agent.Spec.PortName == "" {
-		d.Agent.Spec.PortName = defaultPortName
+	if h.Agent.Spec.PortName == "" {
+		h.Agent.Spec.PortName = defaultPortName
 	}
 
 	return &v1.Service{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name:      governingServiceName(d.Agent.Name),
-			Namespace: d.Agent.Namespace,
+			Name:      governingServiceName(h.Agent.Name),
+			Namespace: h.Agent.Namespace,
 			OwnerReferences: []meta_v1.OwnerReference{{
-				APIVersion:         d.Agent.APIVersion,
-				Kind:               d.Agent.Kind,
-				Name:               d.Agent.Name,
+				APIVersion:         h.Agent.APIVersion,
+				Kind:               h.Agent.Kind,
+				Name:               h.Agent.Name,
 				BlockOwnerDeletion: pointer.Bool(true),
 				Controller:         pointer.Bool(true),
-				UID:                d.Agent.UID,
+				UID:                h.Agent.UID,
 			}},
 			Labels: cfg.Labels.Merge(map[string]string{
 				managedByOperatorLabel: managedByOperatorLabelValue,
-				agentNameLabelName:     d.Agent.Name,
+				agentNameLabelName:     h.Agent.Name,
 				"operated-agent":       "true",
 			}),
 		},
 		Spec: v1.ServiceSpec{
 			ClusterIP: "None",
 			Ports: []v1.ServicePort{{
-				Name:       d.Agent.Spec.PortName,
+				Name:       h.Agent.Spec.PortName,
 				Port:       8080,
-				TargetPort: intstr.FromString(d.Agent.Spec.PortName),
+				TargetPort: intstr.FromString(h.Agent.Spec.PortName),
 			}},
 			Selector: map[string]string{
 				"app.kubernetes.io/name": "grafana-agent",
-				agentNameLabelName:       d.Agent.Name,
+				agentNameLabelName:       h.Agent.Name,
 			},
 		},
 	}
@@ -106,32 +106,32 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 func generateMetricsStatefulSet(
 	cfg *Config,
 	name string,
-	d config.Deployment,
+	h grafana_v1alpha1.Hierarchy,
 	shard int32,
 ) (*apps_v1.StatefulSet, error) {
-	d = *d.DeepCopy()
+	h = *h.DeepCopy()
 
 	//
 	// Apply defaults to all the fields.
 	//
 
-	if d.Agent.Spec.PortName == "" {
-		d.Agent.Spec.PortName = defaultPortName
+	if h.Agent.Spec.PortName == "" {
+		h.Agent.Spec.PortName = defaultPortName
 	}
 
-	if d.Agent.Spec.Metrics.Replicas == nil {
-		d.Agent.Spec.Metrics.Replicas = &minReplicas
+	if h.Agent.Spec.Metrics.Replicas == nil {
+		h.Agent.Spec.Metrics.Replicas = &minReplicas
 	}
 
-	if d.Agent.Spec.Metrics.Replicas != nil && *d.Agent.Spec.Metrics.Replicas < 0 {
+	if h.Agent.Spec.Metrics.Replicas != nil && *h.Agent.Spec.Metrics.Replicas < 0 {
 		intZero := int32(0)
-		d.Agent.Spec.Metrics.Replicas = &intZero
+		h.Agent.Spec.Metrics.Replicas = &intZero
 	}
-	if d.Agent.Spec.Resources.Requests == nil {
-		d.Agent.Spec.Resources.Requests = v1.ResourceList{}
+	if h.Agent.Spec.Resources.Requests == nil {
+		h.Agent.Spec.Resources.Requests = v1.ResourceList{}
 	}
 
-	spec, err := generateMetricsStatefulSetSpec(cfg, name, d, shard)
+	spec, err := generateMetricsStatefulSetSpec(cfg, name, h, shard)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func generateMetricsStatefulSet(
 	// Don't transfer any kubectl annotations to the statefulset so it doesn't
 	// get pruned by kubectl.
 	annotations := make(map[string]string)
-	for k, v := range d.Agent.Annotations {
+	for k, v := range h.Agent.Annotations {
 		if !strings.HasPrefix(k, "kubectl.kubernetes.io/") {
 			annotations[k] = v
 		}
@@ -149,23 +149,23 @@ func generateMetricsStatefulSet(
 	for k, v := range spec.Template.Labels {
 		labels[k] = v
 	}
-	labels[agentNameLabelName] = d.Agent.Name
+	labels[agentNameLabelName] = h.Agent.Name
 	labels[agentTypeLabel] = "metrics"
 	labels[managedByOperatorLabel] = managedByOperatorLabelValue
 
 	ss := &apps_v1.StatefulSet{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:        name,
-			Namespace:   d.Agent.Namespace,
+			Namespace:   h.Agent.Namespace,
 			Labels:      labels,
 			Annotations: annotations,
 			OwnerReferences: []meta_v1.OwnerReference{{
-				APIVersion:         d.Agent.APIVersion,
-				Kind:               d.Agent.Kind,
+				APIVersion:         h.Agent.APIVersion,
+				Kind:               h.Agent.Kind,
 				BlockOwnerDeletion: pointer.Bool(true),
 				Controller:         pointer.Bool(true),
-				Name:               d.Agent.Name,
-				UID:                d.Agent.UID,
+				Name:               h.Agent.Name,
+				UID:                h.Agent.UID,
 			}},
 		},
 		Spec: *spec,
@@ -177,11 +177,11 @@ func generateMetricsStatefulSet(
 	//
 	// This is used to skip re-applying an unchanged statefulset. Do we need this?
 
-	if len(d.Agent.Spec.ImagePullSecrets) > 0 {
-		ss.Spec.Template.Spec.ImagePullSecrets = d.Agent.Spec.ImagePullSecrets
+	if len(h.Agent.Spec.ImagePullSecrets) > 0 {
+		ss.Spec.Template.Spec.ImagePullSecrets = h.Agent.Spec.ImagePullSecrets
 	}
 
-	storageSpec := d.Agent.Spec.Storage
+	storageSpec := h.Agent.Spec.Storage
 	if storageSpec == nil {
 		ss.Spec.Template.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, v1.Volume{
 			Name: fmt.Sprintf("%s-wal", name),
@@ -212,7 +212,7 @@ func generateMetricsStatefulSet(
 		ss.Spec.VolumeClaimTemplates = append(ss.Spec.VolumeClaimTemplates, *pvcTemplate)
 	}
 
-	ss.Spec.Template.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, d.Agent.Spec.Volumes...)
+	ss.Spec.Template.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, h.Agent.Spec.Volumes...)
 
 	return ss, nil
 }
@@ -220,22 +220,22 @@ func generateMetricsStatefulSet(
 func generateMetricsStatefulSetSpec(
 	cfg *Config,
 	name string,
-	d config.Deployment,
+	h grafana_v1alpha1.Hierarchy,
 	shard int32,
 ) (*apps_v1.StatefulSetSpec, error) {
 
 	shards := minShards
-	if reqShards := d.Agent.Spec.Metrics.Shards; reqShards != nil && *reqShards > 1 {
+	if reqShards := h.Agent.Spec.Metrics.Shards; reqShards != nil && *reqShards > 1 {
 		shards = *reqShards
 	}
 
-	useVersion := d.Agent.Spec.Version
+	useVersion := h.Agent.Spec.Version
 	if useVersion == "" {
 		useVersion = DefaultAgentVersion
 	}
 	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, useVersion)
-	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
-		imagePath = *d.Agent.Spec.Image
+	if h.Agent.Spec.Image != nil && *h.Agent.Spec.Image != "" {
+		imagePath = *h.Agent.Spec.Image
 	}
 
 	agentArgs := []string{
@@ -248,7 +248,7 @@ func generateMetricsStatefulSetSpec(
 	// service from being created. Given the intent is that Agents can connect to
 	// each other, ListenLocal isn't currently supported and we always create a port.
 	ports := []v1.ContainerPort{{
-		Name:          d.Agent.Spec.PortName,
+		Name:          h.Agent.Spec.PortName,
 		ContainerPort: 8080,
 		Protocol:      v1.ProtocolTCP,
 	}}
@@ -258,7 +258,7 @@ func generateMetricsStatefulSetSpec(
 			Name: "config",
 			VolumeSource: v1.VolumeSource{
 				Secret: &v1.SecretVolumeSource{
-					SecretName: fmt.Sprintf("%s-config", d.Agent.Name),
+					SecretName: fmt.Sprintf("%s-config", h.Agent.Name),
 				},
 			},
 		},
@@ -277,16 +277,16 @@ func generateMetricsStatefulSetSpec(
 			Name: "secrets",
 			VolumeSource: v1.VolumeSource{
 				Secret: &v1.SecretVolumeSource{
-					SecretName: fmt.Sprintf("%s-secrets", d.Agent.Name),
+					SecretName: fmt.Sprintf("%s-secrets", h.Agent.Name),
 				},
 			},
 		},
 	}
 
 	walVolumeName := fmt.Sprintf("%s-wal", name)
-	if d.Agent.Spec.Storage != nil {
-		if d.Agent.Spec.Storage.VolumeClaimTemplate.Name != "" {
-			walVolumeName = d.Agent.Spec.Storage.VolumeClaimTemplate.Name
+	if h.Agent.Spec.Storage != nil {
+		if h.Agent.Spec.Storage.VolumeClaimTemplate.Name != "" {
+			walVolumeName = h.Agent.Spec.Storage.VolumeClaimTemplate.Name
 		}
 	}
 
@@ -311,9 +311,9 @@ func generateMetricsStatefulSetSpec(
 			MountPath: "/var/lib/grafana-agent/secrets",
 		},
 	}
-	volumeMounts = append(volumeMounts, d.Agent.Spec.VolumeMounts...)
+	volumeMounts = append(volumeMounts, h.Agent.Spec.VolumeMounts...)
 
-	for _, s := range d.Agent.Spec.Secrets {
+	for _, s := range h.Agent.Spec.Secrets {
 		volumes = append(volumes, v1.Volume{
 			Name: clientutil.SanitizeVolumeName("secret-" + s),
 			VolumeSource: v1.VolumeSource{
@@ -327,7 +327,7 @@ func generateMetricsStatefulSetSpec(
 		})
 	}
 
-	for _, c := range d.Agent.Spec.ConfigMaps {
+	for _, c := range h.Agent.Spec.ConfigMaps {
 		volumes = append(volumes, v1.Volume{
 			Name: clientutil.SanitizeVolumeName("configmap-" + c),
 			VolumeSource: v1.VolumeSource{
@@ -348,18 +348,18 @@ func generateMetricsStatefulSetSpec(
 	podSelectorLabels := map[string]string{
 		"app.kubernetes.io/name":     "grafana-agent",
 		"app.kubernetes.io/version":  build.Version,
-		"app.kubernetes.io/instance": d.Agent.Name,
-		"grafana-agent":              d.Agent.Name,
+		"app.kubernetes.io/instance": h.Agent.Name,
+		"grafana-agent":              h.Agent.Name,
 		managedByOperatorLabel:       managedByOperatorLabelValue,
 		shardLabelName:               fmt.Sprintf("%d", shard),
-		agentNameLabelName:           d.Agent.Name,
+		agentNameLabelName:           h.Agent.Name,
 		agentTypeLabel:               "metrics",
 	}
-	if d.Agent.Spec.PodMetadata != nil {
-		for k, v := range d.Agent.Spec.PodMetadata.Labels {
+	if h.Agent.Spec.PodMetadata != nil {
+		for k, v := range h.Agent.Spec.PodMetadata.Labels {
 			podLabels[k] = v
 		}
-		for k, v := range d.Agent.Spec.PodMetadata.Annotations {
+		for k, v := range h.Agent.Spec.PodMetadata.Annotations {
 			podAnnotations[k] = v
 		}
 	}
@@ -420,26 +420,26 @@ func generateMetricsStatefulSetSpec(
 				Handler: v1.Handler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path: "/-/ready",
-						Port: intstr.FromString(d.Agent.Spec.PortName),
+						Port: intstr.FromString(h.Agent.Spec.PortName),
 					},
 				},
 				TimeoutSeconds:   probeTimeoutSeconds,
 				PeriodSeconds:    5,
 				FailureThreshold: 120, // Allow up to 10m on startup for data recovery
 			},
-			Resources:                d.Agent.Spec.Resources,
+			Resources:                h.Agent.Spec.Resources,
 			TerminationMessagePolicy: v1.TerminationMessageFallbackToLogsOnError,
 		},
 	}
 
-	containers, err := clientutil.MergePatchContainers(operatorContainers, d.Agent.Spec.Containers)
+	containers, err := clientutil.MergePatchContainers(operatorContainers, h.Agent.Spec.Containers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to merge containers spec: %w", err)
 	}
 
 	return &apps_v1.StatefulSetSpec{
-		ServiceName:         governingServiceName(d.Agent.Name),
-		Replicas:            d.Agent.Spec.Metrics.Replicas,
+		ServiceName:         governingServiceName(h.Agent.Name),
+		Replicas:            h.Agent.Spec.Metrics.Replicas,
 		PodManagementPolicy: apps_v1.ParallelPodManagement,
 		UpdateStrategy: apps_v1.StatefulSetUpdateStrategy{
 			Type: apps_v1.RollingUpdateStatefulSetStrategyType,
@@ -454,16 +454,16 @@ func generateMetricsStatefulSetSpec(
 			},
 			Spec: v1.PodSpec{
 				Containers:                    containers,
-				InitContainers:                d.Agent.Spec.InitContainers,
-				SecurityContext:               d.Agent.Spec.SecurityContext,
-				ServiceAccountName:            d.Agent.Spec.ServiceAccountName,
-				NodeSelector:                  d.Agent.Spec.NodeSelector,
-				PriorityClassName:             d.Agent.Spec.PriorityClassName,
+				InitContainers:                h.Agent.Spec.InitContainers,
+				SecurityContext:               h.Agent.Spec.SecurityContext,
+				ServiceAccountName:            h.Agent.Spec.ServiceAccountName,
+				NodeSelector:                  h.Agent.Spec.NodeSelector,
+				PriorityClassName:             h.Agent.Spec.PriorityClassName,
 				TerminationGracePeriodSeconds: pointer.Int64(4800),
 				Volumes:                       volumes,
-				Tolerations:                   d.Agent.Spec.Tolerations,
-				Affinity:                      d.Agent.Spec.Affinity,
-				TopologySpreadConstraints:     d.Agent.Spec.TopologySpreadConstraints,
+				Tolerations:                   h.Agent.Spec.Tolerations,
+				Affinity:                      h.Agent.Spec.Affinity,
+				TopologySpreadConstraints:     h.Agent.Spec.TopologySpreadConstraints,
 			},
 		},
 	}, nil

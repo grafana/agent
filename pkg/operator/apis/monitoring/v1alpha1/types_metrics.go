@@ -209,6 +209,16 @@ func (p *MetricsInstance) ProbeSelector() ObjectSelector {
 	}
 }
 
+// IntegrationMonitorSelector returns a selector to find IntegrationMonitors.
+func (p *MetricsInstance) IntegrationMonitorSelector() ObjectSelector {
+	return ObjectSelector{
+		ObjectType:        &IntegrationMonitor{},
+		ParentNamespace:   p.Namespace,
+		NamespaceSelector: p.Spec.IntegrationMonitorNamespaceSelector,
+		Labels:            p.Spec.IntegrationMonitorSelector,
+	}
+}
+
 // MetricsInstanceSpec controls how an individual instance will be used to discover PodMonitors.
 type MetricsInstanceSpec struct {
 	// WALTruncateFrequency specifies how frequently the WAL truncation process
@@ -247,6 +257,13 @@ type MetricsInstanceSpec struct {
 	// ProbeNamespaceSelector are the set of labels to determine which namespaces
 	// to watch for Probe discovery. If nil, only checks own namespace.
 	ProbeNamespaceSelector *metav1.LabelSelector `json:"probeNamespaceSelector,omitempty"`
+	// IntegrationMonitorSelector determines which IntegrationMonitors should be
+	// selected for target discovery.
+	IntegrationMonitorSelector *metav1.LabelSelector `json:"integrationMonitorSelector,omitempty"`
+	// IntegrationMonitorNamespaceSelector are the set of labels to determine
+	// which namespaces to watch for IntegrationMonitor discovery. If nil, only
+	// checks own namespace.
+	IntegrationMonitorNamespaceSelector *metav1.LabelSelector `json:"integrationMonitorNamespaceSelector,omitempty"`
 	// RemoteWrite controls remote_write settings for this instance.
 	RemoteWrite []RemoteWriteSpec `json:"remoteWrite,omitempty"`
 	// AdditionalScrapeConfigs allows specifying a key of a Secret containing
@@ -271,4 +288,61 @@ type MetricsInstanceList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items is the list of MetricsInstance.
 	Items []*MetricsInstance `json:"items"`
+}
+
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:categories="agent-operator"
+
+// IntegrationMonitor defines how to collect metrics for a MetricsIntegration.
+type IntegrationMonitor struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	// Specifies the desired behavior for the IntegrationMonitor.
+	Spec IntegrationMonitorSpec `json:"spec,omitempty"`
+}
+
+// IntegrationMonitorSpec controls the desired behavior of an
+// IntegrationMonitor.
+type IntegrationMonitorSpec struct {
+	// Selector to select MetricsIntegration objects.
+	Selector metav1.LabelSelector `json:"selector"`
+	// Selector to select which namespaces the MetricsIntegration objects are
+	// discovered from.
+	NamespaceSelector prom_v1.NamespaceSelector `json:"namespaceSelector,omitempty"`
+
+	// IntegrationTargetLabels transfers labels from the MetricsIntegration onto
+	// the target.
+	IntegrationTargetLabels []string `json:"integrationTargetLabels,omitempty"`
+	// Interval at which metrics should be scraped.
+	Interval string `json:"interval,omitempty"`
+	// Maximum time to spend scraping before timing out.
+	ScrapeTimeout string `json:"scrapeTimeout,omitempty"`
+	// HonorLabels chooses the metric's labels on collisions with target labels.
+	HonorLabels bool `json:"honorLabels,omitempty"`
+	// HonorTimestamps controls whether Prometheus respects the timestamps
+	// present in scraped data.
+	HonorTimestamps *bool `json:"honorTimestamps,omitempty"`
+	// Relabel rules to apply to samples during scraping.
+	MetricRelabelConfigs []*prom_v1.RelabelConfig `json:"metricRelabelings,omitempty"`
+	// Relabel rules to apply to the target.
+	RelabelConfigs []*prom_v1.RelabelConfig `json:"relabelings,omitempty"`
+	// ProxyURL uses an HTTP proxy for scraping the integration.
+	ProxyURL *string `json:"proxyUrl,omitempty"`
+	// SampleLimit defines per-scrape limit on number of scraped samples that
+	// will be accepted.
+	SampleLimit uint64 `json:"sampleLimit,omitempty"`
+	// TargetLimit defines a limit on the number of scraped targets that will be
+	// accepted.
+	TargetLimit uint64 `json:"targetLimit,omitempty"`
+}
+
+// +kubebuilder:object:root=true
+
+// IntegrationMonitorList is a list of IntegrationMonitors.
+type IntegrationMonitorList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	// Items is the list of IntegrationMonitors.
+	Items []*IntegrationMonitor `json:"items"`
 }

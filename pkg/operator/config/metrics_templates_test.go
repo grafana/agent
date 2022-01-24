@@ -25,7 +25,7 @@ func TestExternalLabels(t *testing.T) {
 	}{
 		{
 			name: "defaults",
-			input: Deployment{
+			input: v1alpha1.Hierarchy{
 				Agent: &v1alpha1.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
 						Namespace: "operator",
@@ -40,7 +40,7 @@ func TestExternalLabels(t *testing.T) {
 		},
 		{
 			name: "external_labels",
-			input: Deployment{
+			input: v1alpha1.Hierarchy{
 				Agent: &v1alpha1.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
 						Namespace: "operator",
@@ -61,7 +61,7 @@ func TestExternalLabels(t *testing.T) {
 		},
 		{
 			name: "custom labels",
-			input: Deployment{
+			input: v1alpha1.Hierarchy{
 				Agent: &v1alpha1.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
 						Namespace: "operator",

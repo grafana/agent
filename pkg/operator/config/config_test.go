@@ -129,8 +129,8 @@ func TestBuildConfigMetrics(t *testing.T) {
 			err := k8s_yaml.Unmarshal([]byte(tc.input), &spec)
 			require.NoError(t, err)
 
-			d := Deployment{Agent: &spec}
-			result, err := d.BuildConfig(store, MetricsType)
+			d := grafana.Hierarchy{Agent: &spec, Secrets: store}
+			result, err := BuildConfig(d, MetricsType)
 			require.NoError(t, err)
 
 			if !assert.YAMLEq(t, tc.expect, result) {
@@ -141,14 +141,12 @@ func TestBuildConfigMetrics(t *testing.T) {
 }
 
 func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
-	var store = make(assets.SecretStore)
-
 	additionalSelector := &v1.SecretKeySelector{
 		LocalObjectReference: v1.LocalObjectReference{Name: "configs"},
 		Key:                  "configs",
 	}
 
-	input := Deployment{
+	input := grafana.Hierarchy{
 		Agent: &grafana.GrafanaAgent{
 			ObjectMeta: meta_v1.ObjectMeta{
 				Namespace: "operator",
@@ -164,7 +162,7 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 				},
 			},
 		},
-		Metrics: []MetricsInstance{{
+		Metrics: []grafana.MetricsHierarchy{{
 			Instance: &grafana.MetricsInstance{
 				ObjectMeta: meta_v1.ObjectMeta{
 					Namespace: "operator",
@@ -178,9 +176,10 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 				},
 			},
 		}},
+		Secrets: make(assets.SecretStore),
 	}
 
-	store[assets.KeyForSecret("operator", additionalSelector)] = util.Untab(`
+	input.Secrets[assets.KeyForSecret("operator", additionalSelector)] = util.Untab(`
 	- job_name: job
 		kubernetes_sd_configs:
 		- role: node
@@ -206,7 +205,7 @@ metrics:
       - role: node
 	`)
 
-	result, err := input.BuildConfig(store, MetricsType)
+	result, err := BuildConfig(input, MetricsType)
 	require.NoError(t, err)
 
 	if !assert.YAMLEq(t, expect, result) {
@@ -248,8 +247,8 @@ func TestBuildConfigLogs(t *testing.T) {
 			err := k8s_yaml.Unmarshal([]byte(tc.input), &spec)
 			require.NoError(t, err)
 
-			d := Deployment{Agent: &spec}
-			result, err := d.BuildConfig(store, LogsType)
+			d := grafana.Hierarchy{Agent: &spec, Secrets: store}
+			result, err := BuildConfig(d, LogsType)
 			require.NoError(t, err)
 
 			if !assert.YAMLEq(t, tc.expect, result) {

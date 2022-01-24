@@ -45,7 +45,7 @@ func Test_buildHierarchy(t *testing.T) {
 	err := cli.Get(ctx, client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"}, &root)
 	require.NoError(t, err)
 
-	deployment, watchers, err := buildHierarchy(ctx, l, cli, &root)
+	h, watchers, err := buildHierarchy(ctx, l, cli, &root)
 	require.NoError(t, err)
 
 	// Check resources in hierarchy
@@ -54,7 +54,9 @@ func Test_buildHierarchy(t *testing.T) {
 			"GrafanaAgent/grafana-agent-example",
 			"MetricsInstance/primary",
 			"LogsInstance/primary",
+			"MetricsIntegration/node-exporter",
 			"PodMonitor/grafana-agents",
+			"IntegrationMonitor/primary",
 			"PodLogs/grafana-agents",
 		}
 		var gotResources []string
@@ -65,7 +67,7 @@ func Test_buildHierarchy(t *testing.T) {
 				key := fmt.Sprintf("%s/%s", gvk.Kind, c.GetName())
 				gotResources = append(gotResources, key)
 			},
-		}, deployment)
+		}, h)
 
 		require.ElementsMatch(t, expectedResources, gotResources)
 	}
@@ -77,7 +79,7 @@ func Test_buildHierarchy(t *testing.T) {
 			"/secrets/default/prometheus-fake-credentials/fakePassword",
 		}
 		var actualSecrets []string
-		for key := range deployment.Secrets {
+		for key := range h.Secrets {
 			actualSecrets = append(actualSecrets, string(key))
 		}
 
@@ -97,6 +99,14 @@ func Test_buildHierarchy(t *testing.T) {
 			},
 			{
 				Object: &grafana.LogsInstance{},
+				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
+				Selector: &hierarchy.LabelsSelector{
+					NamespaceName: "default",
+					Labels:        labels.SelectorFromSet(labels.Set{"agent": "grafana-agent-example"}),
+				},
+			},
+			{
+				Object: &grafana.MetricsIntegration{},
 				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
 				Selector: &hierarchy.LabelsSelector{
 					NamespaceName: "default",
@@ -127,6 +137,15 @@ func Test_buildHierarchy(t *testing.T) {
 				Selector: &hierarchy.LabelsSelector{
 					NamespaceName: "default",
 					Labels:        labels.Nothing(),
+				},
+			},
+			{
+				Object: &grafana.IntegrationMonitor{},
+				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
+				Selector: &hierarchy.LabelsSelector{
+					NamespaceName:   "default",
+					NamespaceLabels: labels.Everything(),
+					Labels:          labels.SelectorFromSet(labels.Set{"instance": "primary"}),
 				},
 			},
 			{
