@@ -11,25 +11,27 @@ received by the respectful JavaScript agent
 Full reference of options:
 
 ```yaml
-  metrics:
-    autoscrape:
-      # Enables autoscrape of integrations.
-      [enable: <boolean> | default = true]
+  autoscrape:
+    # Enables autoscrape of integrations.
+    [enable: <boolean> | default = true]
 
-      # Specifies the metrics instance name to send metrics to. Instance
-      # names are located at metrics.configs[].name from the top-level config.
-      # The instance must exist.
-      #
-      # As it is common to use the name "default" for your primary instance,
-      # we assume the same here.
-      [metrics_instance: <string> | default = "default"]
+    # Specifies the metrics instance name to send metrics to. Instance
+    # names are located at metrics.configs[].name from the top-level config.
+    # The instance must exist.
+    #
+    # As it is common to use the name "default" for your primary instance,
+    # we assume the same here.
+    [metrics_instance: <string> | default = "default"]
 
-      # Autoscrape interval and timeout. Defaults are inherited from the global
-      # section of the top-level metrics config.
-      [scrape_interval: <duration> | default = <metrics.global.scrape_interval>]
-      [scrape_timeout: <duration> | default = <metrics.global.scrape_timeout>]
+    # Autoscrape interval and timeout. Defaults are inherited from the global
+    # section of the top-level metrics config.
+    [scrape_interval: <duration> | default = <metrics.global.scrape_interval>]
+    [scrape_timeout: <duration> | default = <metrics.global.scrape_timeout>]
 
-  # Domains in which the agent is sending data from
+  # Integration instance name
+  [instance: <string>]
+
+  # Domains in which the agent is sending data from. For example "https://myapp.com"
   cors_allowed_origins:
     [- <string>]
 
@@ -55,15 +57,10 @@ Full reference of options:
     [host: <string> | default = "0.0.0.0"]
     [port: <number> | default = 8080]
 
-  # User defined prometheus metrics to be scraped. The sending end of the agent can
-  # update this metrics using the specified payload. Since these are performance metrics
-  # a Summary type metric is used internally for each metric defined
-  custom_measurements:
-    [name: <string>]
-    [description: <string>]
-
-  # Extra loki lables to append in each Loki Entry (exceptions logs and measurements)
-  extra_logs_labels:
+  # Labels to set for the log entry. 
+  # If value is specified, it will be used.
+  # If value is empty and key exists in data, it's value will be used from data
+  logs_labels:
     [- <key>: <string>]
 
   # Timeout duration when sending an entry to Loki
