@@ -12,10 +12,6 @@ var DefaultConfig = Config{
 	// populates defaults for collectors based on the exporter defaults.
 }
 
-func init() {
-	integrations.RegisterIntegration(&Config{})
-}
-
 // Config controls the windows_exporter integration.
 // All of these and their child fields are pointers so we can determine if the value was set or not.
 type Config struct {

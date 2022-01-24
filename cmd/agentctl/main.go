@@ -26,9 +26,6 @@ import (
 	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
 
-	// Register integrations
-	_ "github.com/grafana/agent/pkg/integrations/install"
-
 	// Needed for operator-detach
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"

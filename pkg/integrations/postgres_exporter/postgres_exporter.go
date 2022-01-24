@@ -10,8 +10,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/lib/pq"
 	"github.com/prometheus-community/postgres_exporter/exporter"
 )
@@ -118,11 +116,6 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 		return nil, fmt.Errorf("cannot create postgres_exporter; neither postgres_exporter.data_source_name or $POSTGRES_EXPORTER_DATA_SOURCE_NAME is set")
 	}
 	return stringDsn, nil
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new postgres_exporter integration. The integration scrapes

@@ -51,7 +51,7 @@ type ManagerConfig struct {
 
 	// The integration configs is merged with the manager config struct so we
 	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
-	Integrations Configs `yaml:"-"`
+	Integrations []UnmarshaledConfig `yaml:"-"`
 
 	// Extra labels to add for all integration samples
 	Labels model.LabelSet `yaml:"labels,omitempty"`
@@ -87,15 +87,11 @@ type ManagerConfig struct {
 	UseHostnameLabel     bool `yaml:"use_hostname_label,omitempty"`     // DEPRECATED, unused
 }
 
-// MarshalYAML implements yaml.Marshaler for ManagerConfig.
-func (c ManagerConfig) MarshalYAML() (interface{}, error) {
-	return MarshalYAML(c)
-}
-
 // UnmarshalYAML implements yaml.Unmarshaler for ManagerConfig.
 func (c *ManagerConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultManagerConfig
-	return UnmarshalYAML(c, unmarshal)
+	type plain ManagerConfig
+	return unmarshal((*plain)(c))
 }
 
 // DefaultRelabelConfigs returns the set of relabel configs that should be

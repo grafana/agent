@@ -5,8 +5,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/google/dnsmasq_exporter/collector"
 	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/miekg/dns"
 )
 
@@ -46,11 +44,6 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain Config
 	return unmarshal((*plain)(c))
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics

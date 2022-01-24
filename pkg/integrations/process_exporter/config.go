@@ -50,7 +50,3 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-}

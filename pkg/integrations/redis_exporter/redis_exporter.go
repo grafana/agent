@@ -7,12 +7,9 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
-
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/integrations"
 	re "github.com/oliver006/redis_exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 )
@@ -114,11 +111,6 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 // NewIntegration converts the config into an integration instance.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new redis_exporter integration. The integration queries

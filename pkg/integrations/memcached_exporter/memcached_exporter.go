@@ -6,8 +6,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/memcached_exporter/pkg/exporter"
 )
 
@@ -47,11 +45,6 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 // NewIntegration converts this config into an instance of an integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new memcached_exporter integration. The integration scrapes metrics

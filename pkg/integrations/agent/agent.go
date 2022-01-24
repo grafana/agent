@@ -31,10 +31,6 @@ func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) 
 	return New(c), nil
 }
 
-func init() {
-	integrations.RegisterIntegration(&Config{})
-}
-
 // Integration is the Agent integration. The Agent integration scrapes the
 // Agent's own metrics.
 type Integration struct {

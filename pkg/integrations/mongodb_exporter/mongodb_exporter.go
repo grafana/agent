@@ -6,8 +6,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/percona/mongodb_exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 )
@@ -42,11 +40,6 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 // NewIntegration creates a new mongodb_exporter
 func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, error) {
 	return New(logger, c)
-}
-
-func init() {
-	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new mongodb_exporter integration.
