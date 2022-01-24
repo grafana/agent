@@ -53,6 +53,8 @@ type Deployment struct {
 	// Logs is the set of logging instances discovered from the root Agent
 	// resource.
 	Logs []LogInstance
+	// Secrets that can be referenced in the deployment.
+	Secrets assets.SecretStore
 }
 
 // DeepCopy creates a deep copy of d.

@@ -10,12 +10,12 @@ import (
 	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
+	"github.com/grafana/agent/pkg/operator/hierarchy"
 	"github.com/grafana/agent/pkg/operator/logutil"
 	core_v1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -25,18 +25,20 @@ type reconciler struct {
 	scheme *runtime.Scheme
 	config *Config
 
-	eventHandlers eventHandlers
+	notifier *hierarchy.Notifier
 }
 
 func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (controller.Result, error) {
 	l := logutil.FromContext(ctx)
 	level.Info(l).Log("msg", "reconciling grafana-agent")
+	defer level.Debug(l).Log("msg", "done reconciling grafana-agent")
+
+	// Reset our notifications while we re-handle the reconcile.
+	r.notifier.StopNotify(req.NamespacedName)
 
 	var agent grafana_v1alpha1.GrafanaAgent
 	if err := r.Get(ctx, req.NamespacedName, &agent); k8s_errors.IsNotFound(err) {
-		level.Debug(l).Log("msg", "detected deleted agent, cleaning up watchers")
-		r.eventHandlers.Clear(req.NamespacedName)
-
+		level.Debug(l).Log("msg", "detected deleted agent")
 		return controller.Result{}, nil
 	} else if err != nil {
 		level.Error(l).Log("msg", "unable to get grafana-agent", "err", err)
@@ -47,37 +49,13 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		return controller.Result{}, nil
 	}
 
-	secrets := make(assets.SecretStore)
-	builder := deploymentBuilder{
-		Logger:            l,
-		Config:            r.config,
-		Client:            r.Client,
-		Agent:             &agent,
-		Secrets:           secrets,
-		ResourceSelectors: make(map[secondaryResource][]resourceSelector),
-	}
-
-	deployment, err := builder.Build(ctx)
+	deployment, watchers, err := buildHierarchy(ctx, l, r.Client, &agent)
 	if err != nil {
-		level.Error(l).Log("msg", "unable to collect resources", "err", err)
+		level.Error(l).Log("msg", "unable to build hierarchy", "err", err)
 		return controller.Result{}, nil
 	}
-
-	// Update our notifiers with the objects we discovered from building the
-	// deployment. This allows us to re-reconcile when any of the objects that
-	// composed our final deployment changes.
-	for _, secondary := range secondaryResources {
-		r.eventHandlers[secondary].Notify(req.NamespacedName, builder.ResourceSelectors[secondary])
-	}
-
-	assetRefs := deployment.AssetReferences()
-
-	// Update our notifiers with asset references discovered through the deployment.
-	r.watchSecrets(req, assetRefs)
-
-	// Fill secrets in store
-	if err := r.fillStore(ctx, assetRefs, secrets); err != nil {
-		level.Error(l).Log("msg", "unable to cache secrets for building config", "err", err)
+	if err := r.notifier.Notify(watchers...); err != nil {
+		level.Error(l).Log("msg", "unable to update notifier", "err", err)
 		return controller.Result{}, nil
 	}
 
@@ -96,7 +74,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		r.createLogsDaemonSet,
 	}
 	for _, actor := range actors {
-		err := actor(ctx, l, deployment, secrets)
+		err := actor(ctx, l, deployment, deployment.Secrets)
 		if err != nil {
 			level.Error(l).Log("msg", "error during reconciling", "err", err)
 			return controller.Result{Requeue: true}, nil
@@ -104,75 +82,6 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 	}
 
 	return controller.Result{}, nil
-}
-
-// watchSecrets will go iterate over asset references and configure them to be
-// watched for updates. This allows reconciles to trigger when a referenced
-// Secret or ConfigMap changes.
-func (r *reconciler) watchSecrets(req controller.Request, refs []config.AssetReference) {
-	var (
-		configMapSelectors []resourceSelector
-		secretSelectors    []resourceSelector
-	)
-
-	for _, ref := range refs {
-		switch {
-		case ref.Reference.ConfigMap != nil:
-			configMapSelectors = append(configMapSelectors, &assetReferenceSelector{Reference: ref})
-		case ref.Reference.Secret != nil:
-			secretSelectors = append(secretSelectors, &assetReferenceSelector{Reference: ref})
-		default:
-			panic("unknown AssetReference")
-		}
-	}
-
-	r.eventHandlers[resourceConfigMap].Notify(req.NamespacedName, configMapSelectors)
-	r.eventHandlers[resourceSecret].Notify(req.NamespacedName, secretSelectors)
-}
-
-// fillStore retrieves all the values from refs and caches them in the provided store.
-func (r *reconciler) fillStore(ctx context.Context, refs []config.AssetReference, store assets.SecretStore) error {
-	for _, ref := range refs {
-		var value string
-
-		if ref.Reference.ConfigMap != nil {
-			var cm core_v1.ConfigMap
-			name := types.NamespacedName{
-				Namespace: ref.Namespace,
-				Name:      ref.Reference.ConfigMap.Name,
-			}
-
-			if err := r.Get(ctx, name, &cm); err != nil {
-				return err
-			}
-
-			rawValue, ok := cm.BinaryData[ref.Reference.ConfigMap.Key]
-			if !ok {
-				return fmt.Errorf("no key %s in ConfigMap %s", ref.Reference.ConfigMap.Key, name)
-			}
-			value = string(rawValue)
-		} else if ref.Reference.Secret != nil {
-			var secret core_v1.Secret
-			name := types.NamespacedName{
-				Namespace: ref.Namespace,
-				Name:      ref.Reference.Secret.Name,
-			}
-
-			if err := r.Get(ctx, name, &secret); err != nil {
-				return err
-			}
-
-			rawValue, ok := secret.Data[ref.Reference.Secret.Key]
-			if !ok {
-				return fmt.Errorf("no key %s in Secret %s", ref.Reference.ConfigMap.Key, name)
-			}
-			value = string(rawValue)
-		}
-
-		store[assets.KeyForSelector(ref.Namespace, &ref.Reference)] = value
-	}
-
-	return nil
 }
 
 // createSecrets creates secrets from the secret store.

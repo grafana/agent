@@ -149,6 +149,9 @@ func (m *BasicManager) ListInstances() map[string]ManagedInstance {
 
 	res := make(map[string]ManagedInstance, len(m.processes))
 	for name, process := range m.processes {
+		if process == nil {
+			continue
+		}
 		res[name] = process.inst
 	}
 	return res

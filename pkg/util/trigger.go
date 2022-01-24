@@ -37,10 +37,22 @@ func (wt *WaitTrigger) Trigger() {
 func (wt *WaitTrigger) Wait(timeout time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+	return wt.WaitContext(ctx)
+}
+
+// WaitContext waits for trigger to complete or for the context to cancel.
+// Returns an error if ctx gets canceled.
+func (wt *WaitTrigger) WaitContext(ctx context.Context) error {
+	parentCtx := ctx
+
+	ctx, cancel := context.WithCancel(parentCtx)
+	defer cancel()
+
 	go func() {
 		<-ctx.Done()
-		if ctx.Err() == context.DeadlineExceeded {
-			// Ignore cancellations.
+
+		// Ignore cancellations from our child context.
+		if parentCtx.Err() != nil {
 			wt.cond.Broadcast()
 		}
 	}()
@@ -49,7 +61,7 @@ func (wt *WaitTrigger) Wait(timeout time.Duration) error {
 	for ctx.Err() == nil && !wt.completed.Load() {
 		wt.cond.Wait()
 	}
-	err := ctx.Err()
+	err := parentCtx.Err()
 	wt.mut.Unlock()
 	return err
 }
