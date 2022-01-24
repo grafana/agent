@@ -22,7 +22,6 @@ type remoteOpts struct {
 }
 
 // remoteProvider interface should be implemented by config providers
-// remoteProvider interface should be implemented by config providers
 type remoteProvider interface {
 	retrieve() ([]byte, error)
 }
