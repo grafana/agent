@@ -34,6 +34,8 @@ const (
 	cacheFileMode = 0600
 )
 
+// Eventhandler watches for Kubernetes Event objects and hands them off to
+// Agent's logs subsystem (embedded promtail).
 type EventHandler struct {
 	LokiClient    *logs.Instance
 	Log           log.Logger
@@ -47,6 +49,8 @@ type EventHandler struct {
 	sync.Mutex
 }
 
+// ShippedEvents stores a timestamp and map of event ResourceVersions shipped for that timestamp.
+// Used to avoid double-shipping events upon restart.
 type ShippedEvents struct {
 	// shipped event's timestamp
 	Timestamp time.Time `json:"ts"`
@@ -328,6 +332,7 @@ func (eh *EventHandler) writeOutLastEvent() error {
 	return nil
 }
 
+// RunIntegration runs the eventhandler integration
 func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
@@ -357,15 +362,30 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	eh.InitEvent = initEvent
 
 	// sync & close cache file
-	defer eh.CacheFile.Close()
+	defer func() {
+		if err := eh.CacheFile.Close(); err != nil {
+			level.Error(eh.Log).Log("msg", "Failed to close cache file", "err", err)
+			cancel()
+		}
+	}()
 	// todo: do we need this?
-	defer eh.CacheFile.Sync()
+	defer func() {
+		if err := eh.CacheFile.Sync(); err != nil {
+			level.Error(eh.Log).Log("msg", "Failed to sync cache file", "err", err)
+			cancel()
+		}
+	}()
 	// write out .LastEvent struct to cache file on exit
-	defer eh.writeOutLastEvent()
+	defer func() {
+		if err := eh.writeOutLastEvent(); err != nil {
+			level.Error(eh.Log).Log("msg", "Failed to write out last event", "err", err)
+			cancel()
+		}
+	}()
 
 	// todo: is it worth even doing this?
 	go func() {
-		level.Info(eh.Log).Log("msg", "Waiting for cache to sync (inital List() of events)")
+		level.Info(eh.Log).Log("msg", "Waiting for cache to sync (initial List of events)")
 		isSynced := cache.WaitForCacheSync(ctx.Done(), eh.EventInformer.HasSynced)
 		if !isSynced {
 			level.Error(eh.Log).Log("msg", "Failed to sync informer cache")
@@ -405,9 +425,15 @@ func readInitEvent(file *os.File, logger log.Logger) (*ShippedEvents, error) {
 
 	size := stat.Size()
 	for {
-		cur -= 1
-		file.Seek(cur, 2)
-		file.Read(char)
+		cur--
+		_, err = file.Seek(cur, 2)
+		if err != nil {
+			return nil, err
+		}
+		_, err = file.Read(char)
+		if err != nil {
+			return nil, err
+		}
 		// newline
 		if char[0] == 10 {
 			break

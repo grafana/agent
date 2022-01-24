@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
+// Config defaults
 var DefaultConfig = Config{
 	SendTimeout:    60,
 	ClusterName:    "cloud",
