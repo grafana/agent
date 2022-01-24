@@ -49,6 +49,7 @@ function(
       namespace=agentNamespace,
       namespaces=k8s.namespacesFromSelector(
         monitor.Spec.NamespaceSelector,
+
         meta.Namespace,
         ignoreNamespaceSelectors,
       ),

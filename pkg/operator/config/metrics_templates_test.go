@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 )
 
 func TestExternalLabels(t *testing.T) {
@@ -69,8 +70,8 @@ func TestExternalLabels(t *testing.T) {
 					},
 					Spec: v1alpha1.GrafanaAgentSpec{
 						Metrics: v1alpha1.MetricsSubsystemSpec{
-							MetricsExternalLabelName: strPointer("deployment"),
-							ReplicaExternalLabelName: strPointer("replica"),
+							MetricsExternalLabelName: pointer.String("deployment"),
+							ReplicaExternalLabelName: pointer.String("replica"),
 							ExternalLabels:           map[string]string{"foo": "bar"},
 						},
 					},

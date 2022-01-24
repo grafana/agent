@@ -6,10 +6,12 @@ import (
 
 	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/pkg/util/subset"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 	k8s_yaml "sigs.k8s.io/yaml"
 
 	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
@@ -153,7 +155,7 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 				Name:      "agent",
 			},
 			Spec: grafana.GrafanaAgentSpec{
-				Image:              strPointer("grafana/agent:latest"),
+				Image:              pointer.String("grafana/agent:latest"),
 				ServiceAccountName: "agent",
 				Metrics: grafana.MetricsSubsystemSpec{
 					InstanceSelector: &meta_v1.LabelSelector{
@@ -258,4 +260,78 @@ func TestBuildConfigLogs(t *testing.T) {
 	}
 }
 
-func strPointer(s string) *string { return &s }
+func TestBuildConfigIntegrations(t *testing.T) {
+	in := `
+  Agent:
+    kind: GrafanaAgent
+    metadata:
+      name: test-agent
+      namespace: monitoring
+  Integrations:
+    - kind: MetricsIntegration
+      metadata:
+        name: mysql-a
+        namespace: databases
+      spec:
+        name: mysqld_exporter
+        type: normal
+        config: 
+          data_source_names: root@(server-a:3306)/
+    - kind: MetricsIntegration
+      metadata:
+        name: node
+        namespace: kube-system
+      spec:
+        name: node_exporter
+        type: daemonset
+        config: 
+          rootfs_path: /host/root
+          sysfs_path: /host/sys
+          procfs_path: /host/proc
+    - kind: MetricsIntegration
+      metadata:
+        name: mysql-b
+        namespace: databases
+      spec:
+        name: mysqld_exporter
+        type: normal
+        config: 
+          data_source_names: root@(server-b:3306)/
+    - kind: MetricsIntegration
+      metadata:
+        name: redis-a
+        namespace: databases
+      spec:
+        name: redis_exporter
+        type: normal
+        config: 
+          redis_addr: redis-a:6379
+  `
+
+	var h grafana.Hierarchy
+	err := k8s_yaml.UnmarshalStrict([]byte(in), &h)
+	require.NoError(t, err)
+
+	expect := `
+  server:
+    http_listen_port: 8080
+  integrations:
+    metrics:
+      autoscrape:
+        enable: false
+    mysqld_exporter_configs:
+    - data_source_names: root@(server-a:3306)/
+    - data_source_names: root@(server-b:3306)/
+    node_exporter:
+      rootfs_path: /host/root 
+      sysfs_path: /host/sys
+      procfs_path: /host/proc
+    redis_exporter_configs:
+    - redis_addr: redis-a:6379
+  `
+
+	result, err := BuildConfig(h, IntegrationsType)
+	require.NoError(t, err)
+
+	require.NoError(t, subset.YAMLAssert([]byte(expect), []byte(result)), "incomplete yaml\n%s", result)
+}

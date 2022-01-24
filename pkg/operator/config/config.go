@@ -4,12 +4,12 @@ package config
 
 import (
 	"embed"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/fs"
 	"path"
 
-	"github.com/fatih/structs"
 	jsonnet "github.com/google/go-jsonnet"
 	"github.com/google/go-jsonnet/ast"
 	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
@@ -26,6 +26,8 @@ const (
 	MetricsType Type = iota + 1
 	// LogsType generates a configuration for logs.
 	LogsType
+	// IntegrationsType genertes a configuration for integrations.
+	IntegrationsType
 )
 
 // String returns the string form of Type.
@@ -35,6 +37,8 @@ func (t Type) String() string {
 		return "metrics"
 	case LogsType:
 		return "logs"
+	case IntegrationsType:
+		return "integrations"
 	default:
 		return fmt.Sprintf("unknown (%d)", int(t))
 	}
@@ -64,6 +68,8 @@ func BuildConfig(h grafana.Hierarchy, ty Type) (string, error) {
 		return vm.EvaluateFile("./agent-metrics.libsonnet")
 	case LogsType:
 		return vm.EvaluateFile("./agent-logs.libsonnet")
+	case IntegrationsType:
+		return vm.EvaluateFile("./agent-integrations.libsonnet")
 	default:
 		panic(fmt.Sprintf("unexpected config type %v", ty))
 	}
@@ -95,6 +101,28 @@ func createVM(secrets assets.SecretStore) (*jsonnet.VM, error) {
 		Name:   "unmarshalYAML",
 		Params: ast.Identifiers{"text"},
 		Func:   unmarshalYAML,
+	})
+	vm.NativeFunction(&jsonnet.NativeFunction{
+		Name:   "unmarshalRawJSON",
+		Params: ast.Identifiers{"json"},
+		Func: func(i []interface{}) (interface{}, error) {
+			text, ok := i[0].(string)
+			if !ok {
+				return nil, jsonnet.RuntimeError{Msg: "argument must be a string"}
+			}
+
+			// The json has been encoded as base64, decode it.
+			bb, err := base64.StdEncoding.DecodeString(text)
+			if err != nil {
+				return nil, jsonnet.RuntimeError{Msg: "failed to decode raw JSON: " + err.Error()}
+			}
+
+			var v interface{}
+			if err := json.Unmarshal(bb, &v); err != nil {
+				return nil, jsonnet.RuntimeError{Msg: err.Error()}
+			}
+			return v, nil
+		},
 	})
 	vm.NativeFunction(&jsonnet.NativeFunction{
 		Name:   "intoStages",
@@ -156,15 +184,4 @@ func createVM(secrets assets.SecretStore) (*jsonnet.VM, error) {
 	})
 
 	return vm, nil
-}
-
-// jsonnetMarshal marshals a value for passing to Jsonnet. This marshals to a
-// JSON representation of the Go value, ignoring all json struct tags. Fields
-// must be access as they would from Go, with the exception of embedded fields,
-// which must be accessed through the embedded type name (a.Embedded.Field).
-func jsonnetMarshal(v interface{}) ([]byte, error) {
-	if structs.IsStruct(v) {
-		return json.Marshal(structs.Map(v))
-	}
-	return json.Marshal(v)
 }
