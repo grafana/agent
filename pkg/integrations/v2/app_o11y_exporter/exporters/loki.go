@@ -19,15 +19,15 @@ import (
 type LokiExporterConfig struct {
 	SendEntryTimeout int
 	LokiInstance     *loki.Instance
-	ExtraLabels      map[string]string
+	Labels           map[string]string
 }
 
 // LokiExporter is the struct of the loki exporter
 type LokiExporter struct {
-	li          *loki.Instance
-	seTimeout   time.Duration
-	logger      kitlog.Logger
-	extraLabels prommodel.LabelSet
+	li        *loki.Instance
+	seTimeout time.Duration
+	logger    kitlog.Logger
+	labels    map[string]string
 }
 
 // Init implements the AppReceiverExporter interface
@@ -38,16 +38,12 @@ func (le *LokiExporter) Init() error {
 // NewLokiExporter creates a new Loki loki exporter with the given
 // configuration
 func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig) AppReceiverExporter {
-	el := make(prommodel.LabelSet)
-	for k, v := range conf.ExtraLabels {
-		el[prommodel.LabelName(k)] = prommodel.LabelValue(v)
-	}
 
 	return &LokiExporter{
-		logger:      logger,
-		li:          conf.LokiInstance,
-		seTimeout:   time.Duration(conf.SendEntryTimeout),
-		extraLabels: el,
+		logger:    logger,
+		li:        conf.LokiInstance,
+		seTimeout: time.Duration(conf.SendEntryTimeout),
+		labels:    conf.Labels,
 	}
 }
 
@@ -104,12 +100,12 @@ func (le *LokiExporter) sendKeyValsTolokiPipeline(kv *utils.KeyVal) {
 func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 	set := make(prommodel.LabelSet)
 
-	for k, v := range le.extraLabels {
+	for k, v := range le.labels {
 		if len(v) > 0 {
-			set[k] = v
+			set[prommodel.LabelName(k)] = prommodel.LabelValue(v)
 		} else {
 			if val, ok := kv.Get(k); ok {
-				set[k] = prommodel.LabelValue(fmt.Sprint(val))
+				set[prommodel.LabelName(k)] = prommodel.LabelValue(fmt.Sprint(val))
 			}
 		}
 	}

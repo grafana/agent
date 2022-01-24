@@ -27,7 +27,7 @@ import (
 // integration
 type Config struct {
 	ExporterConfig config.AppExporterConfig `yaml:",inline"`
-	Common         common.MetricsConfig     `yaml:"metrics,omitempty"`
+	Common         common.MetricsConfig     `yaml:",inline"`
 }
 
 // ApplyDefaults applies runtime-specific defaults to c.
@@ -85,7 +85,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		l,
 		exporters.LokiExporterConfig{
 			LokiInstance:     globals.Logs.Instance(c.ExporterConfig.LogsInstance),
-			ExtraLabels:      c.ExporterConfig.LogsLabels,
+			Labels:           c.ExporterConfig.LogsLabels,
 			SendEntryTimeout: c.ExporterConfig.LogsSendTimeout,
 		},
 	)
@@ -203,5 +203,5 @@ func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 }
 
 func init() {
-	integrations.Register(&Config{}, integrations.TypeSingleton)
+	integrations.Register(&Config{}, integrations.TypeMultiplex)
 }

@@ -59,8 +59,8 @@ type AppExporterConfig struct {
 	Server                ServerConfig       `yaml:"server,omitempty"`
 	LogsInstance          string             `yaml:"logs_instance"`
 	Measurements          []Measurement      `yaml:"custom_measurements"`
-	LogsLabels            map[string]string  `yaml:"extra_loki_lablels"`
-	LogsSendTimeout       int                `yaml:"loki_send_timeout"`
+	LogsLabels            map[string]string  `yaml:"logs_labels"`
+	LogsSendTimeout       int                `yaml:"logs_send_timeout"`
 }
 
 // UnmarshalYAML implements the Unmarshaller interface
