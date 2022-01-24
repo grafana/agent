@@ -34,7 +34,7 @@ const (
 	cacheFileMode = 0600
 )
 
-// Eventhandler watches for Kubernetes Event objects and hands them off to
+// EventHandler watches for Kubernetes Event objects and hands them off to
 // Agent's logs subsystem (embedded promtail).
 type EventHandler struct {
 	LokiClient    *logs.Instance
@@ -323,7 +323,9 @@ func (eh *EventHandler) writeOutLastEvent() error {
 	if eh.LastEvent == nil {
 		return nil
 	}
-	eh.CacheFile.Seek(0, io.SeekEnd)
+	if _, err := eh.CacheFile.Seek(0, io.SeekEnd); err != nil {
+		return err
+	}
 	buf, _ := json.Marshal(&eh.LastEvent)
 	_, err := fmt.Fprintln(eh.CacheFile, string(buf))
 	if err != nil {
