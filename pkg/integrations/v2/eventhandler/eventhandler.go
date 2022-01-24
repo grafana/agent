@@ -21,7 +21,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 
-	backoff "github.com/cenkalti/backoff/v4"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations/v2"
@@ -29,6 +28,10 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
+)
+
+const (
+	cacheFileMode = 0600
 )
 
 type EventHandler struct {
@@ -41,19 +44,53 @@ type EventHandler struct {
 	EventInformer cache.SharedIndexInformer
 	ClusterLabel  string
 	SendTimeout   time.Duration
-	MaxBackoff    time.Duration
-	// used to stop eventhandler from within handler funcs
-	StopChan chan struct{}
 	sync.Mutex
 }
 
 type ShippedEvents struct {
-	// last shipped event's timestamp
+	// shipped event's timestamp
 	Timestamp time.Time `json:"ts"`
-	// map of event RVs already "shipped" (handed off) for this timestamp
+	// map of event RVs (resource versions) already "shipped" (handed off) for this timestamp.
 	// this is to handle the case of a timestamp having multiple events,
-	// which happens quite frequently
+	// which happens quite frequently.
 	RvMap map[string]struct{} `json:"resourceVersion"`
+}
+
+func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (integrations.Integration, error) {
+	var (
+		config *rest.Config
+		err    error
+	)
+
+	if c.InCluster {
+		config, err = rest.InClusterConfig()
+	} else {
+		config, err = clientcmd.BuildConfigFromFlags("", c.KubeconfigPath)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	// get an informer
+	factory := informers.NewSharedInformerFactory(clientset, time.Duration(c.InformerResync)*time.Second)
+	eventInformer := factory.Core().V1().Events().Informer()
+
+	eh := &EventHandler{
+		LokiClient:    globals.Logs.Instance(c.LogsInstance),
+		Log:           l,
+		CachePath:     c.CachePath,
+		EventInformer: eventInformer,
+		ClusterLabel:  c.ClusterName,
+		SendTimeout:   time.Duration(c.SendTimeout) * time.Second,
+	}
+	// set the resource handler fns
+	eh.initInformer(eventInformer)
+	return eh, nil
 }
 
 // Initialize informer by setting event handler fns
@@ -65,6 +102,7 @@ func (eh *EventHandler) initInformer(eventsInformer cache.SharedIndexInformer) {
 	})
 }
 
+// Handles new event objects
 func (eh *EventHandler) addEvent(obj interface{}) {
 	e, ok := obj.(*v1.Event)
 	if !ok {
@@ -90,38 +128,23 @@ func (eh *EventHandler) addEvent(obj interface{}) {
 	}
 
 	entry := newEntry(msg, eventTs, labels)
-	// could probably use another goroutine & queue
-	// to drain events instead of handling them in these functions.
-	// but for now, keep it simple with a backoff
-	retryFunc := func() error {
-		err := eh.sendEntry(entry)
-		if err != nil {
-			level.Error(eh.Log).Log("msg", "Retrying using backoff", "err", err, "entry", entry)
-		}
-		return err
-	}
-	expBackoff := backoff.NewExponentialBackOff()
-	expBackoff.MaxElapsedTime = eh.MaxBackoff
-	err = backoff.Retry(retryFunc, expBackoff)
-	if err != nil {
-		level.Error(eh.Log).Log("msg", "Backoff failed, aborting", "err", err)
-		close(eh.StopChan)
+	ok = eh.LokiClient.SendEntry(entry, eh.SendTimeout)
+	if !ok {
+		err = fmt.Errorf("error handing entry off to promtail")
+		level.Error(eh.Log).Log("err", err, "entry", entry)
+		return
 	}
 	level.Info(eh.Log).Log("msg", "Shipped entry", "eventRV", e.ResourceVersion, "eventMsg", e.Message)
 
+	// update cache with new "last" event
 	err = eh.updateLastEvent(e, eventTs)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Could not write latest event to cache", "err", err)
 	}
 }
 
-func (eh *EventHandler) sendEntry(entry api.Entry) error {
-	if ok := eh.LokiClient.SendEntry(entry, eh.SendTimeout); !ok {
-		return fmt.Errorf("error handing entry off to promtail, retrying")
-	}
-	return nil
-}
-
+// Handles event object updates. Note that this get triggered on informer resyncs and also
+// events occurring more than once (in which case .count is incremented)
 func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
 	eOld, ok := objOld.(*v1.Event)
 	if !ok {
@@ -136,12 +159,12 @@ func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
 	}
 
 	if eOld.GetResourceVersion() == eNew.GetResourceVersion() {
-		level.Info(eh.Log).Log("msg", "Event RV didn't change, ignoring", "eRV", eNew.ResourceVersion)
+		// ignore resync updates
+		level.Debug(eh.Log).Log("msg", "Event RV didn't change, ignoring", "eRV", eNew.ResourceVersion)
 		return
 	}
 
 	eventTs := getTimestamp(eNew)
-
 	// if event is older than the one stored in cache on startup, we've shipped it
 	if eventTs.Before(eh.InitEvent.Timestamp) {
 		return
@@ -159,24 +182,13 @@ func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
 	}
 
 	entry := newEntry(msg, eventTs, labels)
-	// could probably use another goroutine & queue
-	// to drain events instead of handling them in these functions.
-	// but for now, keep it simple with a backoff
-	retryFunc := func() error {
-		err := eh.sendEntry(entry)
-		if err != nil {
-			level.Error(eh.Log).Log("msg", "Retrying using backoff", "err", err, "entry", entry)
-		}
-		return err
+	ok = eh.LokiClient.SendEntry(entry, eh.SendTimeout)
+	if !ok {
+		err = fmt.Errorf("error handing entry off to promtail")
+		level.Error(eh.Log).Log("err", err, "entry", entry)
+		return
 	}
-	expBackoff := backoff.NewExponentialBackOff()
-	expBackoff.MaxElapsedTime = eh.MaxBackoff
-	err = backoff.Retry(retryFunc, expBackoff)
-	if err != nil {
-		level.Error(eh.Log).Log("msg", "Backoff failed, aborting", "err", err)
-		close(eh.StopChan)
-	}
-	level.Info(eh.Log).Log("msg", "Shipped entry", "event", eNew.ResourceVersion, "eventMsg", eNew.Message)
+	level.Info(eh.Log).Log("msg", "Shipped entry", "eventRV", eNew.ResourceVersion, "eventMsg", eNew.Message)
 
 	err = eh.updateLastEvent(eNew, eventTs)
 	if err != nil {
@@ -184,61 +196,27 @@ func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
 	}
 }
 
-func (eh *EventHandler) updateLastEvent(e *v1.Event, eventTs time.Time) error {
-	eh.Lock()
-	defer eh.Unlock()
-
-	eventRv := e.ResourceVersion
-
-	if eh.LastEvent == nil {
-		// startup
-		eh.LastEvent = &ShippedEvents{Timestamp: eventTs, RvMap: make(map[string]struct{})}
-		eh.LastEvent.RvMap[eventRv] = struct{}{}
-		return nil
-	}
-
-	// if timestamp is the same, add to map
-	if eh.LastEvent != nil && eventTs.Equal(eh.LastEvent.Timestamp) {
-		eh.LastEvent.RvMap[eventRv] = struct{}{}
-		return nil
-	}
-
-	// if timestamp is different, write out the line and create
-	// a new lastEvent struct
-	err := eh.writeOutLastEvent()
-	if err != nil {
-		return err
-	}
-	eh.LastEvent = &ShippedEvents{Timestamp: eventTs, RvMap: make(map[string]struct{})}
-	eh.LastEvent.RvMap[eventRv] = struct{}{}
-	return nil
+func (eh *EventHandler) deleteEvent(obj interface{}) {
+	// do nothing...
+	// todo: log this maybe??
 }
 
-func (eh *EventHandler) writeOutLastEvent() error {
-	if eh.LastEvent == nil {
-		return nil
-	}
-	eh.CacheFile.Seek(0, io.SeekEnd)
-	buf, _ := json.Marshal(&eh.LastEvent)
-	_, err := fmt.Fprintln(eh.CacheFile, string(buf))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// TODO: ship JSON blobs and allow users to configure using pipelines
+// extract data from event fields and create labels, etc.
+// TODO: ship JSON blobs and allow users to configure using pipelines etc.
+// instead of hardcoding labels here
 func (eh *EventHandler) handleEvent(event *v1.Event) (model.LabelSet, string, error) {
-	var msg strings.Builder
-	labels := make(model.LabelSet)
+	var (
+		msg    strings.Builder
+		labels = make(model.LabelSet)
+	)
+
 	obj := event.InvolvedObject
+	if obj.Name == "" {
+		return nil, "", fmt.Errorf("no involved object for event")
+	}
 
 	labels[model.LabelName("source")] = model.LabelValue("eventhandler")
 	labels[model.LabelName("cluster")] = model.LabelValue(eh.ClusterLabel)
-
-	if obj.Name == "" {
-		return nil, "", fmt.Errorf("no involved object")
-	}
 
 	kindStr := strings.ToLower(obj.Kind)
 	// TODO: match up labels with k8s integration so that log / metric correlation works
@@ -250,8 +228,7 @@ func (eh *EventHandler) handleEvent(event *v1.Event) (model.LabelSet, string, er
 	labels[model.LabelName("name")] = model.LabelValue(obj.Name)
 	labels[model.LabelName("namespace")] = model.LabelValue(obj.Namespace)
 
-	// we add these fields to the log line to reduce cardinality
-	// TODO: is there a better way to do this code-wise
+	// we add these fields to the log line to reduce label bloat and cardinality
 	if event.Action != "" {
 		msg.WriteString(fmt.Sprintf("action=%s ", event.Type))
 	}
@@ -294,16 +271,6 @@ func (eh *EventHandler) handleEvent(event *v1.Event) (model.LabelSet, string, er
 	return labels, msg.String(), nil
 }
 
-func (eh *EventHandler) deleteEvent(obj interface{}) {
-	// do nothing...
-	// todo: log this maybe??
-}
-
-func newEntry(msg string, ts time.Time, labels model.LabelSet) api.Entry {
-	entry := logproto.Entry{Timestamp: ts, Line: msg}
-	return api.Entry{Labels: labels, Entry: entry}
-}
-
 func getTimestamp(event *v1.Event) time.Time {
 	if !event.LastTimestamp.IsZero() {
 		return event.LastTimestamp.Time
@@ -311,102 +278,77 @@ func getTimestamp(event *v1.Event) time.Time {
 	return event.EventTime.Time
 }
 
-func readInitEvent(file *os.File, logger log.Logger) (*ShippedEvents, error) {
-	var initEvent = new(ShippedEvents)
-
-	stat, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	if stat.Size() == 0 {
-		level.Info(logger).Log("msg", "Cache file empty, setting zero-valued initEvent")
-		return initEvent, nil
-	}
-
-	// skip first newline
-	var cur int64 = -1
-	line := ""
-	char := make([]byte, 1)
-	size := stat.Size()
-	for {
-		cur -= 1
-		file.Seek(cur, 2)
-		file.Read(char)
-		if char[0] == 10 {
-			break
-		}
-		line = string(char) + line
-		if cur == -size {
-			break
-		}
-	}
-	err = json.Unmarshal([]byte(line), &initEvent)
-	if err != nil {
-		return nil, err
-	}
-
-	level.Info(logger).Log("msg", "Loaded init event from cache file", "initEventTime", initEvent.Timestamp)
-	return initEvent, nil
+func newEntry(msg string, ts time.Time, labels model.LabelSet) api.Entry {
+	entry := logproto.Entry{Timestamp: ts, Line: msg}
+	return api.Entry{Labels: labels, Entry: entry}
 }
 
-func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (integrations.Integration, error) {
-	var (
-		config *rest.Config
-		err    error
-	)
+// maintain "last event" state and write it out to disk as necessary
+func (eh *EventHandler) updateLastEvent(e *v1.Event, eventTs time.Time) error {
+	// resource handler fns don't run concurrently so we probably don't need this...
+	eh.Lock()
+	defer eh.Unlock()
 
-	if c.InCluster {
-		config, err = rest.InClusterConfig()
-	} else {
-		config, err = clientcmd.BuildConfigFromFlags("", c.KubeconfigPath)
+	eventRv := e.ResourceVersion
+
+	if eh.LastEvent == nil {
+		// startup
+		eh.LastEvent = &ShippedEvents{Timestamp: eventTs, RvMap: make(map[string]struct{})}
+		eh.LastEvent.RvMap[eventRv] = struct{}{}
+		return nil
 	}
+
+	// if timestamp is the same, add to map
+	if eh.LastEvent != nil && eventTs.Equal(eh.LastEvent.Timestamp) {
+		eh.LastEvent.RvMap[eventRv] = struct{}{}
+		return nil
+	}
+
+	// if timestamp is different, write out the current last event and create
+	// a new lastEvent struct
+	err := eh.writeOutLastEvent()
 	if err != nil {
-		return nil, err
+		return err
 	}
+	eh.LastEvent = &ShippedEvents{Timestamp: eventTs, RvMap: make(map[string]struct{})}
+	eh.LastEvent.RvMap[eventRv] = struct{}{}
+	return nil
+}
 
-	clientset, err := kubernetes.NewForConfig(config)
+func (eh *EventHandler) writeOutLastEvent() error {
+	if eh.LastEvent == nil {
+		return nil
+	}
+	eh.CacheFile.Seek(0, io.SeekEnd)
+	buf, _ := json.Marshal(&eh.LastEvent)
+	_, err := fmt.Fprintln(eh.CacheFile, string(buf))
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	factory := informers.NewSharedInformerFactory(clientset, time.Duration(c.InformerResync)*time.Second)
-	eventInformer := factory.Core().V1().Events().Informer()
-
-	eh := &EventHandler{
-		LokiClient:    globals.Logs.Instance(c.LogsInstance),
-		Log:           l,
-		CachePath:     c.CachePath,
-		EventInformer: eventInformer,
-		ClusterLabel:  c.ClusterName,
-		SendTimeout:   time.Duration(c.SendTimeout) * time.Second,
-		MaxBackoff:    time.Duration(c.MaxBackoff) * time.Second,
-	}
-	eh.initInformer(eventInformer)
-
-	return eh, nil
+	return nil
 }
 
 func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
+	// todo: figure this out on K8s (PVC, etc.)
 	cacheDir := filepath.Dir(eh.CachePath)
-	// todo: correct perms here?
+	// todo: correct perms here? / k8s config
 	if err := os.MkdirAll(cacheDir, 0777); err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to create cache dir", "err", err)
 		cancel()
 	}
 
 	// cache file to store events shipped (prevents double shipping on restart)
-	// todo: correct perms here?
-	cacheFile, err := os.OpenFile(eh.CachePath, os.O_RDWR|os.O_CREATE, 0666)
+	cacheFile, err := os.OpenFile(eh.CachePath, os.O_RDWR|os.O_CREATE, cacheFileMode)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to open or create cache file", "err", err)
 		cancel()
 	}
 	eh.CacheFile = cacheFile
 
-	// attempt to read last event from cache file into the lastEvent struct
+	// attempt to read last timestamp from cache file into a ShippedEvents struct
 	initEvent, err := readInitEvent(eh.CacheFile, eh.Log)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to read last event from cache file", "err", err)
@@ -416,9 +358,9 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 
 	// sync & close cache file
 	defer eh.CacheFile.Close()
-	//todo: do we need this?
+	// todo: do we need this?
 	defer eh.CacheFile.Sync()
-	// write out LastEvent struct to cache file
+	// write out .LastEvent struct to cache file on exit
 	defer eh.writeOutLastEvent()
 
 	// todo: is it worth even doing this?
@@ -438,15 +380,47 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	// only have one informer atm, this likely doesn't matter
 	eh.EventInformer.Run(ctx.Done())
 
-	select {
-	case <-ctx.Done():
-	case <-eh.StopChan:
+	<-ctx.Done()
+
+	return nil
+}
+
+func readInitEvent(file *os.File, logger log.Logger) (*ShippedEvents, error) {
+	var (
+		initEvent = new(ShippedEvents)
+		// skip first newline
+		cur  int64 = -1
+		char       = make([]byte, 1)
+		line       = ""
+	)
+
+	stat, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if stat.Size() == 0 {
+		level.Info(logger).Log("msg", "Cache file empty, setting zero-valued initEvent")
+		return initEvent, nil
 	}
 
-	//todo: double check shutdown order of ops...
-	// esp wrt:
-	// loki client and draining channel
-	// writing out file
-	// shutting down informer, etc...
-	return nil
+	size := stat.Size()
+	for {
+		cur -= 1
+		file.Seek(cur, 2)
+		file.Read(char)
+		// newline
+		if char[0] == 10 {
+			break
+		}
+		line = string(char) + line
+		if cur == -size {
+			break
+		}
+	}
+	err = json.Unmarshal([]byte(line), &initEvent)
+	if err != nil {
+		return nil, err
+	}
+	level.Info(logger).Log("msg", "Loaded init event from cache file", "initEventTime", initEvent.Timestamp)
+	return initEvent, nil
 }

@@ -16,7 +16,7 @@ func TestCacheLoad(t *testing.T) {
 		Timestamp: testTime,
 		RvMap:     map[string]struct{}{"22819": {}, "22820": {}, "22821": {}},
 	}
-	cacheFile, err := os.OpenFile("testdata/eventhandler.cache", os.O_RDWR|os.O_CREATE, 0666)
+	cacheFile, err := os.OpenFile("testdata/eventhandler.cache", os.O_RDWR|os.O_CREATE, cacheFileMode)
 	require.NoError(t, err, "Failed to open test eventhandler cache file")
 	actualEvents, err := readInitEvent(cacheFile, l)
 	require.NoError(t, err, "Failed to parse last event from eventhandler cache file")
