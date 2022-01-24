@@ -3726,9 +3726,9 @@ spec:
                       created.
                     type: string
                   ignoreNamespaceSelectors:
-                    description: IgnoreNameIntegrationMonitorspaceSelectors, if true,
-                      will ignore NamespaceSelector settings from the PodLogs configs,
-                      and they will only discover endpoints within their current namespace.
+                    description: IgnoreNamespaceSelectors, if true, will ignore NamespaceSelector
+                      settings from the PodLogs configs, and they will only discover
+                      endpoints within their current namespace.
                     type: boolean
                   instanceNamespaceSelector:
                     description: InstanceNamespaceSelector are the set of labels to

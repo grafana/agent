@@ -15,6 +15,7 @@ import (
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
 	controller "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -90,8 +91,6 @@ func (r *reconciler) createSecrets(
 	h grafana_v1alpha1.Hierarchy,
 ) error {
 
-	blockOwnerDeletion := true
-
 	data := make(map[string][]byte)
 	for k, value := range h.Secrets {
 		data[config.SanitizeLabelName(string(k))] = []byte(value)
@@ -103,7 +102,7 @@ func (r *reconciler) createSecrets(
 			Name:      fmt.Sprintf("%s-secrets", h.Agent.Name),
 			OwnerReferences: []v1.OwnerReference{{
 				APIVersion:         h.Agent.APIVersion,
-				BlockOwnerDeletion: &blockOwnerDeletion,
+				BlockOwnerDeletion: pointer.Bool(true),
 				Kind:               h.Agent.Kind,
 				Name:               h.Agent.Name,
 				UID:                h.Agent.UID,

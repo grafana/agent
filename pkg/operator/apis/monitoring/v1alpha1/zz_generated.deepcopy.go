@@ -255,6 +255,17 @@ func (in *Hierarchy) DeepCopyInto(out *Hierarchy) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.Integrations != nil {
+		in, out := &in.Integrations, &out.Integrations
+		*out = make([]*MetricsIntegration, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(MetricsIntegration)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+	}
 	if in.Secrets != nil {
 		in, out := &in.Secrets, &out.Secrets
 		*out = make(assets.SecretStore, len(*in))

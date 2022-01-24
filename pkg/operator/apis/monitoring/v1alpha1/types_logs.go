@@ -25,7 +25,7 @@ type LogsSubsystemSpec struct {
 	// namespace.
 	InstanceNamespaceSelector *metav1.LabelSelector `json:"instanceNamespaceSelector,omitempty"`
 
-	// IgnoreNameIntegrationMonitorspaceSelectors, if true, will ignore NamespaceSelector settings
+	// IgnoreNamespaceSelectors, if true, will ignore NamespaceSelector settings
 	// from the PodLogs configs, and they will only discover endpoints within
 	// their current namespace.
 	IgnoreNamespaceSelectors bool `json:"ignoreNamespaceSelectors,omitempty"`

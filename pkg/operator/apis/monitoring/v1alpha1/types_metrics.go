@@ -339,7 +339,7 @@ type IntegrationMonitorSpec struct {
 
 // +kubebuilder:object:root=true
 
-// IntegrationMonitorList is a list of PodLogs.
+// IntegrationMonitorList is a list of IntegrationMonitors.
 type IntegrationMonitorList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
