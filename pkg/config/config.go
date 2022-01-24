@@ -31,9 +31,11 @@ import (
 var (
 	featRemoteConfigs    = features.Feature("remote-configs")
 	featIntegrationsNext = features.Feature("integrations-next")
+	featDynamicConfig    = features.Feature("dynamic-config")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
+		featDynamicConfig,
 		featIntegrationsNext,
 	}
 )
@@ -259,6 +261,11 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
+func LoadDynamicConfiguration(url string, _ bool, c *Config, fs *flag.FlagSet) error {
+	// Placeholder until following PRs
+	return nil
+}
+
 // LoadBytes unmarshals a config from a buffer. Defaults are not
 // applied to the file and must be done manually if LoadBytes
 // is called directly.
@@ -301,6 +308,12 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 	return load(fs, args, func(url string, expand bool, c *Config) error {
 		if features.Enabled(fs, featRemoteConfigs) {
 			return LoadRemote(url, expand, c)
+		}
+		if features.Enabled(fs, featDynamicConfig) {
+			if !features.Enabled(fs, featIntegrationsNext) {
+				panic("integrations-next must be enabled for dynamic configuration to work")
+			}
+			return LoadDynamicConfiguration(url, expand, c, fs)
 		}
 		return LoadFile(url, expand, c)
 	})
@@ -350,8 +363,12 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
-	if err := cfg.Integrations.setVersion(version); err != nil {
-		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+	// This is due to an odd interaction between dynamic loading and v2 integrations feature, if dynamic loading
+	// is enabled the cfg version is already set and this will actually override it
+	if cfg.Integrations.version != integrationsVersion2 && !features.Enabled(fs, featDynamicConfig) {
+		if err := cfg.Integrations.setVersion(version); err != nil {
+			return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+		}
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag
