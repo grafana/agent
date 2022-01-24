@@ -58,9 +58,8 @@ activeConfigs := make([]Config,0)
         }
     {{ end -}}
 {{ end -}}
-        for _, i := range v.TestConfigs {
-            activeConfigs = append(activeConfigs, i)
-        }
+        activeConfigs = append(activeConfigs, v.TestConfigs...)
+
         return activeConfigs
 }
 
@@ -217,7 +216,7 @@ func newIntegrationFromV1(c integrationConfig, logger log.Logger, globals shared
 func implementsMarshaller(i interface{}) error {
     _, ok := i.(yaml.Unmarshaler)
     if ok {
-      return errors.New(fmt.Sprintf("%T cannot implement custom unmarshaler", i))
+        return fmt.Errorf("%T cannot implement custom unmarshaler", i)
     }
     return nil
 }

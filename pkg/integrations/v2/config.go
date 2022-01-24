@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/prometheus/common/model"
-
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
@@ -107,9 +105,8 @@ func (v *Integrations) ActiveConfigs() []Config {
 	if v.WindowsExporter != nil {
 		activeConfigs = append(activeConfigs, newConfigWrapper(v.WindowsExporter, v.WindowsExporter.Cmn, v.WindowsExporter.NewIntegration, v.WindowsExporter.InstanceKey))
 	}
-	for _, i := range v.TestConfigs {
-		activeConfigs = append(activeConfigs, i)
-	}
+	activeConfigs = append(activeConfigs, v.TestConfigs...)
+
 	return activeConfigs
 }
 
@@ -507,7 +504,7 @@ func newIntegrationFromV1(c integrationConfig, logger log.Logger, globals shared
 func implementsMarshaller(i interface{}) error {
 	_, ok := i.(yaml.Unmarshaler)
 	if ok {
-		return errors.New(fmt.Sprintf("%T cannot implement custom unmarshaler", i))
+		return fmt.Errorf("%T cannot implement custom unmarshaler", i)
 	}
 	return nil
 }

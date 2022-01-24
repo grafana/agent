@@ -5,6 +5,7 @@ package v1
 
 import (
 	"fmt"
+
 	"github.com/grafana/agent/pkg/integrations/shared"
 	"github.com/grafana/agent/pkg/integrations/v1/agent"
 	"github.com/grafana/agent/pkg/integrations/v1/cadvisor"
