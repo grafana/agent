@@ -2,6 +2,20 @@
 
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
 
+- [ENHANCEMENT] integrations-next: Add `extra_labels` to add a custom set of
+  labels to integration targets. (@rfratto)
+
+- [BUGFIX] Fixed issue where Grafana Agent may panic if there is a very large
+  WAL loading while old WALs are being deleted or the `/agent/api/v1/targets`
+  endpoint is called. (@tpaschalis)
+
+- [BUGFIX] Fix panic in prom_sd_processor when address is empty (@mapno)
+
+- [BUGFIX] Operator: Add missing proxy_url field from generated remote_write
+  configs. (@rfratto)
+
+- [BUGFIX] Honor the specified log format in the traces subsystem (@mapno)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
