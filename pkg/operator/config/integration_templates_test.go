@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/subset"
 	"github.com/stretchr/testify/require"
 	apiext_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -38,11 +39,11 @@ func TestIntegration(t *testing.T) {
 					},
 				},
 			},
-			expect: `
-      autoscrape:
-        enable: false
-      data_source_names: root@(server-a:3306)/
-      `,
+			expect: util.Untab(`
+				autoscrape:
+					enable: false
+				data_source_names: root@(server-a:3306)/
+      `),
 		},
 		{
 			name: "integration no config",
@@ -55,10 +56,10 @@ func TestIntegration(t *testing.T) {
 					},
 				},
 			},
-			expect: `
-      autoscrape:
-        enable: false
-      `,
+			expect: util.Untab(`
+			autoscrape:
+				enable: false
+      `),
 		},
 		{
 			name: "extra_labels",
@@ -84,18 +85,18 @@ func TestIntegration(t *testing.T) {
 					},
 				},
 			},
-			expect: `
-      extra_labels:
-        __meta_agentoperator_grafanaagent_name: some-grafanaagent
-        __meta_agentoperator_grafanaagent_namespace: monitoring
-        __meta_agentoperator_integration_type: normal
-        __meta_agentoperator_integration_cr_name: some-integration
-        __meta_agentoperator_integration_cr_namespace: default
-        __meta_agentoperator_integration_cr_label_label_a: label-a-value
-        __meta_agentoperator_integration_cr_label_label_b: label-b-value
-        __meta_agentoperator_integration_cr_labelpresent_label_a: "true"
-        __meta_agentoperator_integration_cr_labelpresent_label_b: "true"
-      `,
+			expect: util.Untab(`
+			extra_labels:
+				__meta_agentoperator_grafanaagent_name: some-grafanaagent
+				__meta_agentoperator_grafanaagent_namespace: monitoring
+				__meta_agentoperator_integration_type: normal
+				__meta_agentoperator_integration_cr_name: some-integration
+				__meta_agentoperator_integration_cr_namespace: default
+				__meta_agentoperator_integration_cr_label_label_a: label-a-value
+				__meta_agentoperator_integration_cr_label_label_b: label-b-value
+				__meta_agentoperator_integration_cr_labelpresent_label_a: "true"
+				__meta_agentoperator_integration_cr_labelpresent_label_b: "true"
+      `),
 		},
 		{
 			name: "extra_labels merge",
@@ -121,14 +122,14 @@ func TestIntegration(t *testing.T) {
 					},
 				},
 			},
-			expect: `
-      extra_labels:
-        # Make sure that our custom label exists with at least some of our
-        # custom labels
-        __meta_agentoperator_integration_cr_name: some-integration
-        __meta_agentoperator_integration_cr_namespace: default
-        hello: world
-      `,
+			expect: util.Untab(`
+			extra_labels:
+				# Make sure that our custom label exists with at least some of our
+				# custom labels
+				__meta_agentoperator_integration_cr_name: some-integration
+				__meta_agentoperator_integration_cr_namespace: default
+				hello: world
+      `),
 		},
 	}
 

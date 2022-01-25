@@ -261,74 +261,74 @@ func TestBuildConfigLogs(t *testing.T) {
 }
 
 func TestBuildConfigIntegrations(t *testing.T) {
-	in := `
-  Agent:
-    kind: GrafanaAgent
-    metadata:
-      name: test-agent
-      namespace: monitoring
-  Integrations:
-    - kind: MetricsIntegration
-      metadata:
-        name: mysql-a
-        namespace: databases
-      spec:
-        name: mysqld_exporter
-        type: normal
-        config: 
-          data_source_names: root@(server-a:3306)/
-    - kind: MetricsIntegration
-      metadata:
-        name: node
-        namespace: kube-system
-      spec:
-        name: node_exporter
-        type: daemonset
-        config: 
-          rootfs_path: /host/root
-          sysfs_path: /host/sys
-          procfs_path: /host/proc
-    - kind: MetricsIntegration
-      metadata:
-        name: mysql-b
-        namespace: databases
-      spec:
-        name: mysqld_exporter
-        type: normal
-        config: 
-          data_source_names: root@(server-b:3306)/
-    - kind: MetricsIntegration
-      metadata:
-        name: redis-a
-        namespace: databases
-      spec:
-        name: redis_exporter
-        type: normal
-        config: 
-          redis_addr: redis-a:6379
-  `
+	in := util.Untab(`
+	Agent:
+		kind: GrafanaAgent
+		metadata:
+			name: test-agent
+			namespace: monitoring
+	Integrations:
+	- kind: MetricsIntegration
+		metadata:
+			name: mysql-a
+			namespace: databases
+		spec:
+			name: mysqld_exporter
+			type: normal
+			config: 
+				data_source_names: root@(server-a:3306)/
+	- kind: MetricsIntegration
+		metadata:
+			name: node
+			namespace: kube-system
+		spec:
+			name: node_exporter
+			type: daemonset
+			config: 
+				rootfs_path: /host/root
+				sysfs_path: /host/sys
+				procfs_path: /host/proc
+	- kind: MetricsIntegration
+		metadata:
+			name: mysql-b
+			namespace: databases
+		spec:
+			name: mysqld_exporter
+			type: normal
+			config: 
+				data_source_names: root@(server-b:3306)/
+	- kind: MetricsIntegration
+		metadata:
+			name: redis-a
+			namespace: databases
+		spec:
+			name: redis_exporter
+			type: normal
+			config: 
+				redis_addr: redis-a:6379
+  `)
 
 	var h grafana.Hierarchy
 	err := k8s_yaml.UnmarshalStrict([]byte(in), &h)
 	require.NoError(t, err)
 
-	expect := `
-  server:
-    http_listen_port: 8080
-  integrations:
-    metrics:
-      autoscrape:
-        enable: false
-    mysqld_exporter_configs:
-    - data_source_names: root@(server-a:3306)/
-    - data_source_names: root@(server-b:3306)/
-    node_exporter:
-      rootfs_path: /host/root 
-      sysfs_path: /host/sys
-      procfs_path: /host/proc
-    redis_exporter_configs:
-    - redis_addr: redis-a:6379
-  `
+	expect := util.Untab(`
+	server:
+		http_listen_port: 8080
+	integrations:
+		metrics:
+			autoscrape:
+				enable: false
+		mysqld_exporter_configs:
+		- data_source_names: root@(server-a:3306)/
+		- data_source_names: root@(server-b:3306)/
+		node_exporter:
+			rootfs_path: /host/root 
+			sysfs_path: /host/sys
+			procfs_path: /host/proc
+		redis_exporter_configs:
+		- redis_addr: redis-a:6379
+  `)
 
 	result, err := BuildConfig(h, IntegrationsType)
 	require.NoError(t, err)
