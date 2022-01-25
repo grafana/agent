@@ -2,6 +2,9 @@
 
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
 
+- [ENHANCEMENT] integrations-next: Add `extra_labels` to add a custom set of
+  labels to integration targets. (@rfratto)
+
 - [BUGFIX] Fixed issue where Grafana Agent may panic if there is a very large
   WAL loading while old WALs are being deleted or the `/agent/api/v1/targets`
   endpoint is called. (@tpaschalis)
