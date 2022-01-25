@@ -11,6 +11,8 @@
 - [BUGFIX] Operator: Add missing proxy_url field from generated remote_write
   configs. (@rfratto)
 
+- [BUGFIX] Honor the specified log format in the traces subsystem (@mapno)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
