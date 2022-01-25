@@ -84,6 +84,12 @@ func (m seriesHashmap) del(hash uint64, ref uint64) {
 	}
 }
 
+type memExemplar struct {
+	ts     int64
+	value  float64
+	labels labels.Labels
+}
+
 const (
 	// defaultStripeSize is the default number of entries to allocate in the
 	// stripeSeries hash map.
@@ -97,10 +103,11 @@ const (
 //
 // This code is copied from the Prometheus TSDB.
 type stripeSeries struct {
-	size   int
-	series []map[uint64]*memSeries
-	hashes []seriesHashmap
-	locks  []stripeLock
+	size      int
+	series    []map[uint64]*memSeries
+	hashes    []seriesHashmap
+	exemplars []map[uint64]*memExemplar
+	locks     []stripeLock
 }
 
 type stripeLock struct {
@@ -112,10 +119,11 @@ type stripeLock struct {
 func newStripeSeries() *stripeSeries {
 	stripeSize := defaultStripeSize
 	s := &stripeSeries{
-		size:   stripeSize,
-		series: make([]map[uint64]*memSeries, stripeSize),
-		hashes: make([]seriesHashmap, stripeSize),
-		locks:  make([]stripeLock, stripeSize),
+		size:      stripeSize,
+		series:    make([]map[uint64]*memSeries, stripeSize),
+		hashes:    make([]seriesHashmap, stripeSize),
+		exemplars: make([]map[uint64]*memExemplar, stripeSize),
+		locks:     make([]stripeLock, stripeSize),
 	}
 
 	for i := range s.series {
@@ -123,6 +131,9 @@ func newStripeSeries() *stripeSeries {
 	}
 	for i := range s.hashes {
 		s.hashes[i] = seriesHashmap{}
+	}
+	for i := range s.exemplars {
+		s.exemplars[i] = map[uint64]*memExemplar{}
 	}
 	return s
 }
@@ -171,6 +182,10 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 			delete(s.series[i], series.ref)
 			s.hashes[j].del(seriesHash, series.ref)
 
+			// Since the series is gone, we'll also delete
+			// the latest stored exemplar.
+			delete(s.exemplars[i], series.ref)
+
 			if i != j {
 				s.locks[j].Unlock()
 			}
@@ -213,6 +228,24 @@ func (s *stripeSeries) set(hash uint64, series *memSeries) {
 	i = series.ref & uint64(s.size-1)
 	s.locks[i].Lock()
 	s.series[i][series.ref] = series
+	s.locks[i].Unlock()
+}
+
+func (s *stripeSeries) getLatestExemplar(id uint64) *memExemplar {
+	i := id & uint64(s.size-1)
+
+	s.locks[i].RLock()
+	exemplar := s.exemplars[i][id]
+	s.locks[i].RUnlock()
+
+	return exemplar
+}
+
+func (s *stripeSeries) setLatestExemplar(id uint64, exemplar *memExemplar) {
+	i := id & uint64(s.size-1)
+
+	s.locks[i].Lock()
+	s.exemplars[i][id] = exemplar
 	s.locks[i].Unlock()
 }
 
