@@ -119,7 +119,12 @@ func stringAttributeFromMap(attrs pdata.AttributeMap, key string) string {
 }
 
 func getConnectionIP(ctx context.Context) string {
-	return client.FromContext(ctx).Addr.String()
+	c := client.FromContext(ctx)
+	if c.Addr == nil {
+		return ""
+	}
+
+	return c.Addr.String()
 }
 
 func (p *promServiceDiscoProcessor) getPodIP(ctx context.Context, attrs pdata.AttributeMap) string {
