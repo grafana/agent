@@ -10,9 +10,9 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/config"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/exporters"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/receiver"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/receiver"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,8 +26,8 @@ import (
 // Config structs controls the configuration of the app o11y
 // integration
 type Config struct {
-	ExporterConfig config.AppExporterConfig `yaml:",inline"`
-	Common         common.MetricsConfig     `yaml:",inline"`
+	ExporterConfig config.AppO11yReceiverConfig `yaml:",inline"`
+	Common         common.MetricsConfig         `yaml:",inline"`
 }
 
 // ApplyDefaults applies runtime-specific defaults to c.
@@ -40,7 +40,7 @@ func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 }
 
 // Name returns the name of the integration that this config represents
-func (c *Config) Name() string { return "app_o11y_exporter" }
+func (c *Config) Name() string { return "app_o11y_receiver" }
 
 // Identifier uniquely identifies the app o11y integration
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
@@ -54,10 +54,10 @@ type appo11yIntegration struct {
 	integrationName, instanceID string
 	globals                     integrations.Globals
 	logger                      log.Logger
-	conf                        config.AppExporterConfig
+	conf                        config.AppO11yReceiverConfig
 	common                      common.MetricsConfig
 	receiver                    receiver.AppReceiver
-	exporters                   []exporters.AppReceiverExporter
+	exporters                   []exporters.AppO11yReceiverExporter
 	reg                         *prometheus.Registry
 }
 
@@ -90,7 +90,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		},
 	)
 
-	var exp = []exporters.AppReceiverExporter{
+	var exp = []exporters.AppO11yReceiverExporter{
 		// Loki
 		lokiExporter,
 	}

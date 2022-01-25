@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/utils"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 )
 
 // Sdk holds metadata about the app agent that produced the event

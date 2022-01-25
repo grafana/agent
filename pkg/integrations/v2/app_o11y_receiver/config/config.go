@@ -11,8 +11,8 @@ const (
 	DefaultMaxPayloadSize = 5e6
 )
 
-// DefaultConfig holds the default configuration of the exporter
-var DefaultConfig = AppExporterConfig{
+// DefaultConfig holds the default configuration of the receiver
+var DefaultConfig = AppO11yReceiverConfig{
 	// Default JS agent port
 	CORSAllowedOrigins: []string{"http://localhost:1234"},
 	RateLimiting: RateLimitingConfig{
@@ -50,9 +50,9 @@ type Measurement struct {
 	Description string `yaml:"description,omitempty"`
 }
 
-// AppExporterConfig is the configuration struct of the
+// AppO11yReceiverConfig is the configuration struct of the
 // integration
-type AppExporterConfig struct {
+type AppO11yReceiverConfig struct {
 	CORSAllowedOrigins    []string           `yaml:"cors_allowed_origins,omitempty"`
 	RateLimiting          RateLimitingConfig `yaml:"rate_limiting,omitempty"`
 	MaxAllowedPayloadSize int64              `yaml:"max_allowed_payload_size,omitempty"`
@@ -64,9 +64,9 @@ type AppExporterConfig struct {
 }
 
 // UnmarshalYAML implements the Unmarshaller interface
-func (c *AppExporterConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (c *AppO11yReceiverConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
-	type cA AppExporterConfig
+	type cA AppO11yReceiverConfig
 
 	if err := unmarshal((*cA)(c)); err != nil {
 		return err
