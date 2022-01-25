@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO: fix this
 func TestCacheLoad(t *testing.T) {
 	l := log.NewNopLogger()
 	testTime, _ := time.Parse(time.RFC3339, "2022-01-20T17:12:58-06:00")

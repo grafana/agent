@@ -6,9 +6,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -38,15 +37,17 @@ const (
 // EventHandler watches for Kubernetes Event objects and hands them off to
 // Agent's logs subsystem (embedded promtail).
 type EventHandler struct {
-	LokiClient    *logs.Instance
+	LogsClient    *logs.Logs
+	LogsInstance  string
 	Log           log.Logger
-	CacheFile     *os.File
 	CachePath     string
 	LastEvent     *ShippedEvents
 	InitEvent     *ShippedEvents
 	EventInformer cache.SharedIndexInformer
 	ClusterLabel  string
 	SendTimeout   time.Duration
+	FlushInterval time.Duration
+	ticker        *time.Ticker
 	sync.Mutex
 }
 
@@ -95,12 +96,14 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 	eventInformer := factory.Core().V1().Events().Informer()
 
 	eh := &EventHandler{
-		LokiClient:    globals.Logs.Instance(c.LogsInstance),
+		LogsClient:    globals.Logs,
+		LogsInstance:  c.LogsInstance,
 		Log:           l,
 		CachePath:     c.CachePath,
 		EventInformer: eventInformer,
 		ClusterLabel:  c.ClusterName,
 		SendTimeout:   time.Duration(c.SendTimeout) * time.Second,
+		FlushInterval: time.Duration(c.FlushInterval) * time.Second,
 	}
 	// set the resource handler fns
 	eh.initInformer(eventInformer)
@@ -118,42 +121,14 @@ func (eh *EventHandler) initInformer(eventsInformer cache.SharedIndexInformer) {
 
 // Handles new event objects
 func (eh *EventHandler) addEvent(obj interface{}) {
-	e, ok := obj.(*v1.Event)
+	event, ok := obj.(*v1.Event)
 	if !ok {
 		level.Error(eh.Log).Log("msg", "Object not v1.Event", "obj", obj)
 		return
 	}
-	eventTs := getTimestamp(e)
-
-	// if event is older than the one stored in cache on startup, we've shipped it
-	if eventTs.Before(eh.InitEvent.Timestamp) {
-		return
-	}
-	// if event is equal and is in map, we've shipped it
-	if eventTs.Equal(eh.InitEvent.Timestamp) {
-		if _, ok := eh.InitEvent.RvMap[e.ResourceVersion]; ok {
-			return
-		}
-	}
-
-	labels, msg, err := eh.handleEvent(e)
+	err := eh.handleEvent(event)
 	if err != nil {
-		level.Error(eh.Log).Log("msg", "Error processing event", "err", err, "event", e)
-	}
-
-	entry := newEntry(msg, eventTs, labels)
-	ok = eh.LokiClient.SendEntry(entry, eh.SendTimeout)
-	if !ok {
-		err = fmt.Errorf("error handing entry off to promtail")
-		level.Error(eh.Log).Log("err", err, "entry", entry)
-		return
-	}
-	level.Info(eh.Log).Log("msg", "Shipped entry", "eventRV", e.ResourceVersion, "eventMsg", e.Message)
-
-	// update cache with new "last" event
-	err = eh.updateLastEvent(e, eventTs)
-	if err != nil {
-		level.Error(eh.Log).Log("msg", "Could not write latest event to cache", "err", err)
+		level.Error(eh.Log).Log("msg", "Error handling event", "err", err, "event", event)
 	}
 }
 
@@ -177,37 +152,45 @@ func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
 		level.Debug(eh.Log).Log("msg", "Event RV didn't change, ignoring", "eRV", eNew.ResourceVersion)
 		return
 	}
+	err := eh.handleEvent(eNew)
+	if err != nil {
+		level.Error(eh.Log).Log("msg", "Error handling event", "err", err, "event", eNew)
+	}
+}
 
-	eventTs := getTimestamp(eNew)
+func (eh *EventHandler) handleEvent(event *v1.Event) error {
+	eventTs := getTimestamp(event)
+
 	// if event is older than the one stored in cache on startup, we've shipped it
 	if eventTs.Before(eh.InitEvent.Timestamp) {
-		return
+		return nil
 	}
 	// if event is equal and is in map, we've shipped it
 	if eventTs.Equal(eh.InitEvent.Timestamp) {
-		if _, ok := eh.InitEvent.RvMap[eNew.ResourceVersion]; ok {
-			return
+		if _, ok := eh.InitEvent.RvMap[event.ResourceVersion]; ok {
+			return nil
 		}
 	}
 
-	labels, msg, err := eh.handleEvent(eNew)
+	labels, msg, err := eh.extractEvent(event)
 	if err != nil {
-		level.Error(eh.Log).Log("msg", "Error processing event", "err", err, "event", eNew)
+		return err
 	}
 
 	entry := newEntry(msg, eventTs, labels)
-	ok = eh.LokiClient.SendEntry(entry, eh.SendTimeout)
+	ok := eh.LogsClient.Instance(eh.LogsInstance).SendEntry(entry, eh.SendTimeout)
 	if !ok {
-		err = fmt.Errorf("error handing entry off to promtail")
-		level.Error(eh.Log).Log("err", err, "entry", entry)
-		return
+		err = fmt.Errorf("msg=%s entry=%s", "error handing entry off to promtail", entry)
+		return err
 	}
-	level.Info(eh.Log).Log("msg", "Shipped entry", "eventRV", eNew.ResourceVersion, "eventMsg", eNew.Message)
+	level.Info(eh.Log).Log("msg", "Shipped entry", "eventRV", event.ResourceVersion, "eventMsg", event.Message)
 
-	err = eh.updateLastEvent(eNew, eventTs)
+	// update cache with new "last" event
+	err = eh.updateLastEvent(event, eventTs)
 	if err != nil {
-		level.Error(eh.Log).Log("msg", "Could not write latest event to cache", "err", err)
+		return err
 	}
+	return nil
 }
 
 func (eh *EventHandler) deleteEvent(obj interface{}) {
@@ -218,7 +201,7 @@ func (eh *EventHandler) deleteEvent(obj interface{}) {
 // extract data from event fields and create labels, etc.
 // TODO: ship JSON blobs and allow users to configure using pipelines etc.
 // instead of hardcoding labels here
-func (eh *EventHandler) handleEvent(event *v1.Event) (model.LabelSet, string, error) {
+func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, error) {
 	var (
 		msg    strings.Builder
 		labels = make(model.LabelSet)
@@ -297,9 +280,8 @@ func newEntry(msg string, ts time.Time, labels model.LabelSet) api.Entry {
 	return api.Entry{Labels: labels, Entry: entry}
 }
 
-// maintain "last event" state and write it out to disk as necessary
+// maintain "last event" state
 func (eh *EventHandler) updateLastEvent(e *v1.Event, eventTs time.Time) error {
-	// resource handler fns don't run concurrently so we probably don't need this...
 	eh.Lock()
 	defer eh.Unlock()
 
@@ -318,41 +300,37 @@ func (eh *EventHandler) updateLastEvent(e *v1.Event, eventTs time.Time) error {
 		return nil
 	}
 
-	// if timestamp is different, write out the current last event and create
-	// a new lastEvent struct
-	err := eh.writeOutLastEvent()
-	if err != nil {
-		return err
-	}
+	// if timestamp is different, create a new ShippedEvents struct
 	eh.LastEvent = &ShippedEvents{Timestamp: eventTs, RvMap: make(map[string]struct{})}
 	eh.LastEvent.RvMap[eventRv] = struct{}{}
 	return nil
 }
 
 func (eh *EventHandler) writeOutLastEvent() error {
-	if eh.LastEvent == nil {
-		return nil
-	}
-	if _, err := eh.CacheFile.Seek(0, io.SeekEnd); err != nil {
-		return err
-	}
-	buf, _ := json.Marshal(&eh.LastEvent)
-	_, err := fmt.Fprintln(eh.CacheFile, string(buf))
+	level.Info(eh.Log).Log("msg", "WRITING last event to disk")
+	// TODO: this doesn't work for some reason...maybe perms...
+	temp := eh.CachePath + "-new"
+	buf, err := json.Marshal(&eh.LastEvent)
 	if err != nil {
 		return err
 	}
-	return nil
+
+	err = ioutil.WriteFile(temp, buf, os.FileMode(cacheFileMode))
+	if err != nil {
+		return err
+	}
+	return os.Rename(temp, eh.CachePath)
 }
 
 // RunIntegration runs the eventhandler integration
 func (eh *EventHandler) RunIntegration(ctx context.Context) error {
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	// todo: figure this out on K8s (PVC, etc.)
 	cacheDir := filepath.Dir(eh.CachePath)
 	// todo: correct perms here? / k8s config
-	if err := os.MkdirAll(cacheDir, 0777); err != nil {
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to create cache dir", "err", err)
 		cancel()
 	}
@@ -363,30 +341,20 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 		level.Error(eh.Log).Log("msg", "Failed to open or create cache file", "err", err)
 		cancel()
 	}
-	eh.CacheFile = cacheFile
 
 	// attempt to read last timestamp from cache file into a ShippedEvents struct
-	initEvent, err := readInitEvent(eh.CacheFile, eh.Log)
+	initEvent, err := readInitEvent(cacheFile, eh.Log)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to read last event from cache file", "err", err)
 		cancel()
 	}
 	eh.InitEvent = initEvent
 
-	// sync & close cache file
-	defer func() {
-		if err := eh.CacheFile.Close(); err != nil {
-			level.Error(eh.Log).Log("msg", "Failed to close cache file", "err", err)
-			cancel()
-		}
-	}()
-	// todo: do we need this?
-	defer func() {
-		if err := eh.CacheFile.Sync(); err != nil {
-			level.Error(eh.Log).Log("msg", "Failed to sync cache file", "err", err)
-			cancel()
-		}
-	}()
+	if err = cacheFile.Close(); err != nil {
+		level.Error(eh.Log).Log("msg", "Failed to close cache file", "err", err)
+		cancel()
+	}
+
 	// write out .LastEvent struct to cache file on exit
 	defer func() {
 		if err := eh.writeOutLastEvent(); err != nil {
@@ -411,19 +379,26 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	// technically we should prob use the factory here, but since we
 	// only have one informer atm, this likely doesn't matter
 	eh.EventInformer.Run(ctx.Done())
+	go eh.runTicker()
 
 	<-ctx.Done()
 
 	return nil
 }
 
+// write out last event every FlushInterval
+func (eh *EventHandler) runTicker() {
+	eh.ticker = time.NewTicker(eh.FlushInterval)
+	for range eh.ticker.C {
+		level.Info(eh.Log).Log("msg", "Flushing last event to disk")
+		eh.writeOutLastEvent()
+		level.Info(eh.Log).Log("msg", "Flushed last event to disk")
+	}
+}
+
 func readInitEvent(file *os.File, logger log.Logger) (*ShippedEvents, error) {
 	var (
 		initEvent = new(ShippedEvents)
-		// skip first newline
-		cur  int64 = -1
-		char       = make([]byte, 1)
-		line       = ""
 	)
 
 	stat, err := file.Stat()
@@ -435,28 +410,10 @@ func readInitEvent(file *os.File, logger log.Logger) (*ShippedEvents, error) {
 		return initEvent, nil
 	}
 
-	size := stat.Size()
-	for {
-		cur--
-		_, err = file.Seek(cur, 2)
-		if err != nil {
-			return nil, err
-		}
-		_, err = file.Read(char)
-		if err != nil {
-			return nil, err
-		}
-		// newline
-		if char[0] == 10 {
-			break
-		}
-		line = string(char) + line
-		if cur == -size {
-			break
-		}
-	}
-	err = json.Unmarshal([]byte(line), &initEvent)
+	dec := json.NewDecoder(file)
+	err = dec.Decode(&initEvent)
 	if err != nil {
+		err = fmt.Errorf("could not read init event from cache: %s. Please delete the cache file", err)
 		return nil, err
 	}
 	level.Info(logger).Log("msg", "Loaded init event from cache file", "initEventTime", initEvent.Timestamp)

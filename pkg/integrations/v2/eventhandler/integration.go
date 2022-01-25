@@ -12,6 +12,7 @@ var DefaultConfig = Config{
 	CachePath:      "./.eventcache/eventhandler.cache",
 	LogsInstance:   "default",
 	InformerResync: 120,
+	FlushInterval:  5,
 }
 
 // Config configures the eventhandler integration
@@ -33,6 +34,8 @@ type Config struct {
 	LogsInstance string `yaml:"logs_instance,omitempty"`
 	// informer resync interval. out of scope to describe this here.
 	InformerResync int `yaml:"informer_resync,omitempty"` // seconds
+	// how often to flush last event to cache file
+	FlushInterval int `yaml:"flush_interval,omitempty"` // seconds
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
