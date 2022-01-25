@@ -1,12 +1,8 @@
 package eventhandler
 
 import (
-	"fmt"
-	"path/filepath"
-
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2"
-	"k8s.io/client-go/util/homedir"
 )
 
 // DefaultConfig sets defaults for Config
@@ -15,7 +11,6 @@ var DefaultConfig = Config{
 	ClusterName:    "cloud",
 	CachePath:      "./.eventcache/eventhandler.cache",
 	LogsInstance:   "default",
-	InCluster:      false,
 	InformerResync: 120,
 }
 
@@ -36,8 +31,6 @@ type Config struct {
 	CachePath string `yaml:"cache_path,omitempty"`
 	// name of logs subsystem instance to hand events off to
 	LogsInstance string `yaml:"logs_instance,omitempty"`
-	// are we running in cluster?
-	InCluster bool `yaml:"in_cluster,omitempty"`
 	// informer resync interval. out of scope to describe this here.
 	InformerResync int `yaml:"informer_resync,omitempty"` // seconds
 }
@@ -55,16 +48,6 @@ func (c *Config) Name() string { return "eventhandler" }
 
 // ApplyDefaults applies runtime-specific defaults to c
 func (c *Config) ApplyDefaults(globals integrations.Globals) error {
-	// if not running in cluster and KC path not set,
-	// use default kubeconfig path in user's home dir
-	if !c.InCluster && c.KubeconfigPath == "" {
-		if home := homedir.HomeDir(); home != "" {
-			c.KubeconfigPath = filepath.Join(home, ".kube", "config")
-		} else {
-			// unable to return home dir
-			return fmt.Errorf("could not set home dir and find a kubeconfig. please set kubeconfig_path in your agent config or set in_cluster to true")
-		}
-	}
 	return nil
 }
 

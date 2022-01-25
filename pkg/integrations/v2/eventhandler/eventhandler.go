@@ -20,6 +20,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -66,13 +67,22 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 		err    error
 	)
 
-	if c.InCluster {
-		config, err = rest.InClusterConfig()
-	} else {
-		config, err = clientcmd.BuildConfigFromFlags("", c.KubeconfigPath)
-	}
+	// Try using KubeconfigPath or inClusterConfig
+	config, err = clientcmd.BuildConfigFromFlags("", c.KubeconfigPath)
 	if err != nil {
-		return nil, err
+		level.Error(l).Log("msg", "Loading from KubeconfigPath or inClusterConfig failed", "err", err)
+		// Trying default home location
+		if home := homedir.HomeDir(); home != "" {
+			kubeconfigPath := filepath.Join(home, ".kube", "config")
+			config, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+			if err != nil {
+				level.Error(l).Log("msg", "Could not load a kubeconfig", "err", err)
+				return nil, err
+			}
+		} else {
+			err = fmt.Errorf("could not load a kubeconfig")
+			return nil, err
+		}
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
