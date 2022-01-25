@@ -649,12 +649,10 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 	// Check for duplicate vs last stored exemplar for this series, and discard those.
 	// Otherwise, record the current exemplar as the latest
 	prevExemplar := a.w.series.getLatestExemplar(ref)
-	if prevExemplar != nil {
-		if exemplarsEqual(*prevExemplar, e) {
-			return 0, nil
-		}
-		a.w.series.setLatestExemplar(ref, &memExemplar{ts: e.Ts, value: e.Value, labels: e.Labels})
+	if prevExemplar != nil && exemplarsEqual(*prevExemplar, e) {
+		return 0, nil
 	}
+	a.w.series.setLatestExemplar(ref, &memExemplar{ts: e.Ts, value: e.Value, labels: e.Labels})
 
 	a.exemplars = append(a.exemplars, record.RefExemplar{
 		Ref:    ref,

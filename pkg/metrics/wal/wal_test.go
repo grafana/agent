@@ -104,6 +104,47 @@ func TestStorage(t *testing.T) {
 	require.Equal(t, expectedExemplars, actualExemplars)
 }
 
+func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
+	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
+	require.NoError(t, err)
+	defer os.RemoveAll(walDir)
+
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+
+	app := s.Appender(context.Background())
+
+	sRef, err := app.Append(0, labels.Labels{{Name: "a", Value: "1"}}, 0, 0)
+	require.NoError(t, err, "should not reject valid series")
+
+	// If the Labels, Value or Timestamp are different than the last exemplar,
+	// then a new one should be appended; Otherwise, it should be skipped.
+	e := exemplar.Exemplar{Labels: labels.Labels{{Name: "a", Value: "1"}}, Value: 20, Ts: 10, HasTs: true}
+	app.AppendExemplar(sRef, nil, e)
+	app.AppendExemplar(sRef, nil, e)
+
+	e.Labels = labels.Labels{{Name: "b", Value: "2"}}
+	app.AppendExemplar(sRef, nil, e)
+	app.AppendExemplar(sRef, nil, e)
+	app.AppendExemplar(sRef, nil, e)
+
+	e.Value = 42
+	app.AppendExemplar(sRef, nil, e)
+	app.AppendExemplar(sRef, nil, e)
+
+	e.Ts = 25
+	app.AppendExemplar(sRef, nil, e)
+	app.AppendExemplar(sRef, nil, e)
+
+	require.NoError(t, app.Commit())
+	collector := walDataCollector{}
+	replayer := walReplayer{w: &collector}
+	require.NoError(t, replayer.Replay(s.wal.Dir()))
+
+	// We had 9 calls to AppendExemplar but only 4 of them should have been appended
+	require.Equal(t, 4, len(collector.exemplars))
+}
+
 func TestStorage_ExistingWAL(t *testing.T) {
 	walDir, err := ioutil.TempDir(os.TempDir(), "wal")
 	require.NoError(t, err)
