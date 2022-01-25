@@ -26,13 +26,11 @@ func TestMetricsHandlerIntegration_Targets(t *testing.T) {
 		SubsystemOpts: integrations.DefaultSubsystemOptions,
 	}
 
-	t.Run("Extra labels", func(t *testing.T) {
-		common := common.MetricsConfig{
-			ExtraLabels: labels.FromMap(map[string]string{"foo": "bar", "fizz": "buzz"}),
-		}
-		common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+	t.Run("Targets", func(t *testing.T) {
+		var cfg common.MetricsConfig
+		cfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 
-		i, err := NewMetricsHandlerIntegration(nil, fakeConfig{}, common, globals, http.NotFoundHandler())
+		i, err := NewMetricsHandlerIntegration(nil, fakeConfig{}, cfg, globals, http.NotFoundHandler())
 		require.NoError(t, err)
 
 		actual := i.Targets(integrations.Endpoint{Host: "test", Prefix: "/test/"})
@@ -46,16 +44,31 @@ func TestMetricsHandlerIntegration_Targets(t *testing.T) {
 				"__meta_agent_integration_name":       "fake",
 				"__meta_agent_integration_instance":   "testagent",
 				"__meta_agent_integration_autoscrape": "1",
-
-				"foo":  "bar",
-				"fizz": "buzz",
 			},
 			Targets: []model.LabelSet{{
-				"__address__":      "test", // from integrations.Endpoint
+				"__address__":      "test",
 				"__metrics_path__": "/test/metrics",
 			}},
 		}}
 		require.Equal(t, expect, actual)
+
+		t.Run("Extra labels", func(t *testing.T) {
+			cfg := common.MetricsConfig{
+				ExtraLabels: labels.FromMap(map[string]string{"foo": "bar", "fizz": "buzz"}),
+			}
+			cfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+
+			i, err := NewMetricsHandlerIntegration(nil, fakeConfig{}, cfg, globals, http.NotFoundHandler())
+			require.NoError(t, err)
+			actual := i.Targets(integrations.Endpoint{Host: "test", Prefix: "/test/"})
+			require.Len(t, actual, 1)
+
+			for _, lbl := range cfg.ExtraLabels {
+				val, ok := actual[0].Labels[model.LabelName(lbl.Name)]
+				require.True(t, ok, "target does not have extra label %s", lbl.Name)
+				require.Equal(t, lbl.Value, string(val), "extra label %s does not match expectation", lbl.Name)
+			}
+		})
 	})
 }
 
