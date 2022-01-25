@@ -8,22 +8,22 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/config"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/exporters"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/models"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/tools/ratelimiting"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/tools/ratelimiting"
 	"github.com/rs/cors"
 )
 
 // AppReceiver struct contrls the data receiver of the exporter
 type AppReceiver struct {
-	exporters   []exporters.AppReceiverExporter
-	config      config.AppExporterConfig
+	exporters   []exporters.AppO11yReceiverExporter
+	config      config.AppO11yReceiverConfig
 	rateLimiter *ratelimiting.RateLimiter
 }
 
 // NewAppReceiver creates a new AppReceiver instance based on the given configuration
-func NewAppReceiver(conf config.AppExporterConfig, exporters []exporters.AppReceiverExporter) AppReceiver {
+func NewAppReceiver(conf config.AppO11yReceiverConfig, exporters []exporters.AppO11yReceiverExporter) AppReceiver {
 	var rateLimiter *ratelimiting.RateLimiter
 	if conf.RateLimiting.Enabled {
 		var rps float64
@@ -78,7 +78,7 @@ func (ar *AppReceiver) ReceiverHandler(logger log.Logger) http.Handler {
 
 		for _, exporter := range ar.exporters {
 			wg.Add(1)
-			go func(exp exporters.AppReceiverExporter) {
+			go func(exp exporters.AppO11yReceiverExporter) {
 				defer wg.Done()
 				if err = exp.Export(p); err != nil {
 					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err.Error())

@@ -7,8 +7,8 @@ import (
 	kitlog "github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/models"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/utils"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	loki "github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
@@ -37,7 +37,7 @@ func (le *LokiExporter) Init() error {
 
 // NewLokiExporter creates a new Loki loki exporter with the given
 // configuration
-func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig) AppReceiverExporter {
+func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig) AppO11yReceiverExporter {
 
 	return &LokiExporter{
 		logger:    logger,
@@ -115,5 +115,5 @@ func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 
 // Static typecheck tests
 var (
-	_ AppReceiverExporter = (*LokiExporter)(nil)
+	_ AppO11yReceiverExporter = (*LokiExporter)(nil)
 )

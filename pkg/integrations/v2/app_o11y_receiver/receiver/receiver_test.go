@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/config"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_exporter/exporters"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,11 +30,11 @@ func TestNoLimitSet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.AppExporterConfig{}
+	conf := config.AppO11yReceiverConfig{}
 
 	req.ContentLength = 89348593894
 
-	fr := NewAppReceiver(conf, []exporters.AppReceiverExporter{})
+	fr := NewAppReceiver(conf, []exporters.AppO11yReceiverExporter{})
 	handler := fr.ReceiverHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -51,11 +51,11 @@ func TestLargePayload(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.AppExporterConfig{
+	conf := config.AppO11yReceiverConfig{
 		MaxAllowedPayloadSize: 10,
 	}
 
-	fr := NewAppReceiver(conf, []exporters.AppReceiverExporter{})
+	fr := NewAppReceiver(conf, []exporters.AppO11yReceiverExporter{})
 	handler := fr.ReceiverHandler(nil)
 
 	rr := httptest.NewRecorder()

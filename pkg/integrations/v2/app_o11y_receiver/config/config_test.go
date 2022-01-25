@@ -8,7 +8,7 @@ import (
 )
 
 func TestConfig_DefaultConfig(t *testing.T) {
-	var cfg AppExporterConfig
+	var cfg AppO11yReceiverConfig
 	cb := `
 test-conf: test-val`
 	err := yaml.Unmarshal([]byte(cb), &cfg)
@@ -20,7 +20,7 @@ test-conf: test-val`
 }
 
 func TestConfig_EnableRateLimitNoRPS(t *testing.T) {
-	var cfg AppExporterConfig
+	var cfg AppO11yReceiverConfig
 	cb := `
 rate_limiting:
   enabled: true`
@@ -32,7 +32,7 @@ rate_limiting:
 }
 
 func TestConfig_EnableRateLimitRPS(t *testing.T) {
-	var cfg AppExporterConfig
+	var cfg AppO11yReceiverConfig
 	cb := `
 rate_limiting:
   enabled: true
