@@ -46,7 +46,6 @@ type EventHandler struct {
 	EventInformer cache.SharedIndexInformer
 	ClusterLabel  string
 	SendTimeout   time.Duration
-	FlushInterval time.Duration
 	ticker        *time.Ticker
 	sync.Mutex
 }
@@ -103,10 +102,10 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 		EventInformer: eventInformer,
 		ClusterLabel:  c.ClusterName,
 		SendTimeout:   time.Duration(c.SendTimeout) * time.Second,
-		FlushInterval: time.Duration(c.FlushInterval) * time.Second,
 	}
 	// set the resource handler fns
 	eh.initInformer(eventInformer)
+	eh.ticker = time.NewTicker(time.Duration(c.FlushInterval) * time.Second)
 	return eh, nil
 }
 
@@ -121,11 +120,8 @@ func (eh *EventHandler) initInformer(eventsInformer cache.SharedIndexInformer) {
 
 // Handles new event objects
 func (eh *EventHandler) addEvent(obj interface{}) {
-	event, ok := obj.(*v1.Event)
-	if !ok {
-		level.Error(eh.Log).Log("msg", "Object not v1.Event", "obj", obj)
-		return
-	}
+	event, _ := obj.(*v1.Event)
+
 	err := eh.handleEvent(event)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Error handling event", "err", err, "event", event)
@@ -135,23 +131,15 @@ func (eh *EventHandler) addEvent(obj interface{}) {
 // Handles event object updates. Note that this get triggered on informer resyncs and also
 // events occurring more than once (in which case .count is incremented)
 func (eh *EventHandler) updateEvent(objOld interface{}, objNew interface{}) {
-	eOld, ok := objOld.(*v1.Event)
-	if !ok {
-		level.Error(eh.Log).Log("msg", "Object not v1.Event", "obj", eOld)
-		return
-	}
-
-	eNew, ok := objNew.(*v1.Event)
-	if !ok {
-		level.Error(eh.Log).Log("msg", "Object not v1.Event", "obj", eNew)
-		return
-	}
+	eOld, _ := objOld.(*v1.Event)
+	eNew, _ := objNew.(*v1.Event)
 
 	if eOld.GetResourceVersion() == eNew.GetResourceVersion() {
 		// ignore resync updates
 		level.Debug(eh.Log).Log("msg", "Event RV didn't change, ignoring", "eRV", eNew.ResourceVersion)
 		return
 	}
+
 	err := eh.handleEvent(eNew)
 	if err != nil {
 		level.Error(eh.Log).Log("msg", "Error handling event", "err", err, "event", eNew)
@@ -193,9 +181,8 @@ func (eh *EventHandler) handleEvent(event *v1.Event) error {
 	return nil
 }
 
+// Called when event objects are removed from etcd, can safely ignore this
 func (eh *EventHandler) deleteEvent(obj interface{}) {
-	// do nothing...
-	// todo: log this maybe??
 }
 
 // extract data from event fields and create labels, etc.
@@ -212,7 +199,7 @@ func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, e
 		return nil, "", fmt.Errorf("no involved object for event")
 	}
 
-	labels[model.LabelName("source")] = model.LabelValue("eventhandler")
+	labels[model.LabelName("job")] = model.LabelValue("eventhandler")
 	labels[model.LabelName("cluster")] = model.LabelValue(eh.ClusterLabel)
 
 	kindStr := strings.ToLower(obj.Kind)
@@ -307,8 +294,16 @@ func (eh *EventHandler) updateLastEvent(e *v1.Event, eventTs time.Time) error {
 }
 
 func (eh *EventHandler) writeOutLastEvent() error {
-	level.Info(eh.Log).Log("msg", "WRITING last event to disk")
-	// TODO: this doesn't work for some reason...maybe perms...
+	level.Info(eh.Log).Log("msg", "Flushing last event to disk")
+
+	eh.Lock()
+	defer eh.Unlock()
+
+	if eh.LastEvent == nil {
+		level.Info(eh.Log).Log("msg", "No last event to flush, returning")
+		return nil
+	}
+
 	temp := eh.CachePath + "-new"
 	buf, err := json.Marshal(&eh.LastEvent)
 	if err != nil {
@@ -319,7 +314,12 @@ func (eh *EventHandler) writeOutLastEvent() error {
 	if err != nil {
 		return err
 	}
-	return os.Rename(temp, eh.CachePath)
+
+	if err = os.Rename(temp, eh.CachePath); err != nil {
+		return err
+	}
+	level.Info(eh.Log).Log("msg", "Flushed last event to disk")
+	return nil
 }
 
 // RunIntegration runs the eventhandler integration
@@ -329,7 +329,7 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 
 	// todo: figure this out on K8s (PVC, etc.)
 	cacheDir := filepath.Dir(eh.CachePath)
-	// todo: correct perms here? / k8s config
+	// todo: k8s config perms
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to create cache dir", "err", err)
 		cancel()
@@ -355,21 +355,12 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 		cancel()
 	}
 
-	// write out .LastEvent struct to cache file on exit
-	defer func() {
-		if err := eh.writeOutLastEvent(); err != nil {
-			level.Error(eh.Log).Log("msg", "Failed to write out last event", "err", err)
-			cancel()
-		}
-	}()
-
-	// todo: is it worth even doing this?
 	go func() {
 		level.Info(eh.Log).Log("msg", "Waiting for cache to sync (initial List of events)")
 		isSynced := cache.WaitForCacheSync(ctx.Done(), eh.EventInformer.HasSynced)
 		if !isSynced {
 			level.Error(eh.Log).Log("msg", "Failed to sync informer cache")
-			// todo: do we want to bail here?
+			// maybe want to bail here
 			return
 		}
 		level.Info(eh.Log).Log("msg", "Informer cache synced")
@@ -378,21 +369,25 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	// start the informer
 	// technically we should prob use the factory here, but since we
 	// only have one informer atm, this likely doesn't matter
-	eh.EventInformer.Run(ctx.Done())
-	go eh.runTicker()
+	go eh.EventInformer.Run(ctx.Done())
+	go eh.runTicker(ctx.Done())
 
 	<-ctx.Done()
 
+	// todo: ensure flush completes before returning
 	return nil
 }
 
 // write out last event every FlushInterval
-func (eh *EventHandler) runTicker() {
-	eh.ticker = time.NewTicker(eh.FlushInterval)
-	for range eh.ticker.C {
-		level.Info(eh.Log).Log("msg", "Flushing last event to disk")
-		eh.writeOutLastEvent()
-		level.Info(eh.Log).Log("msg", "Flushed last event to disk")
+func (eh *EventHandler) runTicker(stopCh <-chan struct{}) {
+	for {
+		select {
+		case <-stopCh:
+			eh.writeOutLastEvent()
+			return
+		case <-eh.ticker.C:
+			eh.writeOutLastEvent()
+		}
 	}
 }
 

@@ -12,7 +12,7 @@ var DefaultConfig = Config{
 	CachePath:      "./.eventcache/eventhandler.cache",
 	LogsInstance:   "default",
 	InformerResync: 120,
-	FlushInterval:  5,
+	FlushInterval:  10,
 }
 
 // Config configures the eventhandler integration

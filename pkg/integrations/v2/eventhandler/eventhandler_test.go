@@ -9,13 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TODO: fix this
 func TestCacheLoad(t *testing.T) {
 	l := log.NewNopLogger()
-	testTime, _ := time.Parse(time.RFC3339, "2022-01-20T17:12:58-06:00")
+	testTime, _ := time.Parse(time.RFC3339, "2022-01-26T13:39:40-05:00")
 	expectedEvents := &ShippedEvents{
 		Timestamp: testTime,
-		RvMap:     map[string]struct{}{"22819": {}, "22820": {}, "22821": {}},
+		RvMap:     map[string]struct{}{"58588": {}},
 	}
 	cacheFile, err := os.OpenFile("testdata/eventhandler.cache", os.O_RDWR|os.O_CREATE, cacheFileMode)
 	require.NoError(t, err, "Failed to open test eventhandler cache file")
