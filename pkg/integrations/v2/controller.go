@@ -122,18 +122,11 @@ func (c *controller) run(ctx context.Context) {
 		}()
 	}
 
-	updateIntegrations := func() {
-		// Lock the mutex to prevent another set of integrations from being
-		// loaded in.
-		c.mut.Lock()
-		defer c.mut.Unlock()
-
+	updateIntegrations := func(newIntegrations []*controlledIntegration) {
 		workersMut.Lock()
 		defer workersMut.Unlock()
 
 		level.Debug(c.logger).Log("msg", "updating running integrations", "prev_count", len(workers), "new_count", len(c.integrations))
-
-		newIntegrations := c.integrations
 
 		// Shut down workers whose integrations have gone away.
 		var stopped []worker
@@ -173,7 +166,11 @@ func (c *controller) run(ctx context.Context) {
 			level.Debug(c.logger).Log("msg", "controller exiting")
 			return
 		case <-c.reloadIntegrations:
-			updateIntegrations()
+			c.mut.Lock()
+			newIntegrations := c.integrations
+			c.mut.Unlock()
+
+			updateIntegrations(newIntegrations)
 			if c.onUpdateDone != nil {
 				c.onUpdateDone()
 			}
