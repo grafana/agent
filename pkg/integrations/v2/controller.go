@@ -60,47 +60,67 @@ func (c *controller) run(ctx context.Context) {
 		exited chan struct{}
 	}
 	var (
+		runningWorkers sync.WaitGroup
+
 		workersMut sync.Mutex
 		workers    = make(map[*controlledIntegration]worker)
 	)
 
-	runWorker := func(ctx context.Context, w worker) {
-		defer func() {
-			// Have a worker remove itself from the map when it exits. Doing this
-			// allows exited integrations to re-start when the config is reloaded.
-			workersMut.Lock()
-			defer workersMut.Unlock()
-			delete(workers, w.ci)
-		}()
-
-		defer close(w.exited)
-
-		w.ci.running.Store(true)
-		defer w.ci.running.Store(false)
-
-		err := w.ci.i.RunIntegration(ctx)
-		if err != nil {
-			level.Warn(c.logger).Log("msg", "integration exited with error", "instance", w.ci.id, "err", err)
-		}
-	}
-
+	// Shut down all workers on shutdown.
 	defer func() {
-		level.Debug(c.logger).Log("msg", "stopping all integrations")
-
-		c.mut.Lock()
-		defer c.mut.Unlock()
+		defer runningWorkers.Wait()
 
 		workersMut.Lock()
 		defer workersMut.Unlock()
 
+		level.Debug(c.logger).Log("msg", "stopping all integrations")
+
 		for _, w := range workers {
 			w.stop()
 		}
-		for key, w := range workers {
-			<-w.exited
-			delete(workers, key)
-		}
 	}()
+
+	// scheduleWorker starts a new worker for an integration in the background.
+	// The worker will be removed when the integration stops running.
+	//
+	// workersMut should be held while calling this.
+	scheduleWorker := func(ctx context.Context, ci *controlledIntegration) {
+		runningWorkers.Add(1)
+
+		ctx, cancel := context.WithCancel(ctx)
+
+		w := worker{
+			ci:     ci,
+			stop:   cancel,
+			exited: make(chan struct{}),
+		}
+		workers[ci] = w
+
+		go func() {
+			w.ci.running.Store(true)
+
+			// When the integration stops running, we want to free any of our
+			// resources that will notify watchers waiting for the worker to stop.
+			//
+			// Afterwards, we'll block until we remove ourselves from the map; having
+			// an worker remove itself on shutdown allows exited integrations to
+			// re-start when the config is reloaded.
+			defer func() {
+				w.ci.running.Store(false)
+				close(w.exited)
+				runningWorkers.Done()
+
+				workersMut.Lock()
+				defer workersMut.Unlock()
+				delete(workers, ci)
+			}()
+
+			err := ci.i.RunIntegration(ctx)
+			if err != nil {
+				level.Error(c.logger).Log("msg", "integration exited with error", "id", ci.id, "err", err)
+			}
+		}()
+	}
 
 	updateIntegrations := func() {
 		// Lock the mutex to prevent another set of integrations from being
@@ -128,7 +148,6 @@ func (c *controller) run(ctx context.Context) {
 			if !found {
 				w.stop()
 				stopped = append(stopped, w)
-				delete(workers, ci)
 			}
 		}
 		for _, w := range stopped {
@@ -143,17 +162,8 @@ func (c *controller) run(ctx context.Context) {
 			if _, workerExists := workers[current]; workerExists {
 				continue
 			}
-
-			// This integration doesn't have a worker yet; create a new one.
-			workerContext, workerCancel := context.WithCancel(ctx)
-
-			w := worker{
-				ci:     current,
-				stop:   workerCancel,
-				exited: make(chan struct{}),
-			}
-			go runWorker(workerContext, w)
-			workers[current] = w
+			// This integration doesn't have an existing worker; schedule a new one.
+			scheduleWorker(ctx, current)
 		}
 	}
 
