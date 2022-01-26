@@ -387,7 +387,7 @@ func BenchmarkAppendExemplar(b *testing.B) {
 	}
 
 	// Actually use appended exemplars in case they get eliminated
-	app.Commit()
+	_ = app.Commit()
 }
 
 type sample struct {
