@@ -30,11 +30,6 @@ type LokiExporter struct {
 	labels    map[string]string
 }
 
-// Init implements the AppReceiverExporter interface
-func (le *LokiExporter) Init() error {
-	return nil
-}
-
 // NewLokiExporter creates a new Loki loki exporter with the given
 // configuration
 func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig) AppO11yReceiverExporter {

@@ -7,6 +7,5 @@ import (
 // AppO11yReceiverExporter is the base interface
 type AppO11yReceiverExporter interface {
 	Name() string
-	Init() error
 	Export(payload models.Payload) error
 }

@@ -1,4 +1,4 @@
-package receiver
+package handler
 
 import (
 	"sync"
@@ -15,15 +15,15 @@ import (
 	"github.com/rs/cors"
 )
 
-// AppReceiver struct contrls the data receiver of the exporter
-type AppReceiver struct {
+// AppO11yHandler struct controls the data ingestion http handler of the receiver
+type AppO11yHandler struct {
 	exporters   []exporters.AppO11yReceiverExporter
 	config      config.AppO11yReceiverConfig
 	rateLimiter *ratelimiting.RateLimiter
 }
 
-// NewAppReceiver creates a new AppReceiver instance based on the given configuration
-func NewAppReceiver(conf config.AppO11yReceiverConfig, exporters []exporters.AppO11yReceiverExporter) AppReceiver {
+// NewAppO11yHandler creates a new AppReceiver instance based on the given configuration
+func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.AppO11yReceiverExporter) AppO11yHandler {
 	var rateLimiter *ratelimiting.RateLimiter
 	if conf.RateLimiting.Enabled {
 		var rps float64
@@ -38,20 +38,20 @@ func NewAppReceiver(conf config.AppO11yReceiverConfig, exporters []exporters.App
 		rateLimiter = ratelimiting.NewRateLimiter(rps, b)
 	}
 
-	return AppReceiver{
+	return AppO11yHandler{
 		exporters:   exporters,
 		config:      conf,
 		rateLimiter: rateLimiter,
 	}
 }
 
-// ReceiverHandler is the http.Handler for the receiver. It will do the following
+// HTTPHandler is the http.Handler for the receiver. It will do the following
 // 0. Enable CORS for the configured hosts
 // 1. Check if the request should be rate limited
 // 2. Verify that the payload size is within limits
 // 3. Start two go routines for exporters processing and exporting data respectively
 // 4. Respond with 202 once all the work is done
-func (ar *AppReceiver) ReceiverHandler(logger log.Logger) http.Handler {
+func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check rate limiting state
 		if ar.config.RateLimiting.Enabled && ar.rateLimiter.IsRateLimited() {
