@@ -120,28 +120,28 @@ func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 	// If the Labels, Value or Timestamp are different than the last exemplar,
 	// then a new one should be appended; Otherwise, it should be skipped.
 	e := exemplar.Exemplar{Labels: labels.Labels{{Name: "a", Value: "1"}}, Value: 20, Ts: 10, HasTs: true}
-	app.AppendExemplar(sRef, nil, e)
-	app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
 
 	e.Labels = labels.Labels{{Name: "b", Value: "2"}}
-	app.AppendExemplar(sRef, nil, e)
-	app.AppendExemplar(sRef, nil, e)
-	app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
 
 	e.Value = 42
-	app.AppendExemplar(sRef, nil, e)
-	app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
 
 	e.Ts = 25
-	app.AppendExemplar(sRef, nil, e)
-	app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
 
 	require.NoError(t, app.Commit())
 	collector := walDataCollector{}
 	replayer := walReplayer{w: &collector}
 	require.NoError(t, replayer.Replay(s.wal.Dir()))
 
-	// We had 9 calls to AppendExemplar but only 4 of them should have been appended
+	// We had 9 calls to AppendExemplar but only 4 of those should have gotten through
 	require.Equal(t, 4, len(collector.exemplars))
 }
 

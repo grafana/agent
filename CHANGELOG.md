@@ -11,6 +11,8 @@
 - [BUGFIX] Operator: Add missing proxy_url field from generated remote_write
   configs. (@rfratto)
 
+- [ENHANCEMENT] The agent no longer appends duplicate exemplars. (@tpaschalis)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
