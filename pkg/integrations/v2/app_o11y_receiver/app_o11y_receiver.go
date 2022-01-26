@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/receiver"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/handler"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/prometheus/client_golang/prometheus"
@@ -56,7 +56,7 @@ type appo11yIntegration struct {
 	logger                      log.Logger
 	conf                        config.AppO11yReceiverConfig
 	common                      common.MetricsConfig
-	receiver                    receiver.AppReceiver
+	handler                     handler.AppO11yHandler
 	exporters                   []exporters.AppO11yReceiverExporter
 	reg                         *prometheus.Registry
 }
@@ -95,14 +95,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		lokiExporter,
 	}
 
-	receiver := receiver.NewAppReceiver(c.ExporterConfig, exp)
-
-	for _, e := range exp {
-		err = e.Init()
-		if err != nil {
-			return nil, err
-		}
-	}
+	handler := handler.NewAppO11yHandler(c.ExporterConfig, exp)
 
 	return &appo11yIntegration{
 		logger:          l,
@@ -111,7 +104,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		common:          c.Common,
 		globals:         globals,
 		conf:            c.ExporterConfig,
-		receiver:        receiver,
+		handler:         handler,
 		exporters:       exp,
 		reg:             reg,
 	}, nil
@@ -174,7 +167,7 @@ func (i *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.S
 // RunIntegration implements Integratin
 func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	r := mux.NewRouter()
-	r.Handle("/collect", i.receiver.ReceiverHandler(i.logger))
+	r.Handle("/collect", i.handler.HTTPHandler(i.logger))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),

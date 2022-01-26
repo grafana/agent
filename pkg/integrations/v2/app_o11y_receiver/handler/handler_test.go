@@ -1,4 +1,4 @@
-package receiver
+package handler
 
 import (
 	"bytes"
@@ -34,8 +34,8 @@ func TestNoLimitSet(t *testing.T) {
 
 	req.ContentLength = 89348593894
 
-	fr := NewAppReceiver(conf, []exporters.AppO11yReceiverExporter{})
-	handler := fr.ReceiverHandler(nil)
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
 
@@ -55,8 +55,8 @@ func TestLargePayload(t *testing.T) {
 		MaxAllowedPayloadSize: 10,
 	}
 
-	fr := NewAppReceiver(conf, []exporters.AppO11yReceiverExporter{})
-	handler := fr.ReceiverHandler(nil)
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
 
