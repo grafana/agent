@@ -55,26 +55,26 @@ func (le *LokiExporter) Export(payload models.Payload) error {
 	for _, logItem := range payload.Logs {
 		kv := logItem.KeyVal()
 		utils.MergeKeyVal(kv, meta)
-		le.sendKeyValsTolokiPipeline(kv)
+		le.sendKeyValsToLogsPipeline(kv)
 	}
 	// exceptions
 	for _, exception := range payload.Exceptions {
 		kv := exception.KeyVal()
 		utils.MergeKeyVal(kv, meta)
-		le.sendKeyValsTolokiPipeline(kv)
+		le.sendKeyValsToLogsPipeline(kv)
 	}
 
 	// measurements
 	for _, measurement := range payload.Measurements {
 		kv := measurement.KeyVal()
 		utils.MergeKeyVal(kv, meta)
-		le.sendKeyValsTolokiPipeline(kv)
+		le.sendKeyValsToLogsPipeline(kv)
 	}
 
 	return nil
 }
 
-func (le *LokiExporter) sendKeyValsTolokiPipeline(kv *utils.KeyVal) {
+func (le *LokiExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) {
 	line, err := logfmt.MarshalKeyvals(utils.KeyValToInterfaceSlice(kv)...)
 	if err != nil {
 		level.Error(le.logger).Log("msg", "failed to logfmt a frontend log event", "err", err)
