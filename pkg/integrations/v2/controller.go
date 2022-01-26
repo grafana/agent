@@ -127,7 +127,7 @@ func (c *controller) run(ctx context.Context) {
 		workersMut.Lock()
 		defer workersMut.Unlock()
 
-		level.Debug(c.logger).Log("msg", "updating running integrations", "prev_count", len(workers), "new_count", len(c.integrations))
+		level.Debug(c.logger).Log("msg", "updating running integrations", "prev_count", len(workers), "new_count", len(newIntegrations))
 
 		// Shut down workers whose integrations have gone away.
 		var stopped []worker
