@@ -372,6 +372,24 @@ func TestStorage_TruncateAfterClose(t *testing.T) {
 	require.Error(t, ErrWALClosed, s.Truncate(0))
 }
 
+func BenchmarkAppendExemplar(b *testing.B) {
+	walDir, _ := ioutil.TempDir(os.TempDir(), "wal")
+	defer os.RemoveAll(walDir)
+
+	s, _ := NewStorage(log.NewNopLogger(), nil, walDir)
+	app := s.Appender(context.Background())
+	sRef, _ := app.Append(0, labels.Labels{{Name: "a", Value: "1"}}, 0, 0)
+
+	e := exemplar.Exemplar{Labels: labels.Labels{{Name: "a", Value: "1"}}, Value: 20, Ts: 10, HasTs: true}
+	for i := 0; i < b.N; i++ {
+		e.Ts = int64(i)
+		_, _ = app.AppendExemplar(sRef, nil, e)
+	}
+
+	// Actually use appended exemplars in case they get eliminated
+	app.Commit()
+}
+
 type sample struct {
 	ts  int64
 	val float64
