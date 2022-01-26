@@ -383,10 +383,14 @@ func (eh *EventHandler) runTicker(stopCh <-chan struct{}) {
 	for {
 		select {
 		case <-stopCh:
-			eh.writeOutLastEvent()
+			if err := eh.writeOutLastEvent(); err != nil {
+				level.Error(eh.Log).Log("msg", "Failed to flush last event", "err", err)
+			}
 			return
 		case <-eh.ticker.C:
-			eh.writeOutLastEvent()
+			if err := eh.writeOutLastEvent(); err != nil {
+				level.Error(eh.Log).Log("msg", "Failed to flush last event", "err", err)
+			}
 		}
 	}
 }
