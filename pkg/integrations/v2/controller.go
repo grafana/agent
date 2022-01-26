@@ -25,13 +25,14 @@ type controllerConfig []Config
 
 // controller manages a set of integrations.
 type controller struct {
-	logger  log.Logger
-	mut     sync.Mutex
-	cfg     controllerConfig
-	globals Globals
+	logger log.Logger
 
-	integrations       []*controlledIntegration // Integrations to run
-	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
+	mut          sync.Mutex
+	cfg          controllerConfig
+	globals      Globals
+	integrations []*controlledIntegration // Running integrations
+
+	runIntegrations chan []*controlledIntegration // Schedule integrations to run
 
 	// onUpdateDone is used for testing and will be invoked when integrations
 	// finish reloading.
@@ -43,8 +44,8 @@ type controller struct {
 // integrations.
 func newController(l log.Logger, cfg controllerConfig, globals Globals) (*controller, error) {
 	c := &controller{
-		logger:             l,
-		reloadIntegrations: make(chan struct{}, 1),
+		logger:          l,
+		runIntegrations: make(chan []*controlledIntegration, 1),
 	}
 	if err := c.UpdateController(cfg, globals); err != nil {
 		return nil, err
@@ -150,7 +151,7 @@ func (c *controller) run(ctx context.Context) {
 			<-w.exited
 		}
 
-		// Spawn new workers.
+		// Spawn new workers for integrations that don't have them.
 		for _, current := range newIntegrations {
 			if _, workerExists := workers[current]; workerExists {
 				continue
@@ -158,6 +159,11 @@ func (c *controller) run(ctx context.Context) {
 			// This integration doesn't have an existing worker; schedule a new one.
 			scheduleWorker(ctx, current)
 		}
+
+		// Update the set of integrations we're running.
+		c.mut.Lock()
+		defer c.mut.Unlock()
+		c.integrations = newIntegrations
 	}
 
 	for {
@@ -165,11 +171,7 @@ func (c *controller) run(ctx context.Context) {
 		case <-ctx.Done():
 			level.Debug(c.logger).Log("msg", "controller exiting")
 			return
-		case <-c.reloadIntegrations:
-			c.mut.Lock()
-			newIntegrations := c.integrations
-			c.mut.Unlock()
-
+		case newIntegrations := <-c.runIntegrations:
 			updateIntegrations(newIntegrations)
 			if c.onUpdateDone != nil {
 				c.onUpdateDone()
@@ -276,9 +278,8 @@ NextConfig:
 		})
 	}
 
-	// Update integrations and inform
-	c.integrations = integrations
-	c.reloadIntegrations <- struct{}{}
+	// Schedule integrations to run
+	c.runIntegrations <- integrations
 
 	c.cfg = cfg
 	c.globals = globals
@@ -292,9 +293,6 @@ NextConfig:
 // Handler is expensive to compute and should only be done after reloading the
 // config.
 func (c *controller) Handler(prefix string) (http.Handler, error) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
 	var firstErr error
 	saveFirstErr := func(err error) {
 		if firstErr == nil {
@@ -304,7 +302,7 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 
 	r := mux.NewRouter()
 
-	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+	err := c.forEachIntegration(prefix, func(ci *controlledIntegration, iprefix string) {
 		id := ci.id
 
 		i, ok := ci.i.(HTTPIntegration)
@@ -340,20 +338,23 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 
 // forEachIntegration calculates the prefix for each integration and calls f.
 // prefix will not end in /.
-func forEachIntegration(set []*controlledIntegration, basePrefix string, f func(ci *controlledIntegration, iprefix string)) error {
+func (c *controller) forEachIntegration(basePrefix string, f func(ci *controlledIntegration, iprefix string)) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
 	// Pre-populate a mapping of integration name -> identifier. If there are
 	// two instances of the same integration, we want to ensure unique routing.
 	//
 	// This special logic is done for backwards compatibility with the original
 	// design of integrations.
 	identifiersMap := map[string][]string{}
-	for _, i := range set {
+	for _, i := range c.integrations {
 		identifiersMap[i.id.Name] = append(identifiersMap[i.id.Name], i.id.Identifier)
 	}
 
 	usedPrefixes := map[string]struct{}{}
 
-	for _, ci := range set {
+	for _, ci := range c.integrations {
 		id := ci.id
 		multipleInstances := len(identifiersMap[id.Name]) > 1
 
@@ -388,8 +389,7 @@ func (c *controller) Targets(ep Endpoint, opts TargetOptions) []*targetGroup {
 	}
 	var mm []prefixedMetricsIntegration
 
-	c.mut.Lock()
-	err := forEachIntegration(c.integrations, ep.Prefix, func(ci *controlledIntegration, iprefix string) {
+	err := c.forEachIntegration(ep.Prefix, func(ci *controlledIntegration, iprefix string) {
 		// Best effort liveness check. They might stop running when we request
 		// their targets, which is fine, but we should save as much work as we
 		// can.
@@ -404,7 +404,6 @@ func (c *controller) Targets(ep Endpoint, opts TargetOptions) []*targetGroup {
 	if err != nil {
 		level.Warn(c.logger).Log("msg", "error when iterating over integrations to get targets", "err", err)
 	}
-	c.mut.Unlock()
 
 	var tgs []*targetGroup
 	for _, mi := range mm {
@@ -497,8 +496,7 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 	}
 	var mm []prefixedMetricsIntegration
 
-	c.mut.Lock()
-	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+	err := c.forEachIntegration(prefix, func(ci *controlledIntegration, iprefix string) {
 		if mi, ok := ci.i.(MetricsIntegration); ok {
 			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
 		}
@@ -506,7 +504,6 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 	if err != nil {
 		level.Warn(c.logger).Log("msg", "error when iterating over integrations to get scrape configs", "err", err)
 	}
-	c.mut.Unlock()
 
 	var cfgs []*autoscrape.ScrapeConfig
 	for _, mi := range mm {

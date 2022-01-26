@@ -46,7 +46,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	waitIntegrations := func(t *testing.T, ctrl *controller) {
 		t.Helper()
 		_ = newSyncController(t, ctrl)
-		err := forEachIntegration(ctrl.integrations, "/", func(ci *controlledIntegration, _ string) {
+		err := ctrl.forEachIntegration("/", func(ci *controlledIntegration, _ string) {
 			wsi := ci.i.(mockMetricsIntegration).Integration.(*waitStartedIntegration)
 			_ = wsi.trigger.WaitContext(context.Background())
 		})
@@ -136,9 +136,7 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 		Globals{},
 	)
 	require.NoError(t, err)
-	// NOTE(rfratto): we explicitly don't run the controller here because
-	// ScrapeConfigs should return the list of scrape targets even when the
-	// integration isn't running.
+	_ = newSyncController(t, ctrl)
 
 	result := ctrl.ScrapeConfigs("/", &http.DefaultSDConfig)
 	expect := []*autoscrape.ScrapeConfig{
