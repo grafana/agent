@@ -73,33 +73,20 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 		}
 
 		var wg sync.WaitGroup
-		wgDone := make(chan bool)
-		errChan := make(chan error)
 
 		for _, exporter := range ar.exporters {
 			wg.Add(1)
 			go func(exp exporters.AppO11yReceiverExporter) {
 				defer wg.Done()
-				if err = exp.Export(p); err != nil {
+				if err := exp.Export(p); err != nil {
 					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err.Error())
-					errChan <- err
 				}
 			}(exporter)
 		}
 
-		go func() {
-			wg.Wait()
-			close(wgDone)
-		}()
-
-		select {
-		case <-wgDone:
-			w.WriteHeader(http.StatusAccepted)
-			_, _ = w.Write([]byte("ok"))
-		case err := <-errChan:
-			close(errChan)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		wg.Wait()
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte("ok"))
 	})
 
 	if len(ar.config.CORSAllowedOrigins) > 0 {

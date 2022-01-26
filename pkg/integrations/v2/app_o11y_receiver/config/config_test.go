@@ -13,10 +13,10 @@ func TestConfig_DefaultConfig(t *testing.T) {
 test-conf: test-val`
 	err := yaml.Unmarshal([]byte(cb), &cfg)
 	assert.Nil(t, err)
-	assert.Equal(t, cfg.CORSAllowedOrigins, []string{"http://localhost:1234"})
-	assert.Equal(t, cfg.Server.Host, "0.0.0.0")
-	assert.Equal(t, cfg.Server.Port, 8080)
-	assert.Equal(t, cfg.RateLimiting.Enabled, false)
+	assert.Equal(t, []string{"http://localhost:1234"}, cfg.CORSAllowedOrigins)
+	assert.Equal(t, "0.0.0.0", cfg.Server.Host)
+	assert.Equal(t, 8080, cfg.Server.Port)
+	assert.Equal(t, false, cfg.RateLimiting.Enabled)
 }
 
 func TestConfig_EnableRateLimitNoRPS(t *testing.T) {
@@ -26,9 +26,9 @@ rate_limiting:
   enabled: true`
 	err := yaml.Unmarshal([]byte(cb), &cfg)
 	assert.Nil(t, err)
-	assert.Equal(t, cfg.RateLimiting.Enabled, true)
-	assert.Equal(t, cfg.RateLimiting.RPS, 100.0)
-	assert.Equal(t, cfg.RateLimiting.Burstiness, 50)
+	assert.Equal(t, true, cfg.RateLimiting.Enabled)
+	assert.Equal(t, 100.0, cfg.RateLimiting.RPS)
+	assert.Equal(t, 50, cfg.RateLimiting.Burstiness)
 }
 
 func TestConfig_EnableRateLimitRPS(t *testing.T) {
@@ -39,7 +39,7 @@ rate_limiting:
   rps: 142`
 	err := yaml.Unmarshal([]byte(cb), &cfg)
 	assert.Nil(t, err)
-	assert.Equal(t, cfg.RateLimiting.Enabled, true)
-	assert.Equal(t, cfg.RateLimiting.RPS, 142.0)
-	assert.Equal(t, cfg.RateLimiting.Burstiness, 50)
+	assert.Equal(t, true, cfg.RateLimiting.Enabled)
+	assert.Equal(t, 142.0, cfg.RateLimiting.RPS)
+	assert.Equal(t, 50, cfg.RateLimiting.Burstiness)
 }
