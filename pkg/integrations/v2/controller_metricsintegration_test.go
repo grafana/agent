@@ -1,6 +1,7 @@
 package integrations
 
 import (
+	"context"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -21,7 +22,7 @@ import (
 func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	integrationWithTarget := func(targetName string) Integration {
 		return mockMetricsIntegration{
-			Integration: NoOpIntegration,
+			Integration: newWaitStartedIntegration(),
 			TargetsFunc: func(Endpoint) []*targetgroup.Group {
 				return []*targetgroup.Group{{
 					Targets: []model.LabelSet{{model.AddressLabel: model.LabelValue(targetName)}},
@@ -40,6 +41,17 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 		}),
 	}
 
+	// waitIntegrations starts a controller and waits for all of its integrations
+	// to run.
+	waitIntegrations := func(t *testing.T, ctrl *controller) {
+		t.Helper()
+		_ = newSyncController(t, ctrl)
+		forEachIntegration(ctrl.integrations, "/", func(ci *controlledIntegration, _ string) {
+			wsi := ci.i.(mockMetricsIntegration).Integration.(*waitStartedIntegration)
+			wsi.trigger.WaitContext(context.Background())
+		})
+	}
+
 	t.Run("All", func(t *testing.T) {
 		ctrl, err := newController(
 			util.TestLogger(t),
@@ -47,7 +59,12 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 			Globals{},
 		)
 		require.NoError(t, err)
-		_ = newSyncController(t, ctrl)
+		waitIntegrations(t, ctrl)
+
+		forEachIntegration(ctrl.integrations, "/", func(ci *controlledIntegration, _ string) {
+			wsi := ci.i.(mockMetricsIntegration).Integration.(*waitStartedIntegration)
+			wsi.trigger.WaitContext(context.Background())
+		})
 
 		result := ctrl.Targets(Endpoint{Prefix: "/"}, TargetOptions{})
 		expect := []*targetGroup{
@@ -64,7 +81,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 			Globals{},
 		)
 		require.NoError(t, err)
-		_ = newSyncController(t, ctrl)
+		waitIntegrations(t, ctrl)
 
 		result := ctrl.Targets(Endpoint{Prefix: "/"}, TargetOptions{
 			Integrations: []string{"a", "b"},
@@ -83,7 +100,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 			Globals{},
 		)
 		require.NoError(t, err)
-		_ = newSyncController(t, ctrl)
+		waitIntegrations(t, ctrl)
 
 		result := ctrl.Targets(Endpoint{Prefix: "/"}, TargetOptions{
 			Integrations: []string{"a"},
@@ -138,6 +155,20 @@ func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 //
 // Tests for controller's utilization of the MetricsIntegration interface.
 //
+
+type waitStartedIntegration struct {
+	trigger *util.WaitTrigger
+}
+
+func newWaitStartedIntegration() *waitStartedIntegration {
+	return &waitStartedIntegration{trigger: util.NewWaitTrigger()}
+}
+
+func (i *waitStartedIntegration) RunIntegration(ctx context.Context) error {
+	i.trigger.Trigger()
+	<-ctx.Done()
+	return nil
+}
 
 type mockMetricsIntegration struct {
 	Integration

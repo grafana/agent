@@ -57,64 +57,108 @@ func newController(l log.Logger, cfg controllerConfig, globals Globals) (*contro
 
 // run starts the controller and blocks until ctx is canceled.
 func (c *controller) run(ctx context.Context) {
+	type worker struct {
+		ci     *controlledIntegration
+		stop   context.CancelFunc
+		exited chan struct{}
+	}
+	var (
+		workersMut sync.Mutex
+		workers    = make(map[*controlledIntegration]worker)
+	)
+
+	runWorker := func(ctx context.Context, w worker) {
+		defer func() {
+			// Have a worker remove itself from the map when it exits. Doing this
+			// allows exited integrations to re-start when the config is reloaded.
+			workersMut.Lock()
+			defer workersMut.Unlock()
+			delete(workers, w.ci)
+		}()
+
+		defer close(w.exited)
+
+		w.ci.running.Store(true)
+		defer w.ci.running.Store(false)
+
+		err := w.ci.i.RunIntegration(ctx)
+		if err != nil {
+			level.Warn(c.logger).Log("msg", "integration exited with error", "instance", w.ci.id, "err", err)
+		}
+	}
+
 	defer func() {
 		level.Debug(c.logger).Log("msg", "stopping all integrations")
 
 		c.mut.Lock()
 		defer c.mut.Unlock()
 
-		for _, exist := range c.integrations {
-			exist.Stop()
+		workersMut.Lock()
+		defer workersMut.Unlock()
+
+		for _, w := range workers {
+			w.stop()
+		}
+		for key, w := range workers {
+			<-w.exited
+			delete(workers, key)
 		}
 	}()
-
-	var currentIntegrations []*controlledIntegration
 
 	updateIntegrations := func() {
 		// Lock the mutex to prevent another set of integrations from being
 		// loaded in.
 		c.mut.Lock()
 		defer c.mut.Unlock()
-		level.Debug(c.logger).Log("msg", "updating running integrations", "prev_count", len(currentIntegrations), "new_count", len(c.integrations))
+
+		workersMut.Lock()
+		defer workersMut.Unlock()
+
+		level.Debug(c.logger).Log("msg", "updating running integrations", "prev_count", len(workers), "new_count", len(c.integrations))
 
 		newIntegrations := c.integrations
 
-		// Shut down all old integrations. If the integration exists in
-		// newIntegrations but has a different gen number, then there's a new
-		// instance to launch.
-		for _, exist := range currentIntegrations {
+		// Shut down workers whose integrations have gone away.
+		var stopped []worker
+		for ci, w := range workers {
 			var found bool
 			for _, current := range newIntegrations {
-				if exist.id == current.id && current.gen == exist.gen {
+				if ci == current {
 					found = true
 					break
 				}
 			}
 			if !found {
-				exist.Stop()
+				w.stop()
+				stopped = append(stopped, w)
+				delete(workers, ci)
 			}
 		}
-
-		var waitStarted sync.WaitGroup
-		waitStarted.Add(len(newIntegrations))
-
-		// Now all integrations can be launched.
-		for _, current := range newIntegrations {
-			go func(current *controlledIntegration) {
-				waitStarted.Done()
-
-				err := current.Run(ctx)
-				if err != nil && !errors.Is(err, errIntegrationRunning) {
-					level.Warn(c.logger).Log("msg", "integration exited with error", "instance", current.id, "err", err)
-				}
-			}(current)
+		for _, w := range stopped {
+			// Wait for stopped integrations to fully exit. We do this in a separate
+			// loop so context cancellations can be handled simultaneously, allowing
+			// the wait to complete faster.
+			<-w.exited
 		}
 
-		// Wait for all integration goroutines to have been scheduled at least once.
-		waitStarted.Wait()
+		// Spawn new workers.
+		for _, current := range newIntegrations {
+			w, ok := workers[current]
+			if ok {
+				continue
+			}
 
-		// Finally, store the current list of contolled integrations.
-		currentIntegrations = newIntegrations
+			// This integration doesn't have a worker yet; create a new one.
+			workerContext, workerCancel := context.WithCancel(ctx)
+
+			w = worker{
+				ci:     current,
+				stop:   workerCancel,
+				exited: make(chan struct{}),
+			}
+			go runWorker(workerContext, w)
+			workers[current] = w
+		}
 	}
 
 	for {
@@ -131,59 +175,22 @@ func (c *controller) run(ctx context.Context) {
 	}
 }
 
-// controlledIntegration is a running Integration.
-// A running integration is identified uniquely by its id and gen.
+// controlledIntegration is a running Integration. A running integration is
+// identified uniquely by its id.
 type controlledIntegration struct {
-	id  integrationID
-	gen uint64
-
-	i Integration
-	c Config // Config that generated i. Used for changing to see if a config changed.
-
+	id      integrationID
+	i       Integration
+	c       Config // Config that generated i. Used for changing to see if a config changed.
 	running atomic.Bool
-
-	mut  sync.Mutex
-	stop context.CancelFunc
 }
 
 func (ci *controlledIntegration) Running() bool {
 	return ci.running.Load()
 }
 
-func (ci *controlledIntegration) Run(ctx context.Context) error {
-	updatedRunningState := ci.running.CAS(false, true)
-	if !updatedRunningState {
-		// The CAS will fail if our integration was already running.
-		return errIntegrationRunning
-	}
-	defer ci.running.Store(false)
-
-	ci.mut.Lock()
-	ctx, ci.stop = context.WithCancel(ctx)
-	ci.mut.Unlock()
-
-	// Early optimization: don't do anything if ctx has already been canceled
-	if ctx.Err() != nil {
-		return nil
-	}
-	return ci.i.RunIntegration(ctx)
-}
-
-var errIntegrationRunning = fmt.Errorf("already running")
-
-func (ci *controlledIntegration) Stop() {
-	ci.mut.Lock()
-	if ci.stop != nil {
-		ci.stop()
-	}
-	ci.mut.Unlock()
-}
-
 // integrationID uses a tuple of Name and Identifier to uniquely identify an
 // integration.
-type integrationID struct {
-	Name, Identifier string
-}
+type integrationID struct{ Name, Identifier string }
 
 func (id integrationID) String() string {
 	return fmt.Sprintf("%s/%s", id.Name, id.Identifier)
@@ -260,10 +267,9 @@ NextConfig:
 
 		// Create a new controlled integration.
 		integrations = append(integrations, &controlledIntegration{
-			id:  id,
-			gen: c.gen.Inc(),
-			i:   integration,
-			c:   ic,
+			id: id,
+			i:  integration,
+			c:  ic,
 		})
 	}
 
