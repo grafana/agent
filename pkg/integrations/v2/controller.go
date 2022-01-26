@@ -33,9 +33,6 @@ type controller struct {
 	integrations       []*controlledIntegration // Integrations to run
 	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
 
-	// Next generation value to use for an integration.
-	gen atomic.Uint64
-
 	// onUpdateDone is used for testing and will be invoked when integrations
 	// finish reloading.
 	onUpdateDone func()
@@ -143,15 +140,14 @@ func (c *controller) run(ctx context.Context) {
 
 		// Spawn new workers.
 		for _, current := range newIntegrations {
-			w, ok := workers[current]
-			if ok {
+			if _, workerExists := workers[current]; workerExists {
 				continue
 			}
 
 			// This integration doesn't have a worker yet; create a new one.
 			workerContext, workerCancel := context.WithCancel(ctx)
 
-			w = worker{
+			w := worker{
 				ci:     current,
 				stop:   workerCancel,
 				exited: make(chan struct{}),

@@ -46,10 +46,11 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	waitIntegrations := func(t *testing.T, ctrl *controller) {
 		t.Helper()
 		_ = newSyncController(t, ctrl)
-		forEachIntegration(ctrl.integrations, "/", func(ci *controlledIntegration, _ string) {
+		err := forEachIntegration(ctrl.integrations, "/", func(ci *controlledIntegration, _ string) {
 			wsi := ci.i.(mockMetricsIntegration).Integration.(*waitStartedIntegration)
-			wsi.trigger.WaitContext(context.Background())
+			_ = wsi.trigger.WaitContext(context.Background())
 		})
+		require.NoError(t, err)
 	}
 
 	t.Run("All", func(t *testing.T) {
@@ -60,11 +61,6 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 		)
 		require.NoError(t, err)
 		waitIntegrations(t, ctrl)
-
-		forEachIntegration(ctrl.integrations, "/", func(ci *controlledIntegration, _ string) {
-			wsi := ci.i.(mockMetricsIntegration).Integration.(*waitStartedIntegration)
-			wsi.trigger.WaitContext(context.Background())
-		})
 
 		result := ctrl.Targets(Endpoint{Prefix: "/"}, TargetOptions{})
 		expect := []*targetGroup{
