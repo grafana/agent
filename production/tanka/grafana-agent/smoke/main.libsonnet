@@ -35,13 +35,13 @@ local deployment = k.apps.v1.deployment;
             },
 
         container::
-          container.new('agent-smoke', config.image) +
+          container.new('agent-smoke', this._config.image) +
           container.withCommand('/bin/grafana-agent-smoke') +
           container.withArgsMixin(k.util.mapToFlags({
             'log.level': 'debug',
             'namespace': namespace,
-            'mutation-frequency': config.mutationFrequency,
-            'chaos-frequency': config.chaosFrequency,
+            'mutation-frequency': this._config.mutationFrequency,
+            'chaos-frequency': this._config.chaosFrequency,
           })),
 
         agentsmoke_deployment:
