@@ -647,7 +647,7 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 	}
 
 	// Check for duplicate vs last stored exemplar for this series, and discard those.
-	// Otherwise, record the current exemplar as the latest
+	// Otherwise, record the current exemplar as the latest.
 	// Prometheus returns 0 when encountering duplicates, so we do the same here.
 	prevExemplar := a.w.series.getLatestExemplar(ref)
 	if prevExemplar != nil && prevExemplar.Equals(e) {

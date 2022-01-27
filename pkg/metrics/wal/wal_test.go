@@ -377,14 +377,17 @@ func BenchmarkAppendExemplar(b *testing.B) {
 	defer os.RemoveAll(walDir)
 
 	s, _ := NewStorage(log.NewNopLogger(), nil, walDir)
+	defer s.Close()
 	app := s.Appender(context.Background())
 	sRef, _ := app.Append(0, labels.Labels{{Name: "a", Value: "1"}}, 0, 0)
 
+	b.StartTimer()
 	e := exemplar.Exemplar{Labels: labels.Labels{{Name: "a", Value: "1"}}, Value: 20, Ts: 10, HasTs: true}
 	for i := 0; i < b.N; i++ {
 		e.Ts = int64(i)
 		_, _ = app.AppendExemplar(sRef, nil, e)
 	}
+	b.StopTimer()
 
 	// Actually use appended exemplars in case they get eliminated
 	_ = app.Commit()
