@@ -16,6 +16,8 @@
 
 - [BUGFIX] Honor the specified log format in the traces subsystem (@mapno)
 
+- [BUGFIX] Fix typo in node_exporter for runit_service_dir. (@mattdurham)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
