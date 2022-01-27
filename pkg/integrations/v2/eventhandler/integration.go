@@ -36,6 +36,8 @@ type Config struct {
 	InformerResync int `yaml:"informer_resync,omitempty"` // seconds
 	// how often to flush last event to cache file
 	FlushInterval int `yaml:"flush_interval,omitempty"` // seconds
+	// only ship events from a given namespace
+	Namespace string `yaml:"namspace,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config

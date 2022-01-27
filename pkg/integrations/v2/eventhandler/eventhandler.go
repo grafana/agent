@@ -63,8 +63,9 @@ type ShippedEvents struct {
 
 func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (integrations.Integration, error) {
 	var (
-		config *rest.Config
-		err    error
+		config  *rest.Config
+		err     error
+		factory informers.SharedInformerFactory
 	)
 
 	// Try using KubeconfigPath or inClusterConfig
@@ -91,7 +92,12 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 	}
 
 	// get an informer
-	factory := informers.NewSharedInformerFactory(clientset, time.Duration(c.InformerResync)*time.Second)
+	if c.Namespace == "" {
+		factory = informers.NewSharedInformerFactory(clientset, time.Duration(c.InformerResync)*time.Second)
+	} else {
+		factory = informers.NewSharedInformerFactoryWithOptions(clientset, time.Duration(c.InformerResync)*time.Second, informers.WithNamespace(c.Namespace))
+	}
+
 	eventInformer := factory.Core().V1().Events().Informer()
 
 	eh := &EventHandler{
