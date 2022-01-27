@@ -282,7 +282,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				decoded <- samples
 			case record.Tombstones, record.Exemplars:
 				// We don't care about decoding tombstones or exemplars
-				// If decide to decode exemplars, we should make sure to prepopulate
+				// TODO: If decide to decode exemplars, we should make sure to prepopulate
 				// stripeSeries.exemplars in the next block by using setLatestExemplar.
 				continue
 			default:
