@@ -3,6 +3,7 @@ package wal
 import (
 	"sync"
 
+	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/intern"
 	"github.com/prometheus/prometheus/pkg/labels"
 )
@@ -84,12 +85,6 @@ func (m seriesHashmap) del(hash uint64, ref uint64) {
 	}
 }
 
-type memExemplar struct {
-	ts     int64
-	value  float64
-	labels labels.Labels
-}
-
 const (
 	// defaultStripeSize is the default number of entries to allocate in the
 	// stripeSeries hash map.
@@ -106,7 +101,7 @@ type stripeSeries struct {
 	size      int
 	series    []map[uint64]*memSeries
 	hashes    []seriesHashmap
-	exemplars []map[uint64]*memExemplar
+	exemplars []map[uint64]*exemplar.Exemplar
 	locks     []stripeLock
 }
 
@@ -122,7 +117,7 @@ func newStripeSeries() *stripeSeries {
 		size:      stripeSize,
 		series:    make([]map[uint64]*memSeries, stripeSize),
 		hashes:    make([]seriesHashmap, stripeSize),
-		exemplars: make([]map[uint64]*memExemplar, stripeSize),
+		exemplars: make([]map[uint64]*exemplar.Exemplar, stripeSize),
 		locks:     make([]stripeLock, stripeSize),
 	}
 
@@ -133,7 +128,7 @@ func newStripeSeries() *stripeSeries {
 		s.hashes[i] = seriesHashmap{}
 	}
 	for i := range s.exemplars {
-		s.exemplars[i] = map[uint64]*memExemplar{}
+		s.exemplars[i] = map[uint64]*exemplar.Exemplar{}
 	}
 	return s
 }
@@ -231,7 +226,7 @@ func (s *stripeSeries) set(hash uint64, series *memSeries) {
 	s.locks[i].Unlock()
 }
 
-func (s *stripeSeries) getLatestExemplar(id uint64) *memExemplar {
+func (s *stripeSeries) getLatestExemplar(id uint64) *exemplar.Exemplar {
 	i := id & uint64(s.size-1)
 
 	s.locks[i].RLock()
@@ -241,7 +236,7 @@ func (s *stripeSeries) getLatestExemplar(id uint64) *memExemplar {
 	return exemplar
 }
 
-func (s *stripeSeries) setLatestExemplar(id uint64, exemplar *memExemplar) {
+func (s *stripeSeries) setLatestExemplar(id uint64, exemplar *exemplar.Exemplar) {
 	i := id & uint64(s.size-1)
 
 	s.locks[i].Lock()

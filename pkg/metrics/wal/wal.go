@@ -648,11 +648,13 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 
 	// Check for duplicate vs last stored exemplar for this series, and discard those.
 	// Otherwise, record the current exemplar as the latest
+	// Prometheus returns 0 when encountering duplicates, so we do the same here.
 	prevExemplar := a.w.series.getLatestExemplar(ref)
-	if prevExemplar != nil && exemplarsEqual(*prevExemplar, e) {
+	if prevExemplar != nil && prevExemplar.Equals(e) {
+		// Duplicate, don't return an error but don't accept the exemplar.
 		return 0, nil
 	}
-	a.w.series.setLatestExemplar(ref, &memExemplar{ts: e.Ts, value: e.Value, labels: e.Labels})
+	a.w.series.setLatestExemplar(ref, &e)
 
 	a.exemplars = append(a.exemplars, record.RefExemplar{
 		Ref:    ref,
@@ -721,16 +723,4 @@ func (a *appender) Rollback() error {
 	a.exemplars = a.exemplars[:0]
 	a.w.appenderPool.Put(a)
 	return nil
-}
-
-func exemplarsEqual(me memExemplar, pe exemplar.Exemplar) bool {
-	if !labels.Equal(me.labels, pe.Labels) {
-		return false
-	}
-
-	if me.ts != pe.Ts {
-		return false
-	}
-
-	return me.value == pe.Value
 }
