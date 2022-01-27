@@ -665,6 +665,7 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 		Labels: e.Labels,
 	})
 
+	a.w.metrics.totalAppendedExemplars.Inc()
 	return s.ref, nil
 }
 
