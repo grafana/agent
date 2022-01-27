@@ -1,7 +1,6 @@
 # 01 Structure
 
-Dynamic Configuration uses a series of files to load templates. This example will show how they all combine together. 
-Running the below command will combine all the templates into the final.yml
+Dynamic Configuration uses a series of files to load templates. This example will show how they all combine together. Running the below command will combine all the templates into the final.yml.
 
 `docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/02_config.yml`
 
@@ -9,7 +8,12 @@ Running the below command will combine all the templates into the final.yml
 
 [config.yml](./01_config.yml)
 
-Tells the Grafana Agent where to load files from.
+```yaml
+template_paths:
+  - "file:///etc/grafana/01_assets"
+```
+
+Tells the Grafana Agent where to load files from. It is important to note that dynamic configuration does NOT traverse directories. It will look at the directory specified only, if you need more directories then add them to the `template_paths` array.
 
 ## Agent
 
