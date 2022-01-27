@@ -239,8 +239,11 @@ func (s *stripeSeries) getLatestExemplar(id uint64) *exemplar.Exemplar {
 func (s *stripeSeries) setLatestExemplar(id uint64, exemplar *exemplar.Exemplar) {
 	i := id & uint64(s.size-1)
 
+	// Make sure that's a valid series id and record its latest exemplar
 	s.locks[i].Lock()
-	s.exemplars[i][id] = exemplar
+	if s.series[i][id] != nil {
+		s.exemplars[i][id] = exemplar
+	}
 	s.locks[i].Unlock()
 }
 
