@@ -17,27 +17,28 @@ var DefaultConfig = Config{
 
 // Config configures the eventhandler integration
 type Config struct {
-	// eventhandler hands events off to promtail using a promtail
-	// client channel. this configures how long to wait on the channel
-	// before abandoning and moving on
-	SendTimeout int `yaml:"send_timeout,omitempty"` // seconds
-	// configures a cluster= label for log lines
+	// Eventhandler hands watched events off to promtail using a promtail
+	// client channel. This parameter configures how long to wait (in seconds) on the channel
+	// before abandoning and moving on.
+	SendTimeout int `yaml:"send_timeout,omitempty"`
+	// Configures a cluster= label to add to log lines
 	ClusterName string `yaml:"cluster_name,omitempty"`
-	// path to kubeconfig. if omitted will look in user's home dir.
-	// this isn't used if InCluster is set to true
+	// Configures the path to a kubeconfig file. If not set, will fall back to using
+	// an in-cluster config. If this fails, will fall back to checking the user's home
+	// directory for a kubeconfig.
 	KubeconfigPath string `yaml:"kubeconfig_path,omitempty"`
-	// path to a cache file that will store a log of timestamps and events
-	// shipped for those timestamps. used to prevent double-shipping on informer
-	// restart / relist
+	// Path to a cache file that will store the last timestamp for a shipped event and events
+	// shipped for that timestamp. Used to prevent double-shipping on integration restart.
 	CachePath string `yaml:"cache_path,omitempty"`
-	// name of logs subsystem instance to hand events off to
+	// Name of logs subsystem instance to hand log entries off to.
 	LogsInstance string `yaml:"logs_instance,omitempty"`
-	// informer resync interval. out of scope to describe this here.
-	InformerResync int `yaml:"informer_resync,omitempty"` // seconds
-	// how often to flush last event to cache file
-	FlushInterval int `yaml:"flush_interval,omitempty"` // seconds
-	// only ship events from a given namespace
-	Namespace string `yaml:"namspace,omitempty"`
+	// K8s informer resync interval (seconds). You should use defaults here unless you are
+	// familiar with K8s informers.
+	InformerResync int `yaml:"informer_resync,omitempty"`
+	// The integration will flush the last event shipped out to disk every flush_interval seconds.
+	FlushInterval int `yaml:"flush_interval,omitempty"`
+	// If you would like to limit events to a given namespace, use this parameter.
+	Namespace string `yaml:"namespace,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
