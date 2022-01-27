@@ -120,7 +120,7 @@ type Config struct {
 	PerfCPUS                         string              `yaml:"perf_cpus,omitempty"`
 	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
 	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
-	RunitServiceDir                  string              `yaml:"runit_servic e_dir,omitempty"`
+	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty"`
 	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
 	SystemdEnableRestartsMetrics     bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
 	SystemdEnableStartTimeMetrics    bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
