@@ -8,37 +8,11 @@ title = "eventhandler_config"
 
 On restart, the integration will look for a cache file (configured using `cache_path`) that stores the last shipped event. This file is optional, and if present, will be used to avoid double-shipping events if Agent or the integration restarts. Kubernetes expires events after 60 minutes, so events older than 60 minutes ago will never be shipped.
 
-To use the cache feature and maintain state for Kubernetes deployments, a [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) must be used. Sample manifests are provided at the bottom of this doc. Please adjust these according to your deployment preferences. You can also use a Deployment, however the presence of the cache file will not be guaranteed and the integration may ship duplicate entries in the event of a restart. Loki does not support entry deduplication for the A->B->A case, so further deduplication can only take place at the Grafana / front-end layer (Grafana Explore does provide some deduplication features).
+To use the cache feature and maintain state in a Kubernetes environment, a [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) must be used. Sample manifests are provided at the bottom of this doc. Please adjust these according to your deployment preferences. You can also use a Deployment, however the presence of the cache file will not be guaranteed and the integration may ship duplicate entries in the event of a restart. Loki does not yet support entry deduplication for the A->B->A case, so further deduplication can only take place at the Grafana / front-end layer (Grafana Explore does provide some deduplication features for Loki datasources).
 
-The integration uses the Agent's embedded Loki-comptaible `logs` subsystem to ship entries, and a logs client and sink must be configured to use the integration.
+This integration uses Agent's embedded Loki-comptaible `logs` subsystem to ship entries, and a logs client and sink must be configured to use the integration.
 
 If not running the integration in-cluster, a valid Kubeconfig file must be provided. If running in-cluster, the appropriate `ServiceAccount` and Roles must be defined. Sample manifests are provided below.
-
-Sample agent config:
-
-```yaml 
-    server:
-      http_listen_port: 12345
-      log_level: info
-  
-    integrations:
-      eventhandler:
-        cluster_name: "cloud"
-        cache_path: " /etc/eventhandler/eventhandler.cache"
-      
-    logs:
-      configs:
-      - name: default
-        clients:
-        - url: https://logs-prod-us-central1.grafana.net/api/prom/push
-          basic_auth:
-            username: YOUR_LOKI_USERNAME
-            password: YOUR_LOKI_API_KEY
-        positions:
-          filename: /tmp/positions.yaml
-
-    ## TODO: self-logging config!!!
-```
 
 Configuration reference:
 
@@ -46,37 +20,110 @@ Configuration reference:
 	## Eventhandler hands watched events off to promtail using a promtail
 	## client channel. This parameter configures how long to wait (in seconds) on the channel
 	## before abandoning and moving on.
-    [send_timeout: <int> | default = 60]
+  [send_timeout: <int> | default = 60]
 	
-    ## Configures a cluster= label to add to log lines
-    [cluster_name: <string> | default = "cloud"]
+  ## Configures a cluster= label to add to log lines
+  [cluster_name: <string> | default = "cloud"]
 
-    ## Configures the path to a kubeconfig file. If not set, will fall back to using 
-    ## an in-cluster config. If this fails, will fall back to checking the user's home
-    ## directory for a kubeconfig.
-    [kubeconfig_path: <string>]
+  ## Configures the path to a kubeconfig file. If not set, will fall back to using 
+  ## an in-cluster config. If this fails, will fall back to checking the user's home
+  ## directory for a kubeconfig.
+  [kubeconfig_path: <string>]
 
 	## Path to a cache file that will store the last timestamp for a shipped event and events
 	## shipped for that timestamp. Used to prevent double-shipping on integration restart.
-    [cache_path: <string> | default = "./.eventcache/eventhandler.cache"]
+  [cache_path: <string> | default = "./.eventcache/eventhandler.cache"]
 
 	## Name of logs subsystem instance to hand log entries off to.
-    [logs_instance: <string> | default = "default"]
+  [logs_instance: <string> | default = "default"]
 
 	## K8s informer resync interval (seconds). You should use defaults here unless you are 
-    ## familiar with K8s informers.
-    [informer_resync: <int> | default = 120]
+  ## familiar with K8s informers.
+  [informer_resync: <int> | default = 120]
 
 	## The integration will flush the last event shipped out to disk every flush_interval seconds.
-    [flush_interval: <int> | default = 10]
+  [flush_interval: <int> | default = 10]
 
 	## If you would like to limit events to a given namespace, use this parameter.
-    [namespace: <string>]
+  [namespace: <string>]
 ```
 
-Sample StatefulSet manifests:
+Sample agent config:
 
-Please adjust these according to your deployment needs.
+```yaml
+server:
+  http_listen_port: 12345
+  log_level: info
+
+integrations:
+  eventhandler:
+    cluster_name: "cloud"
+    cache_path: "/etc/eventhandler/eventhandler.cache"
+  
+logs:
+  configs:
+  - name: default
+    clients:
+    - url: https://logs-prod-us-central1.grafana.net/api/prom/push
+      basic_auth:
+        username: YOUR_LOKI_USER
+        password: YOUR_LOKI_API_KEY
+    positions:
+      filename: /tmp/positions0.yaml
+  ## The following stanza is optional and used to configure another client to forward
+  ## Agent's logs to Loki in a K8s environment (using the manifests found below)
+  - name: eventhandler_logs
+    clients:
+    - url: https://logs-prod-us-central1.grafana.net/api/prom/push
+      basic_auth:
+        username: YOUR_LOKI_USER
+        password: YOUR_LOKI_API_KEY
+    scrape_configs:
+    - job_name: eventhandler_logs
+      kubernetes_sd_configs:
+        - role: pod
+      pipeline_stages:
+        - docker: {}
+      relabel_configs:
+        - source_labels:
+            - __meta_kubernetes_pod_node_name
+          target_label: __host__
+        - action: keep
+          regex: grafana-agent-eventhandler-*
+          source_labels:
+            - __meta_kubernetes_pod_name
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+        - action: replace
+          replacement: $1
+          source_labels:
+            - __meta_kubernetes_pod_name
+          target_label: job
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_namespace
+          target_label: namespace
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_pod_name
+          target_label: pod
+        - action: replace
+          source_labels:
+            - __meta_kubernetes_pod_container_name
+          target_label: container
+        - replacement: /var/log/pods/*$1/*.log
+          separator: /
+          source_labels:
+            - __meta_kubernetes_pod_uid
+            - __meta_kubernetes_pod_container_name
+          target_label: __path__
+    positions:
+      filename: /tmp/positions1.yaml
+```
+
+Be sure to replace the Loki credentials with the appropriate values.
+
+Sample StatefulSet manifests. Please adjust these according to your needs:
 
 ```yaml
 apiVersion: v1
@@ -138,7 +185,7 @@ data:
     integrations:
       eventhandler:
         cluster_name: "cloud"
-        cache_path: " /etc/eventhandler/eventhandler.cache"
+        cache_path: "/etc/eventhandler/eventhandler.cache"
       
     logs:
       configs:
@@ -146,17 +193,16 @@ data:
         clients:
         - url: https://logs-prod-us-central1.grafana.net/api/prom/push
           basic_auth:
-            username: TODO
-            password: TODO
+            username: YOUR_LOKI_USER
+            password: YOUR_LOKI_API_KEY
         positions:
           filename: /tmp/positions0.yaml
-
       - name: eventhandler_logs
         clients:
         - url: https://logs-prod-us-central1.grafana.net/api/prom/push
           basic_auth:
-            username: TODO
-            password: TODO
+            username: YOUR_LOKI_USER
+            password: YOUR_LOKI_API_KEY
         scrape_configs:
         - job_name: eventhandler_logs
           kubernetes_sd_configs:
@@ -250,6 +296,5 @@ spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 0.3Gi
+          storage: 1Gi
 ```
-
