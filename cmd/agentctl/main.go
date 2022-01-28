@@ -4,6 +4,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -60,6 +63,7 @@ func main() {
 		samplesCmd(),
 		operatorDetachCmd(),
 		cloudConfigCmd(),
+		templateDryRunCmd(),
 	)
 
 	_ = cmd.Execute()
@@ -470,6 +474,45 @@ config that may be used with this agent.`,
 	cmd.Flags().StringVarP(&apiURL, "api-url", "e", "", "Grafana Cloud's API url")
 	must(cmd.MarkFlagRequired("stack"))
 	must(cmd.MarkFlagRequired("api-key"))
+
+	return cmd
+}
+
+func templateDryRunCmd() *cobra.Command {
+
+	cmd := &cobra.Command{
+		Use:   "template-parse [directory]",
+		Short: "dry run dynamic configuration",
+		Long:  `will run the template over the dynamic configuration`,
+		Args:  cobra.ExactArgs(1),
+
+		// Hidden, this is only expected to be used by scripts.
+
+		RunE: func(_ *cobra.Command, args []string) error {
+			buf, err := ioutil.ReadFile(args[0])
+			if err != nil {
+				return errors.Wrap(err, "error reading config file")
+			}
+			loaderCfg := &config.LoaderConfig{}
+			err = yaml.Unmarshal(buf, loaderCfg)
+			if err != nil {
+				return errors.Wrap(err, "error unmarshalling config file")
+			}
+			cmf, err := config.NewConfigLoader(*loaderCfg)
+			c := &config.Config{}
+			err = cmf.ProcessConfigs(c, nil)
+			if err != nil {
+				return errors.Wrap(err, "error processing config templates")
+			}
+
+			outBytes, err := yaml.Marshal(c)
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(outBytes))
+			return nil
+		},
+	}
 
 	return cmd
 }

@@ -470,4 +470,4 @@ replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_
 
 exclude github.com/hashicorp/vault v0.10.3
 
-replace github.com/hairyhenderson/gomplate/v3 => github.com/mattdurham/gomplate/v3 v3.10.1-0.20211230152033-eae079610d74
+replace github.com/hairyhenderson/gomplate/v3 => github.com/mattdurham/gomplate/v3 v3.10.1-0.20220127170320-5aca3cb2927c

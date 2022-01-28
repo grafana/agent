@@ -1663,6 +1663,8 @@ github.com/matryer/is v1.2.0/go.mod h1:2fLPjFQM9rhQ15aVEtbuwhJinnOqrmgXPNdZsdwlW
 github.com/matryer/moq v0.0.0-20190312154309-6cfb0558e1bd/go.mod h1:9ELz6aaclSIGnZBoaSLZ3NAl1VTufbOrXBPvtcy6WiQ=
 github.com/mattdurham/gomplate/v3 v3.10.1-0.20211230152033-eae079610d74 h1:V/n6aFn3TG9KGpVI6j16zjGLd8uD1zPWE3uTWdVJ2kY=
 github.com/mattdurham/gomplate/v3 v3.10.1-0.20211230152033-eae079610d74/go.mod h1:ytaz30hj1x0cltIl2cjkzI65ijBwKwitvKt+3rsWbRc=
+github.com/mattdurham/gomplate/v3 v3.10.1-0.20220127170320-5aca3cb2927c h1:5jIh62yg8LNfZtu+5HxaCyUCGxaB1ORZR+MPVu0I2BQ=
+github.com/mattdurham/gomplate/v3 v3.10.1-0.20220127170320-5aca3cb2927c/go.mod h1:ytaz30hj1x0cltIl2cjkzI65ijBwKwitvKt+3rsWbRc=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=

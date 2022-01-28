@@ -20,9 +20,6 @@ Location of the dynamic configuration is used via the feature flag `dynamic-conf
 load the configuration for dynamic configuration.
 
 ```yaml
-# Configures the server of the Agent used to enable self-scraping.
-[server: <server_config>]
-
 # Sources to pull template values 
 [sources: <sources_config>]
 
@@ -74,17 +71,31 @@ Configurations are loaded in the order as they are listed below.
 
 ### Agent
 
+
 Agent template is the standard agent configuration file in its entirety. It is defined by the pattern `agent-*.yml`. Only
 one file is supported. This is processed first then any subsequent configurations found REPLACE the values here, it is 
 not additive. 
+
+Reference {{< relref "./" >}})
+
+### Server
+
+Server is defined using the pattern `server-*.yml`, only ONE server file is supported.
+
+Reference {{< relref "./server-config.md" >}})
+
 
 ### Metrics
 
 Metrics are defined using the pattern `metrics-*.yml`, only ONE metrics file is supported.
 
+Reference {{< relref "./metrics-config.md" >}})
+
 ### Metric Instances
 
 Metric Instances are defined using the pattern `metrics_instances-*.yml`.
+
+Reference {{< relref "./metrics-config.md#metrics_instance_config" >}}) in the metrics instance
 
 
 ### Integrations 
@@ -92,10 +103,16 @@ Metric Instances are defined using the pattern `metrics_instances-*.yml`.
 Integrations are defined using the pattern `integrations-*.yml`, these support more than one file, and multiple 
 integrations can be defined in a file. Do not assume any order of loading for integrations.
 
+Reference {{< relref "./integrations/" >}})
+
 ### Traces
 
 Traces are defined using the pattern `traces-*.yml`. This supports one file.
 
+Reference {{< relref "./traces-config.md" >}})
+
 ### Logs
 
 Logs are defined using the pattern `logs-*.yml`. This supports on file.
+
+Reference {{< relref "./logs-config.md" >}})
