@@ -18,6 +18,8 @@
 
 - [BUGFIX] Fix typo in node_exporter for runit_service_dir. (@mattdurham)
 
+- [BUGFIX] Allow inlining credentials in remote_write url. (@tpaschalis)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
