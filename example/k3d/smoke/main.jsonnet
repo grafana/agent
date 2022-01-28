@@ -14,7 +14,6 @@ local volumeMount = k.core.v1.volumeMount;
 local images = {
   agent: 'grafana/agent:main',
   agentctl: 'grafana/agentctl:main',
-  agentsmoke: 'us.gcr.io/kubernetes-dev/grafana/agent-smoke:main',
 };
 
 local new_crow(name, selector) =
@@ -25,8 +24,12 @@ local new_crow(name, selector) =
     },
   });
 
-local new_smoke(name) = smoke.new(name, namespace='smoke',
-    mutationFrequency='5m', chaosFrequency='30m', image=images.agentsmoke);
+local new_smoke(name) = smoke.new(name, namespace='smoke', config={
+    mutationFrequency: '5m',
+    chaosFrequency: '30m',
+});
+
+
 
 local smoke = {
   ns: namespace.new('smoke'),

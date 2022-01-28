@@ -84,8 +84,8 @@ run() {
     k3d image import -c $K3D_CLUSTER_NAME \
       grafana/agent:main \
       grafana/agentctl:main \
-      us.gcr.io/kubernetes-dev/grafana/agent-crow:main \
-      us.gcr.io/kubernetes-dev/grafana/agent-smoke:main
+      us.gcr.io/kubernetes-dev/grafana/agent-crow:dev.smoke-framework \
+      us.gcr.io/kubernetes-dev/grafana/agent-smoke:dev.smoke-framework
   fi
 
   (cd $ROOT/example/k3d && jb install)
