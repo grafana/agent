@@ -17,11 +17,11 @@ If not running the integration in-cluster, a valid Kubeconfig file must be provi
 Configuration reference:
 
 ```yaml
-	## Eventhandler hands watched events off to promtail using a promtail
-	## client channel. This parameter configures how long to wait (in seconds) on the channel
-	## before abandoning and moving on.
+  ## Eventhandler hands watched events off to promtail using a promtail
+  ## client channel. This parameter configures how long to wait (in seconds) on the channel
+  ## before abandoning and moving on.
   [send_timeout: <int> | default = 60]
-	
+
   ## Configures a cluster= label to add to log lines
   [cluster_name: <string> | default = "cloud"]
 
@@ -30,21 +30,21 @@ Configuration reference:
   ## directory for a kubeconfig.
   [kubeconfig_path: <string>]
 
-	## Path to a cache file that will store the last timestamp for a shipped event and events
-	## shipped for that timestamp. Used to prevent double-shipping on integration restart.
+  ## Path to a cache file that will store the last timestamp for a shipped event and events
+  ## shipped for that timestamp. Used to prevent double-shipping on integration restart.
   [cache_path: <string> | default = "./.eventcache/eventhandler.cache"]
 
-	## Name of logs subsystem instance to hand log entries off to.
+  ## Name of logs subsystem instance to hand log entries off to.
   [logs_instance: <string> | default = "default"]
 
-	## K8s informer resync interval (seconds). You should use defaults here unless you are 
+  ## K8s informer resync interval (seconds). You should use defaults here unless you are 
   ## familiar with K8s informers.
   [informer_resync: <int> | default = 120]
 
-	## The integration will flush the last event shipped out to disk every flush_interval seconds.
+  ## The integration will flush the last event shipped out to disk every flush_interval seconds.
   [flush_interval: <int> | default = 10]
 
-	## If you would like to limit events to a given namespace, use this parameter.
+  ## If you would like to limit events to a given namespace, use this parameter.
   [namespace: <string>]
 ```
 
