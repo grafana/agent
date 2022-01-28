@@ -11,7 +11,7 @@ local deployment = k.apps.v1.deployment;
         local this = self,
 
         _images:: {
-            agentsmoke: 'us.gcr.io/kubernetes-dev/grafana/agent-smoke:dev.smoke-framework',
+            agentsmoke: 'us.gcr.io/kubernetes-dev/grafana/agent-smoke:main',
         },
 
         _config:: {
