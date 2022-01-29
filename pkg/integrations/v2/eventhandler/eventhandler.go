@@ -330,6 +330,8 @@ func (eh *EventHandler) writeOutLastEvent() error {
 
 // RunIntegration runs the eventhandler integration
 func (eh *EventHandler) RunIntegration(ctx context.Context) error {
+	var wg sync.WaitGroup
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -381,11 +383,15 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	// technically we should prob use the factory here, but since we
 	// only have one informer atm, this likely doesn't matter
 	go eh.EventInformer.Run(ctx.Done())
-	go eh.runTicker(ctx.Done())
 
-	<-ctx.Done()
+	// wait for last event to flush before returning
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		eh.runTicker(ctx.Done())
+	}()
+	wg.Wait()
 
-	// todo: ensure flush completes before returning
 	return nil
 }
 
