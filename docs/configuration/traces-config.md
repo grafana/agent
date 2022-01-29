@@ -168,7 +168,7 @@ scrape_configs:
 #
 # By default, all methods are enabled, and evaluated in the order specified above.
 # Order of evaluation is honored when multiple methods are enabled.
-prom_sd_pod_association: 
+prom_sd_pod_associations:
   - [ <string>... ]
 
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
