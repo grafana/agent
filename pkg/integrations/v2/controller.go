@@ -25,20 +25,14 @@ type controllerConfig []Config
 
 // controller manages a set of integrations.
 type controller struct {
-	logger  log.Logger
-	mut     sync.Mutex
-	cfg     controllerConfig
-	globals Globals
+	logger log.Logger
 
-	integrations       []*controlledIntegration // Integrations to run
-	reloadIntegrations chan struct{}            // Inform Controller.Run to re-read integrations
+	mut          sync.Mutex
+	cfg          controllerConfig
+	globals      Globals
+	integrations []*controlledIntegration // Running integrations
 
-	// Next generation value to use for an integration.
-	gen atomic.Uint64
-
-	// onUpdateDone is used for testing and will be invoked when integrations
-	// finish reloading.
-	onUpdateDone func()
+	runIntegrations chan []*controlledIntegration // Schedule integrations to run
 }
 
 // newController creates a new Controller. Controller is intended to be
@@ -46,8 +40,8 @@ type controller struct {
 // integrations.
 func newController(l log.Logger, cfg controllerConfig, globals Globals) (*controller, error) {
 	c := &controller{
-		logger:             l,
-		reloadIntegrations: make(chan struct{}, 1),
+		logger:          l,
+		runIntegrations: make(chan []*controlledIntegration, 1),
 	}
 	if err := c.UpdateController(cfg, globals); err != nil {
 		return nil, err
@@ -57,133 +51,40 @@ func newController(l log.Logger, cfg controllerConfig, globals Globals) (*contro
 
 // run starts the controller and blocks until ctx is canceled.
 func (c *controller) run(ctx context.Context) {
-	defer func() {
-		level.Debug(c.logger).Log("msg", "stopping all integrations")
-
-		c.mut.Lock()
-		defer c.mut.Unlock()
-
-		for _, exist := range c.integrations {
-			exist.Stop()
-		}
-	}()
-
-	var currentIntegrations []*controlledIntegration
-
-	updateIntegrations := func() {
-		// Lock the mutex to prevent another set of integrations from being
-		// loaded in.
-		c.mut.Lock()
-		defer c.mut.Unlock()
-		level.Debug(c.logger).Log("msg", "updating running integrations", "prev_count", len(currentIntegrations), "new_count", len(c.integrations))
-
-		newIntegrations := c.integrations
-
-		// Shut down all old integrations. If the integration exists in
-		// newIntegrations but has a different gen number, then there's a new
-		// instance to launch.
-		for _, exist := range currentIntegrations {
-			var found bool
-			for _, current := range newIntegrations {
-				if exist.id == current.id && current.gen == exist.gen {
-					found = true
-					break
-				}
-			}
-			if !found {
-				exist.Stop()
-			}
-		}
-
-		var waitStarted sync.WaitGroup
-		waitStarted.Add(len(newIntegrations))
-
-		// Now all integrations can be launched.
-		for _, current := range newIntegrations {
-			go func(current *controlledIntegration) {
-				waitStarted.Done()
-
-				err := current.Run(ctx)
-				if err != nil && !errors.Is(err, errIntegrationRunning) {
-					level.Warn(c.logger).Log("msg", "integration exited with error", "instance", current.id, "err", err)
-				}
-			}(current)
-		}
-
-		// Wait for all integration goroutines to have been scheduled at least once.
-		waitStarted.Wait()
-
-		// Finally, store the current list of contolled integrations.
-		currentIntegrations = newIntegrations
-	}
+	pool := newWorkerPool(ctx, c.logger)
+	defer pool.Close()
 
 	for {
 		select {
 		case <-ctx.Done():
 			level.Debug(c.logger).Log("msg", "controller exiting")
 			return
-		case <-c.reloadIntegrations:
-			updateIntegrations()
-			if c.onUpdateDone != nil {
-				c.onUpdateDone()
-			}
+		case newIntegrations := <-c.runIntegrations:
+			pool.Reload(newIntegrations)
+
+			c.mut.Lock()
+			c.integrations = newIntegrations
+			c.mut.Unlock()
 		}
 	}
 }
 
-// controlledIntegration is a running Integration.
-// A running integration is identified uniquely by its id and gen.
+// controlledIntegration is a running Integration. A running integration is
+// identified uniquely by its id.
 type controlledIntegration struct {
-	id  integrationID
-	gen uint64
-
-	i Integration
-	c Config // Config that generated i. Used for changing to see if a config changed.
-
+	id      integrationID
+	i       Integration
+	c       Config // Config that generated i. Used for changing to see if a config changed.
 	running atomic.Bool
-
-	mut  sync.Mutex
-	stop context.CancelFunc
 }
 
 func (ci *controlledIntegration) Running() bool {
 	return ci.running.Load()
 }
 
-func (ci *controlledIntegration) Run(ctx context.Context) error {
-	updatedRunningState := ci.running.CAS(false, true)
-	if !updatedRunningState {
-		// The CAS will fail if our integration was already running.
-		return errIntegrationRunning
-	}
-	defer ci.running.Store(false)
-
-	ci.mut.Lock()
-	ctx, ci.stop = context.WithCancel(ctx)
-	ci.mut.Unlock()
-
-	// Early optimization: don't do anything if ctx has already been canceled
-	if ctx.Err() != nil {
-		return nil
-	}
-	return ci.i.RunIntegration(ctx)
-}
-
-var errIntegrationRunning = fmt.Errorf("already running")
-
-func (ci *controlledIntegration) Stop() {
-	ci.mut.Lock()
-	if ci.stop != nil {
-		ci.stop()
-	}
-	ci.mut.Unlock()
-}
-
 // integrationID uses a tuple of Name and Identifier to uniquely identify an
 // integration.
-type integrationID struct {
-	Name, Identifier string
-}
+type integrationID struct{ Name, Identifier string }
 
 func (id integrationID) String() string {
 	return fmt.Sprintf("%s/%s", id.Name, id.Identifier)
@@ -260,16 +161,14 @@ NextConfig:
 
 		// Create a new controlled integration.
 		integrations = append(integrations, &controlledIntegration{
-			id:  id,
-			gen: c.gen.Inc(),
-			i:   integration,
-			c:   ic,
+			id: id,
+			i:  integration,
+			c:  ic,
 		})
 	}
 
-	// Update integrations and inform
-	c.integrations = integrations
-	c.reloadIntegrations <- struct{}{}
+	// Schedule integrations to run
+	c.runIntegrations <- integrations
 
 	c.cfg = cfg
 	c.globals = globals
@@ -283,9 +182,6 @@ NextConfig:
 // Handler is expensive to compute and should only be done after reloading the
 // config.
 func (c *controller) Handler(prefix string) (http.Handler, error) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
 	var firstErr error
 	saveFirstErr := func(err error) {
 		if firstErr == nil {
@@ -295,7 +191,7 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 
 	r := mux.NewRouter()
 
-	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+	err := c.forEachIntegration(prefix, func(ci *controlledIntegration, iprefix string) {
 		id := ci.id
 
 		i, ok := ci.i.(HTTPIntegration)
@@ -331,20 +227,23 @@ func (c *controller) Handler(prefix string) (http.Handler, error) {
 
 // forEachIntegration calculates the prefix for each integration and calls f.
 // prefix will not end in /.
-func forEachIntegration(set []*controlledIntegration, basePrefix string, f func(ci *controlledIntegration, iprefix string)) error {
+func (c *controller) forEachIntegration(basePrefix string, f func(ci *controlledIntegration, iprefix string)) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
 	// Pre-populate a mapping of integration name -> identifier. If there are
 	// two instances of the same integration, we want to ensure unique routing.
 	//
 	// This special logic is done for backwards compatibility with the original
 	// design of integrations.
 	identifiersMap := map[string][]string{}
-	for _, i := range set {
+	for _, i := range c.integrations {
 		identifiersMap[i.id.Name] = append(identifiersMap[i.id.Name], i.id.Identifier)
 	}
 
 	usedPrefixes := map[string]struct{}{}
 
-	for _, ci := range set {
+	for _, ci := range c.integrations {
 		id := ci.id
 		multipleInstances := len(identifiersMap[id.Name]) > 1
 
@@ -379,8 +278,7 @@ func (c *controller) Targets(ep Endpoint, opts TargetOptions) []*targetGroup {
 	}
 	var mm []prefixedMetricsIntegration
 
-	c.mut.Lock()
-	err := forEachIntegration(c.integrations, ep.Prefix, func(ci *controlledIntegration, iprefix string) {
+	err := c.forEachIntegration(ep.Prefix, func(ci *controlledIntegration, iprefix string) {
 		// Best effort liveness check. They might stop running when we request
 		// their targets, which is fine, but we should save as much work as we
 		// can.
@@ -395,7 +293,6 @@ func (c *controller) Targets(ep Endpoint, opts TargetOptions) []*targetGroup {
 	if err != nil {
 		level.Warn(c.logger).Log("msg", "error when iterating over integrations to get targets", "err", err)
 	}
-	c.mut.Unlock()
 
 	var tgs []*targetGroup
 	for _, mi := range mm {
@@ -488,8 +385,7 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 	}
 	var mm []prefixedMetricsIntegration
 
-	c.mut.Lock()
-	err := forEachIntegration(c.integrations, prefix, func(ci *controlledIntegration, iprefix string) {
+	err := c.forEachIntegration(prefix, func(ci *controlledIntegration, iprefix string) {
 		if mi, ok := ci.i.(MetricsIntegration); ok {
 			mm = append(mm, prefixedMetricsIntegration{id: ci.id, i: mi, prefix: iprefix})
 		}
@@ -497,7 +393,6 @@ func (c *controller) ScrapeConfigs(prefix string, sdConfig *http_sd.SDConfig) []
 	if err != nil {
 		level.Warn(c.logger).Log("msg", "error when iterating over integrations to get scrape configs", "err", err)
 	}
-	c.mut.Unlock()
 
 	var cfgs []*autoscrape.ScrapeConfig
 	for _, mi := range mm {

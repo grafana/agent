@@ -3,6 +3,7 @@ package wal
 import (
 	"sync"
 
+	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/intern"
 	"github.com/prometheus/prometheus/pkg/labels"
 )
@@ -97,10 +98,11 @@ const (
 //
 // This code is copied from the Prometheus TSDB.
 type stripeSeries struct {
-	size   int
-	series []map[uint64]*memSeries
-	hashes []seriesHashmap
-	locks  []stripeLock
+	size      int
+	series    []map[uint64]*memSeries
+	hashes    []seriesHashmap
+	exemplars []map[uint64]*exemplar.Exemplar
+	locks     []stripeLock
 }
 
 type stripeLock struct {
@@ -112,10 +114,11 @@ type stripeLock struct {
 func newStripeSeries() *stripeSeries {
 	stripeSize := defaultStripeSize
 	s := &stripeSeries{
-		size:   stripeSize,
-		series: make([]map[uint64]*memSeries, stripeSize),
-		hashes: make([]seriesHashmap, stripeSize),
-		locks:  make([]stripeLock, stripeSize),
+		size:      stripeSize,
+		series:    make([]map[uint64]*memSeries, stripeSize),
+		hashes:    make([]seriesHashmap, stripeSize),
+		exemplars: make([]map[uint64]*exemplar.Exemplar, stripeSize),
+		locks:     make([]stripeLock, stripeSize),
 	}
 
 	for i := range s.series {
@@ -123,6 +126,9 @@ func newStripeSeries() *stripeSeries {
 	}
 	for i := range s.hashes {
 		s.hashes[i] = seriesHashmap{}
+	}
+	for i := range s.exemplars {
+		s.exemplars[i] = map[uint64]*exemplar.Exemplar{}
 	}
 	return s
 }
@@ -171,6 +177,10 @@ func (s *stripeSeries) gc(mint int64) map[uint64]struct{} {
 			delete(s.series[i], series.ref)
 			s.hashes[j].del(seriesHash, series.ref)
 
+			// Since the series is gone, we'll also delete
+			// the latest stored exemplar.
+			delete(s.exemplars[i], series.ref)
+
 			if i != j {
 				s.locks[j].Unlock()
 			}
@@ -213,6 +223,27 @@ func (s *stripeSeries) set(hash uint64, series *memSeries) {
 	i = series.ref & uint64(s.size-1)
 	s.locks[i].Lock()
 	s.series[i][series.ref] = series
+	s.locks[i].Unlock()
+}
+
+func (s *stripeSeries) getLatestExemplar(id uint64) *exemplar.Exemplar {
+	i := id & uint64(s.size-1)
+
+	s.locks[i].RLock()
+	exemplar := s.exemplars[i][id]
+	s.locks[i].RUnlock()
+
+	return exemplar
+}
+
+func (s *stripeSeries) setLatestExemplar(id uint64, exemplar *exemplar.Exemplar) {
+	i := id & uint64(s.size-1)
+
+	// Make sure that's a valid series id and record its latest exemplar
+	s.locks[i].Lock()
+	if s.series[i][id] != nil {
+		s.exemplars[i][id] = exemplar
+	}
 	s.locks[i].Unlock()
 }
 
