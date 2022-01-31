@@ -1,7 +1,6 @@
 package integrations
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -431,79 +430,12 @@ func replaceYAMLTypeError(err error, oldTyp, newTyp reflect.Type) error {
 // UnmarshalYamlToExporters attempts to convert the contents of yaml string into a set of exporters and then return
 // those configurations.
 func UnmarshalYamlToExporters(contents string) ([]Config, error) {
-	unmarshalledConfigs := make([]Config, 0)
-	// Registered returns a cloned version of the config, so we are fine in using it
-	for _, cfg := range Registered() {
-		integrationType := integrationTypesByName[cfg.Name()]
-		// getFields returns a fake object
-		fields := getFields(cfg.Name(), integrationType)
-		createdType := reflect.StructOf(fields)
-		// Create a new struct representing fake object
-		// in the form
-		// `windows_exporter util.RawYaml` for singleton
-		// or
-		// `redis_exporter_configs []util.RawYaml` for multiplex
-		instanceElement := reflect.New(createdType).Elem()
-		instance := instanceElement.Addr().Interface()
-		if instance == nil {
-			return nil, errors.New(fmt.Sprintf("unable to create config of name %s", cfg.Name()))
-		}
-		err := yaml.Unmarshal([]byte(contents), instance)
-		if err != nil {
-			return nil, err
-		}
-		exportersYaml := make([]util.RawYAML, 0)
-
-		// If nothing found then continue
-		if instanceElement.Field(0).Interface() == nil {
-			continue
-		}
-		// Extract the yaml file into yaml subsections
-		if integrationType == TypeMultiplex {
-			exportersYaml = append(exportersYaml, instanceElement.Field(0).Interface().([]util.RawYAML)...)
-		} else {
-			exportersYaml = append(exportersYaml, instanceElement.Field(0).Interface().(util.RawYAML))
-		}
-
-		for _, exporterYaml := range exportersYaml {
-			// If was not found then move along
-			if exporterYaml == nil {
-				continue
-			}
-
-			// Generate a new config for us to actually use, we may find MANY instances of the array and need to use a cloned
-			// configuration for each
-			newCfg := cloneConfig(integrationByName[cfg.Name()])
-			switch t := newCfg.(type) {
-			case UpgradedConfig:
-				// For v1 integrations we go down this path
-				shim := &ConfigShim{}
-				legacy, _ := t.LegacyConfig()
-				shim.Orig = legacy
-				// The unmarshal needs to happen twice since passing in just the shim doesn't work due to the yaml tags.
-				// We could probably simplify this by adding tags dynamically but since this is all in memory the speed
-				// is likely acceptable for simplicity
-				err = yaml.Unmarshal(exporterYaml, legacy)
-				if err != nil {
-					return nil, err
-				}
-				err = yaml.Unmarshal(exporterYaml, &shim.Common)
-				if err != nil {
-					return nil, err
-				}
-				unmarshalledConfigs = append(unmarshalledConfigs, shim)
-			default:
-				// For v2
-				err = yaml.Unmarshal(exporterYaml, newCfg)
-				if err != nil {
-					return nil, err
-				}
-				unmarshalledConfigs = append(unmarshalledConfigs, newCfg)
-			}
-
-		}
+	o := &SubsystemOptions{}
+	err := yaml.Unmarshal([]byte(contents), o)
+	if err != nil {
+		return nil, err
 	}
-	return unmarshalledConfigs, nil
+	return o.Configs, nil
 }
 
 // getFields returns a list of fields that form a temporary struct with either <name>_configs for multiplex or

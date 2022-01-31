@@ -175,7 +175,8 @@ windows_exporter:
   enabled_collectors: one,two,three
   instance: testinstance
 node_exporter:
-  enabled: false
+  autoscrape:
+    enable: false
 `
 	tDir, err := os.MkdirTemp("", "")
 	assert.Nil(t, err)
