@@ -1,6 +1,7 @@
 package automaticloggingprocessor
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/model/pdata"
 	"gopkg.in/yaml.v3"
 )
@@ -214,6 +216,9 @@ func TestLogToStdoutSet(t *testing.T) {
 	p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
 	require.NoError(t, err)
 	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
+
+	err = p.Start(context.Background(), componenttest.NewNopHost())
+	require.NoError(t, err)
 
 	cfg = &AutomaticLoggingConfig{
 		Backend: BackendLogs,

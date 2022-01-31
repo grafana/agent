@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+# v0.22.0 (2022-01-13)
+
 This release has deprecations. Please read [DEPRECATION] entries and consult
 the [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for detailed information.
@@ -28,6 +30,8 @@ for detailed information.
 
 - [ENHANCEMENT] Update node_exporter dependency to v1.3.1. (@rfratto)
 
+- [ENHANCEMENT] Cherry-pick Prometheus PR #10102 into our Prometheus dependency (@rfratto).
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 - [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
@@ -39,6 +43,9 @@ for detailed information.
 - [BUGFIX] Fix cAdvisor so it collects all defined metrics instead of the last (@pkoenig10)
 
 - [BUGFIX] Fix panic when using 'stdout' in automatic logging (@mapno)
+
+- [BUGFIX] Grafana Agent Operator: The /-/ready and /-/healthy endpoints will
+  no longer always return 404 (@rfratto).
 
 - [DEPRECATION] The node_exporter integration's `netdev_device_whitelist` field
   is deprecated in favor of `netdev_device_include`. Support for the old field

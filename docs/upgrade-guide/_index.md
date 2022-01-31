@@ -12,12 +12,14 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.22.0
+
 ### `node_exporter` integration deprecated field names
 
 The following field names for the `node_exporter` integration are now deprecated:
 
 * `netdev_device_whitelist` is deprecated in favor of `netdev_device_include`.
-* `netdev_device_blacklist` is deprecated in favor of `netdev_device_include`.
+* `netdev_device_blacklist` is deprecated in favor of `netdev_device_exclude`.
 * `systemd_unit_whitelist` is deprecated in favor of `systemd_unit_include`.
 * `systemd_unit_blacklist` is deprecated in favor of `systemd_unit_exclude`.
 * `filesystem_ignored_mount_points` is deprecated in favor of

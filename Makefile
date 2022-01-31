@@ -7,6 +7,7 @@ SHELL = /usr/bin/env bash
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
+IMAGE_BRANCH_TAG ?= main
 ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 # If RELEASE_TAG has a valid value it will be the same as IMAGE_TAG
@@ -14,6 +15,7 @@ IMAGE_TAG ?= $(shell ./tools/image-tag)
 RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
+IMAGE_BRANCH_TAG = latest
 endif
 DRONE ?= false
 
@@ -199,13 +201,13 @@ cmd/grafana-agent-crow/grafana-agent-crow: cmd/grafana-agent-crow/main.go
 	$(NETGO_CHECK)
 
 agent-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 agentctl-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 grafana-agent-crow-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agent-crow:latest -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f cmd/grafana-agent-crow/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f cmd/grafana-agent-crow/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
@@ -229,6 +231,12 @@ test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -race -cover -coverprofile=cover.out -p=4 ./...
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
 
+e2e/lint:
+	$(MAKE) -C e2e lint
+
+e2e/test:
+	$(MAKE) -C e2e test
+
 clean:
 	rm -rf cmd/agent/agent
 	go clean ./...
@@ -237,8 +245,8 @@ example-kubernetes:
 	cd production/kubernetes/build && bash build.sh
 
 example-dashboards:
-	cd example/docker-compose/grafana/dashboards && \
-		jsonnet template.jsonnet -J ../../vendor -m .
+	cd example/docker-compose && jb install && \
+	cd grafana/dashboards && jsonnet template.jsonnet -J ../../vendor -m .
 
 #############
 # Releasing #
