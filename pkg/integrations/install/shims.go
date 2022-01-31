@@ -3,6 +3,7 @@ package install
 import (
 	v1 "github.com/grafana/agent/pkg/integrations"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
 // Perform a migration of v1 integrations which do not yet have a v2
@@ -23,7 +24,7 @@ func init() {
 			}
 		}
 		if !found {
-			v2.RegisterLegacy(v1Integration, v2.TypeSingleton, v2.CreateShim)
+			v2.RegisterLegacy(v1Integration, v2.TypeSingleton, metricsutils.CreateShim)
 		}
 	}
 }

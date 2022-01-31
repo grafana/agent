@@ -3,6 +3,7 @@ package postgres_exporter //nolint:golint
 
 import (
 	"fmt"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"os"
 	"strings"
 
@@ -121,7 +122,7 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new postgres_exporter integration. The integration scrapes

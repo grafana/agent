@@ -4,6 +4,7 @@ package redis_exporter //nolint:golint
 import (
 	"errors"
 	"fmt"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"io/ioutil"
 	"time"
 
@@ -116,7 +117,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new redis_exporter integration. The integration queries

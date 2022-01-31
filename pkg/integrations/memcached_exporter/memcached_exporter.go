@@ -2,6 +2,7 @@
 package memcached_exporter //nolint:golint
 
 import (
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"time"
 
 	"github.com/go-kit/log"
@@ -50,7 +51,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new memcached_exporter integration. The integration scrapes metrics

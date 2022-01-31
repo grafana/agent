@@ -3,6 +3,7 @@ package node_exporter //nolint:golint
 import (
 	"fmt"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"os"
 	"runtime"
 	"strings"
@@ -242,7 +243,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, integrations_v2.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.CreateShim)
 
 }
 

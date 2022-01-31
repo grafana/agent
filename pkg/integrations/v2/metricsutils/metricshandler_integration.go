@@ -1,4 +1,4 @@
-package integrations
+package metricsutils
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/prometheus/common/model"
@@ -20,11 +21,11 @@ import (
 // will expose a /metrics endpoint for h.
 func NewMetricsHandlerIntegration(
 	_ log.Logger,
-	c Config,
+	c integrations.Config,
 	mc common.MetricsConfig,
-	globals Globals,
+	globals integrations.Globals,
 	h http.Handler,
-) (MetricsIntegration, error) {
+) (integrations.MetricsIntegration, error) {
 	id, err := c.Identifier(globals)
 	if err != nil {
 		return nil, err
@@ -45,7 +46,7 @@ type metricsHandlerIntegration struct {
 	integrationName, instanceID string
 
 	common  common.MetricsConfig
-	globals Globals
+	globals integrations.Globals
 	handler http.Handler
 	targets []handlerTarget
 
@@ -53,7 +54,7 @@ type metricsHandlerIntegration struct {
 }
 
 type handlerTarget struct {
-	// Path relative to handler prefix where metrics are available.
+	// Path relative to Handler prefix where metrics are available.
 	MetricsPath string
 	// Extra labels to inject into the target. Labels here that take precedence
 	// over labels with the same name from the generated target group.
@@ -62,9 +63,9 @@ type handlerTarget struct {
 
 // Static typecheck tests
 var (
-	_ Integration        = (*metricsHandlerIntegration)(nil)
-	_ HTTPIntegration    = (*metricsHandlerIntegration)(nil)
-	_ MetricsIntegration = (*metricsHandlerIntegration)(nil)
+	_ integrations.Integration        = (*metricsHandlerIntegration)(nil)
+	_ integrations.HTTPIntegration    = (*metricsHandlerIntegration)(nil)
+	_ integrations.MetricsIntegration = (*metricsHandlerIntegration)(nil)
 )
 
 // RunIntegration implements Integration.
@@ -87,7 +88,7 @@ func (i *metricsHandlerIntegration) Handler(prefix string) (http.Handler, error)
 }
 
 // Targets implements MetricsIntegration.
-func (i *metricsHandlerIntegration) Targets(ep Endpoint) []*targetgroup.Group {
+func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 	integrationNameValue := model.LabelValue("integrations/" + i.integrationName)
 
 	group := &targetgroup.Group{

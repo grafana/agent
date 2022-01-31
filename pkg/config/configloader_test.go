@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
@@ -341,7 +342,7 @@ windows_exporter:
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
-	oc := cfg[0].(*v2.ConfigShim)
+	oc := cfg[0].(*metricsutils.ConfigShim)
 	assert.Len(t, oc.Common.Autoscrape.MetricRelabelConfigs, 3)
 	foundApple := 0
 	foundPear := 0
@@ -388,7 +389,7 @@ redis_exporter_configs:
 	assert.Len(t, configs, 2)
 	found := 0
 	for _, c := range configs {
-		cs, _ := c.(*v2.ConfigShim)
+		cs, _ := c.(*metricsutils.ConfigShim)
 		rc := cs.Orig.(*redis_exporter.Config)
 		if rc.RedisAddr == "localhost:6379" {
 			assert.Len(t, cs.Common.Autoscrape.MetricRelabelConfigs, 1)

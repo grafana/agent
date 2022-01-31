@@ -5,6 +5,7 @@ package elasticsearch_exporter //nolint:golint
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"net/http"
 	"net/url"
 	"time"
@@ -89,7 +90,7 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new elasticsearch_exporter

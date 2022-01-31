@@ -2,6 +2,7 @@ package kafka_exporter //nolint:golint
 
 import (
 	"fmt"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 
 	config_util "github.com/prometheus/common/config"
 
@@ -122,7 +123,7 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new kafka_exporter integration.

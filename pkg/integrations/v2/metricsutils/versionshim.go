@@ -1,4 +1,4 @@
-package integrations
+package metricsutils
 
 import (
 	"context"
@@ -10,13 +10,14 @@ import (
 	"github.com/prometheus/common/model"
 
 	v1 "github.com/grafana/agent/pkg/integrations"
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/util"
 )
 
 // CreateShim creates a shim between the v1.Config and v2.Config. The resulting
 // config is NOT registered.
-func CreateShim(before v1.Config, common common.MetricsConfig) (after UpgradedConfig) {
+func CreateShim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
 	return &ConfigShim{Orig: before, Common: common}
 }
 
@@ -26,16 +27,16 @@ type ConfigShim struct {
 }
 
 var (
-	_ Config           = (*ConfigShim)(nil)
-	_ UpgradedConfig   = (*ConfigShim)(nil)
-	_ ComparableConfig = (*ConfigShim)(nil)
+	_ v2.Config           = (*ConfigShim)(nil)
+	_ v2.UpgradedConfig   = (*ConfigShim)(nil)
+	_ v2.ComparableConfig = (*ConfigShim)(nil)
 )
 
 func (s *ConfigShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.Orig, s.Common }
 
 func (s *ConfigShim) Name() string { return s.Orig.Name() }
 
-func (s *ConfigShim) ApplyDefaults(g Globals) error {
+func (s *ConfigShim) ApplyDefaults(g v2.Globals) error {
 	s.Common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
 	if id, err := s.Identifier(g); err == nil {
 		s.Common.InstanceKey = &id
@@ -43,7 +44,7 @@ func (s *ConfigShim) ApplyDefaults(g Globals) error {
 	return nil
 }
 
-func (s *ConfigShim) ConfigEquals(c Config) bool {
+func (s *ConfigShim) ConfigEquals(c v2.Config) bool {
 	o, ok := c.(*ConfigShim)
 	if !ok {
 		return false
@@ -51,14 +52,14 @@ func (s *ConfigShim) ConfigEquals(c Config) bool {
 	return util.CompareYAML(s.Orig, o.Orig) && util.CompareYAML(s.Common, o.Common)
 }
 
-func (s *ConfigShim) Identifier(g Globals) (string, error) {
+func (s *ConfigShim) Identifier(g v2.Globals) (string, error) {
 	if s.Common.InstanceKey != nil {
 		return *s.Common.InstanceKey, nil
 	}
 	return s.Orig.InstanceKey(g.AgentIdentifier)
 }
 
-func (s *ConfigShim) NewIntegration(l log.Logger, g Globals) (Integration, error) {
+func (s *ConfigShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration, error) {
 	v1Integration, err := s.Orig.NewIntegration(l)
 	if err != nil {
 		return nil, err
@@ -81,7 +82,7 @@ func (s *ConfigShim) NewIntegration(l log.Logger, g Globals) (Integration, error
 	// Generate targets. Original integrations used a static set of targets,
 	// so this mapping can always be generated just once.
 	//
-	// targets are generated from the result of ScrapeConfigs(), which returns a
+	// Targets are generated from the result of ScrapeConfigs(), which returns a
 	// tuple of job name and relative metrics path.
 	//
 	// Job names were prefixed at the subsystem level with integrations/, so we
