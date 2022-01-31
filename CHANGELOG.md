@@ -10,6 +10,8 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+- [FEATURE] (beta) Add API key support to app o11y receiver integration (@domasx2)
+
 - [FEATURE] (beta) Add app o11y integration. This depends on integrations-next being enabled
    via the `integrations-next` feature flag. Use `-enable-features=integrations-next` to use
    this integration. (@kpelelis, @domas)
