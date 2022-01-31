@@ -104,6 +104,10 @@ func (i *metricsHandlerIntegration) Targets(ep Endpoint) []*targetgroup.Group {
 		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
 	}
 
+	for _, lbl := range i.common.ExtraLabels {
+		group.Labels[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
+	}
+
 	for _, t := range i.targets {
 		group.Targets = append(group.Targets, model.LabelSet{
 			model.AddressLabel:     model.LabelValue(ep.Host),

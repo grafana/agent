@@ -35,6 +35,7 @@ import (
 
 func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 }
 
 var (

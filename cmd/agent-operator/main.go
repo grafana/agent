@@ -12,7 +12,6 @@ import (
 	"github.com/grafana/agent/pkg/operator/logutil"
 	"github.com/prometheus/common/version"
 	controller "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	// Needed for clients.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -28,27 +27,15 @@ func main() {
 
 	logger = setupLogger(logger, cfg)
 
-	m, err := cfg.Manager()
+	op, err := operator.New(logger, cfg)
 	if err != nil {
-		level.Error(logger).Log("msg", "unable to create manager", "err", err)
-		os.Exit(1)
-	}
-
-	if err := m.AddReadyzCheck("running", healthz.Ping); err != nil {
-		level.Warn(logger).Log("msg", "failed to set up 'running' readyz check", "err", err)
-	}
-	if err := m.AddHealthzCheck("running", healthz.Ping); err != nil {
-		level.Warn(logger).Log("msg", "failed to set up 'running' healthz check", "err", err)
-	}
-
-	if err := operator.New(logger, cfg, m); err != nil {
 		level.Error(logger).Log("msg", "unable to create operator", "err", err)
 		os.Exit(1)
 	}
 
 	// Run the manager and wait for a signal to shut down.
 	level.Info(logger).Log("msg", "starting manager")
-	if err := m.Start(controller.SetupSignalHandler()); err != nil {
+	if err := op.Start(controller.SetupSignalHandler()); err != nil {
 		level.Error(logger).Log("msg", "problem running manager", "err", err)
 		os.Exit(1)
 	}

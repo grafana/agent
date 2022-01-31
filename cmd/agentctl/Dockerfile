@@ -1,4 +1,4 @@
-FROM golang:1.17-buster as build
+FROM golang:1.17.6-buster as build
 COPY . /src/agent
 WORKDIR /src/agent
 ARG RELEASE_BUILD=false
