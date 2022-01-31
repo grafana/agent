@@ -29,27 +29,27 @@ func NewMetricsHandlerIntegration(
 	if err != nil {
 		return nil, err
 	}
-	return &MetricsHandlerIntegration{
-		IntegrationName: c.Name(),
-		InstanceID:      id,
+	return &metricsHandlerIntegration{
+		integrationName: c.Name(),
+		instanceID:      id,
 
-		Common:  mc,
-		Globals: globals,
+		common:  mc,
+		globals: globals,
 		handler: h,
 
 		targets: []handlerTarget{{MetricsPath: "metrics"}},
 	}, nil
 }
 
-type MetricsHandlerIntegration struct {
-	IntegrationName, InstanceID string
+type metricsHandlerIntegration struct {
+	integrationName, instanceID string
 
-	Common  common.MetricsConfig
-	Globals Globals
+	common  common.MetricsConfig
+	globals Globals
 	handler http.Handler
 	targets []handlerTarget
 
-	RunFunc func(ctx context.Context) error
+	runFunc func(ctx context.Context) error
 }
 
 type handlerTarget struct {
@@ -62,17 +62,17 @@ type handlerTarget struct {
 
 // Static typecheck tests
 var (
-	_ Integration        = (*MetricsHandlerIntegration)(nil)
-	_ HTTPIntegration    = (*MetricsHandlerIntegration)(nil)
-	_ MetricsIntegration = (*MetricsHandlerIntegration)(nil)
+	_ Integration        = (*metricsHandlerIntegration)(nil)
+	_ HTTPIntegration    = (*metricsHandlerIntegration)(nil)
+	_ MetricsIntegration = (*metricsHandlerIntegration)(nil)
 )
 
 // RunIntegration implements Integration.
-func (i *MetricsHandlerIntegration) RunIntegration(ctx context.Context) error {
+func (i *metricsHandlerIntegration) RunIntegration(ctx context.Context) error {
 	// Call our runFunc if defined (used from integrationShim), otherwise
 	// fallback to no-op.
-	if i.RunFunc != nil {
-		return i.RunFunc(ctx)
+	if i.runFunc != nil {
+		return i.runFunc(ctx)
 	}
 
 	<-ctx.Done()
@@ -80,28 +80,28 @@ func (i *MetricsHandlerIntegration) RunIntegration(ctx context.Context) error {
 }
 
 // Handler implements HTTPIntegration.
-func (i *MetricsHandlerIntegration) Handler(prefix string) (http.Handler, error) {
+func (i *metricsHandlerIntegration) Handler(prefix string) (http.Handler, error) {
 	r := mux.NewRouter()
 	r.Handle(path.Join(prefix, "metrics"), i.handler)
 	return r, nil
 }
 
 // Targets implements MetricsIntegration.
-func (i *MetricsHandlerIntegration) Targets(ep Endpoint) []*targetgroup.Group {
-	integrationNameValue := model.LabelValue("integrations/" + i.IntegrationName)
+func (i *metricsHandlerIntegration) Targets(ep Endpoint) []*targetgroup.Group {
+	integrationNameValue := model.LabelValue("integrations/" + i.integrationName)
 
 	group := &targetgroup.Group{
 		Labels: model.LabelSet{
-			model.InstanceLabel: model.LabelValue(i.InstanceID),
+			model.InstanceLabel: model.LabelValue(i.instanceID),
 			model.JobLabel:      integrationNameValue,
-			"agent_hostname":    model.LabelValue(i.Globals.AgentIdentifier),
+			"agent_hostname":    model.LabelValue(i.globals.AgentIdentifier),
 
 			// Meta labels that can be used during SD.
-			"__meta_agent_integration_name":       model.LabelValue(i.IntegrationName),
-			"__meta_agent_integration_instance":   model.LabelValue(i.InstanceID),
-			"__meta_agent_integration_autoscrape": model.LabelValue(boolToString(*i.Common.Autoscrape.Enable)),
+			"__meta_agent_integration_name":       model.LabelValue(i.integrationName),
+			"__meta_agent_integration_instance":   model.LabelValue(i.instanceID),
+			"__meta_agent_integration_autoscrape": model.LabelValue(boolToString(*i.common.Autoscrape.Enable)),
 		},
-		Source: fmt.Sprintf("%s/%s", i.IntegrationName, i.InstanceID),
+		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
 	}
 
 	for _, t := range i.targets {
@@ -124,23 +124,23 @@ func boolToString(b bool) string {
 }
 
 // ScrapeConfigs implements MetricsIntegration.
-func (i *MetricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeConfig {
-	if !*i.Common.Autoscrape.Enable {
+func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeConfig {
+	if !*i.common.Autoscrape.Enable {
 		return nil
 	}
 
 	cfg := config.DefaultScrapeConfig
-	cfg.JobName = fmt.Sprintf("%s/%s", i.IntegrationName, i.InstanceID)
-	cfg.Scheme = i.Globals.AgentBaseURL.Scheme
-	cfg.HTTPClientConfig = i.Globals.SubsystemOpts.ClientConfig
+	cfg.JobName = fmt.Sprintf("%s/%s", i.integrationName, i.instanceID)
+	cfg.Scheme = i.globals.AgentBaseURL.Scheme
+	cfg.HTTPClientConfig = i.globals.SubsystemOpts.ClientConfig
 	cfg.ServiceDiscoveryConfigs = sd
-	cfg.ScrapeInterval = i.Common.Autoscrape.ScrapeInterval
-	cfg.ScrapeTimeout = i.Common.Autoscrape.ScrapeTimeout
-	cfg.RelabelConfigs = i.Common.Autoscrape.RelabelConfigs
-	cfg.MetricRelabelConfigs = i.Common.Autoscrape.MetricRelabelConfigs
+	cfg.ScrapeInterval = i.common.Autoscrape.ScrapeInterval
+	cfg.ScrapeTimeout = i.common.Autoscrape.ScrapeTimeout
+	cfg.RelabelConfigs = i.common.Autoscrape.RelabelConfigs
+	cfg.MetricRelabelConfigs = i.common.Autoscrape.MetricRelabelConfigs
 
 	return []*autoscrape.ScrapeConfig{{
-		Instance: i.Common.Autoscrape.MetricsInstance,
+		Instance: i.common.Autoscrape.MetricsInstance,
 		Config:   cfg,
 	}}
 }

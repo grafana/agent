@@ -114,15 +114,15 @@ func (s *ConfigShim) NewIntegration(l log.Logger, g Globals) (Integration, error
 	}
 
 	// Aggregate our converted settings into a v2 integration.
-	return &MetricsHandlerIntegration{
-		IntegrationName: s.Orig.Name(),
-		InstanceID:      id,
+	return &metricsHandlerIntegration{
+		integrationName: s.Orig.Name(),
+		instanceID:      id,
 
-		Common:  s.Common,
-		Globals: g,
+		common:  s.Common,
+		globals: g,
 		handler: handler,
 		targets: targets,
 
-		RunFunc: runFunc,
+		runFunc: runFunc,
 	}, nil
 }
