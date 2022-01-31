@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
@@ -19,8 +20,14 @@ func (m Measurement) KeyVal() *utils.KeyVal {
 
 	utils.KeyValAdd(kv, "timestamp", m.Timestamp.String())
 	utils.KeyValAdd(kv, "kind", "measurement")
-	for k, v := range m.Values {
-		utils.KeyValAdd(kv, k, fmt.Sprintf("%f", v))
+
+	keys := make([]string, 0, len(m.Values))
+	for k := range m.Values {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		utils.KeyValAdd(kv, k, fmt.Sprintf("%f", m.Values[k]))
 	}
 	return kv
 }

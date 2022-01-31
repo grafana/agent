@@ -9,22 +9,26 @@ import (
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
-	loki "github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
 	prommodel "github.com/prometheus/common/model"
 )
 
+type lokiInstance interface {
+	SendEntry(entry api.Entry, dur time.Duration) bool
+}
+
 // LokiExporterConfig holds the configuration of the loki exporter
 type LokiExporterConfig struct {
 	SendEntryTimeout int
-	LokiInstance     *loki.Instance
+	LokiInstance     lokiInstance
 	Labels           map[string]string
 }
 
 // LokiExporter is the struct of the loki exporter
 type LokiExporter struct {
-	li        *loki.Instance
+	li        lokiInstance
 	seTimeout time.Duration
 	logger    kitlog.Logger
 	labels    map[string]string
@@ -111,4 +115,5 @@ func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 // Static typecheck tests
 var (
 	_ AppO11yReceiverExporter = (*LokiExporter)(nil)
+	_ lokiInstance            = (*logs.Instance)(nil)
 )

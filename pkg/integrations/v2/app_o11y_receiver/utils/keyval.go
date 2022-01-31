@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"sort"
 
 	om "github.com/wk8/go-ordered-map"
 )
@@ -17,8 +18,13 @@ func NewKeyVal() *KeyVal {
 // KeyValFromMap will instantiate KeyVal from a map[string]string
 func KeyValFromMap(m map[string]string) *KeyVal {
 	kv := NewKeyVal()
-	for k, v := range m {
-		KeyValAdd(kv, k, v)
+	keys := make([]string, 0, len(m))
+	sort.Strings(keys)
+	for k := range m {
+		keys = append(keys, k)
+	}
+	for _, k := range keys {
+		KeyValAdd(kv, k, m[k])
 	}
 	return kv
 }
