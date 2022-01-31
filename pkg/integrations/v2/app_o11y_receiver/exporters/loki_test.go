@@ -58,7 +58,8 @@ func TestExportLogs(t *testing.T) {
 
 	payload := loadTestData(t, "payload.json")
 
-	lokiExporter.Export(payload)
+	err := lokiExporter.Export(payload)
+	assert.NoError(t, err)
 
 	assert.Len(t, inst.Entries, 4)
 
