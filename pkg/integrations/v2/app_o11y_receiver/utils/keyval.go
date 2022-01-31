@@ -19,10 +19,10 @@ func NewKeyVal() *KeyVal {
 func KeyValFromMap(m map[string]string) *KeyVal {
 	kv := NewKeyVal()
 	keys := make([]string, 0, len(m))
-	sort.Strings(keys)
 	for k := range m {
 		keys = append(keys, k)
 	}
+	sort.Strings(keys)
 	for _, k := range keys {
 		KeyValAdd(kv, k, m[k])
 	}
