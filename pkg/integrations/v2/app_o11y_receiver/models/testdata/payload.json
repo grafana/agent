@@ -1,44 +1,4 @@
 {
-  "traces": {
-      "resourceSpans": [
-          {
-              "resource": {
-                  "attributes": [
-                      {
-                          "key": "host.name",
-                          "value": {
-                              "stringValue": "testHost"
-                          }
-                      }
-                  ]
-              },
-              "instrumentationLibrarySpans": [
-                  {
-                      "instrumentationLibrary": {
-                          "name": "name",
-                          "version": "version"
-                      },
-                      "spans": [
-                          {
-                              "traceId": "",
-                              "spanId": "",
-                              "parentSpanId": "",
-                              "name": "testSpan",
-                              "status": {}
-                          },
-                          {
-                              "traceId": "",
-                              "spanId": "",
-                              "parentSpanId": "",
-                              "name": "testSpan2",
-                              "status": {}
-                          }
-                      ]
-                  }
-              ]
-          }
-      ]
-  },
   "logs": [
       {
           "message": "opened pricing page",
