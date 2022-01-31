@@ -14,10 +14,9 @@ import (
 )
 
 var (
-	integrationByName      = make(map[string]interface{})  // Map of name to interface
-	configFieldNames       = make(map[reflect.Type]string) // Map of registered type to field name
-	integrationTypes       = make(map[reflect.Type]Type)   // Map of registered type to Type
-	integrationTypesByName = make(map[string]Type)         // Map of name to Type
+	integrationName  = make(map[string]interface{})  // Map of name to interface
+	configFieldNames = make(map[reflect.Type]string) // Map of registered type to field name
+	integrationTypes = make(map[reflect.Type]Type)   // Map of registered type to Type
 
 	// Registered integrations. Registered integrations may be either a Config or
 	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
@@ -44,17 +43,16 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 	if reflect.TypeOf(v).Kind() != reflect.Ptr {
 		panic(fmt.Sprintf("Register must be given a pointer, got %T", v))
 	}
-	if _, exist := integrationByName[name]; exist {
+	if _, exist := integrationName[name]; exist {
 		panic(fmt.Sprintf("Integration %q registered twice", name))
 	}
-	integrationByName[name] = v
+	integrationName[name] = v
 
 	registered = append(registered, v)
 
 	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
 	configFieldNames[configTy] = name
-	integrationTypesByName[name] = ty
 	upgraders[name] = upgrader
 }
 
@@ -107,9 +105,8 @@ const (
 // setRegistered must not be used with parallelized tests.
 func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear := func() {
-		integrationByName = make(map[string]interface{})
+		integrationName = make(map[string]interface{})
 		integrationTypes = make(map[reflect.Type]Type)
-		integrationTypesByName = make(map[string]Type)
 		configFieldNames = make(map[reflect.Type]string)
 		registered = registered[:0]
 		upgraders = make(map[string]UpgradeFunc)
@@ -312,7 +309,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 		switch field.Kind() {
 		case reflect.Slice:
 			configName := strings.TrimPrefix(fieldType.Name, "XXX_Configs_")
-			configReference, ok := integrationByName[configName]
+			configReference, ok := integrationName[configName]
 			if !ok {
 				return fmt.Errorf("integration %q not registered", configName)
 			}
@@ -330,7 +327,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 			}
 		default:
 			configName := strings.TrimPrefix(fieldType.Name, "XXX_Config_")
-			configReference, ok := integrationByName[configName]
+			configReference, ok := integrationName[configName]
 			if !ok {
 				return fmt.Errorf("integration %q not registered", configName)
 			}
