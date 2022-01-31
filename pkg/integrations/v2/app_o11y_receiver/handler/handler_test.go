@@ -177,3 +177,65 @@ func TestLargePayload(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, rr.Result().StatusCode)
 }
+
+func TestAPIKeyRequiredButNotProvided(t *testing.T) {
+	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conf := config.AppO11yReceiverConfig{
+		APIKey: "foo",
+	}
+
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	handler := fr.HTTPHandler(nil)
+
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusUnauthorized, rr.Result().StatusCode)
+}
+
+func TestAPIKeyWrong(t *testing.T) {
+	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
+	req.Header.Set("x-api-key", "bar")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conf := config.AppO11yReceiverConfig{
+		APIKey: "foo",
+	}
+
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	handler := fr.HTTPHandler(nil)
+
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusUnauthorized, rr.Result().StatusCode)
+}
+
+func TestAPIKeyCorrect(t *testing.T) {
+	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
+	req.Header.Set("x-api-key", "foo")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conf := config.AppO11yReceiverConfig{
+		APIKey: "foo",
+	}
+
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	handler := fr.HTTPHandler(nil)
+
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+}

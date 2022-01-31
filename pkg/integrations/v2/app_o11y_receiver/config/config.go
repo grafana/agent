@@ -48,6 +48,7 @@ type RateLimitingConfig struct {
 type AppO11yReceiverConfig struct {
 	CORSAllowedOrigins    []string           `yaml:"cors_allowed_origins,omitempty"`
 	RateLimiting          RateLimitingConfig `yaml:"rate_limiting,omitempty"`
+	APIKey                string             `yaml:"api_key,omitempty"`
 	MaxAllowedPayloadSize int64              `yaml:"max_allowed_payload_size,omitempty"`
 	Server                ServerConfig       `yaml:"server,omitempty"`
 	LogsInstance          string             `yaml:"logs_instance"`
