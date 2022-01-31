@@ -121,7 +121,7 @@ func (c *Config) getDataSourceNames() ([]string, error) {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(func() interface{} { return &Config{} }, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, integrations_v2.CreateShim)
 }
 
 // New creates a new postgres_exporter integration. The integration scrapes

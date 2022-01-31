@@ -41,5 +41,5 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 }
 
 func init() {
-	integrations.Register(func() interface{} { return &Config{} }, integrations.TypeSingleton)
+	integrations.Register(&Config{}, integrations.TypeSingleton)
 }

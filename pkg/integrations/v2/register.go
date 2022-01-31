@@ -15,14 +15,14 @@ import (
 )
 
 var (
-	integrationNames       = make(map[string]interface{})  // Cache of field names for uniqueness checking.
+	integrationByName      = make(map[string]interface{})  // Map of name to interface
 	configFieldNames       = make(map[reflect.Type]string) // Map of registered type to field name
 	integrationTypes       = make(map[reflect.Type]Type)   // Map of registered type to Type
 	integrationTypesByName = make(map[string]Type)         // Map of name to Type
 
 	// Registered integrations. Registered integrations may be either a Config or
 	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
-	registered = map[string]func() interface{}{}
+	registered = []interface{}{}
 	upgraders  = make(map[string]UpgradeFunc)
 
 	emptyStructType = reflect.TypeOf(struct{}{})
@@ -37,24 +37,22 @@ var (
 // ty controls how the integration can be unmarshaled from YAML.
 //
 // Register panics if cfg is not a pointer.
-func Register(f func() interface{}, ty Type) {
-	cfg := f().(Config)
-	registerIntegration(f, cfg.Name(), ty, nil)
+func Register(cfg Config, ty Type) {
+	registerIntegration(cfg, cfg.Name(), ty, nil)
 }
 
-func registerIntegration(f func() interface{}, name string, ty Type, upgrader UpgradeFunc) {
-	cfg := f()
-	if reflect.TypeOf(cfg).Kind() != reflect.Ptr {
-		panic(fmt.Sprintf("Register must be given a pointer, got %T", cfg))
+func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFunc) {
+	if reflect.TypeOf(v).Kind() != reflect.Ptr {
+		panic(fmt.Sprintf("Register must be given a pointer, got %T", v))
 	}
-	if _, exist := integrationNames[name]; exist {
+	if _, exist := integrationByName[name]; exist {
 		panic(fmt.Sprintf("Integration %q registered twice", name))
 	}
-	integrationNames[name] = name
+	integrationByName[name] = v
 
-	registered[name] = f
+	registered = append(registered, v)
 
-	configTy := reflect.TypeOf(cfg)
+	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
 	configFieldNames[configTy] = name
 	integrationTypesByName[name] = ty
@@ -68,9 +66,8 @@ func registerIntegration(f func() interface{}, name string, ty Type, upgrader Up
 // RegisterLegacy only exists for the transition period where the v2
 // integrations subsystem is an experiment. RegisterLegacy will be removed at a
 // later date.
-func RegisterLegacy(f func() interface{}, ty Type, upgrader UpgradeFunc) {
-	cfg := f().(v1.Config)
-	registerIntegration(f, cfg.Name(), ty, upgrader)
+func RegisterLegacy(cfg v1.Config, ty Type, upgrader UpgradeFunc) {
+	registerIntegration(cfg, cfg.Name(), ty, upgrader)
 }
 
 // UpgradeFunc upgrades cfg to a UpgradedConfig.
@@ -111,11 +108,11 @@ const (
 // setRegistered must not be used with parallelized tests.
 func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear := func() {
-		integrationNames = make(map[string]interface{})
+		integrationByName = make(map[string]interface{})
 		integrationTypes = make(map[reflect.Type]Type)
 		integrationTypesByName = make(map[string]Type)
 		configFieldNames = make(map[reflect.Type]string)
-		registered = make(map[string]func() interface{})
+		registered = registered[:0]
 		upgraders = make(map[string]UpgradeFunc)
 	}
 
@@ -123,7 +120,7 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear()
 
 	for c, t := range cc {
-		Register(func() interface{} { return c }, t)
+		Register(c, t)
 	}
 }
 
@@ -137,11 +134,10 @@ func Registered() []Config {
 	return res
 }
 
-func cloneConfig(r func() interface{}) Config {
-	c := r()
-	switch v := c.(type) {
+func cloneConfig(r interface{}) Config {
+	switch v := r.(type) {
 	case Config:
-		return v
+		return cloneValue(v).(Config)
 	case v1.Config:
 		mut, ok := upgraders[v.Name()]
 		if !ok || mut == nil {
@@ -151,6 +147,10 @@ func cloneConfig(r func() interface{}) Config {
 	default:
 		panic(fmt.Sprintf("unexpected type %T", r))
 	}
+}
+
+func cloneValue(in interface{}) interface{} {
+	return reflect.New(reflect.TypeOf(in).Elem()).Interface()
 }
 
 // Configs is a list of integrations. Note that Configs does not implement
@@ -313,11 +313,11 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 		switch field.Kind() {
 		case reflect.Slice:
 			configName := strings.TrimPrefix(fieldType.Name, "XXX_Configs_")
-			configFunc, ok := registered[configName]
+			configReference, ok := integrationByName[configName]
 			if !ok {
 				return fmt.Errorf("integration %q not registered", configName)
 			}
-			configReference := configFunc()
+
 			for i := 0; i < field.Len(); i++ {
 				if field.Index(i).IsNil() {
 					continue
@@ -331,16 +331,11 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 			}
 		default:
 			configName := strings.TrimPrefix(fieldType.Name, "XXX_Config_")
-			_, ok := integrationNames[configName]
-			if !ok {
-				return fmt.Errorf("integration %q not registered", configName)
-			}
-			configFunc, ok := registered[configName]
+			configReference, ok := integrationByName[configName]
 			if !ok {
 				return fmt.Errorf("integration %q not registered", configName)
 			}
 			raw := field.Interface().(*util.RawYAML)
-			configReference := configFunc()
 			c, err := deferredConfigUnmarshal(*raw, configReference)
 			if err != nil {
 				return err
@@ -357,7 +352,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 func deferredConfigUnmarshal(raw util.RawYAML, ref interface{}) (Config, error) {
 	switch ref := ref.(type) {
 	case Config:
-		out := ref
+		out := cloneValue(ref).(Config)
 		err := yaml.Unmarshal(raw, out)
 		return out, err
 	case v1.Config:
@@ -367,7 +362,7 @@ func deferredConfigUnmarshal(raw util.RawYAML, ref interface{}) (Config, error) 
 		}
 		var (
 			common common.MetricsConfig
-			out    = ref
+			out    = cloneValue(ref).(v1.Config)
 		)
 		err := util.UnmarshalYAMLMerged(raw, &common, out)
 		return mut(out, common), err
@@ -398,8 +393,7 @@ func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 
 	for _, reg := range registered {
 		// Fields use a prefix that's unlikely to collide with anything else.
-		c := reg()
-		configTy := reflect.TypeOf(c)
+		configTy := reflect.TypeOf(reg)
 		integrationType := integrationTypes[configTy]
 		fieldName := configFieldNames[configTy]
 
@@ -441,22 +435,14 @@ func UnmarshalYamlToExporters(contents string) ([]Config, error) {
 	// Registered returns a cloned version of the config, so we are fine in using it
 	for _, cfg := range Registered() {
 		integrationType := integrationTypesByName[cfg.Name()]
-		var fields []reflect.StructField
-		// Integrations can either have multiple copies (multiplex ie redis) or singleton (windows)
-		if integrationType == TypeMultiplex {
-			fields = append(fields, reflect.StructField{
-				Name: strings.ToUpper(cfg.Name()),
-				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, cfg.Name())),
-				Type: reflect.SliceOf(reflect.TypeOf(util.RawYAML{})),
-			})
-		} else {
-			fields = append(fields, reflect.StructField{
-				Name: strings.ToUpper(cfg.Name()),
-				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, cfg.Name())),
-				Type: reflect.TypeOf(util.RawYAML{}),
-			})
-		}
+		// getFields returns a fake object
+		fields := getFields(cfg.Name(), integrationType)
 		createdType := reflect.StructOf(fields)
+		// Create a new struct representing fake object
+		// in the form
+		// `windows_exporter util.RawYaml` for singleton
+		// or
+		// `redis_exporter_configs []util.RawYaml` for multiplex
 		instanceElement := reflect.New(createdType).Elem()
 		instance := instanceElement.Addr().Interface()
 		if instance == nil {
@@ -467,6 +453,12 @@ func UnmarshalYamlToExporters(contents string) ([]Config, error) {
 			return nil, err
 		}
 		exportersYaml := make([]util.RawYAML, 0)
+
+		// If nothing found then continue
+		if instanceElement.Field(0).Interface() == nil {
+			continue
+		}
+		// Extract the yaml file into yaml subsections
 		if integrationType == TypeMultiplex {
 			exportersYaml = append(exportersYaml, instanceElement.Field(0).Interface().([]util.RawYAML)...)
 		} else {
@@ -474,15 +466,24 @@ func UnmarshalYamlToExporters(contents string) ([]Config, error) {
 		}
 
 		for _, exporterYaml := range exportersYaml {
-			if exporterYaml != nil {
-				f := registered[cfg.Name()]
-				newCfg := f()
+			// If was not found then move along
+			if exporterYaml == nil {
+				continue
+			}
+
+			// Generate a new config for us to actually use, we may find MANY instances of the array and need to use a cloned
+			// configuration for each
+			newCfg := cloneConfig(integrationByName[cfg.Name()])
+			switch t := newCfg.(type) {
+			case UpgradedConfig:
+				// For v1 integrations we go down this path
 				shim := &ConfigShim{}
-				shim.Orig = newCfg.(v1.Config)
+				legacy, _ := t.LegacyConfig()
+				shim.Orig = legacy
 				// The unmarshal needs to happen twice since passing in just the shim doesn't work due to the yaml tags.
 				// We could probably simplify this by adding tags dynamically but since this is all in memory the speed
 				// is likely acceptable for simplicity
-				err = yaml.Unmarshal(exporterYaml, newCfg)
+				err = yaml.Unmarshal(exporterYaml, legacy)
 				if err != nil {
 					return nil, err
 				}
@@ -491,11 +492,40 @@ func UnmarshalYamlToExporters(contents string) ([]Config, error) {
 					return nil, err
 				}
 				unmarshalledConfigs = append(unmarshalledConfigs, shim)
+			default:
+				// For v2
+				err = yaml.Unmarshal(exporterYaml, newCfg)
+				if err != nil {
+					return nil, err
+				}
+				unmarshalledConfigs = append(unmarshalledConfigs, newCfg)
 			}
 
 		}
 	}
 	return unmarshalledConfigs, nil
+}
+
+// getFields returns a list of fields that form a temporary struct with either <name>_configs for multiplex or
+// <name> for singleton
+func getFields(name string, t Type) []reflect.StructField {
+	var fields []reflect.StructField
+	// Integrations can either have multiple copies (multiplex ie redis) or singleton (windows)
+	if t == TypeMultiplex {
+		fields = append(fields, reflect.StructField{
+			Name: strings.ToUpper(name),
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, name)),
+			// NOTE here we need a slice since its a list of configs
+			Type: reflect.SliceOf(reflect.TypeOf(util.RawYAML{})),
+		})
+	} else {
+		fields = append(fields, reflect.StructField{
+			Name: strings.ToUpper(name),
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, name)),
+			Type: reflect.TypeOf(util.RawYAML{}),
+		})
+	}
+	return fields
 }
 
 type MarshallingConfig struct {
