@@ -28,11 +28,10 @@ type LogContext map[string]string
 
 // Log struct controls the data that come into a Log message
 type Log struct {
-	Message   string       `json:"message,omitempty"`
-	LogLevel  LogLevel     `json:"level,omitempty"`
-	Context   LogContext   `json:"context,omitempty"`
-	Timestamp time.Time    `json:"timestamp"`
-	Trace     TraceContext `json:"trace,omitempty"`
+	Message   string     `json:"message,omitempty"`
+	LogLevel  LogLevel   `json:"level,omitempty"`
+	Context   LogContext `json:"context,omitempty"`
+	Timestamp time.Time  `json:"timestamp"`
 }
 
 // KeyVal representation of a Log object
@@ -42,7 +41,6 @@ func (l Log) KeyVal() *utils.KeyVal {
 	utils.KeyValAdd(kv, "kind", "log")
 	utils.KeyValAdd(kv, "message", l.Message)
 	utils.KeyValAdd(kv, "level", string(l.LogLevel))
-	utils.MergeKeyVal(kv, l.Trace.KeyVal())
 	utils.MergeKeyValWithPrefix(kv, utils.KeyValFromMap(l.Context), "context_")
 	return kv
 }

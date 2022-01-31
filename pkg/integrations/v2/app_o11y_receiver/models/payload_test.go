@@ -25,10 +25,6 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 	var payload Payload
 	err := json.Unmarshal(content, &payload)
 	assert.NoError(t, err)
-	spans := payload.Traces.ResourceSpans().At(0).InstrumentationLibrarySpans().At(0).Spans()
-	assert.Equal(t, 2, spans.Len())
-	assert.Equal(t, "testSpan", spans.At(0).Name())
-	assert.Equal(t, "testSpan2", spans.At(1).Name())
 
 	now, err := time.Parse("2006-01-02T15:04:05Z0700", "2021-09-30T10:46:17.680Z")
 	assert.NoError(t, err)
@@ -77,10 +73,6 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 				"page":      "Pricing",
 			},
 			Timestamp: now,
-			Trace: TraceContext{
-				TraceID: "abcd",
-				SpanID:  "def",
-			},
 		},
 		{
 			Message:  "loading price list",
@@ -90,10 +82,6 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 				"page":      "Pricing",
 			},
 			Timestamp: now,
-			Trace: TraceContext{
-				TraceID: "abcd",
-				SpanID:  "ghj",
-			},
 		},
 	}, payload.Logs)
 }
