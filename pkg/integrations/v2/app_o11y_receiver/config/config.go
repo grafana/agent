@@ -26,7 +26,6 @@ var DefaultConfig = AppO11yReceiverConfig{
 		Port: 8080,
 	},
 	LogsInstance:    "default",
-	Measurements:    []Measurement{},
 	LogsLabels:      map[string]string{},
 	LogsSendTimeout: 2000,
 }
@@ -44,12 +43,6 @@ type RateLimitingConfig struct {
 	Burstiness int     `yaml:"burstiness,omitempty"`
 }
 
-// Measurement is the definition of a custom measurement
-type Measurement struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description,omitempty"`
-}
-
 // AppO11yReceiverConfig is the configuration struct of the
 // integration
 type AppO11yReceiverConfig struct {
@@ -58,7 +51,6 @@ type AppO11yReceiverConfig struct {
 	MaxAllowedPayloadSize int64              `yaml:"max_allowed_payload_size,omitempty"`
 	Server                ServerConfig       `yaml:"server,omitempty"`
 	LogsInstance          string             `yaml:"logs_instance"`
-	Measurements          []Measurement      `yaml:"custom_measurements"`
 	LogsLabels            map[string]string  `yaml:"logs_labels"`
 	LogsSendTimeout       int                `yaml:"logs_send_timeout"`
 }
