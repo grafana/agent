@@ -170,6 +170,7 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 		apiURL := globals.CloneAgentBaseURL()
 		apiURL.Path = IntegrationsSDEndpoint
 		httpSDConfig.URL = apiURL.String()
+
 		scrapeConfigs := s.ctrl.ScrapeConfigs(prefix, &httpSDConfig)
 		if err := s.autoscraper.ApplyConfig(scrapeConfigs); err != nil {
 			saveFirstErr(fmt.Errorf("configuring autoscraper failed: %w", err))

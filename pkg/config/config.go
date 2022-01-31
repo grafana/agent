@@ -269,7 +269,7 @@ func LoadDynamicConfiguration(url string, _ bool, c *Config, fs *flag.FlagSet) e
 	loaderCfg := &LoaderConfig{}
 	err = yaml.Unmarshal(buf, loaderCfg)
 	if err != nil {
-		return errors.Wrap(err, "error unmarshalling config file")
+		return errors.Wrap(err, "error unmarshaling config file")
 	}
 	cmf, err := NewConfigLoader(*loaderCfg)
 	err = cmf.ProcessConfigs(c, fs)
@@ -322,10 +322,9 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 		if features.Enabled(fs, featRemoteConfigs) {
 			return LoadRemote(url, expand, c)
 		}
-		if features.Enabled(fs, featDynamicConfig) {
-			if !features.Enabled(fs, featIntegrationsNext) {
-				panic("integrations-next must be enabled for dynamic configuration to work")
-			}
+		if features.Enabled(fs, featDynamicConfig) && !features.Enabled(fs, featIntegrationsNext) {
+			panic("integrations-next must be enabled for dynamic configuration to work")
+		} else if features.Enabled(fs, featDynamicConfig) {
 			return LoadDynamicConfiguration(url, expand, c, fs)
 		}
 		return LoadFile(url, expand, c)

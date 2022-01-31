@@ -17,7 +17,7 @@ import (
 )
 
 // NewMetricsHandlerIntegration returns a integrations.MetricsIntegration which
-// will expose a /metrics endpoint for handler.
+// will expose a /metrics endpoint for h.
 func NewMetricsHandlerIntegration(
 	_ log.Logger,
 	c Config,
@@ -79,14 +79,14 @@ func (i *MetricsHandlerIntegration) RunIntegration(ctx context.Context) error {
 	return nil
 }
 
-// handler implements HTTPIntegration.
+// Handler implements HTTPIntegration.
 func (i *MetricsHandlerIntegration) Handler(prefix string) (http.Handler, error) {
 	r := mux.NewRouter()
 	r.Handle(path.Join(prefix, "metrics"), i.handler)
 	return r, nil
 }
 
-// targets implements MetricsIntegration.
+// Targets implements MetricsIntegration.
 func (i *MetricsHandlerIntegration) Targets(ep Endpoint) []*targetgroup.Group {
 	integrationNameValue := model.LabelValue("integrations/" + i.IntegrationName)
 
