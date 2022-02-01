@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -227,6 +228,21 @@ func (c *ConfigLoader) processIntegrations() ([]v2.Config, error) {
 			configs = append(configs, cfg)
 		}
 
+	}
+	// Check to ensure no singleton exist
+	singletonCheck := make(map[string]int, 0)
+	for k, v := range v2.TypeRegistry() {
+		if v == v2.TypeSingleton {
+			singletonCheck[k] = 0
+		}
+	}
+	for _, cfg := range configs {
+		if _, ok := singletonCheck[cfg.Name()]; ok {
+			singletonCheck[cfg.Name()]++
+			if singletonCheck[cfg.Name()] > 1 {
+				builder.WriteString(fmt.Sprintf("found multiple instances of singleton integration %s", cfg.Name()))
+			}
+		}
 	}
 	var combinedError error
 	if builder.Len() > 0 {

@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -140,6 +141,30 @@ windows_exporter:
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 
 	assert.True(t, wincfg.(*windows_exporter.Config).EnabledCollectors == "one,two,three")
+}
+
+func TestConfigMakerSingletonWithExporter(t *testing.T) {
+	configStr := `
+windows_exporter:
+  enabled_collectors: one,two,three
+  instance: testinstance
+`
+	tDir, err := os.MkdirTemp("", "")
+	defer os.RemoveAll(tDir)
+	assert.Nil(t, err)
+	writeFile(t, tDir, "integrations-1.yml", configStr)
+	writeFile(t, tDir, "integrations-2.yml", configStr)
+
+	fileFS := fmt.Sprintf("file://%s", tDir)
+	loaderCfg := LoaderConfig{
+		Sources:       nil,
+		TemplatePaths: []string{fileFS},
+	}
+	cmf, err := NewConfigLoader(loaderCfg)
+	assert.Nil(t, err)
+	_, err = cmf.processIntegrations()
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "found multiple instances of singleton"))
 }
 
 func TestConfigMakerWithExporterWithTemplate(t *testing.T) {

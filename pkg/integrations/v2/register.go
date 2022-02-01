@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	integrationName  = make(map[string]interface{})  // Map of name to interface
-	configFieldNames = make(map[reflect.Type]string) // Map of registered type to field name
-	integrationTypes = make(map[reflect.Type]Type)   // Map of registered type to Type
+	integrationName       = make(map[string]interface{})  // Map of name to interface
+	configFieldNames      = make(map[reflect.Type]string) // Map of registered type to field name
+	integrationTypes      = make(map[reflect.Type]Type)   // Map of registered type to Type
+	integrationTypeByName = make(map[string]Type)         // Map of name to Type
 
 	// Registered integrations. Registered integrations may be either a Config or
 	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
@@ -52,6 +53,7 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 
 	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
+	integrationTypeByName[name] = ty
 	configFieldNames[configTy] = name
 	upgraders[name] = upgrader
 }
@@ -107,6 +109,7 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear := func() {
 		integrationName = make(map[string]interface{})
 		integrationTypes = make(map[reflect.Type]Type)
+		integrationTypeByName = make(map[string]Type)
 		configFieldNames = make(map[reflect.Type]string)
 		registered = registered[:0]
 		upgraders = make(map[string]UpgradeFunc)
@@ -128,6 +131,10 @@ func Registered() []Config {
 		res = append(res, cloneConfig(r))
 	}
 	return res
+}
+
+func TypeRegistry() map[string]Type {
+	return integrationTypeByName
 }
 
 func cloneConfig(r interface{}) Config {
