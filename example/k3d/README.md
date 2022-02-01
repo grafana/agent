@@ -46,7 +46,13 @@ The smoke test environment is used to validate samples end to end.
 
 Smoke Test environment is invoked via `/scripts/smoke-test.bash`
 
-This tool will spin up cluster of Grafana Agent, Cortex, Avalanche and [Crow](../../tools/crow/README.md) instances. The tool will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
+This tool will spin up cluster of Grafana Agent, Cortex, Avalanche, Smoke and [Crow](../../tools/crow/README.md) instances. The Smoke deployment will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
+
+For users who do not have access to the `us.gcr.io/kubernetes-dev` container registry, you will need to build the Smoke and Crow images locally before running the smoke test.
+
+```
+make grafana-agent-crow-image agent-smoke-image
+```
 
 ### What to look for?
 
@@ -84,6 +90,7 @@ By default, a k3d cluster will be created running the following instances
 - crow-single - serves the single agent
 - cortex
 - avalanche - selection of avalanche instances serving traffic
+- smoke - scales avalanche replicas and introduces chaos by deleting agent pods during testing
 
 Crow instance will check to see if the metrics that were scraped shows up in the prometheus endpoint and then will emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
 
