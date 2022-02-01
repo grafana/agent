@@ -1,6 +1,6 @@
-# Dynamic Configuration - BETA
+# Dynamic Configuration - Experimental
 
-**This is BETA and subject to change at anytime, feedback is much appreciated**
+**This is experimental and subject to change at anytime, feedback is much appreciated. This is a feature that MAY NOT make it production.**
 
 Dynamic Configuration is the combination of two things:
 
@@ -16,17 +16,18 @@ on what functions are available.
 
 ## Configuration
 
-Location of the dynamic configuration is used via the feature flag `dynamic-config`, then it will use `-config.file` to
+Location of the dynamic configuration is used via the feature flag `dynamic-config`, then it will use `-config.dynamic-config-path` to
 load the configuration for dynamic configuration.
 
 ```yaml
 # Sources to pull template values 
-[sources: <sources_config>]
+sources: 
+  [- <sources_config>]
 
 # Locations to use searching for templates, the system does NOT look into subdirectories. Follows gomplate schema
 # from [gomplate datasources](https://docs.gomplate.ca/datasources/). File and S3/GCP templates are currently supported
-templates: 
-[ - string ]
+template_paths: 
+  [ - string ]
 
 ``` 
 
@@ -42,7 +43,7 @@ url: string
 
 ## Templates
 
-Note when adding a template you do NOT need to add the type as the top level yaml field. For instance if using traces:
+Note when adding a template you MUST NOT add the type as the top level yaml field. For instance if using traces:
 
 Incorrect
 
@@ -93,26 +94,25 @@ Reference {{< relref "./metrics-config.md" >}})
 
 ### Metric Instances
 
-Metric Instances are defined using the pattern `metrics_instances-*.yml`.
+Metric Instances are defined using the pattern `metrics_instances-*.yml`. Any metric instances are appended to the instances defined in Metrics above. Any number of metric instance files are supporter.
 
 Reference {{< relref "./metrics-config.md#metrics_instance_config" >}}) in the metrics instance
 
 
 ### Integrations
 
-Integrations are defined using the pattern `integrations-*.yml`, these support more than one file, and multiple
-integrations can be defined in a file. Do not assume any order of loading for integrations.
+Integrations are defined using the pattern `integrations-*.yml`, these support more than one file, and multiple integrations can be defined in a file. Do not assume any order of loading for integrations. For any integration that is a singleton, loading multiple of those will result in an error. 
 
 Reference {{< relref "./integrations/" >}})
 
 ### Traces
 
-Traces are defined using the pattern `traces-*.yml`. This supports one file.
+Traces are defined using the pattern `traces-*.yml`. This supports ONE file.
 
 Reference {{< relref "./traces-config.md" >}})
 
 ### Logs
 
-Logs are defined using the pattern `logs-*.yml`. This supports on file.
+Logs are defined using the pattern `logs-*.yml`. This supports ONE file.
 
 Reference {{< relref "./logs-config.md" >}})
