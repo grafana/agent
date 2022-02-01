@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -79,7 +78,6 @@ var _ Selector = (*KeySelector)(nil)
 // ApplyToList implements Selector.
 func (ks *KeySelector) ApplyToList(lo *client.ListOptions) {
 	lo.Namespace = ks.Namespace
-	lo.FieldSelector = fields.OneTermEqualSelector("metadata.name", ks.Name)
 }
 
 // Matches implements Selector.
