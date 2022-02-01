@@ -1,8 +1,8 @@
 # 01 Structure
 
-Dynamic Configuration uses a series of files to load templates. This example will show how they all combine together. Running the below command will combine all the templates into the final.yml.
+Dynamic Configuration uses a series of files to load templates. This example will show how they all combine together. Running the below command will combine all the templates into the final.yml. Any failure while loading the config will revert to the original config, or if this is the initial load Grafana Agent will quit. 
 
-`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/02_config.yml`
+`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/01_config.yml`
 
 ## Dynamic Configuration
 
@@ -13,12 +13,11 @@ template_paths:
   - "file:///etc/grafana/01_assets"
 ```
 
-Tells the Grafana Agent where to load files from. It is important to note that dynamic configuration does NOT traverse directories. It will look at the directory specified only, if you need more directories then add them to the `template_paths` array.
+Tells the Grafana Agent where to load files from. It is important to note that dynamic configuration does NOT traverse directories. It will look at the directory specified only, if you need more directories then add them to the `template_paths` array. NOTE, if no protocol specified ie `file://` above, then file access will be assumed. `file:///etc/grafana/01_assets` is equivalent to `//etc/grafana/01_assets`
 
 ## Agent
 
-Dynamic Configuration will find the first file matching pattern `agent-*.yml` and load that as the base. You can only have
-one agent template.
+Dynamic Configuration will find the first file matching pattern `agent-*.yml` and load that as the base. You can only have one agent template. If multiple matching templates are found then the configuration will fail to load. 
 
 [agent-1.yml](./01_assets/agent-1.yml)
 
