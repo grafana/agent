@@ -337,12 +337,15 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	var (
 		cfg = DefaultConfig
 
-		printVersion    bool
-		file            string
-		configExpandEnv bool
+		printVersion             bool
+		file                     string
+		dynamicConfigurationPath string
+		configExpandEnv          bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
+	fs.StringVar(&dynamicConfigurationPath, "config.dynamic-config-path", "", "dynamic configuration path; supports file:// and s3://")
+
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	cfg.RegisterFlags(fs)
@@ -357,7 +360,14 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		os.Exit(0)
 	}
 
-	if file == "" {
+	if features.Enabled(fs, featDynamicConfig) {
+		if dynamicConfigurationPath == "" {
+			return nil, fmt.Errorf("-config.dynamic-config-path flag required when using dynamic configuration")
+		} else if err := loader(dynamicConfigurationPath, configExpandEnv, &cfg); err != nil {
+			return nil, fmt.Errorf("error loading dynamic configuration file %s: %w", dynamicConfigurationPath, err)
+		}
+
+	} else if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
 	} else if err := loader(file, configExpandEnv, &cfg); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
