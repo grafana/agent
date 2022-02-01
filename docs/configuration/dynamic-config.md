@@ -7,7 +7,7 @@ Dynamic Configuration is the combination of two things:
 * Loading from multiple files
 * Using templates and datasources
 
-Both of these make heavy use of the excellent [gomplate](https://github.com/hairyhenderson/gomplate). The idea goal is
+Both of these make heavy use of the excellent [gomplate](https://github.com/hairyhenderson/gomplate). The goal is
 that as the configuration grows that it can be split it up into smaller segments to allow better readability and handling.
 The configurations cannot be patched in any order and instead are allowed at several levels.
 
