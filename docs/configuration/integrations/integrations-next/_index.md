@@ -84,6 +84,7 @@ integrations:
   [process_exporter: <process_exporter_config>]
   [statsd_exporter: <statsd_exporter_config>]
   [windows_exporter: <windows_exporter_config>]
+  [eventhandler: <eventhandler_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.
