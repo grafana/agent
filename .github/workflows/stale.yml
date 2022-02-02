@@ -28,7 +28,7 @@ jobs:
           any activity in the past 30 days.
 
           The next time this stale check runs, the stale label will be removed
-          if there is new activity. The issue will be closed in 7 days if there
+          if there is new activity. The PR will be closed in 7 days if there
           is no new activity.
 
           Thank you for your contributions!
