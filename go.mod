@@ -395,7 +395,7 @@ replace (
 	github.com/percona/mongodb_exporter => github.com/grafana/mongodb_exporter v0.20.8-0.20211006135645-bef0f0239601
 	github.com/percona/percona-toolkit => github.com/rlankfo/percona-toolkit v0.0.0-20211028191359-7aada1bf148f
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
-	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20211019183116-592dfa92f9fd
+	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20220202211901-871715ba0b43
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 	github.com/prometheus/statsd_exporter => github.com/grafana/statsd_exporter v0.18.1-0.20211118164740-8e806158da0b
 )
@@ -421,3 +421,5 @@ replace github.com/jaegertracing/jaeger => github.com/jaegertracing/jaeger v1.27
 
 // Replacement necessary for windows_exporter so that we can use gokit logging and not the old prometheus logging
 replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_exporter v0.1.1-0.20211013152516-e37e14fb8b0a
+
+
