@@ -20,6 +20,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/postgres_exporter"      // register postgres_exporter
 	_ "github.com/grafana/agent/pkg/integrations/process_exporter"       // register process_exporter
 	_ "github.com/grafana/agent/pkg/integrations/redis_exporter"         // register redis_exporter
+	_ "github.com/grafana/agent/pkg/integrations/snmp_exporter"          // register snmp_exporter
 	_ "github.com/grafana/agent/pkg/integrations/statsd_exporter"        // register statsd_exporter
 	_ "github.com/grafana/agent/pkg/integrations/windows_exporter"       // register windows_exporter
 

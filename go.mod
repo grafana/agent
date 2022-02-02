@@ -54,7 +54,7 @@ require (
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
 	github.com/prometheus-operator/prometheus-operator v0.47.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.47.0
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/common v0.32.1
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.9.0
@@ -77,7 +77,7 @@ require (
 	go.uber.org/atomic v1.9.0
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.19.1
-	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1
+	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 	google.golang.org/grpc v1.42.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
@@ -188,6 +188,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
 	github.com/googleapis/gnostic v0.5.4 // indirect
 	github.com/gophercloud/gophercloud v0.22.0 // indirect
+	github.com/gosnmp/gosnmp v1.32.0 // indirect
 	github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
@@ -284,6 +285,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.7.0 // indirect
+	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rs/cors v1.8.0 // indirect
 	github.com/safchain/ethtool v0.1.0 // indirect
