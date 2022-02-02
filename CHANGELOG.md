@@ -25,6 +25,8 @@
 - [BUGFIX] integrations-next: Wait for integrations to stop when starting new
   instances or shutting down (@rfratto).
 
+- [BUGFIX] Fix issue with windows_exporter mssql collector crashing the agent. (@mattdurham)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
