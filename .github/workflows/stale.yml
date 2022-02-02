@@ -1,0 +1,25 @@
+name: Stale check
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 0 * * *'
+jobs:
+  stale:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/stale@v4
+      with:
+        days-before-stale: 30
+        days-before-close: 7
+        stale-issue-message: >
+          This issue has been automatically marked as stale because it has not
+          had any activity in the past 30 days. It will be closed in 7 days if
+          no further activity occurs. Thank you for your contributions.
+        stale-pr-message: >
+          This PR has been automatically marked as stale because it has not had
+          any activity in the past 30 days. It will be closed in 7 days if no
+          further activity occurs. Thank you for your contributions.
+        stale-issue-label: stale
+        stale-pr-label: stale
+        exempt-issue-label: keepalive,proposal,outdated-dependency,dev-branch
+        exempt-pr-label: keepalive,proposal,outdated-dependency,dev-branch
