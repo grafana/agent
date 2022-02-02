@@ -16,12 +16,22 @@ jobs:
         days-before-close: 7
         stale-issue-message: >
           This issue has been automatically marked as stale because it has not
-          had any activity in the past 30 days. It will be closed in 7 days if
-          no further activity occurs. Thank you for your contributions.
+          had any activity in the past 30 days.
+
+          The next time this stale check runs, the stale label will be removed
+          if there is new activity. The issue will be closed in 7 days if there
+          is no new activity.
+
+          Thank you for your contributions!
         stale-pr-message: >
           This PR has been automatically marked as stale because it has not had
-          any activity in the past 30 days. It will be closed in 7 days if no
-          further activity occurs. Thank you for your contributions.
+          any activity in the past 30 days.
+
+          The next time this stale check runs, the stale label will be removed
+          if there is new activity. The issue will be closed in 7 days if there
+          is no new activity.
+
+          Thank you for your contributions!
         stale-issue-label: stale
         stale-pr-label: stale
         exempt-issue-label: keepalive,proposal,outdated-dependency,dev-branch
