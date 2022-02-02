@@ -1,4 +1,4 @@
-package config
+package config //nolint:golint
 
 import (
 	"bytes"

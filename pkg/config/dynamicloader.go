@@ -81,12 +81,12 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 		cfg.Metrics = *metricConfig
 	}
 
-	logs, err := c.processLogs()
+	logsCfg, err := c.processLogs()
 	if err != nil {
 		returnErr = multierror.Append(returnErr, err)
 	}
-	if logs != nil {
-		cfg.Logs = logs
+	if logsCfg != nil {
+		cfg.Logs = logsCfg
 	}
 
 	traceConfigs, err := c.processTraces()
@@ -356,8 +356,8 @@ func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMak
 		return nil, err
 	}
 	// setVersion actually does the unmarshalling for integrations
-	cfg.(*Config).Integrations.setVersion(integrationsVersion2)
-	return []interface{}{cfg}, nil
+	err = cfg.(*Config).Integrations.setVersion(integrationsVersion2)
+	return []interface{}{cfg}, err
 }
 
 func (c *DynamicLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
