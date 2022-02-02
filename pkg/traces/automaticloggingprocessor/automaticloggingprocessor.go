@@ -8,8 +8,8 @@ import (
 	"time"
 
 	util "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/operator/config"
@@ -183,12 +183,11 @@ func (p *automaticLoggingProcessor) Capabilities() consumer.Capabilities {
 
 // Start is invoked during service startup.
 func (p *automaticLoggingProcessor) Start(ctx context.Context, _ component.Host) error {
-	logs := ctx.Value(contextkeys.Logs).(*logs.Logs)
-	if logs == nil {
-		return fmt.Errorf("key does not contain a logs instance")
-	}
-
 	if !p.logToStdout {
+		logs, ok := ctx.Value(contextkeys.Logs).(*logs.Logs)
+		if !ok {
+			return fmt.Errorf("key does not contain a logs instance")
+		}
 		p.logsInstance = logs.Instance(p.cfg.LogsName)
 		if p.logsInstance == nil {
 			return fmt.Errorf("logs instance %s not found", p.cfg.LogsName)
@@ -302,7 +301,7 @@ func attributeValue(att pdata.AttributeValue) interface{} {
 	case pdata.AttributeValueTypeMap:
 		return att.MapVal()
 	case pdata.AttributeValueTypeArray:
-		return att.ArrayVal()
+		return att.SliceVal()
 	}
 	return nil
 }

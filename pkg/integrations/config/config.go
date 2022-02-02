@@ -16,6 +16,7 @@ import (
 //   }
 type Common struct {
 	Enabled              bool              `yaml:"enabled,omitempty"`
+	InstanceKey          *string           `yaml:"instance,omitempty"`
 	ScrapeIntegration    *bool             `yaml:"scrape_integration,omitempty"`
 	ScrapeInterval       time.Duration     `yaml:"scrape_interval,omitempty"`
 	ScrapeTimeout        time.Duration     `yaml:"scrape_timeout,omitempty"`

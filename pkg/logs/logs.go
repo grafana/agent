@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/clients/pkg/promtail"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
@@ -36,8 +36,6 @@ type Logs struct {
 
 // New creates and starts Loki log collection.
 func New(reg prometheus.Registerer, c *Config, l log.Logger) (*Logs, error) {
-	l = log.With(l, "component", "logs")
-
 	logs := &Logs{
 		instances: make(map[string]*Instance),
 		reg:       reg,

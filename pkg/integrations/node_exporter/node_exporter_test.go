@@ -1,3 +1,4 @@
+//go:build !race
 // +build !race
 
 package node_exporter //nolint:golint
@@ -10,10 +11,14 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/prometheus/pkg/textparse"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // TestNodeExporter runs an integration test for node_exporter, doing the
@@ -70,6 +75,7 @@ func TestNodeExporter(t *testing.T) {
 // TestFTestNodeExporter_IgnoredFlags ensures that flags don't get ignored for
 // misspellings.
 func TestNodeExporter_IgnoredFlags(t *testing.T) {
+	l := util.TestLogger(t)
 	cfg := DefaultConfig
 
 	// Enable all collectors except perf
@@ -84,10 +90,22 @@ func TestNodeExporter_IgnoredFlags(t *testing.T) {
 
 	switch runtime.GOOS {
 	case "darwin":
-		expect = []string{"collector.cpu.info", "collector.diskstats.ignored-devices"}
+		expect = []string{
+			"collector.cpu.info",
+			"collector.cpu.guest",
+			"collector.cpu.info.flags-include",
+			"collector.cpu.info.bugs-include",
+			"collector.diskstats.ignored-devices",
+			"collector.filesystem.mount-timeout",
+		}
 	}
 
-	require.Equal(t, expect, ignored)
+	if !assert.ElementsMatch(t, expect, ignored) {
+		level.Debug(l).Log("msg", "printing available flags")
+		for _, flag := range kingpin.CommandLine.Model().Flags {
+			level.Debug(l).Log("flag", flag.Name, "hidden", flag.Hidden)
+		}
+	}
 }
 
 // TestFlags makes sure that boolean flags and some known non-boolean flags

@@ -9,10 +9,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/prometheus-community/elasticsearch_exporter/collector"
@@ -30,10 +31,6 @@ var DefaultConfig = Config{
 
 // Config controls the elasticsearch_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
-	// Exporter configuration
-
 	// HTTP API address of an Elasticsearch node.
 	Address string `yaml:"address,omitempty"`
 	// Timeout for trying to get stats from Elasticsearch.
@@ -77,10 +74,13 @@ func (c *Config) Name() string {
 	return "elasticsearch_exporter"
 }
 
-// CommonConfig returns the common settings shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns the hostname:port of the elasticsearch node being queried.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	u, err := url.Parse(c.Address)
+	if err != nil {
+		return "", fmt.Errorf("could not parse url: %w", err)
+	}
+	return u.Host, nil
 }
 
 // NewIntegration creates a new elasticsearch_exporter
@@ -90,6 +90,7 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new elasticsearch_exporter

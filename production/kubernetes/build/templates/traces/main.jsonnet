@@ -4,9 +4,9 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 local containerPort = k.core.v1.containerPort;
 
 local newPort(name, portNumber, protocol='TCP') =
-  // Port names for pods cannot be longer than 15 characters. 
-  if std.length(name) > 15 then 
-  error 'port name cannot be longer than 15 characters'
+  // Port names for pods cannot be longer than 15 characters.
+  if std.length(name) > 15 then
+    error 'port name cannot be longer than 15 characters'
   else containerPort.new(name, portNumber) + containerPort.withProtocol(protocol);
 
 {
@@ -38,7 +38,7 @@ local newPort(name, portNumber, protocol='TCP') =
       batch: {
         timeout: '5s',
         send_batch_size: 1000,
-      }
+      },
     }) +
     agent.withPortsMixin([
       // Jaeger receiver

@@ -14,10 +14,12 @@ const (
 	// TypeStr is the unique identifier for the Prometheus service graph exporter.
 	TypeStr = "service_graphs"
 
-	// DefaultWait is the default value to wait for an edgeRequest to be completed
+	// DefaultWait is the default value to wait for an edge to be completed
 	DefaultWait = time.Second * 10
-	// DefaultMaxItems is the default amount of edges that will be stored in the store
+	// DefaultMaxItems is the default amount of edges that will be stored in the storeMap
 	DefaultMaxItems = 10_000
+	// DefaultWorkers is the default amount of workers that will be used to process the edges
+	DefaultWorkers = 10
 )
 
 // Config holds the configuration for the Prometheus service graph processor.
@@ -26,6 +28,8 @@ type Config struct {
 
 	Wait     time.Duration `mapstructure:"wait"`
 	MaxItems int           `mapstructure:"max_items"`
+
+	Workers int `mapstructure:"workers"`
 
 	SuccessCodes *successCodes `mapstructure:"success_codes"`
 }
@@ -46,7 +50,7 @@ func NewFactory() component.ProcessorFactory {
 
 func createDefaultConfig() config.Processor {
 	return &Config{
-		ProcessorSettings: config.NewProcessorSettings(config.NewIDWithName(TypeStr, TypeStr)),
+		ProcessorSettings: config.NewProcessorSettings(config.NewComponentIDWithName(TypeStr, TypeStr)),
 	}
 }
 

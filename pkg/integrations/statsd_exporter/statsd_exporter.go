@@ -10,12 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/prometheus/statsd_exporter/pkg/mappercache/randomreplacement"
-
-	"github.com/prometheus/statsd_exporter/pkg/mappercache/lru"
-
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
@@ -27,6 +23,8 @@ import (
 	"github.com/prometheus/statsd_exporter/pkg/line"
 	"github.com/prometheus/statsd_exporter/pkg/listener"
 	"github.com/prometheus/statsd_exporter/pkg/mapper"
+	"github.com/prometheus/statsd_exporter/pkg/mappercache/lru"
+	"github.com/prometheus/statsd_exporter/pkg/mappercache/randomreplacement"
 	"gopkg.in/yaml.v2"
 )
 
@@ -50,8 +48,6 @@ var DefaultConfig = Config{
 
 // Config controls the statsd_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	ListenUDP      string               `yaml:"listen_udp,omitempty"`
 	ListenTCP      string               `yaml:"listen_tcp,omitempty"`
 	ListenUnixgram string               `yaml:"listen_unixgram,omitempty"`
@@ -84,9 +80,9 @@ func (c *Config) Name() string {
 	return "statsd_exporter"
 }
 
-// CommonConfig returns the common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns the hostname:port of the agent.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
 }
 
 // NewIntegration converts this config into an instance of an integration.
@@ -120,7 +116,11 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	if c.ListenUDP == "" && c.ListenTCP == "" && c.ListenUnixgram == "" {
 		return nil, fmt.Errorf("at least one of UDP/TCP/Unixgram listeners must be used")
 	}
-	statsdMapper := &mapper.MetricMapper{MappingsCount: m.MappingsCount}
+	statsdMapper := &mapper.MetricMapper{
+		Registerer:    reg,
+		MappingsCount: m.MappingsCount,
+		Logger:        log,
+	}
 
 	if c.MappingConfig != nil {
 		cfgBytes, err := yaml.Marshal(c.MappingConfig)
@@ -133,14 +133,17 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 			return nil, fmt.Errorf("failed to load mapping config: %w", err)
 		}
 	}
+
 	var cache mapper.MetricMapperCache
-	if c.CacheType == "lru" {
-		cache, err = lru.NewMetricMapperLRUCache(reg, c.CacheSize)
-		if err != nil {
-			return nil, err
+	if c.CacheSize != 0 {
+		switch c.CacheType {
+		case "lru":
+			cache, err = lru.NewMetricMapperLRUCache(statsdMapper.Registerer, c.CacheSize)
+		case "random":
+			cache, err = randomreplacement.NewMetricMapperRRCache(statsdMapper.Registerer, c.CacheSize)
+		default:
+			err = fmt.Errorf("unsupported cache type %q", c.CacheType)
 		}
-	} else if c.CacheType == "random" {
-		cache, err = randomreplacement.NewMetricMapperRRCache(reg, c.CacheSize)
 		if err != nil {
 			return nil, err
 		}

@@ -1,7 +1,169 @@
 # Main (unreleased)
 
-- [ENHANCEMENT] Documenting security recommendations for the users used by the embedded exporters,
-  to give only the strictly necessary roles as per the official docs.
+- [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
+
+- [ENHANCEMENT] integrations-next: Add `extra_labels` to add a custom set of
+  labels to integration targets. (@rfratto)
+
+- [ENHANCEMENT] The agent no longer appends duplicate exemplars. (@tpaschalis)
+
+- [BUGFIX] Fixed issue where Grafana Agent may panic if there is a very large
+  WAL loading while old WALs are being deleted or the `/agent/api/v1/targets`
+  endpoint is called. (@tpaschalis)
+
+- [BUGFIX] Fix panic in prom_sd_processor when address is empty (@mapno)
+
+- [BUGFIX] Operator: Add missing proxy_url field from generated remote_write
+  configs. (@rfratto)
+
+- [BUGFIX] Honor the specified log format in the traces subsystem (@mapno)
+
+- [BUGFIX] Fix typo in node_exporter for runit_service_dir. (@mattdurham)
+
+- [BUGFIX] Allow inlining credentials in remote_write url. (@tpaschalis)
+
+- [BUGFIX] integrations-next: Wait for integrations to stop when starting new
+  instances or shutting down (@rfratto).
+
+# v0.22.0 (2022-01-13)
+
+This release has deprecations. Please read [DEPRECATION] entries and consult
+the [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
+for detailed information.
+
+- [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
+   only HTTP/S is supported. Pass the `-enable-features=remote-configs` flag to turn this on. (@rlankfo)
+
+- [FEATURE] Added [cAdvisor](https://github.com/google/cadvisor) integration. (@rgeyer)
+
+- [FEATURE] Traces: Add `Agent Tracing Pipeline` dashboard and alerts (@mapno)
+
+- [FEATURE] Traces: Support jaeger/grpc exporter (@nicoche)
+
+- [FEATURE] (beta) Enable an experimental integrations subsystem revamp. Pass
+  `integrations-next` to `-enable-features` to turn this on. Reading the
+  documentation for the revamp is recommended; enabling it causes breaking
+  config changes. (@rfratto)
+
+- [ENHANCEMENT] Traces: Improved pod association in PromSD processor (@mapno)
+
+- [ENHANCEMENT] Updated OTel to v0.40.0 (@mapno)
+
+- [ENHANCEMENT] Remote write dashboard: show in and out sample rates (@bboreham)
+
+- [ENHANCEMENT] Remote write dashboard: add mean latency (@bboreham)
+
+- [ENHANCEMENT] Update node_exporter dependency to v1.3.1. (@rfratto)
+
+- [ENHANCEMENT] Cherry-pick Prometheus PR #10102 into our Prometheus dependency (@rfratto).
+
+- [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
+
+- [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
+
+- [BUGFIX] Only stop WAL cleaner when it has been started (@56quarters)
+
+- [BUGFIX] Fix issue with unquoted install path on Windows, that could allow escalation or running an arbitrary executable (@mattdurham)
+
+- [BUGFIX] Fix cAdvisor so it collects all defined metrics instead of the last (@pkoenig10)
+
+- [BUGFIX] Fix panic when using 'stdout' in automatic logging (@mapno)
+
+- [BUGFIX] Grafana Agent Operator: The /-/ready and /-/healthy endpoints will
+  no longer always return 404 (@rfratto).
+
+- [DEPRECATION] The node_exporter integration's `netdev_device_whitelist` field
+  is deprecated in favor of `netdev_device_include`. Support for the old field
+  name will be removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's `netdev_device_blacklist` field
+  is deprecated in favor of `netdev_device_include`. Support for the old field
+  name will be removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's `systemd_unit_whitelist` field
+  is deprecated in favor of `systemd_unit_include`. Support for the old field
+  name will be removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's `systemd_unit_blacklist` field
+  is deprecated in favor of `systemd_unit_exclude`. Support for the old field
+  name will be removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's
+  `filesystem_ignored_mount_points` field is deprecated in favor of
+  `filesystem_mount_points_exclude`. Support for the old field name will be
+  removed in a future version. (@rfratto)
+
+- [DEPRECATION] The node_exporter integration's `filesystem_ignored_fs_types`
+  field is deprecated in favor of `filesystem_fs_types_exclude`. Support for
+  the old field name will be removed in a future version. (@rfratto)
+
+- [CHANGE] Remove log-level flag from systemd unit file (@jpkrohling)
+
+# v0.21.2 (2021-12-08)
+
+- [SECURITY] This release contains a fix for
+  [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh).
+
+- [CHANGE] This release disables the existing `/-/config` and
+  `/agent/api/v1/configs/{name}` endpoitns by default. Pass the
+  `--config.enable-read-api` flag at the command line to opt in to these
+  endpoints.
+
+# v0.21.1 (2021-11-18)
+
+- [BUGFIX] Fix panic when using postgres_exporter integration (@saputradharma)
+
+- [BUGFIX] Fix panic when dnsamsq_exporter integration tried to log a warning (@rfratto)
+
+- [BUGFIX] Statsd Integration: Adding logger instance to the statsd mapper instantiation. (@gaantunes)
+
+- [BUGFIX] Statsd Integration: Fix issue where mapped metrics weren't exposed to the integration. (@mattdurham)
+
+- [BUGFIX] Operator: fix bug where version was a required field (@rfratto)
+
+- [BUGFIX] Metrics: Only run WAL cleaner when metrics are being used and a WAL is configured. (@rfratto)
+
+# v0.21.0 (2021-11-17)
+
+- [ENHANCEMENT] Update Cortex dependency to v1.10.0-92-g85c378182. (@rlankfo)
+
+- [ENHANCEMENT] Update Loki dependency to v2.1.0-656-g0ae0d4da1. (@rlankfo)
+
+- [ENHANCEMENT] Update Prometheus dependency to v2.31.0 (@rlankfo)
+
+- [ENHANCEMENT] Add Agent Operator Helm quickstart guide (@hjet)
+
+- [ENHANCEMENT] Reorg Agent Operator quickstart guides (@hjet)
+
+- [BUGFIX] Packaging: Use correct user/group env variables in RPM %post script (@simonc6372)
+
+- [BUGFIX] Validate logs config when using logs_instance with automatic logging processor (@mapno)
+
+- [BUGFIX] Operator: Fix MetricsInstance Service port (@hjet)
+
+- [BUGFIX] Operator: Create govern service per Grafana Agent (@shturman)
+
+- [BUGFIX] Operator: Fix relabel_config directive for PodLogs resource (@hjet)
+
+- [BUGFIX] Traces: Fix `success_logic` code in service graphs processor (@mapno)
+
+- [CHANGE] Self-scraped integrations will now use an SUO-specific value for the `instance` label. (@rfratto)
+
+- [CHANGE] Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
+
+# v0.20.1 (2021-12-08)
+
+*NOTE*: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
+
+- [SECURITY] This release contains a fix for
+  [CVE-2021-41090](https://github.com/grafana/agent/security/advisories/GHSA-9c4x-5hgq-q3wh).
+
+- [CHANGE] This release disables the existing `/-/config` and
+  `/agent/api/v1/configs/{name}` endpoitns by default. Pass the
+  `--config.enable-read-api` flag at the command line to opt in to these
+  endpoints.
+
+# v0.20.0 (2021-10-28)
 
 - [FEATURE] Operator: The Grafana Agent Operator can now generate a Kubelet
   service to allow a ServiceMonitor to collect Kubelet and cAdvisor metrics.
@@ -32,6 +194,8 @@
 
 - [ENHANCEMENT] Update windows_exporter to v0.16.0 (@rfratto, @mattdurham)
 
+- [ENHANCEMENT] Add send latency to agent dashboard (@bboreham)
+
 - [BUGFIX] Do not immediately cancel context when creating a new trace
   processor. This was preventing scrape_configs in traces from
   functioning. (@lheinlen)
@@ -54,6 +218,8 @@
   which does not exist. (@kgeckhart)
 
 - [CHANGE] The windows_exporter now disables the textfile collector by default. (@rfratto)
+
+- [CHANGE] **Breaking change** push_config is no longer supported in trace's config (@mapno)
 
 # v0.19.0 (2021-09-29)
 

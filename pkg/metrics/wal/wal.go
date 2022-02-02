@@ -8,8 +8,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/exemplar"
@@ -282,6 +282,8 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				decoded <- samples
 			case record.Tombstones, record.Exemplars:
 				// We don't care about decoding tombstones or exemplars
+				// TODO: If decide to decode exemplars, we should make sure to prepopulate
+				// stripeSeries.exemplars in the next block by using setLatestExemplar.
 				continue
 			default:
 				errCh <- &wal.CorruptionErr{
@@ -646,6 +648,16 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 		}
 	}
 
+	// Check for duplicate vs last stored exemplar for this series, and discard those.
+	// Otherwise, record the current exemplar as the latest.
+	// Prometheus returns 0 when encountering duplicates, so we do the same here.
+	prevExemplar := a.w.series.getLatestExemplar(ref)
+	if prevExemplar != nil && prevExemplar.Equals(e) {
+		// Duplicate, don't return an error but don't accept the exemplar.
+		return 0, nil
+	}
+	a.w.series.setLatestExemplar(ref, &e)
+
 	a.exemplars = append(a.exemplars, record.RefExemplar{
 		Ref:    ref,
 		T:      e.Ts,
@@ -653,6 +665,7 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 		Labels: e.Labels,
 	})
 
+	a.w.metrics.totalAppendedExemplars.Inc()
 	return s.ref, nil
 }
 

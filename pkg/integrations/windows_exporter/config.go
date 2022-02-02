@@ -1,8 +1,7 @@
 package windows_exporter //nolint:golint
 import (
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 )
 
 // DefaultConfig holds the default settings for the windows_exporter integration.
@@ -20,8 +19,6 @@ func init() {
 // Config controls the windows_exporter integration.
 // All of these and their child fields are pointers so we can determine if the value was set or not.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	EnabledCollectors string `yaml:"enabled_collectors"`
 
 	Exchange    ExchangeConfig    `yaml:"exchange,omitempty"`
@@ -49,9 +46,9 @@ func (c *Config) Name() string {
 	return "windows_exporter"
 }
 
-// CommonConfig returns the common fields that all integrations have
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns the hostname:port of the agent.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	return agentKey, nil
 }
 
 // NewIntegration creates an integration based on the given configuration

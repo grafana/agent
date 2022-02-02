@@ -12,7 +12,7 @@ configured, except deprecated fields have been removed and the server_config is
 not supported.
 
 Refer to the
-[Promtail documentation](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#client_config)
+[Promtail documentation](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#clients)
 for the supported values for these fields.
 
 ```yaml
@@ -63,16 +63,16 @@ scrape_configs:
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
-> * [`promtail.client_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#client_config)
-> * [`promtail.scrape_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#scrape_config)
-> * [`promtail.target_config`](https://github.com/grafana/loki/tree/master/docs/sources/clients/promtail#target_config)
+> * [`promtail.client_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#clients)
+> * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
+> * [`promtail.target_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#target_config)
 
-> **Note:** Backticks in values are not supported. 
+> **Note:** Backticks in values are not supported.
 
-> **Note:**  Because of how YAML treats backslashes in double-quoted strings, 
-> all backslashes in a regex expression must be escaped when using double 
-> quotes. But because of double processing, in Grafana Agent config file 
-> you must use quadruple backslash (`\\\\`) construction to add backslashes 
+> **Note:**  Because of how YAML treats backslashes in double-quoted strings,
+> all backslashes in a regex expression must be escaped when using double
+> quotes. But because of double processing, in Grafana Agent config file
+> you must use quadruple backslash (`\\\\`) construction to add backslashes
 > into regular expressions, here is example for `name=(\w+)\s` regex:
 ```
   selector: '{app="my-app"} |~ "name=(\\\\w+)\\\\s"'

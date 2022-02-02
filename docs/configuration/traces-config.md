@@ -59,6 +59,11 @@ remote_write:
     # Only "grpc" is supported in Grafana Cloud.
     [ protocol: <string> | default = "grpc" | supported = "grpc", "http" ]
 
+    # Controls what format to use when exporting traces, in combination with protocol.
+    # protocol/format supported combinations are grpc/otlp, http/otlp and grpc/jaeger
+    # Only grpc/otlp is supported in Grafana Cloud.
+    [ format: <string> | default = "otlp" | supported = "otlp", "jaeger" ]
+
     # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
     [ insecure: <boolean> | default = false ]
 
@@ -145,6 +150,26 @@ scrape_configs:
 # `update` only modifies an existing k/v and `insert` only appends if the k/v
 # is not present. `upsert` does both.
 [ prom_sd_operation_type: <string> | default = "upsert" ]
+# Configures what methods to use to do association between spans and pods.
+# PromSD processor matches the IP address of the metadata labels from the k8s API
+# with the IP address obtained from the specified pod association method.
+# If a match is found then the span is labeled.
+#
+# Options are `ip`, `net.host.ip`, `k8s.pod.ip`, `hostname` and `connection`.
+#   - `ip`, `net.host.ip` and `k8s.pod.ip`, `hostname` match spans tags.
+#   - `connection` inspects the context from the incoming requests (gRPC and HTTP).
+#
+# Tracing instrumentation is commonly the responsible for tagging spans
+# with IP address to the labels mentioned above.
+# If running on kubernetes, `k8s.pod.ip` can be automatically attached via the
+# downward API. For example, if you're using OTel instrumentation libraries, set 
+# OTEL_RESOURCE_ATTRIBUTES=k8s.pod.ip=$(POD_IP) to inject spans with the sender
+# pod's IP.
+#
+# By default, all methods are enabled, and evaluated in the order specified above.
+# Order of evaluation is honored when multiple methods are enabled.
+prom_sd_pod_associations:
+  - [ <string>... ]
 
 # spanmetrics supports aggregating Request, Error and Duration (R.E.D) metrics
 # from span data.
@@ -295,6 +320,24 @@ service_graphs:
   # a higher max number of items increases the max throughput of processed spans
   # with a higher memory consumption.
   [ max_items: <integer> | default = 10_000 ]
+  
+  # configures the number of workers that will process completed edges concurrently.
+  # as edges are completed, they get queued to be collected as metrics for the graph.
+  [ workers: <integer> | default = 10]
+
+  # configures what status codes are considered as successful (e.g. HTTP 404).
+  #
+  # by default, a request is considered failed in the following cases:
+  #   1. HTTP status is not 2XX
+  #   1. gRPC status code is not OK
+  #   1. span status is Error
+  success_codes:
+    # http status codes not to be considered as failure
+    http:
+      [ - <int> ... ]
+    # grpc status codes not to be considered as failure
+    grpc:
+      [ - <int> ... ]
 ```
 
 > **Note:** More information on the following types can be found on the

@@ -1,0 +1,90 @@
+# The docker-compose.integrations-next.yaml runs an agent environment with
+# -enable-features=integrations-next being used.
+version: "2"
+services:
+  agent:
+    image: grafana/agent:latest
+    volumes:
+      - ./agent/config:/etc/agent-config
+      - /var/log:/var/log
+    entrypoint:
+      - /bin/agent
+      - -config.file=/etc/agent-config/agent-integrations-next.yaml
+      - -prometheus.wal-directory=/tmp/agent/wal
+      - -enable-features=integrations-next
+      - -config.expand-env
+      - -config.enable-read-api
+    environment:
+      REMOTE_WRITE: cortex:9009
+      REDIS_1: redis_1:6379
+      REDIS_2: redis_2:6379
+      HOSTNAME: agent
+    ports:
+      - "12345:12345"
+    depends_on:
+      - cortex
+      - loki
+      - tempo
+      - redis_1
+      - redis_2
+
+  #
+  # Frontend
+  #
+
+  grafana:
+    image: grafana/grafana:8.3.3
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    volumes:
+      - ./grafana/config:/etc/grafana-config
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
+
+  #
+  # Backend for remote_write components
+  #
+
+  cortex:
+    image: cortexproject/cortex:v1.8.1
+    volumes:
+      - /tmp/cortex:/tmp/cortex
+      - ./cortex/config:/etc/cortex-config
+    entrypoint:
+      - /bin/cortex
+      - -config.file=/etc/cortex-config/cortex.yaml
+    ports:
+      - "9009:9009"
+
+  loki:
+    image: grafana/loki:1.5.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tempo:
+    image: grafana/tempo:df7225ae
+    command:
+      - "-storage.trace.backend=local"                  # tell tempo where to permanently put traces
+      - "-storage.trace.local.path=/tmp/tempo/traces"
+      - "-storage.trace.wal.path=/tmp/tempo/wal"        # tell tempo where to store the wal
+      - "-auth.enabled=false"                           # disables the requirement for the X-Scope-OrgID header
+      - "-server.http-listen-port=3200"
+    ports:
+      - "3200:3200"
+
+  #
+  # Integrations
+  #
+
+  redis_1:
+    image: redis:6
+    ports: ["6379:6379"]
+  redis_2:
+    image: redis:6
+    ports: ["6380:6379"]

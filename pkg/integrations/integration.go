@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
@@ -14,9 +14,16 @@ type Config interface {
 	// pull the configuration from the Agent config YAML.
 	Name() string
 
-	// CommonConfig returns the set of common configuration values present across
-	// all integrations.
-	CommonConfig() config.Common
+	// InstanceKey should return the key the reprsents the config, which will be
+	// used to populate the value of the `instance` label for metrics.
+	//
+	// InstanceKey is given an agentKey that represents the agent process. This
+	// may be used if the integration being configured applies to an entire
+	// machine.
+	//
+	// This method may not be invoked if the instance key for a Config is
+	// overridden.
+	InstanceKey(agentKey string) (string, error)
 
 	// NewIntegration returns an integration for the given with the given logger.
 	NewIntegration(l log.Logger) (Integration, error)

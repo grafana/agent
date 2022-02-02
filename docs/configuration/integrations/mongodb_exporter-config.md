@@ -6,9 +6,9 @@ title = "mongodb_exporter_config"
 
 The `mongodb_exporter_config` block configures the `mongodb_exporter` integration, which is an embedded version of percona's [`mongodb_exporter`](https://github.com/percona/mongodb_exporter).
 
-In order for this integration to work prorperly, you have to connect each node of your mongoDB cluster to an agent instance.
+In order for this integration to work properly, you have to connect each node of your mongoDB cluster to an agent instance.
 That's because this exporter does not collect metrics from multiple nodes.
-Additionally, you need to define two custom label for you metrics using relabel_configs.
+Additionally, you need to define two custom label for your metrics using relabel_configs.
 The first one is service_name, which is how you identify this node in your cluster (example: ReplicaSet1-Node1).
 The second one is mongodb_cluster, which is the name of your mongodb cluster, and must be set the same value for all nodes composing the cluster (example: prod-cluster).
 Here`s an example:
@@ -23,7 +23,7 @@ relabel_configs:
       replacement: 'prod-cluster'
 ```
 
-We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory 
+We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
 security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/percona/mongodb_exporter#permissions).
 
 Besides that, there's not much to configure. Please refer to the full reference of options:
@@ -31,6 +31,13 @@ Besides that, there's not much to configure. Please refer to the full reference 
 ```yaml
   # Enables the mongodb_exporter integration
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the hostname
+  # portion of the mongodb_uri field.
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the mongodb_exporter integration will be run but not scraped and thus not

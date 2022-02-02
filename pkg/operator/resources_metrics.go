@@ -1,6 +1,7 @@
 package operator
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -10,14 +11,15 @@ import (
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	governingServiceName = "grafana-agent-operated"
-	defaultPortName      = "http-metrics"
+	defaultPortName = "http-metrics"
 )
 
 var (
@@ -34,11 +36,31 @@ var (
 	probeTimeoutSeconds int32 = 3
 )
 
+// deleteManagedResource deletes a managed resource. Ignores resources that are
+// not managed.
+func deleteManagedResource(ctx context.Context, cli client.Client, key client.ObjectKey, o client.Object) error {
+	err := cli.Get(ctx, key, o)
+	if k8s_errors.IsNotFound(err) || !isManagedResource(o) {
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("failed to find stale resource %s: %w", key, err)
+	}
+	err = cli.Delete(ctx, o)
+	if err != nil {
+		return fmt.Errorf("failed to delete stale resource %s: %w", key, err)
+	}
+	return nil
+}
+
 // isManagedResource returns true if the given object has a managed-by
 // grafana-agent-operator label.
 func isManagedResource(obj client.Object) bool {
 	labelValue := obj.GetLabels()[managedByOperatorLabel]
 	return labelValue == managedByOperatorLabelValue
+}
+
+func governingServiceName(agentName string) string {
+	return fmt.Sprintf("%s-operated", agentName)
 }
 
 func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
@@ -48,22 +70,21 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 		d.Agent.Spec.PortName = defaultPortName
 	}
 
-	boolTrue := true
-
 	return &v1.Service{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name:      governingServiceName,
-			Namespace: d.Agent.ObjectMeta.Namespace,
+			Name:      governingServiceName(d.Agent.Name),
+			Namespace: d.Agent.Namespace,
 			OwnerReferences: []meta_v1.OwnerReference{{
 				APIVersion:         d.Agent.APIVersion,
 				Kind:               d.Agent.Kind,
 				Name:               d.Agent.Name,
-				BlockOwnerDeletion: &boolTrue,
-				Controller:         &boolTrue,
+				BlockOwnerDeletion: pointer.Bool(true),
+				Controller:         pointer.Bool(true),
 				UID:                d.Agent.UID,
 			}},
 			Labels: cfg.Labels.Merge(map[string]string{
 				managedByOperatorLabel: managedByOperatorLabelValue,
+				agentNameLabelName:     d.Agent.Name,
 				"operated-agent":       "true",
 			}),
 		},
@@ -71,11 +92,12 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 			ClusterIP: "None",
 			Ports: []v1.ServicePort{{
 				Name:       d.Agent.Spec.PortName,
-				Port:       9090,
+				Port:       8080,
 				TargetPort: intstr.FromString(d.Agent.Spec.PortName),
 			}},
 			Selector: map[string]string{
 				"app.kubernetes.io/name": "grafana-agent",
+				agentNameLabelName:       d.Agent.Name,
 			},
 		},
 	}
@@ -117,7 +139,7 @@ func generateMetricsStatefulSet(
 	// Don't transfer any kubectl annotations to the statefulset so it doesn't
 	// get pruned by kubectl.
 	annotations := make(map[string]string)
-	for k, v := range d.Agent.ObjectMeta.Annotations {
+	for k, v := range d.Agent.Annotations {
 		if !strings.HasPrefix(k, "kubectl.kubernetes.io/") {
 			annotations[k] = v
 		}
@@ -131,8 +153,6 @@ func generateMetricsStatefulSet(
 	labels[agentTypeLabel] = "metrics"
 	labels[managedByOperatorLabel] = managedByOperatorLabelValue
 
-	boolTrue := true
-
 	ss := &apps_v1.StatefulSet{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:        name,
@@ -142,8 +162,8 @@ func generateMetricsStatefulSet(
 			OwnerReferences: []meta_v1.OwnerReference{{
 				APIVersion:         d.Agent.APIVersion,
 				Kind:               d.Agent.Kind,
-				BlockOwnerDeletion: &boolTrue,
-				Controller:         &boolTrue,
+				BlockOwnerDeletion: pointer.Bool(true),
+				Controller:         pointer.Bool(true),
 				Name:               d.Agent.Name,
 				UID:                d.Agent.UID,
 			}},
@@ -209,9 +229,11 @@ func generateMetricsStatefulSetSpec(
 		shards = *reqShards
 	}
 
-	terminationGracePeriodSeconds := int64(4800)
-
-	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, d.Agent.Spec.Version)
+	useVersion := d.Agent.Spec.Version
+	if useVersion == "" {
+		useVersion = DefaultAgentVersion
+	}
+	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, useVersion)
 	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
 		imagePath = *d.Agent.Spec.Image
 	}
@@ -416,7 +438,7 @@ func generateMetricsStatefulSetSpec(
 	}
 
 	return &apps_v1.StatefulSetSpec{
-		ServiceName:         governingServiceName,
+		ServiceName:         governingServiceName(d.Agent.Name),
 		Replicas:            d.Agent.Spec.Metrics.Replicas,
 		PodManagementPolicy: apps_v1.ParallelPodManagement,
 		UpdateStrategy: apps_v1.StatefulSetUpdateStrategy{
@@ -437,7 +459,7 @@ func generateMetricsStatefulSetSpec(
 				ServiceAccountName:            d.Agent.Spec.ServiceAccountName,
 				NodeSelector:                  d.Agent.Spec.NodeSelector,
 				PriorityClassName:             d.Agent.Spec.PriorityClassName,
-				TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
+				TerminationGracePeriodSeconds: pointer.Int64(4800),
 				Volumes:                       volumes,
 				Tolerations:                   d.Agent.Spec.Tolerations,
 				Affinity:                      d.Agent.Spec.Affinity,

@@ -3,11 +3,14 @@ package kafka_exporter //nolint:golint
 import (
 	"fmt"
 
+	config_util "github.com/prometheus/common/config"
+
 	"github.com/Shopify/sarama"
 	kafka_exporter "github.com/davidmparrott/kafka_exporter/v2/exporter"
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
 // DefaultConfig holds the default settings for the kafka_lag_exporter
@@ -25,8 +28,6 @@ var DefaultConfig = Config{
 
 // Config controls kafka_exporter
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// Address array (host:port) of Kafka server
 	KafkaURIs []string `yaml:"kafka_uris,omitempty"`
 
@@ -40,7 +41,7 @@ type Config struct {
 	SASLUsername string `yaml:"sasl_username,omitempty"`
 
 	// SASL user password
-	SASLPassword string `yaml:"sasl_password,omitempty"`
+	SASLPassword config_util.Secret `yaml:"sasl_password,omitempty"`
 
 	// The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
 	SASLMechanism string `yaml:"sasl_mechanism,omitempty"`
@@ -104,10 +105,15 @@ func (c *Config) Name() string {
 	return "kafka_exporter"
 }
 
-// CommonConfig returns the common settings shared across all configs for
-// integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns the hostname:port of the first Kafka node, if any. If
+// there is not exactly one Kafka node, the user must manually provide
+// their own value for instance key in the common config.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	if len(c.KafkaURIs) != 1 {
+		return "", fmt.Errorf("an automatic value for `instance` cannot be determined from %d kafka servers, manually provide one for this integration", len(c.KafkaURIs))
+	}
+
+	return c.KafkaURIs[0], nil
 }
 
 // NewIntegration creates a new elasticsearch_exporter
@@ -117,6 +123,7 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new kafka_exporter integration.
@@ -139,7 +146,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		UseSASL:                  c.UseSASL,
 		UseSASLHandshake:         c.UseSASLHandshake,
 		SaslUsername:             c.SASLUsername,
-		SaslPassword:             c.SASLPassword,
+		SaslPassword:             string(c.SASLPassword),
 		SaslMechanism:            c.SASLMechanism,
 		UseTLS:                   c.UseTLS,
 		TlsCAFile:                c.CAFile,

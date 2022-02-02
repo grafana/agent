@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
 	config_util "github.com/prometheus/common/config"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -23,6 +24,7 @@ import (
 	promConfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/relabel"
+	"github.com/weaveworks/common/server"
 )
 
 var (
@@ -36,20 +38,16 @@ var (
 var DefaultManagerConfig = ManagerConfig{
 	ScrapeIntegrations:        true,
 	IntegrationRestartBackoff: 5 * time.Second,
-	UseHostnameLabel:          true,
-	ReplaceInstanceLabel:      true,
+
+	// Deprecated fields which keep their previous defaults:
+	UseHostnameLabel:     true,
+	ReplaceInstanceLabel: true,
 }
 
 // ManagerConfig holds the configuration for all integrations.
 type ManagerConfig struct {
 	// When true, scrapes metrics from integrations.
 	ScrapeIntegrations bool `yaml:"scrape_integrations,omitempty"`
-	// When true, replaces the instance label with the agent hostname.
-	ReplaceInstanceLabel bool `yaml:"replace_instance_label,omitempty"`
-
-	// DEPRECATED. When true, adds an agent_hostname label to all samples from integrations.
-	// ReplaceInstanceLabel should be used instead.
-	UseHostnameLabel bool `yaml:"use_hostname_label,omitempty"`
 
 	// The integration configs is merged with the manager config struct so we
 	// don't want to export it here; we'll manually unmarshal it in UnmarshalYAML.
@@ -80,6 +78,13 @@ type ManagerConfig struct {
 	// The Integrations Configs don't have prometheus defaults applied which
 	// can cause us skip reload when scrape configs change
 	PrometheusGlobalConfig promConfig.GlobalConfig `yaml:"-"`
+
+	//
+	// Deprecated and ignored fields.
+	//
+
+	ReplaceInstanceLabel bool `yaml:"replace_instance_label,omitempty"` // DEPRECATED, unused
+	UseHostnameLabel     bool `yaml:"use_hostname_label,omitempty"`     // DEPRECATED, unused
 }
 
 // MarshalYAML implements yaml.Marshaler for ManagerConfig.
@@ -95,23 +100,15 @@ func (c *ManagerConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // DefaultRelabelConfigs returns the set of relabel configs that should be
 // prepended to all RelabelConfigs for an integration.
-func (c *ManagerConfig) DefaultRelabelConfigs(hostname string) []*relabel.Config {
-	var cfgs []*relabel.Config
-
-	if c.ReplaceInstanceLabel {
-		replacement := fmt.Sprintf("%s:%d", hostname, c.ListenPort)
-
-		cfgs = append(cfgs, &relabel.Config{
-			SourceLabels: model.LabelNames{model.AddressLabel},
-			Action:       relabel.Replace,
-			Separator:    ";",
-			Regex:        relabel.MustNewRegexp("(.*)"),
-			Replacement:  replacement,
-			TargetLabel:  model.InstanceLabel,
-		})
-	}
-
-	return cfgs
+func (c *ManagerConfig) DefaultRelabelConfigs(instanceKey string) []*relabel.Config {
+	return []*relabel.Config{{
+		SourceLabels: model.LabelNames{model.AddressLabel},
+		Action:       relabel.Replace,
+		Separator:    ";",
+		Regex:        relabel.MustNewRegexp("(.*)"),
+		Replacement:  instanceKey,
+		TargetLabel:  model.InstanceLabel,
+	}}
 }
 
 // ApplyDefaults applies default settings to the ManagerConfig and validates
@@ -119,19 +116,29 @@ func (c *ManagerConfig) DefaultRelabelConfigs(hostname string) []*relabel.Config
 //
 // If any integrations are enabled and are configured to be scraped, the
 // Prometheus configuration must have a WAL directory configured.
-func (c *ManagerConfig) ApplyDefaults(cfg *metrics.Config) error {
+func (c *ManagerConfig) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
+	c.ListenPort = scfg.HTTPListenPort
+	c.ListenHost = scfg.HTTPListenAddress
+
+	c.ServerUsingTLS = scfg.HTTPTLSConfig.TLSKeyPath != "" && scfg.HTTPTLSConfig.TLSCertPath != ""
+
+	if len(c.PrometheusRemoteWrite) == 0 {
+		c.PrometheusRemoteWrite = mcfg.Global.RemoteWrite
+	}
+	c.PrometheusGlobalConfig = mcfg.Global.Prometheus
+
 	for _, ic := range c.Integrations {
-		if !ic.CommonConfig().Enabled {
+		if !ic.Common.Enabled {
 			continue
 		}
 
 		scrapeIntegration := c.ScrapeIntegrations
-		if common := ic.CommonConfig(); common.ScrapeIntegration != nil {
+		if common := ic.Common; common.ScrapeIntegration != nil {
 			scrapeIntegration = *common.ScrapeIntegration
 		}
 
 		// WAL must be configured if an integration is going to be scraped.
-		if scrapeIntegration && cfg.WALDir == "" {
+		if scrapeIntegration && mcfg.WALDir == "" {
 			return fmt.Errorf("no wal_directory configured")
 		}
 	}
@@ -217,7 +224,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
 	for _, ic := range cfg.Integrations {
-		if !ic.CommonConfig().Enabled {
+		if !ic.Common.Enabled {
 			continue
 		}
 		// Key is used to identify the instance of this integration within the
@@ -247,12 +254,31 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 			continue
 		}
 
+		// Find what instance label should be used to represent this integration.
+		var instanceKey string
+		if kp := ic.Common.InstanceKey; kp != nil {
+			// Common config takes precedence.
+			instanceKey = strings.TrimSpace(*kp)
+		} else {
+			instanceKey, err = ic.InstanceKey(fmt.Sprintf("%s:%d", m.hostname, cfg.ListenPort))
+			if err != nil {
+				level.Error(m.logger).Log("msg", "failed to get instance key for integration. it will not run or be scraped", "integration", ic.Name(), "err", err)
+				failed = true
+
+				// If this integration was running before, its instance won't be cleaned
+				// up since it's now removed from the map. We need to clean it up here.
+				_ = m.im.DeleteConfig(key)
+				continue
+			}
+		}
+
 		// Create, start, and register the new integration.
 		ctx, cancel := context.WithCancel(m.ctx)
 		p := &integrationProcess{
-			log: m.logger,
-			cfg: ic,
-			i:   i,
+			log:         m.logger,
+			cfg:         ic,
+			i:           i,
+			instanceKey: instanceKey,
 
 			ctx:  ctx,
 			stop: cancel,
@@ -271,7 +297,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 		for _, ic := range cfg.Integrations {
 			if integrationKey(ic.Name()) == key {
 				// If this is disabled then we should delete from integrations
-				if !ic.CommonConfig().Enabled {
+				if !ic.Common.Enabled {
 					break
 				}
 				foundConfig = true
@@ -292,13 +318,13 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 	// if the configs for the integration didn't.
 	for key, p := range m.integrations {
 		shouldCollect := cfg.ScrapeIntegrations
-		if common := p.cfg.CommonConfig(); common.ScrapeIntegration != nil {
+		if common := p.cfg.Common; common.ScrapeIntegration != nil {
 			shouldCollect = *common.ScrapeIntegration
 		}
 
 		switch shouldCollect {
 		case true:
-			instanceConfig := m.instanceConfigForIntegration(p.cfg, p.i, cfg)
+			instanceConfig := m.instanceConfigForIntegration(p, cfg)
 			if err := m.validator(&instanceConfig); err != nil {
 				level.Error(p.log).Log("msg", "failed to validate generated scrape config for integration. integration will not be scraped", "err", err, "integration", p.cfg.Name())
 				failed = true
@@ -327,11 +353,12 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 // integrationProcess is a running integration.
 type integrationProcess struct {
-	log  log.Logger
-	ctx  context.Context
-	stop context.CancelFunc
-	cfg  Config
-	i    Integration
+	log         log.Logger
+	ctx         context.Context
+	stop        context.CancelFunc
+	cfg         UnmarshaledConfig
+	instanceKey string // Value for the `instance` label
+	i           Integration
 
 	wg   *sync.WaitGroup
 	wait func(cfg Config, err error)
@@ -369,9 +396,9 @@ func (m *Manager) instanceBackoff(cfg Config, err error) {
 	time.Sleep(m.cfg.IntegrationRestartBackoff)
 }
 
-func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg ManagerConfig) instance.Config {
-	common := icfg.CommonConfig()
-	relabelConfigs := append(cfg.DefaultRelabelConfigs(m.hostname), common.RelabelConfigs...)
+func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg ManagerConfig) instance.Config {
+	common := p.cfg.Common
+	relabelConfigs := append(cfg.DefaultRelabelConfigs(p.instanceKey), common.RelabelConfigs...)
 
 	schema := "http"
 	// Check for HTTPS support
@@ -383,10 +410,10 @@ func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg M
 
 	var scrapeConfigs []*promConfig.ScrapeConfig
 
-	for _, isc := range i.ScrapeConfigs() {
+	for _, isc := range p.i.ScrapeConfigs() {
 		sc := &promConfig.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
-			MetricsPath:             path.Join("/integrations", icfg.Name(), isc.MetricsPath),
+			MetricsPath:             path.Join("/integrations", p.cfg.Name(), isc.MetricsPath),
 			Scheme:                  schema,
 			HonorLabels:             false,
 			HonorTimestamps:         true,
@@ -402,7 +429,7 @@ func (m *Manager) instanceConfigForIntegration(icfg Config, i Integration, cfg M
 	}
 
 	instanceCfg := instance.DefaultConfig
-	instanceCfg.Name = integrationKey(icfg.Name())
+	instanceCfg.Name = integrationKey(p.cfg.Name())
 	instanceCfg.ScrapeConfigs = scrapeConfigs
 	instanceCfg.RemoteWrite = cfg.PrometheusRemoteWrite
 	if common.WALTruncateFrequency > 0 {
@@ -425,9 +452,7 @@ func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
 	}
 	localAddr := fmt.Sprintf("%s:%d", newHost, cfg.ListenPort)
 	labels := model.LabelSet{}
-	if cfg.UseHostnameLabel {
-		labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
-	}
+	labels[model.LabelName("agent_hostname")] = model.LabelValue(m.hostname)
 	for k, v := range cfg.Labels {
 		labels[k] = v
 	}

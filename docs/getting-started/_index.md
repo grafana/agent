@@ -26,7 +26,7 @@ See the list of [Community Projects](#community-projects) for the community-driv
 docker run \
   -v /tmp/agent:/etc/agent/data \
   -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.19.0
+  grafana/agent:v0.22.0
 ```
 
 Replace `/tmp/agent` with the folder you wish to store WAL data in. WAL data is
@@ -49,7 +49,7 @@ container through a bind mount for the flags to work properly.
 
 ## Kubernetes manifests
 
-If you wish to manually modify the Kubernetes manifests before deploying them, you can do so by downloading them from the [`kubernetes` directory](../../production/kubernetes/). Note that these manifests do not include Agent configuration files. For sample configuration, please see the Grafana Cloud Kubernetes quickstarts.
+If you wish to manually modify the Kubernetes manifests before deploying them, you can do so by downloading them from the [`kubernetes` directory](https://github.com/grafana/agent/tree/main/production/kubernetes). Note that these manifests do not include Agent configuration files. For sample configuration, please see the Grafana Cloud Kubernetes quickstarts.
 
 ## Grafana Cloud kubernetes quickstart guides
 
@@ -76,7 +76,7 @@ Below is a list of community lead projects for working with Grafana Agent. These
 
 A publically available release of a Grafana Agent Helm chart is maintained [here](https://github.com/DandyDeveloper/charts/tree/master/charts/grafana-agent). Contributions and improvements are welcomed. Full details on rolling out and supported options can be found in the [readme](https://github.com/DandyDeveloper/charts/blob/master/charts/grafana-agent/README.md).
 
-This *does not* require the Grafana Agent Operator to rollout / deploy. 
+This *does not* require the Grafana Agent Operator to rollout / deploy.
 
 ### Juju (Charmed Operator)
 

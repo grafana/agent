@@ -38,4 +38,6 @@ local container = k.core.v1.container;
     (import './internal/helpers/logs.libsonnet').volumeMounts(config),
   withLogPermissions(config)::
     (import './internal/helpers/logs.libsonnet').permissions(config),
+  withService(config)::
+    (import './internal/helpers/service.libsonnet').service(config),
 }

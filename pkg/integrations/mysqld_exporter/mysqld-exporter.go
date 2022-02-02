@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	config_util "github.com/prometheus/common/config"
+
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+	"github.com/go-sql-driver/mysql"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/mysqld_exporter/collector"
 )
 
@@ -33,10 +37,8 @@ var DefaultConfig = Config{
 
 // Config controls the mysqld_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	// DataSourceName to use to connect to MySQL.
-	DataSourceName string `yaml:"data_source_name,omitempty"`
+	DataSourceName config_util.Secret `yaml:"data_source_name,omitempty"`
 
 	// Collectors to mark as enabled in addition to the default.
 	EnableCollectors []string `yaml:"enable_collectors,omitempty"`
@@ -79,9 +81,21 @@ func (c *Config) Name() string {
 	return "mysqld_exporter"
 }
 
-// CommonConfig returns the common settings shared across all integrations.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns network(hostname:port)/dbname of the MySQL server.
+func (c *Config) InstanceKey(_ string) (string, error) {
+	m, err := mysql.ParseDSN(string(c.DataSourceName))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse DSN: %w", err)
+	}
+
+	if m.Addr == "" {
+		m.Addr = "localhost:3306"
+	}
+	if m.Net == "" {
+		m.Net = "tcp"
+	}
+
+	return fmt.Sprintf("%s(%s)/%s", m.Net, m.Addr, m.DBName), nil
 }
 
 // NewIntegration converts this config into an instance of an integration.
@@ -91,6 +105,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new mysqld_exporter integration. The integration scrapes
@@ -98,14 +113,14 @@ func init() {
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	dsn := c.DataSourceName
 	if len(dsn) == 0 {
-		dsn = os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME")
+		dsn = config_util.Secret(os.Getenv("MYSQLD_EXPORTER_DATA_SOURCE_NAME"))
 	}
 	if len(dsn) == 0 {
 		return nil, fmt.Errorf("cannot create mysqld_exporter; neither mysqld_exporter.data_source_name or $MYSQLD_EXPORTER_DATA_SOURCE_NAME is set")
 	}
 
 	scrapers := GetScrapers(c)
-	exporter := collector.New(context.Background(), dsn, collector.NewMetrics(), scrapers, log, collector.Config{
+	exporter := collector.New(context.Background(), string(dsn), collector.NewMetrics(), scrapers, log, collector.Config{
 		LockTimeout:   c.LockWaitTimeout,
 		SlowLogFilter: c.LogSlowFilter,
 	})

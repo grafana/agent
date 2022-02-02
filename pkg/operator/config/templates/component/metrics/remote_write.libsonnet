@@ -16,6 +16,7 @@ function(namespace, rw) {
   name: optionals.string(rw.Name),
   remote_timeout: optionals.string(rw.RemoteTimeout),
   headers: optionals.object(rw.Headers),
+  proxy_url: optionals.string(rw.ProxyURL),
 
   write_relabel_configs: optionals.array(std.map(
     new_relabel_config,

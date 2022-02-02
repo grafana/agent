@@ -1,6 +1,7 @@
 package automaticloggingprocessor
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/model/pdata"
 	"gopkg.in/yaml.v3"
 )
@@ -110,7 +112,7 @@ func TestSpanKeyVals(t *testing.T) {
 
 		span := pdata.NewSpan()
 		span.SetName(tc.spanName)
-		span.Attributes().InitFromMap(tc.spanAttrs).Sort()
+		pdata.NewAttributeMapFromMap(tc.spanAttrs).Sort().CopyTo(span.Attributes())
 		span.SetStartTimestamp(pdata.NewTimestampFromTime(tc.spanStart))
 		span.SetEndTimestamp(pdata.NewTimestampFromTime(tc.spanEnd))
 		span.Status().SetCode(pdata.StatusCodeOk)
@@ -161,7 +163,7 @@ func TestProcessKeyVals(t *testing.T) {
 		require.NoError(t, err)
 
 		process := pdata.NewResource()
-		process.Attributes().InitFromMap(tc.processAttrs).Sort()
+		pdata.NewAttributeMapFromMap(tc.processAttrs).Sort().CopyTo(process.Attributes())
 
 		actual := p.(*automaticLoggingProcessor).processKeyVals(process, tc.svc)
 		assert.Equal(t, tc.expected, actual)
@@ -214,6 +216,9 @@ func TestLogToStdoutSet(t *testing.T) {
 	p, err := newTraceProcessor(&automaticLoggingProcessor{}, cfg)
 	require.NoError(t, err)
 	require.True(t, p.(*automaticLoggingProcessor).logToStdout)
+
+	err = p.Start(context.Background(), componenttest.NewNopHost())
+	require.NoError(t, err)
 
 	cfg = &AutomaticLoggingConfig{
 		Backend: BackendLogs,

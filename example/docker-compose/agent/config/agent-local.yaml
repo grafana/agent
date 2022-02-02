@@ -85,4 +85,10 @@ integrations:
       replacement: 'mongodb'   
     - source_labels: [__address__]
       target_label: mongodb_cluster
-      replacement: 'mongodb-cluster'  
+      replacement: 'mongodb-cluster'
+  cadvisor:
+    enabled: true
+    disabled_metrics:
+    - disk
+    enabled_metrics:
+    - percpu

@@ -1,3 +1,4 @@
+//go:build !linux
 // +build !linux
 
 // Package process_exporter embeds https://github.com/ncabatoff/process-exporter
@@ -7,8 +8,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 

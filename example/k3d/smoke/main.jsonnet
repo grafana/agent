@@ -11,8 +11,8 @@ local pvc = k.core.v1.persistentVolumeClaim;
 local volumeMount = k.core.v1.volumeMount;
 
 local images = {
-  agent: 'grafana/agent:latest',
-  agentctl: 'grafana/agentctl:latest',
+  agent: 'grafana/agent:main',
+  agentctl: 'grafana/agentctl:main',
 };
 
 local new_crow(name, selector) =
@@ -34,11 +34,9 @@ local smoke = {
   avalanche: avalanche.new(replicas=3, namespace='smoke', config={
     // We're going to be running a lot of these and we're not trying to test
     // for load, so reduce the cardinality and churn rate.
-      avalanche: avalanche.new(replicas=3, namespace='smoke', config={
-        metric_count: 1000,
-        series_interval: 300,
-        metric_interval: 600,
-      }),
+    metric_count: 1000,
+    series_interval: 300,
+    metric_interval: 600,
   }),
 
   crows: [
@@ -110,6 +108,7 @@ local smoke = {
       ],
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
+    gragent.withService({}) +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 
@@ -139,6 +138,7 @@ local smoke = {
       ],
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-cluster-wal', '/var/lib/agent')]) +
+    gragent.withService({}) +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 

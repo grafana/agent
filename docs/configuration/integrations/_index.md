@@ -16,6 +16,13 @@ agent:
   # collect and send metrics about itself.
   [enabled: <boolean> | default = false]
 
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the agent hostname
+  # and HTTP listen port, delimited by a colon.
+  [instance: <string>]
+
   # Automatically collect metrics from this integration. If disabled,
   # the agent integration will be run but not scraped and thus not
   # remote_written. Metrics for the integration will be exposed at
@@ -26,7 +33,7 @@ agent:
   # prometheus.global.scrape_interval.
   [scrape_interval: <duration> | default = <global_config.scrape_interval>]
 
-  # The timtout before considering the scrape a failure. Defaults to
+  # The timeout before considering the scrape a failure. Defaults to
   # prometheus.global.scrape_timeout.
   [scrape_timeout: <duration> | default = <global_config.scrape_timeout>]
 
@@ -93,25 +100,6 @@ github_exporter: <github_exporter_config>
 # for integrations will be exposed at /integrations/<integration_key>/metrics
 # and can be scraped by an external process.
 [scrape_integrations: <boolean> | default = true]
-
-# When true, replaces the instance label with the hostname of the machine,
-# rather than 127.0.0.1:<server.http_listen_port>. Useful when running multiple
-# Agents with the same integrations and uniquely identifying where metrics are
-# coming from.
-#
-# The value for the instance label can be replaced by providing custom
-# relabel_configs for an integration. The overwritten instance label will be
-# available when relabel_configs run.
-[replace_instance_label: <boolean> | default = true]
-
-# When true, adds an agent_hostname label to all samples coming from
-# integrations. The value of the agent_hostname label will be the
-# value of $HOSTNAME (if available) or the machine's hostname.
-#
-# DEPRECATED. May be removed in a future version. Rely on
-# replace_instance_label instead, since it has better compatability
-# with existing dashboards.
-[use_hostname_label: <boolean> | default = true]
 
 # Extra labels to add to all samples coming from integrations.
 labels:

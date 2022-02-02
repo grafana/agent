@@ -6,8 +6,8 @@ import (
 	"os"
 
 	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/operator"
 	"github.com/grafana/agent/pkg/operator/logutil"
 	"github.com/prometheus/common/version"
@@ -27,20 +27,15 @@ func main() {
 
 	logger = setupLogger(logger, cfg)
 
-	m, err := cfg.Manager()
+	op, err := operator.New(logger, cfg)
 	if err != nil {
-		level.Error(logger).Log("msg", "unable to create manager", "err", err)
-		os.Exit(1)
-	}
-
-	if err := operator.New(logger, cfg, m); err != nil {
 		level.Error(logger).Log("msg", "unable to create operator", "err", err)
 		os.Exit(1)
 	}
 
 	// Run the manager and wait for a signal to shut down.
 	level.Info(logger).Log("msg", "starting manager")
-	if err := m.Start(controller.SetupSignalHandler()); err != nil {
+	if err := op.Start(controller.SetupSignalHandler()); err != nil {
 		level.Error(logger).Log("msg", "problem running manager", "err", err)
 		os.Exit(1)
 	}

@@ -2,11 +2,14 @@
 package consul_exporter //nolint:golint
 
 import (
+	"fmt"
+	"net/url"
 	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	consul_api "github.com/hashicorp/consul/api"
 	"github.com/prometheus/consul_exporter/pkg/exporter"
 )
@@ -22,8 +25,6 @@ var DefaultConfig = Config{
 
 // Config controls the consul_exporter integration.
 type Config struct {
-	Common config.Common `yaml:",inline"`
-
 	Server             string        `yaml:"server,omitempty"`
 	CAFile             string        `yaml:"ca_file,omitempty"`
 	CertFile           string        `yaml:"cert_file,omitempty"`
@@ -53,9 +54,13 @@ func (c *Config) Name() string {
 	return "consul_exporter"
 }
 
-// CommonConfig returns the common set of settings for this integration.
-func (c *Config) CommonConfig() config.Common {
-	return c.Common
+// InstanceKey returns the hostname:port of the Consul server.
+func (c *Config) InstanceKey(agentKey string) (string, error) {
+	u, err := url.Parse(c.Server)
+	if err != nil {
+		return "", fmt.Errorf("could not parse url: %w", err)
+	}
+	return u.Host, nil
 }
 
 // NewIntegration converts the config into an instance of an integration.
@@ -65,6 +70,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // New creates a new consul_exporter integration. The integration scrapes

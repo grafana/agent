@@ -16,8 +16,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/grafana/agent/pkg/util"
@@ -35,6 +35,7 @@ import (
 
 func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 }
 
 var (
@@ -90,7 +91,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 	// We want users to be able to marshal instance.Configs directly without
 	// *needing* to call instance.MarshalConfig, so we call it internally
 	// here and return a map.
-	bb, err := MarshalConfig(&c, false)
+	bb, err := MarshalConfig(&c, true)
 	if err != nil {
 		return nil, err
 	}
@@ -843,7 +844,10 @@ func newScrapeManager(logger log.Logger, app storage.Appendable) *scrape.Manager
 	// data race of modifying that global, we lock a mutex here briefly.
 	managerMtx.Lock()
 	defer managerMtx.Unlock()
-	return scrape.NewManager(logger, app)
+	options := &scrape.Options{
+		ExtraMetrics: false,
+	}
+	return scrape.NewManager(options, logger, app)
 }
 
 type runGroupContext struct {

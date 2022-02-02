@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -35,6 +35,10 @@ func New(log log.Logger, c *Config) (*Integration, error) {
 	// collectors that we can use instead of this command line hack.
 	flags, _ := MapConfigToNodeExporterFlags(c)
 	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent config", "flags", strings.Join(flags, " "))
+
+	for _, warn := range c.UnmarshalWarnings {
+		level.Warn(log).Log("msg", warn)
+	}
 
 	_, err := kingpin.CommandLine.Parse(flags)
 	if err != nil {

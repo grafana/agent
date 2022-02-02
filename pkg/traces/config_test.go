@@ -4,12 +4,12 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configparser"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"gopkg.in/yaml.v2"
 )
@@ -72,8 +72,8 @@ receivers:
 			cfg: `
 receivers:
   jaeger:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 `,
 			expectedError: true,
 		},
@@ -84,8 +84,8 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 `,
 			expectedConfig: `
 receivers:
@@ -93,7 +93,7 @@ receivers:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -101,45 +101,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
-      processors: []
-      receivers: ["jaeger"]
-`,
-		},
-		{
-			name: "push_config options",
-			cfg: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-push_config:
-  insecure: true
-  endpoint: example.com:12345
-  basic_auth:
-    username: test
-    password: blerg
-`,
-			expectedConfig: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-exporters:
-  otlp:
-    endpoint: example.com:12345
-    compression: gzip
-    tls:
-      insecure: true
-    headers:
-      authorization: Basic dGVzdDpibGVyZw==
-    retry_on_failure:
-      enabled: true
-      max_elapsed_time: 60s
-service:
-  pipelines:
-    traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -156,15 +118,15 @@ attributes:
   - key: montgomery
     value: forever
     action: update
-push_config:
-  endpoint: example.com:12345
-  batch:
-    timeout: 5s
-    send_batch_size: 100
-  retry_on_failure:
-    initial_interval: 10s
-  sending_queue:
-    num_consumers: 15
+batch:
+  timeout: 5s
+  send_batch_size: 100
+remote_write:
+  - endpoint: example.com:12345
+    retry_on_failure:
+      initial_interval: 10s
+    sending_queue:
+      num_consumers: 15
 `,
 			expectedConfig: `
 receivers:
@@ -172,7 +134,7 @@ receivers:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -192,31 +154,31 @@ processors:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: ["attributes", "batch"]
       receivers: ["jaeger"]
 `,
 		},
 		{
-			name: "push_config password in file",
+			name: "password in file",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure: true
-  endpoint: example.com:12345
-  basic_auth:
-    username: test
-    password_file: ` + passwordFile.Name(),
+remote_write:
+  - insecure: true
+    endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password_file: ` + passwordFile.Name(),
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     tls:
@@ -228,31 +190,32 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
 		},
 		{
-			name: "push_config password in file with extra newline",
+			name: "password in file with extra newline",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure: true
-  endpoint: example.com:12345
-  basic_auth:
-    username: test
-    password_file: ` + passwordFileExtraNewline.Name(),
+remote_write:
+  - insecure: true
+    endpoint: example.com:12345
+    format: otlp
+    basic_auth:
+      username: test
+      password_file: ` + passwordFileExtraNewline.Name(),
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     tls:
@@ -264,7 +227,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -276,16 +239,16 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure_skip_verify: true
-  endpoint: example.com:12345`,
+remote_write:
+  - insecure_skip_verify: true
+    endpoint: example.com:12345`,
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     tls:
@@ -295,7 +258,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -307,17 +270,17 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  insecure_skip_verify: true
-  endpoint: example.com:12345
-  compression: none`,
+remote_write:
+  - insecure_skip_verify: true
+    endpoint: example.com:12345
+    compression: none`,
 			expectedConfig: `
 receivers:
   jaeger:
     protocols:
       grpc:
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     tls:
       insecure_skip_verify: true
@@ -326,7 +289,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -808,8 +771,8 @@ receivers:
   jaeger:
     protocols:
       grpc:
-push_config:
-  endpoint: example.com:12345
+remote_write:
+  - endpoint: example.com:12345
 automatic_logging:
   spans: true
 `,
@@ -823,7 +786,7 @@ processors:
     automatic_logging:
       spans: true
 exporters:
-  otlp:
+  otlp/0:
     endpoint: example.com:12345
     compression: gzip
     retry_on_failure:
@@ -831,7 +794,7 @@ exporters:
 service:
   pipelines:
     traces:
-      exporters: ["otlp"]
+      exporters: ["otlp/0"]
       processors: ["automatic_logging"]
       receivers: ["jaeger"]
       `,
@@ -983,6 +946,121 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "jaeger exporter",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - insecure: true
+    format: jaeger
+    endpoint: example.com:12345
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  jaeger/0:
+    endpoint: example.com:12345
+    compression: gzip
+    tls:
+      insecure: true
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["jaeger/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "jaeger exporter with basic auth",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - insecure: true
+    format: jaeger
+    protocol: grpc
+    basic_auth:
+      username: test
+      password_file: ` + passwordFile.Name() + `
+    endpoint: example.com:12345
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  jaeger/0:
+    endpoint: example.com:12345
+    compression: gzip
+    tls:
+      insecure: true
+    headers:
+      authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["jaeger/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "two exporters different format",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - insecure: true
+    format: jaeger
+    endpoint: example.com:12345
+  - insecure: true
+    format: otlp
+    endpoint: something.com:123
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+exporters:
+  jaeger/0:
+    endpoint: example.com:12345
+    compression: gzip
+    tls:
+      insecure: true
+    retry_on_failure:
+      max_elapsed_time: 60s
+  otlp/1:
+    endpoint: something.com:123
+    compression: gzip
+    tls:
+      insecure: true
+    retry_on_failure:
+      max_elapsed_time: 60s
+service:
+  pipelines:
+    traces:
+      exporters: ["jaeger/0", "otlp/1"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
@@ -997,7 +1075,7 @@ service:
 				assert.Error(t, err)
 				return
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			// convert actual config to otel config
 			otelMapStructure := map[string]interface{}{}
@@ -1007,7 +1085,7 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			configMap := configparser.NewConfigMapFromStringMap(otelMapStructure)
+			configMap := config.NewMapFromStringMap(otelMapStructure)
 			cfgUnmarshaler := configunmarshaler.NewDefault()
 			expectedConfig, err := cfgUnmarshaler.Unmarshal(configMap, factories)
 			require.NoError(t, err)
@@ -1085,14 +1163,14 @@ service_graphs:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces": {
-					config.NewID("attributes"),
-					config.NewID("spanmetrics"),
-					config.NewID("service_graphs"),
-					config.NewID("tail_sampling"),
-					config.NewID("automatic_logging"),
-					config.NewID("batch"),
+					config.NewComponentID("attributes"),
+					config.NewComponentID("spanmetrics"),
+					config.NewComponentID("service_graphs"),
+					config.NewComponentID("tail_sampling"),
+					config.NewComponentID("automatic_logging"),
+					config.NewComponentID("batch"),
 				},
-				"metrics/spanmetrics": nil,
+				spanMetricsPipelineName: nil,
 			},
 		},
 		{
@@ -1144,16 +1222,16 @@ service_graphs:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
-					config.NewID("attributes"),
-					config.NewID("spanmetrics"),
+					config.NewComponentID("attributes"),
+					config.NewComponentID("spanmetrics"),
 				},
 				"traces/1": {
-					config.NewID("service_graphs"),
-					config.NewID("tail_sampling"),
-					config.NewID("automatic_logging"),
-					config.NewID("batch"),
+					config.NewComponentID("service_graphs"),
+					config.NewComponentID("tail_sampling"),
+					config.NewComponentID("automatic_logging"),
+					config.NewComponentID("batch"),
 				},
-				"metrics/spanmetrics": nil,
+				spanMetricsPipelineName: nil,
 			},
 		},
 		{
@@ -1195,14 +1273,14 @@ load_balancing:
 `,
 			expectedProcessors: map[string][]config.ComponentID{
 				"traces/0": {
-					config.NewID("attributes"),
-					config.NewID("spanmetrics"),
+					config.NewComponentID("attributes"),
+					config.NewComponentID("spanmetrics"),
 				},
 				"traces/1": {
-					config.NewID("automatic_logging"),
-					config.NewID("batch"),
+					config.NewComponentID("automatic_logging"),
+					config.NewComponentID("batch"),
 				},
-				"metrics/spanmetrics": nil,
+				spanMetricsPipelineName: nil,
 			},
 		},
 	}
@@ -1219,7 +1297,12 @@ load_balancing:
 
 			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
 			for k := range tc.expectedProcessors {
-				assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[k].Processors)
+				if len(tc.expectedProcessors[k]) > 0 {
+					componentID, err := config.NewComponentIDFromString(k)
+					require.NoError(t, err)
+
+					assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[componentID].Processors)
+				}
 			}
 		})
 	}
@@ -1342,9 +1425,23 @@ func TestOrderProcessors(t *testing.T) {
 	}
 }
 
+func TestScrubbedReceivers(t *testing.T) {
+	test := `
+receivers:
+  jaeger:
+    protocols:
+      grpc:`
+	var cfg InstanceConfig
+	err := yaml.Unmarshal([]byte(test), &cfg)
+	assert.Nil(t, err)
+	data, err := yaml.Marshal(cfg)
+	assert.Nil(t, err)
+	assert.True(t, strings.Contains(string(data), "<secret>"))
+}
+
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters
 func sortPipelines(cfg *config.Config) {
-	tracePipeline := cfg.Pipelines[string(config.TracesDataType)]
+	tracePipeline := cfg.Pipelines[config.NewComponentID(config.TracesDataType)]
 	if tracePipeline == nil {
 		return
 	}

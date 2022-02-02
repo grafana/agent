@@ -31,7 +31,7 @@ local volume = k.core.v1.volume;
         containerPort.newNamed(name='grpc', containerPort=55680),
       ]) +
       container.withArgsMixin(
-          '--config=/etc/collector/config.yaml',
+        '--config=/etc/collector/config.yaml',
       ),
 
     deployment:

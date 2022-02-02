@@ -1,6 +1,5 @@
-// These tests depend on test assets from controller-runtime which don't work on Windows.
-
-// +build !windows,has_network
+//go:build !nonetwork && !nodocker && !race
+// +build !nonetwork,!nodocker,!race
 
 package operator
 
@@ -11,9 +10,8 @@ import (
 
 	"github.com/grafana/agent/pkg/operator/logutil"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/pkg/util/k8s"
 	"github.com/stretchr/testify/require"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	core_v1 "k8s.io/api/core/v1"
@@ -31,15 +29,11 @@ func TestKubelet(t *testing.T) {
 	defer cancel()
 	ctx = clog.IntoContext(ctx, logutil.Wrap(l))
 
-	var env envtest.Environment
-	setupEnvtest(t, &env)
-
-	cfg, err := env.Start()
+	cluster, err := k8s.NewCluster(ctx, k8s.Options{})
 	require.NoError(t, err)
-	t.Cleanup(func() { _ = env.Stop() })
+	defer cluster.Stop()
 
-	cli, err := client.New(cfg, client.Options{})
-	require.NoError(t, err)
+	cli := cluster.Client()
 
 	nodes := []core_v1.Node{
 		{

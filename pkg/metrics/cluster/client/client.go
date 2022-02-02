@@ -4,10 +4,9 @@ import (
 	"flag"
 	"io"
 
-	"github.com/cortexproject/cortex/pkg/util/grpcclient"
-
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/grpcclient"
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
 	"github.com/weaveworks/common/middleware"

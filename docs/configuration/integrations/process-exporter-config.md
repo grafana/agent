@@ -18,7 +18,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.19.0 \
+  grafana/agent:v0.22.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -35,7 +35,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.19.0
+  - image: grafana/agent:v0.22.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -69,6 +69,13 @@ Full reference of options:
   # Enables the process_exporter integration, allowing the Agent to automatically
   # collect system metrics from the host UNIX system.
   [enabled: <boolean> | default = false]
+
+  # Sets an explicit value for the instance label when the integration is
+  # self-scraped. Overrides inferred values.
+  #
+  # The default value for this integration is inferred from the agent hostname
+  # and HTTP listen port, delimited by a colon.
+  [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
   # the process_exporter integration will be run but not scraped and thus not
