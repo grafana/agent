@@ -271,7 +271,7 @@ func LoadDynamicConfiguration(url string, _ bool, c *Config, fs *flag.FlagSet) e
 	if err != nil {
 		return errors.Wrap(err, "error unmarshaling config file")
 	}
-	cmf, err := NewConfigLoader(*loaderCfg)
+	cmf, err := NewDynamicLoader(*loaderCfg)
 	err = cmf.ProcessConfigs(c, fs)
 	if err != nil {
 		return errors.Wrap(err, "error processing config templates")

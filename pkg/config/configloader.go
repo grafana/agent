@@ -25,78 +25,101 @@ import (
 	"strings"
 )
 
-// ConfigLoader is used to load configs from a variety of sources and squash them together.
+// DynamicLoader is used to load configs from a variety of sources and squash them together.
 // This is used by the dynamic configuration feature to load configurations from a set of templates and then run them through
 // gomplate producing an end result.
-type ConfigLoader struct {
+type DynamicLoader struct {
 	loader *loader.ConfigLoader
 	mux    fsimpl.FSMux
 	cfg    LoaderConfig
 }
 
-// NewConfigLoader instantiates a new ConfigLoader
-func NewConfigLoader(cfg LoaderConfig) (*ConfigLoader, error) {
+// NewDynamicLoader instantiates a new DynamicLoader
+func NewDynamicLoader(cfg LoaderConfig) (*DynamicLoader, error) {
 	sources := make(map[string]*data.Source)
 	for _, v := range cfg.Sources {
-		url, err := url.Parse(v.URL)
+		sourceUrl, err := url.Parse(v.URL)
 		if err != nil {
 			return nil, err
 		}
 		sources[v.Name] = &data.Source{
-			URL:   url,
+			URL:   sourceUrl,
 			Alias: v.Name,
 		}
 	}
 	cl := loader.NewConfigLoader(context.Background(), sources)
-	return &ConfigLoader{
+	return &DynamicLoader{
 		loader: cl,
 		mux:    newFSProvider(),
 		cfg:    cfg,
 	}, nil
 }
 
-// ProcessConfigs loads the configurations in a predetermined order to handle functioning correctly. The only section
-// not loaded is Server which is loaded from the passed in configuration. That is considered non-changing.
-func (c *ConfigLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
-
+// ProcessConfigs loads the configurations in a predetermined order to handle functioning correctly.
+func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
+	var returnErr error
 	err := c.processAgent(cfg)
 	if err != nil {
-		return err
+		returnErr = multierror.Append(returnErr, err)
 	}
+
 	serverConfig, err := c.processServer()
 	if err != nil {
-		return err
+		returnErr = multierror.Append(returnErr, err)
 	}
+
 	if serverConfig != nil {
 		cfg.Server = *serverConfig
 	}
 
 	metricConfig, err := c.processMetric()
 	if err != nil {
-		return err
+		returnErr = multierror.Append(returnErr, err)
 	}
+
 	if metricConfig != nil {
 		cfg.Metrics = *metricConfig
 	}
 
+	logs, err := c.processLogs()
+	if err != nil {
+		returnErr = multierror.Append(returnErr, err)
+	}
+	if logs != nil {
+		cfg.Logs = logs
+	}
+
+	traceConfigs, err := c.processTraces()
+	if err != nil {
+		returnErr = multierror.Append(returnErr, err)
+	}
+
+	if traceConfigs != nil {
+		cfg.Traces = *traceConfigs
+	}
+
 	instancesConfigs, err := c.processMetricInstances()
 	if err != nil {
-		return err
+		returnErr = multierror.Append(returnErr, err)
 	}
+
 	for _, i := range instancesConfigs {
 		cfg.Metrics.Configs = append(cfg.Metrics.Configs, i)
 	}
 
 	integrations, err := c.processIntegrations()
 	if err != nil {
-		return err
+		returnErr = multierror.Append(returnErr, err)
 	}
 
 	// If integrations havent already been defined then we need to do
 	// some setup
 	if cfg.Integrations.configV2 == nil {
 		cfg.Integrations = DefaultVersionedIntegrations
-		cfg.Integrations.setVersion(integrationsVersion2)
+		err = cfg.Integrations.setVersion(integrationsVersion2)
+		if err != nil {
+			returnErr = multierror.Append(returnErr, err)
+		}
 		defaultV2 := v2.DefaultSubsystemOptions
 		cfg.Integrations.configV2 = &defaultV2
 	}
@@ -105,31 +128,17 @@ func (c *ConfigLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 		cfg.Integrations.configV2.Configs = integrations
 	}
 
-	logs, err := c.processLogs()
-	if err != nil {
-		return err
-	}
-	if logs != nil {
-		cfg.Logs = logs
-	}
-
-	traceConfigs, err := c.processTraces()
-	if err != nil {
-		return err
-	}
-	if traceConfigs != nil {
-		cfg.Traces = *traceConfigs
-	}
 	err = cfg.Validate(fs)
 	if err != nil {
-		return err
+		returnErr = multierror.Append(returnErr, err)
 	}
-	return nil
+
+	return returnErr
 }
 
 // processAgent will return the first agent configuration found, following the pattern `agent-*.yml`, sections
 // of this config is overloaded by subsequent process* functions
-func (c *ConfigLoader) processAgent(cfg *Config) error {
+func (c *DynamicLoader) processAgent(cfg *Config) error {
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "agent-*.yml", func() interface{} {
 			return cfg
@@ -146,7 +155,7 @@ func (c *ConfigLoader) processAgent(cfg *Config) error {
 }
 
 // processServer will return the first server configuration found, following the pattern `server-*.yml`
-func (c *ConfigLoader) processServer() (*server.Config, error) {
+func (c *DynamicLoader) processServer() (*server.Config, error) {
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "server-*.yml", func() interface{} {
 			return &server.Config{}
@@ -167,7 +176,7 @@ func (c *ConfigLoader) processServer() (*server.Config, error) {
 }
 
 // processMetric will return the first metric configuration found, following the pattern `metrics-*.yml`
-func (c *ConfigLoader) processMetric() (*metrics.Config, error) {
+func (c *DynamicLoader) processMetric() (*metrics.Config, error) {
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "metrics-*.yml", func() interface{} {
 			return &metrics.Config{}
@@ -189,7 +198,7 @@ func (c *ConfigLoader) processMetric() (*metrics.Config, error) {
 
 // processMetricInstances will return the instance configurations used in the metrics section,
 // following pattern `metrics_instances-*.yml`
-func (c *ConfigLoader) processMetricInstances() ([]instance.Config, error) {
+func (c *DynamicLoader) processMetricInstances() ([]instance.Config, error) {
 	builder := strings.Builder{}
 	configs := make([]instance.Config, 0)
 	for _, path := range c.cfg.TemplatePaths {
@@ -213,8 +222,8 @@ func (c *ConfigLoader) processMetricInstances() ([]instance.Config, error) {
 }
 
 // processIntegrations will return the exporter configurations, following the pattern `integrations-*.yml`
-func (c *ConfigLoader) processIntegrations() ([]v2.Config, error) {
-	var retError error
+func (c *DynamicLoader) processIntegrations() ([]v2.Config, error) {
+	var returnError error
 	configs := make([]v2.Config, 0)
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "integrations-*.yml", func() interface{} {
@@ -222,7 +231,7 @@ func (c *ConfigLoader) processIntegrations() ([]v2.Config, error) {
 			return nil
 		}, c.handleExporterMatch)
 		if err != nil {
-			multierror.Append(retError, err)
+			returnError = multierror.Append(returnError, err)
 		}
 		for _, v := range result {
 			cfg := v.(v2.Config)
@@ -241,15 +250,15 @@ func (c *ConfigLoader) processIntegrations() ([]v2.Config, error) {
 		if _, ok := singletonCheck[cfg.Name()]; ok {
 			singletonCheck[cfg.Name()]++
 			if singletonCheck[cfg.Name()] > 1 {
-				multierror.Append(retError, fmt.Errorf("found multiple instances of singleton integration %s", cfg.Name()))
+				returnError = multierror.Append(returnError, fmt.Errorf("found multiple instances of singleton integration %s", cfg.Name()))
 			}
 		}
 	}
-	return configs, retError
+	return configs, returnError
 }
 
 // processLogs will return the logs configuration following the pattern `logs-*.yml`
-func (c *ConfigLoader) processLogs() (*logs.Config, error) {
+func (c *DynamicLoader) processLogs() (*logs.Config, error) {
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "logs-*.yml", func() interface{} {
 			return &logs.Config{}
@@ -269,7 +278,7 @@ func (c *ConfigLoader) processLogs() (*logs.Config, error) {
 }
 
 // processTraces will return the traces configuration following the pattern `traces-*.yml`
-func (c *ConfigLoader) processTraces() (*traces.Config, error) {
+func (c *DynamicLoader) processTraces() (*traces.Config, error) {
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "traces-*.yml", func() interface{} {
 			return &traces.Config{}
@@ -290,7 +299,7 @@ func (c *ConfigLoader) processTraces() (*traces.Config, error) {
 
 // generateConfigsFromPath creates a series of yaml configs based on the path and a given string pattern.
 // the pattern is the same as used by filepath.Match.
-func (c *ConfigLoader) generateConfigsFromPath(path string, pattern string, configMake func() interface{}, matchHandler func(fs.FS, fs.DirEntry, func() interface{}) ([]interface{}, error)) ([]interface{}, error) {
+func (c *DynamicLoader) generateConfigsFromPath(path string, pattern string, configMake func() interface{}, matchHandler func(fs.FS, fs.DirEntry, func() interface{}) ([]interface{}, error)) ([]interface{}, error) {
 	handler, err := c.mux.Lookup(path)
 	if err != nil {
 		return nil, err
@@ -319,7 +328,7 @@ func (c *ConfigLoader) generateConfigsFromPath(path string, pattern string, conf
 	return configs, nil
 }
 
-func (c *ConfigLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
+func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
 	file, err := handler.Open(f.Name())
 	stats, err := f.Info()
 	if err != nil {
@@ -351,7 +360,7 @@ func (c *ConfigLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMake
 	return []interface{}{cfg}, nil
 }
 
-func (c *ConfigLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
+func (c *DynamicLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
 	file, err := handler.Open(f.Name())
 	stats, err := f.Info()
 	if err != nil {
@@ -382,7 +391,7 @@ func (c *ConfigLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake func
 
 // handleExporterMatch is more complex since those can be of any different types and not a single concrete type, like
 // most of the configurations.
-func (c *ConfigLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func() interface{}) ([]interface{}, error) {
+func (c *DynamicLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func() interface{}) ([]interface{}, error) {
 	file, err := handler.Open(f.Name())
 	stats, err := f.Info()
 	if err != nil {

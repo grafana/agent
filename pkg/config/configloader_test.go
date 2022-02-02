@@ -35,7 +35,7 @@ func TestConfigMaker(t *testing.T) {
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.NoError(t, err)
 	configs, err := cmf.processMetric()
 	assert.Nil(t, err)
@@ -61,7 +61,7 @@ func TestConfigMakerWithFakeFiles(t *testing.T) {
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.NoError(t, err)
 	configs, err := cmf.processMetric()
 	assert.Nil(t, err)
@@ -87,7 +87,7 @@ func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	_, err = cmf.processMetric()
 	assert.Error(t, err)
@@ -111,7 +111,7 @@ log_level: debug
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
 	err = cmf.ProcessConfigs(cfg, nil)
@@ -134,7 +134,7 @@ windows_exporter:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	configs, err := cmf.processIntegrations()
 	assert.Len(t, configs, 1)
@@ -160,7 +160,7 @@ windows_exporter:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	_, err = cmf.processIntegrations()
 	assert.Error(t, err)
@@ -187,7 +187,7 @@ windows_exporter:
 		}},
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	configs, err := cmf.processIntegrations()
 	assert.Len(t, configs, 1)
@@ -212,7 +212,7 @@ node_exporter:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	configs, err := cmf.processIntegrations()
 	assert.Len(t, configs, 2)
@@ -263,7 +263,7 @@ windows_exporter:
 		Sources:       nil,
 		TemplatePaths: []string{s3Url},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
@@ -310,7 +310,7 @@ windows_exporter:
 		}},
 		TemplatePaths: []string{s3Url},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
@@ -363,7 +363,7 @@ windows_exporter:
 		}},
 		TemplatePaths: []string{s3Url},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
@@ -407,7 +407,7 @@ redis_exporter_configs:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	configs, err := cmf.processIntegrations()
 	assert.Nil(t, err)
@@ -446,7 +446,7 @@ configs:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
 	err = cmf.ProcessConfigs(cfg, nil)
@@ -478,7 +478,7 @@ configs:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
 	err = cmf.ProcessConfigs(cfg, nil)
@@ -502,7 +502,7 @@ log_level: debug
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
 	err = cmf.ProcessConfigs(cfg, nil)
@@ -535,7 +535,7 @@ integrations:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
 	err = cmf.ProcessConfigs(cfg, nil)
@@ -577,7 +577,7 @@ windows_exporter: {}
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewConfigLoader(loaderCfg)
+	cmf, err := NewDynamicLoader(loaderCfg)
 	assert.Nil(t, err)
 	cfg := &Config{}
 	err = cmf.ProcessConfigs(cfg, nil)

@@ -498,7 +498,7 @@ func templateDryRunCmd() *cobra.Command {
 			if err != nil {
 				return errors.Wrap(err, "error unmarshalling config file")
 			}
-			cmf, err := config.NewConfigLoader(*loaderCfg)
+			cmf, err := config.NewDynamicLoader(*loaderCfg)
 			c := &config.Config{}
 			err = cmf.ProcessConfigs(c, nil)
 			if err != nil {
