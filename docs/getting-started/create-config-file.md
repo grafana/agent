@@ -58,7 +58,7 @@ source of metrics if you are running multiple Grafana Agents across multiple
 machines.
 
 Full configuration options can be found in the
-[configuration reference](https://grafana.com/docs/agent/latest/configuration/).
+[configuration reference]({{< relref "../configuration/index.md" >}}).
 
 ## Prometheus config/migrating from Prometheus
 
@@ -104,7 +104,7 @@ metrics:
 ```
 
 Like with integrations, full configuration options can be found in the
-[configuration](https://grafana.com/docs/agent/latest/configuration/).
+[configuration]({{< relref "../configuration/index.md" >}}).
 
 ## Loki Config/Migrating from Promtail
 
