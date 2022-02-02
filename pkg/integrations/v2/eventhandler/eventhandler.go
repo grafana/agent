@@ -338,11 +338,10 @@ func (eh *EventHandler) RunIntegration(ctx context.Context) error {
 	// Quick check to make sure logs instance exists
 	if i := eh.LogsClient.Instance(eh.LogsInstance); i == nil {
 		level.Error(eh.Log).Log("msg", "Logs instance not configured", "instance", eh.LogsInstance)
+		cancel()
 	}
 
-	// todo: figure this out on K8s (PVC, etc.)
 	cacheDir := filepath.Dir(eh.CachePath)
-	// todo: k8s config perms
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		level.Error(eh.Log).Log("msg", "Failed to create cache dir", "err", err)
 		cancel()
