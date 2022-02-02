@@ -15,6 +15,7 @@ import (
 	"github.com/hairyhenderson/go-fsimpl/filefs"
 	"github.com/hairyhenderson/gomplate/v3/data"
 	"github.com/hairyhenderson/gomplate/v3/loader"
+	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -213,7 +214,7 @@ func (c *ConfigLoader) processMetricInstances() ([]instance.Config, error) {
 
 // processIntegrations will return the exporter configurations, following the pattern `integrations-*.yml`
 func (c *ConfigLoader) processIntegrations() ([]v2.Config, error) {
-	builder := strings.Builder{}
+	var retError error
 	configs := make([]v2.Config, 0)
 	for _, path := range c.cfg.TemplatePaths {
 		result, err := c.generateConfigsFromPath(path, "integrations-*.yml", func() interface{} {
@@ -221,7 +222,7 @@ func (c *ConfigLoader) processIntegrations() ([]v2.Config, error) {
 			return nil
 		}, c.handleExporterMatch)
 		if err != nil {
-			builder.WriteString(err.Error())
+			multierror.Append(retError, err)
 		}
 		for _, v := range result {
 			cfg := v.(v2.Config)
@@ -240,15 +241,11 @@ func (c *ConfigLoader) processIntegrations() ([]v2.Config, error) {
 		if _, ok := singletonCheck[cfg.Name()]; ok {
 			singletonCheck[cfg.Name()]++
 			if singletonCheck[cfg.Name()] > 1 {
-				builder.WriteString(fmt.Sprintf("found multiple instances of singleton integration %s", cfg.Name()))
+				multierror.Append(retError, fmt.Errorf("found multiple instances of singleton integration %s", cfg.Name()))
 			}
 		}
 	}
-	var combinedError error
-	if builder.Len() > 0 {
-		combinedError = errors.New(builder.String())
-	}
-	return configs, combinedError
+	return configs, retError
 }
 
 // processLogs will return the logs configuration following the pattern `logs-*.yml`
