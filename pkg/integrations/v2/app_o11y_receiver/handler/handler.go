@@ -3,6 +3,7 @@ package handler
 import (
 	"sync"
 
+	"crypto/subtle"
 	"encoding/json"
 	"net/http"
 
@@ -60,7 +61,7 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 		}
 
 		// check API key if one is provided
-		if len(ar.config.APIKey) > 0 && r.Header.Get("x-api-key") != ar.config.APIKey {
+		if len(ar.config.APIKey) > 0 && subtle.ConstantTimeCompare([]byte(r.Header.Get("x-api-key")), []byte(ar.config.APIKey)) == 0 {
 			http.Error(w, "api key not provided or incorrect", http.StatusUnauthorized)
 			return
 		}
