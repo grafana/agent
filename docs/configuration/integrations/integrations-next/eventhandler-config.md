@@ -10,7 +10,7 @@ On restart, the integration will look for a cache file (configured using `cache_
 
 To use the cache feature and maintain state in a Kubernetes environment, a [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) must be used. Sample manifests are provided at the bottom of this doc. Please adjust these according to your deployment preferences. You can also use a Deployment, however the presence of the cache file will not be guaranteed and the integration may ship duplicate entries in the event of a restart. Loki does not yet support entry deduplication for the A->B->A case, so further deduplication can only take place at the Grafana / front-end layer (Grafana Explore does provide some deduplication features for Loki datasources).
 
-This integration uses Agent's embedded Loki-comptaible `logs` subsystem to ship entries, and a logs client and sink must be configured to use the integration. Please see the sample Agent config below for an example configuration. [Pipelines](https://grafana.com/docs/loki/latest/clients/promtail/pipelines/) and relabel configuration are not yet supported, but these features will be added soon. You should use the `job=eventhandler cluster=...` labels to query your events (you can then use LogQL on top of the result set).
+This integration uses Grafana Agent's embedded Loki-compatible `logs` subsystem to ship entries, and a logs client and sink must be configured to use the integration. Please see the sample Agent config below for an example configuration. [Pipelines](https://grafana.com/docs/loki/latest/clients/promtail/pipelines/) and relabel configuration are not yet supported, but these features will be added soon. You should use the `job=eventhandler cluster=...` labels to query your events (you can then use LogQL on top of the result set).
 
 If not running the integration in-cluster, the integration will use `kubeconfig_path` to search for a valid Kubeconfig file, defaulting to a kubeconfig in the user's home directory. If running in-cluster, the appropriate `ServiceAccount` and Roles must be defined. Sample manifests are provided below.
 
@@ -264,7 +264,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: agent
-        image: grafana/agent:dev.eventlogger-781ee75
+        image: grafana/agent:main
         imagePullPolicy: IfNotPresent
         args:
         - -config.file=/etc/agent/agent.yaml
