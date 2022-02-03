@@ -44,7 +44,6 @@ type EventHandler struct {
 	LastEvent     *ShippedEvents
 	InitEvent     *ShippedEvents
 	EventInformer cache.SharedIndexInformer
-	ClusterLabel  string
 	SendTimeout   time.Duration
 	ticker        *time.Ticker
 	sync.Mutex
@@ -106,7 +105,6 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 		Log:           l,
 		CachePath:     c.CachePath,
 		EventInformer: eventInformer,
-		ClusterLabel:  c.ClusterName,
 		SendTimeout:   time.Duration(c.SendTimeout) * time.Second,
 	}
 	// set the resource handler fns
@@ -206,7 +204,6 @@ func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, e
 	}
 
 	labels[model.LabelName("job")] = model.LabelValue("eventhandler")
-	labels[model.LabelName("cluster")] = model.LabelValue(eh.ClusterLabel)
 
 	kindStr := strings.ToLower(obj.Kind)
 	// TODO: match up labels with k8s integration so that log / metric correlation works
