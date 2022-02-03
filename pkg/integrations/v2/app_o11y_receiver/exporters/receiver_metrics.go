@@ -1,0 +1,50 @@
+package exporters
+
+import (
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
+	"github.com/prometheus/client_golang/prometheus"
+)
+
+type ReceiverMetricsExporterConfig struct {
+	Reg *prometheus.Registry
+}
+
+type ReceiverMetricsExporter struct {
+	totalLogs         prometheus.Counter
+	totalMeasurements prometheus.Counter
+	totalExceptions   prometheus.Counter
+}
+
+func NewReceiverMetricsExporter(conf ReceiverMetricsExporterConfig) AppO11yReceiverExporter {
+	exp := &ReceiverMetricsExporter{
+		totalLogs: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "app_o11y_receiver_total_logs",
+			Help: "Total number of ingested logs",
+		}),
+		totalMeasurements: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "app_o11y_receiver_total_measurements",
+			Help: "Total number of ingested measurements",
+		}),
+		totalExceptions: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "app_o11y_receiver_total_exceptions",
+			Help: "Total number of ingested exceptions",
+		}),
+	}
+
+	conf.Reg.MustRegister(exp.totalLogs, exp.totalExceptions, exp.totalMeasurements)
+
+	return exp
+}
+
+// Name of the exporter, for logging purposes
+func (re *ReceiverMetricsExporter) Name() string {
+	return "loki exporter"
+}
+
+// Export implements the AppDataExporter interface
+func (re *ReceiverMetricsExporter) Export(payload models.Payload) error {
+	re.totalExceptions.Add(float64(len(payload.Exceptions)))
+	re.totalLogs.Add(float64(len(payload.Logs)))
+	re.totalMeasurements.Add(float64(len(payload.Measurements)))
+	return nil
+}

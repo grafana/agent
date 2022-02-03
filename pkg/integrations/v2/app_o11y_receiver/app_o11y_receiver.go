@@ -21,6 +21,9 @@ import (
 	promConfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+	"github.com/slok/go-http-metrics/middleware"
+	"github.com/slok/go-http-metrics/middleware/std"
 )
 
 // Config structs controls the configuration of the app o11y
@@ -91,9 +94,14 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		},
 	)
 
+	receiverMetricsExporter := exporters.NewReceiverMetricsExporter(exporters.ReceiverMetricsExporterConfig{
+		Reg: reg,
+	})
+
 	var exp = []exporters.AppO11yReceiverExporter{
 		// Loki
 		lokiExporter,
+		receiverMetricsExporter,
 	}
 
 	handler := handler.NewAppO11yHandler(c.ExporterConfig, exp)
@@ -167,12 +175,17 @@ func (i *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.S
 
 // RunIntegration implements Integratin
 func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
+
+	mdlw := middleware.New(middleware.Config{
+		Recorder: metrics.NewRecorder(metrics.Config{Registry: i.reg}),
+	})
+
 	r := mux.NewRouter()
 	r.Handle("/collect", i.handler.HTTPHandler(i.logger))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),
-		Handler: r,
+		Handler: std.Handler("", mdlw, r),
 	}
 	errChan := make(chan error)
 

@@ -69,6 +69,7 @@ require (
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/rs/cors v1.8.0
 	github.com/sirupsen/logrus v1.8.1
+	github.com/slok/go-http-metrics v0.10.0 // indirect
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
