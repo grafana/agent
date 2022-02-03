@@ -29,6 +29,8 @@
 
 - [BUGFIX] Fix issue with windows_exporter mssql collector crashing the agent. (@mattdurham)
 
+- [BUGFIX] Configure eventhandler integration "cluster" label using logs client (@hjet)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
