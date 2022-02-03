@@ -12,7 +12,7 @@ The [config.yml](./02_config.yml) adds a new field `sources`. Sources can be any
 ```yaml
 template_paths:
   - "file:///etc/grafana/03_assets"
-sources:
+datasources:
   - name: computers
     url: "file:///etc/grafana/03_assets/computers.json"
 ```
