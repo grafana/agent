@@ -2,7 +2,6 @@
 package snmp_exporter
 
 import (
-	"context"
 	_ "embed"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	config_util "github.com/prometheus/common/config"
-	exporter "github.com/prometheus/snmp_exporter/collector"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 	"gopkg.in/yaml.v2"
 )
@@ -27,7 +25,6 @@ var DefaultConfig = Config{
 //go:embed snmp.yml
 var content []byte
 
-// Config controls the snmp_exporter integration.
 type Config struct {
 	Target    string             `yaml:"target,omitempty"`
 	Module    string             `yaml:"module,omitempty"`
@@ -78,17 +75,18 @@ func LoadConfig() (*snmp_config.Config, error) {
 // metrics from an snmp device.
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	modules, err := LoadConfig()
+	sh := &snmpHandler{
+		cfg:     c,
+		modules: modules,
+		log:     log,
+	}
+
 	if err != nil {
 		log.Log("Failed to load config")
 	}
-	return integrations.NewCollectorIntegration(
+	return integrations.NewHandlerIntegration(
 		c.Name(),
-		integrations.WithCollectors(
-			exporter.New(
-				context.Background(),
-				c.Target,
-				(*(modules))[c.Module],
-				log),
-		),
+		sh,
 	), nil
+
 }
