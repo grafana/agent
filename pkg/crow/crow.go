@@ -30,9 +30,10 @@ import (
 type Config struct {
 	PrometheusAddr string // Base URL of Prometheus server
 	NumSamples     int    // Number of samples to generate
-	UserID         string // User ID to use when querying.
+	UserID         string // User ID to use for auth when querying.
 	PasswordFile   string // Password File for auth when querying.
 	ExtraSelectors string // Extra selectors for queries, i.e., cluster="prod"
+	OrgID          string // Org ID to inject in X-Org-ScopeID header when querying.
 
 	// Querying Params
 
@@ -64,6 +65,7 @@ func (c *Config) RegisterFlagsWithPrefix(f *flag.FlagSet, prefix string) {
 	f.StringVar(&c.UserID, prefix+"user-id", DefaultConfig.UserID, "UserID to attach to query. Useful for querying multi-tenated Cortex.")
 	f.StringVar(&c.PasswordFile, prefix+"password-file", DefaultConfig.PasswordFile, "Password file to use with auth. Useful for querying multi-tenated Cortex.")
 	f.StringVar(&c.ExtraSelectors, prefix+"extra-selectors", DefaultConfig.ExtraSelectors, "Extra selectors to include in queries, useful for identifying different instances of this job.")
+	f.StringVar(&c.OrgID, prefix+"org-id", DefaultConfig.OrgID, "Org ID to inject in X-Org-ScopeID header when querying.")
 
 	f.DurationVar(&c.QueryTimeout, prefix+"query-timeout", DefaultConfig.QueryTimeout, "timeout for querying")
 	f.DurationVar(&c.QueryDuration, prefix+"query-duration", DefaultConfig.QueryDuration, "time before and after sample to search")
@@ -146,20 +148,21 @@ func newCrow(cfg Config) (*Crow, error) {
 	}
 
 	apiCfg := api.Config{
-		Address: cfg.PrometheusAddr,
+		Address:      cfg.PrometheusAddr,
+		RoundTripper: api.DefaultRoundTripper,
 	}
 	if cfg.UserID != "" && cfg.PasswordFile != "" {
 		apiCfg.RoundTripper = commonCfg.NewBasicAuthRoundTripper(cfg.UserID, "", cfg.PasswordFile, api.DefaultRoundTripper)
-	} else if cfg.UserID != "" {
+	}
+	if cfg.OrgID != "" {
 		apiCfg.RoundTripper = &nethttp.Transport{
 			RoundTripper: promhttp.RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
-				_ = user.InjectOrgIDIntoHTTPRequest(user.InjectOrgID(context.Background(), cfg.UserID), req)
-				return api.DefaultRoundTripper.RoundTrip(req)
+				_ = user.InjectOrgIDIntoHTTPRequest(user.InjectOrgID(context.Background(), cfg.OrgID), req)
+				return apiCfg.RoundTripper.RoundTrip(req)
 			}),
 		}
-	} else {
-		apiCfg.RoundTripper = &nethttp.Transport{}
 	}
+
 	cli, err := api.NewClient(apiCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create prometheus client: %w", err)
