@@ -62,10 +62,10 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func (c *Config) RegisterFlagsWithPrefix(f *flag.FlagSet, prefix string) {
 	f.StringVar(&c.PrometheusAddr, prefix+"prometheus-addr", DefaultConfig.PrometheusAddr, "Root URL of the Prometheus API to query against")
 	f.IntVar(&c.NumSamples, prefix+"generate-samples", DefaultConfig.NumSamples, "Number of samples to generate when being scraped")
-	f.StringVar(&c.UserID, prefix+"user-id", DefaultConfig.UserID, "UserID to attach to query. Useful for querying multi-tenated Cortex.")
-	f.StringVar(&c.PasswordFile, prefix+"password-file", DefaultConfig.PasswordFile, "Password file to use with auth. Useful for querying multi-tenated Cortex.")
+	f.StringVar(&c.UserID, prefix+"user-id", DefaultConfig.UserID, "UserID to use with basic auth.")
+	f.StringVar(&c.PasswordFile, prefix+"password-file", DefaultConfig.PasswordFile, "Password file to use with basic auth.")
 	f.StringVar(&c.ExtraSelectors, prefix+"extra-selectors", DefaultConfig.ExtraSelectors, "Extra selectors to include in queries, useful for identifying different instances of this job.")
-	f.StringVar(&c.OrgID, prefix+"org-id", DefaultConfig.OrgID, "Org ID to inject in X-Org-ScopeID header when querying.")
+	f.StringVar(&c.OrgID, prefix+"org-id", DefaultConfig.OrgID, "Org ID to inject in X-Org-ScopeID header when querying. Useful for querying multi-tenated Cortex directly.")
 
 	f.DurationVar(&c.QueryTimeout, prefix+"query-timeout", DefaultConfig.QueryTimeout, "timeout for querying")
 	f.DurationVar(&c.QueryDuration, prefix+"query-duration", DefaultConfig.QueryDuration, "time before and after sample to search")
