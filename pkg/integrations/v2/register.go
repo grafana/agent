@@ -133,9 +133,10 @@ func Registered() []Config {
 	return res
 }
 
-// TypeRegistry map to what integrations.Type an integration is
-func TypeRegistry() map[string]Type {
-	return integrationTypeByName
+// RegisteredType returns the integrations.Type for config
+func RegisteredType(name string) (Type, bool) {
+	t, ok := integrationTypeByName[name]
+	return t, ok
 }
 
 func cloneConfig(r interface{}) Config {
