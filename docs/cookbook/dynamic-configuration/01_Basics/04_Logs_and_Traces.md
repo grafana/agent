@@ -2,7 +2,7 @@
 
 Logs and Traces can also be templated. This is built ontop of the previous examples.
 
-`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/04_config.yml`
+`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse file:///etc/grafana/04_config.yml`
 
 ## Dynamic Configuration
 

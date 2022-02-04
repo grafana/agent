@@ -3,7 +3,7 @@
 Dynamic configuration allows multiple prometheus instances to be loaded with a parent metric. This uses
 the same agent-1 and server-1 yml from 01.
 
-`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/02_config.yml`
+`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse file:///etc/grafana/02_config.yml`
 
 ## Dynamic Configuration
 

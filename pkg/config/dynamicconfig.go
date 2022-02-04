@@ -1,5 +1,6 @@
 package config
 
+// LoaderConfig is used by dynamic configuration
 type LoaderConfig struct {
 	// Sources is used to define sources for variables using gomplate
 	Sources []Datasource `yaml:"datasources"`

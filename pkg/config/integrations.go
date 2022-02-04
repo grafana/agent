@@ -75,6 +75,7 @@ func (c VersionedIntegrations) IsZero() bool {
 	}
 }
 
+// IsV2 returns true if using v2 integrations
 func (c VersionedIntegrations) IsV2() bool {
 	return c.configV2 != nil
 }

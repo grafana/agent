@@ -1,8 +1,18 @@
-package config //nolint:golint
+//nolint:golint,goconst
+package config
 
 import (
 	"bytes"
 	"fmt"
+	"io/fs"
+	"io/ioutil"
+	"net/http/httptest"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	_ "github.com/grafana/agent/pkg/integrations/install"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
@@ -12,14 +22,6 @@ import (
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
-	"io/fs"
-	"io/ioutil"
-	"net/http/httptest"
-	"net/url"
-	"os"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 func TestConfigMaker(t *testing.T) {
@@ -154,6 +156,7 @@ windows_exporter:
 
 	assert.Nil(t, err)
 	configs, err := cmf.processIntegrations()
+	assert.NoError(t, err)
 	assert.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 
@@ -214,7 +217,9 @@ windows_exporter:
 	assert.NoError(t, err)
 
 	assert.Nil(t, err)
+	assert.NoError(t, err)
 	configs, err := cmf.processIntegrations()
+	assert.NoError(t, err)
 	assert.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 	assert.True(t, wincfg.(*windows_exporter.Config).EnabledCollectors == "banana")
@@ -244,6 +249,7 @@ node_exporter:
 
 	assert.Nil(t, err)
 	configs, err := cmf.processIntegrations()
+	assert.NoError(t, err)
 	assert.Len(t, configs, 2)
 	for _, cfg := range configs {
 		switch v := cfg.(type) {
@@ -281,8 +287,10 @@ windows_exporter:
 		bytes.NewBufferString(configStr),
 		int64(len(configStr)),
 	)
+	assert.NoError(t, err)
 
 	u, err := url.Parse(srv.URL)
+	assert.NoError(t, err)
 	_ = os.Setenv("AWS_ANON", "true")
 	t.Cleanup(func() { _ = os.Unsetenv("AWS_ANON") })
 	s3Url := "s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + u.Host
@@ -328,8 +336,9 @@ windows_exporter:
 		bytes.NewBufferString(configStr),
 		int64(len(configStr)),
 	)
-
+	assert.NoError(t, err)
 	u, err := url.Parse(srv.URL)
+	assert.NoError(t, err)
 	_ = os.Setenv("AWS_ANON", "true")
 	t.Cleanup(func() { _ = os.Unsetenv("AWS_ANON") })
 	fullpath := filepath.Join(tDir, "vars.yaml")
@@ -385,7 +394,7 @@ windows_exporter:
 		bytes.NewBufferString(configStr),
 		int64(len(configStr)),
 	)
-
+	assert.NoError(t, err)
 	u, err := url.Parse(srv.URL)
 	_ = os.Setenv("AWS_ANON", "true")
 	t.Cleanup(func() { _ = os.Unsetenv("AWS_ANON") })

@@ -2,7 +2,7 @@
 
 The templating is based on the excellent [gomplate](https://docs.gomplate.ca/) library. Currently using a custom fork to allow loading gomplate as a library in addition to some new commands. This will NOT try to cover the full range of gomplate, would recommend reading the documentation for full knowledge. 
 
-`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/01_config.yml`
+`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse file:///etc/grafana/01_config.yml`
 
 ## Looping
 

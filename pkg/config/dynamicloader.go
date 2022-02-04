@@ -5,6 +5,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
+	"io/fs"
+	"io/ioutil"
+	"net/url"
+	"path/filepath"
+	"strings"
+
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -18,12 +25,6 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
-	"io"
-	"io/fs"
-	"io/ioutil"
-	"net/url"
-	"path/filepath"
-	"strings"
 )
 
 // DynamicLoader is used to load configs from a variety of sources and squash them together.
@@ -49,12 +50,12 @@ func NewDynamicLoader() (*DynamicLoader, error) {
 func (c *DynamicLoader) LoadConfig(cfg LoaderConfig) error {
 	sources := make(map[string]*data.Source)
 	for _, v := range cfg.Sources {
-		sourceUrl, err := url.Parse(v.URL)
+		sourceURL, err := url.Parse(v.URL)
 		if err != nil {
 			return err
 		}
 		sources[v.Name] = &data.Source{
-			URL:   sourceUrl,
+			URL:   sourceURL,
 			Alias: v.Name,
 		}
 	}
@@ -75,11 +76,11 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 			return err
 		}
 	} else if strings.HasPrefix(path, "s3://") {
-		blobUrl, err := url.Parse(path)
+		blobURL, err := url.Parse(path)
 		if err != nil {
 			return err
 		}
-		buf, err = data.ReadBlob(*blobUrl)
+		buf, err = data.ReadBlob(*blobURL)
 		if err != nil {
 			return err
 		}
@@ -123,9 +124,7 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 	if err != nil {
 		returnErr = multierror.Append(returnErr, err)
 	}
-	for _, i := range instancesConfigs {
-		cfg.Metrics.Configs = append(cfg.Metrics.Configs, i)
-	}
+	cfg.Metrics.Configs = append(cfg.Metrics.Configs, instancesConfigs...)
 
 	logsCfg, err := c.processLogs()
 	if err != nil {
@@ -206,10 +205,8 @@ func (c *DynamicLoader) processServer() (*server.Config, error) {
 		if len(result) > 1 {
 			return nil, errors.New("multiple server configurations found")
 		}
-		if result != nil && len(result) == 1 {
-			for _, cfg := range result {
-				return cfg.(*server.Config), nil
-			}
+		if len(result) == 1 {
+			return result[0].(*server.Config), nil
 		}
 	}
 	return nil, nil
@@ -231,10 +228,8 @@ func (c *DynamicLoader) processMetric() (*metrics.Config, error) {
 		if len(result) > 1 {
 			return nil, errors.New("multiple metrics configurations found")
 		}
-		if result != nil && len(result) == 1 {
-			for _, cfg := range result {
-				return cfg.(*metrics.Config), nil
-			}
+		if len(result) == 1 {
+			return result[0].(*metrics.Config), nil
 		}
 	}
 	return nil, nil
@@ -287,7 +282,7 @@ func (c *DynamicLoader) processIntegrations() ([]v2.Config, error) {
 	}
 	// Check to ensure no singleton exist
 	// TODO (mattdurham) gotta be a easier way
-	singletonCheck := make(map[string]int, 0)
+	singletonCheck := make(map[string]int)
 	for k, v := range v2.TypeRegistry() {
 		if v == v2.TypeSingleton {
 			singletonCheck[k] = 0
@@ -318,10 +313,10 @@ func (c *DynamicLoader) processLogs() (*logs.Config, error) {
 		if err != nil {
 			return nil, err
 		}
-		if result != nil && len(result) > 1 {
+		if len(result) > 1 {
 			return nil, errors.New("multiple logs templates found")
 		}
-		if result != nil && len(result) == 1 {
+		if len(result) == 1 {
 			return result[0].(*logs.Config), nil
 		}
 
@@ -343,10 +338,10 @@ func (c *DynamicLoader) processTraces() (*traces.Config, error) {
 		if err != nil {
 			return nil, err
 		}
-		if result != nil && len(result) > 1 {
+		if len(result) > 1 {
 			return nil, errors.New("multiple traces templates found")
 		}
-		if result != nil && len(result) == 1 {
+		if len(result) == 1 {
 			return result[0].(*traces.Config), nil
 		}
 
@@ -380,9 +375,7 @@ func (c *DynamicLoader) generateConfigsFromPath(path string, pattern string, con
 			if err != nil {
 				return nil, err
 			}
-			for _, mc := range matchedConfigs {
-				configs = append(configs, mc)
-			}
+			configs = append(configs, matchedConfigs...)
 		}
 	}
 	return configs, nil
@@ -390,6 +383,9 @@ func (c *DynamicLoader) generateConfigsFromPath(path string, pattern string, con
 
 func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
 	file, err := handler.Open(f.Name())
+	if err != nil {
+		return nil, err
+	}
 	stats, err := f.Info()
 	if err != nil {
 		return nil, err
@@ -423,6 +419,9 @@ func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMak
 
 func (c *DynamicLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
 	file, err := handler.Open(f.Name())
+	if err != nil {
+		return nil, err
+	}
 	stats, err := f.Info()
 	if err != nil {
 		return nil, err
@@ -454,6 +453,9 @@ func (c *DynamicLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake fun
 // most of the configurations.
 func (c *DynamicLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func() interface{}) ([]interface{}, error) {
 	file, err := handler.Open(f.Name())
+	if err != nil {
+		return nil, err
+	}
 	stats, err := f.Info()
 	if err != nil {
 		return nil, err
