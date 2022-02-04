@@ -13,11 +13,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/pkg/util/subset"
+	"gopkg.in/yaml.v2"
+
 	_ "github.com/grafana/agent/pkg/integrations/install"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
-	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
@@ -43,14 +44,8 @@ func TestConfigMaker(t *testing.T) {
 func TestConfigMakerWithFakeFiles(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
 	tDir := generatePath(t)
-	fullpath := filepath.Join(tDir, "metrics-1.yml")
-	err := ioutil.WriteFile(fullpath, []byte(configStr), 0666)
-	assert.Nil(t, err)
-
-	fullpath = filepath.Join(tDir, "fake.yml")
-	err = ioutil.WriteFile(fullpath, []byte(configStr), 0666)
-	assert.Nil(t, err)
-
+	writeFile(t, tDir, "metrics-1.yml", configStr)
+	writeFile(t, tDir, "fake.yml", configStr)
 	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
@@ -66,13 +61,8 @@ func TestConfigMakerWithFakeFiles(t *testing.T) {
 func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
 	tDir := generatePath(t)
-	fullpath := filepath.Join(tDir, "metrics-1.yml")
-	err := ioutil.WriteFile(fullpath, []byte(configStr), 0666)
-	assert.Nil(t, err)
-
-	fullpath = filepath.Join(tDir, "metrics-2.yml")
-	err = ioutil.WriteFile(fullpath, []byte(configStr), 0666)
-	assert.Nil(t, err)
+	writeFile(t, tDir, "metrics-1.yml", configStr)
+	writeFile(t, tDir, "metrics-2.yml", configStr)
 
 	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
@@ -80,7 +70,7 @@ func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 		TemplatePaths: []string{fileFS},
 	}
 	cmf := generateLoader(t, loaderCfg)
-	_, err = cmf.processMetric()
+	_, err := cmf.processMetric()
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "multiple metrics configurations found")
 }
@@ -112,7 +102,6 @@ func TestConfigMakerWithExporter(t *testing.T) {
 	configStr := `
 windows_exporter:
   enabled_collectors: one,two,three
-  instance: testinstance
 `
 	tDir := generatePath(t)
 	writeFile(t, tDir, "integrations-1.yml", configStr)
@@ -127,7 +116,6 @@ windows_exporter:
 	assert.NoError(t, err)
 	assert.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
-
 	assert.True(t, wincfg.(*windows_exporter.Config).EnabledCollectors == "one,two,three")
 }
 
@@ -161,14 +149,13 @@ windows_exporter:
 `
 	tDir := generatePath(t)
 	writeFile(t, tDir, "vars.yaml", "value: banana")
-	fullpath := filepath.Join(tDir, "vars.yaml")
 	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := generateFilePath(tDir)
 
 	loaderCfg := LoaderConfig{
 		Sources: []Datasource{{
 			Name: "vars",
-			URL:  generateFilePath(fullpath),
+			URL:  generateFilePath(filepath.Join(tDir, "vars.yaml")),
 		}},
 		TemplatePaths: []string{fileFS},
 	}
@@ -189,8 +176,7 @@ node_exporter:
   autoscrape:
     enable: false
 `
-	tDir, err := os.MkdirTemp("", "")
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "integrations-1.yml", configStr)
 	fileFS := generateFilePath(tDir)
 
@@ -216,7 +202,6 @@ node_exporter:
 			}
 		}
 	}
-	_ = os.RemoveAll(tDir)
 }
 
 func TestLoadingFromS3(t *testing.T) {
@@ -225,27 +210,8 @@ windows_exporter:
   enabled_collectors: one,two,three
   instance: testinstance
 `
-	backend := s3mem.New()
-	faker := gofakes3.New(backend)
-
-	srv := httptest.NewServer(faker.Server())
-	_ = backend.CreateBucket("mybucket")
-	t.Cleanup(srv.Close)
-	_, err := backend.PutObject(
-		"mybucket",
-		"integrations-1.yml",
-		map[string]string{"Content-Type": "application/yaml"},
-		bytes.NewBufferString(configStr),
-		int64(len(configStr)),
-	)
-	assert.NoError(t, err)
-
-	u, err := url.Parse(srv.URL)
-	assert.NoError(t, err)
-	_ = os.Setenv("AWS_ANON", "true")
-	t.Cleanup(func() { _ = os.Unsetenv("AWS_ANON") })
+	u := pushFilesToFakeS3(t, "integrations-1.yml", configStr)
 	s3Url := "s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + u.Host
-	assert.NoError(t, err)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{s3Url},
@@ -267,37 +233,16 @@ windows_exporter:
 `
 	tDir := generatePath(t)
 	writeFile(t, tDir, "vars.yaml", "value: banana")
-
-	backend := s3mem.New()
-	faker := gofakes3.New(backend)
-
-	srv := httptest.NewServer(faker.Server())
-	_ = backend.CreateBucket("mybucket")
-	t.Cleanup(srv.Close)
-	_, err := backend.PutObject(
-		"mybucket",
-		"integrations-1.yml",
-		map[string]string{"Content-Type": "application/yaml"},
-		bytes.NewBufferString(configStr),
-		int64(len(configStr)),
-	)
-	assert.NoError(t, err)
-	u, err := url.Parse(srv.URL)
-	assert.NoError(t, err)
-	_ = os.Setenv("AWS_ANON", "true")
-	t.Cleanup(func() { _ = os.Unsetenv("AWS_ANON") })
-	fullpath := filepath.Join(tDir, "vars.yaml")
+	u := pushFilesToFakeS3(t, "integrations-1.yml", configStr)
 	s3Url := "s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + u.Host
-	assert.NoError(t, err)
 	loaderCfg := LoaderConfig{
 		Sources: []Datasource{{
 			Name: "vars",
-			URL:  fmt.Sprintf("file:///%s", fullpath),
+			URL:  fmt.Sprintf("file:///%s", filepath.Join(tDir, "vars.yaml")),
 		}},
 		TemplatePaths: []string{s3Url},
 	}
 	cmf := generateLoader(t, loaderCfg)
-
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
@@ -320,31 +265,13 @@ windows_exporter:
 `
 	tDir := generatePath(t)
 	writeFile(t, tDir, "vars.yaml", "value: [banana,apple,pear]")
+	u := pushFilesToFakeS3(t, "integrations-1.yml", configStr)
 
-	backend := s3mem.New()
-	faker := gofakes3.New(backend)
-
-	srv := httptest.NewServer(faker.Server())
-	_ = backend.CreateBucket("mybucket")
-	t.Cleanup(srv.Close)
-	_, err := backend.PutObject(
-		"mybucket",
-		"integrations-1.yml",
-		map[string]string{"Content-Type": "application/yaml"},
-		bytes.NewBufferString(configStr),
-		int64(len(configStr)),
-	)
-	assert.NoError(t, err)
-	u, err := url.Parse(srv.URL)
-	_ = os.Setenv("AWS_ANON", "true")
-	t.Cleanup(func() { _ = os.Unsetenv("AWS_ANON") })
-	fullpath := filepath.Join(tDir, "vars.yaml")
 	s3Url := "s3://mybucket/?region=us-east-1&disableSSL=true&s3ForcePathStyle=true&endpoint=" + u.Host
-	assert.NoError(t, err)
 	loaderCfg := LoaderConfig{
 		Sources: []Datasource{{
 			Name: "vars",
-			URL:  fmt.Sprintf("file:///%s", fullpath),
+			URL:  fmt.Sprintf("file:///%s", filepath.Join(tDir, "vars.yaml")),
 		}},
 		TemplatePaths: []string{s3Url},
 	}
@@ -353,24 +280,17 @@ windows_exporter:
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
-	oc := cfg[0].(*metricsutils.ConfigShim)
-	assert.Len(t, oc.Common.Autoscrape.MetricRelabelConfigs, 3)
-	foundApple := 0
-	foundPear := 0
-	foundBanana := 0
-	for _, rc := range oc.Common.Autoscrape.MetricRelabelConfigs {
-		if rc.TargetLabel == "apple" {
-			foundApple++
-		}
-		if rc.TargetLabel == "pear" {
-			foundPear++
-		}
-		if rc.TargetLabel == "banana" {
-			foundBanana++
-		}
-	}
-	assert.True(t, (foundPear+foundApple+foundBanana) == 3)
-
+	expectBase := `
+common:
+  autoscrape:
+    metric_relabel_configs:
+    - target_label: banana
+    - target_label: apple
+    - target_label: pear
+`
+	outBytes, err := yaml.Marshal(cfg[0])
+	assert.NoError(t, err)
+	assert.NoError(t, subset.YAMLAssert([]byte(expectBase), outBytes))
 }
 
 func TestMultiplex(t *testing.T) {
@@ -396,20 +316,12 @@ redis_exporter_configs:
 	configs, err := cmf.processIntegrations()
 	assert.Nil(t, err)
 	assert.Len(t, configs, 2)
-	found := 0
-	for _, c := range configs {
-		cs, _ := c.(*metricsutils.ConfigShim)
-		rc := cs.Orig.(*redis_exporter.Config)
-		if rc.RedisAddr == "localhost:6379" {
-			assert.Len(t, cs.Common.Autoscrape.MetricRelabelConfigs, 1)
-			found++
-		}
-		if rc.RedisAddr == "localhost:6380" {
-			found++
-		}
-	}
-
-	assert.True(t, found == 2)
+	outBytes, err := yaml.Marshal(configs)
+	assert.NoError(t, err)
+	outStr := string(outBytes)
+	assert.True(t, strings.Contains(outStr, "localhost:6379"))
+	assert.True(t, strings.Contains(outStr, "localhost:6380"))
+	assert.True(t, strings.Contains(outStr, "apple"))
 }
 
 func TestTraces(t *testing.T) {
@@ -680,4 +592,27 @@ func generatePath(t *testing.T) string {
 	assert.NoError(t, err)
 	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
 	return tDir
+}
+
+func pushFilesToFakeS3(t *testing.T, filename string, filecontents string) *url.URL {
+	_ = os.Setenv("AWS_ANON", "true")
+	t.Cleanup(func() { _ = os.Unsetenv("AWS_ANON") })
+
+	backend := s3mem.New()
+	faker := gofakes3.New(backend)
+
+	srv := httptest.NewServer(faker.Server())
+	_ = backend.CreateBucket("mybucket")
+	t.Cleanup(srv.Close)
+	_, err := backend.PutObject(
+		"mybucket",
+		filename,
+		map[string]string{"Content-Type": "application/yaml"},
+		bytes.NewBufferString(filecontents),
+		int64(len(filecontents)),
+	)
+	assert.NoError(t, err)
+	u, err := url.Parse(srv.URL)
+	assert.NoError(t, err)
+	return u
 }
