@@ -475,7 +475,7 @@ func (c *DynamicLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := v2.UnmarshalYamlToExporters(processedConfigString)
+	cfg, err := unmarshalYamlToExporters(processedConfigString)
 	if cfg == nil || err != nil {
 		return nil, err
 	}
@@ -485,6 +485,17 @@ func (c *DynamicLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func
 		intConfigs = append(intConfigs, i)
 	}
 	return intConfigs, nil
+}
+
+// unmarshalYamlToExporters attempts to convert the contents of yaml string into a set of exporters and then return
+// those configurations.
+func unmarshalYamlToExporters(contents string) ([]v2.Config, error) {
+	o := &v2.SubsystemOptions{}
+	err := yaml.Unmarshal([]byte(contents), o)
+	if err != nil {
+		return nil, err
+	}
+	return o.Configs, nil
 }
 
 func newFSProvider() fsimpl.FSMux {

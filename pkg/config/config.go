@@ -324,7 +324,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 			return LoadRemote(url, expand, c)
 		}
 		if features.Enabled(fs, featDynamicConfig) && !features.Enabled(fs, featIntegrationsNext) {
-			panic("integrations-next must be enabled for dynamic configuration to work")
+			return errors.New("integrations-next must be enabled for dynamic configuration to work")
 		} else if features.Enabled(fs, featDynamicConfig) {
 			return LoadDynamicConfiguration(url, expand, c, fs)
 		}

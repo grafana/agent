@@ -133,6 +133,7 @@ func Registered() []Config {
 	return res
 }
 
+// TypeRegistry map to what integrations.Type an integration is
 func TypeRegistry() map[string]Type {
 	return integrationTypeByName
 }
@@ -429,15 +430,4 @@ func replaceYAMLTypeError(err error, oldTyp, newTyp reflect.Type) error {
 		}
 	}
 	return err
-}
-
-// UnmarshalYamlToExporters attempts to convert the contents of yaml string into a set of exporters and then return
-// those configurations.
-func UnmarshalYamlToExporters(contents string) ([]Config, error) {
-	o := &SubsystemOptions{}
-	err := yaml.Unmarshal([]byte(contents), o)
-	if err != nil {
-		return nil, err
-	}
-	return o.Configs, nil
 }

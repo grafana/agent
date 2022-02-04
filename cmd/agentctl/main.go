@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
 	// Adds version information
@@ -498,7 +497,7 @@ func templateDryRunCmd() *cobra.Command {
 			}
 			err = cmf.ProcessConfigs(c, nil)
 			if err != nil {
-				return errors.Wrap(err, "error processing config templates")
+				return fmt.Errorf("error processing config templates %s", err)
 			}
 
 			outBytes, err := yaml.Marshal(c)
