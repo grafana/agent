@@ -22,9 +22,6 @@ Configuration reference:
   ## before abandoning and moving on.
   [send_timeout: <int> | default = 60]
 
-  ## Configures a cluster= label to add to log lines
-  [cluster_name: <string> | default = "cloud"]
-
   ## Configures the path to a kubeconfig file. If not set, will fall back to using 
   ## an in-cluster config. If this fails, will fall back to checking the user's home
   ## directory for a kubeconfig.
@@ -57,7 +54,6 @@ server:
 
 integrations:
   eventhandler:
-    cluster_name: "cloud"
     cache_path: "/etc/eventhandler/eventhandler.cache"
   
 logs:
@@ -68,6 +64,8 @@ logs:
       basic_auth:
         username: YOUR_LOKI_USER
         password: YOUR_LOKI_API_KEY
+      external_labels:
+        cluster: "cloud"
     positions:
       filename: /tmp/positions0.yaml
   ## The following stanza is optional and used to configure another client to forward
@@ -184,7 +182,6 @@ data:
   
     integrations:
       eventhandler:
-        cluster_name: "cloud"
         cache_path: "/etc/eventhandler/eventhandler.cache"
       
     logs:
@@ -195,6 +192,8 @@ data:
           basic_auth:
             username: YOUR_LOKI_USER
             password: YOUR_LOKI_API_KEY
+          external_labels:
+            cluster: "cloud"
         positions:
           filename: /tmp/positions0.yaml
       - name: eventhandler_logs
