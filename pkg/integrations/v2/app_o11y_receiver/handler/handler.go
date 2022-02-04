@@ -3,6 +3,7 @@ package handler
 import (
 	"sync"
 
+	"crypto/subtle"
 	"encoding/json"
 	"net/http"
 
@@ -59,6 +60,12 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 			return
 		}
 
+		// check API key if one is provided
+		if len(ar.config.APIKey) > 0 && subtle.ConstantTimeCompare([]byte(r.Header.Get("x-api-key")), []byte(ar.config.APIKey)) == 0 {
+			http.Error(w, "api key not provided or incorrect", http.StatusUnauthorized)
+			return
+		}
+
 		// Verify content length. We trust net/http to give us the correct number
 		if ar.config.MaxAllowedPayloadSize > 0 && r.ContentLength > ar.config.MaxAllowedPayloadSize {
 			http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
@@ -92,6 +99,7 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 	if len(ar.config.CORSAllowedOrigins) > 0 {
 		c := cors.New(cors.Options{
 			AllowedOrigins: ar.config.CORSAllowedOrigins,
+			AllowedHeaders: []string{"x-api-key", "content-type"},
 		})
 		handler = c.Handler(handler)
 	}

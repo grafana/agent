@@ -44,6 +44,9 @@ Full reference of options:
     [rps: <number> | default = 100]
     [burstiness: <number> | default = 50]
 
+  # If configured, incoming requests will be required to specify this key in "x-api-key" header
+  [api_key: <string>]
+
   # Max allowed payload size in bytes for the JSON payload. Interanlly the
   # Content-Length header is used to make this check
   [max_allowed_payload_size: <number> | default = 0]
