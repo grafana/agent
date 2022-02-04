@@ -316,12 +316,6 @@ redis_exporter_configs:
 	configs, err := cmf.processIntegrations()
 	assert.Nil(t, err)
 	assert.Len(t, configs, 2)
-	outBytes, err := yaml.Marshal(configs)
-	assert.NoError(t, err)
-	outStr := string(outBytes)
-	assert.True(t, strings.Contains(outStr, "localhost:6379"))
-	assert.True(t, strings.Contains(outStr, "localhost:6380"))
-	assert.True(t, strings.Contains(outStr, "apple"))
 }
 
 func TestTraces(t *testing.T) {

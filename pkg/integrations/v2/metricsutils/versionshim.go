@@ -18,49 +18,49 @@ import (
 // CreateShim creates a shim between the v1.Config and v2.Config. The resulting
 // config is NOT registered.
 func CreateShim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
-	return &ConfigShim{Orig: before, Common: common}
+	return &configShim{orig: before, common: common}
 }
 
-type ConfigShim struct {
-	Orig   v1.Config
-	Common common.MetricsConfig
+type configShim struct {
+	orig   v1.Config
+	common common.MetricsConfig
 }
 
 var (
-	_ v2.Config           = (*ConfigShim)(nil)
-	_ v2.UpgradedConfig   = (*ConfigShim)(nil)
-	_ v2.ComparableConfig = (*ConfigShim)(nil)
+	_ v2.Config           = (*configShim)(nil)
+	_ v2.UpgradedConfig   = (*configShim)(nil)
+	_ v2.ComparableConfig = (*configShim)(nil)
 )
 
-func (s *ConfigShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.Orig, s.Common }
+func (s *configShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.orig, s.common }
 
-func (s *ConfigShim) Name() string { return s.Orig.Name() }
+func (s *configShim) Name() string { return s.orig.Name() }
 
-func (s *ConfigShim) ApplyDefaults(g v2.Globals) error {
-	s.Common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
+func (s *configShim) ApplyDefaults(g v2.Globals) error {
+	s.common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
 	if id, err := s.Identifier(g); err == nil {
-		s.Common.InstanceKey = &id
+		s.common.InstanceKey = &id
 	}
 	return nil
 }
 
-func (s *ConfigShim) ConfigEquals(c v2.Config) bool {
-	o, ok := c.(*ConfigShim)
+func (s *configShim) ConfigEquals(c v2.Config) bool {
+	o, ok := c.(*configShim)
 	if !ok {
 		return false
 	}
-	return util.CompareYAML(s.Orig, o.Orig) && util.CompareYAML(s.Common, o.Common)
+	return util.CompareYAML(s.orig, o.orig) && util.CompareYAML(s.common, o.common)
 }
 
-func (s *ConfigShim) Identifier(g v2.Globals) (string, error) {
-	if s.Common.InstanceKey != nil {
-		return *s.Common.InstanceKey, nil
+func (s *configShim) Identifier(g v2.Globals) (string, error) {
+	if s.common.InstanceKey != nil {
+		return *s.common.InstanceKey, nil
 	}
-	return s.Orig.InstanceKey(g.AgentIdentifier)
+	return s.orig.InstanceKey(g.AgentIdentifier)
 }
 
-func (s *ConfigShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration, error) {
-	v1Integration, err := s.Orig.NewIntegration(l)
+func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration, error) {
+	v1Integration, err := s.orig.NewIntegration(l)
 	if err != nil {
 		return nil, err
 	}
@@ -116,10 +116,10 @@ func (s *ConfigShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 
 	// Aggregate our converted settings into a v2 integration.
 	return &metricsHandlerIntegration{
-		integrationName: s.Orig.Name(),
+		integrationName: s.orig.Name(),
 		instanceID:      id,
 
-		common:  s.Common,
+		common:  s.common,
 		globals: g,
 		handler: handler,
 		targets: targets,
