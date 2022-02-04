@@ -4,12 +4,12 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -26,13 +26,11 @@ import (
 
 func TestConfigMaker(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	fullpath := filepath.Join(tDir, "metrics-1.yml")
-	err = ioutil.WriteFile(fullpath, []byte(configStr), fs.ModePerm)
+	err := ioutil.WriteFile(fullpath, []byte(configStr), 0666)
 	assert.Nil(t, err)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -49,18 +47,16 @@ func TestConfigMaker(t *testing.T) {
 
 func TestConfigMakerWithFakeFiles(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	fullpath := filepath.Join(tDir, "metrics-1.yml")
-	err = ioutil.WriteFile(fullpath, []byte(configStr), fs.ModePerm)
+	err := ioutil.WriteFile(fullpath, []byte(configStr), 0666)
 	assert.Nil(t, err)
 
 	fullpath = filepath.Join(tDir, "fake.yml")
-	err = ioutil.WriteFile(fullpath, []byte(configStr), fs.ModePerm)
+	err = ioutil.WriteFile(fullpath, []byte(configStr), 0666)
 	assert.Nil(t, err)
 
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -79,18 +75,17 @@ func TestConfigMakerWithFakeFiles(t *testing.T) {
 
 func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	fullpath := filepath.Join(tDir, "metrics-1.yml")
-	err = ioutil.WriteFile(fullpath, []byte(configStr), fs.ModePerm)
+	err := ioutil.WriteFile(fullpath, []byte(configStr), 0666)
 	assert.Nil(t, err)
 
 	fullpath = filepath.Join(tDir, "metrics-2.yml")
-	err = ioutil.WriteFile(fullpath, []byte(configStr), fs.ModePerm)
+	err = ioutil.WriteFile(fullpath, []byte(configStr), 0666)
 	assert.Nil(t, err)
 
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
+
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -107,9 +102,7 @@ func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 
 func TestConfigMakerWithMetricsAndInstances(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "metrics-1.yml", configStr)
 	writeFile(t, tDir, "metrics_instances-1.yml", "name: t1")
 	writeFile(t, tDir, "metrics_instances-2.yml", "name: t2")
@@ -117,7 +110,8 @@ func TestConfigMakerWithMetricsAndInstances(t *testing.T) {
 http_listen_port: 12345
 log_level: debug
 `)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
+
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -140,11 +134,10 @@ windows_exporter:
   enabled_collectors: one,two,three
   instance: testinstance
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "integrations-1.yml", configStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
+
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -169,13 +162,12 @@ windows_exporter:
   enabled_collectors: one,two,three
   instance: testinstance
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "integrations-1.yml", configStr)
 	writeFile(t, tDir, "integrations-2.yml", configStr)
 
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
+
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -197,17 +189,16 @@ windows_exporter:
   enabled_collectors: {{ (datasource "vars").value }}
   instance: testinstance
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "vars.yaml", "value: banana")
 	fullpath := filepath.Join(tDir, "vars.yaml")
 	writeFile(t, tDir, "integrations-1.yml", configStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
+
 	loaderCfg := LoaderConfig{
 		Sources: []Datasource{{
 			Name: "vars",
-			URL:  fmt.Sprintf("file://%s", fullpath),
+			URL:  generateFilePath(fullpath),
 		}},
 		TemplatePaths: []string{fileFS},
 	}
@@ -237,7 +228,8 @@ node_exporter:
 	tDir, err := os.MkdirTemp("", "")
 	assert.Nil(t, err)
 	writeFile(t, tDir, "integrations-1.yml", configStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
+
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -318,9 +310,7 @@ windows_exporter:
   enabled_collectors: {{ (datasource "vars").value }}
   instance: testinstance
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "vars.yaml", "value: banana")
 
 	backend := s3mem.New()
@@ -329,7 +319,7 @@ windows_exporter:
 	srv := httptest.NewServer(faker.Server())
 	_ = backend.CreateBucket("mybucket")
 	t.Cleanup(srv.Close)
-	_, err = backend.PutObject(
+	_, err := backend.PutObject(
 		"mybucket",
 		"integrations-1.yml",
 		map[string]string{"Content-Type": "application/yaml"},
@@ -347,7 +337,7 @@ windows_exporter:
 	loaderCfg := LoaderConfig{
 		Sources: []Datasource{{
 			Name: "vars",
-			URL:  fmt.Sprintf("file://%s", fullpath),
+			URL:  fmt.Sprintf("file:///%s", fullpath),
 		}},
 		TemplatePaths: []string{s3Url},
 	}
@@ -376,9 +366,7 @@ windows_exporter:
       replacement: "{{ . }}-value"
     {{ end }}
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "vars.yaml", "value: [banana,apple,pear]")
 
 	backend := s3mem.New()
@@ -387,7 +375,7 @@ windows_exporter:
 	srv := httptest.NewServer(faker.Server())
 	_ = backend.CreateBucket("mybucket")
 	t.Cleanup(srv.Close)
-	_, err = backend.PutObject(
+	_, err := backend.PutObject(
 		"mybucket",
 		"integrations-1.yml",
 		map[string]string{"Content-Type": "application/yaml"},
@@ -404,7 +392,7 @@ windows_exporter:
 	loaderCfg := LoaderConfig{
 		Sources: []Datasource{{
 			Name: "vars",
-			URL:  fmt.Sprintf("file://%s", fullpath),
+			URL:  fmt.Sprintf("file:///%s", fullpath),
 		}},
 		TemplatePaths: []string{s3Url},
 	}
@@ -447,11 +435,10 @@ redis_exporter_configs:
       replacement: "apple"
 - redis_addr: localhost:6380
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "integrations-1.yml", configStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
+
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -490,11 +477,9 @@ configs:
     loki_name: default
     spans: true
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "traces-1.yml", configStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -526,11 +511,9 @@ configs:
         source: filename
         expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "logs-1.yml", configStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -554,11 +537,9 @@ func TestServer(t *testing.T) {
 http_listen_port: 8080
 log_level: debug
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "server-1.yml", configStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -591,11 +572,9 @@ metrics:
 integrations:
   node_exporter: {}
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "agent-1.yml", configStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -634,12 +613,10 @@ integrations:
 	override := `
 windows_exporter: {}
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "agent-1.yml", configStr)
 	writeFile(t, tDir, "integrations-windows.yml", override)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
@@ -713,9 +690,7 @@ configs:
         source: filename
         expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'
 `
-	tDir, err := os.MkdirTemp("", "")
-	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
-	assert.Nil(t, err)
+	tDir := generatePath(t)
 	writeFile(t, tDir, "a-1.yml", agentStr)
 	writeFile(t, tDir, "s-1.yml", serverStr)
 	writeFile(t, tDir, "m-1.yml", metricsStr)
@@ -723,7 +698,7 @@ configs:
 	writeFile(t, tDir, "i-1.yml", integrationStr)
 	writeFile(t, tDir, "t-1.yml", tracesStr)
 	writeFile(t, tDir, "l-1.yml", logsStr)
-	fileFS := fmt.Sprintf("file://%s", tDir)
+	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:               nil,
 		TemplatePaths:         []string{fileFS},
@@ -763,6 +738,21 @@ configs:
 
 func writeFile(t *testing.T, directory string, path string, contents string) {
 	fullpath := filepath.Join(directory, path)
-	err := ioutil.WriteFile(fullpath, []byte(contents), fs.ModePerm)
+	err := ioutil.WriteFile(fullpath, []byte(contents), 0666)
 	assert.Nil(t, err)
+}
+
+func generateFilePath(directory string) string {
+	if runtime.GOOS == "windows" {
+		// The URL scheme needs an additional / on windows
+		return fmt.Sprintf("file:///%s", directory)
+	}
+	return fmt.Sprintf("file://%s", directory)
+}
+
+func generatePath(t *testing.T) string {
+	tDir, err := os.MkdirTemp("", "*-test")
+	assert.NoError(t, err)
+	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
+	return tDir
 }

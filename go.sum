@@ -1715,6 +1715,8 @@ github.com/mattdurham/gomplate/v3 v3.10.1-0.20220127170320-5aca3cb2927c h1:5jIh6
 github.com/mattdurham/gomplate/v3 v3.10.1-0.20220127170320-5aca3cb2927c/go.mod h1:ytaz30hj1x0cltIl2cjkzI65ijBwKwitvKt+3rsWbRc=
 github.com/mattdurham/gomplate/v3 v3.10.1-0.20220203211521-fb1a04713afd h1:Yy34Avce4tlaD5vuxDbA9WFFMehkJ2Ya9dBuJAWW2ts=
 github.com/mattdurham/gomplate/v3 v3.10.1-0.20220203211521-fb1a04713afd/go.mod h1:ytaz30hj1x0cltIl2cjkzI65ijBwKwitvKt+3rsWbRc=
+github.com/mattdurham/gomplate/v3 v3.10.1-0.20220204190650-af65008b9bb1 h1:ks59H2rltT3Jepz1ea6YQsiM7/0t9lOnunQ7wMOA/hM=
+github.com/mattdurham/gomplate/v3 v3.10.1-0.20220204190650-af65008b9bb1/go.mod h1:ytaz30hj1x0cltIl2cjkzI65ijBwKwitvKt+3rsWbRc=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
