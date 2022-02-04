@@ -8,7 +8,6 @@ import (
 // DefaultConfig sets defaults for Config
 var DefaultConfig = Config{
 	SendTimeout:    60,
-	ClusterName:    "cloud",
 	CachePath:      "./.eventcache/eventhandler.cache",
 	LogsInstance:   "default",
 	InformerResync: 120,
@@ -21,8 +20,6 @@ type Config struct {
 	// client channel. This parameter configures how long to wait (in seconds) on the channel
 	// before abandoning and moving on.
 	SendTimeout int `yaml:"send_timeout,omitempty"`
-	// Configures a cluster= label to add to log lines
-	ClusterName string `yaml:"cluster_name,omitempty"`
 	// Configures the path to a kubeconfig file. If not set, will fall back to using
 	// an in-cluster config. If this fails, will fall back to checking the user's home
 	// directory for a kubeconfig.
