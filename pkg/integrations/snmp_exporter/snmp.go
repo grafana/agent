@@ -32,7 +32,10 @@ var (
 	)
 )
 
-func handler(w http.ResponseWriter, r *http.Request, logger log.Logger, modules *snmp_config.Config) {
+func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
+
+	logger := sh.log
+
 	query := r.URL.Query()
 
 	target := query.Get("target")
@@ -52,14 +55,46 @@ func handler(w http.ResponseWriter, r *http.Request, logger log.Logger, modules 
 		moduleName = "if_mib"
 	}
 
-	module, ok := (*modules)[moduleName]
+	module, ok := (*sh.modules)[moduleName]
 	if !ok {
 		http.Error(w, fmt.Sprintf("Unknown module '%s'", moduleName), 400)
 		snmpRequestErrors.Inc()
 		return
 	}
 
-	logger = log.With(logger, "module", moduleName, "target", target)
+	// override module connection details with custom walk params if provided
+	walk_params := query.Get("walk_params")
+	if len(query["walk_params"]) > 1 {
+		http.Error(w, "'walk_params' parameter must only be specified once", 400)
+		snmpRequestErrors.Inc()
+		return
+	}
+
+	if walk_params != "" {
+		if wp, ok := sh.cfg.WalkParams[walk_params]; ok {
+			// module.WalkParams = wp
+			if wp.Version != 0 {
+				module.WalkParams.Version = wp.Version
+			}
+			if wp.MaxRepetitions != 0 {
+				module.WalkParams.MaxRepetitions = wp.MaxRepetitions
+			}
+			if wp.Retries != 0 {
+				module.WalkParams.Retries = wp.Retries
+			}
+			if wp.Timeout != 0 {
+				module.WalkParams.Timeout = wp.Timeout
+			}
+			module.WalkParams.Auth = wp.Auth
+		} else {
+			http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walk_params), 400)
+			snmpRequestErrors.Inc()
+			return
+		}
+		logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walk_params)
+	} else {
+		logger = log.With(logger, "module", moduleName, "target", target)
+	}
 	level.Debug(logger).Log("msg", "Starting scrape")
 
 	start := time.Now()
@@ -81,5 +116,5 @@ type snmpHandler struct {
 }
 
 func (sh snmpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	handler(w, r, sh.log, sh.modules)
+	sh.handler(w, r)
 }
