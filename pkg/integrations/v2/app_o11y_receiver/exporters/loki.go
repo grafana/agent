@@ -55,34 +55,36 @@ func (le *LokiExporter) Name() string {
 func (le *LokiExporter) Export(payload models.Payload) error {
 	meta := payload.Meta.KeyVal()
 
+	var err error = nil
+
 	// log events
 	for _, logItem := range payload.Logs {
 		kv := logItem.KeyVal()
 		utils.MergeKeyVal(kv, meta)
-		le.sendKeyValsToLogsPipeline(kv)
+		err = le.sendKeyValsToLogsPipeline(kv)
 	}
 	// exceptions
 	for _, exception := range payload.Exceptions {
 		kv := exception.KeyVal()
 		utils.MergeKeyVal(kv, meta)
-		le.sendKeyValsToLogsPipeline(kv)
+		err = le.sendKeyValsToLogsPipeline(kv)
 	}
 
 	// measurements
 	for _, measurement := range payload.Measurements {
 		kv := measurement.KeyVal()
 		utils.MergeKeyVal(kv, meta)
-		le.sendKeyValsToLogsPipeline(kv)
+		err = le.sendKeyValsToLogsPipeline(kv)
 	}
 
-	return nil
+	return err
 }
 
-func (le *LokiExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) {
+func (le *LokiExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
 	line, err := logfmt.MarshalKeyvals(utils.KeyValToInterfaceSlice(kv)...)
 	if err != nil {
 		level.Error(le.logger).Log("msg", "failed to logfmt a frontend log event", "err", err)
-		return
+		return err
 	}
 	sent := le.li.SendEntry(api.Entry{
 		Labels: le.labelSet(kv),
@@ -93,7 +95,9 @@ func (le *LokiExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) {
 	}, le.seTimeout)
 	if !sent {
 		level.Warn(le.logger).Log("msg", "failed to log frontend log event to loki pipeline")
+		return fmt.Errorf("Failed to send app o11y event to logs pipeline")
 	}
+	return nil
 }
 
 func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {

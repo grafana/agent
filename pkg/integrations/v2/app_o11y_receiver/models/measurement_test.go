@@ -26,8 +26,6 @@ func testMeasurement(t *testing.T, tcs TestCase) {
 		idx++
 	}
 
-	fmt.Println(valuesb.String())
-
 	payload := fmt.Sprintf(`
 {
 	"timestamp": "2021-09-30T10:46:17.680Z",
