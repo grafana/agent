@@ -27,18 +27,13 @@ import (
 func TestConfigMaker(t *testing.T) {
 	configStr := `wal_directory: /tmp/wal`
 	tDir := generatePath(t)
-	fullpath := filepath.Join(tDir, "metrics-1.yml")
-	err := ioutil.WriteFile(fullpath, []byte(configStr), 0666)
-	assert.Nil(t, err)
+	writeFile(t, tDir, "metrics-1.yml", configStr)
 	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processMetric()
 	assert.Nil(t, err)
 	assert.NotNil(t, configs)
@@ -61,12 +56,7 @@ func TestConfigMakerWithFakeFiles(t *testing.T) {
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processMetric()
 	assert.Nil(t, err)
 	assert.NotNil(t, configs)
@@ -85,16 +75,11 @@ func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 	assert.Nil(t, err)
 
 	fileFS := generateFilePath(tDir)
-
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	_, err = cmf.processMetric()
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "multiple metrics configurations found")
@@ -116,14 +101,9 @@ log_level: debug
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg, nil)
 	assert.Nil(t, err)
 	assert.Len(t, cfg.Metrics.Configs, 2)
 }
@@ -142,12 +122,7 @@ windows_exporter:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, configs, 1)
@@ -172,13 +147,8 @@ windows_exporter:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
-	_, err = cmf.processIntegrations()
+	cmf := generateLoader(t, loaderCfg)
+	_, err := cmf.processIntegrations()
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "found multiple instances of singleton"))
 }
@@ -202,13 +172,7 @@ windows_exporter:
 		}},
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
-	assert.NoError(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, configs, 1)
@@ -234,12 +198,7 @@ node_exporter:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, configs, 2)
@@ -291,11 +250,7 @@ windows_exporter:
 		Sources:       nil,
 		TemplatePaths: []string{s3Url},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
+	cmf := generateLoader(t, loaderCfg)
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
 	assert.Len(t, cfg, 1)
@@ -341,10 +296,7 @@ windows_exporter:
 		}},
 		TemplatePaths: []string{s3Url},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
+	cmf := generateLoader(t, loaderCfg)
 
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
@@ -396,10 +348,7 @@ windows_exporter:
 		}},
 		TemplatePaths: []string{s3Url},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
+	cmf := generateLoader(t, loaderCfg)
 
 	cfg, err := cmf.processIntegrations()
 	assert.NoError(t, err)
@@ -443,12 +392,7 @@ redis_exporter_configs:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
 	assert.Nil(t, err)
 	assert.Len(t, configs, 2)
@@ -484,14 +428,9 @@ configs:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Traces)
 	assert.Len(t, cfg.Traces.Configs, 1)
@@ -518,14 +457,10 @@ configs:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
+	cmf := generateLoader(t, loaderCfg)
 
-	assert.Nil(t, err)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Logs)
 	assert.Len(t, cfg.Logs.Configs, 1)
@@ -544,14 +479,9 @@ log_level: debug
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Server)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
@@ -579,12 +509,9 @@ integrations:
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Server)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
@@ -621,14 +548,9 @@ windows_exporter: {}
 		Sources:       nil,
 		TemplatePaths: []string{fileFS},
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg.Server)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
@@ -710,14 +632,9 @@ configs:
 		LogsFilter:            "l-*.yml",
 		TracesFilter:          "t-*.yml",
 	}
-	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
-	err = cmf.LoadConfig(loaderCfg)
-	assert.NoError(t, err)
-
-	assert.Nil(t, err)
+	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err = cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
 	// Test Agent by checking integration configs is 2
 
@@ -740,6 +657,14 @@ func writeFile(t *testing.T, directory string, path string, contents string) {
 	fullpath := filepath.Join(directory, path)
 	err := ioutil.WriteFile(fullpath, []byte(contents), 0666)
 	assert.Nil(t, err)
+}
+
+func generateLoader(t *testing.T, lc LoaderConfig) *DynamicLoader {
+	cmf, err := NewDynamicLoader()
+	assert.NoError(t, err)
+	err = cmf.LoadConfig(lc)
+	assert.NoError(t, err)
+	return cmf
 }
 
 func generateFilePath(directory string) string {
