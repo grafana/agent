@@ -104,7 +104,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		receiverMetricsExporter,
 	}
 
-	handler := handler.NewAppO11yHandler(c.ExporterConfig, exp)
+	handler := handler.NewAppO11yHandler(c.ExporterConfig, exp, reg)
 
 	return &appo11yIntegration{
 		logger:          l,

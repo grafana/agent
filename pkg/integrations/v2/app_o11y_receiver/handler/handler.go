@@ -12,18 +12,20 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/tools/ratelimiting"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/cors"
 )
 
 // AppO11yHandler struct controls the data ingestion http handler of the receiver
 type AppO11yHandler struct {
-	exporters   []exporters.AppO11yReceiverExporter
-	config      config.AppO11yReceiverConfig
-	rateLimiter *ratelimiting.RateLimiter
+	exporters               []exporters.AppO11yReceiverExporter
+	config                  config.AppO11yReceiverConfig
+	rateLimiter             *ratelimiting.RateLimiter
+	exporterErrorsCollector *prometheus.CounterVec
 }
 
 // NewAppO11yHandler creates a new AppReceiver instance based on the given configuration
-func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.AppO11yReceiverExporter) AppO11yHandler {
+func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.AppO11yReceiverExporter, reg *prometheus.Registry) AppO11yHandler {
 	var rateLimiter *ratelimiting.RateLimiter
 	if conf.RateLimiting.Enabled {
 		var rps float64
@@ -38,10 +40,18 @@ func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.
 		rateLimiter = ratelimiting.NewRateLimiter(rps, b)
 	}
 
+	exporterErrorsCollector := prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "app_o11y_receiver_export_errors",
+		Help: "Total number of errors produced by a receiver exporter",
+	}, []string{"exporter"})
+
+	reg.MustRegister(exporterErrorsCollector)
+
 	return AppO11yHandler{
-		exporters:   exporters,
-		config:      conf,
-		rateLimiter: rateLimiter,
+		exporters:               exporters,
+		config:                  conf,
+		rateLimiter:             rateLimiter,
+		exporterErrorsCollector: exporterErrorsCollector,
 	}
 }
 
@@ -80,6 +90,7 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 				defer wg.Done()
 				if err := exp.Export(p); err != nil {
 					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err.Error())
+					ar.exporterErrorsCollector.WithLabelValues(exp.Name()).Inc()
 				}
 			}(exporter)
 		}

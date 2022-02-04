@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,6 +50,8 @@ func (te *TestExporter) Export(payload models.Payload) error {
 func TestMultipleExportersAllSucceed(t *testing.T) {
 	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
 
+	reg := prometheus.NewRegistry()
+
 	require.NoError(t, err)
 
 	exporter1 := TestExporter{
@@ -64,7 +67,7 @@ func TestMultipleExportersAllSucceed(t *testing.T) {
 
 	conf := config.AppO11yReceiverConfig{}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2})
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -82,6 +85,8 @@ func TestMultipleExportersOneFails(t *testing.T) {
 
 	require.NoError(t, err)
 
+	reg := prometheus.NewRegistry()
+
 	exporter1 := TestExporter{
 		name:     "exporter1",
 		broken:   true,
@@ -95,21 +100,32 @@ func TestMultipleExportersOneFails(t *testing.T) {
 
 	conf := config.AppO11yReceiverConfig{}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2})
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+	metrics, err := reg.Gather()
+	require.NoError(t, err)
 
+	metric := metrics[0]
+	assert.Equal(t, "app_o11y_receiver_export_errors", *metric.Name)
+	assert.Len(t, metric.Metric, 1)
+	assert.Equal(t, 1.0, *metric.Metric[0].Counter.Value)
+	assert.Len(t, metric.Metric[0].Label, 1)
+	assert.Equal(t, *metric.Metric[0].Label[0].Value, "exporter1")
+	assert.Len(t, metrics, 1)
+	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
 	assert.Len(t, exporter1.payloads, 0)
 	assert.Len(t, exporter2.payloads, 1)
 }
 
 func TestMultipleExportersAllFail(t *testing.T) {
 	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
+
+	reg := prometheus.NewRegistry()
 
 	require.NoError(t, err)
 
@@ -126,29 +142,42 @@ func TestMultipleExportersAllFail(t *testing.T) {
 
 	conf := config.AppO11yReceiverConfig{}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2})
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+	metrics, err := reg.Gather()
+	require.NoError(t, err)
 
+	assert.Len(t, metrics, 1)
+	metric := metrics[0]
+
+	assert.Equal(t, "app_o11y_receiver_export_errors", *metric.Name)
+	assert.Len(t, metric.Metric, 2)
+	assert.Equal(t, 1.0, *metric.Metric[0].Counter.Value)
+	assert.Equal(t, 1.0, *metric.Metric[1].Counter.Value)
+	assert.Len(t, metric.Metric[0].Label, 1)
+	assert.Len(t, metric.Metric[1].Label, 1)
+	assert.Equal(t, *metric.Metric[0].Label[0].Value, "exporter1")
+	assert.Equal(t, *metric.Metric[1].Label[0].Value, "exporter2")
+	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
 	assert.Len(t, exporter1.payloads, 0)
 	assert.Len(t, exporter2.payloads, 0)
 }
 
 func TestNoContentLengthLimitSet(t *testing.T) {
 	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
-
 	require.NoError(t, err)
+	reg := prometheus.NewRegistry()
 
 	conf := config.AppO11yReceiverConfig{}
 
 	req.ContentLength = 89348593894
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{}, reg)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -160,16 +189,14 @@ func TestNoContentLengthLimitSet(t *testing.T) {
 
 func TestLargePayload(t *testing.T) {
 	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	reg := prometheus.NewRegistry()
 
 	conf := config.AppO11yReceiverConfig{
 		MaxAllowedPayloadSize: 10,
 	}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{}, reg)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()

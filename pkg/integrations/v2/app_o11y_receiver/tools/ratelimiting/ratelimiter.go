@@ -1,7 +1,6 @@
 package ratelimiting
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -47,7 +46,6 @@ func (rl *RateLimiter) IsRateLimited() (ok bool) {
 	now := time.Now()
 	last := rl.lastEvent
 
-	fmt.Println("first time %w", last)
 	if now.Before(last) {
 		last = now
 	}
