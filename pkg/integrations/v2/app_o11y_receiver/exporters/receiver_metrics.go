@@ -5,16 +5,20 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// ReceiverMetricsExporterConfig contains options for the ReceiverMetricsExporter
 type ReceiverMetricsExporterConfig struct {
 	Reg *prometheus.Registry
 }
 
+// ReceiverMetricsExporter is a app o11y receiver exporter that will capture metrics
+// about counts of logs, exceptions, measurements, traces being ingested
 type ReceiverMetricsExporter struct {
 	totalLogs         prometheus.Counter
 	totalMeasurements prometheus.Counter
 	totalExceptions   prometheus.Counter
 }
 
+// NewReceiverMetricsExporter creates a new ReceiverMetricsExporter
 func NewReceiverMetricsExporter(conf ReceiverMetricsExporterConfig) AppO11yReceiverExporter {
 	exp := &ReceiverMetricsExporter{
 		totalLogs: prometheus.NewCounter(prometheus.CounterOpts{

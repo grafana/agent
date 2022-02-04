@@ -30,7 +30,6 @@ func testcase(t *testing.T, payload models.Payload, assertions []metricAssertion
 	for _, assertion := range assertions {
 		found := false
 		for _, metric := range metrics {
-			fmt.Println(metric.Name, *metric.Name)
 			if *metric.Name == assertion.name {
 				found = true
 				assert.Len(t, metric.Metric, 1)
@@ -74,6 +73,75 @@ func TestReceiverMetricsExport(t *testing.T) {
 		{
 			name:  "app_o11y_receiver_total_exceptions",
 			value: 4,
+		},
+	})
+}
+
+func TestReceiverMetricsExportLogsOnly(t *testing.T) {
+	var payload models.Payload
+	payload.Logs = []models.Log{
+		{},
+		{},
+	}
+	testcase(t, payload, []metricAssertion{
+		{
+			name:  "app_o11y_receiver_total_logs",
+			value: 2,
+		},
+		{
+			name:  "app_o11y_receiver_total_measurements",
+			value: 0,
+		},
+		{
+			name:  "app_o11y_receiver_total_exceptions",
+			value: 0,
+		},
+	})
+}
+
+func TestReceiverMetricsExportExceptionsOnly(t *testing.T) {
+	var payload models.Payload
+	payload.Exceptions = []models.Exception{
+		{},
+		{},
+		{},
+		{},
+	}
+	testcase(t, payload, []metricAssertion{
+		{
+			name:  "app_o11y_receiver_total_logs",
+			value: 0,
+		},
+		{
+			name:  "app_o11y_receiver_total_measurements",
+			value: 0,
+		},
+		{
+			name:  "app_o11y_receiver_total_exceptions",
+			value: 4,
+		},
+	})
+}
+
+func TestReceiverMetricsExportMeasurementsOnly(t *testing.T) {
+	var payload models.Payload
+	payload.Measurements = []models.Measurement{
+		{},
+		{},
+		{},
+	}
+	testcase(t, payload, []metricAssertion{
+		{
+			name:  "app_o11y_receiver_total_logs",
+			value: 0,
+		},
+		{
+			name:  "app_o11y_receiver_total_measurements",
+			value: 3,
+		},
+		{
+			name:  "app_o11y_receiver_total_exceptions",
+			value: 0,
 		},
 	})
 }
