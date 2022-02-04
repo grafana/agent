@@ -4,11 +4,13 @@ package crow
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"flag"
 	"fmt"
 	"math"
 	"math/rand"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -21,6 +23,7 @@ import (
 	promapi "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	commonCfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/weaveworks/common/user"
 )
@@ -30,6 +33,7 @@ type Config struct {
 	PrometheusAddr string // Base URL of Prometheus server
 	NumSamples     int    // Number of samples to generate
 	UserID         string // User ID to use when querying.
+	PasswordFile   string // Password File for auth when querying.
 	ExtraSelectors string // Extra selectors for queries, i.e., cluster="prod"
 
 	// Querying Params
@@ -60,6 +64,7 @@ func (c *Config) RegisterFlagsWithPrefix(f *flag.FlagSet, prefix string) {
 	f.StringVar(&c.PrometheusAddr, prefix+"prometheus-addr", DefaultConfig.PrometheusAddr, "Root URL of the Prometheus API to query against")
 	f.IntVar(&c.NumSamples, prefix+"generate-samples", DefaultConfig.NumSamples, "Number of samples to generate when being scraped")
 	f.StringVar(&c.UserID, prefix+"user-id", DefaultConfig.UserID, "UserID to attach to query. Useful for querying multi-tenated Cortex.")
+	f.StringVar(&c.PasswordFile, prefix+"password-file", DefaultConfig.PasswordFile, "Password file to use with auth. Useful for querying multi-tenated Cortex.")
 	f.StringVar(&c.ExtraSelectors, prefix+"extra-selectors", DefaultConfig.ExtraSelectors, "Extra selectors to include in queries, useful for identifying different instances of this job.")
 
 	f.DurationVar(&c.QueryTimeout, prefix+"query-timeout", DefaultConfig.QueryTimeout, "timeout for querying")
@@ -145,7 +150,21 @@ func newCrow(cfg Config) (*Crow, error) {
 	apiCfg := api.Config{
 		Address: cfg.PrometheusAddr,
 	}
-	if cfg.UserID != "" {
+	if cfg.UserID != "" && cfg.PasswordFile != "" {
+		rt := &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			TLSHandshakeTimeout: 10 * time.Second,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}
+
+		apiCfg.RoundTripper = commonCfg.NewBasicAuthRoundTripper(cfg.UserID, "", cfg.PasswordFile, rt)
+	} else if cfg.UserID != "" {
 		apiCfg.RoundTripper = &nethttp.Transport{
 			RoundTripper: promhttp.RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
 				_ = user.InjectOrgIDIntoHTTPRequest(user.InjectOrgID(context.Background(), cfg.UserID), req)
@@ -285,7 +304,7 @@ func (c *Crow) validate(b *sample) error {
 	})
 
 	if err != nil {
-		level.Error(c.cfg.Log).Log("msg", "failed to query for sample", "query", "err", err)
+		level.Error(c.cfg.Log).Log("msg", "failed to query for sample", "query", query, "err", err)
 	} else if m, ok := val.(model.Matrix); ok {
 		return c.validateInMatrix(query, b, m)
 	}
