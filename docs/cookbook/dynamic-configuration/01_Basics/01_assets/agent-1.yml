@@ -12,6 +12,8 @@ metrics:
           password: secretpassword
 integrations:
   node_exporter:
-    enabled: true
+    autoscrape:
+      enable: true
   agent:
-    enabled: true
+    autoscrape:
+      enable: true
