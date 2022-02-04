@@ -18,12 +18,12 @@ import (
 // CreateShim creates a shim between the v1.Config and v2.Config. The resulting
 // config is NOT registered.
 func CreateShim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
-	return &configShim{orig: before, common: common}
+	return &configShim{Orig: before, Common: common}
 }
 
 type configShim struct {
-	orig   v1.Config
-	common common.MetricsConfig
+	Orig   v1.Config
+	Common common.MetricsConfig
 }
 
 var (
@@ -32,14 +32,14 @@ var (
 	_ v2.ComparableConfig = (*configShim)(nil)
 )
 
-func (s *configShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.orig, s.common }
+func (s *configShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.Orig, s.Common }
 
-func (s *configShim) Name() string { return s.orig.Name() }
+func (s *configShim) Name() string { return s.Orig.Name() }
 
 func (s *configShim) ApplyDefaults(g v2.Globals) error {
-	s.common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
+	s.Common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
 	if id, err := s.Identifier(g); err == nil {
-		s.common.InstanceKey = &id
+		s.Common.InstanceKey = &id
 	}
 	return nil
 }
@@ -49,18 +49,18 @@ func (s *configShim) ConfigEquals(c v2.Config) bool {
 	if !ok {
 		return false
 	}
-	return util.CompareYAML(s.orig, o.orig) && util.CompareYAML(s.common, o.common)
+	return util.CompareYAML(s.Orig, o.Orig) && util.CompareYAML(s.Common, o.Common)
 }
 
 func (s *configShim) Identifier(g v2.Globals) (string, error) {
-	if s.common.InstanceKey != nil {
-		return *s.common.InstanceKey, nil
+	if s.Common.InstanceKey != nil {
+		return *s.Common.InstanceKey, nil
 	}
-	return s.orig.InstanceKey(g.AgentIdentifier)
+	return s.Orig.InstanceKey(g.AgentIdentifier)
 }
 
 func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration, error) {
-	v1Integration, err := s.orig.NewIntegration(l)
+	v1Integration, err := s.Orig.NewIntegration(l)
 	if err != nil {
 		return nil, err
 	}
@@ -116,10 +116,10 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 
 	// Aggregate our converted settings into a v2 integration.
 	return &metricsHandlerIntegration{
-		integrationName: s.orig.Name(),
+		integrationName: s.Orig.Name(),
 		instanceID:      id,
 
-		common:  s.common,
+		common:  s.Common,
 		globals: g,
 		handler: handler,
 		targets: targets,

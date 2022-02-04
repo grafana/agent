@@ -147,7 +147,7 @@ func cloneConfig(r interface{}) Config {
 		if !ok || mut == nil {
 			panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
 		}
-		return mut(v, common.MetricsConfig{})
+		return mut(cloneValue(r).(v1.Config), common.MetricsConfig{})
 	default:
 		panic(fmt.Sprintf("unexpected type %T", r))
 	}
