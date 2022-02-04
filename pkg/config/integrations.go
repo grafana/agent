@@ -75,6 +75,10 @@ func (c VersionedIntegrations) IsZero() bool {
 	}
 }
 
+func (c VersionedIntegrations) IsV2() bool {
+	return c.configV2 != nil
+}
+
 // ApplyDefaults applies defaults to the subsystem based on globals.
 func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
 	if c.version != integrationsVersion2 {

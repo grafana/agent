@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	integrationNames = make(map[string]interface{})  // Cache of field names for uniqueness checking.
-	configFieldNames = make(map[reflect.Type]string) // Map of registered type to field name
-	integrationTypes = make(map[reflect.Type]Type)   // Map of registered type to Type
+	integrationNames      = make(map[string]interface{})  // Cache of field names for uniqueness checking.
+	configFieldNames      = make(map[reflect.Type]string) // Map of registered type to field name
+	integrationTypes      = make(map[reflect.Type]Type)   // Map of registered type to Type
+	integrationTypeByName = make(map[string]Type)         // Map of name to Type
 
 	// Registered integrations. Registered integrations may be either a Config or
 	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
@@ -52,6 +53,7 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 
 	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
+	integrationTypeByName[name] = ty
 	configFieldNames[configTy] = name
 	upgraders[name] = upgrader
 }
@@ -107,6 +109,7 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear := func() {
 		integrationNames = make(map[string]interface{})
 		integrationTypes = make(map[reflect.Type]Type)
+		integrationTypeByName = make(map[string]Type)
 		configFieldNames = make(map[reflect.Type]string)
 		registered = registered[:0]
 		upgraders = make(map[string]UpgradeFunc)
@@ -125,20 +128,28 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 func Registered() []Config {
 	res := make([]Config, 0, len(registered))
 	for _, r := range registered {
-		switch v := r.(type) {
-		case Config:
-			res = append(res, cloneValue(v).(Config))
-		case v1.Config:
-			mut, ok := upgraders[v.Name()]
-			if !ok || mut == nil {
-				panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
-			}
-			res = append(res, mut(cloneValue(r).(v1.Config), common.MetricsConfig{}))
-		default:
-			panic(fmt.Sprintf("unexpected type %T", r))
-		}
+		res = append(res, cloneConfig(r))
 	}
 	return res
+}
+
+func TypeRegistry() map[string]Type {
+	return integrationTypeByName
+}
+
+func cloneConfig(r interface{}) Config {
+	switch v := r.(type) {
+	case Config:
+		return cloneValue(v).(Config)
+	case v1.Config:
+		mut, ok := upgraders[v.Name()]
+		if !ok || mut == nil {
+			panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
+		}
+		return mut(v, common.MetricsConfig{})
+	default:
+		panic(fmt.Sprintf("unexpected type %T", r))
+	}
 }
 
 func cloneValue(in interface{}) interface{} {
@@ -418,4 +429,15 @@ func replaceYAMLTypeError(err error, oldTyp, newTyp reflect.Type) error {
 		}
 	}
 	return err
+}
+
+// UnmarshalYamlToExporters attempts to convert the contents of yaml string into a set of exporters and then return
+// those configurations.
+func UnmarshalYamlToExporters(contents string) ([]Config, error) {
+	o := &SubsystemOptions{}
+	err := yaml.Unmarshal([]byte(contents), o)
+	if err != nil {
+		return nil, err
+	}
+	return o.Configs, nil
 }

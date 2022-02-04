@@ -73,6 +73,14 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		level.Info(ep.log).Log("msg", "reload server started", "url", reloadURL)
 	}
 
+	// If there is no default instance and v2 integrations exist then create "default"
+	if len(cfg.Metrics.Configs) == 0 && !cfg.Integrations.IsZero() && cfg.Integrations.IsV2() {
+		if cfg.Metrics.Configs == nil {
+			cfg.Metrics.Configs = make([]instance.Config, 0)
+		}
+		cfg.Metrics.Configs = append(cfg.Metrics.Configs, instance.Config{Name: "default"})
+	}
+
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 
 	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
