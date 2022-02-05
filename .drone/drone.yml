@@ -16,7 +16,7 @@ trigger:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.37.1
+    image: golangci/golangci-lint:v1.43
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
       - make lint
@@ -41,61 +41,27 @@ trigger:
 steps:
   - name: test
     image: rfratto/seego
-    commands:
-      - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
-      - gem install --no-document fpm
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator cmd/grafana-agent-crow/grafana-agent-crow
-      - make DRONE=true BUILD_IN_CONTAINER=false test
-depends_on:
-  - Lint
-
----
-kind: pipeline
-type: docker
-name: E2E
-platform:
-  os: linux
-  arch: amd64
-trigger:
-  event:
-    - push
-    - pull_request
-    - tag
-  ref:
-    - refs/heads/main
-    - refs/pull/*/head
-    - refs/tags/**
-steps:
-  - name: lint
-    image: golangci/golangci-lint:v1.43.0
-    commands:
-      - make DRONE=true e2e/lint
-  - name: test
-    image: docker
     volumes:
       - name: docker
         path: /var/run/docker.sock
     commands:
-      - apk update && apk add make gcc libc-dev bash wget git
+      - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
+      - gem install --no-document fpm
+      - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.5.linux-amd64.tar.gz
-      - rm go1.17.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make E2E_K8S_USE_DOCKER_NETWORK=1 DRONE=true e2e/test
-
+      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
+      - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
 depends_on:
-  - Test
+  - Lint
 
 volumes:
-  - name: docker
-    host:
-      path: /var/run/docker.sock
+ - name: docker
+   host:
+     path: /var/run/docker.sock
 
 ---
 kind: pipeline
@@ -114,15 +80,15 @@ steps:
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis
       - gem install --no-document fpm
+      - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make DRONE=true BUILD_IN_CONTAINER=false dist
 depends_on:
   - Test
-  - E2E
 ---
 kind: pipeline
 type: docker
@@ -147,7 +113,11 @@ steps:
         from_secret: DOCKER_LOGIN
       DOCKER_PASSWORD:
         from_secret: DOCKER_PASSWORD
+      GCR_CREDS:
+        from_secret: gcr_admin
     commands:
+      - mkdir -p $HOME/.docker
+      - printenv GCR_CREDS > $HOME/.docker/config.json
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - apk update && apk add make bash wget git qemu
       - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
@@ -157,10 +127,12 @@ steps:
       - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
       - docker buildx create --name multiarch --driver docker-container --use
       - export RELEASE_TAG=${DRONE_TAG}
+      - export IMAGE_BRANCH_TAG=${DRONE_BRANCH}
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
+      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
       - docker buildx rm multiarch
 
 depends_on:
@@ -251,10 +223,11 @@ steps:
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
+      - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
-      - rm go1.16.5.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+      - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
@@ -277,6 +250,14 @@ get:
 
 ---
 kind: secret
+name: gcr_admin
+
+get:
+  name: .dockerconfigjson
+  path: infra/data/ci/gcr-admin
+
+---
+kind: secret
 name: gh_token
 
 get:
@@ -284,6 +265,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: d78c4fe3269f5e585d410571767e05b225971aeeb8956cef158f8c701ed828f7
+hmac: f59c8b25058782d021a2d6bdc1fc59a049f3b352fb41de6a14c28fd05f578073
 
 ...

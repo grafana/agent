@@ -29,4 +29,5 @@ import (
 
 	_ "github.com/grafana/agent/pkg/integrations/v2/agent"             // register agent
 	_ "github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver" // register app_o11y_receiver
+	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
 )
