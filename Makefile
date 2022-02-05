@@ -7,6 +7,7 @@ SHELL = /usr/bin/env bash
 
 # Docker image info
 IMAGE_PREFIX ?= grafana
+IMAGE_BRANCH_TAG ?= main
 ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 # If RELEASE_TAG has a valid value it will be the same as IMAGE_TAG
@@ -14,8 +15,12 @@ IMAGE_TAG ?= $(shell ./tools/image-tag)
 RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
+IMAGE_BRANCH_TAG = latest
 endif
 DRONE ?= false
+
+# INTERNAL_REGISTRY used for pushing images to grafana internal registry
+INTERNAL_REGISTRY ?= us.gcr.io/kubernetes-dev
 
 # TARGETPLATFORM is specifically called from `docker buildx --platform`, this is mainly used when pushing docker image manifests, normal generally means NON DRONE builds
 TARGETPLATFORM ?=normal
@@ -49,7 +54,7 @@ CROSS_BUILD ?= false
 # run make BUILD_IN_CONTAINER=false <target>, or you can set BUILD_IN_CONTAINER=true
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
-BUILD_IMAGE_VERSION := 0.12.0
+BUILD_IMAGE_VERSION := 0.13.0
 BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
@@ -67,14 +72,14 @@ DONT_FIND := -name tools -prune -o -name vendor -prune -o -name .git -prune -o -
 # Build flags
 VPREFIX        := github.com/grafana/agent/pkg/build
 GO_LDFLAGS     := -X $(VPREFIX).Branch=$(GIT_BRANCH) -X $(VPREFIX).Version=$(IMAGE_TAG) -X $(VPREFIX).Revision=$(GIT_REVISION) -X $(VPREFIX).BuildUser=$(shell whoami)@$(shell hostname) -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build"
-DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build"
+GO_FLAGS       := -ldflags "-extldflags \"-static\" -s -w $(GO_LDFLAGS)" -tags "netgo static_build" $(GOFLAGS)
+DEBUG_GO_FLAGS := -gcflags "all=-N -l" -ldflags "-extldflags \"-static\" $(GO_LDFLAGS)" -tags "netgo static_build" $(GOFLAGS)
 DOCKER_BUILD_FLAGS = --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg IMAGE_TAG=$(IMAGE_TAG) --build-arg DRONE=$(DRONE)
 
 # We need a separate set of flags for CGO, where building with -static can
 # cause problems with some C libraries.
-CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
-DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo"
+CGO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(GOFLAGS)
+DEBUG_CGO_FLAGS := -gcflags "all=-N -l" -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo" $(GOFLAGS)
 # If we're not building the release, use the debug flags instead.
 ifeq ($(RELEASE_BUILD),false)
 GO_FLAGS = $(DEBUG_GO_FLAGS)
@@ -178,7 +183,8 @@ all: protos agent agentctl
 agent: cmd/agent/agent
 agentctl: cmd/agentctl/agentctl
 agent-operator: cmd/agent-operator/agent-operator
-grafana-agent-crow: cmd/grafana-agent-crow/grafana-agent-crow
+agent-smoke: tools/smoke/grafana-agent-smoke
+grafana-agent-crow: tools/crow/grafana-agent-crow
 
 # In general DRONE variable should overwrite any other options, if DRONE is not set then fallback to normal behavior
 
@@ -194,24 +200,33 @@ cmd/agent-operator/agent-operator: cmd/agent-operator/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
-cmd/grafana-agent-crow/grafana-agent-crow: cmd/grafana-agent-crow/main.go
+tools/crow/grafana-agent-crow: tools/crow/main.go
 	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
+tools/smoke/grafana-agent-smoke: tools/smoke/main.go
+	$(ALL_CGO_BUILD_FLAGS) ; $(seego) build $(CGO_FLAGS) -o $@ ./$(@D)
+	$(NETGO_CHECK)
+
+
+
 agent-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agent:latest -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agent:$(IMAGE_TAG) -f cmd/agent/$(DOCKERFILE) .
 agentctl-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:latest -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agentctl:$(IMAGE_TAG) -f cmd/agentctl/$(DOCKERFILE) .
 agent-operator-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:latest -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
+	$(docker-build)  -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_BRANCH_TAG) -t $(IMAGE_PREFIX)/agent-operator:$(IMAGE_TAG) -f cmd/agent-operator/$(DOCKERFILE) .
 grafana-agent-crow-image:
-	$(docker-build)  -t $(IMAGE_PREFIX)/agent-crow:latest -t $(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f cmd/grafana-agent-crow/$(DOCKERFILE) .
+	$(docker-build)  -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-crow:$(IMAGE_BRANCH_TAG) -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-crow:$(IMAGE_TAG) -f tools/crow/$(DOCKERFILE) .
+agent-smoke-image:
+	$(docker-build)  -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-smoke:$(IMAGE_BRANCH_TAG) -t $(INTERNAL_REGISTRY)/$(IMAGE_PREFIX)/agent-smoke:$(IMAGE_TAG) -f tools/smoke/$(DOCKERFILE) .
 
 install:
 	CGO_ENABLED=1 go install $(CGO_FLAGS) ./cmd/agent
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agentctl
 	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/agent-operator
-	CGO_ENABLED=0 go install $(GO_FLAGS) ./cmd/grafana-agent-crow
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./tools/crow
+	CGO_ENABLED=0 go install $(GO_FLAGS) ./tools/smoke
 
 #######################
 # Development targets #
@@ -222,18 +237,9 @@ lint:
 
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
-#
-# Run tests with -tags=has_network to include tests that require network
-# connectivity.
 test:
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -race -cover -coverprofile=cover.out -p=4 ./...
-	CGO_ENABLED=1 go test $(CGO_FLAGS) -tags=has_network -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs
-
-e2e/lint:
-	$(MAKE) -C e2e lint
-
-e2e/test:
-	$(MAKE) -C e2e test
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
 
 clean:
 	rm -rf cmd/agent/agent
@@ -312,7 +318,6 @@ endif
 
 dist/agent-freebsd-amd64: seego
 	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
-
 
 #######################
 # BEGIN AGENTCTL DIST #

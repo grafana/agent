@@ -12,6 +12,8 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
+## v0.22.0
+
 ### `node_exporter` integration deprecated field names
 
 The following field names for the `node_exporter` integration are now deprecated:

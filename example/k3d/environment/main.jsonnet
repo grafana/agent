@@ -1,6 +1,6 @@
 local collector = import 'collector/main.libsonnet';
 local default = import 'default/main.libsonnet';
-local etcd = import 'etcd/main.libsonnet';
+local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
 local agent_cluster = import 'grafana-agent/scraping-svc/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 local load_generator = import 'load-generator/main.libsonnet';

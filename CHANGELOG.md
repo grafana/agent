@@ -1,5 +1,38 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
+
+- [ENHANCEMENT] integrations-next: Add `extra_labels` to add a custom set of
+  labels to integration targets. (@rfratto)
+
+- [ENHANCEMENT] The agent no longer appends duplicate exemplars. (@tpaschalis)
+
+- [ENHANCEMENT] Added Kubernetes eventhandler integration (@hjet)
+
+- [BUGFIX] Fixed issue where Grafana Agent may panic if there is a very large
+  WAL loading while old WALs are being deleted or the `/agent/api/v1/targets`
+  endpoint is called. (@tpaschalis)
+
+- [BUGFIX] Fix panic in prom_sd_processor when address is empty (@mapno)
+
+- [BUGFIX] Operator: Add missing proxy_url field from generated remote_write
+  configs. (@rfratto)
+
+- [BUGFIX] Honor the specified log format in the traces subsystem (@mapno)
+
+- [BUGFIX] Fix typo in node_exporter for runit_service_dir. (@mattdurham)
+
+- [BUGFIX] Allow inlining credentials in remote_write url. (@tpaschalis)
+
+- [BUGFIX] integrations-next: Wait for integrations to stop when starting new
+  instances or shutting down (@rfratto).
+
+- [BUGFIX] Fix issue with windows_exporter mssql collector crashing the agent. (@mattdurham)
+
+- [BUGFIX] Configure eventhandler integration "cluster" label using logs client (@hjet)
+
+# v0.22.0 (2022-01-13)
+
 This release has deprecations. Please read [DEPRECATION] entries and consult
 the [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for detailed information.
@@ -34,6 +67,8 @@ for detailed information.
 
 - [ENHANCEMENT] Update node_exporter dependency to v1.3.1. (@rfratto)
 
+- [ENHANCEMENT] Cherry-pick Prometheus PR #10102 into our Prometheus dependency (@rfratto).
+
 - [BUGFIX] Fix usage of POSTGRES_EXPORTER_DATA_SOURCE_NAME when using postgres_exporter integration (@f11r)
 
 - [BUGFIX] Change ordering of the entrypoint for windows service so that it accepts commands immediately (@mattdurham)
@@ -45,6 +80,9 @@ for detailed information.
 - [BUGFIX] Fix cAdvisor so it collects all defined metrics instead of the last (@pkoenig10)
 
 - [BUGFIX] Fix panic when using 'stdout' in automatic logging (@mapno)
+
+- [BUGFIX] Grafana Agent Operator: The /-/ready and /-/healthy endpoints will
+  no longer always return 404 (@rfratto).
 
 - [DEPRECATION] The node_exporter integration's `netdev_device_whitelist` field
   is deprecated in favor of `netdev_device_include`. Support for the old field

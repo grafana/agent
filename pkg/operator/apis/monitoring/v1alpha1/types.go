@@ -4,6 +4,7 @@ import (
 	prom_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // +kubebuilder:object:root=true
@@ -24,6 +25,7 @@ type GrafanaAgent struct {
 // MetricsInstanceSelector returns a selector to find MetricsInstances.
 func (a *GrafanaAgent) MetricsInstanceSelector() ObjectSelector {
 	return ObjectSelector{
+		ObjectType:        &MetricsInstance{},
 		ParentNamespace:   a.Namespace,
 		NamespaceSelector: a.Spec.Metrics.InstanceNamespaceSelector,
 		Labels:            a.Spec.Metrics.InstanceSelector,
@@ -33,6 +35,7 @@ func (a *GrafanaAgent) MetricsInstanceSelector() ObjectSelector {
 // LogsInstanceSelector returns a selector to find LogsInstances.
 func (a *GrafanaAgent) LogsInstanceSelector() ObjectSelector {
 	return ObjectSelector{
+		ObjectType:        &LogsInstance{},
 		ParentNamespace:   a.Namespace,
 		NamespaceSelector: a.Spec.Logs.InstanceNamespaceSelector,
 		Labels:            a.Spec.Logs.InstanceSelector,
@@ -153,6 +156,7 @@ type GrafanaAgentSpec struct {
 // resource hierarchy. When NamespaceSelector is nil, objects should be
 // searched directly in the ParentNamespace.
 type ObjectSelector struct {
+	ObjectType        client.Object
 	ParentNamespace   string
 	NamespaceSelector *metav1.LabelSelector
 	Labels            *metav1.LabelSelector

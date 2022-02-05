@@ -1,8 +1,9 @@
 local monitoring = import './monitoring/main.jsonnet';
-local avalanche = import 'avalanche/main.libsonnet';
+local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local cortex = import 'cortex/main.libsonnet';
-local crow = import 'crow/main.libsonnet';
-local etcd = import 'etcd/main.libsonnet';
+local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
+local smoke = import 'grafana-agent/smoke/main.libsonnet';
+local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
@@ -11,8 +12,8 @@ local pvc = k.core.v1.persistentVolumeClaim;
 local volumeMount = k.core.v1.volumeMount;
 
 local images = {
-  agent: 'grafana/agent:latest',
-  agentctl: 'grafana/agentctl:latest',
+  agent: 'grafana/agent:main',
+  agentctl: 'grafana/agentctl:main',
 };
 
 local new_crow(name, selector) =
@@ -22,6 +23,13 @@ local new_crow(name, selector) =
       'crow.extra-selectors': selector,
     },
   });
+
+local new_smoke(name) = smoke.new(name, namespace='smoke', config={
+    mutationFrequency: '5m',
+    chaosFrequency: '30m',
+});
+
+
 
 local smoke = {
   ns: namespace.new('smoke'),
@@ -38,6 +46,8 @@ local smoke = {
     series_interval: 300,
     metric_interval: 600,
   }),
+
+  smoke_test: new_smoke('smoke-test'),
 
   crows: [
     new_crow('crow-single', 'cluster="grafana-agent"'),
