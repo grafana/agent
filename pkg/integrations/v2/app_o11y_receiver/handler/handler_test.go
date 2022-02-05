@@ -216,7 +216,7 @@ func TestAPIKeyRequiredButNotProvided(t *testing.T) {
 		APIKey: "foo",
 	}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -237,7 +237,7 @@ func TestAPIKeyWrong(t *testing.T) {
 		APIKey: "foo",
 	}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	fr := NewAppO11yHandler(conf, nil, nil)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -258,7 +258,7 @@ func TestAPIKeyCorrect(t *testing.T) {
 		APIKey: "foo",
 	}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{})
+	fr := NewAppO11yHandler(conf, nil, nil)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
