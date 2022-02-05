@@ -63,10 +63,10 @@ require (
 	github.com/prometheus/procfs v0.7.4-0.20211011103944-1a7a2bd3279f
 	github.com/prometheus/prometheus v1.8.2-0.20211102100715-d4c83da6d252
 	github.com/prometheus/statsd_exporter v0.22.2
-	github.com/rs/cors v1.8.0
 	github.com/rancher/k3d/v5 v5.2.2
+	github.com/rs/cors v1.8.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/slok/go-http-metrics v0.10.0 // indirect
+	github.com/slok/go-http-metrics v0.10.0
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
@@ -288,7 +288,6 @@ require (
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.7.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/rs/cors v1.8.0 // indirect
 	github.com/safchain/ethtool v0.1.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da // indirect
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b // indirect
@@ -424,5 +423,3 @@ replace github.com/jaegertracing/jaeger => github.com/jaegertracing/jaeger v1.27
 
 // Replacement necessary for windows_exporter so that we can use gokit logging and not the old prometheus logging
 replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_exporter v0.1.1-0.20211013152516-e37e14fb8b0a
-
-
