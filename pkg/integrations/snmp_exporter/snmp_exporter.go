@@ -3,6 +3,7 @@ package snmp_exporter
 
 import (
 	_ "embed"
+	"fmt"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
@@ -12,17 +13,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// DefaultConfig holds the default settings for the snmp_exporter integration.
-var DefaultConfig = Config{
-	WalkParams: make(map[string]snmp_config.WalkParams),
-}
-
 //go:generate curl https://raw.githubusercontent.com/prometheus/snmp_exporter/v0.20.0/snmp.yml --output snmp.yml
 //go:embed snmp.yml
 var content []byte
 
+// DefaultConfig holds the default settings for the snmp_exporter integration.
+var DefaultConfig = Config{
+	WalkParams:     make(map[string]snmp_config.WalkParams),
+	SnmpConfigFile: "",
+}
+
 type Config struct {
-	WalkParams map[string]snmp_config.WalkParams `yaml:"walk_params,omitempty"`
+	WalkParams     map[string]snmp_config.WalkParams `yaml:"walk_params,omitempty"`
+	SnmpConfigFile string                            `yaml:"config_file,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -54,7 +57,7 @@ func init() {
 }
 
 // Load from file via embed
-func LoadConfig() (*snmp_config.Config, error) {
+func LoadEmbeddedConfig() (*snmp_config.Config, error) {
 
 	cfg := &snmp_config.Config{}
 	err := yaml.UnmarshalStrict(content, cfg)
@@ -66,7 +69,20 @@ func LoadConfig() (*snmp_config.Config, error) {
 
 // New creates a new snmp_exporter integration
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	modules, err := LoadConfig()
+
+	var modules *snmp_config.Config
+	var err error
+	if c.SnmpConfigFile != "" {
+		modules, err = snmp_config.LoadFile(c.SnmpConfigFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load snmp config from file %v: %w", c.SnmpConfigFile, err)
+		}
+	} else {
+		modules, err = LoadEmbeddedConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load embedded snmp config: %w", err)
+		}
+	}
 
 	sh := &snmpHandler{
 		cfg:     c,
@@ -74,9 +90,6 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		log:     log,
 	}
 
-	if err != nil {
-		log.Log("Failed to load config")
-	}
 	return integrations.NewHandlerIntegration(c.Name(), sh), nil
 
 }

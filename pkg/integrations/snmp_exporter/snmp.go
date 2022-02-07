@@ -32,6 +32,12 @@ var (
 	)
 )
 
+type snmpHandler struct {
+	cfg     *Config
+	modules *snmp_config.Config
+	log     log.Logger
+}
+
 func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 
 	logger := sh.log
@@ -107,12 +113,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	duration := time.Since(start).Seconds()
 	snmpDuration.WithLabelValues(moduleName).Observe(duration)
 	level.Debug(logger).Log("msg", "Finished scrape", "duration_seconds", duration)
-}
-
-type snmpHandler struct {
-	cfg     *Config
-	modules *snmp_config.Config
-	log     log.Logger
 }
 
 func (sh snmpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
