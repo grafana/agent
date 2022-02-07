@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [FEATURE] Added [SNMP exporter](https://github.com/prometheus/snmp_exporter) integration. (@v-zhuravlev)
+
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
 
 - [ENHANCEMENT] integrations-next: Add `extra_labels` to add a custom set of
