@@ -263,7 +263,10 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 
 // LoadDynamicConfiguration is used to load configuration from a variety of sources using
 // dynamic loader, this is a templated approach
-func LoadDynamicConfiguration(url string, _ bool, c *Config, fs *flag.FlagSet) error {
+func LoadDynamicConfiguration(url string, expandvar bool, c *Config, fs *flag.FlagSet) error {
+	if expandvar {
+		return errors.New("expand var is not supported when using dynamic configuration, use gomplate env instead")
+	}
 	cmf, err := NewDynamicLoader()
 	if err != nil {
 		return err

@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
@@ -427,4 +429,10 @@ metrics:
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
+}
+
+func TestLoadDynamicConfigurationExpandError(t *testing.T) {
+	err := LoadDynamicConfiguration("", true, nil, nil)
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }
