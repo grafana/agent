@@ -17,6 +17,7 @@ var DefaultConfig = Config{
 	WalkParams: make(map[string]snmp_config.WalkParams),
 }
 
+//go:generate curl https://raw.githubusercontent.com/prometheus/snmp_exporter/v0.20.0/snmp.yml --output snmp.yml
 //go:embed snmp.yml
 var content []byte
 
