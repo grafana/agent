@@ -202,35 +202,29 @@ func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, e
 	if obj.Name == "" {
 		return nil, "", fmt.Errorf("no involved object for event")
 	}
+	msg.WriteString(fmt.Sprintf("name=%s ", obj.Name))
 
-	labels[model.LabelName("job")] = model.LabelValue("eventhandler")
-
-	kindStr := strings.ToLower(obj.Kind)
-	// TODO: match up labels with k8s integration so that log / metric correlation works
-	// and users can use the same dashboard for both logs and metrics
-	labels[model.LabelName("kind")] = model.LabelValue(obj.Kind)
-	// this is used to enable correlation w/ K8s integration
-	labels[model.LabelName(kindStr)] = model.LabelValue(obj.Name)
-	// this won't increase cardinality but maybe improves UX?
-	labels[model.LabelName("name")] = model.LabelValue(obj.Name)
 	labels[model.LabelName("namespace")] = model.LabelValue(obj.Namespace)
 
 	// we add these fields to the log line to reduce label bloat and cardinality
+	if obj.Kind != "" {
+		msg.WriteString(fmt.Sprintf("kind=%s ", obj.Kind))
+		// to enable k8s integration correlation
+		kindStr := strings.ToLower(obj.Kind)
+		msg.WriteString(fmt.Sprintf("%s=%s ", kindStr, obj.Name))
+	}
 	if event.Action != "" {
-		msg.WriteString(fmt.Sprintf("action=%s ", event.Type))
+		msg.WriteString(fmt.Sprintf("action=%s ", event.Action))
 	}
 	if obj.APIVersion != "" {
-		msg.WriteString(fmt.Sprintf("apiversion=%s ", obj.APIVersion))
+		msg.WriteString(fmt.Sprintf("objectAPIversion=%s ", obj.APIVersion))
 	}
 	if obj.ResourceVersion != "" {
-		msg.WriteString(fmt.Sprintf("resourceversion=%s ", obj.ResourceVersion))
+		msg.WriteString(fmt.Sprintf("objectRV=%s ", obj.ResourceVersion))
 	}
-
-	// useful for debugging, can omit when shipping this
 	if event.ResourceVersion != "" {
-		msg.WriteString(fmt.Sprintf("evRV=%s ", event.ResourceVersion))
+		msg.WriteString(fmt.Sprintf("eventRV=%s ", event.ResourceVersion))
 	}
-
 	if event.ReportingInstance != "" {
 		msg.WriteString(fmt.Sprintf("reportinginstance=%s ", event.ReportingInstance))
 	}
