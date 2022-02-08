@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func run_integration(t *testing.T, cfgStr string) error {
+func runIntegration(t *testing.T, cfgStr string) error {
 	var cfg Config
 
 	err := yaml.Unmarshal([]byte(cfgStr), &cfg)
@@ -29,7 +29,7 @@ docker_only: true
 `
 		var err error
 
-		assert.NotPanics(t, func() { err = run_integration(t, defaultCfg) })
+		assert.NotPanics(t, func() { err = runIntegration(t, defaultCfg) })
 		assert.ErrorIs(t, err, context.Canceled)
 	})
 
@@ -43,7 +43,7 @@ docker_only: true
 	// docker_only: true
 	// raw_cgroup_prefix_allowlist: []
 	// `
-	// 		assert.Panics(t, func() { err = run_integration(t, panicCfgStr) })
+	// 		assert.Panics(t, func() { err = runIntegration(t, panicCfgStr) })
 	// 		assert.NoError(t, err)
 	// 	})
 }
