@@ -209,9 +209,6 @@ func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, e
 	// we add these fields to the log line to reduce label bloat and cardinality
 	if obj.Kind != "" {
 		msg.WriteString(fmt.Sprintf("kind=%s ", obj.Kind))
-		// to enable k8s integration correlation
-		kindStr := strings.ToLower(obj.Kind)
-		msg.WriteString(fmt.Sprintf("%s=%s ", kindStr, obj.Name))
 	}
 	if event.Action != "" {
 		msg.WriteString(fmt.Sprintf("action=%s ", event.Action))
