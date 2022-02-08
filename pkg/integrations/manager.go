@@ -164,6 +164,9 @@ type Manager struct {
 
 	integrationsMut sync.RWMutex
 	integrations    map[string]*integrationProcess
+
+	handlerMut   sync.Mutex
+	handlerCache map[string]handlerCacheEntry
 }
 
 // NewManager creates a new integrations manager. NewManager must be given an
@@ -467,56 +470,82 @@ func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
 
 // WireAPI hooks up /metrics routes per-integration.
 func (m *Manager) WireAPI(r *mux.Router) {
-	type handlerCacheEntry struct {
-		handler http.Handler
-		process *integrationProcess
-	}
-	var (
-		handlerMut   sync.Mutex
-		handlerCache = make(map[string]handlerCacheEntry)
-	)
-
-	// loadHandler will perform a dynamic lookup of an HTTP handler for an
-	// integration. loadHandler should be called with a read lock on the
-	// integrations mutex.
-	loadHandler := func(key string) http.Handler {
-		handlerMut.Lock()
-		defer handlerMut.Unlock()
-
-		// Search the integration by name to see if it's still running.
-		p, ok := m.integrations[key]
-		if !ok {
-			delete(handlerCache, key)
-			return http.NotFoundHandler()
-		}
-
-		// Now look in the cache for a handler for the running process.
-		cacheEntry, ok := handlerCache[key]
-		if ok && cacheEntry.process == p {
-			return cacheEntry.handler
-		}
-
-		// New integration process that hasn't been scraped before. Generate
-		// a handler for it and cache it.
-		handler, err := p.i.MetricsHandler()
-		if err != nil {
-			level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Name(), "err", err)
-			return http.HandlerFunc(internalServiceError)
-		}
-
-		cacheEntry = handlerCacheEntry{handler: handler, process: p}
-		handlerCache[key] = cacheEntry
-		return cacheEntry.handler
-	}
 
 	r.HandleFunc("/integrations/{name}/metrics", func(rw http.ResponseWriter, r *http.Request) {
 		m.integrationsMut.RLock()
 		defer m.integrationsMut.RUnlock()
 
 		key := integrationKey(mux.Vars(r)["name"])
-		handler := loadHandler(key)
+		handler := m.loadHandler(key)
 		handler.ServeHTTP(rw, r)
 	})
+
+	for _, v := range m.integrations {
+		i, ok := v.i.(CustomMetricHandlers)
+		if !ok {
+			continue
+		}
+		for path, _ := range i.AdditionalMetrics() {
+			r.HandleFunc(fmt.Sprintf("/integrations/%s/metrics/%s", i.Name(), path), func(rw http.ResponseWriter, r *http.Request) {
+				m.loadCustomHandler(i.Name(), path).ServeHTTP(rw, r)
+			})
+
+		}
+	}
+}
+
+// loadHandler will perform a dynamic lookup of an HTTP handler for an
+// integration. loadHandler should be called with a read lock on the
+// integrations mutex.
+func (m *Manager) loadHandler(key string) http.Handler {
+	m.handlerMut.Lock()
+	defer m.handlerMut.Unlock()
+
+	// Search the integration by name to see if it's still running.
+	p, ok := m.integrations[key]
+	if !ok {
+		delete(m.handlerCache, key)
+		return http.NotFoundHandler()
+	}
+
+	// Now look in the cache for a handler for the running process.
+	cacheEntry, ok := m.handlerCache[key]
+	if ok && cacheEntry.process == p {
+		return cacheEntry.handler
+	}
+
+	// New integration process that hasn't been scraped before. Generate
+	// a handler for it and cache it.
+	handler, err := p.i.MetricsHandler()
+	if err != nil {
+		level.Error(m.logger).Log("msg", "could not create http handler for integration", "integration", p.cfg.Name(), "err", err)
+		return http.HandlerFunc(internalServiceError)
+	}
+
+	cacheEntry = handlerCacheEntry{handler: handler, process: p}
+	m.handlerCache[key] = cacheEntry
+	return cacheEntry.handler
+}
+
+func (m *Manager) loadCustomHandler(key string, path string) http.Handler {
+	m.handlerMut.Lock()
+	defer m.handlerMut.Unlock()
+
+	// Search the integration by name to see if it's still running.
+	p, ok := m.integrations[key]
+	if !ok {
+		return http.NotFoundHandler()
+	}
+	i, ok := p.i.(CustomMetricHandlers)
+	if !ok {
+		return http.NotFoundHandler()
+	}
+	h, found := i.AdditionalMetrics()[path]
+	if !found {
+		return http.NotFoundHandler()
+	}
+	return h
+
 }
 
 func internalServiceError(w http.ResponseWriter, r *http.Request) {
@@ -528,4 +557,14 @@ func internalServiceError(w http.ResponseWriter, r *http.Request) {
 func (m *Manager) Stop() {
 	m.cancel()
 	m.wg.Wait()
+}
+
+type CustomMetricHandlers interface {
+	Config
+	AdditionalMetrics() map[string]http.Handler
+}
+
+type handlerCacheEntry struct {
+	handler http.Handler
+	process *integrationProcess
 }

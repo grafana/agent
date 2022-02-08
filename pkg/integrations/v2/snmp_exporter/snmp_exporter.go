@@ -4,9 +4,10 @@ package snmp_exporter
 import (
 	_ "embed"
 	"fmt"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 	"gopkg.in/yaml.v2"
 )
@@ -24,6 +25,49 @@ var DefaultConfig = Config{
 type Config struct {
 	WalkParams     map[string]snmp_config.WalkParams `yaml:"walk_params,omitempty"`
 	SnmpConfigFile string                            `yaml:"config_file,omitempty"`
+	SnmptTargets   []SnmpTarget                      `yaml:"snmp_targets"`
+	Common         common.MetricsConfig              `yaml:",inline"`
+
+	globals integrations_v2.Globals
+}
+
+type SnmpTarget struct {
+	Name       string `yaml:"name"`
+	Target     string `yaml:"address"`
+	Module     string `yaml:"module"`
+	WalkParams string `yaml:"walk_params,omitempty"`
+}
+
+func (c *Config) ApplyDefaults(globals integrations_v2.Globals) error {
+	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+	return nil
+}
+
+func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
+	return c.Name(), nil
+}
+
+func (c *Config) NewIntegration(log log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
+	var modules *snmp_config.Config
+	var err error
+	if c.SnmpConfigFile != "" {
+		modules, err = snmp_config.LoadFile(c.SnmpConfigFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load snmp config from file %v: %w", c.SnmpConfigFile, err)
+		}
+	} else {
+		modules, err = LoadEmbeddedConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load embedded snmp config: %w", err)
+		}
+	}
+	c.globals = globals
+	sh := &snmpHandler{
+		cfg:     c,
+		modules: modules,
+		log:     log,
+	}
+	return sh, nil
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -44,13 +88,8 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
 
-// NewIntegration converts the config into an instance of an integration.
-func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	return New(l, c)
-}
-
 func init() {
-	integrations.RegisterIntegration(&Config{})
+	integrations_v2.Register(&Config{}, integrations_v2.TypeSingleton)
 }
 
 // Load from file via embed
@@ -62,31 +101,4 @@ func LoadEmbeddedConfig() (*snmp_config.Config, error) {
 		return nil, err
 	}
 	return cfg, nil
-}
-
-// New creates a new snmp_exporter integration
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
-
-	var modules *snmp_config.Config
-	var err error
-	if c.SnmpConfigFile != "" {
-		modules, err = snmp_config.LoadFile(c.SnmpConfigFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load snmp config from file %v: %w", c.SnmpConfigFile, err)
-		}
-	} else {
-		modules, err = LoadEmbeddedConfig()
-		if err != nil {
-			return nil, fmt.Errorf("failed to load embedded snmp config: %w", err)
-		}
-	}
-
-	sh := &snmpHandler{
-		cfg:     c,
-		modules: modules,
-		log:     log,
-	}
-
-	return integrations.NewHandlerIntegration(c.Name(), sh), nil
-
 }
