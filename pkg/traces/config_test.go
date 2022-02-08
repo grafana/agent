@@ -1061,6 +1061,190 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "one exporter with oauth2 and basic auth",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password: blerg
+    oauth2:
+      client_id: somecclient
+      client_secret: someclientsecret
+`,
+			expectedError: true,
+		},
+		{
+			name: "simple oauth2 config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+service:
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "oauth2 TLS",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+      tls:
+        insecure: true
+        ca_file: /var/lib/mycert.pem
+        cert_file: certfile
+        key_file: keyfile
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+    tls:
+      insecure: true
+      ca_file: /var/lib/mycert.pem
+      cert_file: certfile
+      key_file: keyfile
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+service:
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "2 exporters different auth",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+  - endpoint: example.com:12345
+    protocol: grpc
+    oauth2:
+      client_id: anotherclientid
+      client_secret: anotherclientsecret
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+  oauth2client/otlp1:
+    client_id: anotherclientid
+    client_secret: anotherclientsecret
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+  otlp/1:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlp1
+service:
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0", "otlp/1"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
