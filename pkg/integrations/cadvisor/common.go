@@ -3,6 +3,7 @@ package cadvisor
 import (
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 )
 
@@ -90,6 +91,9 @@ type Config struct {
 	// Raw config options
 	// DockerOnly only report docker containers in addition to root stats
 	DockerOnly bool `yaml:"docker_only,omitempty"`
+
+	// Hold on to the logger passed to config.NewIntegration, to be passed to klog, as yet another unsafe global that needs to be set.
+	logger log.Logger
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
