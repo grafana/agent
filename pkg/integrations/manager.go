@@ -480,18 +480,6 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		handler.ServeHTTP(rw, r)
 	})
 
-	for _, v := range m.integrations {
-		i, ok := v.i.(CustomMetricHandlers)
-		if !ok {
-			continue
-		}
-		for path, _ := range i.AdditionalMetrics() {
-			r.HandleFunc(fmt.Sprintf("/integrations/%s/metrics/%s", i.Name(), path), func(rw http.ResponseWriter, r *http.Request) {
-				m.loadCustomHandler(i.Name(), path).ServeHTTP(rw, r)
-			})
-
-		}
-	}
 }
 
 // loadHandler will perform a dynamic lookup of an HTTP handler for an
@@ -527,27 +515,6 @@ func (m *Manager) loadHandler(key string) http.Handler {
 	return cacheEntry.handler
 }
 
-func (m *Manager) loadCustomHandler(key string, path string) http.Handler {
-	m.handlerMut.Lock()
-	defer m.handlerMut.Unlock()
-
-	// Search the integration by name to see if it's still running.
-	p, ok := m.integrations[key]
-	if !ok {
-		return http.NotFoundHandler()
-	}
-	i, ok := p.i.(CustomMetricHandlers)
-	if !ok {
-		return http.NotFoundHandler()
-	}
-	h, found := i.AdditionalMetrics()[path]
-	if !found {
-		return http.NotFoundHandler()
-	}
-	return h
-
-}
-
 func internalServiceError(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 }
@@ -557,11 +524,6 @@ func internalServiceError(w http.ResponseWriter, r *http.Request) {
 func (m *Manager) Stop() {
 	m.cancel()
 	m.wg.Wait()
-}
-
-type CustomMetricHandlers interface {
-	Config
-	AdditionalMetrics() map[string]http.Handler
 }
 
 type handlerCacheEntry struct {
