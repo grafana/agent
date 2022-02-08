@@ -36,6 +36,9 @@ import (
 func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+
+	// default remote_write send_exemplars to true
+	config.DefaultRemoteWriteConfig.SendExemplars = true
 }
 
 var (
