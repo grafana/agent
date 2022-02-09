@@ -10,7 +10,7 @@ type LoaderConfig struct {
 	TemplatePaths []string `yaml:"template_paths"`
 
 	AgentFilter           string `yaml:"agent_filter,omitempty"`
-	ServerFilter          string `yaml:"sever_filter,omitempty"`
+	ServerFilter          string `yaml:"server_filter,omitempty"`
 	MetricsFilter         string `yaml:"metrics_filter,omitempty"`
 	MetricsInstanceFilter string `yaml:"metrics_instance_filter,omitempty"`
 	IntegrationsFilter    string `yaml:"integrations_filter,omitempty"`
