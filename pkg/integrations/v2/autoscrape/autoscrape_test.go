@@ -1,6 +1,7 @@
 package autoscrape
 
 import (
+	"context"
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
@@ -99,3 +100,5 @@ type mockInstance struct {
 	instance.NoOpInstance
 	app storage.Appender
 }
+
+func (mi *mockInstance) Appender(ctx context.Context) storage.Appender { return mi.app }
