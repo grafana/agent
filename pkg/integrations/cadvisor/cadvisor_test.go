@@ -1,3 +1,6 @@
+//go:build !nonetwork && !nodocker
+// +build !nonetwork,!nodocker
+
 package cadvisor
 
 import (
