@@ -153,7 +153,7 @@ func (i *Integration) Run(ctx context.Context) error {
 	if err := rm.Stop(); err != nil {
 		return fmt.Errorf("failed to stop manager: %w", err)
 	}
-	return ctx.Err()
+	return nil
 }
 
 // New creates a new cadvisor integration

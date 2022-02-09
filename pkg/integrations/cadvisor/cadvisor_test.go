@@ -4,46 +4,25 @@ import (
 	"context"
 	"testing"
 
-	"github.com/go-kit/log"
-	"github.com/stretchr/testify/assert"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
-
-func runIntegration(t *testing.T, cfgStr string) error {
-	var cfg Config
-
-	err := yaml.Unmarshal([]byte(cfgStr), &cfg)
-	assert.NoError(t, err)
-	ig, err := cfg.NewIntegration(log.NewNopLogger())
-	assert.NoError(t, err)
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	return ig.Run(ctx)
-}
 
 func TestConfig_DockerOnly(t *testing.T) {
 	t.Run("docker_only with default configuration is successful", func(t *testing.T) {
 		// Run it once with the default config, expecting success.
-		defaultCfg := `
-docker_only: true
-`
-		var err error
+		defaultCfg := `docker_only: true`
 
-		assert.NotPanics(t, func() { err = runIntegration(t, defaultCfg) })
-		assert.ErrorIs(t, err, context.Canceled)
+		var cfg Config
+		err := yaml.Unmarshal([]byte(defaultCfg), &cfg)
+		require.NoError(t, err)
+
+		ig, err := cfg.NewIntegration(util.TestLogger(t))
+		require.NoError(t, err)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		require.NoError(t, ig.Run(ctx))
 	})
-
-	// 	t.Run("docker_only with empty raw_cgroup_prefix_allowlist panics", func(t *testing.T) {
-	// 		// then again when docker_only is true, and raw_cgroup_prefix_allowlist is an empty array,
-	// 		// expecting the cadvisor collectors to panic. If this suddenly starts hanging, or does not panic, the default
-	// 		// value for raw_cgroup_prefix_allowlist should be returned to a zero value string slice.
-	// 		//
-	// 		var err error
-	// 		panicCfgStr := `
-	// docker_only: true
-	// raw_cgroup_prefix_allowlist: []
-	// `
-	// 		assert.Panics(t, func() { err = runIntegration(t, panicCfgStr) })
-	// 		assert.NoError(t, err)
-	// 	})
 }
