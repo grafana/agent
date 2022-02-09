@@ -112,10 +112,9 @@ it is not recommended for the permanent home of a proposal:
   context.
 
 Google Docs proposals will be permitted if linked to from an issue proposal.
-
-It is recommended that proposals from Google Docs are eventually converted by
-the author into an RFC proposal to ensure that historical context is recorded,
-though this is still not ideal as it discards comment history.
+Google Doc proposals must be converted into an RFC proposal prior to formally
+accepting the proposal. Enforcing this ensures that historical context is
+recorded, though it is still not ideal as it discards comment history.
 
 ## Accepting Proposals
 
