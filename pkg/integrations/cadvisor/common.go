@@ -12,11 +12,8 @@ const name = "cadvisor"
 // DefaultConfig holds the default settings for the cadvisor integration
 var DefaultConfig Config = Config{
 	// Common cadvisor config defaults
-	StoreContainerLabels:       true,
-	AllowlistedContainerLabels: []string{},
-	EnvMetadataAllowlist:       []string{},
-	RawCgroupPrefixAllowlist:   []string{""},
-	ResctrlInterval:            0,
+	StoreContainerLabels: true,
+	ResctrlInterval:      0,
 
 	StorageDuration: 2 * time.Minute,
 
@@ -102,7 +99,23 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain Config
 	err := unmarshal((*plain)(c))
-	return err
+	if err != nil {
+		return err
+	}
+
+	// In the cadvisor cmd, these are passed as CSVs, and turned into slices using strings.split. As a result the
+	// default values are always a slice with 1 or more elements.
+	// See: https://github.com/google/cadvisor/blob/v0.43.0/cmd/cadvisor.go#L136
+	if len(c.AllowlistedContainerLabels) == 0 {
+		c.AllowlistedContainerLabels = []string{""}
+	}
+	if len(c.RawCgroupPrefixAllowlist) == 0 {
+		c.RawCgroupPrefixAllowlist = []string{""}
+	}
+	if len(c.EnvMetadataAllowlist) == 0 {
+		c.EnvMetadataAllowlist = []string{""}
+	}
+	return nil
 }
 
 // Name returns the name of the integration that this config represents.
