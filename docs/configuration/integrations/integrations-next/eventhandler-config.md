@@ -66,6 +66,7 @@ logs:
         password: YOUR_LOKI_API_KEY
       external_labels:
         cluster: "cloud"
+        job: "integrations/kubernetes/eventhandler"
     positions:
       filename: /tmp/positions0.yaml
   ## The following stanza is optional and used to configure another client to forward
@@ -194,6 +195,7 @@ data:
             password: YOUR_LOKI_API_KEY
           external_labels:
             cluster: "cloud"
+            job: "integrations/kubernetes/eventhandler"
         positions:
           filename: /tmp/positions0.yaml
       - name: eventhandler_logs
