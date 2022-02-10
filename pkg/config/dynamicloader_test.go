@@ -191,7 +191,7 @@ node_exporter:
 	for _, cfg := range configs {
 		switch v := cfg.(type) {
 		default:
-			fmt.Printf("unexpected type %T", v)
+			t.Errorf("unexpected type %T", v)
 		case v2.UpgradedConfig:
 			oldConfig, _ := v.LegacyConfig()
 			switch oc := oldConfig.(type) {
