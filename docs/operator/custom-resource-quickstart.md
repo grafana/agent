@@ -43,7 +43,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.22.0
+  image: grafana/agent:v0.23.0
   logLevel: info
   serviceAccountName: grafana-agent
   metrics:

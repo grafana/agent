@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+# v0.23.0 (2022-01-13)
+
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
 
 - [ENHANCEMENT] integrations-next: Add `extra_labels` to add a custom set of
