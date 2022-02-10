@@ -11,6 +11,8 @@ var DefaultGlobalConfig = GlobalConfig{
 type GlobalConfig struct {
 	Prometheus  config.GlobalConfig         `yaml:",inline"`
 	RemoteWrite []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
+
+	ExtraMetrics bool `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.

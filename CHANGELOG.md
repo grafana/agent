@@ -35,6 +35,8 @@ Main (unreleased)
   network. As a result of this change, the `client_config` field has been
   removed. (@rfratto)
 
+-  `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
+
 ### Other changes
 
 - Update base image of official Docker containers from Debian buster to Debian
