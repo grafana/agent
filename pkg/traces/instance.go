@@ -6,20 +6,22 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"go.opencensus.io/stats/view"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/service/external/builder"
+	"go.opentelemetry.io/collector/service/external/extensions"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
+
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/prometheus/client_golang/prometheus"
-	"go.opencensus.io/stats/view"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/service/external/builder"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
@@ -29,9 +31,10 @@ type Instance struct {
 	logger      *zap.Logger
 	metricViews []*view.View
 
-	exporter  builder.Exporters
-	pipelines builder.BuiltPipelines
-	receivers builder.Receivers
+	extensions extensions.Extensions
+	exporter   builder.Exporters
+	pipelines  builder.BuiltPipelines
+	receivers  builder.Receivers
 }
 
 // NewInstance creates and starts an instance of tracing pipelines.
@@ -86,6 +89,11 @@ func (i *Instance) stop() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	err := i.extensions.NotifyPipelineNotReady()
+	if err != nil {
+		i.logger.Error(fmt.Sprintf("failed to notify extension of pipeline shutdown"), zap.Error(err))
+	}
+
 	dependencies := []struct {
 		name     string
 		shutdown func() error
@@ -117,6 +125,15 @@ func (i *Instance) stop() {
 				return i.exporter.ShutdownAll(shutdownCtx)
 			},
 		},
+		{
+			name: "extensions",
+			shutdown: func() error {
+				if i.extensions == nil {
+					return nil
+				}
+				return i.extensions.ShutdownAll(shutdownCtx)
+			},
+		},
 	}
 
 	for _, dep := range dependencies {
@@ -129,6 +146,7 @@ func (i *Instance) stop() {
 	i.receivers = nil
 	i.pipelines = nil
 	i.exporter = nil
+	i.extensions = nil
 }
 
 func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager, reg prometheus.Registerer) error {
@@ -180,14 +198,28 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		MeterProvider:  metric.NewNoopMeterProvider(),
 	}
 
+	// start extensions
+	i.extensions, err = extensions.Build(settings, appinfo, otelConfig, factories.Extensions)
+	if err != nil {
+		i.logger.Error(fmt.Sprintf("failed to build extensions:%s", err.Error()))
+		return fmt.Errorf("failed to create extensions builder: %w", err)
+	}
+	i.logger.Info(fmt.Sprintf("starting extensions:%+v", i.extensions))
+	err = i.extensions.StartAll(ctx, i)
+	if err != nil {
+		i.logger.Error(fmt.Sprintf("failed to start extensions:%s", err.Error()))
+		return fmt.Errorf("failed to start extensions: %w", err)
+	}
+
 	// start exporter
 	i.exporter, err = builder.BuildExporters(settings, appinfo, otelConfig, factories.Exporters)
 	if err != nil {
 		return fmt.Errorf("failed to create exporters builder: %w", err)
 	}
-
+	i.logger.Info(fmt.Sprintf("starting exporters:%+v", i.exporter))
 	err = i.exporter.StartAll(ctx, i)
 	if err != nil {
+		i.logger.Error(fmt.Sprintf("failed to start exporter:%s", err.Error()))
 		return fmt.Errorf("failed to start exporters: %w", err)
 	}
 
@@ -213,6 +245,11 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		return fmt.Errorf("failed to start receivers: %w", err)
 	}
 
+	err = i.extensions.NotifyPipelineReady()
+	if err != nil {
+		fmt.Errorf("failed to notify extension: %w", err)
+	}
+
 	return nil
 }
 
@@ -228,7 +265,7 @@ func (i *Instance) GetFactory(component.Kind, config.Type) component.Factory {
 
 // GetExtensions implements component.Host
 func (i *Instance) GetExtensions() map[config.ComponentID]component.Extension {
-	return nil
+	return i.extensions.ToMap()
 }
 
 // GetExporters implements component.Host

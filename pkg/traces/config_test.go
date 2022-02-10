@@ -1117,6 +1117,7 @@ exporters:
     auth:
       authenticator: oauth2client/otlphttp0
 service:
+  extensions: ["oauth2client/otlphttp0"]
   pipelines:
     traces:
       exporters: ["otlphttp/0"]
@@ -1172,6 +1173,7 @@ exporters:
     auth:
       authenticator: oauth2client/otlphttp0
 service:
+  extensions: ["oauth2client/otlphttp0"]
   pipelines:
     traces:
       exporters: ["otlphttp/0"]
@@ -1183,45 +1185,45 @@ service:
 			name: "2 exporters different auth",
 			cfg: `
 receivers:
-  jaeger:
-    protocols:
-      grpc:
+ jaeger:
+   protocols:
+     grpc:
 remote_write:
-  - endpoint: example.com:12345
-    protocol: http
-    oauth2:
-      client_id: someclientid
-      client_secret: someclientsecret
-      token_url: https://example.com/oauth2/default/v1/token
-      scopes: ["api.metrics"]
-      timeout: 2s
-  - endpoint: example.com:12345
-    protocol: grpc
-    oauth2:
-      client_id: anotherclientid
-      client_secret: anotherclientsecret
-      token_url: https://example.com/oauth2/default/v1/token
-      scopes: ["api.metrics"]
-      timeout: 2s
+ - endpoint: example.com:12345
+   protocol: http
+   oauth2:
+     client_id: someclientid
+     client_secret: someclientsecret
+     token_url: https://example.com/oauth2/default/v1/token
+     scopes: ["api.metrics"]
+     timeout: 2s
+ - endpoint: example.com:12345
+   protocol: grpc
+   oauth2:
+     client_id: anotherclientid
+     client_secret: anotherclientsecret
+     token_url: https://example.com/oauth2/default/v1/token
+     scopes: ["api.metrics"]
+     timeout: 2s
 `,
 			expectedConfig: `
 receivers:
-  jaeger:
-    protocols:
-      grpc:
+ jaeger:
+   protocols:
+     grpc:
 extensions:
-  oauth2client/otlphttp0:
-    client_id: someclientid
-    client_secret: someclientsecret
-    token_url: https://example.com/oauth2/default/v1/token
-    scopes: ["api.metrics"]
-    timeout: 2s
-  oauth2client/otlp1:
-    client_id: anotherclientid
-    client_secret: anotherclientsecret
-    token_url: https://example.com/oauth2/default/v1/token
-    scopes: ["api.metrics"]
-    timeout: 2s
+ oauth2client/otlphttp0:
+   client_id: someclientid
+   client_secret: someclientsecret
+   token_url: https://example.com/oauth2/default/v1/token
+   scopes: ["api.metrics"]
+   timeout: 2s
+ oauth2client/otlp1:
+   client_id: anotherclientid
+   client_secret: anotherclientsecret
+   token_url: https://example.com/oauth2/default/v1/token
+   scopes: ["api.metrics"]
+   timeout: 2s
 exporters:
   otlphttp/0:
     endpoint: example.com:12345
@@ -1238,9 +1240,63 @@ exporters:
     auth:
       authenticator: oauth2client/otlp1
 service:
+  extensions: ["oauth2client/otlphttp0", "oauth2client/otlp1"]
   pipelines:
     traces:
       exporters: ["otlphttp/0", "otlp/1"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "exporter with insecure oauth",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: http://example.com:12345
+    insecure: true
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+      tls:
+        insecure: true
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+    tls:
+      insecure: true
+exporters:
+  otlphttp/0:
+    endpoint: http://example.com:12345
+    tls:
+      insecure: true
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+service:
+  extensions: ["oauth2client/otlphttp0"]
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0"]
       processors: []
       receivers: ["jaeger"]
 `,
@@ -1252,7 +1308,6 @@ service:
 			var cfg InstanceConfig
 			err := yaml.Unmarshal([]byte(tc.cfg), &cfg)
 			require.NoError(t, err)
-
 			// check error
 			actualConfig, err := cfg.otelConfig()
 			if tc.expectedError {

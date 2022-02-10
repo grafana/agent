@@ -521,6 +521,10 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	extensionsNames := make([]string, 0, len(extensions))
+	for name := range extensions {
+		extensionsNames = append(extensionsNames, name)
+	}
 
 	exporters, err := c.exporters()
 	if err != nil {
@@ -696,9 +700,13 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	otelMapStructure["receivers"] = receiversMap
 
 	// pipelines
-	otelMapStructure["service"] = map[string]interface{}{
+	serviceMap := map[string]interface{}{
 		"pipelines": pipelines,
 	}
+	if len(extensionsNames) > 0 {
+		serviceMap["extensions"] = extensionsNames
+	}
+	otelMapStructure["service"] = serviceMap
 
 	factories, err := tracingFactories()
 	if err != nil {
