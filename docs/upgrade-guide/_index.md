@@ -12,10 +12,6 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
-## v0.23.0
-
-Updated the Agent to require use Go >=1.17. If you're doing development work or building from source, you might need to upgrade your Go version.
-
 ## v0.22.0
 
 ### `node_exporter` integration deprecated field names
