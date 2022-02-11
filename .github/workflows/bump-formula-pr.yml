@@ -22,7 +22,7 @@ jobs:
         # Optional, if don't want to check for already open PRs
         force: false # true
   homebrew-grafana:
-    name: homebrew-core 
+    name: homebrew-grafana 
     runs-on: macos-latest
     steps:
     - name: Update Homebrew formula
