@@ -13,8 +13,6 @@ jobs:
       with:
         # Required, custom GitHub access token with the 'public_repo' and 'workflow' scopes
         token: ${{secrets.TOKEN}}
-        # Optional, will create tap repo fork in organization
-        org: ORG
         # Formula name, required
         formula: grafana-agent
         # Optional, will be determined automatically
