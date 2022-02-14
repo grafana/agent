@@ -91,7 +91,7 @@ func (i *Instance) stop() {
 
 	err := i.extensions.NotifyPipelineNotReady()
 	if err != nil {
-		i.logger.Error(fmt.Sprintf("failed to notify extension of pipeline shutdown"), zap.Error(err))
+		i.logger.Error("failed to notify extension of pipeline shutdown", zap.Error(err))
 	}
 
 	dependencies := []struct {
@@ -247,7 +247,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 
 	err = i.extensions.NotifyPipelineReady()
 	if err != nil {
-		fmt.Errorf("failed to notify extension: %w", err)
+		return fmt.Errorf("failed to notify extension: %w", err)
 	}
 
 	return nil

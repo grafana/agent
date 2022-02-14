@@ -164,7 +164,7 @@ var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Format:      formatOtlp,
 }
 
-// Configures the oauth2client extension TLS; compatible with configtls.TLSClientSetting
+// TLSClientSetting configures the oauth2client extension TLS; compatible with configtls.TLSClientSetting
 type TLSClientSetting struct {
 	CAFile             string `yaml:"ca_file,omitempty"`
 	CertFile           string `yaml:"cert_file,omitempty"`
@@ -176,7 +176,7 @@ type TLSClientSetting struct {
 	ServerName         string `yaml:"server_name_override,omitempty"`
 }
 
-// Configures the oauth2client extension for a remote_write exporter
+// OAuth2Config configures the oauth2client extension for a remote_write exporter
 // compatible with oauth2clientauthextension.Config
 type OAuth2Config struct {
 	ClientID     string           `yaml:"client_id"`
