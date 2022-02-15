@@ -8,6 +8,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/sourcemaps"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
@@ -28,21 +29,23 @@ type LokiExporterConfig struct {
 
 // LokiExporter is the struct of the loki exporter
 type LokiExporter struct {
-	li        lokiInstance
-	seTimeout time.Duration
-	logger    kitlog.Logger
-	labels    map[string]string
+	li             lokiInstance
+	seTimeout      time.Duration
+	logger         kitlog.Logger
+	labels         map[string]string
+	sourceMapStore *sourcemaps.SourceMapStore
 }
 
 // NewLokiExporter creates a new Loki loki exporter with the given
 // configuration
-func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig) AppO11yReceiverExporter {
+func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig, sourceMapStore *sourcemaps.SourceMapStore) AppO11yReceiverExporter {
 
 	return &LokiExporter{
-		logger:    logger,
-		li:        conf.LokiInstance,
-		seTimeout: time.Duration(conf.SendEntryTimeout),
-		labels:    conf.Labels,
+		logger:         logger,
+		li:             conf.LokiInstance,
+		seTimeout:      time.Duration(conf.SendEntryTimeout),
+		labels:         conf.Labels,
+		sourceMapStore: sourceMapStore,
 	}
 }
 
@@ -65,7 +68,8 @@ func (le *LokiExporter) Export(payload models.Payload) error {
 	}
 	// exceptions
 	for _, exception := range payload.Exceptions {
-		kv := exception.KeyVal()
+		transformedException := le.sourceMapStore.TransformException(&exception, payload.Meta.App.Release)
+		kv := transformedException.KeyVal()
 		utils.MergeKeyVal(kv, meta)
 		err = le.sendKeyValsToLogsPipeline(kv)
 	}

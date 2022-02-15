@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
-	loki "github.com/prometheus/common/model"
 )
 
 // Frame struct represents a single stacktrace frame
@@ -53,18 +52,6 @@ func (e Exception) String() string {
 		}
 	}
 	return stacktrace
-}
-
-// LabelSet creates the labels required to export the exception
-// int Loki
-func (e Exception) LabelSet() loki.LabelSet {
-	labels := make(loki.LabelSet, 3)
-
-	labels["kind"] = "exception"
-	labels["type"] = loki.LabelValue(e.Type)
-	labels["value"] = loki.LabelValue(e.Value)
-
-	return labels
 }
 
 // KeyVal representation of the exception object

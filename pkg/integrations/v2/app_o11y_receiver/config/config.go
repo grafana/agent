@@ -1,5 +1,7 @@
 package config
 
+import "time"
+
 const (
 	// DefaultRateLimitingRPS is the default value of Requests Per Second
 	// for ratelimiting
@@ -28,6 +30,12 @@ var DefaultConfig = AppO11yReceiverConfig{
 	LogsInstance:    "default",
 	LogsLabels:      map[string]string{},
 	LogsSendTimeout: 2000,
+	SourceMaps: SourceMapConfig{
+		Download:            false,
+		DownloadFromOrigins: []string{"*"},
+		DownloadTimeout:     time.Duration(1000000),
+		FileSystem:          nil,
+	},
 }
 
 // ServerConfig holds the receiver http server configuration
@@ -43,6 +51,19 @@ type RateLimitingConfig struct {
 	Burstiness int     `yaml:"burstiness,omitempty"`
 }
 
+type SourceMapFileLocation struct {
+	Path               string `yaml:"path"`
+	MinifiedPathPrefix string `yaml:"minified_path_prefix,omitempty"`
+}
+
+// SourceMapConfig configure source map locations
+type SourceMapConfig struct {
+	Download            bool                    `yaml:"download"`
+	DownloadFromOrigins []string                `yaml:"download_origins,omitempty"`
+	DownloadTimeout     time.Duration           `yaml:"download_timeout,omitempty"`
+	FileSystem          []SourceMapFileLocation `yaml:"filesystem,omitempty"`
+}
+
 // AppO11yReceiverConfig is the configuration struct of the
 // integration
 type AppO11yReceiverConfig struct {
@@ -54,6 +75,7 @@ type AppO11yReceiverConfig struct {
 	LogsInstance          string             `yaml:"logs_instance"`
 	LogsLabels            map[string]string  `yaml:"logs_labels"`
 	LogsSendTimeout       int                `yaml:"logs_send_timeout"`
+	SourceMaps            SourceMapConfig    `yaml:"sourcemaps"`
 }
 
 // UnmarshalYAML implements the Unmarshaller interface
