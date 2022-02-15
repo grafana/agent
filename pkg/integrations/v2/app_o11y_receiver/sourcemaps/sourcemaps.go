@@ -117,7 +117,7 @@ func (store *SourceMapStore) getSourceMapFromFileSystem(sourceURL string, releas
 	if len(sourceURL) == 0 || !strings.HasPrefix(sourceURL, fileconf.MinifiedPathPrefix) || strings.HasSuffix(sourceURL, "/") {
 		return nil, "", nil
 	}
-	pathParts := []string{strings.Replace(fileconf.Path, "{RELEASE}", release, 1)}
+	pathParts := []string{strings.Replace(fileconf.Path, "{RELEASE}", cleanForFilePath(release), 1)}
 	for _, part := range strings.Split(strings.TrimPrefix(sourceURL, fileconf.MinifiedPathPrefix), "/") {
 		if len(part) > 0 && part != "." && part != ".." {
 			pathParts = append(pathParts, part)
@@ -235,4 +235,8 @@ func (store *SourceMapStore) TransformException(ex *models.Exception, release st
 		Stacktrace: &models.Stacktrace{Frames: frames},
 		Timestamp:  ex.Timestamp,
 	}
+}
+
+func cleanForFilePath(x string) string {
+	return strings.TrimLeft(strings.ReplaceAll(strings.ReplaceAll(x, "\\", ""), "/", ""), ".")
 }
