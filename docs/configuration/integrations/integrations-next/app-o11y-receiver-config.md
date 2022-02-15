@@ -70,5 +70,46 @@ Full reference of options:
   # Timeout duration when sending an entry to Loki
   [logs_send_timeout: <number> | default = 2000]
 
+  # Sourcemap configuration for enabling stack trace transformation to original source locations
+  [sourcemaps: <sourcemap_config>]
+```
 
+## sourcemap_config
+
+```yaml
+# Wether agent should attempt to download compiled sources and source maps
+[download: <boolean> | default = false]
+
+# List of HTTP origins to download sourcemaps for
+[download_origins: []<string> | default = ["*"]]
+
+# Timeout for downloading compiled sources and sourcemaps
+[download_timeout: <duration> | default = "1s"]
+
+# Sourcemap locations on filesystem. Takes precedence over downloading if both methods are enabled
+[filesystem:
+  [- <sourcemap_file_location>]]
+```
+
+## sourcemap_file_location
+
+```yaml
+# Source URL prefix. If a minified source URL matches this prefix,
+# A filepath is constructed by removing the prefix, prepending path below and appending ".map".
+#
+# Example:
+#
+# minified_path_prefix = "https://my-app.dev/static/"
+# path = "/var/app/static/"
+#
+# Then given source url "https://my-app.dev/static/foo.js"
+# it will look for sourcemap at "/var/app/static/foo.js.map"
+
+minified_path_prefix: <string> 
+
+# Directory on file system that contains source maps. 
+# See above for more detailed explanation.
+# You can use "{RELEASE}" which will be replaced with
+# app.release meta property
+path: <string>
 ```
