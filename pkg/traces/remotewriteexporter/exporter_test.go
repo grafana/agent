@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/pdata"
@@ -103,16 +102,9 @@ func (m *mockManager) DeleteConfig(_ string) error { return nil }
 func (m *mockManager) Stop() {}
 
 type mockInstance struct {
+	instance.NoOpInstance
 	appender *mockAppender
 }
-
-func (m *mockInstance) Run(_ context.Context) error { return nil }
-
-func (m *mockInstance) Update(_ instance.Config) error { return nil }
-
-func (m *mockInstance) TargetsActive() map[string][]*scrape.Target { return nil }
-
-func (m *mockInstance) StorageDirectory() string { return "" }
 
 func (m *mockInstance) Appender(_ context.Context) storage.Appender {
 	if m.appender == nil {
