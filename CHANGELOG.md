@@ -2,6 +2,8 @@
 
 - [ENHANCEMENT] Strengthen readiness check for metrics instances. (@tpaschalis)
 
+- [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
+
 # v0.23.0 (2022-01-13)
 
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
@@ -41,7 +43,6 @@ This release has deprecations. Please read [DEPRECATION] entries and consult
 the [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for detailed information.
 
-- [FEATURE] Added argument support to GrafanaAgent Custom Resource Definition.
 
 - [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
    only HTTP/S is supported. Pass the `-enable-features=remote-configs` flag to turn this on. (@rlankfo)
