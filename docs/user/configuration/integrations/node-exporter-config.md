@@ -73,7 +73,7 @@ spec:
     securityContext:
       capabilities:
         add: ["SYS_TIME"]
-      priviliged: true
+      privileged: true
       runAsUser: 0
     volumeMounts:
     - name: rootfs
