@@ -372,21 +372,21 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 	return exporter, nil
 }
 
-func getExporterName(protocol string, format string) (string, error) {
+func getExporterName(index int, protocol string, format string) (string, error) {
 	switch format {
 	case formatOtlp:
 		switch protocol {
 		case protocolGRPC:
-			return "otlp", nil
+			return fmt.Sprintf("otlp/%d", index), nil
 		case protocolHTTP:
-			return "otlphttp", nil
+			return fmt.Sprintf("otlphttp/%d", index), nil
 		default:
 			return "", errors.New("unknown protocol, expected either 'http' or 'grpc'")
 		}
 	case formatJaeger:
 		switch protocol {
 		case protocolGRPC:
-			return "jaeger", nil
+			return fmt.Sprintf("jaeger/%d", index), nil
 		default:
 			return "", errors.New("unknown protocol, expected 'grpc'")
 		}
@@ -403,11 +403,10 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		exporterName, err := getExporterName(remoteWriteConfig.Protocol, remoteWriteConfig.Format)
+		exporterName, err := getExporterName(i, remoteWriteConfig.Protocol, remoteWriteConfig.Format)
 		if err != nil {
 			return nil, err
 		}
-		exporterName = fmt.Sprintf("%s/%d", exporterName, i)
 		if remoteWriteConfig.Oauth2 != nil {
 			exporter["auth"] = map[string]string{"authenticator": getAuthExtensionName(exporterName)}
 		}
@@ -427,7 +426,7 @@ func (c *InstanceConfig) extensions() (map[string]interface{}, error) {
 		if remoteWriteConfig.Oauth2 == nil {
 			continue
 		}
-		exporterName, err := getExporterName(remoteWriteConfig.Protocol, remoteWriteConfig.Format)
+		exporterName, err := getExporterName(i, remoteWriteConfig.Protocol, remoteWriteConfig.Format)
 		if err != nil {
 			return nil, err
 		}
@@ -435,7 +434,6 @@ func (c *InstanceConfig) extensions() (map[string]interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		exporterName = fmt.Sprintf("%s/%d", exporterName, i)
 		extensions[getAuthExtensionName(exporterName)] = oauthConfig
 	}
 	return extensions, nil
