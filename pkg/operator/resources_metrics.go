@@ -245,7 +245,7 @@ func generateMetricsStatefulSetSpec(
 	}
 
 	enableConfigReadAPI := d.Agent.Spec.EnableConfigReadAPI
-	if enableConfigReadAPI == true {
+	if enableConfigReadAPI {
 		agentArgs = append(agentArgs, "-config.enable-read-api")
 	}
 
