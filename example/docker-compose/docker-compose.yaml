@@ -1,7 +1,7 @@
 version: "2"
 services:
   agent:
-    image: grafana/agent:latest
+    image: grafana/agent:main
     volumes:
       - ./agent/config:/etc/agent-config
       - /var/log:/var/log
