@@ -72,6 +72,31 @@ remote_write:
     # the latter take precedence.
     [ insecure_skip_verify: <bool> | default = false ]
 
+    # Configures opentelemetry exporters to use the OpenTelemetry auth extension `oauth2clientauthextension`.
+    # Can not be used in combination with `basic_auth`.
+    # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/oauth2clientauthextension/README.md
+    oauth2:
+            # Configures the TLS settings specific to the oauth2 client
+                    # The client identifier issued to the oauth client
+                    [client_id: <string>]
+                    # The secret string associated with the oauth client
+                    [client_secret: <string>]
+                    # The resource server's token endpoint URL
+                    [token_url: <string>]
+                    # Optional, requested permissions associated with the oauth client
+                    [scopes: [<string>]]
+                    # Optional, specifies the timeout fetching tokens from the token_url. Default: no timeout
+                    [timeout: <duration>]
+              tls:
+                      # Disable validation of the server certificate.
+                              [ insecure: <bool> | default = false ]
+                              # Path to the CA cert. For a client this verifies the server certificate. If empty uses system root CA.
+                              [ca_file: <string>]
+                              # Path to the TLS cert to use for TLS required connections
+                              [cert_file: <string>]
+                              # Path to the TLS key to use for TLS required connections
+                              [key_file: <string>]
+
     # Controls TLS settings of the exporter's client. See https://github.com/open-telemetry/opentelemetry-collector/blob/v0.21.0/config/configtls/README.md
     # This should be used only if `insecure` is set to false
     tls_config:
@@ -91,31 +116,6 @@ remote_write:
       [ username: <string> ]
       [ password: <secret> ]
       [ password_file: <string> ]
-
-    # Configures opentelemetry exporters to use the OpenTelemetry auth extension `oauth2clientauthextension`.
-    # Can not be used in combination with `basic_auth`.
-    # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/oauth2clientauthextension/README.md
-    oauth2:
-    # Configures the TLS settings specific to the oauth2 client
-      # The client identifier issued to the oauth client
-      [client_id: <string>]
-      # The secret string associated with the oauth client
-      [client_secret: <string>]
-      # The resource server's token endpoint URL
-      [token_url: <string>]
-      # Optional, requested permissions associated with the oauth client
-      [scopes: [<string>]]
-      # Optional, specifies the timeout fetching tokens from the token_url. Default: no timeout
-      [timeout: <duration>]
-      tls:
-        # Disable validation of the server certificate.
-        [ insecure: <bool> | default = false ]
-        # Path to the CA cert. For a client this verifies the server certificate. If empty uses system root CA.
-        [ca_file: <string>]
-        # Path to the TLS cert to use for TLS required connections
-        [cert_file: <string>]
-        # Path to the TLS key to use for TLS required connections
-        [key_file: <string>]
 
     [ sending_queue: <otlpexporter.sending_queue> ]
     [ retry_on_failure: <otlpexporter.retry_on_failure> ]

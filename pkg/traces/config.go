@@ -173,7 +173,7 @@ type TLSClientSetting struct {
 	MaxVersion         string `yaml:"max_version,omitempty"`
 	Insecure           bool   `yaml:"insecure"`
 	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
-	ServerName         string `yaml:"server_name_override,omitempty"`
+	ServerNameOverride string `yaml:"server_name_override,omitempty"`
 }
 
 // OAuth2Config configures the oauth2client extension for a remote_write exporter

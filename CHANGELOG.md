@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] opentelemetry trace exporters can now be configured to support Oauth utilizing
+  the opentelemetry-collector-contrib oauth2clientauthextension. (@canuteson)
+
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
 
 - [ENHANCEMENT] integrations-next: Add `extra_labels` to add a custom set of

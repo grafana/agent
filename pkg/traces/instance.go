@@ -204,7 +204,6 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		i.logger.Error(fmt.Sprintf("failed to build extensions:%s", err.Error()))
 		return fmt.Errorf("failed to create extensions builder: %w", err)
 	}
-	i.logger.Info(fmt.Sprintf("starting extensions:%+v", i.extensions))
 	err = i.extensions.StartAll(ctx, i)
 	if err != nil {
 		i.logger.Error(fmt.Sprintf("failed to start extensions:%s", err.Error()))
@@ -216,7 +215,6 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	if err != nil {
 		return fmt.Errorf("failed to create exporters builder: %w", err)
 	}
-	i.logger.Info(fmt.Sprintf("starting exporters:%+v", i.exporter))
 	err = i.exporter.StartAll(ctx, i)
 	if err != nil {
 		i.logger.Error(fmt.Sprintf("failed to start exporter:%s", err.Error()))
@@ -245,12 +243,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		return fmt.Errorf("failed to start receivers: %w", err)
 	}
 
-	err = i.extensions.NotifyPipelineReady()
-	if err != nil {
-		return fmt.Errorf("failed to notify extension: %w", err)
-	}
-
-	return nil
+	return i.extensions.NotifyPipelineReady()
 }
 
 // ReportFatalError implements component.Host
