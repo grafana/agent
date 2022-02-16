@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +14,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/prometheus/prometheus/scrape"
-	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -135,26 +133,10 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 }
 
 type mockInstanceScrape struct {
+	instance.NoOpInstance
 	tgts map[string][]*scrape.Target
-}
-
-func (i *mockInstanceScrape) Run(ctx context.Context) error {
-	<-ctx.Done()
-	return nil
-}
-
-func (i *mockInstanceScrape) Update(_ instance.Config) error {
-	return nil
 }
 
 func (i *mockInstanceScrape) TargetsActive() map[string][]*scrape.Target {
 	return i.tgts
-}
-
-func (i *mockInstanceScrape) StorageDirectory() string {
-	return ""
-}
-
-func (i *mockInstanceScrape) Appender(ctx context.Context) storage.Appender {
-	return nil
 }
