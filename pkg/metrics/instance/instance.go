@@ -454,7 +454,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 // Ready returns true if the Instance has been initialized and is ready
 // to start scraping and delivering metrics.
 func (i *Instance) Ready() bool {
-	return true
+	return i.ready.Load()
 }
 
 // Update accepts a new Config for the Instance and will dynamically update any
