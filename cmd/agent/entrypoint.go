@@ -196,6 +196,12 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	})
 
 	mux.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
+		if !ep.promMetrics.Ready() {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Fprint(w, "Metrics are not ready yet.\n")
+
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Agent is Ready.\n")
 	})

@@ -3,6 +3,10 @@
 - [ENHANCEMENT] opentelemetry trace exporters can now be configured to support Oauth utilizing
   the opentelemetry-collector-contrib oauth2clientauthextension. (@canuteson)
 
+- [ENHANCEMENT] Strengthen readiness check for metrics instances. (@tpaschalis)
+
+# v0.23.0 (2022-01-13)
+
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
 
 - [ENHANCEMENT] integrations-next: Add `extra_labels` to add a custom set of
@@ -11,6 +15,8 @@
 - [ENHANCEMENT] The agent no longer appends duplicate exemplars. (@tpaschalis)
 
 - [ENHANCEMENT] Added Kubernetes eventhandler integration (@hjet)
+
+- [ENHANCEMENT] Enables sending of exemplars over remote write by default. (@rlankfo)
 
 - [BUGFIX] Fixed issue where Grafana Agent may panic if there is a very large
   WAL loading while old WALs are being deleted or the `/agent/api/v1/targets`
@@ -31,8 +37,6 @@
   instances or shutting down (@rfratto).
 
 - [BUGFIX] Fix issue with windows_exporter mssql collector crashing the agent. (@mattdurham)
-
-- [BUGFIX] Configure eventhandler integration "cluster" label using logs client (@hjet)
 
 # v0.22.0 (2022-01-13)
 
