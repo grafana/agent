@@ -244,6 +244,11 @@ func generateMetricsStatefulSetSpec(
 		"-reload-port=8081",
 	}
 
+	enableConfigReadAPI := d.Agent.Spec.EnableConfigReadAPI
+	if enableConfigReadAPI {
+		agentArgs = append(agentArgs, "-config.enable-read-api")
+	}
+
 	// NOTE(rfratto): the Prometheus Operator supports a ListenLocal to prevent a
 	// service from being created. Given the intent is that Agents can connect to
 	// each other, ListenLocal isn't currently supported and we always create a port.
