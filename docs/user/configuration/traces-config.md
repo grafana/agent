@@ -222,20 +222,22 @@ spanmetrics:
   # spanmetricsprocessor.
   [ latency_histogram_buckets: <spanmetricsprocessor.latency_histogram_buckets> ]
   [ dimensions: <spanmetricsprocessor.dimensions> ]
-
   # const_labels are labels that will always get applied to the exported
   # metrics.
   const_labels:
     [ <string>: <string>... ]
-
   # Metrics are namespaced to `traces_spanmetrics` by default.
   # They can be further namespaced, i.e. `{namespace}_traces_spanmetrics`
   [ namespace: <string> ]
-
   # metrics_instance is the metrics instance used to remote write metrics.
   [ metrics_instance: <string> ]
   # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
+  # send_timestamps uses the actual span's timestamp to record the metrics
+  # otherwise, time.Now() is used.
+  # Using span's timestamps can result in rejected metrics if these are:
+  # from the past, out of order, from the future.
+  [ send_timestamps: <bool> | default = false ]
 
 # tail_sampling supports tail-based sampling of traces in the agent.
 #
