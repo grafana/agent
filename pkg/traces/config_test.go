@@ -1687,7 +1687,9 @@ func sortPipelines(cfg *config.Config) {
 	var (
 		exp  = tracePipeline.Exporters
 		recv = tracePipeline.Receivers
+		ext  = cfg.Service.Extensions
 	)
 	sort.Slice(exp, func(i, j int) bool { return exp[i].String() > exp[j].String() })
 	sort.Slice(recv, func(i, j int) bool { return recv[i].String() > recv[j].String() })
+	sort.Slice(ext, func(i, j int) bool { return ext[i].String() > ext[j].String() })
 }
