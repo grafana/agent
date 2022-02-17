@@ -3,6 +3,7 @@
 * Date: 2021-11-02
 * Author: Robert Fratto (@rfratto)
 * PR: [grafana/agent#1055](https://github.com/grafana/agent/pull/1055)
+* Status: Implemented
 
 ## Summary
 
@@ -77,6 +78,7 @@ RFC PR proposals must at least:
   * The date the proposal was written
   * The list of authors, with their names and GitHub usernames
   * The PR where the proposal was posted
+  * The status of the proposal
 
 `0000-template.md` contains a template to use for writing proposals that
 conforms to these rules.
@@ -95,6 +97,23 @@ example sections in the RFC may be:
   were the alternatives?
 * Open Questions: What questions still need to be answered?
 * Prior Art: What was this proposal based on, if anything?
+
+#### RFC Status
+
+The "Status" field of an RFC must be one of the following:
+
+* Draft: This RFC is a work-in-progress and may change
+* Implemented: Relevant code for this RFC has been merged to the main branch
+* Deprecated: This RFC is no longer relevant to the current state of the
+  project
+
+RFCs may be merged in Draft state as work on them progresses. The _Draft_ state
+is intended to signal to readers that an RFC is in flux. Once all relevant code
+for an RFC is merged to main, the RFC may move to the _Implemented_ status.
+RFCs without code, such as this RFC, may immediately be set as Implemented.
+
+If, for any reason, an RFC becomes no longer relevant (deprecated by another
+RFC, code removed, etc.), its status should move to Deprecated.
 
 #### RFC Review
 
@@ -116,24 +135,13 @@ Google Doc proposals must be converted into an RFC proposal prior to formally
 accepting the proposal. Enforcing this ensures that historical context is
 recorded, though it is still not ideal as it discards comment history.
 
-## Approving Proposals
+## Accepting Proposals
 
 All readers are encouraged to engage in reviewing proposals. However, whether a
-proposal is approved is determined by [rough consensus][] of the Grafana Agent
+proposal is accepted is determined by [rough consensus][] of the Grafana Agent
 governance team. External contributors may eventually be invited to [join the
 governance team][governance] if they have a history of making ongoing
 contributions to the project or community.
-
-## Accepting Proposals
-
-RFCs are usually opened during the design process, and exploratory
-implementation work can lead to changes in the RFC.
-
-To avoid the need to frequently update merged RFCs, PRs that add RFCs should
-not be merged until any relevant code has been merged into the main branch.
-
-Similarly, issue-based proposals should remain open until any relevant code is
-merged into the main branch.
 
 ## Considered alternatives
 
