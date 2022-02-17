@@ -116,13 +116,24 @@ Google Doc proposals must be converted into an RFC proposal prior to formally
 accepting the proposal. Enforcing this ensures that historical context is
 recorded, though it is still not ideal as it discards comment history.
 
-## Accepting Proposals
+## Approving Proposals
 
 All readers are encouraged to engage in reviewing proposals. However, whether a
-proposal is accepted is determined by [rough consensus][] of the Grafana Agent
+proposal is approved is determined by [rough consensus][] of the Grafana Agent
 governance team. External contributors may eventually be invited to [join the
 governance team][governance] if they have a history of making ongoing
 contributions to the project or community.
+
+## Accepting Proposals
+
+RFCs are usually opened during the design process, and exploratory
+implementation work can lead to changes in the RFC.
+
+To avoid the need to frequently update merged RFCs, PRs that add RFCs should
+not be merged until any relevant code has been merged into the main branch.
+
+Similarly, issue-based proposals should remain open until any relevant code is
+merged into the main branch.
 
 ## Considered alternatives
 
