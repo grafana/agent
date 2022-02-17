@@ -65,6 +65,117 @@ local _config = config._config;
           },
         ],
       },
+      {
+        name: 'GrafanaAgentSmokeChecks',
+        rules: [
+          {
+            alert: 'GrafanaAgentDown',
+            expr: |||
+              up{
+                namespace="agent-smoke-test",
+                pod=~"grafana-agent-smoke-test-(0|cluster-0|cluster-1|cluster-2)",
+              } == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: '{{ $labels.job }} is down',
+            },
+          },
+          {
+            alert: 'GrafanaAgentFlapping',
+            expr: |||
+              avg_over_time(up{
+                namespace="agent-smoke-test"
+                pod=~"grafana-agent-smoke-test-(0|cluster-0|cluster-1|cluster-2)",
+              }[5m]) < 1
+            |||,
+            'for': '15m',
+            annotations: {
+              summary: '{{ $labels.job }} is flapping',
+            },
+          },
+
+          // Checks that the CPU usage doesn't go too high. This was generated
+          // from main where the CPU usage hovered around 2-3% per pod.
+          //
+          // TODO: something less guessworky here.
+          {
+            alert: 'GrafanaAgentCPUHigh',
+            expr: |||
+              rate(container_cpu_usage_seconds_total{namespace="agent-smoke-test", pod=~"grafana-agent-smoke-test.*"}[1m]) > 0.05
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: '{{ $labels.pod }} is using more than 5% CPU over the last 5 minutes',
+            },
+          },
+
+          // We assume roughly ~8KB per series. Check that each deployment
+          // doesn't go too far above this.
+          //
+          // We aggregate the memory of the scraping service together since an individual
+          // node with a really small number of active series will throw this metric off.
+          {
+            alert: 'GrafanaAgentMemHigh',
+            expr: |||
+              sum without (pod, instance) (go_memstats_heap_inuse_bytes{job=~"agent-smoke-test/grafana-agent-smoke-test.*"}) /
+              sum without (pod, instance, instance_group_name) (agent_wal_storage_active_series{job=~"agent-smoke-test/grafana-agent-smoke-test.*"}) / 1e3 > 10
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: '{{ $labels.job }} has used more than 10KB per series for more than 5 minutes',
+            },
+          },
+        ],
+      },
+      {
+        name: 'GrafanaAgentCrowChecks',
+        rules: [
+          {
+            alert: 'CrowDown',
+            expr: |||
+              up{job=~"agent-smoke-test/crow-.*"} == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Crow {{ $labels.job }} is down.',
+            },
+          },
+          {
+            alert: 'CrowFlapping',
+            expr: |||
+              avg_over_time(up{job=~"agent-smoke-test/crow-.*"}[5m]) < 1
+            |||,
+            'for': '15m',
+            annotations: {
+              summary: 'Crow {{ $labels.job }} is flapping.',
+            },
+          },
+          {
+            alert: 'CrowNotScraped',
+            expr: |||
+              rate(crow_test_samples_total[1m]) == 0
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Crow {{ $labels.job }} is not being scraped.',
+            },
+          },
+          {
+            alert: 'CrowFailures',
+            expr: |||
+              (
+                rate(crow_test_sample_results_total{result="success"}[1m])
+                / ignoring(result) rate(crow_test_samples_total[1m])
+              ) < 1
+            |||,
+            'for': '5m',
+            annotations: {
+              summary: 'Crow {{ $labels.job }} has had failures for at least 5m',
+            },
+          },
+        ],
+      },
     ],
   },
 }

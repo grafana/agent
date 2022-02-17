@@ -12,7 +12,7 @@ local rule = k.networking.v1beta1.ingressRule;
 local path = k.networking.v1beta1.httpIngressPath;
 
 
-local prometheus_monitoring = import 'grafana-agent/smoke/prometheus_monitoring.libsonnet';
+local prometheus_monitoring = import './prometheus_monitoring.libsonnet';
 
 {
   ns: namespace.new('monitoring'),
