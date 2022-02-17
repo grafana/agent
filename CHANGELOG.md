@@ -3,9 +3,14 @@
 - [ENHANCEMENT] opentelemetry trace exporters can now be configured to support Oauth utilizing
   the opentelemetry-collector-contrib oauth2clientauthextension. (@canuteson)
 
+- [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
+
 - [ENHANCEMENT] Strengthen readiness check for metrics instances. (@tpaschalis)
 
-- [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
+- [ENHANCEMENT] Add config parameter to send span timestamps with span-metrics'
+  remote write exporter (@mapno)
+
+- [BUGFIX] Protect concurrent writes to the WAL in the remote write exporter (@mapno) 
 
 # v0.23.0 (2022-01-13)
 
