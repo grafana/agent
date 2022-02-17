@@ -33,12 +33,12 @@ type LokiExporter struct {
 	seTimeout      time.Duration
 	logger         kitlog.Logger
 	labels         map[string]string
-	sourceMapStore *sourcemaps.SourceMapStore
+	sourceMapStore sourcemaps.SourceMapStore
 }
 
 // NewLokiExporter creates a new Loki loki exporter with the given
 // configuration
-func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig, sourceMapStore *sourcemaps.SourceMapStore) AppO11yReceiverExporter {
+func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig, sourceMapStore sourcemaps.SourceMapStore) AppO11yReceiverExporter {
 
 	return &LokiExporter{
 		logger:         logger,
@@ -66,6 +66,7 @@ func (le *LokiExporter) Export(payload models.Payload) error {
 		utils.MergeKeyVal(kv, meta)
 		err = le.sendKeyValsToLogsPipeline(kv)
 	}
+
 	// exceptions
 	for _, exception := range payload.Exceptions {
 		transformedException := le.sourceMapStore.TransformException(&exception, payload.Meta.App.Release)

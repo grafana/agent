@@ -3,6 +3,7 @@ package sourcemaps
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,8 +12,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
@@ -20,29 +21,71 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
+// SourceMapStore is interface for a sourcemap service capable of transforming
+// minified source locations to original source location
+type SourceMapStore interface {
+	ResolveSourceLocation(frame *models.Frame, release string) (*models.Frame, error)
+	TransformException(ex *models.Exception, release string) *models.Exception
+}
+
+// HTTPClient is interface for http client used to download original sources and sourcemaps
+type HTTPClient interface {
+	Get(url string) (resp *http.Response, err error)
+}
+
+// FileService is interface for a service that can be used to load source maps
+// from file system
+type FileService interface {
+	Stat(name string) (fs.FileInfo, error)
+	ReadFile(name string) ([]byte, error)
+}
+
+type osFileService struct{}
+
+func (s *osFileService) Stat(name string) (fs.FileInfo, error) {
+	return os.Stat(name)
+}
+
+func (s *osFileService) ReadFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
 var reSourceMap = "//[#@]\\s(source(?:Mapping)?URL)=\\s*(?P<url>\\S+)\n?$"
 
 type sourceMap struct {
 	consumer *sourcemap.Consumer
 }
 
-type SourceMapStore struct {
-	sync.Mutex
-	l      log.Logger
-	config config.SourceMapConfig
-	cache  map[string]*sourceMap
-}
+// NewSourceMapStore creates an instance of SourceMapStore
+func NewSourceMapStore(l log.Logger, config config.SourceMapConfig) SourceMapStore {
+	client := &http.Client{
+		Timeout: config.DownloadTimeout,
+	}
 
-func NewSourceMapStore(l log.Logger, config config.SourceMapConfig) *SourceMapStore {
-	return &SourceMapStore{
-		l:      l,
-		config: config,
-		cache:  make(map[string]*sourceMap),
+	fileService := &osFileService{}
+
+	return &RealSourceMapStore{
+		l:           l,
+		httpClient:  client,
+		fileService: fileService,
+		config:      config,
+		cache:       make(map[string]*sourceMap),
 	}
 }
 
-func downloadFileContents(client http.Client, url string) ([]byte, error) {
-	resp, err := client.Get(url)
+// RealSourceMapStore is an implementation of SourceMapStore
+// that can download source maps or read them from file system
+type RealSourceMapStore struct {
+	sync.Mutex
+	l           log.Logger
+	httpClient  HTTPClient
+	fileService FileService
+	config      config.SourceMapConfig
+	cache       map[string]*sourceMap
+}
+
+func (store *RealSourceMapStore) downloadFileContents(url string) ([]byte, error) {
+	resp, err := store.httpClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -57,19 +100,17 @@ func downloadFileContents(client http.Client, url string) ([]byte, error) {
 	return body, nil
 }
 
-func (store *SourceMapStore) downloadSourceMapContent(sourceURL string) (content []byte, resolvedSourceMapURL string, err error) {
+func (store *RealSourceMapStore) downloadSourceMapContent(sourceURL string) (content []byte, resolvedSourceMapURL string, err error) {
 	level.Debug(store.l).Log("msg", "attempting to download source file", "url", sourceURL)
-	client := http.Client{
-		Timeout: store.config.DownloadTimeout,
-	}
-	result, err := downloadFileContents(client, sourceURL)
+
+	result, err := store.downloadFileContents(sourceURL)
 	if err != nil {
 		level.Debug(store.l).Log("failed to download source file", "url", sourceURL, "err", err)
 		return nil, "", err
 	}
 	r := regexp.MustCompile(reSourceMap)
 	match := r.FindAllStringSubmatch(string(result), -1)
-	if match == nil || len(match) == 0 {
+	if len(match) == 0 {
 		level.Debug(store.l).Log("msg", "no sourcemap url found in source", "url", sourceURL)
 		return nil, "", nil
 	}
@@ -105,7 +146,7 @@ func (store *SourceMapStore) downloadSourceMapContent(sourceURL string) (content
 		level.Debug(store.l).Log("msg", "resolved absolute soure map url", "url", sourceURL, "sourceMapURL", resolvedSourceMapURL)
 	}
 	level.Debug(store.l).Log("msg", "attempting to download sourcemap file", "url", resolvedSourceMapURL)
-	result, err = downloadFileContents(client, resolvedSourceMapURL)
+	result, err = store.downloadFileContents(resolvedSourceMapURL)
 	if err != nil {
 		level.Debug(store.l).Log("failed to download source map file", "url", resolvedSourceMapURL, "err", err)
 		return nil, "", err
@@ -113,7 +154,7 @@ func (store *SourceMapStore) downloadSourceMapContent(sourceURL string) (content
 	return result, resolvedSourceMapURL, nil
 }
 
-func (store *SourceMapStore) getSourceMapFromFileSystem(sourceURL string, release string, fileconf config.SourceMapFileLocation) (content []byte, sourceMapURL string, err error) {
+func (store *RealSourceMapStore) getSourceMapFromFileSystem(sourceURL string, release string, fileconf config.SourceMapFileLocation) (content []byte, sourceMapURL string, err error) {
 	if len(sourceURL) == 0 || !strings.HasPrefix(sourceURL, fileconf.MinifiedPathPrefix) || strings.HasSuffix(sourceURL, "/") {
 		return nil, "", nil
 	}
@@ -125,18 +166,17 @@ func (store *SourceMapStore) getSourceMapFromFileSystem(sourceURL string, releas
 	}
 	mapFilePath := filepath.Join(pathParts...) + ".map"
 
-	if _, err := os.Stat(mapFilePath); err != nil {
+	if _, err := store.fileService.Stat(mapFilePath); err != nil {
 		level.Debug(store.l).Log("msg", "sourcemap not found on filesystem", "url", sourceURL, "file_path", mapFilePath)
 		return nil, "", nil
 	}
 	level.Debug(store.l).Log("msg", "sourcemap found on filesystem", "url", mapFilePath, "file_path", mapFilePath)
 
-	content, err = os.ReadFile(mapFilePath)
+	content, err = store.fileService.ReadFile(mapFilePath)
 	return content, sourceURL, err
 }
 
-func (store *SourceMapStore) getSourceMapContent(sourceURL string, release string) (content []byte, sourceMapURL string, err error) {
-
+func (store *RealSourceMapStore) getSourceMapContent(sourceURL string, release string) (content []byte, sourceMapURL string, err error) {
 	//attempt to find in fs
 	for _, fileconf := range store.config.FileSystem {
 		content, sourceMapURL, err = store.getSourceMapFromFileSystem(sourceURL, release, fileconf)
@@ -146,13 +186,13 @@ func (store *SourceMapStore) getSourceMapContent(sourceURL string, release strin
 	}
 
 	//attempt to download
-	if strings.HasPrefix(sourceURL, "http") && utils.URLMatchesOrigins(sourceMapURL, store.config.DownloadFromOrigins) {
+	if strings.HasPrefix(sourceURL, "http") && utils.URLMatchesOrigins(sourceURL, store.config.DownloadFromOrigins) {
 		return store.downloadSourceMapContent(sourceURL)
 	}
 	return nil, "", nil
 }
 
-func (store *SourceMapStore) getSourceMap(sourceURL string, release string) (*sourceMap, error) {
+func (store *RealSourceMapStore) getSourceMap(sourceURL string, release string) (*sourceMap, error) {
 	store.Lock()
 	defer store.Unlock()
 
@@ -183,7 +223,8 @@ func (store *SourceMapStore) getSourceMap(sourceURL string, release string) (*so
 	return nil, nil
 }
 
-func (store *SourceMapStore) ResolveSourceLocation(frame models.Frame, release string) (*models.Frame, error) {
+// ResolveSourceLocation resolves minified source location to original source location
+func (store *RealSourceMapStore) ResolveSourceLocation(frame *models.Frame, release string) (*models.Frame, error) {
 	smap, err := store.getSourceMap(frame.Filename, release)
 	if err != nil {
 		return nil, err
@@ -209,14 +250,15 @@ func (store *SourceMapStore) ResolveSourceLocation(frame models.Frame, release s
 	}, nil
 }
 
-func (store *SourceMapStore) TransformException(ex *models.Exception, release string) *models.Exception {
+// TransformException will attempt to resolved all monified source locations in the stacktrace with original source locations
+func (store *RealSourceMapStore) TransformException(ex *models.Exception, release string) *models.Exception {
 	if ex.Stacktrace == nil {
 		return ex
 	}
 	frames := []models.Frame{}
 
 	for _, frame := range ex.Stacktrace.Frames {
-		mappedFrame, err := store.ResolveSourceLocation(frame, release)
+		mappedFrame, err := store.ResolveSourceLocation(&frame, release)
 		if err != nil {
 			level.Error(store.l).Log("msg", "Error resolving stack trace frame source location", "err", err)
 			frames = append(frames, frame)

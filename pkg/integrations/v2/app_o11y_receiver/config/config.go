@@ -51,6 +51,7 @@ type RateLimitingConfig struct {
 	Burstiness int     `yaml:"burstiness,omitempty"`
 }
 
+// SourceMapFileLocation holds sourcemap location on file system
 type SourceMapFileLocation struct {
 	Path               string `yaml:"path"`
 	MinifiedPathPrefix string `yaml:"minified_path_prefix,omitempty"`

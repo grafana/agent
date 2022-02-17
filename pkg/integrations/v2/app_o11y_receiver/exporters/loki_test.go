@@ -37,6 +37,16 @@ func (i *testLokiInstance) SendEntry(entry api.Entry, dur time.Duration) bool {
 	return true
 }
 
+type NoOpSourceMapStore struct{}
+
+func (store *NoOpSourceMapStore) TransformException(ex *models.Exception, release string) *models.Exception {
+	return ex
+}
+
+func (store *NoOpSourceMapStore) ResolveSourceLocation(frame *models.Frame, release string) (*models.Frame, error) {
+	return frame, nil
+}
+
 func TestExportLogs(t *testing.T) {
 	inst := testLokiInstance{
 		Entries: []api.Entry{},
@@ -54,6 +64,7 @@ func TestExportLogs(t *testing.T) {
 			},
 			SendEntryTimeout: 100,
 		},
+		&NoOpSourceMapStore{},
 	)
 
 	payload := loadTestData(t, "payload.json")
