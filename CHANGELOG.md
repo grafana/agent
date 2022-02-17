@@ -1,5 +1,8 @@
 # Main (unreleased)
 
+- [ENHANCEMENT] opentelemetry trace exporters can now be configured to support Oauth utilizing
+  the opentelemetry-collector-contrib oauth2clientauthextension. (@canuteson)
+
 - [ENHANCEMENT] Strengthen readiness check for metrics instances. (@tpaschalis)
 
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
