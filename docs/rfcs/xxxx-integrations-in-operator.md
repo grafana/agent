@@ -7,6 +7,7 @@ weight: xxxx
 
 * Date: 2022-01-04
 * Author: Robert Fratto (@rfratto)
+* Status: Draft
 
 ## Background
 
@@ -140,8 +141,6 @@ integration pods:
 >   namespace: default
 > spec:
 >   name: kafka_exporter
->   type:
->     hasMetrics: true
 >   config: |
 >     ca_file: /etc/grafana-agent/secrets/kafka-ca-file
 >     # ...
