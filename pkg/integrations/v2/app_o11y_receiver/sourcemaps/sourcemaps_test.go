@@ -237,11 +237,11 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 		FileSystem: []config.SourceMapFileLocation{
 			{
 				MinifiedPathPrefix: "http://foo.com/",
-				Path:               "/var/build/latest/",
+				Path:               filepath.FromSlash("/var/build/latest/"),
 			},
 			{
 				MinifiedPathPrefix: "http://bar.com/",
-				Path:               "/var/build/{RELEASE}/",
+				Path:               filepath.FromSlash("/var/build/{RELEASE}/"),
 			},
 		},
 	}
@@ -250,8 +250,8 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 
 	fileService := &mockFileService{
 		files: map[string][]byte{
-			"/var/build/latest/foo.js.map": mapFile,
-			"/var/build/123/foo.js.map":    mapFile,
+			filepath.FromSlash("/var/build/latest/foo.js.map"): mapFile,
+			filepath.FromSlash("/var/build/123/foo.js.map"):    mapFile,
 		},
 	}
 
@@ -290,8 +290,15 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 
 	transformed := sourceMapStore.TransformException(exception, "123")
 
-	require.Equal(t, []string{"/var/build/latest/foo.js.map", "/var/build/latest/bar.js.map", "/var/build/123/foo.js.map"}, fileService.stats)
-	require.Equal(t, []string{"/var/build/latest/foo.js.map", "/var/build/123/foo.js.map"}, fileService.reads)
+	require.Equal(t, []string{
+		filepath.FromSlash("/var/build/latest/foo.js.map"),
+		filepath.FromSlash("/var/build/latest/bar.js.map"),
+		filepath.FromSlash("/var/build/123/foo.js.map"),
+	}, fileService.stats)
+	require.Equal(t, []string{
+		filepath.FromSlash("/var/build/latest/foo.js.map"),
+		filepath.FromSlash("/var/build/123/foo.js.map"),
+	}, fileService.reads)
 
 	expected := &models.Exception{
 		Stacktrace: &models.Stacktrace{
@@ -334,7 +341,7 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 		FileSystem: []config.SourceMapFileLocation{
 			{
 				MinifiedPathPrefix: "http://foo.com/",
-				Path:               "/var/build/latest/",
+				Path:               filepath.FromSlash("/var/build/latest/"),
 			},
 		},
 	}
@@ -343,7 +350,7 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 
 	fileService := &mockFileService{
 		files: map[string][]byte{
-			"/var/build/latest/foo.js.map": mapFile,
+			filepath.FromSlash("/var/build/latest/foo.js.map"): mapFile,
 		},
 	}
 
@@ -380,8 +387,8 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 
 	transformed := sourceMapStore.TransformException(exception, "123")
 
-	require.Equal(t, []string{"/var/build/latest/foo.js.map"}, fileService.stats)
-	require.Equal(t, []string{"/var/build/latest/foo.js.map"}, fileService.reads)
+	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.stats)
+	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.reads)
 	require.Equal(t, []string{"http://bar.com/foo.js", "http://bar.com/foo.js.map"}, httpClient.requests)
 
 	expected := &models.Exception{
