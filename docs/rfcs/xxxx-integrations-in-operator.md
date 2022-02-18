@@ -159,14 +159,35 @@ configure an integration to send its data to the appropriate instance.
 Users can refer to MetricsInstances and LogsInstance from the same resource
 hierarchy by `<namespace>/<name>` in their integration configs. This
 configuring `autoscrape` for collecting metrics from an exporter-based
-integration:
+integration.
+
+Given the following following resource hierarchy:
 
 > ```yaml
+> apiVersion: monitoring.grafana.com/v1alpha1
+> kind: GrafanaAgent
+> metadata:
+>   name: grafana-agent-example
+>   namespace: default
+>   labels:
+>     app: grafana-agent-example
+> spec:
+>   metrics:
+>     instanceSelector:
+>       matchLabels:
+>         agent: grafana-agent-example
+>   integrations:
+>     instanceSelector:
+>       matchLabels:
+>         agent: grafana-agent-example
+> ---
 > apiVersion: monitoring.grafana.com/v1alpha1
 > kind: MetricsInstance
 > metadata:
 >   name: primary
 >   namespace: default
+>   labels:
+>     app: grafana-agent-example
 > spec:
 >   remoteWrite:
 >   - url: http://prometheus:9090/api/v1/write
@@ -176,6 +197,8 @@ integration:
 > metadata:
 >   name: mysql
 >   namespace: default
+>   labels:
+>     app: grafana-agent-example
 > spec:
 >   name: mysqld_exporter
 >   config:
@@ -186,6 +209,23 @@ integration:
 >     data_source_name: root@(mysql.default:3306)/
 >     disable_collectors: [slave_status]
 > ```
+
+the Operator would generate the following agent config:
+
+```yaml
+metrics:
+  configs:
+  - name: default/primary
+    remote_write:
+    - url: http://prometheus:9090/api/v1/write
+integrations:
+  mysqld_exporter_configs:
+  - autoscrape:
+      enable: true
+      metrics_instance: default/primary
+    data_source_name: root@(mysql.default:3306)/
+    disable_collectors: [slave_status]
+```
 
 All integrations support some way of self-collecting their telemetry data. In
 the future, Integrations that support metrics could support being collected by
