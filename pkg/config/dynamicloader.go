@@ -149,7 +149,7 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 	// If integrations havent already been defined then we need to do
 	// some setup
 	if cfg.Integrations.configV2 == nil {
-		cfg.Integrations = DefaultVersionedIntegrations
+		cfg.Integrations = VersionedIntegrations{}
 		err = cfg.Integrations.setVersion(integrationsVersion2)
 		if err != nil {
 			returnErr = multierror.Append(returnErr, err)

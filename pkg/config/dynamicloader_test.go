@@ -276,19 +276,20 @@ windows_exporter:
 		TemplatePaths: []string{s3Url},
 	}
 	cmf := generateLoader(t, loaderCfg)
-
-	cfg, err := cmf.processIntegrations()
+	cfg := &Config{}
+	err := cmf.ProcessConfigs(cfg, nil)
 	assert.NoError(t, err)
-	assert.Len(t, cfg, 1)
+	assert.Len(t, cfg.Integrations.configV2.Configs, 1)
 	expectBase := `
-common:
-  autoscrape:
-    metric_relabel_configs:
-    - target_label: banana
-    - target_label: apple
-    - target_label: pear
+integrations:
+  windows_exporter:
+    autoscrape:
+      metric_relabel_configs:
+      - target_label: banana
+      - target_label: apple
+      - target_label: pear
 `
-	outBytes, err := yaml.Marshal(cfg[0])
+	outBytes, err := yaml.Marshal(cfg)
 	assert.NoError(t, err)
 	assert.NoError(t, subset.YAMLAssert([]byte(expectBase), outBytes))
 }
