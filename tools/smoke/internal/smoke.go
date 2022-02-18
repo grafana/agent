@@ -3,6 +3,7 @@ package smoke
 import (
 	"context"
 	"flag"
+	"fmt"
 	"time"
 
 	"github.com/go-kit/log"
@@ -21,6 +22,7 @@ type Smoke struct {
 type Config struct {
 	Kubeconfig        string
 	Namespace         string
+	PodPrefix         string
 	ChaosFrequency    time.Duration
 	MutationFrequency time.Duration
 }
@@ -29,6 +31,7 @@ type Config struct {
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.Namespace, "namespace", DefaultConfig.Namespace, "namespace smoke test should run in")
 	f.StringVar(&c.Kubeconfig, "kubeconfig", DefaultConfig.Kubeconfig, "absolute path to the kubeconfig file")
+	f.StringVar(&c.PodPrefix, "pod-prefix", DefaultConfig.PodPrefix, "prefix for grafana agent pods")
 	f.DurationVar(&c.ChaosFrequency, "chaos-frequency", DefaultConfig.ChaosFrequency, "chaos frequency duration")
 	f.DurationVar(&c.MutationFrequency, "mutation-frequency", DefaultConfig.MutationFrequency, "mutation frequency duration")
 }
@@ -37,6 +40,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 var DefaultConfig = Config{
 	Kubeconfig:        "",
 	Namespace:         "default",
+	PodPrefix:         "grafana-agent",
 	ChaosFrequency:    30 * time.Minute,
 	MutationFrequency: 5 * time.Minute,
 }
@@ -68,7 +72,7 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 				logger:    log.With(s.logger, "task", "delete_pod", "pod", "grafana-agent-0"),
 				clientset: clientset,
 				namespace: cfg.Namespace,
-				pod:       "grafana-agent-0",
+				pod:       fmt.Sprintf("%s-0", cfg.PodPrefix),
 			},
 			frequency: cfg.ChaosFrequency,
 		},
@@ -77,7 +81,7 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 				logger:    log.With(s.logger, "task", "delete_pod_by_selector"),
 				clientset: clientset,
 				namespace: cfg.Namespace,
-				selector:  "name=grafana-agent-cluster",
+				selector:  fmt.Sprintf("name=%s-cluster", cfg.PodPrefix),
 			},
 			frequency: cfg.ChaosFrequency,
 		},
