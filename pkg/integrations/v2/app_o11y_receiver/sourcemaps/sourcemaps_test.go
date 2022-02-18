@@ -109,7 +109,7 @@ func Test_RealSourceMapStore_DownloadSuccess(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	sourceMapStore := NewSourceMapStore(testLogger(t), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := mockException()
 
@@ -158,7 +158,7 @@ func Test_RealSourceMapStore_DownloadError(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	sourceMapStore := NewSourceMapStore(testLogger(t), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := mockException()
 
@@ -184,7 +184,7 @@ func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	sourceMapStore := NewSourceMapStore(testLogger(t), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := &models.Exception{
 		Stacktrace: &models.Stacktrace{
@@ -364,7 +364,7 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, fileService)
+	sourceMapStore := NewSourceMapStore(testLogger(t), conf, prometheus.NewRegistry(), httpClient, fileService)
 
 	exception := &models.Exception{
 		Stacktrace: &models.Stacktrace{
@@ -388,7 +388,7 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 	transformed := sourceMapStore.TransformException(exception, "123")
 
 	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.stats)
-	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.reads)
+	require.Equal(t, []string{filepath.FromSlash("/var/builsd/latest/foo.js.map")}, fileService.reads)
 	require.Equal(t, []string{"http://bar.com/foo.js", "http://bar.com/foo.js.map"}, httpClient.requests)
 
 	expected := &models.Exception{
@@ -411,4 +411,17 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 	}
 
 	require.Equal(t, *expected, *transformed)
+}
+
+type testLogWriter struct {
+	t *testing.T
+}
+
+func (w *testLogWriter) Write(p []byte) (n int, err error) {
+	w.t.Log(string(p))
+	return len(p), nil
+}
+
+func testLogger(t *testing.T) log.Logger {
+	return log.NewSyncLogger(log.NewLogfmtLogger(&testLogWriter{t}))
 }
