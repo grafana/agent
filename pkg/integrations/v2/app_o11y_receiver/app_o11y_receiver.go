@@ -85,7 +85,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		return nil, err
 	}
 	sourcemapLogger := log.With(l, "subcomponent", "sourcemaps")
-	sourcemapStore := sourcemaps.NewSourceMapStore(sourcemapLogger, c.ExporterConfig.SourceMaps)
+	sourcemapStore := sourcemaps.NewSourceMapStore(sourcemapLogger, c.ExporterConfig.SourceMaps, reg, nil, nil)
 
 	logsInstance := globals.Logs.Instance(c.ExporterConfig.LogsInstance)
 	lokiExporter := exporters.NewLokiExporter(
