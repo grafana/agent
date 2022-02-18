@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vincent-petithory/dataurl"
 )
 
@@ -56,21 +57,10 @@ type sourceMap struct {
 	consumer *sourcemap.Consumer
 }
 
-// NewSourceMapStore creates an instance of SourceMapStore
-func NewSourceMapStore(l log.Logger, config config.SourceMapConfig) SourceMapStore {
-	client := &http.Client{
-		Timeout: config.DownloadTimeout,
-	}
-
-	fileService := &osFileService{}
-
-	return &RealSourceMapStore{
-		l:           l,
-		httpClient:  client,
-		fileService: fileService,
-		config:      config,
-		cache:       make(map[string]*sourceMap),
-	}
+type sourceMapMetrics struct {
+	cacheSize *prometheus.CounterVec
+	downloads *prometheus.CounterVec
+	fileReads *prometheus.CounterVec
 }
 
 // RealSourceMapStore is an implementation of SourceMapStore
@@ -82,13 +72,55 @@ type RealSourceMapStore struct {
 	fileService FileService
 	config      config.SourceMapConfig
 	cache       map[string]*sourceMap
+	metrics     *sourceMapMetrics
+}
+
+// NewSourceMapStore creates an instance of SourceMapStore.
+// httpClient and fileService will be instantiated to defaults if nil is provided
+func NewSourceMapStore(l log.Logger, config config.SourceMapConfig, reg *prometheus.Registry, httpClient HTTPClient, fileService FileService) SourceMapStore {
+	if httpClient == nil {
+		httpClient = &http.Client{
+			Timeout: config.DownloadTimeout,
+		}
+	}
+
+	if fileService == nil {
+		fileService = &osFileService{}
+	}
+
+	metrics := &sourceMapMetrics{
+		cacheSize: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "app_o11y_receiver_sourcemap_cache_size",
+			Help: "number of items in sourcemap cache, per origin",
+		}, []string{"origin"}),
+		downloads: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "app_o11y_receiver_sourcemap_downloads",
+			Help: "downloads by the sourcemap service",
+		}, []string{"origin", "http_status"}),
+		fileReads: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "app_o11y_receiver_sourcemap_file_reads",
+			Help: "",
+		}, []string{"origin", "status"}),
+	}
+	reg.MustRegister(metrics.cacheSize, metrics.downloads, metrics.fileReads)
+
+	return &RealSourceMapStore{
+		l:           l,
+		httpClient:  httpClient,
+		fileService: fileService,
+		config:      config,
+		cache:       make(map[string]*sourceMap),
+		metrics:     metrics,
+	}
 }
 
 func (store *RealSourceMapStore) downloadFileContents(url string) ([]byte, error) {
 	resp, err := store.httpClient.Get(url)
 	if err != nil {
+		store.metrics.downloads.WithLabelValues(getOrigin(url), "?").Inc()
 		return nil, err
 	}
+	store.metrics.downloads.WithLabelValues(getOrigin(url), fmt.Sprint(resp.StatusCode)).Inc()
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("unexpected status %v", resp.StatusCode)
 	}
@@ -167,12 +199,18 @@ func (store *RealSourceMapStore) getSourceMapFromFileSystem(sourceURL string, re
 	mapFilePath := filepath.Join(pathParts...) + ".map"
 
 	if _, err := store.fileService.Stat(mapFilePath); err != nil {
+		store.metrics.fileReads.WithLabelValues(getOrigin(sourceURL), "not_found").Inc()
 		level.Debug(store.l).Log("msg", "sourcemap not found on filesystem", "url", sourceURL, "file_path", mapFilePath)
 		return nil, "", nil
 	}
 	level.Debug(store.l).Log("msg", "sourcemap found on filesystem", "url", mapFilePath, "file_path", mapFilePath)
 
 	content, err = store.fileService.ReadFile(mapFilePath)
+	if err != nil {
+		store.metrics.fileReads.WithLabelValues(getOrigin(sourceURL), "error").Inc()
+	} else {
+		store.metrics.fileReads.WithLabelValues(getOrigin(sourceURL), "ok").Inc()
+	}
 	return content, sourceURL, err
 }
 
@@ -218,6 +256,7 @@ func (store *RealSourceMapStore) getSourceMap(sourceURL string, release string) 
 			consumer: consumer,
 		}
 		store.cache[cacheKey] = smap
+		store.metrics.cacheSize.WithLabelValues(getOrigin(sourceURL)).Inc()
 		return smap, nil
 	}
 	return nil, nil
@@ -281,4 +320,12 @@ func (store *RealSourceMapStore) TransformException(ex *models.Exception, releas
 
 func cleanForFilePath(x string) string {
 	return strings.TrimLeft(strings.ReplaceAll(strings.ReplaceAll(x, "\\", ""), "/", ""), ".")
+}
+
+func getOrigin(URL string) string {
+	parsed, err := url.Parse(URL)
+	if err != nil {
+		return "?"
+	}
+	return fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host)
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -108,13 +109,7 @@ func Test_RealSourceMapStore_DownloadSuccess(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := &RealSourceMapStore{
-		l:           log.NewNopLogger(),
-		httpClient:  httpClient,
-		config:      conf,
-		fileService: &mockFileService{},
-		cache:       make(map[string]*sourceMap),
-	}
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := mockException()
 
@@ -163,13 +158,7 @@ func Test_RealSourceMapStore_DownloadError(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := &RealSourceMapStore{
-		l:           log.NewNopLogger(),
-		httpClient:  httpClient,
-		config:      conf,
-		fileService: &mockFileService{},
-		cache:       make(map[string]*sourceMap),
-	}
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := mockException()
 
@@ -195,13 +184,7 @@ func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := &RealSourceMapStore{
-		l:           log.NewNopLogger(),
-		httpClient:  httpClient,
-		config:      conf,
-		fileService: &mockFileService{},
-		cache:       make(map[string]*sourceMap),
-	}
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := &models.Exception{
 		Stacktrace: &models.Stacktrace{
@@ -272,13 +255,7 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := &RealSourceMapStore{
-		l:           log.NewNopLogger(),
-		httpClient:  &mockHTTPClient{},
-		config:      conf,
-		fileService: fileService,
-		cache:       make(map[string]*sourceMap),
-	}
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
 
 	exception := &models.Exception{
 		Stacktrace: &models.Stacktrace{
@@ -380,13 +357,7 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := &RealSourceMapStore{
-		l:           log.NewNopLogger(),
-		httpClient:  httpClient,
-		config:      conf,
-		fileService: fileService,
-		cache:       make(map[string]*sourceMap),
-	}
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, fileService)
 
 	exception := &models.Exception{
 		Stacktrace: &models.Stacktrace{
