@@ -19,6 +19,7 @@ local deployment = k.apps.v1.deployment;
             chaosFrequency: '30m',
             image: this._images.agentsmoke,
             pull_secret: '',
+            podPrefix: 'grafana-agent',
         } + config,
 
         rbac:
@@ -42,6 +43,7 @@ local deployment = k.apps.v1.deployment;
             'namespace': namespace,
             'mutation-frequency': this._config.mutationFrequency,
             'chaos-frequency': this._config.chaosFrequency,
+            'pod-prefix': this._config.podPrefix,
           })),
 
         agentsmoke_deployment:
