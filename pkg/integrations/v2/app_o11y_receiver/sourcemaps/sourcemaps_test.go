@@ -388,7 +388,7 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 	transformed := sourceMapStore.TransformException(exception, "123")
 
 	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.stats)
-	require.Equal(t, []string{filepath.FromSlash("/var/builsd/latest/foo.js.map")}, fileService.reads)
+	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.reads)
 	require.Equal(t, []string{"http://bar.com/foo.js", "http://bar.com/foo.js.map"}, httpClient.requests)
 
 	expected := &models.Exception{
