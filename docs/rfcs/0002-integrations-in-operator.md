@@ -1,8 +1,3 @@
----
-title: Integrations in Grafana Agent Operator
-weight: xxxx
----
-
 # Integrations in Grafana Agent Operator
 
 * Date: 2022-01-04
