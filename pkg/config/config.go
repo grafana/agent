@@ -221,7 +221,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return errors.Wrap(err, "error reading config file")
+		return fmt.Errorf("error reading config file %s", err.Error())
 	}
 	return LoadBytes(buf, expandEnvVars, c)
 }

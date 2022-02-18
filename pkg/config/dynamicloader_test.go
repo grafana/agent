@@ -13,6 +13,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/agent/pkg/util/subset"
 	"gopkg.in/yaml.v2"
 
@@ -36,7 +38,7 @@ func TestConfigMaker(t *testing.T) {
 	}
 	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processMetric()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, configs)
 	assert.Equal(t, configs.WALDir, "/tmp/wal")
 }
@@ -53,7 +55,7 @@ func TestConfigMakerWithFakeFiles(t *testing.T) {
 	}
 	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processMetric()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, configs)
 	assert.Equal(t, configs.WALDir, "/tmp/wal")
 }
@@ -94,7 +96,7 @@ log_level: debug
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
 	err := cmf.ProcessConfigs(cfg, nil)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, cfg.Metrics.Configs, 2)
 }
 
@@ -113,7 +115,7 @@ windows_exporter:
 	}
 	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 	assert.True(t, wincfg.(*windows_exporter.Config).EnabledCollectors == "one,two,three")
@@ -161,7 +163,7 @@ windows_exporter:
 	}
 	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 	assert.True(t, wincfg.(*windows_exporter.Config).EnabledCollectors == "banana")
@@ -186,7 +188,7 @@ node_exporter:
 	}
 	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, configs, 2)
 	for _, cfg := range configs {
 		switch v := cfg.(type) {
@@ -218,7 +220,7 @@ windows_exporter:
 	}
 	cmf := generateLoader(t, loaderCfg)
 	cfg, err := cmf.processIntegrations()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, cfg, 1)
 	oc, _ := cfg[0].(v2.UpgradedConfig).LegacyConfig()
 	winCfg := oc.(*windows_exporter.Config)
@@ -244,7 +246,7 @@ windows_exporter:
 	}
 	cmf := generateLoader(t, loaderCfg)
 	cfg, err := cmf.processIntegrations()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, cfg, 1)
 	oc, _ := cfg[0].(v2.UpgradedConfig).LegacyConfig()
 	winCfg := oc.(*windows_exporter.Config)
@@ -278,7 +280,7 @@ windows_exporter:
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
 	err := cmf.ProcessConfigs(cfg, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, cfg.Integrations.configV2.Configs, 1)
 	expectBase := `
 integrations:
@@ -290,7 +292,7 @@ integrations:
       - target_label: pear
 `
 	outBytes, err := yaml.Marshal(cfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, subset.YAMLAssert([]byte(expectBase), outBytes))
 }
 
@@ -315,7 +317,7 @@ redis_exporter_configs:
 	}
 	cmf := generateLoader(t, loaderCfg)
 	configs, err := cmf.processIntegrations()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, configs, 2)
 }
 
@@ -338,7 +340,7 @@ configs:
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
 	err := cmf.ProcessConfigs(cfg, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, cfg.Traces)
 	assert.Len(t, cfg.Traces.Configs, 1)
 	assert.True(t, cfg.Traces.Configs[0].Name == "test_traces")
@@ -368,7 +370,7 @@ configs:
 
 	cfg := &Config{}
 	err := cmf.ProcessConfigs(cfg, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, cfg.Logs)
 	assert.Len(t, cfg.Logs.Configs, 1)
 	assert.True(t, cfg.Logs.Configs[0].Name == "test_logs")
@@ -389,7 +391,7 @@ log_level: debug
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
 	err := cmf.ProcessConfigs(cfg, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, cfg.Server)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
 	assert.True(t, cfg.Server.LogLevel.String() == "debug")
@@ -419,11 +421,9 @@ integrations:
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
 	err := cmf.ProcessConfigs(cfg, nil)
-	assert.NoError(t, err)
-	assert.NotNil(t, cfg.Server)
+	require.NoError(t, err)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
 	assert.True(t, cfg.Server.LogLevel.String() == "debug")
-	assert.NotNil(t, cfg.Metrics)
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
 	assert.False(t, cfg.Integrations.IsZero())
@@ -458,11 +458,9 @@ windows_exporter: {}
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
 	err := cmf.ProcessConfigs(cfg, nil)
-	assert.NoError(t, err)
-	assert.NotNil(t, cfg.Server)
+	require.NoError(t, err)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
 	assert.True(t, cfg.Server.LogLevel.String() == "debug")
-	assert.NotNil(t, cfg.Metrics)
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
 	assert.False(t, cfg.Integrations.IsZero())
@@ -542,7 +540,7 @@ configs:
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
 	err := cmf.ProcessConfigs(cfg, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// Test Agent by checking integration configs is 2
 
 	// Test server override
@@ -563,14 +561,14 @@ configs:
 func writeFile(t *testing.T, directory string, path string, contents string) {
 	fullpath := filepath.Join(directory, path)
 	err := ioutil.WriteFile(fullpath, []byte(contents), 0666)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func generateLoader(t *testing.T, lc LoaderConfig) *DynamicLoader {
 	cmf, err := NewDynamicLoader()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = cmf.LoadConfig(lc)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return cmf
 }
 
@@ -584,7 +582,7 @@ func generateFilePath(directory string) string {
 
 func generatePath(t *testing.T) string {
 	tDir, err := os.MkdirTemp("", "*-test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Cleanup(func() { _ = os.RemoveAll(tDir) })
 	return tDir
 }
