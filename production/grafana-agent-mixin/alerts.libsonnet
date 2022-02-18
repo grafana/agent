@@ -85,7 +85,7 @@ local _config = config._config;
             alert: 'GrafanaAgentFlapping',
             expr: |||
               avg_over_time(up{
-                namespace="agent-smoke-test"
+                namespace="agent-smoke-test",
                 pod=~"grafana-agent-smoke-test-(0|cluster-0|cluster-1|cluster-2)",
               }[5m]) < 1
             |||,
