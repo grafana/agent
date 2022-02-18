@@ -92,7 +92,7 @@ func mockException() *models.Exception {
 	}
 }
 
-func TestRealSourceMapStoreDownloadSuccess(t *testing.T) {
+func Test_RealSourceMapStore_DownloadSuccess(t *testing.T) {
 	conf := config.SourceMapConfig{
 		Download:            true,
 		DownloadFromOrigins: []string{"*"},
@@ -144,7 +144,7 @@ func TestRealSourceMapStoreDownloadSuccess(t *testing.T) {
 	require.Equal(t, *expected, *transformed)
 }
 
-func TestRealSourceMapStoreDownloadError(t *testing.T) {
+func Test_RealSourceMapStore_DownloadError(t *testing.T) {
 	conf := config.SourceMapConfig{
 		Download:            true,
 		DownloadFromOrigins: []string{"*"},
@@ -179,7 +179,7 @@ func TestRealSourceMapStoreDownloadError(t *testing.T) {
 	require.Equal(t, exception, transformed)
 }
 
-func TestRealSourceMapStoreDownloadHTTPOriginFiltering(t *testing.T) {
+func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 	conf := config.SourceMapConfig{
 		Download:            true,
 		DownloadFromOrigins: []string{"http://bar.com/"},
@@ -248,7 +248,7 @@ func TestRealSourceMapStoreDownloadHTTPOriginFiltering(t *testing.T) {
 	require.Equal(t, *expected, *transformed)
 }
 
-func TestRealSourceMapStoreReadFromFileSystem(t *testing.T) {
+func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 	conf := config.SourceMapConfig{
 		Download: false,
 		FileSystem: []config.SourceMapFileLocation{
@@ -350,7 +350,7 @@ func TestRealSourceMapStoreReadFromFileSystem(t *testing.T) {
 	require.Equal(t, *expected, *transformed)
 }
 
-func TestRealSourceMapStoreReadFromFileSystemAndDownload(t *testing.T) {
+func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 	conf := config.SourceMapConfig{
 		Download:            true,
 		DownloadFromOrigins: []string{"*"},
