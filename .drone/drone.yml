@@ -161,6 +161,7 @@ steps:
     image: alpine
     commands:
       - apk update && apk add git
+      - echo "$(sh ./tools/image-tag)" > .tag-only
       - echo "grafana/agent:$(sh ./tools/image-tag)" > .image-tag
   - name: Update Deployment Tools
     image: us.gcr.io/kubernetes-dev/drone/plugins/updater
@@ -179,7 +180,12 @@ steps:
               "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
               "jsonnet_key": "dev_canary",
               "jsonnet_value_file": ".image-tag"
-            }
+            },
+            {
+              "file_path": "ksonnet/environments/agent-smoke-test/dev-us-central-0.agent-smoke-test/main.jsonnet",
+              "jsonnet_key": "image_tag",
+              "jsonnet_value_file": ".tag-only"
+            },
           ]
         }
       github_token:
@@ -265,6 +271,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: f59c8b25058782d021a2d6bdc1fc59a049f3b352fb41de6a14c28fd05f578073
+hmac: 3ef90dcc6f804d18a7facecf2caa4ce44f52062aa060ac36f34c9f502efa00e2
 
 ...
