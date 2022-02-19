@@ -185,7 +185,7 @@ steps:
               "file_path": "ksonnet/environments/agent-smoke-test/dev-us-central-0.agent-smoke-test/main.jsonnet",
               "jsonnet_key": "image_tag",
               "jsonnet_value_file": ".tag-only"
-            },
+            }
           ]
         }
       github_token:
@@ -271,6 +271,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 3ef90dcc6f804d18a7facecf2caa4ce44f52062aa060ac36f34c9f502efa00e2
+hmac: 3da266cfeead0295f439b0ec44ba62b6b9c53f2774aef54fe58585e4d51d8990
 
 ...
