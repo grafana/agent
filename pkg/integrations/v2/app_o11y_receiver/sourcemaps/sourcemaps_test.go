@@ -25,6 +25,15 @@ type mockHTTPClient struct {
 	requests []string
 }
 
+func (cl *mockHTTPClient) Get(url string) (resp *http.Response, err error) {
+	if len(cl.responses) > len(cl.requests) {
+		r := cl.responses[len(cl.requests)]
+		cl.requests = append(cl.requests, url)
+		return r.Response, r.error
+	}
+	return nil, errors.New("mockHTTPClient got more requests than expected")
+}
+
 type mockFileService struct {
 	files map[string][]byte
 	stats []string
@@ -47,12 +56,6 @@ func (s *mockFileService) ReadFile(name string) ([]byte, error) {
 		return content, nil
 	}
 	return nil, errors.New("file not found")
-}
-
-func (cl *mockHTTPClient) Get(url string) (resp *http.Response, err error) {
-	r := cl.responses[len(cl.requests)]
-	cl.requests = append(cl.requests, url)
-	return r.Response, r.error
 }
 
 func loadTestData(t *testing.T, file string) []byte {
@@ -109,7 +112,7 @@ func Test_RealSourceMapStore_DownloadSuccess(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(testLogger(t), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := mockException()
 
@@ -158,7 +161,7 @@ func Test_RealSourceMapStore_DownloadError(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(testLogger(t), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := mockException()
 
@@ -184,7 +187,7 @@ func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(testLogger(t), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
 	exception := &models.Exception{
 		Stacktrace: &models.Stacktrace{
@@ -364,7 +367,7 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 		},
 	}
 
-	sourceMapStore := NewSourceMapStore(testLogger(t), conf, prometheus.NewRegistry(), httpClient, fileService)
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, fileService)
 
 	exception := &models.Exception{
 		Stacktrace: &models.Stacktrace{
@@ -413,15 +416,78 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 	require.Equal(t, *expected, *transformed)
 }
 
-type testLogWriter struct {
-	t *testing.T
+func Test_RealSourceMapStore_FilepathSanitized(t *testing.T) {
+	conf := config.SourceMapConfig{
+		Download: false,
+		FileSystem: []config.SourceMapFileLocation{
+			{
+				MinifiedPathPrefix: "http://foo.com/",
+				Path:               filepath.FromSlash("/var/build/latest/"),
+			},
+		},
+	}
+
+	fileService := &mockFileService{}
+
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
+
+	exception := &models.Exception{
+		Stacktrace: &models.Stacktrace{
+			Frames: []models.Frame{
+				{
+					Colno:    6,
+					Filename: "http://foo.com/../../../etc/passwd",
+					Function: "eval",
+					Lineno:   5,
+				},
+			},
+		},
+	}
+
+	transformed := sourceMapStore.TransformException(exception, "123")
+
+	require.Equal(t, []string{
+		filepath.FromSlash("/var/build/latest/etc/passwd.map"),
+	}, fileService.stats)
+	require.Len(t, fileService.reads, 0)
+
+	require.Equal(t, *exception, *transformed)
 }
 
-func (w *testLogWriter) Write(p []byte) (n int, err error) {
-	w.t.Log(string(p))
-	return len(p), nil
-}
+func Test_RealSourceMapStore_FilepathQueryParamsOmitted(t *testing.T) {
+	conf := config.SourceMapConfig{
+		Download: false,
+		FileSystem: []config.SourceMapFileLocation{
+			{
+				MinifiedPathPrefix: "http://foo.com/",
+				Path:               filepath.FromSlash("/var/build/latest/"),
+			},
+		},
+	}
 
-func testLogger(t *testing.T) log.Logger {
-	return log.NewSyncLogger(log.NewLogfmtLogger(&testLogWriter{t}))
+	fileService := &mockFileService{}
+
+	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
+
+	exception := &models.Exception{
+		Stacktrace: &models.Stacktrace{
+			Frames: []models.Frame{
+				{
+					Colno:    6,
+					Filename: "http://foo.com/static/foo.js?v=1233",
+					Function: "eval",
+					Lineno:   5,
+				},
+			},
+		},
+	}
+
+	transformed := sourceMapStore.TransformException(exception, "123")
+
+	require.Equal(t, []string{
+		filepath.FromSlash("/var/build/latest/static/foo.js.map"),
+	}, fileService.stats)
+	require.Len(t, fileService.reads, 0)
+
+	require.Equal(t, *exception, *transformed)
 }
