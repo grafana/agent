@@ -9,7 +9,6 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/snmp_exporter/collector"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
@@ -17,7 +16,7 @@ import (
 
 var (
 	// SnmpDuration collects duration
-	SnmpDuration = promauto.NewSummaryVec(
+	SnmpDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
 			Name: "snmp_collection_duration_seconds",
 			Help: "Duration of collections by the SNMP exporter",
@@ -25,7 +24,7 @@ var (
 		[]string{"module"},
 	)
 	// SnmpRequestErrors counters errors
-	SnmpRequestErrors = promauto.NewCounter(
+	SnmpRequestErrors = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "snmp_request_errors_total",
 			Help: "Errors in requests to the SNMP exporter",

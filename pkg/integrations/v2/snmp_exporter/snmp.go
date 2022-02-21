@@ -3,6 +3,11 @@ package snmp_exporter
 import (
 	"context"
 	"fmt"
+	"net/http"
+	_ "net/http/pprof"
+	"path"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
@@ -11,10 +16,6 @@ import (
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
-	"net/http"
-	_ "net/http/pprof"
-	"path"
-	"time"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -87,9 +88,8 @@ func (sh *snmpHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeC
 
 func (sh *snmpHandler) Handler(prefix string) (http.Handler, error) {
 	r := mux.NewRouter()
-	for _, t := range sh.cfg.SnmptTargets {
-		r.Handle(path.Join(prefix, t.Name), sh.createHandler(t))
-	}
+	r.Handle(path.Join(prefix, "snmp"), sh.createHandler(sh.cfg.SnmptTargets))
+	r.Handle(path.Join(prefix, "metrics"), sh.createInternalMetricsHandler())
 
 	return r, nil
 }
@@ -106,16 +106,54 @@ func (sh *snmpHandler) RunIntegration(ctx context.Context) error {
 	return nil
 }
 
-func (sh *snmpHandler) createHandler(t SnmpTarget) http.HandlerFunc {
+func (sh *snmpHandler) createInternalMetricsHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		registry := prometheus.NewRegistry()
+		registry.MustRegister(v1snmp.SnmpDuration)
+		registry.MustRegister(v1snmp.SnmpRequestErrors)
+
+		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
+		h.ServeHTTP(w, r)
+	}
+}
+
+func (sh *snmpHandler) createHandler(targets []SnmpTarget) http.HandlerFunc {
+
+	snmpTargets := make(map[string]SnmpTarget)
+	for _, target := range targets {
+		snmpTargets[target.Name] = target
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := sh.log
-		if t.Target == "" {
+		query := r.URL.Query()
+		targetName := query.Get("target")
+
+		if len(query["target"]) != 1 || targetName == "" {
 			http.Error(w, "'target' parameter must be specified once", 400)
 			v1snmp.SnmpRequestErrors.Inc()
 			return
 		}
 
-		moduleName := t.Module
+		t, ok := snmpTargets[targetName]
+		if !ok {
+			http.Error(w, "provided 'target' was not configured", 400)
+			v1snmp.SnmpRequestErrors.Inc()
+			return
+		}
+
+		var moduleName string
+		if query.Has("module") {
+			if len(query["module"]) > 1 {
+				http.Error(w, "'module' parameter must only be specified once", 400)
+				v1snmp.SnmpRequestErrors.Inc()
+				return
+			}
+			moduleName = query.Get("module")
+		} else {
+			moduleName = t.Module
+		}
+
 		if moduleName == "" {
 			moduleName = "if_mib"
 		}
@@ -128,8 +166,20 @@ func (sh *snmpHandler) createHandler(t SnmpTarget) http.HandlerFunc {
 		}
 
 		// override module connection details with custom walk params if provided
-		if t.WalkParams != "" {
-			if wp, ok := sh.cfg.WalkParams[t.WalkParams]; ok {
+		var walkParams string
+		if query.Has("walk_params") {
+			if len(query["walk_params"]) > 1 {
+				http.Error(w, "'walk_params' parameter must only be specified once", 400)
+				v1snmp.SnmpRequestErrors.Inc()
+				return
+			}
+			walkParams = query.Get("walk_params")
+		} else {
+			walkParams = t.WalkParams
+		}
+
+		if walkParams != "" {
+			if wp, ok := sh.cfg.WalkParams[walkParams]; ok {
 				// module.WalkParams = wp
 				if wp.Version != 0 {
 					module.WalkParams.Version = wp.Version
@@ -145,11 +195,11 @@ func (sh *snmpHandler) createHandler(t SnmpTarget) http.HandlerFunc {
 				}
 				module.WalkParams.Auth = wp.Auth
 			} else {
-				http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", t.WalkParams), 400)
+				http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walkParams), 400)
 				v1snmp.SnmpRequestErrors.Inc()
 				return
 			}
-			logger = log.With(logger, "module", moduleName, "target", t.Target, "walk_params", t.WalkParams)
+			logger = log.With(logger, "module", moduleName, "target", t.Target, "walk_params", walkParams)
 		} else {
 			logger = log.With(logger, "module", moduleName, "target", t.Target)
 		}
@@ -162,6 +212,7 @@ func (sh *snmpHandler) createHandler(t SnmpTarget) http.HandlerFunc {
 		// Delegate http serving to Prometheus client library, which will call collector.Collect.
 		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 		h.ServeHTTP(w, r)
+
 		duration := time.Since(start).Seconds()
 		v1snmp.SnmpDuration.WithLabelValues(moduleName).Observe(duration)
 		level.Debug(logger).Log("msg", "Finished scrape", "duration_seconds", duration)
