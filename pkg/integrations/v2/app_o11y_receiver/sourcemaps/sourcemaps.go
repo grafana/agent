@@ -51,7 +51,7 @@ func (s *osFileService) ReadFile(name string) ([]byte, error) {
 	return os.ReadFile(name)
 }
 
-var reSourceMap = "//[#@]\\s(source(?:Mapping)?URL)=\\s*(?P<url>\\S+)\n?$"
+var reSourceMap = "//[#@]\\s(source(?:Mapping)?URL)=\\s*(?P<url>\\S+)\r?\n?$"
 
 type sourceMap struct {
 	consumer *sourcemap.Consumer
