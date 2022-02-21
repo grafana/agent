@@ -191,7 +191,7 @@ func (store *RealSourceMapStore) getSourceMapFromFileSystem(sourceURL string, re
 		return nil, "", nil
 	}
 	pathParts := []string{strings.Replace(fileconf.Path, "{RELEASE}", cleanForFilePath(release), 1)}
-	for _, part := range strings.Split(strings.TrimPrefix(sourceURL, fileconf.MinifiedPathPrefix), "/") {
+	for _, part := range strings.Split(strings.TrimPrefix(strings.Split(sourceURL, "?")[0], fileconf.MinifiedPathPrefix), "/") {
 		if len(part) > 0 && part != "." && part != ".." {
 			pathParts = append(pathParts, part)
 		}
