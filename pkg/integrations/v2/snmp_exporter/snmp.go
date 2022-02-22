@@ -59,6 +59,7 @@ func (sh *snmpHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 			model.AddressLabel:     model.LabelValue(ep.Host),
 			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "snmp")),
 			"snmp_target":          model.LabelValue(t.Target),
+			"__param_target":       model.LabelValue(t.Target),
 		})
 	}
 
