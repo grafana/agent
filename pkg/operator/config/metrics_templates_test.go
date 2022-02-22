@@ -547,8 +547,8 @@ func TestRemoteWrite(t *testing.T) {
 			expect: util.Untab(`
 				url: http://cortex/api/prom/push
 				basic_auth:
-					username: secretkey
-					password: secretkey
+					username_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+					password_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
 			`),
 		},
 		{
