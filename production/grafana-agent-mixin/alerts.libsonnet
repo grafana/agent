@@ -107,7 +107,7 @@ local _config = config._config;
             |||,
             'for': '15m',
             annotations: {
-              summary: '{{ $labels.pod }} is using more than expected CPU over the last 5 minutes',
+              summary: '{{ $labels.pod }} is using more than 0.0013441 CPU per 1000 series over the last 5 minutes',
             },
           },
 
