@@ -95,8 +95,8 @@ local _config = config._config;
             },
           },
 
-          // Checks that the CPU usage doesn't go too high. This was generated
-          // from main where the CPU usage hovered around 2-3% per pod.
+          // Checks that the CPU usage doesn't go too high. This was generated from internal usage where
+          // every 1,000 active series used roughly 0.0013441% of CPU.
           {
             alert: 'GrafanaAgentCPUHigh',
             expr: |||
