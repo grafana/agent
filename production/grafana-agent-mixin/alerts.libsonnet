@@ -97,16 +97,17 @@ local _config = config._config;
 
           // Checks that the CPU usage doesn't go too high. This was generated
           // from main where the CPU usage hovered around 2-3% per pod.
-          //
-          // TODO: something less guessworky here.
           {
             alert: 'GrafanaAgentCPUHigh',
             expr: |||
-              rate(container_cpu_usage_seconds_total{namespace="agent-smoke-test", pod=~"grafana-agent-smoke-test.*"}[1m]) > 0.05
+              sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod=~"grafana-agent-.*"}[5m]))
+              /
+              (sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod=~"grafana-agent-.*"}) / 1000)
+              > 0.0013441
             |||,
-            'for': '5m',
+            'for': '15m',
             annotations: {
-              summary: '{{ $labels.pod }} is using more than 5% CPU over the last 5 minutes',
+              summary: '{{ $labels.pod }} is using more than expected CPU over the last 5 minutes',
             },
           },
 
@@ -154,9 +155,9 @@ local _config = config._config;
           {
             alert: 'CrowNotScraped',
             expr: |||
-              rate(crow_test_samples_total[1m]) == 0
+              rate(crow_test_samples_total[5m]) == 0
             |||,
-            'for': '5m',
+            'for': '15m',
             annotations: {
               summary: 'Crow {{ $labels.job }} is not being scraped.',
             },
@@ -165,11 +166,11 @@ local _config = config._config;
             alert: 'CrowFailures',
             expr: |||
               (
-                rate(crow_test_sample_results_total{result="success"}[1m])
-                / ignoring(result) rate(crow_test_samples_total[1m])
+                rate(crow_test_sample_results_total{result="success"}[5m])
+                / ignoring(result) rate(crow_test_samples_total[5m])
               ) < 1
             |||,
-            'for': '5m',
+            'for': '15m',
             annotations: {
               summary: 'Crow {{ $labels.job }} has had failures for at least 5m',
             },
