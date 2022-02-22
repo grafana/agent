@@ -96,14 +96,17 @@ local _config = config._config;
           },
 
           // Checks that the CPU usage doesn't go too high. This was generated from internal usage where
-          // every 1,000 active series used roughly 0.0013441% of CPU.
+          // every 1,000 active series used roughly 0.0013441% of CPU. This alert only fires if there is a
+          // minimum load threshold of at least 1000 active series.
           {
             alert: 'GrafanaAgentCPUHigh',
             expr: |||
-              sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod=~"grafana-agent-.*"}[5m]))
-              /
-              (sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod=~"grafana-agent-.*"}) / 1000)
-              > 0.0013441
+                (sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}[5m]))
+                /
+                (sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}) / 1000)
+                > 0.0013441)
+                and
+                sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}) > 1000
             |||,
             'for': '15m',
             annotations: {
