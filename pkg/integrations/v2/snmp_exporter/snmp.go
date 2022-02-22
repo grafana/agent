@@ -57,7 +57,7 @@ func (sh *snmpHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 	for _, t := range sh.cfg.SnmptTargets {
 		group.Targets = append(group.Targets, model.LabelSet{
 			model.AddressLabel:     model.LabelValue(ep.Host),
-			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, t.Name)),
+			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "snmp")),
 			"snmp_target":          model.LabelValue(t.Target),
 		})
 	}
@@ -89,7 +89,6 @@ func (sh *snmpHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeC
 func (sh *snmpHandler) Handler(prefix string) (http.Handler, error) {
 	r := mux.NewRouter()
 	r.Handle(path.Join(prefix, "snmp"), sh.createHandler(sh.cfg.SnmptTargets))
-	r.Handle(path.Join(prefix, "metrics"), sh.createInternalMetricsHandler())
 
 	return r, nil
 }
@@ -106,17 +105,6 @@ func (sh *snmpHandler) RunIntegration(ctx context.Context) error {
 	return nil
 }
 
-func (sh *snmpHandler) createInternalMetricsHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		registry := prometheus.NewRegistry()
-		registry.MustRegister(v1snmp.SnmpDuration)
-		registry.MustRegister(v1snmp.SnmpRequestErrors)
-
-		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
-		h.ServeHTTP(w, r)
-	}
-}
-
 func (sh *snmpHandler) createHandler(targets []SnmpTarget) http.HandlerFunc {
 
 	snmpTargets := make(map[string]SnmpTarget)
@@ -129,6 +117,7 @@ func (sh *snmpHandler) createHandler(targets []SnmpTarget) http.HandlerFunc {
 		query := r.URL.Query()
 		targetName := query.Get("target")
 
+		var target string
 		if len(query["target"]) != 1 || targetName == "" {
 			http.Error(w, "'target' parameter must be specified once", 400)
 			v1snmp.SnmpRequestErrors.Inc()
@@ -136,10 +125,10 @@ func (sh *snmpHandler) createHandler(targets []SnmpTarget) http.HandlerFunc {
 		}
 
 		t, ok := snmpTargets[targetName]
-		if !ok {
-			http.Error(w, "provided 'target' was not configured", 400)
-			v1snmp.SnmpRequestErrors.Inc()
-			return
+		if ok {
+			target = t.Target
+		} else {
+			target = targetName
 		}
 
 		var moduleName string
@@ -199,15 +188,15 @@ func (sh *snmpHandler) createHandler(targets []SnmpTarget) http.HandlerFunc {
 				v1snmp.SnmpRequestErrors.Inc()
 				return
 			}
-			logger = log.With(logger, "module", moduleName, "target", t.Target, "walk_params", walkParams)
+			logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walkParams)
 		} else {
-			logger = log.With(logger, "module", moduleName, "target", t.Target)
+			logger = log.With(logger, "module", moduleName, "target", target)
 		}
 		level.Debug(logger).Log("msg", "Starting scrape")
 
 		start := time.Now()
 		registry := prometheus.NewRegistry()
-		c := collector.New(r.Context(), t.Target, module, logger)
+		c := collector.New(r.Context(), target, module, logger)
 		registry.MustRegister(c)
 		// Delegate http serving to Prometheus client library, which will call collector.Collect.
 		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
