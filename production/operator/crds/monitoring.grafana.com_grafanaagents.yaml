@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
   name: grafanaagents.monitoring.grafana.com
 spec:
@@ -3369,6 +3368,104 @@ spec:
                   - name
                   type: object
                 type: array
+              integrations:
+                description: Integrations controls the integration subsystem of the
+                  Agent and settings unique to integration-specific pods that are
+                  deployed.
+                properties:
+                  namespaceSelector:
+                    description: "Label selector for namespaces to search when discovering
+                      integration resources. If nil, integration resources are only
+                      discovered in the namespace of the GrafanaAgent resource. \n
+                      Set to `{}` to search all namespaces."
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                  selector:
+                    description: Label selector to find Integration resources to run.
+                      When nil, no integration resources will be defined.
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                type: object
               logFormat:
                 description: LogFormat controls the logging format of the generated
                   pods. Defaults to "logfmt" if not set.
@@ -4921,10 +5018,10 @@ spec:
                       description: 'WhenUnsatisfiable indicates how to deal with a
                         pod if it doesn''t satisfy the spread constraint. - DoNotSchedule
                         (default) tells the scheduler not to schedule it. - ScheduleAnyway
-                        tells the scheduler to schedule the pod in any location,   but
+                        tells the scheduler to schedule the pod in any location, but
                         giving higher precedence to topologies that would help reduce
-                        the   skew. A constraint is considered "Unsatisfiable" for
-                        an incoming pod if and only if every possible node assigment
+                        the skew. A constraint is considered "Unsatisfiable" for an
+                        incoming pod if and only if every possible node assigment
                         for that pod would violate "MaxSkew" on some topology. For
                         example, in a 3-zone cluster, MaxSkew is set to 1, and pods
                         with the same labelSelector spread as 3/1/1: | zone1 | zone2
@@ -5376,20 +5473,19 @@ spec:
                         pod starts, and deleted when the pod is removed. \n Use this
                         if: a) the volume is only needed while the pod runs, b) features
                         of normal volumes like restoring from snapshot or capacity
-                        \   tracking are needed, c) the storage driver is specified
-                        through a storage class, and d) the storage driver supports
-                        dynamic volume provisioning through    a PersistentVolumeClaim
-                        (see EphemeralVolumeSource for more    information on the
-                        connection between this volume type    and PersistentVolumeClaim).
-                        \n Use PersistentVolumeClaim or one of the vendor-specific
-                        APIs for volumes that persist for longer than the lifecycle
-                        of an individual pod. \n Use CSI for light-weight local ephemeral
-                        volumes if the CSI driver is meant to be used that way - see
-                        the documentation of the driver for more information. \n A
-                        pod can use both types of ephemeral volumes and persistent
-                        volumes at the same time. \n This is a beta feature and only
-                        available when the GenericEphemeralVolume feature gate is
-                        enabled."
+                        tracking are needed, c) the storage driver is specified through
+                        a storage class, and d) the storage driver supports dynamic
+                        volume provisioning through a PersistentVolumeClaim (see EphemeralVolumeSource
+                        for more information on the connection between this volume
+                        type and PersistentVolumeClaim). \n Use PersistentVolumeClaim
+                        or one of the vendor-specific APIs for volumes that persist
+                        for longer than the lifecycle of an individual pod. \n Use
+                        CSI for light-weight local ephemeral volumes if the CSI driver
+                        is meant to be used that way - see the documentation of the
+                        driver for more information. \n A pod can use both types of
+                        ephemeral volumes and persistent volumes at the same time.
+                        \n This is a beta feature and only available when the GenericEphemeralVolume
+                        feature gate is enabled."
                       properties:
                         volumeClaimTemplate:
                           description: "Will be used to create a stand-alone PVC to
