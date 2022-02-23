@@ -150,6 +150,7 @@ func Test_RealSourceMapStore_DownloadError(t *testing.T) {
 
 	resp := &http.Response{
 		StatusCode: 500,
+		Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
 	}
 
 	httpClient := &mockHTTPClient{

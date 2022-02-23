@@ -152,11 +152,11 @@ func (store *RealSourceMapStore) downloadFileContents(url string) ([]byte, error
 		store.metrics.downloads.WithLabelValues(getOrigin(url), "?").Inc()
 		return nil, err
 	}
+	defer resp.Body.Close()
 	store.metrics.downloads.WithLabelValues(getOrigin(url), fmt.Sprint(resp.StatusCode)).Inc()
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("unexpected status %v", resp.StatusCode)
 	}
-	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -341,12 +341,10 @@ func (store *RealSourceMapStore) TransformException(ex *models.Exception, releas
 		if err != nil {
 			level.Error(store.l).Log("msg", "Error resolving stack trace frame source location", "err", err)
 			frames = append(frames, frame)
+		} else if mappedFrame != nil {
+			frames = append(frames, *mappedFrame)
 		} else {
-			if mappedFrame != nil {
-				frames = append(frames, *mappedFrame)
-			} else {
-				frames = append(frames, frame)
-			}
+			frames = append(frames, frame)
 		}
 	}
 
