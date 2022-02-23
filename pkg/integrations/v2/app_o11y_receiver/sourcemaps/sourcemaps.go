@@ -1,6 +1,7 @@
 package sourcemaps
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -11,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"text/template"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -65,16 +67,22 @@ type sourceMapMetrics struct {
 	fileReads *prometheus.CounterVec
 }
 
+type sourcemapFileLocation struct {
+	config.SourceMapFileLocation
+	pathTemplate *template.Template
+}
+
 // RealSourceMapStore is an implementation of SourceMapStore
 // that can download source maps or read them from file system
 type RealSourceMapStore struct {
 	sync.Mutex
-	l           log.Logger
-	httpClient  HTTPClient
-	fileService FileService
-	config      config.SourceMapConfig
-	cache       map[string]*sourceMap
-	metrics     *sourceMapMetrics
+	l             log.Logger
+	httpClient    HTTPClient
+	fileService   FileService
+	config        config.SourceMapConfig
+	cache         map[string]*sourceMap
+	fileLocations []*sourcemapFileLocation
+	metrics       *sourceMapMetrics
 }
 
 // NewSourceMapStore creates an instance of SourceMapStore.
@@ -112,13 +120,29 @@ func NewSourceMapStore(l log.Logger, config config.SourceMapConfig, reg *prometh
 	}
 	reg.MustRegister(metrics.cacheSize, metrics.downloads, metrics.fileReads)
 
+	fileLocations := []*sourcemapFileLocation{}
+
+	for _, configLocation := range config.FileSystem {
+
+		tpl, err := template.New(configLocation.Path).Parse(configLocation.Path)
+		if err != nil {
+			panic(err)
+		}
+
+		fileLocations = append(fileLocations, &sourcemapFileLocation{
+			SourceMapFileLocation: configLocation,
+			pathTemplate:          tpl,
+		})
+	}
+
 	return &RealSourceMapStore{
-		l:           l,
-		httpClient:  httpClient,
-		fileService: fileService,
-		config:      config,
-		cache:       make(map[string]*sourceMap),
-		metrics:     metrics,
+		l:             l,
+		httpClient:    httpClient,
+		fileService:   fileService,
+		config:        config,
+		cache:         make(map[string]*sourceMap),
+		metrics:       metrics,
+		fileLocations: fileLocations,
 	}
 }
 
@@ -194,11 +218,19 @@ func (store *RealSourceMapStore) downloadSourceMapContent(sourceURL string) (con
 	return result, resolvedSourceMapURL, nil
 }
 
-func (store *RealSourceMapStore) getSourceMapFromFileSystem(sourceURL string, release string, fileconf config.SourceMapFileLocation) (content []byte, sourceMapURL string, err error) {
+func (store *RealSourceMapStore) getSourceMapFromFileSystem(sourceURL string, release string, fileconf *sourcemapFileLocation) (content []byte, sourceMapURL string, err error) {
 	if len(sourceURL) == 0 || !strings.HasPrefix(sourceURL, fileconf.MinifiedPathPrefix) || strings.HasSuffix(sourceURL, "/") {
 		return nil, "", nil
 	}
-	pathParts := []string{strings.Replace(fileconf.Path, "{RELEASE}", cleanForFilePath(release), 1)}
+
+	var rootPath bytes.Buffer
+
+	err = fileconf.pathTemplate.Execute(&rootPath, struct{ Release string }{Release: cleanFilePathPart(release)})
+	if err != nil {
+		return nil, "", err
+	}
+
+	pathParts := []string{rootPath.String()}
 	for _, part := range strings.Split(strings.TrimPrefix(strings.Split(sourceURL, "?")[0], fileconf.MinifiedPathPrefix), "/") {
 		if len(part) > 0 && part != "." && part != ".." {
 			pathParts = append(pathParts, part)
@@ -224,7 +256,7 @@ func (store *RealSourceMapStore) getSourceMapFromFileSystem(sourceURL string, re
 
 func (store *RealSourceMapStore) getSourceMapContent(sourceURL string, release string) (content []byte, sourceMapURL string, err error) {
 	//attempt to find in fs
-	for _, fileconf := range store.config.FileSystem {
+	for _, fileconf := range store.fileLocations {
 		content, sourceMapURL, err = store.getSourceMapFromFileSystem(sourceURL, release, fileconf)
 		if content != nil || err != nil {
 			return content, sourceMapURL, err
@@ -326,7 +358,7 @@ func (store *RealSourceMapStore) TransformException(ex *models.Exception, releas
 	}
 }
 
-func cleanForFilePath(x string) string {
+func cleanFilePathPart(x string) string {
 	return strings.TrimLeft(strings.ReplaceAll(strings.ReplaceAll(x, "\\", ""), "/", ""), ".")
 }
 

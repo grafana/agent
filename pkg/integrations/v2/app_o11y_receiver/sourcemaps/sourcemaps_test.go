@@ -244,7 +244,7 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 			},
 			{
 				MinifiedPathPrefix: "http://bar.com/",
-				Path:               filepath.FromSlash("/var/build/{RELEASE}/"),
+				Path:               filepath.FromSlash("/var/build/{{ .Release }}/"),
 			},
 		},
 	}
