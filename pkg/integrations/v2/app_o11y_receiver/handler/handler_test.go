@@ -111,7 +111,7 @@ func TestMultipleExportersOneFails(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := metrics[0]
-	assert.Equal(t, "app_o11y_receiver_export_errors", *metric.Name)
+	assert.Equal(t, "app_o11y_receiver_exporter_errors", *metric.Name)
 	assert.Len(t, metric.Metric, 1)
 	assert.Equal(t, 1.0, *metric.Metric[0].Counter.Value)
 	assert.Len(t, metric.Metric[0].Label, 1)
@@ -155,7 +155,7 @@ func TestMultipleExportersAllFail(t *testing.T) {
 	assert.Len(t, metrics, 1)
 	metric := metrics[0]
 
-	assert.Equal(t, "app_o11y_receiver_export_errors", *metric.Name)
+	assert.Equal(t, "app_o11y_receiver_exporter_errors", *metric.Name)
 	assert.Len(t, metric.Metric, 2)
 	assert.Equal(t, 1.0, *metric.Metric[0].Counter.Value)
 	assert.Equal(t, 1.0, *metric.Metric[1].Counter.Value)
