@@ -19,7 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/hierarchy"
 	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promop "github.com/prometheus-operator/prometheus-operator/pkg/operator"
@@ -89,7 +89,7 @@ func (c *Config) registerFlags(f *flag.FlagSet) error {
 	for _, add := range []func(*runtime.Scheme) error{
 		core_v1.AddToScheme,
 		apps_v1.AddToScheme,
-		grafana_v1alpha1.AddToScheme,
+		gragent.AddToScheme,
 		promop_v1.AddToScheme,
 	} {
 		if err := add(c.Controller.Scheme); err != nil {
@@ -182,15 +182,15 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 	}
 
 	err = controller.NewControllerManagedBy(manager).
-		For(&grafana_v1alpha1.GrafanaAgent{}, builder.WithPredicates(agentPredicates...)).
+		For(&gragent.GrafanaAgent{}, builder.WithPredicates(agentPredicates...)).
 		Owns(&apps_v1.StatefulSet{}).
 		Owns(&apps_v1.DaemonSet{}).
 		Owns(&core_v1.Secret{}).
 		Owns(&core_v1.Service{}).
 		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
-		Watches(&source.Kind{Type: &grafana_v1alpha1.LogsInstance{}}, notifierHandler).
-		Watches(&source.Kind{Type: &grafana_v1alpha1.PodLogs{}}, notifierHandler).
-		Watches(&source.Kind{Type: &grafana_v1alpha1.MetricsInstance{}}, notifierHandler).
+		Watches(&source.Kind{Type: &gragent.LogsInstance{}}, notifierHandler).
+		Watches(&source.Kind{Type: &gragent.PodLogs{}}, notifierHandler).
+		Watches(&source.Kind{Type: &gragent.MetricsInstance{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.PodMonitor{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.Probe{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.ServiceMonitor{}}, notifierHandler).

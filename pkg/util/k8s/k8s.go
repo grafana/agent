@@ -10,7 +10,7 @@ import (
 
 	docker_types "github.com/docker/docker/api/types"
 	docker_nat "github.com/docker/go-connections/nat"
-	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	k3d_client "github.com/rancher/k3d/v5/pkg/client"
 	config "github.com/rancher/k3d/v5/pkg/config"
@@ -74,7 +74,7 @@ func (o *Options) applyDefaults() error {
 		for _, add := range []func(*runtime.Scheme) error{
 			scheme.AddToScheme,
 			apiextensions_v1.AddToScheme,
-			grafana_v1alpha1.AddToScheme,
+			gragent.AddToScheme,
 			promop_v1.AddToScheme,
 		} {
 			if err := add(o.Scheme); err != nil {

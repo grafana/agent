@@ -6,8 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	grafana_v1alpha1 "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/assets"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/operator/hierarchy"
@@ -36,7 +35,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 	// Reset our notifications while we re-handle the reconcile.
 	r.notifier.StopNotify(req.NamespacedName)
 
-	var agent grafana_v1alpha1.GrafanaAgent
+	var agent gragent.GrafanaAgent
 	if err := r.Get(ctx, req.NamespacedName, &agent); k8s_errors.IsNotFound(err) {
 		level.Debug(l).Log("msg", "detected deleted agent")
 		return controller.Result{}, nil
@@ -59,7 +58,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		return controller.Result{}, nil
 	}
 
-	type reconcileFunc func(context.Context, log.Logger, config.Deployment, assets.SecretStore) error
+	type reconcileFunc func(context.Context, log.Logger, gragent.Deployment) error
 	actors := []reconcileFunc{
 		// Operator-wide resources
 		r.createSecrets,
@@ -74,7 +73,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		r.createLogsDaemonSet,
 	}
 	for _, actor := range actors {
-		err := actor(ctx, l, deployment, deployment.Secrets)
+		err := actor(ctx, l, deployment)
 		if err != nil {
 			level.Error(l).Log("msg", "error during reconciling", "err", err)
 			return controller.Result{Requeue: true}, nil
@@ -88,14 +87,13 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 func (r *reconciler) createSecrets(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	d gragent.Deployment,
 ) error {
 
 	blockOwnerDeletion := true
 
 	data := make(map[string][]byte)
-	for k, value := range s {
+	for k, value := range d.Secrets {
 		data[config.SanitizeLabelName(string(k))] = []byte(value)
 	}
 
