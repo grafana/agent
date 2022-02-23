@@ -16,6 +16,10 @@ spec:
     instanceSelector:
       matchLabels:
         agent: grafana-agent-example
+  integrations:
+    selector:
+      matchLabels:
+        agent: grafana-agent-example
 
 ---
 
@@ -65,6 +69,42 @@ spec:
   podLogsSelector:
     matchLabels:
       instance: primary
+
+---
+
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: Integration
+metadata:
+  name: node-exporter
+  namespace: default
+  labels:
+    agent: grafana-agent-example
+spec:
+  name: node_exporter
+  type:
+    allNodes: true
+    unique: true
+  config:
+    rootfs_path: /rootfs
+    sysfs_path: /host/sys
+    procfs_path: /host/proc
+  volumeMounts:
+  - mountPath: /host/proc
+    name: proc
+  - mountPath: /host/sys
+    name: sys
+  - mountPath: /rootfs
+    name: root
+  volumes:
+  - hostPath:
+    path: /proc
+    name: proc
+  - hostPath:
+    path: /sys
+    name: sys
+  - hostPath:
+    path: /
+    name: root
 
 ---
 

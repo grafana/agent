@@ -55,6 +55,7 @@ func Test_buildHierarchy(t *testing.T) {
 		expectedResources := []string{
 			"GrafanaAgent/grafana-agent-example",
 			"MetricsInstance/primary",
+			"Integration/node-exporter",
 			"LogsInstance/primary",
 			"PodMonitor/grafana-agents",
 			"PodLogs/grafana-agents",
@@ -99,6 +100,14 @@ func Test_buildHierarchy(t *testing.T) {
 			},
 			{
 				Object: &gragent.LogsInstance{},
+				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
+				Selector: &hierarchy.LabelsSelector{
+					NamespaceName: "default",
+					Labels:        labels.SelectorFromSet(labels.Set{"agent": "grafana-agent-example"}),
+				},
+			},
+			{
+				Object: &gragent.Integration{},
 				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
 				Selector: &hierarchy.LabelsSelector{
 					NamespaceName: "default",

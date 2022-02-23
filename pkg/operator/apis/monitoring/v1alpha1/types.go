@@ -45,7 +45,7 @@ func (a *GrafanaAgent) LogsInstanceSelector() ObjectSelector {
 // IntegrationsSelector returns a selector to find Integrations.
 func (a *GrafanaAgent) IntegrationsSelector() ObjectSelector {
 	return ObjectSelector{
-		ObjectType:        &LogsInstance{},
+		ObjectType:        &Integration{},
 		ParentNamespace:   a.Namespace,
 		NamespaceSelector: a.Spec.Integrations.NamespaceSelector,
 		Labels:            a.Spec.Integrations.Selector,

@@ -47,10 +47,12 @@ func buildHierarchy(ctx context.Context, l log.Logger, cli client.Client, root *
 	var (
 		metricInstances gragent.MetricsInstanceList
 		logsInstances   gragent.LogsInstanceList
+		integrations    gragent.IntegrationList
 	)
 	var roots = []hierarchyResource{
 		{List: &metricInstances, Selector: root.MetricsInstanceSelector()},
 		{List: &logsInstances, Selector: root.LogsInstanceSelector()},
+		{List: &integrations, Selector: root.IntegrationsSelector()},
 	}
 	if err := search(roots); err != nil {
 		return deployment, nil, err
@@ -95,6 +97,13 @@ func buildHierarchy(ctx context.Context, l log.Logger, cli client.Client, root *
 		deployment.Logs = append(deployment.Logs, gragent.LogsDeployment{
 			Instance: logsInst,
 			PodLogs:  podLogs.Items,
+		})
+	}
+
+	// Integration resources
+	for _, integration := range integrations.Items {
+		deployment.Integrations = append(deployment.Integrations, gragent.IntegrationsDeployment{
+			Instance: integration,
 		})
 	}
 
