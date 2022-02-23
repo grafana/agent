@@ -109,7 +109,7 @@ minified_path_prefix: <string>
 
 # Directory on file system that contains source maps. 
 # See above for more detailed explanation.
-# You can use "{RELEASE}" which will be replaced with
-# app.release meta property
+# It is parsed as a Go template. You can use "{{.Release }}" which will be replaced with
+# app.release meta property.
 path: <string>
 ```
