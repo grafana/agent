@@ -36,17 +36,15 @@ type DynamicLoader struct {
 	cfg    *LoaderConfig
 }
 
-// NewDynamicLoader instantiates a new DynamicLoader
+// NewDynamicLoader instantiates a new DynamicLoader.
 func NewDynamicLoader() (*DynamicLoader, error) {
 
 	return &DynamicLoader{
-		loader: nil,
-		mux:    newFSProvider(),
-		cfg:    nil,
+		mux: newFSProvider(),
 	}, nil
 }
 
-// LoadConfig loads an already created LoaderConfig into the DynamicLoader
+// LoadConfig loads an already created LoaderConfig into the DynamicLoader.
 func (c *DynamicLoader) LoadConfig(cfg LoaderConfig) error {
 	sources := make(map[string]*data.Source)
 	for _, v := range cfg.Sources {
@@ -59,23 +57,46 @@ func (c *DynamicLoader) LoadConfig(cfg LoaderConfig) error {
 			Alias: v.Name,
 		}
 	}
+	// Set Defaults
+	if cfg.IntegrationsFilter == "" {
+		cfg.IntegrationsFilter = "integrations-*.yml"
+	}
+	if cfg.AgentFilter == "" {
+		cfg.AgentFilter = "agent-*.yml"
+	}
+	if cfg.ServerFilter == "" {
+		cfg.ServerFilter = "server-*.yml"
+	}
+	if cfg.MetricsFilter == "" {
+		cfg.MetricsFilter = "metrics-*.yml"
+	}
+	if cfg.MetricsInstanceFilter == "" {
+		cfg.MetricsInstanceFilter = "metrics_instances-*.yml"
+	}
+	if cfg.LogsFilter == "" {
+		cfg.LogsFilter = "logs-*.yml"
+	}
+	if cfg.TracesFilter == "" {
+		cfg.TracesFilter = "traces-*.yml"
+	}
 	cl := loader.NewConfigLoader(context.Background(), sources)
 	c.loader = cl
 	c.cfg = &cfg
 	return nil
 }
 
-// LoadConfigByPath creates a config based on a path
+// LoadConfigByPath creates a config based on a path.
 func (c *DynamicLoader) LoadConfigByPath(path string) error {
 	var buf []byte
 	var err error
-	if strings.HasPrefix(path, "file://") {
+	switch {
+	case strings.HasPrefix(path, "file://"):
 		stripPath := strings.ReplaceAll(path, "file://", "")
 		buf, err = ioutil.ReadFile(stripPath)
 		if err != nil {
 			return err
 		}
-	} else if strings.HasPrefix(path, "s3://") {
+	case strings.HasPrefix(path, "s3://"):
 		blobURL, err := url.Parse(path)
 		if err != nil {
 			return err
@@ -84,7 +105,10 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 		if err != nil {
 			return err
 		}
+	default:
+		return fmt.Errorf("config path must start with file:// or s3://, not %s", path)
 	}
+
 	cl := &LoaderConfig{}
 	err = yaml.Unmarshal(buf, cl)
 	if err != nil {
@@ -105,47 +129,35 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 	}
 
 	serverConfig, err := c.processServer()
-	if err != nil {
-		returnErr = multierror.Append(returnErr, err)
-	}
+	returnErr = errorAppend(returnErr, err)
 	if serverConfig != nil {
 		cfg.Server = *serverConfig
 	}
 
 	metricConfig, err := c.processMetric()
-	if err != nil {
-		returnErr = multierror.Append(returnErr, err)
-	}
+	returnErr = errorAppend(returnErr, err)
 	if metricConfig != nil {
 		cfg.Metrics = *metricConfig
 	}
 
 	instancesConfigs, err := c.processMetricInstances()
-	if err != nil {
-		returnErr = multierror.Append(returnErr, err)
-	}
+	returnErr = errorAppend(returnErr, err)
 	cfg.Metrics.Configs = append(cfg.Metrics.Configs, instancesConfigs...)
 
 	logsCfg, err := c.processLogs()
-	if err != nil {
-		returnErr = multierror.Append(returnErr, err)
-	}
+	returnErr = errorAppend(returnErr, err)
 	if logsCfg != nil {
 		cfg.Logs = logsCfg
 	}
 
 	traceConfigs, err := c.processTraces()
-	if err != nil {
-		returnErr = multierror.Append(returnErr, err)
-	}
+	returnErr = errorAppend(returnErr, err)
 	if traceConfigs != nil {
 		cfg.Traces = *traceConfigs
 	}
 
 	integrations, err := c.processIntegrations()
-	if err != nil {
-		returnErr = multierror.Append(returnErr, err)
-	}
+	returnErr = errorAppend(returnErr, err)
 	// If integrations havent already been defined then we need to do
 	// some setup
 	if cfg.Integrations.configV2 == nil {
@@ -162,27 +174,20 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 	}
 
 	err = cfg.Validate(fs)
-	if err != nil {
-		returnErr = multierror.Append(returnErr, err)
-	}
+	returnErr = errorAppend(returnErr, err)
 	return returnErr
 }
 
 func (c *DynamicLoader) processAgent(cfg *Config) error {
-	filter := "agent-*.yml"
-	if c.cfg.AgentFilter != "" {
-		filter = c.cfg.AgentFilter
-	}
-
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, filter, func() interface{} {
+		result, err := c.generateConfigsFromPath(path, c.cfg.AgentFilter, func() interface{} {
 			return cfg
 		}, c.handleAgentMatch)
 		if err != nil {
 			return err
 		}
 		if len(result) > 1 {
-			return errors.New("multiple agent configurations found")
+			return fmt.Errorf("found %d agent templates; expected 0 or 1", len(result))
 		}
 
 	}
@@ -190,20 +195,15 @@ func (c *DynamicLoader) processAgent(cfg *Config) error {
 }
 
 func (c *DynamicLoader) processServer() (*server.Config, error) {
-	filter := "server-*.yml"
-	if c.cfg.ServerFilter != "" {
-		filter = c.cfg.ServerFilter
-	}
-
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, filter, func() interface{} {
+		result, err := c.generateConfigsFromPath(path, c.cfg.ServerFilter, func() interface{} {
 			return &server.Config{}
 		}, c.handleMatch)
 		if err != nil {
 			return nil, err
 		}
 		if len(result) > 1 {
-			return nil, errors.New("multiple server configurations found")
+			return nil, fmt.Errorf("found %d server templates; expected 0 or 1", len(result))
 		}
 		if len(result) == 1 {
 			return result[0].(*server.Config), nil
@@ -213,20 +213,15 @@ func (c *DynamicLoader) processServer() (*server.Config, error) {
 }
 
 func (c *DynamicLoader) processMetric() (*metrics.Config, error) {
-	filter := "metrics-*.yml"
-	if c.cfg.MetricsFilter != "" {
-		filter = c.cfg.MetricsFilter
-	}
-
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, filter, func() interface{} {
+		result, err := c.generateConfigsFromPath(path, c.cfg.MetricsFilter, func() interface{} {
 			return &metrics.Config{}
 		}, c.handleMatch)
 		if err != nil {
 			return nil, err
 		}
 		if len(result) > 1 {
-			return nil, errors.New("multiple metrics configurations found")
+			return nil, fmt.Errorf("found %d metrics templates; expected 0 or 1", len(result))
 		}
 		if len(result) == 1 {
 			return result[0].(*metrics.Config), nil
@@ -236,15 +231,10 @@ func (c *DynamicLoader) processMetric() (*metrics.Config, error) {
 }
 
 func (c *DynamicLoader) processMetricInstances() ([]instance.Config, error) {
-	filter := "metrics_instances-*.yml"
-	if c.cfg.MetricsInstanceFilter != "" {
-		filter = c.cfg.MetricsInstanceFilter
-	}
-
 	var retError error
 	configs := make([]instance.Config, 0)
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, filter, func() interface{} {
+		result, err := c.generateConfigsFromPath(path, c.cfg.MetricsInstanceFilter, func() interface{} {
 			return &instance.Config{}
 		}, c.handleMatch)
 		if err != nil {
@@ -260,15 +250,10 @@ func (c *DynamicLoader) processMetricInstances() ([]instance.Config, error) {
 }
 
 func (c *DynamicLoader) processIntegrations() ([]v2.Config, error) {
-	filter := "integrations-*.yml"
-	if c.cfg.IntegrationsFilter != "" {
-		filter = c.cfg.IntegrationsFilter
-	}
-
 	var returnError error
 	configs := make([]v2.Config, 0)
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, filter, func() interface{} {
+		result, err := c.generateConfigsFromPath(path, c.cfg.IntegrationsFilter, func() interface{} {
 			// This can return nil because we do a fancy lookup by the exporter name for the lookup
 			return nil
 		}, c.handleExporterMatch)
@@ -295,20 +280,15 @@ func (c *DynamicLoader) processIntegrations() ([]v2.Config, error) {
 }
 
 func (c *DynamicLoader) processLogs() (*logs.Config, error) {
-	filter := "logs-*.yml"
-	if c.cfg.LogsFilter != "" {
-		filter = c.cfg.LogsFilter
-	}
-
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, filter, func() interface{} {
+		result, err := c.generateConfigsFromPath(path, c.cfg.LogsFilter, func() interface{} {
 			return &logs.Config{}
 		}, c.handleMatch)
 		if err != nil {
 			return nil, err
 		}
 		if len(result) > 1 {
-			return nil, errors.New("multiple logs templates found")
+			return nil, fmt.Errorf("found %d logs templates; expected 0 or 1", len(result))
 		}
 		if len(result) == 1 {
 			return result[0].(*logs.Config), nil
@@ -318,22 +298,16 @@ func (c *DynamicLoader) processLogs() (*logs.Config, error) {
 	return nil, nil
 }
 
-// processTraces will return the traces configuration following the pattern `traces-*.yml`
 func (c *DynamicLoader) processTraces() (*traces.Config, error) {
-	filter := "traces-*.yml"
-	if c.cfg.TracesFilter != "" {
-		filter = c.cfg.TracesFilter
-	}
-
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, filter, func() interface{} {
+		result, err := c.generateConfigsFromPath(path, c.cfg.TracesFilter, func() interface{} {
 			return &traces.Config{}
 		}, c.handleMatch)
 		if err != nil {
 			return nil, err
 		}
 		if len(result) > 1 {
-			return nil, errors.New("multiple traces templates found")
+			return nil, fmt.Errorf("found %d traces templates; expected 0 or 1", len(result))
 		}
 		if len(result) == 1 {
 			return result[0].(*traces.Config), nil
@@ -497,4 +471,13 @@ func newFSProvider() fsimpl.FSMux {
 	mux.Add(filefs.FS)
 	mux.Add(blobfs.FS)
 	return mux
+}
+
+// errorAppend is a wrapper around multierror.Append that is needed since multierror will create a new error. In this case
+// we only want to create a new error if newErr is not nil
+func errorAppend(root error, newErr error) error {
+	if newErr == nil {
+		return root
+	}
+	return multierror.Append(root, newErr)
 }

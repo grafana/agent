@@ -207,9 +207,11 @@ redis_exporter_configs:
 		TemplatePaths: []string{fileFS},
 	}
 	cmf := generateLoader(t, loaderCfg)
-	configs, err := cmf.processIntegrations()
+	cfg := &Config{}
+
+	err := cmf.ProcessConfigs(cfg, nil)
 	require.NoError(t, err)
-	assert.Len(t, configs, 2)
+	assert.Len(t, cfg.Integrations.configV2.Configs, 2)
 }
 
 func TestAgentAddIntegrations(t *testing.T) {
@@ -226,12 +228,12 @@ metrics:
 integrations:
   node_exporter: {}
 `
-	override := `
+	addIntegration := `
 windows_exporter: {}
 `
 	tDir := generatePath(t)
 	writeFile(t, tDir, "agent-1.yml", configStr)
-	writeFile(t, tDir, "integrations-windows.yml", override)
+	writeFile(t, tDir, "integrations-windows.yml", addIntegration)
 	fileFS := generateFilePath(tDir)
 	loaderCfg := LoaderConfig{
 		Sources:       nil,
