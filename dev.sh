@@ -1,0 +1,1 @@
+go run ./cmd/agent --config.file=./cmd/agent/agent-dev.yaml -enable-features=integrations-next

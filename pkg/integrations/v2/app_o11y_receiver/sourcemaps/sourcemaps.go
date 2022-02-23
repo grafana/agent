@@ -53,6 +53,8 @@ func (s *osFileService) ReadFile(name string) ([]byte, error) {
 
 var reSourceMap = "//[#@]\\s(source(?:Mapping)?URL)=\\s*(?P<url>\\S+)\r?\n?$"
 
+var metricsSubsystem = "sourcemap"
+
 type sourceMap struct {
 	consumer *sourcemap.Consumer
 }
@@ -90,16 +92,22 @@ func NewSourceMapStore(l log.Logger, config config.SourceMapConfig, reg *prometh
 
 	metrics := &sourceMapMetrics{
 		cacheSize: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "app_o11y_receiver_sourcemap_cache_size",
-			Help: "number of items in sourcemap cache, per origin",
+			Namespace: utils.MetricsNamespace,
+			Subsystem: metricsSubsystem,
+			Name:      "cache_size",
+			Help:      "number of items in sourcemap cache, per origin",
 		}, []string{"origin"}),
 		downloads: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "app_o11y_receiver_sourcemap_downloads",
-			Help: "downloads by the sourcemap service",
+			Namespace: utils.MetricsNamespace,
+			Subsystem: metricsSubsystem,
+			Name:      "downloads",
+			Help:      "downloads by the sourcemap service",
 		}, []string{"origin", "http_status"}),
 		fileReads: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "app_o11y_receiver_sourcemap_file_reads",
-			Help: "",
+			Namespace: utils.MetricsNamespace,
+			Subsystem: metricsSubsystem,
+			Name:      "file_reads",
+			Help:      "sourcemap file reads from file system, by origin and status",
 		}, []string{"origin", "status"}),
 	}
 	reg.MustRegister(metrics.cacheSize, metrics.downloads, metrics.fileReads)

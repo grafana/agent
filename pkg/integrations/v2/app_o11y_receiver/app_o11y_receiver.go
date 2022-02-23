@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/handler"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/sourcemaps"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/prometheus/client_golang/prometheus"
@@ -177,11 +178,11 @@ func (i *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.S
 	}}
 }
 
-// RunIntegration implements Integratin
+// RunIntegration implements Integration
 func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 
 	mdlw := middleware.New(middleware.Config{
-		Recorder: metrics.NewRecorder(metrics.Config{Registry: i.reg}),
+		Recorder: metrics.NewRecorder(metrics.Config{Registry: i.reg, Prefix: utils.MetricsNamespace}),
 	})
 
 	r := mux.NewRouter()
