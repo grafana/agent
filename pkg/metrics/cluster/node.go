@@ -120,7 +120,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	}
 	n.ring = r
 
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.log, prometheus.WrapRegistererWithPrefix("cortex_", n.reg))
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.log, prometheus.WrapRegistererWithPrefix("agent_dskit_", n.reg))
 	if err != nil {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
@@ -151,7 +151,7 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer, log l
 	if err != nil {
 		return nil, err
 	}
-	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy(), prometheus.WrapRegistererWithPrefix("cortex_", reg), log)
+	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy(), prometheus.WrapRegistererWithPrefix("agent_dskit_", reg), log)
 }
 
 // run waits for connection to the ring and kickstarts the join process.
