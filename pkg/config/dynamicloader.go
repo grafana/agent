@@ -358,7 +358,7 @@ func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMak
 
 	// Expand Vars is false since gomplate already allows expanding vars
 	err = LoadBytes([]byte(processedConfigString), false, cfg.(*Config))
-	if err != nil && err != io.EOF {
+	if err != nil {
 		return nil, err
 	}
 	// setVersion actually does the unmarshalling for integrations
@@ -402,7 +402,6 @@ func (c *DynamicLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func
 	if cfg == nil || err != nil {
 		return nil, err
 	}
-	// TODO (mattdurham) there has to be a better way to handle this conversion
 	var intConfigs []interface{}
 	for _, i := range cfg {
 		intConfigs = append(intConfigs, i)
