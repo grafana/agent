@@ -341,30 +341,19 @@ func (c *DynamicLoader) generateConfigsFromPath(path string, pattern string, con
 }
 
 func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
-	file, err := handler.Open(f.Name())
+	fBytes, err := fs.ReadFile(handler, f.Name())
 	if err != nil {
-		return nil, err
-	}
-	stats, err := f.Info()
-	if err != nil {
-		return nil, err
-	}
-	fBytes := make([]byte, stats.Size())
-	bytesRead, err := file.Read(fBytes)
-
-	if err != nil && err != io.EOF {
 		return nil, err
 	}
 	fString := string(fBytes)
 	// Parse the template
 	processedConfigString := ""
-	// We dont return early if bytes read is 0 since we always want to process the Agent config to get defaults
-	if bytesRead > 0 {
-		processedConfigString, err = c.loader.GenerateTemplate("", fString)
-		if err != nil {
-			return nil, err
-		}
+
+	processedConfigString, err = c.loader.GenerateTemplate("", fString)
+	if err != nil {
+		return nil, err
 	}
+
 	cfg := configMake()
 
 	// Expand Vars is false since gomplate already allows expanding vars
@@ -378,21 +367,8 @@ func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMak
 }
 
 func (c *DynamicLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
-	file, err := handler.Open(f.Name())
+	fBytes, err := fs.ReadFile(handler, f.Name())
 	if err != nil {
-		return nil, err
-	}
-	stats, err := f.Info()
-	if err != nil {
-		return nil, err
-	}
-	fBytes := make([]byte, stats.Size())
-	bytesRead, err := file.Read(fBytes)
-	if bytesRead == 0 {
-		return nil, errors.New("no bytes read")
-	}
-
-	if err != nil && err != io.EOF {
 		return nil, err
 	}
 	fString := string(fBytes)
@@ -412,21 +388,8 @@ func (c *DynamicLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake fun
 // handleExporterMatch is more complex since those can be of any different types and not a single concrete type, like
 // most of the configurations.
 func (c *DynamicLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func() interface{}) ([]interface{}, error) {
-	file, err := handler.Open(f.Name())
+	fBytes, err := fs.ReadFile(handler, f.Name())
 	if err != nil {
-		return nil, err
-	}
-	stats, err := f.Info()
-	if err != nil {
-		return nil, err
-	}
-	fBytes := make([]byte, stats.Size())
-	bytesRead, err := file.Read(fBytes)
-	if bytesRead == 0 {
-		return nil, errors.New("no bytes read")
-	}
-
-	if err != nil && err != io.EOF {
 		return nil, err
 	}
 	fString := string(fBytes)
