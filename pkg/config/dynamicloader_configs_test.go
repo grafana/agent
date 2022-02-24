@@ -60,7 +60,7 @@ func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 	cmf := generateLoader(t, loaderCfg)
 	_, err := cmf.processMetric()
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "multiple metrics configurations found")
+	assert.Equal(t, err.Error(), "found 2 metrics templates; expected 0 or 1")
 }
 
 func TestConfigMakerWithMetricsAndInstances(t *testing.T) {

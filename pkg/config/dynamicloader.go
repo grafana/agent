@@ -123,10 +123,12 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 		return errors.New("LoadConfig or LoadConfigByPath must be called")
 	}
 	var returnErr error
-	err := c.processAgent(cfg)
-	if err != nil {
-		returnErr = multierror.Append(returnErr, err)
-	}
+
+	err := yaml.UnmarshalStrict([]byte{}, cfg)
+	returnErr = errorAppend(returnErr, err)
+
+	err = c.processAgent(cfg)
+	returnErr = errorAppend(returnErr, err)
 
 	serverConfig, err := c.processServer()
 	returnErr = errorAppend(returnErr, err)
@@ -360,18 +362,19 @@ func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMak
 	}
 	fBytes := make([]byte, stats.Size())
 	bytesRead, err := file.Read(fBytes)
-	if bytesRead == 0 {
-		return nil, errors.New("no bytes read")
-	}
 
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 	fString := string(fBytes)
 	// Parse the template
-	processedConfigString, err := c.loader.GenerateTemplate("", fString)
-	if err != nil {
-		return nil, err
+	processedConfigString := ""
+	// We dont return early if bytes read is 0 since we always want to process the Agent config to get defaults
+	if bytesRead > 0 {
+		processedConfigString, err = c.loader.GenerateTemplate("", fString)
+		if err != nil {
+			return nil, err
+		}
 	}
 	cfg := configMake()
 
