@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/client/grafanacloud"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
 
 	"github.com/go-kit/log"
@@ -339,7 +340,7 @@ func operatorDetachCmd() *cobra.Command {
 				apps_v1.AddToScheme,
 			} {
 				if err := add(scheme); err != nil {
-					return fmt.Errorf("unable to register scheme: %w", err)
+					return errors.Wrap(err, "unable to register scheme")
 				}
 			}
 
