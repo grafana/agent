@@ -11,7 +11,5 @@ metrics:
           username: 12345
           password: secretpassword
 integrations:
-  node_exporter:
-    enabled: true
-  agent:
-    enabled: true
+  node_exporter: {}
+  agent: {}

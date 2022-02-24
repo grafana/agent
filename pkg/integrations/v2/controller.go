@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -197,6 +199,23 @@ func (id integrationID) String() string {
 func (c *controller) UpdateController(cfg controllerConfig, globals Globals) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
+
+	var returnError error
+	// Check to ensure no duplicate singleton exist
+	singletonCheck := make(map[string]struct{})
+	for _, cfg := range cfg {
+		if t, ok := RegisteredType(cfg.Name()); ok && t == TypeSingleton {
+			// Add to the map but if we find it already exists then create an error
+			if _, ok := singletonCheck[cfg.Name()]; ok {
+				returnError = multierror.Append(returnError, fmt.Errorf("found multiple instances of singleton integration %s", cfg.Name()))
+			} else {
+				singletonCheck[cfg.Name()] = struct{}{}
+			}
+		}
+	}
+	if returnError != nil {
+		return returnError
+	}
 
 	integrationIDMap := map[integrationID]struct{}{}
 

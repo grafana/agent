@@ -2,7 +2,7 @@
 
 Dynamic configuration requires the use of `integrations-next` feature flag, to allow arrays of integrations. In this we will load integrations of various types. This is all built on the previous examples.
 
-`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/03_config.yml`
+`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse file:///etc/grafana/03_config.yml`
 
 ## Dynamic Configuration
 

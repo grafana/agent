@@ -2,7 +2,7 @@
 
 Datasources can also access objects.
 
-`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/03_config.yml`
+`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse file:///etc/grafana/03_config.yml`
 
 
 ## Config

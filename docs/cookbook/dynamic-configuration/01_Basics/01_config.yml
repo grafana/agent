@@ -1,2 +1,2 @@
 template_paths:
-  - "/etc/grafana/01_assets"
+  - "file:///etc/grafana/01_assets"

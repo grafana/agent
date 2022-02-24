@@ -2,7 +2,7 @@
 
 Datasources are a powerful concept in gomplate. They allow you to reach out to other files, systems and resources to pull data. 
 
-`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse /etc/grafana/02_config.yml`
+`docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse file:///etc/grafana/02_config.yml`
 
 
 ## Config
