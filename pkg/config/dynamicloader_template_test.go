@@ -103,9 +103,10 @@ windows_exporter:
 	}
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err := cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg)
 	require.NoError(t, err)
-	assert.Len(t, cfg.Integrations.configV2.Configs, 1)
+	assert.Len(t, cfg.Integrations.ExtraIntegrations, 1)
+	_ = cfg.Integrations.setVersion(integrationsVersion2)
 	expectBase := `
 integrations:
   windows_exporter:

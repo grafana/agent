@@ -2,6 +2,7 @@
 package config
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
@@ -22,7 +23,7 @@ func TestConfigMaker(t *testing.T) {
 		TemplatePaths: []string{fileFS},
 	}
 	cmf := generateLoader(t, loaderCfg)
-	configs, err := cmf.processMetric()
+	configs, err := cmf.processMetrics()
 	require.NoError(t, err)
 	assert.NotNil(t, configs)
 	assert.Equal(t, configs.WALDir, "/tmp/wal")
@@ -39,7 +40,7 @@ func TestConfigMakerWithFakeFiles(t *testing.T) {
 		TemplatePaths: []string{fileFS},
 	}
 	cmf := generateLoader(t, loaderCfg)
-	configs, err := cmf.processMetric()
+	configs, err := cmf.processMetrics()
 	require.NoError(t, err)
 	assert.NotNil(t, configs)
 	assert.Equal(t, configs.WALDir, "/tmp/wal")
@@ -57,9 +58,9 @@ func TestConfigMakerWithMultipleMetrics(t *testing.T) {
 		TemplatePaths: []string{fileFS},
 	}
 	cmf := generateLoader(t, loaderCfg)
-	_, err := cmf.processMetric()
+	_, err := cmf.processMetrics()
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "found 2 metrics templates; expected 0 or 1")
+	assert.True(t, strings.Contains(err.Error(), "found 2 metrics templates; expected 0 or 1"))
 }
 
 func TestConfigMakerWithMetricsAndInstances(t *testing.T) {
@@ -80,7 +81,7 @@ log_level: debug
 	}
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err := cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg)
 	require.NoError(t, err)
 	assert.Len(t, cfg.Metrics.Configs, 2)
 }
@@ -186,9 +187,9 @@ redis_exporter_configs:
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
 
-	err := cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg)
 	require.NoError(t, err)
-	assert.Len(t, cfg.Integrations.configV2.Configs, 2)
+	assert.Len(t, cfg.Integrations.ExtraIntegrations, 2)
 }
 
 func TestAgentAddIntegrations(t *testing.T) {
@@ -218,14 +219,21 @@ windows_exporter: {}
 	}
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err := cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg)
+	require.NoError(t, err)
+	// Since the normal agent uses deferred parsing this is required to load the integration from agent-1.yml
+	err = cfg.Integrations.setVersion(integrationsVersion2)
 	require.NoError(t, err)
 	assert.True(t, cfg.Server.HTTPListenPort == 8080)
 	assert.True(t, cfg.Server.LogLevel.String() == "debug")
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
 	assert.False(t, cfg.Integrations.IsZero())
+	// ExtraIngrations should be 1 from the integrations-windows.yml
+	// the node_exporter integration in the agent-1.yml is in the configV2
+	assert.Len(t, cfg.Integrations.ExtraIntegrations, 1)
 	assert.Len(t, cfg.Integrations.configV2.Configs, 2)
+
 }
 
 func TestFilterOverrides(t *testing.T) {
@@ -300,10 +308,11 @@ configs:
 	}
 	cmf := generateLoader(t, loaderCfg)
 	cfg := &Config{}
-	err := cmf.ProcessConfigs(cfg, nil)
+	err := cmf.ProcessConfigs(cfg)
 	require.NoError(t, err)
-	// Test Agent by checking integration configs is 2
-
+	// Since the normal agent uses deferred parsing this is required to load the integration from agent-1.yml
+	err = cfg.Integrations.setVersion(integrationsVersion2)
+	require.NoError(t, err)
 	// Test server override
 	assert.True(t, cfg.Server.HTTPListenPort == 1111)
 	// Test metric
@@ -311,6 +320,7 @@ configs:
 	// Test Metric Instances
 	assert.True(t, cfg.Metrics.Configs[0].Name == "t1")
 	// Test Integrations
+	assert.Len(t, cfg.Integrations.ExtraIntegrations, 1)
 	assert.Len(t, cfg.Integrations.configV2.Configs, 2)
 	// Test Traces
 	assert.True(t, cfg.Traces.Configs[0].Name == "test_traces")

@@ -495,7 +495,7 @@ func templateDryRunCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = cmf.ProcessConfigs(c, nil)
+			err = cmf.ProcessConfigs(c)
 			if err != nil {
 				return fmt.Errorf("error processing config templates %s", err)
 			}

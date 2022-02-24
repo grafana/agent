@@ -2,10 +2,7 @@ package config
 
 import (
 	"context"
-	"errors"
-	"flag"
 	"fmt"
-	"io"
 	"io/fs"
 	"io/ioutil"
 	"net/url"
@@ -38,7 +35,6 @@ type DynamicLoader struct {
 
 // NewDynamicLoader instantiates a new DynamicLoader.
 func NewDynamicLoader() (*DynamicLoader, error) {
-
 	return &DynamicLoader{
 		mux: newFSProvider(),
 	}, nil
@@ -91,6 +87,8 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 	var err error
 	switch {
 	case strings.HasPrefix(path, "file://"):
+		// It takes some work arounds to parse all windows paths as url so treating it differently now is easier
+		// otherwise we could parse path and then pivot
 		stripPath := strings.ReplaceAll(path, "file://", "")
 		buf, err = ioutil.ReadFile(stripPath)
 		if err != nil {
@@ -118,16 +116,13 @@ func (c *DynamicLoader) LoadConfigByPath(path string) error {
 }
 
 // ProcessConfigs loads the configurations in a predetermined order to handle functioning correctly.
-func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
+func (c *DynamicLoader) ProcessConfigs(cfg *Config) error {
 	if c.cfg == nil {
-		return errors.New("LoadConfig or LoadConfigByPath must be called")
+		return fmt.Errorf("LoadConfig or LoadConfigByPath must be called")
 	}
 	var returnErr error
 
-	err := yaml.UnmarshalStrict([]byte{}, cfg)
-	returnErr = errorAppend(returnErr, err)
-
-	err = c.processAgent(cfg)
+	err := c.processAgent(cfg)
 	returnErr = errorAppend(returnErr, err)
 
 	serverConfig, err := c.processServer()
@@ -136,7 +131,7 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 		cfg.Server = *serverConfig
 	}
 
-	metricConfig, err := c.processMetric()
+	metricConfig, err := c.processMetrics()
 	returnErr = errorAppend(returnErr, err)
 	if metricConfig != nil {
 		cfg.Metrics = *metricConfig
@@ -160,157 +155,153 @@ func (c *DynamicLoader) ProcessConfigs(cfg *Config, fs *flag.FlagSet) error {
 
 	integrations, err := c.processIntegrations()
 	returnErr = errorAppend(returnErr, err)
-	// If integrations havent already been defined then we need to do
-	// some setup
-	if cfg.Integrations.configV2 == nil {
-		cfg.Integrations = VersionedIntegrations{}
-		err = cfg.Integrations.setVersion(integrationsVersion2)
-		if err != nil {
-			returnErr = multierror.Append(returnErr, err)
-		}
-		defaultV2 := v2.DefaultSubsystemOptions
-		cfg.Integrations.configV2 = &defaultV2
-	}
-	if len(integrations) > 0 {
-		cfg.Integrations.configV2.Configs = append(cfg.Integrations.configV2.Configs, integrations...)
-	}
 
-	err = cfg.Validate(fs)
-	returnErr = errorAppend(returnErr, err)
+	cfg.Integrations.ExtraIntegrations = append(cfg.Integrations.ExtraIntegrations, integrations...)
+
 	return returnErr
 }
 
 func (c *DynamicLoader) processAgent(cfg *Config) error {
+	var returnError error
+	found := 0
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, c.cfg.AgentFilter, func() interface{} {
-			return cfg
-		}, c.handleAgentMatch)
-		if err != nil {
-			return err
+		filesContents, err := c.retrieveMatchingFileContents(path, c.cfg.AgentFilter, "agent")
+		returnError = errorAppend(returnError, err)
+		found = len(filesContents) + found
+		if len(filesContents) == 1 {
+			err = LoadBytes([]byte(filesContents[0]), false, cfg)
+			returnError = errorAppend(returnError, err)
 		}
-		if len(result) > 1 {
-			return fmt.Errorf("found %d agent templates; expected 0 or 1", len(result))
-		}
-
 	}
-	return nil
+	if found > 1 {
+		returnError = errorAppend(returnError, fmt.Errorf("found %d agent templates; expected 0 or 1", found))
+	}
+	// If we didnt find anything we still want to unmarshal the cfg to get defaults
+	if found == 0 {
+		_ = LoadBytes([]byte("{}"), false, cfg)
+	}
+	return returnError
 }
 
 func (c *DynamicLoader) processServer() (*server.Config, error) {
+	var returnError error
+	found := 0
+	var cfg *server.Config
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, c.cfg.ServerFilter, func() interface{} {
-			return &server.Config{}
-		}, c.handleMatch)
-		if err != nil {
-			return nil, err
-		}
-		if len(result) > 1 {
-			return nil, fmt.Errorf("found %d server templates; expected 0 or 1", len(result))
-		}
-		if len(result) == 1 {
-			return result[0].(*server.Config), nil
+		filesContents, err := c.retrieveMatchingFileContents(path, c.cfg.ServerFilter, "server")
+		returnError = errorAppend(returnError, err)
+		found = len(filesContents) + found
+		if len(filesContents) == 1 {
+			cfg = &server.Config{}
+			err = yaml.Unmarshal([]byte(filesContents[0]), cfg)
+			returnError = errorAppend(returnError, err)
 		}
 	}
-	return nil, nil
+	if found > 1 {
+		returnError = errorAppend(returnError, fmt.Errorf("found %d server templates; expected 0 or 1", found))
+	}
+	return cfg, returnError
 }
 
-func (c *DynamicLoader) processMetric() (*metrics.Config, error) {
+func (c *DynamicLoader) processMetrics() (*metrics.Config, error) {
+	var returnError error
+	found := 0
+	var cfg *metrics.Config
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, c.cfg.MetricsFilter, func() interface{} {
-			return &metrics.Config{}
-		}, c.handleMatch)
-		if err != nil {
-			return nil, err
-		}
-		if len(result) > 1 {
-			return nil, fmt.Errorf("found %d metrics templates; expected 0 or 1", len(result))
-		}
-		if len(result) == 1 {
-			return result[0].(*metrics.Config), nil
+		filesContents, err := c.retrieveMatchingFileContents(path, c.cfg.MetricsFilter, "metrics")
+		returnError = errorAppend(returnError, err)
+		found = len(filesContents) + found
+		if len(filesContents) == 1 {
+			cfg = &metrics.Config{}
+			err = yaml.Unmarshal([]byte(filesContents[0]), cfg)
+			returnError = errorAppend(returnError, err)
 		}
 	}
-	return nil, nil
+	if found > 1 {
+		returnError = errorAppend(returnError, fmt.Errorf("found %d metrics templates; expected 0 or 1", found))
+	}
+	return cfg, returnError
 }
 
 func (c *DynamicLoader) processMetricInstances() ([]instance.Config, error) {
-	var retError error
-	configs := make([]instance.Config, 0)
+	var returnError error
+	var configs []instance.Config
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, c.cfg.MetricsInstanceFilter, func() interface{} {
-			return &instance.Config{}
-		}, c.handleMatch)
-		if err != nil {
-			retError = multierror.Append(retError, err)
+		filesContents, err := c.retrieveMatchingFileContents(path, c.cfg.MetricsInstanceFilter, "metrics instances")
+		returnError = errorAppend(returnError, err)
+		for _, c := range filesContents {
+			cfg := &instance.Config{}
+			err = yaml.Unmarshal([]byte(c), cfg)
+			returnError = errorAppend(returnError, err)
+			configs = append(configs, *cfg)
 		}
-		for _, v := range result {
-			pv := v.(*instance.Config)
-			configs = append(configs, *pv)
-		}
-
 	}
-	return configs, retError
+
+	return configs, returnError
 }
 
 func (c *DynamicLoader) processIntegrations() ([]v2.Config, error) {
 	var returnError error
-	configs := make([]v2.Config, 0)
+	var configs []v2.Config
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, c.cfg.IntegrationsFilter, func() interface{} {
-			// This can return nil because we do a fancy lookup by the exporter name for the lookup
-			return nil
-		}, c.handleExporterMatch)
-		if err != nil {
-			returnError = multierror.Append(returnError, err)
-		}
-		for _, v := range result {
-			cfg := v.(v2.Config)
-			configs = append(configs, cfg)
+		filesContents, err := c.retrieveMatchingFileContents(path, c.cfg.IntegrationsFilter, "integrations")
+		returnError = errorAppend(returnError, err)
+		for _, c := range filesContents {
+			intConfigs, err := unmarshalYamlToExporters(c)
+			if err != nil {
+				returnError = errorAppend(returnError, err)
+				continue
+			}
+			configs = append(configs, intConfigs...)
 		}
 	}
 	return configs, returnError
 }
 
 func (c *DynamicLoader) processLogs() (*logs.Config, error) {
+	var returnError error
+	found := 0
+	var cfg *logs.Config
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, c.cfg.LogsFilter, func() interface{} {
-			return &logs.Config{}
-		}, c.handleMatch)
-		if err != nil {
-			return nil, err
+		filesContents, err := c.retrieveMatchingFileContents(path, c.cfg.LogsFilter, "logs")
+		returnError = errorAppend(returnError, err)
+		found = len(filesContents) + found
+		if len(filesContents) == 1 {
+			cfg = &logs.Config{}
+			err = yaml.Unmarshal([]byte(filesContents[0]), cfg)
+			returnError = errorAppend(returnError, err)
 		}
-		if len(result) > 1 {
-			return nil, fmt.Errorf("found %d logs templates; expected 0 or 1", len(result))
-		}
-		if len(result) == 1 {
-			return result[0].(*logs.Config), nil
-		}
-
 	}
-	return nil, nil
+	if found > 1 {
+		returnError = errorAppend(returnError, fmt.Errorf("found %d logs templates; expected 0 or 1", found))
+	}
+	return cfg, returnError
 }
 
 func (c *DynamicLoader) processTraces() (*traces.Config, error) {
+	var returnError error
+	found := 0
+	var cfg *traces.Config
 	for _, path := range c.cfg.TemplatePaths {
-		result, err := c.generateConfigsFromPath(path, c.cfg.TracesFilter, func() interface{} {
-			return &traces.Config{}
-		}, c.handleMatch)
-		if err != nil {
-			return nil, err
+		filesContents, err := c.retrieveMatchingFileContents(path, c.cfg.TracesFilter, "traces")
+		returnError = errorAppend(returnError, err)
+		found = len(filesContents) + found
+		if len(filesContents) == 1 {
+			cfg = &traces.Config{}
+			err = yaml.Unmarshal([]byte(filesContents[0]), cfg)
+			returnError = errorAppend(returnError, err)
 		}
-		if len(result) > 1 {
-			return nil, fmt.Errorf("found %d traces templates; expected 0 or 1", len(result))
-		}
-		if len(result) == 1 {
-			return result[0].(*traces.Config), nil
-		}
-
 	}
-	return nil, nil
+	if found > 1 {
+		returnError = errorAppend(returnError, fmt.Errorf("found %d traces templates; expected 0 or 1", found))
+	}
+	return cfg, returnError
 }
 
-// generateConfigsFromPath creates a series of yaml configs based on the path and a given string pattern.
+// retrieveMatchingFileContents retrieves the contents of files based on path and pattern
 // the pattern is the same as used by filepath.Match.
-func (c *DynamicLoader) generateConfigsFromPath(path string, pattern string, configMake func() interface{}, matchHandler func(fs.FS, fs.DirEntry, func() interface{}) ([]interface{}, error)) ([]interface{}, error) {
+func (c *DynamicLoader) retrieveMatchingFileContents(path, pattern, name string) ([]string, error) {
+	var filesContents []string
 	handler, err := c.mux.Lookup(path)
 	if err != nil {
 		return nil, err
@@ -319,9 +310,9 @@ func (c *DynamicLoader) generateConfigsFromPath(path string, pattern string, con
 	if err != nil {
 		return nil, err
 	}
-	var configs []interface{}
 	for _, f := range files {
-		// We don't recurse into directories
+		// We don't recurse into directories, mainly due to not wanting to deal with symlinks and other oddities
+		// its likely we will revisit
 		if f.IsDir() {
 			continue
 		}
@@ -330,83 +321,18 @@ func (c *DynamicLoader) generateConfigsFromPath(path string, pattern string, con
 			return nil, err
 		}
 		if matched {
-			matchedConfigs, err := matchHandler(handler, f, configMake)
+			contents, err := fs.ReadFile(handler, f.Name())
 			if err != nil {
 				return nil, err
 			}
-			configs = append(configs, matchedConfigs...)
+			processedConfigString, err := c.loader.GenerateTemplate(name, string(contents))
+			if err != nil {
+				return nil, err
+			}
+			filesContents = append(filesContents, processedConfigString)
 		}
 	}
-	return configs, nil
-}
-
-func (c *DynamicLoader) handleAgentMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
-	fBytes, err := fs.ReadFile(handler, f.Name())
-	if err != nil {
-		return nil, err
-	}
-	fString := string(fBytes)
-	// Parse the template
-	processedConfigString := ""
-
-	processedConfigString, err = c.loader.GenerateTemplate("", fString)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg := configMake()
-
-	// Expand Vars is false since gomplate already allows expanding vars
-	err = LoadBytes([]byte(processedConfigString), false, cfg.(*Config))
-	if err != nil {
-		return nil, err
-	}
-	// setVersion actually does the unmarshalling for integrations
-	err = cfg.(*Config).Integrations.setVersion(integrationsVersion2)
-	return []interface{}{cfg}, err
-}
-
-func (c *DynamicLoader) handleMatch(handler fs.FS, f fs.DirEntry, configMake func() interface{}) ([]interface{}, error) {
-	fBytes, err := fs.ReadFile(handler, f.Name())
-	if err != nil {
-		return nil, err
-	}
-	fString := string(fBytes)
-	// Parse the template
-	processedConfigString, err := c.loader.GenerateTemplate("", fString)
-	if err != nil {
-		return nil, err
-	}
-	cfg := configMake()
-	err = yaml.Unmarshal([]byte(processedConfigString), cfg)
-	if err != nil && err != io.EOF {
-		return nil, err
-	}
-	return []interface{}{cfg}, nil
-}
-
-// handleExporterMatch is more complex since those can be of any different types and not a single concrete type, like
-// most of the configurations.
-func (c *DynamicLoader) handleExporterMatch(handler fs.FS, f fs.DirEntry, _ func() interface{}) ([]interface{}, error) {
-	fBytes, err := fs.ReadFile(handler, f.Name())
-	if err != nil {
-		return nil, err
-	}
-	fString := string(fBytes)
-	// Parse the template
-	processedConfigString, err := c.loader.GenerateTemplate("", fString)
-	if err != nil {
-		return nil, err
-	}
-	cfg, err := unmarshalYamlToExporters(processedConfigString)
-	if cfg == nil || err != nil {
-		return nil, err
-	}
-	var intConfigs []interface{}
-	for _, i := range cfg {
-		intConfigs = append(intConfigs, i)
-	}
-	return intConfigs, nil
+	return filesContents, nil
 }
 
 // unmarshalYamlToExporters attempts to convert the contents of yaml string into a set of exporters and then return

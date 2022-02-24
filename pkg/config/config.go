@@ -263,7 +263,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 
 // LoadDynamicConfiguration is used to load configuration from a variety of sources using
 // dynamic loader, this is a templated approach
-func LoadDynamicConfiguration(url string, expandvar bool, c *Config, fs *flag.FlagSet) error {
+func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
 	if expandvar {
 		return errors.New("expand var is not supported when using dynamic configuration, use gomplate env instead")
 	}
@@ -276,7 +276,7 @@ func LoadDynamicConfiguration(url string, expandvar bool, c *Config, fs *flag.Fl
 		return err
 	}
 
-	err = cmf.ProcessConfigs(c, fs)
+	err = cmf.ProcessConfigs(c)
 	if err != nil {
 		return errors.Wrap(err, "error processing config templates")
 	}
@@ -329,7 +329,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 		if features.Enabled(fs, featDynamicConfig) && !features.Enabled(fs, featIntegrationsNext) {
 			return errors.New("integrations-next must be enabled for dynamic configuration to work")
 		} else if features.Enabled(fs, featDynamicConfig) {
-			return LoadDynamicConfiguration(url, expand, c, fs)
+			return LoadDynamicConfiguration(url, expand, c)
 		}
 		return LoadFile(url, expand, c)
 	})
@@ -389,12 +389,9 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
-	// This is due to an odd interaction between dynamic loading and v2 integrations feature, if dynamic loading
-	// is enabled the cfg version is already set and this will actually override it
-	if cfg.Integrations.version != integrationsVersion2 && !features.Enabled(fs, featDynamicConfig) {
-		if err := cfg.Integrations.setVersion(version); err != nil {
-			return nil, fmt.Errorf("error loading config file %s: %w", file, err)
-		}
+
+	if err := cfg.Integrations.setVersion(version); err != nil {
+		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag

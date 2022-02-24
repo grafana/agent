@@ -432,7 +432,7 @@ metrics:
 }
 
 func TestLoadDynamicConfigurationExpandError(t *testing.T) {
-	err := LoadDynamicConfiguration("", true, nil, nil)
+	err := LoadDynamicConfiguration("", true, nil)
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }
