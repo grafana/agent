@@ -60,6 +60,7 @@ linters:
     - unused # new from here.
     - interfacer
     - typecheck
+    - depguard
 
 issues:
   # golangci-lint excludes some stuff we want by default (i.e., proper go-style comments).
@@ -72,3 +73,12 @@ issues:
     # and in most cases it's ok. This is copied from the golangci-lint defaults
     # mut modified to include go-kit logging.
     - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*print(f|ln)?|os\.(Un)?Setenv|.*\.Log). is not checked
+
+linters-settings:
+  depguard:
+    list-type: denylist
+    include-go-root: true
+    packages-with-error-message:
+      - sync/atomic: "Use go.uber.org/atomic instead of sync/atomic"
+      - github.com/pkg/errors: "Use errors instead of github.com/pkg/errors"
+      - github.com/go-kit/kit/log: "Use github.com/go-kit/log instead of github.com/go-kit/kit/log"
