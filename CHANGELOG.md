@@ -7,6 +7,8 @@
 
 - [ENHANCEMENT] Parameterize namespace field in sample K8s logs manifests (@hjet)
 
+- [ENHANCEMENT] Upgrade to loki v2.4.2 (@rlankfo)
+
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
 
 # v0.23.0 (2022-01-13)
