@@ -3,7 +3,6 @@ package config
 import (
 	"flag"
 	"net/url"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -99,7 +98,7 @@ metrics:
 			EvaluationInterval: model.Duration(1 * time.Minute),
 		},
 	}
-	_ = os.Setenv("SCRAPE_TIMEOUT", "33s")
+	t.Setenv("SCRAPE_TIMEOUT", "33s")
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {

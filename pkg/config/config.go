@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv/consul"
 	"github.com/grafana/dskit/kv/etcd"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
@@ -219,7 +218,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return errors.Wrap(err, "error reading config file")
+		return fmt.Errorf("error reading config file: %w", err)
 	}
 	return LoadBytes(buf, expandEnvVars, c)
 }

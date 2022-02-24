@@ -9,7 +9,7 @@ import (
 const name = "cadvisor"
 
 // DefaultConfig holds the default settings for the cadvisor integration
-var DefaultConfig Config = Config{
+var DefaultConfig = Config{
 	// Common cadvisor config defaults
 	StoreContainerLabels: true,
 	ResctrlInterval:      0,
