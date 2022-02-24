@@ -7,6 +7,10 @@
 
 - [ENHANCEMENT] Parameterize namespace field in sample K8s logs manifests (@hjet)
 
+- [ENCHANCEMENT] (EXPERIMENTAL) Add support for dynamic configurations (@mattdurham)
+
+- [BUGFIX] Enforce singletons for v2 integrations (@mattdurham)
+
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
 
 # v0.23.0 (2022-01-13)
