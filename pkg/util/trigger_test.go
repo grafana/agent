@@ -26,5 +26,4 @@ func TestWaitTrigger(t *testing.T) {
 		err := wt.Wait(time.Second)
 		require.NoError(t, err)
 	})
-
 }

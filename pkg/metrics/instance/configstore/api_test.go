@@ -151,6 +151,7 @@ remote_write:
 - url: http://localhost:9009/api/prom/push
   remote_timeout: 30s
   name: test-d0f32c
+  send_exemplars: true
   basic_auth:
     username: admin
     password: SCRUBME

@@ -2,6 +2,7 @@ package common
 
 import (
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
+	"github.com/prometheus/prometheus/pkg/labels"
 )
 
 // MetricsConfig is a set of common options shared by metrics integrations. It
@@ -14,6 +15,7 @@ import (
 type MetricsConfig struct {
 	Autoscrape  autoscrape.Config `yaml:"autoscrape,omitempty"`
 	InstanceKey *string           `yaml:"instance,omitempty"`
+	ExtraLabels labels.Labels     `yaml:"extra_labels,omitempty"`
 }
 
 // ApplyDefaults applies defaults to mc.

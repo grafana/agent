@@ -20,7 +20,6 @@ type Config struct {
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-
 	type plain Config
 	return unmarshal((*plain)(c))
 }
