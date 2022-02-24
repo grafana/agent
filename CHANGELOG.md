@@ -5,6 +5,8 @@
 
 - [ENHANCEMENT] Strengthen readiness check for metrics instances. (@tpaschalis)
 
+- [ENHANCEMENT] Parameterize namespace field in sample K8s logs manifests (@hjet)
+
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
 
 # v0.23.0 (2022-01-13)
