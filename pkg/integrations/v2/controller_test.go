@@ -134,7 +134,6 @@ func Test_controller_ConfigChanges(t *testing.T) {
 	})
 }
 
-
 func Test_controller_SingletonCheck(t *testing.T) {
 
 	var integrationsWg sync.WaitGroup
