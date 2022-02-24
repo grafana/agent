@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/tools/ratelimiting"
+	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/cors"
 )
@@ -42,8 +43,10 @@ func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.
 	}
 
 	exporterErrorsCollector := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "app_o11y_receiver_export_errors",
-		Help: "Total number of errors produced by a receiver exporter",
+		Namespace: utils.MetricsNamespace,
+		Subsystem: "exporter",
+		Name:      "errors",
+		Help:      "Total number of errors produced by a receiver exporter",
 	}, []string{"exporter"})
 
 	if reg != nil {
@@ -98,7 +101,7 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 			go func(exp exporters.AppO11yReceiverExporter) {
 				defer wg.Done()
 				if err := exp.Export(p); err != nil {
-					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err.Error())
+					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err)
 					ar.exporterErrorsCollector.WithLabelValues(exp.Name()).Inc()
 				}
 			}(exporter)
