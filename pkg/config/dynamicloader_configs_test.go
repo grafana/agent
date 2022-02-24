@@ -2,7 +2,6 @@
 package config
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
@@ -105,28 +104,6 @@ windows_exporter:
 	assert.Len(t, configs, 1)
 	wincfg, _ := configs[0].(v2.UpgradedConfig).LegacyConfig()
 	assert.True(t, wincfg.(*windows_exporter.Config).EnabledCollectors == "one,two,three")
-}
-
-func TestConfigMakerSingletonWithExporter(t *testing.T) {
-	configStr := `
-windows_exporter:
-  enabled_collectors: one,two,three
-  instance: testinstance
-`
-	tDir := generatePath(t)
-	writeFile(t, tDir, "integrations-1.yml", configStr)
-	writeFile(t, tDir, "integrations-2.yml", configStr)
-
-	fileFS := generateFilePath(tDir)
-
-	loaderCfg := LoaderConfig{
-		Sources:       nil,
-		TemplatePaths: []string{fileFS},
-	}
-	cmf := generateLoader(t, loaderCfg)
-	_, err := cmf.processIntegrations()
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "found multiple instances of singleton"))
 }
 
 func TestConfigMakerWithMultipleExporter(t *testing.T) {

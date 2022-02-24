@@ -267,17 +267,6 @@ func (c *DynamicLoader) processIntegrations() ([]v2.Config, error) {
 			configs = append(configs, cfg)
 		}
 	}
-	// Check to ensure no singleton exist
-	singletonCheck := make(map[string]interface{})
-	for _, cfg := range configs {
-		if t, ok := v2.RegisteredType(cfg.Name()); ok && t == v2.TypeSingleton {
-			if _, ok := singletonCheck[cfg.Name()]; ok {
-				returnError = multierror.Append(returnError, fmt.Errorf("found multiple instances of singleton integration %s", cfg.Name()))
-			} else {
-				singletonCheck[cfg.Name()] = nil
-			}
-		}
-	}
 	return configs, returnError
 }
 
