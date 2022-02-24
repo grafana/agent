@@ -127,7 +127,7 @@ func createTraceProcessor(
 	cfg config.Processor,
 	nextConsumer consumer.Traces,
 ) (component.TracesProcessor, error) {
-	oCfg := cfg.(*Config)
 
+	oCfg := cfg.(*Config)
 	return newTraceProcessor(nextConsumer, oCfg.LoggingConfig)
 }

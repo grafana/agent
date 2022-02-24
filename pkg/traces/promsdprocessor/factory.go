@@ -59,8 +59,8 @@ func createTraceProcessor(
 	cfg config.Processor,
 	nextConsumer consumer.Traces,
 ) (component.TracesProcessor, error) {
-	oCfg := cfg.(*Config)
 
+	oCfg := cfg.(*Config)
 	out, err := yaml.Marshal(oCfg.ScrapeConfigs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal scrapeConfigs interface{} to yaml: %w", err)

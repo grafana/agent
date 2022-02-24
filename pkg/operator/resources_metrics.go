@@ -109,6 +109,7 @@ func generateMetricsStatefulSet(
 	d config.Deployment,
 	shard int32,
 ) (*apps_v1.StatefulSet, error) {
+
 	d = *d.DeepCopy()
 
 	//
