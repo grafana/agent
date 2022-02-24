@@ -202,14 +202,14 @@ func (c *controller) UpdateController(cfg controllerConfig, globals Globals) err
 
 	var returnError error
 	// Check to ensure no duplicate singleton exist
-	singletonCheck := make(map[string]interface{})
+	singletonCheck := make(map[string]struct{})
 	for _, cfg := range cfg {
 		if t, ok := RegisteredType(cfg.Name()); ok && t == TypeSingleton {
 			// Add to the map but if we find it already exists then create an error
 			if _, ok := singletonCheck[cfg.Name()]; ok {
 				returnError = multierror.Append(returnError, fmt.Errorf("found multiple instances of singleton integration %s", cfg.Name()))
 			} else {
-				singletonCheck[cfg.Name()] = nil
+				singletonCheck[cfg.Name()] = struct{}{}
 			}
 		}
 	}

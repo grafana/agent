@@ -221,7 +221,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return fmt.Errorf("error reading config file %s", err.Error())
+		return fmt.Errorf("error reading config file %w", err)
 	}
 	return LoadBytes(buf, expandEnvVars, c)
 }
@@ -278,7 +278,7 @@ func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
 
 	err = cmf.ProcessConfigs(c)
 	if err != nil {
-		return errors.Wrap(err, "error processing config templates")
+		return fmt.Errorf("error processing config templates %w", err)
 	}
 	return nil
 }
@@ -327,7 +327,7 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 			return LoadRemote(url, expand, c)
 		}
 		if features.Enabled(fs, featDynamicConfig) && !features.Enabled(fs, featIntegrationsNext) {
-			return errors.New("integrations-next must be enabled for dynamic configuration to work")
+			return fmt.Errorf("integrations-next must be enabled for dynamic configuration to work")
 		} else if features.Enabled(fs, featDynamicConfig) {
 			return LoadDynamicConfiguration(url, expand, c)
 		}
@@ -348,7 +348,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
-	fs.StringVar(&dynamicConfigPath, "config.dynamic-config-path", "", "dynamic configuration path that points to a single configuration file supports file:// or s3:// protocols")
+	fs.StringVar(&dynamicConfigPath, "config.dynamic-config-path", "", "dynamic configuration path that points to a single configuration file supports file:// or s3:// protocols. Must be enabled by -enable-features=dynamic-config,integrations-next")
 
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
