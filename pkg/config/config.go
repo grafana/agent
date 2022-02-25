@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -20,7 +21,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv/consul"
 	"github.com/grafana/dskit/kv/etcd"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
@@ -370,7 +370,6 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		} else if err := loader(dynamicConfigPath, configExpandEnv, &cfg); err != nil {
 			return nil, fmt.Errorf("error loading dynamic configuration file %s: %w", dynamicConfigPath, err)
 		}
-
 	} else if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
 	} else if err := loader(file, configExpandEnv, &cfg); err != nil {

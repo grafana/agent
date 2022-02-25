@@ -19,6 +19,7 @@ func generateLogsDaemonSet(
 	name string,
 	d config.Deployment,
 ) (*apps_v1.DaemonSet, error) {
+
 	d = *d.DeepCopy()
 
 	if d.Agent.Spec.PortName == "" {

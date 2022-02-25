@@ -104,7 +104,6 @@ func TestRedisCases(t *testing.T) {
 	logger := log.NewNopLogger()
 
 	for _, test := range tt {
-
 		t.Run(test.name, func(t *testing.T) {
 			integration, err := New(logger, &test.cfg)
 
@@ -151,7 +150,6 @@ func TestRedisCases(t *testing.T) {
 				require.True(t, exists, "could not find metric %s", metric)
 			}
 		})
-
 	}
 }
 

@@ -15,7 +15,7 @@ import (
 )
 
 // DefaultConfig holds the default settings for the github_exporter integration
-var DefaultConfig Config = Config{
+var DefaultConfig = Config{
 	APIURL: "https://api.github.com",
 }
 
@@ -74,7 +74,6 @@ func init() {
 
 // New creates a new github_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-
 	conf := gh_config.Config{}
 	err := conf.SetAPIURL(c.APIURL)
 	if err != nil {
