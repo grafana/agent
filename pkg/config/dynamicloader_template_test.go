@@ -1,5 +1,7 @@
 //go:build !windows
 
+// This is not allowed on windows because it OOMs the windows github action
+
 //nolint:golint,goconst
 package config
 
