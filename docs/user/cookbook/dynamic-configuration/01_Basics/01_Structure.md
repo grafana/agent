@@ -6,7 +6,7 @@ Dynamic Configuration uses a series of files to load templates. This example wil
 
 ## Dynamic Configuration
 
-[config.yml](./01_config.yml)
+[config.yml](01_config.yml)
 
 ```yaml
 template_paths:
@@ -19,7 +19,7 @@ Tells the Grafana Agent where to load files from. It is important to note that d
 
 Dynamic Configuration will find the first file matching pattern `agent-*.yml` and load that as the base. You can only have one agent template. If multiple matching templates are found then the configuration will fail to load. 
 
-[agent-1.yml](./01_assets/agent-1.yml)
+[agent-1.yml](01_assets/agent-1.yml)
 
 ```yaml
 server:
@@ -49,7 +49,7 @@ is a configuration block.
 
 You can only have 1 server template.
 
-[server-1.yml](./01_assets/server-1.yml)
+[server-1.yml](01_assets/server-1.yml)
 
 
 ```yaml
@@ -59,6 +59,6 @@ log_level: info
 
 ## Final
 
-[final.yml](./01_assets/final.yml)
+[final.yml](01_assets/final.yml)
 
 In the above example the `log_level: debug` block will be replaced with `log_level: info` from the server-1.yml

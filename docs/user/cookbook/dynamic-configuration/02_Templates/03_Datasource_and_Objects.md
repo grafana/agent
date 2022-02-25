@@ -7,7 +7,7 @@ Datasources can also access objects.
 
 ## Config
 
-The [config.yml](./02_config.yml) adds a new field `sources`. Sources can be any number of things defined in the gomplate [datasources](https://docs.gomplate.ca/datasources/) documentation. In this example using fruit.
+The [config.yml](02_config.yml) adds a new field `sources`. Sources can be any number of things defined in the gomplate [datasources](https://docs.gomplate.ca/datasources/) documentation. In this example using fruit.
 
 ```yaml
 template_paths:
@@ -17,7 +17,7 @@ datasources:
     url: "file:///etc/grafana/03_assets/computers.json"
 ```
 
-[computers.json](./03_assets/computers.json)
+[computers.json](03_assets/computers.json)
 
 ```json
 [
@@ -42,7 +42,7 @@ datasources:
 
 ## Usage
 
-[agent-1.yml](./02_assets/agent-1.yml)
+[agent-1.yml](02_assets/agent-1.yml)
 
 ```yaml
 server:
