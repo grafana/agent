@@ -33,6 +33,7 @@ require (
 	github.com/jsternberg/zap-logfmt v1.2.0
 	github.com/lib/pq v1.10.2
 	github.com/miekg/dns v1.1.43
+	github.com/mitchellh/mapstructure v1.4.2
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/ncabatoff/process-exporter v0.7.5
 	github.com/oklog/run v1.1.0
@@ -53,7 +54,6 @@ require (
 	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/percona/mongodb_exporter v0.0.0-00010101000000-000000000000
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/elasticsearch_exporter v1.2.1
 	github.com/prometheus-community/postgres_exporter v0.10.0
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
@@ -228,7 +228,8 @@ require (
 	github.com/hashicorp/go-hclog v0.16.2 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-msgpack v0.5.5 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/hashicorp/go-plugin v1.4.3 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.1 // indirect
 	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.1 // indirect
@@ -294,7 +295,6 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
-	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/moby/sys/mount v0.3.0 // indirect
 	github.com/moby/sys/mountinfo v0.5.0 // indirect
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
