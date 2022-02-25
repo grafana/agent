@@ -26,6 +26,7 @@ func NewMetricsHandlerIntegration(
 	globals integrations.Globals,
 	h http.Handler,
 ) (integrations.MetricsIntegration, error) {
+
 	id, err := c.Identifier(globals)
 	if err != nil {
 		return nil, err
@@ -103,6 +104,10 @@ func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetg
 			"__meta_agent_integration_autoscrape": model.LabelValue(boolToString(*i.common.Autoscrape.Enable)),
 		},
 		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
+	}
+
+	for _, lbl := range i.common.ExtraLabels {
+		group.Labels[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
 	}
 
 	for _, t := range i.targets {

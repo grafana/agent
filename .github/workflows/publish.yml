@@ -5,7 +5,7 @@ on:
     branches:
     - main
     paths:
-    - 'docs/**'
+    - 'docs/user/**'
 
 jobs:
   sync:
@@ -21,7 +21,7 @@ jobs:
         branch: master
         host: github.com
         github_pat: '${{ secrets.GH_BOT_ACCESS_TOKEN }}'
-        source_folder: docs
+        source_folder: docs/user
         target_folder: content/docs/agent/latest
     - shell: bash
       run: |

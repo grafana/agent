@@ -44,9 +44,10 @@ scrape_configs:
     username: admin
     password: foobar
 remote_write:
-- url: http://localhost:9009/api/prom/push
+- url: http://admin:verysecret@localhost:9009/api/prom/push
   remote_timeout: 30s
   name: test-d0f32c
+  send_exemplars: true
   basic_auth:
     username: admin
     password: verysecret
@@ -96,9 +97,10 @@ scrape_configs:
     username: admin
     password: SCRUBME
 remote_write:
-- url: http://localhost:9009/api/prom/push
+- url: http://username:SCRUBURL@localhost:9009/api/prom/push
   remote_timeout: 30s
   name: test-d0f32c
+  send_exemplars: true
   basic_auth:
     username: admin
     password: SCRUBME
@@ -122,7 +124,9 @@ remote_flush_deadline: 1m0s
 `
 
 	scrub := func(in string) string {
-		return strings.ReplaceAll(in, "SCRUBME", "<secret>")
+		in = strings.ReplaceAll(in, "SCRUBME", "<secret>")
+		in = strings.ReplaceAll(in, "SCRUBURL", "xxxxx")
+		return in
 	}
 
 	t.Run("direct marshal", func(t *testing.T) {

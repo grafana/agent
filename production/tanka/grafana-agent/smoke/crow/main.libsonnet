@@ -14,8 +14,9 @@ local volume = k.core.v1.volume;
     local this = self,
 
     _config+:: {
-      image: 'grafana/agent-crow:latest',
+      image: 'us.gcr.io/kubernetes-dev/grafana/agent-crow:main',
       args: {},
+      pull_secret: '',
     } + config,
 
     container::
@@ -27,6 +28,7 @@ local volume = k.core.v1.volume;
 
     deployment:
       deployment.new(name, 1, [self.container]) +
-      deployment.mixin.metadata.withNamespace(namespace),
+      deployment.mixin.metadata.withNamespace(namespace) +
+      deployment.spec.template.spec.withImagePullSecrets({ name: this._config.pull_secret }),
   },
 }

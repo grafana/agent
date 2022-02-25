@@ -151,9 +151,7 @@ func generatePath(t *testing.T) string {
 }
 
 func pushFilesToFakeS3(t *testing.T, filename string, filecontents string) *url.URL {
-	_ = os.Setenv("AWS_ANON", "true")
-	t.Cleanup(func() { _ = os.Unsetenv("AWS_ANON") })
-
+	t.Setenv("AWS_ANON", "true")
 	backend := s3mem.New()
 	faker := gofakes3.New(backend)
 

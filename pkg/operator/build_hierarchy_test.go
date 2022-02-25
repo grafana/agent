@@ -19,8 +19,10 @@ import (
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	controller "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // Test_buildHierarchy checks that an entire resource hierarchy can be
@@ -34,7 +36,7 @@ func Test_buildHierarchy(t *testing.T) {
 
 	l := util.TestLogger(t)
 	cluster := NewTestCluster(ctx, t, l)
-	cli := cluster.Client()
+	cli := newTestControllerClient(t, cluster)
 
 	resources := k8s.NewResourceSet(l, cluster)
 	defer resources.Stop()
@@ -163,4 +165,27 @@ func (w *resourceWalker) Visit(v interface{}) (next structwalk.Visitor) {
 		w.onResource(obj)
 	}
 	return w
+}
+
+// newTestControllerClient creates a Kubernetes client which uses a cache and
+// index for retrieving objects. This more closely matches the behavior of the
+// operator instead of using cluster.Client, which lacks a cache and always
+// communicates directly with Kubernetes.
+func newTestControllerClient(t *testing.T, cluster *k8s.Cluster) client.Client {
+	t.Helper()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	mgr, err := controller.NewManager(cluster.GetConfig(), manager.Options{
+		Scheme: cluster.Client().Scheme(),
+	})
+	require.NoError(t, err)
+
+	go func() {
+		require.NoError(t, mgr.Start(ctx))
+	}()
+	require.True(t, mgr.GetCache().WaitForCacheSync(ctx))
+
+	return mgr.GetClient()
 }
