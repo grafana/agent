@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -163,7 +164,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	if err := storage.replayWAL(); err != nil {
 		level.Warn(storage.logger).Log("msg", "encountered WAL read error, attempting repair", "err", err)
 		if err := w.Repair(err); err != nil {
-			return nil, fmt.Errorf("repair corrupted WAL: %w", err)
+			return nil, errors.Wrap(err, "repair corrupted WAL")
 		}
 	}
 
@@ -181,13 +182,13 @@ func (w *Storage) replayWAL() error {
 	level.Info(w.logger).Log("msg", "replaying WAL, this may take a while", "dir", w.wal.Dir())
 	dir, startFrom, err := wal.LastCheckpoint(w.wal.Dir())
 	if err != nil && err != record.ErrNotFound {
-		return fmt.Errorf("find last checkpoint: %w", err)
+		return errors.Wrap(err, "find last checkpoint")
 	}
 
 	if err == nil {
 		sr, err := wal.NewSegmentsReader(dir)
 		if err != nil {
-			return fmt.Errorf("open checkpoint: %w", err)
+			return errors.Wrap(err, "open checkpoint")
 		}
 		defer func() {
 			if err := sr.Close(); err != nil {
@@ -198,7 +199,7 @@ func (w *Storage) replayWAL() error {
 		// A corrupted checkpoint is a hard error for now and requires user
 		// intervention. There's likely little data that can be recovered anyway.
 		if err := w.loadWAL(wal.NewReader(sr)); err != nil {
-			return fmt.Errorf("backfill checkpoint: %w", err)
+			return errors.Wrap(err, "backfill checkpoint")
 		}
 		startFrom++
 		level.Info(w.logger).Log("msg", "WAL checkpoint loaded")
@@ -207,14 +208,14 @@ func (w *Storage) replayWAL() error {
 	// Find the last segment.
 	_, last, err := wal.Segments(w.wal.Dir())
 	if err != nil {
-		return fmt.Errorf("finding WAL segments: %w", err)
+		return errors.Wrap(err, "finding WAL segments")
 	}
 
 	// Backfill segments from the most recent checkpoint onwards.
 	for i := startFrom; i <= last; i++ {
 		s, err := wal.OpenReadSegment(wal.SegmentName(w.wal.Dir(), i))
 		if err != nil {
-			return fmt.Errorf("open WAL segment %d: %w", i, err)
+			return errors.Wrap(err, fmt.Sprintf("open WAL segment: %d", i))
 		}
 
 		sr := wal.NewSegmentBufReader(s)
@@ -261,7 +262,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				series, err = dec.Series(rec, series)
 				if err != nil {
 					errCh <- &wal.CorruptionErr{
-						Err:     fmt.Errorf("decode series: %w", err),
+						Err:     errors.Wrap(err, "decode series"),
 						Segment: r.Segment(),
 						Offset:  r.Offset(),
 					}
@@ -273,7 +274,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				samples, err = dec.Samples(rec, samples)
 				if err != nil {
 					errCh <- &wal.CorruptionErr{
-						Err:     fmt.Errorf("decode samples: %w", err),
+						Err:     errors.Wrap(err, "decode samples"),
 						Segment: r.Segment(),
 						Offset:  r.Offset(),
 					}
@@ -281,12 +282,10 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				decoded <- samples
 			case record.Tombstones, record.Exemplars:
 				// We don't care about decoding tombstones or exemplars
-				// TODO: If decide to decode exemplars, we should make sure to prepopulate
-				// stripeSeries.exemplars in the next block by using setLatestExemplar.
 				continue
 			default:
 				errCh <- &wal.CorruptionErr{
-					Err:     fmt.Errorf("invalid record type %v", dec.Type(rec)),
+					Err:     errors.Errorf("invalid record type %v", dec.Type(rec)),
 					Segment: r.Segment(),
 					Offset:  r.Offset(),
 				}
@@ -352,7 +351,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 	}
 
 	if r.Err() != nil {
-		return fmt.Errorf("read records: %w", r.Err())
+		return errors.Wrap(r.Err(), "read records")
 	}
 
 	return nil
@@ -392,14 +391,14 @@ func (w *Storage) Truncate(mint int64) error {
 
 	first, last, err := wal.Segments(w.wal.Dir())
 	if err != nil {
-		return fmt.Errorf("get segment range: %w", err)
+		return errors.Wrap(err, "get segment range")
 	}
 
 	// Start a new segment, so low ingestion volume instance don't have more WAL
 	// than needed.
 	err = w.wal.NextSegment()
 	if err != nil {
-		return fmt.Errorf("next segment: %w", err)
+		return errors.Wrap(err, "next segment")
 	}
 
 	last-- // Never consider last segment for checkpoint.
@@ -425,7 +424,7 @@ func (w *Storage) Truncate(mint int64) error {
 		return ok
 	}
 	if _, err = wal.Checkpoint(w.logger, w.wal, first, last, keep, mint); err != nil {
-		return fmt.Errorf("create checkpoint: %w", err)
+		return errors.Wrap(err, "create checkpoint")
 	}
 	if err := w.wal.Truncate(last + 1); err != nil {
 		// If truncating fails, we'll just try again at the next checkpoint.
@@ -572,11 +571,11 @@ func (a *appender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint
 		// equivalent validation code in the TSDB's headAppender.
 		l = l.WithoutEmpty()
 		if len(l) == 0 {
-			return 0, fmt.Errorf("empty labelset: %w", tsdb.ErrInvalidSample)
+			return 0, errors.Wrap(tsdb.ErrInvalidSample, "empty labelset")
 		}
 
 		if lbl, dup := l.HasDuplicateLabelNames(); dup {
-			return 0, fmt.Errorf("label name %q is not unique: %w", lbl, tsdb.ErrInvalidSample)
+			return 0, errors.Wrap(tsdb.ErrInvalidSample, fmt.Sprintf(`label name "%s" is not unique`, lbl))
 		}
 
 		var created bool
@@ -632,7 +631,7 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 	e.Labels = e.Labels.WithoutEmpty()
 
 	if lbl, dup := e.Labels.HasDuplicateLabelNames(); dup {
-		return 0, fmt.Errorf("label name %q is not unique: %w", lbl, tsdb.ErrInvalidExemplar)
+		return 0, errors.Wrap(tsdb.ErrInvalidExemplar, fmt.Sprintf(`label name "%s" is not unique`, lbl))
 	}
 
 	// Exemplar label length does not include chars involved in text rendering such as quotes
@@ -647,16 +646,6 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 		}
 	}
 
-	// Check for duplicate vs last stored exemplar for this series, and discard those.
-	// Otherwise, record the current exemplar as the latest.
-	// Prometheus returns 0 when encountering duplicates, so we do the same here.
-	prevExemplar := a.w.series.getLatestExemplar(ref)
-	if prevExemplar != nil && prevExemplar.Equals(e) {
-		// Duplicate, don't return an error but don't accept the exemplar.
-		return 0, nil
-	}
-	a.w.series.setLatestExemplar(ref, &e)
-
 	a.exemplars = append(a.exemplars, record.RefExemplar{
 		Ref:    ref,
 		T:      e.Ts,
@@ -664,7 +653,6 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 		Labels: e.Labels,
 	})
 
-	a.w.metrics.totalAppendedExemplars.Inc()
 	return s.ref, nil
 }
 

@@ -48,7 +48,7 @@ configs:
 	var loggingLevel logging.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{})
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel)
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 
@@ -94,7 +94,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.DebugLevel, logging.Format{})
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.DebugLevel)
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 

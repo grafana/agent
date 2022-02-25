@@ -1,6 +1,5 @@
 local k = import 'ksonnet-util/kausal.libsonnet';
 local container = k.core.v1.container;
-local podTemplateSpec = k.core.v1.podTemplateSpec.spec;
 
 {
   new(name='grafana-agent', namespace='')::
@@ -25,11 +24,7 @@ local podTemplateSpec = k.core.v1.podTemplateSpec.spec;
   withPortsMixin(ports=[]):: { container+:: container.withPortsMixin(ports) },
   withVolumeMountsMixin(mounts=[]):: { container+:: container.withVolumeMountsMixin(mounts) },
   withVolumesMixin(volumes=[]):: {
-    controller+: {
-        spec+: {
-            template+: podTemplateSpec.withVolumesMixin(volumes)
-        },
-    },
+    controller+: self.controller.mixin.spec.template.spec.withVolumesMixin(volumes),
   },
 
   // Helpers

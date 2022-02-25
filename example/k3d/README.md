@@ -46,13 +46,7 @@ The smoke test environment is used to validate samples end to end.
 
 Smoke Test environment is invoked via `/scripts/smoke-test.bash`
 
-This tool will spin up cluster of Grafana Agent, Cortex, Avalanche, Smoke and [Crow](../../tools/crow/README.md) instances. The Smoke deployment will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
-
-For users who do not have access to the `us.gcr.io/kubernetes-dev` container registry, you will need to build the Smoke and Crow images locally before running the smoke test.
-
-```
-make grafana-agent-crow-image agent-smoke-image
-```
+This tool will spin up cluster of Grafana Agent, Cortex, Avalanche and [Crow](../../cmd/grafana-agent-crow/README.md) instances. The tool will then periodically kill instances and check for any failed alerts. At the end of the duration (default 3h) it will end the testing.
 
 ### What to look for?
 
@@ -76,7 +70,7 @@ If at the end of the test any issues are found they will look similar to the bel
 
 ### How to trigger an alert?
 
-Changing the avalanche setting for label_count to 1000, located [here](../../production/tanka/grafana-agent/smoke/avalanche/main.libsonnet). This will ensure the [GrafanaAgentMemHigh](http://prometheus.k3d.localhost:50080/graph?g0.expr=ALERTS%7Balertname%3D%22GrafanaAgentMemHigh%22%7D&g0.tab=1&g0.stacked=0&g0.show_exemplars=0.g0.range_input=1h.) alert exceeds the limit.
+Changing the avalanche setting for label_count to 1000, located [here](./lib/avalanche/main.libsonnet). This will ensure the [GrafanaAgentMemHigh](http://prometheus.k3d.localhost:50080/graph?g0.expr=ALERTS%7Balertname%3D%22GrafanaAgentMemHigh%22%7D&g0.tab=1&g0.stacked=0&g0.show_exemplars=0.g0.range_input=1h.) alert exceeds the limit.
 
 ![](./assets/trigger_change.png)
 
@@ -90,7 +84,6 @@ By default, a k3d cluster will be created running the following instances
 - crow-single - serves the single agent
 - cortex
 - avalanche - selection of avalanche instances serving traffic
-- smoke - scales avalanche replicas and introduces chaos by deleting agent pods during testing
 
 Crow instance will check to see if the metrics that were scraped shows up in the prometheus endpoint and then will emit metrics on the success of those metrics. This success/failure result will trigger an alert if it is incorrect.
 

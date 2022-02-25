@@ -41,6 +41,5 @@ func createMetricsReceiver(
 	_ config.Receiver,
 	_ consumer.Metrics,
 ) (component.MetricsReceiver, error) {
-
 	return newNoopReceiver(nil, nil, nil), nil
 }

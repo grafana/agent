@@ -29,7 +29,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		collectorNames = append(collectorNames, key)
 	}
 	sort.Strings(collectorNames)
-	level.Info(log).Log("msg", "enabled windows_exporter collectors", "collectors", strings.Join(collectorNames, ","))
+	level.Info(log).Log("msg", "enabled windows_exporter collectors", "collectors", collectorNames)
 
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(
 		// Hard-coded 4m timeout to represent the time a series goes stale.

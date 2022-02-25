@@ -2,7 +2,7 @@ package config
 
 import (
 	"flag"
-	"net/url"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -12,7 +12,6 @@ import (
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
-	commonCfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -100,7 +99,7 @@ metrics:
 			EvaluationInterval: model.Duration(1 * time.Minute),
 		},
 	}
-	t.Setenv("SCRAPE_TIMEOUT", "33s")
+	_ = os.Setenv("SCRAPE_TIMEOUT", "33s")
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
@@ -430,28 +429,6 @@ metrics:
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
-}
-
-func TestConfig_RemoteWriteDefaults(t *testing.T) {
-	cfg := `
-metrics:
-  global:
-    remote_write:
-      - name: "foo"
-        url: "https://test/url"`
-
-	var c Config
-	err := LoadBytes([]byte(cfg), false, &c)
-	require.NoError(t, err)
-
-	expected := &promCfg.DefaultRemoteWriteConfig
-	expected.Name = "foo"
-	testURL, _ := url.Parse("https://test/url")
-	expected.URL = &commonCfg.URL{
-		URL: testURL,
-	}
-	require.Equal(t, expected, c.Metrics.Global.RemoteWrite[0])
-	require.True(t, c.Metrics.Global.RemoteWrite[0].SendExemplars)
 }
 
 func TestLoadDynamicConfigurationExpandError(t *testing.T) {

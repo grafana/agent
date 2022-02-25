@@ -29,17 +29,6 @@ func NewLogger(cfg *server.Config) *Logger {
 	return newLogger(cfg, defaultLogger)
 }
 
-// NewLoggerFromLevel creates a new logger from logging.Level and logging.Format.
-func NewLoggerFromLevel(lvl logging.Level, fmt logging.Format) *Logger {
-	logger, err := makeDefaultLogger(lvl, fmt)
-	if err != nil {
-		panic(err)
-	}
-	return &Logger{
-		l: logger,
-	}
-}
-
 func newLogger(cfg *server.Config, ctor func(*server.Config) (log.Logger, error)) *Logger {
 	l := Logger{makeLogger: ctor}
 	if err := l.ApplyConfig(cfg); err != nil {
@@ -63,13 +52,9 @@ func (l *Logger) ApplyConfig(cfg *server.Config) error {
 }
 
 func defaultLogger(cfg *server.Config) (log.Logger, error) {
-	return makeDefaultLogger(cfg.LogLevel, cfg.LogFormat)
-}
-
-func makeDefaultLogger(lvl logging.Level, fmt logging.Format) (log.Logger, error) {
 	var l log.Logger
 
-	l, err := cortex_log.NewPrometheusLogger(lvl, fmt)
+	l, err := cortex_log.NewPrometheusLogger(cfg.LogLevel, cfg.LogFormat)
 	if err != nil {
 		return nil, err
 	}

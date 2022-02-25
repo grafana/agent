@@ -88,6 +88,7 @@ func (f *HostFilter) PatchSD(scrapes []*config.ScrapeConfig) {
 			}
 		}
 	}
+
 }
 
 // SetRelabels updates the relabeling rules used by the HostFilter.

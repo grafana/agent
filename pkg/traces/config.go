@@ -10,11 +10,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
+	"github.com/grafana/agent/pkg/traces/noopreceiver"
+	"github.com/grafana/agent/pkg/traces/promsdprocessor"
+	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
+	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
@@ -33,14 +37,6 @@ import (
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/multierr"
-
-	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
-	"github.com/grafana/agent/pkg/traces/noopreceiver"
-	"github.com/grafana/agent/pkg/traces/promsdprocessor"
-	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
-	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
-	"github.com/grafana/agent/pkg/util"
 )
 
 const (
@@ -164,50 +160,6 @@ var DefaultRemoteWriteConfig = RemoteWriteConfig{
 	Format:      formatOtlp,
 }
 
-// TLSClientSetting configures the oauth2client extension TLS; compatible with configtls.TLSClientSetting
-type TLSClientSetting struct {
-	CAFile             string `yaml:"ca_file,omitempty"`
-	CertFile           string `yaml:"cert_file,omitempty"`
-	KeyFile            string `yaml:"key_file,omitempty"`
-	MinVersion         string `yaml:"min_version,omitempty"`
-	MaxVersion         string `yaml:"max_version,omitempty"`
-	Insecure           bool   `yaml:"insecure"`
-	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
-	ServerNameOverride string `yaml:"server_name_override,omitempty"`
-}
-
-// OAuth2Config configures the oauth2client extension for a remote_write exporter
-// compatible with oauth2clientauthextension.Config
-type OAuth2Config struct {
-	ClientID     string           `yaml:"client_id"`
-	ClientSecret string           `yaml:"client_secret"`
-	TokenURL     string           `yaml:"token_url"`
-	Scopes       []string         `yaml:"scopes,omitempty"`
-	TLS          TLSClientSetting `yaml:"tls,omitempty"`
-	Timeout      time.Duration    `yaml:"timeout,omitempty"`
-}
-
-// Agent uses standard YAML unmarshalling, while the oauth2clientauthextension relies on
-// mapstructure without providing YAML labels. `toOtelConfig` marshals `Oauth2Config` to configuration type expected by
-// the oauth2clientauthextension Extension Factory
-func (c OAuth2Config) toOtelConfig() (*oauth2clientauthextension.Config, error) {
-	var result *oauth2clientauthextension.Config
-	decoderConfig := &mapstructure.DecoderConfig{
-		MatchName:        func(s, t string) bool { return util.CamelToSnake(s) == t },
-		Result:           &result,
-		WeaklyTypedInput: true,
-		DecodeHook: mapstructure.ComposeDecodeHookFunc(
-			mapstructure.StringToSliceHookFunc(","),
-			mapstructure.StringToTimeDurationHookFunc(),
-		),
-	}
-	decoder, _ := mapstructure.NewDecoder(decoderConfig)
-	if err := decoder.Decode(c); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
 // RemoteWriteConfig controls the configuration of an exporter
 type RemoteWriteConfig struct {
 	Endpoint    string `yaml:"endpoint,omitempty"`
@@ -219,7 +171,6 @@ type RemoteWriteConfig struct {
 	InsecureSkipVerify bool                   `yaml:"insecure_skip_verify,omitempty"`
 	TLSConfig          *prom_config.TLSConfig `yaml:"tls_config,omitempty"`
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
-	Oauth2             *OAuth2Config          `yaml:"oauth2,omitempty"`
 	Headers            map[string]string      `yaml:"headers,omitempty"`
 	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L30
 	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/7d7ae2eb34b5d387627875c498d7f43619f37ee3/exporter/exporterhelper/queued_retry.go#L54
@@ -230,7 +181,6 @@ func (c *RemoteWriteConfig) UnmarshalYAML(unmarshal func(interface{}) error) err
 	*c = DefaultRemoteWriteConfig
 
 	type plain RemoteWriteConfig
-
 	if err := unmarshal((*plain)(c)); err != nil {
 		return err
 	}
@@ -303,10 +253,6 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 		headers = rwCfg.Headers
 	}
 
-	if rwCfg.BasicAuth != nil && rwCfg.Oauth2 != nil {
-		return nil, fmt.Errorf("Only one auth type may be configured per exporter (basic_auth or oauth2)")
-	}
-
 	if rwCfg.BasicAuth != nil {
 		password := string(rwCfg.BasicAuth.Password)
 
@@ -372,21 +318,21 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 	return exporter, nil
 }
 
-func getExporterName(index int, protocol string, format string) (string, error) {
+func getExporterName(protocol string, format string) (string, error) {
 	switch format {
 	case formatOtlp:
 		switch protocol {
 		case protocolGRPC:
-			return fmt.Sprintf("otlp/%d", index), nil
+			return "otlp", nil
 		case protocolHTTP:
-			return fmt.Sprintf("otlphttp/%d", index), nil
+			return "otlphttp", nil
 		default:
 			return "", errors.New("unknown protocol, expected either 'http' or 'grpc'")
 		}
 	case formatJaeger:
 		switch protocol {
 		case protocolGRPC:
-			return fmt.Sprintf("jaeger/%d", index), nil
+			return "jaeger", nil
 		default:
 			return "", errors.New("unknown protocol, expected 'grpc'")
 		}
@@ -403,40 +349,14 @@ func (c *InstanceConfig) exporters() (map[string]interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		exporterName, err := getExporterName(i, remoteWriteConfig.Protocol, remoteWriteConfig.Format)
+		exporterName, err := getExporterName(remoteWriteConfig.Protocol, remoteWriteConfig.Format)
 		if err != nil {
 			return nil, err
 		}
-		if remoteWriteConfig.Oauth2 != nil {
-			exporter["auth"] = map[string]string{"authenticator": getAuthExtensionName(exporterName)}
-		}
+		exporterName = fmt.Sprintf("%s/%d", exporterName, i)
 		exporters[exporterName] = exporter
 	}
 	return exporters, nil
-}
-
-func getAuthExtensionName(exporterName string) string {
-	return fmt.Sprintf("oauth2client/%s", strings.Replace(exporterName, "/", "", -1))
-}
-
-// builds oauth2clientauth extensions required to support RemoteWriteConfigurations.
-func (c *InstanceConfig) extensions() (map[string]interface{}, error) {
-	extensions := map[string]interface{}{}
-	for i, remoteWriteConfig := range c.RemoteWrite {
-		if remoteWriteConfig.Oauth2 == nil {
-			continue
-		}
-		exporterName, err := getExporterName(i, remoteWriteConfig.Protocol, remoteWriteConfig.Format)
-		if err != nil {
-			return nil, err
-		}
-		oauthConfig, err := remoteWriteConfig.Oauth2.toOtelConfig()
-		if err != nil {
-			return nil, err
-		}
-		extensions[getAuthExtensionName(exporterName)] = oauthConfig
-	}
-	return extensions, nil
 }
 
 func resolver(config map[string]interface{}) (map[string]interface{}, error) {
@@ -513,15 +433,6 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 
 	if len(c.Receivers) == 0 {
 		return nil, errors.New("must have at least one configured receiver")
-	}
-
-	extensions, err := c.extensions()
-	if err != nil {
-		return nil, err
-	}
-	extensionsNames := make([]string, 0, len(extensions))
-	for name := range extensions {
-		extensionsNames = append(extensionsNames, name)
 	}
 
 	exporters, err := c.exporters()
@@ -692,19 +603,14 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 
 	receiversMap := map[string]interface{}(c.Receivers)
 
-	otelMapStructure["extensions"] = extensions
 	otelMapStructure["exporters"] = exporters
 	otelMapStructure["processors"] = processors
 	otelMapStructure["receivers"] = receiversMap
 
 	// pipelines
-	serviceMap := map[string]interface{}{
+	otelMapStructure["service"] = map[string]interface{}{
 		"pipelines": pipelines,
 	}
-	if len(extensionsNames) > 0 {
-		serviceMap["extensions"] = extensionsNames
-	}
-	otelMapStructure["service"] = serviceMap
 
 	factories, err := tracingFactories()
 	if err != nil {
@@ -727,9 +633,7 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 // tracingFactories() only creates the needed factories.  if we decide to add support for a new
 // processor, exporter, receiver we need to add it here
 func tracingFactories() (component.Factories, error) {
-	extensions, err := component.MakeExtensionFactoryMap(
-		oauth2clientauthextension.NewFactory(),
-	)
+	extensions, err := component.MakeExtensionFactoryMap()
 	if err != nil {
 		return component.Factories{}, err
 	}
@@ -813,7 +717,6 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 			processor == "tail_sampling" ||
 			processor == "automatic_logging" ||
 			processor == "service_graphs" {
-
 			foundAt = i
 			break
 		}

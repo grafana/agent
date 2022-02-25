@@ -19,7 +19,7 @@ import (
 )
 
 // DefaultGlobal holds default values for Global.
-var DefaultGlobal = Global{
+var DefaultGlobal Global = Global{
 	Enable:          true,
 	MetricsInstance: "default",
 }
@@ -197,8 +197,8 @@ func newInstanceScraper(
 	s InstanceStore,
 	instanceName string,
 ) *instanceScraper {
-
 	ctx, cancel := context.WithCancel(ctx)
+
 	l = log.With(l, "target_instance", instanceName)
 
 	sd := discovery.NewManager(ctx, l, discovery.Name("autoscraper/"+instanceName))

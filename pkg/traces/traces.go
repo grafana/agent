@@ -12,7 +12,6 @@ import (
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"github.com/weaveworks/common/logging"
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/external/obsreportconfig"
 	"go.uber.org/zap"
@@ -34,13 +33,13 @@ type Traces struct {
 }
 
 // New creates and starts trace collection.
-func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level, fmt logging.Format) (*Traces, error) {
+func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level) (*Traces, error) {
 	var leveller logLeveller
 
 	traces := &Traces{
 		instances:           make(map[string]*Instance),
 		leveller:            &leveller,
-		logger:              newLogger(&leveller, fmt),
+		logger:              newLogger(&leveller),
 		reg:                 reg,
 		promInstanceManager: promInstanceManager,
 	}
@@ -110,24 +109,13 @@ func (t *Traces) Stop() {
 	}
 }
 
-func newLogger(zapLevel zapcore.LevelEnabler, fmt logging.Format) *zap.Logger {
+func newLogger(zapLevel zapcore.LevelEnabler) *zap.Logger {
 	config := zap.NewProductionEncoderConfig()
 	config.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 		encoder.AppendString(ts.UTC().Format(time.RFC3339))
 	}
-
-	var encoder zapcore.Encoder
-	switch fmt.String() {
-	case "logfmt":
-		encoder = zaplogfmt.NewEncoder(config)
-	case "json":
-		encoder = zapcore.NewJSONEncoder(config)
-	default:
-		encoder = zaplogfmt.NewEncoder(config)
-	}
-
 	logger := zap.New(zapcore.NewCore(
-		encoder,
+		zaplogfmt.NewEncoder(config),
 		os.Stdout,
 		zapLevel,
 	), zap.AddCaller())

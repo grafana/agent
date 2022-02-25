@@ -4,7 +4,6 @@
 /.pkg
 /.cache
 /.vscode
-/.eventcache
 vendor
 
 /cmd/agent/agent

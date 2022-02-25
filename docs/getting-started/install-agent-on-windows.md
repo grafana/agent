@@ -5,13 +5,7 @@ weight = 120
 
 # Install Agent on Windows
 
-The installer will install Grafana Agent into the default directory `C:\Program Files\Grafana Agent`.
-The [windows_exporter integration](https://github.com/prometheus-community/windows_exporter)
-can be enabled with all default windows_exporter options. The installer can be
-found by either:
-
-1. Downloading the `grafana-agent-installer.exe` asset from the current [release](https://github.com/grafana/agent/releases/latest) page.
-2. Downloading the `grafana-agent-installer.exe` asset directly from https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.
+The installer will install Grafana Agent into the default directory `C:\Program Files\Grafana Agent`. The [windows_exporter integration](https://github.com/prometheus-community/windows_exporter) can be enabled with all default windows_exporter options.
 
 ## Installation
 

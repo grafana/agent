@@ -233,6 +233,7 @@ windows_exporter: {}
 	// the node_exporter integration in the agent-1.yml is in the configV2
 	assert.Len(t, cfg.Integrations.ExtraIntegrations, 1)
 	assert.Len(t, cfg.Integrations.configV2.Configs, 2)
+
 }
 
 func TestFilterOverrides(t *testing.T) {
@@ -325,4 +326,5 @@ configs:
 	assert.True(t, cfg.Traces.Configs[0].Name == "test_traces")
 	// Test Logs
 	assert.True(t, cfg.Logs.Configs[0].Name == "test_logs")
+
 }

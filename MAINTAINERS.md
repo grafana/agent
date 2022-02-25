@@ -1,13 +1,8 @@
-The following people are the primary maintainers of the project:
+Robert Fratto (<robert.fratto@grafana.com> / @rfratto) is the main/default maintainer, some parts of the codebase have other maintainers:
 
-* Robert Fratto (<robert.fratto@grafana.com> / @rfratto)
-* Matt Durham (<matt.durham@grafana.com> / @mattdurham)
-* Robbie Lankford (<robert.lankford@grafana.com> / @rlankfo)
-
-Some parts of the codebase have other maintainers:
-
-* `pkg/traces`: Joe Elliott (<joe.elliott@grafana.com> / @joe-elliott), Mario Rodriguez (<mario.rodriguez@grafana.com>/ @mapno)
-* `pkg/integrations`: Gabriel Antunes (<gabriel.antunes@grafana.com> / @gaantunes), Ryan Geyer (<ryan.geyer@grafana.com> / @rgeyer)
+* `pkg`
+  * `traces`: Joe Elliott (<joe.elliott@grafana.com> / @joe-elliott), Mario Rodriguez (<mario.rodriguez@grafana.com>/ @mapno)
+  * `integrations`: Gabriel Antunes (<gabriel.antunes@grafana.com> / @gaantunes), Ryan Geyer (<ryan.geyer@grafana.com> / @rgeyer)
 
 For the sake of brevity, not all subtrees are explicitly listed. Due to the
 size of this repository, the natural changes in focus of maintainers over time,

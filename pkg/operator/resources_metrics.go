@@ -109,7 +109,6 @@ func generateMetricsStatefulSet(
 	d config.Deployment,
 	shard int32,
 ) (*apps_v1.StatefulSet, error) {
-
 	d = *d.DeepCopy()
 
 	//
@@ -243,11 +242,6 @@ func generateMetricsStatefulSetSpec(
 		"-config.file=/var/lib/grafana-agent/config/agent.yml",
 		"-config.expand-env=true",
 		"-reload-port=8081",
-	}
-
-	enableConfigReadAPI := d.Agent.Spec.EnableConfigReadAPI
-	if enableConfigReadAPI {
-		agentArgs = append(agentArgs, "-config.enable-read-api")
 	}
 
 	// NOTE(rfratto): the Prometheus Operator supports a ListenLocal to prevent a

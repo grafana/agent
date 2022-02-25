@@ -30,16 +30,12 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
-	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
 )
 
 func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
-
-	// default remote_write send_exemplars to true
-	config.DefaultRemoteWriteConfig.SendExemplars = true
 }
 
 var (
@@ -241,9 +237,6 @@ type Instance struct {
 	remoteStore        *remote.Storage
 	storage            storage.Storage
 
-	// ready is set to true after the initialization process finishes
-	ready atomic.Bool
-
 	hostFilter *HostFilter
 
 	logger log.Logger
@@ -322,7 +315,7 @@ func (i *Instance) Run(ctx context.Context) error {
 	// The actors defined here are defined in the order we want them to shut down.
 	// Primarily, we want to ensure that the following shutdown order is
 	// maintained:
-	//    1. The scrape manager stops
+	//		1. The scrape manager stops
 	//    2. WAL storage is closed
 	//    3. Remote write storage is closed
 	// This is done to allow the instance to write stale markers for all active
@@ -390,7 +383,6 @@ func (i *Instance) Run(ctx context.Context) error {
 	}
 
 	level.Debug(i.logger).Log("msg", "running instance", "name", cfg.Name)
-	i.ready.Store(true)
 	err := rg.Run()
 	if err != nil {
 		level.Error(i.logger).Log("msg", "agent instance stopped with error", "err", err)
@@ -449,12 +441,6 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	i.readyScrapeManager.Set(scrapeManager)
 
 	return nil
-}
-
-// Ready returns true if the Instance has been initialized and is ready
-// to start scraping and delivering metrics.
-func (i *Instance) Ready() bool {
-	return i.ready.Load()
 }
 
 // Update accepts a new Config for the Instance and will dynamically update any

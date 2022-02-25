@@ -17,4 +17,5 @@ integrations:
 `
 	config.CheckSecret(t, stringCfg, "secret_password_in_uri")
 	config.CheckSecret(t, stringCfg, "secret_password_in_uri_2")
+
 }

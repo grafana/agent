@@ -49,7 +49,7 @@ func createMetricsExporter(
 	_ component.ExporterCreateSettings,
 	cfg config.Exporter,
 ) (component.MetricsExporter, error) {
-
 	eCfg := cfg.(*Config)
+
 	return newRemoteWriteExporter(eCfg)
 }
