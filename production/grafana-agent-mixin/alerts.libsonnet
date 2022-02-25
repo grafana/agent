@@ -108,7 +108,7 @@ local _config = config._config;
                 and
                 sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}) > 1000
             |||,
-            'for': '15m',
+            'for': '1h',
             annotations: {
               summary: '{{ $labels.pod }} is using more than 0.0013441 CPU per 1000 series over the last 5 minutes',
             },
