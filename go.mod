@@ -54,7 +54,6 @@ require (
 	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/percona/mongodb_exporter v0.0.0-00010101000000-000000000000
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus-community/elasticsearch_exporter v1.2.1
 	github.com/prometheus-community/postgres_exporter v0.10.0
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
@@ -325,6 +324,7 @@ require (
 	github.com/percona/exporter_shared v0.7.3 // indirect
 	github.com/percona/percona-toolkit v0.0.0-20210803120725-d14d18a1bfb6 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
