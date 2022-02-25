@@ -213,6 +213,7 @@ func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFac
 			_ component.ProcessorCreateSettings,
 			_ config.Processor,
 			next consumer.Traces,
+
 		) (component.TracesProcessor, error) {
 			return &funcProcessor{
 				Callback: callback,
