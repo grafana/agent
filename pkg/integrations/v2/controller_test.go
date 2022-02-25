@@ -135,6 +135,7 @@ func Test_controller_ConfigChanges(t *testing.T) {
 }
 
 func Test_controller_SingletonCheck(t *testing.T) {
+
 	var integrationsWg sync.WaitGroup
 	var starts atomic.Uint64
 
@@ -168,49 +169,61 @@ func Test_controller_SingletonCheck(t *testing.T) {
 	_, err := newController(util.TestLogger(t), cfg, globals)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "found multiple instances of singleton integration mock"))
+
 }
 
 type syncController struct {
-	inner *controller
-	pool  *workerPool
+	inner   *controller
+	applyWg sync.WaitGroup
+
+	stop     context.CancelFunc
+	exitedCh chan struct{}
 }
 
-// newSyncController pairs an unstarted controller with a manually managed
-// worker pool to synchronously apply integrations.
+// newSyncController makes calls to Controller synchronous. newSyncController
+// will start running the inner controller and wait for it to update.
 func newSyncController(t *testing.T, inner *controller) *syncController {
 	t.Helper()
 
-	sc := &syncController{
-		inner: inner,
-		pool:  newWorkerPool(context.Background(), inner.logger),
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(func() {
+		cancel()
+	})
 
-	// There's always immediately one queued integration set from any
-	// successfully created controller.
-	sc.refresh()
+	sc := &syncController{
+		inner:    inner,
+		stop:     cancel,
+		exitedCh: make(chan struct{}),
+	}
+	inner.onUpdateDone = sc.applyWg.Done // Inform WG whenever an apply finishes
+
+	// There's always immediately ony applied queued from any successfully created controller.
+	sc.applyWg.Add(1)
+
+	go func() {
+		inner.run(ctx)
+		close(sc.exitedCh)
+	}()
+
+	sc.applyWg.Wait()
 	return sc
 }
 
-func (sc *syncController) refresh() {
-	sc.inner.mut.Lock()
-	defer sc.inner.mut.Unlock()
-
-	newIntegrations := <-sc.inner.runIntegrations
-	sc.pool.Reload(newIntegrations)
-	sc.inner.integrations = newIntegrations
-}
-
 func (sc *syncController) UpdateController(c controllerConfig, g Globals) error {
-	err := sc.inner.UpdateController(c, g)
-	if err != nil {
+	sc.applyWg.Add(1)
+
+	if err := sc.inner.UpdateController(c, g); err != nil {
+		sc.applyWg.Done() // The wg won't ever be finished now
 		return err
 	}
-	sc.refresh()
+
+	sc.applyWg.Wait()
 	return nil
 }
 
 func (sc *syncController) Stop() {
-	sc.pool.Close()
+	sc.stop()
+	<-sc.exitedCh
 }
 
 const mockIntegrationName = "mock"

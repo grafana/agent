@@ -36,8 +36,8 @@ use_hostname_label: true
 `
 	var (
 		cfg        ManagerConfig
-		listenPort = 12345
-		listenHost = "127.0.0.1"
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -66,8 +66,8 @@ test:
 `
 	var (
 		cfg        ManagerConfig
-		listenPort = 12345
-		listenHost = "127.0.0.1"
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -89,8 +89,8 @@ agent:
 
 	var (
 		cfg        ManagerConfig
-		listenPort = 12345
-		listenHost = "127.0.0.1"
+		listenPort int    = 12345
+		listenHost string = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 

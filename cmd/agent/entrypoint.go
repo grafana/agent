@@ -85,7 +85,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
-	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Traces, cfg.Server.LogLevel.Logrus, cfg.Server.LogFormat)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Traces, cfg.Server.LogLevel.Logrus)
 	if err != nil {
 		return nil, err
 	}
@@ -196,12 +196,6 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	})
 
 	mux.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
-		if !ep.promMetrics.Ready() {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			fmt.Fprint(w, "Metrics are not ready yet.\n")
-
-			return
-		}
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Agent is Ready.\n")
 	})

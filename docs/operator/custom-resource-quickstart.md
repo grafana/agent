@@ -43,7 +43,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.23.0
+  image: grafana/agent:v0.22.0
   logLevel: info
   serviceAccountName: grafana-agent
   metrics:
@@ -116,7 +116,7 @@ subjects:
   namespace: default
 ```
 
-This creates a ServiceAccount, ClusterRole, and ClusterRoleBinding for the GrafanaAgent resource. It also creates a GrafanaAgent resource and specifies an Agent image version. Finally, the GrafanaAgent resource specifies `MetricsInstance` and `LogsInstance` selectors. These search for MetricsInstances and LogsInstances in the **same namespace** with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively. It also sets a `cluster: cloud` label for all metrics shipped your Prometheus-compatible endpoint. You should change this label to your desired cluster name. To search for MetricsInstances or LogsInstances in a *different* namespace, please use the `instanceNamespaceSelector` field. To learn more about this field, please consult the `GrafanaAgent` [CRD specification](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_grafanaagents.yaml#L3789).
+This creates a ServiceAccount, ClusterRole, and ClusterRoleBinding for the GrafanaAgent resource. It also creates a GrafanaAgent resource and specifies an Agent image version. Finally, the GrafanaAgent resource specifies `MetricsInstance` and `LogsInstance` selectors. These search for MetricsInstances and LogsInstances in the same namespace with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively. It also sets a `cluster: cloud` label for all metrics shipped your Prometheus-compatible endpoint. You should change this label to your desired cluster name.
 
 The full hierarchy of custom resources is as follows:
 

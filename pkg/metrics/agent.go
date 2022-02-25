@@ -13,7 +13,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 
 	"github.com/grafana/agent/pkg/metrics/cluster"
@@ -145,8 +144,6 @@ type Agent struct {
 	stopped  bool
 	stopOnce sync.Once
 	actor    chan func()
-
-	initialBootDone atomic.Bool
 }
 
 // New creates and starts a new Agent.
@@ -271,7 +268,6 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 
 	a.actor <- func() {
 		a.syncInstances(oldConfig, cfg)
-		a.initialBootDone.Store(true)
 	}
 
 	a.cfg = cfg
@@ -313,24 +309,6 @@ func (a *Agent) run() {
 	for f := range a.actor {
 		f()
 	}
-}
-
-// Ready returns true if both the agent and all instances
-// spawned by a Manager have completed startup.
-func (a *Agent) Ready() bool {
-	// Wait for the initial load to complete so the instance manager has at least
-	// the base set of expected instances.
-	if !a.initialBootDone.Load() {
-		return false
-	}
-
-	for _, inst := range a.mm.ListInstances() {
-		if !inst.Ready() {
-			return false
-		}
-	}
-
-	return true
 }
 
 // WireGRPC wires gRPC services into the provided server.

@@ -30,6 +30,7 @@ func NewFSImporter(f fs.FS, paths []string) *FSImporter {
 
 // Import implements jsonnet.Importer.
 func (i *FSImporter) Import(importedFrom, importedPath string) (contents jsonnet.Contents, foundAt string, err error) {
+
 	tryPaths := append([]string{importedFrom}, i.paths...)
 	for _, p := range tryPaths {
 		cleanedPath := path.Clean(

@@ -60,7 +60,7 @@ func createTracesProcessor(
 	cfg config.Processor,
 	nextConsumer consumer.Traces,
 ) (component.TracesProcessor, error) {
-
 	eCfg := cfg.(*Config)
+
 	return newProcessor(nextConsumer, eCfg), nil
 }

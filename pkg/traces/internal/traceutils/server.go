@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Server is a Tracing testing server that invokes a function every time a span
@@ -214,7 +214,6 @@ func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFac
 			_ config.Processor,
 			next consumer.Traces,
 		) (component.TracesProcessor, error) {
-
 			return &funcProcessor{
 				Callback: callback,
 				Next:     next,
@@ -255,7 +254,6 @@ func newNoopExporterFactory() component.ExporterFactory {
 			config.Exporter) (
 			component.TracesExporter,
 			error) {
-
 			return &noopExporter{}, nil
 		}),
 	)

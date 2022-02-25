@@ -11,7 +11,6 @@ local ingress = k.networking.v1beta1.ingress;
 local rule = k.networking.v1beta1.ingressRule;
 local path = k.networking.v1beta1.httpIngressPath;
 
-
 local prometheus_monitoring = import './prometheus_monitoring.libsonnet';
 
 {

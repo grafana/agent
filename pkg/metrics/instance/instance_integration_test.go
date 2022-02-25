@@ -244,6 +244,7 @@ remote_write: []
 			require.EqualError(t, err, tc.expect)
 		})
 	}
+
 }
 
 func loadConfig(t *testing.T, s string) Config {

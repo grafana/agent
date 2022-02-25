@@ -61,7 +61,6 @@ type Manager interface {
 // for the sake of testing from Manager implementations.
 type ManagedInstance interface {
 	Run(ctx context.Context) error
-	Ready() bool
 	Update(c Config) error
 	TargetsActive() map[string][]*scrape.Target
 	StorageDirectory() string

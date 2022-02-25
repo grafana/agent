@@ -236,7 +236,7 @@ func buildSecrets(ctx context.Context, cli client.Client, deploy config.Deployme
 			case *corev1.Secret:
 				rawValue, ok := o.Data[ref.Reference.Secret.Key]
 				if !ok {
-					return fmt.Errorf("no key %s in Secret %s", ref.Reference.Secret.Key, o.Name)
+					return fmt.Errorf("no key %s in Secret %s", ref.Reference.ConfigMap.Key, o.Name)
 				}
 				value = string(rawValue)
 			case *corev1.ConfigMap:

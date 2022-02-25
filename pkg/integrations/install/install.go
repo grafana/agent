@@ -28,5 +28,4 @@ import (
 	//
 
 	_ "github.com/grafana/agent/pkg/integrations/v2/agent" // register agent
-	_ "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
 )

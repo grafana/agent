@@ -12,7 +12,7 @@ import (
 )
 
 // DefaultConfig is the default config for memcached_exporter.
-var DefaultConfig = Config{
+var DefaultConfig Config = Config{
 	MemcachedAddress: "localhost:11211",
 	Timeout:          time.Second,
 }

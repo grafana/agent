@@ -16,7 +16,7 @@ trigger:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.44
+    image: golangci/golangci-lint:v1.43
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
       - make lint
@@ -53,7 +53,7 @@ steps:
       - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
       - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
+      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator cmd/grafana-agent-crow/grafana-agent-crow
       - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
 depends_on:
   - Lint
@@ -113,11 +113,7 @@ steps:
         from_secret: DOCKER_LOGIN
       DOCKER_PASSWORD:
         from_secret: DOCKER_PASSWORD
-      GCR_CREDS:
-        from_secret: gcr_admin
     commands:
-      - mkdir -p $HOME/.docker
-      - printenv GCR_CREDS > $HOME/.docker/config.json
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - apk update && apk add make bash wget git qemu
       - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
@@ -132,7 +128,6 @@ steps:
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
       - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
       - docker buildx rm multiarch
 
 depends_on:
@@ -161,7 +156,6 @@ steps:
     image: alpine
     commands:
       - apk update && apk add git
-      - echo "$(sh ./tools/image-tag)" > .tag-only
       - echo "grafana/agent:$(sh ./tools/image-tag)" > .image-tag
   - name: Update Deployment Tools
     image: us.gcr.io/kubernetes-dev/drone/plugins/updater
@@ -180,11 +174,6 @@ steps:
               "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
               "jsonnet_key": "dev_canary",
               "jsonnet_value_file": ".image-tag"
-            },
-            {
-              "file_path": "ksonnet/environments/agent-smoke-test/dev-us-central-0.agent-smoke-test/main.jsonnet",
-              "jsonnet_key": "image_tag",
-              "jsonnet_value_file": ".tag-only"
             }
           ]
         }
@@ -256,14 +245,6 @@ get:
 
 ---
 kind: secret
-name: gcr_admin
-
-get:
-  name: .dockerconfigjson
-  path: infra/data/ci/gcr-admin
-
----
-kind: secret
 name: gh_token
 
 get:
@@ -271,6 +252,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 76ba44a90ab332caf4cd3bc11529e7ea674d4706ab8b4928b17b8c7dcda8abea
+hmac: 87a9a23731884dac8e0b5c3ee0fa2b5cef9d7fa490fcad649f7783f6ea9d2d32
 
 ...

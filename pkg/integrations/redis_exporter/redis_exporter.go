@@ -144,7 +144,9 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 
 	if (c.TLSClientKeyFile != "") != (c.TLSClientCertFile != "") {
 		return nil, errors.New("TLS client key file and cert file should both be present")
-	} else if c.TLSClientKeyFile != "" && c.TLSClientCertFile != "" {
+	}
+	if c.TLSClientKeyFile != "" && c.TLSClientCertFile != "" {
+
 		exporterConfig.ClientKeyFile = c.TLSClientKeyFile
 		exporterConfig.ClientCertFile = c.TLSClientCertFile
 	}

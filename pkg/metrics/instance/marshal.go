@@ -37,8 +37,6 @@ func MarshalConfigToWriter(c *Config, w io.Writer, scrubSecrets bool) error {
 			switch v := in.(type) {
 			case config_util.Secret:
 				return true, string(v), nil
-			case *config_util.URL:
-				return true, v.String(), nil
 			default:
 				return false, nil, nil
 			}

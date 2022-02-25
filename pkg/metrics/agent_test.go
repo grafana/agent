@@ -271,10 +271,6 @@ func (i *fakeInstance) Run(ctx context.Context) error {
 	}
 }
 
-func (i *fakeInstance) Ready() bool {
-	return true
-}
-
 func (i *fakeInstance) Update(_ instance.Config) error {
 	return instance.ErrInvalidUpdate{
 		Inner: fmt.Errorf("can't dynamically update fakeInstance"),

@@ -95,6 +95,7 @@ func TestConsumeMetrics(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+
 }
 
 func traceSamples(t *testing.T, path string) pdata.Traces {

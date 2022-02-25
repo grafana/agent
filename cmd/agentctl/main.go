@@ -478,6 +478,7 @@ config that may be used with this agent.`,
 }
 
 func templateDryRunCmd() *cobra.Command {
+
 	cmd := &cobra.Command{
 		Use:   "template-parse [directory]",
 		Short: "dry run dynamic configuration",

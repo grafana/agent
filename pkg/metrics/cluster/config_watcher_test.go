@@ -227,6 +227,7 @@ func Test_configWatcher_nextReshard(t *testing.T) {
 			require.FailNow(t, "nextReshard took too long to return")
 		}
 	})
+
 }
 
 type mockConfigManager struct {
