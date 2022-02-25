@@ -13,12 +13,6 @@ jobs:
       with:
         go-version: 1.17.6
       id: go
-    - name: configure Pagefile
-      uses: al-cheb/configure-pagefile-action@v1.2
-      with:
-        minimum-size: 16GB
-        maximum-size: 16GB
-        disk-root: "C:"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Build
