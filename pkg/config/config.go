@@ -370,7 +370,6 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		} else if err := loader(dynamicConfigPath, configExpandEnv, &cfg); err != nil {
 			return nil, fmt.Errorf("error loading dynamic configuration file %s: %w", dynamicConfigPath, err)
 		}
-
 	} else if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
 	} else if err := loader(file, configExpandEnv, &cfg); err != nil {

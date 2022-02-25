@@ -135,7 +135,6 @@ func Test_controller_ConfigChanges(t *testing.T) {
 }
 
 func Test_controller_SingletonCheck(t *testing.T) {
-
 	var integrationsWg sync.WaitGroup
 	var starts atomic.Uint64
 
@@ -169,7 +168,6 @@ func Test_controller_SingletonCheck(t *testing.T) {
 	_, err := newController(util.TestLogger(t), cfg, globals)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "found multiple instances of singleton integration mock"))
-
 }
 
 type syncController struct {
