@@ -1,8 +1,9 @@
 local monitoring = import './monitoring/main.jsonnet';
-local avalanche = import 'avalanche/main.libsonnet';
 local cortex = import 'cortex/main.libsonnet';
-local crow = import 'crow/main.libsonnet';
-local etcd = import 'etcd/main.libsonnet';
+local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
+local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
+local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
+local smoke = import 'grafana-agent/smoke/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
@@ -23,6 +24,12 @@ local new_crow(name, selector) =
     },
   });
 
+local new_smoke(name) = smoke.new(name, namespace='smoke', config={
+  mutationFrequency: '5m',
+  chaosFrequency: '30m',
+});
+
+
 local smoke = {
   ns: namespace.new('smoke'),
 
@@ -39,6 +46,8 @@ local smoke = {
     metric_interval: 600,
   }),
 
+  smoke_test: new_smoke('smoke-test'),
+
   crows: [
     new_crow('crow-single', 'cluster="grafana-agent"'),
     new_crow('crow-cluster', 'cluster="grafana-agent-cluster"'),
@@ -46,7 +55,28 @@ local smoke = {
 
   local metric_instances(crow_name) = [{
     name: 'crow',
-    remote_write: [{ url: 'http://cortex/api/prom/push' }],
+    remote_write: [
+      {
+        url: 'http://cortex/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'drop',
+          },
+        ],
+      },
+      {
+        url: 'http://smoke-test:19090/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'keep',
+          },
+        ],
+      },
+    ],
     scrape_configs: [
       {
         job_name: 'crow',
@@ -71,7 +101,28 @@ local smoke = {
     ],
   }, {
     name: 'avalanche',
-    remote_write: [{ url: 'http://cortex/api/prom/push' }],
+    remote_write: [
+      {
+        url: 'http://cortex/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'drop',
+          },
+        ],
+      },
+      {
+        url: 'http://smoke-test:19090/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'keep',
+          },
+        ],
+      },
+    ],
     scrape_configs: [
       {
         job_name: 'avalanche',

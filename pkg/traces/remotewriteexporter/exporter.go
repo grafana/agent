@@ -157,8 +157,8 @@ func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender,
 		if err := e.appendDataPointWithLabels(app, name, bucketSuffix, dataPoint, float64(cumulativeCount), ls); err != nil {
 			return err
 		}
-
 	}
+
 	return nil
 }
 

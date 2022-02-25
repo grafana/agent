@@ -21,6 +21,7 @@ func (r *reconciler) createLogsConfigurationSecret(
 	d config.Deployment,
 	s assets.SecretStore,
 ) error {
+
 	return r.createTelemetryConfigurationSecret(ctx, l, d, s, config.LogsType)
 }
 
@@ -31,6 +32,7 @@ func (r *reconciler) createLogsDaemonSet(
 	d config.Deployment,
 	s assets.SecretStore,
 ) error {
+
 	name := fmt.Sprintf("%s-logs", d.Agent.Name)
 	ds, err := generateLogsDaemonSet(r.config, name, d)
 	if err != nil {

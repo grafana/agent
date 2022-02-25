@@ -84,6 +84,7 @@ integrations:
   [process_exporter: <process_exporter_config>]
   [statsd_exporter: <statsd_exporter_config>]
   [windows_exporter: <windows_exporter_config>]
+  [eventhandler: <eventhandler_config>]
 
   # Configs for integrations that do support multiple instances. Note that
   # these must be arrays.
@@ -144,6 +145,13 @@ autoscrape:
   # Autoscrape interval and timeout.
   [scrape_interval: <duration> | default = <integrations.metrics.autoscrape.scrape_interval>]
   [scrape_timeout: <duration> | default = <integrations.metrics.autoscrape.scrape_timeout>]
+
+# An optional extra set of labels to add to metrics from the integration target. These
+# labels are only exposed via the integration service discovery HTTP API and
+# added when autoscrape is used. They will not be found directly on the metrics
+# page for an integration.
+extra_labels:
+  [ <labelname>: <labelvalue> ... ]
 ```
 
 The old set of common options have been removed and do not work when the revamp

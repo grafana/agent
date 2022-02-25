@@ -120,8 +120,8 @@ func (r *Remote) ApplyConfig(cfg kv.Config, enable bool) error {
 		if err != nil {
 			return err
 		}
-
 	}
+
 	if err != nil {
 		return fmt.Errorf("failed to create kv client: %w", err)
 	}
@@ -354,8 +354,8 @@ func (r *Remote) all(ctx context.Context, keep func(key string) bool) (<-chan in
 	if r.kv.consul != nil {
 		return r.allConsul(ctx, keep)
 	}
-	return r.allOther(ctx, keep)
 
+	return r.allOther(ctx, keep)
 }
 
 // allConsul is ONLY usable when consul is the keystore. This is a performance improvement in using the client directly

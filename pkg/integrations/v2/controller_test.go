@@ -173,57 +173,46 @@ func Test_controller_SingletonCheck(t *testing.T) {
 }
 
 type syncController struct {
-	inner   *controller
-	applyWg sync.WaitGroup
-
-	stop     context.CancelFunc
-	exitedCh chan struct{}
+	inner *controller
+	pool  *workerPool
 }
 
-// newSyncController makes calls to Controller synchronous. newSyncController
-// will start running the inner controller and wait for it to update.
+// newSyncController pairs an unstarted controller with a manually managed
+// worker pool to synchronously apply integrations.
 func newSyncController(t *testing.T, inner *controller) *syncController {
 	t.Helper()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(func() {
-		cancel()
-	})
-
 	sc := &syncController{
-		inner:    inner,
-		stop:     cancel,
-		exitedCh: make(chan struct{}),
+		inner: inner,
+		pool:  newWorkerPool(context.Background(), inner.logger),
 	}
-	inner.onUpdateDone = sc.applyWg.Done // Inform WG whenever an apply finishes
 
-	// There's always immediately ony applied queued from any successfully created controller.
-	sc.applyWg.Add(1)
-
-	go func() {
-		inner.run(ctx)
-		close(sc.exitedCh)
-	}()
-
-	sc.applyWg.Wait()
+	// There's always immediately one queued integration set from any
+	// successfully created controller.
+	sc.refresh()
 	return sc
 }
 
-func (sc *syncController) UpdateController(c controllerConfig, g Globals) error {
-	sc.applyWg.Add(1)
+func (sc *syncController) refresh() {
+	sc.inner.mut.Lock()
+	defer sc.inner.mut.Unlock()
 
-	if err := sc.inner.UpdateController(c, g); err != nil {
-		sc.applyWg.Done() // The wg won't ever be finished now
+	newIntegrations := <-sc.inner.runIntegrations
+	sc.pool.Reload(newIntegrations)
+	sc.inner.integrations = newIntegrations
+}
+
+func (sc *syncController) UpdateController(c controllerConfig, g Globals) error {
+	err := sc.inner.UpdateController(c, g)
+	if err != nil {
 		return err
 	}
-
-	sc.applyWg.Wait()
+	sc.refresh()
 	return nil
 }
 
 func (sc *syncController) Stop() {
-	sc.stop()
-	<-sc.exitedCh
+	sc.pool.Close()
 }
 
 const mockIntegrationName = "mock"

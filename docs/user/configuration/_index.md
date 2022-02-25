@@ -127,8 +127,3 @@ The following flags will configure basic auth for requests made to HTTP/S remote
 - `-config.url.basic-auth-password-file <file>`: path to a file containing the basic auth password
 
 Note that this beta feature is subject to change in future releases.
-
-## Dynamic Configuration (Experimental)
-
-Dynamic Configuration is an experimental feature that allows loading configurations from a variety of sources and 
-running gomplate templates against the found file. Details can be found in the [dynamic configuration config]({{< relref "./dynamic-config.md" >}})

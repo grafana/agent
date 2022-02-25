@@ -3,7 +3,6 @@ package autoscrape
 import (
 	"context"
 	"net/http/httptest"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -15,10 +14,10 @@ import (
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/exemplar"
 	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 )
 
 // TestAutoscrape is a basic end-to-end test of the autoscraper.
@@ -69,15 +68,15 @@ func TestAutoscrape(t *testing.T) {
 	require.NoError(t, wt.Wait(5*time.Second), "timed out waiting for scrape")
 }
 
-var globalRef uint64
+var globalRef atomic.Uint64
 var noOpAppender = mockAppender{
 	AppendFunc: func(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
-		return atomic.AddUint64(&globalRef, 1), nil
+		return globalRef.Inc(), nil
 	},
 	CommitFunc:   func() error { return nil },
 	RollbackFunc: func() error { return nil },
 	AppendExemplarFunc: func(ref uint64, l labels.Labels, e exemplar.Exemplar) (uint64, error) {
-		return atomic.AddUint64(&globalRef, 1), nil
+		return globalRef.Inc(), nil
 	},
 }
 
@@ -98,11 +97,8 @@ func (ma *mockAppender) AppendExemplar(ref uint64, l labels.Labels, e exemplar.E
 }
 
 type mockInstance struct {
+	instance.NoOpInstance
 	app storage.Appender
 }
 
-func (mi *mockInstance) Run(ctx context.Context) error                 { return nil }
-func (mi *mockInstance) Update(c instance.Config) error                { return nil }
-func (mi *mockInstance) TargetsActive() map[string][]*scrape.Target    { return nil }
-func (mi *mockInstance) StorageDirectory() string                      { return "" }
 func (mi *mockInstance) Appender(ctx context.Context) storage.Appender { return mi.app }
