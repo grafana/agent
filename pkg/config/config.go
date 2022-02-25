@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv/consul"
 	"github.com/grafana/dskit/kv/etcd"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
@@ -265,7 +264,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 // dynamic loader, this is a templated approach
 func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
 	if expandvar {
-		return errors.New("expand var is not supported when using dynamic configuration, use gomplate env instead")
+		return fmt.Errorf("expand var is not supported when using dynamic configuration, use gomplate env instead")
 	}
 	cmf, err := NewDynamicLoader()
 	if err != nil {
@@ -370,7 +369,6 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		} else if err := loader(dynamicConfigPath, configExpandEnv, &cfg); err != nil {
 			return nil, fmt.Errorf("error loading dynamic configuration file %s: %w", dynamicConfigPath, err)
 		}
-
 	} else if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
 	} else if err := loader(file, configExpandEnv, &cfg); err != nil {
