@@ -125,7 +125,7 @@ local _config = config._config;
               sum without (pod, instance) (go_memstats_heap_inuse_bytes{job=~"agent-smoke-test/grafana-agent-smoke-test.*"}) /
               sum without (pod, instance, instance_group_name) (agent_wal_storage_active_series{job=~"agent-smoke-test/grafana-agent-smoke-test.*"}) / 1e3 > 10
             |||,
-            'for': '5m',
+            'for': '1h',
             annotations: {
               summary: '{{ $labels.job }} has used more than 10KB per series for more than 5 minutes',
             },
@@ -168,10 +168,12 @@ local _config = config._config;
           {
             alert: 'CrowFailures',
             expr: |||
-              (
-                rate(crow_test_sample_results_total{result="success"}[5m])
-                / ignoring(result) rate(crow_test_samples_total[5m])
-              ) < 1
+                (
+                    rate(crow_test_sample_results_total{result="success"}[5m])
+                    /
+                    ignoring(result) sum without (result) (rate(crow_test_sample_results_total[5m]))
+                )
+                < 1
             |||,
             'for': '15m',
             annotations: {
