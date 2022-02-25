@@ -6,7 +6,7 @@ The templating is based on the excellent [gomplate](https://docs.gomplate.ca/) l
 
 ## Looping
 
-[agent-1.yml](./01_assets/agent-1.yml)
+[agent-1.yml](01_assets/agent-1.yml)
 
 ```yaml
 server:
@@ -32,7 +32,7 @@ The templating engine uses directives that are wrapped in `{{ command }}`, in th
 
 ## Final
 
-[final.yml](./01_assets/final.yml)
+[final.yml](01_assets/final.yml)
 
 The final.yml contains 4 prometheus configs
 

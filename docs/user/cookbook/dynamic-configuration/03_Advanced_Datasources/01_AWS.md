@@ -6,7 +6,7 @@ Unfortunately there is not a specific docker command but generic examples are be
 
 ## Looping
 
-[agent-1.yml](./01_assets/agent-1.yml)
+[agent-1.yml](01_assets/agent-1.yml)
 
 ```yaml
 server:
@@ -36,4 +36,4 @@ The `aws.EC2Query` command is a new command added for Grafana Agent and takes a 
 
 ## Final
 
-[final.yml](./01_assets/final.yml)
+[final.yml](01_assets/final.yml)
