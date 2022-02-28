@@ -3,6 +3,7 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 
 local pvc = k.core.v1.persistentVolumeClaim;
 local volumeMount = k.core.v1.volumeMount;
+local containerPort = k.core.v1.containerPort;
 
 {
   agent:
@@ -23,6 +24,11 @@ local volumeMount = k.core.v1.volumeMount;
       server: { log_level: 'error' },
     }) +
     agent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
+    {
+      _config+: {
+        default_http_port: 12345,
+      },
+    } +
     // headless svc needed by statefulset
     agent.withService({}) +
     {
