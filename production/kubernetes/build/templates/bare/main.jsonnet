@@ -4,9 +4,9 @@ local k = import 'ksonnet-util/kausal.libsonnet';
 local pvc = k.core.v1.persistentVolumeClaim;
 local volumeMount = k.core.v1.volumeMount;
 
-{ 
+{
   agent:
-    agent.new(name='grafana-agent', namespace='${NAMESPACE}') + 
+    agent.new(name='grafana-agent', namespace='${NAMESPACE}') +
     agent.withStatefulSetController(
       replicas=1,
       volumeClaims=[
@@ -21,19 +21,17 @@ local volumeMount = k.core.v1.volumeMount;
     // add dummy config or else will fail
     agent.withAgentConfig({
       server: { log_level: 'error' },
-    }) + 
+    }) +
     agent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
     // todo: create headless svc
-    agent.withService({}) + 
-#    {
-#      agent+: {
-#        controller_service:+ {
-#          spec:+ {
-#            clusterIP: "None" 
-#          }
-#        }
-#      }
-#    } +
+    agent.withService({}) +
+    {
+      controller_service+: {
+        spec+: {
+          clusterIP: 'None',
+        },
+      },
+    } +
     // hack to disable ConfigMap
-    { configMap:: super.configMap }
+    { configMap:: super.configMap },
 }
