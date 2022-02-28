@@ -483,3 +483,6 @@ replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_
 
 // Required until fork merged upstream for dynamic configuration support
 replace github.com/hairyhenderson/gomplate/v3 => github.com/mattdurham/gomplate/v3 v3.10.1-0.20220204190650-af65008b9bb1
+
+// Required to ensure compatible hashicorp lib is loaded for dynamic configuration, this solves an ambigous import
+exclude github.com/hashicorp/vault v0.10.3
