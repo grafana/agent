@@ -5,8 +5,9 @@ function(replicas=1) {
   local namespace = _config.namespace,
 
   local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: this._config },
-
   local deployment = k.apps.v1.deployment,
+  local container = k.core.v1.container,
+  local envVar = k.core.v1.envVar,
 
   controller:
     deployment.new(name, replicas, [this.container]) +
@@ -20,4 +21,11 @@ function(replicas=1) {
       else {}
     ) +
     k.util.configVolumeMount(name, '/etc/agent'),
+  
+  // for traces
+  container+::
+    container.withEnvMixin([
+      envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
+    ]),
+
 }
