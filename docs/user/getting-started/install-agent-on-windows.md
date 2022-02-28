@@ -23,7 +23,7 @@ Existing configuration files will be kept when re-installing or upgrading the Gr
 
 ### Silent Installation
 
-Silent installation can be achieved via  `grafana-agent-installer.exe /S /EnableExporter true /Username 12345 /Password password /Url "http://example.com" `. EnableExporter enables or disables Windows Exporter, default is `false`. Username, Password and Url set the global remote_write configuration, they can be omitted if not using remote_write. When using powershell use triple quotes """http://example.com""" around the url parameter.
+Silent installation can be achieved via  `grafana-agent-installer.exe /S /EnableExporter true /Username 12345 /Password password /Url "http://example.com" `. EnableExporter enables or disables Windows Exporter, default is `false`. Username, Password and Url set the global remote_write configuration, they can be omitted if not using remote_write. When using powershell use triple quotes `"""http://example.com"""` around the url parameter.
 
 ## Security
 
