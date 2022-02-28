@@ -1,4 +1,3 @@
-n
 SHELL = /usr/bin/env bash
 
 #############
@@ -86,12 +85,12 @@ GO_FLAGS = $(DEBUG_GO_FLAGS)
 endif
 
 NETGO_CHECK = strings $@ | grep cgo_stub\\\.go >/dev/null || { \
-       rm $@; \
-       echo "\nYour go standard library was built without the 'netgo' build tag."; \
-       echo "To fix that, run"; \
-       echo "    sudo go clean -i net"; \
-       echo "    sudo go install -tags netgo std"; \
-       false; \
+	   rm $@; \
+	   echo "\nYour go standard library was built without the 'netgo' build tag."; \
+	   echo "To fix that, run"; \
+	   echo "    sudo go clean -i net"; \
+	   echo "    sudo go install -tags netgo std"; \
+	   false; \
 }
 
 # Protobuf files
