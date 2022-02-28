@@ -18,4 +18,4 @@ jobs:
     - name: Build
       run: make GOFLAGS="-tags=netgo,nodocker " BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
     - name: Test
-      run: make GOFLAGS="-tags=netgo,nodocker -memprofile=mem.out" BUILD_IN_CONTAINER=false test
+      run: make GOFLAGS="-tags=netgo,nodocker " BUILD_IN_CONTAINER=false test
