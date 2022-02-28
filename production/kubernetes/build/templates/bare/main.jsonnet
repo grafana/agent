@@ -23,7 +23,7 @@ local volumeMount = k.core.v1.volumeMount;
       server: { log_level: 'error' },
     }) +
     agent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
-    // todo: create headless svc
+    // headless svc needed by statefulset
     agent.withService({}) +
     {
       controller_service+: {
