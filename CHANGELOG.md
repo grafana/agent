@@ -11,6 +11,8 @@
 
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
 
+- [FEATURE] Added consulagent_sd to target discovery. (@chuckyz)
+
 # v0.23.0 (2022-01-13)
 
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
