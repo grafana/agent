@@ -96,7 +96,6 @@ configs:
 	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{})
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
-
 }
 
 func TestTrace_ApplyConfig(t *testing.T) {
