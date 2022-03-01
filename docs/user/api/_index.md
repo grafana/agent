@@ -3,7 +3,7 @@ title = "Grafana Agent API"
 weight = 400
 +++
 
-# Grafana Agent APIs
+# Grafana Agent APIs (Stable)
 
 The API is divided into several parts:
 
@@ -12,7 +12,9 @@ The API is divided into several parts:
 - [Integrations API](#integrations-api)
 - [Ready/Healthy API](#ready--health-api)
 
-## Config management API
+API endpoints are stable unless otherwise noted.
+
+## Config management API (Beta)
 
 Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../scraping-service" >}}).
 
@@ -272,7 +274,7 @@ configuration file on disk.
 
 Status code: 200 on success.
 
-## Integrations API
+## Integrations API (Experimental)
 
 > **WARNING**: This API is currently only available when the experimental
 > [integrations revamp]({{< relref "../configuration/integrations/integrations-next" >}})

@@ -1,9 +1,9 @@
 +++
-title = "(Beta) Integrations Revamp"
+title = "Integrations Revamp"
 weight = 100
 +++
 
-# (Beta) Integrations Revamp
+# Integrations Revamp (Experimental)
 
 Release v0.22.0 of Grafana Agent includes experimental support for a revamped
 integrations subsystem. The integrations subsystem is the second oldest part of

@@ -3,7 +3,7 @@ title = "Scraping Service Mode"
 weight = 500
 +++
 
-# Scraping Service Mode
+# Scraping Service Mode (Beta)
 
 Scraping Service Mode is a third operational mode of the Grafana Agent
 that allows for clustering a set of Agent processes and distributing scrape load
