@@ -91,10 +91,6 @@ type Integration struct {
 func (i *Integration) Run(ctx context.Context) error {
 	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
 	// per host.
-
-	// klog
-	klog.SetLogger(i.c.logger)
-
 	// Containerd
 	containerd.ArgContainerdEndpoint = &i.c.Containerd
 	containerd.ArgContainerdNamespace = &i.c.ContainerdNamespace
@@ -153,12 +149,12 @@ func (i *Integration) Run(ctx context.Context) error {
 	if err := rm.Stop(); err != nil {
 		return fmt.Errorf("failed to stop manager: %w", err)
 	}
-	return nil
+	return ctx.Err()
 }
 
 // New creates a new cadvisor integration
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	c.logger = logger
+	klog.SetLogger(logger)
 
 	ci := integrations.NewCollectorIntegration(c.Name())
 	integration := Integration{

@@ -9,12 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/log"
+	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/go-kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/pkg/agentproto"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/dskit/ring"
 	"github.com/grafana/dskit/services"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -45,7 +44,7 @@ func Test_node_Join(t *testing.T) {
 			return &empty.Empty{}, nil
 		},
 	}
-	startNode(t, remote, logger)
+	startNode(t, remote)
 
 	nodeConfig := DefaultConfig
 	nodeConfig.Enabled = true
@@ -95,7 +94,7 @@ func Test_node_Leave(t *testing.T) {
 			return &empty.Empty{}, nil
 		},
 	}
-	startNode(t, remote, logger)
+	startNode(t, remote)
 
 	nodeConfig := DefaultConfig
 	nodeConfig.Enabled = true
@@ -152,7 +151,7 @@ func Test_node_ApplyConfig(t *testing.T) {
 }
 
 // startNode launches srv as a gRPC server and registers it to the ring.
-func startNode(t *testing.T, srv agentproto.ScrapingServiceServer, logger log.Logger) {
+func startNode(t *testing.T, srv agentproto.ScrapingServiceServer) {
 	t.Helper()
 
 	l, err := net.Listen("tcp", "127.0.0.1:0")
@@ -170,7 +169,7 @@ func startNode(t *testing.T, srv agentproto.ScrapingServiceServer, logger log.Lo
 	lcConfig.Addr = l.Addr().(*net.TCPAddr).IP.String()
 	lcConfig.Port = l.Addr().(*net.TCPAddr).Port
 
-	lc, err := ring.NewLifecycler(lcConfig, ring.NewNoopFlushTransferer(), "agent", "agent", false, logger, nil)
+	lc, err := ring.NewLifecycler(lcConfig, ring.NewNoopFlushTransferer(), "agent", "agent", false, prometheus.NewRegistry())
 	require.NoError(t, err)
 
 	err = services.StartAndAwaitRunning(context.Background(), lc)

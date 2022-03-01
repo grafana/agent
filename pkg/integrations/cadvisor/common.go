@@ -3,7 +3,6 @@ package cadvisor
 import (
 	"time"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 )
 
@@ -88,9 +87,6 @@ type Config struct {
 	// Raw config options
 	// DockerOnly only report docker containers in addition to root stats
 	DockerOnly bool `yaml:"docker_only,omitempty"`
-
-	// Hold on to the logger passed to config.NewIntegration, to be passed to klog, as yet another unsafe global that needs to be set.
-	logger log.Logger
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -99,23 +95,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain Config
 	err := unmarshal((*plain)(c))
-	if err != nil {
-		return err
-	}
-
-	// In the cadvisor cmd, these are passed as CSVs, and turned into slices using strings.split. As a result the
-	// default values are always a slice with 1 or more elements.
-	// See: https://github.com/google/cadvisor/blob/v0.43.0/cmd/cadvisor.go#L136
-	if len(c.AllowlistedContainerLabels) == 0 {
-		c.AllowlistedContainerLabels = []string{""}
-	}
-	if len(c.RawCgroupPrefixAllowlist) == 0 {
-		c.RawCgroupPrefixAllowlist = []string{""}
-	}
-	if len(c.EnvMetadataAllowlist) == 0 {
-		c.EnvMetadataAllowlist = []string{""}
-	}
-	return nil
+	return err
 }
 
 // Name returns the name of the integration that this config represents.

@@ -43,8 +43,5 @@ type Integration interface {
 	// For example, an Integration that requires a persistent connection to a
 	// database would establish that connection here. If the integration doesn't
 	// need to do anything, it should wait for the ctx to be canceled.
-	//
-	// An error will be returned if the integration failed. Integrations should
-	// not return the ctx error.
 	Run(ctx context.Context) error
 }
