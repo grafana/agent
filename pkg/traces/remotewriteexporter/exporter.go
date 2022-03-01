@@ -55,8 +55,8 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 	if cfg.ConstLabels != nil {
 		ls = make(labels.Labels, 0, len(*cfg.ConstLabels))
 
-		for name := range *cfg.ConstLabels {
-			ls = append(ls, labels.Label{Name: name, Value: (*cfg.ConstLabels)[name]})
+		for name, value := range *cfg.ConstLabels {
+			ls = append(ls, labels.Label{Name: name, Value: value})
 		}
 	}
 
