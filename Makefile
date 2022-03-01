@@ -1,3 +1,4 @@
+
 SHELL = /usr/bin/env bash
 
 #############
@@ -85,12 +86,12 @@ GO_FLAGS = $(DEBUG_GO_FLAGS)
 endif
 
 NETGO_CHECK = strings $@ | grep cgo_stub\\\.go >/dev/null || { \
-	   rm $@; \
-	   echo "\nYour go standard library was built without the 'netgo' build tag."; \
-	   echo "To fix that, run"; \
-	   echo "    sudo go clean -i net"; \
-	   echo "    sudo go install -tags netgo std"; \
-	   false; \
+       rm $@; \
+       echo "\nYour go standard library was built without the 'netgo' build tag."; \
+       echo "To fix that, run"; \
+       echo "    sudo go clean -i net"; \
+       echo "    sudo go install -tags netgo std"; \
+       false; \
 }
 
 # Protobuf files
@@ -238,8 +239,7 @@ lint:
 # more without -race for packages that have known race detection issues.
 test:
 	CGO_ENABLED=1 go test $(CGO_FLAGS) -race -cover -coverprofile=cover.out -p=4 ./...
-    CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
-
+	CGO_ENABLED=1 go test $(CGO_FLAGS) -cover -coverprofile=cover-norace.out -p=4 ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s
 
 clean:
 	rm -rf cmd/agent/agent

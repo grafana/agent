@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cortexproject/cortex/pkg/ring"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -16,7 +17,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/kv"
-	"github.com/grafana/dskit/ring"
 	"github.com/grafana/dskit/services"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/user"
@@ -114,13 +114,15 @@ func (n *node) ApplyConfig(cfg Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to create ring: %w", err)
 	}
-
+	if err := n.reg.Register(r); err != nil {
+		return fmt.Errorf("failed to register ring metrics: %w", err)
+	}
 	if err := services.StartAndAwaitRunning(context.Background(), r); err != nil {
 		return fmt.Errorf("failed to start ring: %w", err)
 	}
 	n.ring = r
 
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.log, prometheus.WrapRegistererWithPrefix("agent_dskit_", n.reg))
+	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.reg)
 	if err != nil {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
@@ -151,7 +153,7 @@ func newRing(cfg ring.Config, name, key string, reg prometheus.Registerer, log l
 	if err != nil {
 		return nil, err
 	}
-	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy(), prometheus.WrapRegistererWithPrefix("agent_dskit_", reg), log)
+	return ring.NewWithStoreClientAndStrategy(cfg, name, key, store, ring.NewIgnoreUnhealthyInstancesReplicationStrategy())
 }
 
 // run waits for connection to the ring and kickstarts the join process.

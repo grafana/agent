@@ -120,9 +120,6 @@ func (g Globals) CloneAgentBaseURL() *url.URL {
 type Integration interface {
 	// RunIntegration starts the integration and performs background tasks. It
 	// must not return until ctx is canceled, even if there is no work to do.
-	//
-	// An error will be returned if the integration failed. Integrations will
-	// never return the ctx error.
 	RunIntegration(ctx context.Context) error
 }
 
