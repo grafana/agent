@@ -50,14 +50,10 @@ type remoteWriteExporter struct {
 func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 	logger := log.With(util.Logger, "component", "traces remote write exporter")
 
-	var ls labels.Labels
+	ls := make(labels.Labels, 0, len(cfg.ConstLabels))
 
-	if cfg.ConstLabels != nil {
-		ls = make(labels.Labels, 0, len(*cfg.ConstLabels))
-
-		for name, value := range *cfg.ConstLabels {
-			ls = append(ls, labels.Label{Name: name, Value: value})
-		}
+	for name, value := range cfg.ConstLabels {
+		ls = append(ls, labels.Label{Name: name, Value: value})
 	}
 
 	return &remoteWriteExporter{
