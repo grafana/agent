@@ -10,9 +10,27 @@ This guide helps you operate the Grafana Agent.
 ## Stability
 
 The core of Grafana Agent is considered stable and suitable for production use.
-Features and other functionality that are subject to change and are not
-recommended for production use will be tagged as either "beta" or
-"experimental."
+Individual features of Grafana Agent may have stability falling under one of
+the three categories:
+
+* Experimental: we are exploring a new use case and would like feedback.
+  Experimental features are subject to frequent breaking changes during
+  development. Experimental features may be removed with no equivalent
+  replacement. Experimental features are always hidden behind feature flags.
+
+* Beta: we are working on maturing a specific feature. Beta features may be
+  subject to some breaking changes during development. Beta features may be
+  replaced by equivalent functionality which covers that same use case. Beta
+  features can be used without feature flags.
+
+* Stable: we believe this functionality is stable, and breaking changes to
+  configuration will be rare and well-documented. We will communicate
+  deprecation and removal timeline if a stable feature is chosen to be
+  removed or replaced. Stable features can be used without feature flags.
+
+There is a best-effort attempt to mark features as one of these three in
+documentation; open an issue if it's not clear what the stability of a specific
+feature is.
 
 ## Horizontal Scaling
 
@@ -28,14 +46,14 @@ There are three options to horizontally scale your deployment of Grafana Agents:
 
 Each has their own set of tradeoffs:
 
-- Host Filtering
+- Host Filtering (Beta)
   - Pros
     - Does not need specialized configs per agent
     - No external dependencies required to operate
   - Cons
     - Can cause significant load on service discovery APIs
     - Requires each Agent to have the same list of scrape configs/remote_writes
-- Hashmod sharding
+- Hashmod sharding (Stable)
   - Pros
     - Exact control on the number of shards to run
     - Smaller load on SD compared to host filtering (as there are a smaller # of
@@ -48,7 +66,7 @@ Each has their own set of tradeoffs:
       with the exception of the hashmod rule being different.
     - Hashmod is not [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing),
       so up to 100% of jobs will move to a new machine when scaling shards.
-- Scraping service
+- Scraping service (Beta)
   - Pros
     - Agents don't have to have a synchronized set of scrape configs / remote_writes
       (they pull from a centralized location).
@@ -64,7 +82,7 @@ Each has their own set of tradeoffs:
     - Managing centralized configs adds operational burden over managing a config
       file.
 
-## Host filtering
+## Host filtering (Beta)
 
 Host filtering implements a form of "dumb sharding," where operators may deploy
 one Grafana Agent instance per machine in a cluster, all using the same
@@ -117,7 +135,7 @@ is allowed. Otherwise, the target is ignored, and will not show up in the
 [targets
 API]({{< relref "../api#list-current-scrape-targets" >}}).
 
-## Hashmod sharding
+## Hashmod sharding (Stable)
 
 Grafana Agents can be sharded by using a pair of hashmod/keep relabel rules.
 These rules will hash the address of a target and modulus it with the number
@@ -165,7 +183,7 @@ mode]({{< relref "../scraping-service" >}}), where breaking up your scrape confi
 multiple Instances is required for sharding and balancing scrape load across a
 cluster of Agents.
 
-## Instance sharing
+## Instance sharing (Beta)
 
 The v0.5.0 release of the Agent introduced the concept of _instance sharing_,
 which combines scrape_configs from compatible instance configs into a single,

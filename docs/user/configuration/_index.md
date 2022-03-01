@@ -15,6 +15,10 @@ metrics instances.
 - [traces_config]({{< relref "./traces-config" >}})
 - [integrations_config]({{< relref "./integrations/_index.md" >}})
 
+The configuration of Grafana Agent is "stable," but subject to breaking changes
+as individual features change. Breaking changes to configuration will be
+well-documented.
+
 ## Variable substitution
 
 You can use environment variables in the configuration file to set values that
@@ -116,7 +120,7 @@ Support contents and default values of `agent.yaml`:
 [integrations: <integrations_config>]
 ```
 
-## Remote Configuration (Beta)
+## Remote Configuration (Experimental)
 
 An experimental feature for fetching remote configuration files over HTTP/S can be
 enabled by passing the `-enable-features=remote-configs` flag at the command line.
