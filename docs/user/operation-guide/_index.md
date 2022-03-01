@@ -17,13 +17,13 @@ the three categories:
   Experimental features are subject to frequent breaking changes during
   development. Experimental features may be removed with no equivalent
   replacement. Experimental features are always hidden behind feature flags.
-  Unless removed, experimental features will eventually graduate to Beta.
+  Unless removed, experimental features will eventually graduate to beta.
 
 * Beta: we are working on maturing a specific feature. Beta features may be
   subject to some breaking changes during development. Beta features may be
   replaced by equivalent functionality which covers that same use case. Beta
   features can be used without feature flags. Unless replaced by equivalent
-  functionality, beta features will eventually graduate to Stable.
+  functionality, beta features will eventually graduate to stable.
 
 * Stable: we believe this functionality is stable, and breaking changes to
   configuration will be rare and well-documented. We will communicate
