@@ -13,6 +13,8 @@
 
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
 
+- [FEATURE] Added consulagent_sd to target discovery. (@chuckyz)
+
 - [BUGFIX] Ensure singleton integrations are honored in v2 integrations (@mattdurham)
 
 # v0.23.0 (2022-01-13)

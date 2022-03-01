@@ -18,6 +18,7 @@ import (
 	"github.com/prometheus/common/version"
 
 	// Register Prometheus SD components
+	_ "github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
 	_ "github.com/prometheus/prometheus/discovery/install"
 
 	// Register integrations
