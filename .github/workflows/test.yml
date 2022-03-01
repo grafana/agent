@@ -5,7 +5,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        platform: [macos-latest, windows-latest]
+        platform: [macos-latest, windows-2019]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Set up Go 1.17

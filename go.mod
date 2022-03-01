@@ -5,7 +5,7 @@ go 1.17
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/Shopify/sarama v1.30.0
-	github.com/cortexproject/cortex v1.10.1-0.20211014125347-85c378182d0d
+	github.com/cortexproject/cortex v1.11.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/docker/docker v20.10.10+incompatible
 	github.com/docker/go-connections v0.4.0
@@ -21,8 +21,8 @@ require (
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-jsonnet v0.17.0
 	github.com/gorilla/mux v1.8.0
-	github.com/grafana/dskit v0.0.0-20211011144203-3a88ec0b675f
-	github.com/grafana/loki v1.6.2-0.20211021114919-0ae0d4da122d
+	github.com/grafana/dskit v0.0.0-20211021180445-3bd016e9d7f1
+	github.com/grafana/loki v1.6.2-0.20220112164614-525040a32657
 	github.com/hairyhenderson/go-fsimpl v0.0.0-20211102185733-857ee891b38d
 	github.com/hairyhenderson/gomplate/v3 v3.0.0
 	github.com/hashicorp/consul/api v1.12.0
@@ -483,3 +483,6 @@ replace github.com/leoluk/perflib_exporter v0.1.0 => github.com/grafana/perflib_
 
 // Required until fork merged upstream for dynamic configuration support
 replace github.com/hairyhenderson/gomplate/v3 => github.com/mattdurham/gomplate/v3 v3.10.1-0.20220204190650-af65008b9bb1
+
+// Required to ensure compatible hashicorp lib is loaded for dynamic configuration, this solves an ambigous import
+exclude github.com/hashicorp/vault v0.10.3
