@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [BUGFIX] `const_labels` in `traces_config` is now correctly parsed in the remote writer exporter (@fredr)
+
 - [ENHANCEMENT] opentelemetry trace exporters can now be configured to support Oauth utilizing
   the opentelemetry-collector-contrib oauth2clientauthextension. (@canuteson)
 
@@ -49,7 +51,6 @@
 This release has deprecations. Please read [DEPRECATION] entries and consult
 the [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for detailed information.
-
 
 - [FEATURE] (beta) Enable experimental config urls for fetching remote configs. Currently,
    only HTTP/S is supported. Pass the `-enable-features=remote-configs` flag to turn this on. (@rlankfo)
@@ -248,7 +249,6 @@ consult the
 [upgrade guide](https://github.com/grafana/agent/blob/main/docs/upgrade-guide/_index.md)
 for specific instructions.
 
-
 - [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
 
 - [FEATURE] Add TLS config options for tempo `remote_write`s. (@mapno)
@@ -310,8 +310,8 @@ for specific instructions.
 - [CHANGE] Breaking change: reduced verbosity of tracing autologging
   by not logging `STATUS_CODE_UNSET` status codes. (@mapno)
 
-- [CHANGE] Breaking change: Operator: rename Prometheus* CRDs to Metrics* and
-  Prometheus* fields to Metrics*. (@rfratto)
+- [CHANGE] Breaking change: Operator: rename Prometheus*CRDs to Metrics* and
+  Prometheus*fields to Metrics*. (@rfratto)
 
 - [CHANGE] Breaking change: Operator: CRDs are no longer referenced using a
   hyphen in the name to be consistent with how Kubernetes refers to resources.
@@ -1033,10 +1033,10 @@ files to the new format.
 - [FEATURE] The Prometheus remote write protocol will now send scraped metadata (metric name, help, type and unit). This results in almost negligent bytes sent increase as metadata is only sent every minute. It is on by default. (@gotjosh)
 
   These metrics are available to monitor metadata being sent:
-    - `prometheus_remote_storage_succeeded_metadata_total`
-    - `prometheus_remote_storage_failed_metadata_total`
-    - `prometheus_remote_storage_retried_metadata_total`
-    - `prometheus_remote_storage_sent_batch_duration_seconds` and
+  - `prometheus_remote_storage_succeeded_metadata_total`
+  - `prometheus_remote_storage_failed_metadata_total`
+  - `prometheus_remote_storage_retried_metadata_total`
+  - `prometheus_remote_storage_sent_batch_duration_seconds` and
       `prometheus_remote_storage_sent_bytes_total` have a new label “type” with
       the values of `metadata` or `samples`.
 
