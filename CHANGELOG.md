@@ -11,9 +11,9 @@
 
 - [ENHANCEMENT] Introduce EXPERIMENTAL support for dynamic configuration. (@mattdurham)
 
-- [BUGFIX] Ensure singleton integrations are honored in v2 integrations (@mattdurham)
-
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
+
+- [BUGFIX] Ensure singleton integrations are honored in v2 integrations (@mattdurham)
 
 # v0.23.0 (2022-01-13)
 
