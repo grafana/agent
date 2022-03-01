@@ -185,7 +185,7 @@ mode]({{< relref "../scraping-service" >}}), where breaking up your scrape confi
 multiple Instances is required for sharding and balancing scrape load across a
 cluster of Agents.
 
-## Instance sharing (Beta)
+## Instance sharing (Stable)
 
 The v0.5.0 release of the Agent introduced the concept of _instance sharing_,
 which combines scrape_configs from compatible instance configs into a single,
@@ -215,5 +215,6 @@ individual Instance config. It is recommended to use the default of
 `instance_mode: shared` unless you don't mind the performance hit and really
 need granular metrics.
 
-Users can use the [targets API]({{< relref "../api#list-current-scrape-targets" >}}) to see all
-scraped targets, and the name of the shared instance they were assigned to.
+Users can use the [targets API]({{< relref "../api#list-current-scrape-targets" >}})
+to see all scraped targets, and the name of the shared instance they were
+assigned to.
