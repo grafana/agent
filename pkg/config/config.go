@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -30,10 +31,12 @@ import (
 var (
 	featRemoteConfigs    = features.Feature("remote-configs")
 	featIntegrationsNext = features.Feature("integrations-next")
+	featDynamicConfig    = features.Feature("dynamic-config")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
 		featIntegrationsNext,
+		featDynamicConfig,
 	}
 )
 
@@ -218,7 +221,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return fmt.Errorf("error reading config file: %w", err)
+		return fmt.Errorf("error reading config file %w", err)
 	}
 	return LoadBytes(buf, expandEnvVars, c)
 }
@@ -256,6 +259,28 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
 	return LoadBytes(bb, expandEnvVars, c)
+}
+
+// LoadDynamicConfiguration is used to load configuration from a variety of sources using
+// dynamic loader, this is a templated approach
+func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
+	if expandvar {
+		return errors.New("expand var is not supported when using dynamic configuration, use gomplate env instead")
+	}
+	cmf, err := NewDynamicLoader()
+	if err != nil {
+		return err
+	}
+	err = cmf.LoadConfigByPath(url)
+	if err != nil {
+		return err
+	}
+
+	err = cmf.ProcessConfigs(c)
+	if err != nil {
+		return fmt.Errorf("error processing config templates %w", err)
+	}
+	return nil
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
@@ -301,6 +326,11 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 		if features.Enabled(fs, featRemoteConfigs) {
 			return LoadRemote(url, expand, c)
 		}
+		if features.Enabled(fs, featDynamicConfig) && !features.Enabled(fs, featIntegrationsNext) {
+			return fmt.Errorf("integrations-next must be enabled for dynamic configuration to work")
+		} else if features.Enabled(fs, featDynamicConfig) {
+			return LoadDynamicConfiguration(url, expand, c)
+		}
 		return LoadFile(url, expand, c)
 	})
 }
@@ -311,12 +341,15 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	var (
 		cfg = DefaultConfig
 
-		printVersion    bool
-		file            string
-		configExpandEnv bool
+		printVersion      bool
+		file              string
+		dynamicConfigPath string
+		configExpandEnv   bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
+	fs.StringVar(&dynamicConfigPath, "config.dynamic-config-path", "", "dynamic configuration path that points to a single configuration file supports file:// or s3:// protocols. Must be enabled by -enable-features=dynamic-config,integrations-next")
+
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	cfg.RegisterFlags(fs)
@@ -331,7 +364,13 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		os.Exit(0)
 	}
 
-	if file == "" {
+	if features.Enabled(fs, featDynamicConfig) {
+		if dynamicConfigPath == "" {
+			return nil, fmt.Errorf("-config.dynamic-config-path flag required when using dynamic configuration")
+		} else if err := loader(dynamicConfigPath, configExpandEnv, &cfg); err != nil {
+			return nil, fmt.Errorf("error loading dynamic configuration file %s: %w", dynamicConfigPath, err)
+		}
+	} else if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
 	} else if err := loader(file, configExpandEnv, &cfg); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
@@ -349,6 +388,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
+
 	if err := cfg.Integrations.setVersion(version); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}

@@ -7,10 +7,13 @@ import (
 	"testing"
 	"time"
 
+	commonCfg "github.com/prometheus/common/config"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
-	commonCfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -450,4 +453,10 @@ metrics:
 	}
 	require.Equal(t, expected, c.Metrics.Global.RemoteWrite[0])
 	require.True(t, c.Metrics.Global.RemoteWrite[0].SendExemplars)
+}
+
+func TestLoadDynamicConfigurationExpandError(t *testing.T) {
+	err := LoadDynamicConfiguration("", true, nil)
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }
