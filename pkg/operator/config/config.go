@@ -12,9 +12,8 @@ import (
 	"github.com/fatih/structs"
 	jsonnet "github.com/google/go-jsonnet"
 	"github.com/google/go-jsonnet/ast"
-	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/assets"
-	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gopkg.in/yaml.v3"
 )
 
@@ -44,75 +43,11 @@ func (t Type) String() string {
 //go:embed templates/*
 var templates embed.FS
 
-// Deployment is a set of resources used for one deployment of the Agent.
-type Deployment struct {
-	// Agent is the root resource that the deployment represents.
-	Agent *grafana.GrafanaAgent
-	// Metrics is the set of metrics instances discovered from the root Agent resource.
-	Metrics []MetricsInstance
-	// Logs is the set of logging instances discovered from the root Agent
-	// resource.
-	Logs []LogInstance
-	// Secrets that can be referenced in the deployment.
-	Secrets assets.SecretStore
-}
-
-// DeepCopy creates a deep copy of d.
-func (d *Deployment) DeepCopy() *Deployment {
-	p := make([]MetricsInstance, 0, len(d.Metrics))
-	for _, i := range d.Metrics {
-		var (
-			inst   = i.Instance.DeepCopy()
-			sMons  = make([]*prom.ServiceMonitor, 0, len(i.ServiceMonitors))
-			pMons  = make([]*prom.PodMonitor, 0, len(i.PodMonitors))
-			probes = make([]*prom.Probe, 0, len(i.Probes))
-		)
-
-		for _, sMon := range i.ServiceMonitors {
-			sMons = append(sMons, sMon.DeepCopy())
-		}
-		for _, pMon := range i.PodMonitors {
-			pMons = append(pMons, pMon.DeepCopy())
-		}
-		for _, probe := range i.Probes {
-			probes = append(probes, probe.DeepCopy())
-		}
-
-		p = append(p, MetricsInstance{
-			Instance:        inst,
-			ServiceMonitors: sMons,
-			PodMonitors:     pMons,
-			Probes:          probes,
-		})
-	}
-
-	l := make([]LogInstance, 0, len(d.Logs))
-	for _, i := range d.Logs {
-		var (
-			inst  = i.Instance.DeepCopy()
-			pLogs = make([]*grafana.PodLogs, 0, len(i.PodLogs))
-		)
-		for _, pLog := range i.PodLogs {
-			pLogs = append(pLogs, pLog.DeepCopy())
-		}
-		l = append(l, LogInstance{
-			Instance: inst,
-			PodLogs:  pLogs,
-		})
-	}
-
-	return &Deployment{
-		Agent:   d.Agent.DeepCopy(),
-		Metrics: p,
-		Logs:    l,
-	}
-}
-
 // TODO(rfratto): the "Optional" field of secrets is currently ignored.
 
 // BuildConfig builds an Agent configuration file.
-func (d *Deployment) BuildConfig(secrets assets.SecretStore, ty Type) (string, error) {
-	vm, err := createVM(secrets)
+func BuildConfig(d *gragent.Deployment, ty Type) (string, error) {
+	vm, err := createVM(d.Secrets)
 	if err != nil {
 		return "", err
 	}
@@ -232,20 +167,4 @@ func jsonnetMarshal(v interface{}) ([]byte, error) {
 		return json.Marshal(structs.Map(v))
 	}
 	return json.Marshal(v)
-}
-
-// MetricsInstance is an instance with a set of associated service monitors,
-// pod monitors, and probes, which compose the final configuration of the
-// generated Metrics instance.
-type MetricsInstance struct {
-	Instance        *grafana.MetricsInstance
-	ServiceMonitors []*prom.ServiceMonitor
-	PodMonitors     []*prom.PodMonitor
-	Probes          []*prom.Probe
-}
-
-// LogInstance is an instance with a set of associated PodLogs.
-type LogInstance struct {
-	Instance *grafana.LogsInstance
-	PodLogs  []*grafana.PodLogs
 }

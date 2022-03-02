@@ -30,5 +30,7 @@ func init() {
 		&LogsInstanceList{},
 		&PodLogs{},
 		&PodLogsList{},
+		&Integration{},
+		&IntegrationList{},
 	)
 }

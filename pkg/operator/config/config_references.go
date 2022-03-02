@@ -13,13 +13,6 @@ type AssetReference struct {
 	Reference prom.SecretOrConfigMap
 }
 
-// AssetReferences returns all secret or configmap selectors used throughout
-// the deployment. Every used secret and configmap should then be loaded into
-// an assets.SecretStore.
-func (d *Deployment) AssetReferences() []AssetReference {
-	return AssetReferences(d)
-}
-
 // AssetReferences returns all secret or configmap selectors used throughout v.
 func AssetReferences(v interface{}) []AssetReference {
 	var refs []AssetReference
