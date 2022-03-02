@@ -3,6 +3,7 @@ package remotewriteexporter
 import (
 	"context"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
@@ -13,20 +14,15 @@ const (
 	TypeStr = "remote_write"
 )
 
-type label struct {
-	Name  string `mapstructure:"name"`
-	Value string `mapstructure:"name"`
-}
-
 var _ config.Exporter = (*Config)(nil)
 
 // Config holds the configuration for the Prometheus remote write processor.
 type Config struct {
 	config.ExporterSettings `mapstructure:",squash"`
 
-	ConstLabels  []label `mapstructure:"const_labels"`
-	Namespace    string  `mapstructure:"namespace"`
-	PromInstance string  `mapstructure:"metrics_instance"`
+	ConstLabels  prometheus.Labels `mapstructure:"const_labels"`
+	Namespace    string            `mapstructure:"namespace"`
+	PromInstance string            `mapstructure:"metrics_instance"`
 }
 
 // NewFactory returns a new factory for the Prometheus remote write processor.

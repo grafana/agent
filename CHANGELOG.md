@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [BUGFIX] `const_labels` in `traces_config` is now correctly parsed in the remote writer exporter (@fredr)
+
 - [ENHANCEMENT] opentelemetry trace exporters can now be configured to support Oauth utilizing
   the opentelemetry-collector-contrib oauth2clientauthextension. (@canuteson)
 

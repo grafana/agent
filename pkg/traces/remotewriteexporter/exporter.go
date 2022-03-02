@@ -51,11 +51,9 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 	logger := log.With(util.Logger, "component", "traces remote write exporter")
 
 	ls := make(labels.Labels, 0, len(cfg.ConstLabels))
-	for _, constLabel := range cfg.ConstLabels {
-		ls = append(ls, labels.Label{
-			Name:  constLabel.Name,
-			Value: constLabel.Value,
-		})
+
+	for name, value := range cfg.ConstLabels {
+		ls = append(ls, labels.Label{Name: name, Value: value})
 	}
 
 	return &remoteWriteExporter{
