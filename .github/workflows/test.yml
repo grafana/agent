@@ -8,6 +8,15 @@ jobs:
         platform: [macos-latest, windows-2019]
     runs-on: ${{ matrix.platform }}
     steps:
+    - name: Increase pagefile
+      uses: al-cheb/configure-pagefile-action@v1.2
+      # Tests on Windows can use a lot of memory, and we need to increase the
+      # pagefile to compensate.
+      with:
+          minimum-size: 16GB
+          maximum-size: 16GB
+          disk-root: "C:"
+      if: ${{ matrix.platform == 'windows-2019' }}
     - name: Set up Go 1.17
       uses: actions/setup-go@v1
       with:
