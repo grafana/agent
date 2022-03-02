@@ -4,6 +4,7 @@ package snmp_exporter
 import (
 	_ "embed"
 	"fmt"
+
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 
 	"github.com/go-kit/log"
@@ -25,7 +26,7 @@ var DefaultConfig = Config{
 type Config struct {
 	WalkParams     map[string]snmp_config.WalkParams `yaml:"walk_params,omitempty"`
 	SnmpConfigFile string                            `yaml:"config_file,omitempty"`
-	SnmptTargets   []SnmpTarget                      `yaml:"snmp_targets"`
+	SnmpTargets    []SnmpTarget                      `yaml:"snmp_targets"`
 	Common         common.MetricsConfig              `yaml:",inline"`
 
 	globals integrations_v2.Globals
