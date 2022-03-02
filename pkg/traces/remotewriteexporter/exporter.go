@@ -22,14 +22,13 @@ import (
 )
 
 const (
-	nameLabelKey  = "__name__"
-	sumSuffix     = "sum"
-	countSuffix   = "count"
-	bucketSuffix  = "bucket"
-	leStr         = "le"
-	infBucket     = "+Inf"
-	counterSuffix = "total"
-	noSuffix      = ""
+	nameLabelKey = "__name__"
+	sumSuffix    = "sum"
+	countSuffix  = "count"
+	bucketSuffix = "bucket"
+	leStr        = "le"
+	infBucket    = "+Inf"
+	noSuffix     = ""
 )
 
 type dataPoint interface {
@@ -163,25 +162,17 @@ func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender,
 }
 
 func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.Metric) error {
-	switch m.DataType() {
-	case pdata.MetricDataTypeSum:
-		dataPoints := m.Sum().DataPoints()
-		if err := e.handleScalarIntDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
-			return err
-		}
-	case pdata.MetricDataTypeGauge:
-		dataPoints := m.Gauge().DataPoints()
-		if err := e.handleScalarIntDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
-			return err
-		}
+	dataPoints := m.Gauge().DataPoints()
+	if err := e.handleScalarIntDataPoints(app, m.Name(), dataPoints); err != nil {
+		return err
 	}
 	return nil
 }
 
-func (e *remoteWriteExporter) handleScalarIntDataPoints(app storage.Appender, name, suffix string, dataPoints pdata.NumberDataPointSlice) error {
+func (e *remoteWriteExporter) handleScalarIntDataPoints(app storage.Appender, name string, dataPoints pdata.NumberDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
-		if err := e.appendDataPoint(app, name, suffix, dataPoint, float64(dataPoint.IntVal())); err != nil {
+		if err := e.appendDataPoint(app, name, noSuffix, dataPoint, float64(dataPoint.IntVal())); err != nil {
 			return err
 		}
 	}

@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [BUGFIX] spanmetric `traces_spanmetrics_calls_total_total` renamed to `traces_spanmetrics_calls_total`
+
 - [ENHANCEMENT] opentelemetry trace exporters can now be configured to support Oauth utilizing
   the opentelemetry-collector-contrib oauth2clientauthextension. (@canuteson)
 
