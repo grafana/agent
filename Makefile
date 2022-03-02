@@ -5,9 +5,10 @@ SHELL = /usr/bin/env bash
 # Variables #
 #############
 
-# Docker image info
+# Docker image info.
 IMAGE_PREFIX ?= grafana
 IMAGE_BRANCH_TAG ?= main
+
 ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 # If RELEASE_TAG has a valid value it will be the same as IMAGE_TAG
@@ -15,7 +16,13 @@ IMAGE_TAG ?= $(shell ./tools/image-tag)
 RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
+
+# If $RELEASE_TAG is from a stable release we want to update :latest instead of
+# a branch.
+ifeq (,$(findstring -rc.,$(RELEASE_TAG)))
 IMAGE_BRANCH_TAG = latest
+endif
+
 endif
 DRONE ?= false
 

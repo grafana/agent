@@ -7,4 +7,5 @@ parts:
   [grafana.com/docs/agent](https://grafana.com/docs/agent/latest/) and we
   recommend interacting with it there instead of viewing the markdown on
   Github.
+* `developer/`: Documentation for contributors and maintainers.
 * `rfcs/`: RFCs for proposals relating to Grafana Agent.
