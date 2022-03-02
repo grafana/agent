@@ -5,9 +5,7 @@ on:
   push:
     tags:
       - 'v*'
-    tags-ignore:
-      # Ignore release candidates
-      - 'v*-rc.*'
+      - '!v*-rc.*' # Ignore release candidates
 jobs:
   homebrew-core:
     name: homebrew-core
