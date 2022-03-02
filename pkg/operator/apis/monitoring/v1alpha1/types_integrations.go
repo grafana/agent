@@ -92,7 +92,7 @@ type IntegrationSpec struct {
 	// will be mounted into the Grafana Agent pod running this integration.
 	//
 	// ConfigMaps will be mounted at
-	// /etc/grafana-agent/integration-secrets/<secret_namespace>/<secret_name>.
+	// /etc/grafana-agent/integration-configmaps/<configmap_namespace>/<configmap_name>.
 	ConfigMaps []string `json:"configMaps,omitempty"`
 }
 

@@ -55,7 +55,7 @@ spec:
               configMaps:
                 description: "An extra list of ConfigMaps in the same namespace as
                   the Integration which will be mounted into the Grafana Agent pod
-                  running this integration. \n ConfigMaps will be mounted at /etc/grafana-agent/integration-secrets/<secret_namespace>/<secret_name>."
+                  running this integration. \n ConfigMaps will be mounted at /etc/grafana-agent/integration-configmaps/<configmap_namespace>/<configmap_name>."
                 items:
                   type: string
                 type: array
