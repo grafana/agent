@@ -5,9 +5,12 @@ on:
   push:
     tags:
       - 'v*'
+    tags-ignore:
+      # Ignore release candidates
+      - 'v*-rc.*'
 jobs:
   homebrew-core:
-    name: homebrew-core 
+    name: homebrew-core
     runs-on: macos-latest
     steps:
     - name: Update Homebrew formula
@@ -24,7 +27,7 @@ jobs:
         # Optional, if don't want to check for already open PRs
         force: false # true
   homebrew-grafana:
-    name: homebrew-grafana 
+    name: homebrew-grafana
     runs-on: macos-latest
     steps:
     - name: Update Homebrew formula
@@ -33,7 +36,7 @@ jobs:
         # Required, custom GitHub access token with the 'public_repo' and 'workflow' scopes
         token: ${{secrets.HOMEBREW_FORMULA_GH_TOKEN}}
         # Optional, defaults to homebrew/core
-        tap: grafana/grafana 
+        tap: grafana/grafana
         # Formula name, required
         formula: grafana-agent
         # Optional, will be determined automatically
