@@ -5,7 +5,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        platform: [macos-latest, windows-2019]
+        platform: [macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Increase pagefile
@@ -16,7 +16,7 @@ jobs:
           minimum-size: 16GB
           maximum-size: 16GB
           disk-root: "C:"
-      if: ${{ matrix.platform == 'windows-2019' }}
+      if: ${{ matrix.platform == 'windows-latest' }}
     - name: Set up Go 1.17
       uses: actions/setup-go@v1
       with:
