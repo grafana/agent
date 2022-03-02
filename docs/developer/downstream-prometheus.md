@@ -1,138 +1,4 @@
-# Maintainer's Guide
-
-This document provides relevant instructions for maintainers of the Grafana
-Agent.
-
-## Branching Strategy
-
-The Grafana Agent's branching strategy is to have main always releasable. 
-This allows us to better control  the release cadence and ensure that the project has regular releases. 
-
-For any small change, those can be made with a direct PR.
-
-For any large change, we ask that you create an issue to discuss it on. Then we can create a `dev` branch
-for this larger change. This allows us to keep main releasable until we are ready to merge the dev branch to
-main.
-
-## Master Branch Rename
-
-The `master` branch was renamed to `main` on 17 Feb 2021. If you have already
-checked out the repository, you will need to update your local environment:
-
-```
-git branch -m master main
-git fetch origin
-git branch -u origin/main main
-```
-
-## Releasing
-
-### Prerequisites
-
-Each maintainer performing a release should perform the following steps once
-before releasing the Grafana Agent.
-
-#### Prerelease testing
-
-For testing a release, run the [K3d example](../../example/k3d/README.md) locally.
-Let it run for about 90 minutes, keeping an occasional eye on the Agent
-Operational dashboard (noting that metrics from the scraping service will take
-time to show up). After 90 minutes, if nothing has crashed and you see metrics
-for both the scraping service and the non-scraping service, the Agent is ready
-for release.
-
-#### Add Existing GPG Key to GitHub
-
-First, Navigate to your user's [SSH and GPG keys settings
-page](https://github.com/settings/keys). If the GPG key for the email address
-used to commit with Grafana Agent is not present, follow these
-instructions to add it:
-
-1. Run `gpg --armor --export <your email address>`
-2. Copy the output.
-3. In the settings page linked above, click "New GPG Key".
-4. Copy and paste the PGP public key block.
-
-#### Signing Commits and Tags by Default
-
-To avoid accidentally publishing a tag or commit without signing it, you can run
-the following to ensure all commits and tags are signed:
-
-```bash
-git config --global commit.gpgSign true
-git config --global tag.gpgSign true
-```
-
-##### macOS Signing Errors
-
-If you are on macOS and using an encrypted GPG key, the `gpg-agent` may be
-unable to prompt you for your private key passphrase. This will be denoted by an
-error when creating a commit or tag. To circumvent the error, add the following
-into your `~/.bash_profile` or `~/.zshrc`, depending on which shell you are
-using:
-
-```
-export GPG_TTY=$(tty)
-```
-
-## Performing the Release
-
-If you are performing a release for a release candidate, skip straight to step
-8.
-
-1. Create a new branch to update `CHANGELOG.md` and references to version
-   numbers across the entire repository (e.g. README.md in the project root).
-2. Modify `CHANGELOG.md` with the new version number and its release date.
-3. Add a new section in `CHANGELOG.md` for `Main (unreleased)`.
-4. Go through the entire repository and find references to the previous release
-   version, updating them to reference the new version.
-5. Run `make example-kubernetes` and `make example-dashboards` to update
-   manifests in case they are stale.
-6. *Without creating a tag*, create a commit based on your changes and open a PR
-   for updating the release notes.
-7. Merge the changelog PR.
-8. Create a new tag for the release.
-    1. After following step 2, the CI will be triggered to create release
-       artifacts and publish them to a draft release. The tag will be made
-       publicly available immediately.
-    2. Run the following to create the tag:
-
-       ```bash
-       RELEASE=v1.2.3 # UPDATE ME to reference new release
-       git checkout main # If not already on main
-       git pull
-       git tag -s $RELEASE -m "release $RELEASE"
-       git push origin $RELEASE
-       ```
-9. Watch GitHub Actions and wait for all the jobs to finish running.
-
-## Publishing the Release Draft
-
-After this final set of steps, you can publish your draft!
-
-1. Go to the [GitHub releases page](https://github.com/grafana/agent/releases)
-   and find the drafted release.
-2. Edit the drafted release, copying and pasting *notable changes* from the
-   CHANGELOG. Add a link to the CHANGELOG, noting that the full list of changes
-   can be found there. Refer to other releases for help with formatting this.
-3. Optionally, have other team members review the release draft if you wish
-   to feel more comfortable with it.
-4. Publish the release!
-
-The release isn't done yet! Keep reading for the final step.
-
-## Updating Release Branch
-
-If the release you are performing is a _stable release_ (i.e., not a release
-candidate), the `release` branch must be updated to the SHA of the latest stable
-release tag. This is used so that installation instructions can be generic and
-made to always install the latest released version. Otherwise, if the release is
-non-stable, the `release` branch should be left unmodified.
-
-Update the release branch by fast-forwarding it to the appropriate SHA (matching
-the latest tag) and pushing it back upstream.
-
-## `grafana/prometheus` Maintenance
+# `grafana/prometheus` Maintenance
 
 Grafana Labs includes the Agent as part of their internal monitoring, running it
 alongside Prometheus. This gives an opportunity to utilize the Agent to
@@ -173,7 +39,7 @@ We are purposefully carrying this extra burden because we intend to ultimately
 make Prometheus better and contribute all of our enhancements upstream. We want
 to strive to benefit the Prometheus ecosystem at large.
 
-### Creating a New Feature
+## Creating a New Feature
 
 Grafana Labs developers should try to get all features upstreamed *first*. If
 it's clear the feature is experimental or more unproven than the upstream team
@@ -191,7 +57,7 @@ following:
 3. After updating the release branch, open a PR to update `grafana/agent` to
    use the latest release branch SHA.
 
-### Updating an Existing Feature
+## Updating an Existing Feature
 
 If a feature branch that was already merged to a release branch needs to be
 updated for any reason:
@@ -203,7 +69,7 @@ updated for any reason:
 3. After updating the release branch, open a PR to update `grafana/agent` by
    vendoring the changes using the latest release branch SHA.
 
-### Handling New Upstream Release
+## Handling New Upstream Release
 
 When a new upstream `prometheus/prometheus` release is available, we must go
 through the following process:
@@ -219,17 +85,17 @@ through the following process:
 Once a new release branch has been created, the previous release branch in
 `grafana/prometheus` is considered stale and will no longer receive updates.
 
-### Updating the Agent's vendor
+## Updating the Agent's vendor
 
 The easiest way to do this is the following:
 
 1. Edit `go.mod` and change the replace directive to the release branch name.
 2. Update `README.md` in the Agent to change which version of Prometheus
    the Agent is vendoring.
-2. Run `go mod tidy && go mod vendor`.
+2. Run `go mod tidy -compat=1.17 && go mod vendor`.
 3. Commit and open a PR.
 
-### Gotchas
+## Gotchas
 
 If the `grafana/prometheus` feature is incompatible with the upstream
 `prometheus/prometheus` master branch, merge conflicts would prevent
@@ -248,7 +114,7 @@ a fork of their branch that is based off of master and use that master-compatibl
 branch for the upstream PR. Note that this means any changes made to the feature
 branch will now have to be mirrored to the master-compatible branch.
 
-### Open Questions
+## Open Questions
 
 If two feature branches depend on one another, a combined feature branch
 (like an "epic" branch) should be created where development of interrelated
