@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/build"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
-	"github.com/grafana/agent/pkg/operator/config"
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -64,7 +64,7 @@ func governingServiceName(agentName string) string {
 	return fmt.Sprintf("%s-operated", agentName)
 }
 
-func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Service {
+func generateMetricsStatefulSetService(cfg *Config, d gragent.Deployment) *v1.Service {
 	d = *d.DeepCopy()
 
 	if d.Agent.Spec.PortName == "" {
@@ -107,7 +107,7 @@ func generateMetricsStatefulSetService(cfg *Config, d config.Deployment) *v1.Ser
 func generateMetricsStatefulSet(
 	cfg *Config,
 	name string,
-	d config.Deployment,
+	d gragent.Deployment,
 	shard int32,
 ) (*apps_v1.StatefulSet, error) {
 
@@ -222,7 +222,7 @@ func generateMetricsStatefulSet(
 func generateMetricsStatefulSetSpec(
 	cfg *Config,
 	name string,
-	d config.Deployment,
+	d gragent.Deployment,
 	shard int32,
 ) (*apps_v1.StatefulSetSpec, error) {
 

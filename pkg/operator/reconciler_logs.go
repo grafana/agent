@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/operator/assets"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
@@ -18,19 +18,17 @@ import (
 func (r *reconciler) createLogsConfigurationSecret(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	d gragent.Deployment,
 ) error {
 
-	return r.createTelemetryConfigurationSecret(ctx, l, d, s, config.LogsType)
+	return r.createTelemetryConfigurationSecret(ctx, l, d, config.LogsType)
 }
 
 // createLogsDaemonSet creates a DaemonSet for logs.
 func (r *reconciler) createLogsDaemonSet(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	d gragent.Deployment,
 ) error {
 
 	name := fmt.Sprintf("%s-logs", d.Agent.Name)

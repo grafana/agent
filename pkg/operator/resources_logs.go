@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/build"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
-	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,10 +18,10 @@ import (
 func generateLogsDaemonSet(
 	cfg *Config,
 	name string,
-	d config.Deployment,
+	d gragent.Deployment,
 ) (*apps_v1.DaemonSet, error) {
 
-	d = *d.DeepCopy()
+	d = *(&d).DeepCopy()
 
 	if d.Agent.Spec.PortName == "" {
 		d.Agent.Spec.PortName = defaultPortName
@@ -83,7 +83,7 @@ func generateLogsDaemonSet(
 func generateLogsDaemonSetSpec(
 	cfg *Config,
 	name string,
-	d config.Deployment,
+	d gragent.Deployment,
 ) (*apps_v1.DaemonSetSpec, error) {
 
 	useVersion := d.Agent.Spec.Version

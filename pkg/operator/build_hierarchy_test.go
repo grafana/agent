@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/hierarchy"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/k8s"
@@ -43,7 +43,7 @@ func Test_buildHierarchy(t *testing.T) {
 	require.NoError(t, resources.AddFile(ctx, "./testdata/test-resource-hierarchy.yaml"))
 
 	// Get root resource
-	var root grafana.GrafanaAgent
+	var root gragent.GrafanaAgent
 	err := cli.Get(ctx, client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"}, &root)
 	require.NoError(t, err)
 
@@ -55,6 +55,7 @@ func Test_buildHierarchy(t *testing.T) {
 		expectedResources := []string{
 			"GrafanaAgent/grafana-agent-example",
 			"MetricsInstance/primary",
+			"Integration/node-exporter",
 			"LogsInstance/primary",
 			"PodMonitor/grafana-agents",
 			"PodLogs/grafana-agents",
@@ -90,7 +91,7 @@ func Test_buildHierarchy(t *testing.T) {
 	{
 		expectedWatchers := []hierarchy.Watcher{
 			{
-				Object: &grafana.MetricsInstance{},
+				Object: &gragent.MetricsInstance{},
 				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
 				Selector: &hierarchy.LabelsSelector{
 					NamespaceName: "default",
@@ -98,7 +99,15 @@ func Test_buildHierarchy(t *testing.T) {
 				},
 			},
 			{
-				Object: &grafana.LogsInstance{},
+				Object: &gragent.LogsInstance{},
+				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
+				Selector: &hierarchy.LabelsSelector{
+					NamespaceName: "default",
+					Labels:        labels.SelectorFromSet(labels.Set{"agent": "grafana-agent-example"}),
+				},
+			},
+			{
+				Object: &gragent.Integration{},
 				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
 				Selector: &hierarchy.LabelsSelector{
 					NamespaceName: "default",
@@ -132,7 +141,7 @@ func Test_buildHierarchy(t *testing.T) {
 				},
 			},
 			{
-				Object: &grafana.PodLogs{},
+				Object: &gragent.PodLogs{},
 				Owner:  client.ObjectKey{Namespace: "default", Name: "grafana-agent-example"},
 				Selector: &hierarchy.LabelsSelector{
 					NamespaceName:   "default",

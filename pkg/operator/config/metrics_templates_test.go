@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	jsonnet "github.com/google/go-jsonnet"
-	"github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/assets"
 	"github.com/grafana/agent/pkg/util"
 	prom_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -25,8 +25,8 @@ func TestExternalLabels(t *testing.T) {
 	}{
 		{
 			name: "defaults",
-			input: Deployment{
-				Agent: &v1alpha1.GrafanaAgent{
+			input: gragent.Deployment{
+				Agent: &gragent.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
 						Namespace: "operator",
 						Name:      "agent",
@@ -40,14 +40,14 @@ func TestExternalLabels(t *testing.T) {
 		},
 		{
 			name: "external_labels",
-			input: Deployment{
-				Agent: &v1alpha1.GrafanaAgent{
+			input: gragent.Deployment{
+				Agent: &gragent.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
 						Namespace: "operator",
 						Name:      "agent",
 					},
-					Spec: v1alpha1.GrafanaAgentSpec{
-						Metrics: v1alpha1.MetricsSubsystemSpec{
+					Spec: gragent.GrafanaAgentSpec{
+						Metrics: gragent.MetricsSubsystemSpec{
 							ExternalLabels: map[string]string{"foo": "bar"},
 						},
 					},
@@ -61,14 +61,14 @@ func TestExternalLabels(t *testing.T) {
 		},
 		{
 			name: "custom labels",
-			input: Deployment{
-				Agent: &v1alpha1.GrafanaAgent{
+			input: gragent.Deployment{
+				Agent: &gragent.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
 						Namespace: "operator",
 						Name:      "agent",
 					},
-					Spec: v1alpha1.GrafanaAgentSpec{
-						Metrics: v1alpha1.MetricsSubsystemSpec{
+					Spec: gragent.GrafanaAgentSpec{
+						Metrics: gragent.MetricsSubsystemSpec{
 							MetricsExternalLabelName: strPointer("deployment"),
 							ReplicaExternalLabelName: strPointer("replica"),
 							ExternalLabels:           map[string]string{"foo": "bar"},
@@ -461,7 +461,7 @@ func TestRemoteWrite(t *testing.T) {
 			name: "bare",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
 				},
 			},
@@ -473,7 +473,7 @@ func TestRemoteWrite(t *testing.T) {
 			name: "base configs",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					Name:          "cortex",
 					URL:           "http://cortex/api/prom/push",
 					RemoteTimeout: "5m",
@@ -492,7 +492,7 @@ func TestRemoteWrite(t *testing.T) {
 			name: "write_relabel_configs",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
 					WriteRelabelConfigs: []prom_v1.RelabelConfig{{
 						SourceLabels: []prom_v1.LabelName{"__name__"},
@@ -511,7 +511,7 @@ func TestRemoteWrite(t *testing.T) {
 			name: "tls_config",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
 					TLSConfig: &prom_v1.TLSConfig{
 						CAFile:   "ca",
@@ -530,7 +530,7 @@ func TestRemoteWrite(t *testing.T) {
 			name: "basic_auth",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
 					BasicAuth: &prom_v1.BasicAuth{
 						Username: v1.SecretKeySelector{
@@ -555,9 +555,9 @@ func TestRemoteWrite(t *testing.T) {
 			name: "sigv4",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
-					SigV4: &v1alpha1.SigV4Config{
+					SigV4: &gragent.SigV4Config{
 						Region: "region",
 						AccessKey: &v1.SecretKeySelector{
 							LocalObjectReference: v1.LocalObjectReference{Name: "obj"},
@@ -586,9 +586,9 @@ func TestRemoteWrite(t *testing.T) {
 			name: "queue_config",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
-					QueueConfig: &v1alpha1.QueueConfig{
+					QueueConfig: &gragent.QueueConfig{
 						Capacity:          1000,
 						MinShards:         1,
 						MaxShards:         100,
@@ -615,9 +615,9 @@ func TestRemoteWrite(t *testing.T) {
 			name: "metadata_config",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
-					MetadataConfig: &v1alpha1.MetadataConfig{
+					MetadataConfig: &gragent.MetadataConfig{
 						Send:         true,
 						SendInterval: "5m",
 					},
@@ -634,7 +634,7 @@ func TestRemoteWrite(t *testing.T) {
 			name: "proxy_url",
 			input: map[string]interface{}{
 				"namespace": "operator",
-				"rw": v1alpha1.RemoteWriteSpec{
+				"rw": gragent.RemoteWriteSpec{
 					URL:      "http://cortex/api/prom/push",
 					ProxyURL: "http://proxy",
 				},

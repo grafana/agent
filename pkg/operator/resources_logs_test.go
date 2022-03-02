@@ -3,8 +3,7 @@ package operator
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/config"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -16,8 +15,8 @@ func Test_generateLogsDaemonSetSpec(t *testing.T) {
 	)
 
 	t.Run("image should have version", func(t *testing.T) {
-		deploy := config.Deployment{
-			Agent: &v1alpha1.GrafanaAgent{
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
 				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
 			},
 		}
@@ -28,10 +27,10 @@ func Test_generateLogsDaemonSetSpec(t *testing.T) {
 	})
 
 	t.Run("allow custom version", func(t *testing.T) {
-		deploy := config.Deployment{
-			Agent: &v1alpha1.GrafanaAgent{
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
 				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
-				Spec: v1alpha1.GrafanaAgentSpec{
+				Spec: gragent.GrafanaAgentSpec{
 					Version: "vX.Y.Z",
 				},
 			},
