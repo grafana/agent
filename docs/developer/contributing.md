@@ -90,7 +90,10 @@ that may have appeared during development.
 
 PRs should not introduce regressions or introduce any critical bugs. If your PR
 isn't covered by existing tests, some tests should be added to validate the new
-code (note that 100% code coverage is _not_ a requirement).
+code (note that 100% code coverage is _not_ a requirement). Smaller PRs are
+more likely to be reviewed faster and easier to validate for correctness;
+consider splitting up your work across multiple PRs if making a significant
+contribution.
 
 If your PR is not getting reviewed or you need a specific person to review it,
 you can @-reply a reviewer asking for a review in the pull request or a
