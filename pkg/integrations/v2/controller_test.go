@@ -167,7 +167,7 @@ func Test_controller_SingletonCheck(t *testing.T) {
 	globals := Globals{}
 	_, err := newController(util.TestLogger(t), cfg, globals)
 	require.Error(t, err)
-	require.True(t, strings.Contains(err.Error(), "found multiple instances of singleton integration mock"))
+	require.True(t, strings.Contains(err.Error(), `integration "mock" may only be defined once`))
 }
 
 type syncController struct {

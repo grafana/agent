@@ -86,9 +86,12 @@ type UpgradedConfig interface {
 type Type int
 
 const (
+	// TypeInvalid is an invalid type.
+	TypeInvalid Type = iota
+
 	// TypeSingleton is an integration that can only be defined exactly once in
 	// the config, unmarshaled through "<integration name>"
-	TypeSingleton Type = iota
+	TypeSingleton
 
 	// TypeMultiplex is an integration that can only be defined through an array,
 	// unmarshaled through "<integration name>_configs"
@@ -202,6 +205,10 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("integrations: Configs field not found in type: %T", v)
 	}
 
+	// Map of discovered singleton integration names. A singleton integration may
+	// not be defined in Configs more than once.
+	uniqueSingletons := make(map[string]struct{})
+
 	for _, c := range configs {
 		fieldName := c.Name()
 
@@ -214,6 +221,14 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 		if !ok {
 			panic(fmt.Sprintf("config not registered: %T", data))
 		}
+
+		if _, exists := uniqueSingletons[fieldName]; exists {
+			return nil, fmt.Errorf("integration %q may not be defined more than once", fieldName)
+		}
+		uniqueSingletons[fieldName] = struct{}{}
+
+		// TODO(rfratto): make sure that TypeSingleton integrations are unique on
+		// marshaling out
 
 		// Generate the *util.RawYAML to marshal out with.
 		var (
@@ -399,25 +414,20 @@ func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 	for _, reg := range registered {
 		// Fields use a prefix that's unlikely to collide with anything else.
 		configTy := reflect.TypeOf(reg)
-		integrationType := integrationTypes[configTy]
 		fieldName := configFieldNames[configTy]
 
 		singletonType := reflect.PtrTo(reflect.TypeOf(util.RawYAML{}))
 
-		if integrationType == TypeSingleton || integrationType == TypeEither {
-			fields = append(fields, reflect.StructField{
-				Name: "XXX_Config_" + fieldName,
-				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, fieldName)),
-				Type: singletonType,
-			})
-		}
-		if integrationType == TypeMultiplex || integrationType == TypeEither {
-			fields = append(fields, reflect.StructField{
-				Name: "XXX_Configs_" + fieldName,
-				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, fieldName)),
-				Type: reflect.SliceOf(singletonType),
-			})
-		}
+		fields = append(fields, reflect.StructField{
+			Name: "XXX_Config_" + fieldName,
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, fieldName)),
+			Type: singletonType,
+		})
+		fields = append(fields, reflect.StructField{
+			Name: "XXX_Configs_" + fieldName,
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, fieldName)),
+			Type: reflect.SliceOf(singletonType),
+		})
 	}
 	return reflect.StructOf(fields)
 }
