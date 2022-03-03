@@ -160,10 +160,19 @@ func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender,
 }
 
 func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.Metric) error {
-	dataPoints := m.Gauge().DataPoints()
-	if err := e.handleScalarIntDataPoints(app, m.Name(), dataPoints); err != nil {
-		return err
+	switch m.DataType() {
+	case pdata.MetricDataTypeSum:
+		dataPoints := m.Sum().DataPoints()
+		if err := e.handleScalarIntDataPoints(app, m.Name(), dataPoints); err != nil {
+			return err
+		}
+	case pdata.MetricDataTypeGauge:
+		dataPoints := m.Gauge().DataPoints()
+		if err := e.handleScalarIntDataPoints(app, m.Name(), dataPoints); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
