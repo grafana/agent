@@ -135,7 +135,6 @@ local _config = config._config;
             expr: |||
               sum by (pod) (rate(kube_pod_container_status_restarts_total{namespace="agent-smoke-test"}[10m])) > 0
             |||,
-            'for': '2m',
             annotations: {
               summary: '{{ $labels.pod }} has a high rate of container restarts',
             },
