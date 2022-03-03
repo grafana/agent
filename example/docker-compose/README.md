@@ -1,74 +1,56 @@
 # Example
 
-This directory contains an example deployment of the Grafana Agent with
-the following components:
+This directory contains a Docker Compose 3 environment that can be used to test
+Grafana Agent.
 
-1. Cortex to store metrics
-2. Grafana Agent to collect metrics
-3. Grafana to visualize metrics
-4. Avalanche to load test the Agent.
+By default, the following services are exposed:
 
-This example is used for seeing how a single instance of the Agent performs
-under moderate load; the Docker Compose configuration as present in this
-directory will generate roughly 90,000 metrics.
+1. Cortex for storing metrics (localhost:9009)
+2. Grafana for visualizing telemetry (localhost:3000)
+3. Loki for storing logs (localhost:3100)
+4. Tempo for storing traces (localhost:3200)
+5. Avalanche for a sample /metrics endpoint to scrape (localhost:9001).
 
-To get started, run the following from this directory:
+Run the following to bring up the environment:
 
 ```
 docker-compose up -d
 ```
 
-This will create Cortex storage in `/tmp/cortex` and the agent WAL in
-`/tmp/agent`; you may want to delete those directories after you are done
-testing.
+By default, the Docker Compose environment doesn't include a Grafana Agent
+container. This lets you test the agent externally, especially useful when
+validating code changes. You can enable the included Grafana Agent by passing
+`agent` to the profiles list: `docker compose --profile=agent up -d`. When
+running, the Agent exposes its HTTP endpoint at localhost:12345.
 
-Once the containers are running, a Grafana instance will be exposed at
-`http://localhost:3000` with Cortex as the only datasource. You should shortly
-see metrics in Cortex that are sent from the agent. Agent operational dashboards
-are included in the deployment.
+The Docker Compose environment heavily relies on profiles to enable optional
+features. You can pass multiple profiles by separating them by comma:
+`docker compose --profile=agent,integrations up -d`.
 
-The Agent is exposed on the host at `http://localhost:12345`.
+## Running Integrations
 
-## Hacking on the Example
+The Docker Compose environment includes example services to point integrations
+at (e.g., mysql, redis, consul, etc.). You can run all integrations using the
+`integrations` profile, or run individual services with a profile name matching
+the integration (i.e., enabling the `dnsmasq_exporter` profile to specifically
+enable the dnsmasq service).
 
-The reduced memory requirements is a critical feature of the Agent, and
-the example provides a good launching point to end-to-end test and validate
-the usage.
+Enabling specific integration profiles is useful when you only want to test a
+single integration, as the `integrations` profile can be resource intensive.
 
-To build the image locally, run `make agent-image` at the root of this
-repository.
+## Visualizing
 
-To get a memory profile, you can use `pprof` against the Agent:
+Grafana is exposed at `http://localhost:3000`, and includes some useful
+dashboards:
 
-```
-go tool pprof -http=:6060 http://localhost:12345/debug/pprof/heap?debug=1
-```
+* The `Agent` dashboard gives a very high-level overview of running agents.
 
-Useful one-off queries to run once everything is up:
+* The `Agent Prometheus Remote Write` dashboard visualizes the current state of
+  writing metrics to Cortex.
 
-1. `agent_wal_storage_active_series`: How many series are active in the WAL
-2. `cortex_ingester_memory_series`: How many series are active in Cortex.
-   Should be equal to the previous metric.
-3. `go_memstats_heap_inuse_bytes{container="agent"} / 1e6`: Current memory
-   usage of agent in megabytes.
-4. `max by (container,instance,job)
-   (avg_over_time(go_memstats_heap_inuse_bytes[10m])) / 1e6`: Current memory
-   usage of the agent and Cortex averaged out from the last 10 minutes.
+* The `Agent Tracing Pipeline` dashbaord visualizes the current state of the
+  tracing pipeline (if spans are being processed).
 
-## Scraping Service
-
-A [Scraping Service](https://grafana.com/docs/agent/latest/scraping-service/) cluster example is also
-present in this directory. To start it, run:
-
-```
-docker-compose -f docker-compose.scraping-service.yaml up -d
-```
-
-The Scraping Service cluster will start with an empty KV store for instance
-configurations. A set of instance configuration files is provided in
-[`agent/instance-configs`](./agent/instance-configs) that will work with the
-Docker Compose example.
-
-The `agentctl` tool provided by this repository can automatically deploy
-those configs for you; run `agentctl config-sync -a http://localhost:12345 ./agent/instance-configs`
-from this directory to do so.
+* The `Agent Operational` dashboard shows resource consumption of Grafana
+  Agent. Not all panels will have data here, as they rely on metrics from other
+  sources (i.e., cAdvisor).

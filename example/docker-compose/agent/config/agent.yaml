@@ -1,102 +1,156 @@
+# This file serves as an example agent configuration to interact with the
+# docker compose environment.
+#
+# You should pass the following command line flags when running the agent
+# locally and using this file:
+#
+#   -enable-features=integrations-next -config.expand-env -config.enable-read-api
+#
+# -enable-features=integrations-next is required as the file is configured for
+# the integrations revamp.
+#
+# -config.expand-env is required to expand environment variables. Environment
+# variables are used when running the agent inside of docker-compose to connect
+# to the other services. When running the agent externally, the expressions will
+# default to the appropriate values of the exposed ports.
+#
+# -config.enable-read-api is optional, but allows you to invoke the /-/config
+# endpoint to examine the generated config.
+
 server:
   log_level: debug
   http_listen_port: 12345
 
 metrics:
   global:
-    scrape_interval: 1m
+    scrape_interval: 60s
+    remote_write:
+    - url: http://${REMOTE_WRITE_HOST:-localhost:9009}/api/prom/push
   configs:
-    - name: test
-      host_filter: false
-      scrape_configs:
-        - job_name: crow
-          static_configs:
-            - targets: ['crow:8080']
-              labels:
-                cluster: 'docker_compose'
-                container: 'crow'
-                pod: 'crow'
-        - job_name: crow_validate
-          metrics_path: /validate
-          static_configs:
-            - targets: ['crow:8080']
-
-        - job_name: local_scrape
-          static_configs:
-            - targets: ['127.0.0.1:12345', '127.0.0.1:8889']
-              labels:
-                cluster: 'docker_compose'
-                container: 'agent'
-                pod: 'grafana-agent-local'
-        - job_name: cortex_scrape
-          static_configs:
-            - targets: ['cortex:9009']
-              labels:
-                cluster: 'docker_compose'
-                container: 'cortex'
-
-        - job_name: avalanche-1
-          static_configs:
-            - targets: ['avalanche-1:9001']
-              labels:
-                cluster: 'docker_compose'
-                container: 'avalanche-1'
-        - job_name: avalanche-2
-          static_configs:
-            - targets: ['avalanche-2:9001']
-              labels:
-                cluster: 'docker_compose'
-                container: 'avalanche-2'
-        - job_name: avalanche-3
-          static_configs:
-            - targets: ['avalanche-3:9001']
-              labels:
-                cluster: 'docker_compose'
-                container: 'avalanche-3'
-      remote_write:
-        - url: http://cortex:9009/api/prom/push
+  - name: default
+    scrape_configs:
+    - job_name: avalanche
+      static_configs:
+      - targets: ['${AVALANCHE_HOST:-localhost:9001}']
 
 logs:
   configs:
   - name: default
+    clients:
+      - url: http://${LOKI_HOST:-localhost:3100}/loki/api/v1/push
     positions:
       filename: /tmp/positions.yaml
-    clients:
-      - url: http://loki:3100/loki/api/v1/push
     scrape_configs:
-    - job_name: system
-      static_configs:
-        - targets:
-          - localhost
-          labels:
-            job: varlogs
-            __path__: /var/log/*log
+    ## Uncomment to read logs from /var/log
+    #- job_name: system
+    #  static_configs:
+    #  - targets: [localhost]
+    #    labels:
+    #      job: varlogs
+    #      __path__: /var/log/*log
 
 traces:
   configs:
   - name: default
+    remote_write:
+      - endpoint: ${TEMPO_HOST:-localhost:55680}
+        insecure: true
     receivers:
       jaeger:
         protocols:
           thrift_http:
-    attributes:
-      actions:
-      - action: upsert
-        key: env
-        value: prod
-    remote_write:
-      - endpoint: tempo:55680
-        insecure: true
-    batch:
-      timeout: 5s
-      send_batch_size: 100
-    automatic_logging:
-      backend: logs_instance
-      logs_instance_name: default
-      spans: true
-      processes: true
-      roots: true
-    spanmetrics:
-      handler_endpoint: 0.0.0.0:8889
-    service_graphs:
-      enabled: true
+
+#
+# Integrations
+#
+# Uncomment individual integrations below to enable them. Some integrations are
+# enabled by default.
+#
+
+integrations:
+  metrics:
+    autoscrape:
+      enable: true
+      metrics_instance: default
+
+  # agent
+  agent:
+    # The Agent dashboards are written to assume Kubernetes, so we inject some
+    # fake Kubernetes labels here.
+    extra_labels:
+      cluster: docker-compose
+      namespace: docker-compose
+      container: grafana-agent
+      pod: grafana-agent-${HOSTNAME:-example}
+
+  ## node_exporter
+  # node_exporter: {}
+
+  ## process_exporter
+  # process_exporter:
+  #   process_names:
+  #     - name: "{{.Comm}}"
+  #       cmdline:
+  #       - '.+'
+
+  ## mysqld_exporter (requires docker-compose mysqld_exporter profile)
+  # mysqld_exporter:
+  #   data_source_name: root@(${MYSQL_HOST:-localhost:3306})/
+
+  ## postgres_exporter (requires docker-compose postgres_exporter profile)
+  # postgres_exporter:
+  #   data_source_names:
+  #     - postgresql://postgres:password@localhost:5432/postgres?sslmode=disable
+
+  ## redis_exporter (requires docker-compose redis_exporter profile)
+  # redis_exporter:
+  #   redis_addr: ${REDIS_HOST:-localhost:6379}
+
+  ## dnsmasq_exporter (requires docker-compose dnsmasq_exporter profile)
+  # dnsmasq_exporter:
+  #   dnsmasq_address: ${DNSMASQ_HOST:-localhost:30053}
+  #   leases_path: /tmp/dnsmasq-leases/dnsmasq.leases
+
+  ## memcached_exporter (requires docker-compose memcached_exporter profile)
+  # memcached_exporter:
+  #   memcached_address: ${MEMCACHED_HOST:-localhost:11211}
+  #   timeout: 10s
+
+  ## statsd_exporter
+  # statsd_exporter: {}
+
+  ## consul_exporter (requires docker-compose consul_exporter profile)
+  # consul_exporter:
+  #   server: http://${CONSUL_HOST:-localhost:8500}
+
+  ## elasticsearch_exporter (requires docker-compose elasticsearch_exporter profile)
+  # elasticsearch_exporter:
+  #   address: http://${ELASTICSEARCH_HOST:-localhost:9200}
+
+  ## kafka_exporter (requires docker-compose kafka_exporter profile)
+  # kafka_exporter:
+  #   kafka_uris: [${KAFKA_HOST:-localhost:9093}]
+
+  ## github_exporter (requires docker-compose github_exporter profile)
+  # github_exporter:
+  #   repositories:
+  #     - grafana/agent
+
+  ## mongodb_exporter (requires docker-compose mongodb_exporter profile)
+  # mongodb_exporter:
+  #   mongodb_uri: mongodb://${MONGODB_HOST:-mongodb:27017}
+  #   relabel_configs:
+  #   - source_labels: [__address__]
+  #     target_label: service_name
+  #     replacement: 'mongodb'
+  #   - source_labels: [__address__]
+  #     target_label: mongodb_cluster
+  #     replacement: 'mongodb-cluster'
+
+  ## cadvisor
+  # cadvisor:
+  #   disabled_metrics:
+  #   - disk
+  #   enabled_metrics:
+  #   - percpu
+
