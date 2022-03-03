@@ -101,12 +101,12 @@ local _config = config._config;
           {
             alert: 'GrafanaAgentCPUHigh',
             expr: |||
-                (sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}[5m]))
-                /
-                (sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}) / 1000)
-                > 0.0013441)
-                and
-                sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}) > 1000
+              (sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}[5m]))
+              /
+              (sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}) / 1000)
+              > 0.0013441)
+              and
+              sum by (pod) (agent_wal_storage_active_series{cluster=~".+", namespace=~"agent-smoke-test", container=~".+", pod="grafana-agent-smoke-test-cluster-2"}) > 1000
             |||,
             'for': '1h',
             annotations: {
@@ -128,6 +128,16 @@ local _config = config._config;
             'for': '1h',
             annotations: {
               summary: '{{ $labels.job }} has used more than 10KB per series for more than 5 minutes',
+            },
+          },
+          {
+            alert: 'GrafanaAgentContainerRestarts',
+            expr: |||
+              sum by (pod) (rate(kube_pod_container_status_restarts_total{namespace="agent-smoke-test"}[10m])) > 0
+            |||,
+            'for': '2m',
+            annotations: {
+              summary: '{{ $labels.pod }} has a high rate of container restarts',
             },
           },
         ],
@@ -168,12 +178,12 @@ local _config = config._config;
           {
             alert: 'CrowFailures',
             expr: |||
-                (
-                    rate(crow_test_sample_results_total{result="success"}[5m])
-                    /
-                    ignoring(result) sum without (result) (rate(crow_test_sample_results_total[5m]))
-                )
-                < 1
+              (
+                  rate(crow_test_sample_results_total{result="success"}[5m])
+                  /
+                  ignoring(result) sum without (result) (rate(crow_test_sample_results_total[5m]))
+              )
+              < 1
             |||,
             'for': '15m',
             annotations: {
