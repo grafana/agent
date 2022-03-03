@@ -109,6 +109,14 @@ receivers:
 maintaining backwards compatibility.
 Refer to the [deprecation announcement](#tempo-push_config-deprecation) for how to upgrade.
 
+### Traces: legacy OTLP gRPC port no longer default port
+
+OTLP gRPC receivers listen at port `4317` by default, instead of at port `55680`.
+This goes in line with OTLP legacy port deprecation.
+
+To upgrade, point the client instrumentation push endpoint to `:4317` if using
+the default OTLP gRPC endpoint.
+
 ## v0.19.0
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
