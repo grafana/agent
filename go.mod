@@ -200,7 +200,6 @@ require (
 	github.com/go-zookeeper/zk v1.0.2 // indirect
 	github.com/godbus/dbus v0.0.0-20190422162347-ade71ed3457e // indirect
 	github.com/godbus/dbus/v5 v5.0.4 // indirect
-	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/status v1.1.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect
@@ -438,7 +437,7 @@ replace (
 	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
 	github.com/hpcloud/tail => github.com/grafana/tail v0.0.0-20201004203643-7aa4e4a91f03
-	github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20220112164627-aae84190631a
+	github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20220303144827-a94170577f7b
 	gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 	k8s.io/api => k8s.io/api v0.21.0
 	k8s.io/apimachinery => k8s.io/apimachinery v0.21.0

@@ -15,6 +15,8 @@
 
 - [ENHANCEMENT] Introduce EXPERIMENTAL support for dynamic configuration. (@mattdurham)
 
+- [ENHANCEMENT] Update Prometheus dependency to v2.31.1. (@rfratto)
+
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource Definition.
 
 - [FEATURE] Added consulagent_sd to target discovery. (@chuckyz)
