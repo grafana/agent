@@ -1,5 +1,7 @@
 # Main (unreleased)
 
+- [BUGFIX] spanmetric `traces_spanmetrics_calls_total_total` renamed to `traces_spanmetrics_calls_total`
+
 - [BUGFIX] `const_labels` in `traces_config` is now correctly parsed in the remote writer exporter (@fredr)
 
 - [ENHANCEMENT] opentelemetry trace exporters can now be configured to support Oauth utilizing
