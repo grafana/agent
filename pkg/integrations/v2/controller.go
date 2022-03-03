@@ -11,8 +11,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -101,21 +99,28 @@ func (c *controller) UpdateController(cfg controllerConfig, globals Globals) err
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	var returnError error
-	// Check to ensure no duplicate singleton exist
-	singletonCheck := make(map[string]struct{})
+	// Ensure that no singleton integration is defined twice
+	var (
+		duplicatedSingletons []string
+		singletonSet         = make(map[string]struct{})
+	)
 	for _, cfg := range cfg {
-		if t, ok := RegisteredType(cfg.Name()); ok && t == TypeSingleton {
-			// Add to the map but if we find it already exists then create an error
-			if _, ok := singletonCheck[cfg.Name()]; ok {
-				returnError = multierror.Append(returnError, fmt.Errorf("found multiple instances of singleton integration %s", cfg.Name()))
-			} else {
-				singletonCheck[cfg.Name()] = struct{}{}
-			}
+		t, _ := RegisteredType(cfg.Name())
+		if t != TypeSingleton {
+			continue
 		}
+
+		if _, exists := singletonSet[cfg.Name()]; exists {
+			duplicatedSingletons = append(duplicatedSingletons, cfg.Name())
+			continue
+		}
+		singletonSet[cfg.Name()] = struct{}{}
 	}
-	if returnError != nil {
-		return returnError
+	if len(duplicatedSingletons) == 1 {
+		return fmt.Errorf("integration %q may only be defined once", duplicatedSingletons[0])
+	} else if len(duplicatedSingletons) > 1 {
+		list := strings.Join(duplicatedSingletons, ", ")
+		return fmt.Errorf("the following integrations may only be defined once each: %s", list)
 	}
 
 	integrationIDMap := map[integrationID]struct{}{}
