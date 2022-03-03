@@ -28,7 +28,7 @@ function(name='grafana-agent', namespace='') {
 
   rbac: k.util.rbac(name, [
     policyRule.withApiGroups(['']) +
-    policyRule.withResources(['nodes', 'nodes/proxy', 'services', 'endpoints', 'pods']) +
+    policyRule.withResources(['nodes', 'nodes/proxy', 'services', 'endpoints', 'pods', 'events']) +
     policyRule.withVerbs(['get', 'list', 'watch']),
 
     policyRule.withNonResourceUrls('/metrics') +
