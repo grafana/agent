@@ -10,8 +10,6 @@ import (
 
 	"github.com/grafana/agent/pkg/magic/pages/config"
 
-	agentconfig "github.com/grafana/agent/pkg/config"
-
 	"github.com/grafana/agent/pkg/magic/pages/metrics"
 
 	"github.com/grafana/agent/pkg/magic/pages"
@@ -23,10 +21,10 @@ type Instance struct {
 	storage   *Storage
 	appender  *Appender
 	ninjakeys []ninjaKey
-	cfg       *agentconfig.Config
+	cfg       *config.Config
 }
 
-func NewInstance(cfg *agentconfig.Config) *Instance {
+func NewInstance(cfg *config.Config) *Instance {
 
 	storage := newStorage()
 	i := &Instance{
