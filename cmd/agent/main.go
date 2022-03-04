@@ -1,3 +1,6 @@
+//go:generate go get -u github.com/valyala/quicktemplate/qtc
+//go:generate qtc -dir=../../pkg/magic/pages
+
 package main
 
 import (

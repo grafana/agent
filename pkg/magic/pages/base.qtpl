@@ -1,0 +1,48 @@
+{% interface
+Page {
+        Title()
+        Body()
+}
+%}
+
+{% func PageTemplate(p Page, ninja string) %}
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en">
+<head>
+        <title>Grafana Agent Magic - {%= p.Title() %}</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Static Template</title>
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+        <link
+                rel="preload"
+                href="https://fonts.googleapis.com/css?family=Inter:300,400,500"
+                as="style"
+                type="text/css"
+        />
+        <link
+                href="https://fonts.googleapis.com/css?family=Material+Icons&display=swap"
+                rel="stylesheet"
+        />
+        <script type="module" src="/magic/assets/ninja.js?module"></script>
+        <style>
+                body {
+                        font-family: "Inter";
+                }
+        </style>
+</head>
+
+<body>
+<h2>Hit "Cmd+K" or "Ctrl+K" for quick actions</h2>
+<ninja-keys> </ninja-keys>
+{%= p.Body() %}
+<script>
+        {%s= ninja %}
+        const ninja = document.querySelector("ninja-keys");
+        ninja.data = hotkeys;
+</script>
+</body>
+</html>
+{% endfunc %}

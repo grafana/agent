@@ -240,6 +240,7 @@ type Instance struct {
 	readyScrapeManager *readyScrapeManager
 	remoteStore        *remote.Storage
 	storage            storage.Storage
+	additionalStorage  storage.Storage
 
 	// ready is set to true after the initialization process finishes
 	ready atomic.Bool
@@ -256,7 +257,7 @@ type Instance struct {
 
 // New creates a new Instance with a directory for storing the WAL. The instance
 // will not start until Run is called on the instance.
-func New(reg prometheus.Registerer, cfg Config, walDir string, logger log.Logger) (*Instance, error) {
+func New(reg prometheus.Registerer, cfg Config, walDir string, logger log.Logger, additionalStorage storage.Storage) (*Instance, error) {
 	logger = log.With(logger, "instance", cfg.Name)
 
 	instWALDir := filepath.Join(walDir, cfg.Name)
@@ -265,10 +266,10 @@ func New(reg prometheus.Registerer, cfg Config, walDir string, logger log.Logger
 		return wal.NewStorage(logger, reg, instWALDir)
 	}
 
-	return newInstance(cfg, reg, logger, newWal)
+	return newInstance(cfg, reg, logger, newWal, additionalStorage)
 }
 
-func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory) (*Instance, error) {
+func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWal walStorageFactory, additionalStorage storage.Storage) (*Instance, error) {
 	vc := NewMetricValueCollector(prometheus.DefaultGatherer, remoteWriteMetricName)
 
 	hostname, err := Hostname()
@@ -286,6 +287,7 @@ func newInstance(cfg Config, reg prometheus.Registerer, logger log.Logger, newWa
 		newWal: newWal,
 
 		readyScrapeManager: &readyScrapeManager{},
+		additionalStorage:  additionalStorage,
 	}
 
 	return i, nil
@@ -435,7 +437,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 		return fmt.Errorf("failed applying config to remote storage: %w", err)
 	}
 
-	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore)
+	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore, i.additionalStorage)
 
 	scrapeManager := newScrapeManager(log.With(i.logger, "component", "scrape manager"), i.storage)
 	err = scrapeManager.ApplyConfig(&config.Config{

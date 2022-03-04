@@ -10,6 +10,8 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/grafana/agent/pkg/magic"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -45,6 +47,8 @@ type Entrypoint struct {
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
+
+	magic *magic.Instance
 }
 
 // Reloader is any function that returns a new config.
@@ -59,7 +63,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		}
 		err error
 	)
-
+	ep.magic = magic.NewInstance(cfg)
 	if cfg.ReloadPort != 0 {
 		reloadURL := fmt.Sprintf("%s:%d", cfg.ReloadAddress, cfg.ReloadPort)
 		ep.reloadListener, err = net.Listen("tcp", reloadURL)
@@ -74,8 +78,7 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	}
 
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
-
-	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
+	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger, ep.magic.Storage())
 	if err != nil {
 		return nil, err
 	}
@@ -189,6 +192,8 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	ep.promMetrics.WireGRPC(grpc)
 
 	ep.integrations.WireAPI(mux)
+
+	ep.magic.ApplyRoutes(mux)
 
 	mux.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

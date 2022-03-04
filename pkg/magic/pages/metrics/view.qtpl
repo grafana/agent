@@ -1,0 +1,48 @@
+{% code
+type View struct {
+    TitleText string
+    Metrics []MetricItem
+}
+
+type MetricItem  interface {
+    Gathered() string
+    Timestamp() string
+    Name() string
+    Labels() string
+    Value() float64
+}
+
+%}
+
+
+{% func (p *View) Title()  %}
+{%s p.TitleText %}
+{% endfunc %}
+{% func (p *View) Body() %}
+<style media="screen">
+table, th, td {
+border: 1px solid black;
+border-collapse: collapse;
+}
+</style>
+<table>
+    <tr>
+        <th>Gathered</th>
+        <th>Timestamp</th>
+        <th>Name</th>
+        <th>Labels</th>
+        <th>Value</th>
+    </tr>
+{% for _, m := range p.Metrics %}
+    <tr>
+        <td>{%s m.Gathered() %}</td>
+        <td>{%s m.Timestamp() %}</td>
+        <td>{%s m.Name() %}</td>
+        <td>{%s m.Labels() %}</td>
+        <td>{%f m.Value() %}</td>
+
+    </tr>
+{% endfor %}
+</table>
+
+{% endfunc %}

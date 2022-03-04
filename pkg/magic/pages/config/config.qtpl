@@ -1,0 +1,17 @@
+{% code
+type Config struct {
+TitleText string
+Config string
+}
+%}
+
+{% func (p *Config) Title()  %}
+{%s p.TitleText %}
+{% endfunc %}
+{% func (p *Config) Body() %}
+<pre><code>
+{%s= p.Config %}
+</code></pre>
+
+
+{% endfunc %}

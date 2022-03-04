@@ -1,0 +1,12 @@
+{% code
+type Index struct {
+    TitleText string}
+%}
+
+{% func (p *Index) Title()  %}
+{%s p.TitleText %}
+{% endfunc %}
+{% func (p *Index) Body() %}
+
+{% endfunc %}
+

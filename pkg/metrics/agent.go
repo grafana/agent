@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/prometheus/storage"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
@@ -147,19 +149,22 @@ type Agent struct {
 	actor    chan func()
 
 	initialBootDone atomic.Bool
+
+	additionalStorage storage.Storage
 }
 
 // New creates and starts a new Agent.
-func New(reg prometheus.Registerer, cfg Config, logger log.Logger) (*Agent, error) {
-	return newAgent(reg, cfg, logger, defaultInstanceFactory)
+func New(reg prometheus.Registerer, cfg Config, logger log.Logger, additionalStorage storage.Storage) (*Agent, error) {
+	return newAgent(reg, cfg, logger, defaultInstanceFactory, additionalStorage)
 }
 
-func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact instanceFactory) (*Agent, error) {
+func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact instanceFactory, additionalStorage storage.Storage) (*Agent, error) {
 	a := &Agent{
-		logger:          log.With(logger, "agent", "prometheus"),
-		instanceFactory: fact,
-		reg:             reg,
-		actor:           make(chan func(), 1),
+		logger:            log.With(logger, "agent", "prometheus"),
+		instanceFactory:   fact,
+		reg:               reg,
+		actor:             make(chan func(), 1),
+		additionalStorage: additionalStorage,
 	}
 
 	a.bm = instance.NewBasicManager(instance.BasicManagerConfig{
@@ -199,7 +204,7 @@ func (a *Agent) newInstance(c instance.Config) (instance.ManagedInstance, error)
 		instanceLabel: c.Name,
 	}, a.reg)
 
-	return a.instanceFactory(reg, c, a.cfg.WALDir, a.logger)
+	return a.instanceFactory(reg, c, a.cfg.WALDir, a.logger, a.additionalStorage)
 }
 
 // Validate will validate the incoming Config and mutate it to apply defaults.
@@ -367,8 +372,8 @@ func (a *Agent) Stop() {
 	a.stopped = true
 }
 
-type instanceFactory = func(reg prometheus.Registerer, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error)
+type instanceFactory = func(reg prometheus.Registerer, cfg instance.Config, walDir string, logger log.Logger, additionalStorage storage.Storage) (instance.ManagedInstance, error)
 
-func defaultInstanceFactory(reg prometheus.Registerer, cfg instance.Config, walDir string, logger log.Logger) (instance.ManagedInstance, error) {
-	return instance.New(reg, cfg, walDir, logger)
+func defaultInstanceFactory(reg prometheus.Registerer, cfg instance.Config, walDir string, logger log.Logger, additionalStorage storage.Storage) (instance.ManagedInstance, error) {
+	return instance.New(reg, cfg, walDir, logger, additionalStorage)
 }
