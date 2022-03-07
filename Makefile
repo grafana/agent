@@ -335,8 +335,8 @@ dist/$(BINARY_PREFIX)agent-windows-installer: dist/$(BINARY_PREFIX)agent-windows
 	cp ./dist/$(BINARY_PREFIX)agent-windows-amd64.exe ./packaging/windows
 	cp LICENSE ./packaging/windows
 ifeq ($(BUILD_IN_CONTAINER),true)
-	docker build -t windows_installer -e BINARY_PREFIX=${BINARY_PREFIX} ./packaging/windows
-	docker run --rm -t -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} windows_installer
+	docker build -t windows_installer ./packaging/windows
+	docker run --rm -t -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} -e BINARY_PREFIX=${BINARY_PREFIX} windows_installer
 else
 	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/$(BINARY_PREFIX)agent-installer.exe" ./packaging/windows/install_script.nsis
 endif
