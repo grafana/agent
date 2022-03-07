@@ -5,8 +5,12 @@ SHELL = /usr/bin/env bash
 # Variables #
 #############
 
+GRAFANA ?= grafana
+# release/dist binary prefix, default to 'empty' for backward compatibility
+BINARY_PREFIX ?=
+
 # Docker image info.
-IMAGE_PREFIX ?= grafana
+IMAGE_PREFIX ?= $(GRAFANA)
 IMAGE_BRANCH_TAG ?= main
 
 ifeq ($(RELEASE_TAG),)
@@ -41,9 +45,9 @@ $(if $(filter $(1),linux/arm/v7),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOAR
 $(if $(filter $(1),linux/arm/v6),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
 $(if $(filter $(1),darwin/amd64),export CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
 $(if $(filter $(1),darwin/arm64),export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
-$(if $(filter $(1),windows),export CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
-$(if $(filter $(1),mipls),export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
-$(if $(filter $(1),freebsd),export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
+$(if $(filter $(1),windows/amd64),export CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
+$(if $(filter $(1),linux/mipsle),export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
+$(if $(filter $(1),freebsd/amd64),export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
 )))))))))
 endef
 
@@ -62,7 +66,8 @@ CROSS_BUILD ?= false
 # as an environment variable.
 BUILD_IN_CONTAINER ?= true
 BUILD_IMAGE_VERSION := 0.13.0
-BUILD_IMAGE := $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
+# Still use grafana as prefix in the process of building
+BUILD_IMAGE := grafana/agent-build-image:$(BUILD_IMAGE_VERSION)
 
 # Enables the binary to be built with optimizations (i.e., doesn't strip the image of
 # symbols, etc.)
@@ -278,8 +283,21 @@ example-dashboards:
 # Note that dist/agent(ctl)-linux-mipsle targets are not included in dist target
 # and are included as separate targets to make it easier for users to build them
 # manually.
+
+PLATFORM_ARCHS := linux/amd64 \
+	linux/arm64   \
+	linux/armv6   \
+	linux/armv7   \
+	linux/mipsle  \
+	darwin/amd64  \
+	darwin/arm64  \
+	freebsd/amd64 \
+	windows/amd64
+DIST_AGENT_BINARYS := $(foreach x, $(PLATFORM_ARCHS), dist/$(BINARY_PREFIX)agent-$(subst /,-,$(x)))
+DIST_AGENTCTL_BINARYS := $(foreach x, $(PLATFORM_ARCHS), dist/$(BINARY_PREFIX)agentctl-$(subst /,-,$(x)))
+
 dist: dist-agent dist-agentctl dist-packages
-	for i in dist/agent*; do zip -j -m $$i.zip $$i; done
+	for i in dist/$(BINARY_PREFIX)agent*; do zip -j -m $$i.zip $$i; done
 	pushd dist && sha256sum * > SHA256SUMS && popd
 .PHONY: dist
 
@@ -287,77 +305,77 @@ dist: dist-agent dist-agentctl dist-packages
 # BEGIN AGENT DIST #
 ####################
 
-dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
-dist/agent-linux-amd64: seego
+dist-agent: seego $(DIST_AGENT_BINARYS) dist/$(BINARY_PREFIX)agent-windows-installer
+
+dist/$(BINARY_PREFIX)agent-linux-amd64: seego
 	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist/agent-linux-arm64: seego
+dist/$(BINARY_PREFIX)agent-linux-arm64: seego
 	$(call SetBuildVarsConditional,linux/arm64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist/agent-linux-armv6: seego
+dist/$(BINARY_PREFIX)agent-linux-armv6: seego
 	$(call SetBuildVarsConditional,linux/arm/v6) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist/agent-linux-armv7: seego
+dist/$(BINARY_PREFIX)agent-linux-armv7: seego
 	$(call SetBuildVarsConditional,linux/arm/v7) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist/agent-linux-mipsle: seego
+dist/$(BINARY_PREFIX)agent-linux-mipsle: seego
 	$(call SetBuildVarsConditional,linux/mipsle) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist/agent-darwin-amd64:  seego
+dist/$(BINARY_PREFIX)agent-darwin-amd64:  seego
 	$(call SetBuildVarsConditional,darwin/amd64) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist/agent-darwin-arm64: seego
+dist/$(BINARY_PREFIX)agent-darwin-arm64: seego
 	$(call SetBuildVarsConditional,darwin/arm64) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
-dist/agent-windows-amd64.exe: seego
-	$(call SetBuildVarsConditional,windows) ;          $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/$(BINARY_PREFIX)agent-windows-amd64: seego
+	$(call SetBuildVarsConditional,windows/amd64) ;    $(seego) build $(CGO_FLAGS) -o $@.exe ./cmd/agent
 
-dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
-	cp ./dist/agent-windows-amd64.exe ./packaging/windows
+dist/$(BINARY_PREFIX)agent-windows-installer: dist/$(BINARY_PREFIX)agent-windows-amd64
+	cp ./dist/$(BINARY_PREFIX)agent-windows-amd64.exe ./packaging/windows
 	cp LICENSE ./packaging/windows
 ifeq ($(BUILD_IN_CONTAINER),true)
-	docker build -t windows_installer ./packaging/windows
+	docker build -t windows_installer -e BINARY_PREFIX=${BINARY_PREFIX} ./packaging/windows
 	docker run --rm -t -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} windows_installer
 else
-
-	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
+	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/$(BINARY_PREFIX)agent-installer.exe" ./packaging/windows/install_script.nsis
 endif
 
-dist/agent-freebsd-amd64: seego
-	$(call SetBuildVarsConditional,freebsd);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+dist/$(BINARY_PREFIX)agent-freebsd-amd64: seego
+	$(call SetBuildVarsConditional,freebsd/amd64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 #######################
 # BEGIN AGENTCTL DIST #
 #######################
 
-dist-agentctl: seego dist/agentctl-linux-amd64 dist/agentctl-linux-arm64 dist/agentctl-linux-armv6 dist/agentctl-linux-armv7 dist/agentctl-darwin-amd64 dist/agentctl-darwin-arm64 dist/agentctl-windows-amd64.exe dist/agentctl-freebsd-amd64
+dist-agentctl: seego $(DIST_AGENTCTL_BINARYS)
 
-dist/agentctl-linux-amd64: seego
+dist/$(BINARY_PREFIX)agentctl-linux-amd64: seego
 	$(call SetBuildVarsConditional,linux/amd64);    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-linux-arm64: seego
+dist/$(BINARY_PREFIX)agentctl-linux-arm64: seego
 	$(call SetBuildVarsConditional,linux/arm64);    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-linux-armv6: seego
+dist/$(BINARY_PREFIX)agentctl-linux-armv6: seego
 	$(call SetBuildVarsConditional,linux/arm/v6);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-linux-armv7: seego
+dist/$(BINARY_PREFIX)agentctl-linux-armv7: seego
 	$(call SetBuildVarsConditional,linux/arm/v7);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-linux-mipsle: seego
+dist/$(BINARY_PREFIX)agentctl-linux-mipsle: seego
 	$(call SetBuildVarsConditional,linux/mipsle);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-darwin-amd64: seego
+dist/$(BINARY_PREFIX)agentctl-darwin-amd64: seego
 	$(call SetBuildVarsConditional,darwin/amd64);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-darwin-arm64: seego
+dist/$(BINARY_PREFIX)agentctl-darwin-arm64: seego
 	$(call SetBuildVarsConditional,darwin/arm64);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-windows-amd64.exe: seego
-	$(call SetBuildVarsConditional,windows);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/$(BINARY_PREFIX)agentctl-windows-amd64: seego
+	$(call SetBuildVarsConditional,windows/amd64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
-dist/agentctl-freebsd-amd64: seego
-	$(call SetBuildVarsConditional,freebsd);        $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+dist/$(BINARY_PREFIX)agentctl-freebsd-amd64: seego
+	$(call SetBuildVarsConditional,freebsd/amd64);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 seego: tools/seego/Dockerfile
 ifeq ($(DRONE),false)
@@ -376,7 +394,7 @@ ifneq (,$(findstring WIP,$(IMAGE_TAG)))
 	@echo "Cannot push a WIP image, commit changes first"; \
 	false
 endif
-	docker push $(IMAGE_PREFIX)/agent-build-image:$(BUILD_IMAGE_VERSION)
+	docker push $(BUILD_IMAGE):$(BUILD_IMAGE_VERSION)
 
 packaging/debian-systemd/.uptodate: $(wildcard packaging/debian-systemd/*)
 	docker pull $(IMAGE_PREFIX)/debian-systemd || docker build -t $(IMAGE_PREFIX)/debian-systemd $(@D)
@@ -401,29 +419,29 @@ container_make = docker run --rm \
 	-e SRC_PATH=/src/agent \
 	-i $(BUILD_IMAGE)
 
-dist-packages-amd64: enforce-release-tag dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
+dist-packages-amd64: enforce-release-tag dist/$(BINARY_PREFIX)agent-linux-amd64 dist/$(BINARY_PREFIX)agentctl-linux-amd64 build-image/.uptodate
 	$(container_make) $@;
-dist-packages-arm64: enforce-release-tag dist/agent-linux-arm64 dist/agentctl-linux-arm64 build-image/.uptodate
+dist-packages-arm64: enforce-release-tag dist/$(BINARY_PREFIX)agent-linux-arm64 dist/$(BINARY_PREFIX)agentctl-linux-arm64 build-image/.uptodate
 	$(container_make) $@;
-dist-packages-armv6: enforce-release-tag dist/agent-linux-armv6 dist/agentctl-linux-armv6 build-image/.uptodate
+dist-packages-armv6: enforce-release-tag dist/$(BINARY_PREFIX)agent-linux-armv6 dist/$(BINARY_PREFIX)agentctl-linux-armv6 build-image/.uptodate
 	$(container_make) $@;
-dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-linux-armv7 build-image/.uptodate
+dist-packages-armv7: enforce-release-tag dist/$(BINARY_PREFIX)agent-linux-armv7 dist/$(BINARY_PREFIX)agentctl-linux-armv7 build-image/.uptodate
 	$(container_make) $@;
 
 else
-package_base = ./dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
+package_base = ./dist/$(GRAFANA)-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
 dist-packages-amd64: $(package_base).amd64.deb $(package_base).amd64.rpm
 dist-packages-arm64: $(package_base).arm64.deb $(package_base).arm64.rpm
 dist-packages-armv6: $(package_base).armv6.deb
 dist-packages-armv7: $(package_base).armv7.deb $(package_base).armv7.rpm
 
-ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
-ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
+ENVIRONMENT_FILE_rpm := /etc/sysconfig/$(GRAFANA)-agent
+ENVIRONMENT_FILE_deb := /etc/default/$(GRAFANA)-agent
 
 # generate_fpm(deb|rpm, package arch, agent arch, output file)
 define generate_fpm =
 	fpm -s dir -v $(PACKAGE_VERSION) -a $(2) \
-		-n grafana-agent --iteration $(PACKAGE_RELEASE) -f \
+		-n $(GRAFANA)-agent --iteration $(PACKAGE_RELEASE) -f \
 		--log error \
 		--license "Apache 2.0" \
 		--vendor "Grafana Labs" \
@@ -432,16 +450,16 @@ define generate_fpm =
 		--after-install packaging/$(1)/control/postinst \
 		--before-remove packaging/$(1)/control/prerm \
 		--package $(4) \
-			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
-			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
-			packaging/grafana-agent.yaml=/etc/grafana-agent.yaml \
+			dist/$(BINARY_PREFIX)agent-linux-$(3)=/usr/bin/$(GRAFANA)-agent \
+			dist/$(BINARY_PREFIX)agentctl-linux-$(3)=/usr/bin/$(GRAFANA)-agentctl \
+			packaging/$(GRAFANA)-agent.yaml=/etc/$(GRAFANA)-agent.yaml \
 			packaging/environment-file=$(ENVIRONMENT_FILE_$(1)) \
-			packaging/$(1)/grafana-agent.service=/usr/lib/systemd/system/grafana-agent.service
+			packaging/$(1)/$(GRAFANA)-agent.service=/usr/lib/systemd/system/$(GRAFANA)-agent.service
 endef
 
-PACKAGE_PREFIX := dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
-DEB_DEPS := $(wildcard packaging/deb/**/*) packaging/grafana-agent.yaml
-RPM_DEPS := $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
+PACKAGE_PREFIX := dist/$(GRAFANA)-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
+DEB_DEPS := $(wildcard packaging/deb/**/*) packaging/$(GRAFANA)-agent.yaml
+RPM_DEPS := $(wildcard packaging/rpm/**/*) packaging/$(GRAFANA)-agent.yaml
 
 # Build architectures for packaging based on the agent build:
 #
