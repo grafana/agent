@@ -1,3 +1,8 @@
++++
+title = "dynamic_config"
+weight = 500
++++
+
 # Dynamic Configuration - Experimental
 
 **This is experimental and subject to change at anytime, feedback is much appreciated. This is a feature that MAY NOT make it production.**
@@ -86,42 +91,42 @@ Agent template is the standard agent configuration file in its entirety. The def
 one file is supported. This is processed first then any subsequent configurations found REPLACE the values here, it is
 not additive.
 
-Reference {{< relref "./" >}})
+[Reference]({{< relref "./" >}})
 
 ### Server
 
 The default filter is `server-*.yml`, only ONE server file is supported.
 
-Reference {{< relref "./server-config.md" >}})
+[Reference]({{< relref "./server-config.md" >}})
 
 
 ### Metrics
 
 The default filter is `metrics-*.yml`, only ONE metrics file is supported.
 
-Reference {{< relref "./metrics-config.md" >}})
+[Reference]({{< relref "./metrics-config.md" >}})
 
 ### Metric Instances
 
 The default filter is `metrics_instances-*.yml`. Any metric instances are appended to the instances defined in Metrics above. Any number of metric instance files are supporter.
 
-Reference {{< relref "./metrics-config.md#metrics_instance_config" >}}) in the metrics instance
+[Reference]({{< relref "./metrics-config.md#metrics_instance_config" >}}) in the metrics instance
 
 
 ### Integrations
 
 The default filter is `integrations-*.yml`, these support more than one file, and multiple integrations can be defined in a file. Do not assume any order of loading for integrations. For any integration that is a singleton, loading multiple of those will result in an error. 
 
-Reference {{< relref "./integrations/" >}})
+[Reference]({{< relref "./integrations/" >}})
 
 ### Traces
 
 The default filter is `traces-*.yml`. This supports ONE file.
 
-Reference {{< relref "./traces-config.md" >}})
+[Reference]({{< relref "./traces-config/" >}})
 
 ### Logs
 
 The default filter is `logs-*.yml`. This supports ONE file.
 
-Reference {{< relref "./logs-config.md" >}})
+[Reference]({{< relref "./logs-config/" >}})
