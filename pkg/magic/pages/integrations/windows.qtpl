@@ -1,0 +1,34 @@
+{% import "github.com/grafana/agent/pkg/integrations/windows_exporter" %}
+
+{% code
+type WindowsIntegration struct {
+TitleText string
+Config *windows_exporter.Config
+}
+%}
+
+{% func (p *WindowsIntegration) Title()  %}
+{%s p.TitleText %}
+{% endfunc %}
+{% func (p *WindowsIntegration) Body() %}
+
+<form class="pure-form pure-form-aligned">
+    <fieldset>
+        <div class="pure-control-group">
+            <label for="enabled-collectors">Enabled Collectors</label>
+            <input type="text" id="enabled-collectors" placeholder="Leave blank for default set" />
+        </div>
+        <div class="pure-controls">
+            {% if p.Config != nil %}
+            <button type="submit" class="pure-button pure-button-primary" value="enable">Enable Windows Collector</button>
+            {% else %}
+            <button type="submit" class="pure-button pure-button-primary" value="enable">Update Windows Collector</button>
+            <button type="submit" class="pure-button pure-button-primary" value="disable">Enable Windows Collector</button>
+            {% endif %}
+
+        </div>
+    </fieldset>
+</form>
+
+
+{% endfunc %}

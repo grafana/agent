@@ -86,6 +86,10 @@ func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics
 	return c.configV2.ApplyDefaults(mcfg)
 }
 
+func (c *VersionedIntegrations) V2Configs() v2.Configs {
+	return c.configV2.Configs
+}
+
 // setVersion completes the deferred unmarshal and unmarshals the raw YAML into
 // the subsystem config for version v.
 func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {

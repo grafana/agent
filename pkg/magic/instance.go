@@ -6,9 +6,11 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/grafana/agent/pkg/config"
+
 	"gopkg.in/yaml.v2"
 
-	"github.com/grafana/agent/pkg/magic/pages/config"
+	configpage "github.com/grafana/agent/pkg/magic/pages/config"
 
 	"github.com/grafana/agent/pkg/magic/pages/metrics"
 
@@ -132,10 +134,19 @@ func (i *Instance) createNinjaArray(r *mux.Router) []ninjaKey {
 				bb, _ := yaml.Marshal(i.cfg)
 				v := string(bb)
 				v = strings.ReplaceAll(v, "\n", "<br>")
-				i.writeResponse(writer, &config.Config{
+				i.writeResponse(writer, &configpage.Config{
 					TitleText: "View Config",
 					Config:    v,
 				})
+			},
+		},
+		{
+			ID:       "windows-exporter",
+			Title:    "Enable / Disable Windows Exporter Integration",
+			Keywords: "enable disable windows integration",
+			URL:      "/magic/integrations/windows-exporter",
+			Handler: func(writer http.ResponseWriter, request *http.Request) {
+
 			},
 		},
 	}

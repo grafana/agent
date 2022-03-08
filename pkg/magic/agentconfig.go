@@ -7,6 +7,8 @@ import (
 	"sync"
 	"text/template"
 
+	"github.com/grafana/agent/pkg/config"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -21,6 +23,30 @@ func newConfigHandle(cfgText string, cfgPath string) *confighandler {
 		cfgText: cfgText,
 		cfgPath: cfgPath,
 	}
+}
+
+func (ac *confighandler) IntegrationExists(name string) bool {
+	ac.cfgMutex.Lock()
+	defer ac.cfgMutex.Unlock()
+	configNode := &yaml.Node{}
+	err := yaml.Unmarshal([]byte(ac.cfgText), configNode)
+	if err != nil {
+		return false
+	}
+	k, _ := findNode(name, configNode.Content)
+	return k != nil
+}
+
+func (ac *confighandler) GetIntegrationConfig(name string) bool {
+	ac.cfgMutex.Lock()
+	defer ac.cfgMutex.Unlock()
+	configNode := &yaml.Node{}
+	err := yaml.Unmarshal([]byte(ac.cfgText), configNode)
+	if err != nil {
+		return false
+	}
+	k, _ := findNode(name, configNode.Content)
+	return k != nil
 }
 
 func (ac *confighandler) writeFile(config string) error {
@@ -43,31 +69,35 @@ func (ac *confighandler) AddWindowsIntegration() error {
 }
 
 func (ac *confighandler) addWindowsIntegration() (string, error) {
-
 	winInt := `
 windows_exporter:
   autoscrape:
     enabled: true
 `
+	return ac.addSingletonIntegrationToConfig(winInt, nil, "windows_exporter")
+
+}
+
+func (ac *confighandler) addSingletonIntegrationToConfig(tmp string, data interface{}, integrationName string) (string, error) {
 	configNode := &yaml.Node{}
 	err := yaml.Unmarshal([]byte(ac.cfgText), configNode)
 	if err != nil {
 		return "", err
 	}
-	k, _ := findNode("windows_exporter", configNode.Content)
+	k, _ := findNode(integrationName, configNode.Content)
 	if k != nil {
-		return "", fmt.Errorf("windows_node already exists")
+		return "", fmt.Errorf("%s already exists", integrationName)
 	}
 	integrationsKey, integrationsValue := findNode("integrations", configNode.Content)
 	if integrationsKey == nil {
 		integrationsKey, integrationsValue = addIntegrationsNode(configNode)
 	}
-	t, err := template.New("integration").Parse(winInt)
+	t, err := template.New("integration").Parse(tmp)
 	if err != nil {
 		return "", err
 	}
 	bb := bytes.Buffer{}
-	err = t.Execute(&bb, nil)
+	err = t.Execute(&bb, data)
 	if err != nil {
 		return "", err
 	}
@@ -126,4 +156,49 @@ func findNode(name string, nodes []*yaml.Node) (key *yaml.Node, value *yaml.Node
 		}
 	}
 	return nil, nil
+}
+
+func getDifferenceConfig(configNode *yaml.Node) (string, error) {
+
+	// This whole bit just gives us the default config
+	defConfig := &config.Config{}
+	err := config.LoadBytes([]byte("server: {}"), false, defConfig)
+	if err != nil {
+		return "", err
+	}
+	defConfigString, err := yaml.Marshal(defConfig)
+	if err != nil {
+		return "", err
+	}
+	defYamlNode := &yaml.Node{}
+	err = yaml.Unmarshal(defConfigString, defYamlNode)
+	if err != nil {
+		return "", err
+	}
+	return "", nil
+}
+
+func buildNodeMap(parent *NodeMapping, key *yaml.Node, value *yaml.Node, nodeMap []*NodeMapping) []*NodeMapping {
+	path := "." + key.Value
+	if parent != nil {
+		path = parent.path + "." + key.Value
+	}
+	current := &NodeMapping{
+		parent: parent,
+		path:   path,
+		key:    key,
+		value:  value,
+	}
+	nodeMap = append(nodeMap, current)
+	for i := 0; i < len(value.Content); i = i + 2 {
+		nodeMap = buildNodeMap(current, value.Content[i], value.Content[i+1], nodeMap)
+	}
+	return nodeMap
+}
+
+type NodeMapping struct {
+	parent *NodeMapping
+	path   string
+	key    *yaml.Node
+	value  *yaml.Node
 }
