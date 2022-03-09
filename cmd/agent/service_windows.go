@@ -12,7 +12,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
-	"github.com/weaveworks/common/logging"
 
 	"golang.org/x/sys/windows/svc"
 )
