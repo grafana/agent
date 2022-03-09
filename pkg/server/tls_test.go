@@ -63,5 +63,5 @@ func Test_tlsListener(t *testing.T) {
 
 	var urlError *url.Error
 	require.ErrorAs(t, err, &urlError)
-	require.EqualError(t, urlError.Err, "remote error: tls: bad certificate")
+	require.Contains(t, urlError.Err.Error(), "tls: bad certificate")
 }
