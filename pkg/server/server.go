@@ -30,11 +30,6 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-// TODO(rfratto):
-// - document removal of PathPrefix
-// - document removal of TLS flags
-// - should the flags for listen address be host:port instead of having two flags? (Yes)
-
 // Server wraps an HTTP and gRPC server with some common initialization.
 //
 // Unless instrumentation is disabled in the Servers config, Prometheus metrics
