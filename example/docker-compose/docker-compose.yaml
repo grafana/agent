@@ -77,6 +77,7 @@ services:
       - -enable-features=integrations-next
       - -config.expand-env
       - -config.enable-read-api
+      - -server.http.address=127.0.0.1:12345
     environment:
       HOSTNAME: agent
       REMOTE_WRITE_HOST: cortex:9009

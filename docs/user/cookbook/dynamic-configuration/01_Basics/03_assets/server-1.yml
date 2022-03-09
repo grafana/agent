@@ -1,2 +1,1 @@
-http_listen_port: 12345
 log_level: info

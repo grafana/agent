@@ -1,7 +1,7 @@
 server:
   http_listen_network: tcp
   http_listen_address: ""
-  http_listen_port: 12345
+  http_listen_port: 80
   http_listen_conn_limit: 0
   grpc_listen_network: tcp
   grpc_listen_address: ""
@@ -58,7 +58,7 @@ metrics:
         remote_timeout: 30s
         name: default-a098e3
         basic_auth:
-          username: "12345"
+          username: "xyz"
           password: <secret>
         follow_redirects: true
         queue_config:
@@ -192,7 +192,7 @@ metrics:
           remote_timeout: 30s
           name: default-a098e3
           basic_auth:
-            username: "12345"
+            username: "xyz"
             password: <secret>
           follow_redirects: true
           queue_config:

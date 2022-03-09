@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -14,9 +15,8 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/agent/pkg/util/server"
 	"github.com/oklog/run"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
@@ -34,7 +34,7 @@ type Entrypoint struct {
 
 	reloader Reloader
 
-	log *util.Logger
+	log *server.Logger
 	cfg config.Config
 
 	srv          *server.Server
@@ -51,7 +51,7 @@ type Entrypoint struct {
 type Reloader = func() (*config.Config, error)
 
 // NewEntrypoint creates a new Entrypoint.
-func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (*Entrypoint, error) {
+func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader) (*Entrypoint, error) {
 	var (
 		ep = &Entrypoint{
 			log:      logger,
@@ -73,7 +73,10 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		level.Info(ep.log).Log("msg", "reload server started", "url", reloadURL)
 	}
 
-	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
+	ep.srv, err = server.New(logger, prometheus.DefaultRegisterer, prometheus.DefaultGatherer, cfg.Server)
+	if err != nil {
+		return nil, err
+	}
 
 	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
 	if err != nil {
@@ -99,6 +102,8 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		return nil, err
 	}
 
+	ep.wire(ep.srv.HTTP, ep.srv.GRPC)
+
 	// Mostly everything should be up to date except for the server, which hasn't
 	// been created yet.
 	if err := ep.ApplyConfig(*cfg); err != nil {
@@ -113,21 +118,25 @@ func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (config.Inte
 		return config.IntegrationsGlobals{}, fmt.Errorf("getting hostname: %w", err)
 	}
 
-	usingTLS := len(cfg.Server.HTTPTLSConfig.TLSCertPath) > 0 && len(cfg.Server.HTTPTLSConfig.TLSKeyPath) > 0
 	scheme := "http"
-	if usingTLS {
+	if cfg.Server.Flags.HTTP.UseTLS {
 		scheme = "https"
 	}
 
+	var listenPort int
+	if ta, ok := ep.srv.HTTPAddress().(*net.TCPAddr); ok {
+		listenPort = ta.Port
+	}
+
 	return config.IntegrationsGlobals{
-		AgentIdentifier: fmt.Sprintf("%s:%d", hostname, cfg.Server.HTTPListenPort),
+		AgentIdentifier: fmt.Sprintf("%s:%d", hostname, listenPort),
 		Metrics:         ep.promMetrics,
 		Logs:            ep.lokiLogs,
 		Tracing:         ep.tempoTraces,
 		// TODO(rfratto): set SubsystemOptions here when v1 is removed.
 		AgentBaseURL: &url.URL{
 			Scheme: scheme,
-			Host:   fmt.Sprintf("127.0.0.1:%d", cfg.Server.HTTPListenPort),
+			Host:   fmt.Sprintf("127.0.0.1:%d", listenPort),
 		},
 	}, nil
 }
@@ -144,7 +153,7 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 		failed = true
 	}
 
-	if err := ep.srv.ApplyConfig(cfg.Server, ep.wire); err != nil {
+	if err := ep.srv.ApplyConfig(cfg.Server); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update server", "err", err)
 		failed = true
 	}
@@ -182,8 +191,8 @@ func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
 	return nil
 }
 
-// wire is used to hook up API endpoints to components, and is called every
-// time a new Weaveworks server is creatd.
+// wire is used to hook up API endpoints to components. It is called once after
+// all subsystems are created.
 func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	ep.promMetrics.WireAPI(mux)
 	ep.promMetrics.WireGRPC(grpc)
@@ -281,7 +290,7 @@ func (ep *Entrypoint) Start() error {
 
 	// Create a signal handler that will stop the Entrypoint once a termination
 	// signal is received.
-	signalHandler := signals.NewHandler(ep.cfg.Server.Log)
+	signalHandler := signals.NewHandler(server.GoKitLogger(ep.log))
 
 	notifier := make(chan os.Signal, 1)
 	signal.Notify(notifier, syscall.SIGHUP)
@@ -306,10 +315,14 @@ func (ep *Entrypoint) Start() error {
 		})
 	}
 
+	srvContext, srvCancel := context.WithCancel(context.Background())
+	defer srvCancel()
+	defer ep.srv.Close()
+
 	g.Add(func() error {
-		return ep.srv.Run()
+		return ep.srv.Run(srvContext)
 	}, func(e error) {
-		ep.srv.Close()
+		srvCancel()
 	})
 
 	go func() {

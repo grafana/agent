@@ -10,7 +10,7 @@
 CONFIG_FILE="/etc/grafana-agent.yaml"
 
 # Any user defined arguments
-CUSTOM_ARGS=""
+CUSTOM_ARGS="-server.http.address=127.0.0.1:9090 -server.grpc.address=127.0.0.1:9091"
 
 # Restart on system upgrade. Default to true
 RESTART_ON_UPGRADE=true

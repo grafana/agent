@@ -23,7 +23,6 @@ function(ctx) marshal.YAML(optionals.trim({
   local namespace = ctx.Agent.ObjectMeta.Namespace,
 
   server: {
-    http_listen_port: 8080,
     log_level: optionals.string(spec.LogLevel),
     log_format: optionals.string(spec.LogFormat),
   },

@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv/consul"
@@ -24,7 +25,6 @@ import (
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
@@ -174,7 +174,7 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
-	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.Flags.GRPC.ListenPort
 
 	if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics); err != nil {
 		return err
@@ -201,8 +201,6 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 
 // RegisterFlags registers flags in underlying configs
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	c.Server.MetricsNamespace = "agent"
-	c.Server.RegisterInstrumentation = true
 	c.Metrics.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
 
