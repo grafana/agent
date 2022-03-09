@@ -56,6 +56,9 @@
 
 - [BUGFIX] Fix issue with windows_exporter mssql collector crashing the agent. (@mattdurham)
 
+- [BUGFIX] The deb and rpm files will now ensure the /var/lib/grafana-agent
+  data directory is created with permissions set to 0770. (@rfratto)
+
 # v0.22.0 (2022-01-13)
 
 This release has deprecations. Please read [DEPRECATION] entries and consult
