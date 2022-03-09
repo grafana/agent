@@ -120,7 +120,7 @@ func (f *Flags) RegisterFlags(fs *flag.FlagSet) {
 	fs.DurationVar(&f.GracefulShutdownTimeout, "server.graceful-shutdown-timeout", d.GracefulShutdownTimeout, "Timeout for a graceful server shutdown")
 	fs.BoolVar(&f.LogSourceIPs, "server.log.source-ips.enabled", d.LogSourceIPs, "Log IP address of client for incoming requests")
 	fs.StringVar(&f.LogSourceIPsHeader, "server.log.source-ips.header", d.LogSourceIPsHeader, "Header field storing the source IPs. Only used if server.log-source-ips-enabled is true. Defaults to Forwarded, X-Real-IP, and X-Forwarded-For")
-	fs.StringVar(&f.LogSourceIPsRegex, "server.log.source-ips.regex", d.LogSourceIPsRegex, "Regex for matching the source IPs. Only used if server.log-source-ips-enabled is true. Defaults to Forwarded, X-Real-IP, and X-Forwarded-For") // TODO(rfratto): help text here seems wrong?
+	fs.StringVar(&f.LogSourceIPsRegex, "server.log.source-ips.regex", d.LogSourceIPsRegex, "Regex for extracting the source IPs from the matched header. The first capture group will be used for the extracted IP address. Only used if server.log-source-ips-enabled is true.")
 
 	f.HTTP.RegisterFlags(fs)
 	f.GRPC.RegisterFlags(fs)
