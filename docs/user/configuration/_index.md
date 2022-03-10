@@ -8,7 +8,7 @@ weight = 300
 Grafana Agent is configured across two places:
 
 * A YAML file
-* [Command-line flags]({{< relref "./flags.md" }})
+* [Command-line flags]({{< relref "./flags.md" >}})
 
 The YAML file is used to configure settings which are dynamic and can be
 changed at runtime. The command-line flags then configure things which cannot
