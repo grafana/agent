@@ -23,6 +23,9 @@
 
 - [BUGFIX] Ensure singleton integrations are honored in v2 integrations (@mattdurham)
 
+- [BUGFIX] integrations-next: Fix race condition where metrics endpoints for
+  integrations may disappear after reloading the config file. (@rfratto)
+
 # v0.23.0 (2022-01-13)
 
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)
