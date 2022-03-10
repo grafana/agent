@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -28,7 +30,7 @@ type configWatcher struct {
 	log log.Logger
 
 	mut     sync.Mutex
-	cfg     Config
+	cfg     interfaces.ClusterConfig
 	stopped bool
 	stop    context.CancelFunc
 
@@ -50,7 +52,7 @@ type ValidationFunc = func(*instance.Config) error
 
 // newConfigWatcher watches store for changes and checks for each config against
 // owns. It will also poll the configstore at a configurable interval.
-func newConfigWatcher(log log.Logger, cfg Config, store configstore.Store, im instance.Manager, owns OwnershipFunc, validate ValidationFunc) (*configWatcher, error) {
+func newConfigWatcher(log log.Logger, cfg interfaces.ClusterConfig, store configstore.Store, im instance.Manager, owns OwnershipFunc, validate ValidationFunc) (*configWatcher, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	w := &configWatcher{
@@ -73,7 +75,7 @@ func newConfigWatcher(log log.Logger, cfg Config, store configstore.Store, im in
 	return w, nil
 }
 
-func (w *configWatcher) ApplyConfig(cfg Config) error {
+func (w *configWatcher) ApplyConfig(cfg interfaces.ClusterConfig) error {
 	w.mut.Lock()
 	defer w.mut.Unlock()
 
@@ -120,7 +122,7 @@ func (w *configWatcher) run(ctx context.Context) {
 // interval has elapsed.
 func (w *configWatcher) nextReshard(lastReshard time.Time) <-chan time.Time {
 	w.mut.Lock()
-	nextReshard := lastReshard.Add(w.cfg.ReshardInterval)
+	nextReshard := lastReshard.Add(w.cfg.ReshardInterval())
 	w.mut.Unlock()
 
 	remaining := time.Until(nextReshard)
@@ -151,8 +153,8 @@ func (w *configWatcher) RequestRefresh() {
 // Call RequestRefresh to queue a call to refresh.
 func (w *configWatcher) refresh(ctx context.Context) (err error) {
 	w.mut.Lock()
-	enabled := w.cfg.Enabled
-	refreshTimeout := w.cfg.ReshardTimeout
+	enabled := w.cfg.Enabled()
+	refreshTimeout := w.cfg.ReshardTimeout()
 	w.mut.Unlock()
 
 	if !enabled {

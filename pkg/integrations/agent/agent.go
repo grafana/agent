@@ -7,9 +7,10 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -27,7 +28,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 // NewIntegration converts this config into an instance of an integration.
-func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(_ log.Logger) (interfaces.Integration, error) {
 	return New(c), nil
 }
 
@@ -52,8 +53,8 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 }
 
 // ScrapeConfigs satisfies Integration.ScrapeConfigs.
-func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
-	return []config.ScrapeConfig{{
+func (i *Integration) ScrapeConfigs() []interfaces.ScrapeConfig {
+	return []interfaces.ScrapeConfig{{
 		JobName:     i.c.Name(),
 		MetricsPath: "/metrics",
 	}}

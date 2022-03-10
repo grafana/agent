@@ -10,6 +10,8 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -35,7 +37,7 @@ type Entrypoint struct {
 	reloader Reloader
 
 	log *util.Logger
-	cfg config.Config
+	cfg interfaces.AgentConfig
 
 	srv          *server.Server
 	promMetrics  *metrics.Agent
@@ -48,10 +50,10 @@ type Entrypoint struct {
 }
 
 // Reloader is any function that returns a new config.
-type Reloader = func() (*config.Config, error)
+type Reloader = func() (interfaces.AgentConfig, error)
 
 // NewEntrypoint creates a new Entrypoint.
-func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (*Entrypoint, error) {
+func NewEntrypoint(logger *util.Logger, cfg interfaces.AgentConfig, reloader Reloader) (*Entrypoint, error) {
 	var (
 		ep = &Entrypoint{
 			log:      logger,
@@ -60,8 +62,8 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 		err error
 	)
 
-	if cfg.ReloadPort != 0 {
-		reloadURL := fmt.Sprintf("%s:%d", cfg.ReloadAddress, cfg.ReloadPort)
+	if cfg.ReloadPort() != 0 {
+		reloadURL := fmt.Sprintf("%s:%d", cfg.ReloadAddress(), cfg.ReloadPort)
 		ep.reloadListener, err = net.Listen("tcp", reloadURL)
 		if err != nil {
 			return nil, fmt.Errorf("failed to listen on address for secondary /-/reload server: %w", err)
@@ -75,17 +77,17 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 
 	ep.srv = server.New(prometheus.DefaultRegisterer, logger)
 
-	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.Metrics, logger)
+	ep.promMetrics, err = metrics.New(prometheus.DefaultRegisterer, cfg.MetricsConfig(), logger)
 	if err != nil {
 		return nil, err
 	}
 
-	ep.lokiLogs, err = logs.New(prometheus.DefaultRegisterer, cfg.Logs, logger)
+	ep.lokiLogs, err = logs.New(prometheus.DefaultRegisterer, cfg.LogsConfig(), logger)
 	if err != nil {
 		return nil, err
 	}
 
-	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.Traces, cfg.Server.LogLevel.Logrus, cfg.Server.LogFormat)
+	ep.tempoTraces, err = traces.New(ep.lokiLogs, ep.promMetrics.InstanceManager(), prometheus.DefaultRegisterer, cfg.TracesConfig(), cfg.ServerConfig().LogLevel().Logrus, cfg.ServerConfig().LogFormat())
 	if err != nil {
 		return nil, err
 	}
@@ -94,82 +96,82 @@ func NewEntrypoint(logger *util.Logger, cfg *config.Config, reloader Reloader) (
 	if err != nil {
 		return nil, err
 	}
-	ep.integrations, err = config.NewIntegrations(logger, &cfg.Integrations, integrationGlobals)
+	ep.integrations, err = config.NewIntegrations(logger, cfg.IntegrationsConfig(), integrationGlobals)
 	if err != nil {
 		return nil, err
 	}
 
 	// Mostly everything should be up to date except for the server, which hasn't
 	// been created yet.
-	if err := ep.ApplyConfig(*cfg); err != nil {
+	if err := ep.ApplyConfig(cfg); err != nil {
 		return nil, err
 	}
 	return ep, nil
 }
 
-func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (config.IntegrationsGlobals, error) {
+func (ep *Entrypoint) createIntegrationsGlobals(cfg interfaces.AgentConfig) (config.IntegrationsGlobals, error) {
 	hostname, err := instance.Hostname()
 	if err != nil {
 		return config.IntegrationsGlobals{}, fmt.Errorf("getting hostname: %w", err)
 	}
 
-	usingTLS := len(cfg.Server.HTTPTLSConfig.TLSCertPath) > 0 && len(cfg.Server.HTTPTLSConfig.TLSKeyPath) > 0
+	usingTLS := len(cfg.ServerConfig().HTTPTLSConfig().TLSCertPath) > 0 && len(cfg.ServerConfig().HTTPTLSConfig().TLSKeyPath) > 0
 	scheme := "http"
 	if usingTLS {
 		scheme = "https"
 	}
 
 	return config.IntegrationsGlobals{
-		AgentIdentifier: fmt.Sprintf("%s:%d", hostname, cfg.Server.HTTPListenPort),
+		AgentIdentifier: fmt.Sprintf("%s:%d", hostname, cfg.ServerConfig().HTTPListenPort()),
 		Metrics:         ep.promMetrics,
 		Logs:            ep.lokiLogs,
 		Tracing:         ep.tempoTraces,
 		// TODO(rfratto): set SubsystemOptions here when v1 is removed.
 		AgentBaseURL: &url.URL{
 			Scheme: scheme,
-			Host:   fmt.Sprintf("127.0.0.1:%d", cfg.Server.HTTPListenPort),
+			Host:   fmt.Sprintf("127.0.0.1:%d", cfg.ServerConfig().HTTPListenPort()),
 		},
 	}, nil
 }
 
 // ApplyConfig applies changes to the subsystems of the Agent.
-func (ep *Entrypoint) ApplyConfig(cfg config.Config) error {
+func (ep *Entrypoint) ApplyConfig(cfg interfaces.AgentConfig) error {
 	ep.mut.Lock()
 	defer ep.mut.Unlock()
 
 	var failed bool
 
-	if err := ep.log.ApplyConfig(&cfg.Server); err != nil {
+	if err := ep.log.ApplyConfig(cfg.ServerConfig()); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update logger", "err", err)
 		failed = true
 	}
 
-	if err := ep.srv.ApplyConfig(cfg.Server, ep.wire); err != nil {
+	if err := ep.srv.ApplyConfig(cfg.ServerConfig(), ep.wire); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update server", "err", err)
 		failed = true
 	}
 
 	// Go through each component and update it.
-	if err := ep.promMetrics.ApplyConfig(cfg.Metrics); err != nil {
+	if err := ep.promMetrics.ApplyConfig(cfg.MetricsConfig()); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update prometheus", "err", err)
 		failed = true
 	}
 
-	if err := ep.lokiLogs.ApplyConfig(cfg.Logs); err != nil {
+	if err := ep.lokiLogs.ApplyConfig(cfg.LogsConfig()); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update loki", "err", err)
 		failed = true
 	}
 
-	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.Traces, cfg.Server.LogLevel.Logrus); err != nil {
+	if err := ep.tempoTraces.ApplyConfig(ep.lokiLogs, ep.promMetrics.InstanceManager(), cfg.TracesConfig(), cfg.ServerConfig().LogLevel().Logrus); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update traces", "err", err)
 		failed = true
 	}
 
-	integrationGlobals, err := ep.createIntegrationsGlobals(&cfg)
+	integrationGlobals, err := ep.createIntegrationsGlobals(cfg)
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
 		failed = true
-	} else if err := ep.integrations.ApplyConfig(&cfg.Integrations, integrationGlobals); err != nil {
+	} else if err := ep.integrations.ApplyConfig(cfg.IntegrationsConfig(), integrationGlobals); err != nil {
 		level.Error(ep.log).Log("msg", "failed to update integrations", "err", err)
 		failed = true
 	}
@@ -211,7 +213,7 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 		cfg := ep.cfg
 		ep.mut.Unlock()
 
-		if cfg.EnableConfigEndpoints {
+		if cfg.EnableConfigEndpoints() {
 			bb, err := yaml.Marshal(cfg)
 			if err != nil {
 				http.Error(rw, fmt.Sprintf("failed to marshal config: %s", err), http.StatusInternalServerError)
@@ -249,7 +251,7 @@ func (ep *Entrypoint) TriggerReload() bool {
 	}
 	cfg.LogDeprecations(ep.log)
 
-	err = ep.ApplyConfig(*cfg)
+	err = ep.ApplyConfig(cfg)
 	if err != nil {
 		level.Error(ep.log).Log("msg", "failed to reload config file", "err", err)
 		return false
@@ -281,7 +283,7 @@ func (ep *Entrypoint) Start() error {
 
 	// Create a signal handler that will stop the Entrypoint once a termination
 	// signal is received.
-	signalHandler := signals.NewHandler(ep.cfg.Server.Log)
+	signalHandler := signals.NewHandler(ep.cfg.ServerConfig().Log())
 
 	notifier := make(chan os.Signal, 1)
 	signal.Notify(notifier, syscall.SIGHUP)

@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
@@ -57,12 +59,12 @@ type MetricsSubsystemOptions struct {
 }
 
 // ApplyDefaults will apply defaults to o.
-func (o *SubsystemOptions) ApplyDefaults(mcfg *metrics.Config) error {
+func (o *SubsystemOptions) ApplyDefaults(mcfg interfaces.MetricsConfig) error {
 	if o.Metrics.Autoscrape.ScrapeInterval == 0 {
-		o.Metrics.Autoscrape.ScrapeInterval = mcfg.Global.Prometheus.ScrapeInterval
+		o.Metrics.Autoscrape.ScrapeInterval = mcfg.GlobalConfig().ScrapeInterval
 	}
 	if o.Metrics.Autoscrape.ScrapeTimeout == 0 {
-		o.Metrics.Autoscrape.ScrapeTimeout = mcfg.Global.Prometheus.ScrapeTimeout
+		o.Metrics.Autoscrape.ScrapeTimeout = mcfg.GlobalConfig().ScrapeTimeout
 	}
 
 	return nil

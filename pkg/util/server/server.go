@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -66,7 +68,7 @@ func New(r prometheus.Registerer, l log.Logger) *Server {
 //
 // ApplyConfig will override the registerer of the Config to the registerer
 // passed to New.
-func (s *Server) ApplyConfig(cfg Config, wire func(mux *mux.Router, grpc *grpc.Server)) error {
+func (s *Server) ApplyConfig(cfg interfaces.ServerConfig, wire func(mux *mux.Router, grpc *grpc.Server)) error {
 	s.srvMut.Lock()
 	defer s.srvMut.Unlock()
 

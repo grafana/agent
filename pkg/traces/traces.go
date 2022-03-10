@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -34,7 +36,7 @@ type Traces struct {
 }
 
 // New creates and starts trace collection.
-func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg Config, level logrus.Level, fmt logging.Format) (*Traces, error) {
+func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg interfaces.TracesConfig, level logrus.Level, fmt logging.Format) (*Traces, error) {
 	var leveller logLeveller
 
 	traces := &Traces{
@@ -51,40 +53,40 @@ func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg pro
 }
 
 // ApplyConfig updates Traces with a new Config.
-func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg Config, level logrus.Level) error {
+func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg interfaces.TracesConfig, level logrus.Level) error {
 	t.mut.Lock()
 	defer t.mut.Unlock()
 
 	// Update the log level, if it has changed.
 	t.leveller.SetLevel(level)
 
-	newInstances := make(map[string]*Instance, len(cfg.Configs))
+	newInstances := make(map[string]*Instance, len(cfg.InstanceConfigs()))
 
-	for _, c := range cfg.Configs {
+	for _, c := range cfg.InstanceConfigs() {
 		var (
-			instReg = prom_client.WrapRegistererWith(prom_client.Labels{"traces_config": c.Name}, t.reg)
+			instReg = prom_client.WrapRegistererWith(prom_client.Labels{"traces_config": c.Name()}, t.reg)
 		)
 
 		// If an old instance exists, update it and move it to the new map.
-		if old, ok := t.instances[c.Name]; ok {
+		if old, ok := t.instances[c.Name()]; ok {
 			err := old.ApplyConfig(logsSubsystem, promInstanceManager, instReg, c)
 			if err != nil {
 				return err
 			}
 
-			newInstances[c.Name] = old
+			newInstances[c.Name()] = old
 			continue
 		}
 
 		var (
-			instLogger = t.logger.With(zap.String("traces_config", c.Name))
+			instLogger = t.logger.With(zap.String("traces_config", c.Name()))
 		)
 
 		inst, err := NewInstance(logsSubsystem, instReg, c, instLogger, t.promInstanceManager)
 		if err != nil {
 			return fmt.Errorf("failed to create tracing instance %s: %w", c.Name, err)
 		}
-		newInstances[c.Name] = inst
+		newInstances[c.Name()] = inst
 	}
 
 	// Any instance in l.instances that isn't in newInstances has been removed

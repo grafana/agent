@@ -16,6 +16,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/build"
@@ -114,8 +116,8 @@ func (c Config) MarshalYAML() (interface{}, error) {
 // also validates the config.
 //
 // The value for global will saved.
-func (c *Config) ApplyDefaults(global GlobalConfig) error {
-	c.global = global
+func (c *Config) ApplyDefaults(global interfaces.MetricsConfig) error {
+	c.global = *global.InstanceGlobalConfig()
 
 	switch {
 	case c.Name == "":

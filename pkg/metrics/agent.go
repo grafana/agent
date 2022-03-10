@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
@@ -127,7 +129,7 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 // of which perform metric collection.
 type Agent struct {
 	mut    sync.RWMutex
-	cfg    Config
+	cfg    interfaces.MetricsConfig
 	logger log.Logger
 	reg    prometheus.Registerer
 
@@ -150,11 +152,11 @@ type Agent struct {
 }
 
 // New creates and starts a new Agent.
-func New(reg prometheus.Registerer, cfg Config, logger log.Logger) (*Agent, error) {
+func New(reg prometheus.Registerer, cfg interfaces.MetricsConfig, logger log.Logger) (*Agent, error) {
 	return newAgent(reg, cfg, logger, defaultInstanceFactory)
 }
 
-func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact instanceFactory) (*Agent, error) {
+func newAgent(reg prometheus.Registerer, cfg interfaces.MetricsConfig, logger log.Logger, fact instanceFactory) (*Agent, error) {
 	a := &Agent{
 		logger:          log.With(logger, "agent", "prometheus"),
 		instanceFactory: fact,
@@ -163,21 +165,21 @@ func newAgent(reg prometheus.Registerer, cfg Config, logger log.Logger, fact ins
 	}
 
 	a.bm = instance.NewBasicManager(instance.BasicManagerConfig{
-		InstanceRestartBackoff: cfg.InstanceRestartBackoff,
+		InstanceRestartBackoff: cfg.InstanceRestartBackoff(),
 	}, a.logger, a.newInstance)
 
 	var err error
-	a.mm, err = instance.NewModalManager(a.reg, a.logger, a.bm, cfg.InstanceMode)
+	a.mm, err = instance.NewModalManager(a.reg, a.logger, a.bm, cfg.InstanceMode())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create modal instance manager: %w", err)
 	}
 
-	a.cluster, err = cluster.New(a.logger, reg, cfg.ServiceConfig, a.mm, a.Validate)
+	a.cluster, err = cluster.New(a.logger, reg, cfg.ClusterConfig(), a.mm, a.Validate)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := a.ApplyConfig(cfg); err != nil {
+	if err := a.ApplyConfig(cfg.ClusterConfig()); err != nil {
 		return nil, err
 	}
 	go a.run()
@@ -207,7 +209,7 @@ func (a *Agent) Validate(c *instance.Config) error {
 	a.mut.RLock()
 	defer a.mut.RUnlock()
 
-	if a.cfg.WALDir == "" {
+	if a.cfg.WALDir() == "" {
 		return fmt.Errorf("no wal_directory configured")
 	}
 
@@ -218,11 +220,11 @@ func (a *Agent) Validate(c *instance.Config) error {
 }
 
 // ApplyConfig applies config changes to the Agent.
-func (a *Agent) ApplyConfig(cfg Config) error {
+func (a *Agent) ApplyConfig(cfg interfaces.MetricsConfig) error {
 	a.mut.Lock()
 	defer a.mut.Unlock()
 
-	if util.CompareYAML(a.cfg, cfg) {
+	if a.cfg.Compare(cfg) {
 		return nil
 	}
 
@@ -243,13 +245,13 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 		a.cleaner.Stop()
 		a.cleaner = nil
 	}
-	if cfg.WALDir != "" {
+	if cfg.WALDir() != "" {
 		a.cleaner = NewWALCleaner(
 			a.logger,
 			a.mm,
-			cfg.WALDir,
-			cfg.WALCleanupAge,
-			cfg.WALCleanupPeriod,
+			cfg.WALDir(),
+			cfg.WALCleanupAge(),
+			cfg.WALCleanupPeriod(),
 		)
 	}
 

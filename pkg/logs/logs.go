@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/util"
@@ -35,7 +37,7 @@ type Logs struct {
 }
 
 // New creates and starts Loki log collection.
-func New(reg prometheus.Registerer, c *Config, l log.Logger) (*Logs, error) {
+func New(reg prometheus.Registerer, c interfaces.LogsConfig, l log.Logger) (*Logs, error) {
 	logs := &Logs{
 		instances: make(map[string]*Instance),
 		reg:       reg,
@@ -48,25 +50,22 @@ func New(reg prometheus.Registerer, c *Config, l log.Logger) (*Logs, error) {
 }
 
 // ApplyConfig updates Logs with a new Config.
-func (l *Logs) ApplyConfig(c *Config) error {
+func (l *Logs) ApplyConfig(c interfaces.LogsConfig) error {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 
-	if c == nil {
-		c = &Config{}
-	}
+	newInstances := make(map[string]*Instance, len(c.Configs()))
 
-	newInstances := make(map[string]*Instance, len(c.Configs))
+	for _, ic := range c.Configs() {
 
-	for _, ic := range c.Configs {
 		// If an old instance existed, update it and move it to the new map.
-		if old, ok := l.instances[ic.Name]; ok {
+		if old, ok := l.instances[ic.Name()]; ok {
 			err := old.ApplyConfig(ic)
 			if err != nil {
 				return err
 			}
 
-			newInstances[ic.Name] = old
+			newInstances[ic.Name()] = old
 			continue
 		}
 
@@ -74,7 +73,7 @@ func (l *Logs) ApplyConfig(c *Config) error {
 		if err != nil {
 			return fmt.Errorf("unable to apply config for %s: %w", ic.Name, err)
 		}
-		newInstances[ic.Name] = inst
+		newInstances[ic.Name()] = inst
 	}
 
 	// Any promtail in l.instances that isn't in newInstances has been removed
@@ -112,7 +111,7 @@ func (l *Logs) Instance(name string) *Instance {
 type Instance struct {
 	mut sync.Mutex
 
-	cfg *InstanceConfig
+	cfg interfaces.LogInstanceConfig
 	log log.Logger
 	reg *util.Unregisterer
 
@@ -120,8 +119,8 @@ type Instance struct {
 }
 
 // NewInstance creates and starts a Logs instance.
-func NewInstance(reg prometheus.Registerer, c *InstanceConfig, l log.Logger) (*Instance, error) {
-	instReg := prometheus.WrapRegistererWith(prometheus.Labels{"logs_config": c.Name}, reg)
+func NewInstance(reg prometheus.Registerer, c interfaces.LogInstanceConfig, l log.Logger) (*Instance, error) {
+	instReg := prometheus.WrapRegistererWith(prometheus.Labels{"logs_config": c.Name()}, reg)
 
 	inst := Instance{
 		reg: util.WrapWithUnregisterer(instReg),
@@ -136,7 +135,7 @@ func NewInstance(reg prometheus.Registerer, c *InstanceConfig, l log.Logger) (*I
 // ApplyConfig will apply a new InstanceConfig. If the config hasn't changed,
 // then nothing will happen, otherwise the old Promtail will be stopped and
 // then replaced with a new one.
-func (i *Instance) ApplyConfig(c *InstanceConfig) error {
+func (i *Instance) ApplyConfig(c interfaces.LogInstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -147,7 +146,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 	}
 	i.cfg = c
 
-	positionsDir := filepath.Dir(c.PositionsConfig.PositionsFile)
+	positionsDir := filepath.Dir(c.PositionsConfig().PositionsFile)
 	err := os.MkdirAll(positionsDir, 0775)
 	if err != nil {
 		level.Warn(i.log).Log("msg", "failed to create the positions directory. logs may be unable to save their position", "path", positionsDir, "err", err)
@@ -165,17 +164,17 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 		return fmt.Errorf("failed to unregister all metrics from previous promtail. THIS IS A BUG")
 	}
 
-	if len(c.ClientConfigs) == 0 {
+	if len(c.ClientConfigs()) == 0 {
 		level.Debug(i.log).Log("msg", "skipping creation of a promtail because no client_configs are present")
 		return nil
 	}
 
 	p, err := promtail.New(config.Config{
 		ServerConfig:    server.Config{Disable: true},
-		ClientConfigs:   c.ClientConfigs,
-		PositionsConfig: c.PositionsConfig,
-		ScrapeConfig:    c.ScrapeConfig,
-		TargetConfig:    c.TargetConfig,
+		ClientConfigs:   c.ClientConfigs(),
+		PositionsConfig: c.PositionsConfig(),
+		ScrapeConfig:    c.ScrapeConfigs(),
+		TargetConfig:    c.TargetConfig(),
 	}, false, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
 	if err != nil {
 		return fmt.Errorf("unable to create logs instance: %w", err)

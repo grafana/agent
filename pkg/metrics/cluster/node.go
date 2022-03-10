@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -42,7 +44,7 @@ type node struct {
 	srv pb.ScrapingServiceServer
 
 	mut  sync.RWMutex
-	cfg  Config
+	cfg  interfaces.ClusterConfig
 	ring *ring.Ring
 	lc   *ring.Lifecycler
 
@@ -51,7 +53,7 @@ type node struct {
 }
 
 // newNode creates a new node and registers it to the ring.
-func newNode(reg prometheus.Registerer, log log.Logger, cfg Config, s pb.ScrapingServiceServer) (*node, error) {
+func newNode(reg prometheus.Registerer, log log.Logger, cfg interfaces.ClusterConfig, s pb.ScrapingServiceServer) (*node, error) {
 	n := &node{
 		reg: util.WrapWithUnregisterer(reg),
 		srv: s,
@@ -66,7 +68,7 @@ func newNode(reg prometheus.Registerer, log log.Logger, cfg Config, s pb.Scrapin
 	return n, nil
 }
 
-func (n *node) ApplyConfig(cfg Config) error {
+func (n *node) ApplyConfig(cfg interfaces.ClusterConfig) error {
 	n.mut.Lock()
 	defer n.mut.Unlock()
 
@@ -105,12 +107,12 @@ func (n *node) ApplyConfig(cfg Config) error {
 		n.ring = nil
 	}
 
-	if !cfg.Enabled {
+	if !cfg.Enabled() {
 		n.cfg = cfg
 		return nil
 	}
 
-	r, err := newRing(cfg.Lifecycler.RingConfig, "agent_viewer", agentKey, n.reg, n.log)
+	r, err := newRing(cfg.Lifecycler().RingConfig, "agent_viewer", agentKey, n.reg, n.log)
 	if err != nil {
 		return fmt.Errorf("failed to create ring: %w", err)
 	}
@@ -120,7 +122,7 @@ func (n *node) ApplyConfig(cfg Config) error {
 	}
 	n.ring = r
 
-	lc, err := ring.NewLifecycler(cfg.Lifecycler, n, "agent", agentKey, false, n.log, prometheus.WrapRegistererWithPrefix("agent_dskit_", n.reg))
+	lc, err := ring.NewLifecycler(cfg.Lifecycler(), n, "agent", agentKey, false, n.log, prometheus.WrapRegistererWithPrefix("agent_dskit_", n.reg))
 	if err != nil {
 		return fmt.Errorf("failed to create lifecycler: %w", err)
 	}
@@ -178,9 +180,9 @@ func (n *node) performClusterReshard(ctx context.Context, joining bool) error {
 		return nil
 	}
 
-	if n.cfg.ClusterReshardEventTimeout > 0 {
+	if n.cfg.ClusterReshardEventTimeout() > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, n.cfg.ClusterReshardEventTimeout)
+		ctx, cancel = context.WithTimeout(ctx, n.cfg.ClusterReshardEventTimeout())
 		defer cancel()
 	}
 

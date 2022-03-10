@@ -3,6 +3,8 @@ package util
 import (
 	"sync"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
@@ -49,7 +51,7 @@ func newLogger(cfg *server.Config, ctor func(*server.Config) (log.Logger, error)
 }
 
 // ApplyConfig applies configuration changes to the logger.
-func (l *Logger) ApplyConfig(cfg *server.Config) error {
+func (l *Logger) ApplyConfig(cfg interfaces.ServerConfig) error {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 

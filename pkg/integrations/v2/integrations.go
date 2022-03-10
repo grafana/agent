@@ -24,6 +24,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/logs"
@@ -92,7 +94,7 @@ type Globals struct {
 	Tracing *traces.Traces // Traces subsystem
 
 	// Options the integations subsystem is using.
-	SubsystemOpts SubsystemOptions
+	SubsystemOpts interfaces.V2Integration
 	// BaseURL to use to invoke methods against the embedded HTTP server.
 	AgentBaseURL *url.URL
 }

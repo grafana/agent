@@ -4,34 +4,27 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	v1 "github.com/grafana/agent/pkg/integrations"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/statsd_exporter/pkg/level"
-	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
-)
-
-type integrationsVersion int
-
-const (
-	integrationsVersion1 integrationsVersion = iota
-	integrationsVersion2
 )
 
 // DefaultVersionedIntegrations is the default config for integrations.
 var DefaultVersionedIntegrations = VersionedIntegrations{
-	version:  integrationsVersion1,
+	version:  interfaces.IntegrationsVersion1,
 	configV1: &v1.DefaultManagerConfig,
 }
 
 // VersionedIntegrations abstracts the subsystem configs for integrations v1
 // and v2. VersionedIntegrations can only be unmarshaled as part of Load.
 type VersionedIntegrations struct {
-	version integrationsVersion
+	version interfaces.IntegrationsVersion
 	raw     util.RawYAML
 
 	configV1 *v1.ManagerConfig
@@ -79,8 +72,8 @@ func (c VersionedIntegrations) IsZero() bool {
 }
 
 // ApplyDefaults applies defaults to the subsystem based on globals.
-func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
-	if c.version != integrationsVersion2 {
+func (c *VersionedIntegrations) ApplyDefaults(scfg interfaces.ServerConfig, mcfg interfaces.MetricsConfig) error {
+	if c.version != interfaces.IntegrationsVersion2 {
 		return c.configV1.ApplyDefaults(scfg, mcfg)
 	}
 	return c.configV2.ApplyDefaults(mcfg)
@@ -88,15 +81,15 @@ func (c *VersionedIntegrations) ApplyDefaults(scfg *server.Config, mcfg *metrics
 
 // setVersion completes the deferred unmarshal and unmarshals the raw YAML into
 // the subsystem config for version v.
-func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
+func (c *VersionedIntegrations) setVersion(v interfaces.IntegrationsVersion) error {
 	c.version = v
 
 	switch c.version {
-	case integrationsVersion1:
+	case interfaces.IntegrationsVersion1:
 		cfg := v1.DefaultManagerConfig
 		c.configV1 = &cfg
 		return yaml.UnmarshalStrict(c.raw, c.configV1)
-	case integrationsVersion2:
+	case interfaces.IntegrationsVersion2:
 		cfg := v2.DefaultSubsystemOptions
 		// this is needed for dynamic configuration, the unmarshal doesnt work correctly if
 		// this is not nil.
@@ -118,7 +111,7 @@ type IntegrationsGlobals = v2.Globals
 
 // Integrations is an abstraction over both the v1 and v2 systems.
 type Integrations interface {
-	ApplyConfig(*VersionedIntegrations, IntegrationsGlobals) error
+	ApplyConfig(interfaces.IntegrationsConfig, IntegrationsGlobals) error
 	WireAPI(*mux.Router)
 	Stop()
 }
@@ -126,9 +119,9 @@ type Integrations interface {
 // NewIntegrations creates a new subsystem. globals should be provided regardless
 // of useV2. globals.SubsystemOptions will be automatically set if cfg.Version
 // is set to IntegrationsVersion2.
-func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals IntegrationsGlobals) (Integrations, error) {
-	if cfg.version != integrationsVersion2 {
-		instance, err := v1.NewManager(*cfg.configV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
+func NewIntegrations(logger log.Logger, cfg interfaces.IntegrationsConfig, globals IntegrationsGlobals) (Integrations, error) {
+	if cfg.Version() != interfaces.IntegrationsVersion2 {
+		instance, err := v1.NewManager(cfg.V1Config(), logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +130,7 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 
 	level.Warn(logger).Log("msg", "integrations-next is enabled. integrations-next is subject to change")
 
-	globals.SubsystemOpts = *cfg.configV2
+	globals.SubsystemOpts = cfg.V2Config()
 	instance, err := v2.NewSubsystem(logger, globals)
 	if err != nil {
 		return nil, err
@@ -147,13 +140,13 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 
 type v1Integrations struct{ *v1.Manager }
 
-func (s *v1Integrations) ApplyConfig(cfg *VersionedIntegrations, _ IntegrationsGlobals) error {
-	return s.Manager.ApplyConfig(*cfg.configV1)
+func (s *v1Integrations) ApplyConfig(cfg interfaces.IntegrationsConfig, _ IntegrationsGlobals) error {
+	return s.Manager.ApplyConfig(cfg.V1Config())
 }
 
 type v2Integrations struct{ *v2.Subsystem }
 
-func (s *v2Integrations) ApplyConfig(cfg *VersionedIntegrations, globals IntegrationsGlobals) error {
-	globals.SubsystemOpts = *cfg.configV2
+func (s *v2Integrations) ApplyConfig(cfg interfaces.IntegrationsConfig, globals IntegrationsGlobals) error {
+	globals.SubsystemOpts = cfg.V2Config()
 	return s.Subsystem.ApplyConfig(globals)
 }

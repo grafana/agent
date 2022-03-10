@@ -9,12 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore"
 	"github.com/grafana/agent/pkg/util"
@@ -24,7 +25,6 @@ import (
 	promConfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/relabel"
-	"github.com/weaveworks/common/server"
 )
 
 var (
@@ -116,16 +116,16 @@ func (c *ManagerConfig) DefaultRelabelConfigs(instanceKey string) []*relabel.Con
 //
 // If any integrations are enabled and are configured to be scraped, the
 // Prometheus configuration must have a WAL directory configured.
-func (c *ManagerConfig) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
-	c.ListenPort = scfg.HTTPListenPort
-	c.ListenHost = scfg.HTTPListenAddress
+func (c *ManagerConfig) ApplyDefaults(scfg interfaces.ServerConfig, mcfg interfaces.MetricsConfig) error {
+	c.ListenPort = scfg.HTTPListenPort()
+	c.ListenHost = scfg.HTTPListenAddress()
 
-	c.ServerUsingTLS = scfg.HTTPTLSConfig.TLSKeyPath != "" && scfg.HTTPTLSConfig.TLSCertPath != ""
+	c.ServerUsingTLS = scfg.HTTPTLSConfig().TLSKeyPath != "" && scfg.HTTPTLSConfig().TLSCertPath != ""
 
 	if len(c.PrometheusRemoteWrite) == 0 {
-		c.PrometheusRemoteWrite = mcfg.Global.RemoteWrite
+		c.PrometheusRemoteWrite = mcfg.GlobalRemoteWrite()
 	}
-	c.PrometheusGlobalConfig = mcfg.Global.Prometheus
+	c.PrometheusGlobalConfig = *mcfg.GlobalConfig()
 
 	for _, ic := range c.Integrations {
 		if !ic.Common.Enabled {
@@ -138,7 +138,7 @@ func (c *ManagerConfig) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config)
 		}
 
 		// WAL must be configured if an integration is going to be scraped.
-		if scrapeIntegration && mcfg.WALDir == "" {
+		if scrapeIntegration && mcfg.WALDir() == "" {
 			return fmt.Errorf("no wal_directory configured")
 		}
 	}
@@ -151,7 +151,7 @@ type Manager struct {
 	logger log.Logger
 
 	cfgMut sync.RWMutex
-	cfg    ManagerConfig
+	cfg    interfaces.V1Integration
 
 	hostname string
 
@@ -169,7 +169,7 @@ type Manager struct {
 // NewManager creates a new integrations manager. NewManager must be given an
 // InstanceManager which is responsible for accepting instance configs to
 // scrape and send metrics from running integrations.
-func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
+func NewManager(cfg interfaces.V1Integration, logger log.Logger, im instance.Manager, validate configstore.Validator) (*Manager, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m := &Manager{
@@ -181,7 +181,7 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 		im:        im,
 		validator: validate,
 
-		integrations: make(map[string]*integrationProcess, len(cfg.Integrations)),
+		integrations: make(map[string]*integrationProcess, len(cfg.Configs())),
 	}
 
 	var err error
@@ -197,7 +197,7 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 }
 
 // ApplyConfig updates the configuration of the integrations subsystem.
-func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
+func (m *Manager) ApplyConfig(cfg interfaces.V1Integration) error {
 	var failed bool
 
 	m.cfgMut.Lock()
@@ -208,7 +208,7 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 	// The global prometheus config settings don't get applied to integrations until later. This
 	// causes us to skip reload when those settings change.
-	if util.CompareYAML(m.cfg, cfg) && util.CompareYAML(m.cfg.PrometheusGlobalConfig, cfg.PrometheusGlobalConfig) {
+	if m.cfg.Compare(cfg) {
 		level.Debug(m.logger).Log("msg", "Integrations config is unchanged skipping apply")
 		return nil
 	}
@@ -223,8 +223,8 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 	// Iterate over our integrations. New or changed integrations will be
 	// started, with their existing counterparts being shut down.
-	for _, ic := range cfg.Integrations {
-		if !ic.Common.Enabled {
+	for _, ic := range cfg.Configs() {
+		if !ic.Enabled() {
 			continue
 		}
 		// Key is used to identify the instance of this integration within the
@@ -256,11 +256,11 @@ func (m *Manager) ApplyConfig(cfg ManagerConfig) error {
 
 		// Find what instance label should be used to represent this integration.
 		var instanceKey string
-		if kp := ic.Common.InstanceKey; kp != nil {
+		if kp := ic.CommonInstanceKey(); kp != "" {
 			// Common config takes precedence.
-			instanceKey = strings.TrimSpace(*kp)
+			instanceKey = strings.TrimSpace(kp)
 		} else {
-			instanceKey, err = ic.InstanceKey(fmt.Sprintf("%s:%d", m.hostname, cfg.ListenPort))
+			instanceKey, err = ic.InstanceKey(fmt.Sprintf("%s:%d", m.hostname, cfg.ListenPort()))
 			if err != nil {
 				level.Error(m.logger).Log("msg", "failed to get instance key for integration. it will not run or be scraped", "integration", ic.Name(), "err", err)
 				failed = true

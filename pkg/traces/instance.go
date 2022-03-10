@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
@@ -38,7 +40,7 @@ type Instance struct {
 }
 
 // NewInstance creates and starts an instance of tracing pipelines.
-func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
+func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg interfaces.TraceInstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
 	var err error
 
 	instance := &Instance{}
@@ -55,7 +57,7 @@ func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg Instan
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prometheus.Registerer, cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prometheus.Registerer, cfg interfaces.TraceInstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 

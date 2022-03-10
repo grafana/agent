@@ -11,6 +11,16 @@ import (
 	"testing"
 	"unicode"
 
+	"github.com/weaveworks/common/logging"
+
+	"github.com/grafana/agent/pkg/config/interfaces"
+
+	"github.com/prometheus/exporter-toolkit/web"
+
+	promCfg "github.com/prometheus/prometheus/config"
+
+	"github.com/weaveworks/common/server"
+
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -18,14 +28,10 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/traces"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/dskit/kv/consul"
-	"github.com/grafana/dskit/kv/etcd"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/common/server"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -59,8 +65,8 @@ type Config struct {
 	// We support a secondary server just for the /-/reload endpoint, since
 	// invoking /-/reload against the primary server can cause the server
 	// to restart.
-	ReloadAddress string `yaml:"-"`
-	ReloadPort    int    `yaml:"-"`
+	ReloadAddressVal string `yaml:"-"`
+	ReloadPortVal    int    `yaml:"-"`
 
 	// Deprecated fields user has used. Generated during UnmarshalYAML.
 	Deprecations []string `yaml:"-"`
@@ -70,94 +76,84 @@ type Config struct {
 	BasicAuthPassFile string `yaml:"-"`
 
 	// Toggle for config endpoint(s)
-	EnableConfigEndpoints bool `yaml:"-"`
+	EnableConfigEndpoints bool `yaml:"-" ,default:"false"`
+
+	node *yaml.Node
 }
 
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// Apply defaults to the config from our struct and any defaults inherited
-	// from flags before unmarshaling.
-	*c = DefaultConfig
-	util.DefaultConfigFromFlags(c)
+func (c *Config) ReloadPort() int {
+	return c.ReloadPortVal
+}
 
-	type baseConfig Config
+func (c *Config) ReloadAddress() string {
+	return c.ReloadAddressVal
+}
 
-	type config struct {
-		baseConfig `yaml:",inline"`
+func (c *Config) ServerConfig() interfaces.ServerConfig {
+	sw := &ServerWrapper{}
+	sw.Config = &c.Server
+	return sw
+}
 
-		// Deprecated field names:
-		Prometheus *metrics.Config `yaml:"prometheus,omitempty"`
-		Loki       *logs.Config    `yaml:"loki,omitempty"`
-		Tempo      *traces.Config  `yaml:"tempo,omitempty"`
-	}
-
-	var fc config
-	fc.baseConfig = baseConfig(*c)
-
-	if err := unmarshal(&fc); err != nil {
-		return err
-	}
-
-	// Migrate old fields to the new name
-	if fc.Prometheus != nil && fc.Metrics.Unmarshaled && fc.Prometheus.Unmarshaled {
-		return fmt.Errorf("at most one of prometheus and metrics should be specified")
-	} else if fc.Prometheus != nil && fc.Prometheus.Unmarshaled {
-		fc.Deprecations = append(fc.Deprecations, "`prometheus` has been deprecated in favor of `metrics`")
-		fc.Metrics = *fc.Prometheus
-		fc.Prometheus = nil
-	}
-
-	if fc.Logs != nil && fc.Loki != nil {
-		return fmt.Errorf("at most one of loki and logs should be specified")
-	} else if fc.Logs == nil && fc.Loki != nil {
-		fc.Deprecations = append(fc.Deprecations, "`loki` has been deprecated in favor of `logs`")
-		fc.Logs = fc.Loki
-		fc.Loki = nil
-	}
-
-	if fc.Tempo != nil && fc.Traces.Unmarshaled {
-		return fmt.Errorf("at most one of tempo and traces should be specified")
-	} else if fc.Tempo != nil && fc.Tempo.Unmarshaled {
-		fc.Deprecations = append(fc.Deprecations, "`tempo` has been deprecated in favor of `traces`")
-		fc.Traces = *fc.Tempo
-		fc.Tempo = nil
-	}
-
-	*c = Config(fc.baseConfig)
+func (c *Config) MetricsConfig() interfaces.MetricsConfig {
 	return nil
 }
 
-// MarshalYAML implements yaml.Marshaler.
-func (c Config) MarshalYAML() (interface{}, error) {
-	var buf bytes.Buffer
+func (c *Config) LogsConfig() interfaces.LogsConfig {
+	//TODO implement me
+	panic("implement me")
+}
 
-	enc := yaml.NewEncoder(&buf)
-	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
-		// Obscure the password fields for known types that do not obscure passwords.
-		switch v := in.(type) {
-		case etcd.Config:
-			v.Password = "<secret>"
-			return true, v, nil
-		case consul.Config:
-			v.ACLToken = "<secret>"
-			return true, v, nil
-		default:
-			return false, nil, nil
-		}
-	})
+func (c *Config) WALDir() string {
+	return c.Metrics.WALDir
+}
 
-	type config Config
-	if err := enc.Encode((config)(c)); err != nil {
-		return nil, err
-	}
+func (c *Config) GlobalRemoteWrite() []*promCfg.RemoteWriteConfig {
+	return c.Metrics.Global.RemoteWrite
+}
 
-	// Use a yaml.MapSlice rather than a map[string]interface{} so
-	// order of keys is retained compared to just calling MarshalConfig.
-	var m yaml.MapSlice
-	if err := yaml.Unmarshal(buf.Bytes(), &m); err != nil {
-		return nil, err
-	}
-	return m, nil
+func (c *Config) GlobalConfig() *promCfg.GlobalConfig {
+	return &c.Metrics.Global.Prometheus
+}
+
+func (c *Config) HTTPListenPort() int {
+	return c.Server.HTTPListenPort
+}
+
+func (c *Config) HTTPListenAddress() string {
+	return c.Server.HTTPListenAddress
+}
+
+func (c *Config) HTTPTLSConfig() web.TLSStruct {
+	return c.Server.HTTPTLSConfig
+}
+
+type ServerWrapper struct {
+	*server.Config
+}
+
+func (s *ServerWrapper) LogLevel() logging.Level {
+	return s.Config.LogLevel
+}
+
+func (s *ServerWrapper) LogFormat() logging.Format {
+	return s.Config.LogFormat
+}
+
+func (s *ServerWrapper) Log() logging.Interface {
+	return s.Config.Log
+}
+
+func (s *ServerWrapper) HTTPListenPort() int {
+	return s.Config.HTTPListenPort
+}
+
+func (s *ServerWrapper) HTTPListenAddress() string {
+	return s.Config.HTTPListenAddress
+}
+
+func (s *ServerWrapper) HTTPTLSConfig() web.TLSStruct {
+	return s.Config.HTTPTLSConfig
 }
 
 // LogDeprecations will log use of any deprecated fields to l as warn-level
@@ -176,7 +172,7 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 
 	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
 
-	if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics); err != nil {
+	if err := c.Integrations.ApplyDefaults(c.ServerConfig(), c.MetricsConfig()); err != nil {
 		return err
 	}
 
@@ -201,13 +197,12 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 
 // RegisterFlags registers flags in underlying configs
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	c.Server.MetricsNamespace = "agent"
 	c.Server.RegisterInstrumentation = true
 	c.Metrics.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
 
-	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
-	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
+	f.StringVar(&c.ReloadAddressVal, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
+	f.IntVar(&c.ReloadPortVal, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
 
 	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
 		"basic auth username for fetching remote config. (requires remote-configs experiment to be enabled")
@@ -295,8 +290,11 @@ func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
 		}
 		buf = []byte(s)
 	}
-	// Unmarshal yaml config
-	return yaml.UnmarshalStrict(buf, c)
+	bb := bytes.Buffer{}
+	bb.Write(buf)
+	dec := yaml.NewDecoder(&bb)
+	dec.KnownFields(true)
+	return dec.Decode(c)
 }
 
 // getenv is a wrapper around os.Getenv that ignores patterns that are numeric
@@ -384,9 +382,9 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 
 	// Complete unmarshaling integrations using the version from the flag. This
 	// MUST be called before ApplyDefaults.
-	version := integrationsVersion1
+	version := interfaces.IntegrationsVersion1
 	if features.Enabled(fs, featIntegrationsNext) {
-		version = integrationsVersion2
+		version = interfaces.IntegrationsVersion2
 	}
 
 	if err := cfg.Integrations.setVersion(version); err != nil {

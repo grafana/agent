@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/grafana/agent/pkg/config/interfaces"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -23,7 +25,7 @@ type Cluster struct {
 	mut sync.RWMutex
 
 	log            log.Logger
-	cfg            Config
+	cfg            interfaces.ClusterConfig
 	baseValidation ValidationFunc
 
 	//
@@ -48,7 +50,7 @@ type Cluster struct {
 func New(
 	l log.Logger,
 	reg prometheus.Registerer,
-	cfg Config,
+	cfg interfaces.ClusterConfig,
 	im instance.Manager,
 	validate ValidationFunc,
 ) (*Cluster, error) {
@@ -71,11 +73,11 @@ func New(
 		return nil, fmt.Errorf("failed to initialize node membership: %w", err)
 	}
 
-	c.store, err = configstore.NewRemote(l, reg, cfg.KVStore, cfg.Enabled)
+	c.store, err = configstore.NewRemote(l, reg, cfg.KVStore(), cfg.Enabled())
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize configstore: %w", err)
 	}
-	c.storeAPI = configstore.NewAPI(l, c.store, c.storeValidate, cfg.APIEnableGetConfiguration)
+	c.storeAPI = configstore.NewAPI(l, c.store, c.storeValidate, cfg.APIEnableGetConfiguration())
 	reg.MustRegister(c.storeAPI)
 
 	c.watcher, err = newConfigWatcher(l, cfg, c.store, im, c.node.Owns, validate)
@@ -96,7 +98,7 @@ func (c *Cluster) storeValidate(cfg *instance.Config) error {
 		return err
 	}
 
-	if c.cfg.DangerousAllowReadingFiles {
+	if c.cfg.DangerousAllowReadingFiles() {
 		return nil
 	}
 
@@ -117,7 +119,7 @@ func (c *Cluster) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (*e
 }
 
 // ApplyConfig applies configuration changes to Cluster.
-func (c *Cluster) ApplyConfig(cfg Config) error {
+func (c *Cluster) ApplyConfig(cfg interfaces.ClusterConfig) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -129,7 +131,7 @@ func (c *Cluster) ApplyConfig(cfg Config) error {
 		return fmt.Errorf("failed to apply config to node membership: %w", err)
 	}
 
-	if err := c.store.ApplyConfig(cfg.Lifecycler.RingConfig.KVStore, cfg.Enabled); err != nil {
+	if err := c.store.ApplyConfig(cfg.Lifecycler().RingConfig.KVStore, cfg.Enabled()); err != nil {
 		return fmt.Errorf("failed to apply config to config store: %w", err)
 	}
 
