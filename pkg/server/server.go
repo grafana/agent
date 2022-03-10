@@ -129,12 +129,18 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 
 	// Create listeners first so we can fail early if the port is in use.
 	httpListener, err := newHTTPListener(&opts.HTTP, m)
+	if err != nil {
+		return nil, err
+	}
 	defer func() {
 		if err != nil {
 			_ = httpListener.Close()
 		}
 	}()
 	grpcListener, err := newGRPCListener(&opts.GRPC, m)
+	if err != nil {
+		return nil, err
+	}
 	defer func() {
 		if err != nil {
 			_ = httpListener.Close()
