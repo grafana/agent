@@ -66,7 +66,7 @@ steps:
       - name: docker
         path: /var/run/docker.sock
     commands:
-      - apk update && apk add make bash wget git qemu apt-transport-https ca-certificates
+      - apk update && apk add make bash wget git qemu
       - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
       - mkdir -p ~/.docker/cli-plugins
       - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
@@ -297,6 +297,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: d282c7e1f81477122944ce14b9d5cc06e3df7dcb91440392882c34fc41241f85
+hmac: 7cf5fe00a490d53c7c97d2693ea88c0b8a900242898281ca1842297ce9314406
 
 ...
