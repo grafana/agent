@@ -24,6 +24,7 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/middleware"
 	"golang.org/x/net/netutil"
 	"google.golang.org/grpc"
@@ -50,6 +51,61 @@ type Server struct {
 	GRPC       *grpc.Server
 }
 
+type metrics struct {
+	tcpConnections      *prometheus.GaugeVec
+	tcpConnectionsLimit *prometheus.GaugeVec
+	requestDuration     *prometheus.HistogramVec
+	receivedMessageSize *prometheus.HistogramVec
+	sentMessageSize     *prometheus.HistogramVec
+	inflightRequests    *prometheus.GaugeVec
+}
+
+func newMetrics(r prometheus.Registerer) (*metrics, error) {
+	var m metrics
+
+	// Create metrics for the server
+	m.tcpConnections = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_tcp_connections",
+		Help: "Current number of accepted TCP connections.",
+	}, []string{"protocol"})
+	m.tcpConnectionsLimit = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_tcp_connections_limit",
+		Help: "The maximum number of TCP connections that can be accepted (0 = unlimited)",
+	}, []string{"protocol"})
+	m.requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "agent_request_duration_seconds",
+		Help: "Time in seconds spent serving HTTP requests.",
+	}, []string{"method", "route", "status_code", "ws"})
+	m.receivedMessageSize = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "agent_request_message_bytes",
+		Help:    "Size (in bytes) of messages received in the request.",
+		Buckets: middleware.BodySizeBuckets,
+	}, []string{"method", "route"})
+	m.sentMessageSize = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "agent_response_message_bytes",
+		Help:    "Size (in bytes) of messages sent in response.",
+		Buckets: middleware.BodySizeBuckets,
+	}, []string{"method", "route"})
+	m.inflightRequests = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "agent_inflight_requests",
+		Help: "Current number of inflight requests.",
+	}, []string{"method", "route"})
+
+	if r != nil {
+		// Register all of our metrics
+		cc := []prometheus.Collector{
+			m.tcpConnections, m.tcpConnectionsLimit, m.requestDuration, m.receivedMessageSize,
+			m.sentMessageSize, m.inflightRequests,
+		}
+		for _, c := range cc {
+			if err := r.Register(c); err != nil {
+				return nil, fmt.Errorf("failed registering server metrics: %w", err)
+			}
+		}
+	}
+	return &m, nil
+}
+
 // New creates a new Server with the given config.
 //
 // r is used to register Server-specific metrics. If r is nil, no metrics will
@@ -66,91 +122,24 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 	}
 	wrappedLogger := GoKitLogger(l)
 
-	// Create metrics for the server
-	var (
-		tcpConnections = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Name: "agent_tcp_connections",
-			Help: "Current number of accepted TCP connections.",
-		}, []string{"protocol"})
-		tcpConnectionsLimit = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Name: "agent_tcp_connections_limit",
-			Help: "The maximum number of TCP connections that can be accepted (0 = unlimited)",
-		}, []string{"protocol"})
-		requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name: "agent_request_duration_seconds",
-			Help: "Time in seconds spent serving HTTP requests.",
-		}, []string{"method", "route", "status_code", "ws"})
-		receivedMessageSize = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name:    "agent_request_message_bytes",
-			Help:    "Size (in bytes) of messages received in the request.",
-			Buckets: middleware.BodySizeBuckets,
-		}, []string{"method", "route"})
-		sentMessageSize = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name:    "agent_response_message_bytes",
-			Help:    "Size (in bytes) of messages sent in response.",
-			Buckets: middleware.BodySizeBuckets,
-		}, []string{"method", "route"})
-		inflightRequests = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Name: "agent_inflight_requests",
-			Help: "Current number of inflight requests.",
-		}, []string{"method", "route"})
-	)
-	if r != nil {
-		// Register all of our metrics
-		cc := []prometheus.Collector{
-			tcpConnections, tcpConnectionsLimit, requestDuration, receivedMessageSize,
-			sentMessageSize, inflightRequests,
-		}
-		for _, c := range cc {
-			if err := r.Register(c); err != nil {
-				return nil, fmt.Errorf("failed registering server metrics: %w", err)
-			}
-		}
+	m, err := newMetrics(r)
+	if err != nil {
+		return nil, err
 	}
 
 	// Create listeners first so we can fail early if the port is in use.
-
-	// HTTP listener setup
-	httpAddress := opts.HTTP.GetListenAddress()
-	if httpAddress == "" {
-		return nil, fmt.Errorf("http address not set")
-	}
-	httpListener, err := net.Listen(opts.HTTP.ListenNetwork, httpAddress)
-	if err != nil {
-		return nil, fmt.Errorf("creating HTTP listener: %w", err)
-	}
-	httpListener = middleware.CountingListener(httpListener, tcpConnections.WithLabelValues("http"))
+	httpListener, err := newHTTPListener(&opts.HTTP, m)
 	defer func() {
 		if err != nil {
 			_ = httpListener.Close()
 		}
 	}()
-
-	tcpConnectionsLimit.WithLabelValues("http").Set(float64(opts.HTTP.ConnLimit))
-	if opts.HTTP.ConnLimit > 0 {
-		httpListener = netutil.LimitListener(httpListener, opts.HTTP.ConnLimit)
-	}
-
-	// gRPC listener setup
-	grpcAddress := opts.GRPC.GetListenAddress()
-	if grpcAddress == "" {
-		return nil, fmt.Errorf("gRPC address not set")
-	}
-	grpcListener, err := net.Listen(opts.GRPC.ListenNetwork, grpcAddress)
-	if err != nil {
-		return nil, fmt.Errorf("creating gRPC listener: %w", err)
-	}
-	grpcListener = middleware.CountingListener(grpcListener, tcpConnections.WithLabelValues("grpc"))
+	grpcListener, err := newGRPCListener(&opts.GRPC, m)
 	defer func() {
 		if err != nil {
-			_ = grpcListener.Close()
+			_ = httpListener.Close()
 		}
 	}()
-
-	tcpConnectionsLimit.WithLabelValues("grpc").Set(float64(opts.GRPC.ConnLimit))
-	if opts.GRPC.ConnLimit > 0 {
-		grpcListener = netutil.LimitListener(httpListener, opts.GRPC.ConnLimit)
-	}
 
 	// Configure TLS
 	var (
@@ -180,79 +169,11 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 		"http_tls_enabled", opts.HTTP.UseTLS, "grpc_tls_enabled", opts.GRPC.UseTLS,
 	)
 
-	// Configure gRPC server
-	serverLog := middleware.GRPCServerLog{
-		WithRequest: true,
-		Log:         wrappedLogger,
-	}
-	grpcOptions := []grpc.ServerOption{
-		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			serverLog.UnaryServerInterceptor,
-			otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
-			middleware.UnaryServerInstrumentInterceptor(requestDuration),
-		)),
-		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
-			serverLog.StreamServerInterceptor,
-			otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer()),
-			middleware.StreamServerInstrumentInterceptor(requestDuration),
-		)),
-		grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionIdle:     opts.GRPC.MaxConnectionIdle,
-			MaxConnectionAge:      opts.GRPC.MaxConnectionAge,
-			MaxConnectionAgeGrace: opts.GRPC.MaxConnectionAgeGrace,
-			Time:                  opts.GRPC.KeepaliveTime,
-			Timeout:               opts.GRPC.KeepaliveTimeout,
-		}),
-		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
-			MinTime:             opts.GRPC.MinTimeBetweenPings,
-			PermitWithoutStream: opts.GRPC.PingWithoutStreamAllowed,
-		}),
-		grpc.MaxRecvMsgSize(opts.GRPC.MaxRecvMsgSize),
-		grpc.MaxSendMsgSize(opts.GRPC.MaxSendMsgSize),
-		grpc.MaxConcurrentStreams(uint32(opts.GRPC.MaxConcurrentStreams)),
-		grpc.StatsHandler(middleware.NewStatsHandler(receivedMessageSize, sentMessageSize, inflightRequests)),
-	}
-	grpcServer := grpc.NewServer(grpcOptions...)
-
-	router := mux.NewRouter()
-	if opts.RegisterInstrumentation && g != nil {
-		router.Handle("/metrics", promhttp.HandlerFor(g, promhttp.HandlerOpts{
-			EnableOpenMetrics: true,
-		}))
-		router.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
-	}
-
-	var sourceIPs *middleware.SourceIPExtractor
-	if opts.LogSourceIPs {
-		sourceIPs, err = middleware.NewSourceIPs(opts.LogSourceIPsHeader, opts.LogSourceIPsRegex)
-		if err != nil {
-			return nil, fmt.Errorf("error setting up source IP extraction: %v", err)
-		}
-	}
-
-	httpMiddleware := []middleware.Interface{
-		middleware.Tracer{
-			RouteMatcher: router,
-			SourceIPs:    sourceIPs,
-		},
-		middleware.Log{
-			Log:       wrappedLogger,
-			SourceIPs: sourceIPs,
-		},
-		middleware.Instrument{
-			RouteMatcher:     router,
-			Duration:         requestDuration,
-			RequestBodySize:  receivedMessageSize,
-			ResponseBodySize: sentMessageSize,
-			InflightRequests: inflightRequests,
-		},
-	}
-
-	httpServer := &http.Server{
-		ReadTimeout:  opts.HTTP.ReadTimeout,
-		WriteTimeout: opts.HTTP.WriteTimeout,
-		IdleTimeout:  opts.HTTP.IdleTimeout,
-		Handler:      middleware.Merge(httpMiddleware...).Wrap(router),
+	// Build servers
+	grpcServer := newGRPCServer(wrappedLogger, &opts.GRPC, m)
+	httpServer, router, err := newHTTPServer(wrappedLogger, g, &opts, m)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Server{
@@ -267,6 +188,124 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 		HTTPServer: httpServer,
 		GRPC:       grpcServer,
 	}, nil
+}
+
+func newHTTPListener(opts *HTTPFlags, m *metrics) (net.Listener, error) {
+	httpAddress := opts.GetListenAddress()
+	if httpAddress == "" {
+		return nil, fmt.Errorf("http address not set")
+	}
+	httpListener, err := net.Listen(opts.ListenNetwork, httpAddress)
+	if err != nil {
+		return nil, fmt.Errorf("creating HTTP listener: %w", err)
+	}
+	httpListener = middleware.CountingListener(httpListener, m.tcpConnections.WithLabelValues("http"))
+
+	m.tcpConnectionsLimit.WithLabelValues("http").Set(float64(opts.ConnLimit))
+	if opts.ConnLimit > 0 {
+		httpListener = netutil.LimitListener(httpListener, opts.ConnLimit)
+	}
+	return httpListener, nil
+}
+
+func newGRPCListener(opts *GRPCFlags, m *metrics) (net.Listener, error) {
+	grpcAddress := opts.GetListenAddress()
+	if grpcAddress == "" {
+		return nil, fmt.Errorf("gRPC address not set")
+	}
+	grpcListener, err := net.Listen(opts.ListenNetwork, grpcAddress)
+	if err != nil {
+		return nil, fmt.Errorf("creating gRPC listener: %w", err)
+	}
+	grpcListener = middleware.CountingListener(grpcListener, m.tcpConnections.WithLabelValues("grpc"))
+
+	m.tcpConnectionsLimit.WithLabelValues("grpc").Set(float64(opts.ConnLimit))
+	if opts.ConnLimit > 0 {
+		grpcListener = netutil.LimitListener(grpcListener, opts.ConnLimit)
+	}
+	return grpcListener, nil
+}
+
+func newGRPCServer(l logging.Interface, opts *GRPCFlags, m *metrics) *grpc.Server {
+	serverLog := middleware.GRPCServerLog{
+		WithRequest: true,
+		Log:         l,
+	}
+	grpcOptions := []grpc.ServerOption{
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			serverLog.UnaryServerInterceptor,
+			otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
+			middleware.UnaryServerInstrumentInterceptor(m.requestDuration),
+		)),
+		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
+			serverLog.StreamServerInterceptor,
+			otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer()),
+			middleware.StreamServerInstrumentInterceptor(m.requestDuration),
+		)),
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle:     opts.MaxConnectionIdle,
+			MaxConnectionAge:      opts.MaxConnectionAge,
+			MaxConnectionAgeGrace: opts.MaxConnectionAgeGrace,
+			Time:                  opts.KeepaliveTime,
+			Timeout:               opts.KeepaliveTimeout,
+		}),
+		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+			MinTime:             opts.MinTimeBetweenPings,
+			PermitWithoutStream: opts.PingWithoutStreamAllowed,
+		}),
+		grpc.MaxRecvMsgSize(opts.MaxRecvMsgSize),
+		grpc.MaxSendMsgSize(opts.MaxSendMsgSize),
+		grpc.MaxConcurrentStreams(uint32(opts.MaxConcurrentStreams)),
+		grpc.StatsHandler(middleware.NewStatsHandler(m.receivedMessageSize, m.sentMessageSize, m.inflightRequests)),
+	}
+
+	return grpc.NewServer(grpcOptions...)
+}
+
+func newHTTPServer(l logging.Interface, g prometheus.Gatherer, opts *Flags, m *metrics) (*http.Server, *mux.Router, error) {
+	router := mux.NewRouter()
+	if opts.RegisterInstrumentation && g != nil {
+		router.Handle("/metrics", promhttp.HandlerFor(g, promhttp.HandlerOpts{
+			EnableOpenMetrics: true,
+		}))
+		router.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+	}
+
+	var sourceIPs *middleware.SourceIPExtractor
+	if opts.LogSourceIPs {
+		var err error
+		sourceIPs, err = middleware.NewSourceIPs(opts.LogSourceIPsHeader, opts.LogSourceIPsRegex)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error setting up source IP extraction: %v", err)
+		}
+	}
+
+	httpMiddleware := []middleware.Interface{
+		middleware.Tracer{
+			RouteMatcher: router,
+			SourceIPs:    sourceIPs,
+		},
+		middleware.Log{
+			Log:       l,
+			SourceIPs: sourceIPs,
+		},
+		middleware.Instrument{
+			RouteMatcher:     router,
+			Duration:         m.requestDuration,
+			RequestBodySize:  m.receivedMessageSize,
+			ResponseBodySize: m.sentMessageSize,
+			InflightRequests: m.inflightRequests,
+		},
+	}
+
+	httpServer := &http.Server{
+		ReadTimeout:  opts.HTTP.ReadTimeout,
+		WriteTimeout: opts.HTTP.WriteTimeout,
+		IdleTimeout:  opts.HTTP.IdleTimeout,
+		Handler:      middleware.Merge(httpMiddleware...).Wrap(router),
+	}
+
+	return httpServer, router, nil
 }
 
 // HTTPAddress returns the HTTP net.Addr of this Server.
