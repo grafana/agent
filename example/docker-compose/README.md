@@ -21,7 +21,7 @@ By default, the Docker Compose environment doesn't include a Grafana Agent
 container. This lets you test the agent externally, especially useful when
 validating code changes. You can enable the included Grafana Agent by passing
 `agent` to the profiles list: `docker compose --profile=agent up -d`. When
-running, the Agent exposes its HTTP endpoint at localhost:80. This address
+running, the Agent exposes its HTTP endpoint at localhost:12345. This address
 can be changed with the `--server.http.address` flag (e.g.,
 `--server.http.address=127.0.0.1:8000`).
 

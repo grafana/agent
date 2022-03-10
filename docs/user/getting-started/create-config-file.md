@@ -97,7 +97,7 @@ metrics:
       scrape_configs:
         - job_name: agent
           static_configs:
-            - targets: ['127.0.0.1:80'] # Default listen port :80
+            - targets: ['127.0.0.1:12345']
       remote_write:
         - url: http://localhost:9009/api/prom/push
 ```
@@ -144,7 +144,7 @@ metrics:
       scrape_configs:
         - job_name: agent
           static_configs:
-            - targets: ['127.0.0.1:80']
+            - targets: ['127.0.0.1:12345']
 
 logs:
   configs:
