@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path"
 
+	ebpf_config "github.com/cloudflare/ebpf_exporter/config"
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
@@ -14,7 +15,9 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
-type config struct{}
+type config struct {
+	Programs []ebpf_config.Program `yaml:"programs,omitempty"`
+}
 
 type ebpfHandler struct{}
 
@@ -22,12 +25,17 @@ func init() {
 	integrations.Register(&config{}, integrations.TypeSingleton)
 }
 
-// var DefaultConfig = Config{}
-// func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-// 	*c = DefaultConfig
-// 	type plain Config
-// 	return unmarshal((*plain)(c))
-// }
+var defaultConfig = config{
+	Programs: []ebpf_config.Program{},
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for Config.
+func (c *config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = defaultConfig
+	type plain config
+
+	return unmarshal((*plain)(c))
+}
 
 func (c *config) ApplyDefaults(globals integrations.Globals) error {
 	return nil
