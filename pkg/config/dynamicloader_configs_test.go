@@ -223,7 +223,7 @@ windows_exporter: {}
 	// Since the normal agent uses deferred parsing this is required to load the integration from agent-1.yml
 	err = cfg.Integrations.setVersion(integrationsVersion2)
 	require.NoError(t, err)
-	assert.True(t, cfg.Server.Flags.HTTP.ListenPort == 80)
+	assert.True(t, cfg.Server.Flags.HTTP.ListenPort == 12345)
 	assert.True(t, cfg.Server.LogLevel.String() == "debug")
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
