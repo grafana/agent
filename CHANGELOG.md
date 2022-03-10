@@ -55,13 +55,13 @@
 - [CHANGE] BREAKING CHANGE: Two new flags, `-server.http.enable-tls` and
   `-server.grpc.enable-tls` must be provided to explicitly enable TLS support.
   This is a change of the previous behavior where TLS support was enabled when
-  a certificate pair was provided.
+  a certificate pair was provided. (@rfratto)
 
 - [CHANGE] BREAKING CHANGE: many command line flags starting with `-server.`
   block have been renamed. (@rfratto)
 
 - [CHANGE] BREAKING CHANGE: the `-log.level` and `-log.format` flags are
-  removed in favor of being set in the configuration file. (@rfratto).
+  removed in favor of being set in the configuration file. (@rfratto)
 
 - [CHANGE] BREAKING CHANGE: Flags for configuring TLS have been removed in
   favor of being set in the configuration file. (@rfratto)
