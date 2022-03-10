@@ -20,6 +20,8 @@ local podTemplateSpec = k.core.v1.podTemplateSpec.spec;
 
   // General
   withAgentConfig(config):: { _config+: { agent_config: config } },
+  withMetricsPort(port):: { _config+: { agent_port: port } },
+  withArgsMixin(args):: { _config+: { agent_args+: args } },
   withImagesMixin(images):: { _images+: images },
   withConfigHash(include=true):: { _config+: { config_hash: include } },
   withPortsMixin(ports=[]):: { container+:: container.withPortsMixin(ports) },
@@ -31,10 +33,6 @@ local podTemplateSpec = k.core.v1.podTemplateSpec.spec;
       },
     },
   },
-
-  // Update port number used for the http-metrics port.
-  withMetricsPort(port):: { _config+: { agent_port: port } },
-  withArgsMixin(args):: { _config+: { agent_args+: args } },
 
   // Helpers
   newKubernetesMetrics(config={})::
