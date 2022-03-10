@@ -28,8 +28,8 @@ func main() {
 	var (
 		fs = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-		serverCfg   server.Config
-		crowCfg     crow.Config
+		serverCfg   = server.DefaultConfig
+		crowCfg     = crow.DefaultConfig
 		showVersion bool
 	)
 
