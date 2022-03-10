@@ -1,6 +1,6 @@
 # 01 Structure
 
-Dynamic Configuration uses a series of files to load templates. This example will show how they all combine together. Running the below command will combine all the templates into the final.yml. Any failure while loading the config will revert to the original config, or if this is the initial load Grafana Agent will quit. 
+Dynamic Configuration uses a series of files to load templates. This example will show how they all combine together. Running the below command will combine all the templates into the final.yml. Any failure while loading the config will revert to the original config, or if this is the initial load Grafana Agent will quit.
 
 `docker run -v ${PWD}/:/etc/grafana grafana/agentctl:latest template-parse file:///etc/grafana/01_config.yml`
 
@@ -17,13 +17,12 @@ Tells the Grafana Agent where to load files from. It is important to note that d
 
 ## Agent
 
-Dynamic Configuration will find the first file matching pattern `agent-*.yml` and load that as the base. You can only have one agent template. If multiple matching templates are found then the configuration will fail to load. 
+Dynamic Configuration will find the first file matching pattern `agent-*.yml` and load that as the base. You can only have one agent template. If multiple matching templates are found then the configuration will fail to load.
 
 [agent-1.yml](01_assets/agent-1.yml)
 
 ```yaml
 server:
-  http_listen_port: 12345
   log_level: debug
 metrics:
   wal_directory: /tmp/grafana-agent-normal
@@ -32,7 +31,7 @@ metrics:
     remote_write:
       - url: https://prometheus-us-central1.grafana.net/api/prom/push
         basic_auth:
-          username: 12345
+          username: xyz
           password: secretpassword
 integrations:
   node_exporter:
@@ -53,7 +52,6 @@ You can only have 1 server template.
 
 
 ```yaml
-http_listen_port: 12345
 log_level: info
 ```
 

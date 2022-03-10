@@ -1,7 +1,7 @@
 server:
   http_listen_network: ""
   http_listen_address: ""
-  http_listen_port: 12345
+  http_listen_port: 80
   http_listen_conn_limit: 0
   grpc_listen_network: ""
   grpc_listen_address: ""

@@ -8,8 +8,7 @@ import (
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/weaveworks/common/logging"
+	"github.com/grafana/agent/pkg/server"
 
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
@@ -40,15 +39,9 @@ func main() {
 		return
 	}
 
-	var cfgLogger logging.Interface
-
 	reloader := func() (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		cfg, err := config.Load(fs, os.Args[1:])
-		if cfg != nil {
-			cfg.Server.Log = cfgLogger
-		}
-		return cfg, err
+		return config.Load(fs, os.Args[1:])
 	}
 	cfg, err := reloader()
 	if err != nil {
@@ -56,13 +49,8 @@ func main() {
 	}
 
 	// After this point we can start using go-kit logging.
-	logger := util.NewLogger(&cfg.Server)
+	logger := server.NewLogger(&cfg.Server)
 	util_log.Logger = logger
-
-	// We need to manually set the logger for the first call to reload.
-	// Subsequent reloads will use cfgLogger.
-	cfgLogger = util.GoKitLogger(logger)
-	cfg.Server.Log = cfgLogger
 
 	ep, err := NewEntrypoint(logger, cfg, reloader)
 	if err != nil {

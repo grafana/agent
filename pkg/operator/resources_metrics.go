@@ -243,6 +243,7 @@ func generateMetricsStatefulSetSpec(
 		"-config.file=/var/lib/grafana-agent/config/agent.yml",
 		"-config.expand-env=true",
 		"-reload-port=8081",
+		"-server.http.address=0.0.0.0:8080",
 	}
 
 	enableConfigReadAPI := d.Agent.Spec.EnableConfigReadAPI

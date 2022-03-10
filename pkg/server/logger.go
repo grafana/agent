@@ -1,11 +1,10 @@
-package util
+package server
 
 import (
 	"sync"
 
 	"github.com/go-kit/log"
 	"github.com/weaveworks/common/logging"
-	"github.com/weaveworks/common/server"
 
 	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
 )
@@ -21,11 +20,11 @@ type Logger struct {
 
 	// makeLogger will default to defaultLogger. It's a struct
 	// member to make testing work properly.
-	makeLogger func(*server.Config) (log.Logger, error)
+	makeLogger func(*Config) (log.Logger, error)
 }
 
 // NewLogger creates a new Logger.
-func NewLogger(cfg *server.Config) *Logger {
+func NewLogger(cfg *Config) *Logger {
 	return newLogger(cfg, defaultLogger)
 }
 
@@ -40,7 +39,7 @@ func NewLoggerFromLevel(lvl logging.Level, fmt logging.Format) *Logger {
 	}
 }
 
-func newLogger(cfg *server.Config, ctor func(*server.Config) (log.Logger, error)) *Logger {
+func newLogger(cfg *Config, ctor func(*Config) (log.Logger, error)) *Logger {
 	l := Logger{makeLogger: ctor}
 	if err := l.ApplyConfig(cfg); err != nil {
 		panic(err)
@@ -49,7 +48,7 @@ func newLogger(cfg *server.Config, ctor func(*server.Config) (log.Logger, error)
 }
 
 // ApplyConfig applies configuration changes to the logger.
-func (l *Logger) ApplyConfig(cfg *server.Config) error {
+func (l *Logger) ApplyConfig(cfg *Config) error {
 	l.mut.Lock()
 	defer l.mut.Unlock()
 
@@ -62,7 +61,7 @@ func (l *Logger) ApplyConfig(cfg *server.Config) error {
 	return nil
 }
 
-func defaultLogger(cfg *server.Config) (log.Logger, error) {
+func defaultLogger(cfg *Config) (log.Logger, error) {
 	return makeDefaultLogger(cfg.LogLevel, cfg.LogFormat)
 }
 

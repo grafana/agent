@@ -129,7 +129,6 @@ both configuration storage and the distributed hash ring storage:
 ```yaml
 server:
   log_level: debug
-  http_listen_port: 12345
 
 metrics:
   global:

@@ -1,4 +1,4 @@
-package util
+package server
 
 import (
 	"runtime"
@@ -9,7 +9,6 @@ import (
 	"github.com/go-kit/log/level"
 
 	"github.com/go-kit/log"
-	"github.com/weaveworks/common/server"
 	el "golang.org/x/sys/windows/svc/eventlog"
 )
 
@@ -17,11 +16,11 @@ import (
 const ServiceName = "Grafana Agent"
 
 // NewWindowsEventLogger creates a new logger that writes to the event log
-func NewWindowsEventLogger(cfg *server.Config) *Logger {
+func NewWindowsEventLogger(cfg *Config) *Logger {
 	return newLogger(cfg, makeWindowsEventLogger)
 }
 
-func makeWindowsEventLogger(cfg *server.Config) (log.Logger, error) {
+func makeWindowsEventLogger(cfg *Config) (log.Logger, error) {
 	// Setup the log in windows events
 	err := el.InstallAsEventCreate(ServiceName, el.Error|el.Info|el.Warning)
 

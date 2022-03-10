@@ -1,5 +1,11 @@
 # Main (unreleased)
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+>
+> **GRAFANA AGENT OPERATOR USERS**: As of this release, Grafana Agent Operator
+> does not support versions of Grafana Agent prior to v0.24.0.
+
 - [FEATURE] Added config read API support to GrafanaAgent Custom Resource
   Definition. (@shamsalmon)
 
@@ -35,8 +41,34 @@
 - [BUGFIX] integrations-next: Fix race condition where metrics endpoints for
   integrations may disappear after reloading the config file. (@rfratto)
 
+- [BUGFIX] Removed the `server.path_prefix` field which would break various
+  features in Grafana Agent when set. (@rfratto)
+
+- [DEPRECATION] Most fields in the `server` block of the configuration file are
+  now deprecated in favor of command line flags. These fields will be removed
+  in the v0.26.0 release. Please consult the upgrade guide for more information
+  and rationale. (@rfratto)
+
 - [CHANGE] Traces: the `traces_spanmetrics_calls_total_total` metric has been
   renamed to `traces_spanmetrics_calls_total` (@fredr)
+
+- [CHANGE] BREAKING CHANGE: Two new flags, `-server.http.enable-tls` and
+  `-server.grpc.enable-tls` must be provided to explicitly enable TLS support.
+  This is a change of the previous behavior where TLS support was enabled when
+  a certificate pair was provided. (@rfratto)
+
+- [CHANGE] BREAKING CHANGE: many command line flags starting with `-server.`
+  block have been renamed. (@rfratto)
+
+- [CHANGE] BREAKING CHANGE: the `-log.level` and `-log.format` flags are
+  removed in favor of being set in the configuration file. (@rfratto)
+
+- [CHANGE] BREAKING CHANGE: Flags for configuring TLS have been removed in
+  favor of being set in the configuration file. (@rfratto)
+
+- [CHANGE] BREAKING CHANGE: Dynamic reload is no longer supported for
+  deprecated server block fields. Changing a deprecated field will be ignored
+  and cause the reload to fail. (@rfratto)
 
 # v0.23.0 (2022-01-13)
 
@@ -1092,3 +1124,5 @@ Agent configuration file.
 
 Note that enabling the `host_filter` flag currently works best when using our
 preferred Kubernetes deployment, as it deploys the agent as a DaemonSet.
+
+[upgrade guide]: https://grafana.com/docs/agent/latest/upgrade-guide/

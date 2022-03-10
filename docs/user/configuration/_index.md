@@ -5,9 +5,16 @@ weight = 300
 
 # Configure Grafana Agent
 
-The Grafana Agent is configured in a YAML file (usually called
-`agent.yaml`) which contains information on the Grafana Agent and its
-metrics instances.
+Grafana Agent is configured across two places:
+
+* A YAML file
+* [Command-line flags]({{< relref "./flags.md" }})
+
+The YAML file is used to configure settings which are dynamic and can be
+changed at runtime. The command-line flags then configure things which cannot
+change at runtime, such as the listen port for the HTTP server.
+
+This file describes the YAML configuration, which is usually in a file named `agent.yaml`.
 
 - [server_config]({{< relref "./server-config" >}})
 - [metrics_config]({{< relref "./metrics-config" >}})
@@ -18,6 +25,11 @@ metrics instances.
 The configuration of Grafana Agent is "stable," but subject to breaking changes
 as individual features change. Breaking changes to configuration will be
 well-documented.
+
+## Updating configuration
+
+The configuration file can be reloaded at runtime using the `/-/reload` API
+endpoint or sending a SIGHUP signal to the process.
 
 ## Variable substitution
 

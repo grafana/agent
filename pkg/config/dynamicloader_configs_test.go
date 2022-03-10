@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
+	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -195,7 +195,6 @@ redis_exporter_configs:
 func TestAgentAddIntegrations(t *testing.T) {
 	configStr := `
 server:
-  http_listen_port: 8080
   log_level: debug
 metrics:
   wal_directory: /tmp/grafana-agent-normal
@@ -224,7 +223,7 @@ windows_exporter: {}
 	// Since the normal agent uses deferred parsing this is required to load the integration from agent-1.yml
 	err = cfg.Integrations.setVersion(integrationsVersion2)
 	require.NoError(t, err)
-	assert.True(t, cfg.Server.HTTPListenPort == 8080)
+	assert.True(t, cfg.Server.Flags.HTTP.ListenPort == 80)
 	assert.True(t, cfg.Server.LogLevel.String() == "debug")
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	assert.True(t, cfg.Metrics.Global.RemoteWrite[0].URL.String() == "https://www.example.com")
@@ -238,7 +237,6 @@ windows_exporter: {}
 func TestFilterOverrides(t *testing.T) {
 	agentStr := `
 server:
-  http_listen_port: 8080
   log_level: debug
 metrics:
   wal_directory: /tmp/grafana-agent-normal
@@ -313,7 +311,7 @@ configs:
 	err = cfg.Integrations.setVersion(integrationsVersion2)
 	require.NoError(t, err)
 	// Test server override
-	assert.True(t, cfg.Server.HTTPListenPort == 1111)
+	assert.True(t, cfg.Server.Flags.HTTP.ListenPort == 1111)
 	// Test metric
 	assert.True(t, cfg.Metrics.WALDir == "/tmp/grafana-agent-normal")
 	// Test Metric Instances

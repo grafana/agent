@@ -88,7 +88,6 @@ scrape itself without using the integration:
 ```yaml
 server:
   log_level: info
-  http_listen_port: 12345
 
 metrics:
   global:
@@ -98,7 +97,7 @@ metrics:
       scrape_configs:
         - job_name: agent
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ['127.0.0.1:80'] # Default listen port :80
       remote_write:
         - url: http://localhost:9009/api/prom/push
 ```
@@ -134,7 +133,6 @@ Tempo:
 ```yaml
 server:
   log_level: info
-  http_listen_port: 12345
 
 metrics:
   global:
@@ -146,7 +144,7 @@ metrics:
       scrape_configs:
         - job_name: agent
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ['127.0.0.1:80']
 
 logs:
   configs:
