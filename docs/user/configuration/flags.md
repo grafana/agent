@@ -36,8 +36,6 @@ Valid feature names are:
 * `-config.file`: Path to the configuration file to load. May be an HTTP(s) URL when the `remote-configs` feature is enabled
 * `-config.expand-env`: Expand environment variables in the loaded configuration file
 * `-config.enable-read-api`: Enables the `/-/config` and `/agent/api/v1/configs/{name}` API endpoints to print YAML configuration
-* `-reload-addr`: Additional hostname to expose the `/-/reload` endpoint on
-* `-reload-port`: Port to use for the secondary `/-/reload` endpoint server (0 = disable the additional server)
 
 ### Remote Configuration
 
@@ -60,14 +58,14 @@ These flags require the `dynamic-config` feature to be enabled:
 * `-server.log.source-ips.header`: Header field to extract incoming IP requests from (defaults to Forwarded, X-Real-IP, X-Forwarded-For)
 * `-server.log.source-ips.regex`: Regex to extract the IP out of the read header, using the first capture group as the IP address
 * `-server.http.network`: HTTP server listen network (default `tcp`)
-* `-server.http.address`: HTTP server listen:port (default `0.0.0.0:80`)
+* `-server.http.address`: HTTP server listen:port (default `127.0.0.1:12345`)
 * `-server.http.enable-tls`: Enable TLS for the HTTP server
 * `-server.http.conn-limit`: Maximum number of simultaneous HTTP connections
 * `-server.http.idle-timeout`: HTTP server idle timeout
 * `-server.http.read-timeout`: HTTP server read timeout
 * `-server.http.write-timeout`: HTTP server write timeout
 * `-server.grpc.network` gRPC server listen network (default `grpc`)
-* `-server.grpc.address`: gRPC server listen host:port (default `0.0.0.0:9095`)
+* `-server.grpc.address`: gRPC server listen host:port (default `127.0.0.1:12346`)
 * `-server.grpc.enable-tls`: Enable TLS for the gRPC server
 * `-server.grpc.conn-limit`: Maximum number of simultaneous gRPC connections
 * `-server.grpc.keepalive.max-connection-age` Maximum age for any gRPC connection for a graceful shutdown

@@ -138,7 +138,23 @@ must be provided for TLS support to be enabled.
 This is a change over the previous behavior where TLS was automatically enabled
 when a certificate pair was provided.
 
-### Deprecation:
+### Breaking change: Default HTTP/gRPC address changes
+
+The HTTP and gRPC listen addresses now default to `127.0.0.1:12345` and
+`127.0.0.1:12346` respectively.
+
+If running inside of a container, you must change these to `0.0.0.0` to
+externally communicate with the agent's HTTP server.
+
+The listen addresses may be changed via `-server.http.address` and
+`-server.grpc.address` respectively.
+
+### Breaking change: Removal of `-reload-addr` and `-reload-port` flags
+
+The `-reload-addr` and `-reload-port` flags have been removed. They were
+initially added to workaround an issue where reloading a changed server block
+would cause the primary HTTP server to restart. As the HTTP server settings are
+now static, this can no longer happen, and as such the flags have been removed.
 
 ## v0.22.0
 
