@@ -136,6 +136,11 @@ func (e *ebpfHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 		group.Labels[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
 	}
 
+	group.Targets = append(group.Targets, model.LabelSet{
+		model.AddressLabel:     model.LabelValue(ep.Host),
+		model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "/metrics")),
+	})
+
 	return []*targetgroup.Group{group}
 }
 
