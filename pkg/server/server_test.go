@@ -196,12 +196,12 @@ func TestServer_ListenAddress_Precedence(t *testing.T) {
 	cfg.Flags.HTTP.ListenAddress = ""
 	cfg.Flags.GRPC.ListenAddress = anyLocalhost
 	srv, err = New(nil, nil, nil, cfg)
-	require.EqualError(t, err, fmt.Sprintf("creating HTTP listener: listen tcp %s: bind: address already in use", reservedHTTPLis.Addr()))
+	require.NotNil(t, err) // The error message is different per platform, so we don't check for the error string here
 	require.Nil(t, srv)
 
 	cfg.Flags.HTTP.ListenAddress = anyLocalhost
 	cfg.Flags.GRPC.ListenAddress = ""
 	srv, err = New(nil, nil, nil, cfg)
-	require.EqualError(t, err, fmt.Sprintf("creating gRPC listener: listen tcp %s: bind: address already in use", reservedGRPCLis.Addr()))
+	require.NotNil(t, err) // The error message is different per platform, so we don't check for the error string here
 	require.Nil(t, srv)
 }
