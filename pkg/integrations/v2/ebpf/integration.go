@@ -15,14 +15,20 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/model"
+	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
 type config struct {
 	Programs []ebpf_config.Program `yaml:"programs,omitempty"`
+
+	common  common.MetricsConfig
+	globals integrations.Globals
 }
 
 type ebpfHandler struct {
@@ -46,16 +52,18 @@ func (c *config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (c *config) ApplyDefaults(globals integrations.Globals) error {
+	c.common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 	return nil
 }
 
 func (c *config) Identifier(globals integrations.Globals) (string, error) {
-	return "ebpf", nil
+	return c.Name(), nil
 }
 
 func (c *config) Name() string { return "ebpf" }
 
 func (c *config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
+	c.globals = globals
 	ebpf := &ebpfHandler{}
 	ebpf.cfg = c
 
@@ -105,15 +113,64 @@ func (e *ebpfHandler) createHandler() (http.HandlerFunc, error) {
 
 // Targets implements the MetricsIntegration interface.
 func (e *ebpfHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
-	return []*targetgroup.Group{{}}
+	// TODO: Check if we actually need to add instance-related label info
+	key := ""
+
+	name := e.cfg.Name()
+	integrationNameValue := model.LabelValue("integrations/" + name)
+	group := &targetgroup.Group{
+		Labels: model.LabelSet{
+			model.JobLabel:      integrationNameValue,
+			model.InstanceLabel: model.LabelValue(key),
+			"agent_hostname":    model.LabelValue(e.cfg.globals.AgentIdentifier),
+
+			// Meta labels that can be used during SD.
+			"__meta_agent_integration_name":       model.LabelValue(name),
+			"__meta_agent_integration_autoscrape": model.LabelValue(boolToString(*e.cfg.common.Autoscrape.Enable)),
+			"__meta_agent_integration_instance":   model.LabelValue(e.cfg.Name()),
+		},
+		Source: fmt.Sprintf("%s/%s", name, name),
+	}
+
+	for _, lbl := range e.cfg.common.ExtraLabels {
+		group.Labels[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
+	}
+
+	return []*targetgroup.Group{group}
 }
 
 // ScrapeConfigs implements the MetricsIntegration interface.
 func (e *ebpfHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeConfig {
-	return nil
+	//if !*e.cfg.common.Autoscrape.Enable {
+	//	return nil
+	//}
+
+	cfg := prom_config.DefaultScrapeConfig
+	cfg.JobName = e.cfg.Name()
+	cfg.Scheme = e.cfg.globals.AgentBaseURL.Scheme
+	cfg.HTTPClientConfig = e.cfg.globals.SubsystemOpts.ClientConfig
+	cfg.ServiceDiscoveryConfigs = sd
+	cfg.ScrapeInterval = e.cfg.common.Autoscrape.ScrapeInterval
+	cfg.ScrapeTimeout = e.cfg.common.Autoscrape.ScrapeTimeout
+	cfg.RelabelConfigs = e.cfg.common.Autoscrape.RelabelConfigs
+	cfg.MetricRelabelConfigs = e.cfg.common.Autoscrape.MetricRelabelConfigs
+
+	return []*autoscrape.ScrapeConfig{{
+		Instance: e.cfg.common.Autoscrape.MetricsInstance,
+		Config:   cfg,
+	}}
 }
 
 // ServeHTTP kicks off the integration's HTTP handler.
 func (e *ebpfHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	e.createHandler()
+}
+
+func boolToString(b bool) string {
+	switch b {
+	case true:
+		return "1"
+	default:
+		return "0"
+	}
 }
