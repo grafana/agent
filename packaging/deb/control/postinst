@@ -26,11 +26,8 @@ case "$1" in
             usermod -a -G systemd-journal "$GRAFANA_AGENT_USER"
         fi
 
-        if [ ! -d /var/lib/grafana-agent ]; then
-          mkdir -p /var/lib/grafana-agent
-          chown $GRAFANA_AGENT_USER:$GRAFANA_AGENT_GROUP /var/lib/grafana-agent
-          chmod 770 /var/lib/grafana-agent
-        fi
+        chown $GRAFANA_AGENT_USER:$GRAFANA_AGENT_GROUP /var/lib/grafana-agent
+        chmod 770 /var/lib/grafana-agent
 
         chmod 640 /etc/grafana-agent.yaml
         chown root:$GRAFANA_AGENT_GROUP /etc/grafana-agent.yaml
