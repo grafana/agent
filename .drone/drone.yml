@@ -55,31 +55,6 @@ steps:
       - export PATH=$PATH:/usr/local/go/bin
       - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
       - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
-  - name: test-packages
-    when:
-      paths:
-        include:
-        - packaging/**
-        - Makefile
-    image: docker
-    volumes:
-      - name: docker
-        path: /var/run/docker.sock
-    commands:
-      - apk update && apk add make bash wget git qemu
-      - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
-      - mkdir -p ~/.docker/cli-plugins
-      - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
-      - chmod a+x ~/.docker/cli-plugins/docker-buildx
-      - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      - docker buildx create --name multiarch --driver docker-container --use
-      - rm -rf /usr/local/go
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
-      - rm go1.17.6.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - make test-packages
 
 depends_on:
   - Lint
@@ -297,6 +272,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 7cf5fe00a490d53c7c97d2693ea88c0b8a900242898281ca1842297ce9314406
+hmac: ea470a0d3e024c8fac2963e5868574414e6b957839b7f1db29fc22fa356eccc1
 
 ...
