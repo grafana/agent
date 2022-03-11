@@ -59,7 +59,6 @@ spec:
       containers:
       - args:
         - -config.file=/etc/agent/agent.yaml
-        - -server.http.address=0.0.0.0:12345
         command:
         - /bin/agent
         env:
