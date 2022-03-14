@@ -17,7 +17,7 @@ type config struct{}
 
 func (c *config) ApplyDefaults(globals integrations.Globals) error        { return nil }
 func (c *config) Identifier(globals integrations.Globals) (string, error) { return c.Name(), nil }
-func (c *config) Name() string                                            { return "no-op ebpf" }
+func (c *config) Name() string                                            { return "noop-ebpf" }
 
 func (c *config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	return integrations.NoOpIntegration, nil
