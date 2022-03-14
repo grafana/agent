@@ -73,6 +73,16 @@
   deprecated server block fields. Changing a deprecated field will be ignored
   and cause the reload to fail. (@rfratto)
 
+- [CHANGE] The default HTTP listen address is now `127.0.0.1:12345`. Use the
+  `-server.http.address` flag to change this value. (@rfratto)
+
+- [CHANGE] The default gRPC listen address is now `127.0.0.1:12346`. Use the
+  `-server.grpc.address` flag to change this value.(@rfratto)
+
+- [CHANGE] BREAKING CHANGE: `-reload-addr` and `-reload-port` have been
+  removed. They are no longer necessary as the primary HTTP server is now
+  static and can't be shut down in the middle of a `/-/reload` call. (@rfratto)
+
 # v0.23.0 (2022-01-13)
 
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)

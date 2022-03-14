@@ -107,7 +107,7 @@ source-of-truth directory.`,
 		},
 	}
 
-	cmd.Flags().StringVarP(&agentAddr, "addr", "a", "http://localhost:80", "address of the agent to connect to")
+	cmd.Flags().StringVarP(&agentAddr, "addr", "a", "http://localhost:12345", "address of the agent to connect to")
 	cmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "use the dry run option to validate config files without attempting to upload")
 	return cmd
 }

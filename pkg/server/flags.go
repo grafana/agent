@@ -89,8 +89,8 @@ var (
 
 	DefaultHTTPFlags = HTTPFlags{
 		ListenNetwork: "tcp",
-		ListenHost:    "0.0.0.0",
-		ListenPort:    80,
+		ListenHost:    "127.0.0.1",
+		ListenPort:    12345,
 		ReadTimeout:   30 * time.Second,
 		WriteTimeout:  30 * time.Second,
 		IdleTimeout:   120 * time.Second,
@@ -98,8 +98,8 @@ var (
 
 	DefaultGRPCFlags = GRPCFlags{
 		ListenNetwork:         "tcp",
-		ListenHost:            "0.0.0.0",
-		ListenPort:            9095,
+		ListenHost:            "127.0.0.1",
+		ListenPort:            12346,
 		MaxRecvMsgSize:        4 * 1024 * 1024,
 		MaxSendMsgSize:        4 * 1024 * 1024,
 		MaxConcurrentStreams:  100,

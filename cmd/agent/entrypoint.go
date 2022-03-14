@@ -60,19 +60,6 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		err error
 	)
 
-	if cfg.ReloadPort != 0 {
-		reloadURL := fmt.Sprintf("%s:%d", cfg.ReloadAddress, cfg.ReloadPort)
-		ep.reloadListener, err = net.Listen("tcp", reloadURL)
-		if err != nil {
-			return nil, fmt.Errorf("failed to listen on address for secondary /-/reload server: %w", err)
-		}
-
-		reloadMux := mux.NewRouter()
-		reloadMux.HandleFunc("/-/reload", ep.reloadHandler).Methods("GET", "POST")
-		ep.reloadServer = &http.Server{Handler: reloadMux}
-		level.Info(ep.log).Log("msg", "reload server started", "url", reloadURL)
-	}
-
 	ep.srv, err = server.New(logger, prometheus.DefaultRegisterer, prometheus.DefaultGatherer, cfg.Server)
 	if err != nil {
 		return nil, err
