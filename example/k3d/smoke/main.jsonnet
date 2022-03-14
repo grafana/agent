@@ -18,7 +18,7 @@ local images = {
 
 local new_crow(name, selector) =
   crow.new(name, namespace='smoke', config={
-    args: {
+    args+: {
       'crow.prometheus-addr': 'http://cortex/api/prom',
       'crow.extra-selectors': selector,
     },
