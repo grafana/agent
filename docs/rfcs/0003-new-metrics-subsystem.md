@@ -269,10 +269,6 @@ worked around by using [#1121][#1121] to help make sure all agents pull their
 configs from the same source. A new metric that hashes the runtime config can
 also enable alerting on config desync.
 
-## Prior Art
-
-Per-target sharding was prototyped in July 2021 in [rfratto/agent][prototype].
-
 [#872]: https://github.com/grafana/agent/issues/872
 [#873]: https://github.com/grafana/agent/issues/873
 [#875]: https://github.com/grafana/agent/issues/875
@@ -281,4 +277,3 @@ Per-target sharding was prototyped in July 2021 in [rfratto/agent][prototype].
 [ckit]: https://github.com/rfratto/ckit
 [go-discover]: https://github.com/hashicorp/go-discover
 [#1121]: https://github.com/grafana/agent/issues/1121
-[prototype]: https://github.com/rfratto/agent/tree/per-target-sharding
