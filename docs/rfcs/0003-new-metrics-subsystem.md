@@ -1,12 +1,9 @@
----
-title: New metrics subsystem
-weight: xxxx
----
-
 # New metrics subsystem
 
 * Date: 2021-11-29
 * Author: Robert Fratto (@rfratto)
+* PR: [grafana/agent#1140](https://github.com/grafana/agent/pull/1140)
+* Status: Draft
 
 ## Background
 
@@ -25,12 +22,10 @@ genuinely beneficial for the maintenance of the project.
 
 This proposal suggests a redesign of the metrics subsystem which has native
 support for target sharding and lacks the technical debt from the current
-subsystem. Given the size of the change, I also propose a way to gradually
-implement the new subsystem to ensure that this proposal is practical.
+subsystem.
 
 ## Goals
 
-* Propose a strategy to implement this revamp incrementally
 * Enable dynamically target scraping with:
   * Automatic scaling
   * Automatic failover
@@ -43,31 +38,9 @@ implement the new subsystem to ensure that this proposal is practical.
 
 ## Implementation
 
-The strategy for how we can implement a new iteration of a subsystem will be
-detailed first. It would be impractical to suggest that such a large change
-should block other ongoing work to the old subsystem or done siloed in a single
-development branch. Attempting to do either will cause this proposal to fail.
-
-I propose combining smaller development branches with a feature flag in `main`
-to develop this feature. In practice, this means the following:
-
-* Define a set of new packages `pkg/metrics/next` and `pkg/config/next` for
-  this feature
-* Add a flag `--experimental.metrics-next.enable` to switch to the new
-  packages.
-* Use development branches for smaller parts of the overall proposal
-* Merge "ready to use" code into main
-
-Development branches are still used when it would take multiple PRs to make
-something functional. The guideline hasn't changed: if something would be
-obviously broken/incomplete after a PR, use a dev branch, otherwise it can go
-right to main under the feature flag.
-
-Using the feature flag means that the new iteration of the subsystem does not
-have to be fully complete before it can go into `main`. It also means that it
-will be available as part of releases in an experimental form, which can help
-interested users play around with the new functionality and provide early
-feedback.
+Given the size of the change, work on the new subsystem should be done in a new
+package (e.g., `pkg/metrics/next`), and exposed as an experimental change
+hidden behind a feature flag (e.g., `--enable-features=metrics-next`).
 
 ## Design
 
