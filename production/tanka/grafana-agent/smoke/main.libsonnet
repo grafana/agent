@@ -45,6 +45,7 @@ local util = k.util;
         containerPort.newNamed(name='remote-write', containerPort=19090),
       ]) +
       container.withArgsMixin(k.util.mapToFlags({
+        'log.level': 'debug',
         namespace: namespace,
         'mutation-frequency': this._config.mutationFrequency,
         'chaos-frequency': this._config.chaosFrequency,
