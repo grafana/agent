@@ -71,7 +71,7 @@ func (c *config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 }
 
 // RunIntegration implements the Integration interface and is
-// the entrypoint for our integration
+// the entrypoint for our integration.
 func (e *ebpfHandler) RunIntegration(ctx context.Context) error {
 	<-ctx.Done()
 	return nil
