@@ -8,9 +8,8 @@
 
 <!-- When updating the CHANGELOG, please:
 
-1. Keep entries grouped by SECURITY/FEATURE/ENHANCEMENT/BUGFIX/CHANGE/DEPRECATION
-2. Add your CHANGELOG entry to the bottom of the appropriate group
-3. Give yourself credit for your work with your GitHub username!
+1. Add your CHANGELOG entry to the bottom of the appropriate change group
+2. Give yourself credit for your work with your GitHub username!
 
 -->
 

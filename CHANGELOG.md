@@ -6,82 +6,89 @@
 > **GRAFANA AGENT OPERATOR USERS**: As of this release, Grafana Agent Operator
 > does not support versions of Grafana Agent prior to v0.24.0.
 
-- [FEATURE] Added config read API support to GrafanaAgent Custom Resource
-  Definition. (@shamsalmon)
+### Breaking changes
 
-- [FEATURE] Added consulagent_sd to target discovery. (@chuckyz)
+- Two new flags, `-server.http.enable-tls` and `-server.grpc.enable-tls` must
+  be provided to explicitly enable TLS support. This is a change of the
+  previous behavior where TLS support was enabled when a certificate pair was
+  provided. (@rfratto)
 
-- [FEATURE] Introduce EXPERIMENTAL support for dynamic configuration.
-  (@mattdurham)
+- Many command line flags starting with `-server.` block have been renamed.
+  (@rfratto)
 
-- [ENHANCEMENT] Tracing: Exporters can now be configured to use
-  OAuth. (@canuteson)
+- The `-log.level` and `-log.format` flags are removed in favor of being set in
+  the configuration file. (@rfratto)
 
-- [ENHANCEMENT] Strengthen readiness check for metrics instances. (@tpaschalis)
+- Flags for configuring TLS have been removed in favor of being set in the
+  configuration file. (@rfratto)
 
-- [ENHANCEMENT] Parameterize namespace field in sample K8s logs manifests
-  (@hjet)
+- Dynamic reload is no longer supported for deprecated server block fields.
+  Changing a deprecated field will be ignored and cause the reload to fail.
+  (@rfratto)
 
-- [ENHANCEMENT] Upgrade to loki v2.4.2. The following metrics will now be
-  prefixed with `agent_dskit_` instead of `cortex_`:
-  `cortex_kv_request_duration_seconds`,
+- The default HTTP listen address is now `127.0.0.1:12345`. Use the
+  `-server.http.address` flag to change this value.
+
+- The default gRPC listen address is now `127.0.0.1:12346`. Use the
+  `-server.grpc.address` flag to change this value.
+
+- `-reload-addr` and `-reload-port` have been removed. They are no longer
+  necessary as the primary HTTP server is now static and can't be shut down in
+  the middle of a `/-/reload` call. (@rfratto)
+
+### Deprecations
+
+- Most fields in the `server` block of the configuration file are now
+  deprecated in favor of command line flags. These fields will be removed in
+  the v0.26.0 release. Please consult the upgrade guide for more information
+  and rationale. (@rfratto)
+
+### Features
+
+- Added config read API support to GrafanaAgent Custom Resource Definition.
+  (@shamsalmon)
+
+- Added consulagent_sd to target discovery. (@chuckyz)
+
+- Introduce EXPERIMENTAL support for dynamic configuration. (@mattdurham)
+
+### Enhancements
+
+- Tracing: Exporters can now be configured to use OAuth. (@canuteson)
+
+- Strengthen readiness check for metrics instances. (@tpaschalis)
+
+- Parameterize namespace field in sample K8s logs manifests (@hjet)
+
+- Upgrade to loki v2.4.2. The following metrics will now be prefixed with
+  `agent_dskit_` instead of `cortex_`: `cortex_kv_request_duration_seconds`,
   `cortex_member_consul_heartbeats_total`, `cortex_member_ring_tokens_owned`,
   `cortex_member_ring_tokens_to_own`, `cortex_ring_member_ownership_percent`,
   `cortex_ring_members`, `cortex_ring_oldest_member_timestamp`,
   `cortex_ring_tokens_owned`, `cortex_ring_tokens_total`. (@rlankfo)
 
-- [ENHANCEMENT] Update Prometheus dependency to v2.31.1. (@rfratto)
+- Update Prometheus dependency to v2.31.1. (@rfratto)
 
-- [BUGFIX] Ensure singleton integrations are honored in v2 integrations
-  (@mattdurham)
+### Bugfixes
 
-- [BUGFIX] Tracing: `const_labels` is now correctly parsed in the remote write
-  exporter. (@fredr)
+- Ensure singleton integrations are honored in v2 integrations (@mattdurham)
 
-- [BUGFIX] integrations-next: Fix race condition where metrics endpoints for
+- Tracing: `const_labels` is now correctly parsed in the remote write exporter.
+  (@fredr)
+
+- integrations-next: Fix race condition where metrics endpoints for
   integrations may disappear after reloading the config file. (@rfratto)
 
-- [BUGFIX] Removed the `server.path_prefix` field which would break various
-  features in Grafana Agent when set. (@rfratto)
+- Removed the `server.path_prefix` field which would break various features in
+  Grafana Agent when set. (@rfratto)
 
-- [BUGFIX] Fix issue where installing the DEB/RPM packages would overwrite the
-  existing config files and environment files. (@rfratto)
+- Fix issue where installing the DEB/RPM packages would overwrite the existing
+  config files and environment files. (@rfratto)
 
-- [DEPRECATION] Most fields in the `server` block of the configuration file are
-  now deprecated in favor of command line flags. These fields will be removed
-  in the v0.26.0 release. Please consult the upgrade guide for more information
-  and rationale. (@rfratto)
+### Other Changes
 
-- [CHANGE] Traces: the `traces_spanmetrics_calls_total_total` metric has been
-  renamed to `traces_spanmetrics_calls_total` (@fredr)
-
-- [CHANGE] BREAKING CHANGE: Two new flags, `-server.http.enable-tls` and
-  `-server.grpc.enable-tls` must be provided to explicitly enable TLS support.
-  This is a change of the previous behavior where TLS support was enabled when
-  a certificate pair was provided. (@rfratto)
-
-- [CHANGE] BREAKING CHANGE: many command line flags starting with `-server.`
-  block have been renamed. (@rfratto)
-
-- [CHANGE] BREAKING CHANGE: the `-log.level` and `-log.format` flags are
-  removed in favor of being set in the configuration file. (@rfratto)
-
-- [CHANGE] BREAKING CHANGE: Flags for configuring TLS have been removed in
-  favor of being set in the configuration file. (@rfratto)
-
-- [CHANGE] BREAKING CHANGE: Dynamic reload is no longer supported for
-  deprecated server block fields. Changing a deprecated field will be ignored
-  and cause the reload to fail. (@rfratto)
-
-- [CHANGE] The default HTTP listen address is now `127.0.0.1:12345`. Use the
-  `-server.http.address` flag to change this value. (@rfratto)
-
-- [CHANGE] The default gRPC listen address is now `127.0.0.1:12346`. Use the
-  `-server.grpc.address` flag to change this value.(@rfratto)
-
-- [CHANGE] BREAKING CHANGE: `-reload-addr` and `-reload-port` have been
-  removed. They are no longer necessary as the primary HTTP server is now
-  static and can't be shut down in the middle of a `/-/reload` call. (@rfratto)
+- Traces: the `traces_spanmetrics_calls_total_total` metric has been renamed to
+  `traces_spanmetrics_calls_total` (@fredr)
 
 # v0.23.0 (2022-01-13)
 
