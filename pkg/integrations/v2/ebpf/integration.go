@@ -111,16 +111,12 @@ func (e *ebpfHandler) createHandler() (http.HandlerFunc, error) {
 
 // Targets implements the MetricsIntegration interface.
 func (e *ebpfHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
-	// TODO: Check if we actually need to add instance-related label info
-	key := ""
-
 	name := e.cfg.Name()
 	integrationNameValue := model.LabelValue("integrations/" + name)
 	group := &targetgroup.Group{
 		Labels: model.LabelSet{
-			model.JobLabel:      integrationNameValue,
-			model.InstanceLabel: model.LabelValue(key),
-			"agent_hostname":    model.LabelValue(e.cfg.globals.AgentIdentifier),
+			model.JobLabel:   integrationNameValue,
+			"agent_hostname": model.LabelValue(e.cfg.globals.AgentIdentifier),
 
 			// Meta labels that can be used during SD.
 			"__meta_agent_integration_name":       model.LabelValue(name),
@@ -144,9 +140,9 @@ func (e *ebpfHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 
 // ScrapeConfigs implements the MetricsIntegration interface.
 func (e *ebpfHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeConfig {
-	//if !*e.cfg.common.Autoscrape.Enable {
-	//	return nil
-	//}
+	if !*e.cfg.common.Autoscrape.Enable {
+		return nil
+	}
 
 	cfg := prom_config.DefaultScrapeConfig
 	cfg.JobName = e.cfg.Name()
