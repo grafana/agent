@@ -1,5 +1,5 @@
-//go:build linux && ebpf_enabled
-// +build linux,ebpf_enabled
+//go:build linux
+// +build linux
 
 package ebpf
 
@@ -19,9 +19,6 @@ import (
 
 type config struct {
 	Programs []ebpf_config.Program `yaml:"programs,omitempty"`
-
-	common  common.MetricsConfig
-	globals integrations.Globals
 }
 
 type ebpfHandler struct {
@@ -56,7 +53,9 @@ func (c *config) Identifier(globals integrations.Globals) (string, error) {
 func (c *config) Name() string { return "ebpf" }
 
 func (c *config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	c.globals = globals
+	var commonCfg common.MetricsConfig
+	commonCfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+
 	ebpf := &ebpfHandler{cfg: c}
 	h, err := ebpf.createHandler()
 	if err != nil {

@@ -1,5 +1,5 @@
-//go:build !linux || !ebpf_enabled
-// +build !linux !ebpf_enabled
+//go:build !linux
+// +build !linux
 
 package ebpf
 
