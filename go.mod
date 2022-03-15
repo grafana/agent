@@ -39,17 +39,17 @@ require (
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.27.1
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver v0.40.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.40.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver v0.46.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.46.0
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e
 	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
@@ -76,8 +76,8 @@ require (
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/weaveworks/common v0.0.0-20211222122857-933588f98737
 	go.opencensus.io v0.23.0
-	go.opentelemetry.io/collector v0.40.0
-	go.opentelemetry.io/collector/model v0.40.0
+	go.opentelemetry.io/collector v0.46.0
+	go.opentelemetry.io/collector/model v0.46.0
 	go.opentelemetry.io/otel/metric v0.25.0
 	go.opentelemetry.io/otel/trace v1.2.0
 	go.uber.org/atomic v1.9.0
@@ -309,14 +309,14 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.40.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.40.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.40.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.40.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.40.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.40.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.40.0 // indirect
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.40.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.46.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.46.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.46.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.46.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.46.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger v0.46.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.46.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.46.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.0.2 // indirect
@@ -469,12 +469,12 @@ replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 
 // loadbalancingexporter uses non-fixed version of batchpertrace which fetches latest and causes problems
-replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.30.0
+replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.46.0
 
 // Replacing for an internal fork that exposes internal folders
 // Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
 // This is a temporary solution while a new configuration design is discussed for the collector (ref: https://github.com/open-telemetry/opentelemetry-collector/issues/3482).
-replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20211201123047-86905635e8f8
+replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20220315084747-b05fe1477960
 
 // Jaeger v1.16.0 can't be run with go@1.16 (https://github.com/jaegertracing/jaeger/issues/3268)
 // Problem was fixed in https://github.com/jaegertracing/jaeger/issues/3268
