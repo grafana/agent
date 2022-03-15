@@ -6,7 +6,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/receiver/receiverhelper"
 )
 
 const (
@@ -16,10 +15,10 @@ const (
 
 // NewFactory creates noop receiver factory.
 func NewFactory() component.ReceiverFactory {
-	return receiverhelper.NewFactory(
+	return component.NewReceiverFactory(
 		TypeStr,
 		createDefaultConfig,
-		receiverhelper.WithMetrics(createMetricsReceiver),
+		component.WithMetricsReceiver(createMetricsReceiver),
 	)
 }
 
