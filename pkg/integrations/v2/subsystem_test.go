@@ -52,7 +52,6 @@ func TestSubsystemOptions_Unmarshal(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-
 			var so SubsystemOptions
 			err := yaml.UnmarshalStrict([]byte(tc.in), &so)
 

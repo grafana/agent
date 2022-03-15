@@ -52,6 +52,7 @@ func New(
 	im instance.Manager,
 	validate ValidationFunc,
 ) (*Cluster, error) {
+
 	l = log.With(l, "component", "cluster")
 
 	var (
@@ -116,9 +117,7 @@ func (c *Cluster) Reshard(ctx context.Context, _ *agentproto.ReshardRequest) (*e
 }
 
 // ApplyConfig applies configuration changes to Cluster.
-func (c *Cluster) ApplyConfig(
-	cfg Config,
-) error {
+func (c *Cluster) ApplyConfig(cfg Config) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 

@@ -3,15 +3,17 @@ package config
 import (
 	"flag"
 	"net/url"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
+	commonCfg "github.com/prometheus/common/config"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
-	commonCfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/pkg/labels"
@@ -36,7 +38,7 @@ metrics:
 	require.NotEmpty(t, c.Metrics.ServiceConfig.Lifecycler.InfNames)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.NumTokens)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.HeartbeatPeriod)
-	require.True(t, c.Server.RegisterInstrumentation)
+	require.True(t, c.Server.Flags.RegisterInstrumentation)
 }
 
 // TestConfig_ConfigAPIFlag makes sure that the read API flag is passed
@@ -99,7 +101,7 @@ metrics:
 			EvaluationInterval: model.Duration(1 * time.Minute),
 		},
 	}
-	_ = os.Setenv("SCRAPE_TIMEOUT", "33s")
+	t.Setenv("SCRAPE_TIMEOUT", "33s")
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
 	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
@@ -451,4 +453,10 @@ metrics:
 	}
 	require.Equal(t, expected, c.Metrics.Global.RemoteWrite[0])
 	require.True(t, c.Metrics.Global.RemoteWrite[0].SendExemplars)
+}
+
+func TestLoadDynamicConfigurationExpandError(t *testing.T) {
+	err := LoadDynamicConfiguration("", true, nil)
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }

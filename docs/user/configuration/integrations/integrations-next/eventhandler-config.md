@@ -2,17 +2,45 @@
 title = "eventhandler_config"
 +++
 
-# eventhandler_config (beta)
+# eventhandler_config
 
-`eventhandler_config` configures the Kubernetes eventhandler integration. This integration watches [Event](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#event-v1-core) resources in a Kubernetes cluster and forwards them as log entries to a Loki sink.
+`eventhandler_config` configures the Kubernetes eventhandler integration. This
+integration watches
+[Event](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#event-v1-core)
+resources in a Kubernetes cluster and forwards them as log entries to a Loki
+sink. This integration depends on the experimental `integrations-next` feature
+being enabled.
 
-On restart, the integration will look for a cache file (configured using `cache_path`) that stores the last shipped event. This file is optional, and if present, will be used to avoid double-shipping events if Agent or the integration restarts. Kubernetes expires events after 60 minutes, so events older than 60 minutes ago will never be shipped.
+On restart, the integration will look for a cache file (configured using
+`cache_path`) that stores the last shipped event. This file is optional, and if
+present, will be used to avoid double-shipping events if Agent or the
+integration restarts. Kubernetes expires events after 60 minutes, so events
+older than 60 minutes ago will never be shipped.
 
-To use the cache feature and maintain state in a Kubernetes environment, a [StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) must be used. Sample manifests are provided at the bottom of this doc. Please adjust these according to your deployment preferences. You can also use a Deployment, however the presence of the cache file will not be guaranteed and the integration may ship duplicate entries in the event of a restart. Loki does not yet support entry deduplication for the A->B->A case, so further deduplication can only take place at the Grafana / front-end layer (Grafana Explore does provide some deduplication features for Loki datasources).
+To use the cache feature and maintain state in a Kubernetes environment, a
+[StatefulSet](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
+must be used. Sample manifests are provided at the bottom of this doc. Please
+adjust these according to your deployment preferences. You can also use a
+Deployment, however the presence of the cache file will not be guaranteed and
+the integration may ship duplicate entries in the event of a restart. Loki does
+not yet support entry deduplication for the A->B->A case, so further
+deduplication can only take place at the Grafana / front-end layer (Grafana
+Explore does provide some deduplication features for Loki datasources).
 
-This integration uses Grafana Agent's embedded Loki-compatible `logs` subsystem to ship entries, and a logs client and sink must be configured to use the integration. Please see the sample Agent config below for an example configuration. [Pipelines](https://grafana.com/docs/loki/latest/clients/promtail/pipelines/) and relabel configuration are not yet supported, but these features will be added soon. You should use the `job=eventhandler cluster=...` labels to query your events (you can then use LogQL on top of the result set).
+This integration uses Grafana Agent's embedded Loki-compatible `logs` subsystem
+to ship entries, and a logs client and sink must be configured to use the
+integration. Please see the sample Agent config below for an example
+configuration.
+[Pipelines](https://grafana.com/docs/loki/latest/clients/promtail/pipelines/)
+and relabel configuration are not yet supported, but these features will be
+added soon. You should use the `job=eventhandler cluster=...` labels to query
+your events (you can then use LogQL on top of the result set).
 
-If not running the integration in-cluster, the integration will use `kubeconfig_path` to search for a valid Kubeconfig file, defaulting to a kubeconfig in the user's home directory. If running in-cluster, the appropriate `ServiceAccount` and Roles must be defined. Sample manifests are provided below.
+If not running the integration in-cluster, the integration will use
+`kubeconfig_path` to search for a valid Kubeconfig file, defaulting to a
+kubeconfig in the user's home directory. If running in-cluster, the appropriate
+`ServiceAccount` and Roles must be defined. Sample manifests are provided
+below.
 
 Configuration reference:
 
@@ -22,7 +50,7 @@ Configuration reference:
   ## before abandoning and moving on.
   [send_timeout: <int> | default = 60]
 
-  ## Configures the path to a kubeconfig file. If not set, will fall back to using 
+  ## Configures the path to a kubeconfig file. If not set, will fall back to using
   ## an in-cluster config. If this fails, will fall back to checking the user's home
   ## directory for a kubeconfig.
   [kubeconfig_path: <string>]
@@ -34,7 +62,7 @@ Configuration reference:
   ## Name of logs subsystem instance to hand log entries off to.
   [logs_instance: <string> | default = "default"]
 
-  ## K8s informer resync interval (seconds). You should use defaults here unless you are 
+  ## K8s informer resync interval (seconds). You should use defaults here unless you are
   ## familiar with K8s informers.
   [informer_resync: <int> | default = 120]
 
@@ -49,13 +77,12 @@ Sample agent config:
 
 ```yaml
 server:
-  http_listen_port: 12345
   log_level: info
 
 integrations:
   eventhandler:
     cache_path: "/etc/eventhandler/eventhandler.cache"
-  
+
 logs:
   configs:
   - name: default
@@ -178,13 +205,12 @@ apiVersion: v1
 data:
   agent.yaml: |
     server:
-      http_listen_port: 12345
       log_level: info
-  
+
     integrations:
       eventhandler:
         cache_path: "/etc/eventhandler/eventhandler.cache"
-      
+
     logs:
       configs:
       - name: default
@@ -270,6 +296,7 @@ spec:
         args:
         - -config.file=/etc/agent/agent.yaml
         - -enable-features=integrations-next
+        - -server.http.address=0.0.0.0:12345
         command:
         - /bin/agent
         env:

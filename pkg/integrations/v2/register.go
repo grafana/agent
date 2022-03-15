@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	integrationNames = make(map[string]interface{})  // Cache of field names for uniqueness checking.
-	configFieldNames = make(map[reflect.Type]string) // Map of registered type to field name
-	integrationTypes = make(map[reflect.Type]Type)   // Map of registered type to Type
+	integrationNames      = make(map[string]interface{})  // Cache of field names for uniqueness checking.
+	configFieldNames      = make(map[reflect.Type]string) // Map of registered type to field name
+	integrationTypes      = make(map[reflect.Type]Type)   // Map of registered type to Type
+	integrationTypeByName = make(map[string]Type)         // Map of name to Type
 
 	// Registered integrations. Registered integrations may be either a Config or
 	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
@@ -52,6 +53,7 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 
 	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
+	integrationTypeByName[name] = ty
 	configFieldNames[configTy] = name
 	upgraders[name] = upgrader
 }
@@ -84,9 +86,12 @@ type UpgradedConfig interface {
 type Type int
 
 const (
+	// TypeInvalid is an invalid type.
+	TypeInvalid Type = iota
+
 	// TypeSingleton is an integration that can only be defined exactly once in
 	// the config, unmarshaled through "<integration name>"
-	TypeSingleton Type = iota
+	TypeSingleton
 
 	// TypeMultiplex is an integration that can only be defined through an array,
 	// unmarshaled through "<integration name>_configs"
@@ -107,6 +112,7 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear := func() {
 		integrationNames = make(map[string]interface{})
 		integrationTypes = make(map[reflect.Type]Type)
+		integrationTypeByName = make(map[string]Type)
 		configFieldNames = make(map[reflect.Type]string)
 		registered = registered[:0]
 		upgraders = make(map[string]UpgradeFunc)
@@ -125,20 +131,30 @@ func setRegistered(t *testing.T, cc map[Config]Type) {
 func Registered() []Config {
 	res := make([]Config, 0, len(registered))
 	for _, r := range registered {
-		switch v := r.(type) {
-		case Config:
-			res = append(res, cloneValue(v).(Config))
-		case v1.Config:
-			mut, ok := upgraders[v.Name()]
-			if !ok || mut == nil {
-				panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
-			}
-			res = append(res, mut(cloneValue(r).(v1.Config), common.MetricsConfig{}))
-		default:
-			panic(fmt.Sprintf("unexpected type %T", r))
-		}
+		res = append(res, cloneConfig(r))
 	}
 	return res
+}
+
+// RegisteredType returns the integrations.Type for config
+func RegisteredType(name string) (Type, bool) {
+	t, ok := integrationTypeByName[name]
+	return t, ok
+}
+
+func cloneConfig(r interface{}) Config {
+	switch v := r.(type) {
+	case Config:
+		return cloneValue(v).(Config)
+	case v1.Config:
+		mut, ok := upgraders[v.Name()]
+		if !ok || mut == nil {
+			panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
+		}
+		return mut(cloneValue(r).(v1.Config), common.MetricsConfig{})
+	default:
+		panic(fmt.Sprintf("unexpected type %T", r))
+	}
 }
 
 func cloneValue(in interface{}) interface{} {
@@ -189,6 +205,10 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("integrations: Configs field not found in type: %T", v)
 	}
 
+	// Map of discovered singleton integration names. A singleton integration may
+	// not be defined in Configs more than once.
+	uniqueSingletons := make(map[string]struct{})
+
 	for _, c := range configs {
 		fieldName := c.Name()
 
@@ -201,6 +221,14 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 		if !ok {
 			panic(fmt.Sprintf("config not registered: %T", data))
 		}
+
+		if _, exists := uniqueSingletons[fieldName]; exists {
+			return nil, fmt.Errorf("integration %q may not be defined more than once", fieldName)
+		}
+		uniqueSingletons[fieldName] = struct{}{}
+
+		// TODO(rfratto): make sure that TypeSingleton integrations are unique on
+		// marshaling out
 
 		// Generate the *util.RawYAML to marshal out with.
 		var (
@@ -386,25 +414,20 @@ func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 	for _, reg := range registered {
 		// Fields use a prefix that's unlikely to collide with anything else.
 		configTy := reflect.TypeOf(reg)
-		integrationType := integrationTypes[configTy]
 		fieldName := configFieldNames[configTy]
 
 		singletonType := reflect.PtrTo(reflect.TypeOf(util.RawYAML{}))
 
-		if integrationType == TypeSingleton || integrationType == TypeEither {
-			fields = append(fields, reflect.StructField{
-				Name: "XXX_Config_" + fieldName,
-				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, fieldName)),
-				Type: singletonType,
-			})
-		}
-		if integrationType == TypeMultiplex || integrationType == TypeEither {
-			fields = append(fields, reflect.StructField{
-				Name: "XXX_Configs_" + fieldName,
-				Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, fieldName)),
-				Type: reflect.SliceOf(singletonType),
-			})
-		}
+		fields = append(fields, reflect.StructField{
+			Name: "XXX_Config_" + fieldName,
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s,omitempty"`, fieldName)),
+			Type: singletonType,
+		})
+		fields = append(fields, reflect.StructField{
+			Name: "XXX_Configs_" + fieldName,
+			Tag:  reflect.StructTag(fmt.Sprintf(`yaml:"%s_configs,omitempty"`, fieldName)),
+			Type: reflect.SliceOf(singletonType),
+		})
 	}
 	return reflect.StructOf(fields)
 }

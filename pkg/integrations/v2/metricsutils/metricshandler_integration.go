@@ -26,6 +26,7 @@ func NewMetricsHandlerIntegration(
 	globals integrations.Globals,
 	h http.Handler,
 ) (integrations.MetricsIntegration, error) {
+
 	id, err := c.Identifier(globals)
 	if err != nil {
 		return nil, err

@@ -3,7 +3,7 @@ title = "Grafana Agent API"
 weight = 400
 +++
 
-# Grafana Agent APIs
+# Grafana Agent APIs (Stable)
 
 The API is divided into several parts:
 
@@ -12,7 +12,9 @@ The API is divided into several parts:
 - [Integrations API](#integrations-api)
 - [Ready/Healthy API](#ready--health-api)
 
-## Config management API
+API endpoints are stable unless otherwise noted.
+
+## Config management API (Beta)
 
 Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../scraping-service" >}}).
 
@@ -242,15 +244,6 @@ Valid configurations will be applied to each of the subsystems listed above, and
 updated. Malformed configuration files (invalid YAML, failed validation checks)
 will be immediately rejected with a status code of 400.
 
-If the configuration for the HTTP server is changed, it will be restarted.
-Because of this, it is not recommended to call `/-/reload` against the main HTTP
-server, as restarting it will prevent an HTTP client from reading the response
-of the reload. Instead, use the `--reload-addr` and `--reload-port` flags
-supported by the Agent. That will launch a secondary HTTP server that only
-responds to `/-/reload` and can be used to safely reload the system. This HTTP
-server does not respect any options in the `config` struct, and is currently
-TTP-only (no TLS support).
-
 Well-formed configuration files can still be invalid for various reasons, such
 as not having permissions to read the WAL directory. Issues such as these will
 cause per-subsystem problems while reloading the configuration, and will leave
@@ -272,7 +265,7 @@ configuration file on disk.
 
 Status code: 200 on success.
 
-## Integrations API
+## Integrations API (Experimental)
 
 > **WARNING**: This API is currently only available when the experimental
 > [integrations revamp]({{< relref "../configuration/integrations/integrations-next" >}})

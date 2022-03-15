@@ -20,6 +20,7 @@ func (r *reconciler) createLogsConfigurationSecret(
 	l log.Logger,
 	d gragent.Deployment,
 ) error {
+
 	return r.createTelemetryConfigurationSecret(ctx, l, d, config.LogsType)
 }
 
@@ -29,6 +30,7 @@ func (r *reconciler) createLogsDaemonSet(
 	l log.Logger,
 	d gragent.Deployment,
 ) error {
+
 	name := fmt.Sprintf("%s-logs", d.Agent.Name)
 	ds, err := generateLogsDaemonSet(r.config, name, d)
 	if err != nil {

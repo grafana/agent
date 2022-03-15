@@ -5,9 +5,10 @@ SHELL = /usr/bin/env bash
 # Variables #
 #############
 
-# Docker image info
+# Docker image info.
 IMAGE_PREFIX ?= grafana
 IMAGE_BRANCH_TAG ?= main
+
 ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
 # If RELEASE_TAG has a valid value it will be the same as IMAGE_TAG
@@ -15,7 +16,13 @@ IMAGE_TAG ?= $(shell ./tools/image-tag)
 RELEASE_TAG = $(IMAGE_TAG)
 else
 IMAGE_TAG ?= $(RELEASE_TAG)
+
+# If $RELEASE_TAG is from a stable release we want to update :latest instead of
+# a branch.
+ifeq (,$(findstring -rc.,$(RELEASE_TAG)))
 IMAGE_BRANCH_TAG = latest
+endif
+
 endif
 DRONE ?= false
 
@@ -424,6 +431,8 @@ define generate_fpm =
 		-t $(1) \
 		--after-install packaging/$(1)/control/postinst \
 		--before-remove packaging/$(1)/control/prerm \
+		--config-files /etc/grafana-agent.yaml \
+		--config-files $(ENVIRONMENT_FILE_$(1)) \
 		--package $(4) \
 			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
@@ -467,9 +476,9 @@ endif
 enforce-release-tag:
 	sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
-test-packages: enforce-release-tag seego dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
-	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
-.PHONY: test-package
+test-packages:
+	go test -tags=packaging -p=4 ./packaging
+.PHONY: test-packages
 
 clean-dist:
 	rm -rf dist

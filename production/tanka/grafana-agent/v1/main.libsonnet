@@ -59,7 +59,6 @@ local service = k.core.v1.service;
     config:: {
       server: {
         log_level: 'info',
-        http_listen_port: 8080,
       },
     } + (
       if has_metrics_config

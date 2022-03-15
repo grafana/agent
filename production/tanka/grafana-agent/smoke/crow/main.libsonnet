@@ -15,7 +15,9 @@ local volume = k.core.v1.volume;
 
     _config+:: {
       image: 'us.gcr.io/kubernetes-dev/grafana/agent-crow:main',
-      args: {},
+      args: {
+        'server.http.address': '0.0.0.0:80',
+      },
       pull_secret: '',
     } + config,
 
