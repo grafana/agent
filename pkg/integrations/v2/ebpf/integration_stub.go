@@ -4,17 +4,19 @@
 package ebpf
 
 import (
-	"github.com/grafana/agent/pkg/integrations/v2"
-
+	ebpf_config "github.com/cloudflare/ebpf_exporter/config"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/integrations/v2"
 )
 
 func init() {
 	integrations.Register(&config{}, integrations.TypeSingleton)
 }
 
-type config struct{}
+type config struct {
+	Programs []ebpf_config.Program `yaml:"programs,omitempty"`
+}
 
 func (c *config) ApplyDefaults(globals integrations.Globals) error        { return nil }
 func (c *config) Identifier(globals integrations.Globals) (string, error) { return c.Name(), nil }
