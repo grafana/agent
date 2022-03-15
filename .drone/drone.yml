@@ -16,7 +16,7 @@ trigger:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.43
+    image: golangci/golangci-lint:v1.44
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
       - make lint
@@ -55,6 +55,7 @@ steps:
       - export PATH=$PATH:/usr/local/go/bin
       - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
       - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
+
 depends_on:
   - Lint
 
@@ -271,6 +272,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 3da266cfeead0295f439b0ec44ba62b6b9c53f2774aef54fe58585e4d51d8990
+hmac: ea470a0d3e024c8fac2963e5868574414e6b957839b7f1db29fc22fa356eccc1
 
 ...

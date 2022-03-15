@@ -58,7 +58,7 @@ source of metrics if you are running multiple Grafana Agents across multiple
 machines.
 
 Full configuration options can be found in the
-[configuration reference]({{< relref "../configuration/index.md" >}}).
+[configuration reference]({{< relref "../configuration/_index.md" >}}).
 
 ## Prometheus config/migrating from Prometheus
 
@@ -88,7 +88,6 @@ scrape itself without using the integration:
 ```yaml
 server:
   log_level: info
-  http_listen_port: 12345
 
 metrics:
   global:
@@ -104,7 +103,7 @@ metrics:
 ```
 
 Like with integrations, full configuration options can be found in the
-[configuration]({{< relref "../configuration/index.md" >}}).
+[configuration]({{< relref "../configuration/_index.md" >}}).
 
 ## Loki Config/Migrating from Promtail
 
@@ -134,7 +133,6 @@ Tempo:
 ```yaml
 server:
   log_level: info
-  http_listen_port: 12345
 
 metrics:
   global:

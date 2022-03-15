@@ -18,6 +18,11 @@ function(name='grafana-agent', namespace='') {
     namespace: namespace,
     config_hash: true,
     agent_config: '',
+    agent_port: 80,
+    agent_args: {
+      'config.file': '/etc/agent/agent.yaml',
+      'server.http.address': '0.0.0.0:80',
+    },
   },
 
   rbac: k.util.rbac(name, [
@@ -40,9 +45,7 @@ function(name='grafana-agent', namespace='') {
 
   container::
     container.new(name, this._images.agent) +
-    container.withPorts(containerPort.new('http-metrics', 80)) +
+    container.withPorts(containerPort.new('http-metrics', this._config.agent_port)) +
     container.withCommand('/bin/agent') +
-    container.withArgsMixin(k.util.mapToFlags({
-      'config.file': '/etc/agent/agent.yaml',
-    })),
+    container.withArgsMixin(k.util.mapToFlags(this._config.agent_args)),
 }

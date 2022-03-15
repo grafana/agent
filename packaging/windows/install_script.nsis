@@ -123,7 +123,7 @@ Function Install
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "NoRepair" 1
     Call WriteConfig
 
-   
+
     # Create our batch file, since services cant run with parameters, nsexec is used to suppress console output, instead goes
     # to NSIS log window
     nsExec::ExecToLog 'sc create "Grafana Agent" binpath= "\"$INSTDIR\agent-windows-amd64.exe\""'
@@ -140,11 +140,11 @@ Function WriteConfig
     IfFileExists "$INSTDIR\agent-config.yaml" ReturnEarly WriteFile
     ReturnEarly:
         Return
-    WriteFile: 
+    WriteFile:
         # Write the config file, its easier to do this way than replacing an values in a templated file
         FileOpen $9 "$INSTDIR\agent-config.yaml" w #Opens a Empty File and fills it
         FileWrite $9 `server:$\n`
-        FileWrite $9 `  http_listen_port: 12345$\n`
+        FileWrite $9 `  log_level: warn$\n`
         FileWrite $9 `metrics:$\n`
         FileWrite $9 `  wal_directory: $APPDATA\grafana-agent-wal$\n`
         FileWrite $9 `  global:$\n`

@@ -1,0 +1,2 @@
+template_paths:
+  - "file:///etc/grafana/04_assets"

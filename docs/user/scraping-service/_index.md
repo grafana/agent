@@ -3,7 +3,7 @@ title = "Scraping Service Mode"
 weight = 500
 +++
 
-# Scraping Service Mode
+# Scraping Service Mode (Beta)
 
 Scraping Service Mode is a third operational mode of the Grafana Agent
 that allows for clustering a set of Agent processes and distributing scrape load
@@ -129,7 +129,6 @@ both configuration storage and the distributed hash ring storage:
 ```yaml
 server:
   log_level: debug
-  http_listen_port: 12345
 
 metrics:
   global:
@@ -153,8 +152,6 @@ metrics:
 
 Note that there are no instance configs present in this example; instance
 configs must be passed to the API for the Agent to start scraping metrics.
-See [the docker-compose Scraping Service Example](https://github.com/grafana/agent/blob/main/example/docker-compose/docker-compose.scraping-service.yaml)
-for how to run a Scraping Service Agent cluster locally.
 
 ## agentctl
 

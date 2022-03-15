@@ -11,6 +11,7 @@ local serviceAccount = k.core.v1.serviceAccount;
   newAgent(name='grafana-agent', namespace='default', image, config, use_daemonset=true):: {
     local controller = if use_daemonset then daemonSet else deployment,
     local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: { namespace: namespace } },
+    local this = self,
 
     _controller:: controller,
     _config_hash:: true,
@@ -45,6 +46,7 @@ local serviceAccount = k.core.v1.serviceAccount;
       container.withCommand('/bin/agent') +
       container.withArgsMixin(k.util.mapToFlags({
         'config.file': '/etc/agent/agent.yaml',
+        'server.http.address': '0.0.0.0:' + this.listen_port,
       })) +
       container.withEnvMixin([
         k.core.v1.envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),

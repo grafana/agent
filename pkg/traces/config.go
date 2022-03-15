@@ -813,6 +813,7 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 			processor == "tail_sampling" ||
 			processor == "automatic_logging" ||
 			processor == "service_graphs" {
+
 			foundAt = i
 			break
 		}

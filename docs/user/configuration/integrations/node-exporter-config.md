@@ -36,7 +36,6 @@ the `remote_write` settings with settings appropriate for you:
 ```yaml
 server:
   log_level: info
-  http_listen_port: 12345
 
 metrics:
   wal_directory: /tmp/agent

@@ -139,7 +139,6 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-
 			// Copy the input and all of its slices
 			input := cfg
 

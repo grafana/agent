@@ -28,6 +28,7 @@ func (r *reconciler) createMetricsConfigurationSecret(
 	l log.Logger,
 	d gragent.Deployment,
 ) error {
+
 	return r.createTelemetryConfigurationSecret(ctx, l, d, config.MetricsType)
 }
 
@@ -101,6 +102,7 @@ func (r *reconciler) createMetricsGoverningService(
 	l log.Logger,
 	d gragent.Deployment,
 ) error {
+
 	svc := generateMetricsStatefulSetService(r.config, d)
 
 	// Delete the old Secret if one exists and we have no prometheus instances.

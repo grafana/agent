@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/yaml.v2"
+
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/client/grafanacloud"
@@ -60,6 +62,7 @@ func main() {
 		samplesCmd(),
 		operatorDetachCmd(),
 		cloudConfigCmd(),
+		templateDryRunCmd(),
 	)
 
 	_ = cmd.Execute()
@@ -470,6 +473,40 @@ config that may be used with this agent.`,
 	cmd.Flags().StringVarP(&apiURL, "api-url", "e", "", "Grafana Cloud's API url")
 	must(cmd.MarkFlagRequired("stack"))
 	must(cmd.MarkFlagRequired("api-key"))
+
+	return cmd
+}
+
+func templateDryRunCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "template-parse [directory]",
+		Short: "dry run dynamic configuration",
+		Long:  `This will load the dynamic configuration, load configs, run templates and then output the full config as yaml`,
+		Args:  cobra.ExactArgs(1),
+
+		RunE: func(_ *cobra.Command, args []string) error {
+			cmf, err := config.NewDynamicLoader()
+			if err != nil {
+				return err
+			}
+			c := &config.Config{}
+			err = cmf.LoadConfigByPath(args[0])
+			if err != nil {
+				return err
+			}
+			err = cmf.ProcessConfigs(c)
+			if err != nil {
+				return fmt.Errorf("error processing config templates %s", err)
+			}
+
+			outBytes, err := yaml.Marshal(c)
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(outBytes))
+			return nil
+		},
+	}
 
 	return cmd
 }

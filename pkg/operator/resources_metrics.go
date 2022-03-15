@@ -109,6 +109,7 @@ func generateMetricsStatefulSet(
 	d gragent.Deployment,
 	shard int32,
 ) (*apps_v1.StatefulSet, error) {
+
 	d = *d.DeepCopy()
 
 	//
@@ -241,7 +242,7 @@ func generateMetricsStatefulSetSpec(
 	agentArgs := []string{
 		"-config.file=/var/lib/grafana-agent/config/agent.yml",
 		"-config.expand-env=true",
-		"-reload-port=8081",
+		"-server.http.address=0.0.0.0:8080",
 	}
 
 	enableConfigReadAPI := d.Agent.Spec.EnableConfigReadAPI
@@ -408,10 +409,7 @@ func generateMetricsStatefulSetSpec(
 
 				"--watch-interval=1m",
 				"--statefulset-ordinal-from-envvar=POD_NAME",
-
-				// Use specifically the reload-port for reloading, since the primary
-				// server can shut down in between reloads.
-				"--reload-url=http://127.0.0.1:8081/-/reload",
+				"--reload-url=http://127.0.0.1:8080/-/reload",
 			},
 		},
 		{

@@ -5,15 +5,31 @@ weight = 300
 
 # Configure Grafana Agent
 
-The Grafana Agent is configured in a YAML file (usually called
-`agent.yaml`) which contains information on the Grafana Agent and its
-metrics instances.
+Grafana Agent is configured across two places:
+
+* A YAML file
+* [Command-line flags]({{< relref "./flags.md" >}})
+
+The YAML file is used to configure settings which are dynamic and can be
+changed at runtime. The command-line flags then configure things which cannot
+change at runtime, such as the listen port for the HTTP server.
+
+This file describes the YAML configuration, which is usually in a file named `agent.yaml`.
 
 - [server_config]({{< relref "./server-config" >}})
 - [metrics_config]({{< relref "./metrics-config" >}})
 - [logs_config]({{< relref "./logs-config.md" >}})
 - [traces_config]({{< relref "./traces-config" >}})
 - [integrations_config]({{< relref "./integrations/_index.md" >}})
+
+The configuration of Grafana Agent is "stable," but subject to breaking changes
+as individual features change. Breaking changes to configuration will be
+well-documented.
+
+## Updating configuration
+
+The configuration file can be reloaded at runtime using the `/-/reload` API
+endpoint or sending a SIGHUP signal to the process.
 
 ## Variable substitution
 
@@ -63,16 +79,6 @@ documentation]({{< relref "../api#reload-configuration-file-beta" >}}) for more 
 This functionality is in beta, and may have issues. Please open GitHub issues
 for any problems you encounter.
 
-A reload-only HTTP server can be started to safely reload the system. To start
-this, provide `--reload-addr` and `--reload-port` as command line flags.
-`reload-port` must be set to a non-zero port to launch the reload server. The
-reload server is currently HTTP-only and supports no other options; it does not
-read any values from the `server` block in the config file.
-
-While `/-/reload` is enabled on the primary HTTP server, it is not recommended
-to use it, since changing the HTTP server configuration will cause it to
-restart.
-
 ## File format
 
 To specify which configuration file to load, pass the `-config.file` flag at
@@ -116,7 +122,7 @@ Support contents and default values of `agent.yaml`:
 [integrations: <integrations_config>]
 ```
 
-## Remote Configuration (Beta)
+## Remote Configuration (Experimental)
 
 An experimental feature for fetching remote configuration files over HTTP/S can be
 enabled by passing the `-enable-features=remote-configs` flag at the command line.

@@ -214,6 +214,7 @@ func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFac
 			_ config.Processor,
 			next consumer.Traces,
 		) (component.TracesProcessor, error) {
+
 			return &funcProcessor{
 				Callback: callback,
 				Next:     next,
@@ -254,6 +255,7 @@ func newNoopExporterFactory() component.ExporterFactory {
 			config.Exporter) (
 			component.TracesExporter,
 			error) {
+
 			return &noopExporter{}, nil
 		}),
 	)

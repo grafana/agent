@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/aws"
@@ -74,6 +75,10 @@ func validateDiscoveryNoFiles(disc discovery.Config) error {
 		// no-op
 	case *consul.SDConfig:
 		if err := validateHTTPNoFiles(&config.HTTPClientConfig{TLSConfig: d.HTTPClientConfig.TLSConfig}); err != nil {
+			return err
+		}
+	case *consulagent.SDConfig:
+		if err := validateHTTPNoFiles(&config.HTTPClientConfig{TLSConfig: d.TLSConfig}); err != nil {
 			return err
 		}
 	case *digitalocean.SDConfig:

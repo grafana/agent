@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -16,25 +17,26 @@ import (
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv/consul"
 	"github.com/grafana/dskit/kv/etcd"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
 var (
 	featRemoteConfigs    = features.Feature("remote-configs")
 	featIntegrationsNext = features.Feature("integrations-next")
+	featDynamicConfig    = features.Feature("dynamic-config")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
 		featIntegrationsNext,
+		featDynamicConfig,
 	}
 )
 
@@ -53,12 +55,6 @@ type Config struct {
 	Integrations VersionedIntegrations `yaml:"integrations,omitempty"`
 	Traces       traces.Config         `yaml:"traces,omitempty"`
 	Logs         *logs.Config          `yaml:"logs,omitempty"`
-
-	// We support a secondary server just for the /-/reload endpoint, since
-	// invoking /-/reload against the primary server can cause the server
-	// to restart.
-	ReloadAddress string `yaml:"-"`
-	ReloadPort    int    `yaml:"-"`
 
 	// Deprecated fields user has used. Generated during UnmarshalYAML.
 	Deprecations []string `yaml:"-"`
@@ -172,7 +168,7 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
-	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.GRPCListenPort
+	c.Metrics.ServiceConfig.Lifecycler.ListenPort = c.Server.Flags.GRPC.ListenPort
 
 	if err := c.Integrations.ApplyDefaults(&c.Server, &c.Metrics); err != nil {
 		return err
@@ -199,13 +195,8 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 
 // RegisterFlags registers flags in underlying configs
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
-	c.Server.MetricsNamespace = "agent"
-	c.Server.RegisterInstrumentation = true
 	c.Metrics.RegisterFlags(f)
 	c.Server.RegisterFlags(f)
-
-	f.StringVar(&c.ReloadAddress, "reload-addr", "127.0.0.1", "address to expose a secondary server for /-/reload on.")
-	f.IntVar(&c.ReloadPort, "reload-port", 0, "port to expose a secondary server for /-/reload on. 0 disables secondary server.")
 
 	f.StringVar(&c.BasicAuthUser, "config.url.basic-auth-user", "",
 		"basic auth username for fetching remote config. (requires remote-configs experiment to be enabled")
@@ -219,7 +210,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return errors.Wrap(err, "error reading config file")
+		return fmt.Errorf("error reading config file %w", err)
 	}
 	return LoadBytes(buf, expandEnvVars, c)
 }
@@ -257,6 +248,28 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
 	return LoadBytes(bb, expandEnvVars, c)
+}
+
+// LoadDynamicConfiguration is used to load configuration from a variety of sources using
+// dynamic loader, this is a templated approach
+func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
+	if expandvar {
+		return errors.New("expand var is not supported when using dynamic configuration, use gomplate env instead")
+	}
+	cmf, err := NewDynamicLoader()
+	if err != nil {
+		return err
+	}
+	err = cmf.LoadConfigByPath(url)
+	if err != nil {
+		return err
+	}
+
+	err = cmf.ProcessConfigs(c)
+	if err != nil {
+		return fmt.Errorf("error processing config templates %w", err)
+	}
+	return nil
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
@@ -302,6 +315,11 @@ func Load(fs *flag.FlagSet, args []string) (*Config, error) {
 		if features.Enabled(fs, featRemoteConfigs) {
 			return LoadRemote(url, expand, c)
 		}
+		if features.Enabled(fs, featDynamicConfig) && !features.Enabled(fs, featIntegrationsNext) {
+			return fmt.Errorf("integrations-next must be enabled for dynamic configuration to work")
+		} else if features.Enabled(fs, featDynamicConfig) {
+			return LoadDynamicConfiguration(url, expand, c)
+		}
 		return LoadFile(url, expand, c)
 	})
 }
@@ -312,12 +330,15 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	var (
 		cfg = DefaultConfig
 
-		printVersion    bool
-		file            string
-		configExpandEnv bool
+		printVersion      bool
+		file              string
+		dynamicConfigPath string
+		configExpandEnv   bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
+	fs.StringVar(&dynamicConfigPath, "config.dynamic-config-path", "", "dynamic configuration path that points to a single configuration file supports file:// or s3:// protocols. Must be enabled by -enable-features=dynamic-config,integrations-next")
+
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	cfg.RegisterFlags(fs)
@@ -332,7 +353,13 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 		os.Exit(0)
 	}
 
-	if file == "" {
+	if features.Enabled(fs, featDynamicConfig) {
+		if dynamicConfigPath == "" {
+			return nil, fmt.Errorf("-config.dynamic-config-path flag required when using dynamic configuration")
+		} else if err := loader(dynamicConfigPath, configExpandEnv, &cfg); err != nil {
+			return nil, fmt.Errorf("error loading dynamic configuration file %s: %w", dynamicConfigPath, err)
+		}
+	} else if file == "" {
 		return nil, fmt.Errorf("-config.file flag required")
 	} else if err := loader(file, configExpandEnv, &cfg); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
@@ -350,6 +377,7 @@ func load(fs *flag.FlagSet, args []string, loader func(string, bool, *Config) er
 	if features.Enabled(fs, featIntegrationsNext) {
 		version = integrationsVersion2
 	}
+
 	if err := cfg.Integrations.setVersion(version); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
 	}

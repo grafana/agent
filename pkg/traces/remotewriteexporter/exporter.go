@@ -22,14 +22,13 @@ import (
 )
 
 const (
-	nameLabelKey  = "__name__"
-	sumSuffix     = "sum"
-	countSuffix   = "count"
-	bucketSuffix  = "bucket"
-	leStr         = "le"
-	infBucket     = "+Inf"
-	counterSuffix = "total"
-	noSuffix      = ""
+	nameLabelKey = "__name__"
+	sumSuffix    = "sum"
+	countSuffix  = "count"
+	bucketSuffix = "bucket"
+	leStr        = "le"
+	infBucket    = "+Inf"
+	noSuffix     = ""
 )
 
 type dataPoint interface {
@@ -51,11 +50,9 @@ func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
 	logger := log.With(util.Logger, "component", "traces remote write exporter")
 
 	ls := make(labels.Labels, 0, len(cfg.ConstLabels))
-	for _, constLabel := range cfg.ConstLabels {
-		ls = append(ls, labels.Label{
-			Name:  constLabel.Name,
-			Value: constLabel.Value,
-		})
+
+	for name, value := range cfg.ConstLabels {
+		ls = append(ls, labels.Label{Name: name, Value: value})
 	}
 
 	return &remoteWriteExporter{
@@ -157,8 +154,8 @@ func (e *remoteWriteExporter) handleHistogramIntDataPoints(app storage.Appender,
 		if err := e.appendDataPointWithLabels(app, name, bucketSuffix, dataPoint, float64(cumulativeCount), ls); err != nil {
 			return err
 		}
-
 	}
+
 	return nil
 }
 
@@ -166,22 +163,23 @@ func (e *remoteWriteExporter) processScalarMetric(app storage.Appender, m pdata.
 	switch m.DataType() {
 	case pdata.MetricDataTypeSum:
 		dataPoints := m.Sum().DataPoints()
-		if err := e.handleScalarIntDataPoints(app, m.Name(), counterSuffix, dataPoints); err != nil {
+		if err := e.handleScalarIntDataPoints(app, m.Name(), dataPoints); err != nil {
 			return err
 		}
 	case pdata.MetricDataTypeGauge:
 		dataPoints := m.Gauge().DataPoints()
-		if err := e.handleScalarIntDataPoints(app, m.Name(), noSuffix, dataPoints); err != nil {
+		if err := e.handleScalarIntDataPoints(app, m.Name(), dataPoints); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-func (e *remoteWriteExporter) handleScalarIntDataPoints(app storage.Appender, name, suffix string, dataPoints pdata.NumberDataPointSlice) error {
+func (e *remoteWriteExporter) handleScalarIntDataPoints(app storage.Appender, name string, dataPoints pdata.NumberDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
-		if err := e.appendDataPoint(app, name, suffix, dataPoint, float64(dataPoint.IntVal())); err != nil {
+		if err := e.appendDataPoint(app, name, noSuffix, dataPoint, float64(dataPoint.IntVal())); err != nil {
 			return err
 		}
 	}
