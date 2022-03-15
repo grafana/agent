@@ -42,7 +42,6 @@ func (c *config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (c *config) ApplyDefaults(globals integrations.Globals) error {
-	c.common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 	return nil
 }
 
@@ -53,8 +52,8 @@ func (c *config) Identifier(globals integrations.Globals) (string, error) {
 func (c *config) Name() string { return "ebpf" }
 
 func (c *config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	var commonCfg common.MetricsConfig
-	commonCfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+	var metricsCfg common.MetricsConfig
+	metricsCfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 
 	ebpf := &ebpfHandler{cfg: c}
 	h, err := ebpf.createHandler()
@@ -62,7 +61,7 @@ func (c *config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		return nil, err
 	}
 
-	return metricsutils.NewMetricsHandlerIntegration(l, c, c.common, globals, h)
+	return metricsutils.NewMetricsHandlerIntegration(l, c, metricsCfg, globals, h)
 }
 
 func (e *ebpfHandler) createHandler() (http.HandlerFunc, error) {
