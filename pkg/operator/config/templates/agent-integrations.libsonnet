@@ -1,5 +1,5 @@
-// agent-metrics.libsonnet is the entrypoint for rendering a Grafana Agent
-// config file for metrics based on the Operator custom resources.
+// agent-integrations.libsonnet is the entrypoint for rendering a Grafana Agent
+// config file for integrations based on the Operator custom resources.
 //
 // When writing an object, any field will null will be removed from the final
 // YAML. This is useful as we don't want to always translate unfilled values
@@ -14,6 +14,8 @@
 local marshal = import 'ext/marshal.libsonnet';
 local optionals = import 'ext/optionals.libsonnet';
 
+local new_integration = import './integrations.libsonnet';
+local new_logs_instance = import './logs.libsonnet';
 local new_metrics_instance = import './metrics.libsonnet';
 local new_external_labels = import 'component/metrics/external_labels.libsonnet';
 local new_remote_write = import 'component/metrics/remote_write.libsonnet';
@@ -23,10 +25,15 @@ local calculateShards(requested) =
   else if requested > 1 then requested
   else 1;
 
+// Renders a new config for integrations. The ctx should have all
+// MetricsInstances and LogsInstances so integrations can self-collect
+// telemetry data, but *Monitor-like resources are ignored.
+//
 // @param {config.Deployment} ctx
 function(ctx) marshal.YAML(optionals.trim({
   local spec = ctx.Agent.Spec,
   local metrics = spec.Metrics,
+  local logs = spec.Logs,
   local namespace = ctx.Agent.ObjectMeta.Namespace,
 
   server: {
@@ -35,9 +42,19 @@ function(ctx) marshal.YAML(optionals.trim({
   },
 
   metrics: {
+    local scrubbed_instances = std.map(
+      function(inst) {
+        Instance: inst.Instance,
+        ServiceMonitors: [],
+        PodMonitors: [],
+        Probes: [],
+      },
+      ctx.Metrics,
+    ),
+
     wal_directory: '/var/lib/grafana-agent/data',
     global: {
-      external_labels: optionals.object(new_external_labels(ctx, true)),
+      external_labels: optionals.object(new_external_labels(ctx, false)),
       scrape_interval: optionals.string(metrics.ScrapeInterval),
       scrape_timeout: optionals.string(metrics.ScrapeTimeout),
       remote_write: optionals.array(std.map(
@@ -58,7 +75,56 @@ function(ctx) marshal.YAML(optionals.trim({
         enforcedTargetLimit=metrics.EnforcedTargetLimit,
         shards=calculateShards(metrics.Shards),
       ),
-      ctx.Metrics,
+      scrubbed_instances,
     )),
   },
+
+  logs: {
+    local scrubbed_instances = std.map(
+      function(inst) {
+        Instance: inst.Instance,
+        PodLogs: [],
+      },
+      ctx.Logs,
+    ),
+
+    positions_directory: '/var/lib/grafana-agent/data',
+    configs: optionals.array(std.map(
+      function(logs_inst) new_logs_instance(
+        agent=ctx.Agent,
+        global=logs,
+        instance=logs_inst,
+        apiServer=spec.APIServerConfig,
+        ignoreNamespaceSelectors=logs.IgnoreNamespaceSelectors,
+        enforcedNamespaceLabel=logs.EnforcedNamespaceLabel,
+      ),
+      scrubbed_instances,
+    )),
+  },
+
+  integrations: {
+    // Integrations should opt-in to autoscrape.
+    metrics: {
+      autoscrape: {
+        enable: false,
+      },
+    },
+  } + (
+    // Iterate over our Integration CRs and map them to an object. All
+    // integrations are stored in a <name>_configs array, even if they're
+    // unique.
+    std.foldl(
+      function(acc, element) acc {
+        [element.Instance.Spec.Name + '_configs']: (
+          local key = element.Instance.Spec.Name + '_configs';
+          local entry = new_integration(element.Instance);
+
+          if std.objectHas(acc, key) then acc[key] + [entry]
+          else [entry]
+        ),
+      },
+      ctx.Integrations,
+      {},
+    )
+  ),
 }))

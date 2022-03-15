@@ -26,6 +26,8 @@ const (
 	MetricsType Type = iota + 1
 	// LogsType generates a configuration for logs.
 	LogsType
+	// IntegrationsType generates a configuration for integrations.
+	IntegrationsType
 )
 
 // String returns the string form of Type.
@@ -35,6 +37,8 @@ func (t Type) String() string {
 		return "metrics"
 	case LogsType:
 		return "logs"
+	case IntegrationsType:
+		return "integrations"
 	default:
 		return fmt.Sprintf("unknown (%d)", int(t))
 	}
@@ -64,6 +68,8 @@ func BuildConfig(d *gragent.Deployment, ty Type) (string, error) {
 		return vm.EvaluateFile("./agent-metrics.libsonnet")
 	case LogsType:
 		return vm.EvaluateFile("./agent-logs.libsonnet")
+	case IntegrationsType:
+		return vm.EvaluateFile("./agent-integrations.libsonnet")
 	default:
 		panic(fmt.Sprintf("unexpected config type %v", ty))
 	}
