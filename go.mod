@@ -494,7 +494,7 @@ replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 
 // loadbalancingexporter uses non-fixed version of batchpertrace which fetches latest and causes problems
-replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.30.0
+replace github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal => github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.46.0
 
 // Replacing for an internal fork that exposes internal folders
 // Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
