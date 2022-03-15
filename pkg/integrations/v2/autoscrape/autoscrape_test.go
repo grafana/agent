@@ -48,6 +48,7 @@ func TestAutoscrape(t *testing.T) {
 			cfg := prom_config.DefaultScrapeConfig
 			cfg.JobName = t.Name()
 			cfg.ScrapeInterval = model.Duration(time.Second)
+			cfg.ScrapeTimeout = model.Duration(time.Second / 2)
 			cfg.ServiceDiscoveryConfigs = discovery.Configs{
 				discovery.StaticConfig{{
 					Targets: []model.LabelSet{{

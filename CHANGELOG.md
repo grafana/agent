@@ -26,6 +26,8 @@
 
 - [ENHANCEMENT] Update Prometheus dependency to v2.33.5. (@rfratto)
 
+- [ENHANCEMENT] Update OpenTelemetry-collector dependency to v0.46.0. (@mapno)
+
 - [BUGFIX] Ensure singleton integrations are honored in v2 integrations
   (@mattdurham)
 

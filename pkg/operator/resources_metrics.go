@@ -420,7 +420,7 @@ func generateMetricsStatefulSetSpec(
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			ReadinessProbe: &v1.Probe{
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path: "/-/ready",
 						Port: intstr.FromString(d.Agent.Spec.PortName),
