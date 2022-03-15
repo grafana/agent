@@ -54,6 +54,11 @@ function(ctx) marshal.YAML(optionals.trim({
 
     wal_directory: '/var/lib/grafana-agent/data',
     global: {
+      // NOTE(rfratto): we don't want to add the replica label here, since
+      // there will never be more than one HA replica for a running
+      // integration. Adding a replica label will cause it to be subject to
+      // HA dedupe and risk being discarded depending on what the active
+      // replica is server-side.
       external_labels: optionals.object(new_external_labels(ctx, false)),
       scrape_interval: optionals.string(metrics.ScrapeInterval),
       scrape_timeout: optionals.string(metrics.ScrapeTimeout),
