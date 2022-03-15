@@ -17,41 +17,41 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type config struct {
+type Config struct {
 	Programs []ebpf_config.Program `yaml:"programs,omitempty"`
 }
 
 type ebpfHandler struct {
-	cfg *config
+	cfg *Config
 }
 
 func init() {
-	integrations.Register(&config{}, integrations.TypeSingleton)
+	integrations.Register(&Config{}, integrations.TypeSingleton)
 }
 
-var defaultConfig = config{
+var defaultConfig = Config{
 	Programs: []ebpf_config.Program{},
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = defaultConfig
-	type plain config
+	type plain Config
 
 	return unmarshal((*plain)(c))
 }
 
-func (c *config) ApplyDefaults(globals integrations.Globals) error {
+func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 	return nil
 }
 
-func (c *config) Identifier(globals integrations.Globals) (string, error) {
+func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 	return c.Name(), nil
 }
 
-func (c *config) Name() string { return "ebpf" }
+func (c *Config) Name() string { return "ebpf" }
 
-func (c *config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
+func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	var metricsCfg common.MetricsConfig
 	metricsCfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 
