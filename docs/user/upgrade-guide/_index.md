@@ -204,6 +204,15 @@ initially added to workaround an issue where reloading a changed server block
 would cause the primary HTTP server to restart. As the HTTP server settings are
 now static, this can no longer happen, and as such the flags have been removed.
 
+### Change: In-memory autoscrape for integrations-next
+
+This change is only relevant to those using the `integrations-next` feature flag.
+
+In-memory connections will now be used for autoscraping-enabled integrations.
+This is a change over the previous behavior where autoscraping integrations
+would connect to themselves over the network. As a result of this change, the
+`integrations.client_config` field is no longer necessary and has been removed.
+
 ## v0.22.0
 
 ### `node_exporter` integration deprecated field names

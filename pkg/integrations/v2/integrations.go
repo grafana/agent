@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -95,6 +96,8 @@ type Globals struct {
 	SubsystemOpts SubsystemOptions
 	// BaseURL to use to invoke methods against the embedded HTTP server.
 	AgentBaseURL *url.URL
+	// Dialer to use for making connections. May be nil.
+	DialContextFunc server.DialContextFunc
 }
 
 // CloneAgentBaseURL returns a copy of AgentBaseURL that can be modified.
