@@ -26,8 +26,8 @@ can be changed with the `--server.http.address` flag (e.g.,
 `--server.http.address=127.0.0.1:8000`).
 
 The Docker Compose environment heavily relies on profiles to enable optional
-features. You can pass multiple profiles by separating them by comma:
-`docker compose --profile=agent,integrations up -d`.
+features. You can pass multiple profiles by passing the flag multiple times:
+`docker compose --profile agent --profile integrations up -d`.
 
 ## Running Integrations
 
