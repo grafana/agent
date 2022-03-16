@@ -57,7 +57,7 @@ func (sh *snmpHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 	for _, t := range sh.cfg.SnmpTargets {
 		group.Targets = append(group.Targets, model.LabelSet{
 			model.AddressLabel:     model.LabelValue(ep.Host),
-			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "snmp")),
+			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "metrics")),
 			"snmp_target":          model.LabelValue(t.Target),
 			"__param_target":       model.LabelValue(t.Target),
 		})
@@ -89,7 +89,7 @@ func (sh *snmpHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeC
 
 func (sh *snmpHandler) Handler(prefix string) (http.Handler, error) {
 	r := mux.NewRouter()
-	r.Handle(path.Join(prefix, "snmp"), sh.createHandler(sh.cfg.SnmpTargets))
+	r.Handle(path.Join(prefix, "metrics"), sh.createHandler(sh.cfg.SnmpTargets))
 
 	return r, nil
 }
