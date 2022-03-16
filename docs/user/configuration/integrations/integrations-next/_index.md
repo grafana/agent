@@ -109,7 +109,7 @@ integrations:
   mongodb_configs:
     [- <mongodb_exporter_config> ...]
 
-  mysqld_configs:
+  mysql_configs:
     [- <mysqld_exporter_config> ...]
 
   postgres_configs:
