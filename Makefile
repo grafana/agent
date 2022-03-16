@@ -431,6 +431,8 @@ define generate_fpm =
 		-t $(1) \
 		--after-install packaging/$(1)/control/postinst \
 		--before-remove packaging/$(1)/control/prerm \
+		--config-files /etc/grafana-agent.yaml \
+		--config-files $(ENVIRONMENT_FILE_$(1)) \
 		--package $(4) \
 			dist/agent-linux-$(3)=/usr/bin/grafana-agent \
 			dist/agentctl-linux-$(3)=/usr/bin/grafana-agentctl \
@@ -474,9 +476,9 @@ endif
 enforce-release-tag:
 	sh -c '[ -n "${RELEASE_TAG}" ] || (echo \$$RELEASE_TAG environment variable not set; exit 1)'
 
-test-packages: enforce-release-tag seego dist-packages-amd64 packaging/centos-systemd/.uptodate packaging/debian-systemd/.uptodate
-	./tools/test-packages $(IMAGE_PREFIX) $(PACKAGE_VERSION) $(PACKAGE_RELEASE)
-.PHONY: test-package
+test-packages:
+	go test -tags=packaging -p=4 ./packaging
+.PHONY: test-packages
 
 clean-dist:
 	rm -rf dist

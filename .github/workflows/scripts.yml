@@ -5,7 +5,7 @@ jobs:
     name: Shellcheck
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: azohra/shell-linter@latest
       with:
         path: "packaging,production"

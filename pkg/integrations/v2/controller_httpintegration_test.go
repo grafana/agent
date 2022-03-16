@@ -18,6 +18,41 @@ import (
 // Tests for controller's utilization of the HTTPIntegration interface.
 //
 
+func Test_controller_Handler_Sync(t *testing.T) {
+	httpConfigFromID := func(t *testing.T, name, identifier string) Config {
+		t.Helper()
+
+		cfg := mockConfigNameTuple(t, name, identifier)
+		cfg.NewIntegrationFunc = func(log.Logger, Globals) (Integration, error) {
+			i := mockHTTPIntegration{
+				Integration: NoOpIntegration,
+				HandlerFunc: func(prefix string) (http.Handler, error) {
+					return http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
+						// We should never reach here since we don't run the integrations.
+						rw.WriteHeader(http.StatusBadRequest)
+					}), nil
+				},
+			}
+			return i, nil
+		}
+
+		return cfg
+	}
+
+	cfg := controllerConfig{httpConfigFromID(t, "foo", "bar")}
+	ctrl, err := newController(util.TestLogger(t), cfg, Globals{})
+	require.NoError(t, err)
+
+	handler, err := ctrl.Handler("/integrations/")
+	require.NoError(t, err)
+
+	srv := httptest.NewServer(handler)
+
+	resp, err := srv.Client().Get(srv.URL + "/integrations/foo/bar")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+}
+
 // Test_controller_HTTPIntegration_Prefixes ensures that the controller will assign
 // appropriate prefixes to HTTPIntegrations.
 func Test_controller_HTTPIntegration_Prefixes(t *testing.T) {

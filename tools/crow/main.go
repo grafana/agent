@@ -4,20 +4,20 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 
 	// Adds version information
 	_ "github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/server"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/crow"
-	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
-	"github.com/weaveworks/common/server"
 )
 
 func init() {
@@ -28,8 +28,8 @@ func main() {
 	var (
 		fs = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-		serverCfg   server.Config
-		crowCfg     crow.Config
+		serverCfg   = server.DefaultConfig
+		crowCfg     = crow.DefaultConfig
 		showVersion bool
 	)
 
@@ -46,11 +46,10 @@ func main() {
 		os.Exit(0)
 	}
 
-	l := util.NewLogger(&serverCfg)
+	l := server.NewLogger(&serverCfg)
 	crowCfg.Log = l
-	serverCfg.Log = util.GoKitLogger(l)
 
-	s, err := server.New(serverCfg)
+	s, err := server.New(l, prometheus.DefaultRegisterer, prometheus.DefaultGatherer, serverCfg)
 	if err != nil {
 		level.Error(l).Log("msg", "failed to initialize server", "err", err)
 		os.Exit(1)
@@ -71,10 +70,13 @@ func main() {
 	}))
 
 	// Register crow's metrics to /metrics and /validate respectively.
-	s.Registerer.MustRegister(c.StateMetrics())
+	prometheus.DefaultRegisterer.MustRegister(c.StateMetrics())
 	validator.MustRegister(c.TestMetrics())
 
-	if err := s.Run(); err != nil {
+	ctx, cancel := server.SignalContext(context.Background(), l)
+	defer cancel()
+
+	if err := s.Run(ctx); err != nil {
 		level.Error(l).Log("msg", "server exited with error", "err", err)
 		os.Exit(1)
 	}

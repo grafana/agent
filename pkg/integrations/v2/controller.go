@@ -61,10 +61,6 @@ func (c *controller) run(ctx context.Context) {
 			return
 		case newIntegrations := <-c.runIntegrations:
 			pool.Reload(newIntegrations)
-
-			c.mut.Lock()
-			c.integrations = newIntegrations
-			c.mut.Unlock()
 		}
 	}
 }
@@ -196,6 +192,7 @@ NextConfig:
 
 	c.cfg = cfg
 	c.globals = globals
+	c.integrations = integrations
 	return nil
 }
 

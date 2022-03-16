@@ -44,7 +44,6 @@ func TestBuildConfigMetrics(t *testing.T) {
 			`),
 			expect: util.Untab(`
 				server:
-					http_listen_port: 8080
 					log_level: debug
 
 				metrics:
@@ -98,7 +97,6 @@ func TestBuildConfigMetrics(t *testing.T) {
 				`),
 			expect: util.Untab(`
 					server:
-						http_listen_port: 8080
 						log_level: debug
 
 					metrics:
@@ -187,8 +185,7 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 	`)
 
 	expect := util.Untab(`
-server:
-  http_listen_port: 8080
+server: {}
 
 metrics:
   wal_directory: /var/lib/grafana-agent/data
@@ -234,7 +231,6 @@ func TestBuildConfigLogs(t *testing.T) {
 			`),
 			expect: util.Untab(`
 				server:
-					http_listen_port: 8080
 					log_level: debug
 				logs:
 					positions_directory: /var/lib/grafana-agent/data

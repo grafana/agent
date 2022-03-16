@@ -57,6 +57,8 @@ scraping service config management API.
 ## General
 
 - `withAgentConfig(config)`: Provide a custom Agent config.
+- `withArgsMixin(config)`: Pass a map of additional flags to set.
+- `withMetricsPort(port)`: Value for the `http-metrics` port (default 80)
 - `withImagesMixin(images)`: Use custom images instead of the defaults.
 - `withConfigHash(include=true)`: Whether to include a config hash annotation.
 - `withPortsMixin(ports=[])`: Mixin ports from `k.core.v1.containerPort` against
@@ -66,15 +68,15 @@ scraping service config management API.
 
 ## Helpers
 
-- `newKubernetesMetrics(config)`: Creates a set of metrics scrape_configs for
+- `newKubernetesMetrics(config={})`: Creates a set of metrics scrape_configs for
   collecting metrics from Kubernetes pods.
-- `newKubernetesLogs(config)`: Creates a set of logs scrape_configs for
+- `newKubernetesLogs(config={})`: Creates a set of logs scrape_configs for
   collecting logs from Kubernetes pods.
-- `newKubernetesTraces(config)`: Creates a set of traces scrape_configs for
+- `newKubernetesTraces(config={})`: Creates a set of traces scrape_configs for
   associating spans with metadata from discovered Kubernetes pods.
-- `withLogVolumeMounts()`: Adds volume mounts to the controller for collecting
+- `withLogVolumeMounts(config={})`: Adds volume mounts to the controller for collecting
   logs.
-- `withLogPermissions()`: Runs the container as privileged and as the root user
+- `withLogPermissions(config={})`: Runs the container as privileged and as the root user
   so logs can be collected properly.
 - `withService(config)`: Add a service for the deployment, statefulset, or daemonset.
   Note that this must be called after any ports are added via `withPortsMixin`.

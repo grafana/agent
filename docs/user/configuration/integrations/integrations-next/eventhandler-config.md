@@ -77,7 +77,6 @@ Sample agent config:
 
 ```yaml
 server:
-  http_listen_port: 12345
   log_level: info
 
 integrations:
@@ -206,7 +205,6 @@ apiVersion: v1
 data:
   agent.yaml: |
     server:
-      http_listen_port: 12345
       log_level: info
 
     integrations:
@@ -298,6 +296,7 @@ spec:
         args:
         - -config.file=/etc/agent/agent.yaml
         - -enable-features=integrations-next
+        - -server.http.address=0.0.0.0:12345
         command:
         - /bin/agent
         env:

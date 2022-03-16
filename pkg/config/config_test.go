@@ -38,7 +38,7 @@ metrics:
 	require.NotEmpty(t, c.Metrics.ServiceConfig.Lifecycler.InfNames)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.NumTokens)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.HeartbeatPeriod)
-	require.True(t, c.Server.RegisterInstrumentation)
+	require.True(t, c.Server.Flags.RegisterInstrumentation)
 }
 
 // TestConfig_ConfigAPIFlag makes sure that the read API flag is passed
