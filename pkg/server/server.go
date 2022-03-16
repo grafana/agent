@@ -211,7 +211,6 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 		grpcMemListener = memconn.NewListener(nil)
 	)
 	dialFunc := func(ctx context.Context, network string, address string) (net.Conn, error) {
-		fmt.Println("HELLO", network, address)
 		switch address {
 		case opts.HTTP.InMemoryAddr:
 			return httpMemListener.DialContext(ctx)
