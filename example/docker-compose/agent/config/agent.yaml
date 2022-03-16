@@ -52,7 +52,7 @@ traces:
   configs:
   - name: default
     remote_write:
-      - endpoint: ${TEMPO_HOST:-localhost:55680}
+      - endpoint: ${TEMPO_HOST:-localhost:4317}
         insecure: true
     receivers:
       jaeger:

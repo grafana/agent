@@ -88,7 +88,7 @@ local images = {
     ]) +
     grafana_agent.withTracesRemoteWrite([
       {
-        endpoint: 'collector.default.svc.cluster.local:55680',
+        endpoint: 'collector.default.svc.cluster.local:4317',
         insecure: true,
       },
     ]) +
