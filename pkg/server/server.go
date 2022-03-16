@@ -24,12 +24,17 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rfratto/ckit/memconn"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/middleware"
 	"golang.org/x/net/netutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
+
+// DialContextFunc is a function matching the signature of
+// net.Dialer.DialContext.
+type DialContextFunc func(ctx context.Context, network string, addr string) (net.Conn, error)
 
 // Server wraps an HTTP and gRPC server with some common initialization.
 //
@@ -38,6 +43,10 @@ import (
 type Server struct {
 	optsMut sync.Mutex
 	opts    Flags
+
+	// Listeners for in-memory connections. These never use TLS.
+	httpMemListener *memconn.Listener
+	grpcMemListener *memconn.Listener
 
 	// Listeners to use for connections. These will use TLS when TLS is enabled.
 	httpListener net.Listener
@@ -49,6 +58,11 @@ type Server struct {
 	HTTP       *mux.Router
 	HTTPServer *http.Server
 	GRPC       *grpc.Server
+
+	// DialContext creates a connection to the given network/address. If address
+	// matches the Server's internal HTTP or gRPC address, an internal in-memory
+	// connection will be opened.
+	DialContext DialContextFunc
 }
 
 type metrics struct {
@@ -122,6 +136,15 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 	}
 	wrappedLogger := GoKitLogger(l)
 
+	switch {
+	case opts.HTTP.InMemoryAddr == "":
+		return nil, fmt.Errorf("in memory HTTP address must be configured")
+	case opts.GRPC.InMemoryAddr == "":
+		return nil, fmt.Errorf("in memory gRPC address must be configured")
+	case opts.HTTP.InMemoryAddr == opts.GRPC.InMemoryAddr:
+		return nil, fmt.Errorf("in memory HTTP and gRPC address must be different")
+	}
+
 	m, err := newMetrics(r)
 	if err != nil {
 		return nil, err
@@ -182,17 +205,37 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 		return nil, err
 	}
 
+	// Build in-memory listeners and dial function
+	var (
+		httpMemListener = memconn.NewListener(nil)
+		grpcMemListener = memconn.NewListener(nil)
+	)
+	dialFunc := func(ctx context.Context, network string, address string) (net.Conn, error) {
+		fmt.Println("HELLO", network, address)
+		switch address {
+		case opts.HTTP.InMemoryAddr:
+			return httpMemListener.DialContext(ctx)
+		case opts.GRPC.InMemoryAddr:
+			return grpcMemListener.DialContext(ctx)
+		default:
+			return (&net.Dialer{}).DialContext(ctx, network, address)
+		}
+	}
+
 	return &Server{
-		opts:         opts,
-		httpListener: httpListener,
-		grpcListener: grpcListener,
+		opts:            opts,
+		httpListener:    httpListener,
+		grpcListener:    grpcListener,
+		httpMemListener: httpMemListener,
+		grpcMemListener: grpcMemListener,
 
 		updateHTTPTLS: updateHTTPTLS,
 		updateGRPCTLS: updateGRPCTLS,
 
-		HTTP:       router,
-		HTTPServer: httpServer,
-		GRPC:       grpcServer,
+		HTTP:        router,
+		HTTPServer:  httpServer,
+		GRPC:        grpcServer,
+		DialContext: dialFunc,
 	}, nil
 }
 
@@ -364,27 +407,41 @@ func (s *Server) Run(ctx context.Context) error {
 		cancel()
 	})
 
-	g.Add(func() error {
-		err := s.HTTPServer.Serve(s.httpListener)
-		if errors.Is(err, http.ErrServerClosed) {
-			err = nil
-		}
-		return err
-	}, func(_ error) {
-		ctx, cancel := context.WithTimeout(context.Background(), s.opts.GracefulShutdownTimeout)
-		defer cancel()
-		_ = s.HTTPServer.Shutdown(ctx)
-	})
+	httpListeners := []net.Listener{
+		s.httpListener,
+		s.httpMemListener,
+	}
+	for i := range httpListeners {
+		listener := httpListeners[i]
+		g.Add(func() error {
+			err := s.HTTPServer.Serve(listener)
+			if errors.Is(err, http.ErrServerClosed) {
+				err = nil
+			}
+			return err
+		}, func(_ error) {
+			ctx, cancel := context.WithTimeout(context.Background(), s.opts.GracefulShutdownTimeout)
+			defer cancel()
+			_ = s.HTTPServer.Shutdown(ctx)
+		})
+	}
 
-	g.Add(func() error {
-		err := s.GRPC.Serve(s.grpcListener)
-		if errors.Is(err, grpc.ErrServerStopped) {
-			err = nil
-		}
-		return err
-	}, func(_ error) {
-		s.GRPC.GracefulStop()
-	})
+	grpcListeners := []net.Listener{
+		s.grpcListener,
+		s.grpcMemListener,
+	}
+	for i := range grpcListeners {
+		listener := grpcListeners[i]
+		g.Add(func() error {
+			err := s.GRPC.Serve(listener)
+			if errors.Is(err, grpc.ErrServerStopped) {
+				err = nil
+			}
+			return err
+		}, func(_ error) {
+			s.GRPC.GracefulStop()
+		})
+	}
 
 	return g.Run()
 }

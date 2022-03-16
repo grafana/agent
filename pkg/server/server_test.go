@@ -37,6 +37,28 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestServer_InMemory(t *testing.T) {
+	cfg := newTestConfig()
+	srv := runExampleServer(t, cfg)
+
+	// Validate HTTP
+	var httpClient http.Client
+	httpClient.Transport = &http.Transport{DialContext: srv.DialContext}
+	resp, err := httpClient.Get(fmt.Sprintf("http://%s/testing", cfg.Flags.HTTP.InMemoryAddr))
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	_ = resp.Body.Close()
+
+	// Validate gRPC
+	grpcDialer := grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+		return srv.DialContext(ctx, "", s)
+	})
+	cc, err := grpc.Dial(cfg.Flags.GRPC.InMemoryAddr, grpc.WithInsecure(), grpcDialer)
+	require.NoError(t, err)
+	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
+	require.NoError(t, err)
+}
+
 func newTestConfig() Config {
 	cfg := DefaultConfig
 	cfg.Flags.HTTP.ListenAddress = anyLocalhost
