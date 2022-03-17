@@ -16,7 +16,7 @@ trigger:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.44
+    image: golangci/golangci-lint:v1.44.2
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
       - make lint
@@ -272,6 +272,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: ea470a0d3e024c8fac2963e5868574414e6b957839b7f1db29fc22fa356eccc1
+hmac: 6783d7de56d9bad5327f2810fab745942e4c9c34570698e4f0f22db192f9fa7b
 
 ...
