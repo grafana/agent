@@ -108,7 +108,7 @@ detect_package_system() {
 
 # install_deb downloads and installs the deb package of the Grafana Agent.
 install_deb() {
-  curl -fsL "${DEB_URL}" -o /tmp/grafana-agent.deb || fatal 'Failed to download package'
+  curl -fL# "${DEB_URL}" -o /tmp/grafana-agent.deb || fatal 'Failed to download package'
   sudo dpkg -i /tmp/grafana-agent.deb
   rm /tmp/grafana-agent.deb
 }
