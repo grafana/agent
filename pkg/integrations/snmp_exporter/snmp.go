@@ -45,11 +45,24 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query()
 
-	target := query.Get("target")
-	if len(query["target"]) != 1 || target == "" {
+	snmpTargets := make(map[string]SnmpTarget)
+	for _, target := range sh.cfg.SnmpTargets {
+		snmpTargets[target.Name] = target
+	}
+
+	var target string
+	targetName := query.Get("target")
+	if len(query["target"]) != 1 || targetName == "" {
 		http.Error(w, "'target' parameter must be specified once", 400)
 		SnmpRequestErrors.Inc()
 		return
+	}
+
+	t, ok := snmpTargets[targetName]
+	if ok {
+		target = t.Target
+	} else {
+		target = targetName
 	}
 
 	moduleName := query.Get("module")

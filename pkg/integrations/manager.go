@@ -185,6 +185,8 @@ func NewManager(cfg ManagerConfig, logger log.Logger, im instance.Manager, valid
 		validator: validate,
 
 		integrations: make(map[string]*integrationProcess, len(cfg.Integrations)),
+
+		handlerCache: make(map[string]handlerCacheEntry),
 	}
 
 	var err error
