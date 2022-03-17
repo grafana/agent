@@ -371,7 +371,7 @@ func getTestGlobalConfig(t *testing.T) GlobalConfig {
 	return GlobalConfig{
 		Prometheus: config.GlobalConfig{
 			ScrapeInterval:     model.Duration(time.Millisecond * 50),
-			ScrapeTimeout:      model.Duration(time.Millisecond * 100),
+			ScrapeTimeout:      model.Duration(time.Millisecond * 25),
 			EvaluationInterval: model.Duration(time.Hour),
 		},
 	}
