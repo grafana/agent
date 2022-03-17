@@ -28,6 +28,8 @@
 
 - [ENHANCEMENT] Update OpenTelemetry-collector dependency to v0.46.0. (@mapno)
 
+- [ENHANCEMENT] Update cAdvisor dependency to v0.44.0. (@rfratto)
+
 - [BUGFIX] Ensure singleton integrations are honored in v2 integrations
   (@mattdurham)
 
