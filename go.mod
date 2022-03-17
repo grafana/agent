@@ -468,9 +468,6 @@ replace (
 	github.com/sercand/kuberesolver => github.com/sercand/kuberesolver v2.4.0+incompatible
 	github.com/thanos-io/thanos v0.22.0 => github.com/thanos-io/thanos v0.19.1-0.20211126105533-c5505f5eaa7d
 	gopkg.in/Graylog2/go-gelf.v2 => github.com/grafana/go-gelf v0.0.0-20211112153804-126646b86de8
-//k8s.io/api => k8s.io/api v0.21.0
-//k8s.io/apimachinery => k8s.io/apimachinery v0.21.0
-//k8s.io/client-go => k8s.io/client-go v0.21.0
 )
 
 // TODO(rfratto): remove forks when changes are merged upstream
