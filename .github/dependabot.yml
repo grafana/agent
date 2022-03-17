@@ -9,3 +9,9 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 2
+    ignore:
+      # OpenTelemetry needs special handling due to a temporary fork; exempt
+      # from Dependabot auto-updating.
+      - dependency-name: "github.com/open-telemetry/opentelemetry-collector-contrib/*"
+      - dependency-name: "go.opentelemetry.io/collector"
+      - dependency-name: "go.opentelemetry.io/collector/model"
