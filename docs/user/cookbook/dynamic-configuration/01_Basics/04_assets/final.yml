@@ -201,7 +201,7 @@ integrations:
       metrics_instance: default
       scrape_interval: 1m
       scrape_timeout: 20s
-  redis_exporter_configs:
+  redis_configs:
   - autoscrape:
       metric_relabel_configs:
       - source_labels:
