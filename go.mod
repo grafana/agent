@@ -512,6 +512,8 @@ replace github.com/hairyhenderson/gomplate/v3 => github.com/mattdurham/gomplate/
 // Required to ensure compatible hashicorp lib is loaded for dynamic configuration, this solves an ambigous import
 exclude github.com/hashicorp/vault v0.10.3
 
+// Add exclude directives so Go doesn't pick old incompatible k8s.io/client-go 
+// versions.
 exclude (
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/client-go v8.0.0+incompatible
