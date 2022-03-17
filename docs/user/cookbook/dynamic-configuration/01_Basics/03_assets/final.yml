@@ -224,7 +224,7 @@ integrations:
     systemd_unit_include: .+
     tapestats_ignored_devices: ^$
     vmstat_fields: ^(oom_kill|pgpg|pswp|pg.*fault).*
-  redis_exporter_configs:
+  redis_configs:
   - autoscrape:
       metric_relabel_configs:
       - source_labels:

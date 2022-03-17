@@ -9,6 +9,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -241,6 +243,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.Shim)
 }
 
 // MapConfigToNodeExporterFlags takes in a node_exporter Config and converts

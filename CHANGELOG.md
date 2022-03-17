@@ -83,6 +83,12 @@
   removed. They are no longer necessary as the primary HTTP server is now
   static and can't be shut down in the middle of a `/-/reload` call. (@rfratto)
 
+- [CHANGE] BREAKING CHANGE (Only impacts `integrations-next` feature flag):
+  Many integrations have been renamed to better represent what they are
+  integrating with. For example, `redis_exporter` is now `redis`. This change
+  requires updating `integrations-next`-enabled configuration files. This
+  change also changes integration names shown in metric labels. (@rfratto)
+
 # v0.23.0 (2022-01-13)
 
 - [ENHANCEMENT] Go 1.17 is now used for all builds of the Agent. (@tpaschalis)

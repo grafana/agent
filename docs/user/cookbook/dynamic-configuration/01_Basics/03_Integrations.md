@@ -12,11 +12,11 @@ Tells the Grafana Agent where to load files from.
 
 ## Integrations
 
-Integrations are loaded from files matching `integrations-*.yml` and are combined together. You can declare for example multiple sets of `redis_exporter_configs` across several files. 
+Integrations are loaded from files matching `integrations-*.yml` and are combined together. You can declare for example multiple sets of `redis_configs` across several files.
 
 [integrations-node.yml](03_assets/integrations-node.yml)
 
-Note: You do NOT have to name the above file `integrations-node.yml` with `node`, `integrations-1.yml` would work the same. The name does NOT determine the type of integrations a template can contain and a template can contain integrations of different types.  
+Note: You do NOT have to name the above file `integrations-node.yml` with `node`, `integrations-1.yml` would work the same. The name does NOT determine the type of integrations a template can contain and a template can contain integrations of different types.
 
 ```yaml
 node_exporter: {}
@@ -25,7 +25,7 @@ node_exporter: {}
 [integrations-redis.yml](03_assets/integrations-redis.yml)
 
 ```yaml
-redis_exporter_configs:
+redis_configs:
   - redis_addr: localhost:6379
     autoscrape:
       metric_relabel_configs:
@@ -39,5 +39,5 @@ redis_exporter_configs:
 
 [final.yml](03_assets/final.yml)
 
-The final result should have 3 integrations enabled, 1 node_exporter and 2 redis_exporters.
+The final result should have 3 integrations enabled, 1 node_exporter and 2 redis.
 
