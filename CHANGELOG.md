@@ -47,6 +47,9 @@
 - [BUGFIX] Fix issue where installing the DEB/RPM packages would overwrite the
   existing config files and environment files. (@rfratto)
 
+- [BUGFIX] Set `grafanaDashboardFolder` as top level key in the mixin.
+  (@Duologic)
+
 - [DEPRECATION] Most fields in the `server` block of the configuration file are
   now deprecated in favor of command line flags. These fields will be removed
   in the v0.26.0 release. Please consult the upgrade guide for more information
