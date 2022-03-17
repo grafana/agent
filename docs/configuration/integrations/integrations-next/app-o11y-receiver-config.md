@@ -51,9 +51,12 @@ Full reference of options:
   # Content-Length header is used to make this check
   [max_allowed_payload_size: <number> | default = 0]
 
-  # Loki instance to send logs and exceptions to. This assumes that you have a logs
+  # Traces instance to send traces to. This assumes that you have a traces config with such instance defined
+  [traces_instance: <string> | default = ""]
+
+  # Logs instance to send logs and exceptions to. This assumes that you have a logs
   # config with the instance defined
-  [logs_instance: <string> | default = "default"]
+  [logs_instance: <string> | default = ""]
 
   # Server config refres to the HTTP endpoint that the integration will be exposing
   # to receive data from.
@@ -67,7 +70,7 @@ Full reference of options:
   logs_labels:
     [- <key>: <string>]
 
-  # Timeout duration when sending an entry to Loki
+  # Timeout duration when sending an entry to Loki, milliseconds
   [logs_send_timeout: <number> | default = 2000]
 
   # Sourcemap configuration for enabling stack trace transformation to original source locations

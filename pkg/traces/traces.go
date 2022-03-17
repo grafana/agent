@@ -50,6 +50,14 @@ func New(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg pro
 	return traces, nil
 }
 
+// Instance is used to retrieve a named Traces instance
+func (t *Traces) Instance(name string) *Instance {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+
+	return t.instances[name]
+}
+
 // ApplyConfig updates Traces with a new Config.
 func (t *Traces) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, cfg Config, level logrus.Level) error {
 	t.mut.Lock()

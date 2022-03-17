@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
+	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
@@ -26,6 +27,7 @@ import (
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 	"github.com/slok/go-http-metrics/middleware/std"
+	"go.opentelemetry.io/collector/component"
 )
 
 // Config structs controls the configuration of the app o11y
@@ -73,7 +75,7 @@ var (
 	_ integrations.MetricsIntegration = (*appo11yIntegration)(nil)
 )
 
-// NewIntegration converts this config into an instance of an integratin
+// NewIntegration converts this config into an instance of an integration
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	id, err := c.Identifier(globals)
 	if err != nil {
@@ -88,24 +90,43 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	sourcemapLogger := log.With(l, "subcomponent", "sourcemaps")
 	sourcemapStore := sourcemaps.NewSourceMapStore(sourcemapLogger, c.ExporterConfig.SourceMaps, reg, nil, nil)
 
-	logsInstance := globals.Logs.Instance(c.ExporterConfig.LogsInstance)
-	logsExporter := exporters.NewLogsExporter(
-		l,
-		exporters.LogsExporterConfig{
-			LogsInstance:     logsInstance,
-			Labels:           c.ExporterConfig.LogsLabels,
-			SendEntryTimeout: c.ExporterConfig.LogsSendTimeout,
-		},
-		sourcemapStore,
-	)
-
 	receiverMetricsExporter := exporters.NewReceiverMetricsExporter(exporters.ReceiverMetricsExporterConfig{
 		Reg: reg,
 	})
 
 	var exp = []exporters.AppO11yReceiverExporter{
-		logsExporter,
 		receiverMetricsExporter,
+	}
+
+	if len(c.ExporterConfig.LogsInstance) > 0 {
+		logsInstance := globals.Logs.Instance(c.ExporterConfig.LogsInstance)
+		if logsInstance == nil {
+			return nil, fmt.Errorf("logs instance \"%s\" not found", c.ExporterConfig.LogsInstance)
+		}
+		lokiExporter := exporters.NewLogsExporter(
+			l,
+			exporters.LogsExporterConfig{
+				LogsInstance:     logsInstance,
+				Labels:           c.ExporterConfig.LogsLabels,
+				SendEntryTimeout: c.ExporterConfig.LogsSendTimeout,
+			},
+			sourcemapStore,
+		)
+		exp = append(exp, lokiExporter)
+	}
+
+	if len(c.ExporterConfig.TracesInstance) > 0 {
+		tracesInstance := globals.Tracing.Instance(c.ExporterConfig.TracesInstance)
+		if tracesInstance == nil {
+			return nil, fmt.Errorf("traces instance \"%s\" not found", c.ExporterConfig.TracesInstance)
+		}
+
+		factory := tracesInstance.GetFactory(component.KindReceiver, "push_receiver")
+		if factory == nil {
+			return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.ExporterConfig.TracesInstance)
+		}
+		tracesExporter := exporters.NewTracesExporter(factory.(*pushreceiver.Factory))
+		exp = append(exp, tracesExporter)
 	}
 
 	handler := handler.NewAppO11yHandler(c.ExporterConfig, exp, reg)

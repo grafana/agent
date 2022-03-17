@@ -27,7 +27,7 @@ type LogsExporterConfig struct {
 	Labels           map[string]string
 }
 
-// LogsExporter is the struct of the logs exporter
+// LogsExporter will send logs & errors to loki
 type LogsExporter struct {
 	li             logsInstance
 	seTimeout      time.Duration
