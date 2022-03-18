@@ -22,15 +22,13 @@
 - [ENHANCEMENT] Parameterize namespace field in sample K8s logs manifests
   (@hjet)
 
-- [ENHANCEMENT] Upgrade to loki v2.4.2. The following metrics will now be
-  prefixed with `agent_dskit_` instead of `cortex_`:
-  `cortex_kv_request_duration_seconds`,
-  `cortex_member_consul_heartbeats_total`, `cortex_member_ring_tokens_owned`,
-  `cortex_member_ring_tokens_to_own`, `cortex_ring_member_ownership_percent`,
-  `cortex_ring_members`, `cortex_ring_oldest_member_timestamp`,
-  `cortex_ring_tokens_owned`, `cortex_ring_tokens_total`. (@rlankfo)
+- [ENHANCEMENT] Upgrade to Loki k87. (@rlankfo)
 
-- [ENHANCEMENT] Update Prometheus dependency to v2.31.1. (@rfratto)
+- [ENHANCEMENT] Update Prometheus dependency to v2.33.5. (@rfratto)
+
+- [ENHANCEMENT] Update OpenTelemetry-collector dependency to v0.46.0. (@mapno)
+
+- [ENHANCEMENT] Update cAdvisor dependency to v0.44.0. (@rfratto)
 
 - [BUGFIX] Ensure singleton integrations are honored in v2 integrations
   (@mattdurham)
@@ -54,6 +52,13 @@
   now deprecated in favor of command line flags. These fields will be removed
   in the v0.26.0 release. Please consult the upgrade guide for more information
   and rationale. (@rfratto)
+
+- [CHANGE] The following metrics will now be prefixed with `agent_dskit_`
+  instead of `cortex_`: `cortex_kv_request_duration_seconds`,
+  `cortex_member_consul_heartbeats_total`, `cortex_member_ring_tokens_owned`,
+  `cortex_member_ring_tokens_to_own`, `cortex_ring_member_ownership_percent`,
+  `cortex_ring_members`, `cortex_ring_oldest_member_timestamp`,
+  `cortex_ring_tokens_owned`, `cortex_ring_tokens_total`. (@rlankfo)
 
 - [CHANGE] Traces: the `traces_spanmetrics_calls_total_total` metric has been
   renamed to `traces_spanmetrics_calls_total` (@fredr)

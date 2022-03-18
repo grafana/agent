@@ -2,7 +2,7 @@ package common
 
 import (
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
-	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/model/labels"
 )
 
 // MetricsConfig is a set of common options shared by metrics integrations. It

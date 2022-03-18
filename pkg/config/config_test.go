@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -400,25 +400,19 @@ metrics:
       store: consul
       consul:
         acl_token: verysecret
-      etcd:
-        password: verysecret
     lifecycler:
       ring:
         kvstore:
           store: consul
           consul:
             acl_token: verysecret
-          etcd:
-            password: verysecret
 `
 
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(cfgText), false, &cfg))
 
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
 
 	bb, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
@@ -428,9 +422,7 @@ metrics:
 
 	// Re-validate that the config object has not changed
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
 }
 
 func TestConfig_RemoteWriteDefaults(t *testing.T) {

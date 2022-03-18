@@ -5,7 +5,7 @@ package config
 import (
 	"time"
 
-	"github.com/prometheus/prometheus/pkg/relabel"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
 // Common is a set of common options shared by all integrations. It should be

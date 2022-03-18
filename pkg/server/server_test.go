@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -29,7 +30,8 @@ func TestServer(t *testing.T) {
 	_ = resp.Body.Close()
 
 	// Validate gRPC
-	cc, err := grpc.Dial(srv.GRPCAddress().String(), grpc.WithInsecure())
+	creds := grpc.WithTransportCredentials(insecure.NewCredentials())
+	cc, err := grpc.Dial(srv.GRPCAddress().String(), creds)
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)

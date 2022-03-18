@@ -11,6 +11,7 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/weaveworks/common/middleware"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // ScrapingServiceClient wraps agentproto.ScrapingServiceClient with a Close method.
@@ -52,7 +53,7 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 // New returns a new scraping service client.
 func New(cfg Config, addr string) (ScrapingServiceClient, error) {
 	opts := []grpc.DialOption{
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(cfg.GRPCClientConfig.CallOptions()...),
 	}
 	grpcDialOpts, err := cfg.GRPCClientConfig.DialOption(instrumentation())

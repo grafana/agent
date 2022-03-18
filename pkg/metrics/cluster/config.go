@@ -4,6 +4,7 @@ import (
 	"flag"
 	"time"
 
+	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	flagutil "github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv"
@@ -56,6 +57,6 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.DurationVar(&c.ReshardTimeout, prefix+"reshard-timeout", time.Second*30, "timeout for refreshing the configuration. Timeout of 0s disables timeout.")
 	f.DurationVar(&c.ClusterReshardEventTimeout, prefix+"cluster-reshard-event-timeout", time.Second*30, "timeout for the cluster reshard. Timeout of 0s disables timeout.")
 	c.KVStore.RegisterFlagsWithPrefix(prefix+"config-store.", "configurations/", f)
-	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f)
+	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f, util_log.Logger)
 	c.Client.GRPCClientConfig.RegisterFlagsWithPrefix(prefix, f)
 }
