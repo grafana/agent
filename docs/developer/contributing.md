@@ -100,6 +100,38 @@ you can @-reply a reviewer asking for a review in the pull request or a
 comment, or you can ask for a review on the Slack channel
 [#agent](https://slack.grafana.com).
 
+## Updating the changelog
+
+We keep a [changelog](../../CHANGELOG.md) of code changes which result in new
+or changed user-facing behavior.
+
+Changes are grouped by change type, denoted by `### Category_Name`. The change
+types are, in order:
+
+1. Security fixes
+2. Breaking changes
+3. Deprecations
+4. Features
+5. Enhancements
+6. Bugfixes
+7. Other changes
+
+Categories won't be listed if there's not any changes for that category.
+
+When opening a PR which impacts user-facing behavior, contributors should:
+
+1. Determine which changes need to be documented in the changelog (a PR may
+   change more than one user-facing behavior).
+
+2. If there are no other changes for that change type, add a header for it
+   (e.g., `### Bugfixes`). Make sure to keep the order listed above.
+
+3. Add relevant entries into the changelog. Changes should be full sentences,
+   and credit the author of the change. For example:
+   `- Config file reading is now 1500% faster. (@torvalds)`.
+
+When in doubt, look at a previous release for style and ordering examples.
+
 ## Dependency management
 
 The Grafana Agent project uses [Go modules][go-modules] to manage dependencies
@@ -135,3 +167,4 @@ pull request.
 [community-slack]: https://slack.grafana.com/
 [example-config]: ../../cmd/agent/agent-local-config.yaml
 [go-modules]: https://golang.org/cmd/go/#hdr-Modules__module_versions__and_more
+

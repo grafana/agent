@@ -1,26 +1,11 @@
 # Changelog
 
-This document contains a historical list of changes between release. Changes
-for a release are grouped by category. Categories are ordered as follows:
+> _Contributors should read our [contributors guide][] for instructions on how
+> to update the changelog.
 
-* Security fixes
-* Breaking changes
-* Deprecations
-* Features
-* Enhancements
-* Bugfixes
-* Other changes
-
-Releases which include breaking changes will be called out at the top of the
-release section. Our [upgrade guide][] provides more detail on breaking changes
-for a release and the necessary steps to take to upgrade.
-
-> Contributors should list their changes in the
-> [Main (unreleased)](#main-unreleased) section below under the appropriate
-> category.
->
-> Add a section for the category (keeping the order listed above) if it does
-> not yet exist.
+This document contains a historical list of changes between releases. Only
+changes that impact end-user behavior are listed; changes to documentation or
+internal API changes are not present.
 
 Main (unreleased)
 -----------------
@@ -1419,3 +1404,4 @@ v0.1.0 (2020-03-16)
   presence of a `host_filter` flag within the Agent configuration file.
 
 [upgrade guide]: https://grafana.com/docs/agent/latest/upgrade-guide/
+[contributors guide]: ./docs/developer/contributing.md#updating-the-changelog
