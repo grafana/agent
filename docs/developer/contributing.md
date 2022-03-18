@@ -134,7 +134,8 @@ When in doubt, look at a previous release for style and ordering examples.
 
 Change entries in the changelog should:
 
-1. Be complete sentences, ending in a period.
+1. Be complete sentences, ending in a period. It is acceptible to use multiple
+   complete sentences if one sentence can't accurately describe the change.
 2. Describe the impact on the user which is reading the changelog.
 3. Include credit to the Github user that opened the PR following the sentence.
 
