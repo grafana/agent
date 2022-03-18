@@ -1,3 +1,13 @@
+<!--
+
+CONTRIBUTORS GUIDE: https://github.com/grafana/agent/blob/main/docs/developer/contributing.md#updating-the-changelog
+
+If this is your first PR or you have not contributed in a while, we recommend
+taking the time to review the guide. It gives helpful instructions for
+contributors around things like how to update the changelog.
+
+-->
+
 #### PR Description
 
 #### Which issue(s) this PR fixes
@@ -5,14 +15,6 @@
 #### Notes to the Reviewer
 
 #### PR Checklist
-
-<!-- When updating the CHANGELOG, please:
-
-1. Keep entries grouped by SECURITY/FEATURE/ENHANCEMENT/BUGFIX/CHANGE/DEPRECATION
-2. Add your CHANGELOG entry to the bottom of the appropriate group
-3. Give yourself credit for your work with your GitHub username!
-
--->
 
 - [ ] CHANGELOG updated
 - [ ] Documentation added
