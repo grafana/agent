@@ -15,16 +15,34 @@ import (
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 )
 
 func TestExternalLabels(t *testing.T) {
 	tt := []struct {
-		name   string
-		input  interface{}
-		expect string
+		name       string
+		input      interface{}
+		addReplica bool
+		expect     string
 	}{
 		{
-			name: "defaults",
+			name:       "no replica",
+			addReplica: false,
+			input: gragent.Deployment{
+				Agent: &gragent.GrafanaAgent{
+					ObjectMeta: meta_v1.ObjectMeta{
+						Namespace: "operator",
+						Name:      "agent",
+					},
+				},
+			},
+			expect: util.Untab(`
+				cluster: operator/agent
+			`),
+		},
+		{
+			name:       "defaults",
+			addReplica: true,
 			input: gragent.Deployment{
 				Agent: &gragent.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
@@ -39,7 +57,8 @@ func TestExternalLabels(t *testing.T) {
 			`),
 		},
 		{
-			name: "external_labels",
+			name:       "external_labels",
+			addReplica: true,
 			input: gragent.Deployment{
 				Agent: &gragent.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
@@ -60,7 +79,8 @@ func TestExternalLabels(t *testing.T) {
 			`),
 		},
 		{
-			name: "custom labels",
+			name:       "custom labels",
+			addReplica: true,
 			input: gragent.Deployment{
 				Agent: &gragent.GrafanaAgent{
 					ObjectMeta: meta_v1.ObjectMeta{
@@ -69,8 +89,8 @@ func TestExternalLabels(t *testing.T) {
 					},
 					Spec: gragent.GrafanaAgentSpec{
 						Metrics: gragent.MetricsSubsystemSpec{
-							MetricsExternalLabelName: strPointer("deployment"),
-							ReplicaExternalLabelName: strPointer("replica"),
+							MetricsExternalLabelName: pointer.String("deployment"),
+							ReplicaExternalLabelName: pointer.String("replica"),
 							ExternalLabels:           map[string]string{"foo": "bar"},
 						},
 					},
@@ -92,7 +112,8 @@ func TestExternalLabels(t *testing.T) {
 			require.NoError(t, err)
 
 			vm.TLACode("ctx", string(bb))
-			actual, err := runSnippet(vm, "./component/metrics/external_labels.libsonnet", "ctx")
+			vm.TLACode("addReplica", fmt.Sprintf("%v", tc.addReplica))
+			actual, err := runSnippet(vm, "./component/metrics/external_labels.libsonnet", "ctx", "addReplica")
 			require.NoError(t, err)
 			require.YAMLEq(t, tc.expect, actual)
 		})
