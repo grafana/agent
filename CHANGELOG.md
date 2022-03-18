@@ -1,7 +1,7 @@
 # Changelog
 
 > _Contributors should read our [contributors guide][] for instructions on how
-> to update the changelog.
+> to update the changelog._
 
 This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
