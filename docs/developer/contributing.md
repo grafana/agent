@@ -126,11 +126,26 @@ When opening a PR which impacts user-facing behavior, contributors should:
 2. If there are no other changes for that change type, add a header for it
    (e.g., `### Bugfixes`). Make sure to keep the order listed above.
 
-3. Add relevant entries into the changelog. Changes should be full sentences,
-   and credit the author of the change. For example:
-   `- Config file reading is now 1500% faster. (@torvalds)`.
+3. Add relevant entries into the changelog.
 
 When in doubt, look at a previous release for style and ordering examples.
+
+### Changelog entry style tips
+
+Change entries in the changelog should:
+
+1. Be complete sentences, ending in a period.
+2. Describe the impact on the user which is reading the changelog.
+3. Include credit to the Github user that opened the PR following the sentence.
+
+For example:
+`- Config file reading is now 1500% faster. (@torvalds)`
+
+> Readers should be able to understand how a change impacts them. Default to
+> being explicit over vague.
+>
+> * Vague: `- Fixed issue with metric names. (@ghost)`
+> * Explicit: `- Fixed issue where instances of the letter s in metric names were replaced with z. (@ghost)`
 
 ## Dependency management
 
