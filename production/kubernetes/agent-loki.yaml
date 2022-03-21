@@ -58,7 +58,7 @@ spec:
       containers:
       - args:
         - -config.file=/etc/agent/agent.yaml
-        - -server.http.address=0.0.0.0:8080
+        - -server.http.address=0.0.0.0:80
         command:
         - /bin/agent
         env:
@@ -70,7 +70,7 @@ spec:
         imagePullPolicy: IfNotPresent
         name: grafana-agent-logs
         ports:
-        - containerPort: 8080
+        - containerPort: 80
           name: http-metrics
         securityContext:
           privileged: true

@@ -24,13 +24,8 @@ local containerPort = k.core.v1.containerPort;
       server: { log_level: 'error' },
     }) +
     agent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
-    {
-      _config+: {
-        default_http_port: 12345,
-      },
-    } +
     // headless svc needed by statefulset
-    agent.withService({}) +
+    agent.withService() +
     {
       controller_service+: {
         spec+: {

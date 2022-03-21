@@ -30,12 +30,7 @@ local newPort(name, portNumber, protocol='TCP') =
       // Opencensus
       newPort('opencensus', 55678, 'TCP'),
     ]) + 
-    {
-      _config+: {
-        default_http_port: 8080,
-      },
-    } + 
-    agent.withService(config={}) +
+    agent.withService() +
     // add dummy config or will fail
     agent.withAgentConfig({
       server: { log_level: 'error' },

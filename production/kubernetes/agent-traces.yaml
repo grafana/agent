@@ -50,8 +50,8 @@ metadata:
 spec:
   ports:
   - name: grafana-agent-traces-http-metrics
-    port: 8080
-    targetPort: 8080
+    port: 80
+    targetPort: 80
   - name: grafana-agent-traces-thrift-compact
     port: 6831
     protocol: UDP
@@ -103,7 +103,7 @@ spec:
       containers:
       - args:
         - -config.file=/etc/agent/agent.yaml
-        - -server.http.address=0.0.0.0:8080
+        - -server.http.address=0.0.0.0:80
         command:
         - /bin/agent
         env:
@@ -115,7 +115,7 @@ spec:
         imagePullPolicy: IfNotPresent
         name: grafana-agent-traces
         ports:
-        - containerPort: 8080
+        - containerPort: 80
           name: http-metrics
         - containerPort: 6831
           name: thrift-compact

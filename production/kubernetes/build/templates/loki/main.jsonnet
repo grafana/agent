@@ -9,14 +9,9 @@ local k = import 'ksonnet-util/kausal.libsonnet';
     // add dummy config or else will fail
     agent.withAgentConfig({
       server: { log_level: 'error' },
-    }) + 
-    {
-      _config+: {
-        default_http_port: 8080,
-      },
-    } +
-    agent.withLogVolumeMounts(config={}) +
-    agent.withLogPermissions(config={}) +
+    }) +
+    agent.withLogVolumeMounts() +
+    agent.withLogPermissions() +
     // hack to disable configmap
     { configMap:: super.configMap }
 }

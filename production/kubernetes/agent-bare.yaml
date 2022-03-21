@@ -51,8 +51,8 @@ spec:
   clusterIP: None
   ports:
   - name: grafana-agent-http-metrics
-    port: 12345
-    targetPort: 12345
+    port: 80
+    targetPort: 80
   selector:
     name: grafana-agent
 ---
@@ -75,6 +75,7 @@ spec:
       containers:
       - args:
         - -config.file=/etc/agent/agent.yaml
+        - -server.http.address=0.0.0.0:80
         command:
         - /bin/agent
         env:
@@ -86,7 +87,7 @@ spec:
         imagePullPolicy: IfNotPresent
         name: grafana-agent
         ports:
-        - containerPort: 12345
+        - containerPort: 80
           name: http-metrics
         volumeMounts:
         - mountPath: /var/lib/agent
