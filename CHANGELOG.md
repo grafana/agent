@@ -94,6 +94,10 @@ Main (unreleased)
 
 - Update cAdvisor dependency to v0.44.0. (@rfratto)
 
+- Use grafana-agent/v2 Tanka Jsonnet to generate K8s manifests (@hjet)
+
+- Replace agent-bare.yaml K8s sample Deployment with StatefulSet (@hjet)
+
 ### Bugfixes
 
 - Ensure singleton integrations are honored in v2 integrations (@mattdurham)
@@ -153,6 +157,10 @@ v0.23.0 (2022-01-13)
 
 - The deb and rpm files will now ensure the /var/lib/grafana-agent data
   directory is created with permissions set to 0770. (@rfratto)
+
+- Make agent-traces.yaml Namespace a template-friendly variable (@hjet)
+
+- Disable `machine-id` journal vol by default in sample logs manifest (@hjet)
 
 v0.22.0 (2022-01-13)
 --------------------
