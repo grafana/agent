@@ -116,6 +116,14 @@ Main (unreleased)
 
 - Set `grafanaDashboardFolder` as top level key in the mixin. (@Duologic)
 
+- Operator: Custom Secrets or ConfigMaps to mount will no longer collide with
+  the path name of the default secret mount. As a side effect of this bugfix,
+  custom Secrets will now be mounted at
+  `/var/lib/grafana-agent/extra-secrets/<secret name>` and custom ConfigMaps
+  will now be mounted at `/var/lib/grafana-agent/extra-configmaps/<configmap
+  name>`. This is not a breaking change as it was previously impossible to
+  properly provide these custom mounts. (@rfratto)
+
 v0.23.0 (2022-01-13)
 --------------------
 
