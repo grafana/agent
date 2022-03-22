@@ -41,10 +41,6 @@ func init() {
 	config.DefaultRemoteWriteConfig.SendExemplars = true
 }
 
-var (
-	managerMtx sync.Mutex
-)
-
 // Default configuration values
 var (
 	DefaultConfig = Config{
@@ -750,6 +746,8 @@ func getHash(data interface{}) (string, error) {
 	hash := md5.Sum(bytes)
 	return hex.EncodeToString(hash[:]), nil
 }
+
+var managerMtx sync.Mutex
 
 func newScrapeManager(logger log.Logger, app storage.Appendable) *scrape.Manager {
 	// scrape.NewManager modifies a global variable in Prometheus. To avoid a
