@@ -42,8 +42,7 @@ func init() {
 }
 
 var (
-	remoteWriteMetricName = "queue_highest_sent_timestamp_seconds"
-	managerMtx            sync.Mutex
+	managerMtx sync.Mutex
 )
 
 // Default configuration values
