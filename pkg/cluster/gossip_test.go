@@ -4,6 +4,7 @@ import (
 	"fmt"
 	stdlog "log"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -18,6 +19,16 @@ import (
 const examplePort = 8888
 
 func TestConfig_ApplyDefaults(t *testing.T) {
+	advertiseInterfaces := advertise.DefaultInterfaces
+	if runtime.GOOS == "windows" {
+		// Try a few common names for Windows since advertise.DefaultInterfaces is
+		// *nix-only.
+		advertiseInterfaces = []string{"Ethernet", "Ethernet 2", "Ethernet 3"}
+	}
+
+	defaultConfig := DefaultGossipConfig
+	defaultConfig.AdvertiseInterfaces = advertiseInterfaces
+
 	setTestProviders(t, map[string]discover.Provider{
 		"static": &staticProvider{},
 	})
@@ -26,7 +37,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	require.NoError(t, err, "failed to get hostname for test assertions")
 
 	t.Run("node name defaults to hostname", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.NodeName = ""
 
 		err := gc.ApplyDefaults(examplePort)
@@ -35,7 +46,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("node name can be overridden", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.NodeName = "foobar"
 
 		err := gc.ApplyDefaults(examplePort)
@@ -44,7 +55,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("one of advertise addr or advertise interfaces must be set", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.AdvertiseInterfaces = nil
 
 		err := gc.ApplyDefaults(examplePort)
@@ -52,8 +63,8 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("advertise address is inferred from advertise interfaces", func(t *testing.T) {
-		gc := DefaultGossipConfig
-		gc.AdvertiseInterfaces = advertise.DefaultInterfaces
+		gc := defaultConfig
+		gc.AdvertiseInterfaces = advertiseInterfaces
 
 		err := gc.ApplyDefaults(examplePort)
 		require.NoError(t, err)
@@ -64,7 +75,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("explicit advertise address can be set", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.AdvertiseAddr = "foobar:9999"
 
 		err := gc.ApplyDefaults(examplePort)
@@ -73,7 +84,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("explicit adervise address can use default port", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.AdvertiseAddr = "foobar"
 
 		err := gc.ApplyDefaults(examplePort)
@@ -82,7 +93,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("join peers and discover peers can't both be set", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.JoinPeers = []string{"foobar:9999"}
 		gc.DiscoverPeers = `provider=static addrs=fizzbuzz:5555`
 
@@ -91,7 +102,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("explicit join peers can be set", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.JoinPeers = []string{"foobar:9999"}
 
 		err := gc.ApplyDefaults(examplePort)
@@ -100,7 +111,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("join peers can be discovered", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.DiscoverPeers = `provider=static addrs=fizzbuzz:5555`
 
 		err := gc.ApplyDefaults(examplePort)
@@ -109,7 +120,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("peers can use default port", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.JoinPeers = []string{"foobar"}
 
 		err := gc.ApplyDefaults(examplePort)
@@ -118,7 +129,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 	})
 
 	t.Run("discovered peers can use default port", func(t *testing.T) {
-		gc := DefaultGossipConfig
+		gc := defaultConfig
 		gc.DiscoverPeers = `provider=static addrs=fizzbuzz`
 
 		err := gc.ApplyDefaults(examplePort)
