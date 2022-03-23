@@ -88,7 +88,7 @@ Main (unreleased)
 
 - Upgrade to Loki k87. (@rlankfo)
 
-- Update Prometheus dependency to v2.33.5. (@rfratto)
+- Update Prometheus dependency to v2.34.0. (@rfratto)
 
 - Update OpenTelemetry-collector dependency to v0.46.0. (@mapno)
 
