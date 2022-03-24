@@ -98,6 +98,9 @@ Main (unreleased)
 
 - Replace agent-bare.yaml K8s sample Deployment with StatefulSet (@hjet)
 
+- Improve error message for `agentctl` when timeout happens calling
+  `cloud-config` command (@marctc)
+
 ### Bugfixes
 
 - Ensure singleton integrations are honored in v2 integrations (@mattdurham)
