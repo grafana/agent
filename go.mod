@@ -72,7 +72,7 @@ require (
 	github.com/prometheus/prometheus v1.8.2-0.20220308163432-03831554a519
 	github.com/prometheus/statsd_exporter v0.22.2
 	github.com/rancher/k3d/v5 v5.2.2
-	github.com/rfratto/ckit v0.0.0-20220322201526-e5fd0425c4a7
+	github.com/rfratto/ckit v0.0.0-20220324133302-7881e8b037cc
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.0

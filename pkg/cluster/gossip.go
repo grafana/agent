@@ -14,8 +14,9 @@ import (
 	"github.com/hashicorp/go-discover/provider/k8s"
 	"github.com/rfratto/ckit"
 	"github.com/rfratto/ckit/advertise"
-	"github.com/rfratto/ckit/chash"
 	"github.com/rfratto/ckit/clientpool"
+	"github.com/rfratto/ckit/peer"
+	"github.com/rfratto/ckit/shard"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 )
@@ -141,6 +142,7 @@ type GossipNode struct {
 	cfg       *GossipConfig
 	innerNode *ckit.Node
 	log       log.Logger
+	sharder   shard.Sharder
 
 	started atomic.Bool
 }
@@ -155,10 +157,12 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 		l = log.NewNopLogger()
 	}
 
+	sharder := shard.Ring(256)
+
 	ckitConfig := ckit.Config{
 		Name:          c.NodeName,
 		AdvertiseAddr: c.AdvertiseAddr,
-		Hash:          chash.Ring(512),
+		Sharder:       sharder,
 		Log:           l,
 		Pool:          c.Pool,
 	}
@@ -172,6 +176,7 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 		cfg:       c,
 		innerNode: inner,
 		log:       l,
+		sharder:   sharder,
 	}, nil
 }
 
@@ -187,7 +192,7 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 // 		StateParticipant -> StateTerminating|StateGone
 // 		StateViewer -> StateTerminating|StateGone
 // 		StateTerminating -> StateGone
-func (n *GossipNode) ChangeState(ctx context.Context, to ckit.State) error {
+func (n *GossipNode) ChangeState(ctx context.Context, to peer.State) error {
 	if !n.started.Load() {
 		return fmt.Errorf("node not started")
 	}
@@ -197,18 +202,18 @@ func (n *GossipNode) ChangeState(ctx context.Context, to ckit.State) error {
 // CurrentState returns the current state of the node. Note that other nodes
 // may have an older view of the state while a state change propagates
 // throughout the cluster.
-func (n *GossipNode) CurrentState() ckit.State {
+func (n *GossipNode) CurrentState() peer.State {
 	return n.innerNode.CurrentState()
 }
 
 // Lookup implements Node and returns numOwners Peers that are responsible for
 // key. Only peers in StateParticipant are considered during a lookup; if no
 // peers are in StateParticipant, the Lookup will fail.
-func (n *GossipNode) Lookup(key uint64, numOwners int) ([]ckit.Peer, error) {
+func (n *GossipNode) Lookup(key shard.Key, numOwners int, op shard.Op) ([]peer.Peer, error) {
 	if !n.started.Load() {
 		return nil, fmt.Errorf("node not started")
 	}
-	return n.innerNode.Lookup(key, numOwners)
+	return n.sharder.Lookup(key, numOwners, op)
 }
 
 // Observe registers o to be informed when the cluster changes, including peers
@@ -221,7 +226,7 @@ func (n *GossipNode) Observe(o ckit.Observer) {
 }
 
 // Peers returns the current set of Peers.
-func (n *GossipNode) Peers() []ckit.Peer {
+func (n *GossipNode) Peers() []peer.Peer {
 	return n.innerNode.Peers()
 }
 
