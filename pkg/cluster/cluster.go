@@ -17,11 +17,12 @@ import (
 // Node is a read-only view of a cluster node.
 type Node interface {
 	// Lookup determines the set of replicationFactor owners for a given key.
-	// ckit.Peer.Self can be used to determine if this Node is the owner for
-	// short-circuiting logic.
+	// peer.Peer.Self can be used to determine if the local node is the owner,
+	// allowing for short-circuiting logic to connect directly to the local node
+	// instead of using the network.
 	//
-	// Callers can use github.com/rfratto/ckit/chash.Key or chash.NewKeyBuilder
-	// to create a key.
+	// Callers can use github.com/rfratto/ckit/shard.StringKey or
+	// shard.NewKeyBuilder to create a key.
 	Lookup(key shard.Key, replicationFactor int, op shard.Op) ([]peer.Peer, error)
 
 	// Observe registers an Observer to receive notifications when the set of
