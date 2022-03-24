@@ -3,7 +3,6 @@ package exporters
 import (
 	"encoding/json"
 	"io/ioutil"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -16,11 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func loadTestData(t *testing.T, file string) models.Payload {
+func loadTestData(t *testing.T) models.Payload {
 	t.Helper()
 	// Safe to disable, this is a test.
 	// nolint:gosec
-	content, err := ioutil.ReadFile(filepath.Join("../models/testdata", file))
+	content, err := ioutil.ReadFile("../models/testdata/payload.json")
 	assert.NoError(t, err, "expected to be able to read file")
 	assert.True(t, len(content) > 0)
 	var payload models.Payload
@@ -78,7 +77,7 @@ func TestExportLogs(t *testing.T) {
 		&MockSourceMapStore{},
 	)
 
-	payload := loadTestData(t, "payload.json")
+	payload := loadTestData(t)
 
 	err := logsExporter.Export(payload)
 	assert.NoError(t, err)
