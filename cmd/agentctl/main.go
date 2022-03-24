@@ -454,7 +454,8 @@ config that may be used with this agent.`,
 
 			cli := grafanacloud.NewClient(nil, apiKey, apiURL)
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			// setting timeout 2x as the default HTTP transport timeout (30s)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 			defer cancel()
 
 			cfg, err := cli.AgentConfig(ctx, stackID)
