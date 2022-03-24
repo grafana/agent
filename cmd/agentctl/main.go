@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -452,13 +453,13 @@ config that may be used with this agent.`,
 				return fmt.Errorf("--api-key must be provided")
 			}
 
-			cli := grafanacloud.NewClient(nil, apiKey, apiURL)
-
 			// setting timeout 2x as the default HTTP transport timeout (30s)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
-			defer cancel()
+			httpClient := &http.Client{
+				Timeout: time.Minute,
+			}
+			cli := grafanacloud.NewClient(httpClient, apiKey, apiURL)
 
-			cfg, err := cli.AgentConfig(ctx, stackID)
+			cfg, err := cli.AgentConfig(context.Background(), stackID)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "could not retrieve agent cloud config: %s\n", err)
 				os.Exit(1)
