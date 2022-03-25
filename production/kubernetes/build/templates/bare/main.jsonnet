@@ -19,6 +19,9 @@ local containerPort = k.core.v1.containerPort;
       ],
     ) +
     agent.withConfigHash(false) +
+    agent.withArgsMixin({
+      'enable-features': 'integrations-next'
+    },) +
     // add dummy config or else will fail
     agent.withAgentConfig({
       server: { log_level: 'error' },
