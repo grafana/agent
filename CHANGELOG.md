@@ -101,7 +101,7 @@ Main (unreleased)
 - Improve error message for `agentctl` when timeout happens calling
   `cloud-config` command (@marctc)
 
-- Enable integrations-next by default in agent-bare.yaml (@hjet)
+- Enable integrations-next by default in agent-bare.yaml. Please note #1262 (@hjet)
 
 ### Bugfixes
 
