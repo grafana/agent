@@ -1,6 +1,7 @@
 package exporters
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -16,11 +17,13 @@ type metricAssertion struct {
 }
 
 func testcase(t *testing.T, payload models.Payload, assertions []metricAssertion) {
+	ctx := context.Background()
+
 	reg := prometheus.NewRegistry()
 
 	exporter := NewReceiverMetricsExporter(ReceiverMetricsExporterConfig{Reg: reg})
 
-	err := exporter.Export(payload)
+	err := exporter.Export(ctx, payload)
 	assert.NoError(t, err)
 
 	metrics, err := reg.Gather()

@@ -24,12 +24,12 @@ func (te *TracesExporter) Name() string {
 }
 
 // Export implements the AppDataExporter interface
-func (te *TracesExporter) Export(payload models.Payload) error {
+func (te *TracesExporter) Export(ctx context.Context, payload models.Payload) error {
 	if payload.Traces == nil {
 		return nil
 	}
 	if te.factory.Consumer != nil {
-		return te.factory.Consumer.ConsumeTraces(context.Background(), payload.Traces.Traces)
+		return te.factory.Consumer.ConsumeTraces(ctx, payload.Traces.Traces)
 	}
 	return errors.New("push receiver factory consumer not initialized")
 }

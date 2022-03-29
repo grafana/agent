@@ -32,7 +32,7 @@ func Test_exportTraces_success(t *testing.T) {
 	assert.NoError(t, err)
 	exporter := NewTracesExporter(factory)
 	payload := loadTestData(t)
-	err = exporter.Export(payload)
+	err = exporter.Export(ctx, payload)
 	assert.NoError(t, err)
 	assert.Len(t, consumer.consumed, 1)
 }
@@ -46,15 +46,16 @@ func Test_exportTraces_noTracesInpayload(t *testing.T) {
 	exporter := NewTracesExporter(factory)
 	payload := loadTestData(t)
 	payload.Traces = nil
-	err = exporter.Export(payload)
+	err = exporter.Export(ctx, payload)
 	assert.NoError(t, err)
 	assert.Len(t, consumer.consumed, 0)
 }
 
 func Test_exportTraces_noConsumer(t *testing.T) {
+	ctx := context.Background()
 	factory := pushreceiver.NewFactory().(*pushreceiver.Factory)
 	exporter := NewTracesExporter(factory)
 	payload := loadTestData(t)
-	err := exporter.Export(payload)
+	err := exporter.Export(ctx, payload)
 	assert.Error(t, err, "push receiver factory consumer not initialized")
 }

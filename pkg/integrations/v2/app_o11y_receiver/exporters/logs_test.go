@@ -1,6 +1,7 @@
 package exporters
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"strings"
@@ -58,6 +59,7 @@ func (store *MockSourceMapStore) ResolveSourceLocation(frame *models.Frame, rele
 }
 
 func TestExportLogs(t *testing.T) {
+	ctx := context.Background()
 	inst := testLogsInstance{
 		Entries: []api.Entry{},
 	}
@@ -79,7 +81,7 @@ func TestExportLogs(t *testing.T) {
 
 	payload := loadTestData(t)
 
-	err := logsExporter.Export(payload)
+	err := logsExporter.Export(ctx, payload)
 	assert.NoError(t, err)
 
 	assert.Len(t, inst.Entries, 4)

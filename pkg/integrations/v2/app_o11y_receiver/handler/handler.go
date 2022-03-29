@@ -100,7 +100,7 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 			wg.Add(1)
 			go func(exp exporters.AppO11yReceiverExporter) {
 				defer wg.Done()
-				if err := exp.Export(p); err != nil {
+				if err := exp.Export(r.Context(), p); err != nil {
 					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err)
 					ar.exporterErrorsCollector.WithLabelValues(exp.Name()).Inc()
 				}
