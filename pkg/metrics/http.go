@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/scrape"
 )
 

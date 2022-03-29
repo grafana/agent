@@ -3,6 +3,11 @@ local container = k.core.v1.container;
 
 {
   volumeMounts(config={}):: {
+    // Disable journald mount by default
+    local _config = {
+      journald: false,
+    } + config,
+
     controller+:
       // For reading docker containers. /var/log is used for the positions file
       // and shouldn't be set to readonly.
@@ -10,7 +15,8 @@ local container = k.core.v1.container;
       k.util.hostVolumeMount('varlibdockercontainers', '/var/lib/docker/containers', '/var/lib/docker/containers', readOnly=true) +
 
       // For reading journald
-      k.util.hostVolumeMount('etcmachineid', '/etc/machine-id', '/etc/machine-id', readOnly=true),
+      if _config.journald == false then {}
+      else k.util.hostVolumeMount('etcmachineid', '/etc/machine-id', '/etc/machine-id', readOnly=true),
   },
 
   permissions(config={}):: {

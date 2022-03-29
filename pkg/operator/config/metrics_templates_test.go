@@ -437,7 +437,7 @@ func TestRelabelConfig(t *testing.T) {
 		{
 			name: "full",
 			input: prom_v1.RelabelConfig{
-				SourceLabels: []string{"input_a", "input_b"},
+				SourceLabels: []prom_v1.LabelName{"input_a", "input_b"},
 				Separator:    ";",
 				TargetLabel:  "target_a",
 				Regex:        "regex",
@@ -516,7 +516,7 @@ func TestRemoteWrite(t *testing.T) {
 				"rw": gragent.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
 					WriteRelabelConfigs: []prom_v1.RelabelConfig{{
-						SourceLabels: []string{"__name__"},
+						SourceLabels: []prom_v1.LabelName{"__name__"},
 						Action:       "drop",
 					}},
 				},

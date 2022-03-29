@@ -27,7 +27,7 @@ import (
 
 func TestConfigMakerWithExporterWithTemplate(t *testing.T) {
 	configStr := `
-windows_exporter:
+windows:
   enabled_collectors: {{ (datasource "vars").value }}
   instance: testinstance
 `
@@ -53,7 +53,7 @@ windows_exporter:
 
 func TestLoadingFromS3LoadingVarsLocally(t *testing.T) {
 	configStr := `
-windows_exporter:
+windows:
   enabled_collectors: {{ (datasource "vars").value }}
   instance: testinstance
 `
@@ -79,7 +79,7 @@ windows_exporter:
 
 func TestLoadingFromS3LoadingVarsLocallyWithRange(t *testing.T) {
 	configStr := `
-windows_exporter:
+windows:
   enabled_collectors: banana
   instance: testinstance
   autoscrape:
@@ -109,7 +109,7 @@ windows_exporter:
 	_ = cfg.Integrations.setVersion(integrationsVersion2)
 	expectBase := `
 integrations:
-  windows_exporter:
+  windows:
     autoscrape:
       metric_relabel_configs:
       - target_label: banana

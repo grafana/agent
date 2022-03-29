@@ -277,7 +277,7 @@ type loadBalancingConfig struct {
 	ReceiverPort string `yaml:"receiver_port"`
 }
 
-// exporterConfig defined the config for a otlp exporter for load balancing
+// exporterConfig defined the config for an otlp exporter for load balancing
 type exporterConfig struct {
 	Compression        string                 `yaml:"compression,omitempty"`
 	Insecure           bool                   `yaml:"insecure,omitempty"`
@@ -304,7 +304,7 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 	}
 
 	if rwCfg.BasicAuth != nil && rwCfg.Oauth2 != nil {
-		return nil, fmt.Errorf("Only one auth type may be configured per exporter (basic_auth or oauth2)")
+		return nil, fmt.Errorf("only one auth type may be configured per exporter (basic_auth or oauth2)")
 	}
 
 	if rwCfg.BasicAuth != nil {
@@ -323,8 +323,8 @@ func exporter(rwCfg RemoteWriteConfig) (map[string]interface{}, error) {
 	}
 
 	compression := rwCfg.Compression
-	if compression == compressionNone {
-		compression = ""
+	if compression == "" {
+		compression = compressionNone
 	}
 
 	// Default OTLP exporter config awaits an empty headers map. Other exporters

@@ -39,7 +39,7 @@ services:
       - "9009:9009"
 
   tempo:
-    image: grafana/tempo:df7225ae
+    image: grafana/tempo:1.3.2
     command:
       - "-storage.trace.backend=local"                  # tell tempo where to permanently put traces
       - "-storage.trace.local.path=/tmp/tempo/traces"
@@ -57,6 +57,18 @@ services:
       - --metric-interval=7200
     ports:
       - "9001:9001"
+
+  # tracing load generator
+  synthetic-load-generator:
+    profiles: [agent] # Should only be run if the Agent is present
+    image: omnition/synthetic-load-generator:1.0.25
+    volumes:
+      - ./load-generator:/etc/load-generator
+    environment:
+      - TOPOLOGY_FILE=/etc/load-generator/load-generator.json
+      - JAEGER_COLLECTOR_URL=http://agent:14268
+    depends_on:
+      - agent
 
   #
   # Optional Grafana Agent which can collect telemetry and send it to
@@ -81,7 +93,7 @@ services:
       HOSTNAME: agent
       REMOTE_WRITE_HOST: cortex:9009
       LOKI_HOST: loki:3100
-      TEMPO_HOST: tempo:3200
+      TEMPO_HOST: tempo:4317
       AVALANCHE_HOST: avalanche:9001
       MYSQL_HOST: mysql:3306
       POSTGRES_HOST: postgres:5432
@@ -103,13 +115,13 @@ services:
   # Integrations. These services act as sample SUOs that you can test
   # integrations against.
   #
-  # They are disabled by default. Enable the "integrations" profile to
-  # enable all of them, or pass an integration by name (i.e., mysqld_exporter)
-  # to enable a specific one.
+  # They are disabled by default. Enable the "integrations" profile to enable
+  # all of them, or pass an integration by name (i.e., mysql) to enable a
+  # specific one.
   #
 
   mysql:
-    profiles: [integrations,mysqld_exporter]
+    profiles: [integrations,mysql]
     image: mysql/mysql-server:5.7
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
@@ -118,7 +130,7 @@ services:
       - 127.0.0.1:3306:3306
 
   postgres:
-    profiles: [integrations,postgres_exporter]
+    profiles: [integrations,postgres]
     image: postgres:13.0
     environment:
       - POSTGRES_USER=postgres
@@ -127,13 +139,13 @@ services:
       - 5432:5432
 
   redis:
-    profiles: [integrations,redis_exporter]
+    profiles: [integrations,redis]
     image: redis:6
     ports:
       - "6379:6379"
 
   dnsmasq:
-    profiles: [integrations,dnsmasq_exporter]
+    profiles: [integrations,dnsmasq]
     image: andyshinn/dnsmasq:2.81
     cap_add: [NET_ADMIN]
     volumes:
@@ -142,19 +154,19 @@ services:
       - "30053:53/udp"
 
   memcached:
-    profiles: [integrations,memcached_exporter]
+    profiles: [integrations,memcached]
     image: memcached
     ports:
       - "11211:11211"
 
   consul:
-    profiles: [integrations,consul_exporter]
+    profiles: [integrations,consul]
     image: consul
     ports:
       - "8500:8500"
 
   elasticsearch:
-    profiles: [integrations,elasticsearch_exporter]
+    profiles: [integrations,elasticsearch]
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
     environment:
       - node.name=elasticsearch
@@ -166,14 +178,14 @@ services:
       - "9200:9200"
 
   zookeeper:
-    profiles: [integrations,zookeeper_exporter]
+    profiles: [integrations,zookeeper]
     image: wurstmeister/zookeeper:3.4.6
     expose:
       - "2181"
     restart: always
 
   kafka:
-    profiles: [integrations,kafka_exporter]
+    profiles: [integrations,kafka]
     image: wurstmeister/kafka:2.12-2.3.0
     depends_on:
       - zookeeper
@@ -192,7 +204,7 @@ services:
     restart: always
 
   kafka-producer:
-    profiles: [integrations,kafka_exporter]
+    profiles: [integrations,kafka]
     image: gaantunes/kafka-client:latest
     depends_on:
       - kafka
@@ -201,7 +213,7 @@ services:
     restart: always
 
   kafka-consumer:
-    profiles: [integrations,kafka_exporter]
+    profiles: [integrations,kafka]
     image: gaantunes/kafka-client:latest
     depends_on:
       - kafka
@@ -210,7 +222,7 @@ services:
     restart: always
 
   mongodb:
-    profiles: [integrations,mongodb_exporter]
+    profiles: [integrations,mongodb]
     image: mongo:4.2
     ports:
       - "127.0.0.1:27017:27017"
