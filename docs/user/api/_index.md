@@ -220,6 +220,19 @@ Response on success:
 }
 ```
 
+### Accept remote_write requests
+
+```
+POST /agent/api/v1/metrics/instance/{instance}/write
+```
+
+This endpoint accepts Prometheus-compatible remote_write POST requests, and
+appends their contents into an instance's WAL. 
+
+Status code: 204 on success, 400 for bad requests related to the provided
+instance or POST payload format and content, 500 for cases where appending
+to the WAL failed.
+
 ### Reload configuration file (beta)
 
 This endpoint is currently in beta and may have issues. Please open any issues

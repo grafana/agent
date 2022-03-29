@@ -80,7 +80,6 @@ Main (unreleased)
 
 - Introduced endpoint that accepts remote_write requests and pushes metrics data directly into an instance's WAL. (@tpaschalis)
 
-
 ### Enhancements
 
 - Tracing: Exporters can now be configured to use OAuth. (@canuteson)
