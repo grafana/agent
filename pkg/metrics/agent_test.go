@@ -253,7 +253,6 @@ func TestAgent_Stop(t *testing.T) {
 type fakeInstance struct {
 	cfg instance.Config
 
-	appender     storage.Appender
 	err          chan error
 	startedCount *atomic.Int64
 	running      *atomic.Bool
@@ -291,7 +290,7 @@ func (i *fakeInstance) StorageDirectory() string {
 }
 
 func (i *fakeInstance) Appender(ctx context.Context) storage.Appender {
-	return i.appender
+	return nil
 }
 
 type fakeInstanceFactory struct {
