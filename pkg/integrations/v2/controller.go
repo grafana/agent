@@ -101,7 +101,7 @@ func (c *controller) UpdateController(cfg controllerConfig, globals Globals) err
 		singletonSet         = make(map[string]struct{})
 	)
 	for _, cfg := range cfg {
-		t, _ := RegisteredType(cfg.Name())
+		t, _ := RegisteredType(cfg)
 		if t != TypeSingleton {
 			continue
 		}

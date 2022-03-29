@@ -2,6 +2,7 @@ package operator
 
 import (
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/grafana/agent/pkg/build"
@@ -195,7 +196,7 @@ func generateLogsDaemonSetSpec(
 		volumeMounts = append(volumeMounts, v1.VolumeMount{
 			Name:      clientutil.SanitizeVolumeName("secret-" + s),
 			ReadOnly:  true,
-			MountPath: "/var/lib/grafana-agent/secrets",
+			MountPath: path.Join("/var/lib/grafana-agent/extra-secrets", s),
 		})
 	}
 	for _, c := range d.Agent.Spec.ConfigMaps {
@@ -210,7 +211,7 @@ func generateLogsDaemonSetSpec(
 		volumeMounts = append(volumeMounts, v1.VolumeMount{
 			Name:      clientutil.SanitizeVolumeName("configmap-" + c),
 			ReadOnly:  true,
-			MountPath: "/var/lib/grafana-agent/configmaps",
+			MountPath: path.Join("/var/lib/grafana-agent/extra-configmaps", c),
 		})
 	}
 
@@ -288,7 +289,7 @@ func generateLogsDaemonSetSpec(
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			ReadinessProbe: &v1.Probe{
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path: "/-/ready",
 						Port: intstr.FromString(d.Agent.Spec.PortName),

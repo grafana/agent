@@ -13,13 +13,13 @@ import (
 
 // Wrap wraps a log.Logger into a logr.Logger.
 func Wrap(l log.Logger) logr.Logger {
-	return &goKitLogger{l: l}
+	return logr.New(&goKitLogger{l: l})
 }
 
 // FromContext returns a log.Logger from a context. Panics if the context doesn't
 // have a Logger set.
 func FromContext(ctx context.Context, kvps ...interface{}) log.Logger {
-	gkl := clog.FromContext(ctx, kvps...).(*goKitLogger)
+	gkl := clog.FromContext(ctx, kvps...).GetSink().(*goKitLogger)
 	return gkl.namedLogger()
 }
 
@@ -28,6 +28,28 @@ type goKitLogger struct {
 	name string
 	kvps []interface{}
 	l    log.Logger
+}
+
+var _ logr.LogSink = (*goKitLogger)(nil)
+
+func (l *goKitLogger) Init(info logr.RuntimeInfo) {
+	// no-op
+}
+
+func (l *goKitLogger) Enabled(level int) bool { return true }
+
+func (l *goKitLogger) Info(logLevel int, msg string, keysAndValues ...interface{}) {
+	args := append([]interface{}{"msg", msg}, keysAndValues...)
+	level.Info(l.namedLogger()).Log(args...)
+}
+
+func (l *goKitLogger) Error(err error, msg string, keysAndValues ...interface{}) {
+	args := append([]interface{}{"msg", msg, "err", err}, keysAndValues...)
+	level.Error(l.namedLogger()).Log(args...)
+}
+
+func (l *goKitLogger) WithValues(keysAndValues ...interface{}) logr.LogSink {
+	return &goKitLogger{name: l.name, l: l.l, kvps: append(l.kvps, keysAndValues...)}
 }
 
 // namedLogger gets log.Logger with component applied.
@@ -40,29 +62,7 @@ func (l *goKitLogger) namedLogger() log.Logger {
 	return logger
 }
 
-func (l *goKitLogger) Log(keyvals ...interface{}) error {
-	return l.namedLogger().Log(keyvals...)
-}
-
-func (l *goKitLogger) Enabled() bool { return true }
-
-func (l *goKitLogger) Info(msg string, keysAndValues ...interface{}) {
-	args := append([]interface{}{"msg", msg}, keysAndValues...)
-	level.Info(l.namedLogger()).Log(args...)
-}
-
-func (l *goKitLogger) Error(err error, msg string, keysAndValues ...interface{}) {
-	args := append([]interface{}{"msg", msg, "err", err}, keysAndValues...)
-	level.Error(l.namedLogger()).Log(args...)
-}
-
-func (l *goKitLogger) V(level int) logr.Logger { return l }
-
-func (l *goKitLogger) WithValues(keysAndValues ...interface{}) logr.Logger {
-	return &goKitLogger{name: l.name, l: l.l, kvps: append(l.kvps, keysAndValues...)}
-}
-
-func (l *goKitLogger) WithName(name string) logr.Logger {
+func (l *goKitLogger) WithName(name string) logr.LogSink {
 	newName := name
 	if l.name != "" {
 		newName = l.name + "." + name

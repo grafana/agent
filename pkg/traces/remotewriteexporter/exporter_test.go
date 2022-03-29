@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/metrics/instance"
-	"github.com/prometheus/prometheus/pkg/exemplar"
-	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/model/pdata"
@@ -136,7 +136,7 @@ func (a *mockAppender) GetAppended(n string) []metric {
 	return ms
 }
 
-func (a *mockAppender) Append(_ uint64, l labels.Labels, _ int64, v float64) (uint64, error) {
+func (a *mockAppender) Append(_ storage.SeriesRef, l labels.Labels, _ int64, v float64) (storage.SeriesRef, error) {
 	a.appendedMetrics = append(a.appendedMetrics, metric{l: l, v: v})
 	return 0, nil
 }
@@ -145,6 +145,6 @@ func (a *mockAppender) Commit() error { return nil }
 
 func (a *mockAppender) Rollback() error { return nil }
 
-func (a *mockAppender) AppendExemplar(_ uint64, _ labels.Labels, _ exemplar.Exemplar) (uint64, error) {
+func (a *mockAppender) AppendExemplar(_ storage.SeriesRef, _ labels.Labels, _ exemplar.Exemplar) (storage.SeriesRef, error) {
 	return 0, nil
 }

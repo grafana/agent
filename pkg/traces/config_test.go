@@ -286,6 +286,7 @@ exporters:
       insecure_skip_verify: true
     retry_on_failure:
       max_elapsed_time: 60s
+    compression: none
 service:
   pipelines:
     traces:
@@ -447,6 +448,7 @@ exporters:
       max_elapsed_time: 60s
     sending_queue:
       num_consumers: 15
+    compression: none
 service:
   pipelines:
     traces:
@@ -735,6 +737,7 @@ exporters:
         endpoint: noop
         retry_on_failure:
           max_elapsed_time: 60s
+        compression: none
     resolver:
       dns:
         hostname: agent

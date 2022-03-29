@@ -14,15 +14,14 @@ import (
 )
 
 var (
-	integrationNames      = make(map[string]interface{})  // Cache of field names for uniqueness checking.
-	configFieldNames      = make(map[reflect.Type]string) // Map of registered type to field name
-	integrationTypes      = make(map[reflect.Type]Type)   // Map of registered type to Type
-	integrationTypeByName = make(map[string]Type)         // Map of name to Type
+	integrationByName = make(map[string]interface{})  // Cache of field names for uniqueness checking.
+	integrationTypes  = make(map[reflect.Type]Type)   // Map of registered type to Type
+	nameByType        = make(map[reflect.Type]string) // Map of Type to registered name
 
 	// Registered integrations. Registered integrations may be either a Config or
 	// a v1.Config. v1.Configs must have a corresponding upgrader for their type.
 	registered = []interface{}{}
-	upgraders  = make(map[string]UpgradeFunc)
+	upgraders  = make(map[reflect.Type]UpgradeFunc)
 
 	emptyStructType = reflect.TypeOf(struct{}{})
 	configsType     = reflect.TypeOf(Configs{})
@@ -44,18 +43,17 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 	if reflect.TypeOf(v).Kind() != reflect.Ptr {
 		panic(fmt.Sprintf("Register must be given a pointer, got %T", v))
 	}
-	if _, exist := integrationNames[name]; exist {
+	if _, exist := integrationByName[name]; exist {
 		panic(fmt.Sprintf("Integration %q registered twice", name))
 	}
-	integrationNames[name] = v
+	integrationByName[name] = v
 
 	registered = append(registered, v)
 
 	configTy := reflect.TypeOf(v)
 	integrationTypes[configTy] = ty
-	integrationTypeByName[name] = ty
-	configFieldNames[configTy] = name
-	upgraders[name] = upgrader
+	upgraders[configTy] = upgrader
+	nameByType[configTy] = name
 }
 
 // RegisterLegacy registers a v1.Config. upgrader will be used to upgrade it.
@@ -66,7 +64,8 @@ func registerIntegration(v interface{}, name string, ty Type, upgrader UpgradeFu
 // integrations subsystem is an experiment. RegisterLegacy will be removed at a
 // later date.
 func RegisterLegacy(cfg v1.Config, ty Type, upgrader UpgradeFunc) {
-	registerIntegration(cfg, cfg.Name(), ty, upgrader)
+	realConfig := upgrader(cfg, common.MetricsConfig{})
+	registerIntegration(cfg, realConfig.Name(), ty, upgrader)
 }
 
 // UpgradeFunc upgrades cfg to a UpgradedConfig.
@@ -110,12 +109,11 @@ const (
 // setRegistered must not be used with parallelized tests.
 func setRegistered(t *testing.T, cc map[Config]Type) {
 	clear := func() {
-		integrationNames = make(map[string]interface{})
+		integrationByName = make(map[string]interface{})
 		integrationTypes = make(map[reflect.Type]Type)
-		integrationTypeByName = make(map[string]Type)
-		configFieldNames = make(map[reflect.Type]string)
 		registered = registered[:0]
-		upgraders = make(map[string]UpgradeFunc)
+		upgraders = make(map[reflect.Type]UpgradeFunc)
+		nameByType = make(map[reflect.Type]string)
 	}
 
 	t.Cleanup(clear)
@@ -136,9 +134,17 @@ func Registered() []Config {
 	return res
 }
 
-// RegisteredType returns the integrations.Type for config
-func RegisteredType(name string) (Type, bool) {
-	t, ok := integrationTypeByName[name]
+// RegisteredType returns the registered integrations.Type for c.
+func RegisteredType(c Config) (Type, bool) {
+	// We want to look up the registered type. Integrations are always registered
+	// as pointers, so we need to add indirection here if a non-pointer is loaded
+	// into the subsystem.
+	cType := reflect.TypeOf(c)
+	if cType.Kind() != reflect.Ptr {
+		cType = reflect.PtrTo(cType)
+	}
+
+	t, ok := integrationTypes[cType]
 	return t, ok
 }
 
@@ -147,7 +153,7 @@ func cloneConfig(r interface{}) Config {
 	case Config:
 		return cloneValue(v).(Config)
 	case v1.Config:
-		mut, ok := upgraders[v.Name()]
+		mut, ok := upgraders[reflect.TypeOf(v)]
 		if !ok || mut == nil {
 			panic(fmt.Sprintf("Could not find transformer for legacy integration %T", r))
 		}
@@ -333,7 +339,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 		switch field.Kind() {
 		case reflect.Slice:
 			configName := strings.TrimPrefix(fieldType.Name, "XXX_Configs_")
-			configReference, ok := integrationNames[configName]
+			configReference, ok := integrationByName[configName]
 			if !ok {
 				return fmt.Errorf("integration %q not registered", configName)
 			}
@@ -351,7 +357,7 @@ func UnmarshalYAML(out interface{}, unmarshal func(interface{}) error) error {
 			}
 		default:
 			configName := strings.TrimPrefix(fieldType.Name, "XXX_Config_")
-			configReference, ok := integrationNames[configName]
+			configReference, ok := integrationByName[configName]
 			if !ok {
 				return fmt.Errorf("integration %q not registered", configName)
 			}
@@ -376,14 +382,14 @@ func deferredConfigUnmarshal(raw util.RawYAML, ref interface{}) (Config, error) 
 		err := yaml.UnmarshalStrict(raw, out)
 		return out, err
 	case v1.Config:
-		mut, ok := upgraders[ref.Name()]
-		if !ok {
-			panic(fmt.Sprintf("unexpected type %T", ref))
-		}
 		var (
 			common common.MetricsConfig
 			out    = cloneValue(ref).(v1.Config)
 		)
+		mut, ok := upgraders[reflect.TypeOf(out)]
+		if !ok {
+			panic(fmt.Sprintf("unexpected type %T", ref))
+		}
 		err := util.UnmarshalYAMLMerged(raw, &common, out)
 		return mut(out, common), err
 	default:
@@ -414,7 +420,7 @@ func getConfigTypeForIntegrations(out reflect.Type) reflect.Type {
 	for _, reg := range registered {
 		// Fields use a prefix that's unlikely to collide with anything else.
 		configTy := reflect.TypeOf(reg)
-		fieldName := configFieldNames[configTy]
+		fieldName := nameByType[configTy]
 
 		singletonType := reflect.PtrTo(reflect.TypeOf(util.RawYAML{}))
 

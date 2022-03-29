@@ -15,9 +15,7 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configunmarshaler"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/processor/processorhelper"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/service/external/builder"
 	"go.opentelemetry.io/otel/metric"
@@ -202,13 +200,13 @@ func (s *Server) Stop() error {
 }
 
 func newFuncProcessorFactory(callback func(pdata.Traces)) component.ProcessorFactory {
-	return processorhelper.NewFactory(
+	return component.NewProcessorFactory(
 		"func_processor",
 		func() config.Processor {
 			processorSettings := config.NewProcessorSettings(config.NewComponentIDWithName("func_processor", "func_processor"))
 			return &processorSettings
 		},
-		processorhelper.WithTraces(func(
+		component.WithTracesProcessor(func(
 			_ context.Context,
 			_ component.ProcessorCreateSettings,
 			_ config.Processor,
@@ -243,13 +241,13 @@ func (p *funcProcessor) Start(context.Context, component.Host) error { return ni
 func (p *funcProcessor) Shutdown(context.Context) error              { return nil }
 
 func newNoopExporterFactory() component.ExporterFactory {
-	return exporterhelper.NewFactory(
+	return component.NewExporterFactory(
 		"noop",
 		func() config.Exporter {
 			exporterSettings := config.NewExporterSettings(config.NewComponentIDWithName("noop", "noop"))
 			return &exporterSettings
 		},
-		exporterhelper.WithTraces(func(
+		component.WithTracesExporter(func(
 			context.Context,
 			component.ExporterCreateSettings,
 			config.Exporter) (

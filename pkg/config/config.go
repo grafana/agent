@@ -21,7 +21,6 @@ import (
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv/consul"
-	"github.com/grafana/dskit/kv/etcd"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
@@ -129,9 +128,6 @@ func (c Config) MarshalYAML() (interface{}, error) {
 	enc.SetHook(func(in interface{}) (ok bool, out interface{}, err error) {
 		// Obscure the password fields for known types that do not obscure passwords.
 		switch v := in.(type) {
-		case etcd.Config:
-			v.Password = "<secret>"
-			return true, v, nil
 		case consul.Config:
 			v.ACLToken = "<secret>"
 			return true, v, nil
