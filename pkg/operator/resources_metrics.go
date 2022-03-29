@@ -3,12 +3,9 @@ package operator
 import (
 	"context"
 	"fmt"
-	"path"
 	"strings"
 
-	"github.com/grafana/agent/pkg/build"
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/clientutil"
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -231,65 +228,6 @@ func generateMetricsStatefulSetSpec(
 		shards = *reqShards
 	}
 
-	useVersion := d.Agent.Spec.Version
-	if useVersion == "" {
-		useVersion = DefaultAgentVersion
-	}
-	imagePath := fmt.Sprintf("%s:%s", DefaultAgentBaseImage, useVersion)
-	if d.Agent.Spec.Image != nil && *d.Agent.Spec.Image != "" {
-		imagePath = *d.Agent.Spec.Image
-	}
-
-	agentArgs := []string{
-		"-config.file=/var/lib/grafana-agent/config/agent.yml",
-		"-config.expand-env=true",
-		"-server.http.address=0.0.0.0:8080",
-	}
-
-	enableConfigReadAPI := d.Agent.Spec.EnableConfigReadAPI
-	if enableConfigReadAPI {
-		agentArgs = append(agentArgs, "-config.enable-read-api")
-	}
-
-	// NOTE(rfratto): the Prometheus Operator supports a ListenLocal to prevent a
-	// service from being created. Given the intent is that Agents can connect to
-	// each other, ListenLocal isn't currently supported and we always create a port.
-	ports := []v1.ContainerPort{{
-		Name:          d.Agent.Spec.PortName,
-		ContainerPort: 8080,
-		Protocol:      v1.ProtocolTCP,
-	}}
-
-	volumes := []v1.Volume{
-		{
-			Name: "config",
-			VolumeSource: v1.VolumeSource{
-				Secret: &v1.SecretVolumeSource{
-					SecretName: fmt.Sprintf("%s-config", d.Agent.Name),
-				},
-			},
-		},
-		{
-			// We need a separate volume for storing the rendered config with
-			// environment variables replaced. While the Agent supports environment
-			// variable substitution, the value for __replica__ can only be
-			// determined at runtime. We use a dedicated container for both config
-			// reloading and rendering.
-			Name: "config-out",
-			VolumeSource: v1.VolumeSource{
-				EmptyDir: &v1.EmptyDirVolumeSource{},
-			},
-		},
-		{
-			Name: "secrets",
-			VolumeSource: v1.VolumeSource{
-				Secret: &v1.SecretVolumeSource{
-					SecretName: fmt.Sprintf("%s-secrets", d.Agent.Name),
-				},
-			},
-		},
-	}
-
 	walVolumeName := fmt.Sprintf("%s-wal", name)
 	if d.Agent.Spec.Storage != nil {
 		if d.Agent.Spec.Storage.VolumeClaimTemplate.Name != "" {
@@ -297,148 +235,31 @@ func generateMetricsStatefulSetSpec(
 		}
 	}
 
-	volumeMounts := []v1.VolumeMount{
-		{
-			Name:      "config",
-			ReadOnly:  true,
-			MountPath: "/var/lib/grafana-agent/config-in",
+	opts := podTemplateOptions{
+		ExtraSelectorLabels: map[string]string{
+			shardLabelName: fmt.Sprintf("%d", shard),
+			agentTypeLabel: "metrics",
 		},
-		{
-			Name:      "config-out",
-			MountPath: "/var/lib/grafana-agent/config",
-		},
-		{
+		ExtraVolumeMounts: []v1.VolumeMount{{
 			Name:      walVolumeName,
 			ReadOnly:  false,
 			MountPath: "/var/lib/grafana-agent/data",
-		},
-		{
-			Name:      "secrets",
-			ReadOnly:  true,
-			MountPath: "/var/lib/grafana-agent/secrets",
-		},
-	}
-	volumeMounts = append(volumeMounts, d.Agent.Spec.VolumeMounts...)
-
-	for _, s := range d.Agent.Spec.Secrets {
-		volumes = append(volumes, v1.Volume{
-			Name: clientutil.SanitizeVolumeName("secret-" + s),
-			VolumeSource: v1.VolumeSource{
-				Secret: &v1.SecretVolumeSource{SecretName: s},
+		}},
+		ExtraEnvVars: []v1.EnvVar{
+			{
+				Name:  "SHARD",
+				Value: fmt.Sprintf("%d", shard),
 			},
-		})
-		volumeMounts = append(volumeMounts, v1.VolumeMount{
-			Name:      clientutil.SanitizeVolumeName("secret-" + s),
-			ReadOnly:  true,
-			MountPath: path.Join("/var/lib/grafana-agent/extra-secrets", s),
-		})
-	}
-
-	for _, c := range d.Agent.Spec.ConfigMaps {
-		volumes = append(volumes, v1.Volume{
-			Name: clientutil.SanitizeVolumeName("configmap-" + c),
-			VolumeSource: v1.VolumeSource{
-				ConfigMap: &v1.ConfigMapVolumeSource{
-					LocalObjectReference: v1.LocalObjectReference{Name: c},
-				},
-			},
-		})
-		volumeMounts = append(volumeMounts, v1.VolumeMount{
-			Name:      clientutil.SanitizeVolumeName("configmap-" + c),
-			ReadOnly:  true,
-			MountPath: path.Join("/var/lib/grafana-agent/extra-configmaps", c),
-		})
-	}
-
-	podAnnotations := map[string]string{}
-	podLabels := map[string]string{}
-	podSelectorLabels := map[string]string{
-		"app.kubernetes.io/name":     "grafana-agent",
-		"app.kubernetes.io/version":  build.Version,
-		"app.kubernetes.io/instance": d.Agent.Name,
-		"grafana-agent":              d.Agent.Name,
-		managedByOperatorLabel:       managedByOperatorLabelValue,
-		shardLabelName:               fmt.Sprintf("%d", shard),
-		agentNameLabelName:           d.Agent.Name,
-		agentTypeLabel:               "metrics",
-	}
-	if d.Agent.Spec.PodMetadata != nil {
-		for k, v := range d.Agent.Spec.PodMetadata.Labels {
-			podLabels[k] = v
-		}
-		for k, v := range d.Agent.Spec.PodMetadata.Annotations {
-			podAnnotations[k] = v
-		}
-	}
-	for k, v := range podSelectorLabels {
-		podLabels[k] = v
-	}
-
-	podAnnotations["kubectl.kubernetes.io/default-container"] = "grafana-agent"
-
-	var (
-		finalSelectorLabels = cfg.Labels.Merge(podSelectorLabels)
-		finalLabels         = cfg.Labels.Merge(podLabels)
-	)
-
-	envVars := []v1.EnvVar{
-		{
-			Name: "POD_NAME",
-			ValueFrom: &v1.EnvVarSource{
-				FieldRef: &v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+			{
+				Name:  "SHARDS",
+				Value: fmt.Sprintf("%d", shards),
 			},
 		},
-		{
-			Name:  "SHARD",
-			Value: fmt.Sprintf("%d", shard),
-		},
-		{
-			Name:  "SHARDS",
-			Value: fmt.Sprintf("%d", shards),
-		},
 	}
 
-	operatorContainers := []v1.Container{
-		{
-			Name:         "config-reloader",
-			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.47.0",
-			VolumeMounts: volumeMounts,
-			Env:          envVars,
-			Args: []string{
-				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",
-				"--config-envsubst-file=/var/lib/grafana-agent/config/agent.yml",
-
-				"--watch-interval=1m",
-				"--statefulset-ordinal-from-envvar=POD_NAME",
-				"--reload-url=http://127.0.0.1:8080/-/reload",
-			},
-		},
-		{
-			Name:         "grafana-agent",
-			Image:        imagePath,
-			Ports:        ports,
-			Args:         agentArgs,
-			VolumeMounts: volumeMounts,
-			Env:          envVars,
-			ReadinessProbe: &v1.Probe{
-				ProbeHandler: v1.ProbeHandler{
-					HTTPGet: &v1.HTTPGetAction{
-						Path: "/-/ready",
-						Port: intstr.FromString(d.Agent.Spec.PortName),
-					},
-				},
-				TimeoutSeconds:   probeTimeoutSeconds,
-				PeriodSeconds:    5,
-				FailureThreshold: 120, // Allow up to 10m on startup for data recovery
-			},
-			Resources:                d.Agent.Spec.Resources,
-			TerminationMessagePolicy: v1.TerminationMessageFallbackToLogsOnError,
-		},
-	}
-
-	containers, err := clientutil.MergePatchContainers(operatorContainers, d.Agent.Spec.Containers)
+	templateSpec, selector, err := generatePodTemplate(cfg, name, d, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to merge containers spec: %w", err)
+		return nil, err
 	}
 
 	return &apps_v1.StatefulSetSpec{
@@ -448,27 +269,7 @@ func generateMetricsStatefulSetSpec(
 		UpdateStrategy: apps_v1.StatefulSetUpdateStrategy{
 			Type: apps_v1.RollingUpdateStatefulSetStrategyType,
 		},
-		Selector: &meta_v1.LabelSelector{
-			MatchLabels: finalSelectorLabels,
-		},
-		Template: v1.PodTemplateSpec{
-			ObjectMeta: meta_v1.ObjectMeta{
-				Labels:      finalLabels,
-				Annotations: podAnnotations,
-			},
-			Spec: v1.PodSpec{
-				Containers:                    containers,
-				InitContainers:                d.Agent.Spec.InitContainers,
-				SecurityContext:               d.Agent.Spec.SecurityContext,
-				ServiceAccountName:            d.Agent.Spec.ServiceAccountName,
-				NodeSelector:                  d.Agent.Spec.NodeSelector,
-				PriorityClassName:             d.Agent.Spec.PriorityClassName,
-				TerminationGracePeriodSeconds: pointer.Int64(4800),
-				Volumes:                       volumes,
-				Tolerations:                   d.Agent.Spec.Tolerations,
-				Affinity:                      d.Agent.Spec.Affinity,
-				TopologySpreadConstraints:     d.Agent.Spec.TopologySpreadConstraints,
-			},
-		},
+		Selector: selector,
+		Template: templateSpec,
 	}, nil
 }
