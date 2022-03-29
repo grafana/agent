@@ -229,6 +229,18 @@ POST /agent/api/v1/metrics/instance/{instance}/write
 This endpoint accepts Prometheus-compatible remote_write POST requests, and
 appends their contents into an instance's WAL. 
 
+Replace `{instance}` with the name of the metrics instance from your config
+file. For example, this block defines the "dev" and "prod" instances:
+
+```yaml
+metrics:
+  configs:
+  - name: dev     # /agent/api/v1/metrics/instance/dev/write
+    ...
+  - name: prod    # /agent/api/v1/metrics/instance/prod/write
+    ...
+```
+
 Status code: 204 on success, 400 for bad requests related to the provided
 instance or POST payload format and content, 500 for cases where appending
 to the WAL failed.
