@@ -177,8 +177,21 @@ func TestRemoteWriteHandler(t *testing.T) {
 	// Assign a mockAppendable to that instance, so we can verify
 	// that data was pushed correctly.
 	mockAppendable := &mockAppendable{}
-	managedInstance, err := a.InstanceManager().GetInstance("instanceOne")
-	require.NoError(t, err)
+	var managedInstance instance.ManagedInstance
+	gotInstance := func() bool {
+		managedInstance, err = a.InstanceManager().GetInstance("instanceOne")
+		if managedInstance == nil || err != nil {
+			return false
+		}
+		return true
+	}
+	// The instance may not have started yet, so let's be patient here.
+	require.Eventually(
+		t,
+		gotInstance,
+		5*time.Second,
+		1*time.Second,
+	)
 	managedInstance.(*fakeInstance).appender = mockAppendable
 
 	// Execute the request and make sure that the status code and recorded data were correct.
