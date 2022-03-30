@@ -41,7 +41,7 @@ jobs:
 
     - name: publish-to-git
       uses: actions/checkout@v3
-      run: git clone --single-branch --no-tags --depth 1 -b master git@github.com:tpaschalis/website-sync.git ./.github/actions/website-sync
+      run: git clone --single-branch --no-tags --depth 1 -b master https://github.com/tpaschalis/website-sync ./.github/actions/website-sync
       uses: ./.github/actions/website-sync
       id: publish
       with:
