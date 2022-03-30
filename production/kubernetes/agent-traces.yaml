@@ -73,9 +73,9 @@ spec:
     protocol: TCP
     targetPort: 9411
   - name: grafana-agent-traces-otlp
-    port: 55680
+    port: 4317
     protocol: TCP
-    targetPort: 55680
+    targetPort: 4317
   - name: grafana-agent-traces-opencensus
     port: 55678
     protocol: TCP
@@ -132,7 +132,7 @@ spec:
         - containerPort: 9411
           name: zipkin
           protocol: TCP
-        - containerPort: 55680
+        - containerPort: 4317
           name: otlp
           protocol: TCP
         - containerPort: 55678
