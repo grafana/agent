@@ -16,7 +16,6 @@ Agent Flow is intended to solve real world needs that the Grafana Agent team hav
 
 These broadly include 
 
-- Current configuration is complex and opaque
 - Lack of introspection within the agent
     - Questions about what telemetry data are being sent
     - Are rules applying correctly?
@@ -44,7 +43,6 @@ The primary goals of Agent Flow are
 Goals of this design document
 
 * Define high level concepts and goals
-* Determine whether Agent Flow is a feature that is valuable and useful
 * Define high level concepts of the execution path
 
 This document represents ideals and not technical implementation. 
