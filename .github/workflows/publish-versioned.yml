@@ -36,7 +36,6 @@ jobs:
       with:
         ref_name: ${{ github.ref_name }}
     - name: publish-to-git
-      run: git clone --single-branch --no-tags --depth 1 -b master https://tpaschalis:${{ secrets.GH_BOT_ACCESS_TOKEN }}@github.com/grafana/website-sync ./.github/actions/website-sync
       uses: ./.github/actions/website-sync
       id: publish
       with:
@@ -46,7 +45,7 @@ jobs:
         github_pat: '${{ secrets.GH_BOT_ACCESS_TOKEN }}'
         source_folder: docs/user
         target_folder: 'content/docs/agent/${{ steps.target.outputs.target }}'
-      shell: bash
+    - shell: bash
       run: |
         test -n "${{ steps.publish.outputs.commit_hash }}"
         test -n "${{ steps.publish.outputs.working_directory }}"
