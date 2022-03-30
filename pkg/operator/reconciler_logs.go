@@ -21,7 +21,8 @@ func (r *reconciler) createLogsConfigurationSecret(
 	d gragent.Deployment,
 ) error {
 
-	return r.createTelemetryConfigurationSecret(ctx, l, d, config.LogsType)
+	name := fmt.Sprintf("%s-logs-config", d.Agent.Name)
+	return r.createTelemetryConfigurationSecret(ctx, l, name, d, config.LogsType)
 }
 
 // createLogsDaemonSet creates a DaemonSet for logs.

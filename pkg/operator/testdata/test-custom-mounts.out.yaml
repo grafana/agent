@@ -54,14 +54,14 @@ spec:
       - name: secrets
         secret:
           secretName: grafana-agent-example-secrets
+      - name: grafana-agent-example-wal
+        emptyDir: {}
       - name: secret-extra-secret-a
         secret:
           secretName: extra-secret-a
       - name: configmap-extra-configmap-a
         configMap:
           name: extra-configmap-a
-      - name: grafana-agent-example-wal
-        emptyDir: {}
 
 ---
 

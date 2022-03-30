@@ -27,6 +27,10 @@ func generatePodTemplate(
 	opts podTemplateOptions,
 ) (core_v1.PodTemplateSpec, *meta_v1.LabelSelector, error) {
 
+	// generatePodTemplate assumes that the deployment has default values applied
+	// to it.
+	applyDeploymentDefaults(&d)
+
 	useVersion := d.Agent.Spec.Version
 	if useVersion == "" {
 		useVersion = DefaultAgentVersion
@@ -87,6 +91,7 @@ func generatePodTemplate(
 		},
 	}
 	volumes = append(volumes, opts.ExtraVolumes...)
+	volumes = append(volumes, d.Agent.Spec.Volumes...)
 
 	volumeMounts := []core_v1.VolumeMount{
 		{
@@ -227,6 +232,11 @@ func generatePodTemplate(
 		return core_v1.PodTemplateSpec{}, nil, fmt.Errorf("failed to merge containers spec: %w", err)
 	}
 
+	var pullSecrets []core_v1.LocalObjectReference
+	if len(d.Agent.Spec.ImagePullSecrets) > 0 {
+		pullSecrets = d.Agent.Spec.ImagePullSecrets
+	}
+
 	template := core_v1.PodTemplateSpec{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Labels:      finalLabels,
@@ -234,6 +244,7 @@ func generatePodTemplate(
 		},
 		Spec: core_v1.PodSpec{
 			Containers:                    containers,
+			ImagePullSecrets:              pullSecrets,
 			InitContainers:                d.Agent.Spec.InitContainers,
 			SecurityContext:               d.Agent.Spec.SecurityContext,
 			ServiceAccountName:            d.Agent.Spec.ServiceAccountName,
@@ -247,4 +258,23 @@ func generatePodTemplate(
 		},
 	}
 	return template, &meta_v1.LabelSelector{MatchLabels: finalSelectorLabels}, nil
+}
+
+func applyDeploymentDefaults(d *gragent.Deployment) {
+	if d.Agent.Spec.Metrics.Replicas != nil && *d.Agent.Spec.Metrics.Replicas < 0 {
+		intZero := int32(0)
+		d.Agent.Spec.Metrics.Replicas = &intZero
+	}
+
+	if d.Agent.Spec.Resources.Requests == nil {
+		d.Agent.Spec.Resources.Requests = core_v1.ResourceList{}
+	}
+
+	if d.Agent.Spec.Metrics.Replicas == nil {
+		d.Agent.Spec.Metrics.Replicas = &minReplicas
+	}
+
+	if d.Agent.Spec.PortName == "" {
+		d.Agent.Spec.PortName = defaultPortName
+	}
 }

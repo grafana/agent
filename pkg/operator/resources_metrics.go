@@ -110,54 +110,17 @@ func generateMetricsStatefulSet(
 
 	d = *d.DeepCopy()
 
-	//
-	// Apply defaults to all the fields.
-	//
-
-	if d.Agent.Spec.PortName == "" {
-		d.Agent.Spec.PortName = defaultPortName
-	}
-
-	if d.Agent.Spec.Metrics.Replicas == nil {
-		d.Agent.Spec.Metrics.Replicas = &minReplicas
-	}
-
-	if d.Agent.Spec.Metrics.Replicas != nil && *d.Agent.Spec.Metrics.Replicas < 0 {
-		intZero := int32(0)
-		d.Agent.Spec.Metrics.Replicas = &intZero
-	}
-	if d.Agent.Spec.Resources.Requests == nil {
-		d.Agent.Spec.Resources.Requests = v1.ResourceList{}
-	}
-
 	spec, err := generateMetricsStatefulSetSpec(cfg, name, d, shard)
 	if err != nil {
 		return nil, err
 	}
 
-	// Don't transfer any kubectl annotations to the statefulset so it doesn't
-	// get pruned by kubectl.
-	annotations := make(map[string]string)
-	for k, v := range d.Agent.Annotations {
-		if !strings.HasPrefix(k, "kubectl.kubernetes.io/") {
-			annotations[k] = v
-		}
-	}
-
-	labels := make(map[string]string)
-	for k, v := range spec.Template.Labels {
-		labels[k] = v
-	}
-	labels[agentNameLabelName] = d.Agent.Name
-	labels[agentTypeLabel] = "metrics"
-	labels[managedByOperatorLabel] = managedByOperatorLabelValue
-
 	ss := &apps_v1.StatefulSet{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:        name,
 			Namespace:   d.Agent.Namespace,
-			Labels:      labels,
-			Annotations: annotations,
+			Labels:      spec.Template.Labels,
+			Annotations: prepareAnnotations(d.Agent.Annotations),
 			OwnerReferences: []meta_v1.OwnerReference{{
 				APIVersion:         d.Agent.APIVersion,
 				Kind:               d.Agent.Kind,
@@ -170,33 +133,8 @@ func generateMetricsStatefulSet(
 		Spec: *spec,
 	}
 
-	// TODO(rfratto): Prometheus Operator has an input hash annotation added here,
-	// which combines the hash of the statefulset, config to the operator, rule
-	// config map names (unused here), and the previous statefulset (if any).
-	//
-	// This is used to skip re-applying an unchanged statefulset. Do we need this?
-
-	if len(d.Agent.Spec.ImagePullSecrets) > 0 {
-		ss.Spec.Template.Spec.ImagePullSecrets = d.Agent.Spec.ImagePullSecrets
-	}
-
-	storageSpec := d.Agent.Spec.Storage
-	if storageSpec == nil {
-		ss.Spec.Template.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, v1.Volume{
-			Name: fmt.Sprintf("%s-wal", name),
-			VolumeSource: v1.VolumeSource{
-				EmptyDir: &v1.EmptyDirVolumeSource{},
-			},
-		})
-	} else if storageSpec.EmptyDir != nil {
-		emptyDir := storageSpec.EmptyDir
-		ss.Spec.Template.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, v1.Volume{
-			Name: fmt.Sprintf("%s-wal", name),
-			VolumeSource: v1.VolumeSource{
-				EmptyDir: emptyDir,
-			},
-		})
-	} else {
+	if deploymentUseVolumeClaimTemplate(&d) {
+		storageSpec := d.Agent.Spec.Storage
 		pvcTemplate := prom_operator.MakeVolumeClaimTemplate(storageSpec.VolumeClaimTemplate)
 		if pvcTemplate.Name == "" {
 			pvcTemplate.Name = fmt.Sprintf("%s-wal", name)
@@ -211,9 +149,11 @@ func generateMetricsStatefulSet(
 		ss.Spec.VolumeClaimTemplates = append(ss.Spec.VolumeClaimTemplates, *pvcTemplate)
 	}
 
-	ss.Spec.Template.Spec.Volumes = append(ss.Spec.Template.Spec.Volumes, d.Agent.Spec.Volumes...)
-
 	return ss, nil
+}
+
+func deploymentUseVolumeClaimTemplate(d *gragent.Deployment) bool {
+	return d.Agent.Spec.Storage != nil && d.Agent.Spec.Storage.EmptyDir == nil
 }
 
 func generateMetricsStatefulSetSpec(
@@ -257,6 +197,25 @@ func generateMetricsStatefulSetSpec(
 		},
 	}
 
+	// Add volumes if there's no PVC template
+	storageSpec := d.Agent.Spec.Storage
+	if storageSpec == nil {
+		opts.ExtraVolumes = append(opts.ExtraVolumes, v1.Volume{
+			Name: walVolumeName,
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{},
+			},
+		})
+	} else if storageSpec.EmptyDir != nil {
+		emptyDir := storageSpec.EmptyDir
+		opts.ExtraVolumes = append(opts.ExtraVolumes, v1.Volume{
+			Name: walVolumeName,
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: emptyDir,
+			},
+		})
+	}
+
 	templateSpec, selector, err := generatePodTemplate(cfg, name, d, opts)
 	if err != nil {
 		return nil, err
@@ -272,4 +231,18 @@ func generateMetricsStatefulSetSpec(
 		Selector: selector,
 		Template: templateSpec,
 	}, nil
+}
+
+// prepareAnnotations returns annotations that are safe to be added to a
+// generated resource.
+func prepareAnnotations(source map[string]string) map[string]string {
+	res := make(map[string]string, len(source))
+	for k, v := range source {
+		// Ignore kubectl annotations so kubectl doesn't prune the resource we
+		// generated.
+		if !strings.HasPrefix(k, "kubectl.kubernetes.io/") {
+			res[k] = v
+		}
+	}
+	return res
 }

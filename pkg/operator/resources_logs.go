@@ -1,8 +1,6 @@
 package operator
 
 import (
-	"strings"
-
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -18,38 +16,17 @@ func generateLogsDaemonSet(
 
 	d = *d.DeepCopy()
 
-	if d.Agent.Spec.PortName == "" {
-		d.Agent.Spec.PortName = defaultPortName
-	}
-
 	spec, err := generateLogsDaemonSetSpec(cfg, name, d)
 	if err != nil {
 		return nil, err
 	}
 
-	// Don't transfer any kubectl annotations to the DaemonSet so it doesn't get
-	// pruned by kubectl.
-	annotations := make(map[string]string)
-	for k, v := range d.Agent.Annotations {
-		if !strings.HasPrefix(k, "kubectl.kubernetes.io/") {
-			annotations[k] = v
-		}
-	}
-
-	labels := make(map[string]string)
-	for k, v := range spec.Template.Labels {
-		labels[k] = v
-	}
-	labels[agentNameLabelName] = d.Agent.Name
-	labels[agentTypeLabel] = "logs"
-	labels[managedByOperatorLabel] = managedByOperatorLabelValue
-
 	ds := &apps_v1.DaemonSet{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name:        name,
 			Namespace:   d.Agent.Namespace,
-			Labels:      labels,
-			Annotations: annotations,
+			Labels:      spec.Template.Labels,
+			Annotations: prepareAnnotations(d.Agent.Annotations),
 			OwnerReferences: []meta_v1.OwnerReference{{
 				APIVersion:         d.Agent.APIVersion,
 				Kind:               d.Agent.Kind,
@@ -60,16 +37,6 @@ func generateLogsDaemonSet(
 			}},
 		},
 		Spec: *spec,
-	}
-
-	// TODO(rfratto): Prometheus Operator has an input hash annotation added here,
-	// which combines the hash of the DaemonSet, config to the operator, rule
-	// config map names (unused here), and the previous DaemonSet (if any).
-	//
-	// This is used to skip re-applying an unchanged Daemonset. Do we need this?
-
-	if len(d.Agent.Spec.ImagePullSecrets) > 0 {
-		ds.Spec.Template.Spec.ImagePullSecrets = d.Agent.Spec.ImagePullSecrets
 	}
 
 	return ds, nil
