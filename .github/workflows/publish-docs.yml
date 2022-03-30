@@ -3,9 +3,9 @@ name: publish_versioned_docs
 on:
   push:
     branches:
-    - release-*
+    - 'release-*'
     tags:
-    - v[0-9]+.[0-9]+.[0-9]+
+    - 'v[0-9]+.[0-9]+.[0-9]+'
     paths:
     - 'docs/user/**'
 
