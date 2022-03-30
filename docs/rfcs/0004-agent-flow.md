@@ -9,6 +9,7 @@
 
 The Agents configuration and onboarding is difficult to use. Viewing the effect of configuration changes on telemetry data is difficult. Making the configuration simplier, composable and intuitive allieviates these concerns.
 
+
 ## Description
 
 Agent Flow is intended to solve real world needs that the Grafana Agent team have idenfified in conversations with users and developers. 
@@ -24,6 +25,8 @@ These broadly include
     - Remote Write, Different Input Formats
     - Different output formats
     - Filtering ala Relabel Configs is complex and hard to figure out when they occur
+- Lack of understanding how telemetry data moves through agent
+    - Other systems use pipeline/extensions to allow users to understand how data moves through the system
 
 # 1. Introduction and Goals 
 
