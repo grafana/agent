@@ -34,6 +34,7 @@ Valid feature names are:
 ## Configuration file
 
 * `-config.file`: Path to the configuration file to load. May be an HTTP(s) URL when the `remote-configs` feature is enabled
+* `-config.file.type`: Type of file which `-config.file` refers to (default `yaml`). Valid values are `yaml` and `dynamic`.
 * `-config.expand-env`: Expand environment variables in the loaded configuration file
 * `-config.enable-read-api`: Enables the `/-/config` and `/agent/api/v1/configs/{name}` API endpoints to print YAML configuration
 
@@ -46,9 +47,8 @@ These flags require the `remote-configs` feature to be enabled:
 
 ### Dynamic Configuration
 
-These flags require the `dynamic-config` feature to be enabled:
-
-* `-config.dynamic-config-path`: Path to the dynamic configuration file (mutually exclusive with setting `-config.file`).
+The `dynamic-config` and `integrations-next` features must be enabled when
+`-config.file.type` is set to `dynamic`.
 
 ## Server
 
