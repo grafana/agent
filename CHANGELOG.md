@@ -105,6 +105,9 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix Kubernetes manifests to use port `4317` for OTLP instead of the previous 
+  `55680` in line with the default exposed port in the agent.
+
 - Ensure singleton integrations are honored in v2 integrations (@mattdurham)
 
 - Tracing: `const_labels` is now correctly parsed in the remote write exporter.
