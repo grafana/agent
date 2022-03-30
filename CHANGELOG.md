@@ -62,6 +62,9 @@ Main (unreleased)
   `integrations-next`-enabled configuration files. This change also changes
   integration names shown in metric labels. (@rfratto)
 
+- The already-deprecated `-prometheus.*` flags have been removed in favor of
+  their `-metrics.*` counterparts.
+
 ### Deprecations
 
 - Most fields in the `server` block of the configuration file are
@@ -107,7 +110,7 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fix Kubernetes manifests to use port `4317` for OTLP instead of the previous 
+- Fix Kubernetes manifests to use port `4317` for OTLP instead of the previous
   `55680` in line with the default exposed port in the agent.
 
 - Ensure singleton integrations are honored in v2 integrations (@mattdurham)
