@@ -64,7 +64,7 @@ Main (unreleased)
 
 - The deprecated `-prometheus.*` flags have been removed in favor of
   their `-metrics.*` counterparts. The `-prometheus.*` flags were first
-  deprecated in v0.19.0.
+  deprecated in v0.19.0. (@rfratto)
 
 ### Deprecations
 
@@ -139,13 +139,13 @@ Main (unreleased)
   properly provide these custom mounts. (@rfratto)
 
 - Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
-  now been fixed to only have one `.`.
+  now been fixed to only have one `.`. (@rfratto)
 
 ### Other changes
 
 - The `-metrics.wal-directory` flag and `metrics.wal_directory` config option
   will now default to `data-agent/`, the same default WAL directory as
-  Prometheus Agent.
+  Prometheus Agent. (@rfratto)
 
 v0.23.0 (2022-01-13)
 --------------------
