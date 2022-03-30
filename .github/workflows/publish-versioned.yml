@@ -1,0 +1,52 @@
+name: publish_versioned_docs
+
+on:
+  push:
+    branches:
+    - 'release-*'
+    tags:
+    - 'v[0-9]+.[0-9]+.[0-9]+'
+    paths:
+    - 'docs/user/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Build Website
+        run: |
+          docker run -v ${PWD}/sources:/hugo/content/docs/agent --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
+  sync:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout Actions library
+      uses: actions/checkout@v2
+      with:
+        repository: "mdisibio/grafana-github-actions"
+        path: ./actions
+        ref: docstarget
+    - name: Install Actions from library
+      run: npm install --production --prefix ./actions
+    - name: Extract semver
+      uses: ./actions/docs-target
+      id:   target
+      with:
+        ref_name: ${{ github.ref_name }}
+    - run: git clone --single-branch --no-tags --depth 1 -b master https://grafanabot:${{ secrets.GH_BOT_ACCESS_TOKEN }}@github.com/grafana/website-sync ./.github/actions/website-sync
+    - name: publish-to-git
+      uses: ./.github/actions/website-sync
+      id: publish
+      with:
+        repository: grafana/website
+        branch: master
+        host: github.com
+        github_pat: '${{ secrets.GH_BOT_ACCESS_TOKEN }}'
+        source_folder: docs/user
+        target_folder: 'content/docs/agent/${{ steps.target.outputs.target }}'
+    - shell: bash
+      run: |
+        test -n "${{ steps.publish.outputs.commit_hash }}"
+        test -n "${{ steps.publish.outputs.working_directory }}"
