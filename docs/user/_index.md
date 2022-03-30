@@ -16,7 +16,7 @@ with:
 The Agent supports collecting telemetry data by utilizing the same battle-tested
 code from the official platforms. It uses Prometheus for metrics collection,
 Grafana Loki for log collection, and [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector) for trace
-collection.
+collections.
 
 Grafana Agent uses less memory on average than Prometheus – by doing less (only focusing on `remote_write`-related functionality). You can save so much money! So much!	Real dollars! Plus network! Plus moneys!
 
