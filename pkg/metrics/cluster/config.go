@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"flag"
+	"strings"
 	"time"
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
@@ -58,5 +59,9 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.DurationVar(&c.ClusterReshardEventTimeout, prefix+"cluster-reshard-event-timeout", time.Second*30, "timeout for the cluster reshard. Timeout of 0s disables timeout.")
 	c.KVStore.RegisterFlagsWithPrefix(prefix+"config-store.", "configurations/", f)
 	c.Lifecycler.RegisterFlagsWithPrefix(prefix, f, util_log.Logger)
-	c.Client.GRPCClientConfig.RegisterFlagsWithPrefix(prefix, f)
+
+	// GRPCClientConfig.RegisterFlags expects that prefix does not end in a ".",
+	// unlike all other flags.
+	noDotPrefix := strings.TrimSuffix(prefix, ".")
+	c.Client.GRPCClientConfig.RegisterFlagsWithPrefix(noDotPrefix, f)
 }

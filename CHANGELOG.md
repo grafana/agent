@@ -137,6 +137,9 @@ Main (unreleased)
   name>`. This is not a breaking change as it was previously impossible to
   properly provide these custom mounts. (@rfratto)
 
+- Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
+  now been fixed to only have one `.`.
+
 v0.23.0 (2022-01-13)
 --------------------
 
