@@ -21,7 +21,7 @@ jobs:
     needs: test
     steps:
     - uses: actions/checkout@v3
-    - run: git clone --single-branch --no-tags --depth 1 -b master https://grafanabot:${{ secrets.GH_BOT_ACCESS_TOKEN }}@github.com/grafana/website-sync ./.github/actions/website-sync
+    - run: git clone --single-branch --no-tags --depth 1 -b master git@github.com:tpaschalis/website-sync.git ./.github/actions/website-sync
     - name: publish-to-git
       uses: ./.github/actions/website-sync
       id: publish
