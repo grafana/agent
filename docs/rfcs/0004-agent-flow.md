@@ -39,6 +39,7 @@ The primary goals of Agent Flow are
 2. Allow users to understand the system
 3. Allow users to inspect the system
 4. Allow developers to easily add components to the system
+4. Ensure the Agent still maintains high performance on all platforms that the Agent currently supports
 
 Goals of this design document
 
