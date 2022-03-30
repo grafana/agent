@@ -26,6 +26,7 @@ import (
 var DefaultConfig = Config{
 	Global:                 instance.DefaultGlobalConfig,
 	InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
+	WALDir:                 "data-agent/",
 	WALCleanupAge:          DefaultCleanupAge,
 	WALCleanupPeriod:       DefaultCleanupPeriod,
 	ServiceConfig:          cluster.DefaultConfig,
@@ -105,14 +106,11 @@ func (c *Config) ApplyDefaults() error {
 // RegisterFlags defines flags corresponding to the Config.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.RegisterFlagsWithPrefix("metrics.", f)
-
-	// Register deprecated flag names.
-	c.RegisterFlagsWithPrefix("prometheus.", f)
 }
 
 // RegisterFlagsWithPrefix defines flags with the provided prefix.
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
-	f.StringVar(&c.WALDir, prefix+"wal-directory", "", "base directory to store the WAL in")
+	f.StringVar(&c.WALDir, prefix+"wal-directory", DefaultConfig.WALDir, "base directory to store the WAL in")
 	f.DurationVar(&c.WALCleanupAge, prefix+"wal-cleanup-age", DefaultConfig.WALCleanupAge, "remove abandoned (unused) WALs older than this")
 	f.DurationVar(&c.WALCleanupPeriod, prefix+"wal-cleanup-period", DefaultConfig.WALCleanupPeriod, "how often to check for abandoned WALs")
 	f.DurationVar(&c.InstanceRestartBackoff, prefix+"instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")

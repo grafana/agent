@@ -22,4 +22,4 @@ COPY --from=build /src/agent/cmd/agent/agent /bin/agent
 COPY cmd/agent/agent-local-config.yaml /etc/agent/agent.yaml
 
 ENTRYPOINT ["/bin/agent"]
-CMD ["--config.file=/etc/agent/agent.yaml", "--prometheus.wal-directory=/etc/agent/data"]
+CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]

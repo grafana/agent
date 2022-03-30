@@ -62,6 +62,10 @@ Main (unreleased)
   `integrations-next`-enabled configuration files. This change also changes
   integration names shown in metric labels. (@rfratto)
 
+- The deprecated `-prometheus.*` flags have been removed in favor of
+  their `-metrics.*` counterparts. The `-prometheus.*` flags were first
+  deprecated in v0.19.0. (@rfratto)
+
 ### Deprecations
 
 - Most fields in the `server` block of the configuration file are
@@ -107,7 +111,7 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fix Kubernetes manifests to use port `4317` for OTLP instead of the previous 
+- Fix Kubernetes manifests to use port `4317` for OTLP instead of the previous
   `55680` in line with the default exposed port in the agent.
 
 - Ensure singleton integrations are honored in v2 integrations (@mattdurham)
@@ -133,6 +137,15 @@ Main (unreleased)
   will now be mounted at `/var/lib/grafana-agent/extra-configmaps/<configmap
   name>`. This is not a breaking change as it was previously impossible to
   properly provide these custom mounts. (@rfratto)
+
+- Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
+  now been fixed to only have one `.`. (@rfratto)
+
+### Other changes
+
+- The `-metrics.wal-directory` flag and `metrics.wal_directory` config option
+  will now default to `data-agent/`, the same default WAL directory as
+  Prometheus Agent. (@rfratto)
 
 v0.23.0 (2022-01-13)
 --------------------
