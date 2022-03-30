@@ -2,13 +2,14 @@
 package snmp_exporter
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
+	"net/http"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	"github.com/grafana/agent/pkg/integrations/config"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 	"gopkg.in/yaml.v2"
 )
@@ -21,11 +22,20 @@ var content []byte
 var DefaultConfig = Config{
 	WalkParams:     make(map[string]snmp_config.WalkParams),
 	SnmpConfigFile: "",
+	SnmpTargets:    make([]SnmpTarget, 1),
+}
+
+type SnmpTarget struct {
+	Name       string `yaml:"name"`
+	Target     string `yaml:"address"`
+	Module     string `yaml:"module"`
+	WalkParams string `yaml:"walk_params,omitempty"`
 }
 
 type Config struct {
 	WalkParams     map[string]snmp_config.WalkParams `yaml:"walk_params,omitempty"`
 	SnmpConfigFile string                            `yaml:"config_file,omitempty"`
+	SnmpTargets    []SnmpTarget                      `yaml:"snmp_targets"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -53,7 +63,6 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
 }
 
 // Load from file via embed
@@ -89,7 +98,40 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		modules: modules,
 		log:     log,
 	}
+	integration := &Integration{
+		sh: sh,
+	}
 
-	return integrations.NewHandlerIntegration(c.Name(), sh), nil
+	return integration, nil
+}
 
+// Integration is the node_exporter integration. The integration scrapes metrics
+// from the host Linux-based system.
+type Integration struct {
+	sh *snmpHandler
+}
+
+// MetricsHandler implements Integration.
+func (i *Integration) MetricsHandler() (http.Handler, error) {
+	return i.sh, nil
+}
+
+// Run satisfies Integration.Run.
+func (i *Integration) Run(ctx context.Context) error {
+	// We don't need to do anything here, so we can just wait for the context to
+	// finish.
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+// ScrapeConfigs satisfies Integration.ScrapeConfigs.
+func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
+	var res []config.ScrapeConfig
+	for _, target := range i.sh.cfg.SnmpTargets {
+		res = append(res, config.ScrapeConfig{
+			JobName:     i.sh.cfg.Name() + "/" + target.Name,
+			MetricsPath: fmt.Sprintf("/metrics?target=%s", target.Target),
+		})
+	}
+	return res
 }
