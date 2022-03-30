@@ -40,7 +40,7 @@ to the end of the `docker run` command:
 - `--config.file=path/to/agent.yaml`, replacing the argument with the full path
   to your Agent's YAML configuration file.
 
-- `--prometheus.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
+- `--metrics.wal-directory=/tmp/agent/data`, replacing `/tmp/agent/data` with
   the directory you wish to use for storing data. Note that `/tmp` may get
   deleted by most operating systems after a reboot.
 
