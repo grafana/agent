@@ -140,6 +140,12 @@ Main (unreleased)
 - Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
   now been fixed to only have one `.`.
 
+### Other changes
+
+- The `-metrics.wal-directory` flag and `metrics.wal_directory` config option
+  will now default to `data-agent/`, the same default WAL directory as
+  Prometheus Agent.
+
 v0.23.0 (2022-01-13)
 --------------------
 

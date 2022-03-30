@@ -26,6 +26,7 @@ import (
 var DefaultConfig = Config{
 	Global:                 instance.DefaultGlobalConfig,
 	InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
+	WALDir:                 "data-agent/",
 	WALCleanupAge:          DefaultCleanupAge,
 	WALCleanupPeriod:       DefaultCleanupPeriod,
 	ServiceConfig:          cluster.DefaultConfig,
