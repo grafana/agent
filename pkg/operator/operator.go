@@ -185,12 +185,14 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 		For(&gragent.GrafanaAgent{}, builder.WithPredicates(agentPredicates...)).
 		Owns(&apps_v1.StatefulSet{}).
 		Owns(&apps_v1.DaemonSet{}).
+		Owns(&apps_v1.Deployment{}).
 		Owns(&core_v1.Secret{}).
 		Owns(&core_v1.Service{}).
 		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
 		Watches(&source.Kind{Type: &gragent.LogsInstance{}}, notifierHandler).
 		Watches(&source.Kind{Type: &gragent.PodLogs{}}, notifierHandler).
 		Watches(&source.Kind{Type: &gragent.MetricsInstance{}}, notifierHandler).
+		Watches(&source.Kind{Type: &gragent.Integration{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.PodMonitor{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.Probe{}}, notifierHandler).
 		Watches(&source.Kind{Type: &promop_v1.ServiceMonitor{}}, notifierHandler).

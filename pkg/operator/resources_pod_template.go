@@ -44,6 +44,7 @@ func generatePodTemplate(
 		"-config.file=/var/lib/grafana-agent/config/agent.yml",
 		"-config.expand-env=true",
 		"-server.http.address=0.0.0.0:8080",
+		"-enable-features=integrations-next",
 	}
 
 	enableConfigReadAPI := d.Agent.Spec.EnableConfigReadAPI

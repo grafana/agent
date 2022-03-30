@@ -195,6 +195,46 @@ func CreateOrUpdateDaemonSet(ctx context.Context, c client.Client, ss *apps_v1.D
 	return nil
 }
 
+// CreateOrUpdateDeployment applies the given DaemonSet against the client.
+func CreateOrUpdateDeployment(ctx context.Context, c client.Client, d *apps_v1.Deployment) error {
+	var exist apps_v1.Deployment
+	err := c.Get(ctx, client.ObjectKeyFromObject(d), &exist)
+	if err != nil && !k8s_errors.IsNotFound(err) {
+		return fmt.Errorf("failed to retrieve existing Deployment: %w", err)
+	}
+
+	if k8s_errors.IsNotFound(err) {
+		err := c.Create(ctx, d)
+		if err != nil {
+			return fmt.Errorf("failed to create Deployment: %w", err)
+		}
+	} else {
+		d.ResourceVersion = exist.ResourceVersion
+		d.SetOwnerReferences(mergeOwnerReferences(d.GetOwnerReferences(), exist.GetOwnerReferences()))
+		d.SetLabels(mergeMaps(d.Labels, exist.Labels))
+		d.SetAnnotations(mergeMaps(d.Annotations, exist.Annotations))
+
+		err := c.Update(ctx, d)
+		if k8s_errors.IsNotAcceptable(err) || k8s_errors.IsInvalid(err) {
+			// Resource version should only be set when updating
+			d.ResourceVersion = ""
+
+			err = c.Delete(ctx, d)
+			if err != nil {
+				return fmt.Errorf("failed to update Deployment: deleting old Deployment: %w", err)
+			}
+			err = c.Create(ctx, d)
+			if err != nil {
+				return fmt.Errorf("failed to update Deployment: creating new Deployment: %w", err)
+			}
+		} else if err != nil {
+			return fmt.Errorf("failed to update Deployment: %w", err)
+		}
+	}
+
+	return nil
+}
+
 func mergeOwnerReferences(new, old []meta_v1.OwnerReference) []meta_v1.OwnerReference {
 	existing := make(map[types.UID]bool)
 	for _, ref := range old {

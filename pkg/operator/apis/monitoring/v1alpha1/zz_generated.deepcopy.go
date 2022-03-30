@@ -364,13 +364,17 @@ func (in *IntegrationSpec) DeepCopyInto(out *IntegrationSpec) {
 	}
 	if in.Secrets != nil {
 		in, out := &in.Secrets, &out.Secrets
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = make([]corev1.SecretKeySelector, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	if in.ConfigMaps != nil {
 		in, out := &in.ConfigMaps, &out.ConfigMaps
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = make([]corev1.ConfigMapKeySelector, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 }
 
