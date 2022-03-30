@@ -1,4 +1,4 @@
-name: publish_docs
+name: publish_versioned_docs
 
 on:
   push:
