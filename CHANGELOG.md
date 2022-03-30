@@ -62,8 +62,9 @@ Main (unreleased)
   `integrations-next`-enabled configuration files. This change also changes
   integration names shown in metric labels. (@rfratto)
 
-- The already-deprecated `-prometheus.*` flags have been removed in favor of
-  their `-metrics.*` counterparts.
+- The deprecated `-prometheus.*` flags have been removed in favor of
+  their `-metrics.*` counterparts. The `-prometheus.*` flags were first
+  deprecated in v0.19.0.
 
 ### Deprecations
 
