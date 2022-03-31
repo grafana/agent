@@ -2,7 +2,9 @@
 
 * Date: 2022-03-30
 * Author: Matt Durham (@mattdurham)
-* PR: [grafana/agent#1538](https://github.com/grafana/agent/pull/1538)
+* PRs: 
+    * [grafana/agent#1538](https://github.com/grafana/agent/pull/1538) - Problem Statement 
+    * [grafana/agent#1546](https://github.com/grafana/agent/pull/1546) - Messages and Expressions
 * Status: Draft
 
 ## Overarching Problem Statement
