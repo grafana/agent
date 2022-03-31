@@ -35,11 +35,13 @@ Agent Flow refers to both the execution, configuration and visual configurator o
 
 The primary goals of Agent Flow are
 
-1. Allow users to easily configure the system
-2. Allow users to understand the system
-3. Allow users to inspect the system
-4. Allow developers to easily add components to the system
-4. Ensure the Agent still maintains high performance on all platforms that the Agent currently supports
+1. Allow users to more easily understand the impact of their configuration
+2. Allow users to collect metrics from all running integrations across a  set of agents without installing extra dependencies
+3. Allow users to run integrations based on a dynamic environment
+4. Eliminate the need for duplication in the configuration file
+5. Allow developers to easily add components to the system
+6. Ensure the Agent still maintains high performance on all platforms that the Agent currently supports
+7. Allow the capability to support a GUI for configuration
 
 Goals of this design document
 
@@ -51,3 +53,109 @@ This document represents ideals and not technical implementation.
 Non Goals of this design document
 
 * Define a technical implementation or configuration implementation
+
+# 2. Broad Solution Path
+
+Conversation around should the components be assembled via message passing, via expressions, or a hybrid approach.
+
+**Note: Consider all examples pseudoconfig**
+
+## 2.1 Expression Based
+
+Expression based is writing expressions that allow referencing other components streams/outputs/values and using them directly. 
+
+**Pros**
+
+* Easier to Implement, evaluating expressions can map directly to existing config structs
+* Components are more reusable, you can pass basic types arounds (string, int, bool)
+
+**Cons**
+* Harder for users to wire things together
+* Harder to build a GUI for
+
+
+## 2.2 Message Based
+
+Message based is where components have no knowledge of other components and information is passed strictly via input and output streams. 
+
+**Pros**
+
+* Easier for users to understand the dependencies between components
+* Easier to build a GUI for
+* Ability to use more configuration formats easier
+
+**Cons**
+
+* More time consuming to implement, existing integrations/items would need to be componentized
+* Larger type system needed
+* More structured to keep the amount of types down
+
+Messages would require a more rigid and well defined type structure. For instance for getting credentials from various sources and passing those credentials around we would want to avoid the following.
+
+* MySQLCredentials
+* RedisCredentials
+* RemoteWriteCredentials
+* MySQLCredentialsSourceS3
+* MySQLCredentialsSourceVault
+* MySQLCredentialsSourceConsul
+* RedisCredentialsSourceS3
+* RedisCredentialsSourceVault
+* RedisCredentialsSourceConsul
+* RemoteWriteCredentialsSourceS3
+* RemoteWriteCredentialsSourceVault
+* RemoteWriteCredentialsSourceConsul
+
+And instead have one component that can read from many sources and outputs a single `Credential Type` and its up the destination component to intepret that correctly. 
+
+## 2.3 Hybrid
+
+## 2.4 Examples
+
+### 2.4.1 Simple Example Mysql from Target Discovery
+
+**Expression**
+
+```
+discovery "mysql_pods" {
+    # some sort of config here to find pods
+}
+
+
+integration "mysql" {
+  # Create one mysql integration for every element in the array here 
+  for_each = discovery.mysql_pods.targets
+
+  # Each spawned mysql integration has its data_source_name derived from 
+  # the address label of the input target.
+  data_source_name = "root@(${each.labels["__address__"]})"
+}
+```
+
+**Message**
+
+```
+discovery "mysqlpods" {
+    relabel_config {
+        [
+            {
+                source = "__address__"
+                match = "*mysql"
+                action = "replace"
+                replacement = "root@$1"
+            }
+        ]
+    }
+}
+
+# I think this would depend on convention, mysql would look at __address__ , and maybe optionally look for username/password
+integration "mysql" {}
+
+connections {
+    [
+        {
+            source = mysqlpods
+            destination = mysql
+        }
+    ]
+}
+```
