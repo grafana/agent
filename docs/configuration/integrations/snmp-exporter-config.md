@@ -6,7 +6,10 @@ title = "snmp_exporter_config"
 
 The `snmp_exporter_config` block configures the `snmp_exporter` integration,
 which is an embedded version of
-[`snmp_exporter`](https://github.com/prometheus/snmp-exporter). This allows collect SNMP metrics from the network devices with ease. 
+[`snmp_exporter`](https://github.com/prometheus/snmp-exporter). This allows collection of SNMP metrics from the network devices with ease. 
+
+
+## Quick configuration example
 
 To get started, define SNMP targets in Grafana agent's integration block:
 
@@ -147,10 +150,10 @@ Full reference of options:
   [address: <string>]
 
   # SNMP module to use for polling
-  [module: <string>]
+  [module: <string> | default = ""]
 
   # walk_param config to use for this snmp_target
-  [walk_params: <string>]
+  [walk_params: <string> | default = ""]
 ```
 
 ## walk_param config
@@ -167,7 +170,7 @@ Full reference of options:
   # How many times to retry a failed request, defaults to 3.
   [retries: <int> | default = 25]
 
-  # Timeout for each individual SNMP request, defaults to 5s.
+  # Timeout for each SNMP request, defaults to 5s.
   [timeout: <duration> | default = 5s]
 
   auth:
@@ -179,7 +182,7 @@ Full reference of options:
     # The equivalent options on NetSNMP commands like snmpbulkwalk
     # and snmpget are also listed. See snmpcmd(1).
     
-    # Required if v3 is ued, no default. -u option to NetSNMP.
+    # Required if v3 is used, no default. -u option to NetSNMP.
     [username: <string> | default = "user"] 
 
     # Defaults to noAuthNoPriv. -l option to NetSNMP.
@@ -211,8 +214,8 @@ Full reference of options:
 
 ## About SNMP modules
 
-SNMP module is the set of SNMP counters to be scraped together from specific network device.
+SNMP module is the set of SNMP counters to be scraped together from the specific network device.
 
 SNMP modules available can be found in embeded snmp.yml file [here](https://github.com/grafana/agent/blob/main/pkg/integrations/snmp_exporter/snmp.yml).  If not specified, `if_mib` module is used.
 
-If you need to use custom SNMP modules, you can [generate](https://github.com/prometheus/snmp_exporter#generating-configuration) own snmp.yml file and specify it using `config_file` parameter.
+If you need to use custom SNMP modules, you can [generate](https://github.com/prometheus/snmp_exporter#generating-configuration) your own snmp.yml file and specify it using `config_file` parameter.
