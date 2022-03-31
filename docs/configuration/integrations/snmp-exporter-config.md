@@ -6,9 +6,39 @@ title = "snmp_exporter_config"
 
 The `snmp_exporter_config` block configures the `snmp_exporter` integration,
 which is an embedded version of
-[`snmp_exporter`](https://github.com/prometheus/snmp-exporter). This allows for the collection of metrics from the SNMP devices.
+[`snmp_exporter`](https://github.com/prometheus/snmp-exporter). This allows collect SNMP metrics from the network devices with ease. 
 
-To use snmp_exporter integration, enable it with autoscraping disabled. Then, configure scrape_configs to scrape metrics from SNMP targets:
+To get started, define SNMP targets in Grafana agent's integration block:
+
+```yaml
+metrics:
+  wal_directory: /tmp/wal
+integrations:
+  snmp_exporter:
+    enabled: true
+    snmp_targets:
+      - name: network_switch_1
+        address: 192.168.1.2
+        module: if_mib
+        walk_params: public
+      - name: network_router_2
+        address: 192.168.1.3
+        module: mikrotik
+        walk_params: private
+    walk_params:
+      private:
+        version: 2
+        auth:
+          community: mysecret
+      public:
+        version: 2
+        auth:
+          community: public
+```
+
+## Prometheus service discovery use case
+
+If you need to scrape SNMP devices in more dynamic environment, and cannot define devices in `snmp_targets` because targets would change over time, you can use service discovery approach. For instance, with [DNS discovery](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#dns_sd_config):
 
 ```yaml
 
@@ -18,37 +48,30 @@ metrics:
     - name: snmp_targets
       scrape_configs:
         - job_name: 'snmp'
-          static_configs:
-            - targets: [192.168.15.1]  # First SNMP device.
-              labels:
-                __param_walk_params: public
-            - targets: [192.168.15.2]  # Second SNMP device.
-              labels:
-                __param_walk_params: private
-          metrics_path: /integrations/snmp_exporter/metrics
+          dns_sd_configs:
+            - names:
+              - switches.srv.example.org
+              - routers.srv.example.org
           params:
-            module: [if_mib] # snmp module to use
+            module: [if_mib]
+            walk_params: [private]
+          metrics_path: /integrations/snmp_exporter/metrics
           relabel_configs:
             - source_labels: [__address__]
               target_label: __param_target
             - source_labels: [__param_target]
               target_label: instance
-            - replacement: 127.0.0.1:9090  # The SNMP exporter's real hostname:port.
-              target_label: __address__ 
-
+            - replacement: 127.0.0.1:9090 # port must match grafana agent http_listen_port below
+              target_label: __address__
 integrations:
   snmp_exporter:
     enabled: true
-    scrape_integration: false
+    scrape_integration: false # set autoscrape to off
     walk_params:
       private:
         version: 2
         auth:
           community: secretpassword
-      public:
-        version: 2
-        auth:
-          community: public
 server:
     http_listen_port: 9090
 ```
@@ -101,14 +124,33 @@ Full reference of options:
 
   # SNMP configuration file with custom modules.
   # See https://github.com/prometheus/snmp_exporter#generating-configuration for more details how to generate custom snmp.yml file. 
-  # If not defined, embeede snmp_exporter default set of modules is used.
+  # If not defined, embeded snmp_exporter default set of modules is used.
   [config_file: <string> | default = ""]
+
+  # List of SNMP targets to poll
+  snmp_targets:
+    [- <snmp_target> ... ]
 
   # Map of SNMP connection profiles that can be used to override default SNMP settings.
   walk_params:
     [ <string>: <walk_param> ... ]
 
 
+```
+## snmp_target config
+
+```yaml
+  # Name of a snmp_target
+  [name: <string>]
+
+  # The address of SNMP device
+  [address: <string>]
+
+  # SNMP module to use for polling
+  [module: <string>]
+
+  # walk_param config to use for this snmp_target
+  [walk_params: <string>]
 ```
 
 ## walk_param config
@@ -165,3 +207,12 @@ Full reference of options:
     [context_name: <string> | default = ""]
 
 ```
+
+
+## About SNMP modules
+
+SNMP module is the set of SNMP counters to be scraped together from specific network device.
+
+SNMP modules available can be found in embeded snmp.yml file [here](https://github.com/grafana/agent/blob/main/pkg/integrations/snmp_exporter/snmp.yml).  If not specified, `if_mib` module is used.
+
+If you need to use custom SNMP modules, you can [generate](https://github.com/prometheus/snmp_exporter#generating-configuration) own snmp.yml file and specify it using `config_file` parameter.
