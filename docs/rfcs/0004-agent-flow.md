@@ -37,11 +37,10 @@ The primary goals of Agent Flow are
 
 1. Allow users to more easily understand the impact of their configuration
 2. Allow users to collect metrics from all running integrations across a  set of agents without installing extra dependencies
-3. Allow users to run integrations based on a dynamic environment
-4. Eliminate the need for duplication in the configuration file
-5. Allow developers to easily add components to the system
-6. Ensure the Agent still maintains high performance on all platforms that the Agent currently supports
-7. Allow the capability to support a GUI for configuration
+3. Allow users to run components based on a dynamic environment
+4. Allow developers to easily add components to the system
+5. Ensure the Agent still maintains high performance on all platforms that the Agent currently supports
+6. Flow configs must be easily machine-readable and machine-writable to support tooling, such as formatting and GUI
 
 Goals of this design document
 
