@@ -4,8 +4,6 @@ import (
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
 )
 
 func generateLogsDaemonSet(
@@ -30,25 +28,10 @@ func generateLogsDaemonSet(
 		Template: tmpl,
 	}
 
-	ds := &apps_v1.DaemonSet{
-		ObjectMeta: meta_v1.ObjectMeta{
-			Name:        name,
-			Namespace:   d.Agent.Namespace,
-			Labels:      spec.Template.Labels,
-			Annotations: prepareAnnotations(d.Agent.Annotations),
-			OwnerReferences: []meta_v1.OwnerReference{{
-				APIVersion:         d.Agent.APIVersion,
-				Kind:               d.Agent.Kind,
-				BlockOwnerDeletion: pointer.Bool(true),
-				Controller:         pointer.Bool(true),
-				Name:               d.Agent.Name,
-				UID:                d.Agent.UID,
-			}},
-		},
-		Spec: spec,
-	}
-
-	return ds, nil
+	return &apps_v1.DaemonSet{
+		ObjectMeta: metadataFromPodTemplate(name, d, tmpl),
+		Spec:       spec,
+	}, nil
 }
 
 func logsPodTemplateOptions(d gragent.Deployment) podTemplateOptions {

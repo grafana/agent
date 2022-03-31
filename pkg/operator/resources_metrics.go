@@ -8,6 +8,7 @@ import (
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
+	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -128,21 +129,8 @@ func generateMetricsStatefulSet(
 	}
 
 	ss := &apps_v1.StatefulSet{
-		ObjectMeta: meta_v1.ObjectMeta{
-			Name:        name,
-			Namespace:   d.Agent.Namespace,
-			Labels:      spec.Template.Labels,
-			Annotations: prepareAnnotations(d.Agent.Annotations),
-			OwnerReferences: []meta_v1.OwnerReference{{
-				APIVersion:         d.Agent.APIVersion,
-				Kind:               d.Agent.Kind,
-				BlockOwnerDeletion: pointer.Bool(true),
-				Controller:         pointer.Bool(true),
-				Name:               d.Agent.Name,
-				UID:                d.Agent.UID,
-			}},
-		},
-		Spec: *spec,
+		ObjectMeta: metadataFromPodTemplate(name, d, templateSpec),
+		Spec:       *spec,
 	}
 
 	if deploymentUseVolumeClaimTemplate(&d) {
@@ -223,6 +211,23 @@ func metricsPodTemplateOptions(name string, d gragent.Deployment, shard int32) p
 	}
 
 	return opts
+}
+
+func metadataFromPodTemplate(name string, d gragent.Deployment, tmpl core_v1.PodTemplateSpec) meta_v1.ObjectMeta {
+	return meta_v1.ObjectMeta{
+		Name:        name,
+		Namespace:   d.Agent.Namespace,
+		Labels:      tmpl.Labels,
+		Annotations: prepareAnnotations(d.Agent.Annotations),
+		OwnerReferences: []meta_v1.OwnerReference{{
+			APIVersion:         d.Agent.APIVersion,
+			Kind:               d.Agent.Kind,
+			BlockOwnerDeletion: pointer.Bool(true),
+			Controller:         pointer.Bool(true),
+			Name:               d.Agent.Name,
+			UID:                d.Agent.UID,
+		}},
+	}
 }
 
 // prepareAnnotations returns annotations that are safe to be added to a
