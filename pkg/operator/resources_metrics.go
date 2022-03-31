@@ -110,9 +110,21 @@ func generateMetricsStatefulSet(
 
 	d = *d.DeepCopy()
 
-	spec, err := generateMetricsStatefulSetSpec(cfg, name, d, shard)
+	opts := metricsPodTemplateOptions(name, d, shard)
+	templateSpec, selector, err := generatePodTemplate(cfg, name, d, opts)
 	if err != nil {
 		return nil, err
+	}
+
+	spec := &apps_v1.StatefulSetSpec{
+		ServiceName:         governingServiceName(d.Agent.Name),
+		Replicas:            d.Agent.Spec.Metrics.Replicas,
+		PodManagementPolicy: apps_v1.ParallelPodManagement,
+		UpdateStrategy: apps_v1.StatefulSetUpdateStrategy{
+			Type: apps_v1.RollingUpdateStatefulSetStrategyType,
+		},
+		Selector: selector,
+		Template: templateSpec,
 	}
 
 	ss := &apps_v1.StatefulSet{
@@ -156,13 +168,7 @@ func deploymentUseVolumeClaimTemplate(d *gragent.Deployment) bool {
 	return d.Agent.Spec.Storage != nil && d.Agent.Spec.Storage.EmptyDir == nil
 }
 
-func generateMetricsStatefulSetSpec(
-	cfg *Config,
-	name string,
-	d gragent.Deployment,
-	shard int32,
-) (*apps_v1.StatefulSetSpec, error) {
-
+func metricsPodTemplateOptions(name string, d gragent.Deployment, shard int32) podTemplateOptions {
 	shards := minShards
 	if reqShards := d.Agent.Spec.Metrics.Shards; reqShards != nil && *reqShards > 1 {
 		shards = *reqShards
@@ -216,21 +222,7 @@ func generateMetricsStatefulSetSpec(
 		})
 	}
 
-	templateSpec, selector, err := generatePodTemplate(cfg, name, d, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	return &apps_v1.StatefulSetSpec{
-		ServiceName:         governingServiceName(d.Agent.Name),
-		Replicas:            d.Agent.Spec.Metrics.Replicas,
-		PodManagementPolicy: apps_v1.ParallelPodManagement,
-		UpdateStrategy: apps_v1.StatefulSetUpdateStrategy{
-			Type: apps_v1.RollingUpdateStatefulSetStrategyType,
-		},
-		Selector: selector,
-		Template: templateSpec,
-	}, nil
+	return opts
 }
 
 // prepareAnnotations returns annotations that are safe to be added to a

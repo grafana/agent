@@ -16,9 +16,18 @@ func generateLogsDaemonSet(
 
 	d = *d.DeepCopy()
 
-	spec, err := generateLogsDaemonSetSpec(cfg, name, d)
+	opts := logsPodTemplateOptions(d)
+	tmpl, selector, err := generatePodTemplate(cfg, name, d, opts)
 	if err != nil {
 		return nil, err
+	}
+
+	spec := apps_v1.DaemonSetSpec{
+		UpdateStrategy: apps_v1.DaemonSetUpdateStrategy{
+			Type: apps_v1.RollingUpdateDaemonSetStrategyType,
+		},
+		Selector: selector,
+		Template: tmpl,
 	}
 
 	ds := &apps_v1.DaemonSet{
@@ -36,19 +45,14 @@ func generateLogsDaemonSet(
 				UID:                d.Agent.UID,
 			}},
 		},
-		Spec: *spec,
+		Spec: spec,
 	}
 
 	return ds, nil
 }
 
-func generateLogsDaemonSetSpec(
-	cfg *Config,
-	name string,
-	d gragent.Deployment,
-) (*apps_v1.DaemonSetSpec, error) {
-
-	opts := podTemplateOptions{
+func logsPodTemplateOptions(d gragent.Deployment) podTemplateOptions {
+	return podTemplateOptions{
 		ExtraSelectorLabels: map[string]string{
 			agentTypeLabel: "logs",
 		},
@@ -104,17 +108,4 @@ func generateLogsDaemonSetSpec(
 			},
 		},
 	}
-
-	tmpl, selector, err := generatePodTemplate(cfg, name, d, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	return &apps_v1.DaemonSetSpec{
-		UpdateStrategy: apps_v1.DaemonSetUpdateStrategy{
-			Type: apps_v1.RollingUpdateDaemonSetStrategyType,
-		},
-		Selector: selector,
-		Template: tmpl,
-	}, nil
 }
