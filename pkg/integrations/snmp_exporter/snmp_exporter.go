@@ -23,7 +23,7 @@ var content []byte
 var DefaultConfig = Config{
 	WalkParams:     make(map[string]snmp_config.WalkParams),
 	SnmpConfigFile: "",
-	SnmpTargets:    make([]SnmpTarget, 1),
+	SnmpTargets:    make([]SnmpTarget, 0),
 }
 
 type SnmpTarget struct {
@@ -91,6 +91,14 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		modules, err = LoadEmbeddedConfig()
 		if err != nil {
 			return nil, fmt.Errorf("failed to load embedded snmp config: %w", err)
+		}
+	}
+
+	// The `name` and `address` fields are mandatory for the SNMP targets are mandatory.
+	// Enforce this check and fail the creation of the integration if they're missing.
+	for _, target := range c.SnmpTargets {
+		if target.Name == "" || target.Target == "" {
+			return nil, fmt.Errorf("failed to load snmp_targets; the `name` and `address` fields are mandatory")
 		}
 	}
 
