@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
@@ -128,9 +129,12 @@ func (i *Integration) Run(ctx context.Context) error {
 func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
 	var res []config.ScrapeConfig
 	for _, target := range i.sh.cfg.SnmpTargets {
+		queryParams := url.Values{}
+		queryParams.Add("target", target.Target)
 		res = append(res, config.ScrapeConfig{
 			JobName:     i.sh.cfg.Name() + "/" + target.Name,
-			MetricsPath: fmt.Sprintf("/metrics?target=%s", target.Target),
+			MetricsPath: "/metrics",
+			QueryParams: queryParams,
 		})
 	}
 	return res
