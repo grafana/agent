@@ -425,6 +425,7 @@ func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg Manage
 		sc := &promConfig.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
 			MetricsPath:             path.Join("/integrations", p.cfg.Name(), isc.MetricsPath),
+			Params:                  isc.QueryParams,
 			Scheme:                  schema,
 			HonorLabels:             false,
 			HonorTimestamps:         true,

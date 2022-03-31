@@ -3,6 +3,7 @@
 package config
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/prometheus/prometheus/model/relabel"
@@ -39,4 +40,8 @@ type ScrapeConfig struct {
 	// The path will be prepended by "/integrations/<integration name>" when read by
 	// the integrations manager.
 	MetricsPath string
+
+	// QueryParams is a set of query parameters, that if set, will be appended to
+	// MetricsPath and used for scraping the integration's target.
+	QueryParams url.Values
 }
