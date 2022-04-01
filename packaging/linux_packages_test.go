@@ -67,6 +67,7 @@ func buildPackages(t *testing.T) {
 		"RELEASE_TAG=v0.0.0",
 	)
 	cmd.Dir = root
+	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	require.NoError(t, cmd.Run())
 }
