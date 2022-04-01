@@ -87,7 +87,7 @@ Message based is where components have no knowledge of other components and info
 
 * Easier for users to understand the dependencies between components
 * Easier to build a GUI for
-    * Inputs and Outputs are well typed
+    * Inputs and Outputs are well defined and less granular
     * Connections are made by connecting two components directly, compared to expressions which connect subsets of a component's output
 * References between components are no more than strings, making the text-based representation language agnostic (e.g., it could be YAML, JSON, or any language)  
 
