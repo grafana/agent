@@ -61,6 +61,36 @@ This document considers three potential approaches to allow users to connect com
 2. Expressions (i.e., directly referencing the output of another component)
 3. A hybrid of both messages and expressions  
 
+The Flow Should in general resemble a flowchart or node graph. The data flow diagram would conceptually look like the below, with each node being composable and connecting with other nodes. 
+
+```
+┌─────────────────────────┐             ┌──────────────────┐          ┌─────────────────────┐       ┌───────────────────┐              
+│                         │      ┌─────▶│  Target Filter   │─────────▶│  Redis Integration  │──────▶│   Metric Filter   │──┐           
+│                         │      │      └──────────────────┘          └─────────────────────┘       └───────────────────┘  │           
+│    Service Discovery    │──────┤                                                                                         │           
+│                         │      │                                                                                         │           
+│                         │      │                                                                                         │           
+└─────────────────────────┘      │      ┌─────────────────┐           ┌──────────────────────┐                    ┌────────┘           
+                                 ├─────▶│  Target Filter  │──────────▶│  MySQL Integrations  │───────────┐        │                    
+                                 │      └─────────────────┘           └──────────────────────┘           │        │                    
+                                 │                                                                       │        │                    
+                                 │       ┌─────────────────┐              ┌─────────────┐                │        │                    
+                                 └──────▶│  Target Filter  │─────────────▶│   Scraper   │─────────────┐  │        │  ┌────────────────┐
+                                         └─────────────────┘              └─────────────┘             └──┴┬───────┴─▶│  Remote Write  │
+                                                                                                          │          └────────────────┘
+                                                                                                          │                            
+                                                                                                          │                            
+┌──────────────────────────┐                                                                              │                            
+│  Remote Write Receiver   │─────┐                                      ┌───────────────────────┐         │                            
+└──────────────────────────┘     │                                ┌────▶│  Metric Transformer   │─────────┘                            
+                                 │                                │     └───────────────────────┘                                      
+                                 │                                │                                                                    
+┌─────────────────────────┐      │      ┌────────────────────┐    │                                                                    
+│      HTTP Receiver      │──────┴─────▶│   Metric Filter    │────┘                           ┌──────────────────────────────────┐     
+└─────────────────────────┘             └────────────────────┘                                │    Global and Server Settings    │     
+                                                                                              └──────────────────────────────────┘     
+```
+
 **Note: Consider all examples pseudoconfig**
 
 ## 2.1 Expression Based
