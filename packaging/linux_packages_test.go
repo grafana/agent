@@ -65,6 +65,7 @@ func buildPackages(t *testing.T) {
 	cmd.Env = append(
 		os.Environ(),
 		"RELEASE_TAG=v0.0.0",
+		"DOCKER_OPTS=",
 	)
 	cmd.Dir = root
 	cmd.Stderr = os.Stderr
