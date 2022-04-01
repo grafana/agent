@@ -57,7 +57,16 @@ Non Goals of this design document
 
 # 2. Broad Solution Path
 
-Conversation around should the components be assembled via message passing, via expressions, or a hybrid approach.
+At a high level, Agent Flow:
+
+* Breaks apart the existing hierarchical configuration file into reusable components 
+* Allows components to be connected, resulting in a programmable pipeline of telemetry data
+
+This document considers three potential approaches to allow users to connect components together: 
+
+1. Message passing (i.e., an actor model) 
+2. Expressions (i.e., directly referencing the output of another component)
+3. A hybrid of both messages and expressions  
 
 **Note: Consider all examples pseudoconfig**
 
