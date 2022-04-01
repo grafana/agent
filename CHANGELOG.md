@@ -84,6 +84,8 @@ Main (unreleased)
 
 - Introduced endpoint that accepts remote_write requests and pushes metrics data directly into an instance's WAL. (@tpaschalis)
 
+- Added builds for linux/ppc64le. (@aklyachkin)
+
 ### Enhancements
 
 - Tracing: Exporters can now be configured to use OAuth. (@canuteson)
