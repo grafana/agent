@@ -97,7 +97,7 @@ run() {
     create job --from=cronjob/grafana-agent-syncer \
     grafana-agent-syncer-startup
 
-  echo "Your environment is now running for the next $TEST_DURATION."
+  echo "Your environment is now running for the next $TEST_DURATION seconds."
   echo "Grafana URL: http://grafana.k3d.localhost:50080"
   echo "Prometheus URL: http://prometheus.k3d.localhost:50080"
   echo "Check smoke test logs: "
@@ -123,12 +123,12 @@ get_results() {
       | jq '.data.result | length'         \
   )
   if test $NUM_ALERTS -ne 0; then
-    echo "FAIL: $NUM_ALERTS alerts found over the last $TEST_DURATION."
+    echo "FAIL: $NUM_ALERTS alerts found over the last $TEST_DURATION seconds."
     echo "More information: http://prometheus.k3d.localhost:50080/graph?g0.expr=count_over_time(ALERTS{alertstate%3D%22firing%22}[$TEST_DURATION])"
 
     exit 1
   else
-    echo "PASS: 0 alerts found over the last $TEST_DURATION. You're good to go!"
+    echo "PASS: 0 alerts found over the last $TEST_DURATION seconds. You're good to go!"
 
     exit 0
   fi
