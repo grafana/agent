@@ -39,12 +39,13 @@ $(if $(filter $(1),linux/amd64),export CGO_ENABLED=1 GOOS=linux GOARCH=amd64, \
 $(if $(filter $(1),linux/arm64),export CGO_ENABLED=1 GOOS=linux GOARCH=arm64, \
 $(if $(filter $(1),linux/arm/v7),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7, \
 $(if $(filter $(1),linux/arm/v6),export CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=6, \
+$(if $(filter $(1),linux/ppc64le),export CGO_ENABLED=1 GOOS=linux GOARCH=ppc64le, \
 $(if $(filter $(1),darwin/amd64),export CGO_ENABLED=1 GOOS=darwin  GOARCH=amd64, \
 $(if $(filter $(1),darwin/arm64),export CGO_ENABLED=1 GOOS=darwin GOARCH=arm64, \
 $(if $(filter $(1),windows),export CGO_ENABLED=1 GOOS=windows GOARCH=amd64, \
 $(if $(filter $(1),mipls),export CGO_ENABLED=1 GOOS=linux GOARCH=mipsle, \
 $(if $(filter $(1),freebsd),export CGO_ENABLED=1 GOOS=freebsd GOARCH=amd64, $(error invalid flag $(1))) \
-)))))))))
+))))))))))
 endef
 
 ALL_CGO_BUILD_FLAGS = $(call SetBuildVarsConditional,$(TARGETPLATFORM))
@@ -130,7 +131,7 @@ seego = docker run --rm -t $(MOD_MOUNT) -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" 
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
-docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 $(DOCKER_BUILD_FLAGS)
+docker-build = docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7,linux/ppc64le $(DOCKER_BUILD_FLAGS)
 endif
 
 # we want to override the default seego behavior. Drone always builds locally inside seego and if build in container is false then use
@@ -287,7 +288,7 @@ dist: dist-agent dist-agentctl dist-packages
 # BEGIN AGENT DIST #
 ####################
 
-dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
+dist-agent: seego dist/agent-linux-amd64 dist/agent-linux-arm64 dist/agent-linux-armv6 dist/agent-linux-armv7 dist/agent-linux-ppc64le dist/agent-darwin-amd64 dist/agent-darwin-arm64 dist/agent-windows-amd64.exe dist/agent-freebsd-amd64 dist/agent-windows-installer.exe
 dist/agent-linux-amd64: seego
 	$(call SetBuildVarsConditional,linux/amd64) ;      $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
@@ -299,6 +300,9 @@ dist/agent-linux-armv6: seego
 
 dist/agent-linux-armv7: seego
 	$(call SetBuildVarsConditional,linux/arm/v7) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
+
+dist/agent-linux-ppc64le: seego
+	$(call SetBuildVarsConditional,linux/ppc64le) ;    $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
 
 dist/agent-linux-mipsle: seego
 	$(call SetBuildVarsConditional,linux/mipsle) ;     $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agent
@@ -343,6 +347,9 @@ dist/agentctl-linux-armv6: seego
 
 dist/agentctl-linux-armv7: seego
 	$(call SetBuildVarsConditional,linux/arm/v7);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
+
+dist/agentctl-linux-ppc64le: seego
+	$(call SetBuildVarsConditional,linux/ppc64le);  $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
 
 dist/agentctl-linux-mipsle: seego
 	$(call SetBuildVarsConditional,linux/mipsle);   $(seego) build $(CGO_FLAGS) -o $@ ./cmd/agentctl
@@ -409,6 +416,8 @@ dist-packages-armv6: enforce-release-tag dist/agent-linux-armv6 dist/agentctl-li
 	$(container_make) $@;
 dist-packages-armv7: enforce-release-tag dist/agent-linux-armv7 dist/agentctl-linux-armv7 build-image/.uptodate
 	$(container_make) $@;
+dist-packages-ppc64le: enforce-release-tag dist/agent-linux-ppc64le dist/agentctl-linux-ppc64le build-image/.uptodate
+	$(container_make) $@;
 
 else
 package_base = ./dist/grafana-agent-$(PACKAGE_VERSION)-$(PACKAGE_RELEASE)
@@ -416,6 +425,7 @@ dist-packages-amd64: $(package_base).amd64.deb $(package_base).amd64.rpm
 dist-packages-arm64: $(package_base).arm64.deb $(package_base).arm64.rpm
 dist-packages-armv6: $(package_base).armv6.deb
 dist-packages-armv7: $(package_base).armv7.deb $(package_base).armv7.rpm
+dist-packages-ppc64le: $(package_base).ppc64el.deb $(package_base).ppc64le.rpm
 
 ENVIRONMENT_FILE_rpm := /etc/sysconfig/grafana-agent
 ENVIRONMENT_FILE_deb := /etc/default/grafana-agent
@@ -451,6 +461,7 @@ RPM_DEPS := $(wildcard packaging/rpm/**/*) packaging/grafana-agent.yaml
 # agent arm64, deb arm64, rpm aarch64
 # agent armv7, deb armhf, rpm armhfp
 # agent armv6, deb armhf, (No RPM for armv6)
+# agent ppc64le, deb ppc64el, rpm ppc64le
 #
 # These targets require the agent/agentctl binaries to have already been built
 # with seego. Since this usually runs inside of a Docker Container, we can't
@@ -463,6 +474,8 @@ $(PACKAGE_PREFIX).armv7.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,armhf,armv7,$@)
 $(PACKAGE_PREFIX).armv6.deb: $(DEB_DEPS)
 	$(call generate_fpm,deb,armhf,armv6,$@)
+$(PACKAGE_PREFIX).ppc64el.deb: $(DEB_DEPS)
+	$(call generate_fpm,deb,ppc64el,ppc64le,$@)
 
 $(PACKAGE_PREFIX).amd64.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,x86_64,amd64,$@)
@@ -470,6 +483,8 @@ $(PACKAGE_PREFIX).arm64.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,aarch64,arm64,$@)
 $(PACKAGE_PREFIX).armv7.rpm: $(RPM_DEPS)
 	$(call generate_fpm,rpm,armhfp,armv7,$@)
+$(PACKAGE_PREFIX).ppc64le.rpm: $(RPM_DEPS)
+	$(call generate_fpm,rpm,ppc64le,ppc64le,$@)
 
 endif
 
