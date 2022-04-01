@@ -35,25 +35,18 @@ This design document outlines Agent Flow, a system for describing a programmable
 
 Agent Flow refers to both the execution, configuration and visual configurator of data flow.
 
-The primary goals of Agent Flow are
+### Goals 
 
-1. Allow users to more easily understand the impact of their configuration
-2. Allow users to collect metrics from all running integrations across a  set of agents without installing extra dependencies
-3. Allow users to run components based on a dynamic environment
-4. Allow developers to easily add components to the system
-5. Ensure the Agent still maintains high performance on all platforms that the Agent currently supports
-6. Flow configs must be easily machine-readable and machine-writable to support tooling, such as formatting and GUI
+* Allow users to more easily understand the impact of their configuration
+* Allow users to collect integration metrics across a set of agents
+* Allow users to run components based on a dynamic environment
+* Allow developers to easily add components to the system
+* Maintain high performance on all currently-supported platforms
+* Produce machine-readable and machine-writable configs for tooling such as formatters or a GUI.
 
-Goals of this design document
+### Non-goals
 
-* Define high level concepts and goals
-* Define high level concepts of the execution path
-
-This document represents ideals and not technical implementation. 
-
-Non Goals of this design document
-
-* Define a technical implementation or configuration implementation
+* Discuss technical details: we instead focus on how a user would interact with a hypothetical implementation of Agent Flow.
 
 # 2. Broad Solution Path
 
