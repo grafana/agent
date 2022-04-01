@@ -31,7 +31,7 @@ These broadly include:
 
 # 1. Introduction and Goals 
 
-This design document describes Agent Flow, which is a system for describing the execution and configuration of telemetry data, along with any secondary configuration required to configure the Grafana Agent. 
+This design document outlines Agent Flow, a system for describing a programmable pipeline for telemetry data. 
 
 Agent Flow refers to both the execution, configuration and visual configurator of data flow.
 
