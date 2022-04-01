@@ -63,16 +63,18 @@ Conversation around should the components be assembled via message passing, via 
 
 ## 2.1 Expression Based
 
-Expression based is writing expressions that allow referencing other components streams/outputs/values and using them directly. 
+Expression based is writing expressions that allow referencing other components streams/outputs/values and using them directly. Expressions allow referencing other fields, along with complex programming concepts. (functions, arithmetic ect). For instance `field1 = len(service_discover1.targets)`.
 
 **Pros**
 
 * Easier to Implement, evaluating expressions can map directly to existing config structs
-* Components are more reusable, you can pass basic types arounds (string, int, bool)
+* Components are more reusable, you can pass basic types around (string, int, bool) in addition to custom types
 
 **Cons**
 * Harder for users to wire things together
+  * References to components are more complex, which may be harder to understand 
 * Harder to build a GUI for
+  * Every field of a component is potentially dynamic, making it harder to represent visually
 
 
 ## 2.2 Message Based
@@ -83,7 +85,9 @@ Message based is where components have no knowledge of other components and info
 
 * Easier for users to understand the dependencies between components
 * Easier to build a GUI for
-* Ability to use more configuration formats easier
+    * Inputs and Outputs are well typed
+    * Messages mean users are only dragging outputs to inputs. The components themselves determine how to interpret the input needing less configuration from the user.
+* References between components are no more than strings, making the text-based representation language agnostic (e.g., it could be YAML, JSON, or any language)  
 
 **Cons**
 
@@ -142,7 +146,7 @@ discovery "mysqlpods" {
                 source = "__address__"
                 match = "*mysql"
                 action = "replace"
-                replacement = "root@$1"
+                replacement = "root@($1)"
             }
         ]
     }
