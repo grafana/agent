@@ -97,22 +97,17 @@ Message based is where components have no knowledge of other components and info
 * Larger type system needed
 * More structured to keep the amount of types down
 
-Messages would require a more rigid and well defined type structure. For instance for getting credentials from various sources and passing those credentials around we would want to avoid the following.
+Messages require a more rigid type structure to minimize the number of total components. 
 
-* MySQLCredentials
-* RedisCredentials
-* RemoteWriteCredentials
-* MySQLCredentialsSourceS3
-* MySQLCredentialsSourceVault
-* MySQLCredentialsSourceConsul
-* RedisCredentialsSourceS3
-* RedisCredentialsSourceVault
-* RedisCredentialsSourceConsul
-* RemoteWriteCredentialsSourceS3
-* RemoteWriteCredentialsSourceVault
-* RemoteWriteCredentialsSourceConsul
+For example, it would be preferable to have a single `Credential` type that can be emitted by an s3, Vault, or Consul component. These components would then need to set a field that marks their output as a specific kind of Credential (such as Basic Auth or Bearer Auth).
 
-And instead have one component that can read from many sources and outputs a single `Credential Type` and its up the destination component to intepret that correctly. 
+If, instead, you had multiple Credential types, like `MySQLCredentials` and `RedisCredentials`, you would have the following components:
+
+* Vault component for MySQL credentials 
+* Vault component for Redis credentials 
+* S3 component for MySQL credentials 
+* S3 component for Redis credentials 
+* (and so on)
 
 ## 2.3 Hybrid
 
