@@ -23,31 +23,36 @@ var DefaultConfig = Config{
 	SnmpConfigFile: "",
 }
 
+// Config configures the SNMP integration.
 type Config struct {
 	WalkParams     map[string]snmp_config.WalkParams `yaml:"walk_params,omitempty"`
 	SnmpConfigFile string                            `yaml:"config_file,omitempty"`
-	SnmpTargets    []SnmpTarget                      `yaml:"snmp_targets"`
+	SnmpTargets    []SNMPTarget                      `yaml:"snmp_targets"`
 	Common         common.MetricsConfig              `yaml:",inline"`
 
 	globals integrations_v2.Globals
 }
 
-type SnmpTarget struct {
+// SNMPTarget defines a target device to be used by the integration.
+type SNMPTarget struct {
 	Name       string `yaml:"name"`
 	Target     string `yaml:"address"`
 	Module     string `yaml:"module"`
 	WalkParams string `yaml:"walk_params,omitempty"`
 }
 
+// ApplyDefaults applies the integration's default configuration.
 func (c *Config) ApplyDefaults(globals integrations_v2.Globals) error {
 	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
 	return nil
 }
 
+// Identifier returns a string that identifies the integration.
 func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
 	return c.Name(), nil
 }
 
+// NewIntegration creates a new SNMP integration.
 func (c *Config) NewIntegration(log log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
 	var modules *snmp_config.Config
 	var err error
@@ -93,9 +98,8 @@ func init() {
 	integrations_v2.Register(&Config{}, integrations_v2.TypeSingleton)
 }
 
-// Load from file via embed
+// LoadEmbeddedConfig loads the SNMP config via a file using the go:embed directive.
 func LoadEmbeddedConfig() (*snmp_config.Config, error) {
-
 	cfg := &snmp_config.Config{}
 	err := yaml.UnmarshalStrict(content, cfg)
 	if err != nil {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	_ "net/http/pprof"
 	"path"
 	"time"
 
@@ -17,8 +16,8 @@ import (
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	v1snmp "github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -106,9 +105,8 @@ func (sh *snmpHandler) RunIntegration(ctx context.Context) error {
 	return nil
 }
 
-func (sh *snmpHandler) createHandler(targets []SnmpTarget) http.HandlerFunc {
-
-	snmpTargets := make(map[string]SnmpTarget)
+func (sh *snmpHandler) createHandler(targets []SNMPTarget) http.HandlerFunc {
+	snmpTargets := make(map[string]SNMPTarget)
 	for _, target := range targets {
 		snmpTargets[target.Name] = target
 	}
@@ -210,7 +208,6 @@ func (sh *snmpHandler) createHandler(targets []SnmpTarget) http.HandlerFunc {
 }
 
 func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
-
 	logger := sh.log
 
 	query := r.URL.Query()
@@ -240,15 +237,15 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// override module connection details with custom walk params if provided
-	walk_params := query.Get("walk_params")
+	walkParams := query.Get("walk_params")
 	if len(query["walk_params"]) > 1 {
 		http.Error(w, "'walk_params' parameter must only be specified once", 400)
 		v1snmp.SnmpRequestErrors.Inc()
 		return
 	}
 
-	if walk_params != "" {
-		if wp, ok := sh.cfg.WalkParams[walk_params]; ok {
+	if walkParams != "" {
+		if wp, ok := sh.cfg.WalkParams[walkParams]; ok {
 			// module.WalkParams = wp
 			if wp.Version != 0 {
 				module.WalkParams.Version = wp.Version
@@ -264,11 +261,11 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 			}
 			module.WalkParams.Auth = wp.Auth
 		} else {
-			http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walk_params), 400)
+			http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walkParams), 400)
 			v1snmp.SnmpRequestErrors.Inc()
 			return
 		}
-		logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walk_params)
+		logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walkParams)
 	} else {
 		logger = log.With(logger, "module", moduleName, "target", target)
 	}

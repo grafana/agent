@@ -484,7 +484,6 @@ func (m *Manager) scrapeServiceDiscovery(cfg ManagerConfig) discovery.Configs {
 
 // WireAPI hooks up /metrics routes per-integration.
 func (m *Manager) WireAPI(r *mux.Router) {
-
 	r.HandleFunc("/integrations/{name}/metrics", func(rw http.ResponseWriter, r *http.Request) {
 		m.integrationsMut.RLock()
 		defer m.integrationsMut.RUnlock()
@@ -493,7 +492,6 @@ func (m *Manager) WireAPI(r *mux.Router) {
 		handler := m.loadHandler(key)
 		handler.ServeHTTP(rw, r)
 	})
-
 }
 
 // loadHandler will perform a dynamic lookup of an HTTP handler for an

@@ -120,6 +120,7 @@ func (i *metricsHandlerIntegration) Targets(ep integrations.Endpoint) []*targetg
 	return []*targetgroup.Group{group}
 }
 
+// BoolToString is a helper for converting boolean values to a Prometheus labels-compatible string.
 func BoolToString(b bool) string {
 	switch b {
 	case true:

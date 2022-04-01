@@ -23,20 +23,22 @@ var content []byte
 var DefaultConfig = Config{
 	WalkParams:     make(map[string]snmp_config.WalkParams),
 	SnmpConfigFile: "",
-	SnmpTargets:    make([]SnmpTarget, 0),
+	SnmpTargets:    make([]SNMPTarget, 0),
 }
 
-type SnmpTarget struct {
+// SNMPTarget defines a target device to be used by the integration.
+type SNMPTarget struct {
 	Name       string `yaml:"name"`
 	Target     string `yaml:"address"`
 	Module     string `yaml:"module"`
 	WalkParams string `yaml:"walk_params,omitempty"`
 }
 
+// Config configures the SNMP integration.
 type Config struct {
 	WalkParams     map[string]snmp_config.WalkParams `yaml:"walk_params,omitempty"`
 	SnmpConfigFile string                            `yaml:"config_file,omitempty"`
-	SnmpTargets    []SnmpTarget                      `yaml:"snmp_targets"`
+	SnmpTargets    []SNMPTarget                      `yaml:"snmp_targets"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -57,7 +59,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 	return agentKey, nil
 }
 
-// NewIntegration converts the config into an instance of an integration.
+// NewIntegration creates a new SNMP integration.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	return New(l, c)
 }
@@ -66,9 +68,8 @@ func init() {
 	integrations.RegisterIntegration(&Config{})
 }
 
-// Load from file via embed
+// LoadEmbeddedConfig loads the SNMP config via a file using the go:embed directive.
 func LoadEmbeddedConfig() (*snmp_config.Config, error) {
-
 	cfg := &snmp_config.Config{}
 	err := yaml.UnmarshalStrict(content, cfg)
 	if err != nil {
@@ -79,7 +80,6 @@ func LoadEmbeddedConfig() (*snmp_config.Config, error) {
 
 // New creates a new snmp_exporter integration
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-
 	var modules *snmp_config.Config
 	var err error
 	if c.SnmpConfigFile != "" {
