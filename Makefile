@@ -8,6 +8,7 @@ SHELL = /usr/bin/env bash
 # Docker image info.
 IMAGE_PREFIX ?= grafana
 IMAGE_BRANCH_TAG ?= main
+DOCKER_OPTS ?= -it
 
 ifeq ($(RELEASE_TAG),)
 IMAGE_TAG ?= $(shell ./tools/image-tag)
@@ -127,7 +128,7 @@ endif
 
 # seego is used by default when running bare make commands such as `make dist` this uses an image that has all the necessary libraries to cross build
 #	when using drone the docker in docker is more problematic so instead drone uses seego has the base image then calls make running "raw" commands
-seego = docker run --rm -t $(MOD_MOUNT) -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS"  grafana/agent/seego
+seego = docker run --init --rm $(DOCKER_OPTS) $(MOD_MOUNT) -v "$(CURDIR):$(CURDIR)" -w "$(CURDIR)" -e "CGO_ENABLED=$$CGO_ENABLED" -e "GOOS=$$GOOS" -e "GOARCH=$$GOARCH" -e "GOARM=$$GOARM" -e "GOMIPS=$$GOMIPS"  grafana/agent/seego
 docker-build = docker build $(DOCKER_BUILD_FLAGS)
 ifeq ($(CROSS_BUILD),true)
 DOCKERFILE = Dockerfile.buildx
@@ -150,7 +151,7 @@ crds: build-image/.uptodate
 ifeq ($(BUILD_IN_CONTAINER),true)
 	mkdir -p $(shell pwd)/.pkg
 	mkdir -p $(shell pwd)/.cache
-	docker run -i \
+	docker run --init --rm $(DOCKER_OPTS) \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
 		-v $(shell pwd):/src/agent \
@@ -174,7 +175,7 @@ touch-protos:
 ifeq ($(BUILD_IN_CONTAINER),true)
 	mkdir -p $(shell pwd)/.pkg
 	mkdir -p $(shell pwd)/.cache
-	docker run -i \
+	docker run --init --rm $(DOCKER_OPTS) \
 		-v $(shell pwd)/.cache:/go/cache \
 		-v $(shell pwd)/.pkg:/go/pkg \
 		-v $(shell pwd):/src/agent \
@@ -321,7 +322,7 @@ dist/agent-windows-installer.exe: dist/agent-windows-amd64.exe
 	cp LICENSE ./packaging/windows
 ifeq ($(BUILD_IN_CONTAINER),true)
 	docker build -t windows_installer ./packaging/windows
-	docker run --rm -t -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} windows_installer
+	docker run --init --rm $(DOCKER_OPTS) -v "${PWD}:/home" -e VERSION=${RELEASE_TAG} windows_installer
 else
 
 	makensis -V4 -DVERSION=${RELEASE_TAG} -DOUT="../../dist/grafana-agent-installer.exe" ./packaging/windows/install_script.nsis
@@ -402,11 +403,11 @@ dist-packages: dist-packages-amd64 dist-packages-arm64 dist-packages-armv6 dist-
 
 ifeq ($(BUILD_IN_CONTAINER), true)
 
-container_make = docker run --rm \
+container_make = docker run --init --rm $(DOCKER_OPTS) \
 	-v $(shell pwd):/src/agent:delegated \
 	-e RELEASE_TAG=$(RELEASE_TAG) \
 	-e SRC_PATH=/src/agent \
-	-i $(BUILD_IMAGE)
+	$(BUILD_IMAGE)
 
 dist-packages-amd64: enforce-release-tag dist/agent-linux-amd64 dist/agentctl-linux-amd64 build-image/.uptodate
 	$(container_make) $@;
