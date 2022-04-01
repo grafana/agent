@@ -81,7 +81,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // Name returns the name of the integration.
 func (c *Config) Name() string {
-	return "snmp_exporter"
+	return "snmp"
 }
 
 // InstanceKey returns the hostname:port of the agent.
