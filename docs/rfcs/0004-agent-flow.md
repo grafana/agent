@@ -16,7 +16,7 @@ The Agents configuration and onboarding is difficult to use. Viewing the effect 
 
 Agent Flow is intended to solve real world needs that the Grafana Agent team have idenfified in conversations with users and developers. 
 
-These broadly include 
+These broadly include:
 
 - Lack of introspection within the agent
     - Questions about what telemetry data are being sent
