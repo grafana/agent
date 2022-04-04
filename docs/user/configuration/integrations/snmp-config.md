@@ -1,10 +1,10 @@
 +++
-title = "snmp_exporter_config"
+title = "SNMP Integration"
 +++
 
-# snmp_exporter_config
+# snmp config
 
-The `snmp_exporter_config` block configures the `snmp_exporter` integration,
+The `snmp` block configures the `snmp` integration,
 which is an embedded version of
 [`snmp_exporter`](https://github.com/prometheus/snmp-exporter). This allows collection of SNMP metrics from the network devices with ease. 
 
@@ -17,7 +17,7 @@ To get started, define SNMP targets in Grafana agent's integration block:
 metrics:
   wal_directory: /tmp/wal
 integrations:
-  snmp_exporter:
+  snmp:
     enabled: true
     snmp_targets:
       - name: network_switch_1
@@ -58,7 +58,7 @@ metrics:
           params:
             module: [if_mib]
             walk_params: [private]
-          metrics_path: /integrations/snmp_exporter/metrics
+          metrics_path: /integrations/snmp/metrics
           relabel_configs:
             - source_labels: [__address__]
               target_label: __param_target
@@ -67,7 +67,7 @@ metrics:
             - replacement: 127.0.0.1:9090 # port must match grafana agent http_listen_port below
               target_label: __address__
 integrations:
-  snmp_exporter:
+  snmp:
     enabled: true
     scrape_integration: false # set autoscrape to off
     walk_params:
@@ -83,7 +83,7 @@ server:
 Full reference of options:
 
 ```yaml
-  # Enables the snmp_exporter integration, allowing the Agent to automatically
+  # Enables the snmp integration, allowing the Agent to automatically
   # collect metrics for the specified github objects.
   [enabled: <boolean> | default = false]
 
@@ -95,9 +95,9 @@ Full reference of options:
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the snmp_exporter integration will be run but not scraped and thus not
+  # the snmp integration will be run but not scraped and thus not
   # remote-written. Metrics for the integration will be exposed at
-  # /integrations/snmp_exporter/metrics and can be scraped by an external
+  # /integrations/snmp/metrics and can be scraped by an external
   # process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
@@ -127,7 +127,7 @@ Full reference of options:
 
   # SNMP configuration file with custom modules.
   # See https://github.com/prometheus/snmp_exporter#generating-configuration for more details how to generate custom snmp.yml file. 
-  # If not defined, embeded snmp_exporter default set of modules is used.
+  # If not defined, embedded snmp_exporter default set of modules is used.
   [config_file: <string> | default = ""]
 
   # List of SNMP targets to poll
@@ -216,6 +216,6 @@ Full reference of options:
 
 SNMP module is the set of SNMP counters to be scraped together from the specific network device.
 
-SNMP modules available can be found in embeded snmp.yml file [here](https://github.com/grafana/agent/blob/main/pkg/integrations/snmp_exporter/snmp.yml).  If not specified, `if_mib` module is used.
+SNMP modules available can be found in the embedded snmp.yml file [here](https://github.com/grafana/agent/blob/main/pkg/integrations/snmp_exporter/snmp.yml). If not specified, `if_mib` module is used.
 
 If you need to use custom SNMP modules, you can [generate](https://github.com/prometheus/snmp_exporter#generating-configuration) your own snmp.yml file and specify it using `config_file` parameter.
