@@ -96,6 +96,7 @@ rules:
   - metricsinstances
   - logsinstances
   - podlogs
+  - integrations
   verbs: [get, list, watch]
 - apiGroups: [monitoring.coreos.com]
   resources:
@@ -119,6 +120,7 @@ rules:
   resources:
   - statefulsets
   - daemonsets
+  - deployments
   verbs: [get, list, watch, create, update, patch, delete]
 
 ---
