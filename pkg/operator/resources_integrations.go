@@ -128,26 +128,29 @@ func integrationsPodTemplateOptions(name string, d gragent.Deployment) podTempla
 		}
 	}
 
-	// Load in references to Secrets and ConfigMaps.
-	integrationSecretsName := fmt.Sprintf("%s-integrations-secrets", d.Agent.Name)
+	if len(secretsPaths) > 0 {
+		// Load in references to Secrets and ConfigMaps.
+		integrationSecretsName := fmt.Sprintf("%s-integrations-secrets", d.Agent.Name)
 
-	integrationOpts.ExtraVolumes = append(integrationOpts.ExtraVolumes, core_v1.Volume{
-		Name: integrationSecretsName,
-		VolumeSource: core_v1.VolumeSource{
-			Secret: &core_v1.SecretVolumeSource{
-				// The reconcile-wide Secret holds all secrets and config maps
-				// integrations may have used.
-				SecretName: fmt.Sprintf("%s-secrets", d.Agent.Name),
-				Items:      secretsPaths,
+		integrationOpts.ExtraVolumes = append(integrationOpts.ExtraVolumes, core_v1.Volume{
+			Name: integrationSecretsName,
+			VolumeSource: core_v1.VolumeSource{
+				Secret: &core_v1.SecretVolumeSource{
+					// The reconcile-wide Secret holds all secrets and config maps
+					// integrations may have used.
+					SecretName: fmt.Sprintf("%s-secrets", d.Agent.Name),
+					Items:      secretsPaths,
+				},
 			},
-		},
-	})
+		})
 
-	integrationOpts.ExtraVolumeMounts = append(integrationOpts.ExtraVolumeMounts, core_v1.VolumeMount{
-		Name:      integrationSecretsName,
-		MountPath: "/etc/grafana-agent/integrations",
-		ReadOnly:  true,
-	})
+		integrationOpts.ExtraVolumeMounts = append(integrationOpts.ExtraVolumeMounts, core_v1.VolumeMount{
+			Name:      integrationSecretsName,
+			MountPath: "/etc/grafana-agent/integrations",
+			ReadOnly:  true,
+		})
+
+	}
 
 	// Extra options to merge in.
 	//

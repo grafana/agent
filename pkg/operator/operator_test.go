@@ -43,6 +43,15 @@ func TestCustomMounts(t *testing.T) {
 	ReconcileTest(ctx, t, inFile, outFile)
 }
 
+func TestIntegrations(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+
+	inFile := "./testdata/test-integrations.in.yaml"
+	outFile := "./testdata/test-integrations.out.yaml"
+	ReconcileTest(ctx, t, inFile, outFile)
+}
+
 // ReconcileTest deploys a cluster and runs the operator against it locally. It
 // then does the following:
 //
