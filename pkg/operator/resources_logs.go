@@ -14,7 +14,7 @@ func generateLogsDaemonSet(
 
 	d = *d.DeepCopy()
 
-	opts := logsPodTemplateOptions(d)
+	opts := logsPodTemplateOptions()
 	tmpl, selector, err := generatePodTemplate(cfg, name, d, opts)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func generateLogsDaemonSet(
 	}, nil
 }
 
-func logsPodTemplateOptions(d gragent.Deployment) podTemplateOptions {
+func logsPodTemplateOptions() podTemplateOptions {
 	return podTemplateOptions{
 		ExtraSelectorLabels: map[string]string{
 			agentTypeLabel: "logs",

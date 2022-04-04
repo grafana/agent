@@ -155,7 +155,7 @@ func integrationsPodTemplateOptions(name string, d gragent.Deployment) podTempla
 	// have placeholders necessary to generate configs.
 	var (
 		metricsOpts = metricsPodTemplateOptions(name, d, 0)
-		logsOpts    = logsPodTemplateOptions(d)
+		logsOpts    = logsPodTemplateOptions()
 	)
 	return mergePodTemplateOptions(&integrationOpts, &metricsOpts, &logsOpts)
 }
