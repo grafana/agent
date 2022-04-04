@@ -149,7 +149,6 @@ func integrationsPodTemplateOptions(name string, d gragent.Deployment) podTempla
 			MountPath: "/etc/grafana-agent/integrations",
 			ReadOnly:  true,
 		})
-
 	}
 
 	// Extra options to merge in.
