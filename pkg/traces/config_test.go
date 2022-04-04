@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
@@ -89,7 +90,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -104,7 +104,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -131,7 +131,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -158,7 +157,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["attributes", "batch"]
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -176,7 +175,6 @@ remote_write:
       password_file: ` + passwordFile.Name(),
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -195,7 +193,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -214,7 +212,6 @@ remote_write:
       password_file: ` + passwordFileExtraNewline.Name(),
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -233,7 +230,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -248,7 +245,6 @@ remote_write:
     endpoint: example.com:12345`,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -265,7 +261,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -281,7 +277,6 @@ remote_write:
     compression: none`,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -298,7 +293,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -319,7 +314,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -340,7 +334,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -387,7 +381,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -404,7 +397,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -433,7 +426,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -463,7 +455,7 @@ service:
     traces:
       exporters: ["otlp/1", "otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -481,7 +473,6 @@ batch:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -500,7 +491,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["batch"]
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -522,7 +513,6 @@ spanmetrics:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   noop:
   jaeger:
     protocols:
@@ -549,7 +539,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["spanmetrics"]
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
     metrics/spanmetrics:
       exporters: ["remote_write"]
       receivers: ["noop"]
@@ -569,7 +559,6 @@ spanmetrics:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   noop:
   jaeger:
     protocols:
@@ -591,7 +580,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["spanmetrics"]
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
     metrics/spanmetrics:
       exporters: ["prometheus"]
       receivers: ["noop"]
@@ -616,7 +605,6 @@ spanmetrics:
 			name: "tail sampling config",
 			cfg: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -647,7 +635,6 @@ tail_sampling:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -699,7 +686,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["tail_sampling"]
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -730,7 +717,6 @@ load_balancing:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -775,7 +761,7 @@ service:
     traces/0:
       exporters: ["loadbalancing"]
       processors: []
-      receivers: ["jaeger", "push_receiver"]
+      receivers: ["jaeger"]
     traces/1:
       exporters: ["otlp/0"]
       processors: ["tail_sampling"]
@@ -796,7 +782,6 @@ automatic_logging:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -815,7 +800,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["automatic_logging"]
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
       `,
 		},
 		{
@@ -835,7 +820,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -855,7 +839,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -873,7 +857,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -893,7 +876,7 @@ service:
     traces:
       exporters: ["otlphttp/0", "otlp/1"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -912,7 +895,6 @@ prom_sd_operation_type: update
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -932,7 +914,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["prom_sd_processor"]
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -949,7 +931,6 @@ service_graphs:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -966,7 +947,7 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["service_graphs"]
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -983,7 +964,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -1000,7 +980,7 @@ service:
     traces:
       exporters: ["jaeger/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -1021,7 +1001,6 @@ remote_write:
 `,
 			expectedConfig: `
 receivers:
-  push_receiver: null
   jaeger:
     protocols:
       grpc:
@@ -1040,7 +1019,7 @@ service:
     traces:
       exporters: ["jaeger/0"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -1063,7 +1042,6 @@ receivers:
   jaeger:
     protocols:
       grpc:
-  push_receiver: null
 exporters:
   jaeger/0:
     endpoint: example.com:12345
@@ -1084,7 +1062,7 @@ service:
     traces:
       exporters: ["jaeger/0", "otlp/1"]
       processors: []
-      receivers: ["push_receiver", "jaeger"]
+      receivers: ["jaeger"]
 `,
 		},
 		{
@@ -1702,6 +1680,20 @@ receivers:
 	data, err := yaml.Marshal(cfg)
 	assert.Nil(t, err)
 	assert.True(t, strings.Contains(string(data), "<secret>"))
+}
+
+func TestCreatingPushReceiver(t *testing.T) {
+	test := `
+receivers:
+  jaeger:
+    protocols:
+      grpc:`
+	cfg := InstanceConfig{PushReceiver: true}
+	err := yaml.Unmarshal([]byte(test), &cfg)
+	assert.Nil(t, err)
+	otel, err := cfg.otelConfig()
+	assert.Nil(t, err)
+	assert.Contains(t, otel.Service.Pipelines[config.NewComponentID("traces")].Receivers, config.NewComponentID(pushreceiver.TypeStr))
 }
 
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters

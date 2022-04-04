@@ -134,6 +134,9 @@ type InstanceConfig struct {
 
 	// ServiceGraphs
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
+
+	// Add a push receiver for internal use, eg by app-o11y-receiver integration
+	PushReceiver bool `yaml:"-"`
 }
 
 // ReceiverMap stores a set of receivers. Because receivers may be configured
@@ -515,8 +518,10 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	if len(c.Receivers) == 0 {
 		return nil, errors.New("must have at least one configured receiver")
 	}
-	c.Receivers[pushreceiver.TypeStr] = nil // add a hacky push receiver for when an integration
-	// wants to push traces directly, eg app o11y receiver.
+	if c.PushReceiver {
+		c.Receivers[pushreceiver.TypeStr] = nil // add a hacky push receiver for when an integration
+		// wants to push traces directly, eg app o11y receiver.
+	}
 
 	extensions, err := c.extensions()
 	if err != nil {

@@ -1,4 +1,4 @@
-package app_o11y_exporter //nolint:golint
+package app_o11y_receiver //nolint:golint
 
 import (
 	"context"
@@ -30,10 +30,13 @@ import (
 	"go.opentelemetry.io/collector/component"
 )
 
+// IntegrationName is the name of this integration
+var IntegrationName = "app_o11y_receiver"
+
 // Config structs controls the configuration of the app o11y
 // integration
 type Config struct {
-	ExporterConfig config.AppO11yReceiverConfig `yaml:",inline"`
+	ReceiverConfig config.AppO11yReceiverConfig `yaml:",inline"`
 	Common         common.MetricsConfig         `yaml:",inline"`
 }
 
@@ -47,7 +50,7 @@ func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 }
 
 // Name returns the name of the integration that this config represents
-func (c *Config) Name() string { return "app_o11y_receiver" }
+func (c *Config) Name() string { return IntegrationName }
 
 // Identifier uniquely identifies the app o11y integration
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
@@ -88,7 +91,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		return nil, err
 	}
 	sourcemapLogger := log.With(l, "subcomponent", "sourcemaps")
-	sourcemapStore := sourcemaps.NewSourceMapStore(sourcemapLogger, c.ExporterConfig.SourceMaps, reg, nil, nil)
+	sourcemapStore := sourcemaps.NewSourceMapStore(sourcemapLogger, c.ReceiverConfig.SourceMaps, reg, nil, nil)
 
 	receiverMetricsExporter := exporters.NewReceiverMetricsExporter(exporters.ReceiverMetricsExporterConfig{
 		Reg: reg,
@@ -98,38 +101,38 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		receiverMetricsExporter,
 	}
 
-	if len(c.ExporterConfig.LogsInstance) > 0 {
-		logsInstance := globals.Logs.Instance(c.ExporterConfig.LogsInstance)
+	if len(c.ReceiverConfig.LogsInstance) > 0 {
+		logsInstance := globals.Logs.Instance(c.ReceiverConfig.LogsInstance)
 		if logsInstance == nil {
-			return nil, fmt.Errorf("logs instance \"%s\" not found", c.ExporterConfig.LogsInstance)
+			return nil, fmt.Errorf("logs instance \"%s\" not found", c.ReceiverConfig.LogsInstance)
 		}
 		lokiExporter := exporters.NewLogsExporter(
 			l,
 			exporters.LogsExporterConfig{
 				LogsInstance:     logsInstance,
-				Labels:           c.ExporterConfig.LogsLabels,
-				SendEntryTimeout: c.ExporterConfig.LogsSendTimeout,
+				Labels:           c.ReceiverConfig.LogsLabels,
+				SendEntryTimeout: c.ReceiverConfig.LogsSendTimeout,
 			},
 			sourcemapStore,
 		)
 		exp = append(exp, lokiExporter)
 	}
 
-	if len(c.ExporterConfig.TracesInstance) > 0 {
-		tracesInstance := globals.Tracing.Instance(c.ExporterConfig.TracesInstance)
+	if len(c.ReceiverConfig.TracesInstance) > 0 {
+		tracesInstance := globals.Tracing.Instance(c.ReceiverConfig.TracesInstance)
 		if tracesInstance == nil {
-			return nil, fmt.Errorf("traces instance \"%s\" not found", c.ExporterConfig.TracesInstance)
+			return nil, fmt.Errorf("traces instance \"%s\" not found", c.ReceiverConfig.TracesInstance)
 		}
 
 		factory := tracesInstance.GetFactory(component.KindReceiver, pushreceiver.TypeStr)
 		if factory == nil {
-			return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.ExporterConfig.TracesInstance)
+			return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.ReceiverConfig.TracesInstance)
 		}
 		tracesExporter := exporters.NewTracesExporter(factory.(*pushreceiver.Factory))
 		exp = append(exp, tracesExporter)
 	}
 
-	handler := handler.NewAppO11yHandler(c.ExporterConfig, exp, reg)
+	handler := handler.NewAppO11yHandler(c.ReceiverConfig, exp, reg)
 
 	return &appo11yIntegration{
 		logger:          l,
@@ -137,7 +140,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		instanceID:      id,
 		common:          c.Common,
 		globals:         globals,
-		conf:            c.ExporterConfig,
+		conf:            c.ReceiverConfig,
 		handler:         handler,
 		exporters:       exp,
 		reg:             reg,
