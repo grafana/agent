@@ -43,8 +43,6 @@ type remoteWriteExporter struct {
 	namespace   string
 
 	logger log.Logger
-
-	sendTimestamps bool
 }
 
 func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
@@ -163,7 +161,7 @@ func (e *remoteWriteExporter) appendNumberDataPoint(app storage.Appender, dataPo
 	default:
 		return fmt.Errorf("unknown data point type: %s", dataPoint.ValueType())
 	}
-	ts := e.timestamp(dataPoint.Timestamp())
+	ts := e.timestamp()
 
 	_, err := app.Append(0, labels, ts, val)
 	return err
@@ -172,7 +170,7 @@ func (e *remoteWriteExporter) appendNumberDataPoint(app storage.Appender, dataPo
 func (e *remoteWriteExporter) handleHistogramDataPoints(app storage.Appender, name string, dataPoints pdata.HistogramDataPointSlice) error {
 	for ix := 0; ix < dataPoints.Len(); ix++ {
 		dataPoint := dataPoints.At(ix)
-		ts := e.timestamp(dataPoint.Timestamp())
+		ts := e.timestamp()
 
 		// Append sum value
 		sumLabels := e.createLabelSet(name, sumSuffix, dataPoint.Attributes(), labels.Labels{})
@@ -230,10 +228,7 @@ func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata
 	return ls
 }
 
-func (e *remoteWriteExporter) timestamp(timestamp pdata.Timestamp) int64 {
-	if e.sendTimestamps {
-		return convertTimeStamp(timestamp.AsTime())
-	}
+func (e *remoteWriteExporter) timestamp() int64 {
 	return convertTimeStamp(time.Now())
 }
 

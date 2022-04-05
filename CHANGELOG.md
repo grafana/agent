@@ -111,9 +111,6 @@ Main (unreleased)
 
 - Enable integrations-next by default in agent-bare.yaml. Please note #1262 (@hjet)
 
-- Add config parameter to send span timestamps with span-metrics'
-remote write exporter (@mapno)
-
 ### Bugfixes
 
 - Fix Kubernetes manifests to use port `4317` for OTLP instead of the previous

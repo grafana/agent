@@ -19,10 +19,9 @@ var _ config.Exporter = (*Config)(nil)
 type Config struct {
 	config.ExporterSettings `mapstructure:",squash"`
 
-	ConstLabels    prometheus.Labels `mapstructure:"const_labels"`
-	Namespace      string            `mapstructure:"namespace"`
-	PromInstance   string            `mapstructure:"metrics_instance"`
-	SendTimestamps bool              `mapstructure:"send_timestamps"`
+	ConstLabels  prometheus.Labels `mapstructure:"const_labels"`
+	Namespace    string            `mapstructure:"namespace"`
+	PromInstance string            `mapstructure:"metrics_instance"`
 }
 
 // NewFactory returns a new factory for the Prometheus remote write processor.

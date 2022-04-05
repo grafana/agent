@@ -32,10 +32,9 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 
 	manager := &mockManager{}
 	exp := remoteWriteExporter{
-		sendTimestamps: true,
-		manager:        manager,
-		namespace:      "traces",
-		promInstance:   "traces",
+		manager:      manager,
+		namespace:    "traces",
+		promInstance: "traces",
 	}
 
 	metrics := pdata.NewMetrics()
@@ -72,21 +71,18 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 	calls := manager.instance.GetAppended(callsMetric)
 	require.Equal(t, len(calls), 1)
 	require.Equal(t, calls[0].v, sumValue)
-	require.Equal(t, calls[0].t, convertTimeStamp(ts.UTC()))
 	require.Equal(t, calls[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_calls_total"}})
 
 	// Verify _sum
 	sum := manager.instance.GetAppended(sumMetric)
 	require.Equal(t, len(sum), 1)
 	require.Equal(t, sum[0].v, sumValue)
-	require.Equal(t, sum[0].t, convertTimeStamp(ts.UTC()))
 	require.Equal(t, sum[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + sumSuffix}})
 
 	// Check _count
 	count := manager.instance.GetAppended(countMetric)
 	require.Equal(t, len(count), 1)
 	require.Equal(t, count[0].v, float64(countValue))
-	require.Equal(t, count[0].t, convertTimeStamp(ts.UTC()))
 	require.Equal(t, count[0].l, labels.Labels{{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + countSuffix}})
 
 	// Check _bucket

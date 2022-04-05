@@ -233,11 +233,6 @@ spanmetrics:
   [ metrics_instance: <string> ]
   # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
-  # send_timestamps uses the actual span's timestamp to record the metrics
-  # otherwise, time.Now() is used.
-  # Using span's timestamps can result in rejected metrics if these are:
-  # from the past, out of order, from the future.
-  [ send_timestamps: <bool> | default = false ]
 
 # tail_sampling supports tail-based sampling of traces in the agent.
 #
