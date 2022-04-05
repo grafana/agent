@@ -16,32 +16,33 @@ import (
 	prommodel "github.com/prometheus/common/model"
 )
 
-type lokiInstance interface {
+type logsInstance interface {
 	SendEntry(entry api.Entry, dur time.Duration) bool
 }
 
-// LokiExporterConfig holds the configuration of the loki exporter
-type LokiExporterConfig struct {
+// LogsExporterConfig holds the configuration of the logs exporter
+type LogsExporterConfig struct {
 	SendEntryTimeout int
-	LokiInstance     lokiInstance
+	LogsInstance     logsInstance
 	Labels           map[string]string
 }
 
-// LokiExporter is the struct of the loki exporter
-type LokiExporter struct {
-	li             lokiInstance
+// LogsExporter is the struct of the logs exporter
+type LogsExporter struct {
+	li             logsInstance
 	seTimeout      time.Duration
 	logger         kitlog.Logger
 	labels         map[string]string
 	sourceMapStore sourcemaps.SourceMapStore
 }
 
-// NewLokiExporter creates a new Loki loki exporter with the given
+// NewLogsExporter creates a new logs exporter with the given
 // configuration
-func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig, sourceMapStore sourcemaps.SourceMapStore) AppO11yReceiverExporter {
-	return &LokiExporter{
+func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore sourcemaps.SourceMapStore) AppO11yReceiverExporter {
+
+	return &LogsExporter{
 		logger:         logger,
-		li:             conf.LokiInstance,
+		li:             conf.LogsInstance,
 		seTimeout:      time.Duration(conf.SendEntryTimeout),
 		labels:         conf.Labels,
 		sourceMapStore: sourceMapStore,
@@ -49,12 +50,12 @@ func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig, sourceMapSto
 }
 
 // Name of the exporter, for logging purposes
-func (le *LokiExporter) Name() string {
-	return "loki exporter"
+func (le *LogsExporter) Name() string {
+	return "logs exporter"
 }
 
 // Export implements the AppDataExporter interface
-func (le *LokiExporter) Export(payload models.Payload) error {
+func (le *LogsExporter) Export(payload models.Payload) error {
 	meta := payload.Meta.KeyVal()
 
 	var err error
@@ -84,7 +85,7 @@ func (le *LokiExporter) Export(payload models.Payload) error {
 	return err
 }
 
-func (le *LokiExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
+func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
 	line, err := logfmt.MarshalKeyvals(utils.KeyValToInterfaceSlice(kv)...)
 	if err != nil {
 		level.Error(le.logger).Log("msg", "failed to logfmt a frontend log event", "err", err)
@@ -98,13 +99,13 @@ func (le *LokiExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
 		},
 	}, le.seTimeout)
 	if !sent {
-		level.Warn(le.logger).Log("msg", "failed to log frontend log event to loki pipeline")
+		level.Warn(le.logger).Log("msg", "failed to log frontend log event to logs pipeline")
 		return fmt.Errorf("Failed to send app o11y event to logs pipeline")
 	}
 	return nil
 }
 
-func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
+func (le *LogsExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 	set := make(prommodel.LabelSet)
 
 	for k, v := range le.labels {
@@ -122,6 +123,6 @@ func (le *LokiExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 
 // Static typecheck tests
 var (
-	_ AppO11yReceiverExporter = (*LokiExporter)(nil)
-	_ lokiInstance            = (*logs.Instance)(nil)
+	_ AppO11yReceiverExporter = (*LogsExporter)(nil)
+	_ logsInstance            = (*logs.Instance)(nil)
 )
