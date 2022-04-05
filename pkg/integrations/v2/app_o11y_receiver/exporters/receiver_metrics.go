@@ -46,7 +46,7 @@ func NewReceiverMetricsExporter(conf ReceiverMetricsExporterConfig) AppO11yRecei
 
 // Name of the exporter, for logging purposes
 func (re *ReceiverMetricsExporter) Name() string {
-	return "loki exporter"
+	return "receiver metrics exporter"
 }
 
 // Export implements the AppDataExporter interface

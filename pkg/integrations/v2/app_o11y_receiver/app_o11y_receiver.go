@@ -89,10 +89,10 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	sourcemapStore := sourcemaps.NewSourceMapStore(sourcemapLogger, c.ExporterConfig.SourceMaps, reg, nil, nil)
 
 	logsInstance := globals.Logs.Instance(c.ExporterConfig.LogsInstance)
-	lokiExporter := exporters.NewLokiExporter(
+	logsExporter := exporters.NewLogsExporter(
 		l,
-		exporters.LokiExporterConfig{
-			LokiInstance:     logsInstance,
+		exporters.LogsExporterConfig{
+			LogsInstance:     logsInstance,
 			Labels:           c.ExporterConfig.LogsLabels,
 			SendEntryTimeout: c.ExporterConfig.LogsSendTimeout,
 		},
@@ -104,8 +104,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	})
 
 	var exp = []exporters.AppO11yReceiverExporter{
-		// Loki
-		lokiExporter,
+		logsExporter,
 		receiverMetricsExporter,
 	}
 
