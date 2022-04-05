@@ -143,6 +143,8 @@ Main (unreleased)
 - Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
   now been fixed to only have one `.`. (@rfratto)
 
+- Protect concurrent writes to the WAL in the remote write exporter (@mapno)
+
 ### Other changes
 
 - The `-metrics.wal-directory` flag and `metrics.wal_directory` config option
