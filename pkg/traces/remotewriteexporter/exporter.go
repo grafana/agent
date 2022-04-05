@@ -155,13 +155,13 @@ func (e *remoteWriteExporter) handleNumberDataPoints(app storage.Appender, name 
 
 func (e *remoteWriteExporter) appendNumberDataPoint(app storage.Appender, dataPoint pdata.NumberDataPoint, labels labels.Labels) error {
 	var val float64
-	switch dataPoint.Type() {
+	switch dataPoint.ValueType() {
 	case pdata.MetricValueTypeDouble:
 		val = dataPoint.DoubleVal()
 	case pdata.MetricValueTypeInt:
 		val = float64(dataPoint.IntVal())
 	default:
-		return fmt.Errorf("unknown data point type: %s", dataPoint.Type())
+		return fmt.Errorf("unknown data point type: %s", dataPoint.ValueType())
 	}
 	ts := e.timestamp(dataPoint.Timestamp())
 
