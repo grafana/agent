@@ -32,7 +32,6 @@ jobs:
       with:
         repository: "grafana/grafana-github-actions"
         path: ./actions
-        ref: docstarget
 
     - name: Install Actions from library
       run: npm install --production --prefix ./actions
