@@ -180,7 +180,6 @@ func (i *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.S
 
 // RunIntegration implements Integration
 func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
-
 	mdlw := middleware.New(middleware.Config{
 		Recorder: metrics.NewRecorder(metrics.Config{Registry: i.reg, Prefix: utils.MetricsNamespace}),
 	})

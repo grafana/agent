@@ -123,7 +123,6 @@ func NewSourceMapStore(l log.Logger, config config.SourceMapConfig, reg *prometh
 	fileLocations := []*sourcemapFileLocation{}
 
 	for _, configLocation := range config.FileSystem {
-
 		tpl, err := template.New(configLocation.Path).Parse(configLocation.Path)
 		if err != nil {
 			panic(err)

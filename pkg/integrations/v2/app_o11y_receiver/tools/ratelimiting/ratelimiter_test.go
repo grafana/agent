@@ -2,8 +2,9 @@ package ratelimiting
 
 import (
 	"sync"
-	"sync/atomic"
 	"testing"
+
+	"go.uber.org/atomic"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +18,7 @@ func TestIsRateLimited(t *testing.T) {
 
 	var (
 		wg  sync.WaitGroup
-		sum = uint32(0)
+		sum = atomic.NewUint32(0)
 	)
 
 	rl := NewRateLimiter(rps, burst)
@@ -25,7 +26,7 @@ func TestIsRateLimited(t *testing.T) {
 	op := func() {
 		defer wg.Done()
 		if ok := rl.IsRateLimited(); !ok {
-			atomic.AddUint32(&sum, 1)
+			sum.Add(1)
 		}
 	}
 
@@ -35,5 +36,5 @@ func TestIsRateLimited(t *testing.T) {
 	}
 	wg.Wait()
 
-	assert.Equal(t, burst, int(sum))
+	assert.Equal(t, burst, int(sum.Load()))
 }
