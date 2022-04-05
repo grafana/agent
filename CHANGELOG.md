@@ -154,7 +154,7 @@ v0.24.0-rc.0 (2022-04-05)
   will now default to `data-agent/`, the same default WAL directory as
   Prometheus Agent. (@rfratto)
 
-v0.23.0 (2022-01-13)
+v0.23.0 (2022-02-10)
 --------------------
 
 ### Enhancements
