@@ -18,7 +18,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	v1snmp "github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/snmp_exporter/collector"
@@ -119,7 +118,6 @@ func (sh *snmpHandler) createHandler(targets []SNMPTarget) http.HandlerFunc {
 		var target string
 		if len(query["target"]) != 1 || targetName == "" {
 			http.Error(w, "'target' parameter must be specified once", 400)
-			v1snmp.SnmpRequestErrors.Inc()
 			return
 		}
 
@@ -134,7 +132,6 @@ func (sh *snmpHandler) createHandler(targets []SNMPTarget) http.HandlerFunc {
 		if query.Has("module") {
 			if len(query["module"]) > 1 {
 				http.Error(w, "'module' parameter must only be specified once", 400)
-				v1snmp.SnmpRequestErrors.Inc()
 				return
 			}
 			moduleName = query.Get("module")
@@ -149,7 +146,6 @@ func (sh *snmpHandler) createHandler(targets []SNMPTarget) http.HandlerFunc {
 		module, ok := (*sh.modules)[moduleName]
 		if !ok {
 			http.Error(w, fmt.Sprintf("Unknown module '%s'", moduleName), 400)
-			v1snmp.SnmpRequestErrors.Inc()
 			return
 		}
 
@@ -158,7 +154,6 @@ func (sh *snmpHandler) createHandler(targets []SNMPTarget) http.HandlerFunc {
 		if query.Has("walk_params") {
 			if len(query["walk_params"]) > 1 {
 				http.Error(w, "'walk_params' parameter must only be specified once", 400)
-				v1snmp.SnmpRequestErrors.Inc()
 				return
 			}
 			walkParams = query.Get("walk_params")
@@ -184,7 +179,6 @@ func (sh *snmpHandler) createHandler(targets []SNMPTarget) http.HandlerFunc {
 				module.WalkParams.Auth = wp.Auth
 			} else {
 				http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walkParams), 400)
-				v1snmp.SnmpRequestErrors.Inc()
 				return
 			}
 			logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walkParams)
@@ -202,7 +196,6 @@ func (sh *snmpHandler) createHandler(targets []SNMPTarget) http.HandlerFunc {
 		h.ServeHTTP(w, r)
 
 		duration := time.Since(start).Seconds()
-		v1snmp.SnmpDuration.WithLabelValues(moduleName).Observe(duration)
 		level.Debug(logger).Log("msg", "Finished scrape", "duration_seconds", duration)
 	}
 }
@@ -215,14 +208,12 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	target := query.Get("target")
 	if len(query["target"]) != 1 || target == "" {
 		http.Error(w, "'target' parameter must be specified once", 400)
-		v1snmp.SnmpRequestErrors.Inc()
 		return
 	}
 
 	moduleName := query.Get("module")
 	if len(query["module"]) > 1 {
 		http.Error(w, "'module' parameter must only be specified once", 400)
-		v1snmp.SnmpRequestErrors.Inc()
 		return
 	}
 	if moduleName == "" {
@@ -232,7 +223,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	module, ok := (*sh.modules)[moduleName]
 	if !ok {
 		http.Error(w, fmt.Sprintf("Unknown module '%s'", moduleName), 400)
-		v1snmp.SnmpRequestErrors.Inc()
 		return
 	}
 
@@ -240,7 +230,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	walkParams := query.Get("walk_params")
 	if len(query["walk_params"]) > 1 {
 		http.Error(w, "'walk_params' parameter must only be specified once", 400)
-		v1snmp.SnmpRequestErrors.Inc()
 		return
 	}
 
@@ -262,7 +251,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 			module.WalkParams.Auth = wp.Auth
 		} else {
 			http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walkParams), 400)
-			v1snmp.SnmpRequestErrors.Inc()
 			return
 		}
 		logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walkParams)
@@ -279,7 +267,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, r)
 	duration := time.Since(start).Seconds()
-	v1snmp.SnmpDuration.WithLabelValues(moduleName).Observe(duration)
 	level.Debug(logger).Log("msg", "Finished scrape", "duration_seconds", duration)
 }
 

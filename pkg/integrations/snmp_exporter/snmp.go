@@ -8,28 +8,9 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/snmp_exporter/collector"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
-)
-
-var (
-	// SnmpDuration collects duration
-	SnmpDuration = promauto.NewSummaryVec(
-		prometheus.SummaryOpts{
-			Name: "snmp_collection_duration_seconds",
-			Help: "Duration of collections by the SNMP exporter",
-		},
-		[]string{"module"},
-	)
-	// SnmpRequestErrors counters errors
-	SnmpRequestErrors = promauto.NewCounter(
-		prometheus.CounterOpts{
-			Name: "snmp_request_errors_total",
-			Help: "Errors in requests to the SNMP exporter",
-		},
-	)
 )
 
 type snmpHandler struct {
@@ -52,7 +33,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	targetName := query.Get("target")
 	if len(query["target"]) != 1 || targetName == "" {
 		http.Error(w, "'target' parameter must be specified once", 400)
-		SnmpRequestErrors.Inc()
 		return
 	}
 
@@ -66,7 +46,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	moduleName := query.Get("module")
 	if len(query["module"]) > 1 {
 		http.Error(w, "'module' parameter must only be specified once", 400)
-		SnmpRequestErrors.Inc()
 		return
 	}
 	if moduleName == "" {
@@ -76,7 +55,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	module, ok := (*sh.modules)[moduleName]
 	if !ok {
 		http.Error(w, fmt.Sprintf("Unknown module '%s'", moduleName), 400)
-		SnmpRequestErrors.Inc()
 		return
 	}
 
@@ -84,7 +62,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	walkParams := query.Get("walk_params")
 	if len(query["walk_params"]) > 1 {
 		http.Error(w, "'walk_params' parameter must only be specified once", 400)
-		SnmpRequestErrors.Inc()
 		return
 	}
 
@@ -106,7 +83,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 			module.WalkParams.Auth = wp.Auth
 		} else {
 			http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walkParams), 400)
-			SnmpRequestErrors.Inc()
 			return
 		}
 		logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walkParams)
@@ -123,7 +99,6 @@ func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, r)
 	duration := time.Since(start).Seconds()
-	SnmpDuration.WithLabelValues(moduleName).Observe(duration)
 	level.Debug(logger).Log("msg", "Finished scrape", "duration_seconds", duration)
 }
 
