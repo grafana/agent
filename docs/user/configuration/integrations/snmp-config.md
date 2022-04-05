@@ -6,7 +6,7 @@ title = "SNMP Integration"
 
 The `snmp` block configures the `snmp` integration,
 which is an embedded version of
-[`snmp_exporter`](https://github.com/prometheus/snmp-exporter). This allows collection of SNMP metrics from the network devices with ease. 
+[`snmp_exporter`](https://github.com/prometheus/snmp_exporter). This allows collection of SNMP metrics from the network devices with ease. 
 
 
 ## Quick configuration example
