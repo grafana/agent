@@ -16,7 +16,6 @@ type metricAssertion struct {
 }
 
 func testcase(t *testing.T, payload models.Payload, assertions []metricAssertion) {
-
 	reg := prometheus.NewRegistry()
 
 	exporter := NewReceiverMetricsExporter(ReceiverMetricsExporterConfig{Reg: reg})

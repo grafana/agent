@@ -39,7 +39,6 @@ type LokiExporter struct {
 // NewLokiExporter creates a new Loki loki exporter with the given
 // configuration
 func NewLokiExporter(logger kitlog.Logger, conf LokiExporterConfig, sourceMapStore sourcemaps.SourceMapStore) AppO11yReceiverExporter {
-
 	return &LokiExporter{
 		logger:         logger,
 		li:             conf.LokiInstance,
@@ -58,7 +57,7 @@ func (le *LokiExporter) Name() string {
 func (le *LokiExporter) Export(payload models.Payload) error {
 	meta := payload.Meta.KeyVal()
 
-	var err error = nil
+	var err error
 
 	// log events
 	for _, logItem := range payload.Logs {
