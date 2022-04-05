@@ -484,7 +484,7 @@ local gen_scrape_config(job_name, pod_uid) = {
     },
   ],
 
-  traces(conifg={}):: [
+  traces(config={}):: [
     {
       bearer_token_file: '/var/run/secrets/kubernetes.io/serviceaccount/token',
       job_name: 'kubernetes-pods',

@@ -249,7 +249,7 @@ func (api *API) writeResponse(rw http.ResponseWriter, statusCode int, v interfac
 }
 
 // getConfigName uses gorilla/mux's route variables to extract the
-// "name" variable. If not found, getConfigName will panic.
+// "name" variable. If not found, getConfigName will return an error.
 func getConfigName(r *http.Request) (string, error) {
 	vars := mux.Vars(r)
 	name := vars["name"]

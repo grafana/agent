@@ -20,29 +20,31 @@ local podTemplateSpec = k.core.v1.podTemplateSpec.spec;
 
   // General
   withAgentConfig(config):: { _config+: { agent_config: config } },
+  withMetricsPort(port):: { _config+: { agent_port: port } },
+  withArgsMixin(args):: { _config+: { agent_args+: args } },
   withImagesMixin(images):: { _images+: images },
   withConfigHash(include=true):: { _config+: { config_hash: include } },
   withPortsMixin(ports=[]):: { container+:: container.withPortsMixin(ports) },
   withVolumeMountsMixin(mounts=[]):: { container+:: container.withVolumeMountsMixin(mounts) },
   withVolumesMixin(volumes=[]):: {
     controller+: {
-        spec+: {
-            template+: podTemplateSpec.withVolumesMixin(volumes)
-        },
+      spec+: {
+        template+: podTemplateSpec.withVolumesMixin(volumes),
+      },
     },
   },
 
   // Helpers
-  newKubernetesMetrics(config)::
+  newKubernetesMetrics(config={})::
     (import './internal/helpers/k8s.libsonnet').metrics(config),
-  newKubernetesLogs(config)::
+  newKubernetesLogs(config={})::
     (import './internal/helpers/k8s.libsonnet').logs(config),
-  newKubernetesTraces(config)::
+  newKubernetesTraces(config={})::
     (import './internal/helpers/k8s.libsonnet').traces(config),
-  withLogVolumeMounts(config)::
+  withLogVolumeMounts(config={})::
     (import './internal/helpers/logs.libsonnet').volumeMounts(config),
-  withLogPermissions(config)::
+  withLogPermissions(config={})::
     (import './internal/helpers/logs.libsonnet').permissions(config),
-  withService(config)::
+  withService(config={})::
     (import './internal/helpers/service.libsonnet').service(config),
 }

@@ -9,9 +9,9 @@ import (
 	v1 "github.com/grafana/agent/pkg/integrations"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/statsd_exporter/pkg/level"
-	"github.com/weaveworks/common/server"
 	"gopkg.in/yaml.v2"
 )
 
@@ -36,6 +36,9 @@ type VersionedIntegrations struct {
 
 	configV1 *v1.ManagerConfig
 	configV2 *v2.SubsystemOptions
+
+	// ExtraIntegrations is used when adding any integrations NOT in the default agent configuration
+	ExtraIntegrations []v2.Config
 }
 
 var (
@@ -95,8 +98,16 @@ func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
 		return yaml.UnmarshalStrict(c.raw, c.configV1)
 	case integrationsVersion2:
 		cfg := v2.DefaultSubsystemOptions
+		// this is needed for dynamic configuration, the unmarshal doesnt work correctly if
+		// this is not nil.
+		c.configV1 = nil
 		c.configV2 = &cfg
-		return yaml.UnmarshalStrict(c.raw, c.configV2)
+		err := yaml.UnmarshalStrict(c.raw, c.configV2)
+		if err != nil {
+			return err
+		}
+		c.configV2.Configs = append(c.configV2.Configs, c.ExtraIntegrations...)
+		return nil
 	default:
 		panic(fmt.Sprintf("unknown integrations version %d", c.version))
 	}
@@ -136,7 +147,7 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 
 type v1Integrations struct{ *v1.Manager }
 
-func (s *v1Integrations) ApplyConfig(cfg *VersionedIntegrations, globals IntegrationsGlobals) error {
+func (s *v1Integrations) ApplyConfig(cfg *VersionedIntegrations, _ IntegrationsGlobals) error {
 	return s.Manager.ApplyConfig(*cfg.configV1)
 }
 

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/pkg/server"
 	smoke "github.com/grafana/agent/tools/smoke/internal"
 	"github.com/weaveworks/common/logging"
 )
@@ -26,7 +26,7 @@ func main() {
 	flag.DurationVar(&withTimeout, "duration", time.Duration(0), "test duration")
 	flag.Parse()
 
-	logger := util.NewLoggerFromLevel(logLevel, logFormat)
+	logger := server.NewLoggerFromLevel(logLevel, logFormat)
 
 	ctx := context.Background()
 	if withTimeout > 0 {

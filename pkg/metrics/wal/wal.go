@@ -10,14 +10,14 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/prometheus/pkg/exemplar"
-	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/pkg/timestamp"
-	"github.com/prometheus/prometheus/pkg/value"
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/timestamp"
+	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/tsdb"
+	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 	"go.uber.org/atomic"
@@ -125,7 +125,7 @@ type Storage struct {
 	series *stripeSeries
 
 	deletedMtx sync.Mutex
-	deleted    map[uint64]int // Deleted series, and what WAL segment they must be kept until.
+	deleted    map[chunks.HeadSeriesRef]int // Deleted series, and what WAL segment they must be kept until.
 
 	metrics *storageMetrics
 }
@@ -141,7 +141,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		path:    path,
 		wal:     w,
 		logger:  logger,
-		deleted: map[uint64]int{},
+		deleted: map[chunks.HeadSeriesRef]int{},
 		series:  newStripeSeries(),
 		metrics: newStorageMetrics(registerer),
 		ref:     atomic.NewUint64(0),
@@ -164,7 +164,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 	if err := storage.replayWAL(); err != nil {
 		level.Warn(storage.logger).Log("msg", "encountered WAL read error, attempting repair", "err", err)
 		if err := w.Repair(err); err != nil {
-			return nil, errors.Wrap(err, "repair corrupted WAL")
+			return nil, fmt.Errorf("repair corrupted WAL: %w", err)
 		}
 	}
 
@@ -182,13 +182,13 @@ func (w *Storage) replayWAL() error {
 	level.Info(w.logger).Log("msg", "replaying WAL, this may take a while", "dir", w.wal.Dir())
 	dir, startFrom, err := wal.LastCheckpoint(w.wal.Dir())
 	if err != nil && err != record.ErrNotFound {
-		return errors.Wrap(err, "find last checkpoint")
+		return fmt.Errorf("find last checkpoint: %w", err)
 	}
 
 	if err == nil {
 		sr, err := wal.NewSegmentsReader(dir)
 		if err != nil {
-			return errors.Wrap(err, "open checkpoint")
+			return fmt.Errorf("open checkpoint: %w", err)
 		}
 		defer func() {
 			if err := sr.Close(); err != nil {
@@ -199,7 +199,7 @@ func (w *Storage) replayWAL() error {
 		// A corrupted checkpoint is a hard error for now and requires user
 		// intervention. There's likely little data that can be recovered anyway.
 		if err := w.loadWAL(wal.NewReader(sr)); err != nil {
-			return errors.Wrap(err, "backfill checkpoint")
+			return fmt.Errorf("backfill checkpoint: %w", err)
 		}
 		startFrom++
 		level.Info(w.logger).Log("msg", "WAL checkpoint loaded")
@@ -208,14 +208,14 @@ func (w *Storage) replayWAL() error {
 	// Find the last segment.
 	_, last, err := wal.Segments(w.wal.Dir())
 	if err != nil {
-		return errors.Wrap(err, "finding WAL segments")
+		return fmt.Errorf("finding WAL segments: %w", err)
 	}
 
 	// Backfill segments from the most recent checkpoint onwards.
 	for i := startFrom; i <= last; i++ {
 		s, err := wal.OpenReadSegment(wal.SegmentName(w.wal.Dir(), i))
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("open WAL segment: %d", i))
+			return fmt.Errorf("open WAL segment %d: %w", i, err)
 		}
 
 		sr := wal.NewSegmentBufReader(s)
@@ -262,7 +262,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				series, err = dec.Series(rec, series)
 				if err != nil {
 					errCh <- &wal.CorruptionErr{
-						Err:     errors.Wrap(err, "decode series"),
+						Err:     fmt.Errorf("decode series: %w", err),
 						Segment: r.Segment(),
 						Offset:  r.Offset(),
 					}
@@ -274,7 +274,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				samples, err = dec.Samples(rec, samples)
 				if err != nil {
 					errCh <- &wal.CorruptionErr{
-						Err:     errors.Wrap(err, "decode samples"),
+						Err:     fmt.Errorf("decode samples: %w", err),
 						Segment: r.Segment(),
 						Offset:  r.Offset(),
 					}
@@ -287,7 +287,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 				continue
 			default:
 				errCh <- &wal.CorruptionErr{
-					Err:     errors.Errorf("invalid record type %v", dec.Type(rec)),
+					Err:     fmt.Errorf("invalid record type %v", dec.Type(rec)),
 					Segment: r.Segment(),
 					Offset:  r.Offset(),
 				}
@@ -313,8 +313,8 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 					w.metrics.numActiveSeries.Inc()
 					w.metrics.totalCreatedSeries.Inc()
 
-					if biggestRef <= s.Ref {
-						biggestRef = s.Ref
+					if biggestRef <= uint64(s.Ref) {
+						biggestRef = uint64(s.Ref)
 					}
 				}
 			}
@@ -353,7 +353,7 @@ func (w *Storage) loadWAL(r *wal.Reader) (err error) {
 	}
 
 	if r.Err() != nil {
-		return errors.Wrap(r.Err(), "read records")
+		return fmt.Errorf("read records: %w", r.Err())
 	}
 
 	return nil
@@ -393,14 +393,14 @@ func (w *Storage) Truncate(mint int64) error {
 
 	first, last, err := wal.Segments(w.wal.Dir())
 	if err != nil {
-		return errors.Wrap(err, "get segment range")
+		return fmt.Errorf("get segment range: %w", err)
 	}
 
 	// Start a new segment, so low ingestion volume instance don't have more WAL
 	// than needed.
 	err = w.wal.NextSegment()
 	if err != nil {
-		return errors.Wrap(err, "next segment")
+		return fmt.Errorf("next segment: %w", err)
 	}
 
 	last-- // Never consider last segment for checkpoint.
@@ -415,7 +415,7 @@ func (w *Storage) Truncate(mint int64) error {
 		return nil
 	}
 
-	keep := func(id uint64) bool {
+	keep := func(id chunks.HeadSeriesRef) bool {
 		if w.series.getByID(id) != nil {
 			return true
 		}
@@ -426,7 +426,7 @@ func (w *Storage) Truncate(mint int64) error {
 		return ok
 	}
 	if _, err = wal.Checkpoint(w.logger, w.wal, first, last, keep, mint); err != nil {
-		return errors.Wrap(err, "create checkpoint")
+		return fmt.Errorf("create checkpoint: %w", err)
 	}
 	if err := w.wal.Truncate(last + 1); err != nil {
 		// If truncating fails, we'll just try again at the next checkpoint.
@@ -497,7 +497,7 @@ func (w *Storage) WriteStalenessMarkers(remoteTsFunc func() int64) error {
 		)
 
 		ts := timestamp.FromTime(time.Now())
-		_, err := app.Append(ref, lset, ts, math.Float64frombits(value.StaleNaN))
+		_, err := app.Append(storage.SeriesRef(ref), lset, ts, math.Float64frombits(value.StaleNaN))
 		if err != nil {
 			lastErr = err
 		}
@@ -566,18 +566,18 @@ type appender struct {
 	exemplars []record.RefExemplar
 }
 
-func (a *appender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint64, error) {
-	series := a.w.series.getByID(ref)
+func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
+	series := a.w.series.getByID(chunks.HeadSeriesRef(ref))
 	if series == nil {
 		// Ensure no empty or duplicate labels have gotten through. This mirrors the
 		// equivalent validation code in the TSDB's headAppender.
 		l = l.WithoutEmpty()
 		if len(l) == 0 {
-			return 0, errors.Wrap(tsdb.ErrInvalidSample, "empty labelset")
+			return 0, fmt.Errorf("empty labelset: %w", tsdb.ErrInvalidSample)
 		}
 
 		if lbl, dup := l.HasDuplicateLabelNames(); dup {
-			return 0, errors.Wrap(tsdb.ErrInvalidSample, fmt.Sprintf(`label name "%s" is not unique`, lbl))
+			return 0, fmt.Errorf("label name %q is not unique: %w", lbl, tsdb.ErrInvalidSample)
 		}
 
 		var created bool
@@ -607,7 +607,7 @@ func (a *appender) Append(ref uint64, l labels.Labels, t int64, v float64) (uint
 	})
 
 	a.w.metrics.totalAppendedSamples.Inc()
-	return series.ref, nil
+	return storage.SeriesRef(series.ref), nil
 }
 
 func (a *appender) getOrCreate(l labels.Labels) (series *memSeries, created bool) {
@@ -618,22 +618,24 @@ func (a *appender) getOrCreate(l labels.Labels) (series *memSeries, created bool
 		return series, false
 	}
 
-	series = &memSeries{ref: a.w.ref.Inc(), lset: l}
+	ref := chunks.HeadSeriesRef(a.w.ref.Inc())
+	series = &memSeries{ref: ref, lset: l}
 	a.w.series.set(l.Hash(), series)
 	return series, true
 }
 
-func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exemplar) (uint64, error) {
-	s := a.w.series.getByID(ref)
+func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
+	cref := chunks.HeadSeriesRef(ref)
+	s := a.w.series.getByID(cref)
 	if s == nil {
-		return 0, fmt.Errorf("unknown series ref. when trying to add exemplar: %d", ref)
+		return 0, fmt.Errorf("unknown series ref. when trying to add exemplar: %d", cref)
 	}
 
 	// Ensure no empty labels have gotten through.
 	e.Labels = e.Labels.WithoutEmpty()
 
 	if lbl, dup := e.Labels.HasDuplicateLabelNames(); dup {
-		return 0, errors.Wrap(tsdb.ErrInvalidExemplar, fmt.Sprintf(`label name "%s" is not unique`, lbl))
+		return 0, fmt.Errorf("label name %q is not unique: %w", lbl, tsdb.ErrInvalidExemplar)
 	}
 
 	// Exemplar label length does not include chars involved in text rendering such as quotes
@@ -651,22 +653,22 @@ func (a *appender) AppendExemplar(ref uint64, _ labels.Labels, e exemplar.Exempl
 	// Check for duplicate vs last stored exemplar for this series, and discard those.
 	// Otherwise, record the current exemplar as the latest.
 	// Prometheus returns 0 when encountering duplicates, so we do the same here.
-	prevExemplar := a.w.series.getLatestExemplar(ref)
+	prevExemplar := a.w.series.getLatestExemplar(cref)
 	if prevExemplar != nil && prevExemplar.Equals(e) {
 		// Duplicate, don't return an error but don't accept the exemplar.
 		return 0, nil
 	}
-	a.w.series.setLatestExemplar(ref, &e)
+	a.w.series.setLatestExemplar(cref, &e)
 
 	a.exemplars = append(a.exemplars, record.RefExemplar{
-		Ref:    ref,
+		Ref:    cref,
 		T:      e.Ts,
 		V:      e.Value,
 		Labels: e.Labels,
 	})
 
 	a.w.metrics.totalAppendedExemplars.Inc()
-	return s.ref, nil
+	return storage.SeriesRef(s.ref), nil
 }
 
 // Commit submits the collected samples and purges the batch.

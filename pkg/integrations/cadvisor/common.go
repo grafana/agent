@@ -3,13 +3,16 @@ package cadvisor
 import (
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
+	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
 const name = "cadvisor"
 
 // DefaultConfig holds the default settings for the cadvisor integration
-var DefaultConfig Config = Config{
+var DefaultConfig = Config{
 	// Common cadvisor config defaults
 	StoreContainerLabels: true,
 	ResctrlInterval:      0,
@@ -87,6 +90,9 @@ type Config struct {
 	// Raw config options
 	// DockerOnly only report docker containers in addition to root stats
 	DockerOnly bool `yaml:"docker_only,omitempty"`
+
+	// Hold on to the logger passed to config.NewIntegration, to be passed to klog, as yet another unsafe global that needs to be set.
+	logger log.Logger //nolint:unused,structcheck // logger is only used on linux
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -95,7 +101,23 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	type plain Config
 	err := unmarshal((*plain)(c))
-	return err
+	if err != nil {
+		return err
+	}
+
+	// In the cadvisor cmd, these are passed as CSVs, and turned into slices using strings.split. As a result the
+	// default values are always a slice with 1 or more elements.
+	// See: https://github.com/google/cadvisor/blob/v0.43.0/cmd/cadvisor.go#L136
+	if len(c.AllowlistedContainerLabels) == 0 {
+		c.AllowlistedContainerLabels = []string{""}
+	}
+	if len(c.RawCgroupPrefixAllowlist) == 0 {
+		c.RawCgroupPrefixAllowlist = []string{""}
+	}
+	if len(c.EnvMetadataAllowlist) == 0 {
+		c.EnvMetadataAllowlist = []string{""}
+	}
+	return nil
 }
 
 // Name returns the name of the integration that this config represents.
@@ -110,4 +132,5 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.Shim)
 }

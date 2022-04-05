@@ -4,7 +4,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/prometheus/prometheus/pkg/timestamp"
+	"github.com/prometheus/prometheus/model/timestamp"
+	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wal"
 )
@@ -102,8 +103,7 @@ type walStatsCalculator struct {
 
 	stats []*WALTargetStats
 
-	// refID -> WALTargetStats
-	statsLookup map[uint64]*WALTargetStats
+	statsLookup map[chunks.HeadSeriesRef]*WALTargetStats
 
 	// hash -> # ref IDs with that hash
 	hashInstances map[uint64]int
@@ -113,7 +113,7 @@ func newWALStatsCalculator(w *wal.WAL) *walStatsCalculator {
 	return &walStatsCalculator{
 		w:             w,
 		fromTime:      math.MaxInt64,
-		statsLookup:   make(map[uint64]*WALTargetStats),
+		statsLookup:   make(map[chunks.HeadSeriesRef]*WALTargetStats),
 		hashInstances: make(map[uint64]int),
 	}
 }

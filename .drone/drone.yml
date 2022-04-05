@@ -16,10 +16,10 @@ trigger:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.43
+    image: golangci/golangci-lint:v1.44
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
-      - make lint
+      - make DOCKER_OPTS="" lint
 
 ---
 kind: pipeline
@@ -53,8 +53,9 @@ steps:
       - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
       - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
-      - make K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
+      - make DOCKER_OPTS="" cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
+      - make DOCKER_OPTS="" K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
+
 depends_on:
   - Lint
 
@@ -86,7 +87,7 @@ steps:
       - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
       - rm go1.17.6.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
-      - make DRONE=true BUILD_IN_CONTAINER=false dist
+      - make DOCKER_OPTS="" DRONE=true BUILD_IN_CONTAINER=false dist
 depends_on:
   - Test
 ---
@@ -128,11 +129,11 @@ steps:
       - docker buildx create --name multiarch --driver docker-container --use
       - export RELEASE_TAG=${DRONE_TAG}
       - export IMAGE_BRANCH_TAG=${DRONE_BRANCH}
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
-      - make DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agentctl-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-operator-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true grafana-agent-crow-image
+      - make DOCKER_OPTS="" DRONE=true CROSS_BUILD=true BUILD_IN_CONTAINER=true RELEASE_BUILD=true agent-smoke-image
       - docker buildx rm multiarch
 
 depends_on:
@@ -161,6 +162,7 @@ steps:
     image: alpine
     commands:
       - apk update && apk add git
+      - echo "$(sh ./tools/image-tag)" > .tag-only
       - echo "grafana/agent:$(sh ./tools/image-tag)" > .image-tag
   - name: Update Deployment Tools
     image: us.gcr.io/kubernetes-dev/drone/plugins/updater
@@ -179,6 +181,11 @@ steps:
               "file_path": "ksonnet/environments/platform-observability/waves/agent.libsonnet",
               "jsonnet_key": "dev_canary",
               "jsonnet_value_file": ".image-tag"
+            },
+            {
+              "file_path": "ksonnet/environments/agent-smoke-test/dev-us-central-0.agent-smoke-test/main.jsonnet",
+              "jsonnet_key": "image_tag",
+              "jsonnet_value_file": ".tag-only"
             }
           ]
         }
@@ -231,7 +238,7 @@ steps:
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
-      - make -j4 BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
+      - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
   - Dist
 
@@ -265,6 +272,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: f59c8b25058782d021a2d6bdc1fc59a049f3b352fb41de6a14c28fd05f578073
+hmac: b17f2bff49e193cd026749acfde841ab567d203ea183d7a389010e0190794d66
 
 ...

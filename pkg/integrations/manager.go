@@ -3,8 +3,10 @@ package integrations
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -17,14 +19,14 @@ import (
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/model"
 	promConfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/pkg/relabel"
-	"github.com/weaveworks/common/server"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
 var (
@@ -117,10 +119,19 @@ func (c *ManagerConfig) DefaultRelabelConfigs(instanceKey string) []*relabel.Con
 // If any integrations are enabled and are configured to be scraped, the
 // Prometheus configuration must have a WAL directory configured.
 func (c *ManagerConfig) ApplyDefaults(scfg *server.Config, mcfg *metrics.Config) error {
-	c.ListenPort = scfg.HTTPListenPort
-	c.ListenHost = scfg.HTTPListenAddress
+	hostPort := scfg.Flags.HTTP.GetListenAddress()
+	host, portStr, err := net.SplitHostPort(hostPort)
+	if err != nil {
+		return fmt.Errorf("reading HTTP host:port: %w", err)
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return fmt.Errorf("reading HTTP port: %w", err)
+	}
 
-	c.ServerUsingTLS = scfg.HTTPTLSConfig.TLSKeyPath != "" && scfg.HTTPTLSConfig.TLSCertPath != ""
+	c.ListenHost = host
+	c.ListenPort = port
+	c.ServerUsingTLS = scfg.Flags.HTTP.UseTLS
 
 	if len(c.PrometheusRemoteWrite) == 0 {
 		c.PrometheusRemoteWrite = mcfg.Global.RemoteWrite
@@ -414,6 +425,7 @@ func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg Manage
 		sc := &promConfig.ScrapeConfig{
 			JobName:                 fmt.Sprintf("integrations/%s", isc.JobName),
 			MetricsPath:             path.Join("/integrations", p.cfg.Name(), isc.MetricsPath),
+			Params:                  isc.QueryParams,
 			Scheme:                  schema,
 			HonorLabels:             false,
 			HonorTimestamps:         true,

@@ -279,7 +279,6 @@ func (p *processor) consume(trace pdata.Traces) error {
 			ils := ilsSlice.At(j)
 
 			for k := 0; k < ils.Spans().Len(); k++ {
-
 				span := ils.Spans().At(k)
 
 				switch span.Kind() {

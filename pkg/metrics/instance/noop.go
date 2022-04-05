@@ -17,6 +17,11 @@ func (NoOpInstance) Run(ctx context.Context) error {
 	return nil
 }
 
+// Ready implements Instance.
+func (NoOpInstance) Ready() bool {
+	return true
+}
+
 // Update implements Instance.
 func (NoOpInstance) Update(_ Config) error {
 	return nil

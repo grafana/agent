@@ -6,6 +6,7 @@
 /.vscode
 /.eventcache
 vendor
+data-agent
 
 /cmd/agent/agent
 /cmd/agentctl/agentctl

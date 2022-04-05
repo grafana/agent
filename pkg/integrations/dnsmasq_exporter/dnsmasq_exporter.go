@@ -11,7 +11,7 @@ import (
 )
 
 // DefaultConfig is the default config for dnsmasq_exporter.
-var DefaultConfig Config = Config{
+var DefaultConfig = Config{
 	DnsmasqAddress: "localhost:53",
 	LeasesPath:     "/var/lib/misc/dnsmasq.leases",
 }
@@ -50,7 +50,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("dnsmasq"))
 }
 
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics

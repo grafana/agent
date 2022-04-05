@@ -2,17 +2,21 @@ package config
 
 import (
 	"flag"
-	"os"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
+
+	commonCfg "github.com/prometheus/common/config"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -27,14 +31,14 @@ metrics:
     scrape_timeout: 33s`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, c.Metrics.ServiceConfig.Lifecycler.InfNames)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.NumTokens)
 	require.NotZero(t, c.Metrics.ServiceConfig.Lifecycler.HeartbeatPeriod)
-	require.True(t, c.Server.RegisterInstrumentation)
+	require.True(t, c.Server.Flags.RegisterInstrumentation)
 }
 
 // TestConfig_ConfigAPIFlag makes sure that the read API flag is passed
@@ -43,7 +47,7 @@ func TestConfig_ConfigAPIFlag(t *testing.T) {
 	t.Run("Disabled", func(t *testing.T) {
 		cfg := `{}`
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(cfg), false, c)
 		})
 		require.NoError(t, err)
@@ -53,7 +57,7 @@ func TestConfig_ConfigAPIFlag(t *testing.T) {
 	t.Run("Enabled", func(t *testing.T) {
 		cfg := `{}`
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		c, err := load(fs, []string{"-config.file", "test", "-config.enable-read-api"}, func(_ string, _ bool, c *Config) error {
+		c, err := load(fs, []string{"-config.file", "test", "-config.enable-read-api"}, func(_, _ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(cfg), false, c)
 		})
 		require.NoError(t, err)
@@ -77,7 +81,7 @@ metrics:
 	}
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -97,10 +101,10 @@ metrics:
 			EvaluationInterval: model.Duration(1 * time.Minute),
 		},
 	}
-	_ = os.Setenv("SCRAPE_TIMEOUT", "33s")
+	t.Setenv("SCRAPE_TIMEOUT", "33s")
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -117,7 +121,7 @@ metrics:
 	expect := labels.Labels{{Name: "foo", Value: "${1}"}}
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -137,7 +141,7 @@ metrics:
 		"-config.expand-env",
 	}
 
-	c, err := load(fs, args, func(_ string, _ bool, c *Config) error {
+	c, err := load(fs, args, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -220,7 +224,7 @@ traces:
 
 	for _, tc := range tests {
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		_, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(tc.cfg), false, c)
 		})
 
@@ -316,7 +320,7 @@ traces:
 
 	for _, tc := range tests {
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		_, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+		_, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(tc.cfg), false, c)
 		})
 
@@ -377,7 +381,7 @@ logs:
           source: filename
           expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'`
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	myCfg, err := load(fs, []string{"-config.file", "test"}, func(_ string, _ bool, c *Config) error {
+	myCfg, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -396,25 +400,19 @@ metrics:
       store: consul
       consul:
         acl_token: verysecret
-      etcd:
-        password: verysecret
     lifecycler:
       ring:
         kvstore:
           store: consul
           consul:
             acl_token: verysecret
-          etcd:
-            password: verysecret
 `
 
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(cfgText), false, &cfg))
 
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
 
 	bb, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
@@ -424,7 +422,33 @@ metrics:
 
 	// Re-validate that the config object has not changed
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.KVStore.Etcd.Password)
 	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Consul.ACLToken)
-	require.Equal(t, "verysecret", cfg.Metrics.ServiceConfig.Lifecycler.RingConfig.KVStore.Etcd.Password)
+}
+
+func TestConfig_RemoteWriteDefaults(t *testing.T) {
+	cfg := `
+metrics:
+  global:
+    remote_write:
+      - name: "foo"
+        url: "https://test/url"`
+
+	var c Config
+	err := LoadBytes([]byte(cfg), false, &c)
+	require.NoError(t, err)
+
+	expected := &promCfg.DefaultRemoteWriteConfig
+	expected.Name = "foo"
+	testURL, _ := url.Parse("https://test/url")
+	expected.URL = &commonCfg.URL{
+		URL: testURL,
+	}
+	require.Equal(t, expected, c.Metrics.Global.RemoteWrite[0])
+	require.True(t, c.Metrics.Global.RemoteWrite[0].SendExemplars)
+}
+
+func TestLoadDynamicConfigurationExpandError(t *testing.T) {
+	err := LoadDynamicConfiguration("", true, nil)
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }

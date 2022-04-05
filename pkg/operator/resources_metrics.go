@@ -3,6 +3,7 @@ package operator
 import (
 	"context"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/grafana/agent/pkg/build"
@@ -109,6 +110,7 @@ func generateMetricsStatefulSet(
 	d config.Deployment,
 	shard int32,
 ) (*apps_v1.StatefulSet, error) {
+
 	d = *d.DeepCopy()
 
 	//
@@ -241,7 +243,12 @@ func generateMetricsStatefulSetSpec(
 	agentArgs := []string{
 		"-config.file=/var/lib/grafana-agent/config/agent.yml",
 		"-config.expand-env=true",
-		"-reload-port=8081",
+		"-server.http.address=0.0.0.0:8080",
+	}
+
+	enableConfigReadAPI := d.Agent.Spec.EnableConfigReadAPI
+	if enableConfigReadAPI {
+		agentArgs = append(agentArgs, "-config.enable-read-api")
 	}
 
 	// NOTE(rfratto): the Prometheus Operator supports a ListenLocal to prevent a
@@ -323,7 +330,7 @@ func generateMetricsStatefulSetSpec(
 		volumeMounts = append(volumeMounts, v1.VolumeMount{
 			Name:      clientutil.SanitizeVolumeName("secret-" + s),
 			ReadOnly:  true,
-			MountPath: "/var/lib/grafana-agent/secrets",
+			MountPath: path.Join("/var/lib/grafana-agent/extra-secrets", s),
 		})
 	}
 
@@ -339,7 +346,7 @@ func generateMetricsStatefulSetSpec(
 		volumeMounts = append(volumeMounts, v1.VolumeMount{
 			Name:      clientutil.SanitizeVolumeName("configmap-" + c),
 			ReadOnly:  true,
-			MountPath: "/var/lib/grafana-agent/configmaps",
+			MountPath: path.Join("/var/lib/grafana-agent/extra-configmaps", c),
 		})
 	}
 
@@ -403,10 +410,7 @@ func generateMetricsStatefulSetSpec(
 
 				"--watch-interval=1m",
 				"--statefulset-ordinal-from-envvar=POD_NAME",
-
-				// Use specifically the reload-port for reloading, since the primary
-				// server can shut down in between reloads.
-				"--reload-url=http://127.0.0.1:8081/-/reload",
+				"--reload-url=http://127.0.0.1:8080/-/reload",
 			},
 		},
 		{
@@ -417,7 +421,7 @@ func generateMetricsStatefulSetSpec(
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			ReadinessProbe: &v1.Probe{
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path: "/-/ready",
 						Port: intstr.FromString(d.Agent.Spec.PortName),

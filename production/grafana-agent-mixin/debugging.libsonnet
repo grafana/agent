@@ -8,7 +8,7 @@ local g = import 'grafana-builder/grafana.libsonnet';
       .addMultiTemplate('cluster', 'agent_build_info', 'cluster')
       .addMultiTemplate('namespace', 'agent_build_info', 'namespace')
       .addMultiTemplate('container', 'agent_build_info', 'container')
-      .addMultiTemplateWithAll('pod', 'agent_build_info{container=~"$container"}', 'pod', all='grafana-agent-.*')
+      .addMultiTemplateWithAll('pod', 'agent_build_info{container=~"$container", namespace="$namespace"}', 'pod', all='grafana-agent-.*')
       .addRow(
         g.row('General')
         .addPanel(

@@ -102,12 +102,12 @@ type GrafanaAgentSpec struct {
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 	// Secrets is a list of secrets in the same namespace as the GrafanaAgent
 	// object which will be mounted into each running Grafana Agent pod.
-	// The secrets are mounted into /etc/grafana-agent/secrets/<secret-name>.
+	// The secrets are mounted into /etc/grafana-agent/extra-secrets/<secret-name>.
 	Secrets []string `json:"secrets,omitempty"`
 	// ConfigMaps is a liset of config maps in the same namespace as the
 	// GrafanaAgent object which will be mounted into each running Grafana Agent
 	// pod.
-	// The ConfigMaps are mounted into /etc/grafana-agent/configmaps/<configmap-name>.
+	// The ConfigMaps are mounted into /etc/grafana-agent/extra-configmaps/<configmap-name>.
 	ConfigMaps []string `json:"configMaps,omitempty"`
 	// Affinity, if specified, controls pod scheduling constraints.
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
@@ -150,7 +150,14 @@ type GrafanaAgentSpec struct {
 	// Logs controls the logging subsystem of the Agent and settings unique to
 	// logging-specific pods that are deployed.
 	Logs LogsSubsystemSpec `json:"logs,omitempty"`
+
+	// enableConfigReadAPI enables the read API for viewing currently running
+	// config port 8080 on the agent.
+	// +kubebuilder:default=false
+	EnableConfigReadAPI bool `json:"enableConfigReadAPI,omitempty"`
 }
+
+// +kubebuilder:object:generate=false
 
 // ObjectSelector is a set of selectors to use for finding an object in the
 // resource hierarchy. When NamespaceSelector is nil, objects should be

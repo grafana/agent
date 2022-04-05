@@ -6,8 +6,6 @@ function() {
 
   local k = (import 'ksonnet-util/kausal.libsonnet') { _config+:: this._config },
   local daemonSet = k.apps.v1.daemonSet,
-  local container = k.core.v1.container,
-  local envVar = k.core.v1.envVar,
 
   controller:
     daemonSet.new(name, [this.container]) +
@@ -21,10 +19,4 @@ function() {
       else {}
     ) +
     k.util.configVolumeMount(name, '/etc/agent'),
-
-  // `HOSTNAME` is required for promtail (logs) otherwise it will silently do nothing
-  container+::
-    container.withEnvMixin([
-      envVar.fromFieldPath('HOSTNAME', 'spec.nodeName'),
-    ]),
 }

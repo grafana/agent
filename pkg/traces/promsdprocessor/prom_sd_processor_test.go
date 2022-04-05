@@ -3,20 +3,18 @@ package promsdprocessor
 import (
 	"context"
 	"net"
-	"net/http"
 	"testing"
 
 	"github.com/go-kit/log"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
-	"github.com/prometheus/prometheus/pkg/relabel"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/model/pdata"
 	semconv "go.opentelemetry.io/collector/model/semconv/v1.6.1"
-	"google.golang.org/grpc/peer"
 )
 
 func TestSyncGroups(t *testing.T) {
@@ -220,30 +218,14 @@ func TestPodAssociation(t *testing.T) {
 		expectedIP      string
 	}{
 		{
-			name: "HTTP connection IP",
+			name: "connection IP (HTTP & gRPC)",
 			ctxFn: func(t *testing.T) context.Context {
-				r := &http.Request{
-					RemoteAddr: ipStr,
-				}
-				c, ok := client.FromHTTP(r)
-				require.True(t, ok)
-				return client.NewContext(context.Background(), c)
-			},
-			attrMapFn:  func(*testing.T) pdata.AttributeMap { return pdata.NewAttributeMap() },
-			expectedIP: ipStr,
-		},
-		{
-			name: "gRPC connection IP",
-			ctxFn: func(t *testing.T) context.Context {
-				grpcCtx := peer.NewContext(context.Background(), &peer.Peer{
-					Addr: &net.TCPAddr{
-						IP:   net.ParseIP(ipStr),
-						Port: 80,
+				info := client.Info{
+					Addr: &net.IPAddr{
+						IP: net.ParseIP(net.ParseIP(ipStr).String()),
 					},
-				})
-				c, ok := client.FromGRPC(grpcCtx)
-				require.True(t, ok)
-				return client.NewContext(context.Background(), c)
+				}
+				return client.NewContext(context.Background(), info)
 			},
 			attrMapFn:  func(*testing.T) pdata.AttributeMap { return pdata.NewAttributeMap() },
 			expectedIP: ipStr,
@@ -301,10 +283,12 @@ func TestPodAssociation(t *testing.T) {
 		{
 			name: "uses attr before context (default associations)",
 			ctxFn: func(t *testing.T) context.Context {
-				r := &http.Request{RemoteAddr: "2.2.2.2"}
-				c, ok := client.FromHTTP(r)
-				require.True(t, ok)
-				return client.NewContext(context.Background(), c)
+				info := client.Info{
+					Addr: &net.IPAddr{
+						IP: net.ParseIP("2.2.2.2"),
+					},
+				}
+				return client.NewContext(context.Background(), info)
 			},
 			attrMapFn: func(*testing.T) pdata.AttributeMap {
 				attrMap := pdata.NewAttributeMap()
