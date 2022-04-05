@@ -19,9 +19,11 @@ else
 IMAGE_TAG ?= $(RELEASE_TAG)
 
 # If $RELEASE_TAG is from a stable release we want to update :latest instead of
-# a branch.
+# a branch. Otherwise, we want to re-use the versioned tag name.
 ifeq (,$(findstring -rc.,$(RELEASE_TAG)))
 IMAGE_BRANCH_TAG = latest
+else
+IMAGE_BRANCH_TAG = $(RELEASE_TAG)
 endif
 
 endif
