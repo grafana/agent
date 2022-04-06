@@ -39,7 +39,6 @@ type LogsExporter struct {
 // NewLogsExporter creates a new logs exporter with the given
 // configuration
 func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore sourcemaps.SourceMapStore) AppO11yReceiverExporter {
-
 	return &LogsExporter{
 		logger:         logger,
 		li:             conf.LogsInstance,
