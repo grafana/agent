@@ -2191,6 +2191,8 @@ github.com/rfratto/ckit v0.0.0-20220324133302-7881e8b037cc h1:SYqtGTsEDc3pHH04ly
 github.com/rfratto/ckit v0.0.0-20220324133302-7881e8b037cc/go.mod h1:kr0K+4DiLWPdO8eSEQ9W0XZ6Y/WhVzAHWOZyIG3BTkI=
 github.com/rfratto/ckit v0.0.0-20220326011641-b094c6f525d6 h1:eHTeFvGDaUAhEOjJf0pTL0KCiHcJnenMMksNvNj8Ih8=
 github.com/rfratto/ckit v0.0.0-20220326011641-b094c6f525d6/go.mod h1:kr0K+4DiLWPdO8eSEQ9W0XZ6Y/WhVzAHWOZyIG3BTkI=
+github.com/rfratto/ckit v0.0.0-20220401221852-009169323240 h1:aWVSpqwdAr+e0IU+zYibVjAiD2QdrY3eylfTRNThNzQ=
+github.com/rfratto/ckit v0.0.0-20220401221852-009169323240/go.mod h1:kr0K+4DiLWPdO8eSEQ9W0XZ6Y/WhVzAHWOZyIG3BTkI=
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc h1:g196Usc63pWDzWallipxVhsEjDdh/+RLc/Oz7q3ihW4=
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc/go.mod h1:rMzeXFmWpS5JnfDANtpzbklRJY4pqZMJNN9/SJHAXPA=
 github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8 h1:wNuNGrFzFmZlhrtz1Q8EiK1Ob6yWli8lX7D2AGmSGzE=
