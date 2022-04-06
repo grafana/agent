@@ -30,8 +30,8 @@ function(namespace, rw) {
 
   basic_auth: (
     if rw.BasicAuth != null then {
-      username: secrets.valueForSecret(namespace, rw.BasicAuth.Username),
-      password: secrets.valueForSecret(namespace, rw.BasicAuth.Password),
+      username_file: secrets.pathForSecret(namespace, rw.BasicAuth.Username),
+      password_file: secrets.pathForSecret(namespace, rw.BasicAuth.Password),
     }
   ),
 

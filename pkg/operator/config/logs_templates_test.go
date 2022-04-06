@@ -476,7 +476,7 @@ func TestPodLogsConfig(t *testing.T) {
 					},
 					Spec: gragent.PodLogsSpec{
 						RelabelConfigs: []*prom_v1.RelabelConfig{{
-							SourceLabels: []string{"input_a", "input_b"},
+							SourceLabels: []prom.LabelName{"input_a", "input_b"},
 							Separator:    ";",
 							TargetLabel:  "target_a",
 							Regex:        "regex",

@@ -8,7 +8,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/processor/processorhelper"
 	"gopkg.in/yaml.v2"
 )
 
@@ -40,10 +39,10 @@ type Config struct {
 
 // NewFactory returns a new factory for the Attributes processor.
 func NewFactory() component.ProcessorFactory {
-	return processorhelper.NewFactory(
+	return component.NewProcessorFactory(
 		TypeStr,
 		createDefaultConfig,
-		processorhelper.WithTraces(createTraceProcessor),
+		component.WithTracesProcessor(createTraceProcessor),
 	)
 }
 
@@ -59,8 +58,8 @@ func createTraceProcessor(
 	cfg config.Processor,
 	nextConsumer consumer.Traces,
 ) (component.TracesProcessor, error) {
-	oCfg := cfg.(*Config)
 
+	oCfg := cfg.(*Config)
 	out, err := yaml.Marshal(oCfg.ScrapeConfigs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal scrapeConfigs interface{} to yaml: %w", err)

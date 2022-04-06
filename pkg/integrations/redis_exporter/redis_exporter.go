@@ -118,7 +118,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("redis"))
 }
 
 // New creates a new redis_exporter integration. The integration queries
@@ -144,9 +144,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 
 	if (c.TLSClientKeyFile != "") != (c.TLSClientCertFile != "") {
 		return nil, errors.New("TLS client key file and cert file should both be present")
-	}
-	if c.TLSClientKeyFile != "" && c.TLSClientCertFile != "" {
-
+	} else if c.TLSClientKeyFile != "" && c.TLSClientCertFile != "" {
 		exporterConfig.ClientKeyFile = c.TLSClientKeyFile
 		exporterConfig.ClientCertFile = c.TLSClientCertFile
 	}

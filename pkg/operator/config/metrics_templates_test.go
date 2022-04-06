@@ -416,7 +416,7 @@ func TestRelabelConfig(t *testing.T) {
 		{
 			name: "full",
 			input: prom_v1.RelabelConfig{
-				SourceLabels: []string{"input_a", "input_b"},
+				SourceLabels: []prom_v1.LabelName{"input_a", "input_b"},
 				Separator:    ";",
 				TargetLabel:  "target_a",
 				Regex:        "regex",
@@ -495,7 +495,7 @@ func TestRemoteWrite(t *testing.T) {
 				"rw": v1alpha1.RemoteWriteSpec{
 					URL: "http://cortex/api/prom/push",
 					WriteRelabelConfigs: []prom_v1.RelabelConfig{{
-						SourceLabels: []string{"__name__"},
+						SourceLabels: []prom_v1.LabelName{"__name__"},
 						Action:       "drop",
 					}},
 				},
@@ -547,8 +547,8 @@ func TestRemoteWrite(t *testing.T) {
 			expect: util.Untab(`
 				url: http://cortex/api/prom/push
 				basic_auth:
-					username: secretkey
-					password: secretkey
+					username_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
+					password_file: /var/lib/grafana-agent/secrets/_secrets_operator_obj_key
 			`),
 		},
 		{

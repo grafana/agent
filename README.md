@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/assets/logo_and_name.png" alt="Grafana Agent logo"></p>
+<p align="center"><img src="docs/user/assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 
 Grafana Agent is a telemetry collector for sending metrics, logs,
 and trace data to the opinionated Grafana observability stack. It works best
@@ -54,7 +54,7 @@ the remote system.
 
 ## Getting Started
 
-When using Kubernetes this [link](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s) offers the best guide. 
+When using Kubernetes this [link](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s) offers the best guide.
 
 Other installation methods can be found in our
 [Production](./production/README.md) documentation.
@@ -72,18 +72,13 @@ and the [k3d example README](./example/k3d/README.md) for more information.
 ## Prometheus Vendoring
 
 The Grafana Agent vendors a downstream Prometheus repository maintained by
-[Grafana Labs](https://github.com/grafana/prometheus). This is done so experimental
-features Grafana Labs wants to contribute upstream can first be tested and iterated on
-quickly within the Agent. We aim to always base our vendor off of a recent official
-Prometheus release and to keep the experimental changes not available in the upstream
-repository to a minimum.
-
-Please refer to the pinned
-[Prometheus Vendor Update Tracking](https://github.com/grafana/agent/issues/112) issue
-for our current vendored Prometheus release.
+[Grafana Labs](https://github.com/grafana/prometheus). This is done so
+experimental features Grafana Labs wants to contribute upstream can first be
+tested and iterated on quickly within the Agent. We aim to keep the
+experimental changes to a minimum and upstream changes as soon as possible.
 
 For more context on our vendoring strategy, read our
-[repo maintenance guide](./docs/maintaining.md#grafanaprometheus-maintenance).
+[downstream repo maintenance guide](./docs/developer/prometheus-fork.md).
 
 ## Getting Help
 
@@ -96,8 +91,8 @@ If you have any questions or feedback regarding the Grafana Agent:
 * [File an issue](https://github.com/grafana/agent/issues/new) for bugs, issues
   and feature suggestions.
 * Attend the [Grafana Agent Community Call](https://docs.google.com/document/d/1TqaZD1JPfNadZ4V81OCBPCG_TksDYGlNlGdMnTWUSpo).
-  
+
 ## Contributing
 
-Any contributions are welcome and details can be found [in our developers guide](./cmd/agent/DEVELOPERS.md).
-
+Any contributions are welcome and details can be found
+[in our contributors guide](./docs/developer/contributing.md).

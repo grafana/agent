@@ -3,9 +3,12 @@ package smoke
 import (
 	"context"
 	"flag"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/oklog/run"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -13,6 +16,7 @@ import (
 
 // Smoke is the top level object for a smoke test.
 type Smoke struct {
+	cfg    *Config
 	logger log.Logger
 	tasks  []repeatingTask
 }
@@ -21,6 +25,8 @@ type Smoke struct {
 type Config struct {
 	Kubeconfig        string
 	Namespace         string
+	PodPrefix         string
+	FakeRemoteWrite   bool
 	ChaosFrequency    time.Duration
 	MutationFrequency time.Duration
 }
@@ -29,6 +35,8 @@ type Config struct {
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&c.Namespace, "namespace", DefaultConfig.Namespace, "namespace smoke test should run in")
 	f.StringVar(&c.Kubeconfig, "kubeconfig", DefaultConfig.Kubeconfig, "absolute path to the kubeconfig file")
+	f.StringVar(&c.PodPrefix, "pod-prefix", DefaultConfig.PodPrefix, "prefix for grafana agent pods")
+	f.BoolVar(&c.FakeRemoteWrite, "fake-remote-write", DefaultConfig.FakeRemoteWrite, "remote write endpoint for series which are discarded, useful for testing and not storing metrics")
 	f.DurationVar(&c.ChaosFrequency, "chaos-frequency", DefaultConfig.ChaosFrequency, "chaos frequency duration")
 	f.DurationVar(&c.MutationFrequency, "mutation-frequency", DefaultConfig.MutationFrequency, "mutation frequency duration")
 }
@@ -37,6 +45,8 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 var DefaultConfig = Config{
 	Kubeconfig:        "",
 	Namespace:         "default",
+	PodPrefix:         "grafana-agent",
+	FakeRemoteWrite:   false,
 	ChaosFrequency:    30 * time.Minute,
 	MutationFrequency: 5 * time.Minute,
 }
@@ -44,6 +54,7 @@ var DefaultConfig = Config{
 // New is the constructor for a Smoke object.
 func New(logger log.Logger, cfg Config) (*Smoke, error) {
 	s := &Smoke{
+		cfg:    &cfg,
 		logger: logger,
 	}
 	if s.logger == nil {
@@ -68,7 +79,7 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 				logger:    log.With(s.logger, "task", "delete_pod", "pod", "grafana-agent-0"),
 				clientset: clientset,
 				namespace: cfg.Namespace,
-				pod:       "grafana-agent-0",
+				pod:       fmt.Sprintf("%s-0", cfg.PodPrefix),
 			},
 			frequency: cfg.ChaosFrequency,
 		},
@@ -77,7 +88,7 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 				logger:    log.With(s.logger, "task", "delete_pod_by_selector"),
 				clientset: clientset,
 				namespace: cfg.Namespace,
-				selector:  "name=grafana-agent-cluster",
+				selector:  fmt.Sprintf("name=%s-cluster", cfg.PodPrefix),
 			},
 			frequency: cfg.ChaosFrequency,
 		},
@@ -94,6 +105,10 @@ func New(logger log.Logger, cfg Config) (*Smoke, error) {
 		})
 
 	return s, nil
+}
+
+func (s *Smoke) ServeHTTP(rw http.ResponseWriter, _ *http.Request) {
+	rw.WriteHeader(http.StatusOK)
 }
 
 // Run starts the smoke test and runs the tasks concurrently.
@@ -122,5 +137,15 @@ func (s *Smoke) Run(ctx context.Context) error {
 			cancel()
 		})
 	}
+
+	if s.cfg.FakeRemoteWrite {
+		level.Info(s.logger).Log("msg", "serving fake remote-write endpoint on :19090")
+		g.Add(func() error {
+			return http.ListenAndServe(":19090", s)
+		}, func(err error) {
+			cancel()
+		})
+	}
+
 	return g.Run()
 }

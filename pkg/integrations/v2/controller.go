@@ -61,10 +61,6 @@ func (c *controller) run(ctx context.Context) {
 			return
 		case newIntegrations := <-c.runIntegrations:
 			pool.Reload(newIntegrations)
-
-			c.mut.Lock()
-			c.integrations = newIntegrations
-			c.mut.Unlock()
 		}
 	}
 }
@@ -98,6 +94,30 @@ func (id integrationID) String() string {
 func (c *controller) UpdateController(cfg controllerConfig, globals Globals) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
+
+	// Ensure that no singleton integration is defined twice
+	var (
+		duplicatedSingletons []string
+		singletonSet         = make(map[string]struct{})
+	)
+	for _, cfg := range cfg {
+		t, _ := RegisteredType(cfg)
+		if t != TypeSingleton {
+			continue
+		}
+
+		if _, exists := singletonSet[cfg.Name()]; exists {
+			duplicatedSingletons = append(duplicatedSingletons, cfg.Name())
+			continue
+		}
+		singletonSet[cfg.Name()] = struct{}{}
+	}
+	if len(duplicatedSingletons) == 1 {
+		return fmt.Errorf("integration %q may only be defined once", duplicatedSingletons[0])
+	} else if len(duplicatedSingletons) > 1 {
+		list := strings.Join(duplicatedSingletons, ", ")
+		return fmt.Errorf("the following integrations may only be defined once each: %s", list)
+	}
 
 	integrationIDMap := map[integrationID]struct{}{}
 
@@ -172,6 +192,7 @@ NextConfig:
 
 	c.cfg = cfg
 	c.globals = globals
+	c.integrations = integrations
 	return nil
 }
 

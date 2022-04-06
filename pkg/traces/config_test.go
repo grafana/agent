@@ -286,6 +286,7 @@ exporters:
       insecure_skip_verify: true
     retry_on_failure:
       max_elapsed_time: 60s
+    compression: none
 service:
   pipelines:
     traces:
@@ -447,6 +448,7 @@ exporters:
       max_elapsed_time: 60s
     sending_queue:
       num_consumers: 15
+    compression: none
 service:
   pipelines:
     traces:
@@ -735,6 +737,7 @@ exporters:
         endpoint: noop
         retry_on_failure:
           max_elapsed_time: 60s
+        compression: none
     resolver:
       dns:
         hostname: agent
@@ -1061,6 +1064,246 @@ service:
       receivers: ["jaeger"]
 `,
 		},
+		{
+			name: "one exporter with oauth2 and basic auth",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    basic_auth:
+      username: test
+      password: blerg
+    oauth2:
+      client_id: somecclient
+      client_secret: someclientsecret
+`,
+			expectedError: true,
+		},
+		{
+			name: "simple oauth2 config",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+service:
+  extensions: ["oauth2client/otlphttp0"]
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "oauth2 TLS",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+      tls:
+        insecure: true
+        ca_file: /var/lib/mycert.pem
+        cert_file: certfile
+        key_file: keyfile
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+    tls:
+      insecure: true
+      ca_file: /var/lib/mycert.pem
+      cert_file: certfile
+      key_file: keyfile
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+service:
+  extensions: ["oauth2client/otlphttp0"]
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "2 exporters different auth",
+			cfg: `
+receivers:
+ jaeger:
+   protocols:
+     grpc:
+remote_write:
+ - endpoint: example.com:12345
+   protocol: http
+   oauth2:
+     client_id: someclientid
+     client_secret: someclientsecret
+     token_url: https://example.com/oauth2/default/v1/token
+     scopes: ["api.metrics"]
+     timeout: 2s
+ - endpoint: example.com:12345
+   protocol: grpc
+   oauth2:
+     client_id: anotherclientid
+     client_secret: anotherclientsecret
+     token_url: https://example.com/oauth2/default/v1/token
+     scopes: ["api.metrics"]
+     timeout: 2s
+`,
+			expectedConfig: `
+receivers:
+ jaeger:
+   protocols:
+     grpc:
+extensions:
+ oauth2client/otlphttp0:
+   client_id: someclientid
+   client_secret: someclientsecret
+   token_url: https://example.com/oauth2/default/v1/token
+   scopes: ["api.metrics"]
+   timeout: 2s
+ oauth2client/otlp1:
+   client_id: anotherclientid
+   client_secret: anotherclientsecret
+   token_url: https://example.com/oauth2/default/v1/token
+   scopes: ["api.metrics"]
+   timeout: 2s
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+  otlp/1:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlp1
+service:
+  extensions: ["oauth2client/otlphttp0", "oauth2client/otlp1"]
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0", "otlp/1"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
+		{
+			name: "exporter with insecure oauth",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: http://example.com:12345
+    insecure: true
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+      tls:
+        insecure: true
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+    tls:
+      insecure: true
+exporters:
+  otlphttp/0:
+    endpoint: http://example.com:12345
+    tls:
+      insecure: true
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+service:
+  extensions: ["oauth2client/otlphttp0"]
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0"]
+      processors: []
+      receivers: ["jaeger"]
+`,
+		},
 	}
 
 	for _, tc := range tt {
@@ -1068,7 +1311,6 @@ service:
 			var cfg InstanceConfig
 			err := yaml.Unmarshal([]byte(tc.cfg), &cfg)
 			require.NoError(t, err)
-
 			// check error
 			actualConfig, err := cfg.otelConfig()
 			if tc.expectedError {
@@ -1448,7 +1690,9 @@ func sortPipelines(cfg *config.Config) {
 	var (
 		exp  = tracePipeline.Exporters
 		recv = tracePipeline.Receivers
+		ext  = cfg.Service.Extensions
 	)
 	sort.Slice(exp, func(i, j int) bool { return exp[i].String() > exp[j].String() })
 	sort.Slice(recv, func(i, j int) bool { return recv[i].String() > recv[j].String() })
+	sort.Slice(ext, func(i, j int) bool { return ext[i].String() > ext[j].String() })
 }

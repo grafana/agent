@@ -1,8 +1,7 @@
 # Sample config for Grafana Agent
 # For a full configuration reference, see: https://github.com/grafana/agent/blob/main/docs/configuration-reference.md.
 server:
-  http_listen_address: '127.0.0.1'
-  http_listen_port: 9090
+  log_level: warn
 
 metrics:
   global:

@@ -65,6 +65,39 @@ configs:
 	}
 }
 
+func TestTraceWithSpanmetricsConfig(t *testing.T) {
+	tracesCfgText := util.Untab(`
+configs:
+- name: test
+  receivers:
+    zipkin:
+      endpoint: 0.0.0.0:9999
+  remote_write:
+    - endpoint: 0.0.0.0:5555
+      insecure: false
+      tls_config:
+          insecure_skip_verify: true
+  spanmetrics:
+    handler_endpoint: 0.0.0.0:9090
+    const_labels:
+      key1: "value1"
+      key2: "value2"
+	`)
+
+	var cfg Config
+	dec := yaml.NewDecoder(strings.NewReader(tracesCfgText))
+	dec.SetStrict(true)
+	err := dec.Decode(&cfg)
+	require.NoError(t, err)
+
+	var loggingLevel logging.Level
+	require.NoError(t, loggingLevel.Set("debug"))
+
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logrus.InfoLevel, logging.Format{})
+	require.NoError(t, err)
+	t.Cleanup(traces.Stop)
+}
+
 func TestTrace_ApplyConfig(t *testing.T) {
 	tracesCh := make(chan pdata.Traces)
 	tracesAddr := traceutils.NewTestServer(t, func(t pdata.Traces) {

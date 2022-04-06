@@ -76,6 +76,36 @@ test_configs:
 	require.Equal(t, expect, fullCfg)
 }
 
+func TestIntegrationRegistration_Mixed(t *testing.T) {
+	setRegistered(t, map[Config]Type{
+		&testIntegrationA{}: TypeEither,
+		&testIntegrationB{}: TypeEither,
+	})
+
+	var cfgToParse = `
+name: John Doe
+duration: 500ms
+test:
+  text: Hello, world!
+test_configs:
+  - text: Hello again!`
+
+	var fullCfg testFullConfig
+	err := yaml.UnmarshalStrict([]byte(cfgToParse), &fullCfg)
+	require.NoError(t, err)
+
+	expect := testFullConfig{
+		Name:     "John Doe",
+		Duration: 500 * time.Millisecond,
+		Default:  12345,
+		Configs: []Config{
+			&testIntegrationA{Text: "Hello, world!", Truth: true},
+			&testIntegrationA{Text: "Hello again!", Truth: true},
+		},
+	}
+	require.Equal(t, expect, fullCfg)
+}
+
 func TestIntegrationRegistration_Legacy(t *testing.T) {
 	setRegistered(t, nil)
 
@@ -132,6 +162,28 @@ legacy_configs:
 	shim = fullCfg.Configs[1].(*legacyShim)
 	require.IsType(t, &legacyConfig{}, shim.Data)
 	require.Equal(t, "world", shim.Data.(*legacyConfig).Text)
+}
+
+func TestIntegrationRegistration_Marshal_MultipleSingleton(t *testing.T) {
+	setRegistered(t, map[Config]Type{
+		&testIntegrationA{}: TypeSingleton,
+		&testIntegrationB{}: TypeSingleton,
+	})
+
+	// Generate an invalid config, which has two instances of a Singleton
+	// integration.
+	input := testFullConfig{
+		Name:     "John Doe",
+		Duration: 500 * time.Millisecond,
+		Default:  12345,
+		Configs: []Config{
+			&testIntegrationA{Text: "Hello, world!", Truth: true},
+			&testIntegrationA{Text: "Hello again!", Truth: true},
+		},
+	}
+
+	_, err := yaml.Marshal(&input)
+	require.EqualError(t, err, `integration "test" may not be defined more than once`)
 }
 
 type legacyConfig struct {
@@ -200,4 +252,8 @@ func (c *testFullConfig) UnmarshalYAML(unmarshal func(interface{}) error) error 
 	// This default value should not change.
 	c.Default = 12345
 	return UnmarshalYAML(c, unmarshal)
+}
+
+func (c testFullConfig) MarshalYAML() (interface{}, error) {
+	return MarshalYAML(c)
 }

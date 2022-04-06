@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 
 	"github.com/grafana/agent/pkg/metrics/cluster"
@@ -25,6 +26,7 @@ import (
 var DefaultConfig = Config{
 	Global:                 instance.DefaultGlobalConfig,
 	InstanceRestartBackoff: instance.DefaultBasicManagerConfig.InstanceRestartBackoff,
+	WALDir:                 "data-agent/",
 	WALCleanupAge:          DefaultCleanupAge,
 	WALCleanupPeriod:       DefaultCleanupPeriod,
 	ServiceConfig:          cluster.DefaultConfig,
@@ -104,14 +106,11 @@ func (c *Config) ApplyDefaults() error {
 // RegisterFlags defines flags corresponding to the Config.
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.RegisterFlagsWithPrefix("metrics.", f)
-
-	// Register deprecated flag names.
-	c.RegisterFlagsWithPrefix("prometheus.", f)
 }
 
 // RegisterFlagsWithPrefix defines flags with the provided prefix.
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
-	f.StringVar(&c.WALDir, prefix+"wal-directory", "", "base directory to store the WAL in")
+	f.StringVar(&c.WALDir, prefix+"wal-directory", DefaultConfig.WALDir, "base directory to store the WAL in")
 	f.DurationVar(&c.WALCleanupAge, prefix+"wal-cleanup-age", DefaultConfig.WALCleanupAge, "remove abandoned (unused) WALs older than this")
 	f.DurationVar(&c.WALCleanupPeriod, prefix+"wal-cleanup-period", DefaultConfig.WALCleanupPeriod, "how often to check for abandoned WALs")
 	f.DurationVar(&c.InstanceRestartBackoff, prefix+"instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
@@ -144,6 +143,8 @@ type Agent struct {
 	stopped  bool
 	stopOnce sync.Once
 	actor    chan func()
+
+	initialBootDone atomic.Bool
 }
 
 // New creates and starts a new Agent.
@@ -268,6 +269,7 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 
 	a.actor <- func() {
 		a.syncInstances(oldConfig, cfg)
+		a.initialBootDone.Store(true)
 	}
 
 	a.cfg = cfg
@@ -309,6 +311,24 @@ func (a *Agent) run() {
 	for f := range a.actor {
 		f()
 	}
+}
+
+// Ready returns true if both the agent and all instances
+// spawned by a Manager have completed startup.
+func (a *Agent) Ready() bool {
+	// Wait for the initial load to complete so the instance manager has at least
+	// the base set of expected instances.
+	if !a.initialBootDone.Load() {
+		return false
+	}
+
+	for _, inst := range a.mm.ListInstances() {
+		if !inst.Ready() {
+			return false
+		}
+	}
+
+	return true
 }
 
 // WireGRPC wires gRPC services into the provided server.

@@ -2,6 +2,7 @@ package integrations
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"testing"
 
@@ -131,6 +132,42 @@ func Test_controller_ConfigChanges(t *testing.T) {
 		starts := tc(t, true)
 		require.Equal(t, uint64(2), starts, "integration should have started exactly twice")
 	})
+}
+
+func Test_controller_SingletonCheck(t *testing.T) {
+	var integrationsWg sync.WaitGroup
+	var starts atomic.Uint64
+
+	mockIntegration := FuncIntegration(func(ctx context.Context) error {
+		integrationsWg.Done()
+		starts.Inc()
+		<-ctx.Done()
+		return nil
+	})
+	c1 := mockConfig{
+		NameFunc:          func() string { return mockIntegrationName },
+		ConfigEqualsFunc:  func(Config) bool { return true },
+		ApplyDefaultsFunc: func(g Globals) error { return nil },
+		IdentifierFunc: func(Globals) (string, error) {
+			return mockIntegrationName, nil
+		},
+		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
+			integrationsWg.Add(1)
+			return mockIntegration, nil
+		},
+	}
+	configMap := make(map[Config]Type)
+	configMap[&c1] = TypeSingleton
+	setRegistered(t, configMap)
+	cfg := controllerConfig{
+		c1,
+		c1,
+	}
+
+	globals := Globals{}
+	_, err := newController(util.TestLogger(t), cfg, globals)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), `integration "mock" may only be defined once`))
 }
 
 type syncController struct {

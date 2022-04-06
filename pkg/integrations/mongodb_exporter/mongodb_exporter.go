@@ -20,7 +20,6 @@ type Config struct {
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-
 	type plain Config
 	return unmarshal((*plain)(c))
 }
@@ -46,7 +45,7 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("mongodb"))
 }
 
 // New creates a new mongodb_exporter integration.

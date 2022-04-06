@@ -13,13 +13,13 @@ import (
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/pkg/relabel"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 )
 
 // DefaultGlobal holds default values for Global.
-var DefaultGlobal Global = Global{
+var DefaultGlobal = Global{
 	Enable:          true,
 	MetricsInstance: "default",
 }
@@ -197,8 +197,8 @@ func newInstanceScraper(
 	s InstanceStore,
 	instanceName string,
 ) *instanceScraper {
-	ctx, cancel := context.WithCancel(ctx)
 
+	ctx, cancel := context.WithCancel(ctx)
 	l = log.With(l, "target_instance", instanceName)
 
 	sd := discovery.NewManager(ctx, l, discovery.Name("autoscraper/"+instanceName))

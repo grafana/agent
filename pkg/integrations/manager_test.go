@@ -14,8 +14,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
 	promConfig "github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/pkg/relabel"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"gopkg.in/yaml.v2"
@@ -36,8 +36,8 @@ use_hostname_label: true
 `
 	var (
 		cfg        ManagerConfig
-		listenPort int    = 12345
-		listenHost string = "127.0.0.1"
+		listenPort = 12345
+		listenHost = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -66,8 +66,8 @@ test:
 `
 	var (
 		cfg        ManagerConfig
-		listenPort int    = 12345
-		listenHost string = "127.0.0.1"
+		listenPort = 12345
+		listenHost = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 
@@ -89,8 +89,8 @@ agent:
 
 	var (
 		cfg        ManagerConfig
-		listenPort int    = 12345
-		listenHost string = "127.0.0.1"
+		listenPort = 12345
+		listenHost = "127.0.0.1"
 	)
 	require.NoError(t, yaml.Unmarshal([]byte(cfgText), &cfg))
 

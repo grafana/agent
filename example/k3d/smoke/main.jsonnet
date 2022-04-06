@@ -1,9 +1,9 @@
 local monitoring = import './monitoring/main.jsonnet';
-local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local cortex = import 'cortex/main.libsonnet';
+local avalanche = import 'grafana-agent/smoke/avalanche/main.libsonnet';
 local crow = import 'grafana-agent/smoke/crow/main.libsonnet';
-local smoke = import 'grafana-agent/smoke/main.libsonnet';
 local etcd = import 'grafana-agent/smoke/etcd/main.libsonnet';
+local smoke = import 'grafana-agent/smoke/main.libsonnet';
 local gragent = import 'grafana-agent/v2/main.libsonnet';
 local k = import 'ksonnet-util/kausal.libsonnet';
 
@@ -18,17 +18,16 @@ local images = {
 
 local new_crow(name, selector) =
   crow.new(name, namespace='smoke', config={
-    args: {
+    args+: {
       'crow.prometheus-addr': 'http://cortex/api/prom',
       'crow.extra-selectors': selector,
     },
   });
 
 local new_smoke(name) = smoke.new(name, namespace='smoke', config={
-    mutationFrequency: '5m',
-    chaosFrequency: '30m',
+  mutationFrequency: '5m',
+  chaosFrequency: '30m',
 });
-
 
 
 local smoke = {
@@ -56,7 +55,28 @@ local smoke = {
 
   local metric_instances(crow_name) = [{
     name: 'crow',
-    remote_write: [{ url: 'http://cortex/api/prom/push' }],
+    remote_write: [
+      {
+        url: 'http://cortex/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'drop',
+          },
+        ],
+      },
+      {
+        url: 'http://smoke-test:19090/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'keep',
+          },
+        ],
+      },
+    ],
     scrape_configs: [
       {
         job_name: 'crow',
@@ -81,7 +101,28 @@ local smoke = {
     ],
   }, {
     name: 'avalanche',
-    remote_write: [{ url: 'http://cortex/api/prom/push' }],
+    remote_write: [
+      {
+        url: 'http://cortex/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'drop',
+          },
+        ],
+      },
+      {
+        url: 'http://smoke-test:19090/api/prom/push',
+        write_relabel_configs: [
+          {
+            source_labels: ['__name__'],
+            regex: 'avalanche_.*',
+            action: 'keep',
+          },
+        ],
+      },
+    ],
     scrape_configs: [
       {
         job_name: 'avalanche',
@@ -118,7 +159,7 @@ local smoke = {
       ],
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-wal', '/var/lib/agent')]) +
-    gragent.withService({}) +
+    gragent.withService() +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 
@@ -148,7 +189,7 @@ local smoke = {
       ],
     ) +
     gragent.withVolumeMountsMixin([volumeMount.new('agent-cluster-wal', '/var/lib/agent')]) +
-    gragent.withService({}) +
+    gragent.withService() +
     gragent.withAgentConfig({
       server: { log_level: 'debug' },
 

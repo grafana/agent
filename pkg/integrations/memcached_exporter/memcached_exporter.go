@@ -12,7 +12,7 @@ import (
 )
 
 // DefaultConfig is the default config for memcached_exporter.
-var DefaultConfig Config = Config{
+var DefaultConfig = Config{
 	MemcachedAddress: "localhost:11211",
 	Timeout:          time.Second,
 }
@@ -51,7 +51,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.CreateShim)
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("memcached"))
 }
 
 // New creates a new memcached_exporter integration. The integration scrapes metrics
