@@ -7,7 +7,6 @@ import (
 	"go.opentelemetry.io/collector/component/componenterror"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/external/internalinterface"
 )
 
 const (
@@ -33,8 +32,8 @@ func (f *Factory) CreateDefaultConfig() config.Receiver {
 
 // Factory is a factory that sneakily exposes a Traces consumer for use within the agent.
 type Factory struct {
-	internalinterface.BaseInternal //
-	Consumer                       consumer.Traces
+	component.Factory
+	Consumer consumer.Traces
 }
 
 // CreateTracesReceiver creates a stub receiver while also sneakily keeping a reference to the provided Traces consumer.
@@ -44,6 +43,7 @@ func (f *Factory) CreateTracesReceiver(
 	_ config.Receiver,
 	c consumer.Traces,
 ) (component.TracesReceiver, error) {
+
 	r, err := newPushReceiver()
 	f.Consumer = c
 
@@ -53,11 +53,13 @@ func (f *Factory) CreateTracesReceiver(
 // CreateMetricsReceiver returns an error because metrics are not supported by push receiver.
 func (f *Factory) CreateMetricsReceiver(ctx context.Context, set component.ReceiverCreateSettings,
 	cfg config.Receiver, nextConsumer consumer.Metrics) (component.MetricsReceiver, error) {
+
 	return nil, componenterror.ErrDataTypeIsNotSupported
 }
 
 // CreateLogsReceiver returns an error because logs are not supported by push receiver.
 func (f *Factory) CreateLogsReceiver(ctx context.Context, set component.ReceiverCreateSettings,
 	cfg config.Receiver, nextConsumer consumer.Logs) (component.LogsReceiver, error) {
+
 	return nil, componenterror.ErrDataTypeIsNotSupported
 }

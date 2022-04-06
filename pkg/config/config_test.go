@@ -467,7 +467,7 @@ integrations:
   - traces_instance: frontend
 `
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	cfg, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_ string, _ bool, c *Config) error {
+	cfg, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(input), false, c)
 	})
 	require.NoError(t, err)
