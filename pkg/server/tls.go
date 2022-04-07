@@ -3,7 +3,6 @@ package server
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/asn1"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -128,7 +127,6 @@ type tlsListener struct {
 
 	innerListener net.Listener
 
-	//nolint:golint
 	windowsCertHandler *winCertStoreHandler
 }
 
@@ -178,7 +176,9 @@ func (l *tlsListener) ApplyConfig(c TLSConfig) error {
 }
 
 func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
-
+	if l.windowsCertHandler != nil {
+		return fmt.Errorf("this should never happen")
+	}
 	// Convert our TLSConfig into a new *tls.Config.
 	//
 	// While *tls.Config supports callbacks and doesn't need to be fully
@@ -281,10 +281,4 @@ type WindowsCertificateFilter struct {
 	ServerTemplateID        string   `yaml:"server_template_id"`
 
 	ServerRefreshInterval time.Duration `yaml:"server_refresh_interval"`
-}
-
-type templateInformation struct {
-	Template     asn1.ObjectIdentifier
-	MajorVersion int
-	MinorVersion int
 }

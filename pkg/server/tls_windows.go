@@ -294,3 +294,9 @@ func (c *winCertStoreHandler) VerifyPeer(_ [][]byte, verifiedChains [][]*x509.Ce
 	return err
 
 }
+
+type templateInformation struct {
+	Template     asn1.ObjectIdentifier
+	MajorVersion int
+	MinorVersion int
+}
