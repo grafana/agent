@@ -128,6 +128,7 @@ type tlsListener struct {
 
 	innerListener net.Listener
 
+	//nolint:golint
 	windowsCertHandler *winCertStoreHandler
 }
 
@@ -172,10 +173,8 @@ func (l *tlsListener) ApplyConfig(c TLSConfig) error {
 	defer l.mut.Unlock()
 	if c.WindowsCertificateFilter == nil {
 		return l.applyNormalTLS(c)
-	} else {
-		return l.applyWindowsCertificateStore(c)
 	}
-
+	return l.applyWindowsCertificateStore(c)
 }
 
 func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
@@ -268,6 +267,7 @@ func (l *tlsListener) getCertificate(*tls.ClientHelloInfo) (*tls.Certificate, er
 	return &cert, nil
 }
 
+// WindowsCertificateFilter represents the configuration for accessing the windows store
 type WindowsCertificateFilter struct {
 	ClientStore             string   `yaml:"client_store"`
 	ClientSystemStore       string   `yaml:"client_system_store"`
@@ -283,7 +283,7 @@ type WindowsCertificateFilter struct {
 	ServerRefreshInterval time.Duration `yaml:"server_refresh_interval"`
 }
 
-type TemplateInformation struct {
+type templateInformation struct {
 	Template     asn1.ObjectIdentifier
 	MajorVersion int
 	MinorVersion int

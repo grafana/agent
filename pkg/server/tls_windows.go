@@ -6,11 +6,12 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"fmt"
-	"github.com/github/smimesign/certstore"
 	"regexp"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/github/smimesign/certstore"
 )
 
 func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
@@ -272,7 +273,7 @@ func (c *winCertStoreHandler) filterByTemplateID(input []certstore.Identity, id 
 		}
 		for _, ext := range cert.Extensions {
 			if ext.Id.String() == asnTemplateOID {
-				templateInfo := &TemplateInformation{}
+				templateInfo := &templateInformation{}
 				_, err := asn1.Unmarshal(ext.Value, templateInfo)
 				if err != nil {
 					return nil, err
