@@ -177,7 +177,7 @@ func (l *tlsListener) ApplyConfig(c TLSConfig) error {
 
 func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
 	if l.windowsCertHandler != nil {
-		return fmt.Errorf("this should never happen")
+		return fmt.Errorf("windows certificate handler is set this should never happen")
 	}
 	// Convert our TLSConfig into a new *tls.Config.
 	//
