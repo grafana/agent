@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- (beta) App o11y receiver integration. Uses the exprimental integration subsystem revamp,
+has to be enabled by setting `integrations-next` to `-enable-features`.
+
+v0.24.0-rc.0 (2022-04-05)
+-------------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 >
@@ -74,8 +82,6 @@ Main (unreleased)
   and rationale. (@rfratto)
 
 ### Features
-
-- (beta) Add app o11y receiver intergration
 
 - Added config read API support to GrafanaAgent Custom Resource Definition.
   (@shamsalmon)
@@ -145,13 +151,15 @@ Main (unreleased)
 - Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
   now been fixed to only have one `.`. (@rfratto)
 
+- Protect concurrent writes to the WAL in the remote write exporter (@mapno)
+
 ### Other changes
 
 - The `-metrics.wal-directory` flag and `metrics.wal_directory` config option
   will now default to `data-agent/`, the same default WAL directory as
   Prometheus Agent. (@rfratto)
 
-v0.23.0 (2022-01-13)
+v0.23.0 (2022-02-10)
 --------------------
 
 ### Enhancements
@@ -452,17 +460,10 @@ v0.19.0 (2021-09-29)
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
-<<<<<<< HEAD
-
-- [FEATURE] Added [Github exporter](https://github.com/infinityworks/github-exporter) integration. (@rgeyer)
-=======
-
 ### Breaking Changes
 
 - Reduced verbosity of tracing autologging by not logging `STATUS_CODE_UNSET`
   status codes. (@mapno)
-
->>>>>>> main
 
 - Operator: rename Prometheus*CRDs to Metrics* and Prometheus*fields to
   Metrics*. (@rfratto)
@@ -528,15 +529,8 @@ v0.19.0 (2021-09-29)
 - Regex capture groups like `${1}` will now be kept intact when using
   `-config.expand-env`. (@rfratto)
 
-<<<<<<< HEAD
-
-- [CHANGE] Breaking change: Operator: rename Prometheus_CRDs to Metrics_ and
-  Prometheus_fields to Metrics_. (@rfratto)
-=======
 - The directory of the logs positions file will now properly be created on
   startup for all instances. (@rfratto)
-
->>>>>>> main
 
 - The Linux system packages will now configure the grafana-agent user to be a
   member of the adm and systemd-journal groups. This will allow logs to read
