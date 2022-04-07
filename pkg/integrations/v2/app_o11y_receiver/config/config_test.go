@@ -13,7 +13,7 @@ func TestConfig_DefaultConfig(t *testing.T) {
 test-conf: test-val`
 	err := yaml.Unmarshal([]byte(cb), &cfg)
 	assert.Nil(t, err)
-	assert.Equal(t, []string{"http://localhost:1234"}, cfg.CORSAllowedOrigins)
+	assert.Equal(t, []string{}, cfg.CORSAllowedOrigins)
 	assert.Equal(t, "0.0.0.0", cfg.Server.Host)
 	assert.Equal(t, 8080, cfg.Server.Port)
 	assert.Equal(t, false, cfg.RateLimiting.Enabled)

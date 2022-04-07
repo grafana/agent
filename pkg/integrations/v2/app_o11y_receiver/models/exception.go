@@ -32,10 +32,11 @@ type Stacktrace struct {
 
 // Exception struct controls all the data regarding an exception
 type Exception struct {
-	Type       string      `json:"type,omitempty"`
-	Value      string      `json:"value,omitempty"`
-	Stacktrace *Stacktrace `json:"stacktrace,omitempty"`
-	Timestamp  time.Time   `json:"timestamp"`
+	Type       string       `json:"type,omitempty"`
+	Value      string       `json:"value,omitempty"`
+	Stacktrace *Stacktrace  `json:"stacktrace,omitempty"`
+	Timestamp  time.Time    `json:"timestamp"`
+	Trace      TraceContext `json:"trace,omitempty"`
 }
 
 // Message string is concatenating of the Exception.Type and Exception.Value
@@ -62,5 +63,6 @@ func (e Exception) KeyVal() *utils.KeyVal {
 	utils.KeyValAdd(kv, "type", e.Type)
 	utils.KeyValAdd(kv, "value", e.Value)
 	utils.KeyValAdd(kv, "stacktrace", e.String())
+	utils.MergeKeyVal(kv, e.Trace.KeyVal())
 	return kv
 }

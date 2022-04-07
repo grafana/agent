@@ -6,4 +6,5 @@ type Payload struct {
 	Logs         []Log         `json:"logs,omitempty"`
 	Measurements []Measurement `json:"measurements,omitempty"`
 	Meta         Meta          `json:"meta,omitempty"`
+	Traces       *Traces       `json:"traces,omitempty"`
 }

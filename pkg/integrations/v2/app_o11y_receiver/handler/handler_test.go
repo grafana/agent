@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -39,7 +40,7 @@ func (te *TestExporter) Name() string {
 	return te.name
 }
 
-func (te *TestExporter) Export(payload models.Payload) error {
+func (te *TestExporter) Export(ctx context.Context, payload models.Payload) error {
 	if te.broken {
 		return errors.New("this exporter is broken")
 	}

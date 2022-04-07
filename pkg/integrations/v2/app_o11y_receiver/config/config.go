@@ -16,7 +16,7 @@ const (
 // DefaultConfig holds the default configuration of the receiver
 var DefaultConfig = AppO11yReceiverConfig{
 	// Default JS agent port
-	CORSAllowedOrigins: []string{"http://localhost:1234"},
+	CORSAllowedOrigins: []string{},
 	RateLimiting: RateLimitingConfig{
 		Enabled:    false,
 		RPS:        DefaultRateLimitingRPS,
@@ -27,7 +27,8 @@ var DefaultConfig = AppO11yReceiverConfig{
 		Host: "0.0.0.0",
 		Port: 8080,
 	},
-	LogsInstance:    "default",
+	TracesInstance:  "",
+	LogsInstance:    "",
 	LogsLabels:      map[string]string{},
 	LogsSendTimeout: 2000,
 	SourceMaps: SourceMapConfig{
@@ -73,10 +74,11 @@ type AppO11yReceiverConfig struct {
 	APIKey                string             `yaml:"api_key,omitempty"`
 	MaxAllowedPayloadSize int64              `yaml:"max_allowed_payload_size,omitempty"`
 	Server                ServerConfig       `yaml:"server,omitempty"`
-	LogsInstance          string             `yaml:"logs_instance"`
-	LogsLabels            map[string]string  `yaml:"logs_labels"`
-	LogsSendTimeout       int                `yaml:"logs_send_timeout"`
-	SourceMaps            SourceMapConfig    `yaml:"sourcemaps"`
+	TracesInstance        string             `yaml:"traces_instance,omitempty"`
+	LogsInstance          string             `yaml:"logs_instance,omitempty"`
+	LogsLabels            map[string]string  `yaml:"logs_labels,omitempty"`
+	LogsSendTimeout       int                `yaml:"logs_send_timeout,omitempty"`
+	SourceMaps            SourceMapConfig    `yaml:"sourcemaps,omitempty"`
 }
 
 // UnmarshalYAML implements the Unmarshaller interface
