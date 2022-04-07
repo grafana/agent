@@ -452,3 +452,26 @@ func TestLoadDynamicConfigurationExpandError(t *testing.T) {
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }
+
+func TestConfig_ConfigurePushReceiver(t *testing.T) {
+	input := `
+server:
+  log_level: debug
+  http_listen_port: 12345
+traces:
+  configs:
+  - name: default
+  - name: frontend
+integrations:
+  app_o11y_receiver_configs:
+  - traces_instance: frontend
+`
+	fs := flag.NewFlagSet("test", flag.ExitOnError)
+	cfg, err := load(fs, []string{"-config.file", "test", "-enable-features=integrations-next"}, func(_, _ string, _ bool, c *Config) error {
+		return LoadBytes([]byte(input), false, c)
+	})
+	require.NoError(t, err)
+	require.NoError(t, cfg.Validate(nil))
+	require.False(t, cfg.Traces.Configs[0].PushReceiver)
+	require.True(t, cfg.Traces.Configs[1].PushReceiver)
+}

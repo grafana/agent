@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config"
@@ -1679,6 +1680,20 @@ receivers:
 	data, err := yaml.Marshal(cfg)
 	assert.Nil(t, err)
 	assert.True(t, strings.Contains(string(data), "<secret>"))
+}
+
+func TestCreatingPushReceiver(t *testing.T) {
+	test := `
+receivers:
+  jaeger:
+    protocols:
+      grpc:`
+	cfg := InstanceConfig{PushReceiver: true}
+	err := yaml.Unmarshal([]byte(test), &cfg)
+	assert.Nil(t, err)
+	otel, err := cfg.otelConfig()
+	assert.Nil(t, err)
+	assert.Contains(t, otel.Service.Pipelines[config.NewComponentID("traces")].Receivers, config.NewComponentID(pushreceiver.TypeStr))
 }
 
 // sortPipelines is a helper function to lexicographically sort a pipeline's exporters

@@ -1,6 +1,8 @@
 package exporters
 
 import (
+	"context"
+
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	"github.com/prometheus/client_golang/prometheus"
@@ -50,7 +52,7 @@ func (re *ReceiverMetricsExporter) Name() string {
 }
 
 // Export implements the AppDataExporter interface
-func (re *ReceiverMetricsExporter) Export(payload models.Payload) error {
+func (re *ReceiverMetricsExporter) Export(ctx context.Context, payload models.Payload) error {
 	re.totalExceptions.Add(float64(len(payload.Exceptions)))
 	re.totalLogs.Add(float64(len(payload.Logs)))
 	re.totalMeasurements.Add(float64(len(payload.Measurements)))

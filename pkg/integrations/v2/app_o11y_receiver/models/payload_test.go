@@ -73,6 +73,10 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 				"page":      "Pricing",
 			},
 			Timestamp: now,
+			Trace: TraceContext{
+				TraceID: "abcd",
+				SpanID:  "def",
+			},
 		},
 		{
 			Message:  "loading price list",
@@ -82,6 +86,10 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 				"page":      "Pricing",
 			},
 			Timestamp: now,
+			Trace: TraceContext{
+				TraceID: "abcd",
+				SpanID:  "ghj",
+			},
 		},
 	}, payload.Logs)
 }

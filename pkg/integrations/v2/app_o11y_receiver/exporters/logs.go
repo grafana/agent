@@ -1,6 +1,7 @@
 package exporters
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -27,7 +28,7 @@ type LogsExporterConfig struct {
 	Labels           map[string]string
 }
 
-// LogsExporter is the struct of the logs exporter
+// LogsExporter will send logs & errors to loki
 type LogsExporter struct {
 	li             logsInstance
 	seTimeout      time.Duration
@@ -54,7 +55,7 @@ func (le *LogsExporter) Name() string {
 }
 
 // Export implements the AppDataExporter interface
-func (le *LogsExporter) Export(payload models.Payload) error {
+func (le *LogsExporter) Export(ctx context.Context, payload models.Payload) error {
 	meta := payload.Meta.KeyVal()
 
 	var err error
