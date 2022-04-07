@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.24.0-rc.0 (2022-04-05)
+-------------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 >
@@ -145,13 +148,15 @@ Main (unreleased)
 - Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
   now been fixed to only have one `.`. (@rfratto)
 
+- Protect concurrent writes to the WAL in the remote write exporter (@mapno)
+
 ### Other changes
 
 - The `-metrics.wal-directory` flag and `metrics.wal_directory` config option
   will now default to `data-agent/`, the same default WAL directory as
   Prometheus Agent. (@rfratto)
 
-v0.23.0 (2022-01-13)
+v0.23.0 (2022-02-10)
 --------------------
 
 ### Enhancements

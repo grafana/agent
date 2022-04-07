@@ -20,8 +20,8 @@ For any given release branch, there will be the following tags:
 * `vX.Y.Z`: patch release Z for vX.Y. A release branch may have zero or more
   patch releases.
 
-Release branches follow a `release/v<major>.<minor>` naming convention (i.e.,
-`release/v0.24`).
+Release branches follow a `release-v<major>.<minor>` naming convention (i.e.,
+`release-v0.24`).
 
 ## Releaser Prerequisites
 
