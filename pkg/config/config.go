@@ -191,14 +191,16 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 	// this cannot happen in unmarshall stage since integrations are not yet unmarshalled
 	if c.Integrations.configV2 != nil {
 		for _, conf := range c.Integrations.configV2.Configs {
-			if conf.Name() == app_o11y_receiver.IntegrationName {
-				o11yConf := conf.(*app_o11y_receiver.Config)
-				if o11yConf.ReceiverConfig.TracesInstance != "" {
-					for idx, instanceConf := range c.Traces.Configs {
-						if instanceConf.Name == o11yConf.ReceiverConfig.TracesInstance {
-							c.Traces.Configs[idx].PushReceiver = true
-						}
-					}
+			if conf.Name() != app_o11y_receiver.IntegrationName {
+				continue
+			}
+			o11yConf := conf.(*app_o11y_receiver.Config)
+			if o11yConf.ReceiverConfig.TracesInstance == "" {
+				continue
+			}
+			for idx, instanceConf := range c.Traces.Configs {
+				if instanceConf.Name == o11yConf.ReceiverConfig.TracesInstance {
+					c.Traces.Configs[idx].PushReceiver = true
 				}
 			}
 		}
