@@ -11,13 +11,13 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
 	github.com/fatih/structs v1.1.0
+	github.com/github/smimesign v0.2.0
 	github.com/go-kit/log v0.2.0
 	github.com/go-logfmt/logfmt v0.5.1
 	github.com/go-logr/logr v1.2.2
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
-	github.com/golang/snappy v0.0.4
 	github.com/google/cadvisor v0.44.0
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-jsonnet v0.18.0
@@ -220,6 +220,7 @@ require (
 	github.com/gogo/status v1.1.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
@@ -518,3 +519,5 @@ exclude (
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/client-go v8.0.0+incompatible
 )
+
+replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220406154724-b9782a92d94f

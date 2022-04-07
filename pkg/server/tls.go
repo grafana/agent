@@ -3,24 +3,27 @@ package server
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/asn1"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"sync"
+	"time"
 )
 
 // TLSConfig holds dynamic configuration options for TLS.
 type TLSConfig struct {
-	TLSCertPath              string      `yaml:"cert_file"`
-	TLSKeyPath               string      `yaml:"key_file"`
-	ClientAuth               string      `yaml:"client_auth_type"`
-	ClientCAs                string      `yaml:"client_ca_file"`
-	CipherSuites             []TLSCipher `yaml:"cipher_suites"`
-	CurvePreferences         []TLSCurve  `yaml:"curve_preferences"`
-	MinVersion               TLSVersion  `yaml:"min_version"`
-	MaxVersion               TLSVersion  `yaml:"max_version"`
-	PreferServerCipherSuites bool        `yaml:"prefer_server_cipher_suites"`
+	TLSCertPath              string                    `yaml:"cert_file"`
+	TLSKeyPath               string                    `yaml:"key_file"`
+	ClientAuth               string                    `yaml:"client_auth_type"`
+	ClientCAs                string                    `yaml:"client_ca_file"`
+	CipherSuites             []TLSCipher               `yaml:"cipher_suites"`
+	CurvePreferences         []TLSCurve                `yaml:"curve_preferences"`
+	MinVersion               TLSVersion                `yaml:"min_version"`
+	MaxVersion               TLSVersion                `yaml:"max_version"`
+	PreferServerCipherSuites bool                      `yaml:"prefer_server_cipher_suites"`
+	WindowsCertificateFilter *WindowsCertificateFilter `yaml:"windows_certificate_filter,omitempty"`
 }
 
 // TLSCipher holds the ID of a tls.CipherSuite.
@@ -124,6 +127,8 @@ type tlsListener struct {
 	tlsConfig *tls.Config
 
 	innerListener net.Listener
+
+	windowsCertHandler *winCertStoreHandler
 }
 
 // newTLSListener creates and configures a new tlsListener.
@@ -165,6 +170,15 @@ func (l *tlsListener) Addr() net.Addr {
 func (l *tlsListener) ApplyConfig(c TLSConfig) error {
 	l.mut.Lock()
 	defer l.mut.Unlock()
+	if c.WindowsCertificateFilter == nil {
+		return l.applyNormalTLS(c)
+	} else {
+		return l.applyWindowsCertificateStore(c)
+	}
+
+}
+
+func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
 
 	// Convert our TLSConfig into a new *tls.Config.
 	//
@@ -252,4 +266,25 @@ func (l *tlsListener) getCertificate(*tls.ClientHelloInfo) (*tls.Certificate, er
 		return nil, fmt.Errorf("failed to load key pair: %w", err)
 	}
 	return &cert, nil
+}
+
+type WindowsCertificateFilter struct {
+	ClientStore             string   `yaml:"client_store"`
+	ClientSystemStore       string   `yaml:"client_system_store"`
+	ClientIssuerCommonNames []string `yaml:"client_issuer_common_names"`
+	ClientSubjectCommonName string   `yaml:"client_subject_regex"`
+	ClientTemplateID        string   `yaml:"client_template_id"`
+
+	ServerStore             string   `yaml:"server_store"`
+	ServerSystemStore       string   `yaml:"server_system_store"`
+	ServerIssuerCommonNames []string `yaml:"server_issuer_common_names"`
+	ServerTemplateID        string   `yaml:"server_template_id"`
+
+	ServerRefreshInterval time.Duration `yaml:"server_refresh_interval"`
+}
+
+type TemplateInformation struct {
+	Template     asn1.ObjectIdentifier
+	MajorVersion int
+	MinorVersion int
 }
