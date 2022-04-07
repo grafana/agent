@@ -12,7 +12,7 @@ releases and how to migrate to newer versions.
 
 These changes will come in a future version.
 
-## v0.24.0-rc.0
+## v0.24.0
 
 ### Breaking change: Integrations renamed when `integrations-next` feature flag is used
 
