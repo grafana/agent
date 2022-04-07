@@ -29,11 +29,11 @@ func loadTestData(t *testing.T, file string) models.Payload {
 	return payload
 }
 
-type testLokiInstance struct {
+type testLogsInstance struct {
 	Entries []api.Entry
 }
 
-func (i *testLokiInstance) SendEntry(entry api.Entry, dur time.Duration) bool {
+func (i *testLogsInstance) SendEntry(entry api.Entry, dur time.Duration) bool {
 	i.Entries = append(i.Entries, entry)
 	return true
 }
@@ -59,16 +59,16 @@ func (store *MockSourceMapStore) ResolveSourceLocation(frame *models.Frame, rele
 }
 
 func TestExportLogs(t *testing.T) {
-	inst := testLokiInstance{
+	inst := testLogsInstance{
 		Entries: []api.Entry{},
 	}
 
 	logger := kitlog.NewNopLogger()
 
-	lokiExporter := NewLokiExporter(
+	logsExporter := NewLogsExporter(
 		logger,
-		LokiExporterConfig{
-			LokiInstance: &inst,
+		LogsExporterConfig{
+			LogsInstance: &inst,
 			Labels: map[string]string{
 				"app":  "frontend",
 				"kind": "",
@@ -80,7 +80,7 @@ func TestExportLogs(t *testing.T) {
 
 	payload := loadTestData(t, "payload.json")
 
-	err := lokiExporter.Export(payload)
+	err := logsExporter.Export(payload)
 	assert.NoError(t, err)
 
 	assert.Len(t, inst.Entries, 4)
