@@ -39,7 +39,7 @@ func (l *Logs) ListTargetsHandler(w http.ResponseWriter, r *http.Request) {
 	instances := l.instances
 	allTagets := make(map[string]TargetSet, len(instances))
 	for instName, inst := range instances {
-		allTagets[instName] = inst.ActiveTargets()
+		allTagets[instName] = inst.promtail.ActiveTargets()
 	}
 	listTargetsHandler(allTagets).ServeHTTP(w, r)
 

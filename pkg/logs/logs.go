@@ -16,7 +16,6 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/server"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
 )
@@ -203,11 +202,6 @@ func (i *Instance) SendEntry(entry api.Entry, dur time.Duration) bool {
 	}
 
 	return false
-}
-
-// ActiveTargets returns active targets of the instance
-func (i *Instance) ActiveTargets() map[string][]target.Target {
-	return i.promtail.ActiveTargets()
 }
 
 // Stop stops the Promtail instance.
