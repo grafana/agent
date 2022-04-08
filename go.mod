@@ -1,6 +1,6 @@
 module github.com/grafana/agent
 
-go 1.17
+go 1.18
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
@@ -520,4 +520,4 @@ exclude (
 	k8s.io/client-go v8.0.0+incompatible
 )
 
-replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220406154724-b9782a92d94f
+replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
