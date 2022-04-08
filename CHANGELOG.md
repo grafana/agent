@@ -10,6 +10,12 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Add HTTP endpoints to fetch active instances and targets for the Logs subsytem.
+  (@marctc)
+
+
 v0.24.0 (2022-04-07)
 --------------------
 
