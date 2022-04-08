@@ -38,7 +38,5 @@ jobs:
           maximum-size: 16GB
           disk-root: "C:"
       if: ${{ matrix.platform == 'windows-latest' }}
-    - name: Build
-      run: make DOCKER_OPTS="" GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator
     - name: Test
       run: make DOCKER_OPTS="" GOFLAGS="-tags=netgo,nodocker" BUILD_IN_CONTAINER=false test
