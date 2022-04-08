@@ -25,7 +25,7 @@ func TestAgent_ListInstancesHandler(t *testing.T) {
 	require.NoError(t, err)
 	defer a.Stop()
 
-	r := httptest.NewRequest("GET", "/agent/api/v1/instances", nil)
+	r := httptest.NewRequest("GET", "/agent/api/v1/metrics/instances", nil)
 
 	t.Run("no instances", func(t *testing.T) {
 		rr := httptest.NewRecorder()
@@ -64,7 +64,7 @@ func TestAgent_ListTargetsHandler(t *testing.T) {
 	a.mm, err = instance.NewModalManager(prometheus.NewRegistry(), a.logger, mockManager, instance.ModeDistinct)
 	require.NoError(t, err)
 
-	r := httptest.NewRequest("GET", "/agent/api/v1/targets", nil)
+	r := httptest.NewRequest("GET", "/agent/api/v1/metrics/targets", nil)
 
 	t.Run("scrape manager not ready", func(t *testing.T) {
 		mockManager.ListInstancesFunc = func() map[string]instance.ManagedInstance {

@@ -15,7 +15,7 @@ found by either:
 
 ## Installation
 
-After installation, ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/targets`.
+After installation, ensure that you can reach `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/metrics/targets`.
 
 After installation, you can adjust `C:\Program Files\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, the Grafana Agent service must be restarted to load changes to the configuration.
 

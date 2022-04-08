@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add `metrics` prefix to the url of list instances and list targets endpoints (@marctc)
+
 v0.24.0 (2022-04-07)
 --------------------
 

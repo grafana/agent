@@ -20,8 +20,12 @@ import (
 func (a *Agent) WireAPI(r *mux.Router) {
 	a.cluster.WireAPI(r)
 
+	// Backwards compatible endpoints. Use endpoints with `metrics` prefix instead
 	r.HandleFunc("/agent/api/v1/instances", a.ListInstancesHandler).Methods("GET")
 	r.HandleFunc("/agent/api/v1/targets", a.ListTargetsHandler).Methods("GET")
+
+	r.HandleFunc("/agent/api/v1/metrics/instances", a.ListInstancesHandler).Methods("GET")
+	r.HandleFunc("/agent/api/v1/metrics/targets", a.ListTargetsHandler).Methods("GET")
 	r.HandleFunc("/agent/api/v1/metrics/instance/{instance}/write", a.PushMetricsHandler).Methods("POST")
 }
 

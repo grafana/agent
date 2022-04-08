@@ -161,7 +161,7 @@ Response on success:
 ### List current running instances
 
 ```
-GET /agent/api/v1/instances
+GET /agent/api/v1/metrics/instances
 ```
 
 Status code: 200 on success.
@@ -179,7 +179,7 @@ Response on success:
 ### List current scrape targets
 
 ```
-GET /agent/api/v1/targets
+GET /agent/api/v1/metrics/targets
 ```
 
 This endpoint collects all targets known to the Agent across all running
