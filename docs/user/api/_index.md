@@ -158,7 +158,7 @@ Response on success:
 
 ## Agent API
 
-### List current running instances
+### List current running instances of metrics subsystem
 
 ```
 GET /agent/api/v1/metrics/instances
@@ -176,14 +176,14 @@ Response on success:
 }
 ```
 
-### List current scrape targets
+### List current scrape targets of metrics subsystem
 
 ```
 GET /agent/api/v1/metrics/targets
 ```
 
-This endpoint collects all targets known to the Agent across all running
-instances. Only targets being scraped from the local Agent will be returned. If
+This endpoint collects all metrics subsystem targets known to the Agent across all
+running instances. Only targets being scraped from the local Agent will be returned. If
 running in scraping service mode, this endpoint must be invoked in all Agents
 separately to get the combined set of targets across the whole Agent cluster.
 
