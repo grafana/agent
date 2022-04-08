@@ -49,9 +49,9 @@ steps:
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
-      - rm go1.17.6.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.18.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
+      - rm go1.18.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - make DOCKER_OPTS="" cmd/agent/agent cmd/agentctl/agentctl cmd/agent-operator/agent-operator tools/crow/grafana-agent-crow tools/smoke/grafana-agent-smoke
       - make DOCKER_OPTS="" K8S_USE_DOCKER_NETWORK=1 DRONE=true BUILD_IN_CONTAINER=false test
@@ -64,32 +64,6 @@ volumes:
    host:
      path: /var/run/docker.sock
 
----
-kind: pipeline
-type: docker
-name: Dist
-platform:
-  os: linux
-  arch: amd64
-trigger:
-  ref:
-    - refs/tags/v*
-
-steps:
-  - name: distribute
-    image: rfratto/seego
-    commands:
-      - apt-get update &&  apt-get install -y rubygems rpm nsis
-      - gem install --no-document fpm
-      - rm -r /usr/local/go
-      - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
-      - rm go1.17.6.linux-amd64.tar.gz
-      - export PATH=$PATH:/usr/local/go/bin
-      - make DOCKER_OPTS="" DRONE=true BUILD_IN_CONTAINER=false dist
-depends_on:
-  - Test
 ---
 kind: pipeline
 type: docker
@@ -226,21 +200,21 @@ steps:
     commands:
       - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-      - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable"
+      - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
-      - wget -q https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
-      - rm go1.17.6.linux-amd64.tar.gz
+      - wget -q https://golang.org/dl/go1.18.linux-amd64.tar.gz
+      - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
+      - rm go1.18.linux-amd64.tar.gz
       - export PATH=$PATH:/usr/local/go/bin
       - GO111MODULE=on go get -u github.com/mitchellh/gox github.com/tcnksm/ghr
       - export PATH="$(go env GOPATH)/bin:$PATH"
       - make -j4 DOCKER_OPTS="" BUILD_IN_CONTAINER=false RELEASE_BUILD=true RELEASE_TAG=${DRONE_TAG} publish
 depends_on:
-  - Dist
+  - Test
 
 volumes:
   - name: docker
@@ -272,6 +246,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: b17f2bff49e193cd026749acfde841ab567d203ea183d7a389010e0190794d66
+hmac: b14773ba7e50432dfe90920d442a850f85aed74f1419dd78502b1e76d91cde46
 
 ...
