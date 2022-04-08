@@ -1,6 +1,6 @@
 module github.com/grafana/agent
 
-go 1.17
+go 1.18
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
@@ -408,7 +408,7 @@ require (
 	go.opentelemetry.io/otel/internal/metric v0.27.0 // indirect
 	go.uber.org/goleak v1.1.12 // indirect
 	go4.org/intern v0.0.0-20210108033219-3eb7198706b2 // indirect
-	go4.org/unsafe/assume-no-moving-gc v0.0.0-20201222180813-1025295fd063 // indirect
+	go4.org/unsafe/assume-no-moving-gc v0.0.0-20211027215541-db492cf91b37 // indirect
 	gocloud.dev v0.24.0 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/mod v0.5.1 // indirect
