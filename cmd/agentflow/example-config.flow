@@ -1,0 +1,64 @@
+log_level  = "info"
+log_format = "logfmt"
+
+remote "http" "example-password" {
+  url     = "http://localhost:12345/mock/some-password"
+  refresh = "2s"
+
+  // Output fields:
+  // - content string
+}
+
+// Each metrics_forwarder is implemented as a WAL + zero or more remote_writes.
+metrics_forwarder "default" {
+  remote_write {
+    url = "http://localhost:9009/api/prom/push"
+
+    basic_auth {
+      username = "helloworld"
+      password = remote.http.example-password.content
+    }
+  }
+
+  // Output fields:
+  // - appender prometheus/storage.Appender
+}
+
+// Discover some Prometheus targets.
+discovery "static" "self" {
+  hosts  = ["localhost:12345"]
+  labels = { app = "agentflow" }
+
+  // Output fields:
+  // - targets []Target
+}
+
+// Launch an integration.
+integration "github" "default" {
+  repositories = [
+    "grafana/agent",
+  ]
+
+  // Output fields:
+  // - targets []Target
+
+  // TODO:
+  // Support autoscrape instead of just emitting targets, something like:
+  // autoscrape {
+  //   send_to = metrics_forwarder.default
+  // }
+}
+
+// Scrape metrics from both our discovery and integrations.
+metrics_scraper "default" {
+  targets = concat(
+    discovery.static.self.targets,
+    integration.github.default.targets,
+  )
+  send_to = metrics_forwarder.default.appender
+
+  scrape_interval = "60s"
+  scrape_timeout  = "10s"
+
+  // Output fields: <none>
+}
