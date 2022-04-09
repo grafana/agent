@@ -19,10 +19,10 @@ func init() {
 		},
 	})
 
-	component.RegisterComplexType("MetricsReceiver", reflect.TypeOf(Appender{}))
+	component.RegisterComplexType("MetricsReceiver", reflect.TypeOf(MetricsReceiver{}))
 }
 
-type Appender struct{ storage.Appender }
+type MetricsReceiver struct{ storage.Appender }
 
 type Config struct {
 	RemoteWrite []*RemoteWriteConfig `hcl:"remote_write,block" cty:"remote_write"`
@@ -39,7 +39,7 @@ type BasicAuthConfig struct {
 }
 
 type State struct {
-	Appender *Appender `hcl:"appender" cty:"appender"`
+	Receiver *MetricsReceiver `hcl:"receiver" cty:"receiver"`
 }
 
 type Component struct {

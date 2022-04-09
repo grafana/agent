@@ -20,10 +20,10 @@ func init() {
 }
 
 type Config struct {
-	Targets        []TargetGroup              `hcl:"targets" cty:"targets"`
-	ScrapeInterval string                     `hcl:"scrape_interval,optional" cty:"scrape_interval"`
-	ScrapeTimeout  string                     `hcl:"scrape_timeout,optional" cty:"scrape_timeout"`
-	SendTo         *metricsforwarder.Appender `hcl:"send_to" cty:"send_to"`
+	Targets        []TargetGroup                     `hcl:"targets" cty:"targets"`
+	ScrapeInterval string                            `hcl:"scrape_interval,optional" cty:"scrape_interval"`
+	ScrapeTimeout  string                            `hcl:"scrape_timeout,optional" cty:"scrape_timeout"`
+	SendTo         *metricsforwarder.MetricsReceiver `hcl:"send_to" cty:"send_to"`
 }
 
 // TargetGroup is a set of targets that share a common set of labels.

@@ -21,7 +21,7 @@ metrics_forwarder "default" {
   }
 
   // Output fields:
-  // - appender prometheus/storage.Appender
+  // - appender MetricsReceiver
 }
 
 // Discover some Prometheus targets.
@@ -55,7 +55,7 @@ metrics_scraper "default" {
     discovery.static.self.targets,
     integration.github.default.targets,
   )
-  send_to = metrics_forwarder.default.appender
+  send_to = metrics_forwarder.default.receiver
 
   scrape_interval = "60s"
   scrape_timeout  = "10s"
