@@ -110,6 +110,7 @@ func (c *Component) refresh(onStateChange func()) error {
 	defer c.mut.Unlock()
 
 	if c.state.Content != stringContent {
+		level.Info(c.log).Log("msg", "new value retrieved from http, emitting state updated message")
 		c.state.Content = stringContent
 		onStateChange()
 	}
