@@ -17,14 +17,17 @@ type componentNode struct {
 
 // newComponentNode constructs a componentNode from a block.
 func newComponentNode(block *hcl.Block) *componentNode {
+	return &componentNode{
+		ref:   referenceForBlock(block),
+		block: block,
+	}
+}
+
+func referenceForBlock(block *hcl.Block) reference {
 	ref := make(reference, 0, 1+len(block.Labels))
 	ref = append(ref, block.Type)
 	ref = append(ref, block.Labels...)
-
-	return &componentNode{
-		ref:   ref,
-		block: block,
-	}
+	return ref
 }
 
 func (cn *componentNode) Reference() reference {

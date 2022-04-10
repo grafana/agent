@@ -64,6 +64,7 @@ func run() error {
 		r := mux.NewRouter()
 		r.Handle("/graph", flow.GraphHandler(f))
 		r.Handle("/nametable", flow.NametableHandler(f))
+		r.Handle("/config", flow.ConfigHandler(f))
 
 		r.HandleFunc("/mock/some-password", func(w http.ResponseWriter, _ *http.Request) {
 			fmt.Fprintln(w, "example-password")

@@ -17,8 +17,9 @@ import (
 	"github.com/grafana/agent/pkg/flow/dag"
 	"github.com/grafana/agent/pkg/flow/graphviz"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/rfratto/gohcl"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
@@ -31,6 +32,7 @@ type Flow struct {
 	graphMut  sync.RWMutex
 	graph     *dag.Graph
 	nametable *nametable
+	root      rootBlock
 }
 
 // New creates a new Flow instance.
@@ -70,6 +72,7 @@ func (f *Flow) Load() error {
 	if diags.HasErrors() {
 		return diags
 	}
+	f.root = root
 
 	blockSchema := component.RegistrySchema()
 	content, remainDiags := root.Remain.Content(blockSchema)
@@ -169,6 +172,18 @@ type reference []string
 
 func (r reference) String() string {
 	return strings.Join(r, ".")
+}
+
+func (r reference) Equals(other reference) bool {
+	if len(r) != len(other) {
+		return false
+	}
+	for i := 0; i < len(r); i++ {
+		if r[i] != other[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // expressionsFromSyntaxBody returcses through body and finds all variable
@@ -296,5 +311,67 @@ func NametableHandler(f *Flow) http.HandlerFunc {
 			return
 		}
 		_, _ = io.Copy(w, bytes.NewReader(svgBytes))
+	}
+}
+
+// ConfigHandler returns an http.Handler which prints out the flow's current
+// config as HCL.
+func ConfigHandler(f *Flow) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		f.graphMut.RLock()
+		defer f.graphMut.RUnlock()
+
+		file := hclwrite.NewFile()
+		gohcl.EncodeIntoBody(f.root, file.Body())
+		file.Body().AppendNewline()
+
+		blockSchema := component.RegistrySchema()
+		content, _ := f.root.Remain.Content(blockSchema)
+
+		// Encode the components now
+		for _, block := range content.Blocks {
+			b := hclwrite.NewBlock(block.Type, block.Labels)
+
+			ref := referenceForBlock(block)
+
+			var component *componentNode
+
+			// Find the named component
+			dag.Walk(f.graph, f.graph.Roots(), func(n dag.Node) error {
+				nodeRef := n.(*componentNode).Reference()
+				if nodeRef.Equals(ref) {
+					component = n.(*componentNode)
+					return fmt.Errorf("done")
+				}
+				return nil
+			})
+			if component == nil {
+				errorMsg := fmt.Sprintf("could not find component %s in graph", ref)
+				http.Error(w, errorMsg, http.StatusInternalServerError)
+				return
+			}
+
+			cfg := component.raw.Config()
+			if cfg == nil {
+				http.Error(w, "Component %s did not return its config", http.StatusInternalServerError)
+				return
+			}
+			gohcl.EncodeIntoBody(cfg, b.Body())
+
+			// Optionally write output state if it's exposed by the component.
+			if cs := component.raw.CurrentState(); cs != nil {
+				b.Body().AppendUnstructuredTokens(hclwrite.Tokens{
+					{Type: hclsyntax.TokenNewline, Bytes: []byte("\n")},
+					{Type: hclsyntax.TokenComment, Bytes: []byte("// Output:\n")},
+				})
+
+				gohcl.EncodeIntoBody(cs, b.Body())
+			}
+
+			file.Body().AppendBlock(b)
+			file.Body().AppendNewline()
+		}
+
+		_, _ = file.WriteTo(w)
 	}
 }

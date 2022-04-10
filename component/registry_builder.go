@@ -8,7 +8,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/rfratto/gohcl"
-	"github.com/zclconf/go-cty/cty"
 )
 
 // BuildContext is a set of options provided when building a new component.
@@ -60,8 +59,11 @@ type HCL interface {
 	// Update updates a component.
 	Update(ectx *hcl.EvalContext, block *hcl.Block) error
 
-	// CurrentState returns the currente state of a component.
-	CurrentState() cty.Value
+	// Config returns the current config of a component.
+	Config() interface{}
+
+	// CurrentState returns the current state of a component.
+	CurrentState() interface{}
 }
 
 // hclAdapter wraps a flow component into an HCL component.
@@ -179,22 +181,14 @@ func (a *hclAdapter[Config]) Update(ectx *hcl.EvalContext, block *hcl.Block) err
 	return nil
 }
 
-func (a *hclAdapter[Config]) CurrentState() cty.Value {
+func (a *hclAdapter[Config]) Config() interface{} {
 	a.mut.Lock()
 	defer a.mut.Unlock()
+	return a.cur.Config()
+}
 
-	val := a.cur.CurrentState()
-	if val == nil {
-		return cty.EmptyObjectVal
-	}
-
-	ty, err := gohcl.ImpliedType(val)
-	if err != nil {
-		panic(err)
-	}
-	cv, err := gohcl.ToCtyValue(val, ty)
-	if err != nil {
-		panic(err)
-	}
-	return cv
+func (a *hclAdapter[Config]) CurrentState() interface{} {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+	return a.cur.CurrentState()
 }
