@@ -3,6 +3,7 @@ package flow
 import (
 	"github.com/grafana/agent/component"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/rfratto/gohcl"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -34,8 +35,38 @@ func (cn *componentNode) Name() string {
 	return cn.ref.String()
 }
 
+func (cn *componentNode) Config() cty.Value {
+	val := cn.raw.Config()
+	if val == nil {
+		return cty.EmptyObjectVal
+	}
+
+	ty, err := gohcl.ImpliedType(val)
+	if err != nil {
+		panic(err)
+	}
+	cv, err := gohcl.ToCtyValue(val, ty)
+	if err != nil {
+		panic(err)
+	}
+	return cv
+}
+
 func (cn *componentNode) CurrentState() cty.Value {
-	return cn.raw.CurrentState()
+	val := cn.raw.CurrentState()
+	if val == nil {
+		return cty.EmptyObjectVal
+	}
+
+	ty, err := gohcl.ImpliedType(val)
+	if err != nil {
+		panic(err)
+	}
+	cv, err := gohcl.ToCtyValue(val, ty)
+	if err != nil {
+		panic(err)
+	}
+	return cv
 }
 
 func (cn *componentNode) Set(rc component.HCL) {

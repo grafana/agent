@@ -2,6 +2,7 @@ package metricsscraper
 
 import (
 	"context"
+	"sync"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kit/log"
@@ -21,9 +22,9 @@ func init() {
 
 // Config represents the input state of the metrics_scraper component.
 type Config struct {
-	Targets        []TargetGroup                     `hcl:"targets"`
 	ScrapeInterval string                            `hcl:"scrape_interval,optional"`
 	ScrapeTimeout  string                            `hcl:"scrape_timeout,optional"`
+	Targets        []TargetGroup                     `hcl:"targets"`
 	SendTo         *metricsforwarder.MetricsReceiver `hcl:"send_to"`
 }
 
@@ -39,12 +40,18 @@ type LabelSet map[string]string
 // Component is the metrics_scraper component.
 type Component struct {
 	log log.Logger
+
+	mut sync.RWMutex
+	cfg Config
 }
 
 // NewComponent creates a new metrics_scraper component.
 func NewComponent(l log.Logger, c Config) (*Component, error) {
-	spew.Dump(c)
-	return &Component{log: l}, nil
+	res := &Component{log: l, cfg: c}
+	if err := res.Update(c); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 var _ component.Component[Config] = (*Component)(nil)
@@ -60,7 +67,10 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 
 // Update implements UpdatableComponent.
 func (c *Component) Update(cfg Config) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	spew.Dump(cfg)
+	c.cfg = cfg
 	return nil
 }
 
@@ -71,5 +81,7 @@ func (c *Component) CurrentState() interface{} {
 
 // Config implements Component.
 func (c *Component) Config() Config {
-	return Config{}
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.cfg
 }

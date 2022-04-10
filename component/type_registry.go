@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/rfratto/gohcl"
 	"github.com/zclconf/go-cty/cty"
 )
@@ -28,7 +30,19 @@ func RegisterComplexType(displayName string, ty reflect.Type) {
 		panic(fmt.Sprintf("Type displayName %q is already in used", displayName))
 	}
 
-	capsuleTy := cty.CapsuleWithOps(displayName, ty, &cty.CapsuleOps{})
+	capsuleTy := cty.CapsuleWithOps(displayName, ty, &cty.CapsuleOps{
+		ExtensionData: func(key interface{}) interface{} {
+			switch key {
+			case gohcl.CapsuleTokenExtensionKey:
+				return gohcl.CapsuleTokenExtension(func(v cty.Value) hclwrite.Tokens {
+					return hclwrite.Tokens{
+						{Type: hclsyntax.TokenComment, Bytes: []byte(fmt.Sprintf("/* internal %s value */", displayName))},
+					}
+				})
+			}
+			return nil
+		},
+	})
 	gohcl.RegisterCapsuleType(capsuleTy)
 	registeredTypeNames[displayName] = struct{}{}
 }

@@ -3,6 +3,7 @@ package metricsforwarder
 import (
 	"context"
 	"reflect"
+	"sync"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kit/log"
@@ -53,12 +54,18 @@ type State struct {
 // Component is the metrics_forwarder component.
 type Component struct {
 	log log.Logger
+
+	mut sync.RWMutex
+	cfg Config
 }
 
 // NewComponent creates a new metrics_forwarder component.
 func NewComponent(l log.Logger, c Config) (*Component, error) {
-	spew.Dump(c)
-	return &Component{log: l}, nil
+	res := &Component{log: l, cfg: c}
+	if err := res.Update(c); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 var _ component.Component[Config] = (*Component)(nil)
@@ -74,16 +81,23 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 
 // Update implements UdpatableComponent.
 func (c *Component) Update(cfg Config) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	spew.Dump(cfg)
+	c.cfg = cfg
 	return nil
 }
 
 // CurrentState implements Component.
 func (c *Component) CurrentState() interface{} {
-	return State{}
+	return State{
+		&MetricsReceiver{},
+	}
 }
 
 // Config implements Component.
 func (c *Component) Config() Config {
-	return Config{}
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.cfg
 }

@@ -2,6 +2,7 @@ package static
 
 import (
 	"context"
+	"sync"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kit/log"
@@ -33,12 +34,18 @@ type State struct {
 // Component is the discovery.static component.
 type Component struct {
 	log log.Logger
+
+	mut sync.RWMutex
+	cfg Config
 }
 
 // NewComponent creates a new discovery.static component.
 func NewComponent(l log.Logger, c Config) (*Component, error) {
-	spew.Dump(c)
-	return &Component{log: l}, nil
+	res := &Component{log: l, cfg: c}
+	if err := res.Update(c); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 var _ component.Component[Config] = (*Component)(nil)
@@ -54,7 +61,10 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 
 // Update implements UpdatableComponent.
 func (c *Component) Update(cfg Config) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	spew.Dump(cfg)
+	c.cfg = cfg
 	return nil
 }
 
@@ -65,5 +75,7 @@ func (c *Component) CurrentState() interface{} {
 
 // Config implements Component.
 func (c *Component) Config() Config {
-	return Config{}
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.cfg
 }

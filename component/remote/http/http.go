@@ -154,5 +154,7 @@ func (c *Component) CurrentState() interface{} {
 
 // Config implements Component.
 func (c *Component) Config() Config {
-	return Config{}
+	c.cfgMut.Lock()
+	defer c.cfgMut.Unlock()
+	return c.cfg
 }
