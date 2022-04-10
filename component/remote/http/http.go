@@ -26,13 +26,13 @@ func init() {
 
 // Config represents the input state of the remote.http component.
 type Config struct {
-	URL     string `hcl:"url" cty:"url"`
-	Refresh string `hcl:"refresh" cty:"refresh"`
+	URL     string `hcl:"url"`
+	Refresh string `hcl:"refresh"`
 }
 
 // State represents the output state of the remote.http component.
 type State struct {
-	Content string `hcl:"content" cty:"content"`
+	Content string `hcl:"content"`
 }
 
 // Component is the remote.http component.

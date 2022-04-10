@@ -21,13 +21,13 @@ func init() {
 
 // Config represents the input state of the discovery.static component.
 type Config struct {
-	Hosts  []string          `hcl:"hosts" cty:"hosts"`
-	Labels map[string]string `hcl:"labels,optional" cty:"labels"`
+	Hosts  []string          `hcl:"hosts"`
+	Labels map[string]string `hcl:"labels,optional"`
 }
 
 // State represents the output sate of the discovery.static component.
 type State struct {
-	Targets []metricsscraper.TargetGroup `hcl:"targets" cty:"targets"`
+	Targets []metricsscraper.TargetGroup `hcl:"targets"`
 }
 
 // Component is the discovery.static component.

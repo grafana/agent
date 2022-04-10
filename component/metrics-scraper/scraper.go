@@ -21,16 +21,16 @@ func init() {
 
 // Config represents the input state of the metrics_scraper component.
 type Config struct {
-	Targets        []TargetGroup                     `hcl:"targets" cty:"targets"`
-	ScrapeInterval string                            `hcl:"scrape_interval,optional" cty:"scrape_interval"`
-	ScrapeTimeout  string                            `hcl:"scrape_timeout,optional" cty:"scrape_timeout"`
-	SendTo         *metricsforwarder.MetricsReceiver `hcl:"send_to" cty:"send_to"`
+	Targets        []TargetGroup                     `hcl:"targets"`
+	ScrapeInterval string                            `hcl:"scrape_interval,optional"`
+	ScrapeTimeout  string                            `hcl:"scrape_timeout,optional"`
+	SendTo         *metricsforwarder.MetricsReceiver `hcl:"send_to"`
 }
 
 // TargetGroup is a set of targets that share a common set of labels.
 type TargetGroup struct {
-	Targets []LabelSet `hcl:"targets" cty:"targets"`
-	Labels  LabelSet   `hcl:"labels,optional" cty:"labels"`
+	Targets []LabelSet `hcl:"targets"`
+	Labels  LabelSet   `hcl:"labels,optional"`
 }
 
 // LabelSet is a map of label names to values.

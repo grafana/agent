@@ -28,26 +28,26 @@ type MetricsReceiver struct{ storage.Appender }
 
 // Config represents the input state of the metrics_forwarder component.
 type Config struct {
-	RemoteWrite []*RemoteWriteConfig `hcl:"remote_write,block" cty:"remote_write"`
+	RemoteWrite []*RemoteWriteConfig `hcl:"remote_write,block"`
 }
 
 // RemoteWriteConfig is the metrics_fowarder's configuration for where to send
 // metrics stored in the WAL.
 type RemoteWriteConfig struct {
-	URL       string           `hcl:"url" cty:"url"`
-	BasicAuth *BasicAuthConfig `hcl:"basic_auth,block" cty:"basic_auth"`
+	URL       string           `hcl:"url"`
+	BasicAuth *BasicAuthConfig `hcl:"basic_auth,block"`
 }
 
 // BasicAuthConfig is the metrics_forwarder's configuration for authenticating
 // against the remote system when sending metrics.
 type BasicAuthConfig struct {
-	Username string `hcl:"username" cty:"username"`
-	Password string `hcl:"password" cty:"password"`
+	Username string `hcl:"username"`
+	Password string `hcl:"password"`
 }
 
 // State represents the output state of the metrics_forwarder component.
 type State struct {
-	Receiver *MetricsReceiver `hcl:"receiver" cty:"receiver"`
+	Receiver *MetricsReceiver `hcl:"receiver"`
 }
 
 // Component is the metrics_forwarder component.

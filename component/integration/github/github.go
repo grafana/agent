@@ -21,12 +21,12 @@ func init() {
 
 // Config represents the input state of the integration.github component.
 type Config struct {
-	Repositories []string `hcl:"repositories" cty:"repositories"`
+	Repositories []string `hcl:"repositories"`
 }
 
 // State represents the output state of the integration.github component.
 type State struct {
-	Targets []metricsscraper.TargetGroup `hcl:"targets" cty:"targets"`
+	Targets []metricsscraper.TargetGroup `hcl:"targets"`
 }
 
 // Component is the integration.github component.
