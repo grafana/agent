@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/rawcomponent"
 	"github.com/hashicorp/hcl/v2"
 )
 
@@ -19,7 +18,7 @@ type registration struct {
 }
 
 type builder interface {
-	BuildComponent(*BuildContext, *hcl.Block) (rawcomponent.Component, error)
+	BuildComponent(*BuildContext, *hcl.Block) (HCL, error)
 }
 
 type Registration[Config any] struct {

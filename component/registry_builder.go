@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/rawcomponent"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/rfratto/gohcl"
 	"github.com/zclconf/go-cty/cty"
@@ -18,7 +17,7 @@ type BuildContext struct {
 }
 
 // BuildHCL builds the named raw component from HCL.
-func BuildHCL(name string, bctx *BuildContext, b *hcl.Block) (rawcomponent.Component, error) {
+func BuildHCL(name string, bctx *BuildContext, b *hcl.Block) (HCL, error) {
 	ent, exists := registered[name]
 	if !exists {
 		return nil, fmt.Errorf("component %q does not exist", name)
@@ -26,6 +25,8 @@ func BuildHCL(name string, bctx *BuildContext, b *hcl.Block) (rawcomponent.Compo
 	return ent.builder.BuildComponent(bctx, b)
 }
 
+// rawBuilder implements the builder interface and is used to abstract away
+// generics.
 type rawBuilder[Config any] struct {
 	r Registration[Config]
 }
@@ -34,7 +35,7 @@ func newRawBuilder[Config any](r Registration[Config]) builder {
 	return &rawBuilder[Config]{r: r}
 }
 
-func (rb *rawBuilder[Config]) BuildComponent(bctx *BuildContext, b *hcl.Block) (rawcomponent.Component, error) {
+func (rb *rawBuilder[Config]) BuildComponent(bctx *BuildContext, b *hcl.Block) (HCL, error) {
 	var cfg Config
 	diags := gohcl.DecodeBody(b.Body, bctx.EvalContext, &cfg)
 	if diags.HasErrors() {
@@ -46,10 +47,24 @@ func (rb *rawBuilder[Config]) BuildComponent(bctx *BuildContext, b *hcl.Block) (
 		return nil, err
 	}
 
-	return newRawComponent(bctx.Log, rb.r, c), nil
+	return newHCLAdapter(bctx.Log, rb.r, c), nil
 }
 
-type rawComponent[Config any] struct {
+// HCL is an HCL component; registered Components can be converted into HCL
+// components by calling BuildHCL.
+type HCL interface {
+	// Run runs a component until ctx is canceled or an error occurs.
+	Run(ctx context.Context, onStateChange func()) error
+
+	// Update updates a component.
+	Update(ectx *hcl.EvalContext, block *hcl.Block) error
+
+	// CurrentState returns the currente state of a component.
+	CurrentState() cty.Value
+}
+
+// hclAdapter wraps a flow component into an HCL component.
+type hclAdapter[Config any] struct {
 	r Registration[Config]
 
 	mut       sync.Mutex
@@ -61,8 +76,8 @@ type rawComponent[Config any] struct {
 	newRunnable chan struct{}
 }
 
-func newRawComponent[Config any](l log.Logger, r Registration[Config], init Component[Config]) *rawComponent[Config] {
-	return &rawComponent[Config]{
+func newHCLAdapter[Config any](l log.Logger, r Registration[Config], init Component[Config]) *hclAdapter[Config] {
+	return &hclAdapter[Config]{
 		r:   r,
 		cur: init,
 		log: l,
@@ -71,7 +86,7 @@ func newRawComponent[Config any](l log.Logger, r Registration[Config], init Comp
 	}
 }
 
-func (rc *rawComponent[Config]) Run(ctx context.Context, onStateChange func()) error {
+func (rc *hclAdapter[Config]) Run(ctx context.Context, onStateChange func()) error {
 	errCh := make(chan error, 1)
 
 	// Not all commponents support being dynamically updated, so we have to
@@ -121,7 +136,7 @@ func (rc *rawComponent[Config]) Run(ctx context.Context, onStateChange func()) e
 	}
 }
 
-func (rc *rawComponent[Config]) Update(ectx *hcl.EvalContext, block *hcl.Block) error {
+func (rc *hclAdapter[Config]) Update(ectx *hcl.EvalContext, block *hcl.Block) error {
 	var cfg Config
 	diags := gohcl.DecodeBody(block.Body, ectx, &cfg)
 	if diags.HasErrors() {
@@ -163,7 +178,7 @@ func (rc *rawComponent[Config]) Update(ectx *hcl.EvalContext, block *hcl.Block) 
 	return nil
 }
 
-func (rc *rawComponent[Config]) CurrentState() cty.Value {
+func (rc *hclAdapter[Config]) CurrentState() cty.Value {
 	rc.mut.Lock()
 	defer rc.mut.Unlock()
 

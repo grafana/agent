@@ -1,8 +1,8 @@
 package flow
 
 import (
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/dag"
-	"github.com/grafana/agent/pkg/flow/rawcomponent"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/zclconf/go-cty/cty"
 )
@@ -17,7 +17,7 @@ type componentNode struct {
 	ref   reference
 	block *hcl.Block
 
-	raw rawcomponent.Component
+	raw component.HCL
 }
 
 var _ node = (*componentNode)(nil)
@@ -46,6 +46,6 @@ func (cn *componentNode) CurrentState() cty.Value {
 	return cn.raw.CurrentState()
 }
 
-func (cn *componentNode) Set(rc rawcomponent.Component) {
+func (cn *componentNode) Set(rc component.HCL) {
 	cn.raw = rc
 }
