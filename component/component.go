@@ -23,7 +23,7 @@ type Component[Config any] interface {
 	Config() Config
 }
 
-// UpdatableComponent is an optional extention interface that Components may
+// UpdatableComponent is an optional extension interface that Components may
 // implement. Components that do not implement UpdatableComponent are updated
 // by being shut down and replaced with a new instance constructed with the
 // newest config.

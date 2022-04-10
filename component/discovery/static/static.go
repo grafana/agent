@@ -19,19 +19,23 @@ func init() {
 	})
 }
 
+// Config represents the input state of the discovery.static component.
 type Config struct {
 	Hosts  []string          `hcl:"hosts" cty:"hosts"`
 	Labels map[string]string `hcl:"labels,optional" cty:"labels"`
 }
 
+// State represents the output sate of the discovery.static component.
 type State struct {
 	Targets []metricsscraper.TargetGroup `hcl:"targets" cty:"targets"`
 }
 
+// Component is the discovery.static component.
 type Component struct {
 	log log.Logger
 }
 
+// NewComponent creates a new discovery.static component.
 func NewComponent(l log.Logger, c Config) (*Component, error) {
 	spew.Dump(c)
 	return &Component{log: l}, nil
@@ -39,6 +43,7 @@ func NewComponent(l log.Logger, c Config) (*Component, error) {
 
 var _ component.Component[Config] = (*Component)(nil)
 
+// Run implements Component.
 func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 	level.Info(c.log).Log("msg", "component starting")
 	defer level.Info(c.log).Log("msg", "component shutting down")
@@ -47,15 +52,18 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 	return nil
 }
 
+// Update implements UpdatableComponent.
 func (c *Component) Update(cfg Config) error {
 	spew.Dump(cfg)
 	return nil
 }
 
+// CurrentState implements Component.
 func (c *Component) CurrentState() interface{} {
 	return State{}
 }
 
+// Config implements Component.
 func (c *Component) Config() Config {
 	return Config{}
 }

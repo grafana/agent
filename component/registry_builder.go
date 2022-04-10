@@ -11,6 +11,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
+// BuildContext is a set of options provided when building a new component.
 type BuildContext struct {
 	Log         log.Logger
 	EvalContext *hcl.EvalContext
@@ -35,19 +36,19 @@ func newRawBuilder[Config any](r Registration[Config]) builder {
 	return &rawBuilder[Config]{r: r}
 }
 
-func (rb *rawBuilder[Config]) BuildComponent(bctx *BuildContext, b *hcl.Block) (HCL, error) {
+func (b *rawBuilder[Config]) BuildComponent(bctx *BuildContext, block *hcl.Block) (HCL, error) {
 	var cfg Config
-	diags := gohcl.DecodeBody(b.Body, bctx.EvalContext, &cfg)
+	diags := gohcl.DecodeBody(block.Body, bctx.EvalContext, &cfg)
 	if diags.HasErrors() {
 		return nil, diags
 	}
 
-	c, err := rb.r.BuildComponent(bctx.Log, cfg)
+	c, err := b.r.BuildComponent(bctx.Log, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return newHCLAdapter(bctx.Log, rb.r, c), nil
+	return newHCLAdapter(bctx.Log, b.r, c), nil
 }
 
 // HCL is an HCL component; registered Components can be converted into HCL
@@ -86,7 +87,7 @@ func newHCLAdapter[Config any](l log.Logger, r Registration[Config], init Compon
 	}
 }
 
-func (rc *hclAdapter[Config]) Run(ctx context.Context, onStateChange func()) error {
+func (a *hclAdapter[Config]) Run(ctx context.Context, onStateChange func()) error {
 	errCh := make(chan error, 1)
 
 	// Not all commponents support being dynamically updated, so we have to
@@ -102,17 +103,17 @@ func (rc *hclAdapter[Config]) Run(ctx context.Context, onStateChange func()) err
 
 		curCtx, curCancel := context.WithCancel(ctx)
 
-		rc.mut.Lock()
-		rc.cancelCur = curCancel
-		rc.mut.Unlock()
+		a.mut.Lock()
+		a.cancelCur = curCancel
+		a.mut.Unlock()
 
-		rc.running.Add(1)
+		a.running.Add(1)
 		go func() {
-			defer rc.running.Done()
+			defer a.running.Done()
 
-			rc.mut.Lock()
-			cur := rc.cur
-			rc.mut.Unlock()
+			a.mut.Lock()
+			cur := a.cur
+			a.mut.Unlock()
 
 			errCh <- cur.Run(curCtx, onStateChange)
 		}()
@@ -121,29 +122,29 @@ func (rc *hclAdapter[Config]) Run(ctx context.Context, onStateChange func()) err
 		case <-ctx.Done():
 			// Our parent context is done; Make sure our runnable exits and return.
 			curCancel()
-			rc.running.Wait()
+			a.running.Wait()
 			return nil
 		case err := <-errCh:
 			// The goroutine exited; return from our run.
-			rc.running.Wait()
+			a.running.Wait()
 			return err
-		case <-rc.newRunnable:
+		case <-a.newRunnable:
 			// There's a new runnable component. Make sure the current one is stopped
 			// and re-start the loop.
 			curCancel()
-			rc.running.Wait()
+			a.running.Wait()
 		}
 	}
 }
 
-func (rc *hclAdapter[Config]) Update(ectx *hcl.EvalContext, block *hcl.Block) error {
+func (a *hclAdapter[Config]) Update(ectx *hcl.EvalContext, block *hcl.Block) error {
 	var cfg Config
 	diags := gohcl.DecodeBody(block.Body, ectx, &cfg)
 	if diags.HasErrors() {
 		return diags
 	}
 
-	uc, ok := rc.cur.(UpdatableComponent[Config])
+	uc, ok := a.cur.(UpdatableComponent[Config])
 	if ok {
 		return uc.Update(cfg)
 	}
@@ -155,34 +156,34 @@ func (rc *hclAdapter[Config]) Update(ectx *hcl.EvalContext, block *hcl.Block) er
 	// 2. Attempt to create a new component.
 	// 3. Set the component as the next runnable.
 
-	rc.mut.Lock()
-	rc.cancelCur()
-	rc.mut.Unlock()
+	a.mut.Lock()
+	a.cancelCur()
+	a.mut.Unlock()
 
-	rc.running.Wait()
+	a.running.Wait()
 
-	c, err := rc.r.BuildComponent(rc.log, cfg)
+	c, err := a.r.BuildComponent(a.log, cfg)
 	if err != nil {
 		return err
 	}
 
-	rc.mut.Lock()
-	rc.cur = c
-	rc.mut.Unlock()
+	a.mut.Lock()
+	a.cur = c
+	a.mut.Unlock()
 
 	select {
-	case rc.newRunnable <- struct{}{}:
+	case a.newRunnable <- struct{}{}:
 	default:
 	}
 
 	return nil
 }
 
-func (rc *hclAdapter[Config]) CurrentState() cty.Value {
-	rc.mut.Lock()
-	defer rc.mut.Unlock()
+func (a *hclAdapter[Config]) CurrentState() cty.Value {
+	a.mut.Lock()
+	defer a.mut.Unlock()
 
-	val := rc.cur.CurrentState()
+	val := a.cur.CurrentState()
 	if val == nil {
 		return cty.EmptyObjectVal
 	}

@@ -24,15 +24,18 @@ func init() {
 	})
 }
 
+// Config represents the input state of the remote.http component.
 type Config struct {
 	URL     string `hcl:"url" cty:"url"`
 	Refresh string `hcl:"refresh" cty:"refresh"`
 }
 
+// State represents the output state of the remote.http component.
 type State struct {
 	Content string `hcl:"content" cty:"content"`
 }
 
+// Component is the remote.http component.
 type Component struct {
 	cfgMut      sync.Mutex
 	cfg         Config
@@ -45,6 +48,7 @@ type Component struct {
 	log log.Logger
 }
 
+// NewComponent creates a new remote.http component.
 func NewComponent(l log.Logger, cfg Config) (*Component, error) {
 	c := &Component{
 		log:     l,
@@ -58,6 +62,7 @@ func NewComponent(l log.Logger, cfg Config) (*Component, error) {
 
 var _ component.Component[Config] = (*Component)(nil)
 
+// Run implements Component.
 func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 	level.Info(c.log).Log("msg", "component starting")
 	defer level.Info(c.log).Log("msg", "component shutting down")
@@ -118,6 +123,7 @@ func (c *Component) refresh(onStateChange func()) error {
 	return nil
 }
 
+// Update implements UpdatableComponent.
 func (c *Component) Update(cfg Config) error {
 	c.cfgMut.Lock()
 	defer c.cfgMut.Unlock()
@@ -139,12 +145,14 @@ func (c *Component) Update(cfg Config) error {
 	return nil
 }
 
+// CurrentState implements Component.
 func (c *Component) CurrentState() interface{} {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.state
 }
 
+// Config implements Component.
 func (c *Component) Config() Config {
 	return Config{}
 }

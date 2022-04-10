@@ -19,6 +19,7 @@ func init() {
 	})
 }
 
+// Config represents the input state of the metrics_scraper component.
 type Config struct {
 	Targets        []TargetGroup                     `hcl:"targets" cty:"targets"`
 	ScrapeInterval string                            `hcl:"scrape_interval,optional" cty:"scrape_interval"`
@@ -35,10 +36,12 @@ type TargetGroup struct {
 // LabelSet is a map of label names to values.
 type LabelSet map[string]string
 
+// Component is the metrics_scraper component.
 type Component struct {
 	log log.Logger
 }
 
+// NewComponent creates a new metrics_scraper component.
 func NewComponent(l log.Logger, c Config) (*Component, error) {
 	spew.Dump(c)
 	return &Component{log: l}, nil
@@ -46,6 +49,7 @@ func NewComponent(l log.Logger, c Config) (*Component, error) {
 
 var _ component.Component[Config] = (*Component)(nil)
 
+// Run implements Component.
 func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 	level.Info(c.log).Log("msg", "component starting")
 	defer level.Info(c.log).Log("msg", "component shutting down")
@@ -54,15 +58,18 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 	return nil
 }
 
+// Update implements UpdatableComponent.
 func (c *Component) Update(cfg Config) error {
 	spew.Dump(cfg)
 	return nil
 }
 
+// CurrentState implements Component.
 func (c *Component) CurrentState() interface{} {
 	return nil
 }
 
+// Config implements Component.
 func (c *Component) Config() Config {
 	return Config{}
 }

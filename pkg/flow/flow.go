@@ -123,7 +123,7 @@ func (f *Flow) Load() error {
 	//
 	// TODO(rfratto): should this happen as part of the run? If we moved this to
 	// the run, we would need a separate type checking pass in the Load to ensure
-	// that all expressions thoughout the config are valid. As it is now, this
+	// that all expressions throughout the config are valid. As it is now, this
 	// typechecks on its own.
 	err = dag.WalkTopological(f.graph, f.graph.Leaves(), func(n dag.Node) error {
 		cn := n.(*componentNode)
@@ -282,8 +282,8 @@ func GraphHandler(f *Flow) http.HandlerFunc {
 	}
 }
 
-// GraphHandler returns an http.HandlerFunc that render's the flow's nametable
-// as an SVG. Graphviz must be installed for this to work.
+// NametableHandler returns an http.HandlerFunc that render's the flow's
+// nametable as an SVG. Graphviz must be installed for this to work.
 func NametableHandler(f *Flow) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		f.graphMut.RLock()

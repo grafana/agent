@@ -2,15 +2,9 @@ package flow
 
 import (
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/dag"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/zclconf/go-cty/cty"
 )
-
-// node is a flow component and a node in the DAG.
-type node interface {
-	dag.Node
-}
 
 // componentNode is a lazily-constructed component.
 type componentNode struct {
@@ -19,8 +13,6 @@ type componentNode struct {
 
 	raw component.HCL
 }
-
-var _ node = (*componentNode)(nil)
 
 // newComponentNode constructs a componentNode from a block.
 func newComponentNode(block *hcl.Block) *componentNode {

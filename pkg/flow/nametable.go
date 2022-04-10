@@ -2,7 +2,6 @@ package flow
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/grafana/agent/pkg/flow/dag"
@@ -22,7 +21,7 @@ type nametable struct {
 func (nt *nametable) Add(cn *componentNode) {
 	ref := cn.Reference()
 
-	var lastNode dag.Node = nil
+	var lastNode dag.Node
 
 	// Add entries into the nametable for the reference root (i.e., all parts of
 	// the reference path minus the very last)
@@ -211,15 +210,6 @@ func (nt *nametable) buildValue(ntNode dag.Node, from nodeSet) (cty.Value, error
 	default:
 		panic(fmt.Sprintf("unexpected nametable type %T", n))
 	}
-}
-
-func getNodeNames(nn []dag.Node) []string {
-	names := make([]string, len(nn))
-	for i := 0; i < len(nn); i++ {
-		names[i] = nn[i].Name()
-	}
-	sort.Strings(names)
-	return names
 }
 
 type ntPartialReference struct {

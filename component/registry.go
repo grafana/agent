@@ -21,6 +21,9 @@ type builder interface {
 	BuildComponent(*BuildContext, *hcl.Block) (HCL, error)
 }
 
+// Registration is used when registering a component, holding the component's
+// name and builder. The name of the component must be a list of
+// period-delimited valid identifiers, such as `remote.http`.
 type Registration[Config any] struct {
 	Name           string
 	BuildComponent func(l log.Logger, c Config) (Component[Config], error)

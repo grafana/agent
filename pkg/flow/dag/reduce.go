@@ -12,7 +12,7 @@ func Reduce(g *Graph) {
 	// depth-first search at its dependencies. If the target vertex is reachable
 	// from the source vertex, the edge is removed.
 	for source := range g.nodes {
-		Walk(g, g.Dependencies(source), func(direct Node) error {
+		_ = Walk(g, g.Dependencies(source), func(direct Node) error {
 			// Iterate over (direct, indirect) edges and remove (source, indirect)
 			// edges if they exist. This is a safe operaration because other is still
 			// reachable by source via its (source, direct) edge.

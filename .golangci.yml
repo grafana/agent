@@ -45,6 +45,8 @@ issues:
     # Packages for integrations are named matching their upstream counterpart,
     # which almost always have underscores.
     - "var-naming: don't use an underscore in package name"
+    # Ignore errors about invalid types from packages that aren't aware of Generics yet.
+    - "receiver-naming: receiver name .* should be consistent with previous receiver name .* for invalid-type"
 
 # Linter settings options: https://golangci-lint.run/usage/linters/
 linters-settings:

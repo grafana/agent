@@ -85,7 +85,7 @@ func WalkReverse(g *Graph, start []Node, fn WalkFunc) error {
 // Nodes will not be passed to fn if they are not reachable from start or if
 // not all of their outgoing edges are reachable from start.
 func WalkTopological(g *Graph, start []Node, fn WalkFunc) error {
-	// NOTE(rfratto): WalkTopological is an implementation of Kahn's alogrithm
+	// NOTE(rfratto): WalkTopological is an implementation of Kahn's algorithm
 	// which leaves g unmodified.
 
 	var (
