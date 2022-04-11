@@ -12,6 +12,11 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Bump version of github-exporter to latest upstream SHA 284088c21e7d, which
+  includes fixes from bugs found in their latest tag. This includes a fix
+  where not all releases where retrieved when pulling release information.
+  (@rfratto)
+
 - Initialize the logger with default `log_level` and `log_format` parameters. (@tpaschalis)
 
 - Operator: fix issue where a `username_file` field was incorrectly set.
