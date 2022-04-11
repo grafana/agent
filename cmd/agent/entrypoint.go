@@ -185,6 +185,7 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	ep.promMetrics.WireGRPC(grpc)
 
 	ep.integrations.WireAPI(mux)
+	ep.lokiLogs.WireAPI(mux)
 
 	mux.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

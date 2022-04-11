@@ -247,6 +247,75 @@ Status code: 204 on success, 400 for bad requests related to the provided
 instance or POST payload format and content, 500 for cases where appending
 to the WAL failed.
 
+### List current running instances of logs subsystem
+
+```
+GET /agent/api/v1/logs/instances
+```
+
+Status code: 200 on success.
+Response on success:
+
+```
+{
+  "status": "success",
+  "data": [
+    <strings of instance names that are currently running>
+  ]
+}
+```
+
+### List current scrape targets of logs subsystem
+
+```
+GET /agent/api/v1/logs/targets
+```
+
+This endpoint collects all logs subsystem targets known to the Agent across 
+all running instances. Only targets being scraped from Promtail will be returned. 
+
+The `labels` fields shows the labels that will be added to metrics from the
+target, while the `discovered_labels` field shows all labels found during
+service discovery.
+
+Status code: 200 on success.
+Response on success:
+
+```
+{
+  "status": "success",
+  "data": [
+    {
+      "instance": "default",
+      "target_group": "varlogs",
+      "type": "File",
+      "labels": {
+        "job": "varlogs"
+      },
+      "discovered_labels": {
+        "__address__": "localhost",
+        "__path__": "/var/log/*log",
+        "job": "varlogs"
+      },
+      "ready": true,
+      "details": {
+        "/var/log/alternatives.log": 13386,
+        "/var/log/apport.log": 0,
+        "/var/log/auth.log": 37009,
+        "/var/log/bootstrap.log": 107347,
+        "/var/log/dpkg.log": 374420,
+        "/var/log/faillog": 0,
+        "/var/log/fontconfig.log": 11629,
+        "/var/log/gpu-manager.log": 1541,
+        "/var/log/kern.log": 782582,
+        "/var/log/lastlog": 0,
+        "/var/log/syslog": 788450
+      }
+    }
+  ]
+}
+```
+
 ### Reload configuration file (beta)
 
 This endpoint is currently in beta and may have issues. Please open any issues
