@@ -3,9 +3,9 @@ ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
 # Use custom Go version instead of one prepacked in seego
-ENV GOLANG_VERSION 1.17.6
+ENV GOLANG_VERSION 1.18
 ENV GOLANG_DOWNLOAD_URL https://golang.org/dl/go$GOLANG_VERSION.linux-amd64.tar.gz
-ENV GOLANG_DOWNLOAD_SHA256 231654bbf2dab3d86c1619ce799e77b03d96f9b50770297c8f4dff8836fc8ca2
+ENV GOLANG_DOWNLOAD_SHA256 e85278e98f57cdb150fe8409e6e5df5343ecb13cebf03a5d5ff12bd55a80264f
 RUN  rm -rf /usr/local/go                                           \
   && curl -fsSL "$GOLANG_DOWNLOAD_URL" -o golang.tar.gz             \
   && echo "$GOLANG_DOWNLOAD_SHA256  golang.tar.gz" | sha256sum -c - \
@@ -19,7 +19,7 @@ ARG IMAGE_TAG
 
 RUN make clean && make IMAGE_TAG=${IMAGE_TAG} RELEASE_BUILD=${RELEASE_BUILD} BUILD_IN_CONTAINER=false DRONE=true agent-operator
 
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 RUN apt-get update && \
   apt-get install -qy tzdata ca-certificates && \

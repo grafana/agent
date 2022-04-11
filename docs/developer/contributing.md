@@ -56,7 +56,7 @@ down the issues involving the components you want to work on.
 To build Grafana Agent from source code, please install the following tools:
 
 1. [Git](https://git-scm.com/)
-2. [Go](https://golang.org/) (version 1.17 and up)
+2. [Go](https://golang.org/) (version 1.18 and up)
 3. [Make](https://www.gnu.org/software/make/)
 4. [Docker](https://www.docker.com/)
 

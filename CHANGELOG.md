@@ -15,6 +15,12 @@ Main (unreleased)
 - Add HTTP endpoints to fetch active instances and targets for the Logs subsytem.
   (@marctc)
 
+### Other changes
+
+- Update base image of official Docker containers from Debian buster to Debian
+  bullseye. (@rfratto)
+
+- Use Go 1.18 for builds. (@rfratto)
 
 v0.24.0 (2022-04-07)
 --------------------
