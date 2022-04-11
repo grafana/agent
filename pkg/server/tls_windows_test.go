@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
-	"fmt"
 	"github.com/github/smimesign/certstore"
 	"github.com/stretchr/testify/require"
 	"math/big"
@@ -24,11 +23,8 @@ func TestEasyFilter(t *testing.T) {
 	serverSt := newFakeStore()
 	sc := makeCert(time.Now().Add(time.Duration(-1)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2, 3}, "", "")
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
-	findCert := func(storeName, systemStore string) (certstore.Store, error) {
-		if systemStore == "LocalMachine" {
-			return serverSt, nil
-		}
-		return nil, fmt.Errorf("no store found")
+	findCert := func(systemStore, _ string) (certstore.Store, error) {
+		return serverSt, nil
 	}
 	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 	require.NoError(t, err)
@@ -49,11 +45,8 @@ func TestTemplateIDFilter(t *testing.T) {
 	serverSt := newFakeStore()
 	sc := makeCert(time.Now().Add(time.Duration(-1)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2, 3}, "", "")
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
-	findCert := func(storeName, systemStore string) (certstore.Store, error) {
-		if systemStore == "LocalMachine" {
-			return serverSt, nil
-		}
-		return nil, fmt.Errorf("no store found")
+	findCert := func(systemStore, _ string) (certstore.Store, error) {
+		return serverSt, nil
 	}
 	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 	require.NoError(t, err)
@@ -75,11 +68,8 @@ func TestCommonName(t *testing.T) {
 	serverSt := newFakeStore()
 	sc := makeCert(time.Now().Add(time.Duration(-1)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2, 3}, "TEST", "")
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
-	findCert := func(storeName, systemStore string) (certstore.Store, error) {
-		if systemStore == "LocalMachine" {
-			return serverSt, nil
-		}
-		return nil, fmt.Errorf("no store found")
+	findCert := func(systemStore, _ string) (certstore.Store, error) {
+		return serverSt, nil
 	}
 	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 	require.NoError(t, err)
@@ -101,11 +91,8 @@ func TestCommonName_Fail(t *testing.T) {
 	serverSt := newFakeStore()
 	sc := makeCert(time.Now().Add(time.Duration(-1)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2, 3}, "BAD_EXAMPLE", "")
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
-	findCert := func(storeName, systemStore string) (certstore.Store, error) {
-		if systemStore == "LocalMachine" {
-			return serverSt, nil
-		}
-		return nil, fmt.Errorf("no store found")
+	findCert := func(systemStore, _ string) (certstore.Store, error) {
+		return serverSt, nil
 	}
 	_, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 	require.Error(t, err)
@@ -122,11 +109,8 @@ func TestTemplateIDFilter_Fail(t *testing.T) {
 	serverSt := newFakeStore()
 	sc := makeCert(time.Now().Add(time.Duration(-1)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2}, "", "")
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
-	findCert := func(storeName, systemStore string) (certstore.Store, error) {
-		if systemStore == "LocalMachine" {
-			return serverSt, nil
-		}
-		return nil, fmt.Errorf("no store found")
+	findCert := func(systemStore, _ string) (certstore.Store, error) {
+		return serverSt, nil
 	}
 	_, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 	require.Error(t, err)
@@ -146,11 +130,8 @@ func TestMatching2CertsGetMostRecent(t *testing.T) {
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(shouldFind))
 
-	findCert := func(storeName, systemStore string) (certstore.Store, error) {
-		if systemStore == "LocalMachine" {
-			return serverSt, nil
-		}
-		return nil, fmt.Errorf("no store found")
+	findCert := func(systemStore, _ string) (certstore.Store, error) {
+		return serverSt, nil
 	}
 	identity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 
@@ -176,12 +157,8 @@ func TestRegularExpression(t *testing.T) {
 	serverSt := newFakeStore()
 	sc := makeCert(time.Now().Add(time.Duration(-5)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2, 3}, "BobVilla", "")
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
-
-	findCert := func(storeName, systemStore string) (certstore.Store, error) {
-		if systemStore == "LocalMachine" {
-			return serverSt, nil
-		}
-		return nil, fmt.Errorf("no store found")
+	findCert := func(systemStore, _ string) (certstore.Store, error) {
+		return serverSt, nil
 	}
 	identity, err := c.findCertificate(c.cfg.ClientSystemStore, c.cfg.ClientStore, c.cfg.ClientIssuerCommonNames, c.cfg.ClientTemplateID, c.subjectRegEx, findCert)
 
@@ -208,11 +185,8 @@ func TestRegularExpression_Fail(t *testing.T) {
 	sc := makeCert(time.Now().Add(time.Duration(-5)*time.Minute), time.Now().Add(5*time.Minute), []int{1, 2, 3}, "BAD_EXAMPLE", "")
 	serverSt.identities = append(serverSt.identities, newFakeIdentity(sc))
 
-	findCert := func(storeName, systemStore string) (certstore.Store, error) {
-		if systemStore == "LocalMachine" {
-			return serverSt, nil
-		}
-		return nil, fmt.Errorf("no store found")
+	findCert := func(systemStore, _ string) (certstore.Store, error) {
+		return serverSt, nil
 	}
 	identity, err := c.findCertificate(c.cfg.ClientSystemStore, c.cfg.ClientStore, c.cfg.ClientIssuerCommonNames, c.cfg.ClientTemplateID, c.subjectRegEx, findCert)
 
@@ -230,13 +204,6 @@ func newFakeStore() fakeStore {
 	return fakeStore{
 		identities: make([]fakeIdentity, 0),
 		closed:     false,
-	}
-}
-
-func (f fakeStore) checkClosed(t *testing.T) {
-	require.True(t, f.closed)
-	for _, i := range f.identities {
-		require.True(t, i.closed)
 	}
 }
 
