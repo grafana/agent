@@ -53,4 +53,46 @@ The `server_tls_config` configures TLS.
 
 # File path to the signing CA certificate, needed if CA is not trusted
 [client_ca_file: <string>]
+
+# Windows certificate filter allows selecting client CA and server certificate from the Windows Certificate store
+[windows_certificate_filter: <windows_certificate_fillter_config>]
+```
+
+## windows_certificate_filter
+
+The `windows_certificate_filter` configures usage of the Windows Certificate store
+NOTE: cert_file, key_file, and client_ca_file are not used when this is enabled
+
+```yaml
+
+# Name of the system store to look for the Client Certificate ex LocalMachine, CurrentUser 
+[client_system_store: <string>]
+
+# Name of the store to look for the Client Certificate ex My, CA
+[client_store: <string>]
+
+# Array of issuer common names to check against
+[client_issuer_common_names: [<string>]]
+
+# Regular expression to match Subject name
+[client_subject_regex: <string>]
+
+# Client Template ID to match in ASN1 format ex "1.2.3"
+[client_template_id: <string>]
+
+# Name of the system store to look for the Server Certificate ex LocalMachine, CurrentUser 
+[server_system_store: <string>]
+
+# Name of the store to look for the Server Certificate ex My, CA
+[server_store: <string>]
+
+# Array of issuer common names to check against
+[server_issuer_common_names: [<string>]]
+
+# Server Template ID to match in ASN1 format ex "1.2.3"
+[server_template_id: <string>]
+
+# How often to refresh the server certificate ex 5m, 1h 
+[server_refresh_interval: <time.duration>]
+
 ```
