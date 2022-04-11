@@ -15,6 +15,15 @@ Main (unreleased)
 - Add HTTP endpoints to fetch active instances and targets for the Logs subsytem.
   (@marctc)
 
+### Bugfixes
+
+- Add missing version information back into `agentctl --version`. (@rlankfo)
+
+- Bump version of github-exporter to latest upstream SHA 284088c21e7d, which
+  includes fixes from bugs found in their latest tag. This includes a fix
+  where not all releases where retrieved when pulling release information.
+  (@rfratto)
+
 ### Other changes
 
 - Update base image of official Docker containers from Debian buster to Debian
