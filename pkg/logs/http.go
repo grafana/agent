@@ -13,7 +13,6 @@ import (
 
 // WireAPI adds API routes to the provided mux router.
 func (l *Logs) WireAPI(r *mux.Router) {
-
 	r.HandleFunc("/agent/api/v1/logs/instances", l.ListInstancesHandler).Methods("GET")
 	r.HandleFunc("/agent/api/v1/logs/targets", l.ListTargetsHandler).Methods("GET")
 }
@@ -42,7 +41,6 @@ func (l *Logs) ListTargetsHandler(w http.ResponseWriter, r *http.Request) {
 		allTagets[instName] = inst.promtail.ActiveTargets()
 	}
 	listTargetsHandler(allTagets).ServeHTTP(w, r)
-
 }
 
 func listTargetsHandler(targets map[string]TargetSet) http.Handler {

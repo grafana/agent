@@ -161,7 +161,7 @@ func (mt *mockTarget) Ready() bool {
 	return true
 }
 
-func (d *mockTarget) Details() interface{} {
+func (mt *mockTarget) Details() interface{} {
 	return map[string]int{
 		"/var/log/alternatives.log": 13386,
 		"/var/log/apport.log":       0,
