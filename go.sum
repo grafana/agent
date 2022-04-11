@@ -1271,11 +1271,15 @@ github.com/grafana/dskit v0.0.0-20210908150159-fcf48cb19aa4/go.mod h1:m3eHzwe5IT
 github.com/grafana/dskit v0.0.0-20211021180445-3bd016e9d7f1/go.mod h1:uPG2nyK4CtgNDmWv7qyzYcdI+S90kHHRWvHnBtEMBXM=
 github.com/grafana/dskit v0.0.0-20220211095946-19921f863583 h1:UCLVGNJptATClAs4CbClVmn5b4YA6GTG3yoCObI//0E=
 github.com/grafana/dskit v0.0.0-20220211095946-19921f863583/go.mod h1:q51XdMLLHNZJSG6KOGujC20ed2OoLFdx0hBmOEVfRs0=
+github.com/grafana/dskit v0.0.0-20220329084310-1c453c3bd57a h1:UZ2OOtCZl2SbNrvE1BK0+3e35jryMiIuQIVikMfM1IM=
+github.com/grafana/dskit v0.0.0-20220329084310-1c453c3bd57a/go.mod h1:q51XdMLLHNZJSG6KOGujC20ed2OoLFdx0hBmOEVfRs0=
 github.com/grafana/go-gelf v0.0.0-20211112153804-126646b86de8 h1:aEOagXOTqtN9gd4jiDuP/5a81HdoJBqkVfn8WaxbsK4=
 github.com/grafana/go-gelf v0.0.0-20211112153804-126646b86de8/go.mod h1:QAvS2C7TtQRhhv9Uf/sxD+BUhpkrPFm5jK/9MzUiDCY=
 github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85/go.mod h1:crI9WX6p0IhrqB+DqIUHulRW853PaNFf7o4UprV//3I=
 github.com/grafana/loki v1.6.2-0.20220309062021-295dc4ee3ae5 h1:PkPYLj9XdiW2JEWyTkOffqoaDDVflDGrsbkDW8mmNwc=
 github.com/grafana/loki v1.6.2-0.20220309062021-295dc4ee3ae5/go.mod h1:mlPs2KxK9e6MkOS+i1ubsHywU7wjuo8i8zltLQRz0mo=
+github.com/grafana/loki v1.6.2-0.20220411060007-0315102c34cf h1:BGlyo3GR2a8shuhwhpdq9bHKhwyenraUiFFDiMPy65I=
+github.com/grafana/loki v1.6.2-0.20220411060007-0315102c34cf/go.mod h1:ws3kKUScE0E+jUyG2/0bNTx5BIImu7RYpd89O4CL4gY=
 github.com/grafana/mongodb_exporter v0.20.8-0.20211006135645-bef0f0239601 h1:k5VTHQsSBs/jZHWXEvjW4QAZQcoGB3QQfUN0XGA6pB4=
 github.com/grafana/mongodb_exporter v0.20.8-0.20211006135645-bef0f0239601/go.mod h1:BCuUaP3ocoAYt8xTCaCXWQttYMKUcg36e1NJdOEx56M=
 github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a h1:D5NSR64/6xMXnSFD9y1m1DPYIcBcHvtfeuI9/M/0qtI=
@@ -1292,6 +1296,8 @@ github.com/grafana/prometheus v1.8.2-0.20220323140010-4d4232590b14 h1:CoQuhNNbuZ
 github.com/grafana/prometheus v1.8.2-0.20220323140010-4d4232590b14/go.mod h1:migbGwmKEePaplmYVdzPdztaUixU4oxRYUg/JG9tiDU=
 github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2 h1:uirlL/j72L93RhV4+mkWhjv0cov2I0MIgPOG9rMDr1k=
 github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
+github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb h1:wwzNkyaQwcXCzQuKoWz3lwngetmcyg+EhW0fF5lz73M=
+github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/smimesign v0.2.1-0.20211010041342-3564e8601185 h1:rHJdmRpDBb026HwY6bc+dDOk4cZd1xjmj4gyzmPiRTY=
 github.com/grafana/smimesign v0.2.1-0.20211010041342-3564e8601185/go.mod h1:iZiiwNT4HbtGRVqCQu7uJPEZCuEE5sfSSttcnePkDl4=
 github.com/grafana/smimesign v0.2.1-0.20220406154724-b9782a92d94f h1:gKwP9UVxInk/1A01blRnOVy23s1TaHKZirwHODb7DBY=
