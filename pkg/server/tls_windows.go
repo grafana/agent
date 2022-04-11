@@ -157,7 +157,6 @@ func (c *winCertStoreHandler) refreshCerts() error {
 	}
 	clientIdentity, clientStore, err := c.findClientCertificate()
 	if err != nil {
-		clientStore.Close()
 		clientIdentity.Close()
 		c.closeHandles()
 		return err
