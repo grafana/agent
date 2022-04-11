@@ -23,7 +23,7 @@ Main (unreleased)
 - Use Go 1.18 for builds. (@rfratto)
 
 - Add `metrics` prefix to the url of list instances endpoint (`GET /agent/api/v1/instances`) and 
-  list targets endpoint (`GET /agent/api/v1/metrics/targets`) (@marctc)
+  list targets endpoint (`GET /agent/api/v1/metrics/targets`). (@marctc)
 
 
 v0.24.0 (2022-04-07)
