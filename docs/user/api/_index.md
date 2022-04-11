@@ -347,7 +347,7 @@ GET /agent/api/v1/metrics/integrations/targets
 ```
 
 This endpoint returns all integrations for which autoscrape is enabled. The
-response is identical to [`/agent/api/v1/targets`](#list-current-scrape-targets).
+response is identical to [`/agent/api/v1/metrics/targets`](#list-current-scrape-targets).
 
 Status code: 200 on success.
 Response on success:
