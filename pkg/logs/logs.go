@@ -170,13 +170,14 @@ func (i *Instance) ApplyConfig(c *InstanceConfig) error {
 		return nil
 	}
 
+	clientMetrics := client.NewMetrics(i.reg, nil)
 	p, err := promtail.New(config.Config{
 		ServerConfig:    server.Config{Disable: true},
 		ClientConfigs:   c.ClientConfigs,
 		PositionsConfig: c.PositionsConfig,
 		ScrapeConfig:    c.ScrapeConfig,
 		TargetConfig:    c.TargetConfig,
-	}, false, i.reg, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
+	}, clientMetrics, false, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
 	if err != nil {
 		return fmt.Errorf("unable to create logs instance: %w", err)
 	}
