@@ -269,16 +269,16 @@ func (l *tlsListener) getCertificate(*tls.ClientHelloInfo) (*tls.Certificate, er
 
 // WindowsCertificateFilter represents the configuration for accessing the windows store
 type WindowsCertificateFilter struct {
-	ClientStore             string   `yaml:"client_store"`
-	ClientSystemStore       string   `yaml:"client_system_store"`
-	ClientIssuerCommonNames []string `yaml:"client_issuer_common_names"`
-	ClientSubjectCommonName string   `yaml:"client_subject_regex"`
-	ClientTemplateID        string   `yaml:"client_template_id"`
+	ClientStore             string   `yaml:"client_store,omitempty"`
+	ClientSystemStore       string   `yaml:"client_system_store,omitempty"`
+	ClientIssuerCommonNames []string `yaml:"client_issuer_common_names,omitempty"`
+	ClientSubjectRegEx      string   `yaml:"client_subject_regex,omitempty"`
+	ClientTemplateID        string   `yaml:"client_template_id,omitempty"`
 
-	ServerStore             string   `yaml:"server_store"`
-	ServerSystemStore       string   `yaml:"server_system_store"`
-	ServerIssuerCommonNames []string `yaml:"server_issuer_common_names"`
-	ServerTemplateID        string   `yaml:"server_template_id"`
+	ServerStore             string   `yaml:"server_store,omitempty"`
+	ServerSystemStore       string   `yaml:"server_system_store,omitempty"`
+	ServerIssuerCommonNames []string `yaml:"server_issuer_common_names,omitempty"`
+	ServerTemplateID        string   `yaml:"server_template_id,omitempty"`
 
-	ServerRefreshInterval time.Duration `yaml:"server_refresh_interval"`
+	ServerRefreshInterval time.Duration `yaml:"server_refresh_interval,omitempty"`
 }
