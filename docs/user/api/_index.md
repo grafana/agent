@@ -163,6 +163,7 @@ Response on success:
 ```
 GET /agent/api/v1/metrics/instances
 ```
+*note:* deprecated alias is `/agent/api/v1/instances`
 
 Status code: 200 on success.
 Response on success:
@@ -181,6 +182,7 @@ Response on success:
 ```
 GET /agent/api/v1/metrics/targets
 ```
+*note:* deprecated alias is `/agent/api/v1/targets`
 
 This endpoint collects all metrics subsystem targets known to the Agent across all
 running instances. Only targets being scraped from the local Agent will be returned. If
