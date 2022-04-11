@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Add HTTP endpoints to fetch active instances and targets for the Logs subsytem.
+  (@marctc)
+
 ### Other changes
 
 - Update base image of official Docker containers from Debian buster to Debian
