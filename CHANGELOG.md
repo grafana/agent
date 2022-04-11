@@ -14,6 +14,13 @@ Main (unreleased)
 
 - Add `metrics` prefix to the url of list instances and list targets endpoints (@marctc)
 
+### Other changes
+
+- Update base image of official Docker containers from Debian buster to Debian
+  bullseye. (@rfratto)
+
+- Use Go 1.18 for builds. (@rfratto)
+
 v0.24.0 (2022-04-07)
 --------------------
 

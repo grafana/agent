@@ -13,8 +13,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/client/grafanacloud"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/olekukonko/tablewriter"
@@ -45,6 +43,9 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	kconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	// Adds version information
+	_ "github.com/grafana/agent/pkg/build"
 )
 
 func main() {
