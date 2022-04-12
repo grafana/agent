@@ -24,6 +24,8 @@ type Node struct {
 	FakeMetricRemoteWrite *FakeRemoteWrite       `yaml:"fake_metric_remote_write,omitempty"`
 	SimpleRemoteWrite     *SimpleRemoteWrite     `yaml:"simple_metric_remote_write,omitempty"`
 	PrometheusRemoteWrite *PrometheusRemoteWrite `yaml:"prometheus_remote_write,omitempty"`
+
+	Credentials *CredentialsManager `yaml:"credentials,omitempty"`
 }
 
 type MetricGenerator struct {
@@ -49,6 +51,13 @@ type FakeRemoteWrite struct {
 
 type SimpleRemoteWrite struct {
 	URL string `yaml:"url,omitempty"`
+}
+
+type CredentialsManager struct {
+	// Allow loading of credentials via a file
+	File string `yaml:"file,omitempty"`
+	// Or allow them to be embedded in the configuration
+	Credentials *Credentials `yaml:"credentials,omitempty"`
 }
 
 // Credentials is a master credentials object that can be passed between nodes

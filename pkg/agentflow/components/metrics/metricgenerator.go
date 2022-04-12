@@ -56,7 +56,7 @@ func (mg *MetricGenerator) Receive(ctx actor.Context) {
 		mg.out = msg.Children
 	case actorstate.Start:
 		sched := scheduler.NewTimerScheduler(ctx)
-		mg.cancel = sched.SendRepeatedly(1*time.Millisecond, mg.config.SpawnInterval, ctx.Self(), "SendMore")
+		mg.cancel = sched.SendRepeatedly(mg.config.SpawnInterval, mg.config.SpawnInterval, ctx.Self(), "SendMore")
 	case actorstate.Done:
 		mg.cancel()
 	case string:

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/go-kit/kit/log"
+	"github.com/grafana/agent/pkg/agentflow/components/auth"
 	"github.com/grafana/agent/pkg/agentflow/components/integrations"
 	"github.com/grafana/agent/pkg/agentflow/components/logs"
 	"github.com/grafana/agent/pkg/agentflow/components/metrics"
@@ -187,7 +188,10 @@ func (u *Orchestrator) processNode(nodeCfg config.Node, global *types.Global) er
 	} else if nodeCfg.AgentLogs != nil {
 		// AgentLogs is a special case
 		return nil
+	} else if nodeCfg.Credentials != nil {
+		no, err = auth.NewCredentialsManager(nodeCfg.Name, nodeCfg.Credentials)
 	}
+
 	if err != nil {
 		return err
 	}

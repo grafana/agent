@@ -27,11 +27,13 @@ import (
 )
 
 type Prometheus struct {
-	name    string
-	self    *actor.PID
-	storage storage.Storage
-	wal     *wal.Storage
-	log     log.Logger
+	name          string
+	self          *actor.PID
+	storage       storage.Storage
+	wal           *wal.Storage
+	log           log.Logger
+	remoteStorage *remote.Storage
+	cfg           *config.PrometheusRemoteWrite
 }
 
 func (f *Prometheus) AllowableInputs() []actorstate.InOutType {
@@ -77,9 +79,11 @@ func NewPrometheus(name string, global *types.Global, cfg *config.PrometheusRemo
 	stor := storage.NewFanout(global.Log, walSt, st)
 
 	return &Prometheus{
-		name:    name,
-		storage: stor,
-		log:     global.Log,
+		name:          name,
+		storage:       stor,
+		log:           global.Log,
+		remoteStorage: st,
+		cfg:           cfg,
 	}, nil
 }
 
@@ -87,6 +91,27 @@ func (f *Prometheus) Receive(c actor.Context) {
 	switch msg := c.Message().(type) {
 	case actorstate.Start:
 		f.self = c.Self()
+	case exchange.Credentials:
+
+		httpCfg, urlV, err := f.getHttpConfig(msg)
+		if err != nil {
+			level.Error(f.log).Log("error", err)
+		}
+		err = f.remoteStorage.ApplyConfig(&prconfig.Config{
+			RemoteWriteConfigs: []*prconfig.RemoteWriteConfig{
+				{
+					Name:             "default",
+					URL:              urlV,
+					HTTPClientConfig: *httpCfg,
+					QueueConfig:      prconfig.DefaultQueueConfig,
+					MetadataConfig:   prconfig.DefaultMetadataConfig,
+					RemoteTimeout:    model.Duration(30 * time.Second),
+				},
+			},
+		})
+		if err != nil {
+			level.Error(f.log).Log("msg", "unable to apply config to prometheus", "error", err)
+		}
 	case []exchange.Metric:
 		appender := f.storage.Appender(context.Background())
 		for _, m := range msg {
@@ -114,8 +139,41 @@ func (f *Prometheus) Name() string {
 	return f.name
 }
 
-func (f Prometheus) PID() *actor.PID {
+func (f *Prometheus) PID() *actor.PID {
 	return f.PID()
+}
+
+func (f *Prometheus) getHttpConfig(cred exchange.Credentials) (*cmnconfig.HTTPClientConfig, *cmnconfig.URL, error) {
+	username := ""
+	password := ""
+	rwUrl := ""
+	if len(cred.BasicAuth) == 0 {
+		return nil, nil, fmt.Errorf("no basic auths found")
+	}
+	if len(cred.BasicAuth) == 1 {
+		username = cred.BasicAuth[0].Username
+		password = cred.BasicAuth[0].Password
+		rwUrl = cred.BasicAuth[0].URL
+	}
+	for _, a := range cred.BasicAuth {
+		if a.Name == f.name {
+			username = a.Username
+			password = a.Password
+			rwUrl = a.URL
+			break
+		}
+	}
+	httpCfg := cmnconfig.DefaultHTTPClientConfig
+	secr := cmnconfig.Secret(password)
+	httpCfg.BasicAuth = &cmnconfig.BasicAuth{
+		Username: username,
+		Password: secr,
+	}
+	pURL, _ := url.Parse(rwUrl)
+	cmUrl := cmnconfig.URL{}
+	cmUrl.URL = pURL
+	return &httpCfg, &cmUrl, nil
+
 }
 
 // readyScrapeManager allows a scrape manager to be retrieved. Even if it's set at a later point in time.
