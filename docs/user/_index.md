@@ -81,7 +81,7 @@ If the filter passes, the target is allowed to be scraped. Otherwise, the target
 will be silently ignored and not scraped.
 
 For detailed information on the host filtering mode, refer to the [operation
-guide]({{< relref "./operation-guide#host-filtering" >}}).
+guide]({{< relref "./operation-guide#host-filtering-beta" >}}).
 
 ## Logs
 
