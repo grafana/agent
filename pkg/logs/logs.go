@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+	_ "time/tzdata" // embed timezone data
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
