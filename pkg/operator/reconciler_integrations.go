@@ -73,6 +73,8 @@ func (r *reconciler) newIntegrationsDeployment(
 	key := types.NamespacedName{Namespace: deploy.Namespace, Name: deploy.Name}
 
 	if len(d.Integrations) == 0 {
+		// There's nothing to deploy; delete anything that might've been deployed
+		// from a previous reconcile.
 		level.Info(l).Log("msg", "deleting integrations Deployment", "deploy", key)
 		var deploy apps_v1.Deployment
 		return deleteManagedResource(ctx, r.Client, key, &deploy)
@@ -104,6 +106,8 @@ func (r *reconciler) newIntegrationsDaemonSet(
 	key := types.NamespacedName{Namespace: ds.Namespace, Name: ds.Name}
 
 	if len(d.Integrations) == 0 {
+		// There's nothing to deploy; delete anything that might've been deployed
+		// from a previous reconcile.
 		level.Info(l).Log("msg", "deleting integrations DaemonSet", "ds", key)
 		var ds apps_v1.DaemonSet
 		return deleteManagedResource(ctx, r.Client, key, &ds)

@@ -110,7 +110,7 @@ func (r *reconciler) createMetricsGoverningService(
 
 	svc := generateMetricsStatefulSetService(r.config, d)
 
-	// Delete the old Secret if one exists and we have no prometheus instances.
+	// Delete the old Service if one exists and we have no prometheus instances.
 	if len(d.Metrics) == 0 {
 		var service core_v1.Service
 		key := types.NamespacedName{Namespace: svc.Namespace, Name: svc.Name}
