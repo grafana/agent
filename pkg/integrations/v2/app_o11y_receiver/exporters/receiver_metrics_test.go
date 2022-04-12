@@ -48,21 +48,9 @@ func testcase(t *testing.T, payload models.Payload, assertions []metricAssertion
 
 func TestReceiverMetricsExport(t *testing.T) {
 	var payload models.Payload
-	payload.Logs = []models.Log{
-		{},
-		{},
-	}
-	payload.Measurements = []models.Measurement{
-		{},
-		{},
-		{},
-	}
-	payload.Exceptions = []models.Exception{
-		{},
-		{},
-		{},
-		{},
-	}
+        payload.Logs = make([]models.Log, 2)
+        payload.Measurements = make([]models.Measurement, 3)
+        payload.Exceptions = make([]models.Exception, 4)
 	testcase(t, payload, []metricAssertion{
 		{
 			name:  "app_o11y_receiver_total_logs",
