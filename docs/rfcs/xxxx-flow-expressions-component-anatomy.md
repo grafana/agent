@@ -2,7 +2,7 @@
 
 * Date: 2022-04-12
 * Author: Robert Fratto (@rfratto)
-* PR: NYI
+* PR: [grafana/agent#1559](https://github.com/grafana/agent/pull/1599)
 * Status: Draft
 
 ## Background
