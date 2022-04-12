@@ -10,6 +10,8 @@ import (
 	"net/http"
 )
 
+// StartActorSystem creates the actor framework, instantiates the orchestrator and sends all the init and start messages
+// to the nodes. It runs until stopped.
 func StartActorSystem(filePath string) {
 	as := actor.NewActorSystem()
 	root := actor.NewRootContext(as, nil)
