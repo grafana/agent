@@ -158,11 +158,12 @@ Response on success:
 
 ## Agent API
 
-### List current running instances
+### List current running instances of metrics subsystem
 
 ```
-GET /agent/api/v1/instances
+GET /agent/api/v1/metrics/instances
 ```
+*note:* deprecated alias is `/agent/api/v1/instances`
 
 Status code: 200 on success.
 Response on success:
@@ -176,14 +177,15 @@ Response on success:
 }
 ```
 
-### List current scrape targets
+### List current scrape targets of metrics subsystem
 
 ```
-GET /agent/api/v1/targets
+GET /agent/api/v1/metrics/targets
 ```
+*note:* deprecated alias is `/agent/api/v1/targets`
 
-This endpoint collects all targets known to the Agent across all running
-instances. Only targets being scraped from the local Agent will be returned. If
+This endpoint collects all metrics subsystem targets known to the Agent across all
+running instances. Only targets being scraped from the local Agent will be returned. If
 running in scraping service mode, this endpoint must be invoked in all Agents
 separately to get the combined set of targets across the whole Agent cluster.
 
@@ -416,7 +418,7 @@ GET /agent/api/v1/metrics/integrations/targets
 ```
 
 This endpoint returns all integrations for which autoscrape is enabled. The
-response is identical to [`/agent/api/v1/targets`](#list-current-scrape-targets).
+response is identical to [`/agent/api/v1/metrics/targets`](#list-current-scrape-targets).
 
 Status code: 200 on success.
 Response on success:
