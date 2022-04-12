@@ -4,7 +4,7 @@ import (
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
-	"github.com/grafana/agent/pkg/agentflow/types/pogo"
+	"github.com/grafana/agent/pkg/agentflow/types/exchange"
 	"os"
 	"strings"
 )
@@ -36,7 +36,7 @@ func (m *FileWriter) Receive(c actor.Context) {
 	case actorstate.Start:
 		m.self = c.Self()
 		m.file, _ = os.OpenFile(m.cfg.Path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	case []pogo.Log:
+	case []exchange.Log:
 		sb := strings.Builder{}
 		//TODO: This actually should NOT use original, but instead decode into logfmt
 		for _, l := range msg {

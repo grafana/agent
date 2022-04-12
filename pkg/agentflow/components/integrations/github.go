@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
-	"github.com/grafana/agent/pkg/agentflow/types/pogo"
+	"github.com/grafana/agent/pkg/agentflow/types/exchange"
 	gh_config "github.com/infinityworks/github-exporter/config"
 	"github.com/infinityworks/github-exporter/exporter"
 	"github.com/prometheus/client_golang/prometheus"
@@ -85,9 +85,9 @@ func (a *Github) Receive(c actor.Context) {
 			level.Error(a.log).Log("error", err)
 			return
 		}
-		ms := make([]pogo.Metric, 0)
+		ms := make([]exchange.Metric, 0)
 		for _, m := range metrics {
-			pogom := pogo.CopyMetricFromPrometheus(m)
+			pogom := exchange.CopyMetricFromPrometheus(m)
 			ms = append(ms, pogom)
 		}
 		if len(ms) == 0 {

@@ -1,10 +1,10 @@
-package components
+package metrics
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
-	"github.com/grafana/agent/pkg/agentflow/types/pogo"
+	"github.com/grafana/agent/pkg/agentflow/types/exchange"
 	"regexp"
 )
 
@@ -36,8 +36,8 @@ func (m *MetricFilter) Receive(c actor.Context) {
 		m.outs = msg.Children
 	case actorstate.Start:
 		m.self = c.Self()
-	case []pogo.Metric:
-		metrics := make([]pogo.Metric, 0)
+	case []exchange.Metric:
+		metrics := make([]exchange.Metric, 0)
 		for _, metric := range msg {
 			newM := m.match(metric)
 			if newM == nil {
@@ -59,7 +59,7 @@ func (m *MetricFilter) PID() *actor.PID {
 	return m.self
 }
 
-func (m *MetricFilter) match(metric pogo.Metric) *pogo.Metric {
+func (m *MetricFilter) match(metric exchange.Metric) *exchange.Metric {
 	if len(m.cfg.Filters) == 0 {
 		return &metric
 	}
@@ -79,7 +79,7 @@ func (m *MetricFilter) match(metric pogo.Metric) *pogo.Metric {
 		case "add_label":
 			newMap := metric.Labels()
 			newMap[f.AddLabel] = f.AddLabel
-			newM := pogo.NewMetric(metric.Name(), metric.Value(), metric.Timestamp(), newMap, metric.Metadata())
+			newM := exchange.NewMetric(metric.Name(), metric.Value(), metric.Timestamp(), newMap, metric.Metadata())
 			return &newM
 		}
 	}

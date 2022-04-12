@@ -6,7 +6,7 @@ import (
 	"github.com/AsynkronIT/protoactor-go/scheduler"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
-	"github.com/grafana/agent/pkg/agentflow/types/pogo"
+	"github.com/grafana/agent/pkg/agentflow/types/exchange"
 	"os"
 	"sync"
 	"time"
@@ -73,7 +73,7 @@ func (a *Agent) Receive(c actor.Context) {
 		copy(cpy, a.logsBuffer)
 		a.logsBuffer = a.logsBuffer[:0]
 		a.logsMutex.Unlock()
-		logs := make([]pogo.Log, 0)
+		logs := make([]exchange.Log, 0)
 		for _, b := range cpy {
 			bb := bytes.Buffer{}
 			bb.Write(b)
@@ -85,7 +85,7 @@ func (a *Agent) Receive(c actor.Context) {
 				}
 			}
 			//TODO: Time.now is incorrect but don't feel like parsing the time
-			l := pogo.NewLog(time.Now(), labels, b)
+			l := exchange.NewLog(time.Now(), labels, b)
 			logs = append(logs, l)
 		}
 		for _, o := range a.outs {

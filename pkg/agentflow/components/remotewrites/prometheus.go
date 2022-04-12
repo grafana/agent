@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
-	"github.com/grafana/agent/pkg/agentflow/types/pogo"
+	"github.com/grafana/agent/pkg/agentflow/types/exchange"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/client_golang/prometheus"
 	cmnconfig "github.com/prometheus/common/config"
@@ -87,7 +87,7 @@ func (f *Prometheus) Receive(c actor.Context) {
 	switch msg := c.Message().(type) {
 	case actorstate.Start:
 		f.self = c.Self()
-	case []pogo.Metric:
+	case []exchange.Metric:
 		appender := f.storage.Appender(context.Background())
 		for _, m := range msg {
 			promLbls := labels.FromMap(m.Labels())

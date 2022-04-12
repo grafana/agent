@@ -1,4 +1,4 @@
-package components
+package metrics
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
-	"github.com/grafana/agent/pkg/agentflow/types/pogo"
+	"github.com/grafana/agent/pkg/agentflow/types/exchange"
 	"gopkg.in/yaml.v3"
 	"math/rand"
 	"time"
@@ -65,7 +65,7 @@ func (mg *MetricGenerator) Receive(ctx actor.Context) {
 		}
 		metrics := mg.makeMetrics()
 		for _, o := range mg.out {
-			cpy := make([]pogo.Metric, len(metrics))
+			cpy := make([]exchange.Metric, len(metrics))
 			copy(cpy, metrics)
 			ctx.Send(o, cpy)
 		}
@@ -80,10 +80,10 @@ func (mg *MetricGenerator) Receive(ctx actor.Context) {
 	}
 }
 
-func (mg *MetricGenerator) makeMetrics() []pogo.Metric {
-	metrics := make([]pogo.Metric, 0)
+func (mg *MetricGenerator) makeMetrics() []exchange.Metric {
+	metrics := make([]exchange.Metric, 0)
 	for i := 0; i < 100; i++ {
-		metrics = append(metrics, pogo.NewMetric(fmt.Sprintf("gen_%d", i), rand.Float64(), time.Now(), nil, nil))
+		metrics = append(metrics, exchange.NewMetric(fmt.Sprintf("gen_%d", i), rand.Float64(), time.Now(), nil, nil))
 	}
 	return metrics
 }

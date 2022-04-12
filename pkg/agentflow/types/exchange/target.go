@@ -1,4 +1,4 @@
-package pogo
+package exchange
 
 type Target struct {
 	address  string

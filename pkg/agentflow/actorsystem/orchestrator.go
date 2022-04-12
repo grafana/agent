@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/go-kit/kit/log"
-	"github.com/grafana/agent/pkg/agentflow/components"
 	"github.com/grafana/agent/pkg/agentflow/components/integrations"
 	"github.com/grafana/agent/pkg/agentflow/components/logs"
+	"github.com/grafana/agent/pkg/agentflow/components/metrics"
 	"github.com/grafana/agent/pkg/agentflow/components/remotewrites"
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types"
@@ -173,9 +173,9 @@ func (u *Orchestrator) processNode(nodeCfg config.Node, global *types.Global) er
 	var err error
 	var no actorstate.FlowActor
 	if nodeCfg.MetricGenerator != nil {
-		no, err = components.NewMetricGenerator(nodeCfg.Name, *nodeCfg.MetricGenerator, global)
+		no, err = metrics.NewMetricGenerator(nodeCfg.Name, *nodeCfg.MetricGenerator, global)
 	} else if nodeCfg.MetricFilter != nil {
-		no, err = components.NewMetricFilter(nodeCfg.Name, *nodeCfg.MetricFilter)
+		no, err = metrics.NewMetricFilter(nodeCfg.Name, *nodeCfg.MetricFilter)
 	} else if nodeCfg.FakeMetricRemoteWrite != nil {
 		no, err = remotewrites.NewFakeMetricRemoteWrite(nodeCfg.Name)
 	} else if nodeCfg.LogFileWriter != nil {

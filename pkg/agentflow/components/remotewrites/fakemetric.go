@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
-	"github.com/grafana/agent/pkg/agentflow/types/pogo"
+	"github.com/grafana/agent/pkg/agentflow/types/exchange"
 )
 
 type FakeMetric struct {
@@ -30,7 +30,7 @@ func (f *FakeMetric) Receive(c actor.Context) {
 	switch msg := c.Message().(type) {
 	case actorstate.Start:
 		f.self = c.Self()
-	case []pogo.Metric:
+	case []exchange.Metric:
 		fmt.Printf("recieved %d metrics \n", len(msg))
 	}
 }

@@ -1,4 +1,4 @@
-package pogo
+package exchange
 
 import (
 	dto "github.com/prometheus/client_model/go"
