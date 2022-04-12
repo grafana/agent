@@ -1,12 +1,13 @@
 package logs
 
 import (
+	"bytes"
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
 	"github.com/grafana/agent/pkg/agentflow/types/exchange"
 	"os"
-	"strings"
 )
 
 type FileWriter struct {
@@ -37,12 +38,24 @@ func (m *FileWriter) Receive(c actor.Context) {
 		m.self = c.Self()
 		m.file, _ = os.OpenFile(m.cfg.Path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	case []exchange.Log:
-		sb := strings.Builder{}
-		//TODO: This actually should NOT use original, but instead decode into logfmt
-		for _, l := range msg {
-			sb.Write(l.Original())
+		bb := bytes.Buffer{}
+		enc := logfmt.NewEncoder(&bb)
+
+		for _, m := range msg {
+			lbls := m.Labels()
+			for _, k := range lbls.Keys() {
+				v, _ := lbls.Get(k)
+				err := enc.EncodeKeyval(k, v)
+				if err != nil {
+					println(err)
+				}
+			}
+			err := enc.EndRecord()
+			if err != nil {
+				println(err)
+			}
 		}
-		m.file.Write([]byte(sb.String()))
+		m.file.Write(bb.Bytes())
 	}
 }
 

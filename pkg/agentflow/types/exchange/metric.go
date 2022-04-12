@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"github.com/iancoleman/orderedmap"
 	dto "github.com/prometheus/client_model/go"
 	"time"
 )
@@ -9,11 +10,11 @@ type Metric struct {
 	name     string
 	value    float64
 	ts       time.Time
-	labels   map[string]string
-	metadata map[string]string
+	labels   *orderedmap.OrderedMap
+	metadata *orderedmap.OrderedMap
 }
 
-func NewMetric(name string, value float64, ts time.Time, labels map[string]string, metadata map[string]string) Metric {
+func NewMetric(name string, value float64, ts time.Time, labels *orderedmap.OrderedMap, metadata *orderedmap.OrderedMap) Metric {
 	m := Metric{
 		name:     name,
 		value:    value,
@@ -22,20 +23,20 @@ func NewMetric(name string, value float64, ts time.Time, labels map[string]strin
 		metadata: metadata,
 	}
 	if m.labels == nil {
-		m.labels = make(map[string]string)
+		m.labels = orderedmap.New()
 	}
 	if m.metadata == nil {
-		m.labels = make(map[string]string)
+		m.metadata = orderedmap.New()
 	}
-	m.labels["__name__"] = name
+	m.labels.Set("__name__", name)
 	return m
 }
 
 func CopyMetricFromPrometheus(in *dto.MetricFamily) Metric {
 
-	lbls := make(map[string]string)
+	lbls := orderedmap.New()
 	for _, v := range in.Metric[0].Label {
-		lbls[*v.Name] = *v.Value
+		lbls.Set(*v.Name, *v.Value)
 	}
 	var val float64
 	if in.Metric[0].Counter != nil {
@@ -48,9 +49,9 @@ func CopyMetricFromPrometheus(in *dto.MetricFamily) Metric {
 		value:    val,
 		ts:       time.Now(),
 		labels:   lbls,
-		metadata: nil,
+		metadata: orderedmap.New(),
 	}
-	m.labels["__name__"] = in.GetName()
+	m.labels.Set("__name__", in.GetName())
 	return m
 }
 
@@ -76,18 +77,19 @@ func (m *Metric) Timestamp() time.Time {
 	return m.ts
 }
 
-func (m *Metric) Labels() map[string]string {
+func (m *Metric) Labels() *orderedmap.OrderedMap {
 	return copyMap(m.labels)
 }
 
-func (m *Metric) Metadata() map[string]string {
+func (m *Metric) Metadata() *orderedmap.OrderedMap {
 	return copyMap(m.metadata)
 }
 
-func copyMap(in map[string]string) map[string]string {
-	newMap := make(map[string]string)
-	for k, v := range in {
-		newMap[k] = v
+func copyMap(in *orderedmap.OrderedMap) *orderedmap.OrderedMap {
+	newMap := orderedmap.New()
+	for _, k := range in.Keys() {
+		v, _ := in.Get(k)
+		newMap.Set(k, v)
 	}
 	return newMap
 }

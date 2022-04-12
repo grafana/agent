@@ -1,18 +1,17 @@
 package exchange
 
 import "time"
+import "github.com/iancoleman/orderedmap"
 
 type Log struct {
-	ts       time.Time
-	labels   map[string]string
-	original []byte
+	ts     time.Time
+	labels *orderedmap.OrderedMap
 }
 
-func NewLog(ts time.Time, labels map[string]string, original []byte) Log {
+func NewLog(ts time.Time, labels *orderedmap.OrderedMap) Log {
 	return Log{
-		ts:       ts,
-		labels:   labels,
-		original: original,
+		ts:     ts,
+		labels: labels,
 	}
 }
 
@@ -20,12 +19,7 @@ func (l *Log) TimeStamp() time.Time {
 	return l.ts
 }
 
-func (l *Log) Labels() map[string]string {
-	return copyMap(l.labels)
-}
+func (l *Log) Labels() *orderedmap.OrderedMap {
 
-func (l *Log) Original() []byte {
-	cpy := make([]byte, len(l.original))
-	copy(cpy, l.original)
-	return cpy
+	return copyMap(l.labels)
 }

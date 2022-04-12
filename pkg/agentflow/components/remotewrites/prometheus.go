@@ -90,7 +90,13 @@ func (f *Prometheus) Receive(c actor.Context) {
 	case []exchange.Metric:
 		appender := f.storage.Appender(context.Background())
 		for _, m := range msg {
-			promLbls := labels.FromMap(m.Labels())
+			lbls := m.Labels()
+			newLbls := make(map[string]string)
+			for _, k := range lbls.Keys() {
+				v, _ := lbls.Get(k)
+				newLbls[k] = v.(string)
+			}
+			promLbls := labels.FromMap(newLbls)
 			_, err := appender.Append(0, promLbls, timestamp.FromTime(m.Timestamp()), m.Value())
 			if err != nil {
 				level.Error(f.log).Log("msg", "error while writing to appender", "error", err)

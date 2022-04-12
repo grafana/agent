@@ -7,6 +7,7 @@ import (
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
 	"github.com/grafana/agent/pkg/agentflow/types/exchange"
+	"github.com/iancoleman/orderedmap"
 	"os"
 	"sync"
 	"time"
@@ -78,14 +79,17 @@ func (a *Agent) Receive(c actor.Context) {
 			bb := bytes.Buffer{}
 			bb.Write(b)
 			d := logfmt.NewDecoder(&bb)
-			labels := make(map[string]string)
+			labels := orderedmap.New()
 			for d.ScanRecord() {
 				for d.ScanKeyval() {
-					labels[string(d.Key())] = string(d.Value())
+					labels.Set(string(d.Key()), string(d.Value()))
 				}
 			}
-			//TODO: Time.now is incorrect but don't feel like parsing the time
-			l := exchange.NewLog(time.Now(), labels, b)
+			ts := time.Now()
+			if v, found := labels.Get("ts"); found {
+				ts, _ = time.Parse(time.RFC3339Nano, v.(string))
+			}
+			l := exchange.NewLog(ts, labels)
 			logs = append(logs, l)
 		}
 		for _, o := range a.outs {

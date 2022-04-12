@@ -1,12 +1,14 @@
 package exchange
 
+import "github.com/iancoleman/orderedmap"
+
 type Target struct {
 	address  string
-	labels   map[string]string
-	metadata map[string]string
+	labels   *orderedmap.OrderedMap
+	metadata *orderedmap.OrderedMap
 }
 
-func NewTarget(address string, labels map[string]string, metadata map[string]string) Target {
+func NewTarget(address string, labels *orderedmap.OrderedMap, metadata *orderedmap.OrderedMap) Target {
 	return Target{
 		address:  address,
 		labels:   labels,
@@ -26,10 +28,10 @@ func (t *Target) Address() string {
 	return t.address
 }
 
-func (t *Target) Labels() map[string]string {
+func (t *Target) Labels() *orderedmap.OrderedMap {
 	return copyMap(t.labels)
 }
 
-func (t *Target) Metadata() map[string]string {
+func (t *Target) Metadata() *orderedmap.OrderedMap {
 	return copyMap(t.metadata)
 }
