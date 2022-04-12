@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/grafana/agent/pkg/agentflow/actorsystem"
 	"log"
 	"os"
 
@@ -47,11 +48,14 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	if cfg.EnableAgentFlow {
+		actorsystem.StartActorSystem(cfg.AgentFlowConfigPath)
+		return
+	}
 
 	// After this point we can start using go-kit logging.
 	logger := server.NewLogger(&cfg.Server)
 	util_log.Logger = logger
-
 	ep, err := NewEntrypoint(logger, cfg, reloader)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)

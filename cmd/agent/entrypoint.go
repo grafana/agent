@@ -52,6 +52,7 @@ type Reloader = func() (*config.Config, error)
 
 // NewEntrypoint creates a new Entrypoint.
 func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader) (*Entrypoint, error) {
+
 	var (
 		ep = &Entrypoint{
 			log:      logger,

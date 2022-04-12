@@ -71,6 +71,9 @@ type Config struct {
 
 	// Toggle for config endpoint(s)
 	EnableConfigEndpoints bool `yaml:"-"`
+
+	EnableAgentFlow     bool   `yaml:"-"`
+	AgentFlowConfigPath string `yaml:"-"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -351,8 +354,9 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 		file            string
 		fileType        string
 		configExpandEnv bool
+		agentFlow       bool
 	)
-
+	fs.BoolVar(&agentFlow, "agent.flow", false, "enable agentflow")
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
 	fs.StringVar(&fileType, "config.file.type", "yaml", fmt.Sprintf("Type of file pointed to by -config.file flag. Supported values: %s. %s requires dynamic-config and integrations-next features to be enabled.", strings.Join(fileTypes, ", "), fileTypeDynamic))
 	fs.BoolVar(&printVersion, "version", false, "Print this build's version information")
@@ -367,6 +371,11 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	if printVersion {
 		fmt.Println(version.Print("agent"))
 		os.Exit(0)
+	}
+	if agentFlow {
+		cfg.EnableAgentFlow = agentFlow
+		cfg.AgentFlowConfigPath = file
+		return &cfg, nil
 	}
 
 	if file == "" {
@@ -396,6 +405,7 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	if err := cfg.Validate(fs); err != nil {
 		return nil, fmt.Errorf("error in config file: %w", err)
 	}
+
 	return &cfg, nil
 }
 
