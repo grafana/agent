@@ -53,22 +53,52 @@ spec:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               configMaps:
-                description: "An extra list of ConfigMaps in the same namespace as
-                  the Integration which will be mounted into the Grafana Agent pod
-                  running this integration. \n ConfigMaps will be mounted at /etc/grafana-agent/integration-configmaps/<configmap_namespace>/<configmap_name>."
+                description: "An extra list of keys from ConfigMaps in the same namespace
+                  as the Integration which will be mounted into the Grafana Agent
+                  pod running this integration. \n ConfigMaps will be mounted at /etc/grafana-agent/integrations/configMaps/<configmap_namespace>/<configmap_name>/<key>."
                 items:
-                  type: string
+                  description: Selects a key from a ConfigMap.
+                  properties:
+                    key:
+                      description: The key to select.
+                      type: string
+                    name:
+                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        TODO: Add other useful fields. apiVersion, kind, uid?'
+                      type: string
+                    optional:
+                      description: Specify whether the ConfigMap or its key must be
+                        defined
+                      type: boolean
+                  required:
+                  - key
+                  type: object
                 type: array
               name:
                 description: Name of the integration to run (e.g., "node_exporter",
                   "mysqld_exporter").
                 type: string
               secrets:
-                description: "An extra list of Secret names in the same namespace
+                description: "An extra list of keys from Secrets in the same namespace
                   as the Integration which will be mounted into the Grafana Agent
-                  pod running this integration. \n Secrets will be mounted at /etc/grafana-agent/integration-secrets/<secret_namespace>/<secret_name>."
+                  pod running this integration. \n Secrets will be mounted at /etc/grafana-agent/integrations/secrets/<secret_namespace>/<secret_name>/<key>."
                 items:
-                  type: string
+                  description: SecretKeySelector selects a key of a Secret.
+                  properties:
+                    key:
+                      description: The key of the secret to select from.  Must be
+                        a valid secret key.
+                      type: string
+                    name:
+                      description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        TODO: Add other useful fields. apiVersion, kind, uid?'
+                      type: string
+                    optional:
+                      description: Specify whether the Secret or its key must be defined
+                      type: boolean
+                  required:
+                  - key
+                  type: object
                 type: array
               type:
                 description: Type informs Grafana Agent Operator how to manage the
@@ -87,14 +117,13 @@ spec:
                       with the same integration name (i.e., a single GrafanaAgent
                       cannot deploy two statsd_exporters).
                     type: boolean
-                required:
-                - allNodes
-                - unique
                 type: object
               volumeMounts:
-                description: An extra list of VolumeMounts to be associated with the
-                  Grafana Agent pods running this integration. VolumeMount names will
-                  be mutated to be unique for an agent deployment.
+                description: "An extra list of VolumeMounts to be associated with
+                  the Grafana Agent pods running this integration. VolumeMount names
+                  will be mutated to be unique across all used IntegrationSpecs. \n
+                  Mount paths should include the namespace/name of the Integration
+                  CR to avoid potentially colliding with other resources."
                 items:
                   description: VolumeMount describes a mounting of a Volume within
                     a container.
@@ -133,11 +162,13 @@ spec:
                   type: object
                 type: array
               volumes:
-                description: An extra list of Volumes to be associated with the Grafana
+                description: "An extra list of Volumes to be associated with the Grafana
                   Agent pods running this integration. Volume names will be mutated
-                  to be unique for an agent deployment. Note that the specified volumes
+                  to be unique across all Integrations. Note that the specified volumes
                   should be able to tolerate existing on multiple pods at once when
-                  type is daemonset.
+                  type is daemonset. \n Don't use volumes for loading secrets/configMaps
+                  from the same namespace as the Integration; use the secrets and
+                  configMaps fields instead."
                 items:
                   description: Volume represents a named volume in a pod that may
                     be accessed by any container in the pod.

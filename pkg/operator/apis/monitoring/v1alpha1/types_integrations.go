@@ -71,38 +71,50 @@ type IntegrationSpec struct {
 	Config apiextv1.JSON `json:"config"`
 
 	// An extra list of Volumes to be associated with the Grafana Agent pods
-	// running this integration. Volume names will be mutated to be unique for an
-	// agent deployment. Note that the specified volumes should be able to
+	// running this integration. Volume names will be mutated to be unique across
+	// all Integrations. Note that the specified volumes should be able to
 	// tolerate existing on multiple pods at once when type is daemonset.
+	//
+	// Don't use volumes for loading secrets/configMaps from the same namespace
+	// as the Integration; use the secrets and configMaps fields instead.
 	Volumes []corev1.Volume `json:"volumes,omitempty"`
 
 	// An extra list of VolumeMounts to be associated with the Grafana Agent pods
 	// running this integration. VolumeMount names will be mutated to be unique
-	// for an agent deployment.
+	// across all used IntegrationSpecs.
+	//
+	// Mount paths should include the namespace/name of the Integration CR to
+	// avoid potentially colliding with other resources.
 	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
 
-	// An extra list of Secret names in the same namespace as the Integration
-	// which will be mounted into the Grafana Agent pod running this integration.
+	// An extra list of keys from Secrets in the same namespace as the
+	// Integration which will be mounted into the Grafana Agent pod running this
+	// integration.
 	//
 	// Secrets will be mounted at
-	// /etc/grafana-agent/integration-secrets/<secret_namespace>/<secret_name>.
-	Secrets []string `json:"secrets,omitempty"`
+	// /etc/grafana-agent/integrations/secrets/<secret_namespace>/<secret_name>/<key>.
+	Secrets []corev1.SecretKeySelector `json:"secrets,omitempty"`
 
-	// An extra list of ConfigMaps in the same namespace as the Integration which
-	// will be mounted into the Grafana Agent pod running this integration.
+	// An extra list of keys from ConfigMaps in the same namespace as the
+	// Integration which will be mounted into the Grafana Agent pod running this
+	// integration.
 	//
 	// ConfigMaps will be mounted at
-	// /etc/grafana-agent/integration-configmaps/<configmap_namespace>/<configmap_name>.
-	ConfigMaps []string `json:"configMaps,omitempty"`
+	// /etc/grafana-agent/integrations/configMaps/<configmap_namespace>/<configmap_name>/<key>.
+	ConfigMaps []corev1.ConfigMapKeySelector `json:"configMaps,omitempty"`
 }
 
 // IntegrationType determines specific behaviors of a configured integration.
 type IntegrationType struct {
+	// +kubebuilder:validation:Optional
+
 	// When true, the configured integration should be run on every Node in the
 	// cluster. This is required for integrations that generate Node-specific
 	// metrics like node_exporter, otherwise it must be false to avoid generating
 	// duplicate metrics.
 	AllNodes bool `json:"allNodes"`
+
+	// +kubebuilder:validation:Optional
 
 	// Whether this integration can only be defined once for a Grafana Agent
 	// process, such as statsd_exporter. It is invalid for a GrafanaAgent to

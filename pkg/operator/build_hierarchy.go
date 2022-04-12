@@ -248,11 +248,18 @@ func buildSecrets(ctx context.Context, cli client.Client, deploy gragent.Deploym
 				}
 				value = string(rawValue)
 			case *corev1.ConfigMap:
-				rawValue, ok := o.BinaryData[ref.Reference.ConfigMap.Key]
-				if !ok {
+				var (
+					dataValue, dataFound     = o.Data[ref.Reference.ConfigMap.Key]
+					binaryValue, binaryFound = o.BinaryData[ref.Reference.ConfigMap.Key]
+				)
+
+				if dataFound {
+					value = dataValue
+				} else if binaryFound {
+					value = string(binaryValue)
+				} else {
 					return fmt.Errorf("no key %s in ConfigMap %s", ref.Reference.ConfigMap.Key, o.Name)
 				}
-				value = string(rawValue)
 			}
 
 			secrets[assets.KeyForSelector(ref.Namespace, &ref.Reference)] = value

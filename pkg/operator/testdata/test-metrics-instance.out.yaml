@@ -48,16 +48,17 @@ spec:
           readOnly: true
         - mountPath: /var/lib/grafana-agent/config
           name: config-out
-        - mountPath: /var/lib/grafana-agent/data
-          name: grafana-agent-example-wal
         - mountPath: /var/lib/grafana-agent/secrets
           name: secrets
           readOnly: true
+        - mountPath: /var/lib/grafana-agent/data
+          name: grafana-agent-example-wal
       - name: grafana-agent
         args:
         - -config.file=/var/lib/grafana-agent/config/agent.yml
         - -config.expand-env=true
         - -server.http.address=0.0.0.0:8080
+        - -enable-features=integrations-next
         env:
         - name: POD_NAME
           valueFrom:
@@ -83,11 +84,11 @@ spec:
           readOnly: true
         - mountPath: /var/lib/grafana-agent/config
           name: config-out
-        - mountPath: /var/lib/grafana-agent/data
-          name: grafana-agent-example-wal
         - mountPath: /var/lib/grafana-agent/secrets
           name: secrets
           readOnly: true
+        - mountPath: /var/lib/grafana-agent/data
+          name: grafana-agent-example-wal
       serviceAccount: grafana-agent
       serviceAccountName: grafana-agent
       terminationGracePeriodSeconds: 4800

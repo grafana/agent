@@ -29,26 +29,31 @@ func (r *reconciler) createMetricsConfigurationSecret(
 	d gragent.Deployment,
 ) error {
 
-	return r.createTelemetryConfigurationSecret(ctx, l, d, config.MetricsType)
+	name := fmt.Sprintf("%s-config", d.Agent.Name)
+	return r.createTelemetryConfigurationSecret(ctx, l, name, d, config.MetricsType)
 }
 
 func (r *reconciler) createTelemetryConfigurationSecret(
 	ctx context.Context,
 	l log.Logger,
+	name string,
 	d gragent.Deployment,
 	ty config.Type,
 ) error {
 
-	var shouldCreate bool
-	key := types.NamespacedName{Namespace: d.Agent.Namespace}
+	key := types.NamespacedName{
+		Namespace: d.Agent.Namespace,
+		Name:      name,
+	}
 
+	var shouldCreate bool
 	switch ty {
 	case config.MetricsType:
-		key.Name = fmt.Sprintf("%s-config", d.Agent.Name)
 		shouldCreate = len(d.Metrics) > 0
 	case config.LogsType:
-		key.Name = fmt.Sprintf("%s-logs-config", d.Agent.Name)
 		shouldCreate = len(d.Logs) > 0
+	case config.IntegrationsType:
+		shouldCreate = len(d.Integrations) > 0
 	default:
 		return fmt.Errorf("unknown telemetry type %s", ty)
 	}
@@ -105,7 +110,7 @@ func (r *reconciler) createMetricsGoverningService(
 
 	svc := generateMetricsStatefulSetService(r.config, d)
 
-	// Delete the old Secret if one exists and we have no prometheus instances.
+	// Delete the old Service if one exists and we have no prometheus instances.
 	if len(d.Metrics) == 0 {
 		var service core_v1.Service
 		key := types.NamespacedName{Namespace: svc.Namespace, Name: svc.Name}

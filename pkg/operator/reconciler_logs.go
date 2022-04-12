@@ -21,7 +21,8 @@ func (r *reconciler) createLogsConfigurationSecret(
 	d gragent.Deployment,
 ) error {
 
-	return r.createTelemetryConfigurationSecret(ctx, l, d, config.LogsType)
+	name := fmt.Sprintf("%s-logs-config", d.Agent.Name)
+	return r.createTelemetryConfigurationSecret(ctx, l, name, d, config.LogsType)
 }
 
 // createLogsDaemonSet creates a DaemonSet for logs.
@@ -39,6 +40,8 @@ func (r *reconciler) createLogsDaemonSet(
 	key := types.NamespacedName{Namespace: ds.Namespace, Name: ds.Name}
 
 	if len(d.Logs) == 0 {
+		// There's nothing to deploy; delete anything that might've been deployed
+		// from a previous reconcile.
 		var ds apps_v1.DaemonSet
 		return deleteManagedResource(ctx, r.Client, key, &ds)
 	}

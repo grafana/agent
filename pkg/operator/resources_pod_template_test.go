@@ -8,11 +8,10 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Test_generateMetricsStatefulSetSpec(t *testing.T) {
+func Test_generatePodTemplate(t *testing.T) {
 	var (
-		cfg   = &Config{}
-		name  = "example"
-		shard = int32(1)
+		cfg  = &Config{}
+		name = "example"
 	)
 
 	t.Run("image should have version", func(t *testing.T) {
@@ -22,9 +21,9 @@ func Test_generateMetricsStatefulSetSpec(t *testing.T) {
 			},
 		}
 
-		spec, err := generateMetricsStatefulSetSpec(cfg, name, deploy, shard)
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
 		require.NoError(t, err)
-		require.Equal(t, DefaultAgentImage, spec.Template.Spec.Containers[1].Image)
+		require.Equal(t, DefaultAgentImage, tmpl.Spec.Containers[1].Image)
 	})
 
 	t.Run("allow custom version", func(t *testing.T) {
@@ -37,8 +36,8 @@ func Test_generateMetricsStatefulSetSpec(t *testing.T) {
 			},
 		}
 
-		spec, err := generateMetricsStatefulSetSpec(cfg, name, deploy, shard)
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
 		require.NoError(t, err)
-		require.Equal(t, DefaultAgentBaseImage+":vX.Y.Z", spec.Template.Spec.Containers[1].Image)
+		require.Equal(t, DefaultAgentBaseImage+":vX.Y.Z", tmpl.Spec.Containers[1].Image)
 	})
 }

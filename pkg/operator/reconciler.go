@@ -71,6 +71,12 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 		// Logs resources (may be a no-op if no logs configured)
 		r.createLogsConfigurationSecret,
 		r.createLogsDaemonSet,
+
+		// Integration resources (may be a no-op if no integrations configured)
+		r.newIntegrationsDeploymentSecret,
+		r.newIntegrationsDaemonSetSecret,
+		r.newIntegrationsDeployment,
+		r.newIntegrationsDaemonSet,
 	}
 	for _, actor := range actors {
 		err := actor(ctx, l, deployment)
