@@ -3,7 +3,6 @@ package snmp_exporter
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 	"net/http"
 	"net/url"

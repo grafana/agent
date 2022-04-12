@@ -3,7 +3,7 @@ package common
 import (
 	"bytes"
 	"compress/gzip"
-	_ "embed"
+	_ "embed" // enables the go:embed directive
 	"io/ioutil"
 
 	snmp_config "github.com/prometheus/snmp_exporter/config"

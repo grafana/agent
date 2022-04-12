@@ -2,7 +2,6 @@
 package snmp_exporter
 
 import (
-	_ "embed"
 	"fmt"
 
 	"github.com/go-kit/log"
