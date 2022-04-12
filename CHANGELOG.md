@@ -17,10 +17,16 @@ Main (unreleased)
   where not all releases where retrieved when pulling release information.
   (@rfratto)
 
-- Initialize the logger with default `log_level` and `log_format` parameters. (@tpaschalis)
+- Initialize the logger with default `log_level` and `log_format` parameters.
+  (@tpaschalis)
 
 - Operator: fix issue where a `username_file` field was incorrectly set.
   (@rfratto)
+
+### Other changes
+
+- Embed timezone data to enable Promtail pipelines using the `location` field
+  on Windows machines. (@tpaschalis)
 
 v0.24.0 (2022-04-07)
 --------------------
