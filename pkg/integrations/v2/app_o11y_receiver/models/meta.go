@@ -7,15 +7,15 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 )
 
-// Sdk holds metadata about the app agent that produced the event
-type Sdk struct {
+// SDK holds metadata about the app agent that produced the event
+type SDK struct {
 	Name         string           `json:"name,omitempty"`
 	Version      string           `json:"version,omitempty"`
-	Integrations []SdkIntegration `json:"integrations,omitempty"`
+	Integrations []SDKIntegration `json:"integrations,omitempty"`
 }
 
 // KeyVal produces key->value representation of Sdk metadata
-func (sdk Sdk) KeyVal() *utils.KeyVal {
+func (sdk SDK) KeyVal() *utils.KeyVal {
 	kv := utils.NewKeyVal()
 	utils.KeyValAdd(kv, "name", sdk.Name)
 	utils.KeyValAdd(kv, "version", sdk.Version)
@@ -33,13 +33,13 @@ func (sdk Sdk) KeyVal() *utils.KeyVal {
 	return kv
 }
 
-// SdkIntegration holds metadata about a plugin/integration on the app agent that collected and sent the event
-type SdkIntegration struct {
+// SDKIntegration holds metadata about a plugin/integration on the app agent that collected and sent the event
+type SDKIntegration struct {
 	Name    string `json:"name,omitempty"`
 	Version string `json:"version,omitempty"`
 }
 
-func (i SdkIntegration) String() string {
+func (i SDKIntegration) String() string {
 	return fmt.Sprintf("%s:%s", i.Name, i.Version)
 }
 
@@ -63,7 +63,7 @@ func (u User) KeyVal() *utils.KeyVal {
 
 // Meta holds metadata about an app event
 type Meta struct {
-	Sdk     Sdk     `json:"sdk,omitempty"`
+	SDK     SDK     `json:"sdk,omitempty"`
 	App     App     `json:"app,omitempty"`
 	User    User    `json:"user,omitempty"`
 	Session Session `json:"session,omitempty"`
@@ -74,7 +74,7 @@ type Meta struct {
 // KeyVal produces key->value representation of the app event metadatga
 func (m Meta) KeyVal() *utils.KeyVal {
 	kv := utils.NewKeyVal()
-	utils.MergeKeyValWithPrefix(kv, m.Sdk.KeyVal(), "sdk_")
+	utils.MergeKeyValWithPrefix(kv, m.SDK.KeyVal(), "sdk_")
 	utils.MergeKeyValWithPrefix(kv, m.App.KeyVal(), "app_")
 	utils.MergeKeyValWithPrefix(kv, m.User.KeyVal(), "user_")
 	utils.MergeKeyValWithPrefix(kv, m.Session.KeyVal(), "session_")

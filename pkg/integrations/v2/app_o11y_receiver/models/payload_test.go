@@ -30,7 +30,7 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, Meta{
-		Sdk: Sdk{
+		SDK: SDK{
 			Name:    "grafana-frontend-agent",
 			Version: "1.0.0",
 		},

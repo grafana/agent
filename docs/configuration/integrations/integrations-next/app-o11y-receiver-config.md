@@ -6,7 +6,7 @@ title = "app_o11y_config"
 
 The `app_o11y_receiver_config` block configures the `app-o11y-receiver`
 integration. This integration exposes a http endpoint that can receive telemetry
-from the [grafana javascript agent](https://github.com/grafana/grafana-javascript-agent)
+from the [Grafana Javascript Agent](https://github.com/grafana/grafana-javascript-agent)
 and forward it to logs, traces or metrics backends.
 
 Full reference of options:

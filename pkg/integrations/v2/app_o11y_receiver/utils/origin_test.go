@@ -30,3 +30,7 @@ func Test_Origin_DoesNotMatch(t *testing.T) {
 func Test_Origin_DoesNotMatchWithWildcard(t *testing.T) {
 	testCase(t, "http://foo.bar.com/static/foo.js", []string{"https://foo.com/", "http://*.baz.com/"}, false)
 }
+
+func Test_Origin_MatchesWithWildcardNoProtocol(t *testing.T) {
+	testCase(t, "http://foo.bar.com/static/foo.js", []string{"https://foo.com/", "*.bar.com/"}, true)
+}
