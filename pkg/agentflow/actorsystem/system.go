@@ -13,7 +13,7 @@ import (
 func StartActorSystem(filePath string) {
 	as := actor.NewActorSystem()
 	root := actor.NewRootContext(as, nil)
-	cfgStr, err := ioutil.ReadFile("/Users/mdurham/Utils/agent_flow_configs/agent_flow_prom.yml")
+	cfgStr, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		panic(err)
 	}
