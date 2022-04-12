@@ -7,9 +7,10 @@ import (
 )
 
 type Metric struct {
-	name     string
-	value    float64
-	ts       time.Time
+	name  string
+	value float64
+	ts    time.Time
+	// Ordered map might not be needed like it is for logs
 	labels   *orderedmap.OrderedMap
 	metadata *orderedmap.OrderedMap
 }

@@ -4,7 +4,8 @@ import "time"
 import "github.com/iancoleman/orderedmap"
 
 type Log struct {
-	ts     time.Time
+	ts time.Time
+	// Ordered map is necessary for if you want to output in the same order it was received.
 	labels *orderedmap.OrderedMap
 }
 
