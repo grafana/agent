@@ -82,6 +82,7 @@ rules:
   - services
   - endpoints
   - pods
+  - events
   verbs:
   - get
   - list

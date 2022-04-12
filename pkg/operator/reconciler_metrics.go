@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/google/go-jsonnet"
-	"github.com/grafana/agent/pkg/operator/assets"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
@@ -26,31 +26,34 @@ import (
 func (r *reconciler) createMetricsConfigurationSecret(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	d gragent.Deployment,
 ) error {
 
-	return r.createTelemetryConfigurationSecret(ctx, l, d, s, config.MetricsType)
+	name := fmt.Sprintf("%s-config", d.Agent.Name)
+	return r.createTelemetryConfigurationSecret(ctx, l, name, d, config.MetricsType)
 }
 
 func (r *reconciler) createTelemetryConfigurationSecret(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	name string,
+	d gragent.Deployment,
 	ty config.Type,
 ) error {
 
-	var shouldCreate bool
-	key := types.NamespacedName{Namespace: d.Agent.Namespace}
+	key := types.NamespacedName{
+		Namespace: d.Agent.Namespace,
+		Name:      name,
+	}
 
+	var shouldCreate bool
 	switch ty {
 	case config.MetricsType:
-		key.Name = fmt.Sprintf("%s-config", d.Agent.Name)
 		shouldCreate = len(d.Metrics) > 0
 	case config.LogsType:
-		key.Name = fmt.Sprintf("%s-logs-config", d.Agent.Name)
 		shouldCreate = len(d.Logs) > 0
+	case config.IntegrationsType:
+		shouldCreate = len(d.Integrations) > 0
 	default:
 		return fmt.Errorf("unknown telemetry type %s", ty)
 	}
@@ -61,7 +64,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 		return deleteManagedResource(ctx, r.Client, key, &secret)
 	}
 
-	rawConfig, err := d.BuildConfig(s, ty)
+	rawConfig, err := config.BuildConfig(&d, ty)
 
 	var jsonnetError jsonnet.RuntimeError
 	if errors.As(err, &jsonnetError) {
@@ -102,13 +105,12 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 func (r *reconciler) createMetricsGoverningService(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	d gragent.Deployment,
 ) error {
 
 	svc := generateMetricsStatefulSetService(r.config, d)
 
-	// Delete the old Secret if one exists and we have no prometheus instances.
+	// Delete the old Service if one exists and we have no prometheus instances.
 	if len(d.Metrics) == 0 {
 		var service core_v1.Service
 		key := types.NamespacedName{Namespace: svc.Namespace, Name: svc.Name}
@@ -127,8 +129,7 @@ func (r *reconciler) createMetricsGoverningService(
 func (r *reconciler) createMetricsStatefulSets(
 	ctx context.Context,
 	l log.Logger,
-	d config.Deployment,
-	s assets.SecretStore,
+	d gragent.Deployment,
 ) error {
 
 	shards := minShards

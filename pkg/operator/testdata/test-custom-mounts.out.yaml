@@ -16,11 +16,11 @@ spec:
           mountPath: /var/lib/grafana-agent/config-in
         - name: config-out
           mountPath: /var/lib/grafana-agent/config
-        - name: grafana-agent-example-wal
-          mountPath: /var/lib/grafana-agent/data
         - name: secrets
           readOnly: true
           mountPath: /var/lib/grafana-agent/secrets
+        - name: grafana-agent-example-wal
+          mountPath: /var/lib/grafana-agent/data
         - name: secret-extra-secret-a
           readOnly: true
           mountPath: /var/lib/grafana-agent/extra-secrets/extra-secret-a
@@ -34,11 +34,11 @@ spec:
           mountPath: /var/lib/grafana-agent/config-in
         - name: config-out
           mountPath: /var/lib/grafana-agent/config
-        - name: grafana-agent-example-wal
-          mountPath: /var/lib/grafana-agent/data
         - name: secrets
           readOnly: true
           mountPath: /var/lib/grafana-agent/secrets
+        - name: grafana-agent-example-wal
+          mountPath: /var/lib/grafana-agent/data
         - name: secret-extra-secret-a
           readOnly: true
           mountPath: /var/lib/grafana-agent/extra-secrets/extra-secret-a
@@ -54,14 +54,14 @@ spec:
       - name: secrets
         secret:
           secretName: grafana-agent-example-secrets
+      - name: grafana-agent-example-wal
+        emptyDir: {}
       - name: secret-extra-secret-a
         secret:
           secretName: extra-secret-a
       - name: configmap-extra-configmap-a
         configMap:
           name: extra-configmap-a
-      - name: grafana-agent-example-wal
-        emptyDir: {}
 
 ---
 

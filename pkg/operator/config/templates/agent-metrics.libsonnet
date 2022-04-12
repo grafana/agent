@@ -26,7 +26,7 @@ local calculateShards(requested) =
 // @param {config.Deployment} ctx
 function(ctx) marshal.YAML(optionals.trim({
   local spec = ctx.Agent.Spec,
-  local prometheus = spec.Metrics,
+  local metrics = spec.Metrics,
   local namespace = ctx.Agent.ObjectMeta.Namespace,
 
   server: {
@@ -37,12 +37,12 @@ function(ctx) marshal.YAML(optionals.trim({
   metrics: {
     wal_directory: '/var/lib/grafana-agent/data',
     global: {
-      external_labels: optionals.object(new_external_labels(ctx)),
-      scrape_interval: optionals.string(prometheus.ScrapeInterval),
-      scrape_timeout: optionals.string(prometheus.ScrapeTimeout),
+      external_labels: optionals.object(new_external_labels(ctx, true)),
+      scrape_interval: optionals.string(metrics.ScrapeInterval),
+      scrape_timeout: optionals.string(metrics.ScrapeTimeout),
       remote_write: optionals.array(std.map(
         function(rw) new_remote_write(ctx.Agent.ObjectMeta.Namespace, rw),
-        prometheus.RemoteWrite,
+        metrics.RemoteWrite,
       )),
     },
     configs: optionals.array(std.map(
@@ -50,13 +50,13 @@ function(ctx) marshal.YAML(optionals.trim({
         agentNamespace=ctx.Agent.ObjectMeta.Namespace,
         instance=inst,
         apiServer=spec.APIServerConfig,
-        overrideHonorLabels=prometheus.OverrideHonorLabels,
-        overrideHonorTimestamps=prometheus.OverrideHonorTimestamps,
-        ignoreNamespaceSelectors=prometheus.IgnoreNamespaceSelectors,
-        enforcedNamespaceLabel=prometheus.EnforcedNamespaceLabel,
-        enforcedSampleLimit=prometheus.EnforcedSampleLimit,
-        enforcedTargetLimit=prometheus.EnforcedTargetLimit,
-        shards=calculateShards(prometheus.Shards),
+        overrideHonorLabels=metrics.OverrideHonorLabels,
+        overrideHonorTimestamps=metrics.OverrideHonorTimestamps,
+        ignoreNamespaceSelectors=metrics.IgnoreNamespaceSelectors,
+        enforcedNamespaceLabel=metrics.EnforcedNamespaceLabel,
+        enforcedSampleLimit=metrics.EnforcedSampleLimit,
+        enforcedTargetLimit=metrics.EnforcedTargetLimit,
+        shards=calculateShards(metrics.Shards),
       ),
       ctx.Metrics,
     )),

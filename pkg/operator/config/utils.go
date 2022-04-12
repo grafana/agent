@@ -7,7 +7,7 @@ import (
 
 	"github.com/fatih/structs"
 	jsonnet "github.com/google/go-jsonnet"
-	grafana "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"gopkg.in/yaml.v3"
 )
 
@@ -95,7 +95,7 @@ func intoStages(i []interface{}) (interface{}, error) {
 		}
 	}
 
-	var ps []*grafana.PipelineStageSpec
+	var ps []*gragent.PipelineStageSpec
 	if err := json.Unmarshal(bb, &ps); err != nil {
 		return nil, jsonnet.RuntimeError{
 			Msg: fmt.Sprintf("failed to unmarshal stages: %s", err.Error()),

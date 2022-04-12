@@ -15,6 +15,9 @@ Main (unreleased)
 - Add HTTP endpoints to fetch active instances and targets for the Logs subsytem.
   (@marctc)
 
+- Grafana Agent Operator: add support for integrations through an `Integration`
+  CRD which is discovered by `GrafanaAgent`. (@rfratto)
+
 ### Bugfixes
 
 - Add missing version information back into `agentctl --version`. (@rlankfo)
@@ -25,7 +28,7 @@ Main (unreleased)
   (@rfratto)
 
 - Set the `Content-Type` HTTP header to `application/json` for API endpoints
-  returning json objects. (@marctc)  
+  returning json objects. (@marctc)
 
 ### Other changes
 
@@ -34,7 +37,7 @@ Main (unreleased)
 
 - Use Go 1.18 for builds. (@rfratto)
 
-- Add `metrics` prefix to the url of list instances endpoint (`GET /agent/api/v1/instances`) and 
+- Add `metrics` prefix to the url of list instances endpoint (`GET /agent/api/v1/instances`) and
   list targets endpoint (`GET /agent/api/v1/metrics/targets`). (@marctc)
 
 - Embed timezone data to enable Promtail pipelines using the `location` field on Windows machines. (@tpaschalis)

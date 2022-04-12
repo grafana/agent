@@ -6,8 +6,15 @@ metadata:
   labels:
     app: grafana-agent-example
 spec:
-  image: grafana/agent:latest
+  image: grafana/agent:main
+  logLevel: info
   serviceAccountName: grafana-agent
+  storage:
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 1Gi
   logs:
     instanceSelector:
       matchLabels:
@@ -33,21 +40,8 @@ metadata:
 spec:
   remoteWrite:
   - url: http://prometheus:9090/api/v1/write
-    basicAuth:
-      username:
-        name: prometheus-fake-credentials
-        key: fakeUsername
-      password:
-        name: prometheus-fake-credentials
-        key: fakePassword
-  # Supply an empty namespace selector to look in all namespaces.
   podMonitorNamespaceSelector: {}
   podMonitorSelector:
-    matchLabels:
-      instance: primary
-  # Supply an empty namespace selector to look in all namespaces.
-  serviceMonitorNamespaceSelector: {}
-  serviceMonitorSelector:
     matchLabels:
       instance: primary
 
@@ -69,42 +63,6 @@ spec:
   podLogsSelector:
     matchLabels:
       instance: primary
-
----
-
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: Integration
-metadata:
-  name: node-exporter
-  namespace: default
-  labels:
-    agent: grafana-agent-example
-spec:
-  name: node_exporter
-  type:
-    allNodes: true
-    unique: true
-  config:
-    rootfs_path: /rootfs
-    sysfs_path: /host/sys
-    procfs_path: /host/proc
-  volumeMounts:
-  - mountPath: /host/proc
-    name: proc
-  - mountPath: /host/sys
-    name: sys
-  - mountPath: /rootfs
-    name: root
-  volumes:
-  - hostPath:
-    path: /proc
-    name: proc
-  - hostPath:
-    path: /sys
-    name: sys
-  - hostPath:
-    path: /
-    name: root
 
 ---
 
@@ -140,21 +98,94 @@ spec:
   pipelineStages:
     - cri: {}
 
+---
+
+# Collect node_exporter metrics.
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: Integration
+metadata:
+  name: node-exporter
+  namespace: default
+  labels:
+    agent: grafana-agent-example
+spec:
+  name: node_exporter
+  type:
+    allNodes: true
+    unique: true
+  config:
+    autoscrape:
+      enable: true
+      metrics_instance: default/primary
+    rootfs_path: /default/node_exporter/rootfs
+    sysfs_path: /default/node_exporter/sys
+    procfs_path: /default/node_exporter/proc
+  volumeMounts:
+    - mountPath: /default/node_exporter/proc
+      name: proc
+    - mountPath: /default/node_exporter/sys
+      name: sys
+    - mountPath: /default/node_exporter/rootfs
+      name: root
+  volumes:
+    - name: proc
+      hostPath:
+        path: /proc
+    - name: sys
+      hostPath:
+        path: /sys
+    - name: root
+      hostPath:
+        path: /root
+  # These aren't really used here, but just being mounted for local testing.
+  secrets:
+  - name: fake-secret
+    key: key
+  configMaps:
+  - name: fake-configmap
+    key: foo
+
+---
+
+# Collect kubernetes API events.
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: Integration
+metadata:
+  name: eventhandler
+  namespace: default
+  labels:
+    agent: grafana-agent-example
+spec:
+  name: eventhandler
+  type:
+    unique: true
+  config:
+    logs_instance: default/primary
+    cache_path: "/var/lib/grafana-agent/data/eventhandler.cache"
+
+---
+
 #
-# Pretend credentials
+# Pretend Secrets/ConfigMaps
 #
 
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: prometheus-fake-credentials
+  name: fake-secret
+  namespace: default
+stringData:
+  key: "value"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fake-configmap
   namespace: default
 data:
-  # "user"
-  fakeUsername: "dXNlcg=="
-  # "password"
-  fakePassword: "cGFzc3dvcmQ="
+  foo: "bar"
 
 #
 # Extra resources
@@ -181,6 +212,7 @@ rules:
   - services
   - endpoints
   - pods
+  - events # needed for eventhandler integration
   verbs:
   - get
   - list
