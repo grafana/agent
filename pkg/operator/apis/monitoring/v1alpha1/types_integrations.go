@@ -84,7 +84,7 @@ type IntegrationSpec struct {
 	// across all used IntegrationSpecs.
 	//
 	// Mount paths should include the namespace/name of the Integration CR to
-	// avoid potentially colliding with order resources.
+	// avoid potentially colliding with other resources.
 	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
 
 	// An extra list of keys from Secrets in the same namespace as the

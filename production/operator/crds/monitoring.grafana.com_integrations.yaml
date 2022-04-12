@@ -123,7 +123,7 @@ spec:
                   the Grafana Agent pods running this integration. VolumeMount names
                   will be mutated to be unique across all used IntegrationSpecs. \n
                   Mount paths should include the namespace/name of the Integration
-                  CR to avoid potentially colliding with order resources."
+                  CR to avoid potentially colliding with other resources."
                 items:
                   description: VolumeMount describes a mounting of a Volume within
                     a container.
