@@ -24,6 +24,9 @@ Main (unreleased)
   where not all releases where retrieved when pulling release information.
   (@rfratto)
 
+- Set the `Content-Type` HTTP header to `application/json` for API endpoints
+  returning json objects. (@marctc)  
+
 ### Other changes
 
 - Update base image of official Docker containers from Debian buster to Debian
