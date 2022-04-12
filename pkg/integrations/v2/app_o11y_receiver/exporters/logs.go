@@ -100,13 +100,13 @@ func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
 	}, le.seTimeout)
 	if !sent {
 		level.Warn(le.logger).Log("msg", "failed to log frontend log event to logs pipeline")
-		return fmt.Errorf("Failed to send app o11y event to logs pipeline")
+		return fmt.Errorf("failed to send app o11y event to logs pipeline")
 	}
 	return nil
 }
 
 func (le *LogsExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
-	set := make(prommodel.LabelSet)
+	set := make(prommodel.LabelSet, len(le.labels))
 
 	for k, v := range le.labels {
 		if len(v) > 0 {

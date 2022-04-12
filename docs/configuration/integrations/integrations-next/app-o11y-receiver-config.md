@@ -61,7 +61,7 @@ Full reference of options:
   # Server config refres to the HTTP endpoint that the integration will be exposing
   # to receive data from.
   server:
-    [host: <string> | default = "0.0.0.0"]
+    [host: <string> | default = "127.0.0.1"]
     [port: <number> | default = 8080]
 
   # Labels to set for the log entry. 

@@ -49,7 +49,7 @@ func testMeasurement(t *testing.T, tcs TestCase) {
 	}
 }
 
-func TestMeasureMents(t *testing.T) {
+func TestMeasurements(t *testing.T) {
 	testcases := []TestCase{
 		{
 			values: map[string]float64{
