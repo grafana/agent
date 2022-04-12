@@ -5,17 +5,12 @@ import (
 	_ "embed"
 	"fmt"
 
-	"github.com/grafana/agent/pkg/integrations/v2/common"
-
 	"github.com/go-kit/log"
+	snmp_common "github.com/grafana/agent/pkg/integrations/snmp_exporter/common"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
-	"gopkg.in/yaml.v2"
 )
-
-//go:generate curl https://raw.githubusercontent.com/prometheus/snmp_exporter/v0.20.0/snmp.yml --output snmp.yml
-//go:embed snmp.yml
-var content []byte
 
 // DefaultConfig holds the default settings for the snmp_exporter integration.
 var DefaultConfig = Config{
@@ -62,7 +57,7 @@ func (c *Config) NewIntegration(log log.Logger, globals integrations_v2.Globals)
 			return nil, fmt.Errorf("failed to load snmp config from file %v: %w", c.SnmpConfigFile, err)
 		}
 	} else {
-		modules, err = LoadEmbeddedConfig()
+		modules, err = snmp_common.LoadEmbeddedConfig()
 		if err != nil {
 			return nil, fmt.Errorf("failed to load embedded snmp config: %w", err)
 		}
@@ -96,14 +91,4 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 func init() {
 	integrations_v2.Register(&Config{}, integrations_v2.TypeSingleton)
-}
-
-// LoadEmbeddedConfig loads the SNMP config via a file using the go:embed directive.
-func LoadEmbeddedConfig() (*snmp_config.Config, error) {
-	cfg := &snmp_config.Config{}
-	err := yaml.UnmarshalStrict(content, cfg)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
 }
