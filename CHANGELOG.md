@@ -34,7 +34,7 @@ Main (unreleased)
 - Add `metrics` prefix to the url of list instances endpoint (`GET /agent/api/v1/instances`) and 
   list targets endpoint (`GET /agent/api/v1/metrics/targets`). (@marctc)
 
-- Embed time zone data to enable Promtail pipelines using the `location` field on Windows machines. (@tpaschalis)
+- Embed timezone data to enable Promtail pipelines using the `location` field on Windows machines. (@tpaschalis)
 
 
 v0.24.0 (2022-04-07)
