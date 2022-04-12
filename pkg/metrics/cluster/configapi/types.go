@@ -61,11 +61,13 @@ type GetConfigurationResponse struct {
 // status code of statusCode. resp is marshaled to JSON.
 func WriteResponse(w http.ResponseWriter, statusCode int, resp interface{}) error {
 	apiResp := &APIResponse{Status: "success", Data: resp}
+	w.Header().Set("Content-Type", "application/json")
 	return apiResp.WriteTo(w, statusCode)
 }
 
 // WriteError writes an error response back to the ResponseWriter.
 func WriteError(w http.ResponseWriter, statusCode int, err error) error {
 	resp := &APIResponse{Status: "error", Data: &ErrorResponse{Error: err.Error()}}
+	w.Header().Set("Content-Type", "application/json")
 	return resp.WriteTo(w, statusCode)
 }

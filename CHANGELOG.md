@@ -19,11 +19,14 @@ Main (unreleased)
   where not all releases where retrieved when pulling release information.
   (@rfratto)
 
-- Initialize the logger with default `log_level` and `log_format` parameters.
-  (@tpaschalis)
+- Set the `Content-Type` HTTP header to `application/json` for API endpoints
+  returning json objects. (@marctc)
 
 - Operator: fix issue where a `username_file` field was incorrectly set.
   (@rfratto)
+
+- Initialize the logger with default `log_level` and `log_format` parameters.
+  (@tpaschalis)
 
 ### Other changes
 
