@@ -78,7 +78,7 @@ tested and iterated on quickly within the Agent. We aim to keep the
 experimental changes to a minimum and upstream changes as soon as possible.
 
 For more context on our vendoring strategy, read our
-[downstream repo maintenance guide](./docs/developer/prometheus-fork.md).
+[downstream repo maintenance guide](./docs/developer/downstream-prometheus.md).
 
 ## Getting Help
 
