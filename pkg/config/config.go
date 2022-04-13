@@ -344,6 +344,9 @@ type loaderFunc func(path string, fileType string, expandArgs bool, target *Conf
 // load allows for tests to inject a function for retrieving the config file that
 // doesn't require having a literal file on disk.
 func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
+	// Set up the default logger parameters.
+	DefaultConfig.Server.LogLevel.Set("info")
+	DefaultConfig.Server.LogFormat.Set("json")
 	var (
 		cfg = DefaultConfig
 
