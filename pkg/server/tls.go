@@ -136,6 +136,7 @@ func (tv *TLSVersion) MarshalYAML() (interface{}, error) {
 	return fmt.Sprintf("%v", tv), nil
 }
 
+//nolint:structcheck
 // tlsListener is a net.Listener for establishing TLS connections. tlsListener
 // supports dynamically updating the TLS settings used to establish
 // connections.
@@ -198,7 +199,7 @@ func (l *tlsListener) ApplyConfig(c TLSConfig) error {
 }
 
 func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
-	if l.windowsCertHandler != nil || l.windowsCertHandler != nil {
+	if l.windowsCertHandler != nil {
 		panic("windows certificate handler is set this should never happen")
 	}
 	// Convert our TLSConfig into a new *tls.Config.
