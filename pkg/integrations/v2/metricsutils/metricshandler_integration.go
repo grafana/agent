@@ -138,7 +138,6 @@ func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*autos
 	cfg := config.DefaultScrapeConfig
 	cfg.JobName = fmt.Sprintf("%s/%s", i.integrationName, i.instanceID)
 	cfg.Scheme = i.globals.AgentBaseURL.Scheme
-	cfg.HTTPClientConfig = i.globals.SubsystemOpts.ClientConfig
 	cfg.ServiceDiscoveryConfigs = sd
 	cfg.ScrapeInterval = i.common.Autoscrape.ScrapeInterval
 	cfg.ScrapeTimeout = i.common.Autoscrape.ScrapeTimeout

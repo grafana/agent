@@ -18,6 +18,13 @@ Main (unreleased)
 - Grafana Agent Operator: add support for integrations through an `Integration`
   CRD which is discovered by `GrafanaAgent`. (@rfratto)
 
+### Enhancements
+
+- integrations-next: Integrations using autoscrape will now autoscrape metrics
+  using in-memory connections instead of connecting to themselves over the
+  network. As a result of this change, the `client_config` field has been
+  removed. (@rfratto)
+
 ### Bugfixes
 
 - Add missing version information back into `agentctl --version`. (@rlankfo)

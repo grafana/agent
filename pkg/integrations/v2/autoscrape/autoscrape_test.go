@@ -39,7 +39,7 @@ func TestAutoscrape(t *testing.T) {
 			return &mockInstance{app: &noop}, nil
 		},
 	}
-	as := NewScraper(util.TestLogger(t), im)
+	as := NewScraper(util.TestLogger(t), im, nil)
 	defer as.Stop()
 
 	err := as.ApplyConfig([]*ScrapeConfig{{
