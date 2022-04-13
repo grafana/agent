@@ -96,6 +96,7 @@ func (f *Prometheus) Receive(c actor.Context) {
 		httpCfg, urlV, err := f.getHttpConfig(msg)
 		if err != nil {
 			level.Error(f.log).Log("error", err)
+			return
 		}
 		err = f.remoteStorage.ApplyConfig(&prconfig.Config{
 			RemoteWriteConfigs: []*prconfig.RemoteWriteConfig{
