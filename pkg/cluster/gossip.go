@@ -24,6 +24,25 @@ import (
 // extraDiscoverProviders used in tests.
 var extraDiscoverProviders map[string]discover.Provider
 
+// tokensPerNode is used to decide how many tokens each node should be given in
+// the hash ring. All nodes must use the same value, otherwise they will have
+// different views of the ring and assign work differently.
+//
+// Using 256 tokens strikes a good balance between distribution accuracy and
+// memory consumption. A cluster of 1,000 nodes with 256 tokens per node
+// requires 6MB for the hash ring, while 12MB is used for 512 tokens per node.
+//
+// Distribution accuracy measures how close a node was to being responsible for
+// exactly 1/N keys during simulation. Simulation tests used a cluster of 10
+// nodes and hashing 100,000 random keys:
+//
+//    256 tokens per node: min 94.0%, median 96.3%, max 115.3%
+//    512 tokens per node: min 96.1%, median 99.9%, max 103.2%
+//
+// While 512 tokens per node is closer to perfect distribution, 256 tokens per
+// node is good enough, optimizing for lower memory usage.
+const tokensPerNode = 256
+
 // GossipConfig controls clustering of Agents through gRPC-based gossip.
 // GossipConfig cannot be changed at runtime.
 type GossipConfig struct {
@@ -157,7 +176,7 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 		l = log.NewNopLogger()
 	}
 
-	sharder := shard.Ring(256)
+	sharder := shard.Ring(tokensPerNode)
 
 	ckitConfig := ckit.Config{
 		Name:          c.NodeName,
@@ -182,16 +201,10 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 
 // ChangeState changes the state of n. ChangeState will block until the state
 // change has been receieved by another node; cancel the context to stop
-// waiting.
+// waiting. ChangeState will fail if the current state cannot move to the
+// target state.
 //
-// Nodes must be a StateParticipant to be returned during Lookup.
-//
-// The following state transitions are valid:
-//
-// 		StatePending -> StateParticipant|StateViewer|StateTerminating|StateGone
-// 		StateParticipant -> StateTerminating|StateGone
-// 		StateViewer -> StateTerminating|StateGone
-// 		StateTerminating -> StateGone
+// Nodes must be a StateParticipant to receive writes.
 func (n *GossipNode) ChangeState(ctx context.Context, to peer.State) error {
 	if !n.started.Load() {
 		return fmt.Errorf("node not started")
