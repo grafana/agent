@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type metricAssertion struct {
@@ -24,24 +24,24 @@ func testcase(t *testing.T, payload models.Payload, assertions []metricAssertion
 	exporter := NewReceiverMetricsExporter(ReceiverMetricsExporterConfig{Reg: reg})
 
 	err := exporter.Export(ctx, payload)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	metrics, err := reg.Gather()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	for _, assertion := range assertions {
 		found := false
 		for _, metric := range metrics {
 			if *metric.Name == assertion.name {
 				found = true
-				assert.Len(t, metric.Metric, 1)
+				require.Len(t, metric.Metric, 1)
 				val := metric.Metric[0].Counter.Value
-				assert.Equal(t, assertion.value, *val)
+				require.Equal(t, assertion.value, *val)
 				break
 			}
 		}
 		if !found {
-			assert.Fail(t, fmt.Sprintf("metric [%s] not found", assertion.name))
+			require.Fail(t, fmt.Sprintf("metric [%s] not found", assertion.name))
 		}
 	}
 }

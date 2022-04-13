@@ -15,7 +15,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/stretchr/testify/assert"
 )
 
 const PAYLOAD = `
@@ -75,10 +74,10 @@ func TestMultipleExportersAllSucceed(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+	require.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
 
-	assert.Len(t, exporter1.payloads, 1)
-	assert.Len(t, exporter2.payloads, 1)
+	require.Len(t, exporter1.payloads, 1)
+	require.Len(t, exporter2.payloads, 1)
 }
 
 func TestMultipleExportersOneFails(t *testing.T) {
@@ -112,15 +111,15 @@ func TestMultipleExportersOneFails(t *testing.T) {
 	require.NoError(t, err)
 
 	metric := metrics[0]
-	assert.Equal(t, "app_o11y_receiver_exporter_errors", *metric.Name)
-	assert.Len(t, metric.Metric, 1)
-	assert.Equal(t, 1.0, *metric.Metric[0].Counter.Value)
-	assert.Len(t, metric.Metric[0].Label, 1)
-	assert.Equal(t, *metric.Metric[0].Label[0].Value, "exporter1")
-	assert.Len(t, metrics, 1)
-	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
-	assert.Len(t, exporter1.payloads, 0)
-	assert.Len(t, exporter2.payloads, 1)
+	require.Equal(t, "app_o11y_receiver_exporter_errors", *metric.Name)
+	require.Len(t, metric.Metric, 1)
+	require.Equal(t, 1.0, *metric.Metric[0].Counter.Value)
+	require.Len(t, metric.Metric[0].Label, 1)
+	require.Equal(t, *metric.Metric[0].Label[0].Value, "exporter1")
+	require.Len(t, metrics, 1)
+	require.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+	require.Len(t, exporter1.payloads, 0)
+	require.Len(t, exporter2.payloads, 1)
 }
 
 func TestMultipleExportersAllFail(t *testing.T) {
@@ -153,20 +152,20 @@ func TestMultipleExportersAllFail(t *testing.T) {
 	metrics, err := reg.Gather()
 	require.NoError(t, err)
 
-	assert.Len(t, metrics, 1)
+	require.Len(t, metrics, 1)
 	metric := metrics[0]
 
-	assert.Equal(t, "app_o11y_receiver_exporter_errors", *metric.Name)
-	assert.Len(t, metric.Metric, 2)
-	assert.Equal(t, 1.0, *metric.Metric[0].Counter.Value)
-	assert.Equal(t, 1.0, *metric.Metric[1].Counter.Value)
-	assert.Len(t, metric.Metric[0].Label, 1)
-	assert.Len(t, metric.Metric[1].Label, 1)
-	assert.Equal(t, *metric.Metric[0].Label[0].Value, "exporter1")
-	assert.Equal(t, *metric.Metric[1].Label[0].Value, "exporter2")
-	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
-	assert.Len(t, exporter1.payloads, 0)
-	assert.Len(t, exporter2.payloads, 0)
+	require.Equal(t, "app_o11y_receiver_exporter_errors", *metric.Name)
+	require.Len(t, metric.Metric, 2)
+	require.Equal(t, 1.0, *metric.Metric[0].Counter.Value)
+	require.Equal(t, 1.0, *metric.Metric[1].Counter.Value)
+	require.Len(t, metric.Metric[0].Label, 1)
+	require.Len(t, metric.Metric[1].Label, 1)
+	require.Equal(t, *metric.Metric[0].Label[0].Value, "exporter1")
+	require.Equal(t, *metric.Metric[1].Label[0].Value, "exporter2")
+	require.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+	require.Len(t, exporter1.payloads, 0)
+	require.Len(t, exporter2.payloads, 0)
 }
 
 func TestNoContentLengthLimitSet(t *testing.T) {
@@ -185,7 +184,7 @@ func TestNoContentLengthLimitSet(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+	require.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
 }
 
 func TestLargePayload(t *testing.T) {
@@ -205,7 +204,7 @@ func TestLargePayload(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusRequestEntityTooLarge, rr.Result().StatusCode)
+	require.Equal(t, http.StatusRequestEntityTooLarge, rr.Result().StatusCode)
 }
 
 func TestAPIKeyRequiredButNotProvided(t *testing.T) {
@@ -227,7 +226,7 @@ func TestAPIKeyRequiredButNotProvided(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusUnauthorized, rr.Result().StatusCode)
+	require.Equal(t, http.StatusUnauthorized, rr.Result().StatusCode)
 }
 
 func TestAPIKeyWrong(t *testing.T) {
@@ -250,7 +249,7 @@ func TestAPIKeyWrong(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusUnauthorized, rr.Result().StatusCode)
+	require.Equal(t, http.StatusUnauthorized, rr.Result().StatusCode)
 }
 
 func TestAPIKeyCorrect(t *testing.T) {
@@ -273,5 +272,5 @@ func TestAPIKeyCorrect(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+	require.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
 }

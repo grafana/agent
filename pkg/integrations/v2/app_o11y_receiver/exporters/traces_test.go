@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
@@ -29,12 +29,12 @@ func Test_exportTraces_success(t *testing.T) {
 	factory := pushreceiver.NewFactory().(*pushreceiver.Factory)
 	consumer := mockTracesConsumer{consumed: nil}
 	_, err := factory.CreateTracesReceiver(ctx, component.ReceiverCreateSettings{}, nil, &consumer)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	exporter := NewTracesExporter(factory)
 	payload := loadTestData(t)
 	err = exporter.Export(ctx, payload)
-	assert.NoError(t, err)
-	assert.Len(t, consumer.consumed, 1)
+	require.NoError(t, err)
+	require.Len(t, consumer.consumed, 1)
 }
 
 func Test_exportTraces_noTracesInpayload(t *testing.T) {
@@ -42,13 +42,13 @@ func Test_exportTraces_noTracesInpayload(t *testing.T) {
 	factory := pushreceiver.NewFactory().(*pushreceiver.Factory)
 	consumer := mockTracesConsumer{consumed: nil}
 	_, err := factory.CreateTracesReceiver(ctx, component.ReceiverCreateSettings{}, nil, &consumer)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	exporter := NewTracesExporter(factory)
 	payload := loadTestData(t)
 	payload.Traces = nil
 	err = exporter.Export(ctx, payload)
-	assert.NoError(t, err)
-	assert.Len(t, consumer.consumed, 0)
+	require.NoError(t, err)
+	require.Len(t, consumer.consumed, 0)
 }
 
 func Test_exportTraces_noConsumer(t *testing.T) {
@@ -57,5 +57,5 @@ func Test_exportTraces_noConsumer(t *testing.T) {
 	exporter := NewTracesExporter(factory)
 	payload := loadTestData(t)
 	err := exporter.Export(ctx, payload)
-	assert.Error(t, err, "push receiver factory consumer not initialized")
+	require.Error(t, err, "push receiver factory consumer not initialized")
 }

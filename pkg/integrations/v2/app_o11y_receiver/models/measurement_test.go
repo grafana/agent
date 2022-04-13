@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TestCase struct {
@@ -36,16 +36,16 @@ func testMeasurement(t *testing.T, tcs TestCase) {
 	err := json.Unmarshal([]byte(payload), &m)
 
 	if !tcs.shouldFail {
-		assert.Nil(t, err)
+		require.NoError(t, err)
 	} else {
-		assert.NotNil(t, err)
+		require.Error(t, err)
 		return
 	}
 
-	assert.Equal(t, len(tcs.expected.Values), len(m.Values))
+	require.Equal(t, len(tcs.expected.Values), len(m.Values))
 	for k, v := range m.Values {
-		assert.NotEmpty(t, tcs.expected.Values[k])
-		assert.Equal(t, v, tcs.expected.Values[k])
+		require.NotEmpty(t, tcs.expected.Values[k])
+		require.Equal(t, v, tcs.expected.Values[k])
 	}
 }
 

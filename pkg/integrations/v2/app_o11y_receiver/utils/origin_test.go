@@ -3,12 +3,12 @@ package utils
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func testCase(t *testing.T, URL string, origins []string, expected bool) {
 	result := URLMatchesOrigins(URL, origins)
-	assert.Equal(t, expected, result)
+	require.Equal(t, expected, result)
 }
 
 func Test_Origin_WildcardAlwaysMatches(t *testing.T) {

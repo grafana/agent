@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func loadTestData(t *testing.T, file string) []byte {
@@ -15,8 +15,8 @@ func loadTestData(t *testing.T, file string) []byte {
 	// Safe to disable, this is a test.
 	// nolint:gosec
 	content, err := ioutil.ReadFile(filepath.Join("testdata", file))
-	assert.NoError(t, err, "expected to be able to read file")
-	assert.True(t, len(content) > 0)
+	require.NoError(t, err, "expected to be able to read file")
+	require.True(t, len(content) > 0)
 	return content
 }
 
@@ -24,12 +24,12 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 	content := loadTestData(t, "payload.json")
 	var payload Payload
 	err := json.Unmarshal(content, &payload)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	now, err := time.Parse("2006-01-02T15:04:05Z0700", "2021-09-30T10:46:17.680Z")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, Meta{
+	require.Equal(t, Meta{
 		SDK: SDK{
 			Name:    "grafana-frontend-agent",
 			Version: "1.0.0",
@@ -59,12 +59,12 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 		},
 	}, payload.Meta)
 
-	assert.Len(t, payload.Exceptions, 1)
-	assert.Len(t, payload.Exceptions[0].Stacktrace.Frames, 26)
-	assert.Equal(t, "Error", payload.Exceptions[0].Type)
-	assert.Equal(t, "Cannot read property 'find' of undefined", payload.Exceptions[0].Value)
+	require.Len(t, payload.Exceptions, 1)
+	require.Len(t, payload.Exceptions[0].Stacktrace.Frames, 26)
+	require.Equal(t, "Error", payload.Exceptions[0].Type)
+	require.Equal(t, "Cannot read property 'find' of undefined", payload.Exceptions[0].Value)
 
-	assert.Equal(t, []Log{
+	require.Equal(t, []Log{
 		{
 			Message:  "opened pricing page",
 			LogLevel: LogLevelInfo,

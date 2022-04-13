@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsRateLimited(t *testing.T) {
@@ -36,5 +36,5 @@ func TestIsRateLimited(t *testing.T) {
 	}
 	wg.Wait()
 
-	assert.Equal(t, burst, int(sum.Load()))
+	require.Equal(t, burst, int(sum.Load()))
 }
