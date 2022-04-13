@@ -6,7 +6,7 @@ remote "http" "example-password" {
   refresh = "2s"
 
   // Output fields:
-  // - content string
+  // content = <string content of URL>
 }
 
 // Each metrics_forwarder is implemented as a WAL + zero or more remote_writes.
@@ -21,7 +21,7 @@ metrics_forwarder "default" {
   }
 
   // Output fields:
-  // - appender MetricsReceiver
+  // receiver = <value where metrics can be sent>
 }
 
 // Discover some Prometheus targets.
@@ -30,7 +30,7 @@ discovery "static" "self" {
   labels = { app = "agentflow" }
 
   // Output fields:
-  // - targets []Target
+  // targets = <array of discovered targets>
 }
 
 // Launch an integration.
@@ -40,13 +40,7 @@ integration "github" "default" {
   ]
 
   // Output fields:
-  // - targets []Target
-
-  // TODO:
-  // Support autoscrape instead of just emitting targets, something like:
-  // autoscrape {
-  //   send_to = metrics_forwarder.default
-  // }
+  // targets = <array of discovered targets>
 }
 
 // Scrape metrics from both our discovery and integrations.
