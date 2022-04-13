@@ -194,7 +194,9 @@ func TestLargePayload(t *testing.T) {
 	reg := prometheus.NewRegistry()
 
 	conf := config.AppO11yReceiverConfig{
-		MaxAllowedPayloadSize: 10,
+		Server: config.ServerConfig{
+			MaxAllowedPayloadSize: 10,
+		},
 	}
 
 	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{}, reg)
@@ -214,7 +216,9 @@ func TestAPIKeyRequiredButNotProvided(t *testing.T) {
 	}
 
 	conf := config.AppO11yReceiverConfig{
-		APIKey: "foo",
+		Server: config.ServerConfig{
+			APIKey: "foo",
+		},
 	}
 
 	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
@@ -235,7 +239,9 @@ func TestAPIKeyWrong(t *testing.T) {
 	}
 
 	conf := config.AppO11yReceiverConfig{
-		APIKey: "foo",
+		Server: config.ServerConfig{
+			APIKey: "foo",
+		},
 	}
 
 	fr := NewAppO11yHandler(conf, nil, nil)
@@ -256,7 +262,9 @@ func TestAPIKeyCorrect(t *testing.T) {
 	}
 
 	conf := config.AppO11yReceiverConfig{
-		APIKey: "foo",
+		Server: config.ServerConfig{
+			APIKey: "foo",
+		},
 	}
 
 	fr := NewAppO11yHandler(conf, nil, nil)

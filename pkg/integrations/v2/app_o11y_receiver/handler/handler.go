@@ -29,15 +29,15 @@ type AppO11yHandler struct {
 // NewAppO11yHandler creates a new AppReceiver instance based on the given configuration
 func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.AppO11yReceiverExporter, reg *prometheus.Registry) AppO11yHandler {
 	var rateLimiter *ratelimiting.RateLimiter
-	if conf.RateLimiting.Enabled {
+	if conf.Server.RateLimiting.Enabled {
 		var rps float64
-		if conf.RateLimiting.RPS > 0 {
-			rps = conf.RateLimiting.RPS
+		if conf.Server.RateLimiting.RPS > 0 {
+			rps = conf.Server.RateLimiting.RPS
 		}
 
 		var b int
-		if conf.RateLimiting.Burstiness > 0 {
-			b = conf.RateLimiting.Burstiness
+		if conf.Server.RateLimiting.Burstiness > 0 {
+			b = conf.Server.RateLimiting.Burstiness
 		}
 		rateLimiter = ratelimiting.NewRateLimiter(rps, b)
 	}
@@ -70,19 +70,19 @@ func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.
 func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check rate limiting state
-		if ar.config.RateLimiting.Enabled && ar.rateLimiter.IsRateLimited() {
+		if ar.config.Server.RateLimiting.Enabled && ar.rateLimiter.IsRateLimited() {
 			http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
 			return
 		}
 
 		// check API key if one is provided
-		if len(ar.config.APIKey) > 0 && subtle.ConstantTimeCompare([]byte(r.Header.Get("x-api-key")), []byte(ar.config.APIKey)) == 0 {
+		if len(ar.config.Server.APIKey) > 0 && subtle.ConstantTimeCompare([]byte(r.Header.Get("x-api-key")), []byte(ar.config.Server.APIKey)) == 0 {
 			http.Error(w, "api key not provided or incorrect", http.StatusUnauthorized)
 			return
 		}
 
 		// Verify content length. We trust net/http to give us the correct number
-		if ar.config.MaxAllowedPayloadSize > 0 && r.ContentLength > ar.config.MaxAllowedPayloadSize {
+		if ar.config.Server.MaxAllowedPayloadSize > 0 && r.ContentLength > ar.config.Server.MaxAllowedPayloadSize {
 			http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
 			return
 		}
@@ -112,9 +112,9 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 		_, _ = w.Write([]byte("ok"))
 	})
 
-	if len(ar.config.CORSAllowedOrigins) > 0 {
+	if len(ar.config.Server.CORSAllowedOrigins) > 0 {
 		c := cors.New(cors.Options{
-			AllowedOrigins: ar.config.CORSAllowedOrigins,
+			AllowedOrigins: ar.config.Server.CORSAllowedOrigins,
 			AllowedHeaders: []string{"x-api-key", "content-type"},
 		})
 		handler = c.Handler(handler)

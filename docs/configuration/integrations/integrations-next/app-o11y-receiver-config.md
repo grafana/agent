@@ -32,25 +32,6 @@ Full reference of options:
   # Integration instance name
   [instance: <string>]
 
-  # Domains in which the agent is sending data from. For example "https://myapp.com"
-  cors_allowed_origins:
-    [- <string>]
-
-  # Configure rate limiting. The HTTP server of the App observability implements
-  # a token bucket rate limitng algorithm in which we can configure the maximum RPS
-  # as well as the burstiness (peaks of RPS)
-  rate_limiting:
-    [enabled: <boolean> | default = false]
-    [rps: <number> | default = 100]
-    [burstiness: <number> | default = 50]
-
-  # If configured, incoming requests will be required to specify this key in "x-api-key" header
-  [api_key: <string>]
-
-  # Max allowed payload size in bytes for the JSON payload. Interanlly the
-  # Content-Length header is used to make this check
-  [max_allowed_payload_size: <number> | default = 0]
-
   # Traces instance to send traces to. This assumes that you have a traces config with such instance defined
   [traces_instance: <string> | default = ""]
 
@@ -62,7 +43,26 @@ Full reference of options:
   # to receive data from.
   server:
     [host: <string> | default = "127.0.0.1"]
-    [port: <number> | default = 8080]
+    [port: <number> | default = 12347]
+    
+    # Domains in which the agent is sending data from. For example "https://myapp.com"
+    cors_allowed_origins:
+      [- <string>]
+
+    # Configure rate limiting. The HTTP server of the App observability implements
+    # a token bucket rate limitng algorithm in which we can configure the maximum RPS
+    # as well as the burstiness (peaks of RPS)
+    rate_limiting:
+      [enabled: <boolean> | default = false]
+      [rps: <number> | default = 100]
+      [burstiness: <number> | default = 50]
+    
+    # If configured, incoming requests will be required to specify this key in "x-api-key" header
+    [api_key: <string>]
+
+    # Max allowed payload size in bytes for the JSON payload. Interanlly the
+    # Content-Length header is used to make this check
+    [max_allowed_payload_size: <number> | default = 0]
 
   # Labels to set for the log entry. 
   # If value is specified, it will be used.

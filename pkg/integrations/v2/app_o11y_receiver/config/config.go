@@ -16,16 +16,17 @@ const (
 // DefaultConfig holds the default configuration of the receiver
 var DefaultConfig = AppO11yReceiverConfig{
 	// Default JS agent port
-	CORSAllowedOrigins: []string{},
-	RateLimiting: RateLimitingConfig{
-		Enabled:    false,
-		RPS:        DefaultRateLimitingRPS,
-		Burstiness: DefaultRateLimitingBurstiness,
-	},
-	MaxAllowedPayloadSize: DefaultRateLimitingRPS,
+
 	Server: ServerConfig{
-		Host: "0.0.0.0",
-		Port: 8080,
+		Host:               "127.0.0.1",
+		Port:               12347,
+		CORSAllowedOrigins: []string{},
+		RateLimiting: RateLimitingConfig{
+			Enabled:    true,
+			RPS:        DefaultRateLimitingRPS,
+			Burstiness: DefaultRateLimitingBurstiness,
+		},
+		MaxAllowedPayloadSize: DefaultRateLimitingRPS,
 	},
 	TracesInstance:  "",
 	LogsInstance:    "",
@@ -41,8 +42,12 @@ var DefaultConfig = AppO11yReceiverConfig{
 
 // ServerConfig holds the receiver http server configuration
 type ServerConfig struct {
-	Host string `yaml:"host,omitempty"`
-	Port int    `yaml:"port,omitempty"`
+	Host                  string             `yaml:"host,omitempty"`
+	Port                  int                `yaml:"port,omitempty"`
+	CORSAllowedOrigins    []string           `yaml:"cors_allowed_origins,omitempty"`
+	RateLimiting          RateLimitingConfig `yaml:"rate_limiting,omitempty"`
+	APIKey                string             `yaml:"api_key,omitempty"`
+	MaxAllowedPayloadSize int64              `yaml:"max_allowed_payload_size,omitempty"`
 }
 
 // RateLimitingConfig holds the configuration of the rate limiter
@@ -69,30 +74,18 @@ type SourceMapConfig struct {
 // AppO11yReceiverConfig is the configuration struct of the
 // integration
 type AppO11yReceiverConfig struct {
-	CORSAllowedOrigins    []string           `yaml:"cors_allowed_origins,omitempty"`
-	RateLimiting          RateLimitingConfig `yaml:"rate_limiting,omitempty"`
-	APIKey                string             `yaml:"api_key,omitempty"`
-	MaxAllowedPayloadSize int64              `yaml:"max_allowed_payload_size,omitempty"`
-	Server                ServerConfig       `yaml:"server,omitempty"`
-	TracesInstance        string             `yaml:"traces_instance,omitempty"`
-	LogsInstance          string             `yaml:"logs_instance,omitempty"`
-	LogsLabels            map[string]string  `yaml:"logs_labels,omitempty"`
-	LogsSendTimeout       int                `yaml:"logs_send_timeout,omitempty"`
-	SourceMaps            SourceMapConfig    `yaml:"sourcemaps,omitempty"`
+	Server          ServerConfig      `yaml:"server,omitempty"`
+	TracesInstance  string            `yaml:"traces_instance,omitempty"`
+	LogsInstance    string            `yaml:"logs_instance,omitempty"`
+	LogsLabels      map[string]string `yaml:"logs_labels,omitempty"`
+	LogsSendTimeout int               `yaml:"logs_send_timeout,omitempty"`
+	SourceMaps      SourceMapConfig   `yaml:"sourcemaps,omitempty"`
 }
 
 // UnmarshalYAML implements the Unmarshaller interface
 func (c *AppO11yReceiverConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
-	type cA AppO11yReceiverConfig
+	type plain AppO11yReceiverConfig
 
-	if err := unmarshal((*cA)(c)); err != nil {
-		return err
-	}
-
-	if c.RateLimiting.Enabled && c.RateLimiting.RPS == 0 {
-		c.RateLimiting.RPS = DefaultRateLimitingRPS
-	}
-
-	return nil
+	return unmarshal((*plain)(c))
 }
