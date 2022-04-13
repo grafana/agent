@@ -17,35 +17,39 @@ import (
 	prommodel "github.com/prometheus/common/model"
 )
 
-type logsInstance interface {
+// LogsInstance is an interface with capability to send log entries
+type LogsInstance interface {
 	SendEntry(entry api.Entry, dur time.Duration) bool
 }
+
+// LogsInstanceGetter is a function that returns a LogsInstance to send log entries to
+type LogsInstanceGetter func() LogsInstance
 
 // LogsExporterConfig holds the configuration of the logs exporter
 type LogsExporterConfig struct {
 	SendEntryTimeout int
-	LogsInstance     logsInstance
+	GetLogsInstance  LogsInstanceGetter
 	Labels           map[string]string
 }
 
 // LogsExporter will send logs & errors to loki
 type LogsExporter struct {
-	li             logsInstance
-	seTimeout      time.Duration
-	logger         kitlog.Logger
-	labels         map[string]string
-	sourceMapStore sourcemaps.SourceMapStore
+	getLogsInstance LogsInstanceGetter
+	seTimeout       time.Duration
+	logger          kitlog.Logger
+	labels          map[string]string
+	sourceMapStore  sourcemaps.SourceMapStore
 }
 
 // NewLogsExporter creates a new logs exporter with the given
 // configuration
 func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore sourcemaps.SourceMapStore) AppO11yReceiverExporter {
 	return &LogsExporter{
-		logger:         logger,
-		li:             conf.LogsInstance,
-		seTimeout:      time.Duration(conf.SendEntryTimeout),
-		labels:         conf.Labels,
-		sourceMapStore: sourceMapStore,
+		logger:          logger,
+		getLogsInstance: conf.GetLogsInstance,
+		seTimeout:       time.Duration(conf.SendEntryTimeout),
+		labels:          conf.Labels,
+		sourceMapStore:  sourceMapStore,
 	}
 }
 
@@ -91,7 +95,11 @@ func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
 		level.Error(le.logger).Log("msg", "failed to logfmt a frontend log event", "err", err)
 		return err
 	}
-	sent := le.li.SendEntry(api.Entry{
+	instance := le.getLogsInstance()
+	if instance == nil {
+		return fmt.Errorf("failed to get logs instance")
+	}
+	sent := instance.SendEntry(api.Entry{
 		Labels: le.labelSet(kv),
 		Entry: logproto.Entry{
 			Timestamp: time.Now(),
@@ -124,5 +132,5 @@ func (le *LogsExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 // Static typecheck tests
 var (
 	_ AppO11yReceiverExporter = (*LogsExporter)(nil)
-	_ logsInstance            = (*logs.Instance)(nil)
+	_ LogsInstance            = (*logs.Instance)(nil)
 )

@@ -102,14 +102,15 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	}
 
 	if len(c.ReceiverConfig.LogsInstance) > 0 {
-		logsInstance := globals.Logs.Instance(c.ReceiverConfig.LogsInstance)
-		if logsInstance == nil {
+		if globals.Logs.Instance(c.ReceiverConfig.LogsInstance) == nil {
 			return nil, fmt.Errorf("logs instance \"%s\" not found", c.ReceiverConfig.LogsInstance)
 		}
 		lokiExporter := exporters.NewLogsExporter(
 			l,
 			exporters.LogsExporterConfig{
-				LogsInstance:     logsInstance,
+				GetLogsInstance: func() exporters.LogsInstance {
+					return globals.Logs.Instance(c.ReceiverConfig.LogsInstance)
+				},
 				Labels:           c.ReceiverConfig.LogsLabels,
 				SendEntryTimeout: c.ReceiverConfig.LogsSendTimeout,
 			},

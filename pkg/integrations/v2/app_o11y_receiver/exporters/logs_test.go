@@ -60,7 +60,7 @@ func (store *MockSourceMapStore) ResolveSourceLocation(frame *models.Frame, rele
 
 func TestExportLogs(t *testing.T) {
 	ctx := context.Background()
-	inst := testLogsInstance{
+	inst := &testLogsInstance{
 		Entries: []api.Entry{},
 	}
 
@@ -69,7 +69,7 @@ func TestExportLogs(t *testing.T) {
 	logsExporter := NewLogsExporter(
 		logger,
 		LogsExporterConfig{
-			LogsInstance: &inst,
+			GetLogsInstance: func() LogsInstance { return inst },
 			Labels: map[string]string{
 				"app":  "frontend",
 				"kind": "",
