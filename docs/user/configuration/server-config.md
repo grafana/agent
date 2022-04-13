@@ -60,8 +60,7 @@ The `server_tls_config` configures TLS.
 
 ## windows_certificate_filter
 
-The `windows_certificate_filter` configures usage of the Windows Certificate store
-NOTE: cert_file, key_file, and client_ca_file are not used when this is enabled
+The `windows_certificate_filter` configures usage of the Windows Certificate store. It is invalid to set cert_file, key_file, and client_ca_file when using windows_certificate_filter.
 
 ```yaml
 
@@ -72,9 +71,10 @@ NOTE: cert_file, key_file, and client_ca_file are not used when this is enabled
 [client_store: <string>]
 
 # Array of issuer common names to check against
-[client_issuer_common_names: [<string>]]
+client_issuer_common_names:
+  [- <string> ... ]
 
-# Regular expression to match Subject name
+  # Regular expression to match Subject name
 [client_subject_regex: <string>]
 
 # Client Template ID to match in ASN1 format ex "1.2.3"
@@ -87,12 +87,14 @@ NOTE: cert_file, key_file, and client_ca_file are not used when this is enabled
 [server_store: <string>]
 
 # Array of issuer common names to check against
-[server_issuer_common_names: [<string>]]
+server_issuer_common_names:
+  [- <string> ... ]
 
-# Server Template ID to match in ASN1 format ex "1.2.3"
+
+  # Server Template ID to match in ASN1 format ex "1.2.3"
 [server_template_id: <string>]
 
 # How often to refresh the server certificate ex 5m, 1h 
-[server_refresh_interval: <time.duration>]
+[server_refresh_interval: <duration>]
 
 ```

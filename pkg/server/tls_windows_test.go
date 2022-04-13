@@ -28,9 +28,9 @@ func TestEasyFilter(t *testing.T) {
 	}
 	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 	require.NoError(t, err)
+	require.NotNil(t, serverIdentity)
 	foundCert, err := serverIdentity.Certificate()
 	require.NoError(t, err)
-	require.NotNil(t, serverIdentity)
 	require.True(t, foundCert == sc)
 }
 
@@ -50,10 +50,10 @@ func TestTemplateIDFilter(t *testing.T) {
 	}
 	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 	require.NoError(t, err)
+	require.NotNil(t, serverIdentity)
 	foundCert, err := serverIdentity.Certificate()
 	require.NoError(t, err)
-	require.NotNil(t, serverIdentity)
-	require.True(t, foundCert == sc)
+	require.Equal(t, foundCert, sc)
 }
 
 func TestCommonName(t *testing.T) {
@@ -73,10 +73,10 @@ func TestCommonName(t *testing.T) {
 	}
 	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
 	require.NoError(t, err)
+	require.NotNil(t, serverIdentity)
 	foundCert, err := serverIdentity.Certificate()
 	require.NoError(t, err)
-	require.NotNil(t, serverIdentity)
-	require.True(t, foundCert == sc)
+	require.Equal(t, foundCert, sc)
 }
 
 func TestCommonName_Fail(t *testing.T) {
@@ -138,7 +138,7 @@ func TestMatching2CertsGetMostRecent(t *testing.T) {
 	require.NoError(t, err)
 	foundCert, err := identity.Certificate()
 	require.NoError(t, err)
-	require.True(t, foundCert == shouldFind)
+	require.Equal(t, foundCert, shouldFind)
 }
 
 func TestRegularExpression(t *testing.T) {
@@ -165,7 +165,7 @@ func TestRegularExpression(t *testing.T) {
 	require.NoError(t, err)
 	foundCert, err := identity.Certificate()
 	require.NoError(t, err)
-	require.True(t, foundCert == sc)
+	require.Equal(t, foundCert, sc)
 }
 
 func TestRegularExpression_Fail(t *testing.T) {
@@ -216,7 +216,7 @@ func (f fakeStore) Identities() ([]certstore.Identity, error) {
 }
 
 func (f fakeStore) Import(data []byte, password string) error {
-	panic("implement me")
+	panic("should not be called")
 }
 
 func (f fakeStore) Close() {
@@ -279,15 +279,15 @@ func makeCert(start, end time.Time, templateID []int, commonName string, subject
 }
 
 func (f fakeIdentity) CertificateChain() ([]*x509.Certificate, error) {
-	panic("implement me")
+	panic("should not be called")
 }
 
 func (f fakeIdentity) Signer() (crypto.Signer, error) {
-	panic("implement me")
+	panic("should not be called")
 }
 
 func (f fakeIdentity) Delete() error {
-	panic("implement me")
+	panic("should not be called")
 }
 
 func (f fakeIdentity) Close() {

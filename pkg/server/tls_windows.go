@@ -309,6 +309,12 @@ func (c *winCertStoreHandler) filterByTemplateID(input []certstore.Identity, id 
 	return returnIdentities, nil
 }
 
+type templateInformation struct {
+	Template     asn1.ObjectIdentifier
+	MajorVersion int
+	MinorVersion int
+}
+
 func (c *winCertStoreHandler) filterBySubjectRegularExpression(input []certstore.Identity, regEx *regexp.Regexp) ([]certstore.Identity, error) {
 	if regEx == nil {
 		return input, nil
@@ -333,10 +339,4 @@ func (c *winCertStoreHandler) VerifyPeer(_ [][]byte, verifiedChains [][]*x509.Ce
 	_, err := clientCert.Verify(opts)
 	return err
 
-}
-
-type templateInformation struct {
-	Template     asn1.ObjectIdentifier
-	MajorVersion int
-	MinorVersion int
 }
