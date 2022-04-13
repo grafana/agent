@@ -37,6 +37,9 @@ Main (unreleased)
 - Set the `Content-Type` HTTP header to `application/json` for API endpoints
   returning json objects. (@marctc)
 
+- Operator: fix issue where a `username_file` field was incorrectly set.
+  (@rfratto)
+
 ### Other changes
 
 - Update base image of official Docker containers from Debian buster to Debian
