@@ -148,8 +148,7 @@ type tlsListener struct {
 	innerListener net.Listener
 
 	windowsCertHandler *winCertStoreHandler
-	//nolint:golint
-	cancelWindowsCert context.CancelFunc
+	cancelWindowsCert  context.CancelFunc
 }
 
 // newTLSListener creates and configures a new tlsListener.
@@ -199,7 +198,7 @@ func (l *tlsListener) ApplyConfig(c TLSConfig) error {
 }
 
 func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
-	if l.windowsCertHandler != nil {
+	if l.windowsCertHandler != nil || l.windowsCertHandler != nil {
 		panic("windows certificate handler is set this should never happen")
 	}
 	// Convert our TLSConfig into a new *tls.Config.
