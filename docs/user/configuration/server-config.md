@@ -60,7 +60,7 @@ The `server_tls_config` configures TLS.
 
 ## windows_certificate_filter
 
-The `windows_certificate_filter` configures usage of the Windows Certificate store. It is invalid to set cert_file, key_file, and client_ca_file when using windows_certificate_filter.
+The `windows_certificate_filter` configures the use of the Windows Certificate store. Set cert_file, key_file, and client_ca_file are invalid settings when using the windows_certificate_filter.
 
 ```yaml
 
