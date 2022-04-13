@@ -148,7 +148,8 @@ type tlsListener struct {
 	innerListener net.Listener
 
 	windowsCertHandler *winCertStoreHandler
-	cancelWindowsCert  context.CancelFunc
+	//nolint:golint
+	cancelWindowsCert context.CancelFunc
 }
 
 // newTLSListener creates and configures a new tlsListener.
