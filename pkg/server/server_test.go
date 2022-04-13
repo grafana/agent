@@ -53,7 +53,7 @@ func TestServer_InMemory(t *testing.T) {
 	grpcDialer := grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
 		return srv.DialContext(ctx, "", s)
 	})
-	cc, err := grpc.Dial(cfg.Flags.GRPC.InMemoryAddr, grpc.WithInsecure(), grpcDialer)
+	cc, err := grpc.Dial(cfg.Flags.GRPC.InMemoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpcDialer)
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)
