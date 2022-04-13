@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto"
 	"crypto/tls"
 	"crypto/x509"
@@ -11,6 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+
 	"github.com/github/smimesign/certstore"
 )
 
@@ -18,10 +22,10 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 
 	// Restrict normal TLS options when using windows certificate store
 	if c.TLSCertPath != "" {
-		return fmt.Errorf("cannot include certificate file when using windows certificate store")
+		return fmt.Errorf("at most one of cert_file and windows_certificate_filter can be configured")
 	}
 	if c.TLSKeyPath != "" {
-		return fmt.Errorf("cannot include key file when using windows certificate store")
+		return fmt.Errorf("at most one of cert_key and windows_certificate_filter can be configured")
 	}
 
 	var subjectRegEx *regexp.Regexp
@@ -29,19 +33,23 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 	if c.WindowsCertificateFilter.ClientSubjectRegEx != "" {
 		subjectRegEx, err = regexp.Compile(c.WindowsCertificateFilter.ClientSubjectRegEx)
 		if err != nil {
-			return fmt.Errorf("error compiling subject common name regular expression %w", err)
+			return fmt.Errorf("error compiling subject common name regular expression: %w", err)
 		}
 	}
 
 	// If there is an existing windows certhandler notify it to stop refreshing
-	if l.windowsCertHandler != nil {
-		l.windowsCertHandler.stopUpdateTimer <- struct{}{}
+	if l.cancelWindowsCert != nil {
+		l.cancelWindowsCert()
+		l.cancelWindowsCert = nil
 	}
-
+	cancelCtx := context.Background()
+	cancelCtx, cancelHandler := context.WithCancel(cancelCtx)
+	l.cancelWindowsCert = cancelHandler
 	cn := &winCertStoreHandler{
-		cfg:             *c.WindowsCertificateFilter,
-		subjectRegEx:    subjectRegEx,
-		stopUpdateTimer: make(chan struct{}, 1),
+		cfg:           *c.WindowsCertificateFilter,
+		subjectRegEx:  subjectRegEx,
+		cancelContext: cancelCtx,
+		log:           l.log,
 	}
 	err = cn.refreshCerts()
 	if err != nil {
@@ -57,11 +65,12 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 			cert := &tls.Certificate{
 				Certificate: [][]byte{cn.serverCert.Raw},
 				PrivateKey:  cn.serverSigner,
+				Leaf:        cn.serverCert,
 				// These seem to the be safest to use, tested on Win10, Server 2016, 2019, 2022
 				SupportedSignatureAlgorithms: []tls.SignatureScheme{
-					tls.PKCS1WithSHA256,
-					tls.PKCS1WithSHA384,
 					tls.PKCS1WithSHA512,
+					tls.PKCS1WithSHA384,
+					tls.PKCS1WithSHA256,
 				},
 			}
 			return cert, nil
@@ -70,20 +79,11 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 		MaxVersion: tls.VersionTLS12,
 	}
 
-	switch c.ClientAuth {
-	case "RequestClientCert":
-		config.ClientAuth = tls.RequestClientCert
-	case "RequireAnyClientCert", "RequireClientCert": // Preserved for backwards compatibility.
-		config.ClientAuth = tls.RequireAnyClientCert
-	case "VerifyClientCertIfGiven":
-		config.ClientAuth = tls.VerifyClientCertIfGiven
-	case "RequireAndVerifyClientCert":
-		config.ClientAuth = tls.RequireAndVerifyClientCert
-	case "", "NoClientCert":
-		config.ClientAuth = tls.NoClientCert
-	default:
-		return fmt.Errorf("invalid ClientAuth %q", c.ClientAuth)
+	ca, err := getClientAuthFromString(c.ClientAuth)
+	if err != nil {
+		return err
 	}
+	config.ClientAuth = ca
 	// Kick off the refresh handler
 	go cn.startUpdateTimer()
 	l.windowsCertHandler = cn
@@ -98,6 +98,7 @@ var asnTemplateOID = "1.3.6.1.4.1.311.21.7"
 type winCertStoreHandler struct {
 	cfg          WindowsCertificateFilter
 	subjectRegEx *regexp.Regexp
+	log          log.Logger
 
 	winMut       sync.Mutex
 	serverCert   *x509.Certificate
@@ -106,42 +107,46 @@ type winCertStoreHandler struct {
 	serverIdentity certstore.Identity
 	clientRootCA   *x509.Certificate
 
-	stopUpdateTimer chan struct{}
+	cancelContext context.Context
 }
 
 func (c *winCertStoreHandler) startUpdateTimer() {
-	if c.cfg.ServerRefreshInterval == 0 {
-		c.cfg.ServerRefreshInterval = 5 * time.Minute
+	refreshInterval := 5 * time.Minute
+	c.winMut.Lock()
+	if c.cfg.ServerRefreshInterval != 0 {
+		refreshInterval = c.cfg.ServerRefreshInterval
 	}
-
-	select {
-	case <-c.stopUpdateTimer:
-		if c.serverIdentity != nil {
-			c.serverIdentity.Close()
-		}
-		c.serverCert = nil
-		c.serverSigner = nil
-		return
-	case <-time.After(c.cfg.ServerRefreshInterval):
-		err := c.refreshCerts()
-		if err != nil {
+	c.winMut.Unlock()
+	for {
+		select {
+		case <-c.cancelContext.Done():
+			if c.serverIdentity != nil {
+				c.serverIdentity.Close()
+			}
+			c.serverCert = nil
+			c.serverSigner = nil
 			return
-		}
+		case <-time.After(refreshInterval):
+			err := c.refreshCerts()
+			if err != nil {
+				level.Error(c.log).Log("msg", "error refreshing Windows certificates", "err", err)
+			}
 
+		}
 	}
 }
 
 // refreshCerts is the main work item in certificate store, responsible for finding the right certificate
-func (c *winCertStoreHandler) refreshCerts() error {
+func (c *winCertStoreHandler) refreshCerts() (err error) {
 	c.winMut.Lock()
 	defer c.winMut.Unlock()
+	level.Debug(c.log).Log("msg", "refreshing Windows certificates")
 	// Close the server identity if already set
 	if c.serverIdentity != nil {
 		c.serverIdentity.Close()
 	}
 	var serverIdentity certstore.Identity
 	var clientIdentity certstore.Identity
-	var err error
 	// This handles closing all our various handles
 	defer func() {
 		// we have to keep the server identity open if we want to use it, BUT only if an error occurred, else we need it
@@ -149,42 +154,43 @@ func (c *winCertStoreHandler) refreshCerts() error {
 		if serverIdentity != nil && err != nil {
 			serverIdentity.Close()
 		}
-		// Client identity does need to be open since we dont need to sign
+		// Client identity does NOT need to be open since we dont need to sign
 		if clientIdentity != nil {
 			clientIdentity.Close()
 		}
 	}()
-	serverIdentity, err = c.findServerCertificate()
+	serverIdentity, err = c.findServerIdentity()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed finding server identity %w", err)
 	}
 	sc, err := serverIdentity.Certificate()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed getting server certificate %w", err)
 	}
 	signer, err := serverIdentity.Signer()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed getting server signer %w", err)
+
 	}
-	clientIdentity, err = c.findClientCertificate()
+	clientIdentity, err = c.findClientIdentity()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed getting client identity %w", err)
 	}
 	cc, err := clientIdentity.Certificate()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed getting client certificate %w", err)
 	}
 	c.serverCert = sc
 	c.serverSigner = signer
 	c.clientRootCA = cc
 	c.serverIdentity = serverIdentity
-	return nil
+	return
 }
 
-func (c *winCertStoreHandler) findServerCertificate() (certstore.Identity, error) {
+func (c *winCertStoreHandler) findServerIdentity() (certstore.Identity, error) {
 	return c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, c.getStore)
 }
-func (c *winCertStoreHandler) findClientCertificate() (certstore.Identity, error) {
+func (c *winCertStoreHandler) findClientIdentity() (certstore.Identity, error) {
 	return c.findCertificate(c.cfg.ClientSystemStore, c.cfg.ClientStore, c.cfg.ClientIssuerCommonNames, c.cfg.ClientTemplateID, c.subjectRegEx, c.getStore)
 }
 
@@ -223,6 +229,7 @@ func (c *winCertStoreHandler) findCertificate(systemStore string, storeName stri
 		return nil, err
 	}
 	identities, err = store.Identities()
+
 	filtered, err := c.filterByIssuerCommonNames(identities, commonNames)
 	if err != nil {
 		return nil, err
@@ -239,10 +246,10 @@ func (c *winCertStoreHandler) findCertificate(systemStore string, storeName stri
 		return nil, fmt.Errorf("no certificates found")
 	}
 	// order oldest to newest
-	sort.Slice(filtered, func(i, j int) bool {
+	sort.Slice(filtered, func(certI, certJ int) bool {
 		// Already accessed this so the error will not happen
-		a, _ := filtered[i].Certificate()
-		b, _ := filtered[j].Certificate()
+		a, _ := filtered[certI].Certificate()
+		b, _ := filtered[certJ].Certificate()
 
 		return a.NotBefore.Before(b.NotBefore)
 	})

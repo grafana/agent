@@ -5,12 +5,13 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
-	"github.com/github/smimesign/certstore"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"regexp"
 	"testing"
 	"time"
+
+	"github.com/github/smimesign/certstore"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEasyFilter(t *testing.T) {
