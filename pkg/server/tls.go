@@ -1,4 +1,3 @@
-//nolint:golint
 package server
 
 import (
@@ -149,7 +148,7 @@ type tlsListener struct {
 	innerListener net.Listener
 
 	windowsCertHandler *winCertStoreHandler
-	cancelWindowsCert  context.CancelFunc
+	cancelWindowsCert  context.CancelFunc //nolint
 }
 
 // newTLSListener creates and configures a new tlsListener.
