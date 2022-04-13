@@ -14,6 +14,9 @@ Main (unreleased)
 
 - Initialize the logger with default `log_level` and `log_format` parameters. (@tpaschalis)
 
+- Operator: fix issue where a `username_file` field was incorrectly set.
+  (@rfratto)
+
 v0.24.0 (2022-04-07)
 --------------------
 
