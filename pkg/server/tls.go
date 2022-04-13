@@ -1,3 +1,4 @@
+//nolint:golint
 package server
 
 import (
@@ -136,7 +137,6 @@ func (tv *TLSVersion) MarshalYAML() (interface{}, error) {
 	return fmt.Sprintf("%v", tv), nil
 }
 
-//nolint:structcheck
 // tlsListener is a net.Listener for establishing TLS connections. tlsListener
 // supports dynamically updating the TLS settings used to establish
 // connections.
