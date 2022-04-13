@@ -213,8 +213,10 @@ func newInstanceScraper(
 	}
 	sd := discovery.NewManager(ctx, l, sdOpts...)
 	sm := scrape.NewManager(&scrape.Options{
-		// If dialerFunc is nil, scrape.NewManager will use Go's default dialer.
-		DialContextFunc: dialerFunc,
+		HTTPClientOptions: []config_util.HTTPClientOption{
+			// If dialerFunc is nil, scrape.NewManager will use Go's default dialer.
+			config_util.WithDialContextFunc(dialerFunc),
+		},
 	}, l, &agentAppender{
 		inst: instanceName,
 		is:   s,

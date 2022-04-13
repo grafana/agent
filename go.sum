@@ -1293,8 +1293,8 @@ github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnF
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a h1:JUnP/laSl2GylHT0+fqAqOZY+7XkLh1mLefLN0n8Mmk=
 github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a/go.mod h1:RMjrx3Qn8l2pgCD27g45xbko4UDpVVuHC8Cd2YXPtWA=
-github.com/grafana/prometheus v1.8.2-0.20220323140010-4d4232590b14 h1:CoQuhNNbuZ87R1rmpIvt9QoKpdWFWVP1tTD1o3Cd8lQ=
-github.com/grafana/prometheus v1.8.2-0.20220323140010-4d4232590b14/go.mod h1:migbGwmKEePaplmYVdzPdztaUixU4oxRYUg/JG9tiDU=
+github.com/grafana/prometheus v1.8.2-0.20220413182558-6b32d0b957c5 h1:HNAw9TLCE2oCt5tvOQSTs2d6eFik4rYPjGZZOgq4zCQ=
+github.com/grafana/prometheus v1.8.2-0.20220413182558-6b32d0b957c5/go.mod h1:migbGwmKEePaplmYVdzPdztaUixU4oxRYUg/JG9tiDU=
 github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb h1:wwzNkyaQwcXCzQuKoWz3lwngetmcyg+EhW0fF5lz73M=
 github.com/grafana/regexp v0.0.0-20220304100321-149c8afcd6cb/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
