@@ -67,7 +67,7 @@ The `windows_certificate_filter_config` configures the use of the Windows Certif
 [client: <windows_client_config>]
   
 # Name of the store to look for the Client Certificate ex My, CA
-[server: <windows_server_config>]
+server: <windows_server_config>
 ```
 
 
@@ -75,10 +75,10 @@ The `windows_certificate_filter_config` configures the use of the Windows Certif
 
 ```yaml
 # Name of the system store to look for the Client Certificate ex LocalMachine, CurrentUser 
-[system_store: <string>]
+system_store: <string>
 
 # Name of the store to look for the Client Certificate ex My, CA
-[store: <string>]
+store: <string>
 
 # Array of issuer common names to check against
 issuer_common_names:
@@ -95,10 +95,10 @@ issuer_common_names:
 
 ```yaml
 # Name of the system store to look for the Server Certificate ex LocalMachine, CurrentUser
-[system_store: <string>]
+system_store: <string>
 
 # Name of the store to look for the Server Certificate ex My, CA
-[store: <string>]
+store: <string>
 
 # Array of issuer common names to check against
 issuer_common_names:

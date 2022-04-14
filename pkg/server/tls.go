@@ -184,6 +184,9 @@ func (l *tlsListener) Accept() (net.Conn, error) {
 // Close implements net.Listener and closes the tlsListener, preventing any new
 // connections from being formed. Existing connections will be kept alive.
 func (l *tlsListener) Close() error {
+	if l.cancelWindowsCert != nil {
+		l.cancelWindowsCert()
+	}
 	return l.innerListener.Close()
 }
 
