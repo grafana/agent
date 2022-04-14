@@ -17,7 +17,7 @@ import (
 func TestEasyFilter(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			Server: &ServerFilter{
+			Server: &WindowsServerFilter{
 				Store:       "My",
 				SystemStore: "LocalMachine",
 			},
@@ -40,7 +40,7 @@ func TestEasyFilter(t *testing.T) {
 func TestTemplateIDFilter(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			Server: &ServerFilter{
+			Server: &WindowsServerFilter{
 				Store:       "My",
 				SystemStore: "LocalMachine",
 				TemplateID:  "1.2.3",
@@ -64,7 +64,7 @@ func TestTemplateIDFilter(t *testing.T) {
 func TestCommonName(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			Server: &ServerFilter{
+			Server: &WindowsServerFilter{
 				Store:             "My",
 				SystemStore:       "LocalMachine",
 				TemplateID:        "1.2.3",
@@ -89,7 +89,7 @@ func TestCommonName(t *testing.T) {
 func TestCommonName_Fail(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			Server: &ServerFilter{
+			Server: &WindowsServerFilter{
 				Store:             "My",
 				SystemStore:       "LocalMachine",
 				TemplateID:        "1.2.3",
@@ -110,7 +110,7 @@ func TestCommonName_Fail(t *testing.T) {
 func TestTemplateIDFilter_Fail(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			Server: &ServerFilter{
+			Server: &WindowsServerFilter{
 				Store:       "My",
 				SystemStore: "LocalMachine",
 				TemplateID:  "1.2.3",
@@ -130,7 +130,7 @@ func TestTemplateIDFilter_Fail(t *testing.T) {
 func TestMatching2CertsGetMostRecent(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			Server: &ServerFilter{
+			Server: &WindowsServerFilter{
 				Store:       "My",
 				SystemStore: "LocalMachine",
 				TemplateID:  "1.2.3",
@@ -157,7 +157,7 @@ func TestMatching2CertsGetMostRecent(t *testing.T) {
 func TestRegularExpression(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			Client: &ClientFilter{
+			Client: &WindowsClientFilter{
 				Store:        "My",
 				SystemStore:  "LocalMachine",
 				TemplateID:   "1.2.3",
@@ -186,7 +186,7 @@ func TestRegularExpression(t *testing.T) {
 func TestRegularExpression_Fail(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			Client: &ClientFilter{
+			Client: &WindowsClientFilter{
 				Store:        "My",
 				SystemStore:  "LocalMachine",
 				TemplateID:   "1.2.3",

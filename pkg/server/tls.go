@@ -30,12 +30,12 @@ type TLSConfig struct {
 
 // WindowsCertificateFilter represents the configuration for accessing the Windows store
 type WindowsCertificateFilter struct {
-	Server *ServerFilter `yaml:"server,omitempty"`
-	Client *ClientFilter `yaml:"client,omitempty"`
+	Server *WindowsServerFilter `yaml:"server,omitempty"`
+	Client *WindowsClientFilter `yaml:"client,omitempty"`
 }
 
-// ClientFilter is used to select a client root CA certificate
-type ClientFilter struct {
+// WindowsClientFilter is used to select a client root CA certificate
+type WindowsClientFilter struct {
 	Store             string   `yaml:"store,omitempty"`
 	SystemStore       string   `yaml:"system_store,omitempty"`
 	IssuerCommonNames []string `yaml:"issuer_common_names,omitempty"`
@@ -43,8 +43,8 @@ type ClientFilter struct {
 	TemplateID        string   `yaml:"template_id,omitempty"`
 }
 
-// ServerFilter is used to select a server certificate
-type ServerFilter struct {
+// WindowsServerFilter is used to select a server certificate
+type WindowsServerFilter struct {
 	Store             string   `yaml:"store,omitempty"`
 	SystemStore       string   `yaml:"system_store,omitempty"`
 	IssuerCommonNames []string `yaml:"issuer_common_names,omitempty"`
