@@ -17,8 +17,10 @@ import (
 func TestEasyFilter(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			ServerStore:       "My",
-			ServerSystemStore: "LocalMachine",
+			Server: &ServerFilter{
+				Store:       "My",
+				SystemStore: "LocalMachine",
+			},
 		},
 	}
 	serverSt := newFakeStore()
@@ -27,7 +29,7 @@ func TestEasyFilter(t *testing.T) {
 	findCert := func(systemStore, _ string) (certstore.Store, error) {
 		return serverSt, nil
 	}
-	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
+	serverIdentity, err := c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, findCert)
 	require.NoError(t, err)
 	require.NotNil(t, serverIdentity)
 	foundCert, err := serverIdentity.Certificate()
@@ -38,9 +40,11 @@ func TestEasyFilter(t *testing.T) {
 func TestTemplateIDFilter(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			ServerStore:       "My",
-			ServerSystemStore: "LocalMachine",
-			ServerTemplateID:  "1.2.3",
+			Server: &ServerFilter{
+				Store:       "My",
+				SystemStore: "LocalMachine",
+				TemplateID:  "1.2.3",
+			},
 		},
 	}
 	serverSt := newFakeStore()
@@ -49,7 +53,7 @@ func TestTemplateIDFilter(t *testing.T) {
 	findCert := func(systemStore, _ string) (certstore.Store, error) {
 		return serverSt, nil
 	}
-	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
+	serverIdentity, err := c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, findCert)
 	require.NoError(t, err)
 	require.NotNil(t, serverIdentity)
 	foundCert, err := serverIdentity.Certificate()
@@ -60,10 +64,12 @@ func TestTemplateIDFilter(t *testing.T) {
 func TestCommonName(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			ServerStore:             "My",
-			ServerSystemStore:       "LocalMachine",
-			ServerTemplateID:        "1.2.3",
-			ServerIssuerCommonNames: []string{"TEST"},
+			Server: &ServerFilter{
+				Store:             "My",
+				SystemStore:       "LocalMachine",
+				TemplateID:        "1.2.3",
+				IssuerCommonNames: []string{"TEST"},
+			},
 		},
 	}
 	serverSt := newFakeStore()
@@ -72,7 +78,7 @@ func TestCommonName(t *testing.T) {
 	findCert := func(systemStore, _ string) (certstore.Store, error) {
 		return serverSt, nil
 	}
-	serverIdentity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
+	serverIdentity, err := c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, findCert)
 	require.NoError(t, err)
 	require.NotNil(t, serverIdentity)
 	foundCert, err := serverIdentity.Certificate()
@@ -83,10 +89,12 @@ func TestCommonName(t *testing.T) {
 func TestCommonName_Fail(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			ServerStore:             "My",
-			ServerSystemStore:       "LocalMachine",
-			ServerTemplateID:        "1.2.3",
-			ServerIssuerCommonNames: []string{"TEST"},
+			Server: &ServerFilter{
+				Store:             "My",
+				SystemStore:       "LocalMachine",
+				TemplateID:        "1.2.3",
+				IssuerCommonNames: []string{"TEST"},
+			},
 		},
 	}
 	serverSt := newFakeStore()
@@ -95,16 +103,18 @@ func TestCommonName_Fail(t *testing.T) {
 	findCert := func(systemStore, _ string) (certstore.Store, error) {
 		return serverSt, nil
 	}
-	_, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
+	_, err := c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, findCert)
 	require.Error(t, err)
 }
 
 func TestTemplateIDFilter_Fail(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			ServerStore:       "My",
-			ServerSystemStore: "LocalMachine",
-			ServerTemplateID:  "1.2.3",
+			Server: &ServerFilter{
+				Store:       "My",
+				SystemStore: "LocalMachine",
+				TemplateID:  "1.2.3",
+			},
 		},
 	}
 	serverSt := newFakeStore()
@@ -113,16 +123,18 @@ func TestTemplateIDFilter_Fail(t *testing.T) {
 	findCert := func(systemStore, _ string) (certstore.Store, error) {
 		return serverSt, nil
 	}
-	_, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
+	_, err := c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, findCert)
 	require.Error(t, err)
 }
 
 func TestMatching2CertsGetMostRecent(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			ServerStore:       "My",
-			ServerSystemStore: "LocalMachine",
-			ServerTemplateID:  "1.2.3",
+			Server: &ServerFilter{
+				Store:       "My",
+				SystemStore: "LocalMachine",
+				TemplateID:  "1.2.3",
+			},
 		},
 	}
 	serverSt := newFakeStore()
@@ -134,7 +146,7 @@ func TestMatching2CertsGetMostRecent(t *testing.T) {
 	findCert := func(systemStore, _ string) (certstore.Store, error) {
 		return serverSt, nil
 	}
-	identity, err := c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, findCert)
+	identity, err := c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, findCert)
 
 	require.NoError(t, err)
 	foundCert, err := identity.Certificate()
@@ -145,14 +157,16 @@ func TestMatching2CertsGetMostRecent(t *testing.T) {
 func TestRegularExpression(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			ClientStore:        "My",
-			ClientSystemStore:  "LocalMachine",
-			ClientTemplateID:   "1.2.3",
-			ClientSubjectRegEx: "[Villa]",
+			Client: &ClientFilter{
+				Store:        "My",
+				SystemStore:  "LocalMachine",
+				TemplateID:   "1.2.3",
+				SubjectRegEx: "[Villa]",
+			},
 		},
 	}
 	var subjectRegEx *regexp.Regexp
-	subjectRegEx, err := regexp.Compile(c.cfg.ClientSubjectRegEx)
+	subjectRegEx, err := regexp.Compile(c.cfg.Client.SubjectRegEx)
 	require.NoError(t, err)
 	c.subjectRegEx = subjectRegEx
 	serverSt := newFakeStore()
@@ -161,7 +175,7 @@ func TestRegularExpression(t *testing.T) {
 	findCert := func(systemStore, _ string) (certstore.Store, error) {
 		return serverSt, nil
 	}
-	identity, err := c.findCertificate(c.cfg.ClientSystemStore, c.cfg.ClientStore, c.cfg.ClientIssuerCommonNames, c.cfg.ClientTemplateID, c.subjectRegEx, findCert)
+	identity, err := c.findCertificate(c.cfg.Client.SystemStore, c.cfg.Client.Store, c.cfg.Client.IssuerCommonNames, c.cfg.Client.TemplateID, c.subjectRegEx, findCert)
 
 	require.NoError(t, err)
 	foundCert, err := identity.Certificate()
@@ -172,14 +186,16 @@ func TestRegularExpression(t *testing.T) {
 func TestRegularExpression_Fail(t *testing.T) {
 	c := &winCertStoreHandler{
 		cfg: WindowsCertificateFilter{
-			ClientStore:        "My",
-			ClientSystemStore:  "LocalMachine",
-			ClientTemplateID:   "1.2.3",
-			ClientSubjectRegEx: "[Villa]",
+			Client: &ClientFilter{
+				Store:        "My",
+				SystemStore:  "LocalMachine",
+				TemplateID:   "1.2.3",
+				SubjectRegEx: "[Villa]",
+			},
 		},
 	}
 	var subjectRegEx *regexp.Regexp
-	subjectRegEx, err := regexp.Compile(c.cfg.ClientSubjectRegEx)
+	subjectRegEx, err := regexp.Compile(c.cfg.Client.SubjectRegEx)
 	require.NoError(t, err)
 	c.subjectRegEx = subjectRegEx
 	serverSt := newFakeStore()
@@ -189,7 +205,7 @@ func TestRegularExpression_Fail(t *testing.T) {
 	findCert := func(systemStore, _ string) (certstore.Store, error) {
 		return serverSt, nil
 	}
-	identity, err := c.findCertificate(c.cfg.ClientSystemStore, c.cfg.ClientStore, c.cfg.ClientIssuerCommonNames, c.cfg.ClientTemplateID, c.subjectRegEx, findCert)
+	identity, err := c.findCertificate(c.cfg.Client.SystemStore, c.cfg.Client.Store, c.cfg.Client.IssuerCommonNames, c.cfg.Client.TemplateID, c.subjectRegEx, findCert)
 
 	require.Error(t, err)
 	require.Nil(t, identity)

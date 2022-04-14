@@ -27,11 +27,14 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 	if c.TLSKeyPath != "" {
 		return fmt.Errorf("at most one of cert_key and windows_certificate_filter can be configured")
 	}
+	if c.WindowsCertificateFilter.Server == nil {
+		return fmt.Errorf("windows certificate filter requires a server block defined")
+	}
 
 	var subjectRegEx *regexp.Regexp
 	var err error
-	if c.WindowsCertificateFilter.ClientSubjectRegEx != "" {
-		subjectRegEx, err = regexp.Compile(c.WindowsCertificateFilter.ClientSubjectRegEx)
+	if c.WindowsCertificateFilter.Client != nil && c.WindowsCertificateFilter.Client.SubjectRegEx != "" {
+		subjectRegEx, err = regexp.Compile(c.WindowsCertificateFilter.Client.SubjectRegEx)
 		if err != nil {
 			return fmt.Errorf("error compiling subject common name regular expression: %w", err)
 		}
@@ -55,9 +58,15 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 	if err != nil {
 		return err
 	}
-	certPool := x509.NewCertPool()
-	certPool.AddCert(cn.clientRootCA)
+	// CertPool, if there is a clientrootca use it, else pass in nil which will use the default certs
+	var certPool *x509.CertPool
+	if cn.clientRootCA != nil {
+		certPool = x509.NewCertPool()
+		certPool.AddCert(cn.clientRootCA)
+	}
+
 	config := &tls.Config{
+		ClientCAs:             certPool,
 		VerifyPeerCertificate: cn.VerifyPeer,
 		GetCertificate: func(info *tls.ClientHelloInfo) (*tls.Certificate, error) {
 			cn.winMut.Lock()
@@ -84,6 +93,7 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 		return err
 	}
 	config.ClientAuth = ca
+	cn.clientAuth = ca
 	// Kick off the refresh handler
 	go cn.startUpdateTimer()
 	l.windowsCertHandler = cn
@@ -103,9 +113,12 @@ type winCertStoreHandler struct {
 	winMut       sync.Mutex
 	serverCert   *x509.Certificate
 	serverSigner crypto.PrivateKey
-	// We have to store the identity to access the signer (its an api call), the client does NOT need the signer
+	// We have to store the identity to access the signer (it's a win32 api call), if we close the identity
+	// we lose access to the signer
+	// the client does NOT need the signer
 	serverIdentity certstore.Identity
 	clientRootCA   *x509.Certificate
+	clientAuth     tls.ClientAuthType
 
 	cancelContext context.Context
 }
@@ -113,8 +126,8 @@ type winCertStoreHandler struct {
 func (c *winCertStoreHandler) startUpdateTimer() {
 	refreshInterval := 5 * time.Minute
 	c.winMut.Lock()
-	if c.cfg.ServerRefreshInterval != 0 {
-		refreshInterval = c.cfg.ServerRefreshInterval
+	if c.cfg.Server.RefreshInterval != 0 {
+		refreshInterval = c.cfg.Server.RefreshInterval
 	}
 	c.winMut.Unlock()
 	for {
@@ -147,6 +160,7 @@ func (c *winCertStoreHandler) refreshCerts() (err error) {
 	}
 	var serverIdentity certstore.Identity
 	var clientIdentity certstore.Identity
+	var clientCertificate *x509.Certificate
 	// This handles closing all our various handles
 	defer func() {
 		// we have to keep the server identity open if we want to use it, BUT only if an error occurred, else we need it
@@ -176,22 +190,33 @@ func (c *winCertStoreHandler) refreshCerts() (err error) {
 	if err != nil {
 		return fmt.Errorf("failed getting client identity %w", err)
 	}
-	cc, err := clientIdentity.Certificate()
-	if err != nil {
-		return fmt.Errorf("failed getting client certificate %w", err)
+	if clientIdentity == nil && (c.clientAuth == tls.RequireAndVerifyClientCert || c.clientAuth == tls.RequestClientCert) {
+		return fmt.Errorf("client auth requires a certificate (RequireAndVerifyClientCert or RequestClientCert) and failed getting client identity")
 	}
+	if clientIdentity != nil {
+		clientCertificate, err = clientIdentity.Certificate()
+		if err != nil {
+			return fmt.Errorf("failed getting client certificate %w", err)
+		}
+	}
+
 	c.serverCert = sc
 	c.serverSigner = signer
-	c.clientRootCA = cc
+	c.clientRootCA = clientCertificate
 	c.serverIdentity = serverIdentity
 	return
 }
 
 func (c *winCertStoreHandler) findServerIdentity() (certstore.Identity, error) {
-	return c.findCertificate(c.cfg.ServerSystemStore, c.cfg.ServerStore, c.cfg.ServerIssuerCommonNames, c.cfg.ServerTemplateID, nil, c.getStore)
+	return c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, c.getStore)
 }
 func (c *winCertStoreHandler) findClientIdentity() (certstore.Identity, error) {
-	return c.findCertificate(c.cfg.ClientSystemStore, c.cfg.ClientStore, c.cfg.ClientIssuerCommonNames, c.cfg.ClientTemplateID, c.subjectRegEx, c.getStore)
+	// Client certificate is not required
+	// Valid configurations are checked further in findCertificate
+	if c.cfg.Client == nil {
+		return nil, nil
+	}
+	return c.findCertificate(c.cfg.Client.SystemStore, c.cfg.Client.Store, c.cfg.Client.IssuerCommonNames, c.cfg.Client.TemplateID, c.subjectRegEx, c.getStore)
 }
 
 func (c *winCertStoreHandler) getStore(systemStore string, storeName string) (certstore.Store, error) {

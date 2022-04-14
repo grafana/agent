@@ -28,20 +28,29 @@ type TLSConfig struct {
 	WindowsCertificateFilter *WindowsCertificateFilter `yaml:"windows_certificate_filter,omitempty"`
 }
 
-// WindowsCertificateFilter represents the configuration for accessing the windows store
+// WindowsCertificateFilter represents the configuration for accessing the Windows store
 type WindowsCertificateFilter struct {
-	ClientStore             string   `yaml:"client_store,omitempty"`
-	ClientSystemStore       string   `yaml:"client_system_store,omitempty"`
-	ClientIssuerCommonNames []string `yaml:"client_issuer_common_names,omitempty"`
-	ClientSubjectRegEx      string   `yaml:"client_subject_regex,omitempty"`
-	ClientTemplateID        string   `yaml:"client_template_id,omitempty"`
+	Server *ServerFilter `yaml:"server,omitempty"`
+	Client *ClientFilter `yaml:"client,omitempty"`
+}
 
-	ServerStore             string   `yaml:"server_store,omitempty"`
-	ServerSystemStore       string   `yaml:"server_system_store,omitempty"`
-	ServerIssuerCommonNames []string `yaml:"server_issuer_common_names,omitempty"`
-	ServerTemplateID        string   `yaml:"server_template_id,omitempty"`
+// ClientFilter is used to select a client root CA certificate
+type ClientFilter struct {
+	Store             string   `yaml:"store,omitempty"`
+	SystemStore       string   `yaml:"system_store,omitempty"`
+	IssuerCommonNames []string `yaml:"issuer_common_names,omitempty"`
+	SubjectRegEx      string   `yaml:"subject_regex,omitempty"`
+	TemplateID        string   `yaml:"template_id,omitempty"`
+}
 
-	ServerRefreshInterval time.Duration `yaml:"server_refresh_interval,omitempty"`
+// ServerFilter is used to select a server certificate
+type ServerFilter struct {
+	Store             string   `yaml:"store,omitempty"`
+	SystemStore       string   `yaml:"system_store,omitempty"`
+	IssuerCommonNames []string `yaml:"issuer_common_names,omitempty"`
+	TemplateID        string   `yaml:"template_id,omitempty"`
+
+	RefreshInterval time.Duration `yaml:"refresh_interval,omitempty"`
 }
 
 // TLSCipher holds the ID of a tls.CipherSuite.
