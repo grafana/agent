@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.24.1 (2022-04-14)
+--------------------
+
 ### Bugfixes
 
 - Add missing version information back into agentctl --version. (@rlankfo)
