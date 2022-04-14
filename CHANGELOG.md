@@ -25,6 +25,20 @@ Main (unreleased)
   network. As a result of this change, the `client_config` field has been
   removed. (@rfratto)
 
+### Other changes
+
+- Update base image of official Docker containers from Debian buster to Debian
+  bullseye. (@rfratto)
+
+- Use Go 1.18 for builds. (@rfratto)
+
+- Add `metrics` prefix to the url of list instances endpoint (`GET
+  /agent/api/v1/instances`) and list targets endpoint (`GET
+  /agent/api/v1/metrics/targets`). (@marctc)
+
+v0.24.1 (2022-04-14)
+--------------------
+
 ### Bugfixes
 
 - Add missing version information back into `agentctl --version`. (@rlankfo)
@@ -40,20 +54,13 @@ Main (unreleased)
 - Operator: fix issue where a `username_file` field was incorrectly set.
   (@rfratto)
 
-- Initialize the logger with default `log_level` and `log_format` parameters. (@tpaschalis)
+- Initialize the logger with default `log_level` and `log_format` parameters.
+  (@tpaschalis)
 
 ### Other changes
 
-- Update base image of official Docker containers from Debian buster to Debian
-  bullseye. (@rfratto)
-
-- Use Go 1.18 for builds. (@rfratto)
-
-- Add `metrics` prefix to the url of list instances endpoint (`GET /agent/api/v1/instances`) and
-  list targets endpoint (`GET /agent/api/v1/metrics/targets`). (@marctc)
-
-- Embed timezone data to enable Promtail pipelines using the `location` field on Windows machines. (@tpaschalis)
-
+- Embed timezone data to enable Promtail pipelines using the `location` field
+  on Windows machines. (@tpaschalis)
 
 v0.24.0 (2022-04-07)
 --------------------
