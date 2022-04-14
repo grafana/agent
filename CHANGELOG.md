@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Initialize the logger with default `log_level` and `log_format` parameters. (@tpaschalis)
+
 v0.24.0 (2022-04-07)
 --------------------
 
