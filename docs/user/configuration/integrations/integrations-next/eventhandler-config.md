@@ -97,7 +97,6 @@ logs:
         password: YOUR_LOKI_API_KEY
       external_labels:
         cluster: "cloud"
-        job: "integrations/kubernetes/eventhandler"
     positions:
       filename: /tmp/positions0.yaml
 ```
@@ -176,7 +175,6 @@ data:
             password: YOUR_LOKI_API_KEY
           external_labels:
             cluster: "cloud"
-            job: "integrations/kubernetes/eventhandler"
         positions:
           filename: /tmp/positions0.yaml
 ---

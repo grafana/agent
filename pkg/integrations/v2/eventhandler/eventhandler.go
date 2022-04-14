@@ -212,7 +212,8 @@ func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, e
 	msg.WriteString(fmt.Sprintf("name=%s ", obj.Name))
 
 	labels[model.LabelName("namespace")] = model.LabelValue(obj.Namespace)
-	labels[model.LabelName("job")] = model.LabelValue("integrations/eventhandler")
+	// TODO(hjet) omit "kubernetes"
+	labels[model.LabelName("job")] = model.LabelValue("integrations/kubernetes/eventhandler")
 	labels[model.LabelName("instance")] = model.LabelValue(eh.instance)
 	labels[model.LabelName("agent_hostname")] = model.LabelValue(eh.instance)
 	for _, lbl := range eh.extraLabels {
