@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"testing"
 
+	kitlog "github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +23,7 @@ func Test_tlsListener(t *testing.T) {
 		TLSKeyPath:  "testdata/example-key.pem",
 		ClientAuth:  "NoClientCert",
 	}
-	tlsLis, err := newTLSListener(rawLis, tlsConfig)
+	tlsLis, err := newTLSListener(rawLis, tlsConfig, kitlog.NewNopLogger())
 	require.NoError(t, err)
 
 	httpSrv := &http.Server{

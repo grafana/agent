@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
@@ -8,19 +9,48 @@ import (
 	"io/ioutil"
 	"net"
 	"sync"
+	"time"
+
+	"github.com/go-kit/log"
 )
 
 // TLSConfig holds dynamic configuration options for TLS.
 type TLSConfig struct {
-	TLSCertPath              string      `yaml:"cert_file"`
-	TLSKeyPath               string      `yaml:"key_file"`
-	ClientAuth               string      `yaml:"client_auth_type"`
-	ClientCAs                string      `yaml:"client_ca_file"`
-	CipherSuites             []TLSCipher `yaml:"cipher_suites"`
-	CurvePreferences         []TLSCurve  `yaml:"curve_preferences"`
-	MinVersion               TLSVersion  `yaml:"min_version"`
-	MaxVersion               TLSVersion  `yaml:"max_version"`
-	PreferServerCipherSuites bool        `yaml:"prefer_server_cipher_suites"`
+	TLSCertPath              string                    `yaml:"cert_file,omitempty"`
+	TLSKeyPath               string                    `yaml:"key_file,omitempty"`
+	ClientAuth               string                    `yaml:"client_auth_type,omitempty"`
+	ClientCAs                string                    `yaml:"client_ca_file,omitempty"`
+	CipherSuites             []TLSCipher               `yaml:"cipher_suites,omitempty"`
+	CurvePreferences         []TLSCurve                `yaml:"curve_preferences,omitempty"`
+	MinVersion               TLSVersion                `yaml:"min_version,omitempty"`
+	MaxVersion               TLSVersion                `yaml:"max_version,omitempty"`
+	PreferServerCipherSuites bool                      `yaml:"prefer_server_cipher_suites,omitempty"`
+	WindowsCertificateFilter *WindowsCertificateFilter `yaml:"windows_certificate_filter,omitempty"`
+}
+
+// WindowsCertificateFilter represents the configuration for accessing the Windows store
+type WindowsCertificateFilter struct {
+	Server *WindowsServerFilter `yaml:"server,omitempty"`
+	Client *WindowsClientFilter `yaml:"client,omitempty"`
+}
+
+// WindowsClientFilter is used to select a client root CA certificate
+type WindowsClientFilter struct {
+	Store             string   `yaml:"store,omitempty"`
+	SystemStore       string   `yaml:"system_store,omitempty"`
+	IssuerCommonNames []string `yaml:"issuer_common_names,omitempty"`
+	SubjectRegEx      string   `yaml:"subject_regex,omitempty"`
+	TemplateID        string   `yaml:"template_id,omitempty"`
+}
+
+// WindowsServerFilter is used to select a server certificate
+type WindowsServerFilter struct {
+	Store             string   `yaml:"store,omitempty"`
+	SystemStore       string   `yaml:"system_store,omitempty"`
+	IssuerCommonNames []string `yaml:"issuer_common_names,omitempty"`
+	TemplateID        string   `yaml:"template_id,omitempty"`
+
+	RefreshInterval time.Duration `yaml:"refresh_interval,omitempty"`
 }
 
 // TLSCipher holds the ID of a tls.CipherSuite.
@@ -122,14 +152,19 @@ type tlsListener struct {
 	mut       sync.RWMutex
 	cfg       TLSConfig
 	tlsConfig *tls.Config
+	log       log.Logger
 
 	innerListener net.Listener
+
+	windowsCertHandler *winCertStoreHandler
+	cancelWindowsCert  context.CancelFunc //nolint
 }
 
 // newTLSListener creates and configures a new tlsListener.
-func newTLSListener(inner net.Listener, c TLSConfig) (*tlsListener, error) {
+func newTLSListener(inner net.Listener, c TLSConfig, log log.Logger) (*tlsListener, error) {
 	tl := &tlsListener{
 		innerListener: inner,
+		log:           log,
 	}
 	return tl, tl.ApplyConfig(c)
 }
@@ -149,6 +184,9 @@ func (l *tlsListener) Accept() (net.Conn, error) {
 // Close implements net.Listener and closes the tlsListener, preventing any new
 // connections from being formed. Existing connections will be kept alive.
 func (l *tlsListener) Close() error {
+	if l.cancelWindowsCert != nil {
+		l.cancelWindowsCert()
+	}
 	return l.innerListener.Close()
 }
 
@@ -165,7 +203,16 @@ func (l *tlsListener) Addr() net.Addr {
 func (l *tlsListener) ApplyConfig(c TLSConfig) error {
 	l.mut.Lock()
 	defer l.mut.Unlock()
+	if c.WindowsCertificateFilter != nil {
+		return l.applyWindowsCertificateStore(c)
+	}
+	return l.applyNormalTLS(c)
+}
 
+func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
+	if l.windowsCertHandler != nil {
+		panic("windows certificate handler is set this should never happen")
+	}
 	// Convert our TLSConfig into a new *tls.Config.
 	//
 	// While *tls.Config supports callbacks and doesn't need to be fully
@@ -220,20 +267,11 @@ func (l *tlsListener) ApplyConfig(c TLSConfig) error {
 		newConfig.ClientCAs = clientCAPool
 	}
 
-	switch c.ClientAuth {
-	case "RequestClientCert":
-		newConfig.ClientAuth = tls.RequestClientCert
-	case "RequireAnyClientCert", "RequireClientCert": // Preserved for backwards compatibility.
-		newConfig.ClientAuth = tls.RequireAnyClientCert
-	case "VerifyClientCertIfGiven":
-		newConfig.ClientAuth = tls.VerifyClientCertIfGiven
-	case "RequireAndVerifyClientCert":
-		newConfig.ClientAuth = tls.RequireAndVerifyClientCert
-	case "", "NoClientCert":
-		newConfig.ClientAuth = tls.NoClientCert
-	default:
-		return fmt.Errorf("Invalid ClientAuth %q", c.ClientAuth)
+	clientAuth, err := getClientAuthFromString(c.ClientAuth)
+	if err != nil {
+		return err
 	}
+	newConfig.ClientAuth = clientAuth
 	if c.ClientCAs != "" && newConfig.ClientAuth == tls.NoClientCert {
 		return fmt.Errorf("Client CAs have been configured without a ClientAuth policy")
 	}
@@ -252,4 +290,21 @@ func (l *tlsListener) getCertificate(*tls.ClientHelloInfo) (*tls.Certificate, er
 		return nil, fmt.Errorf("failed to load key pair: %w", err)
 	}
 	return &cert, nil
+}
+
+func getClientAuthFromString(clientAuth string) (tls.ClientAuthType, error) {
+	switch clientAuth {
+	case "RequestClientCert":
+		return tls.RequestClientCert, nil
+	case "RequireAnyClientCert", "RequireClientCert": // Preserved for backwards compatibility.
+		return tls.RequireAnyClientCert, nil
+	case "VerifyClientCertIfGiven":
+		return tls.VerifyClientCertIfGiven, nil
+	case "RequireAndVerifyClientCert":
+		return tls.RequireAndVerifyClientCert, nil
+	case "", "NoClientCert":
+		return tls.NoClientCert, nil
+	default:
+		return tls.NoClientCert, fmt.Errorf("invalid ClientAuth %q", clientAuth)
+	}
 }

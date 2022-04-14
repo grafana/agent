@@ -12,8 +12,10 @@ Main (unreleased)
 
 ### Features
 
-- Add HTTP endpoints to fetch active instances and targets for the Logs subsytem.
+- Add HTTP endpoints to fetch active instances and targets for the Logs subsystem.
   (@marctc)
+  
+- (beta) Add support for using windows certificate store for TLS connections. (@mattdurham)
 
 - Grafana Agent Operator: add support for integrations through an `Integration`
   CRD which is discovered by `GrafanaAgent`. (@rfratto)

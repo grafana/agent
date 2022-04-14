@@ -176,7 +176,7 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 		updateGRPCTLS func(TLSConfig) error
 	)
 	if opts.HTTP.UseTLS {
-		httpTLSListener, err := newTLSListener(httpListener, cfg.HTTP.TLSConfig)
+		httpTLSListener, err := newTLSListener(httpListener, cfg.HTTP.TLSConfig, l)
 		if err != nil {
 			return nil, fmt.Errorf("generating HTTP TLS config: %w", err)
 		}
@@ -184,7 +184,7 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 		updateHTTPTLS = httpTLSListener.ApplyConfig
 	}
 	if opts.GRPC.UseTLS {
-		grpcTLSListener, err := newTLSListener(grpcListener, cfg.GRPC.TLSConfig)
+		grpcTLSListener, err := newTLSListener(grpcListener, cfg.GRPC.TLSConfig, l)
 		if err != nil {
 			return nil, fmt.Errorf("generating GRPC TLS config: %w", err)
 		}

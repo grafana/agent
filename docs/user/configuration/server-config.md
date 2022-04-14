@@ -53,4 +53,61 @@ The `server_tls_config` configures TLS.
 
 # File path to the signing CA certificate, needed if CA is not trusted
 [client_ca_file: <string>]
+
+# Windows certificate filter allows selecting client CA and server certificate from the Windows Certificate store
+[windows_certificate_filter: <windows_certificate_filter_config>]
+```
+
+## windows_certificate_filter_config
+
+The `windows_certificate_filter_config` configures the use of the Windows Certificate store. Setting cert_file, key_file, and client_ca_file are invalid settings when using the windows_certificate_filter.
+
+```yaml
+# Client configuration, optional. If nothing specific will use the default client ca root
+[client: <windows_client_config>]
+  
+# Name of the store to look for the Client Certificate ex My, CA
+server: <windows_server_config>
+```
+
+
+### windows_client_config
+
+```yaml
+# Name of the system store to look for the Client Certificate ex LocalMachine, CurrentUser 
+system_store: <string>
+
+# Name of the store to look for the Client Certificate ex My, CA
+store: <string>
+
+# Array of issuer common names to check against
+issuer_common_names:
+  [- <string> ... ]
+
+# Regular expression to match Subject name
+[client_subject_regex: <string>]
+
+# Client Template ID to match in ASN1 format ex "1.2.3"
+[client_template_id: <string>]
+```
+
+### windows_server_config
+
+```yaml
+# Name of the system store to look for the Server Certificate ex LocalMachine, CurrentUser
+system_store: <string>
+
+# Name of the store to look for the Server Certificate ex My, CA
+store: <string>
+
+# Array of issuer common names to check against
+issuer_common_names:
+[- <string> ... ]
+
+
+# Server Template ID to match in ASN1 format ex "1.2.3"
+[template_id: <string>]
+
+# How often to refresh the server certificate ex 5m, 1h
+[refresh_interval: <duration>]
 ```
