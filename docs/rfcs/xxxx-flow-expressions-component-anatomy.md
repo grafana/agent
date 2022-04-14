@@ -199,6 +199,11 @@ remote_write "default" {
 }
 ```
 
+### Component restrictions
+
+Components may not have cyclic dependencies: e.g., a component may not directly
+or indirectly depend on itself.
+
 ### Concerns
 
 #### `for_each`
