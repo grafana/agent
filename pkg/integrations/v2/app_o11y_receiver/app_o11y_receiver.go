@@ -28,6 +28,7 @@ import (
 	"github.com/slok/go-http-metrics/middleware"
 	"github.com/slok/go-http-metrics/middleware/std"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/consumer"
 )
 
 // IntegrationName is the name of this integration
@@ -102,15 +103,22 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	}
 
 	if len(c.ReceiverConfig.LogsInstance) > 0 {
-		if globals.Logs.Instance(c.ReceiverConfig.LogsInstance) == nil {
-			return nil, fmt.Errorf("logs instance \"%s\" not found", c.ReceiverConfig.LogsInstance)
+		getLogsInstance := func() (exporters.LogsInstance, error) {
+			instance := globals.Logs.Instance(c.ReceiverConfig.LogsInstance)
+			if instance == nil {
+				return nil, fmt.Errorf("logs instance \"%s\" not found", c.ReceiverConfig.LogsInstance)
+			}
+			return instance, nil
 		}
+
+		if _, err := getLogsInstance(); err != nil {
+			return nil, err
+		}
+
 		lokiExporter := exporters.NewLogsExporter(
 			l,
 			exporters.LogsExporterConfig{
-				GetLogsInstance: func() exporters.LogsInstance {
-					return globals.Logs.Instance(c.ReceiverConfig.LogsInstance)
-				},
+				GetLogsInstance:  getLogsInstance,
 				Labels:           c.ReceiverConfig.LogsLabels,
 				SendEntryTimeout: c.ReceiverConfig.LogsSendTimeout,
 			},
@@ -120,16 +128,25 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	}
 
 	if len(c.ReceiverConfig.TracesInstance) > 0 {
-		tracesInstance := globals.Tracing.Instance(c.ReceiverConfig.TracesInstance)
-		if tracesInstance == nil {
-			return nil, fmt.Errorf("traces instance \"%s\" not found", c.ReceiverConfig.TracesInstance)
+		getTracesConsumer := func() (consumer.Traces, error) {
+			tracesInstance := globals.Tracing.Instance(c.ReceiverConfig.TracesInstance)
+			if tracesInstance == nil {
+				return nil, fmt.Errorf("traces instance \"%s\" not found", c.ReceiverConfig.TracesInstance)
+			}
+			factory := tracesInstance.GetFactory(component.KindReceiver, pushreceiver.TypeStr)
+			if factory == nil {
+				return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.ReceiverConfig.TracesInstance)
+			}
+			consumer := factory.(*pushreceiver.Factory).Consumer
+			if consumer == nil {
+				return nil, fmt.Errorf("consumer not set for push receiver factory on traces instance \"%s\"", c.ReceiverConfig.TracesInstance)
+			}
+			return consumer, nil
 		}
-
-		factory := tracesInstance.GetFactory(component.KindReceiver, pushreceiver.TypeStr)
-		if factory == nil {
-			return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.ReceiverConfig.TracesInstance)
+		if _, err := getTracesConsumer(); err != nil {
+			return nil, err
 		}
-		tracesExporter := exporters.NewTracesExporter(factory.(*pushreceiver.Factory))
+		tracesExporter := exporters.NewTracesExporter(getTracesConsumer)
 		exp = append(exp, tracesExporter)
 	}
 

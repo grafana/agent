@@ -2,11 +2,10 @@ package exporters
 
 import (
 	"context"
+	"errors"
 	"testing"
 
-	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/model/pdata"
 )
@@ -26,36 +25,29 @@ func (c *mockTracesConsumer) ConsumeTraces(ctx context.Context, td pdata.Traces)
 
 func Test_exportTraces_success(t *testing.T) {
 	ctx := context.Background()
-	factory := pushreceiver.NewFactory().(*pushreceiver.Factory)
-	consumer := mockTracesConsumer{consumed: nil}
-	_, err := factory.CreateTracesReceiver(ctx, component.ReceiverCreateSettings{}, nil, &consumer)
-	require.NoError(t, err)
-	exporter := NewTracesExporter(factory)
+	tracesConsumer := &mockTracesConsumer{}
+	exporter := NewTracesExporter(func() (consumer.Traces, error) { return tracesConsumer, nil })
 	payload := loadTestData(t)
-	err = exporter.Export(ctx, payload)
+	err := exporter.Export(ctx, payload)
 	require.NoError(t, err)
-	require.Len(t, consumer.consumed, 1)
+	require.Len(t, tracesConsumer.consumed, 1)
 }
 
 func Test_exportTraces_noTracesInpayload(t *testing.T) {
 	ctx := context.Background()
-	factory := pushreceiver.NewFactory().(*pushreceiver.Factory)
-	consumer := mockTracesConsumer{consumed: nil}
-	_, err := factory.CreateTracesReceiver(ctx, component.ReceiverCreateSettings{}, nil, &consumer)
-	require.NoError(t, err)
-	exporter := NewTracesExporter(factory)
+	tracesConsumer := &mockTracesConsumer{consumed: nil}
+	exporter := NewTracesExporter(func() (consumer.Traces, error) { return tracesConsumer, nil })
 	payload := loadTestData(t)
 	payload.Traces = nil
-	err = exporter.Export(ctx, payload)
+	err := exporter.Export(ctx, payload)
 	require.NoError(t, err)
-	require.Len(t, consumer.consumed, 0)
+	require.Len(t, tracesConsumer.consumed, 0)
 }
 
 func Test_exportTraces_noConsumer(t *testing.T) {
 	ctx := context.Background()
-	factory := pushreceiver.NewFactory().(*pushreceiver.Factory)
-	exporter := NewTracesExporter(factory)
+	exporter := NewTracesExporter(func() (consumer.Traces, error) { return nil, errors.New("it dont work") })
 	payload := loadTestData(t)
 	err := exporter.Export(ctx, payload)
-	require.Error(t, err, "push receiver factory consumer not initialized")
+	require.Error(t, err, "it don't work")
 }

@@ -69,7 +69,7 @@ func TestExportLogs(t *testing.T) {
 	logsExporter := NewLogsExporter(
 		logger,
 		LogsExporterConfig{
-			GetLogsInstance: func() LogsInstance { return inst },
+			GetLogsInstance: func() (LogsInstance, error) { return inst, nil },
 			Labels: map[string]string{
 				"app":  "frontend",
 				"kind": "",

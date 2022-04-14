@@ -23,7 +23,7 @@ type LogsInstance interface {
 }
 
 // LogsInstanceGetter is a function that returns a LogsInstance to send log entries to
-type LogsInstanceGetter func() LogsInstance
+type LogsInstanceGetter func() (LogsInstance, error)
 
 // LogsExporterConfig holds the configuration of the logs exporter
 type LogsExporterConfig struct {
@@ -95,9 +95,9 @@ func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
 		level.Error(le.logger).Log("msg", "failed to logfmt a frontend log event", "err", err)
 		return err
 	}
-	instance := le.getLogsInstance()
-	if instance == nil {
-		return fmt.Errorf("failed to get logs instance")
+	instance, err := le.getLogsInstance()
+	if err != nil {
+		return err
 	}
 	sent := instance.SendEntry(api.Entry{
 		Labels: le.labelSet(kv),

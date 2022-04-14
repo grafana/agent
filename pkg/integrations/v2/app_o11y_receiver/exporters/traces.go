@@ -2,20 +2,22 @@ package exporters
 
 import (
 	"context"
-	"errors"
 
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
-	"github.com/grafana/agent/pkg/traces/pushreceiver"
+	"go.opentelemetry.io/collector/consumer"
 )
+
+// TracesConsumerGetter returns a traces consumer to push traces to
+type TracesConsumerGetter func() (consumer.Traces, error)
 
 // TracesExporter will send traces to a traces instance
 type TracesExporter struct {
-	factory *pushreceiver.Factory
+	getTracesConsumer TracesConsumerGetter
 }
 
 // NewTracesExporter creates a trace exporter for the app o11y receiver.
-func NewTracesExporter(pushReceiverFactory *pushreceiver.Factory) AppO11yReceiverExporter {
-	return &TracesExporter{pushReceiverFactory}
+func NewTracesExporter(getTracesConsumer TracesConsumerGetter) AppO11yReceiverExporter {
+	return &TracesExporter{getTracesConsumer}
 }
 
 // Name of the exporter, for logging purposes
@@ -28,8 +30,9 @@ func (te *TracesExporter) Export(ctx context.Context, payload models.Payload) er
 	if payload.Traces == nil {
 		return nil
 	}
-	if te.factory.Consumer != nil {
-		return te.factory.Consumer.ConsumeTraces(ctx, payload.Traces.Traces)
+	consumer, err := te.getTracesConsumer()
+	if err != nil {
+		return err
 	}
-	return errors.New("push receiver factory consumer not initialized")
+	return consumer.ConsumeTraces(ctx, payload.Traces.Traces)
 }
