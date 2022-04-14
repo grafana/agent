@@ -40,6 +40,8 @@ Main (unreleased)
 - Operator: fix issue where a `username_file` field was incorrectly set.
   (@rfratto)
 
+- Initialize the logger with default `log_level` and `log_format` parameters. (@tpaschalis)
+
 ### Other changes
 
 - Update base image of official Docker containers from Debian buster to Debian

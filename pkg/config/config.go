@@ -49,6 +49,7 @@ var (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
+	Server:                server.DefaultConfig,
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
@@ -344,9 +345,6 @@ type loaderFunc func(path string, fileType string, expandArgs bool, target *Conf
 // load allows for tests to inject a function for retrieving the config file that
 // doesn't require having a literal file on disk.
 func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
-	// Set up the default logger parameters.
-	DefaultConfig.Server.LogLevel.Set("info")
-	DefaultConfig.Server.LogFormat.Set("json")
 	var (
 		cfg = DefaultConfig
 
