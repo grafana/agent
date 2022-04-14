@@ -53,15 +53,15 @@ func TestReceiverMetricsExport(t *testing.T) {
 	payload.Exceptions = make([]models.Exception, 4)
 	testcase(t, payload, []metricAssertion{
 		{
-			name:  "app_o11y_receiver_total_logs",
+			name:  "app_agent_receiver_logs_total",
 			value: 2,
 		},
 		{
-			name:  "app_o11y_receiver_total_measurements",
+			name:  "app_agent_receiver_measurements_total",
 			value: 3,
 		},
 		{
-			name:  "app_o11y_receiver_total_exceptions",
+			name:  "app_agent_receiver_exceptions_total",
 			value: 4,
 		},
 	})
@@ -75,15 +75,15 @@ func TestReceiverMetricsExportLogsOnly(t *testing.T) {
 	}
 	testcase(t, payload, []metricAssertion{
 		{
-			name:  "app_o11y_receiver_total_logs",
+			name:  "app_agent_receiver_logs_total",
 			value: 2,
 		},
 		{
-			name:  "app_o11y_receiver_total_measurements",
+			name:  "app_agent_receiver_measurements_total",
 			value: 0,
 		},
 		{
-			name:  "app_o11y_receiver_total_exceptions",
+			name:  "app_agent_receiver_exceptions_total",
 			value: 0,
 		},
 	})
@@ -99,15 +99,15 @@ func TestReceiverMetricsExportExceptionsOnly(t *testing.T) {
 	}
 	testcase(t, payload, []metricAssertion{
 		{
-			name:  "app_o11y_receiver_total_logs",
+			name:  "app_agent_receiver_logs_total",
 			value: 0,
 		},
 		{
-			name:  "app_o11y_receiver_total_measurements",
+			name:  "app_agent_receiver_measurements_total",
 			value: 0,
 		},
 		{
-			name:  "app_o11y_receiver_total_exceptions",
+			name:  "app_agent_receiver_exceptions_total",
 			value: 4,
 		},
 	})
@@ -122,15 +122,15 @@ func TestReceiverMetricsExportMeasurementsOnly(t *testing.T) {
 	}
 	testcase(t, payload, []metricAssertion{
 		{
-			name:  "app_o11y_receiver_total_logs",
+			name:  "app_agent_receiver_logs_total",
 			value: 0,
 		},
 		{
-			name:  "app_o11y_receiver_total_measurements",
+			name:  "app_agent_receiver_measurements_total",
 			value: 3,
 		},
 		{
-			name:  "app_o11y_receiver_total_exceptions",
+			name:  "app_agent_receiver_exceptions_total",
 			value: 0,
 		},
 	})

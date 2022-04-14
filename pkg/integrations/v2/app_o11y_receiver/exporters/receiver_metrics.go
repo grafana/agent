@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -25,19 +24,16 @@ type ReceiverMetricsExporter struct {
 func NewReceiverMetricsExporter(conf ReceiverMetricsExporterConfig) AppO11yReceiverExporter {
 	exp := &ReceiverMetricsExporter{
 		totalLogs: prometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: utils.MetricsNamespace,
-			Name:      "total_logs",
-			Help:      "Total number of ingested logs",
+			Name: "app_agent_receiver_logs_total",
+			Help: "Total number of ingested logs",
 		}),
 		totalMeasurements: prometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: utils.MetricsNamespace,
-			Name:      "total_measurements",
-			Help:      "Total number of ingested measurements",
+			Name: "app_agent_receiver_measurements_total",
+			Help: "Total number of ingested measurements",
 		}),
 		totalExceptions: prometheus.NewCounter(prometheus.CounterOpts{
-			Namespace: utils.MetricsNamespace,
-			Name:      "total_exceptions",
-			Help:      "Total number of ingested exceptions",
+			Name: "app_agent_receiver_exceptions_total",
+			Help: "Total number of ingested exceptions",
 		}),
 	}
 
