@@ -10,6 +10,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func TestLogger_DefaultParameters(t *testing.T) {
+	makeLogger := func(cfg *Config) (log.Logger, error) {
+		var l log.Logger
+		require.Equal(t, "info", cfg.LogLevel.String())
+		require.Equal(t, "logfmt", cfg.LogFormat.String())
+		return l, nil
+	}
+	newLogger(&DefaultConfig, makeLogger).makeLogger(&DefaultConfig)
+}
+
 func TestLogger_ApplyConfig(t *testing.T) {
 	var buf bytes.Buffer
 	makeLogger := func(cfg *Config) (log.Logger, error) {
