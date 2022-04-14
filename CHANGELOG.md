@@ -10,6 +10,32 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.24.1 (2022-04-14)
+--------------------
+
+### Bugfixes
+
+- Add missing version information back into agentctl --version. (@rlankfo)
+
+- Bump version of github-exporter to latest upstream SHA 284088c21e7d, which
+  includes fixes from bugs found in their latest tag. This includes a fix
+  where not all releases where retrieved when pulling release information.
+  (@rfratto)
+
+- Set the `Content-Type` HTTP header to `application/json` for API endpoints
+  returning json objects. (@marctc)
+
+- Operator: fix issue where a `username_file` field was incorrectly set.
+  (@rfratto)
+
+- Initialize the logger with default `log_level` and `log_format` parameters.
+  (@tpaschalis)
+
+### Other changes
+
+- Embed timezone data to enable Promtail pipelines using the `location` field
+  on Windows machines. (@tpaschalis)
+
 v0.24.0 (2022-04-07)
 --------------------
 

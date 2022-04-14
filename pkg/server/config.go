@@ -43,9 +43,11 @@ type GRPCConfig struct {
 // Default configuration structs.
 var (
 	DefaultConfig = Config{
-		GRPC:  DefaultGRPCConfig,
-		HTTP:  DefaultHTTPConfig,
-		Flags: DefaultFlags,
+		GRPC:      DefaultGRPCConfig,
+		HTTP:      DefaultHTTPConfig,
+		Flags:     DefaultFlags,
+		LogLevel:  DefaultLogLevel,
+		LogFormat: DefaultLogFormat,
 	}
 
 	DefaultHTTPConfig = HTTPConfig{
@@ -55,6 +57,18 @@ var (
 	DefaultGRPCConfig = GRPCConfig{
 		// No non-zero defaults yet
 	}
+
+	emptyFlagSet    = flag.NewFlagSet("", flag.ExitOnError)
+	DefaultLogLevel = func() logging.Level {
+		var lvl logging.Level
+		lvl.RegisterFlags(emptyFlagSet)
+		return lvl
+	}()
+	DefaultLogFormat = func() logging.Format {
+		var fmt logging.Format
+		fmt.RegisterFlags(emptyFlagSet)
+		return fmt
+	}()
 )
 
 // RegisterFlags registers flags for c to the given FlagSet.

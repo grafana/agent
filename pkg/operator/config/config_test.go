@@ -78,7 +78,7 @@ func TestBuildConfigMetrics(t *testing.T) {
 								basicAuth:
 									username:
 										name: example-secret
-										key: uname
+										key: key
 									password:
 										name: example-secret
 										key: pword
@@ -111,7 +111,7 @@ func TestBuildConfigMetrics(t *testing.T) {
 							remote_write:
 							- url: http://localhost:9090/api/v1/write
 								basic_auth:
-									username_file: /var/lib/grafana-agent/secrets/_secrets_default_example_secret_uname
+									username: somesecret
 									password_file: /var/lib/grafana-agent/secrets/_secrets_default_example_secret_pword
 								tls_config:
 									ca_file: /var/lib/grafana-agent/secrets/_configMaps_default_example_cm_key

@@ -49,6 +49,7 @@ var (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
+	Server:                server.DefaultConfig,
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
