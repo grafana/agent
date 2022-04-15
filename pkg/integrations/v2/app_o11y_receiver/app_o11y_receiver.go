@@ -187,7 +187,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 // RunIntegration implements Integration
 func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	r := mux.NewRouter()
-	r.Handle("/collect", i.appAgentReceiverHandler.HTTPHandler(i.logger))
+	r.Handle("/collect", i.appAgentReceiverHandler.HTTPHandler(i.logger)).Methods("POST", "OPTIONS")
 
 	mw := middleware.Instrument{
 		RouteMatcher:     r,
