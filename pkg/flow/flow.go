@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/dag"
 	"github.com/grafana/agent/pkg/flow/graphviz"
@@ -33,6 +34,7 @@ type Flow struct {
 	graph     *dag.Graph
 	nametable *nametable
 	root      rootBlock
+	handlers  map[string]http.Handler
 }
 
 // New creates a new Flow instance.
@@ -42,6 +44,7 @@ func New(l log.Logger, configFile string) *Flow {
 		configFile: configFile,
 		graph:      &dag.Graph{},
 		nametable:  &nametable{},
+		handlers:   make(map[string]http.Handler),
 	}
 	return f
 }
@@ -140,14 +143,24 @@ func (f *Flow) Load() error {
 		}
 
 		bctx := &component.BuildContext{
-			Log:         log.With(f.log, "node", cn.Name()),
 			EvalContext: ectx,
+			Options: component.Options{
+				ComponentID: cn.Name(),
+				Logger:      log.With(f.log, "node", cn.Name()),
+			},
 		}
 
 		componentID := cn.ref[:len(cn.ref)-1]
 		rc, err := component.BuildHCL(componentID.String(), bctx, cn.block)
 		if err != nil {
 			return err
+		}
+
+		handler, err := rc.ComponentHandler()
+		if err != nil {
+			return err
+		} else if handler != nil {
+			f.handlers[bctx.Options.ComponentID] = handler
 		}
 
 		cn.Set(rc)
@@ -278,6 +291,29 @@ func (f *Flow) Run(ctx context.Context) error {
 			})
 		}
 	}
+}
+
+func (f *Flow) WireRoutes(r *mux.Router) {
+	r.PathPrefix("/component/{component}/").HandlerFunc(f.handleComponentRequest)
+}
+
+func (f *Flow) handleComponentRequest(rw http.ResponseWriter, r *http.Request) {
+	f.graphMut.RLock()
+	defer f.graphMut.RUnlock()
+
+	componentID, ok := mux.Vars(r)["component"]
+	if !ok {
+		http.Error(rw, "no component variable set", http.StatusInternalServerError)
+		return
+	}
+	prefix := fmt.Sprintf("/component/%s", componentID)
+
+	handler, ok := f.handlers[componentID]
+	if !ok {
+		http.NotFound(rw, r)
+		return
+	}
+	http.StripPrefix(prefix, handler).ServeHTTP(rw, r)
 }
 
 // GraphHandler returns an http.HandlerFunc that render's the flow's DAG as an

@@ -14,8 +14,8 @@ import (
 func init() {
 	component.Register(component.Registration[Config]{
 		Name: "metrics_scraper",
-		BuildComponent: func(l log.Logger, c Config) (component.Component[Config], error) {
-			return NewComponent(l, c)
+		BuildComponent: func(o component.Options, c Config) (component.Component[Config], error) {
+			return NewComponent(o, c)
 		},
 	})
 }
@@ -46,8 +46,8 @@ type Component struct {
 }
 
 // NewComponent creates a new metrics_scraper component.
-func NewComponent(l log.Logger, c Config) (*Component, error) {
-	res := &Component{log: l, cfg: c}
+func NewComponent(o component.Options, c Config) (*Component, error) {
+	res := &Component{log: o.Logger, cfg: c}
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}

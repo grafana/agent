@@ -66,6 +66,8 @@ func run() error {
 		r.Handle("/nametable", flow.NametableHandler(f))
 		r.Handle("/config", flow.ConfigHandler(f))
 
+		f.WireRoutes(r)
+
 		r.HandleFunc("/mock/some-password", func(w http.ResponseWriter, _ *http.Request) {
 			fmt.Fprintln(w, "example-password")
 		})

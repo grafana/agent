@@ -15,8 +15,8 @@ import (
 func init() {
 	component.Register(component.Registration[Config]{
 		Name: "discovery.static",
-		BuildComponent: func(l log.Logger, c Config) (component.Component[Config], error) {
-			return NewComponent(l, c)
+		BuildComponent: func(o component.Options, c Config) (component.Component[Config], error) {
+			return NewComponent(o, c)
 		},
 	})
 }
@@ -43,9 +43,9 @@ type Component struct {
 }
 
 // NewComponent creates a new discovery.static component.
-func NewComponent(l log.Logger, c Config) (*Component, error) {
+func NewComponent(o component.Options, c Config) (*Component, error) {
 	res := &Component{
-		log:     l,
+		log:     o.Logger,
 		updated: make(chan struct{}, 1),
 	}
 	if err := res.Update(c); err != nil {

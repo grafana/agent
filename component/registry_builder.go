@@ -3,16 +3,16 @@ package component
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 
-	"github.com/go-kit/log"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/rfratto/gohcl"
 )
 
 // BuildContext is a set of options provided when building a new component.
 type BuildContext struct {
-	Log         log.Logger
+	Options     Options
 	EvalContext *hcl.EvalContext
 }
 
@@ -42,12 +42,12 @@ func (b *rawBuilder[Config]) BuildComponent(bctx *BuildContext, block *hcl.Block
 		return nil, diags
 	}
 
-	c, err := b.r.BuildComponent(bctx.Log, cfg)
+	c, err := b.r.BuildComponent(bctx.Options, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return newHCLAdapter(bctx.Log, b.r, c), nil
+	return newHCLAdapter(bctx.Options, b.r, c), nil
 }
 
 // HCL is an HCL component; registered Components can be converted into HCL
@@ -64,6 +64,9 @@ type HCL interface {
 
 	// CurrentState returns the current state of a component.
 	CurrentState() interface{}
+
+	// ComponentHandler returns the http.Handler for the component.
+	ComponentHandler() (http.Handler, error)
 }
 
 // hclAdapter wraps a flow component into an HCL component.
@@ -73,17 +76,17 @@ type hclAdapter[Config any] struct {
 	mut       sync.Mutex
 	cur       Component[Config]
 	cancelCur context.CancelFunc
-	log       log.Logger
+	opts      Options
 
 	running     sync.WaitGroup
 	newRunnable chan struct{}
 }
 
-func newHCLAdapter[Config any](l log.Logger, r Registration[Config], init Component[Config]) *hclAdapter[Config] {
+func newHCLAdapter[Config any](o Options, r Registration[Config], init Component[Config]) *hclAdapter[Config] {
 	return &hclAdapter[Config]{
-		r:   r,
-		cur: init,
-		log: l,
+		r:    r,
+		cur:  init,
+		opts: o,
 
 		newRunnable: make(chan struct{}, 1),
 	}
@@ -164,7 +167,7 @@ func (a *hclAdapter[Config]) Update(ectx *hcl.EvalContext, block *hcl.Block) err
 
 	a.running.Wait()
 
-	c, err := a.r.BuildComponent(a.log, cfg)
+	c, err := a.r.BuildComponent(a.opts, cfg)
 	if err != nil {
 		return err
 	}
@@ -191,4 +194,14 @@ func (a *hclAdapter[Config]) CurrentState() interface{} {
 	a.mut.Lock()
 	defer a.mut.Unlock()
 	return a.cur.CurrentState()
+}
+
+func (a *hclAdapter[Config]) ComponentHandler() (http.Handler, error) {
+	a.mut.Lock()
+	defer a.mut.Unlock()
+
+	if hc, ok := a.cur.(HTTPComponent[Config]); ok {
+		return hc.ComponentHandler()
+	}
+	return nil, nil
 }

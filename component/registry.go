@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-kit/log"
 	"github.com/hashicorp/hcl/v2"
 )
 
@@ -26,7 +25,7 @@ type builder interface {
 // period-delimited valid identifiers, such as `remote.http`.
 type Registration[Config any] struct {
 	Name           string
-	BuildComponent func(l log.Logger, c Config) (Component[Config], error)
+	BuildComponent func(o Options, c Config) (Component[Config], error)
 }
 
 // Register registers the definition of a component. Register will panic if the

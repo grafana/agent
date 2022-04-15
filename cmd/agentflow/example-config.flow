@@ -36,7 +36,7 @@ discovery "static" "self" {
 // Launch an integration.
 integration "github" "default" {
   repositories = [
-    "grafana/agent",
+    "rfratto/viceroy",
   ]
 
   // Output fields:

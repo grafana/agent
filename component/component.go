@@ -1,6 +1,20 @@
 package component
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"net/http"
+
+	"github.com/go-kit/log"
+)
+
+// Options are provided to a Component when it is being constructed.
+type Options struct {
+	// ID of the component. Guaranteed to be globally unique across all
+	// components.
+	ComponentID string
+	Logger      log.Logger
+}
 
 // Component is a flow component. Flow components run in the background and
 // optionally emit state.
@@ -33,4 +47,25 @@ type UpdatableComponent[Config any] interface {
 	// Update provides a new Config to the component. An error may be returned if
 	// the provided config object is invalid.
 	Update(c Config) error
+}
+
+// HTTPComponent is an optional extension interface that Components which wish
+// to register HTTP endpoints may implement.
+type HTTPComponent[Config any] interface {
+	Component[Config]
+
+	// ComponentHandler returns an http.Handler for the current component.
+	// ComponentHandler may return nil to avoid registering any handlers.
+	// ComponentHandler will only be invoked once per component.
+	//
+	// Each Component has a unique HTTP path prefix where its handler can be
+	// reached. This prefix is trimmed when invoking the http.Handler. Use
+	// HTTPPrefix to determine what that prefix is.
+	ComponentHandler() (http.Handler, error)
+}
+
+// HTTPPrefix returns the URL path prefix assigned to a specific componentID.
+// The path returned by HTTPPrefix ends in a trailing slash.
+func HTTPPrefix(componentID string) string {
+	return fmt.Sprintf("/components/%s/", componentID)
 }
