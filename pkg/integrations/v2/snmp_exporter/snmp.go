@@ -72,7 +72,6 @@ func (sh *snmpHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeC
 	cfg := config.DefaultScrapeConfig
 	cfg.JobName = fmt.Sprintf("%s/%s", name, name)
 	cfg.Scheme = sh.cfg.globals.AgentBaseURL.Scheme
-	cfg.HTTPClientConfig = sh.cfg.globals.SubsystemOpts.ClientConfig
 	cfg.ServiceDiscoveryConfigs = sd
 	cfg.ScrapeInterval = sh.cfg.Common.Autoscrape.ScrapeInterval
 	cfg.ScrapeTimeout = sh.cfg.Common.Autoscrape.ScrapeTimeout
