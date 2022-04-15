@@ -274,3 +274,81 @@ func TestAPIKeyCorrect(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
 }
+
+func TestRateLimiterNoReject(t *testing.T) {
+	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conf := config.AppO11yReceiverConfig{
+		Server: config.ServerConfig{
+			RateLimiting: config.RateLimitingConfig{
+				Burstiness: 10,
+				RPS:        10,
+				Enabled:    true,
+			},
+		},
+	}
+
+	fr := NewAppO11yHandler(conf, nil, nil)
+	handler := fr.HTTPHandler(nil)
+
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+}
+
+func TestRateLimiterReject(t *testing.T) {
+	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conf := config.AppO11yReceiverConfig{
+		Server: config.ServerConfig{
+			RateLimiting: config.RateLimitingConfig{
+				Burstiness: 0,
+				RPS:        0,
+				Enabled:    true,
+			},
+		},
+	}
+
+	fr := NewAppO11yHandler(conf, nil, nil)
+	handler := fr.HTTPHandler(nil)
+
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusTooManyRequests, rr.Result().StatusCode)
+}
+
+func TestRateLimiterDisabled(t *testing.T) {
+	req, err := http.NewRequest("POST", "/collect", bytes.NewBuffer([]byte(PAYLOAD)))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conf := config.AppO11yReceiverConfig{
+		Server: config.ServerConfig{
+			RateLimiting: config.RateLimitingConfig{
+				Burstiness: 0,
+				RPS:        0,
+				Enabled:    false,
+			},
+		},
+	}
+
+	fr := NewAppO11yHandler(conf, nil, nil)
+	handler := fr.HTTPHandler(nil)
+
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusAccepted, rr.Result().StatusCode)
+}
