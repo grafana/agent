@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	metricsscraper "github.com/grafana/agent/component/metrics-scraper"
+	"github.com/prometheus/common/model"
 )
 
 func init() {
@@ -33,15 +34,20 @@ type State struct {
 
 // Component is the discovery.static component.
 type Component struct {
-	log log.Logger
+	log     log.Logger
+	updated chan struct{}
 
-	mut sync.RWMutex
-	cfg Config
+	mut   sync.RWMutex
+	cfg   Config
+	state State
 }
 
 // NewComponent creates a new discovery.static component.
 func NewComponent(l log.Logger, c Config) (*Component, error) {
-	res := &Component{log: l, cfg: c}
+	res := &Component{
+		log:     l,
+		updated: make(chan struct{}, 1),
+	}
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -55,8 +61,14 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 	level.Info(c.log).Log("msg", "component starting")
 	defer level.Info(c.log).Log("msg", "component shutting down")
 
-	<-ctx.Done()
-	return nil
+	for {
+		select {
+		case <-c.updated:
+			onStateChange()
+		case <-ctx.Done():
+			return nil
+		}
+	}
 }
 
 // Update implements UpdatableComponent.
@@ -64,13 +76,38 @@ func (c *Component) Update(cfg Config) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	spew.Dump(cfg)
+
 	c.cfg = cfg
+
+	// Recalculate groups
+	var group metricsscraper.TargetGroup
+	for _, host := range cfg.Hosts {
+		group.Targets = append(group.Targets, metricsscraper.LabelSet{
+			model.AddressLabel: host,
+		})
+	}
+
+	group.Labels = make(metricsscraper.LabelSet)
+	for key, value := range cfg.Labels {
+		group.Labels[key] = value
+	}
+
+	c.state.Targets = []metricsscraper.TargetGroup{group}
+
+	// Enqueue an update so Run will invoke onStateChange
+	select {
+	case c.updated <- struct{}{}:
+	default:
+	}
+
 	return nil
 }
 
 // CurrentState implements Component.
 func (c *Component) CurrentState() interface{} {
-	return State{}
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.state
 }
 
 // Config implements Component.
