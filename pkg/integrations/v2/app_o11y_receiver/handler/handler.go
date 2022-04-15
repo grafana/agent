@@ -12,22 +12,22 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/tools/ratelimiting"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/cors"
+	"golang.org/x/time/rate"
 )
 
 // AppO11yHandler struct controls the data ingestion http handler of the receiver
 type AppO11yHandler struct {
 	exporters               []exporters.AppO11yReceiverExporter
 	config                  config.AppO11yReceiverConfig
-	rateLimiter             *ratelimiting.RateLimiter
+	rateLimiter             *rate.Limiter
 	exporterErrorsCollector *prometheus.CounterVec
 }
 
 // NewAppO11yHandler creates a new AppReceiver instance based on the given configuration
 func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.AppO11yReceiverExporter, reg *prometheus.Registry) AppO11yHandler {
-	var rateLimiter *ratelimiting.RateLimiter
+	var rateLimiter *rate.Limiter
 	if conf.Server.RateLimiting.Enabled {
 		var rps float64
 		if conf.Server.RateLimiting.RPS > 0 {
@@ -38,7 +38,7 @@ func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.
 		if conf.Server.RateLimiting.Burstiness > 0 {
 			b = conf.Server.RateLimiting.Burstiness
 		}
-		rateLimiter = ratelimiting.NewRateLimiter(rps, b)
+		rateLimiter = rate.NewLimiter(rate.Limit(rps), b)
 	}
 
 	exporterErrorsCollector := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -67,9 +67,11 @@ func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.
 func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check rate limiting state
-		if ar.config.Server.RateLimiting.Enabled && ar.rateLimiter.IsRateLimited() {
-			http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
-			return
+		if ar.config.Server.RateLimiting.Enabled {
+			if rsv := ar.rateLimiter.Reserve(); !rsv.OK() {
+				http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
+				return
+			}
 		}
 
 		// check API key if one is provided
