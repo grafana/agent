@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/rfratto/gohcl"
+	"github.com/rfratto/gohcl/hclfmt"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
 )
@@ -408,6 +409,8 @@ func ConfigHandler(f *Flow) http.HandlerFunc {
 			file.Body().AppendNewline()
 		}
 
-		_, _ = file.WriteTo(w)
+		toks := file.BuildTokens(nil)
+		hclfmt.Format(toks)
+		_, _ = toks.WriteTo(w)
 	}
 }

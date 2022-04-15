@@ -11,11 +11,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	metricsscraper "github.com/grafana/agent/component/metrics-scraper"
+	"github.com/hashicorp/hcl/v2"
 	gh_config "github.com/infinityworks/github-exporter/config"
 	gh_exporter "github.com/infinityworks/github-exporter/exporter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
+	"github.com/rfratto/gohcl"
 )
 
 func init() {
@@ -29,7 +31,24 @@ func init() {
 
 // Config represents the input state of the integration.github component.
 type Config struct {
-	Repositories []string `hcl:"repositories,optional"`
+	APIURL        string   `hcl:"api_url,optional"`
+	Repositories  []string `hcl:"repositories,optional"`
+	Organizations []string `hcl:"organizations,optional"`
+	Users         []string `hcl:"users,optional"`
+	APIToken      string   `hcl:"api_token,optional"`
+}
+
+var DefaultConfig = Config{
+	APIURL: "https://api.github.com",
+}
+
+var _ gohcl.Decoder = (*Config)(nil)
+
+func (c *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
+	*c = DefaultConfig
+
+	type config Config
+	return gohcl.DecodeBody(body, ctx, (*config)(c))
 }
 
 // State represents the output state of the integration.github component.
@@ -79,11 +98,13 @@ func (c *Component) Update(cfg Config) error {
 
 	var exporterConf gh_config.Config
 
-	apiURL := "https://api.github.com"
-	if err := exporterConf.SetAPIURL(apiURL); err != nil {
+	if err := exporterConf.SetAPIURL(cfg.APIURL); err != nil {
 		return err
 	}
 	exporterConf.SetRepositories(cfg.Repositories)
+	exporterConf.SetUsers(cfg.Users)
+	exporterConf.SetOrganisations(cfg.Organizations)
+	exporterConf.SetAPIToken(cfg.APIToken)
 
 	exporter := &gh_exporter.Exporter{
 		APIMetrics: gh_exporter.AddMetrics(),

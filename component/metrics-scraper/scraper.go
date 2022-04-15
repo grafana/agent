@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	metricsforwarder "github.com/grafana/agent/component/metrics-forwarder"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -16,6 +18,7 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
+	"github.com/rfratto/gohcl"
 )
 
 func init() {
@@ -29,10 +32,24 @@ func init() {
 
 // Config represents the input state of the metrics_scraper component.
 type Config struct {
-	ScrapeInterval string                            `hcl:"scrape_interval,optional"`
-	ScrapeTimeout  string                            `hcl:"scrape_timeout,optional"`
+	ScrapeInterval time.Duration                     `hcl:"scrape_interval,optional"`
+	ScrapeTimeout  time.Duration                     `hcl:"scrape_timeout,optional"`
 	Targets        []TargetGroup                     `hcl:"targets"`
 	SendTo         *metricsforwarder.MetricsReceiver `hcl:"send_to"`
+}
+
+var DefaultConfig = Config{
+	ScrapeInterval: time.Duration(60 * time.Second),
+	ScrapeTimeout:  time.Duration(10 * time.Second),
+}
+
+var _ gohcl.Decoder = (*Config)(nil)
+
+func (c *Config) DecodeHCL(body hcl.Body, ctx *hcl.EvalContext) error {
+	*c = DefaultConfig
+
+	type config Config
+	return gohcl.DecodeBody(body, ctx, (*config)(c))
 }
 
 // TargetGroup is a set of targets that share a common set of labels.
@@ -146,24 +163,12 @@ func (c *Component) Update(cfg Config) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	var (
-		scrapeInterval model.Duration
-		scrapeTimeout  model.Duration
-	)
-	if err := scrapeInterval.UnmarshalText([]byte(cfg.ScrapeInterval)); err != nil {
-		return err
-	}
-	if err := scrapeTimeout.UnmarshalText([]byte(cfg.ScrapeTimeout)); err != nil {
-		return err
-	}
-
 	// TODO(rfratto): expose other config (HTTPClientConfig, Relabel)
 	sc := config.DefaultScrapeConfig
 	sc.JobName = c.id
-	sc.ScrapeInterval = scrapeInterval
-	sc.ScrapeTimeout = scrapeTimeout
+	sc.ScrapeInterval = model.Duration(cfg.ScrapeInterval)
+	sc.ScrapeTimeout = model.Duration(cfg.ScrapeTimeout)
 
-	// TODO(rfratto): we need to do this
 	err := c.scraper.ApplyConfig(&config.Config{
 		ScrapeConfigs: []*config.ScrapeConfig{&sc},
 	})
