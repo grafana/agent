@@ -30,11 +30,7 @@ func init() {
 
 // Config represents the input state of the integration.github component.
 type Config struct {
-	APIURL        string   `hcl:"api_url,optional"`
-	Repositories  []string `hcl:"repositories,optional"`
-	Organizations []string `hcl:"organizations,optional"`
-	Users         []string `hcl:"users,optional"`
-	APIToken      string   `hcl:"api_token,optional"`
+	Repositories []string `hcl:"repositories,optional"`
 }
 
 // State represents the output state of the integration.github component.
@@ -86,17 +82,10 @@ func (c *Component) Update(cfg Config) error {
 	var exporterConf gh_config.Config
 
 	apiURL := "https://api.github.com"
-	if cfg.APIURL != "" {
-		apiURL = cfg.APIURL
-	}
 	if err := exporterConf.SetAPIURL(apiURL); err != nil {
 		return err
 	}
-
-	exporterConf.SetAPIToken(cfg.APIToken)
-	exporterConf.SetOrganisations(cfg.Organizations)
 	exporterConf.SetRepositories(cfg.Repositories)
-	exporterConf.SetUsers(cfg.Users)
 
 	exporter := &gh_exporter.Exporter{
 		APIMetrics: gh_exporter.AddMetrics(),
