@@ -6,7 +6,6 @@ import (
 	"path"
 	"sync"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -77,7 +76,6 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 func (c *Component) Update(cfg Config) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	spew.Dump(cfg)
 
 	var exporterConf gh_config.Config
 
@@ -108,7 +106,7 @@ func (c *Component) CurrentState() interface{} {
 	return State{
 		Targets: []metricsscraper.TargetGroup{{
 			Targets: []metricsscraper.LabelSet{{
-				model.AddressLabel:     "http://127.0.0.1:12345",
+				model.AddressLabel:     "127.0.0.1:12345",
 				model.MetricsPathLabel: path.Join(component.HTTPPrefix(c.id), "/metrics"),
 			}},
 			Labels: metricsscraper.LabelSet{

@@ -67,5 +67,5 @@ type HTTPComponent[Config any] interface {
 // HTTPPrefix returns the URL path prefix assigned to a specific componentID.
 // The path returned by HTTPPrefix ends in a trailing slash.
 func HTTPPrefix(componentID string) string {
-	return fmt.Sprintf("/components/%s/", componentID)
+	return fmt.Sprintf("/component/%s/", componentID)
 }

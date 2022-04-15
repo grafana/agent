@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -75,7 +74,6 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 func (c *Component) Update(cfg Config) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	spew.Dump(cfg)
 
 	c.cfg = cfg
 

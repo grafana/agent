@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -127,8 +126,6 @@ func (c *Component) refresh(onStateChange func()) error {
 func (c *Component) Update(cfg Config) error {
 	c.cfgMut.Lock()
 	defer c.cfgMut.Unlock()
-
-	spew.Dump(cfg)
 
 	refreshDuration, err := time.ParseDuration(cfg.Refresh)
 	if err != nil {

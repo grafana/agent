@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	// Install components
 	_ "github.com/grafana/agent/pkg/flow/install"
@@ -65,6 +66,7 @@ func run() error {
 		r.Handle("/graph", flow.GraphHandler(f))
 		r.Handle("/nametable", flow.NametableHandler(f))
 		r.Handle("/config", flow.ConfigHandler(f))
+		r.Handle("/metrics", promhttp.Handler())
 
 		f.WireRoutes(r)
 

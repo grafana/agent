@@ -3,7 +3,7 @@ log_format = "logfmt"
 
 remote "http" "example-password" {
   url     = "http://localhost:12345/mock/some-password"
-  refresh = "2s"
+  refresh = "10s"
 
   // Output fields:
   // content = <string content of URL>
@@ -51,7 +51,7 @@ metrics_scraper "default" {
   )
   send_to = metrics_forwarder.default.receiver
 
-  scrape_interval = "60s"
+  scrape_interval = "15s"
   scrape_timeout  = "10s"
 
   // Output fields: <none>
