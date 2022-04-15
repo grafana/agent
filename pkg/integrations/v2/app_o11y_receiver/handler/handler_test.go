@@ -243,7 +243,7 @@ func TestAPIKeyWrong(t *testing.T) {
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, nil)
+	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -266,7 +266,7 @@ func TestAPIKeyCorrect(t *testing.T) {
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, nil)
+	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()

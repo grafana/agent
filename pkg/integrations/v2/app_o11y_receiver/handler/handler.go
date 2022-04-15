@@ -46,9 +46,7 @@ func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.
 		Help: "Total number of errors produced by a receiver exporter",
 	}, []string{"exporter"})
 
-	if reg != nil {
-		reg.MustRegister(exporterErrorsCollector)
-	}
+	reg.MustRegister(exporterErrorsCollector)
 
 	return AppO11yHandler{
 		exporters:               exporters,

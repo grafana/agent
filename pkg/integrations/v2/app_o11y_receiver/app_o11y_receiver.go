@@ -18,9 +18,8 @@ import (
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
-	"github.com/slok/go-http-metrics/middleware"
-	"github.com/slok/go-http-metrics/middleware/std"
+	"github.com/weaveworks/common/instrument"
+	"github.com/weaveworks/common/middleware"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 )
@@ -61,6 +60,11 @@ type appo11yIntegration struct {
 	logger                  log.Logger
 	conf                    config.AppO11yReceiverConfig
 	reg                     *prometheus.Registry
+
+	requestDurationCollector     *prometheus.HistogramVec
+	receivedMessageSizeCollector *prometheus.HistogramVec
+	sentMessageSizeCollector     *prometheus.HistogramVec
+	inflightRequestsCollector    *prometheus.GaugeVec
 }
 
 // Static typecheck tests
@@ -139,27 +143,63 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		return nil, err
 	}
 
+	requestDurationCollector := prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "app_agent_receiver_request_duration_seconds",
+		Help:    "Time (in seconds) spent serving HTTP requests.",
+		Buckets: instrument.DefBuckets,
+	}, []string{"method", "route", "status_code", "ws"})
+	reg.MustRegister(requestDurationCollector)
+
+	receivedMessageSizeCollector := prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "app_agent_receiver_request_message_bytes",
+		Help:    "Size (in bytes) of messages received in the request.",
+		Buckets: middleware.BodySizeBuckets,
+	}, []string{"method", "route"})
+	reg.MustRegister(receivedMessageSizeCollector)
+
+	sentMessageSizeCollector := prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "app_agent_receiver_response_message_bytes",
+		Help:    "Size (in bytes) of messages sent in response.",
+		Buckets: middleware.BodySizeBuckets,
+	}, []string{"method", "route"})
+	reg.MustRegister(sentMessageSizeCollector)
+
+	inflightRequestsCollector := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "app_agent_receiver_inflight_requests",
+		Help: "Current number of inflight requests.",
+	}, []string{"method", "route"})
+	reg.MustRegister(inflightRequestsCollector)
+
 	return &appo11yIntegration{
 		MetricsIntegration:      metricsIntegration,
 		appAgentReceiverHandler: handler,
 		logger:                  l,
 		conf:                    c.ReceiverConfig,
 		reg:                     reg,
+
+		requestDurationCollector:     requestDurationCollector,
+		receivedMessageSizeCollector: receivedMessageSizeCollector,
+		sentMessageSizeCollector:     sentMessageSizeCollector,
+		inflightRequestsCollector:    inflightRequestsCollector,
 	}, nil
 }
 
 // RunIntegration implements Integration
 func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
-	mdlw := middleware.New(middleware.Config{
-		Recorder: metrics.NewRecorder(metrics.Config{Registry: i.reg, Prefix: "app_agent_receiver"}),
-	})
-
 	r := mux.NewRouter()
 	r.Handle("/collect", i.appAgentReceiverHandler.HTTPHandler(i.logger))
 
+	mw := middleware.Instrument{
+		RouteMatcher:     r,
+		Duration:         i.requestDurationCollector,
+		RequestBodySize:  i.receivedMessageSizeCollector,
+		ResponseBodySize: i.sentMessageSizeCollector,
+		InflightRequests: i.inflightRequestsCollector,
+	}
+
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),
-		Handler: std.Handler("", mdlw, r),
+		Handler: mw.Wrap(r),
 	}
 	errChan := make(chan error)
 
