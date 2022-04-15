@@ -2,6 +2,7 @@ package integrations
 
 import (
 	"context"
+	nethttp "net/http"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -22,7 +23,7 @@ import (
 func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 	integrationWithTarget := func(targetName string) Integration {
 		return mockMetricsIntegration{
-			Integration: newWaitStartedIntegration(),
+			HTTPIntegration: newWaitStartedIntegration(),
 			TargetsFunc: func(Endpoint) []*targetgroup.Group {
 				return []*targetgroup.Group{{
 					Targets: []model.LabelSet{{model.AddressLabel: model.LabelValue(targetName)}},
@@ -47,7 +48,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 		t.Helper()
 		_ = newSyncController(t, ctrl)
 		err := ctrl.forEachIntegration("/", func(ci *controlledIntegration, _ string) {
-			wsi := ci.i.(mockMetricsIntegration).Integration.(*waitStartedIntegration)
+			wsi := ci.i.(mockMetricsIntegration).HTTPIntegration.(*waitStartedIntegration)
 			_ = wsi.trigger.WaitContext(context.Background())
 		})
 		require.NoError(t, err)
@@ -111,7 +112,7 @@ func Test_controller_MetricsIntegration_Targets(t *testing.T) {
 func Test_controller_MetricsIntegration_ScrapeConfig(t *testing.T) {
 	integrationWithTarget := func(targetName string) Integration {
 		return mockMetricsIntegration{
-			Integration: NoOpIntegration,
+			HTTPIntegration: NoOpIntegration,
 			ScrapeConfigsFunc: func(c discovery.Configs) []*autoscrape.ScrapeConfig {
 				return []*autoscrape.ScrapeConfig{{
 					Instance: "default",
@@ -164,8 +165,12 @@ func (i *waitStartedIntegration) RunIntegration(ctx context.Context) error {
 	return nil
 }
 
+func (i *waitStartedIntegration) Handler(prefix string) (nethttp.Handler, error) {
+	return nil, nil
+}
+
 type mockMetricsIntegration struct {
-	Integration
+	HTTPIntegration
 	TargetsFunc       func(ep Endpoint) []*targetgroup.Group
 	ScrapeConfigsFunc func(discovery.Configs) []*autoscrape.ScrapeConfig
 }

@@ -2,6 +2,7 @@ package integrations
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/grafana/agent/pkg/util"
 )
@@ -11,6 +12,11 @@ type FuncIntegration func(ctx context.Context) error
 
 // RunIntegration implements Integration.
 func (fi FuncIntegration) RunIntegration(ctx context.Context) error { return fi(ctx) }
+
+// Handler implements HTTPIntegration
+func (fi FuncIntegration) Handler(prefix string) (http.Handler, error) {
+	return nil, nil
+}
 
 // NoOpIntegration is an Integration that does nothing.
 var NoOpIntegration = FuncIntegration(func(ctx context.Context) error {

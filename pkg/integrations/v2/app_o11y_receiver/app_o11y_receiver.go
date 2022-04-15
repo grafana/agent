@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"path"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -14,15 +13,11 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/handler"
 	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/sourcemaps"
-	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/model"
-	promConfig "github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/discovery/targetgroup"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 	"github.com/slok/go-http-metrics/middleware/std"
@@ -61,14 +56,11 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 }
 
 type appo11yIntegration struct {
-	integrationName, instanceID string
-	globals                     integrations.Globals
-	logger                      log.Logger
-	conf                        config.AppO11yReceiverConfig
-	common                      common.MetricsConfig
-	handler                     handler.AppO11yHandler
-	exporters                   []exporters.AppO11yReceiverExporter
-	reg                         *prometheus.Registry
+	integrations.MetricsIntegration
+	appAgentReceiverHandler handler.AppO11yHandler
+	logger                  log.Logger
+	conf                    config.AppO11yReceiverConfig
+	reg                     *prometheus.Registry
 }
 
 // Static typecheck tests
@@ -80,16 +72,7 @@ var (
 
 // NewIntegration converts this config into an instance of an integration
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
-	id, err := c.Identifier(globals)
-	if err != nil {
-		return nil, err
-	}
-
 	reg := prometheus.NewRegistry()
-
-	if err != nil {
-		return nil, err
-	}
 	sourcemapLogger := log.With(l, "subcomponent", "sourcemaps")
 	sourcemapStore := sourcemaps.NewSourceMapStore(sourcemapLogger, c.ReceiverConfig.SourceMaps, reg, nil, nil)
 
@@ -151,71 +134,18 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 
 	handler := handler.NewAppO11yHandler(c.ReceiverConfig, exp, reg)
 
+	metricsIntegration, err := metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
+	if err != nil {
+		return nil, err
+	}
+
 	return &appo11yIntegration{
-		logger:          l,
-		integrationName: c.Name(),
-		instanceID:      id,
-		common:          c.Common,
-		globals:         globals,
-		conf:            c.ReceiverConfig,
-		handler:         handler,
-		exporters:       exp,
-		reg:             reg,
+		MetricsIntegration:      metricsIntegration,
+		appAgentReceiverHandler: handler,
+		logger:                  l,
+		conf:                    c.ReceiverConfig,
+		reg:                     reg,
 	}, nil
-}
-
-// Handler is the http endpoint for exposing Prometheus metrics
-func (i *appo11yIntegration) Handler(prefix string) (http.Handler, error) {
-	r := mux.NewRouter()
-	r.Handle(path.Join(prefix, "metrics"), promhttp.HandlerFor(i.reg, promhttp.HandlerOpts{}))
-	return r, nil
-}
-
-// Targets implements MetricsIntegration
-func (i *appo11yIntegration) Targets(ep integrations.Endpoint) []*targetgroup.Group {
-	integrationNameValue := model.LabelValue("integrations/" + i.integrationName)
-
-	group := &targetgroup.Group{
-		Labels: model.LabelSet{
-			model.InstanceLabel: model.LabelValue(i.instanceID),
-			model.JobLabel:      integrationNameValue,
-			"agent_hostname":    model.LabelValue(i.globals.AgentIdentifier),
-
-			// Meta labels that can be used during SD.
-			"__meta_agent_integration_name":     model.LabelValue(i.integrationName),
-			"__meta_agent_integration_instance": model.LabelValue(i.instanceID),
-		},
-		Source: fmt.Sprintf("%s/%s", i.integrationName, i.instanceID),
-	}
-
-	group.Targets = append(group.Targets, model.LabelSet{
-		model.AddressLabel:     model.LabelValue(ep.Host),
-		model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "/metrics")),
-	})
-
-	return []*targetgroup.Group{group}
-}
-
-// ScrapeConfigs implements MetricsIntegration
-func (i *appo11yIntegration) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeConfig {
-	if !*i.common.Autoscrape.Enable {
-		return nil
-	}
-
-	cfg := promConfig.DefaultScrapeConfig
-	cfg.JobName = fmt.Sprintf("%s/%s", i.integrationName, i.instanceID)
-	cfg.Scheme = i.globals.AgentBaseURL.Scheme
-	cfg.HTTPClientConfig = i.globals.SubsystemOpts.ClientConfig
-	cfg.ServiceDiscoveryConfigs = sd
-	cfg.ScrapeInterval = i.common.Autoscrape.ScrapeInterval
-	cfg.ScrapeTimeout = i.common.Autoscrape.ScrapeTimeout
-	cfg.RelabelConfigs = i.common.Autoscrape.RelabelConfigs
-	cfg.MetricRelabelConfigs = i.common.Autoscrape.MetricRelabelConfigs
-
-	return []*autoscrape.ScrapeConfig{{
-		Instance: i.common.Autoscrape.MetricsInstance,
-		Config:   cfg,
-	}}
 }
 
 // RunIntegration implements Integration
@@ -225,7 +155,7 @@ func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	})
 
 	r := mux.NewRouter()
-	r.Handle("/collect", i.handler.HTTPHandler(i.logger))
+	r.Handle("/collect", i.appAgentReceiverHandler.HTTPHandler(i.logger))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),
