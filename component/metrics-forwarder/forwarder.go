@@ -64,6 +64,7 @@ type Config struct {
 // RemoteWriteConfig is the metrics_fowarder's configuration for where to send
 // metrics stored in the WAL.
 type RemoteWriteConfig struct {
+	Name      string           `hcl:"name,optional"`
 	URL       string           `hcl:"url"`
 	BasicAuth *BasicAuthConfig `hcl:"basic_auth,block"`
 }
@@ -82,7 +83,8 @@ type State struct {
 
 // Component is the metrics_forwarder component.
 type Component struct {
-	log log.Logger
+	log  log.Logger
+	opts component.Options
 
 	walStore    *wal.Storage
 	remoteStore *remote.Storage
@@ -106,7 +108,8 @@ func NewComponent(o component.Options, c Config) (*Component, error) {
 	remoteStore := remote.NewStorage(remoteLogger, nil, startTime, dataPath, remoteFlushDeadline, nil)
 
 	res := &Component{
-		log: o.Logger,
+		log:  o.Logger,
+		opts: o,
 
 		walStore:    walStorage,
 		remoteStore: remoteStore,
@@ -194,13 +197,14 @@ func (c *Component) Update(newConfig component.Config) error {
 	defer c.mut.Unlock()
 
 	var rwConfigs []*config.RemoteWriteConfig
-	for _, rw := range cfg.RemoteWrite {
+	for i, rw := range cfg.RemoteWrite {
 		parsedURL, err := url.Parse(rw.URL)
 		if err != nil {
 			return fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
 		}
 
 		rwc := &config.RemoteWriteConfig{
+			Name:          rw.Name,
 			URL:           &common.URL{URL: parsedURL},
 			RemoteTimeout: model.Duration(30 * time.Second),
 			QueueConfig:   config.DefaultQueueConfig,
@@ -208,6 +212,11 @@ func (c *Component) Update(newConfig component.Config) error {
 				Send: false,
 			},
 			HTTPClientConfig: common.DefaultHTTPClientConfig,
+		}
+
+		// Default the name to the index in the file.
+		if rwc.Name == "" {
+			rwc.Name = fmt.Sprintf("%s[%d]", c.opts.ComponentID, i)
 		}
 
 		if rw.BasicAuth != nil {
