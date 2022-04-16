@@ -268,7 +268,7 @@ func (f *Flow) Run(ctx context.Context) error {
 
 	for {
 		cn, err := f.updates.Dequeue(ctx)
-		if err != nil {
+		if err != nil || cn == nil {
 			return nil
 		}
 

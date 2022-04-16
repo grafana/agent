@@ -7,7 +7,9 @@ import (
 
 // updateQueue is an unordered queue of updated components to be processed.
 type updateQueue struct {
-	updated  sync.Map
+	mut     sync.Mutex
+	updated []*componentNode
+
 	updateCh chan struct{}
 }
 
@@ -19,7 +21,9 @@ func newUpdateQueue() *updateQueue {
 
 // Enqueue enqueues a new componentNode to be dequeued later.
 func (uq *updateQueue) Enqueue(cn *componentNode) {
-	uq.updated.Store(cn, struct{}{})
+	uq.mut.Lock()
+	uq.updated = append(uq.updated, cn)
+	uq.mut.Unlock()
 
 	select {
 	case uq.updateCh <- struct{}{}:
@@ -31,6 +35,7 @@ func (uq *updateQueue) Enqueue(cn *componentNode) {
 // Dequeue blocks until there is an element to dequeue or until ctx is
 // canceled.
 func (uq *updateQueue) Dequeue(ctx context.Context) (*componentNode, error) {
+Start:
 	// Try to dequeue immediately if there's something in the queue.
 	if elem := uq.dequeue(); elem != nil {
 		return elem, nil
@@ -41,18 +46,22 @@ func (uq *updateQueue) Dequeue(ctx context.Context) (*componentNode, error) {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case <-uq.updateCh:
-		return uq.dequeue(), nil
+		if elem := uq.dequeue(); elem != nil {
+			return elem, nil
+		}
+		goto Start
 	}
 }
 
 func (uq *updateQueue) dequeue() *componentNode {
-	var res *componentNode
+	uq.mut.Lock()
+	defer uq.mut.Unlock()
 
-	uq.updated.Range(func(key, _ any) bool {
-		res = key.(*componentNode)
-		uq.updated.Delete(key)
-		return false
-	})
+	if len(uq.updated) == 0 {
+		return nil
+	}
 
+	res := uq.updated[len(uq.updated)-1]
+	uq.updated = uq.updated[:len(uq.updated)-1]
 	return res
 }

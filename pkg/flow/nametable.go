@@ -205,11 +205,41 @@ func (nt *nametable) buildValue(ntNode dag.Node, from nodeSet) (cty.Value, error
 		if _, ok := from[n.cn]; !ok {
 			return cty.DynamicVal, nil
 		}
-		return n.cn.StateValue(), nil
+		return mergeState(n.cn.ConfigValue(), n.cn.StateValue()), nil
 
 	default:
 		panic(fmt.Sprintf("unexpected nametable type %T", n))
 	}
+}
+
+// mergeState merges two the inputs of a component with its current state.
+// mergeState panics if a key exits in both inputs and store or if neither
+// argument is an object.
+func mergeState(inputs, state cty.Value) cty.Value {
+	if !inputs.Type().IsObjectType() {
+		panic("component input must be object type")
+	}
+	if !state.Type().IsObjectType() {
+		panic("component state must be object type")
+	}
+
+	var (
+		inputMap = inputs.AsValueMap()
+		stateMap = state.AsValueMap()
+	)
+
+	mergedMap := make(map[string]cty.Value, len(inputMap)+len(stateMap))
+	for key, value := range inputMap {
+		mergedMap[key] = value
+	}
+	for key, value := range stateMap {
+		if _, exist := mergedMap[key]; exist {
+			panic(fmt.Sprintf("component state overriding key %s", key))
+		}
+		mergedMap[key] = value
+	}
+
+	return cty.ObjectVal(mergedMap)
 }
 
 type ntPartialReference struct {

@@ -29,11 +29,11 @@ func main() {
 }
 
 func run() error {
-	ctx, cancel := interruptContext()
-	defer cancel()
-
 	var wg sync.WaitGroup
 	defer wg.Wait()
+
+	ctx, cancel := interruptContext()
+	defer cancel()
 
 	var (
 		httpListenAddr = "127.0.0.1:12345"
@@ -80,16 +80,20 @@ func run() error {
 			fmt.Fprintln(w, "example-password")
 		})
 
+		srv := &http.Server{Handler: r}
+
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			defer cancel()
 
 			level.Info(l).Log("msg", "now listening for http traffic", "addr", httpListenAddr)
-			if err := http.Serve(lis, r); err != nil {
+			if err := srv.Serve(lis); err != nil {
 				level.Info(l).Log("msg", "http server closed", "err", err)
 			}
 		}()
+
+		defer func() { _ = srv.Shutdown(ctx) }()
 	}
 
 	// Gragent
