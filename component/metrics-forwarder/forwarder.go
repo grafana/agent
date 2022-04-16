@@ -16,6 +16,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/metrics/wal"
+	"github.com/grafana/agent/pkg/util/metricsutil"
+	"github.com/prometheus/client_golang/prometheus"
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -85,6 +87,7 @@ type State struct {
 type Component struct {
 	log  log.Logger
 	opts component.Options
+	reg  *metricsutil.CollectorRegistry
 
 	walStore    *wal.Storage
 	remoteStore *remote.Storage
@@ -96,20 +99,23 @@ type Component struct {
 
 // NewComponent creates a new metrics_forwarder component.
 func NewComponent(o component.Options, c Config) (*Component, error) {
+	reg := metricsutil.NewCollectorRegistry()
+
 	// TODO(rfratto): don't hardcode base path
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
 	dataPath := filepath.Join("data-agent", o.ComponentID)
-	walStorage, err := wal.NewStorage(walLogger, nil, filepath.Join("data-agent", o.ComponentID))
+	walStorage, err := wal.NewStorage(walLogger, reg, filepath.Join("data-agent", o.ComponentID))
 	if err != nil {
 		return nil, err
 	}
 
 	remoteLogger := log.With(o.Logger, "subcomponent", "rw")
-	remoteStore := remote.NewStorage(remoteLogger, nil, startTime, dataPath, remoteFlushDeadline, nil)
+	remoteStore := remote.NewStorage(remoteLogger, reg, startTime, dataPath, remoteFlushDeadline, nil)
 
 	res := &Component{
 		log:  o.Logger,
 		opts: o,
+		reg:  reg,
 
 		walStore:    walStorage,
 		remoteStore: remoteStore,
@@ -124,6 +130,7 @@ func NewComponent(o component.Options, c Config) (*Component, error) {
 func startTime() (int64, error) { return 0, nil }
 
 var _ component.Component = (*Component)(nil)
+var _ component.CollectorComponent = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
@@ -197,7 +204,7 @@ func (c *Component) Update(newConfig component.Config) error {
 	defer c.mut.Unlock()
 
 	var rwConfigs []*config.RemoteWriteConfig
-	for i, rw := range cfg.RemoteWrite {
+	for _, rw := range cfg.RemoteWrite {
 		parsedURL, err := url.Parse(rw.URL)
 		if err != nil {
 			return fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
@@ -212,11 +219,6 @@ func (c *Component) Update(newConfig component.Config) error {
 				Send: false,
 			},
 			HTTPClientConfig: common.DefaultHTTPClientConfig,
-		}
-
-		// Default the name to the index in the file.
-		if rwc.Name == "" {
-			rwc.Name = fmt.Sprintf("%s[%d]", c.opts.ComponentID, i)
 		}
 
 		if rw.BasicAuth != nil {
@@ -262,4 +264,14 @@ func (c *Component) Config() Config {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.cfg
+}
+
+// Describe implements prometheus.Collector.
+func (c *Component) Describe(ch chan<- *prometheus.Desc) {
+	c.reg.Describe(ch)
+}
+
+// Collect implements prometheus.Collector.
+func (c *Component) Collect(ch chan<- prometheus.Metric) {
+	c.reg.Collect(ch)
 }

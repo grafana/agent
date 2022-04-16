@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/dag"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rfratto/gohcl"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/function/stdlib"
@@ -26,6 +27,7 @@ import (
 type Flow struct {
 	log        log.Logger
 	configFile string
+	reg        prometheus.Registerer
 
 	updates   *updateQueue
 	nametable *execContext
@@ -36,11 +38,17 @@ type Flow struct {
 	handlers map[string]http.Handler
 }
 
-// New creates a new Flow instance.
-func New(l log.Logger, configFile string) *Flow {
+// New creates a new Flow instance. Metrics for flow and its components will be
+// registered to reg if it is provided.
+func New(l log.Logger, reg prometheus.Registerer, configFile string) *Flow {
+	if reg == nil {
+		reg = prometheus.NewRegistry()
+	}
+
 	f := &Flow{
 		log:        l,
 		configFile: configFile,
+		reg:        reg,
 
 		updates:   newUpdateQueue(),
 		nametable: newNameTable(),
@@ -89,7 +97,7 @@ func (f *Flow) Load() error {
 	// Construct our components and the nametable.
 	for _, block := range content.Blocks {
 		// Create the component and add it into our graph.
-		component := newComponentNode(block)
+		component := newComponentNode(f.reg, block)
 		f.graph.Add(component)
 
 		// Then, add the component into our nametable.

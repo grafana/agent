@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Config is the configuration for a specific component.
@@ -46,6 +48,13 @@ type HTTPComponent interface {
 	// reached. This prefix is trimmed when invoking the http.Handler. Use
 	// HTTPPrefix to determine what that prefix is.
 	ComponentHandler() (http.Handler, error)
+}
+
+// CollectorComponent is an optional extension interface that Components which
+// expose metrics may implement.
+type CollectorComponent interface {
+	Component
+	prometheus.Collector
 }
 
 // HTTPPrefix returns the URL path prefix assigned to a specific componentID.

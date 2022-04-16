@@ -15,6 +15,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	// Install components
@@ -54,7 +55,7 @@ func run() error {
 	}
 
 	l := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	f := flow.New(l, configFile)
+	f := flow.New(l, prometheus.DefaultRegisterer, configFile)
 
 	if err := f.Load(); err != nil {
 		return fmt.Errorf("error during the initial gragent load: %w", err)

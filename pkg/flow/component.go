@@ -7,12 +7,14 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rfratto/gohcl"
 )
 
 // componentNode is a lazily-constructed component.
 type componentNode struct {
 	ref reference
+	reg prometheus.Registerer
 
 	mut    sync.RWMutex
 	block  *hcl.Block
@@ -22,9 +24,17 @@ type componentNode struct {
 }
 
 // newComponentNode constructs a componentNode from a block.
-func newComponentNode(block *hcl.Block) *componentNode {
+func newComponentNode(reg prometheus.Registerer, block *hcl.Block) *componentNode {
+	ref := referenceForBlock(block)
+
+	reg = prometheus.WrapRegistererWith(
+		prometheus.Labels{"flow_id": ref.String()},
+		reg,
+	)
+
 	return &componentNode{
-		ref:   referenceForBlock(block),
+		ref:   ref,
+		reg:   reg,
 		block: block,
 	}
 }
@@ -101,6 +111,12 @@ func (cn *componentNode) Build(opts component.Options, ectx *hcl.EvalContext) er
 	raw, err := reg.BuildComponent(opts, cfgCopy)
 	if err != nil {
 		return err
+	}
+
+	// TODO(rfratto): unregister when component gets removed
+	cc, ok := raw.(component.CollectorComponent)
+	if ok {
+		cn.reg.Register(cc)
 	}
 
 	cn.raw = raw
