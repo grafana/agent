@@ -103,7 +103,7 @@ func NewComponent(o component.Options, c Config) (*Component, error) {
 	}
 
 	remoteLogger := log.With(o.Logger, "subcomponent", "rw")
-	remoteStore := remote.NewStorage(remoteLogger, nil, startTime, dataPath, 10*time.Second, nil)
+	remoteStore := remote.NewStorage(remoteLogger, nil, startTime, dataPath, remoteFlushDeadline, nil)
 
 	res := &Component{
 		log: o.Logger,
@@ -125,7 +125,9 @@ var _ component.Component = (*Component)(nil)
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
+		level.Debug(c.log).Log("msg", "closing storage")
 		err := c.storage.Close()
+		level.Debug(c.log).Log("msg", "storage closed")
 		if err != nil {
 			level.Error(c.log).Log("msg", "error when closing storage", "err", err)
 		}
@@ -133,11 +135,12 @@ func (c *Component) Run(ctx context.Context) error {
 
 	// Track the last timestamp we truncated for to prevent segments from getting
 	// deleted until at least some new data has been sent.
-	var lastTs int64 = math.MinInt64
+	var lastTs = int64(math.MinInt64)
 
 	for {
 		select {
 		case <-ctx.Done():
+			return nil
 		case <-time.After(walTruncateFrequency):
 			// The timestamp ts is used to determine which series are not receiving
 			// samples and may be deleted from the WAL. Their most recent append
@@ -174,9 +177,6 @@ func (c *Component) Run(ctx context.Context) error {
 			}
 		}
 	}
-
-	<-ctx.Done()
-	return nil
 }
 
 // getRemoteWriteTimestamp looks up the last successful remote write timestamp.

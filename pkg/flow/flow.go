@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -166,6 +167,11 @@ func (f *Flow) Load() error {
 			f.handlers[opts.ComponentID] = handler
 		}
 
+		cn.SetNodeHealth(component.Health{
+			Health:     component.HealthTypeRunning,
+			UpdateTime: time.Now(),
+		})
+
 		return nil
 	})
 	if err != nil {
@@ -218,12 +224,10 @@ func expressionsFromSyntaxBody(body *hclsyntax.Body) []hcl.Traversal {
 
 // Run runs f until ctx is canceled. It is invalid to call Run concurrently.
 func (f *Flow) Run(ctx context.Context) error {
+	defer level.Info(f.log).Log("msg", "flow controller exiting")
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-
-	funcMap := map[string]function.Function{
-		"concat": stdlib.ConcatFunc,
-	}
 
 	// TODO(rfratto): start/stop nodes after refresh
 	var wg sync.WaitGroup
@@ -242,11 +246,22 @@ func (f *Flow) Run(ctx context.Context) error {
 
 			level.Info(f.log).Log("msg", "starting component", "component", cn.Name())
 			err := c.Run(ctx)
+
+			var exitMsg string
 			if err != nil {
 				level.Error(f.log).Log("msg", "component exited with error", "component", cn.Name(), "err", err)
+				exitMsg = fmt.Sprintf("component exited with error: %s", err)
 			} else {
 				level.Info(f.log).Log("msg", "component stopped", "component", cn.Name())
+				exitMsg = "component exited normally"
 			}
+
+			cn.SetNodeHealth(component.Health{
+				Health:     component.HealthTypeExited,
+				Message:    exitMsg,
+				UpdateTime: time.Now(),
+			})
+
 		}(n.(*componentNode))
 	}
 	f.graphMut.Unlock()
@@ -258,29 +273,53 @@ func (f *Flow) Run(ctx context.Context) error {
 		}
 
 		level.Debug(f.log).Log("msg", "handling component with updated state", "component", cn.Name())
+		f.handleChangedNode(cn)
+	}
+}
 
-		f.graphMut.Lock()
-		defer f.graphMut.Unlock()
+func (f *Flow) handleChangedNode(cn *componentNode) {
+	funcMap := map[string]function.Function{
+		"concat": stdlib.ConcatFunc,
+	}
 
-		// Update any component which directly references cn.
-		// TODO(rfratto): set health of node based on result of this?
-		for _, n := range f.graph.Dependants(cn) {
-			cn := n.(*componentNode)
+	f.graphMut.RLock()
+	defer f.graphMut.RUnlock()
 
-			directDeps := f.graph.Dependencies(cn)
-			ectx, err := f.nametable.BuildEvalContext(directDeps)
-			if err != nil {
-				level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
-				continue
-			} else if ectx != nil {
-				ectx.Functions = funcMap
-			}
+	// Update any component which directly references cn.
+	for _, n := range f.graph.Dependants(cn) {
+		cn := n.(*componentNode)
 
-			if err := cn.Update(ectx); err != nil {
-				level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
-				continue
-			}
+		directDeps := f.graph.Dependencies(cn)
+		ectx, err := f.nametable.BuildEvalContext(directDeps)
+		if err != nil {
+			level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
+
+			cn.SetNodeHealth(component.Health{
+				Health:     component.HealthTypeUnhealthy,
+				Message:    fmt.Sprintf("failed to update node: %s", err),
+				UpdateTime: time.Now(),
+			})
+
+			continue
+		} else if ectx != nil {
+			ectx.Functions = funcMap
 		}
+
+		if err := cn.Update(ectx); err != nil {
+			level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
+
+			cn.SetNodeHealth(component.Health{
+				Health:     component.HealthTypeUnhealthy,
+				Message:    fmt.Sprintf("failed to update node: %s", err),
+				UpdateTime: time.Now(),
+			})
+			continue
+		}
+
+		cn.SetNodeHealth(component.Health{
+			Health:     component.HealthTypeRunning,
+			UpdateTime: time.Now(),
+		})
 	}
 }
 

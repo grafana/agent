@@ -20,6 +20,11 @@ func newUpdateQueue() *updateQueue {
 // Enqueue enqueues a new componentNode to be dequeued later.
 func (uq *updateQueue) Enqueue(cn *componentNode) {
 	uq.updated.Store(cn, struct{}{})
+
+	select {
+	case uq.updateCh <- struct{}{}:
+	default:
+	}
 }
 
 // Dequeue dequeues a componentNode from the queue. If the queue is empty,
@@ -43,7 +48,7 @@ func (uq *updateQueue) Dequeue(ctx context.Context) (*componentNode, error) {
 func (uq *updateQueue) dequeue() *componentNode {
 	var res *componentNode
 
-	uq.updated.Range(func(key, value any) bool {
+	uq.updated.Range(func(key, _ any) bool {
 		res = key.(*componentNode)
 		uq.updated.Delete(key)
 		return false

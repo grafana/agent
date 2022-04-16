@@ -15,10 +15,11 @@ import (
 type componentNode struct {
 	ref reference
 
-	mut   sync.RWMutex
-	block *hcl.Block
-	raw   component.Component
-	cfg   any
+	mut    sync.RWMutex
+	block  *hcl.Block
+	raw    component.Component
+	cfg    any
+	health component.Health
 }
 
 // newComponentNode constructs a componentNode from a block.
@@ -172,7 +173,7 @@ func (cn *componentNode) Update(ectx *hcl.EvalContext) error {
 		panic("Could not find registration for component " + cn.Name())
 	}
 	cfg := reg.CloneConfig()
-	diags := gohcl.DecodeBody(cn.block.Body, ectx, &cfg)
+	diags := gohcl.DecodeBody(cn.block.Body, ectx, cfg)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -184,4 +185,29 @@ func (cn *componentNode) Update(ectx *hcl.EvalContext) error {
 
 	cn.cfg = cfgCopy
 	return nil
+}
+
+// CurrentHealth gets the current health of the component. An unhealthy node
+// will override the health of a component.
+func (cn *componentNode) CurrentHealth() component.Health {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+
+	if cn.health.Health == component.HealthTypeUnhealthy {
+		return cn.health
+	}
+
+	hc, _ := cn.raw.(component.HealthComponent)
+	if hc == nil {
+		return cn.health
+	}
+
+	return cn.CurrentHealth()
+}
+
+// SetNodeHealth sets the node-level health.
+func (cn *componentNode) SetNodeHealth(h component.Health) {
+	cn.mut.Lock()
+	defer cn.mut.Unlock()
+	cn.health = h
 }

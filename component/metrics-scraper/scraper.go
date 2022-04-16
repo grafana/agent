@@ -119,6 +119,7 @@ func NewComponent(o component.Options, c Config) (*Component, error) {
 }
 
 var _ component.Component = (*Component)(nil)
+var _ component.StatusComponent = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {

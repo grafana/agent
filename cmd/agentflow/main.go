@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	_ "net/http/pprof" // anonymous import to get the pprof handler registered
 	"os"
 	"os/signal"
+	"sync"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -29,6 +31,9 @@ func main() {
 func run() error {
 	ctx, cancel := interruptContext()
 	defer cancel()
+
+	var wg sync.WaitGroup
+	defer wg.Wait()
 
 	var (
 		httpListenAddr = "127.0.0.1:12345"
@@ -67,6 +72,7 @@ func run() error {
 		r.Handle("/nametable", flow.NametableHandler(f))
 		r.Handle("/config", flow.ConfigHandler(f))
 		r.Handle("/metrics", promhttp.Handler())
+		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 
 		f.WireRoutes(r)
 
@@ -74,7 +80,9 @@ func run() error {
 			fmt.Fprintln(w, "example-password")
 		})
 
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			defer cancel()
 
 			level.Info(l).Log("msg", "now listening for http traffic", "addr", httpListenAddr)
@@ -85,7 +93,9 @@ func run() error {
 	}
 
 	// Gragent
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		defer cancel()
 		if err := f.Run(ctx); err != nil {
 			level.Error(l).Log("msg", "error while running gragent", "err", err)
