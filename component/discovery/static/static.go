@@ -12,10 +12,11 @@ import (
 )
 
 func init() {
-	component.Register(component.Registration[Config]{
-		Name: "discovery.static",
-		BuildComponent: func(o component.Options, c Config) (component.Component[Config], error) {
-			return NewComponent(o, c)
+	component.Register(component.Registration{
+		Name:   "discovery.static",
+		Config: Config{},
+		BuildComponent: func(o component.Options, c component.Config) (component.Component, error) {
+			return NewComponent(o, c.(Config))
 		},
 	})
 }
@@ -33,8 +34,8 @@ type State struct {
 
 // Component is the discovery.static component.
 type Component struct {
-	log     log.Logger
-	updated chan struct{}
+	log  log.Logger
+	opts component.Options
 
 	mut   sync.RWMutex
 	cfg   Config
@@ -44,8 +45,8 @@ type Component struct {
 // NewComponent creates a new discovery.static component.
 func NewComponent(o component.Options, c Config) (*Component, error) {
 	res := &Component{
-		log:     o.Logger,
-		updated: make(chan struct{}, 1),
+		log:  o.Logger,
+		opts: o,
 	}
 	if err := res.Update(c); err != nil {
 		return nil, err
@@ -53,25 +54,21 @@ func NewComponent(o component.Options, c Config) (*Component, error) {
 	return res, nil
 }
 
-var _ component.Component[Config] = (*Component)(nil)
+var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
-func (c *Component) Run(ctx context.Context, onStateChange func()) error {
+func (c *Component) Run(ctx context.Context) error {
 	level.Info(c.log).Log("msg", "component starting")
 	defer level.Info(c.log).Log("msg", "component shutting down")
 
-	for {
-		select {
-		case <-c.updated:
-			onStateChange()
-		case <-ctx.Done():
-			return nil
-		}
-	}
+	<-ctx.Done()
+	return nil
 }
 
 // Update implements UpdatableComponent.
-func (c *Component) Update(cfg Config) error {
+func (c *Component) Update(newConfig component.Config) error {
+	cfg := newConfig.(Config)
+
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -92,12 +89,7 @@ func (c *Component) Update(cfg Config) error {
 
 	c.state.Targets = []metricsscraper.TargetGroup{group}
 
-	// Enqueue an update so Run will invoke onStateChange
-	select {
-	case c.updated <- struct{}{}:
-	default:
-	}
-
+	c.opts.OnStateChange()
 	return nil
 }
 

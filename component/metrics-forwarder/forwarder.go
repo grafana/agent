@@ -21,10 +21,11 @@ import (
 )
 
 func init() {
-	component.Register(component.Registration[Config]{
-		Name: "metrics_forwarder",
-		BuildComponent: func(o component.Options, c Config) (component.Component[Config], error) {
-			return NewComponent(o, c)
+	component.Register(component.Registration{
+		Name:   "metrics_forwarder",
+		Config: Config{},
+		BuildComponent: func(o component.Options, c component.Config) (component.Component, error) {
+			return NewComponent(o, c.(Config))
 		},
 	})
 
@@ -99,10 +100,10 @@ func NewComponent(o component.Options, c Config) (*Component, error) {
 
 func startTime() (int64, error) { return 0, nil }
 
-var _ component.Component[Config] = (*Component)(nil)
+var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
-func (c *Component) Run(ctx context.Context, onStateChange func()) error {
+func (c *Component) Run(ctx context.Context) error {
 	defer func() {
 		err := c.storage.Close()
 		if err != nil {
@@ -119,8 +120,10 @@ func (c *Component) Run(ctx context.Context, onStateChange func()) error {
 	return nil
 }
 
-// Update implements UdpatableComponent.
-func (c *Component) Update(cfg Config) error {
+// Update implements Component.
+func (c *Component) Update(newConfig component.Config) error {
+	cfg := newConfig.(Config)
+
 	c.mut.Lock()
 	defer c.mut.Unlock()
 

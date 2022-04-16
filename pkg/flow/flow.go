@@ -31,6 +31,8 @@ type Flow struct {
 	log        log.Logger
 	configFile string
 
+	updates *updateQueue
+
 	graphMut  sync.RWMutex
 	graph     *dag.Graph
 	nametable *nametable
@@ -43,9 +45,12 @@ func New(l log.Logger, configFile string) *Flow {
 	f := &Flow{
 		log:        l,
 		configFile: configFile,
-		graph:      &dag.Graph{},
-		nametable:  &nametable{},
-		handlers:   make(map[string]http.Handler),
+
+		updates: newUpdateQueue(),
+
+		graph:     &dag.Graph{},
+		nametable: &nametable{},
+		handlers:  make(map[string]http.Handler),
 	}
 	return f
 }
@@ -143,28 +148,26 @@ func (f *Flow) Load() error {
 			ectx.Functions = funcMap
 		}
 
-		bctx := &component.BuildContext{
-			EvalContext: ectx,
-			Options: component.Options{
-				ComponentID: cn.Name(),
-				Logger:      log.With(f.log, "node", cn.Name()),
-			},
+		opts := component.Options{
+			ComponentID: cn.Name(),
+			Logger:      log.With(f.log, "node", cn.Name()),
+
+			OnStateChange: func() { f.updates.Enqueue(cn) },
 		}
 
-		componentID := cn.ref[:len(cn.ref)-1]
-		rc, err := component.BuildHCL(componentID.String(), bctx, cn.block)
-		if err != nil {
+		if err := cn.Build(opts, ectx); err != nil {
 			return err
 		}
 
-		handler, err := rc.ComponentHandler()
-		if err != nil {
-			return err
-		} else if handler != nil {
-			f.handlers[bctx.Options.ComponentID] = handler
+		hc, ok := cn.Get().(component.HTTPComponent)
+		if ok {
+			handler, err := hc.ComponentHandler()
+			if err != nil {
+				return err
+			}
+			f.handlers[opts.ComponentID] = handler
 		}
 
-		cn.Set(rc)
 		return nil
 	})
 	if err != nil {
@@ -217,12 +220,12 @@ func expressionsFromSyntaxBody(body *hclsyntax.Body) []hcl.Traversal {
 
 // Run runs f until ctx is canceled. It is invalid to call Run concurrently.
 func (f *Flow) Run(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	funcMap := map[string]function.Function{
 		"concat": stdlib.ConcatFunc,
 	}
-
-	refreshCh := make(chan struct{}, 1)
-	var updated sync.Map
 
 	// TODO(rfratto): start/stop nodes after refresh
 	var wg sync.WaitGroup
@@ -230,66 +233,52 @@ func (f *Flow) Run(ctx context.Context) error {
 
 	f.graphMut.Lock()
 	for _, n := range f.graph.Nodes() {
-		cn := n.(*componentNode)
-		if cn.raw == nil {
-			return fmt.Errorf("componentNode %q not initialized", cn.Name())
-		}
-
 		wg.Add(1)
 		go func(cn *componentNode) {
 			defer wg.Done()
 
-			err := cn.raw.Run(ctx, func() {
-				updated.Store(cn, struct{}{})
-
-				select {
-				case refreshCh <- struct{}{}:
-				default:
-				}
-			})
-			if err != nil {
-				level.Error(f.log).Log("msg", "node exited with error", "node", cn.Name(), "err", err)
+			c := cn.Get()
+			if c == nil {
+				panic("component never initialized")
 			}
-		}(cn)
+
+			err := c.Run(ctx)
+			if err != nil {
+				level.Error(f.log).Log("msg", "component exited with error", "component", cn.Name(), "err", err)
+			}
+		}(n.(*componentNode))
 	}
 	f.graphMut.Unlock()
 
 	for {
-		select {
-		case <-ctx.Done():
+		cn, err := f.updates.Dequeue(ctx)
+		if err != nil {
 			return nil
-		case <-refreshCh:
-			updated.Range(func(key, _ interface{}) bool {
-				defer updated.Delete(key)
+		}
 
-				cn := key.(*componentNode)
-				level.Debug(f.log).Log("msg", "handling node with updated state", "node", cn.Name())
+		level.Debug(f.log).Log("msg", "handling component with updated state", "component", cn.Name())
 
-				f.graphMut.Lock()
-				defer f.graphMut.Unlock()
+		f.graphMut.Lock()
+		defer f.graphMut.Unlock()
 
-				// Update dependants
-				// TODO(rfratto): set health of node based on result of this?
-				for _, n := range f.graph.Dependants(cn) {
-					cn := n.(*componentNode)
+		// Update any component which directly references cn.
+		// TODO(rfratto): set health of node based on result of this?
+		for _, n := range f.graph.Dependants(cn) {
+			cn := n.(*componentNode)
 
-					directDeps := f.graph.Dependencies(cn)
-					ectx, err := f.nametable.BuildEvalContext(directDeps)
-					if err != nil {
-						level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
-						continue
-					} else if ectx != nil {
-						ectx.Functions = funcMap
-					}
+			directDeps := f.graph.Dependencies(cn)
+			ectx, err := f.nametable.BuildEvalContext(directDeps)
+			if err != nil {
+				level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
+				continue
+			} else if ectx != nil {
+				ectx.Functions = funcMap
+			}
 
-					if err := cn.raw.Update(ectx, cn.block); err != nil {
-						level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
-						continue
-					}
-				}
-
-				return true
-			})
+			if err := cn.Update(ectx); err != nil {
+				level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
+				continue
+			}
 		}
 	}
 }
@@ -388,7 +377,7 @@ func ConfigHandler(f *Flow) http.HandlerFunc {
 				return
 			}
 
-			cfg := component.raw.Config()
+			cfg := component.Config()
 			if cfg == nil {
 				http.Error(w, "Component %s did not return its config", http.StatusInternalServerError)
 				return
@@ -396,7 +385,7 @@ func ConfigHandler(f *Flow) http.HandlerFunc {
 			gohcl.EncodeIntoBody(cfg, b.Body())
 
 			// Optionally write output state if it's exposed by the component.
-			if cs := component.raw.CurrentState(); cs != nil {
+			if cs := component.State(); cs != nil {
 				b.Body().AppendUnstructuredTokens(hclwrite.Tokens{
 					{Type: hclsyntax.TokenNewline, Bytes: []byte("\n")},
 					{Type: hclsyntax.TokenComment, Bytes: []byte("// Output:\n")},

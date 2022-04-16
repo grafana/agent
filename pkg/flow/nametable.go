@@ -205,7 +205,7 @@ func (nt *nametable) buildValue(ntNode dag.Node, from nodeSet) (cty.Value, error
 		if _, ok := from[n.cn]; !ok {
 			return cty.DynamicVal, nil
 		}
-		return n.cn.CurrentState(), nil
+		return n.cn.StateValue(), nil
 
 	default:
 		panic(fmt.Sprintf("unexpected nametable type %T", n))

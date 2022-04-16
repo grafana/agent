@@ -4,55 +4,39 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-
-	"github.com/go-kit/log"
 )
 
-// Options are provided to a Component when it is being constructed.
-type Options struct {
-	// ID of the component. Guaranteed to be globally unique across all
-	// components.
-	ComponentID string
-	Logger      log.Logger
+// Config is the configuration for a specific component.
+type Config interface{}
+
+// Component is a Flow component. Components run in a dedicated Goroutine.
+type Component interface {
+	// Run should run the component, blocking until ctx is canceled or the
+	// component fails. Run is guaranteed to only be called exactly per
+	// component, and is expected to clean up resources on defer.
+	Run(ctx context.Context) error
+
+	// Update provides a new config to the component. The type of config is
+	// guaranteed to be the type of config registered with the component.
+	//
+	// An error should be returned if the provided config object is invalid.
+	Update(newConfig Config) error
 }
 
-// Component is a flow component. Flow components run in the background and
-// optionally emit state.
-type Component[Config any] interface {
-	// Run starts the component, blocking until the provided context is canceled
-	// or an error occurs.
-	//
-	// Components which have an output state may invoke onStateChange any time to
-	// queue re-processing the state of the component.
-	Run(ctx context.Context, onStateChange func()) error
-
-	// CurrentState returns the current state of the component. Components may
-	// return nil if there is no output state.
+// StatefulComponent is an optional extension interface that Components which
+// expose State to other components may implement.
+type StatefulComponent interface {
+	// CurrentState returns the current state of the component.
 	//
 	// CurrentState may be called at any time and must be safe to call
-	// concurrently while the component updates its internal state.
-	CurrentState() interface{}
-
-	// Config returns the loaded Config of the component.
-	Config() Config
-}
-
-// UpdatableComponent is an optional extension interface that Components may
-// implement. Components that do not implement UpdatableComponent are updated
-// by being shut down and replaced with a new instance constructed with the
-// newest config.
-type UpdatableComponent[Config any] interface {
-	Component[Config]
-
-	// Update provides a new Config to the component. An error may be returned if
-	// the provided config object is invalid.
-	Update(c Config) error
+	// concurrently while the component is running.
+	CurrentState() any
 }
 
 // HTTPComponent is an optional extension interface that Components which wish
 // to register HTTP endpoints may implement.
-type HTTPComponent[Config any] interface {
-	Component[Config]
+type HTTPComponent interface {
+	Component
 
 	// ComponentHandler returns an http.Handler for the current component.
 	// ComponentHandler may return nil to avoid registering any handlers.
