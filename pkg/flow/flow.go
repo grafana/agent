@@ -28,7 +28,7 @@ type Flow struct {
 	configFile string
 
 	updates   *updateQueue
-	nametable *nameTable
+	nametable *execContext
 
 	graphMut sync.RWMutex
 	graph    *dag.Graph
@@ -136,8 +136,7 @@ func (f *Flow) Load() error {
 	err = dag.WalkTopological(f.graph, f.graph.Leaves(), func(n dag.Node) error {
 		cn := n.(*componentNode)
 
-		directDeps := f.graph.Dependencies(cn)
-		ectx, err := f.nametable.BuildEvalContext(directDeps)
+		ectx, err := f.nametable.BuildEvalContext()
 		if err != nil {
 			return err
 		} else if ectx != nil {
@@ -157,6 +156,9 @@ func (f *Flow) Load() error {
 		if err := cn.Build(opts, ectx); err != nil {
 			return err
 		}
+
+		f.nametable.CacheConfig(cn)
+		f.nametable.CacheState(cn)
 
 		hc, ok := cn.Get().(component.HTTPComponent)
 		if ok {
@@ -278,6 +280,13 @@ func (f *Flow) Run(ctx context.Context) error {
 }
 
 func (f *Flow) handleChangedNode(cn *componentNode) {
+	// The component's state changed; update our cache.
+	//
+	// NOTE(rfratto): we update the cache here instead of when OnStateChange is
+	// called to allow for many fast updates to be ignored, only using the most
+	// recent state when the change is finally processed.
+	f.nametable.CacheState(cn)
+
 	funcMap := map[string]function.Function{
 		"concat": stdlib.ConcatFunc,
 	}
@@ -289,8 +298,7 @@ func (f *Flow) handleChangedNode(cn *componentNode) {
 	for _, n := range f.graph.Dependants(cn) {
 		cn := n.(*componentNode)
 
-		directDeps := f.graph.Dependencies(cn)
-		ectx, err := f.nametable.BuildEvalContext(directDeps)
+		ectx, err := f.nametable.BuildEvalContext()
 		if err != nil {
 			level.Error(f.log).Log("msg", "failed to update node", "node", cn.Name(), "err", err)
 
@@ -315,6 +323,9 @@ func (f *Flow) handleChangedNode(cn *componentNode) {
 			})
 			continue
 		}
+
+		// Update the cache for the config since the node was just updated.
+		f.nametable.CacheConfig(cn)
 
 		cn.SetNodeHealth(component.Health{
 			Health:     component.HealthTypeRunning,

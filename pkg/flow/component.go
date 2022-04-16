@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/rfratto/gohcl"
-	"github.com/zclconf/go-cty/cty"
 )
 
 // componentNode is a lazily-constructed component.
@@ -54,26 +53,6 @@ func (cn *componentNode) Config() any {
 	return cn.cfg
 }
 
-// ConfigValue returns the current config of the component as a cty.Value.
-func (cn *componentNode) ConfigValue() cty.Value {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-
-	if cn.cfg == nil {
-		return cty.EmptyObjectVal
-	}
-
-	ty, err := gohcl.ImpliedType(cn.cfg)
-	if err != nil {
-		panic(err)
-	}
-	cv, err := gohcl.ToCtyValue(cn.cfg, ty)
-	if err != nil {
-		panic(err)
-	}
-	return cv
-}
-
 // State returns the current output state of the component.
 func (cn *componentNode) State() interface{} {
 	cn.mut.RLock()
@@ -84,32 +63,6 @@ func (cn *componentNode) State() interface{} {
 		return nil
 	}
 	return sc.CurrentState()
-}
-
-// StateValue returns the current output state of the component as a cty.Value.
-func (cn *componentNode) StateValue() cty.Value {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-
-	sc, _ := cn.raw.(component.StatefulComponent)
-	if sc == nil {
-		return cty.EmptyObjectVal
-	}
-
-	val := sc.CurrentState()
-	if val == nil {
-		return cty.EmptyObjectVal
-	}
-
-	ty, err := gohcl.ImpliedType(val)
-	if err != nil {
-		panic(err)
-	}
-	cv, err := gohcl.ToCtyValue(val, ty)
-	if err != nil {
-		panic(err)
-	}
-	return cv
 }
 
 // Get retrieves the underlying component, if one is set.

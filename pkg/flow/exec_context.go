@@ -4,36 +4,89 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/grafana/agent/pkg/flow/dag"
 	"github.com/hashicorp/hcl/v2"
+	"github.com/rfratto/gohcl"
 	"github.com/zclconf/go-cty/cty"
 )
 
-// nameTable stores a set of components by name, allowing for lookup and
-// building HCL eval contexts.
-//
-// nameTable can be modified concurrently.
-type nameTable struct {
+// TODO(rfratto): need the ability to remove nodes
+
+// execContext tracks tracks components and caches gocty values. execContext
+// can be modified concurrently.
+type execContext struct {
+	// execContext caches cty.Values to minimize the number of allocs when
+	// updating many nodes at once.
+
 	mut        sync.RWMutex
 	components map[string]*componentNode
+	configs    map[string]cty.Value
+	states     map[string]cty.Value
 }
 
-func newNameTable() *nameTable {
-	return &nameTable{
+func newNameTable() *execContext {
+	return &execContext{
 		components: make(map[string]*componentNode),
+		configs:    make(map[string]cty.Value),
+		states:     make(map[string]cty.Value),
 	}
 }
 
 // AddNode inserts the provided component into nt.
-func (nt *nameTable) AddNode(cn *componentNode) {
+func (nt *execContext) AddNode(cn *componentNode) {
 	nt.mut.Lock()
 	defer nt.mut.Unlock()
 	nt.components[cn.Name()] = cn
 }
 
+// CacheConfig caches the input config for a node.
+func (nt *execContext) CacheConfig(cn *componentNode) {
+	var val cty.Value
+
+	if cfg := cn.Config(); cfg == nil {
+		val = cty.EmptyObjectVal
+	} else {
+		ty, err := gohcl.ImpliedType(cfg)
+		if err != nil {
+			panic(err)
+		}
+		cv, err := gohcl.ToCtyValue(cfg, ty)
+		if err != nil {
+			panic(err)
+		}
+		val = cv
+	}
+
+	nt.mut.Lock()
+	defer nt.mut.Unlock()
+	nt.configs[cn.Name()] = val
+}
+
+// CacheState caches the state for a node.
+func (nt *execContext) CacheState(cn *componentNode) {
+	var val cty.Value
+
+	if state := cn.State(); state == nil {
+		val = cty.EmptyObjectVal
+	} else {
+		ty, err := gohcl.ImpliedType(state)
+		if err != nil {
+			panic(err)
+		}
+		cv, err := gohcl.ToCtyValue(state, ty)
+		if err != nil {
+			panic(err)
+		}
+		val = cv
+	}
+
+	nt.mut.Lock()
+	defer nt.mut.Unlock()
+	nt.states[cn.Name()] = val
+}
+
 // LookupTraversal tries to find a node from a traversal. The traversal will be
 // incrementally searched until the node is found.
-func (nt *nameTable) LookupTraversal(t hcl.Traversal) (*componentNode, hcl.Diagnostics) {
+func (nt *execContext) LookupTraversal(t hcl.Traversal) (*componentNode, hcl.Diagnostics) {
 	nt.mut.RLock()
 	defer nt.mut.RUnlock()
 
@@ -76,18 +129,17 @@ Lookup:
 	return nil, diags
 }
 
-// BuildEvalContext builds an hcl.EvalContext from the values of the input
-// nodes.
-func (nt *nameTable) BuildEvalContext(from []dag.Node) (*hcl.EvalContext, error) {
+// BuildEvalContext builds an hcl.EvalContext based on the nametable.
+func (nt *execContext) BuildEvalContext() (*hcl.EvalContext, error) {
 	ectx := &hcl.EvalContext{
 		Variables: make(map[string]cty.Value),
 	}
 
 	// Split by top level-key.
 	var nodesByKey = make(map[string][]*componentNode)
-	for _, n := range from {
-		key := n.(*componentNode).ref[0]
-		nodesByKey[key] = append(nodesByKey[key], n.(*componentNode))
+	for _, n := range nt.components {
+		key := n.ref[0]
+		nodesByKey[key] = append(nodesByKey[key], n)
 	}
 
 	// Now convert those nodes into a single value.
@@ -102,11 +154,22 @@ func (nt *nameTable) BuildEvalContext(from []dag.Node) (*hcl.EvalContext, error)
 	return ectx, nil
 }
 
-func (nt *nameTable) buildValue(from []*componentNode, offset int) (cty.Value, error) {
+func (nt *execContext) buildValue(from []*componentNode, offset int) (cty.Value, error) {
 	// We can't recurse anymore; return the node directly.
 	if len(from) == 1 && offset >= len(from[0].ref) {
 		cn := from[0]
-		return mergeState(cn.ConfigValue(), cn.StateValue()), nil
+		name := cn.Name()
+
+		cfg, ok := nt.configs[name]
+		if !ok {
+			cfg = cty.EmptyObjectVal
+		}
+		state, ok := nt.states[name]
+		if !ok {
+			state = cty.EmptyObjectVal
+		}
+
+		return mergeState(cfg, state), nil
 	}
 
 	attrs := make(map[string]cty.Value)
