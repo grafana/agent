@@ -111,9 +111,6 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
-	level.Info(c.log).Log("msg", "component starting")
-	defer level.Info(c.log).Log("msg", "component shutting down")
-
 	// TODO(rfratto): truncate WAL / GC on a loop
 
 	<-ctx.Done()

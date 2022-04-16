@@ -66,9 +66,6 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	level.Info(c.log).Log("msg", "component starting")
-	defer level.Info(c.log).Log("msg", "component shutting down")
-
 	if err := c.refresh(); err != nil {
 		level.Error(c.log).Log("msg", "failed to get key from http", "err", err)
 		// TODO(rfratto): set health?

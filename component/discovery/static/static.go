@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	metricsscraper "github.com/grafana/agent/component/metrics-scraper"
 	"github.com/prometheus/common/model"
@@ -58,9 +57,6 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	level.Info(c.log).Log("msg", "component starting")
-	defer level.Info(c.log).Log("msg", "component shutting down")
-
 	<-ctx.Done()
 	return nil
 }
@@ -71,8 +67,6 @@ func (c *Component) Update(newConfig component.Config) error {
 
 	c.mut.Lock()
 	defer c.mut.Unlock()
-
-	c.cfg = cfg
 
 	// Recalculate groups
 	var group metricsscraper.TargetGroup
@@ -90,6 +84,7 @@ func (c *Component) Update(newConfig component.Config) error {
 	c.state.Targets = []metricsscraper.TargetGroup{group}
 
 	c.opts.OnStateChange()
+	c.cfg = cfg
 	return nil
 }
 

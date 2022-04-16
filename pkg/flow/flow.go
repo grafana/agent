@@ -242,9 +242,12 @@ func (f *Flow) Run(ctx context.Context) error {
 				panic("component never initialized")
 			}
 
+			level.Info(f.log).Log("msg", "starting component", "component", cn.Name())
 			err := c.Run(ctx)
 			if err != nil {
 				level.Error(f.log).Log("msg", "component exited with error", "component", cn.Name(), "err", err)
+			} else {
+				level.Info(f.log).Log("msg", "component stopped", "component", cn.Name())
 			}
 		}(n.(*componentNode))
 	}

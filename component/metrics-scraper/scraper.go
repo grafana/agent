@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alecthomas/units"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -33,15 +34,33 @@ func init() {
 
 // Config represents the input state of the metrics_scraper component.
 type Config struct {
-	ScrapeInterval time.Duration                     `hcl:"scrape_interval,optional"`
-	ScrapeTimeout  time.Duration                     `hcl:"scrape_timeout,optional"`
-	Targets        []TargetGroup                     `hcl:"targets"`
-	SendTo         *metricsforwarder.MetricsReceiver `hcl:"send_to"`
+	Targets []TargetGroup                     `hcl:"targets"`
+	SendTo  *metricsforwarder.MetricsReceiver `hcl:"send_to"`
+
+	HonorLabels           bool                `hcl:"honor_labels,optional"`
+	HonorTimestamps       bool                `hcl:"honor_timestamps,optional"`
+	Params                map[string][]string `hcl:"params,optional"`
+	ScrapeInterval        time.Duration       `hcl:"scrape_interval,optional"`
+	ScrapeTimeout         time.Duration       `hcl:"scrape_timeout,optional"`
+	MetricsPath           string              `hcl:"metrics_path,optional"`
+	Scheme                string              `hcl:"scheme,optional"`
+	BodySizeLimit         units.Base2Bytes    `hcl:"body_size_limit,optional"`
+	SampleLimit           uint                `hcl:"sample_limit,optional"`
+	TargetLimit           uint                `hcl:"target_limit,optional"`
+	LabelLimit            uint                `hcl:"label_limit,optional"`
+	LabelNameLengthLimit  uint                `hcl:"label_name_length_limit,optional"`
+	LabelValueLengthLimit uint                `hcl:"label_value_length_limit,optional"`
+
+	// TODO(rfratto): http client config
 }
 
 var DefaultConfig = Config{
-	ScrapeInterval: time.Duration(60 * time.Second),
-	ScrapeTimeout:  time.Duration(10 * time.Second),
+	MetricsPath:     "/metrics",
+	Scheme:          "http",
+	HonorLabels:     false,
+	HonorTimestamps: true,
+	ScrapeInterval:  time.Duration(60 * time.Second),
+	ScrapeTimeout:   time.Duration(10 * time.Second),
 }
 
 var _ gohcl.Decoder = (*Config)(nil)
@@ -102,13 +121,9 @@ var _ component.Component = (*Component)(nil)
 func (c *Component) Run(ctx context.Context) error {
 	defer c.scraper.Stop()
 
-	level.Info(c.log).Log("msg", "component starting")
-	defer level.Info(c.log).Log("msg", "component shutting down")
-
 	targetChan := make(chan map[string][]*targetgroup.Group)
 
 	go func() {
-		// TODO(rfratto): how do we get targets to this thing?
 		err := c.scraper.Run(targetChan)
 		if err != nil {
 			level.Error(c.log).Log("msg", "scraper failed", "err", err)
@@ -166,11 +181,21 @@ func (c *Component) Update(newConfig component.Config) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	// TODO(rfratto): expose other config (HTTPClientConfig, Relabel)
 	sc := config.DefaultScrapeConfig
 	sc.JobName = c.id
+	sc.HonorLabels = cfg.HonorLabels
+	sc.HonorTimestamps = cfg.HonorTimestamps
+	sc.Params = cfg.Params
 	sc.ScrapeInterval = model.Duration(cfg.ScrapeInterval)
 	sc.ScrapeTimeout = model.Duration(cfg.ScrapeTimeout)
+	sc.MetricsPath = cfg.MetricsPath
+	sc.Scheme = cfg.Scheme
+	sc.BodySizeLimit = cfg.BodySizeLimit
+	sc.SampleLimit = cfg.SampleLimit
+	sc.TargetLimit = cfg.TargetLimit
+	sc.LabelLimit = cfg.LabelLimit
+	sc.LabelNameLengthLimit = cfg.LabelNameLengthLimit
+	sc.LabelValueLengthLimit = cfg.LabelValueLengthLimit
 
 	err := c.scraper.ApplyConfig(&config.Config{
 		ScrapeConfigs: []*config.ScrapeConfig{&sc},

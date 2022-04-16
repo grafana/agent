@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	metricsscraper "github.com/grafana/agent/component/metrics-scraper"
@@ -85,9 +84,6 @@ var _ component.Component = (*Component)(nil)
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	level.Info(c.log).Log("msg", "component starting")
-	defer level.Info(c.log).Log("msg", "component shutting down")
-
 	<-ctx.Done()
 	return nil
 }
