@@ -29,6 +29,9 @@ type Options struct {
 	ComponentID string
 	Logger      log.Logger
 
+	// HTTP address (ip:port) of the running process.
+	HTTPAddr string
+
 	// OnStateChange be be invoked at any time by a component to queue
 	// re-processing input for components which depend on the changed component.
 	OnStateChange func()

@@ -152,6 +152,9 @@ func (f *Flow) Load() error {
 			ComponentID: cn.Name(),
 			Logger:      log.With(f.log, "node", cn.Name()),
 
+			// TODO(rfratto): remove hard-coded address
+			HTTPAddr: "127.0.0.1:12345",
+
 			OnStateChange: func() { f.updates.Enqueue(cn) },
 		}
 

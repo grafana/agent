@@ -11,6 +11,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	metricsforwarder "github.com/grafana/agent/component/metrics-forwarder"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -23,6 +24,8 @@ import (
 )
 
 func init() {
+	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+
 	component.Register(component.Registration{
 		Name:   "metrics_scraper",
 		Config: Config{},

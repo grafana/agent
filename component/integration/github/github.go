@@ -122,16 +122,14 @@ func (c *Component) Update(newConfig component.Config) error {
 
 // CurrentState implements Component.
 func (c *Component) CurrentState() interface{} {
-	// TODO(rfratto): remove hard coding
 	return State{
 		Targets: []metricsscraper.TargetGroup{{
 			Targets: []metricsscraper.LabelSet{{
-				model.AddressLabel:     "127.0.0.1:12345",
+				model.AddressLabel:     c.opts.HTTPAddr,
 				model.MetricsPathLabel: path.Join(component.HTTPPrefix(c.opts.ComponentID), "/metrics"),
 			}},
 			Labels: metricsscraper.LabelSet{
 				model.InstanceLabel: c.opts.ComponentID,
-				model.JobLabel:      "integration.github",
 			},
 		}},
 	}

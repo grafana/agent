@@ -3,24 +3,43 @@ package metricsforwarder
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/url"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
 )
 
+// Options.
+//
+// TODO(rfratto): These should be flags. How do we want to handle static
+// options for components?
+var (
+	walTruncateFrequency = 2 * time.Hour
+	minWALTime           = 5 * time.Minute
+	maxWALTime           = 8 * time.Hour
+	remoteFlushDeadline  = 1 * time.Minute
+)
+
 func init() {
+	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	config.DefaultRemoteWriteConfig.SendExemplars = true
+
 	component.Register(component.Registration{
 		Name:   "metrics_forwarder",
 		Config: Config{},
@@ -38,7 +57,8 @@ type MetricsReceiver struct{ storage.Appendable }
 
 // Config represents the input state of the metrics_forwarder component.
 type Config struct {
-	RemoteWrite []*RemoteWriteConfig `hcl:"remote_write,block"`
+	ExternalLabels map[string]string    `hcl:"external_labels,optional"`
+	RemoteWrite    []*RemoteWriteConfig `hcl:"remote_write,block"`
 }
 
 // RemoteWriteConfig is the metrics_fowarder's configuration for where to send
@@ -111,10 +131,59 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
-	// TODO(rfratto): truncate WAL / GC on a loop
+	// Track the last timestamp we truncated for to prevent segments from getting
+	// deleted until at least some new data has been sent.
+	var lastTs int64 = math.MinInt64
+
+	for {
+		select {
+		case <-ctx.Done():
+		case <-time.After(walTruncateFrequency):
+			// The timestamp ts is used to determine which series are not receiving
+			// samples and may be deleted from the WAL. Their most recent append
+			// timestamp is compared to ts, and if that timestamp is older then ts,
+			// they are considered inactive and may be deleted.
+			//
+			// Subtracting a duration from ts will delay when it will be considered
+			// inactive and scheduled for deletion.
+			ts := c.remoteStore.LowestSentTimestamp() - minWALTime.Milliseconds()
+			if ts < 0 {
+				ts = 0
+			}
+
+			// Network issues can prevent the result of getRemoteWriteTimestamp from
+			// changing. We don't want data in the WAL to grow forever, so we set a cap
+			// on the maximum age data can be. If our ts is older than this cutoff point,
+			// we'll shift it forward to start deleting very stale data.
+			if maxTS := timestamp.FromTime(time.Now().Add(-maxWALTime)); ts < maxTS {
+				ts = maxTS
+			}
+
+			if ts == lastTs {
+				level.Debug(c.log).Log("msg", "not truncating the WAL, remote_write timestamp is unchanged", "ts", ts)
+				continue
+			}
+			lastTs = ts
+
+			level.Debug(c.log).Log("msg", "truncating the WAL", "ts", ts)
+			err := c.walStore.Truncate(ts)
+			if err != nil {
+				// The only issue here is larger disk usage and a greater replay time,
+				// so we'll only log this as a warning.
+				level.Warn(c.log).Log("msg", "could not truncate WAL", "err", err)
+			}
+		}
+	}
 
 	<-ctx.Done()
 	return nil
+}
+
+// getRemoteWriteTimestamp looks up the last successful remote write timestamp.
+// This is passed to wal.Storage for its truncation. If no remote write
+// sections are configured, getRemoteWriteTimestamp returns the current time.
+func (c *Component) getRemoteWriteTimestamp() int64 {
+	return c.remoteStore.LowestSentTimestamp()
 }
 
 // Update implements Component.
@@ -152,7 +221,9 @@ func (c *Component) Update(newConfig component.Config) error {
 	}
 
 	err := c.remoteStore.ApplyConfig(&config.Config{
-		// TODO(rfratto): external labels
+		GlobalConfig: config.GlobalConfig{
+			ExternalLabels: toLabels(cfg.ExternalLabels),
+		},
 		RemoteWriteConfigs: rwConfigs,
 	})
 	if err != nil {
@@ -161,6 +232,15 @@ func (c *Component) Update(newConfig component.Config) error {
 
 	c.cfg = cfg
 	return nil
+}
+
+func toLabels(in map[string]string) labels.Labels {
+	res := make(labels.Labels, 0, len(in))
+	for k, v := range in {
+		res = append(res, labels.Label{Name: k, Value: v})
+	}
+	sort.Sort(res)
+	return res
 }
 
 // CurrentState implements Component.
