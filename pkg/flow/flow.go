@@ -27,13 +27,13 @@ type Flow struct {
 	log        log.Logger
 	configFile string
 
-	updates *updateQueue
+	updates   *updateQueue
+	nametable *nameTable
 
-	graphMut  sync.RWMutex
-	graph     *dag.Graph
-	nametable *nametable
-	root      rootBlock
-	handlers  map[string]http.Handler
+	graphMut sync.RWMutex
+	graph    *dag.Graph
+	root     rootBlock
+	handlers map[string]http.Handler
 }
 
 // New creates a new Flow instance.
@@ -42,11 +42,11 @@ func New(l log.Logger, configFile string) *Flow {
 		log:        l,
 		configFile: configFile,
 
-		updates: newUpdateQueue(),
+		updates:   newUpdateQueue(),
+		nametable: newNameTable(),
 
-		graph:     &dag.Graph{},
-		nametable: &nametable{},
-		handlers:  make(map[string]http.Handler),
+		graph:    &dag.Graph{},
+		handlers: make(map[string]http.Handler),
 	}
 	return f
 }
@@ -93,7 +93,7 @@ func (f *Flow) Load() error {
 		f.graph.Add(component)
 
 		// Then, add the component into our nametable.
-		f.nametable.Add(component)
+		f.nametable.AddNode(component)
 	}
 
 	// Second pass: iterate over all of our nodes and create edges.

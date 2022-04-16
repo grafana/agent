@@ -69,7 +69,6 @@ func run() error {
 
 		r := mux.NewRouter()
 		r.Handle("/graph", flow.GraphHandler(f))
-		r.Handle("/nametable", flow.NametableHandler(f))
 		r.Handle("/config", flow.ConfigHandler(f))
 		r.Handle("/metrics", promhttp.Handler())
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)

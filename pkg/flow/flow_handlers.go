@@ -32,23 +32,6 @@ func GraphHandler(f *Flow) http.HandlerFunc {
 	}
 }
 
-// NametableHandler returns an http.HandlerFunc that render's the flow's
-// nametable as an SVG. Graphviz must be installed for this to work.
-func NametableHandler(f *Flow) http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		f.graphMut.RLock()
-		contents := dag.MarshalDOT(&f.nametable.graph)
-		f.graphMut.RUnlock()
-
-		svgBytes, err := graphviz.Dot(contents, "svg")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		_, _ = io.Copy(w, bytes.NewReader(svgBytes))
-	}
-}
-
 // ConfigHandler returns an http.Handler which prints out the flow's current
 // config as HCL.
 func ConfigHandler(f *Flow) http.HandlerFunc {

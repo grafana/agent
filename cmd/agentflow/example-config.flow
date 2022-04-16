@@ -11,6 +11,10 @@ remote "http" "example-password" {
 
 // Each metrics_forwarder is implemented as a WAL + zero or more remote_writes.
 metrics_forwarder "default" {
+  external_labels = {
+    cluster = "flow-demo"
+  }
+
   remote_write {
     url = "http://localhost:9009/api/prom/push"
 
@@ -40,7 +44,7 @@ integration "github" "default" {
   ]
 
   // Output fields:
-  // targets = <array of discovered targets>
+  // targets = <array of generated targets>
 }
 
 // Scrape metrics from both our discovery and integrations.
@@ -51,7 +55,7 @@ metrics_scraper "default" {
   )
   send_to = metrics_forwarder.default.receiver
 
-  scrape_interval = "15s"
+  scrape_interval = "60s"
   scrape_timeout  = "10s"
 
   // Output fields: <none>
