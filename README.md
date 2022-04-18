@@ -47,7 +47,7 @@ trade-offs have been made:
   availability, metrics tracking that node won't be sent for alerting on.
 
 While the Agent can't use recording rules and alerts, `remote_write` systems such
-as Cortex currently support server-side rules and alerts. Note that this trade-off
+as Mimir currently support server-side rules and alerts. Note that this trade-off
 means that reliability of alerts are tied to the reliability of the remote system
 and alerts will be delayed at least by the time it takes for samples to reach
 the remote system.
