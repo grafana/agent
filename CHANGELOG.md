@@ -48,6 +48,10 @@ Main (unreleased)
   /agent/api/v1/instances`) and list targets endpoint (`GET
   /agent/api/v1/metrics/targets`). (@marctc)
 
+- Add extra identifying labels (`job`, `instance`, `agent_hostname`) to eventhandler integration. (@hjet)
+
+- Add `extra_labels` configuration to eventhandler integration. (@hjet)
+
 v0.24.1 (2022-04-14)
 --------------------
 
