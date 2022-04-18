@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Traces: Use `rpc.grpc.status_code` attribute to determine
+  span failed in the service graph processor (@rcrowe)
+
 ### Features
 
 - Add HTTP endpoints to fetch active instances and targets for the Logs subsystem.
