@@ -47,8 +47,6 @@ steps:
         path: /var/run/docker.sock
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
-      - echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list && apt-get update -y && apt-get install -qy libbpfcc-dev
-      - make DOCKER_OPTS="" lint
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
@@ -98,8 +96,6 @@ steps:
       - printenv GCR_CREDS > $HOME/.docker/config.json
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - apk update && apk add make bash wget git qemu
-      - echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list && apt-get update -y && apt-get install -qy libbpfcc-dev
-      - make DOCKER_OPTS="" lint
       - wget -q https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
       - mkdir -p ~/.docker/cli-plugins
       - cp buildx-v0.5.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
@@ -207,8 +203,6 @@ steps:
       - curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
       - apt-get update &&  apt-get install -y rubygems rpm nsis docker-ce docker-ce-cli containerd.io gettext
-      - echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list && apt-get update -y && apt-get install -qy libbpfcc-dev
-      - make DOCKER_OPTS="" lint
       - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
       - gem install --no-document fpm
       - rm -r /usr/local/go
@@ -253,6 +247,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 4ff116c1b8f609fda86953cc2db0e1ffa882b5b91b8795281fd9c573eb59dd99
+hmac: 83b6354ae5efd11fef4ee6f5419891955952885873ae8aeea68e6573cf88aa3e
 
 ...
