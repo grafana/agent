@@ -30,6 +30,7 @@ Valid feature names are:
 * `remote-configs`: Enable [retrieving]({{< relref "./_index.md#remote-configuration-experimental" >}}) config files over HTTP/HTTPS
 * `integrations-next`: Enable [revamp]({{< relref "./integrations/integrations-next/" >}}) of the integrations subsystem
 * `dynamic-config`: Enable support for [dynamic configuration]({{< relref "./dynamic-config" >}})
+* `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
 
 ## Configuration file
 

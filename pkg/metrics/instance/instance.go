@@ -426,7 +426,10 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 
 	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore)
 
-	scrapeManager := newScrapeManager(log.With(i.logger, "component", "scrape manager"), i.storage)
+	opts := &scrape.Options{
+		ExtraMetrics: cfg.global.ExtraMetrics,
+	}
+	scrapeManager := newScrapeManager(opts, log.With(i.logger, "component", "scrape manager"), i.storage)
 	err = scrapeManager.ApplyConfig(&config.Config{
 		GlobalConfig:  cfg.global.Prometheus,
 		ScrapeConfigs: cfg.ScrapeConfigs,
@@ -749,15 +752,12 @@ func getHash(data interface{}) (string, error) {
 
 var managerMtx sync.Mutex
 
-func newScrapeManager(logger log.Logger, app storage.Appendable) *scrape.Manager {
+func newScrapeManager(o *scrape.Options, logger log.Logger, app storage.Appendable) *scrape.Manager {
 	// scrape.NewManager modifies a global variable in Prometheus. To avoid a
 	// data race of modifying that global, we lock a mutex here briefly.
 	managerMtx.Lock()
 	defer managerMtx.Unlock()
-	options := &scrape.Options{
-		ExtraMetrics: false,
-	}
-	return scrape.NewManager(options, logger, app)
+	return scrape.NewManager(o, logger, app)
 }
 
 type runGroupContext struct {
