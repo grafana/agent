@@ -47,6 +47,7 @@ steps:
         path: /var/run/docker.sock
     commands:
       - apt-get update &&  apt-get install -y rubygems rpm nsis  apt-transport-https ca-certificates curl gnupg lsb-release
+      - echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list && apt-get update -y && apt-get install -qy libbpfcc-dev
       - gem install --no-document fpm
       - rm -r /usr/local/go
       - mkdir -p /usr/local/go/bin
@@ -247,6 +248,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: 83b6354ae5efd11fef4ee6f5419891955952885873ae8aeea68e6573cf88aa3e
+hmac: ad8ffb566ca729e3e82744f5e9484224a37e500cc13f348eada1a66fd194607e
 
 ...
