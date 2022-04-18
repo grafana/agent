@@ -19,7 +19,7 @@ All flags may be prefixed with either one hypen or two (i.e., both
 * `-version`: Print out version information
 * `-help`: Print out help
 
-## Experiemntal feature flags
+## Experimental feature flags
 
 Grafana Agent has some experimental features that require being enabled through
 an `-enable-features` flag. This flag takes a comma-delimited list of feature
