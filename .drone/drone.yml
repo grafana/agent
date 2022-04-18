@@ -19,6 +19,7 @@ steps:
     image: golangci/golangci-lint:v1.44
     commands:
       - apt-get update -y && apt-get install -y libsystemd-dev
+      - echo "deb [trusted=yes] https://repo.iovisor.org/apt/bionic bionic-nightly main" | tee /etc/apt/sources.list.d/iovisor.list && apt-get update -y && apt-get install -qy libbpfcc-dev
       - make DOCKER_OPTS="" lint
 
 ---
@@ -246,6 +247,6 @@ get:
   name: pat
 ---
 kind: signature
-hmac: b14773ba7e50432dfe90920d442a850f85aed74f1419dd78502b1e76d91cde46
+hmac: 83b6354ae5efd11fef4ee6f5419891955952885873ae8aeea68e6573cf88aa3e
 
 ...
