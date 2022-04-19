@@ -201,7 +201,7 @@ func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 		Addr:    fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),
 		Handler: mw.Wrap(r),
 	}
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 
 	go func() {
 		level.Info(i.logger).Log("msg", "starting app o11y receiver", "host", i.conf.Server.Host, "port", i.conf.Server.Port)
