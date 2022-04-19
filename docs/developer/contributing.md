@@ -82,6 +82,12 @@ The Makefile provides several targets:
 * `test`: run the tests
 * `lint`: run linting checks
 
+### Compiling on Linux
+Compiling the Agent on Linux requires a couple of extra dependencies.
+These are 
+* [systemd headers](https://github.com/grafana/agent/blob/main/cmd/agent/Dockerfile#L8-L9) for Promtail
+* [bcc tools](https://github.com/grafana/agent/blob/main/cmd/agent/Dockerfile#L12-L13) for the eBPF integration
+
 ## Pull Request Checklist
 
 Changes should be branched off of the `main` branch. It's recommended to rebase
