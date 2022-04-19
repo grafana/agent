@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -229,12 +228,7 @@ func (e *remoteWriteExporter) createLabelSet(name, suffix string, labelMap pdata
 }
 
 func (e *remoteWriteExporter) timestamp() int64 {
-	return convertTimeStamp(time.Now())
-}
-
-// convertTimeStamp converts time.Time to timestamp in ms
-func convertTimeStamp(t time.Time) int64 {
-	return timestamp.FromTime(t)
+	return time.Now().UnixMilli()
 }
 
 func metricName(namespace, metric, suffix string) string {
