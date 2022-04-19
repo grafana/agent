@@ -13,7 +13,7 @@ func TestConfig_DefaultConfig(t *testing.T) {
 test-conf: test-val`
 	err := yaml.Unmarshal([]byte(cb), &cfg)
 	require.NoError(t, err)
-	require.Equal(t, []string{}, cfg.Server.CORSAllowedOrigins)
+	require.Equal(t, []string(nil), cfg.Server.CORSAllowedOrigins)
 	require.Equal(t, "127.0.0.1", cfg.Server.Host)
 	require.Equal(t, 12347, cfg.Server.Port)
 	require.Equal(t, true, cfg.Server.RateLimiting.Enabled)

@@ -18,9 +18,8 @@ var DefaultConfig = AppO11yReceiverConfig{
 	// Default JS agent port
 
 	Server: ServerConfig{
-		Host:               "127.0.0.1",
-		Port:               12347,
-		CORSAllowedOrigins: []string{},
+		Host: "127.0.0.1",
+		Port: 12347,
 		RateLimiting: RateLimitingConfig{
 			Enabled:    true,
 			RPS:        DefaultRateLimitingRPS,
@@ -28,15 +27,11 @@ var DefaultConfig = AppO11yReceiverConfig{
 		},
 		MaxAllowedPayloadSize: DefaultRateLimitingRPS,
 	},
-	TracesInstance:  "",
-	LogsInstance:    "",
 	LogsLabels:      map[string]string{},
 	LogsSendTimeout: 2000,
 	SourceMaps: SourceMapConfig{
-		Download:            false,
 		DownloadFromOrigins: []string{"*"},
 		DownloadTimeout:     time.Duration(1000000),
-		FileSystem:          nil,
 	},
 }
 
