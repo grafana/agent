@@ -43,19 +43,16 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // ApplyDefaults applies globals to the configuration object.
-func (c *Config) ApplyDefaults(globals integrations.Globals) error {
-	return nil
-}
+func (c *Config) ApplyDefaults(globals integrations.Globals) error { return nil }
 
 // Identifier returns a string identifying the current integration.
-func (c *Config) Identifier(globals integrations.Globals) (string, error) {
-	return c.Name(), nil
-}
+func (c *Config) Identifier(globals integrations.Globals) (string, error) { return c.Name(), nil }
 
 // Name returns the integration's name.
 func (c *Config) Name() string { return "ebpf" }
 
-// NewIntegration creates an new instance for the eBPF integration.
+// NewIntegration instantiates a new integrations.MetricsIntegration
+// which will handle requests to the eBPF exporter.
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	var metricsCfg common.MetricsConfig
 	metricsCfg.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
