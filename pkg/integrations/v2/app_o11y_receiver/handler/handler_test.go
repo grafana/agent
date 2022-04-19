@@ -292,7 +292,7 @@ func TestRateLimiterNoReject(t *testing.T) {
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, nil)
+	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -318,7 +318,7 @@ func TestRateLimiterReject(t *testing.T) {
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, nil)
+	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -344,7 +344,7 @@ func TestRateLimiterDisabled(t *testing.T) {
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, nil)
+	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
