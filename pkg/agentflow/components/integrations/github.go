@@ -5,6 +5,7 @@ import (
 	"github.com/AsynkronIT/protoactor-go/scheduler"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
@@ -12,6 +13,8 @@ import (
 	gh_config "github.com/infinityworks/github-exporter/config"
 	"github.com/infinityworks/github-exporter/exporter"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gopkg.in/yaml.v2"
 	"time"
 )
 
@@ -23,8 +26,10 @@ type Github struct {
 	cancel   scheduler.CancelFunc
 	exporter *exporter.Exporter
 	registry *prometheus.Registry
+	router   *mux.Router
 
-	log log.Logger
+	log  log.Logger
+	root *actor.RootContext
 }
 
 func NewGithub(name string, cfg *config.Github, global types.Global) (actorstate.FlowActor, error) {
@@ -48,41 +53,53 @@ func NewGithub(name string, cfg *config.Github, global types.Global) (actorstate
 	if err != nil {
 		level.Error(global.Log).Log("error", err)
 	}
+
 	return &Github{
 		name:     name,
 		cfg:      cfg,
 		exporter: &ghExporter,
 		registry: r,
+		router:   global.Mux,
+		root:     global.RootContext,
 	}, nil
 }
 
-func (a *Github) PID() *actor.PID {
-	return a.self
+func (g *Github) PID() *actor.PID {
+	return g.self
 }
 
-func (a *Github) AllowableInputs() []actorstate.InOutType {
+func (g *Github) AllowableInputs() []actorstate.InOutType {
 	return []actorstate.InOutType{actorstate.None}
 }
 
-func (a *Github) Output() actorstate.InOutType {
+func (g *Github) Output() actorstate.InOutType {
 	return actorstate.Metrics
 }
 
-func (a *Github) Receive(c actor.Context) {
+func (g *Github) Receive(c actor.Context) {
 	switch msg := c.Message().(type) {
 	case actorstate.Init:
-		a.outs = msg.Children
+		g.outs = msg.Children
 	case actorstate.Start:
-		a.self = c.Self()
+		g.self = c.Self()
 		sched := scheduler.NewTimerScheduler(c)
-		a.cancel = sched.SendRepeatedly(1*time.Millisecond, 60*time.Second, c.Self(), "scrape")
+		g.cancel = sched.SendRepeatedly(1*time.Millisecond, 60*time.Second, c.Self(), "scrape")
+		if g.cfg.EnableEndpoint {
+			g.router.Handle("/"+g.name+"/metrics", promhttp.HandlerFor(g.registry, promhttp.HandlerOpts{}))
+		}
+	case actorstate.State:
+		bb, _ := yaml.Marshal(&githubState{
+			Cfg:    g.cfg,
+			Status: "Healthy",
+		})
+		c.Respond(bb)
 	case string:
 		if msg != "scrape" {
 			return
 		}
-		metrics, err := a.registry.Gather()
+		metrics, err := g.registry.Gather()
 		if err != nil {
-			level.Error(a.log).Log("error", err)
+			level.Error(g.log).Log("error", err)
 			return
 		}
 		ms := make([]exchange.Metric, 0)
@@ -93,12 +110,17 @@ func (a *Github) Receive(c actor.Context) {
 		if len(ms) == 0 {
 			return
 		}
-		for _, o := range a.outs {
+		for _, o := range g.outs {
 			c.Send(o, ms)
 		}
 	}
 }
 
-func (m *Github) Name() string {
-	return m.name
+func (g *Github) Name() string {
+	return g.name
+}
+
+type githubState struct {
+	Cfg    *config.Github
+	Status string
 }

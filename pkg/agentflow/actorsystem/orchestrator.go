@@ -3,7 +3,9 @@ package actorsystem
 import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/mailbox"
 	"github.com/go-kit/kit/log"
+	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/agentflow/components/auth"
 	"github.com/grafana/agent/pkg/agentflow/components/integrations"
 	"github.com/grafana/agent/pkg/agentflow/components/logs"
@@ -12,10 +14,13 @@ import (
 	"github.com/grafana/agent/pkg/agentflow/config"
 	"github.com/grafana/agent/pkg/agentflow/types"
 	"github.com/grafana/agent/pkg/agentflow/types/actorstate"
+	"github.com/prometheus/client_golang/prometheus"
+	"gopkg.in/yaml.v2"
 	"strings"
 	"time"
 )
 
+// Orchestrator handles creation of all the actors and statistics, verifies that the actor system is setup correctly
 type Orchestrator struct {
 	cfg config.Config
 
@@ -25,6 +30,7 @@ type Orchestrator struct {
 	pidToName        map[*actor.PID]string
 	nameToActor      map[string]actorstate.FlowActor
 	parentToChildren map[*actor.PID][]*actor.PID
+	stats            map[string]*statistics
 }
 
 func NewOrchestrator(cfg config.Config) *Orchestrator {
@@ -34,12 +40,14 @@ func NewOrchestrator(cfg config.Config) *Orchestrator {
 		pidToName:        map[*actor.PID]string{},
 		nameToActor:      map[string]actorstate.FlowActor{},
 		parentToChildren: map[*actor.PID][]*actor.PID{},
+		stats:            map[string]*statistics{},
 	}
 }
 
-func (u *Orchestrator) StartActorSystem(as *actor.ActorSystem, root *actor.RootContext) error {
+func (u *Orchestrator) StartActorSystem(as *actor.ActorSystem, root *actor.RootContext, mux *mux.Router) error {
 	u.actorSystem = as
 	u.rootContext = root
+	reg := prometheus.NewRegistry()
 	var agentLog *logs.Agent
 	// Find if they have defined the agent logger
 	for _, nodeCfg := range u.cfg.Nodes {
@@ -61,10 +69,14 @@ func (u *Orchestrator) StartActorSystem(as *actor.ActorSystem, root *actor.RootC
 		}
 		agentLog = no.(*logs.Agent)
 	}
+	// Create a logger that handles agentlog
 	logger := log.NewLogfmtLogger(agentLog)
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 	global := &types.Global{
-		Log: logger,
+		Log:            logger,
+		RootContext:    root,
+		MetricRegistry: reg,
+		Mux:            mux,
 	}
 	// Generate the Nodes
 	for _, nodeCfg := range u.cfg.Nodes {
@@ -98,7 +110,12 @@ func (u *Orchestrator) StartActorSystem(as *actor.ActorSystem, root *actor.RootC
 }
 
 func (u *Orchestrator) addPID(no actorstate.FlowActor) {
-	props := actor.PropsFromProducer(func() actor.Actor { return no })
+	stats := &statistics{
+		Name:           no.Name(),
+		MessagesByType: map[string]int{},
+	}
+	u.stats[stats.Name] = stats
+	props := actor.PropsFromProducer(func() actor.Actor { return no }).WithMailbox(mailbox.Unbounded(stats))
 	pid := u.rootContext.Spawn(props)
 	u.nameToPID[no.Name()] = pid
 	u.pidToName[pid] = no.Name()
@@ -170,6 +187,15 @@ func (u *Orchestrator) GetNodeStatus(name string) []byte {
 	return out.([]byte)
 }
 
+func (u *Orchestrator) GetNodeStats(name string) []byte {
+	stats, found := u.stats[name]
+	if !found {
+		return []byte("not found")
+	}
+	bb, _ := yaml.Marshal(stats)
+	return bb
+}
+
 func (u *Orchestrator) processNode(nodeCfg config.Node, global *types.Global) error {
 	var err error
 	var no actorstate.FlowActor
@@ -190,6 +216,8 @@ func (u *Orchestrator) processNode(nodeCfg config.Node, global *types.Global) er
 		return nil
 	} else if nodeCfg.Credentials != nil {
 		no, err = auth.NewCredentialsManager(nodeCfg.Name, nodeCfg.Credentials)
+	} else if nodeCfg.Scraper != nil {
+		no, err = metrics.NewScrape(nodeCfg.Name, *nodeCfg.Scraper, global)
 	}
 
 	if err != nil {

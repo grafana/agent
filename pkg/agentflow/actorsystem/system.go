@@ -13,7 +13,9 @@ import (
 // StartActorSystem creates the actor framework, instantiates the orchestrator and sends all the init and start messages
 // to the nodes. It runs until stopped.
 func StartActorSystem(filePath string) {
-	as := actor.NewActorSystem()
+	aCfg := actor.NewConfig()
+	aCfg.WithDefaultPrometheusProvider(2222)
+	as := actor.NewActorSystemWithConfig(aCfg)
 	root := actor.NewRootContext(as, nil)
 	cfgStr, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -24,12 +26,13 @@ func StartActorSystem(filePath string) {
 	if err != nil {
 		panic(err)
 	}
+	router := mux.NewRouter()
 	orch := NewOrchestrator(*cfg)
-	err = orch.StartActorSystem(as, root)
+	err = orch.StartActorSystem(as, root, router)
 	if err != nil {
 		panic(err)
 	}
-	router := mux.NewRouter()
+
 	router.HandleFunc("/mermaid", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(orch.GenerateMermaid()))
 	})
@@ -43,7 +46,18 @@ func StartActorSystem(filePath string) {
 		vars := mux.Vars(request)
 		key := vars["name"]
 		writer.Write(orch.GetNodeStatus(key))
-
 	})
+
+	router.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
+		bb, _ := yaml.Marshal(orch.NodeList())
+		w.Write(bb)
+	})
+
+	router.HandleFunc("/stats/{name}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		key := vars["name"]
+		w.Write(orch.GetNodeStats(key))
+	})
+
 	log.Fatal(http.ListenAndServe(":12345", router))
 }

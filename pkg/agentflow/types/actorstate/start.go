@@ -6,5 +6,6 @@ type Init struct {
 	Children []*actor.PID
 }
 
-type Start struct {
-}
+type Start struct{}
+
+type Stop struct{}

@@ -26,6 +26,7 @@ func (m *CredentialsManager) Output() actorstate.InOutType {
 
 func NewCredentialsManager(name string, cfg *config.CredentialsManager) (actorstate.FlowActor, error) {
 	fileCfg := &config.Credentials{}
+	// TODO this could likely be pushed to a listener
 	if cfg.File != "" {
 		out, err := ioutil.ReadFile(cfg.File)
 		if err != nil {
