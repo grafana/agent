@@ -31,14 +31,13 @@ type SourceMapStore interface {
 	TransformException(ex *models.Exception, release string) *models.Exception
 }
 
-// HTTPClient is interface for http client used to download original sources and sourcemaps
-type HTTPClient interface {
+type httpClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
 // FileService is interface for a service that can be used to load source maps
 // from file system
-type FileService interface {
+type fileService interface {
 	Stat(name string) (fs.FileInfo, error)
 	ReadFile(name string) ([]byte, error)
 }
@@ -75,8 +74,8 @@ type sourcemapFileLocation struct {
 type RealSourceMapStore struct {
 	sync.Mutex
 	l             log.Logger
-	httpClient    HTTPClient
-	fileService   FileService
+	httpClient    httpClient
+	fileService   fileService
 	config        config.SourceMapConfig
 	cache         map[string]*sourceMap
 	fileLocations []*sourcemapFileLocation
@@ -85,7 +84,7 @@ type RealSourceMapStore struct {
 
 // NewSourceMapStore creates an instance of SourceMapStore.
 // httpClient and fileService will be instantiated to defaults if nil is provided
-func NewSourceMapStore(l log.Logger, config config.SourceMapConfig, reg *prometheus.Registry, httpClient HTTPClient, fileService FileService) SourceMapStore {
+func NewSourceMapStore(l log.Logger, config config.SourceMapConfig, reg *prometheus.Registry, httpClient httpClient, fileService fileService) SourceMapStore {
 	if httpClient == nil {
 		httpClient = &http.Client{
 			Timeout: config.DownloadTimeout,
