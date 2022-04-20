@@ -8,7 +8,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     - name: Check links in docs
-      uses: gaurav-nelson/github-action-markdown-link-check@v1.0.13
+      uses: gaurav-nelson/github-action-markdown-link-check@9710f0fec812ce0a3b98bef4c9d842fc1f39d976
       # checks all markdown files from /docs including all subfolders
       with:
         use-quiet-mode: 'yes'
