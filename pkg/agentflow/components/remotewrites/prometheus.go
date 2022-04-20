@@ -118,9 +118,8 @@ func (f *Prometheus) Receive(c actor.Context) {
 		for _, m := range msg {
 			lbls := m.Labels()
 			newLbls := make(map[string]string)
-			for _, k := range lbls.Keys() {
-				v, _ := lbls.Get(k)
-				newLbls[k] = v.(string)
+			for _, v := range lbls {
+				newLbls[v.Key] = v.Value
 			}
 			promLbls := labels.FromMap(newLbls)
 			_, err := appender.Append(0, promLbls, timestamp.FromTime(m.Timestamp()), m.Value())

@@ -63,23 +63,25 @@ func (m *MetricFilter) match(metric exchange.Metric) *exchange.Metric {
 	if len(m.cfg.Filters) == 0 {
 		return &metric
 	}
-	labels := metric.Labels()
 	for _, f := range m.cfg.Filters {
 		switch f.Action {
 		case "drop_metric":
-			matchedValue, found := labels.Get(f.MatchField)
+			matchedValue, found := metric.FindLabel(f.MatchField)
 			if !found {
 				continue
 			}
-			match, _ := regexp.MatchString(f.Regex, matchedValue.(string))
+			match, _ := regexp.MatchString(f.Regex, matchedValue.Value)
 			if match {
 				return nil
 			}
 			return &metric
 		case "add_label":
 			newMap := metric.Labels()
-			newMap.Set(f.AddLabel, f.AddLabel)
-			newM := exchange.NewMetric(metric.Name(), metric.Value(), metric.Timestamp(), newMap, metric.Metadata())
+			newMap = append(newMap, exchange.Label{
+				Key:   f.AddLabel,
+				Value: f.AddValue,
+			})
+			newM := exchange.NewMetric(metric.Name(), metric.Value(), metric.Timestamp(), newMap)
 			return &newM
 		}
 	}

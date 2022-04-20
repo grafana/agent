@@ -83,7 +83,7 @@ func (mg *MetricGenerator) Receive(ctx actor.Context) {
 func (mg *MetricGenerator) makeMetrics() []exchange.Metric {
 	metrics := make([]exchange.Metric, 0)
 	for i := 0; i < 100; i++ {
-		metrics = append(metrics, exchange.NewMetric(fmt.Sprintf("gen_%d", i), rand.Float64(), time.Now(), nil, nil))
+		metrics = append(metrics, exchange.NewMetric(fmt.Sprintf("gen_%d", i), rand.Float64(), time.Now(), nil))
 	}
 	return metrics
 }

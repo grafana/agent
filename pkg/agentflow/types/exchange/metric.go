@@ -13,37 +13,41 @@ type Metric struct {
 	value float64
 	ts    time.Time
 	// Ordered map might not be needed like it is for logs
-	labels   *orderedmap.OrderedMap
-	metadata *orderedmap.OrderedMap
+	labels []Label
 }
 
-func NewMetric(name string, value float64, ts time.Time, labels *orderedmap.OrderedMap, metadata *orderedmap.OrderedMap) Metric {
+type Label struct {
+	Key   string
+	Value string
+}
+
+func NewMetric(name string, value float64, ts time.Time, labels []Label) Metric {
 	m := Metric{
-		name:     name,
-		value:    value,
-		ts:       ts,
-		labels:   labels,
-		metadata: metadata,
+		name:   name,
+		value:  value,
+		ts:     ts,
+		labels: labels,
 	}
-	if m.labels == nil {
-		m.labels = orderedmap.New()
-	}
-	if m.metadata == nil {
-		m.metadata = orderedmap.New()
-	}
-	m.labels.Set("__name__", name)
+
+	m.labels = append(m.labels, Label{
+		Key:   "__name__",
+		Value: name,
+	})
 	return m
 }
 
 func NewMetricFromPromMetric(ts int64, value float64, labels labels.Labels) Metric {
 	name := ""
-	newLabels := orderedmap.New()
+	newLabels := make([]Label, 0)
 
 	for _, l := range labels {
 		if l.Name == "__name__" {
 			name = l.Value
 		}
-		newLabels.Set(l.Name, l.Value)
+		newLabels = append(newLabels, Label{
+			Key:   l.Name,
+			Value: l.Value,
+		})
 	}
 
 	m := Metric{
@@ -52,20 +56,17 @@ func NewMetricFromPromMetric(ts int64, value float64, labels labels.Labels) Metr
 		ts:     time.UnixMilli(ts),
 		labels: newLabels,
 	}
-	if m.labels == nil {
-		m.labels = orderedmap.New()
-	}
-	if m.metadata == nil {
-		m.metadata = orderedmap.New()
-	}
 	return m
 }
 
 func CopyMetricFromPrometheus(in *dto.MetricFamily) Metric {
 
-	lbls := orderedmap.New()
+	lbls := make([]Label, 0)
 	for _, v := range in.Metric[0].Label {
-		lbls.Set(*v.Name, *v.Value)
+		lbls = append(lbls, Label{
+			Key:   *v.Name,
+			Value: *v.Value,
+		})
 	}
 	var val float64
 	if in.Metric[0].Counter != nil {
@@ -74,23 +75,24 @@ func CopyMetricFromPrometheus(in *dto.MetricFamily) Metric {
 		val = *in.Metric[0].Gauge.Value
 	}
 	m := Metric{
-		name:     in.GetName(),
-		value:    val,
-		ts:       time.Now(),
-		labels:   lbls,
-		metadata: orderedmap.New(),
+		name:   in.GetName(),
+		value:  val,
+		ts:     time.Now(),
+		labels: lbls,
 	}
-	m.labels.Set("__name__", in.GetName())
+	m.labels = append(m.labels, Label{
+		Key:   "__name__",
+		Value: m.name,
+	})
 	return m
 }
 
 func CopyMetric(in Metric) Metric {
 	return Metric{
-		name:     in.Name(),
-		value:    in.Value(),
-		ts:       in.Timestamp(),
-		labels:   in.Labels(),
-		metadata: in.Metadata(),
+		name:   in.Name(),
+		value:  in.Value(),
+		ts:     in.Timestamp(),
+		labels: in.Labels(),
 	}
 }
 
@@ -106,19 +108,33 @@ func (m *Metric) Timestamp() time.Time {
 	return m.ts
 }
 
-func (m *Metric) Labels() *orderedmap.OrderedMap {
-	return copyMap(m.labels)
+func (m *Metric) Labels() []Label {
+	newLabels := make([]Label, len(m.labels))
+	copy(newLabels, m.labels)
+	return newLabels
 }
 
-func (m *Metric) Metadata() *orderedmap.OrderedMap {
-	return copyMap(m.metadata)
+func (m *Metric) FindLabel(name string) (Label, bool) {
+	for _, l := range m.labels {
+		if l.Key == name {
+			return l, true
+		}
+	}
+	return Label{}, false
 }
 
-func copyMap(in *orderedmap.OrderedMap) *orderedmap.OrderedMap {
+func copyOrderedMap(in *orderedmap.OrderedMap) *orderedmap.OrderedMap {
 	newMap := orderedmap.New()
 	for _, k := range in.Keys() {
 		v, _ := in.Get(k)
 		newMap.Set(k, v)
+	}
+	return newMap
+}
+func copyMap(in map[string]string) map[string]string {
+	newMap := make(map[string]string, 0)
+	for k, v := range in {
+		newMap[k] = v
 	}
 	return newMap
 }

@@ -22,5 +22,5 @@ func (l *Log) TimeStamp() time.Time {
 
 func (l *Log) Labels() *orderedmap.OrderedMap {
 
-	return copyMap(l.labels)
+	return copyOrderedMap(l.labels)
 }
