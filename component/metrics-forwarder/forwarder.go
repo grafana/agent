@@ -15,6 +15,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/flow/hcltypes"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/grafana/agent/pkg/util/metricsutil"
 	"github.com/prometheus/client_golang/prometheus"
@@ -74,8 +75,8 @@ type RemoteWriteConfig struct {
 // BasicAuthConfig is the metrics_forwarder's configuration for authenticating
 // against the remote system when sending metrics.
 type BasicAuthConfig struct {
-	Username string `hcl:"username"`
-	Password string `hcl:"password"`
+	Username string          `hcl:"username"`
+	Password hcltypes.Secret `hcl:"password"`
 }
 
 // State represents the output state of the metrics_forwarder component.

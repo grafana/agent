@@ -1,0 +1,19 @@
+nodes:
+
+- name: generator
+  outputs: [inject_prefix]
+  metric_generator:
+    spawn_interval: 10s
+
+- name: inject_prefix
+  outputs: [remote_write]
+  metric_relabel_configs:
+    rules:
+    - source_labels: ["__name__"]
+      target_label: "__name__"
+      replacement: "prefix_$1"
+
+- name: remote_write
+  prometheus_remote_write:
+    url: https://prometheus-us-central1.grafana.net/api/prom/push
+    wal_dir: /tmp/agent-flow/wal
