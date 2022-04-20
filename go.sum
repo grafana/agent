@@ -446,6 +446,7 @@ github.com/cenkalti/backoff/v4 v4.1.2/go.mod h1:scbssz8iZGpm3xbr14ovlUdkxfGXNInq
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/census-instrumentation/opencensus-proto v0.3.0 h1:t/LhUZLVitR1Ow2YOnduCsavhwFUklBMoGVYUCqmCqk=
 github.com/census-instrumentation/opencensus-proto v0.3.0/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
+github.com/certifi/gocertifi v0.0.0-20180118203423-deb3ae2ef261/go.mod h1:GJKEexRPVJrBSOjoqN5VNOIKJ5Q3RViH6eu3puDRwx4=
 github.com/certifi/gocertifi v0.0.0-20191021191039-0944d244cd40/go.mod h1:sGbDF6GwGcLpkNXPUTkMRoywsNa/ol15pxFe6ERfguA=
 github.com/certifi/gocertifi v0.0.0-20200922220541-2c3bb06c6054/go.mod h1:sGbDF6GwGcLpkNXPUTkMRoywsNa/ol15pxFe6ERfguA=
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
@@ -2042,6 +2043,7 @@ github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FI
 github.com/pascaldekloe/goe v0.1.0 h1:cBOtyMzM9HTpWjXfbbunk26uA6nG3a8n06Wieeh0MwY=
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/patrickmn/go-cache v0.0.0-20180527043350-9f6ff22cfff8/go.mod h1:3Qf8kWWT7OJRJbdiICTKqZju1ZixQ/KpMGzzAfe6+WQ=
+github.com/pborman/getopt v0.0.0-20180811024354-2b5b3bfb099b/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
 github.com/pborman/getopt v0.0.0-20190409184431-ee0cd42419d3/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
 github.com/pborman/uuid v1.2.0/go.mod h1:X/NO0urCmaxf9VXbdlT7C2Yzkj2IKimNn4k+gtPdI/k=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
@@ -2151,6 +2153,8 @@ github.com/prometheus/exporter-toolkit v0.7.1/go.mod h1:ZUBIj498ePooX9t/2xtDjeQY
 github.com/prometheus/memcached_exporter v0.9.0 h1:FnsCZBpNQJgPAnqNqqKtfWo9X+060V0UkGLRAzOfBes=
 github.com/prometheus/memcached_exporter v0.9.0/go.mod h1:SDcRCAJ2r6DZft+IVHAD1BMNgNjxbpEaFVeCxX3FuXM=
 github.com/prometheus/node_exporter v1.0.0-rc.0.0.20200428091818-01054558c289/go.mod h1:FGbBv5OPKjch+jNUJmEQpMZytIdyW0NdBtWFcfSKusc=
+github.com/prometheus/node_exporter v1.3.1-0.20220127103407-4f27a4fd8efa h1:RD6gVRrJNA14XH/yfofwFGq305usV5t8tWVeS16nGSA=
+github.com/prometheus/node_exporter v1.3.1-0.20220127103407-4f27a4fd8efa/go.mod h1:Y7LDbciZw+6s4dNRKtNA344Wltn8XPsDN4Jzm02RB8M=
 github.com/prometheus/node_exporter v1.3.1 h1:pdJ5824noBu1O2a3a96uiWDH9Ns2ZTE9OxBlPy9Deik=
 github.com/prometheus/node_exporter v1.3.1/go.mod h1:Y7LDbciZw+6s4dNRKtNA344Wltn8XPsDN4Jzm02RB8M=
 github.com/prometheus/procfs v0.0.0-20180125133057-cb4147076ac7/go.mod h1:c3At6R/oaqEKCNdg8wHV1ftS6bRYblBhIjjI8uT2IGk=
