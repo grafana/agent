@@ -9,8 +9,8 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// Secret holds a sensitive value. Any string can be freely converted to a
-// Secret, but Secrets may not be re-converted back to strings.
+// Secret holds a sensitive value. HCL expressions can implicitly convert
+// strings to secrets. However, secrets may not be converted back to strings.
 //
 // The value of a secret is obscured when rendering HCL.
 type Secret string
