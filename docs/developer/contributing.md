@@ -88,6 +88,8 @@ These are
 * [systemd headers](https://github.com/grafana/agent/blob/main/cmd/agent/Dockerfile#L8-L9) for Promtail
 * [bcc tools](https://github.com/grafana/agent/blob/main/cmd/agent/Dockerfile#L12-L13) for the eBPF integration
 
+If you have issues installing the bcc tooling, you can use `-tags=noebpf` to compile the Agent without the eBPF integration.
+
 ## Pull Request Checklist
 
 Changes should be branched off of the `main` branch. It's recommended to rebase
