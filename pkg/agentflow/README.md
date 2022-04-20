@@ -1,7 +1,7 @@
 You can start agent flow by passing in 
 ```
 --agent.flow
---config.file=/Users/mdurham/Utils/agent_flow_configs/agent_flow_prom.yml
+--config.file=/path/agent_flow_prom.yml
 ```
 
 `pkg/agentflow/actorsystem/system.go` is the root for the actor system. Config is added to the config and hopefully you can follow the existing components.
