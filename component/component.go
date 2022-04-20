@@ -28,6 +28,8 @@ type Component interface {
 // StatefulComponent is an optional extension interface that Components which
 // expose State to other components may implement.
 type StatefulComponent interface {
+	Component
+
 	// CurrentState returns the current state of the component.
 	//
 	// CurrentState may be called at any time and must be safe to call

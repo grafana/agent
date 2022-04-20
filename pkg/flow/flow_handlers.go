@@ -89,7 +89,7 @@ func ConfigHandler(f *Flow) http.HandlerFunc {
 			if cs := cn.State(); cs != nil {
 				b.Body().AppendUnstructuredTokens(hclwrite.Tokens{
 					{Type: hclsyntax.TokenNewline, Bytes: []byte("\n")},
-					{Type: hclsyntax.TokenComment, Bytes: []byte("// Output:\n")},
+					{Type: hclsyntax.TokenComment, Bytes: []byte("// State:\n")},
 				})
 
 				gohcl.EncodeIntoBody(cs, b.Body())

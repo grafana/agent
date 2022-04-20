@@ -5,8 +5,8 @@ remote "http" "example-password" {
   url     = "http://localhost:12345/mock/some-password"
   refresh = "10s"
 
-  // Output fields:
-  // content = <string content of URL>
+  // State:
+  // content = <HTTP response body>
 }
 
 // Each metrics_forwarder is implemented as a WAL + zero or more remote_writes.
@@ -24,7 +24,7 @@ metrics_forwarder "default" {
     }
   }
 
-  // Output fields:
+  // State:
   // receiver = <value where metrics can be sent>
 }
 
@@ -33,7 +33,7 @@ discovery "static" "self" {
   hosts  = ["localhost:12345"]
   labels = { app = "agentflow" }
 
-  // Output fields:
+  // State:
   // targets = <array of discovered targets>
 }
 
@@ -43,7 +43,7 @@ integration "github" "default" {
     "rfratto/viceroy",
   ]
 
-  // Output fields:
+  // State:
   // targets = <array of generated targets>
 }
 
@@ -58,5 +58,5 @@ metrics_scraper "default" {
   scrape_interval = "60s"
   scrape_timeout  = "10s"
 
-  // Output fields: <none>
+  // State: <none>
 }
