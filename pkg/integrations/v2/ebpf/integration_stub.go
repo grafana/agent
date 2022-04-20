@@ -1,5 +1,5 @@
-//go:build !linux
-// +build !linux
+//go:build !linux || noebpf
+// +build !linux noebpf
 
 package ebpf
 
