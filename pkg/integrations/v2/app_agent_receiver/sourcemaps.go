@@ -156,7 +156,7 @@ func (store *RealSourceMapStore) downloadSourceMapContent(sourceURL string) (con
 
 	result, err := store.downloadFileContents(sourceURL)
 	if err != nil {
-		level.Debug(store.l).Log("failed to download source file", "url", sourceURL, "err", err)
+		level.Debug(store.l).Log("msg", "failed to download source file", "url", sourceURL, "err", err)
 		return nil, "", err
 	}
 	r := regexp.MustCompile(reSourceMap)
@@ -251,12 +251,9 @@ func (store *RealSourceMapStore) getSourceMapContent(sourceURL string, release s
 	}
 
 	//attempt to download
-	fmt.Println("111")
 	if strings.HasPrefix(sourceURL, "http") && urlMatchesOrigins(sourceURL, store.config.DownloadFromOrigins) {
-		fmt.Println("222")
 		return store.downloadSourceMapContent(sourceURL)
 	}
-	fmt.Println("333")
 	return nil, "", nil
 }
 

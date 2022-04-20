@@ -195,11 +195,11 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 				continue
 			}
 			appAgentReceiverConf := conf.(*app_agent_receiver.Config)
-			if appAgentReceiverConf.ReceiverConfig.TracesInstance == "" {
+			if appAgentReceiverConf.TracesInstance == "" {
 				continue
 			}
 			for idx, instanceConf := range c.Traces.Configs {
-				if instanceConf.Name == appAgentReceiverConf.ReceiverConfig.TracesInstance {
+				if instanceConf.Name == appAgentReceiverConf.TracesInstance {
 					c.Traces.Configs[idx].PushReceiver = true
 				}
 			}

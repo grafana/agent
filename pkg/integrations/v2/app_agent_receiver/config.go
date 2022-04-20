@@ -2,6 +2,9 @@ package app_agent_receiver
 
 import (
 	"time"
+
+	"github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/integrations/v2/common"
 )
 
 const (
@@ -16,7 +19,7 @@ const (
 )
 
 // DefaultConfig holds the default configuration of the receiver
-var DefaultConfig = AppAgentReceiverConfig{
+var DefaultConfig = Config{
 	// Default JS agent port
 
 	Server: ServerConfig{
@@ -27,13 +30,13 @@ var DefaultConfig = AppAgentReceiverConfig{
 			RPS:        DefaultRateLimitingRPS,
 			Burstiness: DefaultRateLimitingBurstiness,
 		},
-		MaxAllowedPayloadSize: DefaultRateLimitingRPS,
+		MaxAllowedPayloadSize: DefaultMaxPayloadSize,
 	},
 	LogsLabels:      map[string]string{},
 	LogsSendTimeout: 2000,
 	SourceMaps: SourceMapConfig{
 		DownloadFromOrigins: []string{"*"},
-		DownloadTimeout:     time.Duration(1000000),
+		DownloadTimeout:     time.Duration(time.Second),
 	},
 }
 
@@ -68,20 +71,44 @@ type SourceMapConfig struct {
 	FileSystem          []SourceMapFileLocation `yaml:"filesystem,omitempty"`
 }
 
-// AppAgentReceiverConfig is the configuration struct of the
+// Config is the configuration struct of the
 // integration
-type AppAgentReceiverConfig struct {
-	Server          ServerConfig      `yaml:"server,omitempty"`
-	TracesInstance  string            `yaml:"traces_instance,omitempty"`
-	LogsInstance    string            `yaml:"logs_instance,omitempty"`
-	LogsLabels      map[string]string `yaml:"logs_labels,omitempty"`
-	LogsSendTimeout int               `yaml:"logs_send_timeout,omitempty"`
-	SourceMaps      SourceMapConfig   `yaml:"sourcemaps,omitempty"`
+type Config struct {
+	Common          common.MetricsConfig `yaml:",inline"`
+	Server          ServerConfig         `yaml:"server,omitempty"`
+	TracesInstance  string               `yaml:"traces_instance,omitempty"`
+	LogsInstance    string               `yaml:"logs_instance,omitempty"`
+	LogsLabels      map[string]string    `yaml:"logs_labels,omitempty"`
+	LogsSendTimeout int                  `yaml:"logs_send_timeout,omitempty"`
+	SourceMaps      SourceMapConfig      `yaml:"sourcemaps,omitempty"`
 }
 
 // UnmarshalYAML implements the Unmarshaler interface
-func (c *AppAgentReceiverConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
-	type plain AppAgentReceiverConfig
+	type plain Config
 	return unmarshal((*plain)(c))
+}
+
+// IntegrationName is the name of this integration
+var IntegrationName = "app_agent_receiver"
+
+// ApplyDefaults applies runtime-specific defaults to c.
+func (c *Config) ApplyDefaults(globals integrations.Globals) error {
+	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
+	if id, err := c.Identifier(globals); err == nil {
+		c.Common.InstanceKey = &id
+	}
+	return nil
+}
+
+// Name returns the name of the integration that this config represents
+func (c *Config) Name() string { return IntegrationName }
+
+// Identifier uniquely identifies the app agent receiver integration
+func (c *Config) Identifier(globals integrations.Globals) (string, error) {
+	if c.Common.InstanceKey != nil {
+		return *c.Common.InstanceKey, nil
+	}
+	return globals.AgentIdentifier, nil
 }

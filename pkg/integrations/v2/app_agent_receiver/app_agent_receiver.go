@@ -9,7 +9,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/prometheus/client_golang/prometheus"
@@ -20,41 +19,11 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 )
 
-// IntegrationName is the name of this integration
-var IntegrationName = "app_agent_receiver"
-
-// Config structs controls the configuration of the app agent receiver
-// integration
-type Config struct {
-	ReceiverConfig AppAgentReceiverConfig `yaml:",inline"`
-	Common         common.MetricsConfig   `yaml:",inline"`
-}
-
-// ApplyDefaults applies runtime-specific defaults to c.
-func (c *Config) ApplyDefaults(globals integrations.Globals) error {
-	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
-	if id, err := c.Identifier(globals); err == nil {
-		c.Common.InstanceKey = &id
-	}
-	return nil
-}
-
-// Name returns the name of the integration that this config represents
-func (c *Config) Name() string { return IntegrationName }
-
-// Identifier uniquely identifies the app agent receiver integration
-func (c *Config) Identifier(globals integrations.Globals) (string, error) {
-	if c.Common.InstanceKey != nil {
-		return *c.Common.InstanceKey, nil
-	}
-	return globals.AgentIdentifier, nil
-}
-
 type appAgentReceiverIntegration struct {
 	integrations.MetricsIntegration
 	appAgentReceiverHandler AppAgentReceiverHandler
 	logger                  log.Logger
-	conf                    AppAgentReceiverConfig
+	conf                    *Config
 	reg                     *prometheus.Registry
 
 	requestDurationCollector     *prometheus.HistogramVec
@@ -74,7 +43,7 @@ var (
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	reg := prometheus.NewRegistry()
 	sourcemapLogger := log.With(l, "subcomponent", "sourcemaps")
-	sourcemapStore := NewSourceMapStore(sourcemapLogger, c.ReceiverConfig.SourceMaps, reg, nil, nil)
+	sourcemapStore := NewSourceMapStore(sourcemapLogger, c.SourceMaps, reg, nil, nil)
 
 	receiverMetricsExporter := NewReceiverMetricsExporter(ReceiverMetricsExporterConfig{
 		Reg: reg,
@@ -84,11 +53,11 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		receiverMetricsExporter,
 	}
 
-	if len(c.ReceiverConfig.LogsInstance) > 0 {
+	if len(c.LogsInstance) > 0 {
 		getLogsInstance := func() (logsInstance, error) {
-			instance := globals.Logs.Instance(c.ReceiverConfig.LogsInstance)
+			instance := globals.Logs.Instance(c.LogsInstance)
 			if instance == nil {
-				return nil, fmt.Errorf("logs instance \"%s\" not found", c.ReceiverConfig.LogsInstance)
+				return nil, fmt.Errorf("logs instance \"%s\" not found", c.LogsInstance)
 			}
 			return instance, nil
 		}
@@ -101,27 +70,27 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 			l,
 			LogsExporterConfig{
 				GetLogsInstance:  getLogsInstance,
-				Labels:           c.ReceiverConfig.LogsLabels,
-				SendEntryTimeout: c.ReceiverConfig.LogsSendTimeout,
+				Labels:           c.LogsLabels,
+				SendEntryTimeout: c.LogsSendTimeout,
 			},
 			sourcemapStore,
 		)
 		exp = append(exp, lokiExporter)
 	}
 
-	if len(c.ReceiverConfig.TracesInstance) > 0 {
+	if len(c.TracesInstance) > 0 {
 		getTracesConsumer := func() (consumer.Traces, error) {
-			tracesInstance := globals.Tracing.Instance(c.ReceiverConfig.TracesInstance)
+			tracesInstance := globals.Tracing.Instance(c.TracesInstance)
 			if tracesInstance == nil {
-				return nil, fmt.Errorf("traces instance \"%s\" not found", c.ReceiverConfig.TracesInstance)
+				return nil, fmt.Errorf("traces instance \"%s\" not found", c.TracesInstance)
 			}
 			factory := tracesInstance.GetFactory(component.KindReceiver, pushreceiver.TypeStr)
 			if factory == nil {
-				return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.ReceiverConfig.TracesInstance)
+				return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.TracesInstance)
 			}
 			consumer := factory.(*pushreceiver.Factory).Consumer
 			if consumer == nil {
-				return nil, fmt.Errorf("consumer not set for push receiver factory on traces instance \"%s\"", c.ReceiverConfig.TracesInstance)
+				return nil, fmt.Errorf("consumer not set for push receiver factory on traces instance \"%s\"", c.TracesInstance)
 			}
 			return consumer, nil
 		}
@@ -132,7 +101,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		exp = append(exp, tracesExporter)
 	}
 
-	handler := NewAppAgentReceiverHandler(c.ReceiverConfig, exp, reg)
+	handler := NewAppAgentReceiverHandler(c, exp, reg)
 
 	metricsIntegration, err := metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	if err != nil {
@@ -170,7 +139,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		MetricsIntegration:      metricsIntegration,
 		appAgentReceiverHandler: handler,
 		logger:                  l,
-		conf:                    c.ReceiverConfig,
+		conf:                    c,
 		reg:                     reg,
 
 		requestDurationCollector:     requestDurationCollector,

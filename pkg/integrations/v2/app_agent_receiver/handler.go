@@ -23,13 +23,13 @@ type appAgentReceiverExporter interface {
 // AppAgentReceiverHandler struct controls the data ingestion http handler of the receiver
 type AppAgentReceiverHandler struct {
 	exporters               []appAgentReceiverExporter
-	config                  AppAgentReceiverConfig
+	config                  *Config
 	rateLimiter             *rate.Limiter
 	exporterErrorsCollector *prometheus.CounterVec
 }
 
 // NewAppAgentReceiverHandler creates a new AppReceiver instance based on the given configuration
-func NewAppAgentReceiverHandler(conf AppAgentReceiverConfig, exporters []appAgentReceiverExporter, reg *prometheus.Registry) AppAgentReceiverHandler {
+func NewAppAgentReceiverHandler(conf *Config, exporters []appAgentReceiverExporter, reg *prometheus.Registry) AppAgentReceiverHandler {
 	var rateLimiter *rate.Limiter
 	if conf.Server.RateLimiting.Enabled {
 		var rps float64

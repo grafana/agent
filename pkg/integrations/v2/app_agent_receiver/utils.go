@@ -75,7 +75,6 @@ func KeyValToInterfaceMap(kv *KeyVal) map[string]interface{} {
 
 // URLMatchesOrigins returns true if URL matches at least one of origin prefix. Wildcard '*' and '?' supported
 func urlMatchesOrigins(URL string, origins []string) bool {
-	fmt.Println("matches", URL, origins)
 	for _, origin := range origins {
 		if origin == "*" || wildcard.Match(origin+"*", URL) {
 			return true

@@ -62,9 +62,9 @@ func TestMultipleExportersAllSucceed(t *testing.T) {
 		payloads: []Payload{},
 	}
 
-	conf := AppO11yReceiverConfig{}
+	conf := &Config{}
 
-	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -95,9 +95,9 @@ func TestMultipleExportersOneFails(t *testing.T) {
 		payloads: []Payload{},
 	}
 
-	conf := AppO11yReceiverConfig{}
+	conf := &Config{}
 
-	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -137,9 +137,9 @@ func TestMultipleExportersAllFail(t *testing.T) {
 		payloads: []Payload{},
 	}
 
-	conf := AppO11yReceiverConfig{}
+	conf := &Config{}
 
-	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -170,11 +170,11 @@ func TestNoContentLengthLimitSet(t *testing.T) {
 	require.NoError(t, err)
 	reg := prometheus.NewRegistry()
 
-	conf := AppO11yReceiverConfig{}
+	conf := &Config{}
 
 	req.ContentLength = 89348593894
 
-	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{}, reg)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -189,13 +189,13 @@ func TestLargePayload(t *testing.T) {
 	require.NoError(t, err)
 	reg := prometheus.NewRegistry()
 
-	conf := AppO11yReceiverConfig{
+	conf := &Config{
 		Server: ServerConfig{
 			MaxAllowedPayloadSize: 10,
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{}, reg)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -211,13 +211,13 @@ func TestAPIKeyRequiredButNotProvided(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := AppO11yReceiverConfig{
+	conf := &Config{
 		Server: ServerConfig{
 			APIKey: "foo",
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
+	fr := NewAppAgentReceiverHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -234,13 +234,13 @@ func TestAPIKeyWrong(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := AppO11yReceiverConfig{
+	conf := &Config{
 		Server: ServerConfig{
 			APIKey: "foo",
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
+	fr := NewAppAgentReceiverHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -257,13 +257,13 @@ func TestAPIKeyCorrect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := AppO11yReceiverConfig{
+	conf := &Config{
 		Server: ServerConfig{
 			APIKey: "foo",
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
+	fr := NewAppAgentReceiverHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -279,7 +279,7 @@ func TestRateLimiterNoReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := AppO11yReceiverConfig{
+	conf := &Config{
 		Server: ServerConfig{
 			RateLimiting: RateLimitingConfig{
 				Burstiness: 10,
@@ -289,7 +289,7 @@ func TestRateLimiterNoReject(t *testing.T) {
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
+	fr := NewAppAgentReceiverHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -305,7 +305,7 @@ func TestRateLimiterReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := AppO11yReceiverConfig{
+	conf := &Config{
 		Server: ServerConfig{
 			RateLimiting: RateLimitingConfig{
 				Burstiness: 0,
@@ -315,7 +315,7 @@ func TestRateLimiterReject(t *testing.T) {
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
+	fr := NewAppAgentReceiverHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -331,7 +331,7 @@ func TestRateLimiterDisabled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := AppO11yReceiverConfig{
+	conf := &Config{
 		Server: ServerConfig{
 			RateLimiting: RateLimitingConfig{
 				Burstiness: 0,
@@ -341,7 +341,7 @@ func TestRateLimiterDisabled(t *testing.T) {
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, nil, prometheus.NewRegistry())
+	fr := NewAppAgentReceiverHandler(conf, nil, prometheus.NewRegistry())
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
