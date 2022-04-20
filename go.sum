@@ -2198,6 +2198,8 @@ github.com/rfratto/gohcl v0.0.0-20220416121848-00da52a92bd7 h1:obYlXQqJ87AtyRv+G
 github.com/rfratto/gohcl v0.0.0-20220416121848-00da52a92bd7/go.mod h1:IOy7gzr7kMZOEwF4+DofdyoC4O0uPnanv+UkyVTs/2E=
 github.com/rfratto/gohcl v0.0.0-20220416124548-21724b67785c h1:cm1Ub4mlRF0q7A4aw7NLrMw8vJMSkQ6lhiMgUELl2R4=
 github.com/rfratto/gohcl v0.0.0-20220416124548-21724b67785c/go.mod h1:IOy7gzr7kMZOEwF4+DofdyoC4O0uPnanv+UkyVTs/2E=
+github.com/rfratto/gohcl v0.0.0-20220420175255-046a3ae25b62 h1:GEquK6EesDrsKEdLwiv4aOIK+YdonlCv3poVEo/EBHU=
+github.com/rfratto/gohcl v0.0.0-20220420175255-046a3ae25b62/go.mod h1:IOy7gzr7kMZOEwF4+DofdyoC4O0uPnanv+UkyVTs/2E=
 github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8 h1:wNuNGrFzFmZlhrtz1Q8EiK1Ob6yWli8lX7D2AGmSGzE=
 github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8/go.mod h1:6XoOvFDTfk3aqGaOLHLxoWiZNx4zHobApOhKc3oHF/g=
 github.com/rhnvrm/simples3 v0.6.1/go.mod h1:Y+3vYm2V7Y4VijFoJHHTrja6OgPrJ2cBti8dPGkC3sA=
