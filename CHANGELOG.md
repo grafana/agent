@@ -12,7 +12,7 @@ Main (unreleased)
 
 ### Features
 
-- (beta) Add app o11y integration. This depends on integrations-next being enabled
+- (beta) Add app agent receiver integration. This depends on integrations-next being enabled
   via the `integrations-next` feature flag. Use `-enable-features=integrations-next` to use
   this integration. (@kpelelis, @domas)
 

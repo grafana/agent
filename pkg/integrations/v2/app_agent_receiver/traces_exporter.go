@@ -1,4 +1,4 @@
-package app_o11y_receiver
+package app_agent_receiver
 
 import (
 	"context"
@@ -13,8 +13,8 @@ type TracesExporter struct {
 	getTracesConsumer tracesConsumerGetter
 }
 
-// NewTracesExporter creates a trace exporter for the app o11y receiver.
-func NewTracesExporter(getTracesConsumer tracesConsumerGetter) appO11yReceiverExporter {
+// NewTracesExporter creates a trace exporter for the app agent receiver.
+func NewTracesExporter(getTracesConsumer tracesConsumerGetter) appAgentReceiverExporter {
 	return &TracesExporter{getTracesConsumer}
 }
 

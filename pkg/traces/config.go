@@ -135,7 +135,7 @@ type InstanceConfig struct {
 	// ServiceGraphs
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
 
-	// Add a push receiver for internal use, eg by app-o11y-receiver integration
+	// Add a push receiver for internal use, eg by app-agent-receiver integration
 	PushReceiver bool `yaml:"-"`
 }
 
@@ -520,7 +520,7 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 	}
 	if c.PushReceiver {
 		c.Receivers[pushreceiver.TypeStr] = nil // add a hacky push receiver for when an integration
-		// wants to push traces directly, eg app o11y receiver.
+		// wants to push traces directly, eg app agent receiver.
 	}
 
 	extensions, err := c.extensions()

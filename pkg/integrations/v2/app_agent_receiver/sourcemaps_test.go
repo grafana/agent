@@ -1,4 +1,4 @@
-package app_o11y_receiver
+package app_agent_receiver
 
 import (
 	"bytes"

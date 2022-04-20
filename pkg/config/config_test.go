@@ -463,7 +463,7 @@ traces:
   - name: default
   - name: frontend
 integrations:
-  app_o11y_receiver_configs:
+  app_agent_receiver_configs:
   - traces_instance: frontend
 `
 	fs := flag.NewFlagSet("test", flag.ExitOnError)

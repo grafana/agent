@@ -1,4 +1,4 @@
-package app_o11y_receiver
+package app_agent_receiver
 
 import (
 	"context"
@@ -11,7 +11,7 @@ type ReceiverMetricsExporterConfig struct {
 	Reg *prometheus.Registry
 }
 
-// ReceiverMetricsExporter is a app o11y receiver exporter that will capture metrics
+// ReceiverMetricsExporter is a app agent receiver exporter that will capture metrics
 // about counts of logs, exceptions, measurements, traces being ingested
 type ReceiverMetricsExporter struct {
 	totalLogs         prometheus.Counter
@@ -20,7 +20,7 @@ type ReceiverMetricsExporter struct {
 }
 
 // NewReceiverMetricsExporter creates a new ReceiverMetricsExporter
-func NewReceiverMetricsExporter(conf ReceiverMetricsExporterConfig) appO11yReceiverExporter {
+func NewReceiverMetricsExporter(conf ReceiverMetricsExporterConfig) appAgentReceiverExporter {
 	exp := &ReceiverMetricsExporter{
 		totalLogs: prometheus.NewCounter(prometheus.CounterOpts{
 			Name: "app_agent_receiver_logs_total",

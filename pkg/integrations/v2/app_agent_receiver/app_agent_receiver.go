@@ -1,4 +1,4 @@
-package app_o11y_receiver //nolint:golint
+package app_agent_receiver //nolint:golint
 
 import (
 	"context"
@@ -21,13 +21,13 @@ import (
 )
 
 // IntegrationName is the name of this integration
-var IntegrationName = "app_o11y_receiver"
+var IntegrationName = "app_agent_receiver"
 
-// Config structs controls the configuration of the app o11y
+// Config structs controls the configuration of the app agent receiver
 // integration
 type Config struct {
-	ReceiverConfig AppO11yReceiverConfig `yaml:",inline"`
-	Common         common.MetricsConfig  `yaml:",inline"`
+	ReceiverConfig AppAgentReceiverConfig `yaml:",inline"`
+	Common         common.MetricsConfig   `yaml:",inline"`
 }
 
 // ApplyDefaults applies runtime-specific defaults to c.
@@ -42,7 +42,7 @@ func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 // Name returns the name of the integration that this config represents
 func (c *Config) Name() string { return IntegrationName }
 
-// Identifier uniquely identifies the app o11y integration
+// Identifier uniquely identifies the app agent receiver integration
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 	if c.Common.InstanceKey != nil {
 		return *c.Common.InstanceKey, nil
@@ -50,11 +50,11 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 	return globals.AgentIdentifier, nil
 }
 
-type appo11yIntegration struct {
+type appAgentReceiverIntegration struct {
 	integrations.MetricsIntegration
-	appAgentReceiverHandler AppO11yHandler
+	appAgentReceiverHandler AppAgentReceiverHandler
 	logger                  log.Logger
-	conf                    AppO11yReceiverConfig
+	conf                    AppAgentReceiverConfig
 	reg                     *prometheus.Registry
 
 	requestDurationCollector     *prometheus.HistogramVec
@@ -65,9 +65,9 @@ type appo11yIntegration struct {
 
 // Static typecheck tests
 var (
-	_ integrations.Integration        = (*appo11yIntegration)(nil)
-	_ integrations.HTTPIntegration    = (*appo11yIntegration)(nil)
-	_ integrations.MetricsIntegration = (*appo11yIntegration)(nil)
+	_ integrations.Integration        = (*appAgentReceiverIntegration)(nil)
+	_ integrations.HTTPIntegration    = (*appAgentReceiverIntegration)(nil)
+	_ integrations.MetricsIntegration = (*appAgentReceiverIntegration)(nil)
 )
 
 // NewIntegration converts this config into an instance of an integration
@@ -80,7 +80,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		Reg: reg,
 	})
 
-	var exp = []appO11yReceiverExporter{
+	var exp = []appAgentReceiverExporter{
 		receiverMetricsExporter,
 	}
 
@@ -132,7 +132,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		exp = append(exp, tracesExporter)
 	}
 
-	handler := NewAppO11yHandler(c.ReceiverConfig, exp, reg)
+	handler := NewAppAgentReceiverHandler(c.ReceiverConfig, exp, reg)
 
 	metricsIntegration, err := metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	if err != nil {
@@ -166,7 +166,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	}, []string{"method", "route"})
 	reg.MustRegister(inflightRequestsCollector)
 
-	return &appo11yIntegration{
+	return &appAgentReceiverIntegration{
 		MetricsIntegration:      metricsIntegration,
 		appAgentReceiverHandler: handler,
 		logger:                  l,
@@ -181,7 +181,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 }
 
 // RunIntegration implements Integration
-func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
+func (i *appAgentReceiverIntegration) RunIntegration(ctx context.Context) error {
 	r := mux.NewRouter()
 	r.Handle("/collect", i.appAgentReceiverHandler.HTTPHandler(i.logger)).Methods("POST", "OPTIONS")
 
@@ -200,7 +200,7 @@ func (i *appo11yIntegration) RunIntegration(ctx context.Context) error {
 	errChan := make(chan error, 1)
 
 	go func() {
-		level.Info(i.logger).Log("msg", "starting app o11y receiver", "host", i.conf.Server.Host, "port", i.conf.Server.Port)
+		level.Info(i.logger).Log("msg", "starting app agent receiver", "host", i.conf.Server.Host, "port", i.conf.Server.Port)
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			errChan <- err
 		}

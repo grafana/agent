@@ -1,4 +1,4 @@
-package app_o11y_receiver
+package app_agent_receiver
 
 import (
 	"context"
@@ -40,7 +40,7 @@ type LogsExporter struct {
 
 // NewLogsExporter creates a new logs exporter with the given
 // configuration
-func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore SourceMapStore) appO11yReceiverExporter {
+func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore SourceMapStore) appAgentReceiverExporter {
 	return &LogsExporter{
 		logger:          logger,
 		getLogsInstance: conf.GetLogsInstance,
@@ -105,7 +105,7 @@ func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *KeyVal) error {
 	}, le.seTimeout)
 	if !sent {
 		level.Warn(le.logger).Log("msg", "failed to log frontend log event to logs pipeline")
-		return fmt.Errorf("failed to send app o11y event to logs pipeline")
+		return fmt.Errorf("failed to send app event to logs pipeline")
 	}
 	return nil
 }
@@ -128,6 +128,6 @@ func (le *LogsExporter) labelSet(kv *KeyVal) prommodel.LabelSet {
 
 // Static typecheck tests
 var (
-	_ appO11yReceiverExporter = (*LogsExporter)(nil)
-	_ logsInstance            = (*logs.Instance)(nil)
+	_ appAgentReceiverExporter = (*LogsExporter)(nil)
+	_ logsInstance             = (*logs.Instance)(nil)
 )

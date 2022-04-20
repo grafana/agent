@@ -1,6 +1,8 @@
-package app_o11y_receiver
+package app_agent_receiver
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	// DefaultRateLimitingRPS is the default value of Requests Per Second
@@ -14,7 +16,7 @@ const (
 )
 
 // DefaultConfig holds the default configuration of the receiver
-var DefaultConfig = AppO11yReceiverConfig{
+var DefaultConfig = AppAgentReceiverConfig{
 	// Default JS agent port
 
 	Server: ServerConfig{
@@ -66,9 +68,9 @@ type SourceMapConfig struct {
 	FileSystem          []SourceMapFileLocation `yaml:"filesystem,omitempty"`
 }
 
-// AppO11yReceiverConfig is the configuration struct of the
+// AppAgentReceiverConfig is the configuration struct of the
 // integration
-type AppO11yReceiverConfig struct {
+type AppAgentReceiverConfig struct {
 	Server          ServerConfig      `yaml:"server,omitempty"`
 	TracesInstance  string            `yaml:"traces_instance,omitempty"`
 	LogsInstance    string            `yaml:"logs_instance,omitempty"`
@@ -77,10 +79,9 @@ type AppO11yReceiverConfig struct {
 	SourceMaps      SourceMapConfig   `yaml:"sourcemaps,omitempty"`
 }
 
-// UnmarshalYAML implements the Unmarshaller interface
-func (c *AppO11yReceiverConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
+// UnmarshalYAML implements the Unmarshaler interface
+func (c *AppAgentReceiverConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
-	type plain AppO11yReceiverConfig
-
+	type plain AppAgentReceiverConfig
 	return unmarshal((*plain)(c))
 }

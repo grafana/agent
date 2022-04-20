@@ -1,4 +1,4 @@
-package app_o11y_receiver
+package app_agent_receiver
 
 import (
 	"context"
@@ -15,21 +15,21 @@ import (
 	"golang.org/x/time/rate"
 )
 
-type appO11yReceiverExporter interface {
+type appAgentReceiverExporter interface {
 	Name() string
 	Export(ctx context.Context, payload Payload) error
 }
 
-// AppO11yHandler struct controls the data ingestion http handler of the receiver
-type AppO11yHandler struct {
-	exporters               []appO11yReceiverExporter
-	config                  AppO11yReceiverConfig
+// AppAgentReceiverHandler struct controls the data ingestion http handler of the receiver
+type AppAgentReceiverHandler struct {
+	exporters               []appAgentReceiverExporter
+	config                  AppAgentReceiverConfig
 	rateLimiter             *rate.Limiter
 	exporterErrorsCollector *prometheus.CounterVec
 }
 
-// NewAppO11yHandler creates a new AppReceiver instance based on the given configuration
-func NewAppO11yHandler(conf AppO11yReceiverConfig, exporters []appO11yReceiverExporter, reg *prometheus.Registry) AppO11yHandler {
+// NewAppAgentReceiverHandler creates a new AppReceiver instance based on the given configuration
+func NewAppAgentReceiverHandler(conf AppAgentReceiverConfig, exporters []appAgentReceiverExporter, reg *prometheus.Registry) AppAgentReceiverHandler {
 	var rateLimiter *rate.Limiter
 	if conf.Server.RateLimiting.Enabled {
 		var rps float64
@@ -51,7 +51,7 @@ func NewAppO11yHandler(conf AppO11yReceiverConfig, exporters []appO11yReceiverEx
 
 	reg.MustRegister(exporterErrorsCollector)
 
-	return AppO11yHandler{
+	return AppAgentReceiverHandler{
 		exporters:               exporters,
 		config:                  conf,
 		rateLimiter:             rateLimiter,
@@ -65,7 +65,7 @@ func NewAppO11yHandler(conf AppO11yReceiverConfig, exporters []appO11yReceiverEx
 // 2. Verify that the payload size is within limits
 // 3. Start two go routines for exporters processing and exporting data respectively
 // 4. Respond with 202 once all the work is done
-func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
+func (ar *AppAgentReceiverHandler) HTTPHandler(logger log.Logger) http.Handler {
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check rate limiting state
 		if ar.config.Server.RateLimiting.Enabled {
@@ -98,7 +98,7 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 
 		for _, exporter := range ar.exporters {
 			wg.Add(1)
-			go func(exp appO11yReceiverExporter) {
+			go func(exp appAgentReceiverExporter) {
 				defer wg.Done()
 				if err := exp.Export(r.Context(), p); err != nil {
 					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err)

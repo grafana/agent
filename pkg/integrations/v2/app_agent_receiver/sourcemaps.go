@@ -1,4 +1,4 @@
-package app_o11y_receiver
+package app_agent_receiver
 
 import (
 	"bytes"
@@ -251,9 +251,12 @@ func (store *RealSourceMapStore) getSourceMapContent(sourceURL string, release s
 	}
 
 	//attempt to download
+	fmt.Println("111")
 	if strings.HasPrefix(sourceURL, "http") && urlMatchesOrigins(sourceURL, store.config.DownloadFromOrigins) {
+		fmt.Println("222")
 		return store.downloadSourceMapContent(sourceURL)
 	}
+	fmt.Println("333")
 	return nil, "", nil
 }
 
