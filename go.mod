@@ -67,7 +67,7 @@ require (
 	github.com/prometheus/consul_exporter v0.7.2-0.20210127095228-584c6de19f23
 	github.com/prometheus/memcached_exporter v0.9.0
 	github.com/prometheus/mysqld_exporter v0.13.0
-	github.com/prometheus/node_exporter v1.3.1
+	github.com/prometheus/node_exporter v1.3.1-0.20220127103407-4f27a4fd8efa
 	github.com/prometheus/procfs v0.7.4-0.20211011103944-1a7a2bd3279f
 	github.com/prometheus/prometheus v1.8.2-0.20220308163432-03831554a519
 	github.com/prometheus/statsd_exporter v0.22.2

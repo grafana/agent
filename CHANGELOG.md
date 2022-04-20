@@ -7,8 +7,16 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Main (unreleased)
------------------
+v0.24.2 (2022-05-02)
+--------------------
+
+### Bugfixes
+
+- Added config watcher delay to prevent race condition in cases where scraping service mode has not gracefully exited. (@mattdurham)
+
+### Other changes
+
+- Update version of node_exporter to include additional metrics for osx. (@v-zhuravlev)
 
 v0.24.1 (2022-04-14)
 --------------------
