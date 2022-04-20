@@ -57,7 +57,7 @@ require (
 	github.com/opentracing-contrib/go-stdlib v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ory/dockertest/v3 v3.8.1
-	github.com/percona/mongodb_exporter v0.0.0-00010101000000-000000000000
+	github.com/percona/mongodb_exporter v0.31.2
 	github.com/prometheus-community/elasticsearch_exporter v1.2.1
 	github.com/prometheus-community/postgres_exporter v0.10.0
 	github.com/prometheus-community/windows_exporter v0.0.0-00010101000000-000000000000
@@ -76,7 +76,7 @@ require (
 	github.com/rfratto/ckit v0.0.0-20220401221852-009169323240
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/weaveworks/common v0.0.0-20211222122857-933588f98737
 	go.opencensus.io v0.23.0
@@ -109,6 +109,7 @@ require (
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/pubsub v1.16.0 // indirect
 	cloud.google.com/go/storage v1.18.2 // indirect
+	github.com/AlekSi/pointer v1.1.0 // indirect
 	github.com/Azure/azure-pipeline-go v0.2.3 // indirect
 	github.com/Azure/azure-sdk-for-go v62.0.0+incompatible // indirect
 	github.com/Azure/azure-storage-blob-go v0.14.0 // indirect
@@ -349,8 +350,8 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.0 // indirect
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
-	github.com/percona/exporter_shared v0.7.3 // indirect
-	github.com/percona/percona-toolkit v0.0.0-20210803120725-d14d18a1bfb6 // indirect
+	github.com/percona/exporter_shared v0.7.4-0.20211108113423-8555cdbac68b // indirect
+	github.com/percona/percona-toolkit v0.0.0-20211210121818-b2860eee3152 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -376,10 +377,12 @@ require (
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749 // indirect
 	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546 // indirect
+	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/sony/gobreaker v0.4.1 // indirect
 	github.com/soundcloud/go-runit v0.0.0-20150630195641-06ad41a06c4a // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -391,6 +394,7 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go v1.0.162 // indirect
 	github.com/thanos-io/thanos v0.25.0 // indirect
 	github.com/theupdateframework/notary v0.7.0 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/tklauser/numcpus v0.3.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
@@ -416,7 +420,7 @@ require (
 	go.etcd.io/etcd/api/v3 v3.5.1 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.1 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.0 // indirect
-	go.mongodb.org/mongo-driver v1.7.5 // indirect
+	go.mongodb.org/mongo-driver v1.8.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.29.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.29.0 // indirect
 	go.opentelemetry.io/otel v1.4.1 // indirect
@@ -490,9 +494,6 @@ replace (
 	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9
 	github.com/infinityworks/github-exporter => github.com/rgeyer/github-exporter v0.0.0-20210722215637-d0cec2ee0dc8
 	github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20210106202358-831154072e2a
-	github.com/percona/exporter_shared => github.com/percona/exporter_shared v0.7.4-0.20211108113423-8555cdbac68b
-	github.com/percona/mongodb_exporter => github.com/grafana/mongodb_exporter v0.20.8-0.20211006135645-bef0f0239601
-	github.com/percona/percona-toolkit => github.com/rlankfo/percona-toolkit v0.0.0-20211028191359-7aada1bf148f
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20220202211901-871715ba0b43
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
@@ -526,6 +527,9 @@ replace github.com/hairyhenderson/gomplate/v3 => github.com/mattdurham/gomplate/
 
 // Required to ensure compatible hashicorp lib is loaded for dynamic configuration, this solves an ambigous import
 exclude github.com/hashicorp/vault v0.10.3
+
+// Required to avoid an ambiguous import with github.com/tencentcloud/tencentcloud-sdk-go
+exclude github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.194
 
 // Add exclude directives so Go doesn't pick old incompatible k8s.io/client-go
 // versions.

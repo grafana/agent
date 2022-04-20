@@ -173,6 +173,8 @@ v0.24.0 (2022-04-07)
 
 - Update cAdvisor dependency to v0.44.0. (@rfratto)
 
+- Update mongodb_exporter dependency to v0.31.2 (@mukerjee)
+
 - Use grafana-agent/v2 Tanka Jsonnet to generate K8s manifests (@hjet)
 
 - Replace agent-bare.yaml K8s sample Deployment with StatefulSet (@hjet)
