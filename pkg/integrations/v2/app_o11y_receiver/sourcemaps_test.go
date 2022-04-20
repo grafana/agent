@@ -1,4 +1,4 @@
-package sourcemaps
+package app_o11y_receiver
 
 import (
 	"bytes"
@@ -11,8 +11,6 @@ import (
 	"testing"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
@@ -58,16 +56,6 @@ func (s *mockFileService) ReadFile(name string) ([]byte, error) {
 	return nil, errors.New("file not found")
 }
 
-func loadTestData(t *testing.T, file string) []byte {
-	t.Helper()
-	// Safe to disable, this is a test.
-	// nolint:gosec
-	content, err := ioutil.ReadFile(filepath.Join("testdata", file))
-	require.NoError(t, err, "expected to be able to read file")
-	require.True(t, len(content) > 0)
-	return content
-}
-
 func newResponseFromTestData(t *testing.T, file string) *http.Response {
 	return &http.Response{
 		Body:       io.NopCloser(bytes.NewReader(loadTestData(t, file))),
@@ -75,10 +63,10 @@ func newResponseFromTestData(t *testing.T, file string) *http.Response {
 	}
 }
 
-func mockException() *models.Exception {
-	return &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+func mockException() *Exception {
+	return &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    6,
 					Filename: "http://localhost:1234/foo.js",
@@ -97,7 +85,7 @@ func mockException() *models.Exception {
 }
 
 func Test_RealSourceMapStore_DownloadSuccess(t *testing.T) {
-	conf := config.SourceMapConfig{
+	conf := SourceMapConfig{
 		Download:            true,
 		DownloadFromOrigins: []string{"*"},
 	}
@@ -120,9 +108,9 @@ func Test_RealSourceMapStore_DownloadSuccess(t *testing.T) {
 
 	require.Equal(t, []string{"http://localhost:1234/foo.js", "http://localhost:1234/foo.js.map"}, httpClient.requests)
 
-	expected := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	expected := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    37,
 					Filename: "/__parcel_source_root/demo/src/actions.ts",
@@ -143,7 +131,7 @@ func Test_RealSourceMapStore_DownloadSuccess(t *testing.T) {
 }
 
 func Test_RealSourceMapStore_DownloadError(t *testing.T) {
-	conf := config.SourceMapConfig{
+	conf := SourceMapConfig{
 		Download:            true,
 		DownloadFromOrigins: []string{"*"},
 	}
@@ -173,7 +161,7 @@ func Test_RealSourceMapStore_DownloadError(t *testing.T) {
 }
 
 func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
-	conf := config.SourceMapConfig{
+	conf := SourceMapConfig{
 		Download:            true,
 		DownloadFromOrigins: []string{"http://bar.com/"},
 	}
@@ -190,9 +178,9 @@ func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 
 	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, &mockFileService{})
 
-	exception := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	exception := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    6,
 					Filename: "http://foo.com/foo.js",
@@ -213,9 +201,9 @@ func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 
 	require.Equal(t, []string{"http://bar.com/foo.js", "http://bar.com/foo.js.map"}, httpClient.requests)
 
-	expected := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	expected := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    6,
 					Filename: "http://foo.com/foo.js",
@@ -236,9 +224,9 @@ func Test_RealSourceMapStore_DownloadHTTPOriginFiltering(t *testing.T) {
 }
 
 func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
-	conf := config.SourceMapConfig{
+	conf := SourceMapConfig{
 		Download: false,
-		FileSystem: []config.SourceMapFileLocation{
+		FileSystem: []SourceMapFileLocation{
 			{
 				MinifiedPathPrefix: "http://foo.com/",
 				Path:               filepath.FromSlash("/var/build/latest/"),
@@ -261,9 +249,9 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 
 	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
 
-	exception := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	exception := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    6,
 					Filename: "http://foo.com/foo.js",
@@ -304,9 +292,9 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 		filepath.FromSlash("/var/build/123/foo.js.map"),
 	}, fileService.reads)
 
-	expected := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	expected := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    37,
 					Filename: "/__parcel_source_root/demo/src/actions.ts",
@@ -339,10 +327,10 @@ func Test_RealSourceMapStore_ReadFromFileSystem(t *testing.T) {
 }
 
 func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
-	conf := config.SourceMapConfig{
+	conf := SourceMapConfig{
 		Download:            true,
 		DownloadFromOrigins: []string{"*"},
-		FileSystem: []config.SourceMapFileLocation{
+		FileSystem: []SourceMapFileLocation{
 			{
 				MinifiedPathPrefix: "http://foo.com/",
 				Path:               filepath.FromSlash("/var/build/latest/"),
@@ -370,9 +358,9 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 
 	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), httpClient, fileService)
 
-	exception := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	exception := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    6,
 					Filename: "http://foo.com/foo.js",
@@ -395,9 +383,9 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 	require.Equal(t, []string{filepath.FromSlash("/var/build/latest/foo.js.map")}, fileService.reads)
 	require.Equal(t, []string{"http://bar.com/foo.js", "http://bar.com/foo.js.map"}, httpClient.requests)
 
-	expected := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	expected := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    37,
 					Filename: "/__parcel_source_root/demo/src/actions.ts",
@@ -418,9 +406,9 @@ func Test_RealSourceMapStore_ReadFromFileSystemAndDownload(t *testing.T) {
 }
 
 func Test_RealSourceMapStore_FilepathSanitized(t *testing.T) {
-	conf := config.SourceMapConfig{
+	conf := SourceMapConfig{
 		Download: false,
-		FileSystem: []config.SourceMapFileLocation{
+		FileSystem: []SourceMapFileLocation{
 			{
 				MinifiedPathPrefix: "http://foo.com/",
 				Path:               filepath.FromSlash("/var/build/latest/"),
@@ -432,9 +420,9 @@ func Test_RealSourceMapStore_FilepathSanitized(t *testing.T) {
 
 	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
 
-	exception := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	exception := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    6,
 					Filename: "http://foo.com/../../../etc/passwd",
@@ -456,9 +444,9 @@ func Test_RealSourceMapStore_FilepathSanitized(t *testing.T) {
 }
 
 func Test_RealSourceMapStore_FilepathQueryParamsOmitted(t *testing.T) {
-	conf := config.SourceMapConfig{
+	conf := SourceMapConfig{
 		Download: false,
-		FileSystem: []config.SourceMapFileLocation{
+		FileSystem: []SourceMapFileLocation{
 			{
 				MinifiedPathPrefix: "http://foo.com/",
 				Path:               filepath.FromSlash("/var/build/latest/"),
@@ -470,9 +458,9 @@ func Test_RealSourceMapStore_FilepathQueryParamsOmitted(t *testing.T) {
 
 	sourceMapStore := NewSourceMapStore(log.NewNopLogger(), conf, prometheus.NewRegistry(), &mockHTTPClient{}, fileService)
 
-	exception := &models.Exception{
-		Stacktrace: &models.Stacktrace{
-			Frames: []models.Frame{
+	exception := &Exception{
+		Stacktrace: &Stacktrace{
+			Frames: []Frame{
 				{
 					Colno:    6,
 					Filename: "http://foo.com/static/foo.js?v=1233",

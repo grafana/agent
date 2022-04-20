@@ -1,9 +1,8 @@
-package exporters
+package app_o11y_receiver
 
 import (
 	"context"
 
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -21,7 +20,7 @@ type ReceiverMetricsExporter struct {
 }
 
 // NewReceiverMetricsExporter creates a new ReceiverMetricsExporter
-func NewReceiverMetricsExporter(conf ReceiverMetricsExporterConfig) AppO11yReceiverExporter {
+func NewReceiverMetricsExporter(conf ReceiverMetricsExporterConfig) appO11yReceiverExporter {
 	exp := &ReceiverMetricsExporter{
 		totalLogs: prometheus.NewCounter(prometheus.CounterOpts{
 			Name: "app_agent_receiver_logs_total",
@@ -48,7 +47,7 @@ func (re *ReceiverMetricsExporter) Name() string {
 }
 
 // Export implements the AppDataExporter interface
-func (re *ReceiverMetricsExporter) Export(ctx context.Context, payload models.Payload) error {
+func (re *ReceiverMetricsExporter) Export(ctx context.Context, payload Payload) error {
 	re.totalExceptions.Add(float64(len(payload.Exceptions)))
 	re.totalLogs.Add(float64(len(payload.Logs)))
 	re.totalMeasurements.Add(float64(len(payload.Measurements)))

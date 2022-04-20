@@ -1,22 +1,20 @@
-package exporters
+package app_o11y_receiver
 
 import (
 	"context"
 
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"go.opentelemetry.io/collector/consumer"
 )
 
-// TracesConsumerGetter returns a traces consumer to push traces to
-type TracesConsumerGetter func() (consumer.Traces, error)
+type tracesConsumerGetter func() (consumer.Traces, error)
 
 // TracesExporter will send traces to a traces instance
 type TracesExporter struct {
-	getTracesConsumer TracesConsumerGetter
+	getTracesConsumer tracesConsumerGetter
 }
 
 // NewTracesExporter creates a trace exporter for the app o11y receiver.
-func NewTracesExporter(getTracesConsumer TracesConsumerGetter) AppO11yReceiverExporter {
+func NewTracesExporter(getTracesConsumer tracesConsumerGetter) appO11yReceiverExporter {
 	return &TracesExporter{getTracesConsumer}
 }
 
@@ -26,7 +24,7 @@ func (te *TracesExporter) Name() string {
 }
 
 // Export implements the AppDataExporter interface
-func (te *TracesExporter) Export(ctx context.Context, payload models.Payload) error {
+func (te *TracesExporter) Export(ctx context.Context, payload Payload) error {
 	if payload.Traces == nil {
 		return nil
 	}

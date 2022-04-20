@@ -1,4 +1,4 @@
-package sourcemaps
+package app_o11y_receiver
 
 import (
 	"bytes"
@@ -17,9 +17,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-sourcemap/sourcemap"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vincent-petithory/dataurl"
 )
@@ -27,8 +24,8 @@ import (
 // SourceMapStore is interface for a sourcemap service capable of transforming
 // minified source locations to original source location
 type SourceMapStore interface {
-	ResolveSourceLocation(frame *models.Frame, release string) (*models.Frame, error)
-	TransformException(ex *models.Exception, release string) *models.Exception
+	ResolveSourceLocation(frame *Frame, release string) (*Frame, error)
+	TransformException(ex *Exception, release string) *Exception
 }
 
 type httpClient interface {
@@ -65,7 +62,7 @@ type sourceMapMetrics struct {
 }
 
 type sourcemapFileLocation struct {
-	config.SourceMapFileLocation
+	SourceMapFileLocation
 	pathTemplate *template.Template
 }
 
@@ -76,7 +73,7 @@ type RealSourceMapStore struct {
 	l             log.Logger
 	httpClient    httpClient
 	fileService   fileService
-	config        config.SourceMapConfig
+	config        SourceMapConfig
 	cache         map[string]*sourceMap
 	fileLocations []*sourcemapFileLocation
 	metrics       *sourceMapMetrics
@@ -84,7 +81,7 @@ type RealSourceMapStore struct {
 
 // NewSourceMapStore creates an instance of SourceMapStore.
 // httpClient and fileService will be instantiated to defaults if nil is provided
-func NewSourceMapStore(l log.Logger, config config.SourceMapConfig, reg *prometheus.Registry, httpClient httpClient, fileService fileService) SourceMapStore {
+func NewSourceMapStore(l log.Logger, config SourceMapConfig, reg *prometheus.Registry, httpClient httpClient, fileService fileService) SourceMapStore {
 	if httpClient == nil {
 		httpClient = &http.Client{
 			Timeout: config.DownloadTimeout,
@@ -254,7 +251,7 @@ func (store *RealSourceMapStore) getSourceMapContent(sourceURL string, release s
 	}
 
 	//attempt to download
-	if strings.HasPrefix(sourceURL, "http") && utils.URLMatchesOrigins(sourceURL, store.config.DownloadFromOrigins) {
+	if strings.HasPrefix(sourceURL, "http") && urlMatchesOrigins(sourceURL, store.config.DownloadFromOrigins) {
 		return store.downloadSourceMapContent(sourceURL)
 	}
 	return nil, "", nil
@@ -293,7 +290,7 @@ func (store *RealSourceMapStore) getSourceMap(sourceURL string, release string) 
 }
 
 // ResolveSourceLocation resolves minified source location to original source location
-func (store *RealSourceMapStore) ResolveSourceLocation(frame *models.Frame, release string) (*models.Frame, error) {
+func (store *RealSourceMapStore) ResolveSourceLocation(frame *Frame, release string) (*Frame, error) {
 	smap, err := store.getSourceMap(frame.Filename, release)
 	if err != nil {
 		return nil, err
@@ -311,7 +308,7 @@ func (store *RealSourceMapStore) ResolveSourceLocation(frame *models.Frame, rele
 	if len(function) == 0 {
 		function = "?"
 	}
-	return &models.Frame{
+	return &Frame{
 		Filename: file,
 		Lineno:   line,
 		Colno:    col,
@@ -320,11 +317,11 @@ func (store *RealSourceMapStore) ResolveSourceLocation(frame *models.Frame, rele
 }
 
 // TransformException will attempt to resolved all monified source locations in the stacktrace with original source locations
-func (store *RealSourceMapStore) TransformException(ex *models.Exception, release string) *models.Exception {
+func (store *RealSourceMapStore) TransformException(ex *Exception, release string) *Exception {
 	if ex.Stacktrace == nil {
 		return ex
 	}
-	frames := []models.Frame{}
+	frames := []Frame{}
 
 	for _, frame := range ex.Stacktrace.Frames {
 		mappedFrame, err := store.ResolveSourceLocation(&frame, release)
@@ -338,10 +335,10 @@ func (store *RealSourceMapStore) TransformException(ex *models.Exception, releas
 		}
 	}
 
-	return &models.Exception{
+	return &Exception{
 		Type:       ex.Type,
 		Value:      ex.Value,
-		Stacktrace: &models.Stacktrace{Frames: frames},
+		Stacktrace: &Stacktrace{Frames: frames},
 		Timestamp:  ex.Timestamp,
 	}
 }

@@ -1,4 +1,4 @@
-package config
+package app_o11y_receiver
 
 import "time"
 

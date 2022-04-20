@@ -9,10 +9,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/handler"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/sourcemaps"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
@@ -30,8 +26,8 @@ var IntegrationName = "app_o11y_receiver"
 // Config structs controls the configuration of the app o11y
 // integration
 type Config struct {
-	ReceiverConfig config.AppO11yReceiverConfig `yaml:",inline"`
-	Common         common.MetricsConfig         `yaml:",inline"`
+	ReceiverConfig AppO11yReceiverConfig `yaml:",inline"`
+	Common         common.MetricsConfig  `yaml:",inline"`
 }
 
 // ApplyDefaults applies runtime-specific defaults to c.
@@ -56,9 +52,9 @@ func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 
 type appo11yIntegration struct {
 	integrations.MetricsIntegration
-	appAgentReceiverHandler handler.AppO11yHandler
+	appAgentReceiverHandler AppO11yHandler
 	logger                  log.Logger
-	conf                    config.AppO11yReceiverConfig
+	conf                    AppO11yReceiverConfig
 	reg                     *prometheus.Registry
 
 	requestDurationCollector     *prometheus.HistogramVec
@@ -78,18 +74,18 @@ var (
 func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (integrations.Integration, error) {
 	reg := prometheus.NewRegistry()
 	sourcemapLogger := log.With(l, "subcomponent", "sourcemaps")
-	sourcemapStore := sourcemaps.NewSourceMapStore(sourcemapLogger, c.ReceiverConfig.SourceMaps, reg, nil, nil)
+	sourcemapStore := NewSourceMapStore(sourcemapLogger, c.ReceiverConfig.SourceMaps, reg, nil, nil)
 
-	receiverMetricsExporter := exporters.NewReceiverMetricsExporter(exporters.ReceiverMetricsExporterConfig{
+	receiverMetricsExporter := NewReceiverMetricsExporter(ReceiverMetricsExporterConfig{
 		Reg: reg,
 	})
 
-	var exp = []exporters.AppO11yReceiverExporter{
+	var exp = []appO11yReceiverExporter{
 		receiverMetricsExporter,
 	}
 
 	if len(c.ReceiverConfig.LogsInstance) > 0 {
-		getLogsInstance := func() (exporters.LogsInstance, error) {
+		getLogsInstance := func() (logsInstance, error) {
 			instance := globals.Logs.Instance(c.ReceiverConfig.LogsInstance)
 			if instance == nil {
 				return nil, fmt.Errorf("logs instance \"%s\" not found", c.ReceiverConfig.LogsInstance)
@@ -101,9 +97,9 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 			return nil, err
 		}
 
-		lokiExporter := exporters.NewLogsExporter(
+		lokiExporter := NewLogsExporter(
 			l,
-			exporters.LogsExporterConfig{
+			LogsExporterConfig{
 				GetLogsInstance:  getLogsInstance,
 				Labels:           c.ReceiverConfig.LogsLabels,
 				SendEntryTimeout: c.ReceiverConfig.LogsSendTimeout,
@@ -132,11 +128,11 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		if _, err := getTracesConsumer(); err != nil {
 			return nil, err
 		}
-		tracesExporter := exporters.NewTracesExporter(getTracesConsumer)
+		tracesExporter := NewTracesExporter(getTracesConsumer)
 		exp = append(exp, tracesExporter)
 	}
 
-	handler := handler.NewAppO11yHandler(c.ReceiverConfig, exp, reg)
+	handler := NewAppO11yHandler(c.ReceiverConfig, exp, reg)
 
 	metricsIntegration, err := metricsutils.NewMetricsHandlerIntegration(l, c, c.Common, globals, promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	if err != nil {

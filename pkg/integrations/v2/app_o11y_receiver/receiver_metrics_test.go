@@ -1,11 +1,10 @@
-package exporters
+package app_o11y_receiver
 
 import (
 	"context"
 	"fmt"
 	"testing"
 
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/stretchr/testify/require"
@@ -16,7 +15,7 @@ type metricAssertion struct {
 	value float64
 }
 
-func testcase(t *testing.T, payload models.Payload, assertions []metricAssertion) {
+func testcase(t *testing.T, payload Payload, assertions []metricAssertion) {
 	ctx := context.Background()
 
 	reg := prometheus.NewRegistry()
@@ -47,10 +46,10 @@ func testcase(t *testing.T, payload models.Payload, assertions []metricAssertion
 }
 
 func TestReceiverMetricsExport(t *testing.T) {
-	var payload models.Payload
-	payload.Logs = make([]models.Log, 2)
-	payload.Measurements = make([]models.Measurement, 3)
-	payload.Exceptions = make([]models.Exception, 4)
+	var payload Payload
+	payload.Logs = make([]Log, 2)
+	payload.Measurements = make([]Measurement, 3)
+	payload.Exceptions = make([]Exception, 4)
 	testcase(t, payload, []metricAssertion{
 		{
 			name:  "app_agent_receiver_logs_total",
@@ -68,8 +67,8 @@ func TestReceiverMetricsExport(t *testing.T) {
 }
 
 func TestReceiverMetricsExportLogsOnly(t *testing.T) {
-	var payload models.Payload
-	payload.Logs = []models.Log{
+	var payload Payload
+	payload.Logs = []Log{
 		{},
 		{},
 	}
@@ -90,8 +89,8 @@ func TestReceiverMetricsExportLogsOnly(t *testing.T) {
 }
 
 func TestReceiverMetricsExportExceptionsOnly(t *testing.T) {
-	var payload models.Payload
-	payload.Exceptions = []models.Exception{
+	var payload Payload
+	payload.Exceptions = []Exception{
 		{},
 		{},
 		{},
@@ -114,8 +113,8 @@ func TestReceiverMetricsExportExceptionsOnly(t *testing.T) {
 }
 
 func TestReceiverMetricsExportMeasurementsOnly(t *testing.T) {
-	var payload models.Payload
-	payload.Measurements = []models.Measurement{
+	var payload Payload
+	payload.Measurements = []Measurement{
 		{},
 		{},
 		{},

@@ -1,4 +1,4 @@
-package exporters
+package app_o11y_receiver
 
 import (
 	"context"
@@ -27,7 +27,7 @@ func Test_exportTraces_success(t *testing.T) {
 	ctx := context.Background()
 	tracesConsumer := &mockTracesConsumer{}
 	exporter := NewTracesExporter(func() (consumer.Traces, error) { return tracesConsumer, nil })
-	payload := loadTestData(t)
+	payload := loadTestPayload(t)
 	err := exporter.Export(ctx, payload)
 	require.NoError(t, err)
 	require.Len(t, tracesConsumer.consumed, 1)
@@ -37,7 +37,7 @@ func Test_exportTraces_noTracesInpayload(t *testing.T) {
 	ctx := context.Background()
 	tracesConsumer := &mockTracesConsumer{consumed: nil}
 	exporter := NewTracesExporter(func() (consumer.Traces, error) { return tracesConsumer, nil })
-	payload := loadTestData(t)
+	payload := loadTestPayload(t)
 	payload.Traces = nil
 	err := exporter.Export(ctx, payload)
 	require.NoError(t, err)
@@ -47,7 +47,7 @@ func Test_exportTraces_noTracesInpayload(t *testing.T) {
 func Test_exportTraces_noConsumer(t *testing.T) {
 	ctx := context.Background()
 	exporter := NewTracesExporter(func() (consumer.Traces, error) { return nil, errors.New("it dont work") })
-	payload := loadTestData(t)
+	payload := loadTestPayload(t)
 	err := exporter.Export(ctx, payload)
 	require.Error(t, err, "it don't work")
 }

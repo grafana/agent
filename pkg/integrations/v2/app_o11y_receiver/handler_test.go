@@ -1,4 +1,4 @@
-package handler
+package app_o11y_receiver
 
 import (
 	"bytes"
@@ -11,9 +11,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -32,14 +29,14 @@ const PAYLOAD = `
 type TestExporter struct {
 	name     string
 	broken   bool
-	payloads []models.Payload
+	payloads []Payload
 }
 
 func (te *TestExporter) Name() string {
 	return te.name
 }
 
-func (te *TestExporter) Export(ctx context.Context, payload models.Payload) error {
+func (te *TestExporter) Export(ctx context.Context, payload Payload) error {
 	if te.broken {
 		return errors.New("this exporter is broken")
 	}
@@ -57,17 +54,17 @@ func TestMultipleExportersAllSucceed(t *testing.T) {
 	exporter1 := TestExporter{
 		name:     "exporter1",
 		broken:   false,
-		payloads: []models.Payload{},
+		payloads: []Payload{},
 	}
 	exporter2 := TestExporter{
 		name:     "exporter2",
 		broken:   false,
-		payloads: []models.Payload{},
+		payloads: []Payload{},
 	}
 
-	conf := config.AppO11yReceiverConfig{}
+	conf := AppO11yReceiverConfig{}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -90,17 +87,17 @@ func TestMultipleExportersOneFails(t *testing.T) {
 	exporter1 := TestExporter{
 		name:     "exporter1",
 		broken:   true,
-		payloads: []models.Payload{},
+		payloads: []Payload{},
 	}
 	exporter2 := TestExporter{
 		name:     "exporter2",
 		broken:   false,
-		payloads: []models.Payload{},
+		payloads: []Payload{},
 	}
 
-	conf := config.AppO11yReceiverConfig{}
+	conf := AppO11yReceiverConfig{}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -132,17 +129,17 @@ func TestMultipleExportersAllFail(t *testing.T) {
 	exporter1 := TestExporter{
 		name:     "exporter1",
 		broken:   true,
-		payloads: []models.Payload{},
+		payloads: []Payload{},
 	}
 	exporter2 := TestExporter{
 		name:     "exporter2",
 		broken:   true,
-		payloads: []models.Payload{},
+		payloads: []Payload{},
 	}
 
-	conf := config.AppO11yReceiverConfig{}
+	conf := AppO11yReceiverConfig{}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -173,11 +170,11 @@ func TestNoContentLengthLimitSet(t *testing.T) {
 	require.NoError(t, err)
 	reg := prometheus.NewRegistry()
 
-	conf := config.AppO11yReceiverConfig{}
+	conf := AppO11yReceiverConfig{}
 
 	req.ContentLength = 89348593894
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{}, reg)
+	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{}, reg)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -192,13 +189,13 @@ func TestLargePayload(t *testing.T) {
 	require.NoError(t, err)
 	reg := prometheus.NewRegistry()
 
-	conf := config.AppO11yReceiverConfig{
-		Server: config.ServerConfig{
+	conf := AppO11yReceiverConfig{
+		Server: ServerConfig{
 			MaxAllowedPayloadSize: 10,
 		},
 	}
 
-	fr := NewAppO11yHandler(conf, []exporters.AppO11yReceiverExporter{}, reg)
+	fr := NewAppO11yHandler(conf, []appO11yReceiverExporter{}, reg)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -214,8 +211,8 @@ func TestAPIKeyRequiredButNotProvided(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.AppO11yReceiverConfig{
-		Server: config.ServerConfig{
+	conf := AppO11yReceiverConfig{
+		Server: ServerConfig{
 			APIKey: "foo",
 		},
 	}
@@ -237,8 +234,8 @@ func TestAPIKeyWrong(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.AppO11yReceiverConfig{
-		Server: config.ServerConfig{
+	conf := AppO11yReceiverConfig{
+		Server: ServerConfig{
 			APIKey: "foo",
 		},
 	}
@@ -260,8 +257,8 @@ func TestAPIKeyCorrect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.AppO11yReceiverConfig{
-		Server: config.ServerConfig{
+	conf := AppO11yReceiverConfig{
+		Server: ServerConfig{
 			APIKey: "foo",
 		},
 	}
@@ -282,9 +279,9 @@ func TestRateLimiterNoReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.AppO11yReceiverConfig{
-		Server: config.ServerConfig{
-			RateLimiting: config.RateLimitingConfig{
+	conf := AppO11yReceiverConfig{
+		Server: ServerConfig{
+			RateLimiting: RateLimitingConfig{
 				Burstiness: 10,
 				RPS:        10,
 				Enabled:    true,
@@ -308,9 +305,9 @@ func TestRateLimiterReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.AppO11yReceiverConfig{
-		Server: config.ServerConfig{
-			RateLimiting: config.RateLimitingConfig{
+	conf := AppO11yReceiverConfig{
+		Server: ServerConfig{
+			RateLimiting: RateLimitingConfig{
 				Burstiness: 0,
 				RPS:        0,
 				Enabled:    true,
@@ -334,9 +331,9 @@ func TestRateLimiterDisabled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	conf := config.AppO11yReceiverConfig{
-		Server: config.ServerConfig{
-			RateLimiting: config.RateLimitingConfig{
+	conf := AppO11yReceiverConfig{
+		Server: ServerConfig{
+			RateLimiting: RateLimitingConfig{
 				Burstiness: 0,
 				RPS:        0,
 				Enabled:    false,

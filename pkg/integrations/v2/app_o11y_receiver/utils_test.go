@@ -1,4 +1,4 @@
-package utils
+package app_o11y_receiver
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func testCase(t *testing.T, URL string, origins []string, expected bool) {
-	result := URLMatchesOrigins(URL, origins)
+	result := urlMatchesOrigins(URL, origins)
 	require.Equal(t, expected, result)
 }
 

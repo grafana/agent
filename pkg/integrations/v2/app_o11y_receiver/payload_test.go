@@ -1,4 +1,4 @@
-package models
+package app_o11y_receiver
 
 import (
 	"encoding/json"

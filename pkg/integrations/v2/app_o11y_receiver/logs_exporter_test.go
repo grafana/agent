@@ -1,4 +1,4 @@
-package exporters
+package app_o11y_receiver
 
 import (
 	"context"
@@ -9,21 +9,20 @@ import (
 	"time"
 
 	kitlog "github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	prommodel "github.com/prometheus/common/model"
 
 	"github.com/stretchr/testify/require"
 )
 
-func loadTestData(t *testing.T) models.Payload {
+func loadTestPayload(t *testing.T) Payload {
 	t.Helper()
 	// Safe to disable, this is a test.
 	// nolint:gosec
-	content, err := ioutil.ReadFile("../models/testdata/payload.json")
+	content, err := ioutil.ReadFile("./testdata/payload.json")
 	require.NoError(t, err, "expected to be able to read file")
 	require.True(t, len(content) > 0)
-	var payload models.Payload
+	var payload Payload
 	err = json.Unmarshal(content, &payload)
 	require.NoError(t, err)
 	return payload
@@ -40,11 +39,11 @@ func (i *testLogsInstance) SendEntry(entry api.Entry, dur time.Duration) bool {
 
 type MockSourceMapStore struct{}
 
-func (store *MockSourceMapStore) TransformException(ex *models.Exception, release string) *models.Exception {
+func (store *MockSourceMapStore) TransformException(ex *Exception, release string) *Exception {
 	if ex.Stacktrace == nil {
 		return ex
 	}
-	frames := []models.Frame{}
+	frames := []Frame{}
 	for _, frame := range ex.Stacktrace.Frames {
 		frame.Filename = strings.Replace(frame.Filename, ".js", ".ts", 1)
 		frames = append(frames, frame)
@@ -54,7 +53,7 @@ func (store *MockSourceMapStore) TransformException(ex *models.Exception, releas
 	return &transformed
 }
 
-func (store *MockSourceMapStore) ResolveSourceLocation(frame *models.Frame, release string) (*models.Frame, error) {
+func (store *MockSourceMapStore) ResolveSourceLocation(frame *Frame, release string) (*Frame, error) {
 	return frame, nil
 }
 
@@ -69,7 +68,7 @@ func TestExportLogs(t *testing.T) {
 	logsExporter := NewLogsExporter(
 		logger,
 		LogsExporterConfig{
-			GetLogsInstance: func() (LogsInstance, error) { return inst, nil },
+			GetLogsInstance: func() (logsInstance, error) { return inst, nil },
 			Labels: map[string]string{
 				"app":  "frontend",
 				"kind": "",
@@ -79,7 +78,7 @@ func TestExportLogs(t *testing.T) {
 		&MockSourceMapStore{},
 	)
 
-	payload := loadTestData(t)
+	payload := loadTestPayload(t)
 
 	err := logsExporter.Export(ctx, payload)
 	require.NoError(t, err)

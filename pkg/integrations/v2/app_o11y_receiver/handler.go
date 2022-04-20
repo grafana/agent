@@ -1,6 +1,7 @@
-package handler
+package app_o11y_receiver
 
 import (
+	"context"
 	"sync"
 
 	"crypto/subtle"
@@ -9,24 +10,26 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/config"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/exporters"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
 )
 
+type appO11yReceiverExporter interface {
+	Name() string
+	Export(ctx context.Context, payload Payload) error
+}
+
 // AppO11yHandler struct controls the data ingestion http handler of the receiver
 type AppO11yHandler struct {
-	exporters               []exporters.AppO11yReceiverExporter
-	config                  config.AppO11yReceiverConfig
+	exporters               []appO11yReceiverExporter
+	config                  AppO11yReceiverConfig
 	rateLimiter             *rate.Limiter
 	exporterErrorsCollector *prometheus.CounterVec
 }
 
 // NewAppO11yHandler creates a new AppReceiver instance based on the given configuration
-func NewAppO11yHandler(conf config.AppO11yReceiverConfig, exporters []exporters.AppO11yReceiverExporter, reg *prometheus.Registry) AppO11yHandler {
+func NewAppO11yHandler(conf AppO11yReceiverConfig, exporters []appO11yReceiverExporter, reg *prometheus.Registry) AppO11yHandler {
 	var rateLimiter *rate.Limiter
 	if conf.Server.RateLimiting.Enabled {
 		var rps float64
@@ -84,7 +87,7 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 			return
 		}
 
-		var p models.Payload
+		var p Payload
 		err := json.NewDecoder(r.Body).Decode(&p)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -95,7 +98,7 @@ func (ar *AppO11yHandler) HTTPHandler(logger log.Logger) http.Handler {
 
 		for _, exporter := range ar.exporters {
 			wg.Add(1)
-			go func(exp exporters.AppO11yReceiverExporter) {
+			go func(exp appO11yReceiverExporter) {
 				defer wg.Done()
 				if err := exp.Export(r.Context(), p); err != nil {
 					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err)

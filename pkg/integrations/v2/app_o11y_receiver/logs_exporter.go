@@ -1,4 +1,4 @@
-package exporters
+package app_o11y_receiver
 
 import (
 	"context"
@@ -8,42 +8,39 @@ import (
 	kitlog "github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/models"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/sourcemaps"
-	"github.com/grafana/agent/pkg/integrations/v2/app_o11y_receiver/utils"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
 	prommodel "github.com/prometheus/common/model"
 )
 
-// LogsInstance is an interface with capability to send log entries
-type LogsInstance interface {
+// logsInstance is an interface with capability to send log entries
+type logsInstance interface {
 	SendEntry(entry api.Entry, dur time.Duration) bool
 }
 
-// LogsInstanceGetter is a function that returns a LogsInstance to send log entries to
-type LogsInstanceGetter func() (LogsInstance, error)
+// logsInstanceGetter is a function that returns a LogsInstance to send log entries to
+type logsInstanceGetter func() (logsInstance, error)
 
 // LogsExporterConfig holds the configuration of the logs exporter
 type LogsExporterConfig struct {
 	SendEntryTimeout int
-	GetLogsInstance  LogsInstanceGetter
+	GetLogsInstance  logsInstanceGetter
 	Labels           map[string]string
 }
 
 // LogsExporter will send logs & errors to loki
 type LogsExporter struct {
-	getLogsInstance LogsInstanceGetter
+	getLogsInstance logsInstanceGetter
 	seTimeout       time.Duration
 	logger          kitlog.Logger
 	labels          map[string]string
-	sourceMapStore  sourcemaps.SourceMapStore
+	sourceMapStore  SourceMapStore
 }
 
 // NewLogsExporter creates a new logs exporter with the given
 // configuration
-func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore sourcemaps.SourceMapStore) AppO11yReceiverExporter {
+func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore SourceMapStore) appO11yReceiverExporter {
 	return &LogsExporter{
 		logger:          logger,
 		getLogsInstance: conf.GetLogsInstance,
@@ -59,7 +56,7 @@ func (le *LogsExporter) Name() string {
 }
 
 // Export implements the AppDataExporter interface
-func (le *LogsExporter) Export(ctx context.Context, payload models.Payload) error {
+func (le *LogsExporter) Export(ctx context.Context, payload Payload) error {
 	meta := payload.Meta.KeyVal()
 
 	var err error
@@ -67,7 +64,7 @@ func (le *LogsExporter) Export(ctx context.Context, payload models.Payload) erro
 	// log events
 	for _, logItem := range payload.Logs {
 		kv := logItem.KeyVal()
-		utils.MergeKeyVal(kv, meta)
+		MergeKeyVal(kv, meta)
 		err = le.sendKeyValsToLogsPipeline(kv)
 	}
 
@@ -75,22 +72,22 @@ func (le *LogsExporter) Export(ctx context.Context, payload models.Payload) erro
 	for _, exception := range payload.Exceptions {
 		transformedException := le.sourceMapStore.TransformException(&exception, payload.Meta.App.Release)
 		kv := transformedException.KeyVal()
-		utils.MergeKeyVal(kv, meta)
+		MergeKeyVal(kv, meta)
 		err = le.sendKeyValsToLogsPipeline(kv)
 	}
 
 	// measurements
 	for _, measurement := range payload.Measurements {
 		kv := measurement.KeyVal()
-		utils.MergeKeyVal(kv, meta)
+		MergeKeyVal(kv, meta)
 		err = le.sendKeyValsToLogsPipeline(kv)
 	}
 
 	return err
 }
 
-func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
-	line, err := logfmt.MarshalKeyvals(utils.KeyValToInterfaceSlice(kv)...)
+func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *KeyVal) error {
+	line, err := logfmt.MarshalKeyvals(KeyValToInterfaceSlice(kv)...)
 	if err != nil {
 		level.Error(le.logger).Log("msg", "failed to logfmt a frontend log event", "err", err)
 		return err
@@ -113,7 +110,7 @@ func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *utils.KeyVal) error {
 	return nil
 }
 
-func (le *LogsExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
+func (le *LogsExporter) labelSet(kv *KeyVal) prommodel.LabelSet {
 	set := make(prommodel.LabelSet, len(le.labels))
 
 	for k, v := range le.labels {
@@ -131,6 +128,6 @@ func (le *LogsExporter) labelSet(kv *utils.KeyVal) prommodel.LabelSet {
 
 // Static typecheck tests
 var (
-	_ AppO11yReceiverExporter = (*LogsExporter)(nil)
-	_ LogsInstance            = (*logs.Instance)(nil)
+	_ appO11yReceiverExporter = (*LogsExporter)(nil)
+	_ logsInstance            = (*logs.Instance)(nil)
 )
