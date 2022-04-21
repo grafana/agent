@@ -28,11 +28,12 @@ func NewMetric(name string, value float64, ts time.Time, labels []Label) Metric 
 		ts:     ts,
 		labels: labels,
 	}
-
-	m.labels = append(m.labels, Label{
-		Key:   "__name__",
-		Value: name,
-	})
+	if _, found := m.FindLabel("__name__"); !found {
+		m.labels = append(m.labels, Label{
+			Key:   "__name__",
+			Value: name,
+		})
+	}
 	return m
 }
 
@@ -62,7 +63,11 @@ func NewMetricFromPromMetric(ts int64, value float64, labels labels.Labels) Metr
 func CopyMetricFromPrometheus(in *dto.MetricFamily) Metric {
 
 	lbls := make([]Label, 0)
+	foundName := false
 	for _, v := range in.Metric[0].Label {
+		if *v.Name == "__name__" {
+			foundName = true
+		}
 		lbls = append(lbls, Label{
 			Key:   *v.Name,
 			Value: *v.Value,
@@ -80,10 +85,13 @@ func CopyMetricFromPrometheus(in *dto.MetricFamily) Metric {
 		ts:     time.Now(),
 		labels: lbls,
 	}
-	m.labels = append(m.labels, Label{
-		Key:   "__name__",
-		Value: m.name,
-	})
+	if !foundName {
+		m.labels = append(m.labels, Label{
+			Key:   "__name__",
+			Value: m.name,
+		})
+	}
+
 	return m
 }
 
