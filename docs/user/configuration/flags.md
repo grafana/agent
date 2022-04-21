@@ -19,7 +19,7 @@ All flags may be prefixed with either one hypen or two (i.e., both
 * `-version`: Print out version information
 * `-help`: Print out help
 
-## Experiemntal feature flags
+## Experimental feature flags
 
 Grafana Agent has some experimental features that require being enabled through
 an `-enable-features` flag. This flag takes a comma-delimited list of feature
@@ -30,6 +30,7 @@ Valid feature names are:
 * `remote-configs`: Enable [retrieving]({{< relref "./_index.md#remote-configuration-experimental" >}}) config files over HTTP/HTTPS
 * `integrations-next`: Enable [revamp]({{< relref "./integrations/integrations-next/" >}}) of the integrations subsystem
 * `dynamic-config`: Enable support for [dynamic configuration]({{< relref "./dynamic-config" >}})
+* `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
 
 ## Configuration file
 
@@ -64,6 +65,9 @@ The `dynamic-config` and `integrations-next` features must be enabled when
 * `-server.http.idle-timeout`: HTTP server idle timeout
 * `-server.http.read-timeout`: HTTP server read timeout
 * `-server.http.write-timeout`: HTTP server write timeout
+* `-server.http.in-memory-addr`: Internal address used for the agent to make
+  in-memory HTTP connections to itself. (default `agent.internal:12345`) The
+  port number specified here is virtual and does not open a real network port.
 * `-server.grpc.network` gRPC server listen network (default `grpc`)
 * `-server.grpc.address`: gRPC server listen host:port (default `127.0.0.1:12346`)
 * `-server.grpc.enable-tls`: Enable TLS for the gRPC server
@@ -78,6 +82,9 @@ The `dynamic-config` and `integrations-next` features must be enabled when
 * `-server.grpc.max-concurrent-streams` Maximum number of concurrent gRPC streams (0 = unlimited)
 * `-server.grpc.max-recv-msg-size-bytes` Maximum size in bytes for received gRPC messages
 * `-server.grpc.max-send-msg-size-bytes` Maximum size in bytes for send gRPC messages
+* `-server.grpc.in-memory-addr`: Internal address used for the agent to make
+  in-memory gRPC connections to itself. (default `agent.internal:12346`). The
+  port number specified here is virtual and does not open a real network port.
 
 ### TLS Support
 

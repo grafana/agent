@@ -3,7 +3,8 @@
 // replica labels.
 //
 // @param {config.Deployment} ctx
-function(ctx) (
+// @param {bool} addReplica
+function(ctx, addReplica) (
   local meta = ctx.Agent.ObjectMeta;
   local metrics = ctx.Agent.Spec.Metrics;
 
@@ -26,7 +27,7 @@ function(ctx) (
 
   // Finally, add the replica label. We don't want the user to overrwrite the
   // replica label since it can cause duplicate sample problems.
-  (
+  if !addReplica then {} else (
     local replicaValue = 'replica-$(STATEFULSET_ORDINAL_NUMBER)';
     local replicaLabel = metrics.ReplicaExternalLabelName;
 

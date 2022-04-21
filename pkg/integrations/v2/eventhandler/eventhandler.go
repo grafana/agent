@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/labels"
 )
 
 const (
@@ -46,6 +47,8 @@ type EventHandler struct {
 	EventInformer cache.SharedIndexInformer
 	SendTimeout   time.Duration
 	ticker        *time.Ticker
+	instance      string
+	extraLabels   labels.Labels
 	sync.Mutex
 }
 
@@ -65,6 +68,7 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 		config  *rest.Config
 		err     error
 		factory informers.SharedInformerFactory
+		id      string
 	)
 
 	// Try using KubeconfigPath or inClusterConfig
@@ -98,6 +102,7 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 	}
 
 	eventInformer := factory.Core().V1().Events().Informer()
+	id, _ = c.Identifier(globals)
 
 	eh := &EventHandler{
 		LogsClient:    globals.Logs,
@@ -106,6 +111,8 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 		CachePath:     c.CachePath,
 		EventInformer: eventInformer,
 		SendTimeout:   time.Duration(c.SendTimeout) * time.Second,
+		instance:      id,
+		extraLabels:   c.ExtraLabels,
 	}
 	// set the resource handler fns
 	eh.initInformer(eventInformer)
@@ -205,6 +212,13 @@ func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, e
 	msg.WriteString(fmt.Sprintf("name=%s ", obj.Name))
 
 	labels[model.LabelName("namespace")] = model.LabelValue(obj.Namespace)
+	// TODO(hjet) omit "kubernetes"
+	labels[model.LabelName("job")] = model.LabelValue("integrations/kubernetes/eventhandler")
+	labels[model.LabelName("instance")] = model.LabelValue(eh.instance)
+	labels[model.LabelName("agent_hostname")] = model.LabelValue(eh.instance)
+	for _, lbl := range eh.extraLabels {
+		labels[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
+	}
 
 	// we add these fields to the log line to reduce label bloat and cardinality
 	if obj.Kind != "" {

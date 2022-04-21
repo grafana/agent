@@ -10,11 +10,77 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Traces: Use `rpc.grpc.status_code` attribute to determine
+  span failed in the service graph processor (@rcrowe)
+
 ### Features
+
+- Add HTTP endpoints to fetch active instances and targets for the Logs subsystem.
+  (@marctc)
+  
+- (beta) Add support for using windows certificate store for TLS connections. (@mattdurham)
+
+- Grafana Agent Operator: add support for integrations through an `Integration`
+  CRD which is discovered by `GrafanaAgent`. (@rfratto)
 
 - (beta) Add app agent receiver integration. This depends on integrations-next being enabled
   via the `integrations-next` feature flag. Use `-enable-features=integrations-next` to use
   this integration. (@kpelelis, @domas)
+
+### Enhancements
+
+- integrations-next: Integrations using autoscrape will now autoscrape metrics
+  using in-memory connections instead of connecting to themselves over the
+  network. As a result of this change, the `client_config` field has been
+  removed. (@rfratto)
+
+-  `extra-scrape-metrics` can now be enabled with the `--enable-features=extra-scrape-metrics` feature flag. See https://prometheus.io/docs/prometheus/2.31/feature_flags/#extra-scrape-metrics for details. (@rlankfo)
+
+### Other changes
+
+- Update base image of official Docker containers from Debian buster to Debian
+  bullseye. (@rfratto)
+
+- Use Go 1.18 for builds. (@rfratto)
+
+- Add `metrics` prefix to the url of list instances endpoint (`GET
+  /agent/api/v1/instances`) and list targets endpoint (`GET
+  /agent/api/v1/metrics/targets`). (@marctc)
+
+- Add extra identifying labels (`job`, `instance`, `agent_hostname`) to eventhandler integration. (@hjet)
+
+- Add `extra_labels` configuration to eventhandler integration. (@hjet)
+
+v0.24.1 (2022-04-14)
+--------------------
+
+### Bugfixes
+
+- Add missing version information back into `agentctl --version`. (@rlankfo)
+
+- Bump version of github-exporter to latest upstream SHA 284088c21e7d, which
+  includes fixes from bugs found in their latest tag. This includes a fix
+  where not all releases where retrieved when pulling release information.
+  (@rfratto)
+
+- Set the `Content-Type` HTTP header to `application/json` for API endpoints
+  returning json objects. (@marctc)
+
+- Operator: fix issue where a `username_file` field was incorrectly set.
+  (@rfratto)
+
+- Initialize the logger with default `log_level` and `log_format` parameters.
+  (@tpaschalis)
+
+### Other changes
+
+- Embed timezone data to enable Promtail pipelines using the `location` field
+  on Windows machines. (@tpaschalis)
 
 v0.24.0 (2022-04-07)
 --------------------
@@ -110,6 +176,8 @@ v0.24.0 (2022-04-07)
 - Update OpenTelemetry-collector dependency to v0.46.0. (@mapno)
 
 - Update cAdvisor dependency to v0.44.0. (@rfratto)
+
+- Update mongodb_exporter dependency to v0.31.2 (@mukerjee)
 
 - Use grafana-agent/v2 Tanka Jsonnet to generate K8s manifests (@hjet)
 

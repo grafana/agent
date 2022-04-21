@@ -344,7 +344,7 @@ func (p *processor) consume(trace pdata.Traces) error {
 
 func (p *processor) spanFailed(span pdata.Span) bool {
 	// Request considered failed if status is not 2XX or added as a successful status code
-	if statusCode, ok := span.Attributes().Get("http.status_code"); ok {
+	if statusCode, ok := span.Attributes().Get(semconv.AttributeHTTPStatusCode); ok {
 		sc := int(statusCode.IntVal())
 		if _, ok := p.httpSuccessCodeMap[sc]; !ok && sc/100 != 2 {
 			return true
@@ -352,7 +352,7 @@ func (p *processor) spanFailed(span pdata.Span) bool {
 	}
 
 	// Request considered failed if status is not OK or added as a successful status code
-	if statusCode, ok := span.Attributes().Get("grpc.status_code"); ok {
+	if statusCode, ok := span.Attributes().Get(semconv.AttributeRPCGRPCStatusCode); ok {
 		sc := int(statusCode.IntVal())
 		if _, ok := p.grpcSuccessCodeMap[sc]; !ok && sc != int(codes.OK) {
 			return true

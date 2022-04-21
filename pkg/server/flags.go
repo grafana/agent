@@ -24,6 +24,8 @@ type Flags struct {
 type HTTPFlags struct {
 	UseTLS bool `yaml:"-"`
 
+	InMemoryAddr string `yaml:"-"`
+
 	ListenNetwork string `yaml:"http_listen_network"`
 	ListenAddress string `yaml:"-"` // host:port, takes precedence over ListenHost:ListenPort
 	ListenHost    string `yaml:"http_listen_address"`
@@ -47,6 +49,8 @@ func (f HTTPFlags) GetListenAddress() string {
 // GRPCFlags hold static configuration options for the gRPC server.
 type GRPCFlags struct {
 	UseTLS bool `yaml:"-"`
+
+	InMemoryAddr string `yaml:"-"`
 
 	ListenNetwork string `yaml:"grpc_listen_network"`
 	ListenAddress string `yaml:"-"` // host:port, takes precedence over ListenHost:ListenPort
@@ -88,6 +92,7 @@ var (
 	}
 
 	DefaultHTTPFlags = HTTPFlags{
+		InMemoryAddr:  "agent.internal:12345",
 		ListenNetwork: "tcp",
 		ListenHost:    "127.0.0.1",
 		ListenPort:    12345,
@@ -97,6 +102,7 @@ var (
 	}
 
 	DefaultGRPCFlags = GRPCFlags{
+		InMemoryAddr:          "agent.internal:12346",
 		ListenNetwork:         "tcp",
 		ListenHost:            "127.0.0.1",
 		ListenPort:            12346,
@@ -137,6 +143,7 @@ func (f *HTTPFlags) RegisterFlags(fs *flag.FlagSet) {
 	fs.DurationVar(&f.ReadTimeout, "server.http.read-timeout", d.ReadTimeout, "HTTP server read timeout")
 	fs.DurationVar(&f.WriteTimeout, "server.http.write-timeout", d.WriteTimeout, "HTTP server write timeout")
 	fs.DurationVar(&f.IdleTimeout, "server.http.idle-timeout", d.IdleTimeout, "HTTP server idle timeout")
+	fs.StringVar(&f.InMemoryAddr, "server.http.in-memory-addr", d.InMemoryAddr, "Address used to internally make in-memory requests to the HTTP server. Override if it collides with a real URL.")
 }
 
 // RegisterFlags registers flags for c to the given FlagSet.
@@ -157,4 +164,5 @@ func (f *GRPCFlags) RegisterFlags(fs *flag.FlagSet) {
 	fs.DurationVar(&f.KeepaliveTimeout, "server.grpc.keepalive.timeout", d.KeepaliveTimeout, "How long to wait for a keepalive pong before closing the connection")
 	fs.DurationVar(&f.MinTimeBetweenPings, "server.grpc.keepalive.min-time-between-pings", d.MinTimeBetweenPings, "Maximum frequency that clients may send pings at")
 	fs.BoolVar(&f.PingWithoutStreamAllowed, "server.grpc.keepalive.ping-without-stream-allowed", d.PingWithoutStreamAllowed, "Allow clients to send pings without having a gRPC stream")
+	fs.StringVar(&f.InMemoryAddr, "server.grpc.in-memory-addr", d.InMemoryAddr, "Address used to internally make in-memory requests to the gRPC server. Override if it collides with a real URL.")
 }

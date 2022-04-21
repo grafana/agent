@@ -3,7 +3,7 @@ package config
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -11,12 +11,12 @@ import (
 )
 
 func TestDeployment_AssetReferences(t *testing.T) {
-	deployment := Deployment{
-		Agent: &v1alpha1.GrafanaAgent{
+	deployment := gragent.Deployment{
+		Agent: &gragent.GrafanaAgent{
 			ObjectMeta: v1.ObjectMeta{
 				Namespace: "agent",
 			},
-			Spec: v1alpha1.GrafanaAgentSpec{
+			Spec: gragent.GrafanaAgentSpec{
 				APIServerConfig: &prom.APIServerConfig{
 					BasicAuth: &prom.BasicAuth{
 						Username: corev1.SecretKeySelector{
@@ -29,8 +29,8 @@ func TestDeployment_AssetReferences(t *testing.T) {
 				},
 			},
 		},
-		Metrics: []MetricsInstance{{
-			Instance: &v1alpha1.MetricsInstance{
+		Metrics: []gragent.MetricsDeployment{{
+			Instance: &gragent.MetricsInstance{
 				ObjectMeta: v1.ObjectMeta{Namespace: "metrics-instance"},
 			},
 			PodMonitors: []*prom.PodMonitor{{
@@ -80,5 +80,5 @@ func TestDeployment_AssetReferences(t *testing.T) {
 				},
 			},
 		},
-	}, deployment.AssetReferences())
+	}, AssetReferences(deployment))
 }

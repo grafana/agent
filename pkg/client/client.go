@@ -59,7 +59,7 @@ type prometheusClient struct {
 }
 
 func (c *prometheusClient) Instances(ctx context.Context) ([]string, error) {
-	url := fmt.Sprintf("%s/agent/api/v1/instances", c.addr)
+	url := fmt.Sprintf("%s/agent/api/v1/metrics/instances", c.addr)
 
 	resp, err := c.doRequest(ctx, "GET", url, nil)
 	if err != nil {

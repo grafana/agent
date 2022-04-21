@@ -43,7 +43,7 @@ metadata:
   labels:
     app: grafana-agent
 spec:
-  image: grafana/agent:v0.24.0
+  image: grafana/agent:v0.24.1
   logLevel: info
   serviceAccountName: grafana-agent
   metrics:
@@ -82,6 +82,7 @@ rules:
   - services
   - endpoints
   - pods
+  - events
   verbs:
   - get
   - list

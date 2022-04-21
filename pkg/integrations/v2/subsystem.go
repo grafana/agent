@@ -12,7 +12,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/metrics"
-	common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	http_sd "github.com/prometheus/prometheus/discovery/http"
 )
@@ -46,9 +45,6 @@ type SubsystemOptions struct {
 	// Configs are configurations of integration to create. Unmarshaled through
 	// the custom UnmarshalYAML method of Controller.
 	Configs Configs `yaml:"-"`
-
-	// Override settings to self-communicate with agent.
-	ClientConfig common_config.HTTPClientConfig `yaml:"client_config,omitempty"`
 }
 
 // MetricsSubsystemOptions controls how metrics integrations behave.
@@ -98,7 +94,7 @@ type Subsystem struct {
 // NewSubsystem creates and starts a new integrations Subsystem. Every field in
 // IntegrationOptions must be filled out.
 func NewSubsystem(l log.Logger, globals Globals) (*Subsystem, error) {
-	autoscraper := autoscrape.NewScraper(l, globals.Metrics.InstanceManager())
+	autoscraper := autoscrape.NewScraper(l, globals.Metrics.InstanceManager(), globals.DialContextFunc)
 
 	l = log.With(l, "component", "integrations")
 
@@ -164,7 +160,6 @@ func (s *Subsystem) ApplyConfig(globals Globals) error {
 	// Set up self-scraping
 	{
 		httpSDConfig := http_sd.DefaultSDConfig
-		httpSDConfig.HTTPClientConfig = globals.SubsystemOpts.ClientConfig
 		httpSDConfig.RefreshInterval = model.Duration(time.Second * 5) // TODO(rfratto): make configurable?
 
 		apiURL := globals.CloneAgentBaseURL()

@@ -105,11 +105,6 @@ func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (config.Inte
 		return config.IntegrationsGlobals{}, fmt.Errorf("getting hostname: %w", err)
 	}
 
-	scheme := "http"
-	if cfg.Server.Flags.HTTP.UseTLS {
-		scheme = "https"
-	}
-
 	var listenPort int
 	if ta, ok := ep.srv.HTTPAddress().(*net.TCPAddr); ok {
 		listenPort = ta.Port
@@ -121,9 +116,12 @@ func (ep *Entrypoint) createIntegrationsGlobals(cfg *config.Config) (config.Inte
 		Logs:            ep.lokiLogs,
 		Tracing:         ep.tempoTraces,
 		// TODO(rfratto): set SubsystemOptions here when v1 is removed.
+
+		// Configure integrations to connect to the agent's in-memory server and avoid the network.
+		DialContextFunc: ep.srv.DialContext,
 		AgentBaseURL: &url.URL{
-			Scheme: scheme,
-			Host:   fmt.Sprintf("127.0.0.1:%d", listenPort),
+			Scheme: "http",
+			Host:   cfg.Server.Flags.HTTP.InMemoryAddr,
 		},
 	}, nil
 }
@@ -185,6 +183,7 @@ func (ep *Entrypoint) wire(mux *mux.Router, grpc *grpc.Server) {
 	ep.promMetrics.WireGRPC(grpc)
 
 	ep.integrations.WireAPI(mux)
+	ep.lokiLogs.WireAPI(mux)
 
 	mux.HandleFunc("/-/healthy", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

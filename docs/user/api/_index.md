@@ -158,11 +158,12 @@ Response on success:
 
 ## Agent API
 
-### List current running instances
+### List current running instances of metrics subsystem
 
 ```
-GET /agent/api/v1/instances
+GET /agent/api/v1/metrics/instances
 ```
+*note:* deprecated alias is `/agent/api/v1/instances`
 
 Status code: 200 on success.
 Response on success:
@@ -176,14 +177,15 @@ Response on success:
 }
 ```
 
-### List current scrape targets
+### List current scrape targets of metrics subsystem
 
 ```
-GET /agent/api/v1/targets
+GET /agent/api/v1/metrics/targets
 ```
+*note:* deprecated alias is `/agent/api/v1/targets`
 
-This endpoint collects all targets known to the Agent across all running
-instances. Only targets being scraped from the local Agent will be returned. If
+This endpoint collects all metrics subsystem targets known to the Agent across all
+running instances. Only targets being scraped from the local Agent will be returned. If
 running in scraping service mode, this endpoint must be invoked in all Agents
 separately to get the combined set of targets across the whole Agent cluster.
 
@@ -244,6 +246,75 @@ metrics:
 Status code: 204 on success, 400 for bad requests related to the provided
 instance or POST payload format and content, 500 for cases where appending
 to the WAL failed.
+
+### List current running instances of logs subsystem
+
+```
+GET /agent/api/v1/logs/instances
+```
+
+Status code: 200 on success.
+Response on success:
+
+```
+{
+  "status": "success",
+  "data": [
+    <strings of instance names that are currently running>
+  ]
+}
+```
+
+### List current scrape targets of logs subsystem
+
+```
+GET /agent/api/v1/logs/targets
+```
+
+This endpoint collects all logs subsystem targets known to the Agent across 
+all running instances. Only targets being scraped from Promtail will be returned. 
+
+The `labels` fields shows the labels that will be added to metrics from the
+target, while the `discovered_labels` field shows all labels found during
+service discovery.
+
+Status code: 200 on success.
+Response on success:
+
+```
+{
+  "status": "success",
+  "data": [
+    {
+      "instance": "default",
+      "target_group": "varlogs",
+      "type": "File",
+      "labels": {
+        "job": "varlogs"
+      },
+      "discovered_labels": {
+        "__address__": "localhost",
+        "__path__": "/var/log/*log",
+        "job": "varlogs"
+      },
+      "ready": true,
+      "details": {
+        "/var/log/alternatives.log": 13386,
+        "/var/log/apport.log": 0,
+        "/var/log/auth.log": 37009,
+        "/var/log/bootstrap.log": 107347,
+        "/var/log/dpkg.log": 374420,
+        "/var/log/faillog": 0,
+        "/var/log/fontconfig.log": 11629,
+        "/var/log/gpu-manager.log": 1541,
+        "/var/log/kern.log": 782582,
+        "/var/log/lastlog": 0,
+        "/var/log/syslog": 788450
+      }
+    }
+  ]
+}
+```
 
 ### Reload configuration file (beta)
 
@@ -347,7 +418,7 @@ GET /agent/api/v1/metrics/integrations/targets
 ```
 
 This endpoint returns all integrations for which autoscrape is enabled. The
-response is identical to [`/agent/api/v1/targets`](#list-current-scrape-targets).
+response is identical to [`/agent/api/v1/metrics/targets`](#list-current-scrape-targets).
 
 Status code: 200 on success.
 Response on success:

@@ -37,6 +37,9 @@ original subsystem:
 * Integrations that aren't Prometheus exporters may now be added, such as
   integrations that generate logs or traces.
 
+* Autoscrape, when enabled, now works completely in-memory without using the
+  network.
+
 [http_sd_config]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#http_sd_config
 
 ## Config changes
@@ -66,16 +69,6 @@ integrations:
       # section of the top-level metrics config.
       [scrape_interval: <duration> | default = <metrics.global.scrape_interval>]
       [scrape_timeout: <duration> | default = <metrics.global.scrape_timeout>]
-
-  # Override settings for agent to self-communivate for autoscrape. This is
-  # currently required if you are using TLS for the agent server. This field is
-  # temporary and will be removed in the near future once autoscrape can work #
-  # without using the network.
-  #
-  # Settings are omitted for brevity, but the schema is from:
-  # https://github.com/prometheus/common/blob/2af6d036253eee1a9a08c6ddf6be6d67537bcdff/config/http_config.go#L177
-  client_config:
-    # <settings omitted>
 
   # Configs for integrations which do not support multiple instances.
   [agent: <agent_config>]

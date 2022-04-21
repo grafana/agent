@@ -32,11 +32,13 @@ var (
 	featRemoteConfigs    = features.Feature("remote-configs")
 	featIntegrationsNext = features.Feature("integrations-next")
 	featDynamicConfig    = features.Feature("dynamic-config")
+	featExtraMetrics     = features.Feature("extra-scrape-metrics")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
 		featIntegrationsNext,
 		featDynamicConfig,
+		featExtraMetrics,
 	}
 )
 
@@ -50,6 +52,7 @@ var (
 // DefaultConfig holds default settings for all the subsystems.
 var DefaultConfig = Config{
 	// All subsystems with a DefaultConfig should be listed here.
+	Server:                server.DefaultConfig,
 	Metrics:               metrics.DefaultConfig,
 	Integrations:          DefaultVersionedIntegrations,
 	EnableConfigEndpoints: false,
@@ -411,6 +414,10 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 
 	if err := cfg.Integrations.setVersion(version); err != nil {
 		return nil, fmt.Errorf("error loading config file %s: %w", file, err)
+	}
+
+	if features.Enabled(fs, featExtraMetrics) {
+		cfg.Metrics.Global.ExtraMetrics = true
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag
