@@ -36,7 +36,7 @@ var DefaultConfig = Config{
 	LogsSendTimeout: 2000,
 	SourceMaps: SourceMapConfig{
 		DownloadFromOrigins: []string{"*"},
-		DownloadTimeout:     time.Duration(time.Second),
+		DownloadTimeout:     time.Second,
 	},
 }
 
