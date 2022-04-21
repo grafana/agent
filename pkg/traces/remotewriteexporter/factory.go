@@ -10,6 +10,7 @@ import (
 
 const (
 	// TypeStr is the unique identifier for the Prometheus remote write exporter.
+	// TODO: Rename to walexporter (?). Remote write makes no sense, it appends to a WAL.
 	TypeStr = "remote_write"
 )
 

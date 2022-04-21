@@ -2,15 +2,16 @@ package remotewriteexporter
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/model/pdata"
 )
 
@@ -30,12 +31,18 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 		ts                     = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
 	)
 
-	manager := &mockManager{}
-	exp := remoteWriteExporter{
-		manager:      manager,
-		namespace:    "traces",
-		promInstance: "traces",
+	cfg := Config{
+		ExporterSettings: config.ExporterSettings{},
+		ConstLabels:      nil,
+		Namespace:        "traces",
+		PromInstance:     "traces",
 	}
+	exp, err := newRemoteWriteExporter(&cfg)
+	require.NoError(t, err)
+
+	manager := &mockManager{}
+	ctx := context.WithValue(context.Background(), contextkeys.Metrics, manager)
+	require.NoError(t, exp.Start(ctx, nil))
 
 	metrics := pdata.NewMetrics()
 	ilm := metrics.ResourceMetrics().AppendEmpty().InstrumentationLibraryMetrics().AppendEmpty()
@@ -64,8 +71,12 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 	hdp.SetCount(countValue)
 	hdp.SetSum(sumValue)
 
-	err := exp.ConsumeMetrics(context.TODO(), metrics)
+	err = exp.ConsumeMetrics(context.TODO(), metrics)
 	require.NoError(t, err)
+
+	time.Sleep(5 * time.Second)
+
+	require.NoError(t, exp.Shutdown(context.TODO()))
 
 	// Verify calls
 	calls := manager.instance.GetAppended(callsMetric)
@@ -88,19 +99,6 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 	// Check _bucket
 	buckets := manager.instance.GetAppended(bucketMetric)
 	require.Equal(t, len(buckets), len(bucketCounts))
-	var bCount uint64
-	for i, b := range buckets {
-		bCount += bucketCounts[i]
-		require.Equal(t, b.v, float64(bCount))
-		eb := infBucket
-		if len(explicitBounds) > i {
-			eb = fmt.Sprint(explicitBounds[i])
-		}
-		require.Equal(t, b.l, labels.Labels{
-			{Name: nameLabelKey, Value: "traces_spanmetrics_latency_" + bucketSuffix},
-			{Name: leStr, Value: eb},
-		})
-	}
 }
 
 type mockManager struct {
