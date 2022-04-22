@@ -81,7 +81,7 @@ type RealSourceMapStore struct {
 
 // NewSourceMapStore creates an instance of SourceMapStore.
 // httpClient and fileService will be instantiated to defaults if nil is provided
-func NewSourceMapStore(l log.Logger, config SourceMapConfig, reg *prometheus.Registry, httpClient httpClient, fileService fileService) SourceMapStore {
+func NewSourceMapStore(l log.Logger, config SourceMapConfig, reg prometheus.Registerer, httpClient httpClient, fileService fileService) SourceMapStore {
 	if httpClient == nil {
 		httpClient = &http.Client{
 			Timeout: config.DownloadTimeout,

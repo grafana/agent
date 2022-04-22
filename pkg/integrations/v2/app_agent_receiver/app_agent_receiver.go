@@ -24,7 +24,7 @@ type appAgentReceiverIntegration struct {
 	appAgentReceiverHandler AppAgentReceiverHandler
 	logger                  log.Logger
 	conf                    *Config
-	reg                     *prometheus.Registry
+	reg                     prometheus.Registerer
 
 	requestDurationCollector     *prometheus.HistogramVec
 	receivedMessageSizeCollector *prometheus.HistogramVec
@@ -45,9 +45,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	sourcemapLogger := log.With(l, "subcomponent", "sourcemaps")
 	sourcemapStore := NewSourceMapStore(sourcemapLogger, c.SourceMaps, reg, nil, nil)
 
-	receiverMetricsExporter := NewReceiverMetricsExporter(ReceiverMetricsExporterConfig{
-		Reg: reg,
-	})
+	receiverMetricsExporter := NewReceiverMetricsExporter(reg)
 
 	var exp = []appAgentReceiverExporter{
 		receiverMetricsExporter,

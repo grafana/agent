@@ -20,7 +20,7 @@ func testcase(t *testing.T, payload Payload, assertions []metricAssertion) {
 
 	reg := prometheus.NewRegistry()
 
-	exporter := NewReceiverMetricsExporter(ReceiverMetricsExporterConfig{Reg: reg})
+	exporter := NewReceiverMetricsExporter(reg)
 
 	err := exporter.Export(ctx, payload)
 	require.NoError(t, err)

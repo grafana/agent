@@ -29,7 +29,7 @@ type AppAgentReceiverHandler struct {
 }
 
 // NewAppAgentReceiverHandler creates a new AppReceiver instance based on the given configuration
-func NewAppAgentReceiverHandler(conf *Config, exporters []appAgentReceiverExporter, reg *prometheus.Registry) AppAgentReceiverHandler {
+func NewAppAgentReceiverHandler(conf *Config, exporters []appAgentReceiverExporter, reg prometheus.Registerer) AppAgentReceiverHandler {
 	var rateLimiter *rate.Limiter
 	if conf.Server.RateLimiting.Enabled {
 		var rps float64
