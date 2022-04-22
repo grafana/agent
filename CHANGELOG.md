@@ -28,6 +28,8 @@ Main (unreleased)
 - Grafana Agent Operator: add support for integrations through an `Integration`
   CRD which is discovered by `GrafanaAgent`. (@rfratto)
 
+- Add ability to configure agent to report to grafana.com the usage of feature flags (@marctc)
+
 ### Enhancements
 
 - integrations-next: Integrations using autoscrape will now autoscrape metrics

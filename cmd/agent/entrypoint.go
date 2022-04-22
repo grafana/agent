@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
+	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/oklog/run"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
@@ -42,6 +43,7 @@ type Entrypoint struct {
 	lokiLogs     *logs.Logs
 	tempoTraces  *traces.Traces
 	integrations config.Integrations
+	reporter     *usagestats.Reporter
 
 	reloadListener net.Listener
 	reloadServer   *http.Server
@@ -84,7 +86,13 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 	if err != nil {
 		return nil, err
 	}
+
 	ep.integrations, err = config.NewIntegrations(logger, &cfg.Integrations, integrationGlobals)
+	if err != nil {
+		return nil, err
+	}
+
+	ep.reporter, err = usagestats.NewReporter(logger, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -258,6 +266,7 @@ func (ep *Entrypoint) Stop() {
 	ep.mut.Lock()
 	defer ep.mut.Unlock()
 
+	ep.reporter.Service.StopAsync()
 	ep.integrations.Stop()
 	ep.lokiLogs.Stop()
 	ep.promMetrics.Stop()
