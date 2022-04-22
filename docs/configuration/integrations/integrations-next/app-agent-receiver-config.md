@@ -4,7 +4,7 @@ title = "app_agent_config"
 
 # app_agent_receiver_config
 
-The `app_agent_receiver_config` block configures the `app-agent-receiver`
+The `app_agent_receiver_config` block configures the `app_agent_receiver`
 integration. This integration exposes a http endpoint that can receive telemetry
 from the [Grafana Javascript Agent](https://github.com/grafana/grafana-javascript-agent)
 and forward it to logs, traces or metrics backends.
