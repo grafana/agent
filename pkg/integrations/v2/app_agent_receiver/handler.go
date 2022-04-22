@@ -15,6 +15,8 @@ import (
 	"golang.org/x/time/rate"
 )
 
+const apiKeyHeader = "x-api-key"
+
 type appAgentReceiverExporter interface {
 	Name() string
 	Export(ctx context.Context, payload Payload) error
@@ -76,7 +78,7 @@ func (ar *AppAgentReceiverHandler) HTTPHandler(logger log.Logger) http.Handler {
 		}
 
 		// check API key if one is provided
-		if len(ar.config.Server.APIKey) > 0 && subtle.ConstantTimeCompare([]byte(r.Header.Get("x-api-key")), []byte(ar.config.Server.APIKey)) == 0 {
+		if len(ar.config.Server.APIKey) > 0 && subtle.ConstantTimeCompare([]byte(r.Header.Get(apiKeyHeader)), []byte(ar.config.Server.APIKey)) == 0 {
 			http.Error(w, "api key not provided or incorrect", http.StatusUnauthorized)
 			return
 		}
@@ -115,7 +117,7 @@ func (ar *AppAgentReceiverHandler) HTTPHandler(logger log.Logger) http.Handler {
 	if len(ar.config.Server.CORSAllowedOrigins) > 0 {
 		c := cors.New(cors.Options{
 			AllowedOrigins: ar.config.Server.CORSAllowedOrigins,
-			AllowedHeaders: []string{"x-api-key", "content-type"},
+			AllowedHeaders: []string{apiKeyHeader, "content-type"},
 		})
 		handler = c.Handler(handler)
 	}
