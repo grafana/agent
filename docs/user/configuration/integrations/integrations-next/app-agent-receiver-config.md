@@ -90,8 +90,8 @@ Full reference of options:
 [download_timeout: <duration> | default = "1s"]
 
 # Sourcemap locations on filesystem. Takes precedence over downloading if both methods are enabled
-[filesystem:
-  [- <sourcemap_file_location>]]
+filesystem:
+  [- <sourcemap_file_location>]
 ```
 
 ## sourcemap_file_location
