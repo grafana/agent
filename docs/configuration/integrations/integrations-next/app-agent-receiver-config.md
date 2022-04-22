@@ -39,7 +39,7 @@ Full reference of options:
   # config with the instance defined
   [logs_instance: <string> | default = ""]
 
-  # Server config refres to the HTTP endpoint that the integration will be exposing
+  # Server config refers to the HTTP endpoint that the integration will be exposing
   # to receive data from.
   server:
     [host: <string> | default = "127.0.0.1"]
