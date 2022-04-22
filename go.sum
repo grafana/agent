@@ -2070,8 +2070,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/posener/complete v1.2.3/go.mod h1:WZIdtGGp+qx0sLrYKtIRAruyNpv6hFCicSgv7Sy7s/s=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
-github.com/prometheus-community/elasticsearch_exporter v1.2.1 h1:DF8ZFnq7WZoEpLij6Bqde7WU/mgKSlSecNsQpMoLTMM=
-github.com/prometheus-community/elasticsearch_exporter v1.2.1/go.mod h1:rGrEDV8B3GywqKLpLgOP4kHH+rvudGwWiLnje4WZeA0=
+github.com/prometheus-community/elasticsearch_exporter v1.3.0 h1:y0FudgaQwkQ0hMTFYFQLAY0nglX3M4u3uXapo2uKZxo=
+github.com/prometheus-community/elasticsearch_exporter v1.3.0/go.mod h1:ZCfbMXF45MdNDUIu2/w0+Lxuo6lWGbM/ZjBRN/K/WwA=
 github.com/prometheus-operator/prometheus-operator v0.55.0 h1:UMC9s5v8rK4ZyDsDKayEw3wOM5j2Z6HGtSUtFFh/R6Y=
 github.com/prometheus-operator/prometheus-operator v0.55.0/go.mod h1:iy6sS/Lq3HQq8ACsbI1D8k/i9H87SGJVg8lVVGHALy0=
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.55.0 h1:l4d6R3lZTiEZ644vTpcwk2d4OvL1xWpOe3auuD3lhgI=
@@ -2123,7 +2123,6 @@ github.com/prometheus/common v0.14.0/go.mod h1:U+gB1OBLb1lF3O42bTCL+FK18tX9Oar16
 github.com/prometheus/common v0.15.0/go.mod h1:U+gB1OBLb1lF3O42bTCL+FK18tX9Oar16Clt/msog/s=
 github.com/prometheus/common v0.18.0/go.mod h1:U+gB1OBLb1lF3O42bTCL+FK18tX9Oar16Clt/msog/s=
 github.com/prometheus/common v0.20.0/go.mod h1:U+gB1OBLb1lF3O42bTCL+FK18tX9Oar16Clt/msog/s=
-github.com/prometheus/common v0.25.0/go.mod h1:H6QK/N6XVT42whUeIdI3dp36w49c+/iMDk7UAI2qm7Q=
 github.com/prometheus/common v0.26.0/go.mod h1:M7rCNAaPfAosfx8veZJCuw84e35h3Cfd9VFqTh1DIvc=
 github.com/prometheus/common v0.28.0/go.mod h1:vu+V0TpY+O6vW9J44gczi3Ap/oXXR10b+M/gUGO4Hls=
 github.com/prometheus/common v0.29.0/go.mod h1:vu+V0TpY+O6vW9J44gczi3Ap/oXXR10b+M/gUGO4Hls=
