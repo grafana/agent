@@ -2074,8 +2074,8 @@ github.com/prometheus-community/elasticsearch_exporter v1.2.1 h1:DF8ZFnq7WZoEpLi
 github.com/prometheus-community/elasticsearch_exporter v1.2.1/go.mod h1:rGrEDV8B3GywqKLpLgOP4kHH+rvudGwWiLnje4WZeA0=
 github.com/prometheus-operator/prometheus-operator v0.55.0 h1:UMC9s5v8rK4ZyDsDKayEw3wOM5j2Z6HGtSUtFFh/R6Y=
 github.com/prometheus-operator/prometheus-operator v0.55.0/go.mod h1:iy6sS/Lq3HQq8ACsbI1D8k/i9H87SGJVg8lVVGHALy0=
-github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.55.0 h1:l4d6R3lZTiEZ644vTpcwk2d4OvL1xWpOe3auuD3lhgI=
-github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.55.0/go.mod h1:/xf16Bu3krDP6G5WhrJL9avDnLW/AN0g7hAIK63mbes=
+github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.56.0 h1:/6D2AT0Z+1299Xij2d+bcNmw4k6TMs6cwAhbtqdjTqQ=
+github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.56.0/go.mod h1:/xf16Bu3krDP6G5WhrJL9avDnLW/AN0g7hAIK63mbes=
 github.com/prometheus/alertmanager v0.23.0/go.mod h1:0MLTrjQI8EuVmvykEhcfr/7X0xmaDAZrqMgxIq3OXHk=
 github.com/prometheus/alertmanager v0.23.1-0.20210914172521-e35efbddb66a/go.mod h1:U7pGu+z7A9ZKhK8lq1MvIOp5GdVlZjwOYk+S0h3LSbA=
 github.com/prometheus/client_golang v0.0.0-20180209125602-c332b6f63c06/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
